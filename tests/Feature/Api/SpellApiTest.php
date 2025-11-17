@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Spell;
+use App\Models\SpellEffect;
 use App\Models\SpellSchool;
 use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -99,5 +100,79 @@ class SpellApiTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.name', 'Fireball');
+    }
+
+    public function test_spell_includes_effects_in_response(): void
+    {
+        $school = SpellSchool::first();
+        $source = Source::first();
+
+        $spell = Spell::create([
+            'name' => 'Magic Missile',
+            'level' => 1,
+            'spell_school_id' => $school->id,
+            'casting_time' => '1 action',
+            'range' => '120 feet',
+            'components' => 'V, S',
+            'duration' => 'Instantaneous',
+            'needs_concentration' => false,
+            'is_ritual' => false,
+            'description' => 'You create three glowing darts of magical force.',
+            'source_id' => $source->id,
+            'source_pages' => '257',
+        ]);
+
+        // Create spell effects
+        SpellEffect::create([
+            'spell_id' => $spell->id,
+            'effect_type' => 'damage',
+            'description' => 'Force damage per dart',
+            'dice_formula' => '1d4+1',
+            'base_value' => null,
+            'scaling_type' => 'spell_slot',
+            'min_character_level' => null,
+            'min_spell_slot' => 2,
+            'scaling_increment' => '1d4+1',
+        ]);
+
+        SpellEffect::create([
+            'spell_id' => $spell->id,
+            'effect_type' => 'scaling',
+            'description' => 'Additional darts per spell level',
+            'dice_formula' => null,
+            'base_value' => 1,
+            'scaling_type' => 'spell_slot',
+            'min_character_level' => null,
+            'min_spell_slot' => 2,
+            'scaling_increment' => null,
+        ]);
+
+        // Test the show endpoint
+        $response = $this->getJson("/api/v1/spells/{$spell->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'name',
+                    'effects' => [
+                        '*' => [
+                            'id',
+                            'effect_type',
+                            'description',
+                            'dice_formula',
+                            'base_value',
+                            'scaling_type',
+                            'min_character_level',
+                            'min_spell_slot',
+                            'scaling_increment',
+                        ]
+                    ]
+                ]
+            ])
+            ->assertJsonCount(2, 'data.effects')
+            ->assertJsonPath('data.effects.0.effect_type', 'damage')
+            ->assertJsonPath('data.effects.0.dice_formula', '1d4+1')
+            ->assertJsonPath('data.effects.1.effect_type', 'scaling');
     }
 }

@@ -34,8 +34,9 @@ class SpellXmlParser
 
         $isRitual = isset($element->ritual) && strtoupper((string) $element->ritual) === 'YES';
 
-        // Parse classes
+        // Parse classes (strip "School: X, " prefix if present)
         $classesString = (string) $element->classes;
+        $classesString = preg_replace('/^School:\s*[^,]+,\s*/', '', $classesString);
         $classes = array_map('trim', explode(',', $classesString));
 
         // Parse description and source from text elements

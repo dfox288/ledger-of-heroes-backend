@@ -125,4 +125,31 @@ XML;
         $this->assertEquals('PHB', $spells[0]['source_code']);
         $this->assertEquals('211', $spells[0]['source_pages']);
     }
+
+    public function test_strips_school_prefix_from_classes(): void
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <spell>
+        <name>Aid</name>
+        <level>2</level>
+        <school>A</school>
+        <time>1 action</time>
+        <range>30 feet</range>
+        <components>V, S, M</components>
+        <duration>8 hours</duration>
+        <classes>School: Abjuration, Cleric, Paladin</classes>
+        <text>Your spell bolsters your allies with toughness and resolve.</text>
+        <text>Source: Player's Handbook p. 211</text>
+    </spell>
+</compendium>
+XML;
+
+        $parser = new SpellXmlParser();
+        $spells = $parser->parse($xml);
+
+        $this->assertEquals(['Cleric', 'Paladin'], $spells[0]['classes']);
+        $this->assertNotContains('School: Abjuration', $spells[0]['classes']);
+    }
 }

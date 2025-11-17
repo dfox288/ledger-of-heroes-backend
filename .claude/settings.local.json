@@ -10,7 +10,10 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(docker-compose exec php php artisan test:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(docker-compose ps:*)",
+      "Bash(docker-compose exec php php artisan make:migration:*)",
+      "Bash(docker-compose exec:*)"
     ],
     "deny": [],
     "ask": []

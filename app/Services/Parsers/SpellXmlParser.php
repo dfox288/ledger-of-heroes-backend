@@ -46,6 +46,8 @@ class SpellXmlParser
 
         foreach ($element->text as $text) {
             $textContent = (string) $text;
+
+            // Check if this text contains a source citation
             if (preg_match('/Source:\s*([^p]+)\s*p\.\s*([\d,\s]+)/', $textContent, $matches)) {
                 // Extract source book name and pages
                 $sourceName = trim($matches[1]);
@@ -53,7 +55,13 @@ class SpellXmlParser
 
                 // Map source name to code
                 $sourceCode = $this->getSourceCode($sourceName);
-            } else {
+
+                // Remove the source line from the description, but keep the rest
+                $textContent = preg_replace('/\n*Source:\s*[^\n]+/', '', $textContent);
+            }
+
+            // Add the remaining text to description (even if we extracted source)
+            if (trim($textContent)) {
                 $description .= $textContent . "\n\n";
             }
         }

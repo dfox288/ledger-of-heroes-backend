@@ -2,6 +2,7 @@
 
 namespace App\Services\Importers;
 
+use App\Models\ClassModel;
 use App\Models\Spell;
 use App\Models\SpellSchool;
 use App\Models\Source;
@@ -47,9 +48,45 @@ class SpellImporter
             }
         }
 
-        // TODO: Import class associations in later tasks
+        // Import class associations
+        if (isset($spellData['classes']) && is_array($spellData['classes'])) {
+            $this->importClassAssociations($spell, $spellData['classes']);
+        }
 
         return $spell;
+    }
+
+    /**
+     * Import class associations for a spell.
+     * Extracts base class names and creates class_spells junction records.
+     *
+     * @param Spell $spell
+     * @param array $classNames Array of class names (may include subclasses in parentheses)
+     * @return void
+     */
+    private function importClassAssociations(Spell $spell, array $classNames): void
+    {
+        $classIds = [];
+
+        foreach ($classNames as $className) {
+            // Extract base class name (strip subclass in parentheses)
+            // "Fighter (Eldritch Knight)" → "Fighter"
+            // "Druid (Moon)" → "Druid"
+            $baseClassName = preg_replace('/\s*\([^)]+\)/', '', $className);
+            $baseClassName = trim($baseClassName);
+
+            // Find matching class in database
+            $class = ClassModel::where('name', $baseClassName)
+                ->whereNull('parent_class_id') // Only match base classes
+                ->first();
+
+            if ($class) {
+                $classIds[] = $class->id;
+            }
+        }
+
+        // Sync class associations (removes old associations, adds new ones)
+        $spell->classes()->sync($classIds);
     }
 
     public function importFromFile(string $filePath): int

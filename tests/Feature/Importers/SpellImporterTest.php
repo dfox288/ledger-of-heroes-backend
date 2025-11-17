@@ -88,5 +88,17 @@ class SpellImporterTest extends TestCase
             'description' => 'Fire damage',
             'dice_formula' => '8d6',
         ]);
+
+        // Verify class associations are created
+        $this->assertEquals(2, $spell->classes()->count());
+
+        $classNames = $spell->classes()->pluck('name')->toArray();
+        $this->assertContains('Wizard', $classNames);
+        $this->assertContains('Sorcerer', $classNames);
+
+        // Verify class_spells junction table entries
+        $this->assertDatabaseHas('class_spells', [
+            'spell_id' => $spell->id,
+        ]);
     }
 }

@@ -47,7 +47,7 @@ class Spell extends Model
 
     public function classes(): BelongsToMany
     {
-        return $this->belongsToMany(ClassModel::class, 'class_spells');
+        return $this->belongsToMany(ClassModel::class, 'class_spells', 'spell_id', 'class_id');
     }
 
     public function effects(): HasMany

@@ -156,9 +156,9 @@ class ClassesTableTest extends TestCase
         $phb = DB::table('sources')->where('code', 'PHB')->first();
 
         DB::table('classes')->insert([
-            'name' => 'Wizard',
+            'name' => 'Blood Hunter',
             'parent_class_id' => null,
-            'hit_die' => 6,
+            'hit_die' => 10,
             'description' => 'A scholarly magic-user...',
             'primary_ability' => 'Intelligence',
             'spellcasting_ability_id' => DB::table('ability_scores')->where('code', 'INT')->first()->id,
@@ -166,7 +166,7 @@ class ClassesTableTest extends TestCase
             'source_pages' => '112, 113, 114, 115, 116', // Multiple pages
         ]);
 
-        $wizard = DB::table('classes')->where('name', 'Wizard')->first();
-        $this->assertStringContainsString(',', $wizard->source_pages);
+        $bloodHunter = DB::table('classes')->where('name', 'Blood Hunter')->first();
+        $this->assertStringContainsString(',', $bloodHunter->source_pages);
     }
 }

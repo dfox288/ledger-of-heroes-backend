@@ -9,11 +9,19 @@ class DockerEnvironmentTest extends TestCase
 {
     public function test_database_connection_works(): void
     {
-        $this->assertTrue(DB::connection()->getPdo() !== null);
+        $connection = DB::connection();
+        $this->assertNotNull($connection->getPdo());
+
+        // Force actual query to verify connection
+        $result = $connection->select('SELECT 1 as test');
+        $this->assertNotEmpty($result);
     }
 
     public function test_php_version_is_correct(): void
     {
-        $this->assertGreaterThanOrEqual(8.4, (float) PHP_VERSION);
+        $this->assertTrue(
+            version_compare(PHP_VERSION, '8.4.0', '>='),
+            "PHP version must be >= 8.4.0, found: " . PHP_VERSION
+        );
     }
 }

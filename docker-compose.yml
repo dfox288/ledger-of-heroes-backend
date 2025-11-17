@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # PHP-FPM Service
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: dnd_importer_php
+    volumes:
+      - ./:/var/www/html
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - dnd_network
+    depends_on:
+      - mysql
+
+  # Nginx Service
+  nginx:
+    image: nginx:alpine
+    container_name: dnd_importer_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - dnd_network
+    depends_on:
+      - php
+
+  # MySQL Service
+  mysql:
+    image: mysql:8.0
+    container_name: dnd_importer_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: dnd_compendium
+      MYSQL_USER: dnd_user
+      MYSQL_PASSWORD: dnd_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - dnd_network
+    command: --default-authentication-plugin=mysql_native_password
+
+networks:
+  dnd_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local

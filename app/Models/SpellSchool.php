@@ -12,6 +12,7 @@ class SpellSchool extends Model
     protected $fillable = [
         'code',
         'name',
+        'description',
     ];
 
     // Relationships

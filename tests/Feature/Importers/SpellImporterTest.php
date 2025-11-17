@@ -3,6 +3,7 @@
 namespace Tests\Feature\Importers;
 
 use App\Models\Spell;
+use App\Models\SpellEffect;
 use App\Models\SpellSchool;
 use App\Models\Source;
 use App\Services\Importers\SpellImporter;
@@ -37,6 +38,18 @@ class SpellImporterTest extends TestCase
             'classes' => ['Wizard', 'Sorcerer'],
             'source_code' => 'PHB',
             'source_pages' => '241',
+            'effects' => [
+                [
+                    'effect_type' => 'damage',
+                    'description' => 'Fire damage',
+                    'dice_formula' => '8d6',
+                    'base_value' => null,
+                    'scaling_type' => 'spell_slot',
+                    'min_character_level' => null,
+                    'min_spell_slot' => 3,
+                    'scaling_increment' => '1d6',
+                ],
+            ],
         ];
 
         $importer = new SpellImporter();
@@ -55,6 +68,25 @@ class SpellImporterTest extends TestCase
             'name' => 'Fireball',
             'level' => 3,
             'source_id' => $source->id,
+        ]);
+
+        // Verify spell effects are imported
+        $this->assertEquals(1, $spell->effects()->count());
+
+        $effect = $spell->effects()->first();
+        $this->assertInstanceOf(SpellEffect::class, $effect);
+        $this->assertEquals('damage', $effect->effect_type);
+        $this->assertEquals('Fire damage', $effect->description);
+        $this->assertEquals('8d6', $effect->dice_formula);
+        $this->assertEquals('spell_slot', $effect->scaling_type);
+        $this->assertEquals(3, $effect->min_spell_slot);
+        $this->assertEquals('1d6', $effect->scaling_increment);
+
+        $this->assertDatabaseHas('spell_effects', [
+            'spell_id' => $spell->id,
+            'effect_type' => 'damage',
+            'description' => 'Fire damage',
+            'dice_formula' => '8d6',
         ]);
     }
 }

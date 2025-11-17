@@ -17,11 +17,13 @@ class SpellEffectsTableTest extends TestCase
         $this->assertTrue(Schema::hasColumn('spell_effects', 'id'));
         $this->assertTrue(Schema::hasColumn('spell_effects', 'spell_id'));
         $this->assertTrue(Schema::hasColumn('spell_effects', 'effect_type'));
-        $this->assertTrue(Schema::hasColumn('spell_effects', 'damage_dice'));
-        $this->assertTrue(Schema::hasColumn('spell_effects', 'damage_type_id'));
-        $this->assertTrue(Schema::hasColumn('spell_effects', 'save_ability_id'));
-        $this->assertTrue(Schema::hasColumn('spell_effects', 'save_effect'));
         $this->assertTrue(Schema::hasColumn('spell_effects', 'description'));
+        $this->assertTrue(Schema::hasColumn('spell_effects', 'dice_formula'));
+        $this->assertTrue(Schema::hasColumn('spell_effects', 'base_value'));
+        $this->assertTrue(Schema::hasColumn('spell_effects', 'scaling_type'));
+        $this->assertTrue(Schema::hasColumn('spell_effects', 'min_character_level'));
+        $this->assertTrue(Schema::hasColumn('spell_effects', 'min_spell_slot'));
+        $this->assertTrue(Schema::hasColumn('spell_effects', 'scaling_increment'));
     }
 
     public function test_spell_effects_table_does_not_have_timestamps(): void
@@ -34,8 +36,6 @@ class SpellEffectsTableTest extends TestCase
     {
         $phb = DB::table('sources')->where('code', 'PHB')->first();
         $evocation = DB::table('spell_schools')->where('code', 'EV')->first();
-        $fire = DB::table('damage_types')->where('name', 'Fire')->first();
-        $dex = DB::table('ability_scores')->where('code', 'DEX')->first();
 
         // Create Fireball spell
         DB::table('spells')->insert([
@@ -60,20 +60,23 @@ class SpellEffectsTableTest extends TestCase
         DB::table('spell_effects')->insert([
             'spell_id' => $fireball->id,
             'effect_type' => 'damage',
-            'damage_dice' => '8d6',
-            'damage_type_id' => $fire->id,
-            'save_ability_id' => $dex->id,
-            'save_effect' => 'half damage',
             'description' => 'Fire damage in 20-foot radius',
+            'dice_formula' => '8d6',
+            'base_value' => null,
+            'scaling_type' => 'spell_slot',
+            'min_character_level' => null,
+            'min_spell_slot' => 3,
+            'scaling_increment' => '1d6',
         ]);
 
         $effect = DB::table('spell_effects')->where('spell_id', $fireball->id)->first();
 
         $this->assertEquals('damage', $effect->effect_type);
-        $this->assertEquals('8d6', $effect->damage_dice);
-        $this->assertEquals($fire->id, $effect->damage_type_id);
-        $this->assertEquals($dex->id, $effect->save_ability_id);
-        $this->assertEquals('half damage', $effect->save_effect);
+        $this->assertEquals('Fire damage in 20-foot radius', $effect->description);
+        $this->assertEquals('8d6', $effect->dice_formula);
+        $this->assertEquals('spell_slot', $effect->scaling_type);
+        $this->assertEquals(3, $effect->min_spell_slot);
+        $this->assertEquals('1d6', $effect->scaling_increment);
     }
 
     public function test_spell_effects_can_track_healing_spell(): void
@@ -99,30 +102,32 @@ class SpellEffectsTableTest extends TestCase
 
         $cureWounds = DB::table('spells')->where('name', 'Cure Wounds')->first();
 
-        // Add healing effect (no damage type, no save)
+        // Add healing effect
         DB::table('spell_effects')->insert([
             'spell_id' => $cureWounds->id,
             'effect_type' => 'healing',
-            'damage_dice' => '1d8+modifier',
-            'damage_type_id' => null, // Healing doesn't have damage type
-            'save_ability_id' => null, // No save
-            'save_effect' => null,
             'description' => 'Restores hit points',
+            'dice_formula' => '1d8',
+            'base_value' => null,
+            'scaling_type' => 'spell_slot',
+            'min_character_level' => null,
+            'min_spell_slot' => 1,
+            'scaling_increment' => '1d8',
         ]);
 
         $effect = DB::table('spell_effects')->where('spell_id', $cureWounds->id)->first();
 
         $this->assertEquals('healing', $effect->effect_type);
-        $this->assertEquals('1d8+modifier', $effect->damage_dice);
-        $this->assertNull($effect->damage_type_id);
-        $this->assertNull($effect->save_ability_id);
+        $this->assertEquals('Restores hit points', $effect->description);
+        $this->assertEquals('1d8', $effect->dice_formula);
+        $this->assertEquals('spell_slot', $effect->scaling_type);
+        $this->assertEquals('1d8', $effect->scaling_increment);
     }
 
     public function test_spell_effects_can_track_control_spell(): void
     {
         $phb = DB::table('sources')->where('code', 'PHB')->first();
         $enchantment = DB::table('spell_schools')->where('code', 'EN')->first();
-        $wisdom = DB::table('ability_scores')->where('code', 'WIS')->first();
 
         // Create Hold Person spell
         DB::table('spells')->insert([
@@ -147,28 +152,27 @@ class SpellEffectsTableTest extends TestCase
         DB::table('spell_effects')->insert([
             'spell_id' => $holdPerson->id,
             'effect_type' => 'control',
-            'damage_dice' => null, // No damage
-            'damage_type_id' => null,
-            'save_ability_id' => $wisdom->id,
-            'save_effect' => 'negates',
             'description' => 'Target is paralyzed',
+            'dice_formula' => null,
+            'base_value' => null,
+            'scaling_type' => null,
+            'min_character_level' => null,
+            'min_spell_slot' => null,
+            'scaling_increment' => null,
         ]);
 
         $effect = DB::table('spell_effects')->where('spell_id', $holdPerson->id)->first();
 
         $this->assertEquals('control', $effect->effect_type);
-        $this->assertNull($effect->damage_dice);
-        $this->assertNull($effect->damage_type_id);
-        $this->assertEquals($wisdom->id, $effect->save_ability_id);
-        $this->assertEquals('negates', $effect->save_effect);
+        $this->assertEquals('Target is paralyzed', $effect->description);
+        $this->assertNull($effect->dice_formula);
+        $this->assertNull($effect->scaling_type);
     }
 
     public function test_spell_can_have_multiple_effects(): void
     {
         $phb = DB::table('sources')->where('code', 'PHB')->first();
         $evocation = DB::table('spell_schools')->where('code', 'EV')->first();
-        $fire = DB::table('damage_types')->where('name', 'Fire')->first();
-        $dex = DB::table('ability_scores')->where('code', 'DEX')->first();
 
         // Create Flame Strike spell (has both fire and radiant damage)
         DB::table('spells')->insert([
@@ -188,28 +192,31 @@ class SpellEffectsTableTest extends TestCase
         ]);
 
         $flameStrike = DB::table('spells')->where('name', 'Flame Strike')->first();
-        $radiant = DB::table('damage_types')->where('name', 'Radiant')->first();
 
         // Add fire damage effect
         DB::table('spell_effects')->insert([
             'spell_id' => $flameStrike->id,
             'effect_type' => 'damage',
-            'damage_dice' => '4d6',
-            'damage_type_id' => $fire->id,
-            'save_ability_id' => $dex->id,
-            'save_effect' => 'half damage',
             'description' => 'Fire damage component',
+            'dice_formula' => '4d6',
+            'base_value' => null,
+            'scaling_type' => 'spell_slot',
+            'min_character_level' => null,
+            'min_spell_slot' => 5,
+            'scaling_increment' => '1d6',
         ]);
 
         // Add radiant damage effect
         DB::table('spell_effects')->insert([
             'spell_id' => $flameStrike->id,
             'effect_type' => 'damage',
-            'damage_dice' => '4d6',
-            'damage_type_id' => $radiant->id,
-            'save_ability_id' => $dex->id,
-            'save_effect' => 'half damage',
             'description' => 'Radiant damage component',
+            'dice_formula' => '4d6',
+            'base_value' => null,
+            'scaling_type' => 'spell_slot',
+            'min_character_level' => null,
+            'min_spell_slot' => 5,
+            'scaling_increment' => '1d6',
         ]);
 
         $effects = DB::table('spell_effects')
@@ -218,10 +225,12 @@ class SpellEffectsTableTest extends TestCase
 
         $this->assertCount(2, $effects);
 
-        $fireEffect = $effects->firstWhere('damage_type_id', $fire->id);
-        $radiantEffect = $effects->firstWhere('damage_type_id', $radiant->id);
+        $fireEffect = $effects->firstWhere('description', 'Fire damage component');
+        $radiantEffect = $effects->firstWhere('description', 'Radiant damage component');
 
-        $this->assertEquals('4d6', $fireEffect->damage_dice);
-        $this->assertEquals('4d6', $radiantEffect->damage_dice);
+        $this->assertEquals('4d6', $fireEffect->dice_formula);
+        $this->assertEquals('4d6', $radiantEffect->dice_formula);
+        $this->assertEquals('spell_slot', $fireEffect->scaling_type);
+        $this->assertEquals('spell_slot', $radiantEffect->scaling_type);
     }
 }

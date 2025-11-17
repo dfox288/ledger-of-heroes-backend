@@ -37,7 +37,17 @@ class SpellImporter
             ]
         );
 
-        // TODO: Import class associations and spell effects in later tasks
+        // Delete existing effects (for re-imports)
+        $spell->effects()->delete();
+
+        // Import spell effects
+        if (isset($spellData['effects'])) {
+            foreach ($spellData['effects'] as $effectData) {
+                $spell->effects()->create($effectData);
+            }
+        }
+
+        // TODO: Import class associations in later tasks
 
         return $spell;
     }

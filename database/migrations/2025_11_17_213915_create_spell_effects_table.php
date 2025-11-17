@@ -15,11 +15,13 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('spell_id'); // FK to spells
             $table->string('effect_type', 50); // "damage", "healing", "buff", "debuff", "control", etc.
-            $table->string('damage_dice', 50)->nullable(); // "1d6", "8d6", etc.
-            $table->unsignedBigInteger('damage_type_id')->nullable(); // FK to damage_types
-            $table->unsignedBigInteger('save_ability_id')->nullable(); // FK to ability_scores (DEX save, WIS save, etc.)
-            $table->string('save_effect', 100)->nullable(); // "half damage", "negates", etc.
             $table->text('description')->nullable(); // Additional effect details
+            $table->string('dice_formula', 50)->nullable(); // "1d6", "8d6", etc.
+            $table->integer('base_value')->nullable(); // Base value for effects without dice
+            $table->string('scaling_type', 50)->nullable(); // "character_level", "spell_slot", "none"
+            $table->integer('min_character_level')->nullable(); // Minimum character level for scaling
+            $table->integer('min_spell_slot')->nullable(); // Minimum spell slot level
+            $table->string('scaling_increment', 50)->nullable(); // How the effect scales (e.g., "1d6", "+1")
 
             // Foreign keys
             $table->foreign('spell_id')
@@ -27,20 +29,9 @@ return new class extends Migration
                   ->on('spells')
                   ->onDelete('cascade');
 
-            $table->foreign('damage_type_id')
-                  ->references('id')
-                  ->on('damage_types')
-                  ->onDelete('restrict');
-
-            $table->foreign('save_ability_id')
-                  ->references('id')
-                  ->on('ability_scores')
-                  ->onDelete('restrict');
-
             // Indexes
             $table->index('spell_id');
             $table->index('effect_type');
-            $table->index('damage_type_id');
 
             // NO timestamps
         });

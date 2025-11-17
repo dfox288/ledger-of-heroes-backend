@@ -39,7 +39,7 @@ class SpellSchoolsMigrationTest extends TestCase
         $this->assertEquals('Abjuration', $schools['A']);
         $this->assertEquals('Conjuration', $schools['C']);
         $this->assertEquals('Divination', $schools['D']);
-        $this->assertEquals('Enchantment', $schools['E']);
+        $this->assertEquals('Enchantment', $schools['EN']);
         $this->assertEquals('Evocation', $schools['EV']);
         $this->assertEquals('Illusion', $schools['I']);
         $this->assertEquals('Necromancy', $schools['N']);

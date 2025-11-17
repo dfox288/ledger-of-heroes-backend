@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('spell_schools', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 2)->unique(); // A, C, D, E, EV, I, N, T
+            $table->string('code', 2)->unique(); // A, C, D, EN, EV, I, N, T
             $table->string('name', 50); // Abjuration, Conjuration, etc.
             $table->timestamps();
         });
@@ -24,7 +24,7 @@ return new class extends Migration
             ['code' => 'A', 'name' => 'Abjuration'],
             ['code' => 'C', 'name' => 'Conjuration'],
             ['code' => 'D', 'name' => 'Divination'],
-            ['code' => 'E', 'name' => 'Enchantment'],
+            ['code' => 'EN', 'name' => 'Enchantment'],
             ['code' => 'EV', 'name' => 'Evocation'],
             ['code' => 'I', 'name' => 'Illusion'],
             ['code' => 'N', 'name' => 'Necromancy'],

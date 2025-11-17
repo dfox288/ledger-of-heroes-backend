@@ -78,9 +78,20 @@ class Spell extends Model
 
     public function scopeSearch($query, $searchTerm)
     {
-        return $query->whereRaw(
-            "MATCH(name, description) AGAINST(? IN NATURAL LANGUAGE MODE)",
-            [$searchTerm]
-        );
+        $driver = $query->getConnection()->getDriverName();
+
+        if ($driver === 'mysql') {
+            // Use FULLTEXT search for MySQL
+            return $query->whereRaw(
+                "MATCH(name, description) AGAINST(? IN NATURAL LANGUAGE MODE)",
+                [$searchTerm]
+            );
+        }
+
+        // Fallback to LIKE search for other databases (e.g., SQLite for testing)
+        return $query->where(function ($q) use ($searchTerm) {
+            $q->where('name', 'LIKE', "%{$searchTerm}%")
+              ->orWhere('description', 'LIKE', "%{$searchTerm}%");
+        });
     }
 }

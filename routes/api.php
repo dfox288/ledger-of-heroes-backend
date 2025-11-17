@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AbilityScoreController;
 use App\Http\Controllers\Api\SkillController;
 use App\Http\Controllers\Api\ItemTypeController;
 use App\Http\Controllers\Api\ItemPropertyController;
+use App\Http\Controllers\Api\SpellController;
 use Illuminate\Support\Facades\Route;
 
 // Temporary test route for CORS testing
@@ -25,4 +26,7 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('skills', SkillController::class)->only(['index', 'show']);
     Route::apiResource('item-types', ItemTypeController::class)->only(['index', 'show']);
     Route::apiResource('item-properties', ItemPropertyController::class)->only(['index', 'show']);
+
+    // Spells
+    Route::apiResource('spells', SpellController::class)->only(['index', 'show']);
 });

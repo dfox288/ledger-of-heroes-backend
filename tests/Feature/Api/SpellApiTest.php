@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\ClassModel;
 use App\Models\Spell;
 use App\Models\SpellEffect;
 use App\Models\SpellSchool;
@@ -174,5 +175,71 @@ class SpellApiTest extends TestCase
             ->assertJsonPath('data.effects.0.effect_type', 'damage')
             ->assertJsonPath('data.effects.0.dice_formula', '1d4+1')
             ->assertJsonPath('data.effects.1.effect_type', 'scaling');
+    }
+
+    public function test_spell_includes_classes_in_response(): void
+    {
+        $school = SpellSchool::first();
+        $source = Source::first();
+
+        // Create classes
+        $wizard = ClassModel::create([
+            'name' => 'Wizard',
+            'hit_die' => 6,
+            'description' => 'A scholarly magic-user capable of manipulating the structures of reality.',
+            'source_id' => $source->id,
+            'source_pages' => '112',
+        ]);
+
+        $sorcerer = ClassModel::create([
+            'name' => 'Sorcerer',
+            'hit_die' => 6,
+            'description' => 'A spellcaster who draws on inherent magic from a gift or bloodline.',
+            'source_id' => $source->id,
+            'source_pages' => '99',
+        ]);
+
+        // Create a spell
+        $spell = Spell::create([
+            'name' => 'Fireball',
+            'level' => 3,
+            'spell_school_id' => $school->id,
+            'casting_time' => '1 action',
+            'range' => '150 feet',
+            'components' => 'V, S, M',
+            'duration' => 'Instantaneous',
+            'needs_concentration' => false,
+            'is_ritual' => false,
+            'description' => 'A bright streak flashes from your pointing finger...',
+            'source_id' => $source->id,
+            'source_pages' => '241',
+        ]);
+
+        // Associate spell with classes
+        $spell->classes()->attach([$wizard->id, $sorcerer->id]);
+
+        // Test the show endpoint
+        $response = $this->getJson("/api/v1/spells/{$spell->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'name',
+                    'classes' => [
+                        '*' => [
+                            'id',
+                            'name',
+                            'hit_die',
+                            'description',
+                        ]
+                    ]
+                ]
+            ])
+            ->assertJsonCount(2, 'data.classes')
+            ->assertJsonPath('data.classes.0.name', 'Wizard')
+            ->assertJsonPath('data.classes.0.hit_die', 6)
+            ->assertJsonPath('data.classes.1.name', 'Sorcerer')
+            ->assertJsonPath('data.classes.1.hit_die', 6);
     }
 }

@@ -34,6 +34,7 @@ class SpellResource extends JsonResource
             ],
             'source_pages' => $this->source_pages,
             'effects' => SpellEffectResource::collection($this->whenLoaded('effects')),
+            'classes' => ClassResource::collection($this->whenLoaded('classes')),
         ];
     }
 }

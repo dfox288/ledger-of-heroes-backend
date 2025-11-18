@@ -3,6 +3,7 @@
 namespace App\Services\Importers;
 
 use App\Models\AbilityScore;
+use App\Models\EntitySource;
 use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Models\Race;
@@ -20,9 +21,6 @@ class RaceImporter
         // Lookup size by code
         $size = Size::where('code', $raceData['size_code'])->firstOrFail();
 
-        // Lookup source by code
-        $source = Source::where('code', $raceData['source_code'])->firstOrFail();
-
         // If this is a subrace, ensure base race exists first
         $parentRaceId = null;
         if (!empty($raceData['base_race_name'])) {
@@ -30,13 +28,12 @@ class RaceImporter
                 $raceData['base_race_name'],
                 $raceData['size_code'],
                 $raceData['speed'],
-                $raceData['source_code'],
-                $raceData['source_pages']
+                $raceData['sources']
             );
             $parentRaceId = $baseRace->id;
         }
 
-        // Create or update race
+        // Create or update race (no longer storing source_id/source_pages directly)
         $race = Race::updateOrCreate(
             [
                 'name' => $raceData['name'],
@@ -45,10 +42,13 @@ class RaceImporter
             [
                 'size_id' => $size->id,
                 'speed' => $raceData['speed'],
-                'source_id' => $source->id,
-                'source_pages' => $raceData['source_pages'],
             ]
         );
+
+        // Import sources - clear old sources and create new ones
+        if (isset($raceData['sources']) && is_array($raceData['sources'])) {
+            $this->importSources($race, $raceData['sources']);
+        }
 
         // Import traits (clear old ones first)
         $this->importTraits($race, $raceData['traits'] ?? []);
@@ -65,6 +65,30 @@ class RaceImporter
         $this->importRandomTablesFromTraits($race, $raceData['traits'] ?? []);
 
         return $race;
+    }
+
+    /**
+     * Import sources for a race.
+     * Creates entity_sources junction records for each source.
+     */
+    private function importSources(Race $race, array $sources): void
+    {
+        // Clear existing sources
+        $race->sources()->delete();
+
+        // Create new source associations
+        foreach ($sources as $sourceData) {
+            $source = Source::where('code', $sourceData['code'])->first();
+
+            if ($source) {
+                EntitySource::create([
+                    'reference_type' => Race::class,
+                    'reference_id' => $race->id,
+                    'source_id' => $source->id,
+                    'pages' => $sourceData['pages'] ?? null,
+                ]);
+            }
+        }
     }
 
     private function importTraits(Race $race, array $traitsData): void
@@ -145,8 +169,7 @@ class RaceImporter
         string $baseRaceName,
         string $sizeCode,
         int $speed,
-        string $sourceCode,
-        string $sourcePages
+        array $sources
     ): Race {
         // Check if base race already exists
         $existing = Race::where('name', $baseRaceName)
@@ -159,16 +182,18 @@ class RaceImporter
 
         // Create base race with minimal data
         $size = Size::where('code', $sizeCode)->firstOrFail();
-        $source = Source::where('code', $sourceCode)->firstOrFail();
 
-        return Race::create([
+        $baseRace = Race::create([
             'name' => $baseRaceName,
             'size_id' => $size->id,
             'speed' => $speed,
-            'source_id' => $source->id,
-            'source_pages' => $sourcePages,
             'parent_race_id' => null,
         ]);
+
+        // Create source associations for base race
+        $this->importSources($baseRace, $sources);
+
+        return $baseRace;
     }
 
     private function importProficiencies(Race $race, array $proficienciesData): void

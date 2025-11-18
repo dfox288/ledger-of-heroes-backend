@@ -54,6 +54,12 @@ class RaceXmlParser
         // Parse proficiencies
         $proficiencies = $this->parseProficiencies($element);
 
+        // Convert single source to sources array for consistency
+        $sources = [[
+            'code' => $sourceCode,
+            'pages' => $sourcePages,
+        ]];
+
         return [
             'name' => $raceName,
             'base_race_name' => $baseRaceName,
@@ -61,8 +67,7 @@ class RaceXmlParser
             'speed' => (int) $element->speed,
             'traits' => $traits,
             'ability_bonuses' => $abilityBonuses,
-            'source_code' => $sourceCode,
-            'source_pages' => $sourcePages,
+            'sources' => $sources,
             'proficiencies' => $proficiencies,
         ];
     }

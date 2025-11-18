@@ -48,6 +48,9 @@ class RaceXmlParser
             }
         }
 
+        // Parse ability bonuses
+        $abilityBonuses = $this->parseAbilityBonuses($element);
+
         // Parse proficiencies
         $proficiencies = $this->parseProficiencies($element);
 
@@ -57,6 +60,7 @@ class RaceXmlParser
             'size_code' => (string) $element->size,
             'speed' => (int) $element->speed,
             'traits' => $traits,
+            'ability_bonuses' => $abilityBonuses,
             'source_code' => $sourceCode,
             'source_pages' => $sourcePages,
             'proficiencies' => $proficiencies,
@@ -82,6 +86,32 @@ class RaceXmlParser
         }
 
         return $traits;
+    }
+
+    private function parseAbilityBonuses(SimpleXMLElement $element): array
+    {
+        $bonuses = [];
+
+        if (!isset($element->ability)) {
+            return $bonuses;
+        }
+
+        $abilityText = (string) $element->ability;
+
+        // Parse format: "Str +2, Cha +1"
+        $parts = array_map('trim', explode(',', $abilityText));
+
+        foreach ($parts as $part) {
+            // Match "Str +2" or "Dex +1"
+            if (preg_match('/^([A-Za-z]{3})\s*([+-]\d+)$/', $part, $matches)) {
+                $bonuses[] = [
+                    'ability' => $matches[1],
+                    'value' => $matches[2],
+                ];
+            }
+        }
+
+        return $bonuses;
     }
 
     private function parseProficiencies(SimpleXMLElement $element): array

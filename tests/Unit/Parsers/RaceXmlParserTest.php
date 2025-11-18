@@ -413,4 +413,36 @@ XML;
         $this->assertEquals('Languages', $races[0]['traits'][2]['name']);
         $this->assertNull($races[0]['traits'][2]['category']);
     }
+
+    /** @test */
+    public function it_parses_ability_score_bonuses()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dragonborn</name>
+    <size>M</size>
+    <speed>30</speed>
+    <ability>Str +2, Cha +1</ability>
+    <trait category="description">
+      <name>Description</name>
+      <text>Born of dragons.
+Source: Player's Handbook (2014) p. 32</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('ability_bonuses', $races[0]);
+        $this->assertCount(2, $races[0]['ability_bonuses']);
+
+        $this->assertEquals('Str', $races[0]['ability_bonuses'][0]['ability']);
+        $this->assertEquals('+2', $races[0]['ability_bonuses'][0]['value']);
+
+        $this->assertEquals('Cha', $races[0]['ability_bonuses'][1]['ability']);
+        $this->assertEquals('+1', $races[0]['ability_bonuses'][1]['value']);
+    }
 }

@@ -16,6 +16,7 @@ class ItemAbilityResource extends JsonResource
             'spell_id' => $this->spell_id,
             'name' => $this->name,
             'description' => $this->description,
+            'roll_formula' => $this->roll_formula,
             'charges_cost' => $this->charges_cost,
             'usage_limit' => $this->usage_limit,
             'save_dc' => $this->save_dc,

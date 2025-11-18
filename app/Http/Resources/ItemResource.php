@@ -37,6 +37,7 @@ class ItemResource extends JsonResource
             'abilities' => ItemAbilityResource::collection($this->whenLoaded('abilities')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'proficiencies' => ProficiencyResource::collection($this->whenLoaded('proficiencies')),
+            'modifiers' => ModifierResource::collection($this->whenLoaded('modifiers')),
         ];
     }
 }

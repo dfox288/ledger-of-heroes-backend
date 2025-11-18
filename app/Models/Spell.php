@@ -81,11 +81,8 @@ class Spell extends Model
         $driver = $query->getConnection()->getDriverName();
 
         if ($driver === 'mysql') {
-            // Use FULLTEXT search for MySQL
-            return $query->whereRaw(
-                "MATCH(name, description) AGAINST(? IN NATURAL LANGUAGE MODE)",
-                [$searchTerm]
-            );
+            // Search name with LIKE (prioritizes name matches)
+            return $query->where('name', 'LIKE', "%{$searchTerm}%");
         }
 
         // Fallback to LIKE search for other databases (e.g., SQLite for testing)

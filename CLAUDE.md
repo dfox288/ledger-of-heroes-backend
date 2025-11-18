@@ -57,3 +57,10 @@ When adding or modifying D&D content:
 - Include page references in source citations
 - Use standard school abbreviations for spells (A=Abjuration, C=Conjuration, etc.)
 - Format class lists and tables using proper spacing and bullet points
+
+## Development Environment
+
+This project runs in Docker containers. When executing PHP commands:
+- Always use `docker compose exec php` prefix for PHP/Artisan commands
+- Example: `docker compose exec php php artisan test`
+- Example: `docker compose exec php php artisan migrate`

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\SkillController;
 use App\Http\Controllers\Api\ItemTypeController;
 use App\Http\Controllers\Api\ItemPropertyController;
 use App\Http\Controllers\Api\SpellController;
+use App\Http\Controllers\Api\RaceController;
 use Illuminate\Support\Facades\Route;
 
 // Temporary test route for CORS testing
@@ -29,4 +30,7 @@ Route::prefix('v1')->group(function () {
 
     // Spells
     Route::apiResource('spells', SpellController::class)->only(['index', 'show']);
+
+    // Races
+    Route::apiResource('races', RaceController::class)->only(['index', 'show']);
 });

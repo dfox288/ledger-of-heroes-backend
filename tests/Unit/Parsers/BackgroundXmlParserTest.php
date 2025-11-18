@@ -13,7 +13,7 @@ class BackgroundXmlParserTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->parser = new BackgroundXmlParser();
+        $this->parser = new BackgroundXmlParser;
     }
 
     #[Test]

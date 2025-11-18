@@ -26,9 +26,9 @@ return new class extends Migration
 
             // Foreign keys
             $table->foreign('condition_id')
-                  ->references('id')
-                  ->on('conditions')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('conditions')
+                ->onDelete('cascade');
 
             // Indexes
             $table->index(['reference_type', 'reference_id']);

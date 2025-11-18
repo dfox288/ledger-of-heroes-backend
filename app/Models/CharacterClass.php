@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class CharacterClass extends Model
 {
     use HasFactory;
+
     public $timestamps = false;
 
     protected $table = 'classes';

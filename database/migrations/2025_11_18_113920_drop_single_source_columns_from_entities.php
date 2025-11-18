@@ -14,7 +14,7 @@ return new class extends Migration
         $tables = ['spells', 'items', 'races', 'backgrounds', 'feats', 'classes', 'monsters'];
 
         foreach ($tables as $table) {
-            if (!Schema::hasTable($table)) {
+            if (! Schema::hasTable($table)) {
                 continue;
             }
 

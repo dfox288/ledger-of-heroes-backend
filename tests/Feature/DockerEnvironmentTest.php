@@ -21,7 +21,7 @@ class DockerEnvironmentTest extends TestCase
     {
         $this->assertTrue(
             version_compare(PHP_VERSION, '8.4.0', '>='),
-            "PHP version must be >= 8.4.0, found: " . PHP_VERSION
+            'PHP version must be >= 8.4.0, found: '.PHP_VERSION
         );
     }
 }

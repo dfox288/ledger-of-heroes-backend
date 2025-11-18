@@ -32,7 +32,7 @@ class ItemTableDetector
                 $rowsText = trim($match[3][0]);
 
                 // Build table text (name + header + rows)
-                $tableText = $tableName . ":\n" . $header . "\n" . $rowsText;
+                $tableText = $tableName.":\n".$header."\n".$rowsText;
 
                 $tables[] = [
                     'name' => $tableName,

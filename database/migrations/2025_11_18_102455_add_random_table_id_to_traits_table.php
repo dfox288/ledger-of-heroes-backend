@@ -15,9 +15,9 @@ return new class extends Migration
             $table->unsignedBigInteger('random_table_id')->nullable()->after('sort_order');
 
             $table->foreign('random_table_id')
-                  ->references('id')
-                  ->on('random_tables')
-                  ->onDelete('set null');
+                ->references('id')
+                ->on('random_tables')
+                ->onDelete('set null');
 
             $table->index('random_table_id');
         });

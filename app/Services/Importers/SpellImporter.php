@@ -4,9 +4,9 @@ namespace App\Services\Importers;
 
 use App\Models\CharacterClass;
 use App\Models\EntitySource;
+use App\Models\Source;
 use App\Models\Spell;
 use App\Models\SpellSchool;
-use App\Models\Source;
 use App\Services\Parsers\SpellXmlParser;
 
 class SpellImporter
@@ -61,9 +61,7 @@ class SpellImporter
      * Import sources for a spell.
      * Creates entity_sources junction records for each source.
      *
-     * @param Spell $spell
-     * @param array $sources Array of ['code' => 'PHB', 'pages' => '241']
-     * @return void
+     * @param  array  $sources  Array of ['code' => 'PHB', 'pages' => '241']
      */
     private function importSources(Spell $spell, array $sources): void
     {
@@ -89,9 +87,7 @@ class SpellImporter
      * Import class associations for a spell.
      * Extracts base class names and creates class_spells junction records.
      *
-     * @param Spell $spell
-     * @param array $classNames Array of class names (may include subclasses in parentheses)
-     * @return void
+     * @param  array  $classNames  Array of class names (may include subclasses in parentheses)
      */
     private function importClassAssociations(Spell $spell, array $classNames): void
     {
@@ -120,12 +116,12 @@ class SpellImporter
 
     public function importFromFile(string $filePath): int
     {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             throw new \InvalidArgumentException("File not found: {$filePath}");
         }
 
         $xmlContent = file_get_contents($filePath);
-        $parser = new SpellXmlParser();
+        $parser = new SpellXmlParser;
         $spells = $parser->parse($xmlContent);
 
         $count = 0;

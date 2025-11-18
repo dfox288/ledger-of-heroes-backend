@@ -13,7 +13,7 @@ class SpellImportToApiTest extends TestCase
     public function test_spell_import_to_api_pipeline(): void
     {
         // Import from actual XML file
-        $importer = new SpellImporter();
+        $importer = new SpellImporter;
         $count = $importer->importFromFile(base_path('import-files/spells-phb.xml'));
 
         $this->assertGreaterThan(0, $count, 'Should import at least one spell');
@@ -38,8 +38,8 @@ class SpellImportToApiTest extends TestCase
                         'description',
                         'source',
                         'source_pages',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         // Test search
@@ -48,7 +48,7 @@ class SpellImportToApiTest extends TestCase
 
         if ($searchResponse->json('meta.total') > 0) {
             $spell = $searchResponse->json('data.0');
-            $this->assertStringContainsStringIgnoringCase('fire', $spell['name'] . ' ' . $spell['description']);
+            $this->assertStringContainsStringIgnoringCase('fire', $spell['name'].' '.$spell['description']);
         }
     }
 }

@@ -26,9 +26,9 @@ return new class extends Migration
 
             // Foreign key to sources
             $table->foreign('source_id')
-                  ->references('id')
-                  ->on('sources')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('sources')
+                ->onDelete('cascade');
 
             // Indexes for efficient querying
             $table->index(['reference_type', 'reference_id']); // Find all sources for an entity

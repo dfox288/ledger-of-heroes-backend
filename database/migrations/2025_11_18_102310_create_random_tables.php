@@ -41,9 +41,9 @@ return new class extends Migration
 
             // Foreign key
             $table->foreign('random_table_id')
-                  ->references('id')
-                  ->on('random_tables')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('random_tables')
+                ->onDelete('cascade');
 
             // Indexes
             $table->index('random_table_id');

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class Proficiency extends Model
 {
     use HasFactory;
+
     public $timestamps = false;
 
     protected $fillable = [

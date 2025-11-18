@@ -21,15 +21,18 @@ use Illuminate\Support\Str;
 class ItemImporter
 {
     private array $itemTypeCache = [];
+
     private array $damageTypeCache = [];
+
     private array $itemPropertyCache = [];
+
     private array $sourceCache = [];
 
     public function import(array $itemData): Item
     {
         // Lookup foreign keys
         $itemTypeId = $this->getItemTypeId($itemData['type_code']);
-        $damageTypeId = !empty($itemData['damage_type_code'])
+        $damageTypeId = ! empty($itemData['damage_type_code'])
             ? $this->getDamageTypeId($itemData['damage_type_code'])
             : null;
 
@@ -79,7 +82,7 @@ class ItemImporter
 
     private function getItemTypeId(string $code): int
     {
-        if (!isset($this->itemTypeCache[$code])) {
+        if (! isset($this->itemTypeCache[$code])) {
             $itemType = ItemType::where('code', $code)->firstOrFail();
             $this->itemTypeCache[$code] = $itemType->id;
         }
@@ -91,7 +94,7 @@ class ItemImporter
     {
         $code = strtoupper($code);
 
-        if (!isset($this->damageTypeCache[$code])) {
+        if (! isset($this->damageTypeCache[$code])) {
             $damageType = DamageType::where('code', $code)->firstOrFail();
             $this->damageTypeCache[$code] = $damageType->id;
         }
@@ -188,7 +191,7 @@ class ItemImporter
     private function importRandomTables(Item $item, string $description): void
     {
         // Detect tables in description
-        $detector = new ItemTableDetector();
+        $detector = new ItemTableDetector;
         $tables = $detector->detectTables($description);
 
         if (empty($tables)) {
@@ -199,7 +202,7 @@ class ItemImporter
         $item->randomTables()->delete();
 
         foreach ($tables as $tableData) {
-            $parser = new ItemTableParser();
+            $parser = new ItemTableParser;
             $parsed = $parser->parse($tableData['text'], $tableData['dice_type'] ?? null);
 
             if (empty($parsed['rows'])) {
@@ -227,7 +230,7 @@ class ItemImporter
 
     private function getSourceByCode(string $code): Source
     {
-        if (!isset($this->sourceCache[$code])) {
+        if (! isset($this->sourceCache[$code])) {
             $source = Source::where('code', $code)->firstOrFail();
             $this->sourceCache[$code] = $source;
         }
@@ -237,7 +240,7 @@ class ItemImporter
 
     private function getItemPropertyId(string $code): ?int
     {
-        if (!isset($this->itemPropertyCache[$code])) {
+        if (! isset($this->itemPropertyCache[$code])) {
             $property = ItemProperty::where('code', $code)->first();
             $this->itemPropertyCache[$code] = $property?->id;
         }
@@ -247,12 +250,12 @@ class ItemImporter
 
     public function importFromFile(string $filePath): int
     {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             throw new \InvalidArgumentException("File not found: {$filePath}");
         }
 
         $xmlContent = file_get_contents($filePath);
-        $parser = new ItemXmlParser();
+        $parser = new ItemXmlParser;
         $items = $parser->parse($xmlContent);
 
         $count = 0;

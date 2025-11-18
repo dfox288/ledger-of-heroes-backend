@@ -41,7 +41,7 @@ class BackgroundsTableSimplifiedTest extends TestCase
     {
         $indexes = Schema::getIndexes('backgrounds');
 
-        $uniqueIndex = collect($indexes)->first(fn($idx) => $idx['columns'] === ['name'] && $idx['unique']);
+        $uniqueIndex = collect($indexes)->first(fn ($idx) => $idx['columns'] === ['name'] && $idx['unique']);
 
         $this->assertNotNull($uniqueIndex, 'Name column should have unique constraint');
     }

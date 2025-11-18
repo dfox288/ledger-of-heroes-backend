@@ -18,28 +18,28 @@ return new class extends Migration
 
         // Update descriptions for each spell school
         DB::table('spell_schools')->where('code', 'A')->update([
-            'description' => 'Protective magic that wards against harm'
+            'description' => 'Protective magic that wards against harm',
         ]);
         DB::table('spell_schools')->where('code', 'C')->update([
-            'description' => 'Magic that summons creatures or creates objects'
+            'description' => 'Magic that summons creatures or creates objects',
         ]);
         DB::table('spell_schools')->where('code', 'D')->update([
-            'description' => 'Magic that reveals information'
+            'description' => 'Magic that reveals information',
         ]);
         DB::table('spell_schools')->where('code', 'EN')->update([
-            'description' => 'Magic that affects minds and behavior'
+            'description' => 'Magic that affects minds and behavior',
         ]);
         DB::table('spell_schools')->where('code', 'EV')->update([
-            'description' => 'Magic that creates powerful elemental effects'
+            'description' => 'Magic that creates powerful elemental effects',
         ]);
         DB::table('spell_schools')->where('code', 'I')->update([
-            'description' => 'Magic that deceives the senses'
+            'description' => 'Magic that deceives the senses',
         ]);
         DB::table('spell_schools')->where('code', 'N')->update([
-            'description' => 'Magic that manipulates life force and death'
+            'description' => 'Magic that manipulates life force and death',
         ]);
         DB::table('spell_schools')->where('code', 'T')->update([
-            'description' => 'Magic that transforms physical properties'
+            'description' => 'Magic that transforms physical properties',
         ]);
     }
 

@@ -43,7 +43,7 @@ class SpellEffectFactory extends Factory
         return $this->state(function (array $attributes) use ($damageTypeName) {
             $typeName = $damageTypeName ?? fake()->randomElement([
                 'Fire', 'Cold', 'Lightning', 'Thunder', 'Acid',
-                'Poison', 'Necrotic', 'Radiant', 'Force', 'Psychic'
+                'Poison', 'Necrotic', 'Radiant', 'Force', 'Psychic',
             ]);
             $damageType = DamageType::where('name', $typeName)->first();
 

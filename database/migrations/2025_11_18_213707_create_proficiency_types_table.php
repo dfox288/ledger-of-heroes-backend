@@ -19,9 +19,9 @@ return new class extends Migration
 
             // Foreign key to items table (for weapons/armor that exist in items)
             $table->foreign('item_id')
-                  ->references('id')
-                  ->on('items')
-                  ->onDelete('set null');
+                ->references('id')
+                ->on('items')
+                ->onDelete('set null');
 
             // Index on category for filtering
             $table->index('category');

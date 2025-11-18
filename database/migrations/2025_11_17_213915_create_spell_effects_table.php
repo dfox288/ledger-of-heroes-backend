@@ -25,9 +25,9 @@ return new class extends Migration
 
             // Foreign keys
             $table->foreign('spell_id')
-                  ->references('id')
-                  ->on('spells')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('spells')
+                ->onDelete('cascade');
 
             // Indexes
             $table->index('spell_id');

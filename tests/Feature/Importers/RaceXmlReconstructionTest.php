@@ -17,7 +17,7 @@ class RaceXmlReconstructionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->importer = new RaceImporter();
+        $this->importer = new RaceImporter;
     }
 
     #[Test]
@@ -396,7 +396,7 @@ XML;
 
         if ($modifiers->isNotEmpty()) {
             $abilities = $modifiers
-                ->map(fn($m) => $m->abilityScore->code . ' ' . $m->value)
+                ->map(fn ($m) => $m->abilityScore->code.' '.$m->value)
                 ->join(', ');
             $xml .= "<ability>{$abilities}</ability>";
         }
@@ -404,14 +404,14 @@ XML;
         // Reconstruct proficiencies
         foreach ($race->proficiencies as $prof) {
             $profName = $prof->skill ? $prof->skill->name : $prof->proficiency_name;
-            $xml .= "<proficiency>" . htmlspecialchars($profName, ENT_XML1) . "</proficiency>";
+            $xml .= '<proficiency>'.htmlspecialchars($profName, ENT_XML1).'</proficiency>';
         }
 
         // Reconstruct traits (sorted by sort_order)
         foreach ($race->traits()->orderBy('sort_order')->get() as $trait) {
             $category = $trait->category ? " category=\"{$trait->category}\"" : '';
             $xml .= "<trait{$category}>";
-            $xml .= "<name>" . htmlspecialchars($trait->name, ENT_XML1) . "</name>";
+            $xml .= '<name>'.htmlspecialchars($trait->name, ENT_XML1).'</name>';
 
             // Reconstruct text with source
             $text = $trait->description;
@@ -426,7 +426,7 @@ XML;
                 }
             }
 
-            $xml .= "<text>" . htmlspecialchars($text, ENT_XML1) . "</text>";
+            $xml .= '<text>'.htmlspecialchars($text, ENT_XML1).'</text>';
 
             // Add roll element if trait has random table
             if ($trait->randomTable) {
@@ -448,6 +448,7 @@ XML;
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'race_test_');
         file_put_contents($tempFile, $xmlContent);
+
         return $tempFile;
     }
 }

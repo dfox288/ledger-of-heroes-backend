@@ -22,7 +22,8 @@
       "Skill(superpowers-laravel:executing-plans)",
       "Bash(docker compose:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

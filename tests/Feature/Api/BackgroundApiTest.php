@@ -3,9 +3,6 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Background;
-use App\Models\CharacterTrait;
-use App\Models\Proficiency;
-use App\Models\RandomTable;
 use App\Models\Skill;
 use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;

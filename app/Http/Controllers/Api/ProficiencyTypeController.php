@@ -44,6 +44,7 @@ class ProficiencyTypeController extends Controller
     public function show(ProficiencyType $proficiencyType)
     {
         $proficiencyType->load('item');
+
         return new ProficiencyTypeResource($proficiencyType);
     }
 }

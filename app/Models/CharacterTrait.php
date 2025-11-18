@@ -11,7 +11,9 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class CharacterTrait extends Model
 {
     use HasFactory;
+
     protected $table = 'traits';
+
     public $timestamps = false;
 
     protected $fillable = [

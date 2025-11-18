@@ -4,12 +4,6 @@ namespace Tests\Feature\Api;
 
 use App\Models\Source;
 use App\Models\SpellSchool;
-use App\Models\DamageType;
-use App\Models\Size;
-use App\Models\AbilityScore;
-use App\Models\Skill;
-use App\Models\ItemType;
-use App\Models\ItemProperty;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -23,7 +17,7 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'code', 'name', 'publisher', 'publication_year', 'edition']
+                '*' => ['id', 'code', 'name', 'publisher', 'publication_year', 'edition'],
             ])
             ->assertJsonCount(8); // We have 8 sources seeded (PHB, DMG, MM, XGE, TCE, VGTM, ERLW, WGTE)
     }
@@ -34,7 +28,7 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'code', 'name', 'description']
+                '*' => ['id', 'code', 'name', 'description'],
             ])
             ->assertJsonCount(8); // We have 8 schools seeded
     }
@@ -45,7 +39,7 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'name']
+                '*' => ['id', 'name'],
             ]);
     }
 
@@ -55,7 +49,7 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'code', 'name']
+                '*' => ['id', 'code', 'name'],
             ]);
     }
 
@@ -65,7 +59,7 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'code', 'name']
+                '*' => ['id', 'code', 'name'],
             ]);
     }
 
@@ -75,7 +69,7 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'name', 'ability_score_id']
+                '*' => ['id', 'name', 'ability_score_id'],
             ]);
     }
 
@@ -85,7 +79,7 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'name']
+                '*' => ['id', 'name'],
             ]);
     }
 
@@ -95,7 +89,7 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'code', 'name', 'description']
+                '*' => ['id', 'code', 'name', 'description'],
             ]);
     }
 

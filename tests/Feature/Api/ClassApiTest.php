@@ -2,13 +2,10 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\AbilityScore;
 use App\Models\CharacterClass;
-use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
-
+use Tests\TestCase;
 
 class ClassApiTest extends TestCase
 {

@@ -5,12 +5,9 @@ namespace Tests\Feature\Api;
 use App\Models\CharacterClass;
 use App\Models\Spell;
 use App\Models\SpellEffect;
-use App\Models\SpellSchool;
-use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
-
+use Tests\TestCase;
 
 class SpellApiTest extends TestCase
 {
@@ -50,7 +47,7 @@ class SpellApiTest extends TestCase
                         'sources' => [
                             '*' => ['code', 'name', 'pages'],
                         ],
-                    ]
+                    ],
                 ],
                 'links',
                 'meta',
@@ -137,9 +134,9 @@ class SpellApiTest extends TestCase
                             'min_character_level',
                             'min_spell_slot',
                             'scaling_increment',
-                        ]
-                    ]
-                ]
+                        ],
+                    ],
+                ],
             ])
             ->assertJsonCount(2, 'data.effects')
             ->assertJsonPath('data.effects.0.effect_type', 'damage')
@@ -200,9 +197,9 @@ class SpellApiTest extends TestCase
                             'name',
                             'hit_die',
                             'description',
-                        ]
-                    ]
-                ]
+                        ],
+                    ],
+                ],
             ])
             ->assertJsonCount(2, 'data.classes')
             ->assertJsonPath('data.classes.0.name', 'Wizard')

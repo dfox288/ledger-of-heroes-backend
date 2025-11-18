@@ -27,7 +27,7 @@ class RaceImporter
 
         // If this is a subrace, ensure base race exists first
         $parentRaceId = null;
-        if (!empty($raceData['base_race_name'])) {
+        if (! empty($raceData['base_race_name'])) {
             $baseRace = $this->getOrCreateBaseRace(
                 $raceData['base_race_name'],
                 $raceData['size_code'],
@@ -118,7 +118,7 @@ class RaceImporter
     private function importTraitTables(\App\Models\CharacterTrait $trait, string $description): void
     {
         // Detect tables in trait description
-        $detector = new ItemTableDetector();
+        $detector = new ItemTableDetector;
         $tables = $detector->detectTables($description);
 
         if (empty($tables)) {
@@ -126,7 +126,7 @@ class RaceImporter
         }
 
         foreach ($tables as $tableData) {
-            $parser = new ItemTableParser();
+            $parser = new ItemTableParser;
             $parsed = $parser->parse($tableData['text'], $tableData['dice_type'] ?? null);
 
             if (empty($parsed['rows'])) {
@@ -162,7 +162,7 @@ class RaceImporter
             $abilityCode = strtoupper($bonusData['ability']);
             $abilityScore = AbilityScore::where('code', $abilityCode)->first();
 
-            if (!$abilityScore) {
+            if (! $abilityScore) {
                 continue; // Skip if ability score not found
             }
 
@@ -178,12 +178,12 @@ class RaceImporter
 
     public function importFromFile(string $filePath): int
     {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             throw new \InvalidArgumentException("File not found: {$filePath}");
         }
 
         $xmlContent = file_get_contents($filePath);
-        $parser = new RaceXmlParser();
+        $parser = new RaceXmlParser;
         $races = $parser->parse($xmlContent);
 
         // Reset tracking for base races
@@ -192,11 +192,11 @@ class RaceImporter
         $count = 0;
         foreach ($races as $raceData) {
             // If this is a subrace, check if we need to count the base race
-            if (!empty($raceData['base_race_name'])) {
+            if (! empty($raceData['base_race_name'])) {
                 $baseRaceName = $raceData['base_race_name'];
 
                 // Only count the base race once per import
-                if (!isset($this->createdBaseRaces[$baseRaceName])) {
+                if (! isset($this->createdBaseRaces[$baseRaceName])) {
                     $this->createdBaseRaces[$baseRaceName] = true;
                     $count++; // Count base race creation
                 }
@@ -217,8 +217,8 @@ class RaceImporter
     ): Race {
         // Check if base race already exists
         $existing = Race::where('name', $baseRaceName)
-                        ->whereNull('parent_race_id')
-                        ->first();
+            ->whereNull('parent_race_id')
+            ->first();
 
         if ($existing) {
             return $existing;
@@ -281,7 +281,7 @@ class RaceImporter
                 ->where('sort_order', $traitData['sort_order'])
                 ->first();
 
-            if (!$trait) {
+            if (! $trait) {
                 continue;
             }
 

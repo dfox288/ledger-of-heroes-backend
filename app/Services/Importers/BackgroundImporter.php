@@ -5,7 +5,6 @@ namespace App\Services\Importers;
 use App\Models\Background;
 use App\Models\CharacterTrait;
 use App\Models\Source;
-use App\Services\Parsers\ItemTableDetector;
 use App\Services\Parsers\ItemTableParser;
 use Illuminate\Support\Facades\DB;
 
@@ -34,7 +33,7 @@ class BackgroundImporter
                 ]);
 
                 // 4. Import random tables for characteristics trait
-                if ($traitData['category'] === 'characteristics' && !empty($traitData['rolls'])) {
+                if ($traitData['category'] === 'characteristics' && ! empty($traitData['rolls'])) {
                     $this->importRandomTables($trait, $traitData['description'], $traitData['rolls']);
                 }
             }
@@ -78,8 +77,8 @@ class BackgroundImporter
 
             if (preg_match($pattern, $text, $matches)) {
                 // Parse the matched table text
-                $parser = new ItemTableParser();
-                $parsed = $parser->parse($tableName . ":\n" . trim($matches[0]));
+                $parser = new ItemTableParser;
+                $parsed = $parser->parse($tableName.":\n".trim($matches[0]));
 
                 $table = $trait->randomTables()->create([
                     'table_name' => $tableName,
@@ -109,6 +108,6 @@ class BackgroundImporter
 
         // Match dice notation and table name header, followed by numbered rows
         // Use flexible matching for dice notation (optional leading digit)
-        return '/\d*' . preg_quote($normalizedDiceType, '/') . '\s*\|\s*' . $escapedTableName . '\s*\n((?:^\d+(?:-\d+)?\s*\|[^\n]+\s*\n?)+)/m';
+        return '/\d*'.preg_quote($normalizedDiceType, '/').'\s*\|\s*'.$escapedTableName.'\s*\n((?:^\d+(?:-\d+)?\s*\|[^\n]+\s*\n?)+)/m';
     }
 }

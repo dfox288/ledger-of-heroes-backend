@@ -24,19 +24,19 @@ return new class extends Migration
 
             // Self-referential FK for subclasses
             $table->foreign('parent_class_id')
-                  ->references('id')
-                  ->on('classes')
-                  ->onDelete('cascade'); // Delete subclasses if parent is deleted
+                ->references('id')
+                ->on('classes')
+                ->onDelete('cascade'); // Delete subclasses if parent is deleted
 
             $table->foreign('spellcasting_ability_id')
-                  ->references('id')
-                  ->on('ability_scores')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('ability_scores')
+                ->onDelete('restrict');
 
             $table->foreign('source_id')
-                  ->references('id')
-                  ->on('sources')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('sources')
+                ->onDelete('restrict');
 
             $table->index('parent_class_id');
             $table->index('hit_die');

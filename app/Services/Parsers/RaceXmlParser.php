@@ -120,7 +120,7 @@ class RaceXmlParser
     {
         $bonuses = [];
 
-        if (!isset($element->ability)) {
+        if (! isset($element->ability)) {
             return $bonuses;
         }
 

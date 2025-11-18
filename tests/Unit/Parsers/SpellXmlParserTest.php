@@ -9,7 +9,7 @@ class SpellXmlParserTest extends TestCase
 {
     public function test_parses_basic_spell_data(): void
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
     <spell>
@@ -27,7 +27,7 @@ class SpellXmlParserTest extends TestCase
 </compendium>
 XML;
 
-        $parser = new SpellXmlParser();
+        $parser = new SpellXmlParser;
         $spells = $parser->parse($xml);
 
         $this->assertCount(1, $spells);
@@ -51,7 +51,7 @@ XML;
 
     public function test_detects_concentration(): void
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
     <spell>
@@ -69,7 +69,7 @@ XML;
 </compendium>
 XML;
 
-        $parser = new SpellXmlParser();
+        $parser = new SpellXmlParser;
         $spells = $parser->parse($xml);
 
         $this->assertTrue($spells[0]['needs_concentration']);
@@ -77,7 +77,7 @@ XML;
 
     public function test_detects_ritual(): void
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
     <spell>
@@ -96,7 +96,7 @@ XML;
 </compendium>
 XML;
 
-        $parser = new SpellXmlParser();
+        $parser = new SpellXmlParser;
         $spells = $parser->parse($xml);
 
         $this->assertTrue($spells[0]['is_ritual']);
@@ -104,7 +104,7 @@ XML;
 
     public function test_parses_source_with_year(): void
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
     <spell>
@@ -122,7 +122,7 @@ XML;
 </compendium>
 XML;
 
-        $parser = new SpellXmlParser();
+        $parser = new SpellXmlParser;
         $spells = $parser->parse($xml);
 
         // Check sources array format
@@ -134,7 +134,7 @@ XML;
 
     public function test_strips_school_prefix_from_classes(): void
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
     <spell>
@@ -152,7 +152,7 @@ XML;
 </compendium>
 XML;
 
-        $parser = new SpellXmlParser();
+        $parser = new SpellXmlParser;
         $spells = $parser->parse($xml);
 
         $this->assertEquals(['Cleric', 'Paladin'], $spells[0]['classes']);
@@ -161,7 +161,7 @@ XML;
 
     public function test_parses_description_from_combined_text_element(): void
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
     <spell>
@@ -182,7 +182,7 @@ Source:	Player's Handbook (2014) p. 211</text>
 </compendium>
 XML;
 
-        $parser = new SpellXmlParser();
+        $parser = new SpellXmlParser;
         $spells = $parser->parse($xml);
 
         $this->assertStringContainsString('You hurl a bubble of acid', $spells[0]['description']);
@@ -197,7 +197,7 @@ XML;
 
     public function test_parses_description_with_separate_text_elements(): void
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
     <spell>
@@ -215,7 +215,7 @@ XML;
 </compendium>
 XML;
 
-        $parser = new SpellXmlParser();
+        $parser = new SpellXmlParser;
         $spells = $parser->parse($xml);
 
         $this->assertStringContainsString('A bright streak flashes', $spells[0]['description']);
@@ -229,7 +229,7 @@ XML;
 
     public function test_parses_cantrip_roll_elements_with_character_level_scaling(): void
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
     <spell>
@@ -251,7 +251,7 @@ XML;
 </compendium>
 XML;
 
-        $parser = new SpellXmlParser();
+        $parser = new SpellXmlParser;
         $spells = $parser->parse($xml);
 
         $this->assertArrayHasKey('effects', $spells[0]);
@@ -281,7 +281,7 @@ XML;
 
     public function test_parses_spell_roll_elements_with_spell_slot_scaling(): void
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
     <spell>
@@ -302,7 +302,7 @@ XML;
 </compendium>
 XML;
 
-        $parser = new SpellXmlParser();
+        $parser = new SpellXmlParser;
         $spells = $parser->parse($xml);
 
         $this->assertCount(3, $spells[0]['effects']);
@@ -326,7 +326,7 @@ XML;
 
     public function test_parses_roll_elements_without_level_attribute(): void
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
     <spell>
@@ -345,7 +345,7 @@ XML;
 </compendium>
 XML;
 
-        $parser = new SpellXmlParser();
+        $parser = new SpellXmlParser;
         $spells = $parser->parse($xml);
 
         $this->assertCount(1, $spells[0]['effects']);
@@ -360,7 +360,7 @@ XML;
 
     public function test_parses_healing_effect_type(): void
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
     <spell>
@@ -379,7 +379,7 @@ XML;
 </compendium>
 XML;
 
-        $parser = new SpellXmlParser();
+        $parser = new SpellXmlParser;
         $spells = $parser->parse($xml);
 
         $this->assertCount(1, $spells[0]['effects']);
@@ -389,7 +389,7 @@ XML;
 
     public function test_spell_without_roll_elements_returns_empty_effects_array(): void
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
     <spell>
@@ -407,7 +407,7 @@ XML;
 </compendium>
 XML;
 
-        $parser = new SpellXmlParser();
+        $parser = new SpellXmlParser;
         $spells = $parser->parse($xml);
 
         $this->assertArrayHasKey('effects', $spells[0]);

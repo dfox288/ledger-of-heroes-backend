@@ -6,7 +6,6 @@ use App\Models\CharacterClass;
 use App\Models\CharacterTrait;
 use App\Models\Modifier;
 use App\Models\Proficiency;
-use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;

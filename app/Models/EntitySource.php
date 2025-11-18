@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class EntitySource extends Model
 {
     use HasFactory;
+
     public $timestamps = false; // CRITICAL: No timestamps on static data
 
     protected $fillable = [

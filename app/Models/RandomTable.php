@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class RandomTable extends Model
 {
     use HasFactory;
+
     public $timestamps = false;
 
     protected $fillable = [

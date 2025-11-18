@@ -3,9 +3,8 @@
 namespace Tests\Unit\Parsers;
 
 use App\Services\Parsers\RaceXmlParser;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
-
+use PHPUnit\Framework\TestCase;
 
 class RaceXmlParserTest extends TestCase
 {
@@ -14,13 +13,13 @@ class RaceXmlParserTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->parser = new RaceXmlParser();
+        $this->parser = new RaceXmlParser;
     }
 
     #[Test]
     public function it_parses_dragonborn_race_from_real_xml()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -79,7 +78,7 @@ XML;
     #[Test]
     public function it_parses_hill_dwarf_with_subrace_naming()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -110,7 +109,7 @@ XML;
     #[Test]
     public function it_parses_multiple_races()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -152,7 +151,7 @@ XML;
     #[Test]
     public function it_handles_race_without_source_citation()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -183,7 +182,7 @@ XML;
     #[Test]
     public function it_parses_base_race_and_subrace_from_name()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -210,7 +209,7 @@ XML;
     #[Test]
     public function it_parses_race_without_subrace()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -236,7 +235,7 @@ XML;
     #[Test]
     public function it_handles_slash_in_subrace_names()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -261,7 +260,7 @@ XML;
     #[Test]
     public function it_parses_skill_proficiencies()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -290,7 +289,7 @@ XML;
     #[Test]
     public function it_parses_weapon_proficiencies()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -317,7 +316,7 @@ XML;
     #[Test]
     public function it_parses_armor_proficiencies()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -344,7 +343,7 @@ XML;
     #[Test]
     public function it_parses_multiple_proficiency_types()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -378,7 +377,7 @@ XML;
     #[Test]
     public function it_parses_traits_from_xml()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -424,7 +423,7 @@ XML;
     #[Test]
     public function it_parses_ability_score_bonuses()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -456,7 +455,7 @@ XML;
     #[Test]
     public function it_parses_rolls_from_traits()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>

@@ -22,9 +22,9 @@ return new class extends Migration
 
             // Foreign key
             $table->foreign('monster_id')
-                  ->references('id')
-                  ->on('monsters')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('monsters')
+                ->onDelete('cascade');
 
             // Index
             $table->index('monster_id');
@@ -45,9 +45,9 @@ return new class extends Migration
 
             // Foreign key
             $table->foreign('monster_id')
-                  ->references('id')
-                  ->on('monsters')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('monsters')
+                ->onDelete('cascade');
 
             // Indexes
             $table->index('monster_id');
@@ -70,9 +70,9 @@ return new class extends Migration
 
             // Foreign key
             $table->foreign('monster_id')
-                  ->references('id')
-                  ->on('monsters')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('monsters')
+                ->onDelete('cascade');
 
             // Indexes
             $table->index('monster_id');
@@ -93,9 +93,9 @@ return new class extends Migration
 
             // Foreign key
             $table->foreign('monster_id')
-                  ->references('id')
-                  ->on('monsters')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('monsters')
+                ->onDelete('cascade');
 
             // Index
             $table->index('monster_id');
@@ -116,14 +116,14 @@ return new class extends Migration
 
             // Foreign keys
             $table->foreign('monster_id')
-                  ->references('id')
-                  ->on('monsters')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('monsters')
+                ->onDelete('cascade');
 
             $table->foreign('spell_id')
-                  ->references('id')
-                  ->on('spells')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('spells')
+                ->onDelete('restrict');
 
             // Index for reverse lookups
             $table->index('spell_id');

@@ -34,14 +34,14 @@ return new class extends Migration
 
             // Foreign keys
             $table->foreign('item_id')
-                  ->references('id')
-                  ->on('items')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('items')
+                ->onDelete('cascade');
 
             $table->foreign('property_id')
-                  ->references('id')
-                  ->on('item_properties')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('item_properties')
+                ->onDelete('restrict');
 
             // Index for reverse lookups
             $table->index('property_id');
@@ -65,14 +65,14 @@ return new class extends Migration
 
             // Foreign keys
             $table->foreign('item_id')
-                  ->references('id')
-                  ->on('items')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('items')
+                ->onDelete('cascade');
 
             $table->foreign('spell_id')
-                  ->references('id')
-                  ->on('spells')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('spells')
+                ->onDelete('restrict');
 
             // Indexes
             $table->index('item_id');

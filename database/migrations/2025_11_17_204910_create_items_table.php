@@ -43,14 +43,14 @@ return new class extends Migration
 
             // Foreign keys
             $table->foreign('item_type_id')
-                  ->references('id')
-                  ->on('item_types')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('item_types')
+                ->onDelete('restrict');
 
             $table->foreign('damage_type_id')
-                  ->references('id')
-                  ->on('damage_types')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('damage_types')
+                ->onDelete('restrict');
 
             // Indexes
             $table->index('item_type_id');

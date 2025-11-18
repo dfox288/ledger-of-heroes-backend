@@ -13,7 +13,7 @@ class ItemTableDetectorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->detector = new ItemTableDetector();
+        $this->detector = new ItemTableDetector;
     }
 
     #[Test]
@@ -32,7 +32,7 @@ class ItemTableDetectorTest extends TestCase
     #[Test]
     public function it_detects_multiple_tables()
     {
-        $text = <<<TEXT
+        $text = <<<'TEXT'
 First Table:
 Header | Value
 1 | A
@@ -54,7 +54,7 @@ TEXT;
     #[Test]
     public function it_handles_text_without_tables()
     {
-        $text = "Just some regular text without any tables.";
+        $text = 'Just some regular text without any tables.';
 
         $tables = $this->detector->detectTables($text);
 
@@ -64,7 +64,7 @@ TEXT;
     #[Test]
     public function it_detects_tables_with_roll_ranges()
     {
-        $text = <<<TEXT
+        $text = <<<'TEXT'
 Wild Magic:
 d100 | Effect
 01-02 | Fireball
@@ -82,7 +82,7 @@ TEXT;
     #[Test]
     public function it_extracts_dice_type_from_header()
     {
-        $text = <<<TEXT
+        $text = <<<'TEXT'
 Wild Magic:
 d100 | Effect
 1-2 | Fireball
@@ -98,7 +98,7 @@ TEXT;
     #[Test]
     public function it_handles_tables_without_dice_type()
     {
-        $text = <<<TEXT
+        $text = <<<'TEXT'
 Lever Controls:
 Lever | Effect
 1 | Effect A
@@ -114,7 +114,7 @@ TEXT;
     #[Test]
     public function it_extracts_unusual_dice_types()
     {
-        $text = <<<TEXT
+        $text = <<<'TEXT'
 Deck of Many Things:
 1d22 | Playing Card | Card
 1 | Ace of diamonds | Vizier
@@ -130,7 +130,7 @@ TEXT;
     #[Test]
     public function it_extracts_multi_dice_types()
     {
-        $text = <<<TEXT
+        $text = <<<'TEXT'
 Damage Table:
 2d6 | Damage Type
 1-2 | Fire

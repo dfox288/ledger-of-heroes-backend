@@ -4,7 +4,6 @@ namespace Tests\Feature\Migrations;
 
 use App\Models\Item;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -129,7 +128,7 @@ class ItemsTableTest extends TestCase
             'damage_dice', 'damage_type_id', 'range_normal', 'range_long', 'versatile_damage',
             'armor_class', 'strength_requirement', 'stealth_disadvantage',
             'requires_attunement', 'is_magic',
-            'created_at', 'updated_at'
+            'created_at', 'updated_at',
         ];
 
         $this->assertCount(count($expectedColumns), $columns);

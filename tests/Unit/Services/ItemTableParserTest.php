@@ -13,13 +13,13 @@ class ItemTableParserTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->parser = new ItemTableParser();
+        $this->parser = new ItemTableParser;
     }
 
     #[Test]
     public function it_parses_simple_table()
     {
-        $tableText = <<<TEXT
+        $tableText = <<<'TEXT'
 Test Table:
 Option | Effect
 1 | Effect A
@@ -39,7 +39,7 @@ TEXT;
     #[Test]
     public function it_parses_roll_ranges()
     {
-        $tableText = <<<TEXT
+        $tableText = <<<'TEXT'
 Wild Magic:
 d100 | Effect
 01-02 | Fireball
@@ -70,7 +70,7 @@ TEXT;
     #[Test]
     public function it_handles_non_numeric_first_column()
     {
-        $tableText = <<<TEXT
+        $tableText = <<<'TEXT'
 Options:
 Lever | Effect
 A | Effect A
@@ -90,7 +90,7 @@ TEXT;
     #[Test]
     public function it_handles_multi_column_tables()
     {
-        $tableText = <<<TEXT
+        $tableText = <<<'TEXT'
 Apparatus Levers:
 Lever | Up | Down
 1 | Extend legs | Retract legs

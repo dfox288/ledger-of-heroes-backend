@@ -34,11 +34,11 @@ class ItemXmlParser
         $range = (string) $element->range;
         $rangeNormal = null;
         $rangeLong = null;
-        if (!empty($range) && str_contains($range, '/')) {
+        if (! empty($range) && str_contains($range, '/')) {
             [$rangeNormal, $rangeLong] = explode('/', $range, 2);
             $rangeNormal = (int) trim($rangeNormal);
             $rangeLong = (int) trim($rangeLong);
-        } elseif (!empty($range) && is_numeric($range)) {
+        } elseif (! empty($range) && is_numeric($range)) {
             $rangeNormal = (int) $range;
         }
 
@@ -133,7 +133,7 @@ class ItemXmlParser
 
         // Extract "Source: ..." text
         $pattern = '/Source:\s*(.+?)(?:\n|$)/i';
-        if (!preg_match($pattern, $text, $sourceMatch)) {
+        if (! preg_match($pattern, $text, $sourceMatch)) {
             // Fallback if no source found
             return [
                 [
@@ -149,7 +149,7 @@ class ItemXmlParser
         $patternWithYear = '/([^(]+)\s*\((\d{4})\)\s*p\.\s*([\d,\s\-]+)/';
         preg_match_all($patternWithYear, $sourcesText, $matches, PREG_SET_ORDER);
 
-        if (!empty($matches)) {
+        if (! empty($matches)) {
             foreach ($matches as $match) {
                 $sourceName = trim($match[1]);
                 $pages = trim($match[3]);
@@ -361,7 +361,7 @@ class ItemXmlParser
 
             $abilities[] = [
                 'ability_type' => 'roll', // Default type for <roll> elements
-                'name' => !empty($description) ? $description : $rollText,  // Use description if available
+                'name' => ! empty($description) ? $description : $rollText,  // Use description if available
                 'description' => $rollText,  // Keep the roll text in description
                 'roll_formula' => $rollFormula,
                 'sort_order' => count($abilities),

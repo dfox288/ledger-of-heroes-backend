@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -51,7 +51,7 @@ return new class extends Migration
             DB::table('items')
                 ->where('id', $item->id)
                 ->update([
-                    'weapon_range' => $item->range_normal . '/' . $item->range_long,
+                    'weapon_range' => $item->range_normal.'/'.$item->range_long,
                 ]);
         }
 

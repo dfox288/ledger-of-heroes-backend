@@ -29,19 +29,19 @@ return new class extends Migration
 
             // Foreign keys
             $table->foreign('skill_id')
-                  ->references('id')
-                  ->on('skills')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('skills')
+                ->onDelete('cascade');
 
             $table->foreign('item_id')
-                  ->references('id')
-                  ->on('items')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('items')
+                ->onDelete('cascade');
 
             $table->foreign('ability_score_id')
-                  ->references('id')
-                  ->on('ability_scores')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('ability_scores')
+                ->onDelete('cascade');
 
             // Indexes
             $table->index(['reference_type', 'reference_id']);

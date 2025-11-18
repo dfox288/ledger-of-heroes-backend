@@ -15,9 +15,9 @@ return new class extends Migration
             $table->unsignedBigInteger('proficiency_type_id')->nullable()->after('proficiency_type');
 
             $table->foreign('proficiency_type_id')
-                  ->references('id')
-                  ->on('proficiency_types')
-                  ->onDelete('set null');
+                ->references('id')
+                ->on('proficiency_types')
+                ->onDelete('set null');
 
             $table->index('proficiency_type_id');
         });

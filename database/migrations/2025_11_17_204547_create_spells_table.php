@@ -30,14 +30,14 @@ return new class extends Migration
 
             // Foreign keys
             $table->foreign('spell_school_id')
-                  ->references('id')
-                  ->on('spell_schools')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('spell_schools')
+                ->onDelete('restrict');
 
             $table->foreign('source_id')
-                  ->references('id')
-                  ->on('sources')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('sources')
+                ->onDelete('restrict');
 
             // Indexes for common queries
             $table->index('level');

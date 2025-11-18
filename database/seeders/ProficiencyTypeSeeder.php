@@ -88,9 +88,9 @@ class ProficiencyTypeSeeder extends Seeder
             ['name' => "Woodcarver's Tools", 'category' => 'tool'],
 
             // Other Tools
-            ['name' => "Disguise Kit", 'category' => 'tool'],
-            ['name' => "Forgery Kit", 'category' => 'tool'],
-            ['name' => "Herbalism Kit", 'category' => 'tool'],
+            ['name' => 'Disguise Kit', 'category' => 'tool'],
+            ['name' => 'Forgery Kit', 'category' => 'tool'],
+            ['name' => 'Herbalism Kit', 'category' => 'tool'],
             ['name' => "Navigator's Tools", 'category' => 'tool'],
             ['name' => "Poisoner's Kit", 'category' => 'tool'],
             ['name' => "Thieves' Tools", 'category' => 'tool'],

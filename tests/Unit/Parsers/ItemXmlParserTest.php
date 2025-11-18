@@ -13,7 +13,7 @@ class ItemXmlParserTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->parser = new ItemXmlParser();
+        $this->parser = new ItemXmlParser;
     }
 
     #[Test]

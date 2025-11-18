@@ -2,10 +2,10 @@
 
 namespace Tests\Feature\Importers;
 
+use App\Models\Source;
 use App\Models\Spell;
 use App\Models\SpellEffect;
 use App\Models\SpellSchool;
-use App\Models\Source;
 use App\Services\Importers\SpellImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -53,7 +53,7 @@ class SpellImporterTest extends TestCase
             ],
         ];
 
-        $importer = new SpellImporter();
+        $importer = new SpellImporter;
         $spell = $importer->import($spellData);
 
         $this->assertInstanceOf(Spell::class, $spell);

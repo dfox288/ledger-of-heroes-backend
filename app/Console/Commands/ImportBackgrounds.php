@@ -30,12 +30,12 @@ class ImportBackgrounds extends Command
 
         try {
             // Parse XML
-            $parser = new BackgroundXmlParser();
+            $parser = new BackgroundXmlParser;
             $backgrounds = $parser->parse($xmlContent);
             $this->info('Parsed '.count($backgrounds).' backgrounds from XML');
 
             // Import each background
-            $importer = new BackgroundImporter();
+            $importer = new BackgroundImporter;
             $importedCount = 0;
             $updatedCount = 0;
 

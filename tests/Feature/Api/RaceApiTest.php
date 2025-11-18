@@ -2,17 +2,12 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\AbilityScore;
 use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Models\Race;
-use App\Models\Size;
-use App\Models\Skill;
-use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
-
+use Tests\TestCase;
 
 class RaceApiTest extends TestCase
 {
@@ -144,7 +139,7 @@ class RaceApiTest extends TestCase
                 'name',
                 'parent_race',
                 'subraces',
-            ]
+            ],
         ]);
 
         $this->assertEquals('Dwarf', $response->json('data.parent_race.name'));
@@ -197,9 +192,9 @@ class RaceApiTest extends TestCase
         $response->assertJsonStructure([
             'data' => [
                 'proficiencies' => [
-                    '*' => ['id', 'proficiency_type']
-                ]
-            ]
+                    '*' => ['id', 'proficiency_type'],
+                ],
+            ],
         ]);
 
         $proficiencies = $response->json('data.proficiencies');
@@ -224,9 +219,9 @@ class RaceApiTest extends TestCase
         $response->assertJsonStructure([
             'data' => [
                 'traits' => [
-                    '*' => ['id', 'name', 'category', 'description', 'sort_order']
-                ]
-            ]
+                    '*' => ['id', 'name', 'category', 'description', 'sort_order'],
+                ],
+            ],
         ]);
 
         $traits = $response->json('data.traits');

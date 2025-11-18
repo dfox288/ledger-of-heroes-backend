@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Importers;
 
-use App\Models\Background;
 use App\Services\Importers\BackgroundImporter;
 use App\Services\Parsers\BackgroundXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,13 +13,14 @@ class BackgroundXmlReconstructionTest extends TestCase
     use RefreshDatabase;
 
     private BackgroundXmlParser $parser;
+
     private BackgroundImporter $importer;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->parser = new BackgroundXmlParser();
-        $this->importer = new BackgroundImporter();
+        $this->parser = new BackgroundXmlParser;
+        $this->importer = new BackgroundImporter;
     }
 
     #[Test]

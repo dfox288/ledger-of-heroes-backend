@@ -55,14 +55,14 @@ return new class extends Migration
 
             // Foreign keys
             $table->foreign('size_id')
-                  ->references('id')
-                  ->on('sizes')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('sizes')
+                ->onDelete('restrict');
 
             $table->foreign('source_id')
-                  ->references('id')
-                  ->on('sources')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('sources')
+                ->onDelete('restrict');
 
             // Indexes
             $table->index('size_id');

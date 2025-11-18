@@ -4,8 +4,6 @@ namespace Tests\Unit\Factories;
 
 use App\Models\EntitySource;
 use App\Models\Race;
-use App\Models\Source;
-use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;

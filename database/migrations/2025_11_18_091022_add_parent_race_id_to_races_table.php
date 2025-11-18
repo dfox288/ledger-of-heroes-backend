@@ -15,9 +15,9 @@ return new class extends Migration
             $table->unsignedBigInteger('parent_race_id')->nullable()->after('id');
 
             $table->foreign('parent_race_id')
-                  ->references('id')
-                  ->on('races')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('races')
+                ->onDelete('cascade');
 
             $table->index('parent_race_id');
         });

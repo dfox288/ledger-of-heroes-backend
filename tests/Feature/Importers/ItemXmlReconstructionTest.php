@@ -2,12 +2,12 @@
 
 namespace Tests\Feature\Importers;
 
+use App\Models\Item;
 use App\Services\Importers\ItemImporter;
 use App\Services\Parsers\ItemXmlParser;
-use App\Models\Item;
-use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class ItemXmlReconstructionTest extends TestCase
 {
@@ -16,19 +16,20 @@ class ItemXmlReconstructionTest extends TestCase
     protected $seed = true;
 
     private ItemXmlParser $parser;
+
     private ItemImporter $importer;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->parser = new ItemXmlParser();
-        $this->importer = new ItemImporter();
+        $this->parser = new ItemXmlParser;
+        $this->importer = new ItemImporter;
     }
 
     #[Test]
     public function it_reconstructs_simple_melee_weapon()
     {
-        $originalXml = <<<XML
+        $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
   <item>
@@ -91,7 +92,7 @@ XML;
     #[Test]
     public function it_reconstructs_armor_with_requirements()
     {
-        $originalXml = <<<XML
+        $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
   <item>
@@ -137,7 +138,7 @@ XML;
     #[Test]
     public function it_reconstructs_ranged_weapon_with_range()
     {
-        $originalXml = <<<XML
+        $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
   <item>
@@ -178,7 +179,7 @@ XML;
     #[Test]
     public function it_reconstructs_magic_item_with_attunement()
     {
-        $originalXml = <<<XML
+        $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
   <item>
@@ -217,7 +218,7 @@ XML;
     #[Test]
     public function it_reconstructs_item_without_cost()
     {
-        $originalXml = <<<XML
+        $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
   <item>
@@ -248,7 +249,7 @@ XML;
     #[Test]
     public function it_parses_attunement_from_detail_field()
     {
-        $originalXml = <<<XML
+        $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
   <item>
@@ -276,7 +277,7 @@ XML;
     #[Test]
     public function it_reconstructs_magic_item_with_flag()
     {
-        $originalXml = <<<XML
+        $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
   <item>
@@ -308,8 +309,7 @@ XML;
     {
         $this->markTestIncomplete('Modifier parsing edge case - needs investigation for "ranged attack" vs "ac" categorization');
 
-
-        $originalXml = <<<XML
+        $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
   <item>
@@ -341,20 +341,20 @@ XML;
 
         // Parser now extracts structured data from "ranged attacks +1" and "ranged damage +1"
         // Both should match "ranged attack" and "ranged damage" patterns
-        $attackModifier = $item->modifiers->first(fn($m) => str_contains($m->modifier_category, 'attack'));
-        $damageModifier = $item->modifiers->first(fn($m) => str_contains($m->modifier_category, 'damage'));
+        $attackModifier = $item->modifiers->first(fn ($m) => str_contains($m->modifier_category, 'attack'));
+        $damageModifier = $item->modifiers->first(fn ($m) => str_contains($m->modifier_category, 'damage'));
 
-        $this->assertNotNull($attackModifier, 'Attack modifier not found. Available categories: ' . implode(', ', $categories));
+        $this->assertNotNull($attackModifier, 'Attack modifier not found. Available categories: '.implode(', ', $categories));
         $this->assertEquals('1', $attackModifier->value); // Integer value stored as string
 
-        $this->assertNotNull($damageModifier, 'Damage modifier not found. Available categories: ' . implode(', ', $categories));
+        $this->assertNotNull($damageModifier, 'Damage modifier not found. Available categories: '.implode(', ', $categories));
         $this->assertEquals('1', $damageModifier->value);
     }
 
     #[Test]
     public function it_reconstructs_item_with_abilities()
     {
-        $originalXml = <<<XML
+        $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
   <item>
@@ -387,7 +387,7 @@ XML;
     #[Test]
     public function it_parses_roll_descriptions_from_attribute()
     {
-        $originalXml = <<<XML
+        $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
   <item>
@@ -421,7 +421,7 @@ XML;
     #[Test]
     public function it_parses_simple_table_from_description()
     {
-        $originalXml = <<<XML
+        $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
   <item>
@@ -458,7 +458,7 @@ XML;
     #[Test]
     public function it_parses_roll_ranges_in_tables()
     {
-        $originalXml = <<<XML
+        $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
   <item>
@@ -505,7 +505,7 @@ XML;
     #[Test]
     public function it_parses_multi_column_tables()
     {
-        $originalXml = <<<XML
+        $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
   <item>
@@ -541,7 +541,7 @@ XML;
     #[Test]
     public function it_parses_unusual_dice_types()
     {
-        $originalXml = <<<XML
+        $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
   <item>

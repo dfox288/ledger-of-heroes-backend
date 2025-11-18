@@ -15,11 +15,12 @@ class MatchesProficiencyTypesTest extends TestCase
         parent::setUp();
 
         // Create a test class that uses the trait
-        $this->matcher = new class {
+        $this->matcher = new class
+        {
             use MatchesProficiencyTypes;
 
             // Expose protected method for testing
-            public function testNormalize(string $name): string
+            public function test_normalize(string $name): string
             {
                 return $this->normalizeName($name);
             }
@@ -65,4 +66,3 @@ class MatchesProficiencyTypesTest extends TestCase
         $this->assertEquals('thievestools', $this->matcher->testNormalize("Thieves' Tools"));
     }
 }
-

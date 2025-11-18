@@ -42,7 +42,7 @@ class ProficiencyFactory extends Factory
     {
         return $this->state(function (array $attributes) use ($skillName) {
             $name = $skillName ?? fake()->randomElement([
-                'Acrobatics', 'Athletics', 'Stealth', 'Perception', 'Investigation'
+                'Acrobatics', 'Athletics', 'Stealth', 'Perception', 'Investigation',
             ]);
             $skill = Skill::where('name', $name)->first();
 

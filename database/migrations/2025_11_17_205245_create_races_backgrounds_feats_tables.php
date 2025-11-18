@@ -22,14 +22,14 @@ return new class extends Migration
             $table->string('source_pages', 50);
 
             $table->foreign('size_id')
-                  ->references('id')
-                  ->on('sizes')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('sizes')
+                ->onDelete('restrict');
 
             $table->foreign('source_id')
-                  ->references('id')
-                  ->on('sources')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('sources')
+                ->onDelete('restrict');
 
             $table->index('size_id');
 
@@ -51,9 +51,9 @@ return new class extends Migration
             $table->string('source_pages', 50);
 
             $table->foreign('source_id')
-                  ->references('id')
-                  ->on('sources')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('sources')
+                ->onDelete('restrict');
 
             // NO timestamps
         });
@@ -68,9 +68,9 @@ return new class extends Migration
             $table->string('source_pages', 50);
 
             $table->foreign('source_id')
-                  ->references('id')
-                  ->on('sources')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('sources')
+                ->onDelete('restrict');
 
             // NO timestamps
         });

@@ -3,17 +3,11 @@
 namespace Tests\Feature\Importers;
 
 use App\Models\AbilityScore;
-use App\Models\Modifier;
-use App\Models\Proficiency;
 use App\Models\Race;
-use App\Models\Size;
-use App\Models\Skill;
-use App\Models\Source;
 use App\Services\Importers\RaceImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
-
+use Tests\TestCase;
 
 class RaceImporterTest extends TestCase
 {
@@ -24,7 +18,7 @@ class RaceImporterTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->importer = new RaceImporter();
+        $this->importer = new RaceImporter;
     }
 
     #[Test]
@@ -105,7 +99,7 @@ class RaceImporterTest extends TestCase
     #[Test]
     public function it_imports_from_xml_file()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -153,7 +147,7 @@ XML;
     #[Test]
     public function it_creates_base_race_and_subrace()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -181,14 +175,14 @@ XML;
 
         // Check base race exists
         $baseRace = Race::where('name', 'Dwarf')
-                         ->whereNull('parent_race_id')
-                         ->first();
+            ->whereNull('parent_race_id')
+            ->first();
         $this->assertNotNull($baseRace);
 
         // Check subrace exists and is linked to base
         $subrace = Race::where('name', 'Hill')
-                        ->whereNotNull('parent_race_id')
-                        ->first();
+            ->whereNotNull('parent_race_id')
+            ->first();
         $this->assertNotNull($subrace);
         $this->assertEquals($baseRace->id, $subrace->parent_race_id);
     }
@@ -196,7 +190,7 @@ XML;
     #[Test]
     public function it_creates_only_base_race_when_no_subrace()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -229,7 +223,7 @@ XML;
     #[Test]
     public function it_reuses_existing_base_race_for_multiple_subraces()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -266,8 +260,8 @@ XML;
         $this->assertEquals(3, $count);
 
         $baseRaces = Race::where('name', 'Dwarf')
-                          ->whereNull('parent_race_id')
-                          ->get();
+            ->whereNull('parent_race_id')
+            ->get();
         $this->assertCount(1, $baseRaces, 'Should only create one base Dwarf race');
 
         $subraces = Race::whereNotNull('parent_race_id')->get();
@@ -277,7 +271,7 @@ XML;
     #[Test]
     public function it_imports_skill_proficiencies()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -316,7 +310,7 @@ XML;
     #[Test]
     public function it_imports_weapon_proficiencies_as_text()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -357,7 +351,7 @@ XML;
     #[Test]
     public function it_clears_and_recreates_proficiencies_on_reimport()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -394,7 +388,7 @@ XML;
     #[Test]
     public function it_imports_race_traits()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -438,7 +432,7 @@ XML;
     #[Test]
     public function it_imports_ability_score_bonuses_as_modifiers()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>
@@ -480,7 +474,7 @@ XML;
     #[Test]
     public function it_imports_random_tables_from_trait_rolls_and_links_traits()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
   <race>

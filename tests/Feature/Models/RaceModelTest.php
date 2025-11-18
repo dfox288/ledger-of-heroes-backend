@@ -3,8 +3,6 @@
 namespace Tests\Feature\Models;
 
 use App\Models\Race;
-use App\Models\Size;
-use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class Spell extends Model
 {
     use HasFactory;
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -89,7 +90,7 @@ class Spell extends Model
         // Fallback to LIKE search for other databases (e.g., SQLite for testing)
         return $query->where(function ($q) use ($searchTerm) {
             $q->where('name', 'LIKE', "%{$searchTerm}%")
-              ->orWhere('description', 'LIKE', "%{$searchTerm}%");
+                ->orWhere('description', 'LIKE', "%{$searchTerm}%");
         });
     }
 }

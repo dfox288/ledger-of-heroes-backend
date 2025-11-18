@@ -17,7 +17,7 @@ class SpellXmlReconstructionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->importer = new SpellImporter();
+        $this->importer = new SpellImporter;
     }
 
     #[Test]
@@ -139,7 +139,7 @@ XML;
         // Reconstruct text with description and source
         $text = $spell->description;
         if ($spell->higher_levels) {
-            $text .= "\n\n" . $spell->higher_levels;
+            $text .= "\n\n".$spell->higher_levels;
         }
 
         // Add sources
@@ -148,16 +148,16 @@ XML;
             $text .= "\n\nSource:\t{$source->name} ({$source->publication_year}) p. {$entitySource->pages}";
         }
 
-        $xml .= "<text>" . htmlspecialchars($text, ENT_XML1) . "</text>";
+        $xml .= '<text>'.htmlspecialchars($text, ENT_XML1).'</text>';
 
         // Reconstruct roll elements from spell effects
         foreach ($spell->effects()->orderBy('min_character_level')->orderBy('min_spell_slot')->get() as $effect) {
-            if (!$effect->dice_formula) {
+            if (! $effect->dice_formula) {
                 continue;
             }
 
             $level = $effect->min_character_level ?? $effect->min_spell_slot ?? '';
-            $xml .= "<roll description=\"" . htmlspecialchars($effect->description, ENT_XML1) . "\"";
+            $xml .= '<roll description="'.htmlspecialchars($effect->description, ENT_XML1).'"';
             if ($level !== '') {
                 $xml .= " level=\"{$level}\"";
             }
@@ -431,6 +431,7 @@ XML;
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'spell_test_');
         file_put_contents($tempFile, $xmlContent);
+
         return $tempFile;
     }
 }

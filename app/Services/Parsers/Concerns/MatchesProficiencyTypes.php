@@ -15,10 +15,10 @@ trait MatchesProficiencyTypes
      */
     protected function initializeProficiencyTypes(): void
     {
-        if (!isset($this->proficiencyTypesCache)) {
+        if (! isset($this->proficiencyTypesCache)) {
             try {
                 $this->proficiencyTypesCache = ProficiencyType::all()
-                    ->keyBy(fn($type) => $this->normalizeName($type->name));
+                    ->keyBy(fn ($type) => $this->normalizeName($type->name));
             } catch (\Exception $e) {
                 // Graceful fallback for unit tests without database
                 $this->proficiencyTypesCache = collect();
@@ -29,17 +29,18 @@ trait MatchesProficiencyTypes
     /**
      * Match a proficiency name to a ProficiencyType.
      *
-     * @param string $name The proficiency name from XML
+     * @param  string  $name  The proficiency name from XML
      * @return ProficiencyType|null The matched type, or null if no match
      */
     protected function matchProficiencyType(string $name): ?ProficiencyType
     {
         // Lazy initialization for backward compatibility with unit tests
-        if (!isset($this->proficiencyTypesCache)) {
+        if (! isset($this->proficiencyTypesCache)) {
             $this->initializeProficiencyTypes();
         }
 
         $normalized = $this->normalizeName($name);
+
         return $this->proficiencyTypesCache->get($normalized);
     }
 
@@ -47,7 +48,7 @@ trait MatchesProficiencyTypes
      * Normalize a proficiency name for matching.
      * Handles case differences and apostrophe variants.
      *
-     * @param string $name The name to normalize
+     * @param  string  $name  The name to normalize
      * @return string The normalized name
      */
     protected function normalizeName(string $name): string
@@ -57,6 +58,7 @@ trait MatchesProficiencyTypes
         $name = str_replace("'", '', $name); // Right single quotation mark (curly)
         $name = str_replace("'", '', $name); // Left single quotation mark
         $name = str_replace(' ', '', $name); // Spaces
+
         return strtolower($name);
     }
 }

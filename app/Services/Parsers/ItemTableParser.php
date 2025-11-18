@@ -75,6 +75,7 @@ class ItemTableParser
         // Check for single number (e.g., "1" or "01")
         if (is_numeric($cell)) {
             $num = (int) $cell;
+
             return [$num, $num];
         }
 

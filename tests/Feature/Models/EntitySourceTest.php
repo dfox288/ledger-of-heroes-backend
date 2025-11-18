@@ -5,7 +5,6 @@ namespace Tests\Feature\Models;
 use App\Models\EntitySource;
 use App\Models\Source;
 use App\Models\Spell;
-use App\Models\SpellSchool;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -56,7 +55,7 @@ class EntitySourceTest extends TestCase
 
     public function test_entity_source_does_not_use_timestamps(): void
     {
-        $entitySource = new EntitySource();
+        $entitySource = new EntitySource;
         $this->assertFalse($entitySource->timestamps);
     }
 }

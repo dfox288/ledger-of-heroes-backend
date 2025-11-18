@@ -15,9 +15,9 @@ return new class extends Migration
             $table->unsignedBigInteger('damage_type_id')->nullable()->after('scaling_increment');
 
             $table->foreign('damage_type_id')
-                  ->references('id')
-                  ->on('damage_types')
-                  ->onDelete('restrict');
+                ->references('id')
+                ->on('damage_types')
+                ->onDelete('restrict');
 
             $table->index('damage_type_id');
         });

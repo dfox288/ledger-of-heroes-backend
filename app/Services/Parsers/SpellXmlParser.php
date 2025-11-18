@@ -58,7 +58,7 @@ class SpellXmlParser
 
             // Add the remaining text to description (even if we extracted source)
             if (trim($textContent)) {
-                $description .= $textContent . "\n\n";
+                $description .= $textContent."\n\n";
             }
         }
 
@@ -154,7 +154,6 @@ class SpellXmlParser
      *   "Player's Handbook (2014) p. 241"
      *   "Dungeon Master's Guide (2014) p. 150,\n\t\tPlayer's Handbook (2014) p. 150"
      *
-     * @param string $sourcesText
      * @return array Array of ['code' => 'PHB', 'pages' => '241']
      */
     private function parseSourceCitations(string $sourcesText): array
@@ -169,7 +168,7 @@ class SpellXmlParser
         $patternWithYear = '/([^(]+)\s*\((\d{4})\)\s*p\.\s*([\d,\s\-]+)/';
         preg_match_all($patternWithYear, $sourcesText, $matches, PREG_SET_ORDER);
 
-        if (!empty($matches)) {
+        if (! empty($matches)) {
             foreach ($matches as $match) {
                 $sourceName = trim($match[1]);
                 $pages = trim($match[3]);

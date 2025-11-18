@@ -418,4 +418,39 @@ class RaceApiTest extends TestCase
                 ],
             ]);
     }
+
+    /** @test */
+    public function test_modifier_includes_skill_when_present()
+    {
+        $size = Size::where('code', 'M')->first();
+        $skill = Skill::where('name', 'Stealth')->first();
+
+        $race = Race::create([
+            'name' => 'Stealthy Race',
+            'size_id' => $size->id,
+            'speed' => 30,
+        ]);
+
+        $race->modifiers()->create([
+            'modifier_category' => 'skill',
+            'skill_id' => $skill->id,
+            'value' => 2,
+        ]);
+
+        $response = $this->getJson("/api/v1/races/{$race->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'modifiers' => [
+                        '*' => [
+                            'skill' => [
+                                'id',
+                                'name',
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+    }
 }

@@ -20,6 +20,12 @@ class ModifierResource extends JsonResource
             'ability_score' => $this->when($this->ability_score_id, function () {
                 return new AbilityScoreResource($this->whenLoaded('abilityScore'));
             }),
+            'skill' => $this->when($this->skill_id, function () {
+                return new SkillResource($this->whenLoaded('skill'));
+            }),
+            'damage_type' => $this->when($this->damage_type_id, function () {
+                return new DamageTypeResource($this->whenLoaded('damageType'));
+            }),
             'value' => $this->value,
             'condition' => $this->condition,
         ];

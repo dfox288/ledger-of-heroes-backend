@@ -45,6 +45,8 @@ class RaceController extends Controller
             'proficiencies.skill.abilityScore',
             'traits.randomTables.entries', // Load random tables through traits
             'modifiers.abilityScore',
+            'modifiers.skill',
+            'modifiers.damageType',
         ]);
 
         return new RaceResource($race);

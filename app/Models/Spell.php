@@ -25,8 +25,6 @@ class Spell extends Model
         'is_ritual',
         'description',
         'higher_levels',
-        'source_id',
-        'source_pages',
     ];
 
     protected $casts = [
@@ -39,11 +37,6 @@ class Spell extends Model
     public function spellSchool(): BelongsTo
     {
         return $this->belongsTo(SpellSchool::class);
-    }
-
-    public function source(): BelongsTo
-    {
-        return $this->belongsTo(Source::class);
     }
 
     public function classes(): BelongsToMany

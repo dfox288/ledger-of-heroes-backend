@@ -21,23 +21,15 @@ class CharacterClass extends Model
         'description',
         'primary_ability',
         'spellcasting_ability_id',
-        'source_id',
-        'source_pages',
     ];
 
     protected $casts = [
         'hit_die' => 'integer',
         'parent_class_id' => 'integer',
         'spellcasting_ability_id' => 'integer',
-        'source_id' => 'integer',
     ];
 
     // Relationships
-    public function source(): BelongsTo
-    {
-        return $this->belongsTo(Source::class);
-    }
-
     public function spellcastingAbility(): BelongsTo
     {
         return $this->belongsTo(AbilityScore::class, 'spellcasting_ability_id');

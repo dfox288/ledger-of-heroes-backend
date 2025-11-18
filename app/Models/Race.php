@@ -18,15 +18,12 @@ class Race extends Model
         'name',
         'size_id',
         'speed',
-        'source_id',
-        'source_pages',
         'parent_race_id',
     ];
 
     protected $casts = [
         'size_id' => 'integer',
         'speed' => 'integer',
-        'source_id' => 'integer',
         'parent_race_id' => 'integer',
     ];
 
@@ -34,11 +31,6 @@ class Race extends Model
     public function size(): BelongsTo
     {
         return $this->belongsTo(Size::class);
-    }
-
-    public function source(): BelongsTo
-    {
-        return $this->belongsTo(Source::class);
     }
 
     public function parent(): BelongsTo

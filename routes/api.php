@@ -1,15 +1,16 @@
 <?php
 
-use App\Http\Controllers\Api\SourceController;
-use App\Http\Controllers\Api\SpellSchoolController;
-use App\Http\Controllers\Api\DamageTypeController;
-use App\Http\Controllers\Api\SizeController;
 use App\Http\Controllers\Api\AbilityScoreController;
-use App\Http\Controllers\Api\SkillController;
-use App\Http\Controllers\Api\ItemTypeController;
+use App\Http\Controllers\Api\BackgroundController;
+use App\Http\Controllers\Api\DamageTypeController;
 use App\Http\Controllers\Api\ItemPropertyController;
-use App\Http\Controllers\Api\SpellController;
+use App\Http\Controllers\Api\ItemTypeController;
 use App\Http\Controllers\Api\RaceController;
+use App\Http\Controllers\Api\SizeController;
+use App\Http\Controllers\Api\SkillController;
+use App\Http\Controllers\Api\SourceController;
+use App\Http\Controllers\Api\SpellController;
+use App\Http\Controllers\Api\SpellSchoolController;
 use Illuminate\Support\Facades\Route;
 
 // Temporary test route for CORS testing
@@ -33,4 +34,7 @@ Route::prefix('v1')->group(function () {
 
     // Races
     Route::apiResource('races', RaceController::class)->only(['index', 'show']);
+
+    // Backgrounds
+    Route::apiResource('backgrounds', BackgroundController::class)->only(['index', 'show']);
 });

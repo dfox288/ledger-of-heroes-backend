@@ -25,7 +25,7 @@ class LookupApiTest extends TestCase
             ->assertJsonStructure([
                 '*' => ['id', 'code', 'name', 'publisher', 'publication_year', 'edition']
             ])
-            ->assertJsonCount(6); // We have 6 sources seeded
+            ->assertJsonCount(8); // We have 8 sources seeded (PHB, DMG, MM, XGE, TCE, VGTM, ERLW, WGTE)
     }
 
     public function test_can_get_all_spell_schools(): void

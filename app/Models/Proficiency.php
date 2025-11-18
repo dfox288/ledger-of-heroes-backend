@@ -16,6 +16,7 @@ class Proficiency extends Model
         'reference_type',
         'reference_id',
         'proficiency_type',
+        'proficiency_type_id',
         'skill_id',
         'item_id',
         'ability_score_id',
@@ -24,6 +25,7 @@ class Proficiency extends Model
 
     protected $casts = [
         'reference_id' => 'integer',
+        'proficiency_type_id' => 'integer',
         'skill_id' => 'integer',
         'item_id' => 'integer',
         'ability_score_id' => 'integer',
@@ -49,5 +51,10 @@ class Proficiency extends Model
     public function abilityScore(): BelongsTo
     {
         return $this->belongsTo(AbilityScore::class);
+    }
+
+    public function proficiencyType(): BelongsTo
+    {
+        return $this->belongsTo(ProficiencyType::class);
     }
 }

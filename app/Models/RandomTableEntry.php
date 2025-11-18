@@ -13,13 +13,16 @@ class RandomTableEntry extends Model
 
     protected $fillable = [
         'random_table_id',
-        'roll_value',
-        'result',
+        'roll_min',
+        'roll_max',
+        'result_text',
         'sort_order',
     ];
 
     protected $casts = [
         'random_table_id' => 'integer',
+        'roll_min' => 'integer',
+        'roll_max' => 'integer',
         'sort_order' => 'integer',
     ];
 

@@ -209,30 +209,15 @@ class ItemImporter
             ]);
 
             foreach ($parsed['rows'] as $index => $row) {
-                // Format roll_value from roll_min/roll_max
-                $rollValue = $this->formatRollValue($row['roll_min'], $row['roll_max']);
-
                 RandomTableEntry::create([
                     'random_table_id' => $table->id,
-                    'roll_value' => $rollValue,
-                    'result' => $row['result_text'],
+                    'roll_min' => $row['roll_min'],
+                    'roll_max' => $row['roll_max'],
+                    'result_text' => $row['result_text'],
                     'sort_order' => $index,
                 ]);
             }
         }
-    }
-
-    private function formatRollValue(?int $rollMin, ?int $rollMax): string
-    {
-        if ($rollMin === null || $rollMax === null) {
-            return '';
-        }
-
-        if ($rollMin === $rollMax) {
-            return (string) $rollMin;
-        }
-
-        return "{$rollMin}-{$rollMax}";
     }
 
     private function getSourceByCode(string $code): Source

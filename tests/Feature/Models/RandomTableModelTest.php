@@ -36,15 +36,17 @@ class RandomTableModelTest extends TestCase
 
         RandomTableEntry::factory()->create([
             'random_table_id' => $table->id,
-            'roll_value' => '2',
-            'result' => 'Minimum roll',
+            'roll_min' => 2,
+            'roll_max' => 2,
+            'result_text' => 'Minimum roll',
             'sort_order' => 1,
         ]);
 
         RandomTableEntry::factory()->create([
             'random_table_id' => $table->id,
-            'roll_value' => '16',
-            'result' => 'Maximum roll',
+            'roll_min' => 16,
+            'roll_max' => 16,
+            'result_text' => 'Maximum roll',
             'sort_order' => 2,
         ]);
 

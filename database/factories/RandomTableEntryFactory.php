@@ -20,10 +20,13 @@ class RandomTableEntryFactory extends Factory
      */
     public function definition(): array
     {
+        $rollValue = fake()->numberBetween(1, 6);
+
         return [
             'random_table_id' => RandomTable::factory(),
-            'roll_value' => fake()->numberBetween(1, 6),
-            'result' => fake()->sentence(),
+            'roll_min' => $rollValue,
+            'roll_max' => $rollValue,
+            'result_text' => fake()->sentence(),
             'sort_order' => 0,
         ];
     }

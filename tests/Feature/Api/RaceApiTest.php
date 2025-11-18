@@ -359,8 +359,9 @@ class RaceApiTest extends TestCase
         $trait->update(['random_table_id' => $randomTable->id]);
 
         $randomTable->entries()->create([
-            'roll_value' => '1',
-            'result' => 'Feature A',
+            'roll_min' => 1,
+            'roll_max' => 1,
+            'result_text' => 'Feature A',
             'sort_order' => 1,
         ]);
 
@@ -376,8 +377,9 @@ class RaceApiTest extends TestCase
                                     'entries' => [
                                         '*' => [
                                             'id',
-                                            'roll_value',
-                                            'result',
+                                            'roll_min',
+                                            'roll_max',
+                                            'result_text',
                                             'sort_order',
                                         ],
                                     ],

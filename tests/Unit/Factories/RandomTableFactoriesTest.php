@@ -30,7 +30,7 @@ class RandomTableFactoriesTest extends TestCase
 
         $this->assertInstanceOf(RandomTableEntry::class, $entry);
         $this->assertNotNull($entry->random_table_id);
-        $this->assertNotNull($entry->result);
+        $this->assertNotNull($entry->result_text);
     }
 
     #[Test]

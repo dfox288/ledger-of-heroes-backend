@@ -67,6 +67,9 @@ class RaceXmlParser
             }
         }
 
+        // Parse proficiencies
+        $proficiencies = $this->parseProficiencies($element);
+
         return [
             'name' => $raceName,
             'base_race_name' => $baseRaceName,
@@ -75,7 +78,48 @@ class RaceXmlParser
             'description' => trim($description),
             'source_code' => $sourceCode ?: 'PHB',
             'source_pages' => $sourcePages,
+            'proficiencies' => $proficiencies,
         ];
+    }
+
+    private function parseProficiencies(SimpleXMLElement $element): array
+    {
+        $proficiencies = [];
+
+        // Parse skill proficiencies
+        if (isset($element->proficiency)) {
+            $skills = array_map('trim', explode(',', (string) $element->proficiency));
+            foreach ($skills as $skill) {
+                $proficiencies[] = [
+                    'type' => 'skill',
+                    'name' => $skill,
+                ];
+            }
+        }
+
+        // Parse weapon proficiencies
+        if (isset($element->weapons)) {
+            $weapons = array_map('trim', explode(',', (string) $element->weapons));
+            foreach ($weapons as $weapon) {
+                $proficiencies[] = [
+                    'type' => 'weapon',
+                    'name' => $weapon,
+                ];
+            }
+        }
+
+        // Parse armor proficiencies
+        if (isset($element->armor)) {
+            $armors = array_map('trim', explode(',', (string) $element->armor));
+            foreach ($armors as $armor) {
+                $proficiencies[] = [
+                    'type' => 'armor',
+                    'name' => $armor,
+                ];
+            }
+        }
+
+        return $proficiencies;
     }
 
     private function getSourceCode(string $sourceName): string

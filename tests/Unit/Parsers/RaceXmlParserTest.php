@@ -239,4 +239,121 @@ XML;
         $this->assertEquals('Drow / Dark', $races[0]['name']);
         $this->assertEquals('Elf', $races[0]['base_race_name']);
     }
+
+    /** @test */
+    public function it_parses_skill_proficiencies()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Elf, High</name>
+    <size>M</size>
+    <speed>30</speed>
+    <proficiency>Perception</proficiency>
+    <trait category="description">
+      <name>Description</name>
+      <text>High elf description.
+Source: Player's Handbook (2014) p. 23</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races);
+        $this->assertArrayHasKey('proficiencies', $races[0]);
+        $this->assertCount(1, $races[0]['proficiencies']);
+        $this->assertEquals('skill', $races[0]['proficiencies'][0]['type']);
+        $this->assertEquals('Perception', $races[0]['proficiencies'][0]['name']);
+    }
+
+    /** @test */
+    public function it_parses_weapon_proficiencies()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Elf, High</name>
+    <size>M</size>
+    <speed>30</speed>
+    <weapons>Longsword, Shortsword, Shortbow, Longbow</weapons>
+    <trait category="description">
+      <name>Description</name>
+      <text>High elf.
+Source: Player's Handbook (2014) p. 23</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(4, $races[0]['proficiencies']);
+        $this->assertEquals('weapon', $races[0]['proficiencies'][0]['type']);
+        $this->assertEquals('Longsword', $races[0]['proficiencies'][0]['name']);
+    }
+
+    /** @test */
+    public function it_parses_armor_proficiencies()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dwarf, Mountain</name>
+    <size>M</size>
+    <speed>25</speed>
+    <armor>Light Armor, Medium Armor</armor>
+    <trait category="description">
+      <name>Description</name>
+      <text>Mountain dwarf.
+Source: Player's Handbook (2014) p. 20</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(2, $races[0]['proficiencies']);
+        $this->assertEquals('armor', $races[0]['proficiencies'][0]['type']);
+        $this->assertEquals('Light Armor', $races[0]['proficiencies'][0]['name']);
+    }
+
+    /** @test */
+    public function it_parses_multiple_proficiency_types()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dwarf, Mountain</name>
+    <size>M</size>
+    <speed>25</speed>
+    <proficiency>Perception</proficiency>
+    <weapons>Battleaxe, Handaxe</weapons>
+    <armor>Light Armor, Medium Armor</armor>
+    <trait category="description">
+      <name>Description</name>
+      <text>Dwarf.
+Source: Player's Handbook (2014) p. 20</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $proficiencies = $races[0]['proficiencies'];
+        $this->assertCount(5, $proficiencies); // 1 skill + 2 weapons + 2 armor
+
+        // Verify we have all types
+        $types = array_column($proficiencies, 'type');
+        $this->assertContains('skill', $types);
+        $this->assertContains('weapon', $types);
+        $this->assertContains('armor', $types);
+    }
 }

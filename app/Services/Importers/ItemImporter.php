@@ -35,6 +35,7 @@ class ItemImporter
                 'item_type_id' => $itemTypeId,
                 'rarity' => $itemData['rarity'],
                 'requires_attunement' => $itemData['requires_attunement'],
+                'is_magic' => $itemData['is_magic'],
                 'cost_cp' => $itemData['cost_cp'],
                 'weight' => $itemData['weight'],
                 'damage_dice' => $itemData['damage_dice'],

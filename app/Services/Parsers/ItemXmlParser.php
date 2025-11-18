@@ -27,6 +27,7 @@ class ItemXmlParser
             'type_code' => (string) $element->type,
             'rarity' => $this->parseRarity((string) $element->detail),
             'requires_attunement' => $this->parseAttunement($text),
+            'is_magic' => $this->parseMagic($element),
             'cost_cp' => $this->parseCost((string) $element->value),
             'weight' => isset($element->weight) ? (float) $element->weight : null,
             'damage_dice' => (string) $element->dmg1 ?: null,
@@ -77,6 +78,11 @@ class ItemXmlParser
     private function parseAttunement(string $text): bool
     {
         return stripos($text, 'requires attunement') !== false;
+    }
+
+    private function parseMagic(SimpleXMLElement $element): bool
+    {
+        return strtoupper((string) $element->magic) === 'YES';
     }
 
     private function parseProperties(string $propertyString): array

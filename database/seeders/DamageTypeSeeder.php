@@ -20,19 +20,19 @@ class DamageTypeSeeder extends Seeder
     public function run(): void
     {
         DB::table('damage_types')->insert([
-            ['name' => 'Acid'],
-            ['name' => 'Bludgeoning'],
-            ['name' => 'Cold'],
-            ['name' => 'Fire'],
-            ['name' => 'Force'],
-            ['name' => 'Lightning'],
-            ['name' => 'Necrotic'],
-            ['name' => 'Piercing'],
-            ['name' => 'Poison'],
-            ['name' => 'Psychic'],
-            ['name' => 'Radiant'],
-            ['name' => 'Slashing'],
-            ['name' => 'Thunder'],
+            ['code' => 'A', 'name' => 'Acid'],
+            ['code' => 'B', 'name' => 'Bludgeoning'],
+            ['code' => 'C', 'name' => 'Cold'],
+            ['code' => 'F', 'name' => 'Fire'],
+            ['code' => 'Fc', 'name' => 'Force'],
+            ['code' => 'L', 'name' => 'Lightning'],
+            ['code' => 'N', 'name' => 'Necrotic'],
+            ['code' => 'P', 'name' => 'Piercing'],
+            ['code' => 'Po', 'name' => 'Poison'],
+            ['code' => 'Ps', 'name' => 'Psychic'],
+            ['code' => 'R', 'name' => 'Radiant'],
+            ['code' => 'S', 'name' => 'Slashing'],
+            ['code' => 'T', 'name' => 'Thunder'],
         ]);
     }
 }

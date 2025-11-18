@@ -31,9 +31,9 @@ class ItemsTableTest extends TestCase
         // Weapon properties (5) - These were MISSING in old implementation
         $this->assertTrue(Schema::hasColumn('items', 'damage_dice'));
         $this->assertTrue(Schema::hasColumn('items', 'damage_type_id'));
-        $this->assertTrue(Schema::hasColumn('items', 'weapon_range'));
+        $this->assertTrue(Schema::hasColumn('items', 'range_normal'));
+        $this->assertTrue(Schema::hasColumn('items', 'range_long'));
         $this->assertTrue(Schema::hasColumn('items', 'versatile_damage'));
-        $this->assertTrue(Schema::hasColumn('items', 'weapon_properties'));
 
         // Armor properties (3) - These were MISSING in old implementation
         $this->assertTrue(Schema::hasColumn('items', 'armor_class'));
@@ -120,13 +120,13 @@ class ItemsTableTest extends TestCase
         $columns = Schema::getColumnListing('items');
 
         // 20 columns: id, name, slug, item_type_id, description, weight, cost_cp, rarity,
-        // damage_dice, damage_type_id, weapon_range, versatile_damage, weapon_properties,
+        // damage_dice, damage_type_id, range_normal, range_long, versatile_damage,
         // armor_class, strength_requirement, stealth_disadvantage, requires_attunement, is_magic,
         // created_at, updated_at
         $expectedColumns = [
             'id', 'name', 'slug', 'item_type_id', 'description',
             'weight', 'cost_cp', 'rarity',
-            'damage_dice', 'damage_type_id', 'weapon_range', 'versatile_damage', 'weapon_properties',
+            'damage_dice', 'damage_type_id', 'range_normal', 'range_long', 'versatile_damage',
             'armor_class', 'strength_requirement', 'stealth_disadvantage',
             'requires_attunement', 'is_magic',
             'created_at', 'updated_at'

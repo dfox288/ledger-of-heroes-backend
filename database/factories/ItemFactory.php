@@ -39,7 +39,8 @@ class ItemFactory extends Factory
                 'item_type_id' => $weaponType->id,
                 'damage_dice' => fake()->randomElement(['1d4', '1d6', '1d8', '1d10', '1d12', '2d6']),
                 'damage_type_id' => $damageType->id,
-                'weapon_range' => $weaponType->code === 'R' ? '80/320' : null,
+                'range_normal' => $weaponType->code === 'R' ? 80 : null,
+                'range_long' => $weaponType->code === 'R' ? 320 : null,
             ];
         });
     }

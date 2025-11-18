@@ -26,7 +26,7 @@ class ItemXmlParser
             'name' => (string) $element->name,
             'type_code' => (string) $element->type,
             'rarity' => $this->parseRarity((string) $element->detail),
-            'requires_attunement' => $this->parseAttunement($text),
+            'requires_attunement' => $this->parseAttunement($text, (string) $element->detail),
             'is_magic' => $this->parseMagic($element),
             'cost_cp' => $this->parseCost((string) $element->value),
             'weight' => isset($element->weight) ? (float) $element->weight : null,
@@ -41,6 +41,7 @@ class ItemXmlParser
             'properties' => $this->parseProperties((string) $element->property),
             'sources' => $this->parseSourceCitations($text),
             'proficiencies' => $this->extractProficiencies($text),
+            'modifiers' => $this->parseModifiers($element),
         ];
     }
 
@@ -75,8 +76,14 @@ class ItemXmlParser
         return 'common';
     }
 
-    private function parseAttunement(string $text): bool
+    private function parseAttunement(string $text, string $detail): bool
     {
+        // Check detail field first (primary location): "rare (requires attunement)"
+        if (stripos($detail, 'requires attunement') !== false) {
+            return true;
+        }
+
+        // Fallback: check description text (secondary location)
         return stripos($text, 'requires attunement') !== false;
     }
 
@@ -219,5 +226,23 @@ class ItemXmlParser
 
         // Default to weapon for specific weapon names
         return 'weapon';
+    }
+
+    private function parseModifiers(SimpleXMLElement $element): array
+    {
+        $modifiers = [];
+
+        foreach ($element->modifier as $modifierElement) {
+            $category = (string) $modifierElement['category']; // "bonus", "set", etc.
+            $text = trim((string) $modifierElement);
+
+            // Parse the modifier text: "ranged attacks +1" or "AC +2"
+            $modifiers[] = [
+                'category' => $category,
+                'text' => $text,
+            ];
+        }
+
+        return $modifiers;
     }
 }

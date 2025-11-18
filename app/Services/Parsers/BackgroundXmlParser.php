@@ -3,10 +3,13 @@
 namespace App\Services\Parsers;
 
 use App\Models\Skill;
+use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use SimpleXMLElement;
 
 class BackgroundXmlParser
 {
+    use MatchesProficiencyTypes;
+
     public function parse(string $xmlContent): array
     {
         $xml = new SimpleXMLElement($xmlContent);
@@ -34,10 +37,14 @@ class BackgroundXmlParser
         $parts = array_map('trim', explode(',', $profText));
 
         foreach ($parts as $name) {
+            // NEW: Match to proficiency_types table
+            $proficiencyType = $this->matchProficiencyType($name);
+
             $profs[] = [
                 'proficiency_name' => $name,
                 'proficiency_type' => $this->inferProficiencyType($name),
                 'skill_id' => $this->lookupSkillId($name),
+                'proficiency_type_id' => $proficiencyType?->id, // NEW
             ];
         }
 

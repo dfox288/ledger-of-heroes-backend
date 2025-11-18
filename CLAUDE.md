@@ -7,19 +7,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a Laravel 11.x application that imports D&D 5th Edition content from XML files and provides a RESTful API for accessing the data. The XML files follow the compendium format used by applications like Fight Club 5e and similar D&D companion apps.
 
 **Current Status (2025-11-18):**
-- ✅ 27 database migrations completed
+- ✅ 31 database migrations completed (including 5 recent enhancements)
 - ✅ 18 Eloquent models defined (all with HasFactory trait)
 - ✅ 10 Model factories for easy test data generation
 - ✅ 9 Database seeders for lookup/reference data
-- ✅ 16 API Resources (standardized and field-complete)
+- ✅ 16 API Resources (standardized and 100% field-complete)
 - ✅ 10 API Controllers with routes
-- ✅ **240 tests passing (1412 assertions, 0 warnings)**
-- ✅ **12 XML reconstruction tests (verifies import completeness)**
-- ✅ 2 importers working (Spells: 361 imported, Races: 19 imported)
-- ✅ **Import coverage: Spells ~95%, Races ~90%**
-- ✅ 2 artisan commands (`import:spells`, `import:races`)
+- ✅ **267 tests passing (1,580 assertions, 1 incomplete expected)**
+- ✅ **35 XML reconstruction tests (verifies import completeness)**
+- ✅ **3 importers working (Items: 1,942 imported, Races: 56 imported, Spells: ready)**
+- ✅ **Random Table System (60 tables with 381 entries, 97% dice type coverage)**
+- ✅ **Import coverage: Items ~95%, Races ~90%, Spells ~95%**
+- ✅ 3 artisan commands (`import:spells`, `import:races`, `import:items`)
 - ✅ 86 XML import files available
-- ⚠️  5 importers pending (Items, Classes, Monsters, Backgrounds, Feats)
+- ⚠️  3 importers pending (Classes, Monsters, Backgrounds+Feats)
 
 ## Tech Stack
 
@@ -35,42 +36,53 @@ This is a Laravel 11.x application that imports D&D 5th Edition content from XML
 app/
   ├── Console/Commands/
   │   ├── ImportSpells.php              # Artisan command for spell import
-  │   └── ImportRaces.php               # Artisan command for race import
+  │   ├── ImportRaces.php               # Artisan command for race import
+  │   └── ImportItems.php               # Artisan command for item import
   ├── Http/
   │   ├── Controllers/Api/              # 10 API controllers
   │   │   ├── RaceController.php
   │   │   ├── SpellController.php
-  │   │   └── [8 lookup controllers]
+  │   │   ├── ItemController.php
+  │   │   └── [7 lookup controllers]
   │   └── Resources/                    # 16 standardized API Resources
   │       ├── RaceResource.php
   │       ├── SpellResource.php
+  │       ├── ItemResource.php
   │       ├── EntitySourceResource.php  # Multi-source support
-  │       └── [13 more resources]
+  │       ├── RandomTableResource.php   # Random table support
+  │       └── [11 more resources]
   ├── Models/                           # 18 Eloquent models
   │   ├── Race.php
   │   ├── Spell.php
+  │   ├── Item.php
   │   ├── CharacterClass.php
-  │   └── [15 more models]
+  │   ├── RandomTable.php
+  │   └── [13 more models]
   └── Services/
       ├── Importers/                    # XML import services
       │   ├── SpellImporter.php
-      │   └── RaceImporter.php
+      │   ├── RaceImporter.php
+      │   └── ItemImporter.php
       └── Parsers/                      # XML parsing logic
           ├── SpellXmlParser.php
-          └── RaceXmlParser.php
+          ├── RaceXmlParser.php
+          ├── ItemXmlParser.php
+          ├── ItemTableDetector.php     # Random table detection
+          └── ItemTableParser.php       # Random table parsing
 
 database/
-  └── migrations/                       # 27 migration files
+  └── migrations/                       # 31 migration files
       ├── 2025_11_17_203923_create_sources_table.php
       ├── 2025_11_17_204217_create_lookup_tables.php  # Seeds 8 lookup tables
       ├── 2025_11_18_104911_create_entity_sources_table.php  # Multi-source
-      └── [24 more migrations]
+      ├── 2025_11_18_184259_add_is_magic_to_items_table.php  # Item enhancements
+      └── [27 more migrations]
 
 import-files/                           # 86 XML source files
-  ├── spells-*.xml                      # 6 spell files
-  ├── races-*.xml                       # 2 race files
+  ├── spells-*.xml                      # 6 spell files (ready to import)
+  ├── races-*.xml                       # 3 race files (56 races imported ✅)
+  ├── items-*.xml                       # 17 item files (1,942 items imported ✅)
   ├── class-*.xml                       # 35 class files
-  ├── items-*.xml                       # 12 item files
   ├── bestiary-*.xml                    # 5 monster files
   ├── backgrounds-phb.xml
   ├── feats-*.xml
@@ -80,10 +92,20 @@ tests/
   ├── Feature/
   │   ├── Api/                          # 32 API endpoint tests
   │   ├── Importers/                    # Import functionality tests
+  │   │   ├── SpellXmlReconstructionTest.php   # 7 tests
+  │   │   ├── RaceXmlReconstructionTest.php    # 7 tests (1 incomplete)
+  │   │   └── ItemXmlReconstructionTest.php    # 14 tests
   │   ├── Migrations/                   # Migration tests
   │   └── Models/                       # Model relationship tests
   └── Unit/
-      └── Parsers/                      # XML parser unit tests
+      ├── Parsers/                      # XML parser unit tests
+      │   ├── SpellXmlParserTest.php
+      │   ├── RaceXmlParserTest.php
+      │   └── ItemXmlParserTest.php (planned)
+      ├── Services/                     # Service unit tests
+      │   ├── ItemTableDetectorTest.php # 8 tests
+      │   └── ItemTableParserTest.php   # 4 tests
+      └── Factories/                    # Factory tests (20 tests)
 ```
 
 ## XML Format Structure
@@ -103,6 +125,16 @@ All XML files follow a common structure with `<compendium version="5" auto_inden
 - Traits categorized as "description" for lore or specific features (Age, Alignment, Size)
 - Proficiencies can be skills, weapons, armor, or tools
 - May include `<roll>` elements within traits for random tables
+- Random tables embedded in trait descriptions (d6, d8, d10 tables with pipe-separated entries)
+
+### Item Format
+- Contains: name, type, rarity, value, weight, armor/weapon properties
+- Magic items marked with `magic="true"` attribute
+- Attunement specified in `<detail>` field
+- Modifiers in `<modifier category="">` elements (AC, ability scores, etc.)
+- Abilities/rolls in `<roll description="">` elements (attack bonuses, damage, etc.)
+- Random tables embedded in descriptions (Deck of Many Things, Apparatus of Kwalish)
+- Weapon range format: "80/320 ft." or "30 feet"
 
 ### Background Format
 - Contains: name, proficiency skills, traits (description, features, characteristics)
@@ -127,6 +159,7 @@ All XML files follow a common structure with `<compendium version="5" auto_inden
    - **Traits:** `reference_type`/`reference_id` - can belong to races, classes, backgrounds, etc.
    - **Modifiers:** `reference_type`/`reference_id` - ability scores, skills, damage types
    - **Proficiencies:** `reference_type`/`reference_id` - skills, weapons, armor, tools, saving throws
+   - **Random Tables:** `reference_type`/`reference_id` - can belong to items, races, traits, etc.
 
 3. **Lookup Tables (Seeded in Migrations):**
    - `sources`: PHB, DMG, MM, XGE, TCE, VGTM
@@ -148,6 +181,12 @@ All XML files follow a common structure with `<compendium version="5" auto_inden
    - 13 core classes seeded in migration
    - Supports spellcasting ability via `spellcasting_ability_id`
 
+6. **Random Table System:**
+   - Polymorphic tables linked to items, races, traits
+   - Support for roll ranges (1, 2-3, 01-02) via `roll_min` and `roll_max`
+   - Handles standard dice (d4, d6, d8, d10, d12, d20, d100) and unusual types (1d22, 1d33, 2d6)
+   - Tables without dice notation supported with `dice_type = NULL` (e.g., lever controls)
+
 ## API Structure
 
 ### Base URL: `/api/v1`
@@ -161,6 +200,10 @@ All XML files follow a common structure with `<compendium version="5" auto_inden
 **Races:**
 - `GET /api/v1/races` - List races (filterable, searchable, paginated)
 - `GET /api/v1/races/{race}` - Get single race with traits, proficiencies, modifiers, subraces
+
+**Items:**
+- `GET /api/v1/items` - List items (filterable, searchable, paginated)
+- `GET /api/v1/items/{item}` - Get single item with abilities, modifiers, random tables
 
 **Lookup Endpoints:**
 - `GET /api/v1/sources` - List all sources
@@ -205,6 +248,12 @@ docker compose exec php php artisan tinker               # Interactive REPL
 # Import data
 docker compose exec php php artisan import:spells import-files/spells-phb.xml
 docker compose exec php php artisan import:races import-files/races-phb.xml
+docker compose exec php php artisan import:items import-files/items-phb.xml
+
+# Batch import all files
+docker compose exec php bash -c 'for file in import-files/items-*.xml; do php artisan import:items "$file"; done'
+docker compose exec php bash -c 'for file in import-files/races-*.xml; do php artisan import:races "$file"; done'
+docker compose exec php bash -c 'for file in import-files/spells-*.xml; do php artisan import:spells "$file"; done'
 
 # List routes
 docker compose exec php php artisan route:list --path=api
@@ -213,6 +262,7 @@ docker compose exec php php artisan route:list --path=api
 ### Available Artisan Commands:
 - `import:spells {file}` - Import spells from XML file
 - `import:races {file}` - Import races from XML file
+- `import:items {file}` - Import items from XML file
 
 ### Working with XML Files
 
@@ -235,18 +285,19 @@ When adding or modifying D&D content:
 ## Testing
 
 ### Test Statistics:
-- **Total Tests:** 240 tests (1 incomplete)
-- **Total Assertions:** 1,412
-- **Test Duration:** ~2.25 seconds
-- **Coverage:** API endpoints, importers, models, migrations, parsers, factories, XML reconstruction
+- **Total Tests:** 267 tests (1 incomplete expected)
+- **Total Assertions:** 1,580
+- **Test Duration:** ~2.5 seconds
+- **Coverage:** API endpoints, importers, models, migrations, parsers, factories, services, XML reconstruction
 
 ### Test Categories:
-- `tests/Feature/Api/` - 32 API endpoint tests (RaceApiTest, SpellApiTest, LookupApiTest, ClassApiTest, CorsTest)
-- `tests/Feature/Importers/` - Import functionality tests + **12 XML reconstruction tests**
+- `tests/Feature/Api/` - 32 API endpoint tests (RaceApiTest, SpellApiTest, ItemApiTest, LookupApiTest, ClassApiTest, CorsTest)
+- `tests/Feature/Importers/` - Import functionality tests + **35 XML reconstruction tests**
 - `tests/Feature/Models/` - Eloquent relationship tests
-- `tests/Feature/Migrations/` - Migration and seeding tests
+- `tests/Feature/Migrations/` - Migration and seeding tests (includes new item enhancements)
 - `tests/Unit/Factories/` - Factory tests (20 tests)
-- `tests/Unit/Parsers/` - XML parser unit tests
+- `tests/Unit/Parsers/` - XML parser unit tests (SpellXmlParserTest, RaceXmlParserTest)
+- `tests/Unit/Services/` - Service unit tests (ItemTableDetectorTest, ItemTableParserTest)
 
 ### XML Reconstruction Tests:
 These tests verify import completeness by reconstructing the original XML from database records:
@@ -260,17 +311,35 @@ These tests verify import completeness by reconstructing the original XML from d
 - Class associations (subclass stripping)
 - "At Higher Levels" text preservation
 
-**Race Reconstruction (5 tests + 1 incomplete):**
+**Race Reconstruction (7 tests, 1 incomplete):**
 - Simple race (Dragonborn)
 - Subrace with parent (Hill Dwarf)
 - Ability bonuses (multiple modifiers)
 - Proficiencies (armor, weapons, skills)
 - Traits with categories
-- Random table references (incomplete - enhancement needed)
+- Random table references (incomplete - edge case noted)
+- Tables from trait descriptions ✅
+
+**Item Reconstruction (14 tests):**
+- Simple melee weapon
+- Armor with requirements
+- Ranged weapon with range
+- Magic item with attunement
+- Item without cost
+- Attunement from detail field
+- Magic flag detection
+- Modifiers (AC, ability scores)
+- Abilities (attack bonuses, damage)
+- Roll descriptions from XML attribute
+- Simple table parsing
+- Roll ranges in tables (1, 2-3, 01-02)
+- Multi-column tables
+- Unusual dice types (1d22, 1d33, 2d6)
 
 **Coverage Results:**
-- **Spells:** ~95% attribute coverage (65 assertions)
-- **Races:** ~90% attribute coverage (38 assertions)
+- **Spells:** ~95% attribute coverage
+- **Races:** ~90% attribute coverage
+- **Items:** ~95% attribute coverage
 
 ### Running Tests:
 ```bash
@@ -471,6 +540,33 @@ These are **intentional** behaviors, not bugs. Documented via XML reconstruction
    - **Rationale:** No explicit type in XML; heuristics work for 95% of cases
    - **Impact:** Enables filtering by type; occasional misclassification possible
 
+### Item Import Limitations:
+
+1. **Roll Descriptions from XML Attribute**
+   - **XML:** `<roll description="Attack Bonus">1d20+3</roll>`
+   - **Stored:** `roll_formula="1d20+3"` + `description="Attack Bonus"`
+   - **Coverage:** 80.5% (305/379 abilities have descriptions)
+   - **Rationale:** XML attribute provides semantic name vs raw formula
+   - **Impact:** 19.5% remain as formula-only (no description attribute in XML)
+
+2. **Weapon Range Parsing**
+   - **XML:** Must be "X/Y ft." or "X feet" format
+   - **Stored:** `range_normal=X`, `range_long=Y` (integers)
+   - **Rationale:** Enables distance calculations and filtering
+   - **Impact:** Non-standard formats remain as NULL
+
+3. **Random Tables Preserved in Description**
+   - **XML:** Tables embedded in `<text>` elements
+   - **Stored:** Extracted to `random_tables` + entries remain in description text
+   - **Rationale:** Original context preserved; frontend can choose rendering
+   - **Impact:** No data loss; slight redundancy for readability
+
+4. **Magic Flag Detection**
+   - **XML:** `magic="true"` attribute (not always present)
+   - **Stored:** Inferred from rarity if attribute missing
+   - **Rationale:** Magic items typically have rarity beyond "Common"
+   - **Impact:** 74.5% of items correctly classified as magic
+
 ### Whitespace & Formatting:
 
 - **Normalization Applied:** Leading/trailing whitespace trimmed, newlines standardized
@@ -480,19 +576,21 @@ These are **intentional** behaviors, not bugs. Documented via XML reconstruction
 ## Pending Work
 
 1. **Import Commands & Parsers:** Need to implement for:
-   - Items (12 XML files available)
-   - Classes (35 XML files available)
+   - Classes (35 XML files available) - **RECOMMENDED NEXT**
    - Monsters (5 bestiary files)
    - Backgrounds (1 file)
    - Feats (multiple files)
 
-2. **API Controllers:** Need controllers/routes for:
-   - Items
-   - Monsters
-   - Backgrounds
-   - Feats
+2. **API Enhancements:**
+   - Filtering by `is_magic`, `dice_type`, `rarity`, `attunement`
+   - Multi-field sorting
+   - Aggregation endpoints (counts by type, rarity, school)
+   - Full-text search improvements
 
-3. **XML Reconstruction Tests:** Verify import completeness by reconstructing XML from database
+3. **Performance & Polish:**
+   - Bulk import transaction batching
+   - Static analysis (PHPStan)
+   - API documentation (OpenAPI/Swagger)
 
 ## Project History
 
@@ -502,10 +600,16 @@ These are **intentional** behaviors, not bugs. Documented via XML reconstruction
 - **2025-11-18:** API Resource standardization and field completeness
 - **2025-11-18:** Factory implementation (10 factories, 9 seeders)
 - **2025-11-18:** PHPUnit migration to PHP 8 attributes
-- **2025-11-18:** Successful import verification (361 spells, 19 races)
+- **2025-11-18:** Item importer with full enhancements (1,942 items imported)
+- **2025-11-18:** Random table extraction system (60 tables, 97% dice type coverage)
+- **2025-11-18:** Item enhancements (magic flags, modifiers, abilities, roll descriptions, range splitting)
+- **2025-11-18:** Schema refinements (5 migrations for item improvements)
 
 ## Documentation
 
+- **`docs/SESSION-HANDOVER.md`** - Comprehensive session handover with recommendations
 - **`docs/PROJECT-STATUS.md`** - Quick project overview and current status
 - **`docs/plans/2025-11-17-dnd-compendium-database-design.md`** - Database architecture (ESSENTIAL)
 - **`docs/plans/2025-11-17-dnd-xml-importer-implementation-v4-vertical-slices.md`** - Implementation strategy
+- **`docs/plans/2025-11-18-item-enhancements-magic-modifiers-abilities.md`** - Item enhancement implementation (✅ completed)
+- **`docs/plans/2025-11-18-item-random-tables-parsing.md`** - Random table parsing implementation (✅ completed)

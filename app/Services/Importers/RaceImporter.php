@@ -250,6 +250,8 @@ class RaceImporter
                 'reference_type' => Race::class,
                 'reference_id' => $race->id,
                 'proficiency_type' => $profData['type'],
+                'proficiency_name' => $profData['name'], // Always store name as fallback
+                'proficiency_type_id' => $profData['proficiency_type_id'] ?? null, // NEW: From parser
             ];
 
             // Handle different proficiency types
@@ -258,13 +260,7 @@ class RaceImporter
                 $skill = Skill::where('name', $profData['name'])->first();
                 if ($skill) {
                     $proficiency['skill_id'] = $skill->id;
-                } else {
-                    // If skill not found, store as proficiency_name
-                    $proficiency['proficiency_name'] = $profData['name'];
                 }
-            } elseif ($profData['type'] === 'weapon' || $profData['type'] === 'armor') {
-                // Store as proficiency_name (items not imported yet)
-                $proficiency['proficiency_name'] = $profData['name'];
             }
 
             Proficiency::create($proficiency);

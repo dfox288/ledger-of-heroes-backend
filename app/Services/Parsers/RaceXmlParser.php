@@ -2,10 +2,13 @@
 
 namespace App\Services\Parsers;
 
+use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use SimpleXMLElement;
 
 class RaceXmlParser
 {
+    use MatchesProficiencyTypes;
+
     public function parse(string $xmlContent): array
     {
         $xml = new SimpleXMLElement($xmlContent);
@@ -149,9 +152,13 @@ class RaceXmlParser
             // Determine type based on common patterns
             $type = $this->determineProficiencyType($profName);
 
+            // NEW: Match to proficiency_types table
+            $proficiencyType = $this->matchProficiencyType($profName);
+
             $proficiencies[] = [
                 'type' => $type,
                 'name' => $profName,
+                'proficiency_type_id' => $proficiencyType?->id,
             ];
         }
 
@@ -159,9 +166,11 @@ class RaceXmlParser
         if (isset($element->weapons)) {
             $weapons = array_map('trim', explode(',', (string) $element->weapons));
             foreach ($weapons as $weapon) {
+                $proficiencyType = $this->matchProficiencyType($weapon);
                 $proficiencies[] = [
                     'type' => 'weapon',
                     'name' => $weapon,
+                    'proficiency_type_id' => $proficiencyType?->id,
                 ];
             }
         }
@@ -170,9 +179,11 @@ class RaceXmlParser
         if (isset($element->armor)) {
             $armors = array_map('trim', explode(',', (string) $element->armor));
             foreach ($armors as $armor) {
+                $proficiencyType = $this->matchProficiencyType($armor);
                 $proficiencies[] = [
                     'type' => 'armor',
                     'name' => $armor,
+                    'proficiency_type_id' => $proficiencyType?->id,
                 ];
             }
         }

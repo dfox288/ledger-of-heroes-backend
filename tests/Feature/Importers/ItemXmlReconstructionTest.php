@@ -243,4 +243,32 @@ XML;
         $item->load('itemType');
         $this->assertEquals('G', $item->itemType->code);
     }
+
+    #[Test]
+    public function it_parses_attunement_from_detail_field()
+    {
+        $originalXml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Cloak of Protection</name>
+    <detail>uncommon (requires attunement)</detail>
+    <type>W</type>
+    <magic>YES</magic>
+    <text>You gain a +1 bonus to AC and saving throws while you wear this cloak.
+
+Source: Dungeon Master's Guide (2014) p. 159</text>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify attunement parsed from detail field
+        $this->assertTrue($item->requires_attunement);
+        $this->assertEquals('uncommon', $item->rarity);
+        $this->assertTrue($item->is_magic);
+    }
 }

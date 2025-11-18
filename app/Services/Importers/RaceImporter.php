@@ -204,37 +204,43 @@ class RaceImporter
 
     private function importRandomTablesFromTraits(Race $race, array $traitsData): void
     {
-        // Clear existing random tables for this race
-        $race->randomTables()->delete();
-
         foreach ($traitsData as $traitData) {
             if (empty($traitData['rolls'])) {
                 continue;
             }
+
+            // Find the trait we created earlier
+            $trait = $race->traits()
+                ->where('name', $traitData['name'])
+                ->where('sort_order', $traitData['sort_order'])
+                ->first();
+
+            if (!$trait) {
+                continue;
+            }
+
+            // Clear existing random tables for this trait
+            $trait->randomTables()->delete();
 
             foreach ($traitData['rolls'] as $roll) {
                 if (empty($roll['description']) || empty($roll['formula'])) {
                     continue;
                 }
 
-                // Create a random table for this roll
+                // Create a random table for this roll, referencing the TRAIT
                 $randomTable = \App\Models\RandomTable::create([
-                    'reference_type' => Race::class,
-                    'reference_id' => $race->id,
+                    'reference_type' => \App\Models\CharacterTrait::class,
+                    'reference_id' => $trait->id,
                     'table_name' => $roll['description'],
                     'dice_type' => $roll['formula'],
                     'description' => "From trait: {$traitData['name']}",
                 ]);
 
-                // IMPORTANT: Link the trait to this random table
-                $trait = $race->traits()
-                    ->where('name', $traitData['name'])
-                    ->where('sort_order', $traitData['sort_order'])
-                    ->first();
+                // Update the trait to link back to this random table
+                $trait->update(['random_table_id' => $randomTable->id]);
 
-                if ($trait) {
-                    $trait->update(['random_table_id' => $randomTable->id]);
-                }
+                // Note: Random table entries are embedded in the trait text as formatted tables
+                // and will need to be parsed separately if needed in the future
             }
         }
     }

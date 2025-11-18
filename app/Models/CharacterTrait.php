@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class CharacterTrait extends Model
@@ -27,13 +28,20 @@ class CharacterTrait extends Model
         'random_table_id' => 'integer',
     ];
 
-    // Polymorphic relationship
+    // Polymorphic relationship to parent entity (Race, Class, etc.)
     public function reference(): MorphTo
     {
         return $this->morphTo();
     }
 
-    // Relationship to random table
+    // Bidirectional relationship to random tables
+    // A trait can have many random tables referencing it
+    public function randomTables(): MorphMany
+    {
+        return $this->morphMany(RandomTable::class, 'reference');
+    }
+
+    // A trait can also be linked to a single random table via random_table_id
     public function randomTable(): BelongsTo
     {
         return $this->belongsTo(RandomTable::class);

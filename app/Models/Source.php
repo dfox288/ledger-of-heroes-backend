@@ -49,7 +49,7 @@ class Source extends Model
 
     public function classes(): HasMany
     {
-        return $this->hasMany(ClassModel::class);
+        return $this->hasMany(CharacterClass::class);
     }
 
     public function monsters(): HasMany

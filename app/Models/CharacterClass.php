@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class ClassModel extends Model
+class CharacterClass extends Model
 {
     public $timestamps = false;
 
@@ -44,12 +44,12 @@ class ClassModel extends Model
 
     public function parentClass(): BelongsTo
     {
-        return $this->belongsTo(ClassModel::class, 'parent_class_id');
+        return $this->belongsTo(CharacterClass::class, 'parent_class_id');
     }
 
     public function subclasses(): HasMany
     {
-        return $this->hasMany(ClassModel::class, 'parent_class_id');
+        return $this->hasMany(CharacterClass::class, 'parent_class_id');
     }
 
     public function spells(): BelongsToMany

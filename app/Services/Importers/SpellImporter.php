@@ -2,7 +2,7 @@
 
 namespace App\Services\Importers;
 
-use App\Models\ClassModel;
+use App\Models\CharacterClass;
 use App\Models\Spell;
 use App\Models\SpellSchool;
 use App\Models\Source;
@@ -76,7 +76,7 @@ class SpellImporter
             $baseClassName = trim($baseClassName);
 
             // Find matching class in database
-            $class = ClassModel::where('name', $baseClassName)
+            $class = CharacterClass::where('name', $baseClassName)
                 ->whereNull('parent_class_id') // Only match base classes
                 ->first();
 

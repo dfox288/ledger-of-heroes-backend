@@ -498,17 +498,23 @@ XML;
         unlink($tmpFile);
 
         $race = Race::where('name', 'Dragonborn')->first();
-        $randomTables = $race->randomTables;
 
+        // Random tables are now accessed through traits
+        $sizeTrait = $race->traits->where('name', 'Size')->first();
+        $this->assertNotNull($sizeTrait);
+
+        $randomTables = $sizeTrait->randomTables;
         $this->assertCount(1, $randomTables);
 
         $sizeTable = $randomTables->first();
         $this->assertEquals('Size Modifier', $sizeTable->table_name);
         $this->assertEquals('2d8', $sizeTable->dice_type);
 
-        // IMPORTANT: Verify trait is linked to random table
-        $sizeTrait = $race->traits->where('name', 'Size')->first();
-        $this->assertNotNull($sizeTrait);
+        // Verify the random table references the trait
+        $this->assertEquals(\App\Models\CharacterTrait::class, $sizeTable->reference_type);
+        $this->assertEquals($sizeTrait->id, $sizeTable->reference_id);
+
+        // IMPORTANT: Verify bidirectional link - trait is linked to random table
         $this->assertNotNull($sizeTrait->random_table_id);
         $this->assertEquals($sizeTable->id, $sizeTrait->random_table_id);
     }

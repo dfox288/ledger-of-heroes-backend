@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\ClassModel;
+use App\Models\CharacterClass;
 use App\Models\Spell;
 use App\Models\SpellEffect;
 use App\Models\SpellSchool;
@@ -183,7 +183,7 @@ class SpellApiTest extends TestCase
         $source = Source::first();
 
         // Create classes
-        $wizard = ClassModel::create([
+        $wizard = CharacterClass::create([
             'name' => 'Wizard',
             'hit_die' => 6,
             'description' => 'A scholarly magic-user capable of manipulating the structures of reality.',
@@ -191,7 +191,7 @@ class SpellApiTest extends TestCase
             'source_pages' => '112',
         ]);
 
-        $sorcerer = ClassModel::create([
+        $sorcerer = CharacterClass::create([
             'name' => 'Sorcerer',
             'hit_die' => 6,
             'description' => 'A spellcaster who draws on inherent magic from a gift or bloodline.',

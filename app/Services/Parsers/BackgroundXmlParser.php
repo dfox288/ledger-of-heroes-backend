@@ -45,6 +45,7 @@ class BackgroundXmlParser
                 'proficiency_type' => $this->inferProficiencyType($name),
                 'skill_id' => $this->lookupSkillId($name),
                 'proficiency_type_id' => $proficiencyType?->id, // NEW
+                'grants' => true, // Backgrounds GRANT proficiency
             ];
         }
 

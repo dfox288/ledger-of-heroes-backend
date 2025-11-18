@@ -159,6 +159,7 @@ class RaceXmlParser
                 'type' => $type,
                 'name' => $profName,
                 'proficiency_type_id' => $proficiencyType?->id,
+                'grants' => true, // Races GRANT proficiency
             ];
         }
 
@@ -171,6 +172,7 @@ class RaceXmlParser
                     'type' => 'weapon',
                     'name' => $weapon,
                     'proficiency_type_id' => $proficiencyType?->id,
+                    'grants' => true, // Races GRANT proficiency
                 ];
             }
         }
@@ -184,6 +186,7 @@ class RaceXmlParser
                     'type' => 'armor',
                     'name' => $armor,
                     'proficiency_type_id' => $proficiencyType?->id,
+                    'grants' => true, // Races GRANT proficiency
                 ];
             }
         }

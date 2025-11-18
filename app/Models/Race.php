@@ -61,6 +61,11 @@ class Race extends Model
         return $this->morphMany(CharacterTrait::class, 'reference');
     }
 
+    public function modifiers(): MorphMany
+    {
+        return $this->morphMany(Modifier::class, 'reference');
+    }
+
     // Scopes for API filtering
     public function scopeSearch($query, $searchTerm)
     {

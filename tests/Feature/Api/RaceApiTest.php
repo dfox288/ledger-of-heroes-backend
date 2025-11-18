@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\AbilityScore;
+use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Models\Race;
 use App\Models\Size;
@@ -229,5 +231,28 @@ class RaceApiTest extends TestCase
         $traits = $response->json('data.traits');
         $this->assertCount(1, $traits);
         $this->assertEquals('Darkvision', $traits[0]['name']);
+    }
+
+    /** @test */
+    public function it_includes_modifiers_in_response()
+    {
+        $race = Race::factory()->create(['name' => 'Dragonborn']);
+        $str = AbilityScore::where('code', 'STR')->first();
+
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $str->id,
+            'value' => '+2',
+        ]);
+
+        $response = $this->getJson("/api/v1/races/{$race->id}");
+
+        $response->assertStatus(200);
+        $modifiers = $response->json('data.modifiers');
+        $this->assertCount(1, $modifiers);
+        $this->assertEquals('ability_score', $modifiers[0]['modifier_category']);
+        $this->assertEquals('+2', $modifiers[0]['value']);
     }
 }

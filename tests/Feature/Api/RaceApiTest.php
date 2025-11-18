@@ -344,6 +344,11 @@ class RaceApiTest extends TestCase
                             'skill' => [
                                 'id',
                                 'name',
+                                'ability_score' => [
+                                    'id',
+                                    'code',
+                                    'name',
+                                ],
                             ],
                         ],
                     ],

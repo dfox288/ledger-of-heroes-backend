@@ -11,7 +11,7 @@ class RaceController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Race::with(['size', 'source']);
+        $query = Race::with(['size', 'sources.source']);
 
         // Apply search filter
         if ($request->has('search')) {
@@ -39,10 +39,10 @@ class RaceController extends Controller
     {
         $race->load([
             'size',
-            'source',
+            'sources.source',
             'parent',
             'subraces',
-            'proficiencies.skill',
+            'proficiencies.skill.abilityScore',
             'traits.randomTables.entries', // Load random tables through traits
             'modifiers.abilityScore',
         ]);

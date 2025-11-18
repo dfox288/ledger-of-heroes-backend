@@ -7,17 +7,13 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class RandomTableEntryResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'roll_value' => $this->roll_value,
-            'result' => $this->result,
+            'roll_min' => $this->roll_min,
+            'roll_max' => $this->roll_max,
+            'result_text' => $this->result_text,
             'sort_order' => $this->sort_order,
         ];
     }

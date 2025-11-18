@@ -18,6 +18,7 @@ class ItemAbility extends Model
         'spell_id',
         'name',
         'description',
+        'roll_formula',
         'charges_cost',
         'usage_limit',
         'save_dc',

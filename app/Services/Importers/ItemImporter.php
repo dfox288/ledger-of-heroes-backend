@@ -5,6 +5,7 @@ namespace App\Services\Importers;
 use App\Models\DamageType;
 use App\Models\EntitySource;
 use App\Models\Item;
+use App\Models\ItemAbility;
 use App\Models\ItemProperty;
 use App\Models\ItemType;
 use App\Models\Modifier;
@@ -61,6 +62,9 @@ class ItemImporter
 
         // Import modifiers (polymorphic)
         $this->importModifiers($item, $itemData['modifiers']);
+
+        // Import abilities
+        $this->importAbilities($item, $itemData['abilities']);
 
         return $item;
     }
@@ -147,6 +151,23 @@ class ItemImporter
                 'reference_id' => $item->id,
                 'modifier_category' => $modData['category'],
                 'modifier_text' => $modData['text'],
+            ]);
+        }
+    }
+
+    private function importAbilities(Item $item, array $abilities): void
+    {
+        // Clear existing abilities
+        $item->abilities()->delete();
+
+        foreach ($abilities as $abilityData) {
+            ItemAbility::create([
+                'item_id' => $item->id,
+                'ability_type' => $abilityData['ability_type'],
+                'name' => $abilityData['name'],
+                'description' => $abilityData['description'],
+                'roll_formula' => $abilityData['roll_formula'] ?? null,
+                'sort_order' => $abilityData['sort_order'],
             ]);
         }
     }

@@ -42,6 +42,7 @@ class ItemXmlParser
             'sources' => $this->parseSourceCitations($text),
             'proficiencies' => $this->extractProficiencies($text),
             'modifiers' => $this->parseModifiers($element),
+            'abilities' => $this->parseAbilities($element),
         ];
     }
 
@@ -244,5 +245,30 @@ class ItemXmlParser
         }
 
         return $modifiers;
+    }
+
+    private function parseAbilities(SimpleXMLElement $element): array
+    {
+        $abilities = [];
+
+        foreach ($element->roll as $rollElement) {
+            $rollText = trim((string) $rollElement);
+
+            // Extract roll formula if present (e.g., "1d4", "2d6")
+            $rollFormula = null;
+            if (preg_match('/(\d+d\d+(?:\s*[+\-]\s*\d+)?)/', $rollText, $matches)) {
+                $rollFormula = $matches[1];
+            }
+
+            $abilities[] = [
+                'ability_type' => 'roll', // Default type for <roll> elements
+                'name' => $rollText,
+                'description' => $rollText,
+                'roll_formula' => $rollFormula,
+                'sort_order' => count($abilities),
+            ];
+        }
+
+        return $abilities;
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Importers;
 
+use App\Models\AbilityScore;
+use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Models\Race;
 use App\Models\Size;
@@ -424,5 +426,47 @@ XML;
 
         $speciesTrait = $traits->where('name', 'Breath Weapon')->first();
         $this->assertEquals('species', $speciesTrait->category);
+    }
+
+    /** @test */
+    public function it_imports_ability_score_bonuses_as_modifiers()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dragonborn</name>
+    <size>M</size>
+    <speed>30</speed>
+    <ability>Str +2, Cha +1</ability>
+    <trait category="description">
+      <name>Description</name>
+      <text>Born of dragons.
+Source: Player's Handbook (2014) p. 32</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $race = Race::where('name', 'Dragonborn')->first();
+        $modifiers = $race->modifiers;
+
+        $this->assertCount(2, $modifiers);
+
+        $strModifier = $modifiers->where('ability_score_id', AbilityScore::where('code', 'STR')->first()->id)->first();
+        $this->assertNotNull($strModifier);
+        $this->assertEquals('ability_score', $strModifier->modifier_category);
+        $this->assertEquals('+2', $strModifier->value);
+
+        $chaModifier = $modifiers->where('ability_score_id', AbilityScore::where('code', 'CHA')->first()->id)->first();
+        $this->assertNotNull($chaModifier);
+        $this->assertEquals('+1', $chaModifier->value);
     }
 }

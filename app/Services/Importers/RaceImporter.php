@@ -2,6 +2,8 @@
 
 namespace App\Services\Importers;
 
+use App\Models\AbilityScore;
+use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Models\Race;
 use App\Models\Size;
@@ -51,6 +53,9 @@ class RaceImporter
         // Import traits (clear old ones first)
         $this->importTraits($race, $raceData['traits'] ?? []);
 
+        // Import ability bonuses as modifiers
+        $this->importAbilityBonuses($race, $raceData['ability_bonuses'] ?? []);
+
         // Import proficiencies if present
         if (isset($raceData['proficiencies'])) {
             $this->importProficiencies($race, $raceData['proficiencies']);
@@ -72,6 +77,30 @@ class RaceImporter
                 'category' => $traitData['category'],
                 'description' => $traitData['description'],
                 'sort_order' => $traitData['sort_order'],
+            ]);
+        }
+    }
+
+    private function importAbilityBonuses(Race $race, array $bonusesData): void
+    {
+        // Clear existing ability score modifiers for this race
+        $race->modifiers()->where('modifier_category', 'ability_score')->delete();
+
+        foreach ($bonusesData as $bonusData) {
+            // Map ability code to ability_score_id
+            $abilityCode = strtoupper($bonusData['ability']);
+            $abilityScore = AbilityScore::where('code', $abilityCode)->first();
+
+            if (!$abilityScore) {
+                continue; // Skip if ability score not found
+            }
+
+            Modifier::create([
+                'reference_type' => Race::class,
+                'reference_id' => $race->id,
+                'modifier_category' => 'ability_score',
+                'ability_score_id' => $abilityScore->id,
+                'value' => $bonusData['value'],
             ]);
         }
     }

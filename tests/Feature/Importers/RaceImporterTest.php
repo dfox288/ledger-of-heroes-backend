@@ -469,4 +469,47 @@ XML;
         $this->assertNotNull($chaModifier);
         $this->assertEquals('+1', $chaModifier->value);
     }
+
+    /** @test */
+    public function it_imports_random_tables_from_trait_rolls_and_links_traits()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dragonborn</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait>
+      <name>Size</name>
+      <text>Your size is Medium.
+Source: Player's Handbook (2014) p. 32</text>
+      <roll description="Size Modifier">2d8</roll>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $race = Race::where('name', 'Dragonborn')->first();
+        $randomTables = $race->randomTables;
+
+        $this->assertCount(1, $randomTables);
+
+        $sizeTable = $randomTables->first();
+        $this->assertEquals('Size Modifier', $sizeTable->table_name);
+        $this->assertEquals('2d8', $sizeTable->dice_type);
+
+        // IMPORTANT: Verify trait is linked to random table
+        $sizeTrait = $race->traits->where('name', 'Size')->first();
+        $this->assertNotNull($sizeTrait);
+        $this->assertNotNull($sizeTrait->random_table_id);
+        $this->assertEquals($sizeTable->id, $sizeTrait->random_table_id);
+    }
 }

@@ -61,6 +61,9 @@ class RaceImporter
             $this->importProficiencies($race, $raceData['proficiencies']);
         }
 
+        // Import random tables from trait rolls (also links traits to tables)
+        $this->importRandomTablesFromTraits($race, $raceData['traits'] ?? []);
+
         return $race;
     }
 
@@ -196,6 +199,43 @@ class RaceImporter
             }
 
             Proficiency::create($proficiency);
+        }
+    }
+
+    private function importRandomTablesFromTraits(Race $race, array $traitsData): void
+    {
+        // Clear existing random tables for this race
+        $race->randomTables()->delete();
+
+        foreach ($traitsData as $traitData) {
+            if (empty($traitData['rolls'])) {
+                continue;
+            }
+
+            foreach ($traitData['rolls'] as $roll) {
+                if (empty($roll['description']) || empty($roll['formula'])) {
+                    continue;
+                }
+
+                // Create a random table for this roll
+                $randomTable = \App\Models\RandomTable::create([
+                    'reference_type' => Race::class,
+                    'reference_id' => $race->id,
+                    'table_name' => $roll['description'],
+                    'dice_type' => $roll['formula'],
+                    'description' => "From trait: {$traitData['name']}",
+                ]);
+
+                // IMPORTANT: Link the trait to this random table
+                $trait = $race->traits()
+                    ->where('name', $traitData['name'])
+                    ->where('sort_order', $traitData['sort_order'])
+                    ->first();
+
+                if ($trait) {
+                    $trait->update(['random_table_id' => $randomTable->id]);
+                }
+            }
         }
     }
 }

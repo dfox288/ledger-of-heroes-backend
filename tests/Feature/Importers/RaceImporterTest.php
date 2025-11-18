@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Importers;
 
+use App\Models\Proficiency;
 use App\Models\Race;
 use App\Models\Size;
+use App\Models\Skill;
 use App\Models\Source;
 use App\Services\Importers\RaceImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -242,5 +244,122 @@ XML;
 
         $subraces = Race::whereNotNull('parent_race_id')->get();
         $this->assertCount(2, $subraces);
+    }
+
+    /** @test */
+    public function it_imports_skill_proficiencies()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Elf, High</name>
+    <size>M</size>
+    <speed>30</speed>
+    <proficiency>Perception</proficiency>
+    <trait category="description">
+      <name>Description</name>
+      <text>High elf.
+Source: Player's Handbook (2014) p. 23</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $race = Race::where('name', 'High')->first();
+        $this->assertNotNull($race);
+
+        $proficiencies = $race->proficiencies;
+        $this->assertCount(1, $proficiencies);
+
+        $proficiency = $proficiencies->first();
+        $this->assertEquals('skill', $proficiency->proficiency_type);
+        $this->assertNotNull($proficiency->skill_id);
+        $this->assertEquals('Perception', $proficiency->skill->name);
+    }
+
+    /** @test */
+    public function it_imports_weapon_proficiencies_as_text()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Elf, High</name>
+    <size>M</size>
+    <speed>30</speed>
+    <weapons>Longsword, Shortsword</weapons>
+    <trait category="description">
+      <name>Description</name>
+      <text>High elf.
+Source: Player's Handbook (2014) p. 23</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $race = Race::where('name', 'High')->first();
+        $proficiencies = $race->proficiencies;
+
+        $this->assertCount(2, $proficiencies);
+
+        $weaponProfs = $proficiencies->where('proficiency_type', 'weapon');
+        $this->assertCount(2, $weaponProfs);
+
+        // Should be stored as proficiency_name (items not imported yet)
+        $names = $weaponProfs->pluck('proficiency_name')->toArray();
+        $this->assertContains('Longsword', $names);
+        $this->assertContains('Shortsword', $names);
+    }
+
+    /** @test */
+    public function it_clears_and_recreates_proficiencies_on_reimport()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Elf, High</name>
+    <size>M</size>
+    <speed>30</speed>
+    <proficiency>Perception</proficiency>
+    <weapons>Longsword</weapons>
+    <trait category="description">
+      <name>Description</name>
+      <text>High elf.
+Source: Player's Handbook (2014) p. 23</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        // First import
+        $this->importer->importFromFile($tmpFile);
+        $race = Race::where('name', 'High')->first();
+        $this->assertCount(2, $race->proficiencies);
+
+        // Second import (should clear old proficiencies)
+        $this->importer->importFromFile($tmpFile);
+        $race->refresh();
+        $this->assertCount(2, $race->proficiencies);
+
+        unlink($tmpFile);
     }
 }

@@ -2,8 +2,10 @@
 
 namespace App\Services\Importers;
 
+use App\Models\Proficiency;
 use App\Models\Race;
 use App\Models\Size;
+use App\Models\Skill;
 use App\Models\Source;
 use App\Services\Parsers\RaceXmlParser;
 
@@ -46,6 +48,11 @@ class RaceImporter
                 'source_pages' => $raceData['source_pages'],
             ]
         );
+
+        // Import proficiencies if present
+        if (isset($raceData['proficiencies'])) {
+            $this->importProficiencies($race, $raceData['proficiencies']);
+        }
 
         return $race;
     }
@@ -112,5 +119,36 @@ class RaceImporter
             'source_pages' => $sourcePages,
             'parent_race_id' => null,
         ]);
+    }
+
+    private function importProficiencies(Race $race, array $proficienciesData): void
+    {
+        // Clear existing proficiencies for this race
+        $race->proficiencies()->delete();
+
+        foreach ($proficienciesData as $profData) {
+            $proficiency = [
+                'reference_type' => Race::class,
+                'reference_id' => $race->id,
+                'proficiency_type' => $profData['type'],
+            ];
+
+            // Handle different proficiency types
+            if ($profData['type'] === 'skill') {
+                // Look up skill by name
+                $skill = Skill::where('name', $profData['name'])->first();
+                if ($skill) {
+                    $proficiency['skill_id'] = $skill->id;
+                } else {
+                    // If skill not found, store as proficiency_name
+                    $proficiency['proficiency_name'] = $profData['name'];
+                }
+            } elseif ($profData['type'] === 'weapon' || $profData['type'] === 'armor') {
+                // Store as proficiency_name (items not imported yet)
+                $proficiency['proficiency_name'] = $profData['name'];
+            }
+
+            Proficiency::create($proficiency);
+        }
     }
 }

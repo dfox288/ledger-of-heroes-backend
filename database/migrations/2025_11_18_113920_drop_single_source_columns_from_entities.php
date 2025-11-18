@@ -18,24 +18,17 @@ return new class extends Migration
                 continue;
             }
 
-            // Get foreign keys from information_schema
-            $foreignKeys = DB::select("
-                SELECT CONSTRAINT_NAME
-                FROM information_schema.TABLE_CONSTRAINTS
-                WHERE TABLE_SCHEMA = DATABASE()
-                AND TABLE_NAME = '$table'
-                AND CONSTRAINT_TYPE = 'FOREIGN KEY'
-                AND CONSTRAINT_NAME LIKE '%source_id%'
-            ");
-
-            // Drop foreign keys using raw SQL
-            foreach ($foreignKeys as $fk) {
-                DB::statement("ALTER TABLE `$table` DROP FOREIGN KEY `{$fk->CONSTRAINT_NAME}`");
-            }
-
-            // Now drop the columns
             Schema::table($table, function (Blueprint $blueprint) use ($table) {
+                // Drop foreign key if it exists
+                // Can pass column name (array) or constraint name (string)
                 if (Schema::hasColumn($table, 'source_id')) {
+                    try {
+                        // Try using column name - Laravel will figure out the constraint name
+                        $blueprint->dropForeign(['source_id']);
+                    } catch (\Exception $e) {
+                        // Foreign key might not exist, continue anyway
+                    }
+
                     $blueprint->dropColumn('source_id');
                 }
 

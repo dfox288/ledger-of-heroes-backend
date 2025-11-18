@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -23,15 +22,7 @@ return new class extends Migration
             // NO timestamps - static compendium data doesn't need created_at/updated_at
         });
 
-        // Seed core sourcebooks
-        DB::table('sources')->insert([
-            ['code' => 'PHB', 'name' => 'Player\'s Handbook', 'publisher' => 'Wizards of the Coast', 'publication_year' => 2014, 'edition' => '5e'],
-            ['code' => 'DMG', 'name' => 'Dungeon Master\'s Guide', 'publisher' => 'Wizards of the Coast', 'publication_year' => 2014, 'edition' => '5e'],
-            ['code' => 'MM', 'name' => 'Monster Manual', 'publisher' => 'Wizards of the Coast', 'publication_year' => 2014, 'edition' => '5e'],
-            ['code' => 'XGE', 'name' => 'Xanathar\'s Guide to Everything', 'publisher' => 'Wizards of the Coast', 'publication_year' => 2017, 'edition' => '5e'],
-            ['code' => 'TCE', 'name' => 'Tasha\'s Cauldron of Everything', 'publisher' => 'Wizards of the Coast', 'publication_year' => 2020, 'edition' => '5e'],
-            ['code' => 'VGTM', 'name' => 'Volo\'s Guide to Monsters', 'publisher' => 'Wizards of the Coast', 'publication_year' => 2016, 'edition' => '5e'],
-        ]);
+        // Data seeding moved to DatabaseSeeder
     }
 
     /**

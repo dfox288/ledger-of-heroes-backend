@@ -12,9 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('items', function (Blueprint $table) {
-            // Core identification (4 columns)
+            // Core identification (5 columns)
             $table->id();
             $table->string('name', 255);
+            $table->string('slug', 255)->unique();
             $table->unsignedBigInteger('item_type_id');
             $table->text('description');
 
@@ -38,9 +39,7 @@ return new class extends Migration
             // Magic item properties (1 column)
             $table->boolean('requires_attunement')->default(false);
 
-            // Source attribution (2 columns)
-            $table->unsignedBigInteger('source_id');
-            $table->string('source_pages', 50); // "148, 150" (NOT single integer)
+            // Removed: source_id and source_pages - using entity_sources polymorphic table instead
 
             // Foreign keys
             $table->foreign('item_type_id')
@@ -53,17 +52,12 @@ return new class extends Migration
                   ->on('damage_types')
                   ->onDelete('restrict');
 
-            $table->foreign('source_id')
-                  ->references('id')
-                  ->on('sources')
-                  ->onDelete('restrict');
-
             // Indexes
             $table->index('item_type_id');
             $table->index('rarity');
             $table->index('requires_attunement');
 
-            // NO timestamps - static compendium data
+            $table->timestamps();
         });
     }
 

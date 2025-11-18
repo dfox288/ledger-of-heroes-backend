@@ -324,6 +324,60 @@ XML;
         }
     }
 
+    #[Test]
+    public function it_parses_tables_from_trait_descriptions()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Test Race</name>
+    <size>M</size>
+    <speed>30</speed>
+    <ability>Str +1</ability>
+    <trait category="species">
+      <name>Test Personality</name>
+      <text>You can use this table.
+
+Personality Quirks:
+d8 | Quirk
+1 | Quirk A
+2 | Quirk B
+3 | Quirk C
+
+Source:	Player's Handbook (2014) p. 42</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $this->importer->importFromFile($this->createTempXmlFile($originalXml));
+
+        $race = Race::where('name', 'Test Race')->first();
+        $race->load('traits.randomTables.entries');
+
+        // Verify trait was created
+        $this->assertCount(1, $race->traits);
+        $trait = $race->traits->first();
+        $this->assertEquals('Test Personality', $trait->name);
+
+        // Verify table was extracted from trait
+        $this->assertCount(1, $trait->randomTables);
+        $table = $trait->randomTables->first();
+        $this->assertEquals('Personality Quirks', $table->table_name);
+        $this->assertEquals('d8', $table->dice_type);
+        $this->assertCount(3, $table->entries);
+
+        // Verify entries
+        $entries = $table->entries->sortBy('sort_order')->values();
+        $this->assertEquals(1, $entries[0]->roll_min);
+        $this->assertEquals('Quirk A', $entries[0]->result_text);
+        $this->assertEquals(2, $entries[1]->roll_min);
+        $this->assertEquals('Quirk B', $entries[1]->result_text);
+        $this->assertEquals(3, $entries[2]->roll_min);
+        $this->assertEquals('Quirk C', $entries[2]->result_text);
+    }
+
     /**
      * Reconstruct race XML from database model
      */

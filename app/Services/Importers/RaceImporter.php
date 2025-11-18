@@ -7,9 +7,13 @@ use App\Models\EntitySource;
 use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Models\Race;
+use App\Models\RandomTable;
+use App\Models\RandomTableEntry;
 use App\Models\Size;
 use App\Models\Skill;
 use App\Models\Source;
+use App\Services\Parsers\ItemTableDetector;
+use App\Services\Parsers\ItemTableParser;
 use App\Services\Parsers\RaceXmlParser;
 
 class RaceImporter
@@ -97,7 +101,7 @@ class RaceImporter
         $race->traits()->delete();
 
         foreach ($traitsData as $traitData) {
-            \App\Models\CharacterTrait::create([
+            $trait = \App\Models\CharacterTrait::create([
                 'reference_type' => Race::class,
                 'reference_id' => $race->id,
                 'name' => $traitData['name'],
@@ -105,6 +109,46 @@ class RaceImporter
                 'description' => $traitData['description'],
                 'sort_order' => $traitData['sort_order'],
             ]);
+
+            // Check for embedded tables in trait description
+            $this->importTraitTables($trait, $traitData['description']);
+        }
+    }
+
+    private function importTraitTables(\App\Models\CharacterTrait $trait, string $description): void
+    {
+        // Detect tables in trait description
+        $detector = new ItemTableDetector();
+        $tables = $detector->detectTables($description);
+
+        if (empty($tables)) {
+            return;
+        }
+
+        foreach ($tables as $tableData) {
+            $parser = new ItemTableParser();
+            $parsed = $parser->parse($tableData['text'], $tableData['dice_type'] ?? null);
+
+            if (empty($parsed['rows'])) {
+                continue; // Skip tables with no valid rows
+            }
+
+            $table = RandomTable::create([
+                'reference_type' => \App\Models\CharacterTrait::class,
+                'reference_id' => $trait->id,
+                'table_name' => $parsed['table_name'],
+                'dice_type' => $parsed['dice_type'],
+            ]);
+
+            foreach ($parsed['rows'] as $index => $row) {
+                RandomTableEntry::create([
+                    'random_table_id' => $table->id,
+                    'roll_min' => $row['roll_min'],
+                    'roll_max' => $row['roll_max'],
+                    'result_text' => $row['result_text'],
+                    'sort_order' => $index,
+                ]);
+            }
         }
     }
 

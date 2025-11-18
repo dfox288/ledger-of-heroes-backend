@@ -73,4 +73,9 @@ class Item extends Model
     {
         return $this->morphMany(Proficiency::class, 'reference');
     }
+
+    public function modifiers(): MorphMany
+    {
+        return $this->morphMany(Modifier::class, 'reference');
+    }
 }

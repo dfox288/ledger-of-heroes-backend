@@ -7,6 +7,7 @@ use App\Models\EntitySource;
 use App\Models\Item;
 use App\Models\ItemProperty;
 use App\Models\ItemType;
+use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Models\Source;
 use App\Services\Parsers\ItemXmlParser;
@@ -57,6 +58,9 @@ class ItemImporter
 
         // Import proficiencies (polymorphic)
         $this->importProficiencies($item, $itemData['proficiencies']);
+
+        // Import modifiers (polymorphic)
+        $this->importModifiers($item, $itemData['modifiers']);
 
         return $item;
     }
@@ -128,6 +132,21 @@ class ItemImporter
                 'reference_id' => $item->id,
                 'proficiency_type' => $profData['type'],
                 'proficiency_name' => $profData['name'],
+            ]);
+        }
+    }
+
+    private function importModifiers(Item $item, array $modifiers): void
+    {
+        // Clear existing modifiers
+        $item->modifiers()->delete();
+
+        foreach ($modifiers as $modData) {
+            Modifier::create([
+                'reference_type' => Item::class,
+                'reference_id' => $item->id,
+                'modifier_category' => $modData['category'],
+                'modifier_text' => $modData['text'],
             ]);
         }
     }

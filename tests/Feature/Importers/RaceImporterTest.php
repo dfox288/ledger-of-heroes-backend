@@ -112,9 +112,135 @@ XML;
 
         unlink($tmpFile);
 
-        $this->assertEquals(2, $count);
-        $this->assertEquals(2, Race::count());
+        // Should import 3 races: Dragonborn + base Dwarf + Hill subrace
+        $this->assertEquals(3, $count);
+        $this->assertEquals(3, Race::count());
         $this->assertDatabaseHas('races', ['name' => 'Dragonborn']);
+        $this->assertDatabaseHas('races', ['name' => 'Dwarf']);
         $this->assertDatabaseHas('races', ['name' => 'Hill']);
+    }
+
+    /** @test */
+    public function it_creates_base_race_and_subrace()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dwarf, Hill</name>
+    <size>M</size>
+    <speed>25</speed>
+    <trait category="description">
+      <name>Description</name>
+      <text>As a hill dwarf, you have keen senses.
+Source: Player's Handbook (2014) p. 20</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $count = $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        // Should create 2 races: base "Dwarf" + subrace "Hill"
+        $this->assertEquals(2, $count);
+
+        // Check base race exists
+        $baseRace = Race::where('name', 'Dwarf')
+                         ->whereNull('parent_race_id')
+                         ->first();
+        $this->assertNotNull($baseRace);
+
+        // Check subrace exists and is linked to base
+        $subrace = Race::where('name', 'Hill')
+                        ->whereNotNull('parent_race_id')
+                        ->first();
+        $this->assertNotNull($subrace);
+        $this->assertEquals($baseRace->id, $subrace->parent_race_id);
+    }
+
+    /** @test */
+    public function it_creates_only_base_race_when_no_subrace()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dragonborn</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait category="description">
+      <name>Description</name>
+      <text>Born of dragons.
+Source: Player's Handbook (2014) p. 32</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $count = $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $this->assertEquals(1, $count);
+
+        $race = Race::where('name', 'Dragonborn')->first();
+        $this->assertNotNull($race);
+        $this->assertNull($race->parent_race_id);
+    }
+
+    /** @test */
+    public function it_reuses_existing_base_race_for_multiple_subraces()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dwarf, Hill</name>
+    <size>M</size>
+    <speed>25</speed>
+    <trait category="description">
+      <name>Description</name>
+      <text>Hill dwarf.
+Source: Player's Handbook (2014) p. 20</text>
+    </trait>
+  </race>
+  <race>
+    <name>Dwarf, Mountain</name>
+    <size>M</size>
+    <speed>25</speed>
+    <trait category="description">
+      <name>Description</name>
+      <text>Mountain dwarf.
+Source: Player's Handbook (2014) p. 20</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $count = $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        // Should create 3 races: 1 base "Dwarf" + 2 subraces
+        $this->assertEquals(3, $count);
+
+        $baseRaces = Race::where('name', 'Dwarf')
+                          ->whereNull('parent_race_id')
+                          ->get();
+        $this->assertCount(1, $baseRaces, 'Should only create one base Dwarf race');
+
+        $subraces = Race::whereNotNull('parent_race_id')->get();
+        $this->assertCount(2, $subraces);
     }
 }

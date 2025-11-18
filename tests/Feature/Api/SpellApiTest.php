@@ -306,4 +306,50 @@ class SpellApiTest extends TestCase
                 ],
             ]);
     }
+
+    /** @test */
+    public function test_spell_includes_sources_as_resource()
+    {
+        $source = Source::where('code', 'PHB')->first();
+        $school = SpellSchool::where('code', 'A')->first();
+
+        $spell = Spell::create([
+            'name' => 'Test Source Spell',
+            'level' => 1,
+            'spell_school_id' => $school->id,
+            'casting_time' => '1 action',
+            'range' => 'Self',
+            'components' => 'V',
+            'duration' => 'Instantaneous',
+            'needs_concentration' => false,
+            'is_ritual' => false,
+            'description' => 'Test',
+        ]);
+
+        $spell->sources()->create([
+            'reference_type' => Spell::class,
+            'reference_id' => $spell->id,
+            'source_id' => $source->id,
+            'pages' => '123',
+        ]);
+
+        $response = $this->getJson("/api/v1/spells/{$spell->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'sources' => [
+                        '*' => [
+                            'code',
+                            'name',
+                            'pages',
+                        ],
+                    ],
+                ],
+            ])
+            ->assertJsonFragment([
+                'code' => 'PHB',
+                'pages' => '123',
+            ]);
+    }
 }

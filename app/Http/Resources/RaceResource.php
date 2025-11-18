@@ -21,14 +21,7 @@ class RaceResource extends JsonResource
             'speed' => $this->speed,
             'traits' => TraitResource::collection($this->whenLoaded('traits')),
             'modifiers' => ModifierResource::collection($this->whenLoaded('modifiers')),
-            'source' => $this->whenLoaded('source', function () {
-                return [
-                    'id' => $this->source->id,
-                    'code' => $this->source->code,
-                    'name' => $this->source->name,
-                ];
-            }),
-            'source_pages' => $this->source_pages,
+            'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'parent_race' => $this->when($this->parent_race_id, function () {
                 return new RaceResource($this->whenLoaded('parent'));
             }),

@@ -354,4 +354,63 @@ class RaceApiTest extends TestCase
                 'name' => 'Perception',
             ]);
     }
+
+    /** @test */
+    public function test_race_traits_with_random_tables_include_entry_resource()
+    {
+        $size = Size::where('code', 'M')->first();
+
+        $race = Race::create([
+            'name' => 'Test Random Race',
+            'size_id' => $size->id,
+            'speed' => 30,
+        ]);
+
+        $trait = $race->traits()->create([
+            'name' => 'Random Feature',
+            'category' => 'feature',
+            'description' => 'Roll for your feature',
+            'sort_order' => 0,
+        ]);
+
+        $randomTable = \App\Models\RandomTable::create([
+            'reference_type' => \App\Models\CharacterTrait::class,
+            'reference_id' => $trait->id,
+            'table_name' => 'Feature Table',
+            'dice_type' => '1d6',
+            'description' => 'Test table',
+        ]);
+
+        $trait->update(['random_table_id' => $randomTable->id]);
+
+        $randomTable->entries()->create([
+            'roll_value' => '1',
+            'result' => 'Feature A',
+            'sort_order' => 1,
+        ]);
+
+        $response = $this->getJson("/api/v1/races/{$race->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'traits' => [
+                        '*' => [
+                            'random_tables' => [
+                                '*' => [
+                                    'entries' => [
+                                        '*' => [
+                                            'id',
+                                            'roll_value',
+                                            'result',
+                                            'sort_order',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+    }
 }

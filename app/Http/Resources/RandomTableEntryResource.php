@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class RandomTableResource extends JsonResource
+class RandomTableEntryResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,10 +16,9 @@ class RandomTableResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'table_name' => $this->table_name,
-            'dice_type' => $this->dice_type,
-            'description' => $this->description,
-            'entries' => RandomTableEntryResource::collection($this->whenLoaded('entries')),
+            'roll_value' => $this->roll_value,
+            'result' => $this->result,
+            'sort_order' => $this->sort_order,
         ];
     }
 }

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Race extends Model
 {
@@ -49,6 +50,11 @@ class Race extends Model
     public function subraces(): HasMany
     {
         return $this->hasMany(Race::class, 'parent_race_id');
+    }
+
+    public function proficiencies(): MorphMany
+    {
+        return $this->morphMany(Proficiency::class, 'reference');
     }
 
     // Scopes for API filtering

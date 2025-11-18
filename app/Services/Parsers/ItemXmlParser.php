@@ -25,7 +25,7 @@ class ItemXmlParser
         return [
             'name' => (string) $element->name,
             'type_code' => (string) $element->type,
-            'rarity' => (string) $element->detail ?: 'common',
+            'rarity' => $this->parseRarity((string) $element->detail),
             'requires_attunement' => $this->parseAttunement($text),
             'cost_cp' => $this->parseCost((string) $element->value),
             'weight' => isset($element->weight) ? (float) $element->weight : null,
@@ -51,6 +51,27 @@ class ItemXmlParser
 
         // Convert gold pieces to copper pieces (1 GP = 100 CP)
         return (int) round((float) $value * 100);
+    }
+
+    private function parseRarity(string $detail): string
+    {
+        if (empty($detail)) {
+            return 'common';
+        }
+
+        // Known rarity values - ORDER MATTERS: check longer strings first to avoid "rare" matching "very rare"
+        $rarities = ['very rare', 'legendary', 'artifact', 'uncommon', 'rare', 'common'];
+
+        // Check if detail contains a known rarity
+        $detailLower = strtolower($detail);
+        foreach ($rarities as $rarity) {
+            if (str_contains($detailLower, $rarity)) {
+                return $rarity;
+            }
+        }
+
+        // Default to common if no rarity found
+        return 'common';
     }
 
     private function parseAttunement(string $text): bool

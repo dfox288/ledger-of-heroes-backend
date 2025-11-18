@@ -84,8 +84,8 @@ class LookupTablesTest extends TestCase
         $this->assertTrue(Schema::hasColumn('item_types', 'description'));
         $this->assertFalse(Schema::hasColumn('item_types', 'created_at'));
 
-        // Verify 15 item types exist
-        $this->assertEquals(15, DB::table('item_types')->count());
+        // Verify 16 item types exist
+        $this->assertEquals(16, DB::table('item_types')->count());
 
         // Verify code uniqueness
         $codes = DB::table('item_types')->pluck('code')->toArray();

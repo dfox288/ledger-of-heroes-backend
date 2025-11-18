@@ -25,6 +25,7 @@ class ItemTypeSeeder extends Seeder
             ['code' => 'WD', 'name' => 'Wand', 'description' => 'Magic wands'],
             ['code' => 'SC', 'name' => 'Scroll', 'description' => 'Spell scrolls'],
             ['code' => 'ST', 'name' => 'Staff', 'description' => 'Quarterstaffs and magic staffs'],
+            ['code' => 'W', 'name' => 'Wondrous Item', 'description' => 'Miscellaneous magic items'],
         ];
 
         foreach ($itemTypes as $itemType) {

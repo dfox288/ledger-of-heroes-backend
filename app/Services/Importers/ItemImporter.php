@@ -150,7 +150,7 @@ class ItemImporter
                 'reference_type' => Item::class,
                 'reference_id' => $item->id,
                 'modifier_category' => $modData['category'],
-                'modifier_text' => $modData['text'],
+                'value' => $modData['text'],
             ]);
         }
     }

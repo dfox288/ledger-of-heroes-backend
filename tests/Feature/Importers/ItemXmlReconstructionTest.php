@@ -271,4 +271,103 @@ XML;
         $this->assertEquals('uncommon', $item->rarity);
         $this->assertTrue($item->is_magic);
     }
+
+    #[Test]
+    public function it_reconstructs_magic_item_with_flag()
+    {
+        $originalXml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>+1 Arrow</name>
+    <detail>uncommon</detail>
+    <type>A</type>
+    <magic>YES</magic>
+    <weight>0.05</weight>
+    <text>You have a +1 bonus to attack and damage rolls made with this magic ammunition.
+
+Source: Dungeon Master's Guide (2014) p. 150</text>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $this->assertCount(1, $items);
+
+        $item = $this->importer->import($items[0]);
+
+        // Verify magic flag
+        $this->assertTrue($item->is_magic);
+        $this->assertEquals('uncommon', $item->rarity);
+    }
+
+    #[Test]
+    public function it_reconstructs_item_with_modifiers()
+    {
+        $originalXml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Arrow +1</name>
+    <detail>uncommon</detail>
+    <type>A</type>
+    <magic>YES</magic>
+    <weight>0.05</weight>
+    <text>You have a +1 bonus to attack and damage rolls.
+
+Source: Dungeon Master's Guide (2014) p. 150</text>
+    <modifier category="bonus">ranged attacks +1</modifier>
+    <modifier category="bonus">ranged damage +1</modifier>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify modifiers
+        $item->load('modifiers');
+        $this->assertCount(2, $item->modifiers);
+
+        $modifiers = $item->modifiers->sortBy('value')->values();
+        $this->assertEquals('bonus', $modifiers[0]->modifier_category);
+        $this->assertEquals('ranged attacks +1', $modifiers[0]->value);
+        $this->assertEquals('bonus', $modifiers[1]->modifier_category);
+        $this->assertEquals('ranged damage +1', $modifiers[1]->value);
+    }
+
+    #[Test]
+    public function it_reconstructs_item_with_abilities()
+    {
+        $originalXml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Potion of Healing</name>
+    <detail>common</detail>
+    <type>P</type>
+    <magic>YES</magic>
+    <text>You regain hit points when you drink this potion.
+
+Source: Dungeon Master's Guide (2014) p. 187</text>
+    <roll>2d4+2</roll>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify abilities
+        $item->load('abilities');
+        $this->assertCount(1, $item->abilities);
+
+        $ability = $item->abilities->first();
+        $this->assertEquals('roll', $ability->ability_type);
+        $this->assertEquals('2d4+2', $ability->roll_formula);
+        $this->assertStringContainsString('2d4+2', $ability->name);
+    }
 }

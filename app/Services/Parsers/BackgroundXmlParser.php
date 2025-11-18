@@ -140,24 +140,55 @@ class BackgroundXmlParser
 
     private function extractSources(string $text): array
     {
-        // Match "Source: Player's Handbook (2014) p. 127"
-        if (preg_match('/Source:\s*(.+?)\s*\((\d{4})\)\s*p\.\s*([\d,\s-]+)/i', $text, $matches)) {
-            $sourceName = $matches[1];
-            $pages = trim($matches[3]);
+        $sources = [];
 
-            // Map source name to code
-            $sourceCode = $this->mapSourceNameToCode($sourceName);
+        // Extract the entire source section (everything after "Source:")
+        if (preg_match('/Source:\s*(.+)$/ims', $text, $sourceSection)) {
+            $sourceText = $sourceSection[1];
 
-            return [
-                [
-                    'code' => $sourceCode,
-                    'pages' => $pages,
-                ],
-            ];
+            // Try to match sources with year: "Book Name (Year) p. Pages"
+            if (preg_match_all('/([^,\n]+?)\s*\((\d{4})\)\s*p\.\s*([\d,\s-]+)/i', $sourceText, $matches, PREG_SET_ORDER)) {
+                foreach ($matches as $match) {
+                    $sourceName = trim($match[1]);
+                    $pages = trim($match[3]);
+                    // Remove trailing comma
+                    $pages = rtrim($pages, ',');
+
+                    $sourceCode = $this->mapSourceNameToCode($sourceName);
+
+                    $sources[] = [
+                        'code' => $sourceCode,
+                        'pages' => $pages,
+                    ];
+                }
+            } else {
+                // Try to match sources without year: "Book Name p. Pages"
+                if (preg_match_all('/([^,\n]+?)\s+p\.\s*([\d,\s-]+)/i', $sourceText, $matches, PREG_SET_ORDER)) {
+                    foreach ($matches as $match) {
+                        $sourceName = trim($match[1]);
+                        // Remove "Source:" prefix if present (from first match)
+                        $sourceName = preg_replace('/^Source:\s*/i', '', $sourceName);
+                        $pages = trim($match[2]);
+                        // Remove trailing comma
+                        $pages = rtrim($pages, ',');
+
+                        $sourceCode = $this->mapSourceNameToCode($sourceName);
+
+                        $sources[] = [
+                            'code' => $sourceCode,
+                            'pages' => $pages,
+                        ];
+                    }
+                }
+            }
         }
 
-        // Fallback to PHB if no source found
-        return [['code' => 'PHB', 'pages' => '']];
+        // Fallback to PHB if no sources found
+        if (empty($sources)) {
+            $sources[] = ['code' => 'PHB', 'pages' => ''];
+        }
+
+        return $sources;
     }
 
     private function mapSourceNameToCode(string $name): string
@@ -169,6 +200,8 @@ class BackgroundXmlParser
             'Xanathar\'s Guide to Everything' => 'XGE',
             'Tasha\'s Cauldron of Everything' => 'TCE',
             'Volo\'s Guide to Monsters' => 'VGTM',
+            'Eberron: Rising from the Last War' => 'ERLW',
+            'Wayfinder\'s Guide to Eberron' => 'WGTE',
         ];
 
         return $mappings[$name] ?? 'PHB';

@@ -217,6 +217,8 @@ class RaceXmlParser
             'Xanathar\'s Guide to Everything' => 'XGE',
             'Tasha\'s Cauldron of Everything' => 'TCE',
             'Volo\'s Guide to Monsters' => 'VGTM',
+            'Eberron: Rising from the Last War' => 'ERLW',
+            'Wayfinder\'s Guide to Eberron' => 'WGTE',
         ];
 
         return $mapping[$sourceName] ?? 'PHB';

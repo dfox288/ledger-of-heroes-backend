@@ -52,10 +52,21 @@ XML;
         $this->assertEquals('Dragonborn', $race['name']);
         $this->assertEquals('M', $race['size_code']);
         $this->assertEquals(30, $race['speed']);
-        $this->assertStringContainsString('Born of dragons', $race['description']);
-        // Only description category traits should be included
-        $this->assertStringNotContainsString('Age', $race['description']);
-        $this->assertStringNotContainsString('Languages', $race['description']);
+
+        // Check traits are parsed
+        $this->assertArrayHasKey('traits', $race);
+        $this->assertCount(3, $race['traits']);
+
+        // Check description trait
+        $descTrait = collect($race['traits'])->firstWhere('category', 'description');
+        $this->assertStringContainsString('Born of dragons', $descTrait['description']);
+
+        // Check all traits are present
+        $traitNames = array_column($race['traits'], 'name');
+        $this->assertContains('Description', $traitNames);
+        $this->assertContains('Age', $traitNames);
+        $this->assertContains('Languages', $traitNames);
+
         $this->assertEquals('PHB', $race['source_code']);
         $this->assertEquals('32', $race['source_pages']);
     }
@@ -355,5 +366,51 @@ XML;
         $this->assertContains('skill', $types);
         $this->assertContains('weapon', $types);
         $this->assertContains('armor', $types);
+    }
+
+    /** @test */
+    public function it_parses_traits_from_xml()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dragonborn</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait category="description">
+      <name>Description</name>
+      <text>Born of dragons.
+Source: Player's Handbook (2014) p. 32</text>
+    </trait>
+    <trait category="species">
+      <name>Breath Weapon</name>
+      <text>You can use your action to exhale destructive energy.</text>
+    </trait>
+    <trait>
+      <name>Languages</name>
+      <text>You can speak Common and Draconic.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('traits', $races[0]);
+        $this->assertCount(3, $races[0]['traits']);
+
+        // Check description trait
+        $this->assertEquals('Description', $races[0]['traits'][0]['name']);
+        $this->assertEquals('description', $races[0]['traits'][0]['category']);
+        $this->assertStringContainsString('Born of dragons', $races[0]['traits'][0]['description']);
+
+        // Check species trait
+        $this->assertEquals('Breath Weapon', $races[0]['traits'][1]['name']);
+        $this->assertEquals('species', $races[0]['traits'][1]['category']);
+
+        // Check trait without category
+        $this->assertEquals('Languages', $races[0]['traits'][2]['name']);
+        $this->assertNull($races[0]['traits'][2]['category']);
     }
 }

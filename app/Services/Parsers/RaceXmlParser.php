@@ -30,40 +30,21 @@ class RaceXmlParser
             [$baseRaceName, $raceName] = array_map('trim', explode(',', $fullName, 2));
         }
 
-        // Parse description from traits with category="description" only
-        $description = '';
-        $sourceCode = '';
+        // Parse traits
+        $traits = $this->parseTraits($element);
+
+        // Extract source from first description trait
+        $sourceCode = 'PHB';
         $sourcePages = '';
-
-        foreach ($element->trait as $trait) {
-            // Only include traits with category="description" (lore/flavor text)
-            // Skip mechanical traits (Age, Alignment, Size, Languages, species abilities)
-            $category = isset($trait['category']) ? (string) $trait['category'] : '';
-
-            if ($category !== 'description') {
-                continue;
-            }
-
-            $traitName = (string) $trait->name;
-            $traitText = (string) $trait->text;
-
-            // Check if this trait contains a source citation
-            if (preg_match('/Source:\s*([^p]+)\s*p\.\s*([\d,\s]+)/', $traitText, $matches)) {
+        foreach ($traits as &$trait) {
+            if (preg_match('/Source:\s*([^p]+)\s*p\.\s*([\d,\s]+)/', $trait['description'], $matches)) {
                 $sourceName = trim($matches[1]);
                 $sourcePages = trim($matches[2]);
                 $sourceCode = $this->getSourceCode($sourceName);
 
-                // Remove the source line from the text
-                $traitText = preg_replace('/\n*Source:\s*[^\n]+/', '', $traitText);
-            }
-
-            // Add trait to description (omit the trait name if it's just "Description")
-            if (trim($traitText)) {
-                if ($traitName === 'Description') {
-                    $description .= "{$traitText}\n\n";
-                } else {
-                    $description .= "**{$traitName}**\n\n{$traitText}\n\n";
-                }
+                // Remove source line from trait description
+                $trait['description'] = trim(preg_replace('/\n*Source:\s*[^\n]+/', '', $trait['description']));
+                break;
             }
         }
 
@@ -75,11 +56,32 @@ class RaceXmlParser
             'base_race_name' => $baseRaceName,
             'size_code' => (string) $element->size,
             'speed' => (int) $element->speed,
-            'description' => trim($description),
-            'source_code' => $sourceCode ?: 'PHB',
+            'traits' => $traits,
+            'source_code' => $sourceCode,
             'source_pages' => $sourcePages,
             'proficiencies' => $proficiencies,
         ];
+    }
+
+    private function parseTraits(SimpleXMLElement $element): array
+    {
+        $traits = [];
+        $sortOrder = 0;
+
+        foreach ($element->trait as $traitElement) {
+            $category = isset($traitElement['category']) ? (string) $traitElement['category'] : null;
+            $name = (string) $traitElement->name;
+            $text = (string) $traitElement->text;
+
+            $traits[] = [
+                'name' => $name,
+                'category' => $category,
+                'description' => trim($text),
+                'sort_order' => $sortOrder++,
+            ];
+        }
+
+        return $traits;
     }
 
     private function parseProficiencies(SimpleXMLElement $element): array

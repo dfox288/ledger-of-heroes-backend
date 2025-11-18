@@ -133,11 +133,9 @@ class PolymorphicTablesTest extends TestCase
         $religion = DB::table('skills')->where('name', 'Religion')->first();
         $phb = DB::table('sources')->where('code', 'PHB')->first();
 
-        // Create background
+        // Create background (new simplified schema)
         DB::table('backgrounds')->insert([
             'name' => 'Acolyte',
-            'description' => 'You have spent your life in service...',
-            'skill_proficiencies' => json_encode(['Insight', 'Religion']),
         ]);
 
         $background = DB::table('backgrounds')->where('name', 'Acolyte')->first();

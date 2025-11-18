@@ -18,11 +18,7 @@ class ModifierResource extends JsonResource
             'id' => $this->id,
             'modifier_category' => $this->modifier_category,
             'ability_score' => $this->when($this->ability_score_id, function () {
-                return [
-                    'id' => $this->abilityScore->id,
-                    'name' => $this->abilityScore->name,
-                    'code' => $this->abilityScore->code,
-                ];
+                return new AbilityScoreResource($this->whenLoaded('abilityScore'));
             }),
             'value' => $this->value,
             'condition' => $this->condition,

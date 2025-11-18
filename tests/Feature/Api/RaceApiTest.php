@@ -23,20 +23,26 @@ class RaceApiTest extends TestCase
         $size = Size::where('code', 'M')->first();
         $source = Source::where('code', 'PHB')->first();
 
-        Race::create([
+        $race1 = Race::create([
             'name' => 'Dragonborn',
             'size_id' => $size->id,
             'speed' => 30,
-            'source_id' => $source->id,
-            'source_pages' => '32',
         ]);
 
-        Race::create([
+        $race1->sources()->create([
+            'source_id' => $source->id,
+            'pages' => '32',
+        ]);
+
+        $race2 = Race::create([
             'name' => 'Dwarf, Hill',
             'size_id' => $size->id,
             'speed' => 25,
+        ]);
+
+        $race2->sources()->create([
             'source_id' => $source->id,
-            'source_pages' => '19',
+            'pages' => '19',
         ]);
 
         $response = $this->getJson('/api/v1/races');
@@ -50,8 +56,9 @@ class RaceApiTest extends TestCase
                         'name',
                         'size' => ['id', 'code', 'name'],
                         'speed',
-                        'source' => ['id', 'code', 'name'],
-                        'source_pages',
+                        'sources' => [
+                            '*' => ['code', 'name', 'pages'],
+                        ],
                     ],
                 ],
                 'links',
@@ -65,20 +72,26 @@ class RaceApiTest extends TestCase
         $size = Size::where('code', 'M')->first();
         $source = Source::where('code', 'PHB')->first();
 
-        Race::create([
+        $race1 = Race::create([
             'name' => 'Dragonborn',
             'size_id' => $size->id,
             'speed' => 30,
-            'source_id' => $source->id,
-            'source_pages' => '32',
         ]);
 
-        Race::create([
+        $race1->sources()->create([
+            'source_id' => $source->id,
+            'pages' => '32',
+        ]);
+
+        $race2 = Race::create([
             'name' => 'Dwarf, Hill',
             'size_id' => $size->id,
             'speed' => 25,
+        ]);
+
+        $race2->sources()->create([
             'source_id' => $source->id,
-            'source_pages' => '19',
+            'pages' => '19',
         ]);
 
         $response = $this->getJson('/api/v1/races?search=Dragon');
@@ -98,8 +111,11 @@ class RaceApiTest extends TestCase
             'name' => 'Dragonborn',
             'size_id' => $size->id,
             'speed' => 30,
+        ]);
+
+        $race->sources()->create([
             'source_id' => $source->id,
-            'source_pages' => '32',
+            'pages' => '32',
         ]);
 
         $response = $this->getJson("/api/v1/races/{$race->id}");
@@ -254,5 +270,49 @@ class RaceApiTest extends TestCase
         $this->assertCount(1, $modifiers);
         $this->assertEquals('ability_score', $modifiers[0]['modifier_category']);
         $this->assertEquals('+2', $modifiers[0]['value']);
+    }
+
+    /** @test */
+    public function test_race_modifiers_include_ability_score_resource()
+    {
+        $size = Size::where('code', 'M')->first();
+        $source = Source::where('code', 'PHB')->first();
+        $strAbility = AbilityScore::where('code', 'STR')->first();
+
+        $race = Race::create([
+            'name' => 'Test Strong Race',
+            'size_id' => $size->id,
+            'speed' => 30,
+        ]);
+
+        $race->modifiers()->create([
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $strAbility->id,
+            'value' => 2,
+        ]);
+
+        $response = $this->getJson("/api/v1/races/{$race->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'modifiers' => [
+                        '*' => [
+                            'modifier_category',
+                            'value',
+                            'ability_score' => [
+                                'id',
+                                'name',
+                                'code',
+                            ],
+                        ],
+                    ],
+                ],
+            ])
+            ->assertJsonFragment([
+                'code' => 'STR',
+                'name' => 'Strength',
+            ])
+            ->assertJsonPath('data.modifiers.0.value', '2');
     }
 }

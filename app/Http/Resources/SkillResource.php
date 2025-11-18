@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ProficiencyResource extends JsonResource
+class SkillResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,11 +16,9 @@ class ProficiencyResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'proficiency_type' => $this->proficiency_type,
-            'skill' => $this->when($this->skill_id, function () {
-                return new SkillResource($this->whenLoaded('skill'));
-            }),
-            'proficiency_name' => $this->proficiency_name,
+            'name' => $this->name,
+            'code' => $this->code,
+            'ability_score_code' => $this->ability_score_code,
         ];
     }
 }

@@ -315,4 +315,43 @@ class RaceApiTest extends TestCase
             ])
             ->assertJsonPath('data.modifiers.0.value', '2');
     }
+
+    /** @test */
+    public function test_race_proficiencies_include_skill_resource()
+    {
+        $size = Size::where('code', 'M')->first();
+        $skill = Skill::where('name', 'Perception')->first();
+
+        $race = Race::create([
+            'name' => 'Test Perceptive Race',
+            'size_id' => $size->id,
+            'speed' => 30,
+        ]);
+
+        $race->proficiencies()->create([
+            'proficiency_type' => 'skill',
+            'skill_id' => $skill->id,
+        ]);
+
+        $response = $this->getJson("/api/v1/races/{$race->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'proficiencies' => [
+                        '*' => [
+                            'proficiency_type',
+                            'skill' => [
+                                'id',
+                                'name',
+                            ],
+                        ],
+                    ],
+                ],
+            ])
+            ->assertJsonFragment([
+                'proficiency_type' => 'skill',
+                'name' => 'Perception',
+            ]);
+    }
 }

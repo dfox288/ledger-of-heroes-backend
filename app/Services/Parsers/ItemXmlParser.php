@@ -38,7 +38,7 @@ class ItemXmlParser
             'weapon_range' => (string) $element->range ?: null,
             'description' => $text,
             'properties' => $this->parseProperties((string) $element->property),
-            'sources' => $this->extractSources($text),
+            'sources' => $this->parseSourceCitations($text),
             'proficiencies' => $this->extractProficiencies($text),
         ];
     }
@@ -67,22 +67,89 @@ class ItemXmlParser
         return array_map('trim', explode(',', $propertyString));
     }
 
-    private function extractSources(string $text): array
+    private function parseSourceCitations(string $text): array
     {
         $sources = [];
-        $pattern = '/Source:\s*([^(]+)\s*\((\d{4})\)\s*p\.\s*(\d+(?:,\s*\d+)*)/i';
 
-        if (preg_match($pattern, $text, $matches)) {
-            $sourceName = trim($matches[1]);
-            $pages = trim($matches[3]);
+        // Pattern 1: "Book Name (Year) p. PageNumbers" - with year
+        // Pattern 2: "Book Name p. PageNumbers" - without year
+        // Handles: "p. 150" or "p. 150, 152" or "p. 150-152"
 
+        // Extract "Source: ..." text
+        $pattern = '/Source:\s*(.+?)(?:\n|$)/i';
+        if (!preg_match($pattern, $text, $sourceMatch)) {
+            // Fallback if no source found
+            return [
+                [
+                    'code' => 'PHB',
+                    'pages' => '',
+                ],
+            ];
+        }
+
+        $sourcesText = $sourceMatch[1];
+
+        // Try pattern with year first
+        $patternWithYear = '/([^(]+)\s*\((\d{4})\)\s*p\.\s*([\d,\s\-]+)/';
+        preg_match_all($patternWithYear, $sourcesText, $matches, PREG_SET_ORDER);
+
+        if (!empty($matches)) {
+            foreach ($matches as $match) {
+                $sourceName = trim($match[1]);
+                $pages = trim($match[3]);
+                // Remove trailing comma (from multi-source citations)
+                $pages = rtrim($pages, ',');
+
+                $sourceCode = $this->getSourceCode($sourceName);
+
+                $sources[] = [
+                    'code' => $sourceCode,
+                    'pages' => $pages,
+                ];
+            }
+        } else {
+            // Try pattern without year
+            $patternWithoutYear = '/([^\s]+(?:\s+[^\s]+)*?)\s+p\.\s*([\d,\s\-]+)/';
+            preg_match_all($patternWithoutYear, $sourcesText, $matches, PREG_SET_ORDER);
+
+            foreach ($matches as $match) {
+                $sourceName = trim($match[1]);
+                $pages = trim($match[2]);
+                // Remove trailing comma (from multi-source citations)
+                $pages = rtrim($pages, ',');
+
+                $sourceCode = $this->getSourceCode($sourceName);
+
+                $sources[] = [
+                    'code' => $sourceCode,
+                    'pages' => $pages,
+                ];
+            }
+        }
+
+        // Fallback if no sources parsed (shouldn't happen with valid XML)
+        if (empty($sources)) {
             $sources[] = [
-                'source_name' => $sourceName,
-                'pages' => rtrim($pages, ','), // Remove trailing comma if present
+                'code' => 'PHB',
+                'pages' => '',
             ];
         }
 
         return $sources;
+    }
+
+    private function getSourceCode(string $sourceName): string
+    {
+        $mapping = [
+            "Player's Handbook" => 'PHB',
+            'Dungeon Master\'s Guide' => 'DMG',
+            'Monster Manual' => 'MM',
+            'Xanathar\'s Guide to Everything' => 'XGE',
+            'Tasha\'s Cauldron of Everything' => 'TCE',
+            'Volo\'s Guide to Monsters' => 'VGTM',
+        ];
+
+        return $mapping[$sourceName] ?? 'PHB';
     }
 
     private function extractProficiencies(string $text): array

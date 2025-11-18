@@ -9,6 +9,7 @@ use App\Models\ItemProperty;
 use App\Models\ItemType;
 use App\Models\Proficiency;
 use App\Models\Source;
+use App\Services\Parsers\ItemXmlParser;
 use Illuminate\Support\Str;
 
 class ItemImporter
@@ -87,7 +88,7 @@ class ItemImporter
         $item->sources()->delete();
 
         foreach ($sources as $sourceData) {
-            $source = $this->getSourceByName($sourceData['source_name']);
+            $source = $this->getSourceByCode($sourceData['code']);
 
             EntitySource::create([
                 'reference_type' => Item::class,
@@ -130,14 +131,14 @@ class ItemImporter
         }
     }
 
-    private function getSourceByName(string $name): Source
+    private function getSourceByCode(string $code): Source
     {
-        if (!isset($this->sourceCache[$name])) {
-            $source = Source::where('name', 'like', '%' . $name . '%')->firstOrFail();
-            $this->sourceCache[$name] = $source;
+        if (!isset($this->sourceCache[$code])) {
+            $source = Source::where('code', $code)->firstOrFail();
+            $this->sourceCache[$code] = $source;
         }
 
-        return $this->sourceCache[$name];
+        return $this->sourceCache[$code];
     }
 
     private function getItemPropertyId(string $code): ?int
@@ -148,5 +149,24 @@ class ItemImporter
         }
 
         return $this->itemPropertyCache[$code];
+    }
+
+    public function importFromFile(string $filePath): int
+    {
+        if (!file_exists($filePath)) {
+            throw new \InvalidArgumentException("File not found: {$filePath}");
+        }
+
+        $xmlContent = file_get_contents($filePath);
+        $parser = new ItemXmlParser();
+        $items = $parser->parse($xmlContent);
+
+        $count = 0;
+        foreach ($items as $itemData) {
+            $this->import($itemData);
+            $count++;
+        }
+
+        return $count;
     }
 }

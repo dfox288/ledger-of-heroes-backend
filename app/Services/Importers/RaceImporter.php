@@ -43,7 +43,6 @@ class RaceImporter
             [
                 'size_id' => $size->id,
                 'speed' => $raceData['speed'],
-                'description' => '', // Will be removed in Task 1.4
                 'source_id' => $source->id,
                 'source_pages' => $raceData['source_pages'],
             ]
@@ -134,7 +133,6 @@ class RaceImporter
             'name' => $baseRaceName,
             'size_id' => $size->id,
             'speed' => $speed,
-            'description' => '', // Will be removed in Task 1.4
             'source_id' => $source->id,
             'source_pages' => $sourcePages,
             'parent_race_id' => null,

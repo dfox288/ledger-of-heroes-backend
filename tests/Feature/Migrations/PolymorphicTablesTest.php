@@ -47,7 +47,6 @@ class PolymorphicTablesTest extends TestCase
             'name' => 'Half-Orc',
             'size_id' => $medium->id,
             'speed' => 30,
-            'description' => 'Half-orcs inherit a tendency toward chaos...',
             'source_id' => $phb->id,
             'source_pages' => '40-41',
         ]);

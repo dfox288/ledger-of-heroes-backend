@@ -18,7 +18,6 @@ class Race extends Model
         'name',
         'size_id',
         'speed',
-        'description',
         'source_id',
         'source_pages',
         'parent_race_id',

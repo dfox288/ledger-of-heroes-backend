@@ -19,7 +19,7 @@ class RaceResource extends JsonResource
             'name' => $this->name,
             'size' => new SizeResource($this->whenLoaded('size')),
             'speed' => $this->speed,
-            'description' => $this->description,
+            'traits' => TraitResource::collection($this->whenLoaded('traits')),
             'source' => $this->whenLoaded('source', function () {
                 return [
                     'id' => $this->source->id,

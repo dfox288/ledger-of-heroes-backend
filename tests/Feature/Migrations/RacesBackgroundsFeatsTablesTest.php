@@ -19,7 +19,6 @@ class RacesBackgroundsFeatsTablesTest extends TestCase
         $this->assertTrue(Schema::hasColumn('races', 'name'));
         $this->assertTrue(Schema::hasColumn('races', 'size_id'));
         $this->assertTrue(Schema::hasColumn('races', 'speed'));
-        $this->assertTrue(Schema::hasColumn('races', 'description'));
         $this->assertTrue(Schema::hasColumn('races', 'source_id'));
         $this->assertTrue(Schema::hasColumn('races', 'source_pages'));
     }
@@ -39,7 +38,6 @@ class RacesBackgroundsFeatsTablesTest extends TestCase
             'name' => 'Human',
             'size_id' => $medium->id,
             'speed' => 30,
-            'description' => 'Humans are the most adaptable...',
             'source_id' => $phb->id,
             'source_pages' => '29',
         ]);

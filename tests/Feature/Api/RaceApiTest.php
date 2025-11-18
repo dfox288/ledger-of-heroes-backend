@@ -25,7 +25,6 @@ class RaceApiTest extends TestCase
             'name' => 'Dragonborn',
             'size_id' => $size->id,
             'speed' => 30,
-            'description' => 'Born of dragons',
             'source_id' => $source->id,
             'source_pages' => '32',
         ]);
@@ -34,7 +33,6 @@ class RaceApiTest extends TestCase
             'name' => 'Dwarf, Hill',
             'size_id' => $size->id,
             'speed' => 25,
-            'description' => 'Bold and hardy',
             'source_id' => $source->id,
             'source_pages' => '19',
         ]);
@@ -50,7 +48,6 @@ class RaceApiTest extends TestCase
                         'name',
                         'size' => ['id', 'code', 'name'],
                         'speed',
-                        'description',
                         'source' => ['id', 'code', 'name'],
                         'source_pages',
                     ],
@@ -70,7 +67,6 @@ class RaceApiTest extends TestCase
             'name' => 'Dragonborn',
             'size_id' => $size->id,
             'speed' => 30,
-            'description' => 'Born of dragons',
             'source_id' => $source->id,
             'source_pages' => '32',
         ]);
@@ -79,7 +75,6 @@ class RaceApiTest extends TestCase
             'name' => 'Dwarf, Hill',
             'size_id' => $size->id,
             'speed' => 25,
-            'description' => 'Bold and hardy',
             'source_id' => $source->id,
             'source_pages' => '19',
         ]);
@@ -101,7 +96,6 @@ class RaceApiTest extends TestCase
             'name' => 'Dragonborn',
             'size_id' => $size->id,
             'speed' => 30,
-            'description' => 'Born of dragons',
             'source_id' => $source->id,
             'source_pages' => '32',
         ]);
@@ -205,5 +199,35 @@ class RaceApiTest extends TestCase
 
         $proficiencies = $response->json('data.proficiencies');
         $this->assertCount(2, $proficiencies);
+    }
+
+    /** @test */
+    public function it_includes_traits_in_response()
+    {
+        $race = Race::factory()->create(['name' => 'Elf']);
+
+        \App\Models\CharacterTrait::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'name' => 'Darkvision',
+            'category' => 'species',
+            'description' => 'You can see in dim light...',
+            'sort_order' => 1,
+        ]);
+
+        $response = $this->getJson("/api/v1/races/{$race->id}");
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'data' => [
+                'traits' => [
+                    '*' => ['id', 'name', 'category', 'description', 'sort_order']
+                ]
+            ]
+        ]);
+
+        $traits = $response->json('data.traits');
+        $this->assertCount(1, $traits);
+        $this->assertEquals('Darkvision', $traits[0]['name']);
     }
 }

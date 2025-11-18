@@ -2,10 +2,18 @@
 
 namespace App\Services\Parsers;
 
+use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use SimpleXMLElement;
 
 class ItemXmlParser
 {
+    use MatchesProficiencyTypes;
+
+    public function __construct()
+    {
+        $this->initializeProficiencyTypes();
+    }
+
     public function parse(string $xmlContent): array
     {
         $xml = new SimpleXMLElement($xmlContent);
@@ -208,9 +216,13 @@ class ItemXmlParser
         if (preg_match($pattern, $text, $matches)) {
             $profList = array_map('trim', explode(',', $matches[1]));
             foreach ($profList as $profName) {
+                $matchedType = $this->matchProficiencyType($profName);
+
                 $proficiencies[] = [
                     'name' => $profName,
                     'type' => $this->inferProficiencyType($profName),
+                    'proficiency_type_id' => $matchedType?->id,
+                    'grants' => false, // Items REQUIRE proficiency
                 ];
             }
         }
@@ -247,17 +259,88 @@ class ItemXmlParser
         $modifiers = [];
 
         foreach ($element->modifier as $modifierElement) {
-            $category = (string) $modifierElement['category']; // "bonus", "set", etc.
+            $category = (string) $modifierElement['category'];
             $text = trim((string) $modifierElement);
 
-            // Parse the modifier text: "ranged attacks +1" or "AC +2"
-            $modifiers[] = [
-                'category' => $category,
-                'text' => $text,
-            ];
+            // Parse structured data from text
+            $parsed = $this->parseModifierText($text, $category);
+
+            if ($parsed !== null) {
+                $modifiers[] = $parsed;
+            }
         }
 
         return $modifiers;
+    }
+
+    private function parseModifierText(string $text, string $xmlCategory): ?array
+    {
+        $text = strtolower($text);
+
+        // Pattern: "category +/-value"
+        if (! preg_match('/([\w\s]+)\s*([+\-]\d+)/', $text, $matches)) {
+            return null; // Skip unparseable modifiers
+        }
+
+        $target = trim($matches[1]);
+        $value = (int) $matches[2];
+
+        // Map text to structured categories
+        $category = match (true) {
+            str_contains($target, 'spell attack') => 'spell_attack',
+            str_contains($target, 'spell dc') => 'spell_dc',
+            str_contains($target, 'ac') || $target === 'armor class' => 'ac',
+            str_contains($target, 'melee attack') => 'melee_attack',
+            str_contains($target, 'ranged attack') => 'ranged_attack',
+            str_contains($target, 'melee damage') => 'melee_damage',
+            str_contains($target, 'ranged damage') => 'ranged_damage',
+            str_contains($target, 'attack') => 'attack_bonus',
+            str_contains($target, 'damage') => 'damage_bonus',
+            $xmlCategory === 'ability score' => 'ability_score',
+            default => 'bonus', // Generic fallback
+        };
+
+        $result = [
+            'category' => $category,
+            'value' => $value,
+            'ability_score_id' => null,
+            'skill_id' => null,
+            'damage_type_id' => null,
+        ];
+
+        // For ability score modifiers, match the ability
+        if ($category === 'ability_score') {
+            $result['ability_score_id'] = $this->matchAbilityScore($target);
+        }
+
+        return $result;
+    }
+
+    private function matchAbilityScore(string $text): ?int
+    {
+        static $abilities = null;
+
+        if ($abilities === null) {
+            try {
+                $abilities = \App\Models\AbilityScore::all()
+                    ->keyBy(fn ($a) => strtolower($a->name))
+                    ->mapWithKeys(fn ($a, $k) => [
+                        $k => $a->id,
+                        strtolower($a->code) => $a->id,
+                    ]);
+            } catch (\Exception $e) {
+                $abilities = collect();
+            }
+        }
+
+        $text = strtolower($text);
+        foreach ($abilities as $key => $id) {
+            if (str_contains($text, $key)) {
+                return $id;
+            }
+        }
+
+        return null;
     }
 
     private function parseAbilities(SimpleXMLElement $element): array

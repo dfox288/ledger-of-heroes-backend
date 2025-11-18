@@ -11,14 +11,14 @@ class EntitySource extends Model
     public $timestamps = false; // CRITICAL: No timestamps on static data
 
     protected $fillable = [
-        'entity_type',
-        'entity_id',
+        'reference_type',
+        'reference_id',
         'source_id',
         'pages',
     ];
 
     protected $casts = [
-        'entity_id' => 'integer',
+        'reference_id' => 'integer',
         'source_id' => 'integer',
     ];
 
@@ -29,9 +29,9 @@ class EntitySource extends Model
     }
 
     // Polymorphic relationship to any entity
-    // Note: Laravel expects 'entity' method name for 'entity_type'/'entity_id' columns
-    public function entity(): MorphTo
+    // Note: Laravel uses 'reference' as the relationship name for consistency with other polymorphic tables
+    public function reference(): MorphTo
     {
-        return $this->morphTo('entity', 'entity_type', 'entity_id');
+        return $this->morphTo('reference', 'reference_type', 'reference_id');
     }
 }

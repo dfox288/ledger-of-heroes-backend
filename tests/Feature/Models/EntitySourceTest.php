@@ -34,8 +34,8 @@ class EntitySourceTest extends TestCase
         ]);
 
         $entitySource = EntitySource::create([
-            'entity_type' => 'spell',
-            'entity_id' => $spell->id,
+            'reference_type' => 'spell',
+            'reference_id' => $spell->id,
             'source_id' => $source->id,
             'pages' => '150',
         ]);
@@ -65,15 +65,15 @@ class EntitySourceTest extends TestCase
         ]);
 
         $entitySource = EntitySource::create([
-            'entity_type' => 'spell',
-            'entity_id' => $spell->id,
+            'reference_type' => 'spell',
+            'reference_id' => $spell->id,
             'source_id' => $source->id,
             'pages' => '150',
         ]);
 
         // Polymorphic relationship
-        $this->assertEquals('spell', $entitySource->entity_type);
-        $this->assertEquals($spell->id, $entitySource->entity_id);
+        $this->assertEquals('spell', $entitySource->reference_type);
+        $this->assertEquals($spell->id, $entitySource->reference_id);
     }
 
     public function test_entity_source_does_not_use_timestamps(): void

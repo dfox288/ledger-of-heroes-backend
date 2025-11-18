@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
 
             // Polymorphic reference to any entity (spell, item, race, etc.)
-            $table->string('entity_type', 50); // 'spell', 'item', 'race', 'feat', 'background', 'class', 'monster'
-            $table->unsignedBigInteger('entity_id');
+            $table->string('reference_type'); // 'spell', 'item', 'race', 'feat', 'background', 'class', 'monster'
+            $table->unsignedBigInteger('reference_id');
 
             // Reference to sources table
             $table->unsignedBigInteger('source_id');
@@ -31,11 +31,11 @@ return new class extends Migration
                   ->onDelete('cascade');
 
             // Indexes for efficient querying
-            $table->index(['entity_type', 'entity_id']); // Find all sources for an entity
+            $table->index(['reference_type', 'reference_id']); // Find all sources for an entity
             $table->index('source_id'); // Find all entities from a source
 
             // Unique constraint - same entity can't reference same source twice
-            $table->unique(['entity_type', 'entity_id', 'source_id'], 'entity_sources_unique');
+            $table->unique(['reference_type', 'reference_id', 'source_id'], 'entity_sources_unique');
 
             // NO timestamps - static compendium data
         });

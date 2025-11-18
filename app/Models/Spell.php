@@ -58,7 +58,7 @@ class Spell extends Model
 
     public function entitySources(): MorphMany
     {
-        return $this->morphMany(EntitySource::class, 'entity', 'entity_type', 'entity_id');
+        return $this->morphMany(EntitySource::class, 'reference', 'reference_type', 'reference_id');
     }
 
     // Scopes for API filtering

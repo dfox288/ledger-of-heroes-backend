@@ -26,9 +26,10 @@ Option | Effect
 2 | Effect B
 TEXT;
 
-        $parsed = $this->parser->parse($tableText);
+        $parsed = $this->parser->parse($tableText, 'd8');
 
         $this->assertEquals('Test Table', $parsed['table_name']);
+        $this->assertEquals('d8', $parsed['dice_type']);
         $this->assertCount(2, $parsed['rows']);
         $this->assertEquals(1, $parsed['rows'][0]['roll_min']);
         $this->assertEquals(1, $parsed['rows'][0]['roll_max']);
@@ -46,9 +47,10 @@ d100 | Effect
 05 | Unicorn
 TEXT;
 
-        $parsed = $this->parser->parse($tableText);
+        $parsed = $this->parser->parse($tableText, 'd100');
 
         $this->assertEquals('Wild Magic', $parsed['table_name']);
+        $this->assertEquals('d100', $parsed['dice_type']);
         $this->assertCount(3, $parsed['rows']);
 
         // First row: range 01-02
@@ -75,9 +77,10 @@ A | Effect A
 B | Effect B
 TEXT;
 
-        $parsed = $this->parser->parse($tableText);
+        $parsed = $this->parser->parse($tableText, null);
 
         $this->assertEquals('Options', $parsed['table_name']);
+        $this->assertNull($parsed['dice_type']);
         $this->assertCount(2, $parsed['rows']);
         $this->assertNull($parsed['rows'][0]['roll_min']);
         $this->assertNull($parsed['rows'][0]['roll_max']);
@@ -94,9 +97,10 @@ Lever | Up | Down
 2 | Open window | Close window
 TEXT;
 
-        $parsed = $this->parser->parse($tableText);
+        $parsed = $this->parser->parse($tableText, null);
 
         $this->assertEquals('Apparatus Levers', $parsed['table_name']);
+        $this->assertNull($parsed['dice_type']);
         $this->assertCount(2, $parsed['rows']);
         $this->assertEquals('Extend legs | Retract legs', $parsed['rows'][0]['result_text']);
     }

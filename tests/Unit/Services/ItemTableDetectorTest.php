@@ -78,4 +78,36 @@ TEXT;
         $this->assertEquals('Wild Magic', $tables[0]['name']);
         $this->assertStringContainsString('01-02 | Fireball', $tables[0]['text']);
     }
+
+    #[Test]
+    public function it_extracts_dice_type_from_header()
+    {
+        $text = <<<TEXT
+Wild Magic:
+d100 | Effect
+1-2 | Fireball
+3-4 | Teleport
+TEXT;
+
+        $tables = $this->detector->detectTables($text);
+
+        $this->assertCount(1, $tables);
+        $this->assertEquals('d100', $tables[0]['dice_type']);
+    }
+
+    #[Test]
+    public function it_handles_tables_without_dice_type()
+    {
+        $text = <<<TEXT
+Lever Controls:
+Lever | Effect
+1 | Effect A
+2 | Effect B
+TEXT;
+
+        $tables = $this->detector->detectTables($text);
+
+        $this->assertCount(1, $tables);
+        $this->assertNull($tables[0]['dice_type']);
+    }
 }

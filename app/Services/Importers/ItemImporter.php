@@ -195,7 +195,7 @@ class ItemImporter
 
         foreach ($tables as $tableData) {
             $parser = new ItemTableParser();
-            $parsed = $parser->parse($tableData['text']);
+            $parsed = $parser->parse($tableData['text'], $tableData['dice_type'] ?? null);
 
             if (empty($parsed['rows'])) {
                 continue; // Skip tables with no valid rows
@@ -205,7 +205,7 @@ class ItemImporter
                 'reference_type' => Item::class,
                 'reference_id' => $item->id,
                 'table_name' => $parsed['table_name'],
-                'dice_type' => $parsed['dice_type'] ?? '',
+                'dice_type' => $parsed['dice_type'],
             ]);
 
             foreach ($parsed['rows'] as $index => $row) {

@@ -4,7 +4,7 @@ namespace App\Services\Parsers;
 
 class ItemTableParser
 {
-    public function parse(string $tableText): array
+    public function parse(string $tableText, ?string $diceType = null): array
     {
         $lines = explode("\n", $tableText);
         $lines = array_map('trim', $lines);
@@ -12,7 +12,7 @@ class ItemTableParser
 
         if (count($lines) < 3) {
             // Need at least: name, header, 1 data row
-            return ['table_name' => '', 'rows' => []];
+            return ['table_name' => '', 'dice_type' => null, 'rows' => []];
         }
 
         // First line is table name (may end with colon)
@@ -51,6 +51,7 @@ class ItemTableParser
 
         return [
             'table_name' => $tableName,
+            'dice_type' => $diceType,
             'rows' => $rows,
         ];
     }

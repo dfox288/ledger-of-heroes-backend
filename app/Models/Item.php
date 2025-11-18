@@ -25,10 +25,11 @@ class Item extends Model
         'damage_dice',
         'versatile_damage',
         'damage_type_id',
+        'range_normal',
+        'range_long',
         'armor_class',
         'strength_requirement',
         'stealth_disadvantage',
-        'weapon_range',
         'description',
     ];
 
@@ -40,6 +41,8 @@ class Item extends Model
         'armor_class' => 'integer',
         'strength_requirement' => 'integer',
         'stealth_disadvantage' => 'boolean',
+        'range_normal' => 'integer',
+        'range_long' => 'integer',
     ];
 
     // Relationships

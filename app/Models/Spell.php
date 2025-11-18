@@ -56,7 +56,7 @@ class Spell extends Model
         return $this->hasMany(SpellEffect::class);
     }
 
-    public function entitySources(): MorphMany
+    public function sources(): MorphMany
     {
         return $this->morphMany(EntitySource::class, 'reference', 'reference_type', 'reference_id');
     }

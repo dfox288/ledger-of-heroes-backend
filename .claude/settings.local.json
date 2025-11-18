@@ -31,7 +31,8 @@
       "Bash(sed:*)",
       "Skill(superpowers:using-superpowers)",
       "Bash(git -C /Users/dfox/Development/dnd/importer rev-parse HEAD)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

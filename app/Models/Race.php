@@ -66,7 +66,7 @@ class Race extends Model
         return $this->morphMany(Modifier::class, 'reference');
     }
 
-    public function entitySources(): MorphMany
+    public function sources(): MorphMany
     {
         return $this->morphMany(EntitySource::class, 'reference', 'reference_type', 'reference_id');
     }

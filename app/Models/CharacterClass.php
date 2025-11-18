@@ -58,7 +58,7 @@ class CharacterClass extends Model
         return $this->belongsToMany(Spell::class, 'class_spells', 'class_id', 'spell_id');
     }
 
-    public function entitySources(): MorphMany
+    public function sources(): MorphMany
     {
         return $this->morphMany(EntitySource::class, 'reference', 'reference_type', 'reference_id');
     }

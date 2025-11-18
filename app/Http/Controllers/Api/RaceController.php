@@ -37,7 +37,7 @@ class RaceController extends Controller
 
     public function show(Race $race)
     {
-        $race->load(['size', 'source', 'parent', 'subraces', 'proficiencies.skill', 'traits', 'modifiers.abilityScore']);
+        $race->load(['size', 'source', 'parent', 'subraces', 'proficiencies.skill', 'traits', 'modifiers.abilityScore', 'randomTables.entries']);
 
         return new RaceResource($race);
     }

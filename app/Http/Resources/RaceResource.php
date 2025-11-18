@@ -21,6 +21,7 @@ class RaceResource extends JsonResource
             'speed' => $this->speed,
             'traits' => TraitResource::collection($this->whenLoaded('traits')),
             'modifiers' => ModifierResource::collection($this->whenLoaded('modifiers')),
+            'random_tables' => RandomTableResource::collection($this->whenLoaded('randomTables')),
             'source' => $this->whenLoaded('source', function () {
                 return [
                     'id' => $this->source->id,

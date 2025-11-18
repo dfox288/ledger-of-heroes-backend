@@ -19,7 +19,7 @@ class SpellApiTest extends TestCase
         $school = SpellSchool::first();
         $source = Source::first();
 
-        Spell::create([
+        $spell = Spell::create([
             'name' => 'Fireball',
             'level' => 3,
             'spell_school_id' => $school->id,
@@ -30,8 +30,11 @@ class SpellApiTest extends TestCase
             'needs_concentration' => false,
             'is_ritual' => false,
             'description' => 'A bright streak flashes from your pointing finger...',
+        ]);
+
+        $spell->sources()->create([
             'source_id' => $source->id,
-            'source_pages' => '241',
+            'pages' => '241',
         ]);
 
         $response = $this->getJson('/api/v1/spells');
@@ -51,8 +54,9 @@ class SpellApiTest extends TestCase
                         'needs_concentration',
                         'is_ritual',
                         'description',
-                        'source' => ['id', 'code', 'name'],
-                        'source_pages',
+                        'sources' => [
+                            '*' => ['code', 'name', 'pages'],
+                        ],
                     ]
                 ],
                 'links',
@@ -66,7 +70,7 @@ class SpellApiTest extends TestCase
         $school = SpellSchool::first();
         $source = Source::first();
 
-        Spell::create([
+        $spell1 = Spell::create([
             'name' => 'Fireball',
             'level' => 3,
             'spell_school_id' => $school->id,
@@ -77,11 +81,14 @@ class SpellApiTest extends TestCase
             'needs_concentration' => false,
             'is_ritual' => false,
             'description' => 'A bright streak flashes from your pointing finger...',
-            'source_id' => $source->id,
-            'source_pages' => '241',
         ]);
 
-        Spell::create([
+        $spell1->sources()->create([
+            'source_id' => $source->id,
+            'pages' => '241',
+        ]);
+
+        $spell2 = Spell::create([
             'name' => 'Ice Storm',
             'level' => 4,
             'spell_school_id' => $school->id,
@@ -92,8 +99,11 @@ class SpellApiTest extends TestCase
             'needs_concentration' => false,
             'is_ritual' => false,
             'description' => 'A hail of rock-hard ice pounds to the ground...',
+        ]);
+
+        $spell2->sources()->create([
             'source_id' => $source->id,
-            'source_pages' => '252',
+            'pages' => '252',
         ]);
 
         $response = $this->getJson('/api/v1/spells?search=fireball');
@@ -119,8 +129,11 @@ class SpellApiTest extends TestCase
             'needs_concentration' => false,
             'is_ritual' => false,
             'description' => 'You create three glowing darts of magical force.',
+        ]);
+
+        $spell->sources()->create([
             'source_id' => $source->id,
-            'source_pages' => '257',
+            'pages' => '257',
         ]);
 
         // Create spell effects
@@ -187,16 +200,22 @@ class SpellApiTest extends TestCase
             'name' => 'Wizard',
             'hit_die' => 6,
             'description' => 'A scholarly magic-user capable of manipulating the structures of reality.',
+        ]);
+
+        $wizard->sources()->create([
             'source_id' => $source->id,
-            'source_pages' => '112',
+            'pages' => '112',
         ]);
 
         $sorcerer = CharacterClass::create([
             'name' => 'Sorcerer',
             'hit_die' => 6,
             'description' => 'A spellcaster who draws on inherent magic from a gift or bloodline.',
+        ]);
+
+        $sorcerer->sources()->create([
             'source_id' => $source->id,
-            'source_pages' => '99',
+            'pages' => '99',
         ]);
 
         // Create a spell
@@ -211,8 +230,11 @@ class SpellApiTest extends TestCase
             'needs_concentration' => false,
             'is_ritual' => false,
             'description' => 'A bright streak flashes from your pointing finger...',
+        ]);
+
+        $spell->sources()->create([
             'source_id' => $source->id,
-            'source_pages' => '241',
+            'pages' => '241',
         ]);
 
         // Associate spell with classes
@@ -241,5 +263,47 @@ class SpellApiTest extends TestCase
             ->assertJsonPath('data.classes.0.hit_die', 6)
             ->assertJsonPath('data.classes.1.name', 'Sorcerer')
             ->assertJsonPath('data.classes.1.hit_die', 6);
+    }
+
+    /** @test */
+    public function test_spell_includes_spell_school_resource()
+    {
+        $school = SpellSchool::first();
+        $source = Source::first();
+
+        $spell = Spell::create([
+            'name' => 'Test Spell',
+            'level' => 1,
+            'spell_school_id' => $school->id,
+            'casting_time' => '1 action',
+            'range' => 'Self',
+            'components' => 'V',
+            'duration' => 'Instantaneous',
+            'needs_concentration' => false,
+            'is_ritual' => false,
+            'description' => 'Test',
+        ]);
+
+        $response = $this->getJson("/api/v1/spells/{$spell->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'school' => [
+                        'id',
+                        'code',
+                        'name',
+                    ],
+                ],
+            ])
+            ->assertJson([
+                'data' => [
+                    'school' => [
+                        'id' => $school->id,
+                        'code' => $school->code,
+                        'name' => $school->name,
+                    ],
+                ],
+            ]);
     }
 }

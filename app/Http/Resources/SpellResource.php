@@ -13,11 +13,7 @@ class SpellResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'level' => $this->level,
-            'school' => [
-                'id' => $this->spellSchool->id,
-                'code' => $this->spellSchool->code,
-                'name' => $this->spellSchool->name,
-            ],
+            'school' => new SpellSchoolResource($this->whenLoaded('spellSchool')),
             'casting_time' => $this->casting_time,
             'range' => $this->range,
             'components' => $this->components,
@@ -27,12 +23,15 @@ class SpellResource extends JsonResource
             'is_ritual' => $this->is_ritual,
             'description' => $this->description,
             'higher_levels' => $this->higher_levels,
-            'source' => [
-                'id' => $this->source->id,
-                'code' => $this->source->code,
-                'name' => $this->source->name,
-            ],
-            'source_pages' => $this->source_pages,
+            'sources' => $this->whenLoaded('sources', function () {
+                return $this->sources->map(function ($entitySource) {
+                    return [
+                        'code' => $entitySource->source->code,
+                        'name' => $entitySource->source->name,
+                        'pages' => $entitySource->pages,
+                    ];
+                });
+            }),
             'effects' => SpellEffectResource::collection($this->whenLoaded('effects')),
             'classes' => ClassResource::collection($this->whenLoaded('classes')),
         ];

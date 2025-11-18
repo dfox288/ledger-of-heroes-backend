@@ -14,18 +14,35 @@ return new class extends Migration
         $tables = ['spells', 'items', 'races', 'backgrounds', 'feats', 'classes', 'monsters'];
 
         foreach ($tables as $table) {
-            if (Schema::hasTable($table)) {
-                Schema::table($table, function (Blueprint $blueprint) use ($table) {
-                    if (Schema::hasColumn($table, 'source_id')) {
-                        $blueprint->dropForeign(["{$table}_source_id_foreign"]);
-                        $blueprint->dropColumn('source_id');
-                    }
-
-                    if (Schema::hasColumn($table, 'source_pages')) {
-                        $blueprint->dropColumn('source_pages');
-                    }
-                });
+            if (!Schema::hasTable($table)) {
+                continue;
             }
+
+            // Get foreign keys from information_schema
+            $foreignKeys = DB::select("
+                SELECT CONSTRAINT_NAME
+                FROM information_schema.TABLE_CONSTRAINTS
+                WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = '$table'
+                AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+                AND CONSTRAINT_NAME LIKE '%source_id%'
+            ");
+
+            // Drop foreign keys using raw SQL
+            foreach ($foreignKeys as $fk) {
+                DB::statement("ALTER TABLE `$table` DROP FOREIGN KEY `{$fk->CONSTRAINT_NAME}`");
+            }
+
+            // Now drop the columns
+            Schema::table($table, function (Blueprint $blueprint) use ($table) {
+                if (Schema::hasColumn($table, 'source_id')) {
+                    $blueprint->dropColumn('source_id');
+                }
+
+                if (Schema::hasColumn($table, 'source_pages')) {
+                    $blueprint->dropColumn('source_pages');
+                }
+            });
         }
     }
 

@@ -3,6 +3,7 @@
 namespace App\Services\Importers;
 
 use App\Models\CharacterClass;
+use App\Models\EntitySource;
 use App\Models\Spell;
 use App\Models\SpellSchool;
 use App\Models\Source;
@@ -15,10 +16,7 @@ class SpellImporter
         // Lookup spell school by code
         $spellSchool = SpellSchool::where('code', $spellData['school'])->firstOrFail();
 
-        // Lookup source by code
-        $source = Source::where('code', $spellData['source_code'])->firstOrFail();
-
-        // Create or update spell
+        // Create or update spell (no longer storing source_id/source_pages directly)
         $spell = Spell::updateOrCreate(
             ['name' => $spellData['name']],
             [
@@ -33,8 +31,6 @@ class SpellImporter
                 'is_ritual' => $spellData['is_ritual'],
                 'description' => $spellData['description'],
                 'higher_levels' => $spellData['higher_levels'],
-                'source_id' => $source->id,
-                'source_pages' => $spellData['source_pages'],
             ]
         );
 
@@ -48,12 +44,45 @@ class SpellImporter
             }
         }
 
+        // Import sources - clear old sources and create new ones
+        if (isset($spellData['sources']) && is_array($spellData['sources'])) {
+            $this->importSources($spell, $spellData['sources']);
+        }
+
         // Import class associations
         if (isset($spellData['classes']) && is_array($spellData['classes'])) {
             $this->importClassAssociations($spell, $spellData['classes']);
         }
 
         return $spell;
+    }
+
+    /**
+     * Import sources for a spell.
+     * Creates entity_sources junction records for each source.
+     *
+     * @param Spell $spell
+     * @param array $sources Array of ['code' => 'PHB', 'pages' => '241']
+     * @return void
+     */
+    private function importSources(Spell $spell, array $sources): void
+    {
+        // Clear existing sources
+        $spell->sources()->delete();
+
+        // Create new source associations
+        foreach ($sources as $sourceData) {
+            $source = Source::where('code', $sourceData['code'])->first();
+
+            if ($source) {
+                EntitySource::create([
+                    'reference_type' => Spell::class,
+                    'reference_id' => $spell->id,
+                    'source_id' => $source->id,
+                    'pages' => $sourceData['pages'] ?? null,
+                ]);
+            }
+        }
     }
 
     /**

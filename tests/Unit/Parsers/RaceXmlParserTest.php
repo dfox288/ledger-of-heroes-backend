@@ -445,4 +445,39 @@ XML;
         $this->assertEquals('Cha', $races[0]['ability_bonuses'][1]['ability']);
         $this->assertEquals('+1', $races[0]['ability_bonuses'][1]['value']);
     }
+
+    /** @test */
+    public function it_parses_rolls_from_traits()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dragonborn</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait>
+      <name>Size</name>
+      <text>Your size is Medium. To set your height randomly:
+Size modifier = 2d8</text>
+      <roll description="Size Modifier">2d8</roll>
+      <roll description="Weight Modifier">2d6</roll>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $sizeTrait = $races[0]['traits'][0];
+        $this->assertEquals('Size', $sizeTrait['name']);
+        $this->assertArrayHasKey('rolls', $sizeTrait);
+        $this->assertCount(2, $sizeTrait['rolls']);
+
+        $this->assertEquals('Size Modifier', $sizeTrait['rolls'][0]['description']);
+        $this->assertEquals('2d8', $sizeTrait['rolls'][0]['formula']);
+
+        $this->assertEquals('Weight Modifier', $sizeTrait['rolls'][1]['description']);
+        $this->assertEquals('2d6', $sizeTrait['rolls'][1]['formula']);
+    }
 }

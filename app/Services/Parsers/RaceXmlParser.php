@@ -77,10 +77,25 @@ class RaceXmlParser
             $name = (string) $traitElement->name;
             $text = (string) $traitElement->text;
 
+            // Parse rolls within this trait
+            $rolls = [];
+            foreach ($traitElement->roll as $rollElement) {
+                $description = isset($rollElement['description']) ? (string) $rollElement['description'] : null;
+                $level = isset($rollElement['level']) ? (int) $rollElement['level'] : null;
+                $formula = (string) $rollElement;
+
+                $rolls[] = [
+                    'description' => $description,
+                    'formula' => $formula,
+                    'level' => $level,
+                ];
+            }
+
             $traits[] = [
                 'name' => $name,
                 'category' => $category,
                 'description' => trim($text),
+                'rolls' => $rolls,
                 'sort_order' => $sortOrder++,
             ];
         }

@@ -453,4 +453,39 @@ class RaceApiTest extends TestCase
                 ],
             ]);
     }
+
+    /** @test */
+    public function test_proficiency_includes_ability_score_when_present()
+    {
+        $size = Size::where('code', 'M')->first();
+        $strAbility = AbilityScore::where('code', 'STR')->first();
+
+        $race = Race::create([
+            'name' => 'Strong Race',
+            'size_id' => $size->id,
+            'speed' => 30,
+        ]);
+
+        $race->proficiencies()->create([
+            'proficiency_type' => 'saving_throw',
+            'ability_score_id' => $strAbility->id,
+        ]);
+
+        $response = $this->getJson("/api/v1/races/{$race->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'proficiencies' => [
+                        '*' => [
+                            'ability_score' => [
+                                'id',
+                                'code',
+                                'name',
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+    }
 }

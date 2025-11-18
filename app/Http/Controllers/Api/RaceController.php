@@ -43,6 +43,7 @@ class RaceController extends Controller
             'parent',
             'subraces',
             'proficiencies.skill.abilityScore',
+            'proficiencies.abilityScore',
             'traits.randomTables.entries', // Load random tables through traits
             'modifiers.abilityScore',
             'modifiers.skill',

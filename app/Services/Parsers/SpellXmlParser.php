@@ -39,25 +39,21 @@ class SpellXmlParser
         $classesString = preg_replace('/^School:\s*[^,]+,\s*/', '', $classesString);
         $classes = array_map('trim', explode(',', $classesString));
 
-        // Parse description and source from text elements
+        // Parse description and sources from text elements
         $description = '';
-        $sourceCode = '';
-        $sourcePages = '';
+        $sources = [];
 
         foreach ($element->text as $text) {
             $textContent = (string) $text;
 
-            // Check if this text contains a source citation
-            if (preg_match('/Source:\s*([^p]+)\s*p\.\s*([\d,\s]+)/', $textContent, $matches)) {
-                // Extract source book name and pages
-                $sourceName = trim($matches[1]);
-                $sourcePages = trim($matches[2]);
+            // Check if this text contains source citation(s)
+            if (preg_match('/Source:\s*(.+)/s', $textContent, $matches)) {
+                // Extract all sources from the citation (may be multi-line)
+                $sourcesText = $matches[1];
+                $sources = $this->parseSourceCitations($sourcesText);
 
-                // Map source name to code
-                $sourceCode = $this->getSourceCode($sourceName);
-
-                // Remove the source line from the description, but keep the rest
-                $textContent = preg_replace('/\n*Source:\s*[^\n]+/', '', $textContent);
+                // Remove the source lines from the description
+                $textContent = preg_replace('/\n*Source:\s*.+/s', '', $textContent);
             }
 
             // Add the remaining text to description (even if we extracted source)
@@ -83,8 +79,7 @@ class SpellXmlParser
             'description' => trim($description),
             'higher_levels' => null, // TODO: Parse from description if present
             'classes' => $classes,
-            'source_code' => $sourceCode,
-            'source_pages' => $sourcePages,
+            'sources' => $sources, // NEW: Array of sources instead of single source
             'effects' => $effects,
         ];
     }
@@ -150,6 +145,49 @@ class SpellXmlParser
         }
 
         return 'other';
+    }
+
+    /**
+     * Parse source citations that may span multiple books.
+     *
+     * Examples:
+     *   "Player's Handbook (2014) p. 241"
+     *   "Dungeon Master's Guide (2014) p. 150,\n\t\tPlayer's Handbook (2014) p. 150"
+     *
+     * @param string $sourcesText
+     * @return array Array of ['code' => 'PHB', 'pages' => '241']
+     */
+    private function parseSourceCitations(string $sourcesText): array
+    {
+        $sources = [];
+
+        // Pattern: "Book Name (Year) p. PageNumbers"
+        // Handles: "p. 150" or "p. 150, 152" or "p. 150-152"
+        $pattern = '/([^(]+)\s*\((\d{4})\)\s*p\.\s*([\d,\s\-]+)/';
+
+        preg_match_all($pattern, $sourcesText, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            $sourceName = trim($match[1]);
+            $pages = trim($match[3]);
+
+            $sourceCode = $this->getSourceCode($sourceName);
+
+            $sources[] = [
+                'code' => $sourceCode,
+                'pages' => $pages,
+            ];
+        }
+
+        // Fallback if no sources parsed (shouldn't happen with valid XML)
+        if (empty($sources)) {
+            $sources[] = [
+                'code' => 'PHB',
+                'pages' => '',
+            ];
+        }
+
+        return $sources;
     }
 
     private function getSourceCode(string $sourceName): string

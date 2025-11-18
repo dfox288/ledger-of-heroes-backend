@@ -110,4 +110,36 @@ TEXT;
         $this->assertCount(1, $tables);
         $this->assertNull($tables[0]['dice_type']);
     }
+
+    #[Test]
+    public function it_extracts_unusual_dice_types()
+    {
+        $text = <<<TEXT
+Deck of Many Things:
+1d22 | Playing Card | Card
+1 | Ace of diamonds | Vizier
+2 | King of diamonds | Sun
+TEXT;
+
+        $tables = $this->detector->detectTables($text);
+
+        $this->assertCount(1, $tables);
+        $this->assertEquals('1d22', $tables[0]['dice_type']);
+    }
+
+    #[Test]
+    public function it_extracts_multi_dice_types()
+    {
+        $text = <<<TEXT
+Damage Table:
+2d6 | Damage Type
+1-2 | Fire
+3-4 | Cold
+TEXT;
+
+        $tables = $this->detector->detectTables($text);
+
+        $this->assertCount(1, $tables);
+        $this->assertEquals('2d6', $tables[0]['dice_type']);
+    }
 }

@@ -405,4 +405,155 @@ XML;
         $this->assertEquals('Bludgeoning Damage', $abilities[1]->name);
         $this->assertEquals('2d6', $abilities[1]->roll_formula);
     }
+
+    #[Test]
+    public function it_parses_simple_table_from_description()
+    {
+        $originalXml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Test Item</name>
+    <type>W</type>
+    <text>Item description.
+
+Test Table:
+Option | Effect
+1 | Effect A
+2 | Effect B
+
+Source: Test p. 1</text>
+  </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        $item->load('randomTables.entries');
+        $this->assertCount(1, $item->randomTables);
+
+        $table = $item->randomTables->first();
+        $this->assertEquals('Test Table', $table->table_name);
+        $this->assertCount(2, $table->entries);
+
+        $this->assertEquals(1, $table->entries[0]->roll_min);
+        $this->assertEquals(1, $table->entries[0]->roll_max);
+        $this->assertEquals('Effect A', $table->entries[0]->result_text);
+        $this->assertEquals(0, $table->entries[0]->sort_order);
+    }
+
+    #[Test]
+    public function it_parses_roll_ranges_in_tables()
+    {
+        $originalXml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Wild Magic Item</name>
+    <type>W</type>
+    <text>This item causes wild magic.
+
+Wild Magic Effects:
+d10 | Effect
+1-2 | Fireball
+3-5 | Teleport
+6 | Heal
+
+Source: Test p. 1</text>
+  </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        $item->load('randomTables.entries');
+        $this->assertCount(1, $item->randomTables);
+
+        $table = $item->randomTables->first();
+        $entries = $table->entries->sortBy('sort_order')->values();
+
+        // First entry: 1-2
+        $this->assertEquals(1, $entries[0]->roll_min);
+        $this->assertEquals(2, $entries[0]->roll_max);
+        $this->assertEquals('Fireball', $entries[0]->result_text);
+
+        // Second entry: 3-5
+        $this->assertEquals(3, $entries[1]->roll_min);
+        $this->assertEquals(5, $entries[1]->roll_max);
+        $this->assertEquals('Teleport', $entries[1]->result_text);
+
+        // Third entry: 6
+        $this->assertEquals(6, $entries[2]->roll_min);
+        $this->assertEquals(6, $entries[2]->roll_max);
+        $this->assertEquals('Heal', $entries[2]->result_text);
+    }
+
+    #[Test]
+    public function it_parses_multi_column_tables()
+    {
+        $originalXml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Test Apparatus</name>
+    <type>W</type>
+    <text>A complex device.
+
+Lever Controls:
+Lever | Up | Down
+1 | Extend legs | Retract legs
+2 | Open window | Close window
+
+Source: Test p. 1</text>
+  </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        $item->load('randomTables.entries');
+        $this->assertCount(1, $item->randomTables);
+
+        $table = $item->randomTables->first();
+        $this->assertEquals('Lever Controls', $table->table_name);
+        $this->assertCount(2, $table->entries);
+
+        $entries = $table->entries->sortBy('sort_order')->values();
+        $this->assertEquals('Extend legs | Retract legs', $entries[0]->result_text);
+        $this->assertEquals('Open window | Close window', $entries[1]->result_text);
+    }
+
+    #[Test]
+    public function it_parses_unusual_dice_types()
+    {
+        $originalXml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Test Deck</name>
+    <type>W</type>
+    <text>A deck of cards.
+
+Deck Cards:
+1d22 | Card | Effect
+1 | Ace | Win
+2 | King | Lose
+
+Source: Test p. 1</text>
+  </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        $item->load('randomTables');
+        $this->assertCount(1, $item->randomTables);
+
+        $table = $item->randomTables->first();
+        $this->assertEquals('1d22', $table->dice_type);
+    }
 }

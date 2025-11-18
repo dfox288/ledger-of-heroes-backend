@@ -49,8 +49,13 @@ class ItemTableDetector
 
     private function parseDiceType(string $header): ?string
     {
-        // Check if header starts with dice notation: d4, d6, d8, d10, d12, d20, d100
-        if (preg_match('/^(d\d+)\s*\|/', $header, $matches)) {
+        // Check if header starts with dice notation: d8, 1d22, 2d6, etc.
+        // Matches:
+        //   d8 | Result
+        //   1d22 | Playing Card
+        //   1d33 | Card
+        //   2d6 | Damage
+        if (preg_match('/^(\d*d\d+)\s*\|/', $header, $matches)) {
             return $matches[1];
         }
 

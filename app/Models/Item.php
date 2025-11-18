@@ -54,7 +54,7 @@ class Item extends Model
 
     public function properties(): BelongsToMany
     {
-        return $this->belongsToMany(ItemProperty::class, 'item_property');
+        return $this->belongsToMany(ItemProperty::class, 'item_property', 'item_id', 'property_id');
     }
 
     public function abilities(): HasMany

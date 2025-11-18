@@ -9,6 +9,8 @@ use App\Models\SpellSchool;
 use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
+
 
 class SpellApiTest extends TestCase
 {
@@ -209,7 +211,7 @@ class SpellApiTest extends TestCase
             ->assertJsonPath('data.classes.1.hit_die', 6);
     }
 
-    /** @test */
+    #[Test]
     public function test_spell_includes_spell_school_resource()
     {
         $school = $this->getSpellSchool('EV');
@@ -243,7 +245,7 @@ class SpellApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_spell_includes_sources_as_resource()
     {
         $source = $this->getSource('PHB');
@@ -280,7 +282,7 @@ class SpellApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_spell_effect_includes_damage_type_resource_when_present()
     {
         // Note: This test verifies the DamageTypeResource is properly integrated

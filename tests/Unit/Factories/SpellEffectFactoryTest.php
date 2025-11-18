@@ -4,13 +4,14 @@ namespace Tests\Unit\Factories;
 
 use App\Models\SpellEffect;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SpellEffectFactoryTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function it_creates_a_spell_effect_with_valid_data()
     {
         $effect = SpellEffect::factory()->create();
@@ -20,7 +21,7 @@ class SpellEffectFactoryTest extends TestCase
         $this->assertContains($effect->effect_type, ['damage', 'healing', 'other']);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_damage_effect_with_state()
     {
         $effect = SpellEffect::factory()->damage('Fire')->create();
@@ -31,7 +32,7 @@ class SpellEffectFactoryTest extends TestCase
         $this->assertEquals('Fire', $effect->damageType->name);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_spell_slot_scaling_effect()
     {
         $effect = SpellEffect::factory()->scalingSpellSlot(2, '2d6')->create();
@@ -41,7 +42,7 @@ class SpellEffectFactoryTest extends TestCase
         $this->assertEquals('2d6', $effect->scaling_increment);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_character_level_scaling_effect()
     {
         $effect = SpellEffect::factory()->scalingCharacterLevel(5, '1d8')->create();

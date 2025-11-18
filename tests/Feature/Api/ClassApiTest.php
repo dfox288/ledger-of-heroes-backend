@@ -7,12 +7,14 @@ use App\Models\CharacterClass;
 use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
+
 
 class ClassApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function test_class_resource_includes_all_fields()
     {
         $intAbility = $this->getAbilityScore('INT');

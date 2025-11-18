@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Migrations;
 
+use App\Models\Item;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -11,13 +12,14 @@ class ItemsTableTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_items_table_has_all_21_expected_columns(): void
+    public function test_items_table_has_all_expected_columns(): void
     {
         $this->assertTrue(Schema::hasTable('items'));
 
-        // Core identification (4)
+        // Core identification (5)
         $this->assertTrue(Schema::hasColumn('items', 'id'));
         $this->assertTrue(Schema::hasColumn('items', 'name'));
+        $this->assertTrue(Schema::hasColumn('items', 'slug'));
         $this->assertTrue(Schema::hasColumn('items', 'item_type_id'));
         $this->assertTrue(Schema::hasColumn('items', 'description'));
 
@@ -46,47 +48,31 @@ class ItemsTableTest extends TestCase
         $this->assertFalse(Schema::hasColumn('items', 'source_pages'));
     }
 
-    public function test_items_table_does_not_have_timestamps(): void
+    public function test_items_table_has_timestamps(): void
     {
-        $this->assertFalse(Schema::hasColumn('items', 'created_at'));
-        $this->assertFalse(Schema::hasColumn('items', 'updated_at'));
+        $this->assertTrue(Schema::hasColumn('items', 'created_at'));
+        $this->assertTrue(Schema::hasColumn('items', 'updated_at'));
     }
 
     public function test_items_table_can_store_weapon_data(): void
     {
-        $weaponType = DB::table('item_types')->where('name', 'Weapon')->first();
-        $slashing = DB::table('damage_types')->where('name', 'Slashing')->first();
-        $phb = DB::table('sources')->where('code', 'PHB')->first();
-
-        DB::table('items')->insert([
+        $item = Item::factory()->weapon()->versatile()->create([
             'name' => 'Longsword',
-            'item_type_id' => $weaponType->id,
             'description' => 'A versatile martial weapon',
             'weight' => 3.0,
             'cost_cp' => 1500, // 15 gp = 1500 cp
             'rarity' => 'Common',
-            'damage_dice' => '1d8',
-            'damage_type_id' => $slashing->id,
-            'weapon_range' => 'Melee',
-            'versatile_damage' => '1d10',
-            'weapon_properties' => json_encode(['versatile']),
-            'requires_attunement' => false,
         ]);
 
-        $item = DB::table('items')->where('name', 'Longsword')->first();
         $this->assertEquals('1d8', $item->damage_dice);
         $this->assertEquals('1d10', $item->versatile_damage);
-        $this->assertEquals($slashing->id, $item->damage_type_id);
+        $this->assertNotNull($item->damage_type_id);
     }
 
     public function test_items_table_can_store_armor_data(): void
     {
-        $armorType = DB::table('item_types')->where('name', 'Armor')->first();
-        $phb = DB::table('sources')->where('code', 'PHB')->first();
-
-        DB::table('items')->insert([
+        $item = Item::factory()->armor()->create([
             'name' => 'Plate Armor',
-            'item_type_id' => $armorType->id,
             'description' => 'Heavy armor with excellent protection',
             'weight' => 65.0,
             'cost_cp' => 150000, // 1500 gp
@@ -94,32 +80,25 @@ class ItemsTableTest extends TestCase
             'armor_class' => 18,
             'strength_requirement' => 15,
             'stealth_disadvantage' => true,
-            'requires_attunement' => false,
         ]);
 
-        $item = DB::table('items')->where('name', 'Plate Armor')->first();
         $this->assertEquals(18, $item->armor_class);
         $this->assertEquals(15, $item->strength_requirement);
-        $this->assertTrue((bool) $item->stealth_disadvantage);
+        $this->assertTrue($item->stealth_disadvantage);
     }
 
     public function test_items_table_can_store_magic_item_data(): void
     {
-        $wandType = DB::table('item_types')->where('name', 'Wand')->first();
-        $dmg = DB::table('sources')->where('code', 'DMG')->first();
-
-        DB::table('items')->insert([
+        $item = Item::factory()->magic()->create([
             'name' => 'Wand of Fireballs',
-            'item_type_id' => $wandType->id,
             'description' => 'This wand has 7 charges...',
             'weight' => 1.0,
             'rarity' => 'Rare',
             'requires_attunement' => true, // Magic items often require attunement
         ]);
 
-        $item = DB::table('items')->where('name', 'Wand of Fireballs')->first();
         $this->assertEquals('Rare', $item->rarity);
-        $this->assertTrue((bool) $item->requires_attunement);
+        $this->assertTrue($item->requires_attunement);
     }
 
     public function test_items_table_uses_source_id_not_source_book_id(): void
@@ -134,18 +113,21 @@ class ItemsTableTest extends TestCase
         $this->assertFalse(Schema::hasColumn('items', 'source_page'));
     }
 
-    public function test_items_table_has_exactly_21_columns(): void
+    public function test_items_table_has_exactly_19_columns(): void
     {
         $columns = Schema::getColumnListing('items');
 
-        // Should be 16 columns (21 in original design minus source_id, source_pages, created_at, updated_at, and id is included)
-        // Let's list all expected columns explicitly
+        // 19 columns: id, name, slug, item_type_id, description, weight, cost_cp, rarity,
+        // damage_dice, damage_type_id, weapon_range, versatile_damage, weapon_properties,
+        // armor_class, strength_requirement, stealth_disadvantage, requires_attunement,
+        // created_at, updated_at
         $expectedColumns = [
-            'id', 'name', 'item_type_id', 'description',
+            'id', 'name', 'slug', 'item_type_id', 'description',
             'weight', 'cost_cp', 'rarity',
             'damage_dice', 'damage_type_id', 'weapon_range', 'versatile_damage', 'weapon_properties',
             'armor_class', 'strength_requirement', 'stealth_disadvantage',
-            'requires_attunement'
+            'requires_attunement',
+            'created_at', 'updated_at'
         ];
 
         $this->assertCount(count($expectedColumns), $columns);

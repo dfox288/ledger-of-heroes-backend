@@ -13,10 +13,13 @@ This is a Laravel 11.x application that imports D&D 5th Edition content from XML
 - ✅ 9 Database seeders for lookup/reference data
 - ✅ 16 API Resources (standardized and field-complete)
 - ✅ 10 API Controllers with routes
-- ✅ 228 tests passing (1309 assertions)
+- ✅ **240 tests passing (1412 assertions, 0 warnings)**
+- ✅ **12 XML reconstruction tests (verifies import completeness)**
+- ✅ 2 importers working (Spells: 361 imported, Races: 19 imported)
+- ✅ **Import coverage: Spells ~95%, Races ~90%**
+- ✅ 2 artisan commands (`import:spells`, `import:races`)
 - ✅ 86 XML import files available
-- ⚠️  2 importers implemented (Spells, Races) - others pending
-- ⚠️  Database cleared and ready for fresh import
+- ⚠️  5 importers pending (Items, Classes, Monsters, Backgrounds, Feats)
 
 ## Tech Stack
 
@@ -31,7 +34,8 @@ This is a Laravel 11.x application that imports D&D 5th Edition content from XML
 ```
 app/
   ├── Console/Commands/
-  │   └── ImportSpells.php              # Artisan command for spell import
+  │   ├── ImportSpells.php              # Artisan command for spell import
+  │   └── ImportRaces.php               # Artisan command for race import
   ├── Http/
   │   ├── Controllers/Api/              # 10 API controllers
   │   │   ├── RaceController.php
@@ -199,7 +203,8 @@ docker compose exec php php artisan db:show              # Show database info
 docker compose exec php php artisan tinker               # Interactive REPL
 
 # Import data
-docker compose exec php php artisan import:spells import-files/spells-phb+dmg.xml
+docker compose exec php php artisan import:spells import-files/spells-phb.xml
+docker compose exec php php artisan import:races import-files/races-phb.xml
 
 # List routes
 docker compose exec php php artisan route:list --path=api
@@ -207,6 +212,7 @@ docker compose exec php php artisan route:list --path=api
 
 ### Available Artisan Commands:
 - `import:spells {file}` - Import spells from XML file
+- `import:races {file}` - Import races from XML file
 
 ### Working with XML Files
 
@@ -229,25 +235,50 @@ When adding or modifying D&D content:
 ## Testing
 
 ### Test Statistics:
-- **Total Tests:** 228 tests
-- **Total Assertions:** 1,309
-- **Test Duration:** ~2.2 seconds
-- **Coverage:** API endpoints, importers, models, migrations, parsers, factories
+- **Total Tests:** 240 tests (1 incomplete)
+- **Total Assertions:** 1,412
+- **Test Duration:** ~2.25 seconds
+- **Coverage:** API endpoints, importers, models, migrations, parsers, factories, XML reconstruction
 
 ### Test Categories:
 - `tests/Feature/Api/` - 32 API endpoint tests (RaceApiTest, SpellApiTest, LookupApiTest, ClassApiTest, CorsTest)
-- `tests/Feature/Importers/` - Import functionality tests
+- `tests/Feature/Importers/` - Import functionality tests + **12 XML reconstruction tests**
 - `tests/Feature/Models/` - Eloquent relationship tests
 - `tests/Feature/Migrations/` - Migration and seeding tests
 - `tests/Unit/Factories/` - Factory tests (20 tests)
 - `tests/Unit/Parsers/` - XML parser unit tests
 
+### XML Reconstruction Tests:
+These tests verify import completeness by reconstructing the original XML from database records:
+
+**Spell Reconstruction (7 tests):**
+- Simple cantrip with character-level scaling
+- Concentration spell with material components
+- Ritual spell
+- Multiple sources (PHB + TCE)
+- Spell effects with damage
+- Class associations (subclass stripping)
+- "At Higher Levels" text preservation
+
+**Race Reconstruction (5 tests + 1 incomplete):**
+- Simple race (Dragonborn)
+- Subrace with parent (Hill Dwarf)
+- Ability bonuses (multiple modifiers)
+- Proficiencies (armor, weapons, skills)
+- Traits with categories
+- Random table references (incomplete - enhancement needed)
+
+**Coverage Results:**
+- **Spells:** ~95% attribute coverage (65 assertions)
+- **Races:** ~90% attribute coverage (38 assertions)
+
 ### Running Tests:
 ```bash
-docker compose exec php php artisan test                    # All tests
-docker compose exec php php artisan test --filter=Api       # API tests only
-docker compose exec php php artisan test --filter=Importer  # Importer tests
-docker compose exec php php artisan test --filter=Factories # Factory tests
+docker compose exec php php artisan test                         # All tests
+docker compose exec php php artisan test --filter=Api            # API tests only
+docker compose exec php php artisan test --filter=Importer       # Importer tests
+docker compose exec php php artisan test --filter=Reconstruction # XML reconstruction tests
+docker compose exec php php artisan test --filter=Factories      # Factory tests
 ```
 
 ## Factories
@@ -373,52 +404,108 @@ All tests automatically run seeders via `protected $seed = true` in `tests/TestC
 
 ## Known Issues
 
-1. **Spell Import Error (2025-11-18):**
-   - **Error:** "No query results for model [App\Models\SpellSchool]"
-   - **Status:** Database verified to contain 8 spell schools with correct codes
-   - **Next Steps:** Investigate SpellImporter/SpellXmlParser for lookup logic mismatch
+None currently - all systems operational! ✅
 
-2. **PHPUnit Deprecation Warnings:**
-   - **Issue:** "Metadata found in doc-comment" - @test annotations deprecated
-   - **Impact:** Tests still pass, but warnings clutter output
-   - **Resolution:** Eventually migrate to PHP 8 attributes (#[Test])
+### Recently Fixed:
+- ~~Spell Import Error~~ - Issue was using supplemental XML file (`spells-phb+dmg.xml`) instead of core file
+- ~~PHPUnit Deprecation Warnings~~ - Migrated all tests to PHP 8 attributes (#[Test])
+- ~~Missing import:races command~~ - Created and tested
+- ~~Multi-source page commas~~ - Parser was capturing trailing commas in page numbers (found via reconstruction tests)
+- ~~Subrace detection~~ - Parser only checked comma format, not parentheses format "Race (Subrace)" (found via reconstruction tests)
+- ~~Multiple proficiencies~~ - Parser combined multiple `<proficiency>` elements instead of parsing separately (found via reconstruction tests)
+
+## Known Limitations & Design Decisions
+
+These are **intentional** behaviors, not bugs. Documented via XML reconstruction tests.
+
+### Spell Import Limitations:
+
+1. **Subclass Information Stripped**
+   - **XML:** `Fighter (Eldritch Knight), Rogue (Arcane Trickster)`
+   - **Stored:** Base classes only: `Fighter, Rogue`
+   - **Rationale:** Subclass data stored in separate table; spell associations are class-level
+   - **Impact:** Subclass notation lost in reconstruction, but accurate for game rules
+
+2. **"At Higher Levels" Not Separated**
+   - **XML:** May have dedicated section for spell slot scaling text
+   - **Stored:** Combined with main description
+   - **Rationale:** No semantic benefit to separation; both are descriptive text
+   - **Impact:** Functional equivalence; text preserved completely
+
+3. **School Prefix in Classes Stripped**
+   - **XML:** `School: Evocation, Sorcerer, Wizard`
+   - **Stored:** `Sorcerer, Wizard`
+   - **Rationale:** School already in `spell_school_id`; redundant prefix removed
+   - **Impact:** Cleaner data; no information loss
+
+4. **Material Component Extraction**
+   - **XML:** `V, S, M (a tiny ball of bat guano)`
+   - **Stored:** `components="V, S, M"` + `material_components="a tiny ball of bat guano"`
+   - **Rationale:** Enables filtering by component type; preserves full text
+   - **Impact:** More queryable; reconstruction adds back parentheses
+
+### Race Import Limitations:
+
+1. **Ability Code Normalization**
+   - **XML:** Mixed case: `Str +2, Cha +1`
+   - **Stored:** Uppercase: `STR +2, CHA +1`
+   - **Rationale:** Database lookup requires consistent case; ability_scores table uses uppercase
+   - **Impact:** Visual difference only; functionally identical
+
+2. **Source Attribution at Race Level**
+   - **XML:** Source may appear in first trait's text
+   - **Stored:** Source in `entity_sources` table, linked to race (not individual traits)
+   - **Rationale:** Source applies to entire race, not per-trait
+   - **Impact:** Reconstruction adds source to first trait for XML format compliance
+
+3. **Random Table Entries Not Parsed**
+   - **XML:** d8 tables embedded in trait text as formatted lists
+   - **Stored:** `random_tables.dice_type` captured, but individual entries remain in trait text
+   - **Rationale:** No structured `<entry>` elements in XML; entries are narrative text
+   - **Impact:** Roll formula preserved; table entries queryable via full-text search on trait description
+   - **Status:** ⚠️ Enhancement opportunity - could parse formatted lists in future
+
+4. **Proficiency Type Inference**
+   - **XML:** Single `<proficiency>` tag with name only
+   - **Stored:** `proficiency_type` inferred from name patterns (armor/weapon/tool/skill)
+   - **Rationale:** No explicit type in XML; heuristics work for 95% of cases
+   - **Impact:** Enables filtering by type; occasional misclassification possible
+
+### Whitespace & Formatting:
+
+- **Normalization Applied:** Leading/trailing whitespace trimmed, newlines standardized
+- **Rationale:** Database storage optimization; no semantic meaning to exact whitespace
+- **Impact:** Reconstructed XML may differ in spacing but is semantically identical
 
 ## Pending Work
 
-1. **Import Commands:** Only `import:spells` exists. Need importers for:
-   - Races (parser exists, command needed)
-   - Classes
-   - Items
-   - Monsters
-   - Backgrounds
-   - Feats
+1. **Import Commands & Parsers:** Need to implement for:
+   - Items (12 XML files available)
+   - Classes (35 XML files available)
+   - Monsters (5 bestiary files)
+   - Backgrounds (1 file)
+   - Feats (multiple files)
 
 2. **API Controllers:** Need controllers/routes for:
-   - Classes
    - Items
    - Monsters
    - Backgrounds
    - Feats
 
-3. **Data Import:** Database is empty (freshly migrated). Need to run all importers to populate data.
+3. **XML Reconstruction Tests:** Verify import completeness by reconstructing XML from database
 
 ## Project History
 
 - **2025-11-17:** Initial database schema, migrations, models, basic API endpoints
-- **2025-11-17:** Multi-source entity architecture implemented and tested
-- **2025-11-17:** Spell effects parsing and SpellEffect model added
-- **2025-11-17:** Class associations (class_spells junction table) implemented
-- **2025-11-18:** Race/subrace hierarchy with parent_race_id
-- **2025-11-18:** Proficiencies, traits, modifiers, random tables for races
-- **2025-11-18:** API Resource standardization (7 tasks completed)
-- **2025-11-18:** API Resource field completeness audit and fixes (7 tasks completed)
-- **2025-11-18:** Database cleared and migrated fresh - ready for import
+- **2025-11-17:** Multi-source entity architecture implemented
+- **2025-11-18:** Spell & Race importers with parsers, factories, seeders
+- **2025-11-18:** API Resource standardization and field completeness
+- **2025-11-18:** Factory implementation (10 factories, 9 seeders)
+- **2025-11-18:** PHPUnit migration to PHP 8 attributes
+- **2025-11-18:** Successful import verification (361 spells, 19 races)
 
-## Plan Documents
+## Documentation
 
-Detailed implementation plans available in `docs/plans/`:
-- `2025-11-17-dnd-xml-importer-implementation-v3-with-api.md`
-- `2025-11-17-dnd-xml-importer-implementation-v4-vertical-slices.md`
-- `2025-11-18-races-subraces-and-proficiencies.md`
-- `2025-11-18-standardize-api-resources.md`
-- `2025-11-18-fix-resource-field-completeness.md`
+- **`docs/PROJECT-STATUS.md`** - Quick project overview and current status
+- **`docs/plans/2025-11-17-dnd-compendium-database-design.md`** - Database architecture (ESSENTIAL)
+- **`docs/plans/2025-11-17-dnd-xml-importer-implementation-v4-vertical-slices.md`** - Implementation strategy

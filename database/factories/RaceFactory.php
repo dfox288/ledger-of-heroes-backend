@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Size;
-use App\Models\Source;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -22,8 +21,6 @@ class RaceFactory extends Factory
             'name' => fake()->word(),
             'size_id' => Size::where('code', 'M')->first()->id,
             'speed' => 30,
-            'source_id' => Source::where('code', 'PHB')->first()->id,
-            'source_pages' => '20',
             'parent_race_id' => null,
         ];
     }

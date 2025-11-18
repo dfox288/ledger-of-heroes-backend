@@ -5,13 +5,14 @@ namespace Tests\Unit\Factories;
 use App\Models\RandomTable;
 use App\Models\RandomTableEntry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class RandomTableFactoriesTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function it_creates_random_table()
     {
         $table = RandomTable::factory()->create();
@@ -22,7 +23,7 @@ class RandomTableFactoriesTest extends TestCase
         $this->assertNotNull($table->dice_type);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_random_table_entry()
     {
         $entry = RandomTableEntry::factory()->create();
@@ -32,7 +33,7 @@ class RandomTableFactoriesTest extends TestCase
         $this->assertNotNull($entry->result);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_multiple_entries_for_table()
     {
         $table = RandomTable::factory()->create(['dice_type' => 'd6']);

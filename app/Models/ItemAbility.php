@@ -31,4 +31,9 @@ class ItemAbility extends Model
     {
         return $this->belongsTo(Item::class);
     }
+
+    public function spell(): BelongsTo
+    {
+        return $this->belongsTo(Spell::class);
+    }
 }

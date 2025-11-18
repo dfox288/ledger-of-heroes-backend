@@ -2,6 +2,10 @@
 
 namespace Tests\Feature\Migrations;
 
+use App\Models\Item;
+use App\Models\ItemAbility;
+use App\Models\ItemProperty;
+use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -61,39 +65,19 @@ class ItemRelatedTablesTest extends TestCase
 
     public function test_item_property_junction_can_associate_properties_with_item(): void
     {
-        $weaponType = DB::table('item_types')->where('name', 'Weapon')->first();
-        $phb = DB::table('sources')->where('code', 'PHB')->first();
-        $slashing = DB::table('damage_types')->where('name', 'Slashing')->first();
-
-        // Create Longsword
-        DB::table('items')->insert([
+        // Create Longsword using factory
+        $longsword = Item::factory()->weapon()->versatile()->create([
             'name' => 'Longsword',
-            'item_type_id' => $weaponType->id,
             'description' => 'A versatile martial weapon',
-            'weight' => 3.0,
-            'cost_cp' => 1500,
-            'rarity' => 'Common',
-            'damage_dice' => '1d8',
-            'damage_type_id' => $slashing->id,
-            'weapon_range' => 'Melee',
-            'versatile_damage' => '1d10',
         ]);
 
-        $longsword = DB::table('items')->where('name', 'Longsword')->first();
-        $versatile = DB::table('item_properties')->where('code', 'V')->first();
-        $martial = DB::table('item_properties')->where('code', 'M')->first();
+        $versatile = ItemProperty::where('code', 'V')->first();
+        $martial = ItemProperty::where('code', 'M')->first();
 
         // Associate Versatile and Martial properties with Longsword
-        DB::table('item_property')->insert([
-            ['item_id' => $longsword->id, 'property_id' => $versatile->id],
-            ['item_id' => $longsword->id, 'property_id' => $martial->id],
-        ]);
+        $longsword->properties()->attach([$versatile->id, $martial->id]);
 
-        $properties = DB::table('item_property')
-            ->where('item_id', $longsword->id)
-            ->get();
-
-        $this->assertCount(2, $properties);
+        $this->assertCount(2, $longsword->properties);
     }
 
     // Item Abilities Tests
@@ -121,44 +105,22 @@ class ItemRelatedTablesTest extends TestCase
 
     public function test_item_abilities_can_track_spell_ability(): void
     {
-        $wandType = DB::table('item_types')->where('name', 'Wand')->first();
-        $dmg = DB::table('sources')->where('code', 'DMG')->first();
-        $evocation = DB::table('spell_schools')->where('code', 'EV')->first();
-
-        // Create Wand of Fireballs
-        DB::table('items')->insert([
+        // Create Wand of Fireballs using factory
+        $wand = Item::factory()->magic()->create([
             'name' => 'Wand of Fireballs',
-            'item_type_id' => $wandType->id,
             'description' => 'This wand has 7 charges...',
-            'weight' => 1.0,
             'rarity' => 'Rare',
             'requires_attunement' => true,
         ]);
 
-        $wand = DB::table('items')->where('name', 'Wand of Fireballs')->first();
+        // Create Fireball spell using factory
+        $fireball = Spell::factory()->create([
+            'name' => 'Fireball',
+            'level' => 3,
+        ]);
 
-        // Create Fireball spell if it doesn't exist
-        $fireball = DB::table('spells')->where('name', 'Fireball')->first();
-        if (!$fireball) {
-            DB::table('spells')->insert([
-                'name' => 'Fireball',
-                'level' => 3,
-                'spell_school_id' => $evocation->id,
-                'casting_time' => '1 action',
-                'range' => '150 feet',
-                'components' => 'V, S, M',
-                'material_components' => 'A tiny ball of bat guano and sulfur',
-                'duration' => 'Instantaneous',
-                'needs_concentration' => false,
-                'is_ritual' => false,
-                'description' => 'A bright streak flashes...',
-            ]);
-            $fireball = DB::table('spells')->where('name', 'Fireball')->first();
-        }
-
-        // Add spell ability
-        DB::table('item_abilities')->insert([
-            'item_id' => $wand->id,
+        // Add spell ability using factory
+        $ability = ItemAbility::factory()->forItem($wand)->create([
             'ability_type' => 'spell',
             'spell_id' => $fireball->id,
             'name' => null,
@@ -169,10 +131,6 @@ class ItemRelatedTablesTest extends TestCase
             'sort_order' => 1,
         ]);
 
-        $ability = DB::table('item_abilities')
-            ->where('item_id', $wand->id)
-            ->first();
-
         $this->assertEquals('spell', $ability->ability_type);
         $this->assertEquals($fireball->id, $ability->spell_id);
         $this->assertEquals(3, $ability->charges_cost);
@@ -181,23 +139,16 @@ class ItemRelatedTablesTest extends TestCase
 
     public function test_item_abilities_can_track_feature_ability(): void
     {
-        $ringType = DB::table('item_types')->where('name', 'Ring')->first();
-        $dmg = DB::table('sources')->where('code', 'DMG')->first();
-
-        // Create Ring of Regeneration
-        DB::table('items')->insert([
+        // Create Ring of Regeneration using factory
+        $ring = Item::factory()->magic()->create([
             'name' => 'Ring of Regeneration',
-            'item_type_id' => $ringType->id,
             'description' => 'While wearing this ring...',
             'rarity' => 'Very Rare',
             'requires_attunement' => true,
         ]);
 
-        $ring = DB::table('items')->where('name', 'Ring of Regeneration')->first();
-
-        // Add feature ability (not a spell)
-        DB::table('item_abilities')->insert([
-            'item_id' => $ring->id,
+        // Add feature ability (not a spell) using factory
+        $ability = ItemAbility::factory()->forItem($ring)->create([
             'ability_type' => 'feature',
             'spell_id' => null,
             'name' => 'Regeneration',
@@ -208,10 +159,6 @@ class ItemRelatedTablesTest extends TestCase
             'attack_bonus' => null,
             'sort_order' => 1,
         ]);
-
-        $ability = DB::table('item_abilities')
-            ->where('item_id', $ring->id)
-            ->first();
 
         $this->assertEquals('feature', $ability->ability_type);
         $this->assertNull($ability->spell_id);

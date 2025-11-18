@@ -161,22 +161,46 @@ class SpellXmlParser
     {
         $sources = [];
 
-        // Pattern: "Book Name (Year) p. PageNumbers"
+        // Pattern 1: "Book Name (Year) p. PageNumbers" - with year
+        // Pattern 2: "Book Name p. PageNumbers" - without year
         // Handles: "p. 150" or "p. 150, 152" or "p. 150-152"
-        $pattern = '/([^(]+)\s*\((\d{4})\)\s*p\.\s*([\d,\s\-]+)/';
 
-        preg_match_all($pattern, $sourcesText, $matches, PREG_SET_ORDER);
+        // Try pattern with year first
+        $patternWithYear = '/([^(]+)\s*\((\d{4})\)\s*p\.\s*([\d,\s\-]+)/';
+        preg_match_all($patternWithYear, $sourcesText, $matches, PREG_SET_ORDER);
 
-        foreach ($matches as $match) {
-            $sourceName = trim($match[1]);
-            $pages = trim($match[3]);
+        if (!empty($matches)) {
+            foreach ($matches as $match) {
+                $sourceName = trim($match[1]);
+                $pages = trim($match[3]);
+                // Remove trailing comma (from multi-source citations)
+                $pages = rtrim($pages, ',');
 
-            $sourceCode = $this->getSourceCode($sourceName);
+                $sourceCode = $this->getSourceCode($sourceName);
 
-            $sources[] = [
-                'code' => $sourceCode,
-                'pages' => $pages,
-            ];
+                $sources[] = [
+                    'code' => $sourceCode,
+                    'pages' => $pages,
+                ];
+            }
+        } else {
+            // Try pattern without year
+            $patternWithoutYear = '/([^\s]+(?:\s+[^\s]+)*?)\s+p\.\s*([\d,\s\-]+)/';
+            preg_match_all($patternWithoutYear, $sourcesText, $matches, PREG_SET_ORDER);
+
+            foreach ($matches as $match) {
+                $sourceName = trim($match[1]);
+                $pages = trim($match[2]);
+                // Remove trailing comma (from multi-source citations)
+                $pages = rtrim($pages, ',');
+
+                $sourceCode = $this->getSourceCode($sourceName);
+
+                $sources[] = [
+                    'code' => $sourceCode,
+                    'pages' => $pages,
+                ];
+            }
         }
 
         // Fallback if no sources parsed (shouldn't happen with valid XML)

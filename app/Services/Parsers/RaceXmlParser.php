@@ -25,8 +25,13 @@ class RaceXmlParser
         $baseRaceName = null;
         $raceName = $fullName;
 
-        // Check if name contains comma (indicates subrace)
-        if (str_contains($fullName, ',')) {
+        // Check if name contains parentheses (indicates subrace: "Dwarf (Hill)")
+        if (preg_match('/^(.+?)\s*\((.+)\)$/', $fullName, $matches)) {
+            $baseRaceName = trim($matches[1]);
+            $raceName = $fullName; // Keep full name as-is
+        }
+        // Also check for comma format (alternative subrace notation)
+        elseif (str_contains($fullName, ',')) {
             [$baseRaceName, $raceName] = array_map('trim', explode(',', $fullName, 2));
         }
 
@@ -138,15 +143,16 @@ class RaceXmlParser
     {
         $proficiencies = [];
 
-        // Parse skill proficiencies
-        if (isset($element->proficiency)) {
-            $skills = array_map('trim', explode(',', (string) $element->proficiency));
-            foreach ($skills as $skill) {
-                $proficiencies[] = [
-                    'type' => 'skill',
-                    'name' => $skill,
-                ];
-            }
+        // Parse skill/general proficiencies (multiple <proficiency> elements)
+        foreach ($element->proficiency as $profElement) {
+            $profName = trim((string) $profElement);
+            // Determine type based on common patterns
+            $type = $this->determineProficiencyType($profName);
+
+            $proficiencies[] = [
+                'type' => $type,
+                'name' => $profName,
+            ];
         }
 
         // Parse weapon proficiencies
@@ -172,6 +178,33 @@ class RaceXmlParser
         }
 
         return $proficiencies;
+    }
+
+    /**
+     * Determine proficiency type based on name
+     */
+    private function determineProficiencyType(string $name): string
+    {
+        $lowerName = strtolower($name);
+
+        // Check for armor
+        if (str_contains($lowerName, 'armor')) {
+            return 'armor';
+        }
+
+        // Check for weapons
+        if (str_contains($lowerName, 'weapon') ||
+            in_array($lowerName, ['battleaxe', 'handaxe', 'light hammer', 'warhammer', 'longsword', 'shortsword', 'rapier'])) {
+            return 'weapon';
+        }
+
+        // Check for tools
+        if (str_contains($lowerName, 'tools') || str_contains($lowerName, 'kit')) {
+            return 'tool';
+        }
+
+        // Default to skill
+        return 'skill';
     }
 
     private function getSourceCode(string $sourceName): string

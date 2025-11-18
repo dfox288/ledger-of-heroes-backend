@@ -11,12 +11,14 @@ use App\Models\Skill;
 use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
+
 
 class RaceApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function can_get_all_races()
     {
         // Create test races
@@ -62,7 +64,7 @@ class RaceApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function can_search_races()
     {
         $source = $this->getSource('PHB');
@@ -93,7 +95,7 @@ class RaceApiTest extends TestCase
             ->assertJsonPath('data.0.name', 'Dragonborn');
     }
 
-    /** @test */
+    #[Test]
     public function can_get_single_race()
     {
         $source = $this->getSource('PHB');
@@ -119,7 +121,7 @@ class RaceApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_includes_parent_race_in_response()
     {
         // Create base race and subrace
@@ -148,7 +150,7 @@ class RaceApiTest extends TestCase
         $this->assertEquals('Dwarf', $response->json('data.parent_race.name'));
     }
 
-    /** @test */
+    #[Test]
     public function it_includes_subraces_in_response()
     {
         $baseRace = Race::factory()->create([
@@ -173,7 +175,7 @@ class RaceApiTest extends TestCase
         $this->assertCount(2, $subraces);
     }
 
-    /** @test */
+    #[Test]
     public function it_includes_proficiencies_in_response()
     {
         $race = Race::factory()->create(['name' => 'High Elf']);
@@ -204,7 +206,7 @@ class RaceApiTest extends TestCase
         $this->assertCount(2, $proficiencies);
     }
 
-    /** @test */
+    #[Test]
     public function it_includes_traits_in_response()
     {
         $race = Race::factory()->create(['name' => 'Elf']);
@@ -232,7 +234,7 @@ class RaceApiTest extends TestCase
         $this->assertEquals('Darkvision', $traits[0]['name']);
     }
 
-    /** @test */
+    #[Test]
     public function it_includes_modifiers_in_response()
     {
         $race = Race::factory()->create(['name' => 'Dragonborn']);
@@ -253,7 +255,7 @@ class RaceApiTest extends TestCase
         $this->assertEquals('+2', $modifiers[0]['value']);
     }
 
-    /** @test */
+    #[Test]
     public function test_race_modifiers_include_ability_score_resource()
     {
         $strAbility = $this->getAbilityScore('STR');
@@ -293,7 +295,7 @@ class RaceApiTest extends TestCase
             ->assertJsonPath('data.modifiers.0.value', '2');
     }
 
-    /** @test */
+    #[Test]
     public function test_race_proficiencies_include_skill_resource()
     {
         $skill = $this->getSkill('Perception');
@@ -334,7 +336,7 @@ class RaceApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_race_traits_with_random_tables_include_entry_resource()
     {
         $race = Race::factory()->create([
@@ -387,7 +389,7 @@ class RaceApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_modifier_includes_skill_when_present()
     {
         $skill = $this->getSkill('Stealth');
@@ -419,7 +421,7 @@ class RaceApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_proficiency_includes_ability_score_when_present()
     {
         $strAbility = $this->getAbilityScore('STR');

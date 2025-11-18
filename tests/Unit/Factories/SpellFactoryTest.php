@@ -4,13 +4,14 @@ namespace Tests\Unit\Factories;
 
 use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SpellFactoryTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function it_creates_a_spell_with_valid_data()
     {
         $spell = Spell::factory()->create();
@@ -22,7 +23,7 @@ class SpellFactoryTest extends TestCase
         $this->assertLessThanOrEqual(9, $spell->level);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_cantrip_with_state()
     {
         $spell = Spell::factory()->cantrip()->create();
@@ -30,7 +31,7 @@ class SpellFactoryTest extends TestCase
         $this->assertEquals(0, $spell->level);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_concentration_spell_with_state()
     {
         $spell = Spell::factory()->concentration()->create();
@@ -39,7 +40,7 @@ class SpellFactoryTest extends TestCase
         $this->assertStringContainsString('Concentration', $spell->duration);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_ritual_spell_with_state()
     {
         $spell = Spell::factory()->ritual()->create();

@@ -4,6 +4,8 @@ namespace Tests\Unit\Parsers;
 
 use App\Services\Parsers\RaceXmlParser;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
+
 
 class RaceXmlParserTest extends TestCase
 {
@@ -15,7 +17,7 @@ class RaceXmlParserTest extends TestCase
         $this->parser = new RaceXmlParser();
     }
 
-    /** @test */
+    #[Test]
     public function it_parses_dragonborn_race_from_real_xml()
     {
         $xml = <<<XML
@@ -74,7 +76,7 @@ XML;
         $this->assertEquals('32', $race['sources'][0]['pages']);
     }
 
-    /** @test */
+    #[Test]
     public function it_parses_hill_dwarf_with_subrace_naming()
     {
         $xml = <<<XML
@@ -105,7 +107,7 @@ XML;
         $this->assertEquals(25, $race['speed']);
     }
 
-    /** @test */
+    #[Test]
     public function it_parses_multiple_races()
     {
         $xml = <<<XML
@@ -147,7 +149,7 @@ XML;
         $this->assertEquals('Dwarf', $races[1]['base_race_name']);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_race_without_source_citation()
     {
         $xml = <<<XML
@@ -178,7 +180,7 @@ XML;
         $this->assertEquals('', $race['sources'][0]['pages']);
     }
 
-    /** @test */
+    #[Test]
     public function it_parses_base_race_and_subrace_from_name()
     {
         $xml = <<<XML
@@ -205,7 +207,7 @@ XML;
         $this->assertEquals('M', $races[0]['size_code']);
     }
 
-    /** @test */
+    #[Test]
     public function it_parses_race_without_subrace()
     {
         $xml = <<<XML
@@ -231,7 +233,7 @@ XML;
         $this->assertNull($races[0]['base_race_name']);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_slash_in_subrace_names()
     {
         $xml = <<<XML
@@ -256,7 +258,7 @@ XML;
         $this->assertEquals('Elf', $races[0]['base_race_name']);
     }
 
-    /** @test */
+    #[Test]
     public function it_parses_skill_proficiencies()
     {
         $xml = <<<XML
@@ -285,7 +287,7 @@ XML;
         $this->assertEquals('Perception', $races[0]['proficiencies'][0]['name']);
     }
 
-    /** @test */
+    #[Test]
     public function it_parses_weapon_proficiencies()
     {
         $xml = <<<XML
@@ -312,7 +314,7 @@ XML;
         $this->assertEquals('Longsword', $races[0]['proficiencies'][0]['name']);
     }
 
-    /** @test */
+    #[Test]
     public function it_parses_armor_proficiencies()
     {
         $xml = <<<XML
@@ -339,7 +341,7 @@ XML;
         $this->assertEquals('Light Armor', $races[0]['proficiencies'][0]['name']);
     }
 
-    /** @test */
+    #[Test]
     public function it_parses_multiple_proficiency_types()
     {
         $xml = <<<XML
@@ -373,7 +375,7 @@ XML;
         $this->assertContains('armor', $types);
     }
 
-    /** @test */
+    #[Test]
     public function it_parses_traits_from_xml()
     {
         $xml = <<<XML
@@ -419,7 +421,7 @@ XML;
         $this->assertNull($races[0]['traits'][2]['category']);
     }
 
-    /** @test */
+    #[Test]
     public function it_parses_ability_score_bonuses()
     {
         $xml = <<<XML
@@ -451,7 +453,7 @@ XML;
         $this->assertEquals('+1', $races[0]['ability_bonuses'][1]['value']);
     }
 
-    /** @test */
+    #[Test]
     public function it_parses_rolls_from_traits()
     {
         $xml = <<<XML

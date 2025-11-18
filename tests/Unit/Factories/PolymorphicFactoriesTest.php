@@ -8,13 +8,14 @@ use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PolymorphicFactoriesTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function it_creates_character_trait()
     {
         $trait = CharacterTrait::factory()->create();
@@ -24,7 +25,7 @@ class PolymorphicFactoriesTest extends TestCase
         $this->assertNotNull($trait->reference_id);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_trait_for_specific_entity()
     {
         $class = CharacterClass::factory()->create();
@@ -36,7 +37,7 @@ class PolymorphicFactoriesTest extends TestCase
         $this->assertEquals($class->id, $trait->reference_id);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_proficiency()
     {
         $proficiency = Proficiency::factory()->create();
@@ -45,7 +46,7 @@ class PolymorphicFactoriesTest extends TestCase
         $this->assertNotNull($proficiency->reference_type);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_skill_proficiency()
     {
         $proficiency = Proficiency::factory()->skill('Athletics')->create();
@@ -54,7 +55,7 @@ class PolymorphicFactoriesTest extends TestCase
         $this->assertEquals('Athletics', $proficiency->skill->name);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_modifier()
     {
         $modifier = Modifier::factory()->create();
@@ -63,7 +64,7 @@ class PolymorphicFactoriesTest extends TestCase
         $this->assertNotNull($modifier->reference_type);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_ability_score_modifier()
     {
         $modifier = Modifier::factory()->abilityScore('STR', '+2')->create();

@@ -12,6 +12,8 @@ use App\Models\Source;
 use App\Services\Importers\RaceImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
+
 
 class RaceImporterTest extends TestCase
 {
@@ -25,7 +27,7 @@ class RaceImporterTest extends TestCase
         $this->importer = new RaceImporter();
     }
 
-    /** @test */
+    #[Test]
     public function it_imports_a_race()
     {
         $raceData = [
@@ -68,7 +70,7 @@ class RaceImporterTest extends TestCase
         $this->assertEquals('32', $entitySource->pages);
     }
 
-    /** @test */
+    #[Test]
     public function it_updates_existing_race_on_reimport()
     {
         $raceData = [
@@ -100,7 +102,7 @@ class RaceImporterTest extends TestCase
         $this->assertStringContainsString('Updated description', $trait->description);
     }
 
-    /** @test */
+    #[Test]
     public function it_imports_from_xml_file()
     {
         $xml = <<<XML
@@ -148,7 +150,7 @@ XML;
         $this->assertDatabaseHas('races', ['name' => 'Hill']);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_base_race_and_subrace()
     {
         $xml = <<<XML
@@ -191,7 +193,7 @@ XML;
         $this->assertEquals($baseRace->id, $subrace->parent_race_id);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_only_base_race_when_no_subrace()
     {
         $xml = <<<XML
@@ -224,7 +226,7 @@ XML;
         $this->assertNull($race->parent_race_id);
     }
 
-    /** @test */
+    #[Test]
     public function it_reuses_existing_base_race_for_multiple_subraces()
     {
         $xml = <<<XML
@@ -272,7 +274,7 @@ XML;
         $this->assertCount(2, $subraces);
     }
 
-    /** @test */
+    #[Test]
     public function it_imports_skill_proficiencies()
     {
         $xml = <<<XML
@@ -311,7 +313,7 @@ XML;
         $this->assertEquals('Perception', $proficiency->skill->name);
     }
 
-    /** @test */
+    #[Test]
     public function it_imports_weapon_proficiencies_as_text()
     {
         $xml = <<<XML
@@ -352,7 +354,7 @@ XML;
         $this->assertContains('Shortsword', $names);
     }
 
-    /** @test */
+    #[Test]
     public function it_clears_and_recreates_proficiencies_on_reimport()
     {
         $xml = <<<XML
@@ -389,7 +391,7 @@ XML;
         unlink($tmpFile);
     }
 
-    /** @test */
+    #[Test]
     public function it_imports_race_traits()
     {
         $xml = <<<XML
@@ -433,7 +435,7 @@ XML;
         $this->assertEquals('species', $speciesTrait->category);
     }
 
-    /** @test */
+    #[Test]
     public function it_imports_ability_score_bonuses_as_modifiers()
     {
         $xml = <<<XML
@@ -475,7 +477,7 @@ XML;
         $this->assertEquals('+1', $chaModifier->value);
     }
 
-    /** @test */
+    #[Test]
     public function it_imports_random_tables_from_trait_rolls_and_links_traits()
     {
         $xml = <<<XML

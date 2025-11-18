@@ -7,13 +7,14 @@ use App\Models\Race;
 use App\Models\Source;
 use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class EntitySourceFactoryTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function it_creates_an_entity_source_with_valid_data()
     {
         $entitySource = EntitySource::factory()->create();
@@ -24,7 +25,7 @@ class EntitySourceFactoryTest extends TestCase
         $this->assertNotNull($entitySource->source_id);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_entity_source_for_specific_entity()
     {
         $race = Race::factory()->create();
@@ -36,7 +37,7 @@ class EntitySourceFactoryTest extends TestCase
         $this->assertEquals($race->id, $entitySource->reference_id);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_entity_source_from_specific_source()
     {
         $entitySource = EntitySource::factory()

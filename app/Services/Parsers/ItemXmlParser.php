@@ -285,17 +285,17 @@ class ItemXmlParser
         $target = trim($matches[1]);
         $value = (int) $matches[2];
 
-        // Map text to structured categories
+        // Map text to structured categories (order matters - check specific before general)
         $category = match (true) {
             str_contains($target, 'spell attack') => 'spell_attack',
             str_contains($target, 'spell dc') => 'spell_dc',
             str_contains($target, 'ac') || $target === 'armor class' => 'ac',
             str_contains($target, 'melee attack') => 'melee_attack',
-            str_contains($target, 'ranged attack') => 'ranged_attack',
             str_contains($target, 'melee damage') => 'melee_damage',
+            str_contains($target, 'ranged attack') => 'ranged_attack',
             str_contains($target, 'ranged damage') => 'ranged_damage',
-            str_contains($target, 'attack') => 'attack_bonus',
-            str_contains($target, 'damage') => 'damage_bonus',
+            str_contains($target, 'attack') => 'attack_bonus', // Generic attack (after specific checks)
+            str_contains($target, 'damage') => 'damage_bonus', // Generic damage (after specific checks)
             $xmlCategory === 'ability score' => 'ability_score',
             default => 'bonus', // Generic fallback
         };

@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\Api\AbilityScoreController;
 use App\Http\Controllers\Api\BackgroundController;
+use App\Http\Controllers\Api\ConditionController;
 use App\Http\Controllers\Api\DamageTypeController;
 use App\Http\Controllers\Api\ItemPropertyController;
 use App\Http\Controllers\Api\ItemTypeController;
+use App\Http\Controllers\Api\ProficiencyTypeController;
 use App\Http\Controllers\Api\RaceController;
 use App\Http\Controllers\Api\SizeController;
 use App\Http\Controllers\Api\SkillController;
@@ -28,6 +30,8 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('skills', SkillController::class)->only(['index', 'show']);
     Route::apiResource('item-types', ItemTypeController::class)->only(['index', 'show']);
     Route::apiResource('item-properties', ItemPropertyController::class)->only(['index', 'show']);
+    Route::apiResource('conditions', ConditionController::class)->only(['index', 'show']);
+    Route::apiResource('proficiency-types', ProficiencyTypeController::class)->only(['index', 'show']);
 
     // Spells
     Route::apiResource('spells', SpellController::class)->only(['index', 'show']);

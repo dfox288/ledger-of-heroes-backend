@@ -40,8 +40,9 @@ class ItemsTableTest extends TestCase
         $this->assertTrue(Schema::hasColumn('items', 'strength_requirement'));
         $this->assertTrue(Schema::hasColumn('items', 'stealth_disadvantage'));
 
-        // Magic item properties (1) - This was MISSING in old implementation
+        // Magic item properties (2) - This was MISSING in old implementation
         $this->assertTrue(Schema::hasColumn('items', 'requires_attunement'));
+        $this->assertTrue(Schema::hasColumn('items', 'is_magic'));
 
         // Source attribution (2)
         $this->assertFalse(Schema::hasColumn('items', 'source_id'));
@@ -99,6 +100,7 @@ class ItemsTableTest extends TestCase
 
         $this->assertEquals('Rare', $item->rarity);
         $this->assertTrue($item->requires_attunement);
+        $this->assertTrue($item->is_magic);
     }
 
     public function test_items_table_uses_source_id_not_source_book_id(): void
@@ -113,20 +115,20 @@ class ItemsTableTest extends TestCase
         $this->assertFalse(Schema::hasColumn('items', 'source_page'));
     }
 
-    public function test_items_table_has_exactly_19_columns(): void
+    public function test_items_table_has_exactly_20_columns(): void
     {
         $columns = Schema::getColumnListing('items');
 
-        // 19 columns: id, name, slug, item_type_id, description, weight, cost_cp, rarity,
+        // 20 columns: id, name, slug, item_type_id, description, weight, cost_cp, rarity,
         // damage_dice, damage_type_id, weapon_range, versatile_damage, weapon_properties,
-        // armor_class, strength_requirement, stealth_disadvantage, requires_attunement,
+        // armor_class, strength_requirement, stealth_disadvantage, requires_attunement, is_magic,
         // created_at, updated_at
         $expectedColumns = [
             'id', 'name', 'slug', 'item_type_id', 'description',
             'weight', 'cost_cp', 'rarity',
             'damage_dice', 'damage_type_id', 'weapon_range', 'versatile_damage', 'weapon_properties',
             'armor_class', 'strength_requirement', 'stealth_disadvantage',
-            'requires_attunement',
+            'requires_attunement', 'is_magic',
             'created_at', 'updated_at'
         ];
 

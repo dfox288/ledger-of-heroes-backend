@@ -16,6 +16,7 @@ class ItemResource extends JsonResource
             'item_type_id' => $this->item_type_id,
             'rarity' => $this->rarity,
             'requires_attunement' => $this->requires_attunement,
+            'is_magic' => $this->is_magic,
             'cost_cp' => $this->cost_cp,
             'weight' => $this->weight,
             'damage_dice' => $this->damage_dice,

@@ -22,6 +22,7 @@ class ItemFactory extends Factory
             'item_type_id' => ItemType::where('code', 'G')->first()->id,
             'rarity' => 'common',
             'requires_attunement' => false,
+            'is_magic' => false,
             'cost_cp' => fake()->numberBetween(1, 50000),
             'weight' => fake()->randomFloat(2, 0.1, 50),
             'description' => fake()->paragraph(),
@@ -62,6 +63,7 @@ class ItemFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'rarity' => fake()->randomElement(['uncommon', 'rare', 'very rare', 'legendary']),
             'requires_attunement' => fake()->boolean(60),
+            'is_magic' => true,
         ]);
     }
 

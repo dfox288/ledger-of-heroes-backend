@@ -19,6 +19,7 @@ class Item extends Model
         'item_type_id',
         'rarity',
         'requires_attunement',
+        'is_magic',
         'cost_cp',
         'weight',
         'damage_dice',
@@ -33,6 +34,7 @@ class Item extends Model
 
     protected $casts = [
         'requires_attunement' => 'boolean',
+        'is_magic' => 'boolean',
         'cost_cp' => 'integer',
         'weight' => 'decimal:2',
         'armor_class' => 'integer',

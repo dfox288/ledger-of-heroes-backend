@@ -165,7 +165,8 @@ XML;
         // Verify ranged weapon attributes
         $this->assertEquals('Longbow', $item->name);
         $this->assertEquals('1d8', $item->damage_dice);
-        $this->assertEquals('150/600', $item->weapon_range);
+        $this->assertEquals(150, $item->range_normal);
+        $this->assertEquals(600, $item->range_long);
 
         // Verify properties
         $item->load('properties');
@@ -369,5 +370,39 @@ XML;
         $this->assertEquals('roll', $ability->ability_type);
         $this->assertEquals('2d4+2', $ability->roll_formula);
         $this->assertStringContainsString('2d4+2', $ability->name);
+    }
+
+    #[Test]
+    public function it_parses_roll_descriptions_from_attribute()
+    {
+        $originalXml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Test Item</name>
+    <type>W</type>
+    <text>Test item description.
+
+Source: Test Source p. 1</text>
+    <roll description="Attack Bonus">1d20+8</roll>
+    <roll description="Bludgeoning Damage">2d6</roll>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify roll descriptions
+        $item->load('abilities');
+        $this->assertCount(2, $item->abilities);
+
+        $abilities = $item->abilities->sortBy('sort_order')->values();
+        $this->assertEquals('Attack Bonus', $abilities[0]->name);
+        $this->assertEquals('1d20+8', $abilities[0]->roll_formula);
+
+        $this->assertEquals('Bludgeoning Damage', $abilities[1]->name);
+        $this->assertEquals('2d6', $abilities[1]->roll_formula);
     }
 }

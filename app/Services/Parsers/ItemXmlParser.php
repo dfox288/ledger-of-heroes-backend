@@ -22,6 +22,18 @@ class ItemXmlParser
     {
         $text = (string) $element->text;
 
+        // Parse range (can be "50/150" format)
+        $range = (string) $element->range;
+        $rangeNormal = null;
+        $rangeLong = null;
+        if (!empty($range) && str_contains($range, '/')) {
+            [$rangeNormal, $rangeLong] = explode('/', $range, 2);
+            $rangeNormal = (int) trim($rangeNormal);
+            $rangeLong = (int) trim($rangeLong);
+        } elseif (!empty($range) && is_numeric($range)) {
+            $rangeNormal = (int) $range;
+        }
+
         return [
             'name' => (string) $element->name,
             'type_code' => (string) $element->type,
@@ -33,10 +45,11 @@ class ItemXmlParser
             'damage_dice' => (string) $element->dmg1 ?: null,
             'versatile_damage' => (string) $element->dmg2 ?: null,
             'damage_type_code' => (string) $element->dmgType ?: null,
+            'range_normal' => $rangeNormal,
+            'range_long' => $rangeLong,
             'armor_class' => isset($element->ac) ? (int) $element->ac : null,
             'strength_requirement' => isset($element->strength) ? (int) $element->strength : null,
             'stealth_disadvantage' => strtoupper((string) $element->stealth) === 'YES',
-            'weapon_range' => (string) $element->range ?: null,
             'description' => $text,
             'properties' => $this->parseProperties((string) $element->property),
             'sources' => $this->parseSourceCitations($text),
@@ -254,6 +267,9 @@ class ItemXmlParser
         foreach ($element->roll as $rollElement) {
             $rollText = trim((string) $rollElement);
 
+            // Extract description attribute if present
+            $description = (string) $rollElement['description'];
+
             // Extract roll formula if present (e.g., "1d4", "2d6")
             $rollFormula = null;
             if (preg_match('/(\d+d\d+(?:\s*[+\-]\s*\d+)?)/', $rollText, $matches)) {
@@ -262,8 +278,8 @@ class ItemXmlParser
 
             $abilities[] = [
                 'ability_type' => 'roll', // Default type for <roll> elements
-                'name' => $rollText,
-                'description' => $rollText,
+                'name' => !empty($description) ? $description : $rollText,  // Use description if available
+                'description' => $rollText,  // Keep the roll text in description
                 'roll_formula' => $rollFormula,
                 'sort_order' => count($abilities),
             ];

@@ -43,10 +43,11 @@ class ItemImporter
                 'damage_dice' => $itemData['damage_dice'],
                 'versatile_damage' => $itemData['versatile_damage'],
                 'damage_type_id' => $damageTypeId,
+                'range_normal' => $itemData['range_normal'],
+                'range_long' => $itemData['range_long'],
                 'armor_class' => $itemData['armor_class'],
                 'strength_requirement' => $itemData['strength_requirement'],
                 'stealth_disadvantage' => $itemData['stealth_disadvantage'],
-                'weapon_range' => $itemData['weapon_range'],
                 'description' => $itemData['description'],
             ]
         );

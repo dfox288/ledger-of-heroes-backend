@@ -67,8 +67,11 @@ XML;
         $this->assertContains('Age', $traitNames);
         $this->assertContains('Languages', $traitNames);
 
-        $this->assertEquals('PHB', $race['source_code']);
-        $this->assertEquals('32', $race['source_pages']);
+        // Check sources array format
+        $this->assertArrayHasKey('sources', $race);
+        $this->assertCount(1, $race['sources']);
+        $this->assertEquals('PHB', $race['sources'][0]['code']);
+        $this->assertEquals('32', $race['sources'][0]['pages']);
     }
 
     /** @test */
@@ -169,8 +172,10 @@ XML;
         $race = $races[0];
         $this->assertEquals('Custom Race', $race['name']);
         // Should default to PHB if no source found
-        $this->assertEquals('PHB', $race['source_code']);
-        $this->assertEquals('', $race['source_pages']);
+        $this->assertArrayHasKey('sources', $race);
+        $this->assertCount(1, $race['sources']);
+        $this->assertEquals('PHB', $race['sources'][0]['code']);
+        $this->assertEquals('', $race['sources'][0]['pages']);
     }
 
     /** @test */

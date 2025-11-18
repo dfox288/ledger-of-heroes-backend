@@ -17,9 +17,7 @@ class ProficiencyModelTest extends TestCase
         $race = Race::factory()->create();
         $skill = Skill::where('name', 'Perception')->first();
 
-        $proficiency = Proficiency::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
+        $proficiency = Proficiency::factory()->forEntity(Race::class, $race->id)->create([
             'proficiency_type' => 'skill',
             'skill_id' => $skill->id,
         ]);
@@ -33,16 +31,12 @@ class ProficiencyModelTest extends TestCase
         $race = Race::factory()->create();
         $skill = Skill::where('name', 'Perception')->first();
 
-        Proficiency::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
+        Proficiency::factory()->forEntity(Race::class, $race->id)->create([
             'proficiency_type' => 'skill',
             'skill_id' => $skill->id,
         ]);
 
-        Proficiency::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
+        Proficiency::factory()->forEntity(Race::class, $race->id)->create([
             'proficiency_type' => 'weapon',
             'proficiency_name' => 'Longsword',
         ]);

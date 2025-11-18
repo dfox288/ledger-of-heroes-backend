@@ -42,8 +42,11 @@ XML;
         $this->assertFalse($spells[0]['needs_concentration']);
         $this->assertFalse($spells[0]['is_ritual']);
         $this->assertEquals(['Wizard', 'Sorcerer'], $spells[0]['classes']);
-        $this->assertEquals('PHB', $spells[0]['source_code']);
-        $this->assertEquals('241', $spells[0]['source_pages']);
+        // Check sources array format
+        $this->assertArrayHasKey('sources', $spells[0]);
+        $this->assertCount(1, $spells[0]['sources']);
+        $this->assertEquals('PHB', $spells[0]['sources'][0]['code']);
+        $this->assertEquals('241', $spells[0]['sources'][0]['pages']);
     }
 
     public function test_detects_concentration(): void
@@ -122,8 +125,11 @@ XML;
         $parser = new SpellXmlParser();
         $spells = $parser->parse($xml);
 
-        $this->assertEquals('PHB', $spells[0]['source_code']);
-        $this->assertEquals('211', $spells[0]['source_pages']);
+        // Check sources array format
+        $this->assertArrayHasKey('sources', $spells[0]);
+        $this->assertCount(1, $spells[0]['sources']);
+        $this->assertEquals('PHB', $spells[0]['sources'][0]['code']);
+        $this->assertEquals('211', $spells[0]['sources'][0]['pages']);
     }
 
     public function test_strips_school_prefix_from_classes(): void
@@ -182,8 +188,11 @@ XML;
         $this->assertStringContainsString('You hurl a bubble of acid', $spells[0]['description']);
         $this->assertStringContainsString('Cantrip Upgrade', $spells[0]['description']);
         $this->assertStringNotContainsString('Source:', $spells[0]['description']);
-        $this->assertEquals('PHB', $spells[0]['source_code']);
-        $this->assertEquals('211', $spells[0]['source_pages']);
+        // Check sources array format
+        $this->assertArrayHasKey('sources', $spells[0]);
+        $this->assertCount(1, $spells[0]['sources']);
+        $this->assertEquals('PHB', $spells[0]['sources'][0]['code']);
+        $this->assertEquals('211', $spells[0]['sources'][0]['pages']);
     }
 
     public function test_parses_description_with_separate_text_elements(): void
@@ -211,8 +220,11 @@ XML;
 
         $this->assertStringContainsString('A bright streak flashes', $spells[0]['description']);
         $this->assertStringNotContainsString('Source:', $spells[0]['description']);
-        $this->assertEquals('PHB', $spells[0]['source_code']);
-        $this->assertEquals('241', $spells[0]['source_pages']);
+        // Check sources array format
+        $this->assertArrayHasKey('sources', $spells[0]);
+        $this->assertCount(1, $spells[0]['sources']);
+        $this->assertEquals('PHB', $spells[0]['sources'][0]['code']);
+        $this->assertEquals('241', $spells[0]['sources'][0]['pages']);
     }
 
     public function test_parses_cantrip_roll_elements_with_character_level_scaling(): void

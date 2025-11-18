@@ -15,26 +15,15 @@ class RaceModelTest extends TestCase
     public function test_race_can_have_parent_race(): void
     {
         // Arrange: Create base race and subrace
-        $size = Size::where('code', 'M')->first();
-        $source = Source::where('code', 'PHB')->first();
-
-        $baseRace = Race::create([
+        $baseRace = Race::factory()->create([
             'name' => 'Dwarf',
-            'size_id' => $size->id,
             'speed' => 25,
-            'description' => 'Base dwarf description',
-            'source_id' => $source->id,
-            'source_pages' => '20',
             'parent_race_id' => null,
         ]);
 
-        $subrace = Race::create([
+        $subrace = Race::factory()->create([
             'name' => 'Hill',
-            'size_id' => $size->id,
             'speed' => 25,
-            'description' => 'Hill dwarf description',
-            'source_id' => $source->id,
-            'source_pages' => '20',
             'parent_race_id' => $baseRace->id,
         ]);
 
@@ -49,16 +38,9 @@ class RaceModelTest extends TestCase
 
     public function test_base_race_has_null_parent(): void
     {
-        $size = Size::where('code', 'M')->first();
-        $source = Source::where('code', 'PHB')->first();
-
-        $baseRace = Race::create([
+        $baseRace = Race::factory()->create([
             'name' => 'Dragonborn',
-            'size_id' => $size->id,
             'speed' => 30,
-            'description' => 'Dragonborn description',
-            'source_id' => $source->id,
-            'source_pages' => '32',
             'parent_race_id' => null,
         ]);
 

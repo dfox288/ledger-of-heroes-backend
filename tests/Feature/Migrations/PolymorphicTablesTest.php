@@ -47,8 +47,6 @@ class PolymorphicTablesTest extends TestCase
             'name' => 'Half-Orc',
             'size_id' => $medium->id,
             'speed' => 30,
-            'source_id' => $phb->id,
-            'source_pages' => '40-41',
         ]);
 
         $race = DB::table('races')->where('name', 'Half-Orc')->first();
@@ -83,8 +81,6 @@ class PolymorphicTablesTest extends TestCase
             'name' => 'Athlete',
             'prerequisites' => null,
             'description' => 'You have undergone extensive physical training...',
-            'source_id' => $phb->id,
-            'source_pages' => '165',
         ]);
 
         $feat = DB::table('feats')->where('name', 'Athlete')->first();
@@ -142,8 +138,6 @@ class PolymorphicTablesTest extends TestCase
             'name' => 'Acolyte',
             'description' => 'You have spent your life in service...',
             'skill_proficiencies' => json_encode(['Insight', 'Religion']),
-            'source_id' => $phb->id,
-            'source_pages' => '127',
         ]);
 
         $background = DB::table('backgrounds')->where('name', 'Acolyte')->first();
@@ -186,8 +180,6 @@ class PolymorphicTablesTest extends TestCase
             'description' => 'Rogues rely on skill, stealth...',
             'primary_ability' => 'Dexterity',
             'spellcasting_ability_id' => null,
-            'source_id' => $phb->id,
-            'source_pages' => '94-98',
         ]);
 
         $class = DB::table('classes')->where('name', 'Rogue')->first();

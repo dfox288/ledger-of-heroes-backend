@@ -21,8 +21,8 @@ class ClassesTableTest extends TestCase
         $this->assertTrue(Schema::hasColumn('classes', 'description'));
         $this->assertTrue(Schema::hasColumn('classes', 'primary_ability'));
         $this->assertTrue(Schema::hasColumn('classes', 'spellcasting_ability_id'));
-        $this->assertTrue(Schema::hasColumn('classes', 'source_id'));
-        $this->assertTrue(Schema::hasColumn('classes', 'source_pages'));
+        $this->assertFalse(Schema::hasColumn('classes', 'source_id'));
+        $this->assertFalse(Schema::hasColumn('classes', 'source_pages'));
     }
 
     public function test_classes_table_does_not_have_timestamps(): void
@@ -43,8 +43,6 @@ class ClassesTableTest extends TestCase
             'description' => 'A fierce warrior of primitive background...',
             'primary_ability' => 'Strength',
             'spellcasting_ability_id' => null, // Not a spellcaster
-            'source_id' => $phb->id,
-            'source_pages' => '46-50',
         ]);
 
         $class = DB::table('classes')->where('name', 'Barbarian')->first();
@@ -65,8 +63,6 @@ class ClassesTableTest extends TestCase
             'description' => 'A priest of the Old Faith...',
             'primary_ability' => 'Wisdom',
             'spellcasting_ability_id' => $wisdom->id, // Wisdom-based spellcaster
-            'source_id' => $phb->id,
-            'source_pages' => '64-68',
         ]);
 
         $class = DB::table('classes')->where('name', 'Druid')->first();
@@ -87,8 +83,6 @@ class ClassesTableTest extends TestCase
             'description' => 'A priest of the Old Faith...',
             'primary_ability' => 'Wisdom',
             'spellcasting_ability_id' => $wisdom->id,
-            'source_id' => $phb->id,
-            'source_pages' => '64-68',
         ]);
 
         $druid = DB::table('classes')->where('name', 'Druid')->first();
@@ -101,8 +95,6 @@ class ClassesTableTest extends TestCase
             'description' => 'Druids of the Circle of the Moon are fierce guardians...',
             'primary_ability' => 'Wisdom',
             'spellcasting_ability_id' => $wisdom->id,
-            'source_id' => $phb->id,
-            'source_pages' => '69',
         ]);
 
         $subclass = DB::table('classes')->where('name', 'Circle of the Moon')->first();
@@ -111,9 +103,9 @@ class ClassesTableTest extends TestCase
 
     public function test_classes_table_uses_correct_naming_conventions(): void
     {
-        $this->assertTrue(Schema::hasColumn('classes', 'source_id'));
+        $this->assertFalse(Schema::hasColumn('classes', 'source_id'));
         $this->assertFalse(Schema::hasColumn('classes', 'source_book_id'));
-        $this->assertTrue(Schema::hasColumn('classes', 'source_pages'));
+        $this->assertFalse(Schema::hasColumn('classes', 'source_pages'));
         $this->assertFalse(Schema::hasColumn('classes', 'source_page'));
     }
 
@@ -130,8 +122,6 @@ class ClassesTableTest extends TestCase
             'description' => 'A master of martial combat...',
             'primary_ability' => 'Strength or Dexterity',
             'spellcasting_ability_id' => null,
-            'source_id' => $phb->id,
-            'source_pages' => '70-75',
         ]);
 
         $fighter = DB::table('classes')->where('name', 'Fighter')->first();
@@ -143,8 +133,6 @@ class ClassesTableTest extends TestCase
             'description' => 'Those who emulate the archetypal Battle Master...',
             'primary_ability' => 'Strength or Dexterity',
             'spellcasting_ability_id' => null,
-            'source_id' => $phb->id,
-            'source_pages' => '73',
         ]);
 
         $battleMaster = DB::table('classes')->where('name', 'Battle Master')->first();
@@ -162,11 +150,9 @@ class ClassesTableTest extends TestCase
             'description' => 'A scholarly magic-user...',
             'primary_ability' => 'Intelligence',
             'spellcasting_ability_id' => DB::table('ability_scores')->where('code', 'INT')->first()->id,
-            'source_id' => $phb->id,
-            'source_pages' => '112, 113, 114, 115, 116', // Multiple pages
         ]);
 
         $bloodHunter = DB::table('classes')->where('name', 'Blood Hunter')->first();
-        $this->assertStringContainsString(',', $bloodHunter->source_pages);
+        $this->assertEquals('Blood Hunter', $bloodHunter->name);
     }
 }

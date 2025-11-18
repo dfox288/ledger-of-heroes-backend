@@ -16,26 +16,12 @@ class EntitySourceTest extends TestCase
     public function test_entity_source_belongs_to_source(): void
     {
         $source = Source::where('code', 'PHB')->first();
-        $school = SpellSchool::first();
 
-        $spell = Spell::create([
+        $spell = Spell::factory()->create([
             'name' => 'Test Spell',
-            'level' => 1,
-            'spell_school_id' => $school->id,
-            'casting_time' => '1 action',
-            'range' => 'Touch',
-            'components' => 'V, S',
-            'duration' => 'Instantaneous',
-            'needs_concentration' => false,
-            'is_ritual' => false,
-            'description' => 'Test description',
-            'source_id' => $source->id,
-            'source_pages' => '100',
         ]);
 
-        $entitySource = EntitySource::create([
-            'reference_type' => Spell::class,
-            'reference_id' => $spell->id,
+        $entitySource = EntitySource::factory()->forEntity(Spell::class, $spell->id)->create([
             'source_id' => $source->id,
             'pages' => '150',
         ]);
@@ -53,26 +39,12 @@ class EntitySourceTest extends TestCase
     public function test_entity_source_has_polymorphic_reference(): void
     {
         $source = Source::where('code', 'PHB')->first();
-        $school = SpellSchool::first();
 
-        $spell = Spell::create([
+        $spell = Spell::factory()->create([
             'name' => 'Test Spell',
-            'level' => 1,
-            'spell_school_id' => $school->id,
-            'casting_time' => '1 action',
-            'range' => 'Touch',
-            'components' => 'V, S',
-            'duration' => 'Instantaneous',
-            'needs_concentration' => false,
-            'is_ritual' => false,
-            'description' => 'Test description',
-            'source_id' => $source->id,
-            'source_pages' => '100',
         ]);
 
-        $entitySource = EntitySource::create([
-            'reference_type' => Spell::class,
-            'reference_id' => $spell->id,
+        $entitySource = EntitySource::factory()->forEntity(Spell::class, $spell->id)->create([
             'source_id' => $source->id,
             'pages' => '150',
         ]);

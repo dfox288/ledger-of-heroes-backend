@@ -20,13 +20,10 @@ class RaceApiTest extends TestCase
     public function can_get_all_races()
     {
         // Create test races
-        $size = Size::where('code', 'M')->first();
-        $source = Source::where('code', 'PHB')->first();
+        $source = $this->getSource('PHB');
 
-        $race1 = Race::create([
+        $race1 = Race::factory()->create([
             'name' => 'Dragonborn',
-            'size_id' => $size->id,
-            'speed' => 30,
         ]);
 
         $race1->sources()->create([
@@ -34,9 +31,8 @@ class RaceApiTest extends TestCase
             'pages' => '32',
         ]);
 
-        $race2 = Race::create([
+        $race2 = Race::factory()->create([
             'name' => 'Dwarf, Hill',
-            'size_id' => $size->id,
             'speed' => 25,
         ]);
 
@@ -69,13 +65,10 @@ class RaceApiTest extends TestCase
     /** @test */
     public function can_search_races()
     {
-        $size = Size::where('code', 'M')->first();
-        $source = Source::where('code', 'PHB')->first();
+        $source = $this->getSource('PHB');
 
-        $race1 = Race::create([
+        $race1 = Race::factory()->create([
             'name' => 'Dragonborn',
-            'size_id' => $size->id,
-            'speed' => 30,
         ]);
 
         $race1->sources()->create([
@@ -83,9 +76,8 @@ class RaceApiTest extends TestCase
             'pages' => '32',
         ]);
 
-        $race2 = Race::create([
+        $race2 = Race::factory()->create([
             'name' => 'Dwarf, Hill',
-            'size_id' => $size->id,
             'speed' => 25,
         ]);
 
@@ -104,13 +96,10 @@ class RaceApiTest extends TestCase
     /** @test */
     public function can_get_single_race()
     {
-        $size = Size::where('code', 'M')->first();
-        $source = Source::where('code', 'PHB')->first();
+        $source = $this->getSource('PHB');
 
-        $race = Race::create([
+        $race = Race::factory()->create([
             'name' => 'Dragonborn',
-            'size_id' => $size->id,
-            'speed' => 30,
         ]);
 
         $race->sources()->create([
@@ -188,18 +177,14 @@ class RaceApiTest extends TestCase
     public function it_includes_proficiencies_in_response()
     {
         $race = Race::factory()->create(['name' => 'High Elf']);
-        $skill = Skill::where('name', 'Perception')->first();
+        $skill = $this->getSkill('Perception');
 
-        Proficiency::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
+        Proficiency::factory()->forEntity(Race::class, $race->id)->create([
             'proficiency_type' => 'skill',
             'skill_id' => $skill->id,
         ]);
 
-        Proficiency::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
+        Proficiency::factory()->forEntity(Race::class, $race->id)->create([
             'proficiency_type' => 'weapon',
             'proficiency_name' => 'Longsword',
         ]);
@@ -224,9 +209,7 @@ class RaceApiTest extends TestCase
     {
         $race = Race::factory()->create(['name' => 'Elf']);
 
-        \App\Models\CharacterTrait::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
+        \App\Models\CharacterTrait::factory()->forEntity(Race::class, $race->id)->create([
             'name' => 'Darkvision',
             'category' => 'species',
             'description' => 'You can see in dim light...',
@@ -253,11 +236,9 @@ class RaceApiTest extends TestCase
     public function it_includes_modifiers_in_response()
     {
         $race = Race::factory()->create(['name' => 'Dragonborn']);
-        $str = AbilityScore::where('code', 'STR')->first();
+        $str = $this->getAbilityScore('STR');
 
-        Modifier::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
+        Modifier::factory()->forEntity(Race::class, $race->id)->create([
             'modifier_category' => 'ability_score',
             'ability_score_id' => $str->id,
             'value' => '+2',
@@ -275,14 +256,10 @@ class RaceApiTest extends TestCase
     /** @test */
     public function test_race_modifiers_include_ability_score_resource()
     {
-        $size = Size::where('code', 'M')->first();
-        $source = Source::where('code', 'PHB')->first();
-        $strAbility = AbilityScore::where('code', 'STR')->first();
+        $strAbility = $this->getAbilityScore('STR');
 
-        $race = Race::create([
+        $race = Race::factory()->create([
             'name' => 'Test Strong Race',
-            'size_id' => $size->id,
-            'speed' => 30,
         ]);
 
         $race->modifiers()->create([
@@ -319,13 +296,10 @@ class RaceApiTest extends TestCase
     /** @test */
     public function test_race_proficiencies_include_skill_resource()
     {
-        $size = Size::where('code', 'M')->first();
-        $skill = Skill::where('name', 'Perception')->first();
+        $skill = $this->getSkill('Perception');
 
-        $race = Race::create([
+        $race = Race::factory()->create([
             'name' => 'Test Perceptive Race',
-            'size_id' => $size->id,
-            'speed' => 30,
         ]);
 
         $race->proficiencies()->create([
@@ -363,12 +337,8 @@ class RaceApiTest extends TestCase
     /** @test */
     public function test_race_traits_with_random_tables_include_entry_resource()
     {
-        $size = Size::where('code', 'M')->first();
-
-        $race = Race::create([
+        $race = Race::factory()->create([
             'name' => 'Test Random Race',
-            'size_id' => $size->id,
-            'speed' => 30,
         ]);
 
         $trait = $race->traits()->create([
@@ -378,9 +348,7 @@ class RaceApiTest extends TestCase
             'sort_order' => 0,
         ]);
 
-        $randomTable = \App\Models\RandomTable::create([
-            'reference_type' => \App\Models\CharacterTrait::class,
-            'reference_id' => $trait->id,
+        $randomTable = \App\Models\RandomTable::factory()->forEntity(\App\Models\CharacterTrait::class, $trait->id)->create([
             'table_name' => 'Feature Table',
             'dice_type' => '1d6',
             'description' => 'Test table',
@@ -422,13 +390,10 @@ class RaceApiTest extends TestCase
     /** @test */
     public function test_modifier_includes_skill_when_present()
     {
-        $size = Size::where('code', 'M')->first();
-        $skill = Skill::where('name', 'Stealth')->first();
+        $skill = $this->getSkill('Stealth');
 
-        $race = Race::create([
+        $race = Race::factory()->create([
             'name' => 'Stealthy Race',
-            'size_id' => $size->id,
-            'speed' => 30,
         ]);
 
         $race->modifiers()->create([
@@ -457,13 +422,10 @@ class RaceApiTest extends TestCase
     /** @test */
     public function test_proficiency_includes_ability_score_when_present()
     {
-        $size = Size::where('code', 'M')->first();
-        $strAbility = AbilityScore::where('code', 'STR')->first();
+        $strAbility = $this->getAbilityScore('STR');
 
-        $race = Race::create([
+        $race = Race::factory()->create([
             'name' => 'Strong Race',
-            'size_id' => $size->id,
-            'speed' => 30,
         ]);
 
         $race->proficiencies()->create([

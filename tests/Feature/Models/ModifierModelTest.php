@@ -17,9 +17,7 @@ class ModifierModelTest extends TestCase
         $race = Race::factory()->create();
         $abilityScore = AbilityScore::where('code', 'STR')->first();
 
-        $modifier = Modifier::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
+        $modifier = Modifier::factory()->forEntity(Race::class, $race->id)->create([
             'modifier_category' => 'ability_score',
             'ability_score_id' => $abilityScore->id,
             'value' => '+2',
@@ -35,17 +33,13 @@ class ModifierModelTest extends TestCase
         $str = AbilityScore::where('code', 'STR')->first();
         $cha = AbilityScore::where('code', 'CHA')->first();
 
-        Modifier::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
+        Modifier::factory()->forEntity(Race::class, $race->id)->create([
             'modifier_category' => 'ability_score',
             'ability_score_id' => $str->id,
             'value' => '+2',
         ]);
 
-        Modifier::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
+        Modifier::factory()->forEntity(Race::class, $race->id)->create([
             'modifier_category' => 'ability_score',
             'ability_score_id' => $cha->id,
             'value' => '+1',

@@ -36,9 +36,9 @@ class SpellsTableTest extends TestCase
         $this->assertTrue(Schema::hasColumn('spells', 'description'));
         $this->assertTrue(Schema::hasColumn('spells', 'higher_levels'));
 
-        // Source attribution
-        $this->assertTrue(Schema::hasColumn('spells', 'source_id')); // NOT source_book_id
-        $this->assertTrue(Schema::hasColumn('spells', 'source_pages')); // NOT source_page
+        // Verify source_id and source_pages have been removed (moved to entity_sources table)
+        $this->assertFalse(Schema::hasColumn('spells', 'source_id'));
+        $this->assertFalse(Schema::hasColumn('spells', 'source_pages'));
     }
 
     public function test_spells_table_does_not_have_timestamps(): void
@@ -47,11 +47,10 @@ class SpellsTableTest extends TestCase
         $this->assertFalse(Schema::hasColumn('spells', 'updated_at'));
     }
 
-    public function test_spells_table_has_foreign_keys(): void
+    public function test_spells_table_has_foreign_key_to_spell_schools(): void
     {
         // Verify FK to spell_schools
         $evocation = DB::table('spell_schools')->where('code', 'EV')->first();
-        $phb = DB::table('sources')->where('code', 'PHB')->first();
 
         DB::table('spells')->insert([
             'name' => 'Fireball',
@@ -66,21 +65,19 @@ class SpellsTableTest extends TestCase
             'is_ritual' => false,
             'description' => 'A bright streak flashes from your pointing finger...',
             'higher_levels' => 'When you cast this spell using a spell slot of 4th level or higher...',
-            'source_id' => $phb->id,
-            'source_pages' => '241',
         ]);
 
         $spell = DB::table('spells')->where('name', 'Fireball')->first();
         $this->assertEquals($evocation->id, $spell->spell_school_id);
-        $this->assertEquals($phb->id, $spell->source_id);
     }
 
-    public function test_spells_table_supports_multi_page_references(): void
+    public function test_entity_sources_table_supports_multi_page_references(): void
     {
         $abjuration = DB::table('spell_schools')->where('code', 'A')->first();
         $phb = DB::table('sources')->where('code', 'PHB')->first();
 
-        DB::table('spells')->insert([
+        // Create spell
+        $spellId = DB::table('spells')->insertGetId([
             'name' => 'Test Spell',
             'level' => 1,
             'spell_school_id' => $abjuration->id,
@@ -91,12 +88,22 @@ class SpellsTableTest extends TestCase
             'needs_concentration' => false,
             'is_ritual' => false,
             'description' => 'Test description',
-            'source_id' => $phb->id,
-            'source_pages' => '148, 150, 152', // Multiple pages
         ]);
 
-        $spell = DB::table('spells')->where('name', 'Test Spell')->first();
-        $this->assertEquals('148, 150, 152', $spell->source_pages);
+        // Link spell to source via entity_sources
+        DB::table('entity_sources')->insert([
+            'reference_type' => 'App\Models\Spell',
+            'reference_id' => $spellId,
+            'source_id' => $phb->id,
+            'pages' => '148, 150, 152', // Multiple pages
+        ]);
+
+        $entitySource = DB::table('entity_sources')
+            ->where('reference_type', 'App\Models\Spell')
+            ->where('reference_id', $spellId)
+            ->first();
+
+        $this->assertEquals('148, 150, 152', $entitySource->pages);
     }
 
     public function test_spells_table_has_needs_concentration_field(): void
@@ -106,7 +113,6 @@ class SpellsTableTest extends TestCase
 
         // Verify it can store boolean values
         $evocation = DB::table('spell_schools')->where('code', 'EV')->first();
-        $phb = DB::table('sources')->where('code', 'PHB')->first();
 
         DB::table('spells')->insert([
             'name' => 'Concentration Spell',
@@ -119,25 +125,19 @@ class SpellsTableTest extends TestCase
             'needs_concentration' => true, // Test concentration = true
             'is_ritual' => false,
             'description' => 'Test concentration spell',
-            'source_id' => $phb->id,
-            'source_pages' => '100',
         ]);
 
         $spell = DB::table('spells')->where('name', 'Concentration Spell')->first();
         $this->assertTrue((bool) $spell->needs_concentration);
     }
 
-    public function test_spells_table_uses_source_id_not_source_book_id(): void
+    public function test_entity_sources_table_exists_for_multi_source_support(): void
     {
-        // Verify we're using the CORRECT naming convention
-        $this->assertTrue(Schema::hasColumn('spells', 'source_id'));
-        $this->assertFalse(Schema::hasColumn('spells', 'source_book_id')); // OLD naming
-    }
-
-    public function test_spells_table_uses_source_pages_not_source_page(): void
-    {
-        // Verify we're using the CORRECT naming convention for multi-page support
-        $this->assertTrue(Schema::hasColumn('spells', 'source_pages'));
-        $this->assertFalse(Schema::hasColumn('spells', 'source_page')); // OLD naming
+        // Verify entity_sources junction table exists
+        $this->assertTrue(Schema::hasTable('entity_sources'));
+        $this->assertTrue(Schema::hasColumn('entity_sources', 'reference_type'));
+        $this->assertTrue(Schema::hasColumn('entity_sources', 'reference_id'));
+        $this->assertTrue(Schema::hasColumn('entity_sources', 'source_id'));
+        $this->assertTrue(Schema::hasColumn('entity_sources', 'pages'));
     }
 }

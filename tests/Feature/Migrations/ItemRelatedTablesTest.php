@@ -77,8 +77,6 @@ class ItemRelatedTablesTest extends TestCase
             'damage_type_id' => $slashing->id,
             'weapon_range' => 'Melee',
             'versatile_damage' => '1d10',
-            'source_id' => $phb->id,
-            'source_pages' => '149',
         ]);
 
         $longsword = DB::table('items')->where('name', 'Longsword')->first();
@@ -135,8 +133,6 @@ class ItemRelatedTablesTest extends TestCase
             'weight' => 1.0,
             'rarity' => 'Rare',
             'requires_attunement' => true,
-            'source_id' => $dmg->id,
-            'source_pages' => '211',
         ]);
 
         $wand = DB::table('items')->where('name', 'Wand of Fireballs')->first();
@@ -156,8 +152,6 @@ class ItemRelatedTablesTest extends TestCase
                 'needs_concentration' => false,
                 'is_ritual' => false,
                 'description' => 'A bright streak flashes...',
-                'source_id' => $dmg->id,
-                'source_pages' => '241',
             ]);
             $fireball = DB::table('spells')->where('name', 'Fireball')->first();
         }
@@ -197,8 +191,6 @@ class ItemRelatedTablesTest extends TestCase
             'description' => 'While wearing this ring...',
             'rarity' => 'Very Rare',
             'requires_attunement' => true,
-            'source_id' => $dmg->id,
-            'source_pages' => '191',
         ]);
 
         $ring = DB::table('items')->where('name', 'Ring of Regeneration')->first();

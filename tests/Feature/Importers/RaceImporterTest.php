@@ -40,8 +40,9 @@ class RaceImporterTest extends TestCase
                     'sort_order' => 0,
                 ],
             ],
-            'source_code' => 'PHB',
-            'source_pages' => '32',
+            'sources' => [
+                ['code' => 'PHB', 'pages' => '32'],
+            ],
         ];
 
         $race = $this->importer->import($raceData);
@@ -60,8 +61,11 @@ class RaceImporterTest extends TestCase
         $this->assertEquals('M', $race->size->code);
         $this->assertEquals('Medium', $race->size->name);
 
-        $this->assertNotNull($race->source);
-        $this->assertEquals('PHB', $race->source->code);
+        // Check sources via entity_sources junction table
+        $this->assertEquals(1, $race->sources()->count());
+        $entitySource = $race->sources()->first();
+        $this->assertEquals('PHB', $entitySource->source->code);
+        $this->assertEquals('32', $entitySource->pages);
     }
 
     /** @test */
@@ -79,8 +83,9 @@ class RaceImporterTest extends TestCase
                     'sort_order' => 0,
                 ],
             ],
-            'source_code' => 'PHB',
-            'source_pages' => '32',
+            'sources' => [
+                ['code' => 'PHB', 'pages' => '32'],
+            ],
         ];
 
         $this->importer->import($raceData);

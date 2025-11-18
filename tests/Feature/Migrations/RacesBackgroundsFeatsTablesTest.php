@@ -19,8 +19,8 @@ class RacesBackgroundsFeatsTablesTest extends TestCase
         $this->assertTrue(Schema::hasColumn('races', 'name'));
         $this->assertTrue(Schema::hasColumn('races', 'size_id'));
         $this->assertTrue(Schema::hasColumn('races', 'speed'));
-        $this->assertTrue(Schema::hasColumn('races', 'source_id'));
-        $this->assertTrue(Schema::hasColumn('races', 'source_pages'));
+        $this->assertFalse(Schema::hasColumn('races', 'source_id'));
+        $this->assertFalse(Schema::hasColumn('races', 'source_pages'));
     }
 
     public function test_races_table_does_not_have_timestamps(): void
@@ -38,20 +38,17 @@ class RacesBackgroundsFeatsTablesTest extends TestCase
             'name' => 'Human',
             'size_id' => $medium->id,
             'speed' => 30,
-            'source_id' => $phb->id,
-            'source_pages' => '29',
         ]);
 
         $race = DB::table('races')->where('name', 'Human')->first();
         $this->assertEquals($medium->id, $race->size_id);
-        $this->assertEquals($phb->id, $race->source_id);
     }
 
     public function test_races_table_uses_correct_naming_conventions(): void
     {
-        $this->assertTrue(Schema::hasColumn('races', 'source_id'));
+        $this->assertFalse(Schema::hasColumn('races', 'source_id'));
         $this->assertFalse(Schema::hasColumn('races', 'source_book_id'));
-        $this->assertTrue(Schema::hasColumn('races', 'source_pages'));
+        $this->assertFalse(Schema::hasColumn('races', 'source_pages'));
         $this->assertFalse(Schema::hasColumn('races', 'source_page'));
     }
 
@@ -68,8 +65,8 @@ class RacesBackgroundsFeatsTablesTest extends TestCase
         $this->assertTrue(Schema::hasColumn('backgrounds', 'equipment'));
         $this->assertTrue(Schema::hasColumn('backgrounds', 'feature_name'));
         $this->assertTrue(Schema::hasColumn('backgrounds', 'feature_description'));
-        $this->assertTrue(Schema::hasColumn('backgrounds', 'source_id'));
-        $this->assertTrue(Schema::hasColumn('backgrounds', 'source_pages'));
+        $this->assertFalse(Schema::hasColumn('backgrounds', 'source_id'));
+        $this->assertFalse(Schema::hasColumn('backgrounds', 'source_pages'));
     }
 
     public function test_backgrounds_table_does_not_have_timestamps(): void
@@ -91,20 +88,17 @@ class RacesBackgroundsFeatsTablesTest extends TestCase
             'equipment' => 'A holy symbol, a prayer book...',
             'feature_name' => 'Shelter of the Faithful',
             'feature_description' => 'As an acolyte, you command respect...',
-            'source_id' => $phb->id,
-            'source_pages' => '127',
         ]);
 
         $bg = DB::table('backgrounds')->where('name', 'Acolyte')->first();
         $this->assertEquals('Acolyte', $bg->name);
-        $this->assertEquals($phb->id, $bg->source_id);
     }
 
     public function test_backgrounds_table_uses_correct_naming_conventions(): void
     {
-        $this->assertTrue(Schema::hasColumn('backgrounds', 'source_id'));
+        $this->assertFalse(Schema::hasColumn('backgrounds', 'source_id'));
         $this->assertFalse(Schema::hasColumn('backgrounds', 'source_book_id'));
-        $this->assertTrue(Schema::hasColumn('backgrounds', 'source_pages'));
+        $this->assertFalse(Schema::hasColumn('backgrounds', 'source_pages'));
         $this->assertFalse(Schema::hasColumn('backgrounds', 'source_page'));
     }
 
@@ -116,8 +110,8 @@ class RacesBackgroundsFeatsTablesTest extends TestCase
         $this->assertTrue(Schema::hasColumn('feats', 'name'));
         $this->assertTrue(Schema::hasColumn('feats', 'prerequisites'));
         $this->assertTrue(Schema::hasColumn('feats', 'description'));
-        $this->assertTrue(Schema::hasColumn('feats', 'source_id'));
-        $this->assertTrue(Schema::hasColumn('feats', 'source_pages'));
+        $this->assertFalse(Schema::hasColumn('feats', 'source_id'));
+        $this->assertFalse(Schema::hasColumn('feats', 'source_pages'));
     }
 
     public function test_feats_table_does_not_have_timestamps(): void
@@ -134,16 +128,12 @@ class RacesBackgroundsFeatsTablesTest extends TestCase
             'name' => 'Alert',
             'prerequisites' => null,
             'description' => 'Always on the lookout for danger...',
-            'source_id' => $phb->id,
-            'source_pages' => '165',
         ]);
 
         DB::table('feats')->insert([
             'name' => 'Heavy Armor Master',
             'prerequisites' => 'Proficiency with heavy armor',
             'description' => 'You can use your armor to deflect strikes...',
-            'source_id' => $phb->id,
-            'source_pages' => '167',
         ]);
 
         $feat1 = DB::table('feats')->where('name', 'Alert')->first();
@@ -155,9 +145,9 @@ class RacesBackgroundsFeatsTablesTest extends TestCase
 
     public function test_feats_table_uses_correct_naming_conventions(): void
     {
-        $this->assertTrue(Schema::hasColumn('feats', 'source_id'));
+        $this->assertFalse(Schema::hasColumn('feats', 'source_id'));
         $this->assertFalse(Schema::hasColumn('feats', 'source_book_id'));
-        $this->assertTrue(Schema::hasColumn('feats', 'source_pages'));
+        $this->assertFalse(Schema::hasColumn('feats', 'source_pages'));
         $this->assertFalse(Schema::hasColumn('feats', 'source_page'));
     }
 }

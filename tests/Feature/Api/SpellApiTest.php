@@ -16,20 +16,11 @@ class SpellApiTest extends TestCase
 
     public function test_can_get_all_spells(): void
     {
-        $school = SpellSchool::first();
-        $source = Source::first();
+        $source = $this->getSource('PHB');
 
-        $spell = Spell::create([
+        $spell = Spell::factory()->create([
             'name' => 'Fireball',
             'level' => 3,
-            'spell_school_id' => $school->id,
-            'casting_time' => '1 action',
-            'range' => '150 feet',
-            'components' => 'V, S, M',
-            'duration' => 'Instantaneous',
-            'needs_concentration' => false,
-            'is_ritual' => false,
-            'description' => 'A bright streak flashes from your pointing finger...',
         ]);
 
         $spell->sources()->create([
@@ -67,20 +58,11 @@ class SpellApiTest extends TestCase
 
     public function test_can_search_spells(): void
     {
-        $school = SpellSchool::first();
-        $source = Source::first();
+        $source = $this->getSource('PHB');
 
-        $spell1 = Spell::create([
+        $spell1 = Spell::factory()->create([
             'name' => 'Fireball',
             'level' => 3,
-            'spell_school_id' => $school->id,
-            'casting_time' => '1 action',
-            'range' => '150 feet',
-            'components' => 'V, S, M',
-            'duration' => 'Instantaneous',
-            'needs_concentration' => false,
-            'is_ritual' => false,
-            'description' => 'A bright streak flashes from your pointing finger...',
         ]);
 
         $spell1->sources()->create([
@@ -88,17 +70,9 @@ class SpellApiTest extends TestCase
             'pages' => '241',
         ]);
 
-        $spell2 = Spell::create([
+        $spell2 = Spell::factory()->create([
             'name' => 'Ice Storm',
             'level' => 4,
-            'spell_school_id' => $school->id,
-            'casting_time' => '1 action',
-            'range' => '300 feet',
-            'components' => 'V, S, M',
-            'duration' => 'Instantaneous',
-            'needs_concentration' => false,
-            'is_ritual' => false,
-            'description' => 'A hail of rock-hard ice pounds to the ground...',
         ]);
 
         $spell2->sources()->create([
@@ -115,20 +89,11 @@ class SpellApiTest extends TestCase
 
     public function test_spell_includes_effects_in_response(): void
     {
-        $school = SpellSchool::first();
-        $source = Source::first();
+        $source = $this->getSource('PHB');
 
-        $spell = Spell::create([
+        $spell = Spell::factory()->create([
             'name' => 'Magic Missile',
             'level' => 1,
-            'spell_school_id' => $school->id,
-            'casting_time' => '1 action',
-            'range' => '120 feet',
-            'components' => 'V, S',
-            'duration' => 'Instantaneous',
-            'needs_concentration' => false,
-            'is_ritual' => false,
-            'description' => 'You create three glowing darts of magical force.',
         ]);
 
         $spell->sources()->create([
@@ -137,28 +102,18 @@ class SpellApiTest extends TestCase
         ]);
 
         // Create spell effects
-        SpellEffect::create([
+        SpellEffect::factory()->create([
             'spell_id' => $spell->id,
             'effect_type' => 'damage',
             'description' => 'Force damage per dart',
             'dice_formula' => '1d4+1',
-            'base_value' => null,
-            'scaling_type' => 'spell_slot',
-            'min_character_level' => null,
-            'min_spell_slot' => 2,
-            'scaling_increment' => '1d4+1',
         ]);
 
-        SpellEffect::create([
+        SpellEffect::factory()->create([
             'spell_id' => $spell->id,
             'effect_type' => 'scaling',
             'description' => 'Additional darts per spell level',
-            'dice_formula' => null,
             'base_value' => 1,
-            'scaling_type' => 'spell_slot',
-            'min_character_level' => null,
-            'min_spell_slot' => 2,
-            'scaling_increment' => null,
         ]);
 
         // Test the show endpoint
@@ -192,14 +147,12 @@ class SpellApiTest extends TestCase
 
     public function test_spell_includes_classes_in_response(): void
     {
-        $school = SpellSchool::first();
-        $source = Source::first();
+        $source = $this->getSource('PHB');
 
         // Create classes
-        $wizard = CharacterClass::create([
+        $wizard = CharacterClass::factory()->create([
             'name' => 'Wizard',
             'hit_die' => 6,
-            'description' => 'A scholarly magic-user capable of manipulating the structures of reality.',
         ]);
 
         $wizard->sources()->create([
@@ -207,10 +160,9 @@ class SpellApiTest extends TestCase
             'pages' => '112',
         ]);
 
-        $sorcerer = CharacterClass::create([
+        $sorcerer = CharacterClass::factory()->create([
             'name' => 'Sorcerer',
             'hit_die' => 6,
-            'description' => 'A spellcaster who draws on inherent magic from a gift or bloodline.',
         ]);
 
         $sorcerer->sources()->create([
@@ -219,17 +171,9 @@ class SpellApiTest extends TestCase
         ]);
 
         // Create a spell
-        $spell = Spell::create([
+        $spell = Spell::factory()->create([
             'name' => 'Fireball',
             'level' => 3,
-            'spell_school_id' => $school->id,
-            'casting_time' => '1 action',
-            'range' => '150 feet',
-            'components' => 'V, S, M',
-            'duration' => 'Instantaneous',
-            'needs_concentration' => false,
-            'is_ritual' => false,
-            'description' => 'A bright streak flashes from your pointing finger...',
         ]);
 
         $spell->sources()->create([
@@ -268,20 +212,12 @@ class SpellApiTest extends TestCase
     /** @test */
     public function test_spell_includes_spell_school_resource()
     {
-        $school = SpellSchool::first();
-        $source = Source::first();
+        $school = $this->getSpellSchool('EV');
 
-        $spell = Spell::create([
+        $spell = Spell::factory()->create([
             'name' => 'Test Spell',
             'level' => 1,
             'spell_school_id' => $school->id,
-            'casting_time' => '1 action',
-            'range' => 'Self',
-            'components' => 'V',
-            'duration' => 'Instantaneous',
-            'needs_concentration' => false,
-            'is_ritual' => false,
-            'description' => 'Test',
         ]);
 
         $response = $this->getJson("/api/v1/spells/{$spell->id}");
@@ -310,20 +246,11 @@ class SpellApiTest extends TestCase
     /** @test */
     public function test_spell_includes_sources_as_resource()
     {
-        $source = Source::where('code', 'PHB')->first();
-        $school = SpellSchool::where('code', 'A')->first();
+        $source = $this->getSource('PHB');
 
-        $spell = Spell::create([
+        $spell = Spell::factory()->create([
             'name' => 'Test Source Spell',
             'level' => 1,
-            'spell_school_id' => $school->id,
-            'casting_time' => '1 action',
-            'range' => 'Self',
-            'components' => 'V',
-            'duration' => 'Instantaneous',
-            'needs_concentration' => false,
-            'is_ritual' => false,
-            'description' => 'Test',
         ]);
 
         $spell->sources()->create([
@@ -357,19 +284,9 @@ class SpellApiTest extends TestCase
     public function test_spell_effect_includes_damage_type_resource_when_present()
     {
         // Note: This test verifies the DamageTypeResource is properly integrated
-        // The damage_type_id column doesn't exist yet in spell_effects table,
-        // but the resource structure is ready for when it's added
-        $spell = Spell::create([
+        $spell = Spell::factory()->create([
             'name' => 'Test Spell',
             'level' => 1,
-            'spell_school_id' => SpellSchool::where('code', 'EV')->first()->id,
-            'casting_time' => '1 action',
-            'range' => '60 feet',
-            'components' => 'V, S',
-            'duration' => 'Instantaneous',
-            'needs_concentration' => false,
-            'is_ritual' => false,
-            'description' => 'Test spell',
         ]);
 
         $spell->effects()->create([

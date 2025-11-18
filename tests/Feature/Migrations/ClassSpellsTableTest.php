@@ -45,8 +45,6 @@ class ClassSpellsTableTest extends TestCase
             'description' => 'A priestly champion...',
             'primary_ability' => 'Wisdom',
             'spellcasting_ability_id' => $wisdom->id,
-            'source_id' => $phb->id,
-            'source_pages' => '56-63',
         ]);
 
         $cleric = DB::table('classes')->where('name', 'Cleric')->first();
@@ -63,8 +61,6 @@ class ClassSpellsTableTest extends TestCase
             'needs_concentration' => false,
             'is_ritual' => false,
             'description' => 'A creature you touch regains hit points...',
-            'source_id' => $phb->id,
-            'source_pages' => '230',
         ]);
 
         $spell = DB::table('spells')->where('name', 'Cure Wounds')->first();
@@ -101,8 +97,6 @@ class ClassSpellsTableTest extends TestCase
             'description' => 'A scholarly magic-user...',
             'primary_ability' => 'Intelligence',
             'spellcasting_ability_id' => $intelligence->id,
-            'source_id' => $phb->id,
-            'source_pages' => '112-116',
         ]);
 
         $wizard = DB::table('classes')->where('name', 'Wizard')->first();
@@ -120,8 +114,6 @@ class ClassSpellsTableTest extends TestCase
                 'needs_concentration' => false,
                 'is_ritual' => false,
                 'description' => 'You create three glowing darts...',
-                'source_id' => $phb->id,
-                'source_pages' => '257',
             ],
             [
                 'name' => 'Shield',
@@ -134,8 +126,6 @@ class ClassSpellsTableTest extends TestCase
                 'needs_concentration' => false,
                 'is_ritual' => false,
                 'description' => 'An invisible barrier of magical force...',
-                'source_id' => $phb->id,
-                'source_pages' => '275',
             ],
         ]);
 
@@ -171,8 +161,6 @@ class ClassSpellsTableTest extends TestCase
                 'description' => 'A priestly champion...',
                 'primary_ability' => 'Wisdom',
                 'spellcasting_ability_id' => $wisdom->id,
-                'source_id' => $phb->id,
-                'source_pages' => '56-63',
             ],
             [
                 'name' => 'Paladin',
@@ -181,8 +169,6 @@ class ClassSpellsTableTest extends TestCase
                 'description' => 'A holy warrior...',
                 'primary_ability' => 'Strength and Charisma',
                 'spellcasting_ability_id' => $charisma->id,
-                'source_id' => $phb->id,
-                'source_pages' => '82-88',
             ],
         ]);
 
@@ -201,8 +187,6 @@ class ClassSpellsTableTest extends TestCase
             'needs_concentration' => false,
             'is_ritual' => false,
             'description' => 'A creature you touch regains hit points...',
-            'source_id' => $phb->id,
-            'source_pages' => '230',
         ]);
 
         $spell = DB::table('spells')->where('name', 'Cure Wounds')->first();
@@ -241,8 +225,6 @@ class ClassSpellsTableTest extends TestCase
             'description' => 'A priest of the Old Faith...',
             'primary_ability' => 'Wisdom',
             'spellcasting_ability_id' => $wisdom->id,
-            'source_id' => $phb->id,
-            'source_pages' => '64-68',
         ]);
 
         $druid = DB::table('classes')->where('name', 'Druid')->first();
@@ -260,8 +242,6 @@ class ClassSpellsTableTest extends TestCase
             'needs_concentration' => false,
             'is_ritual' => false,
             'description' => 'Up to ten berries appear in your hand...',
-            'source_id' => $phb->id,
-            'source_pages' => '246',
         ]);
 
         $spell = DB::table('spells')->where('name', 'Goodberry')->first();

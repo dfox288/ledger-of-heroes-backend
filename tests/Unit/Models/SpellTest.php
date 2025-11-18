@@ -13,10 +13,10 @@ class SpellTest extends TestCase
         $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class, $spell->spellSchool());
     }
 
-    public function test_spell_belongs_to_source(): void
+    public function test_spell_has_many_sources(): void
     {
         $spell = new Spell();
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class, $spell->source());
+        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\MorphMany::class, $spell->sources());
     }
 
     public function test_spell_does_not_use_timestamps(): void

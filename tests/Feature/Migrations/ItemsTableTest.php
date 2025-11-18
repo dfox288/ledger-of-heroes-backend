@@ -42,8 +42,8 @@ class ItemsTableTest extends TestCase
         $this->assertTrue(Schema::hasColumn('items', 'requires_attunement'));
 
         // Source attribution (2)
-        $this->assertTrue(Schema::hasColumn('items', 'source_id'));
-        $this->assertTrue(Schema::hasColumn('items', 'source_pages'));
+        $this->assertFalse(Schema::hasColumn('items', 'source_id'));
+        $this->assertFalse(Schema::hasColumn('items', 'source_pages'));
     }
 
     public function test_items_table_does_not_have_timestamps(): void
@@ -71,8 +71,6 @@ class ItemsTableTest extends TestCase
             'versatile_damage' => '1d10',
             'weapon_properties' => json_encode(['versatile']),
             'requires_attunement' => false,
-            'source_id' => $phb->id,
-            'source_pages' => '149',
         ]);
 
         $item = DB::table('items')->where('name', 'Longsword')->first();
@@ -97,8 +95,6 @@ class ItemsTableTest extends TestCase
             'strength_requirement' => 15,
             'stealth_disadvantage' => true,
             'requires_attunement' => false,
-            'source_id' => $phb->id,
-            'source_pages' => '145',
         ]);
 
         $item = DB::table('items')->where('name', 'Plate Armor')->first();
@@ -119,25 +115,22 @@ class ItemsTableTest extends TestCase
             'weight' => 1.0,
             'rarity' => 'Rare',
             'requires_attunement' => true, // Magic items often require attunement
-            'source_id' => $dmg->id,
-            'source_pages' => '211, 212',
         ]);
 
         $item = DB::table('items')->where('name', 'Wand of Fireballs')->first();
         $this->assertEquals('Rare', $item->rarity);
         $this->assertTrue((bool) $item->requires_attunement);
-        $this->assertEquals('211, 212', $item->source_pages);
     }
 
     public function test_items_table_uses_source_id_not_source_book_id(): void
     {
-        $this->assertTrue(Schema::hasColumn('items', 'source_id'));
+        $this->assertFalse(Schema::hasColumn('items', 'source_id'));
         $this->assertFalse(Schema::hasColumn('items', 'source_book_id'));
     }
 
     public function test_items_table_uses_source_pages_not_source_page(): void
     {
-        $this->assertTrue(Schema::hasColumn('items', 'source_pages'));
+        $this->assertFalse(Schema::hasColumn('items', 'source_pages'));
         $this->assertFalse(Schema::hasColumn('items', 'source_page'));
     }
 
@@ -145,15 +138,14 @@ class ItemsTableTest extends TestCase
     {
         $columns = Schema::getColumnListing('items');
 
-        // Should be 18 columns (21 in design minus NO created_at/updated_at = 19, but id is included in the design count)
+        // Should be 16 columns (21 in original design minus source_id, source_pages, created_at, updated_at, and id is included)
         // Let's list all expected columns explicitly
         $expectedColumns = [
             'id', 'name', 'item_type_id', 'description',
             'weight', 'cost_cp', 'rarity',
             'damage_dice', 'damage_type_id', 'weapon_range', 'versatile_damage', 'weapon_properties',
             'armor_class', 'strength_requirement', 'stealth_disadvantage',
-            'requires_attunement',
-            'source_id', 'source_pages'
+            'requires_attunement'
         ];
 
         $this->assertCount(count($expectedColumns), $columns);

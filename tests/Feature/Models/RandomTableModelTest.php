@@ -16,9 +16,7 @@ class RandomTableModelTest extends TestCase
     {
         $race = Race::factory()->create();
 
-        $table = RandomTable::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
+        $table = RandomTable::factory()->forEntity(Race::class, $race->id)->create([
             'table_name' => 'Size Modifier',
             'dice_type' => '2d8',
         ]);
@@ -31,21 +29,19 @@ class RandomTableModelTest extends TestCase
     {
         $race = Race::factory()->create();
 
-        $table = RandomTable::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
+        $table = RandomTable::factory()->forEntity(Race::class, $race->id)->create([
             'table_name' => 'Size Modifier',
             'dice_type' => '2d8',
         ]);
 
-        RandomTableEntry::create([
+        RandomTableEntry::factory()->create([
             'random_table_id' => $table->id,
             'roll_value' => '2',
             'result' => 'Minimum roll',
             'sort_order' => 1,
         ]);
 
-        RandomTableEntry::create([
+        RandomTableEntry::factory()->create([
             'random_table_id' => $table->id,
             'roll_value' => '16',
             'result' => 'Maximum roll',

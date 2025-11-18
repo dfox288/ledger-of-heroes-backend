@@ -54,8 +54,6 @@ class MonsterRelatedTablesTest extends TestCase
             'charisma' => 21,
             'challenge_rating' => '17',
             'experience_points' => 18000,
-            'source_id' => $mm->id,
-            'source_pages' => '98',
         ]);
 
         $dragon = DB::table('monsters')->where('name', 'Adult Red Dragon')->first();
@@ -130,8 +128,6 @@ class MonsterRelatedTablesTest extends TestCase
             'charisma' => 8,
             'challenge_rating' => '1/4',
             'experience_points' => 50,
-            'source_id' => $mm->id,
-            'source_pages' => '166',
         ]);
 
         $goblin = DB::table('monsters')->where('name', 'Goblin')->first();
@@ -214,8 +210,6 @@ class MonsterRelatedTablesTest extends TestCase
             'charisma' => 28,
             'challenge_rating' => '24',
             'experience_points' => 62000,
-            'source_id' => $mm->id,
-            'source_pages' => '115',
         ]);
 
         $dragon = DB::table('monsters')->where('name', 'Ancient Gold Dragon')->first();
@@ -306,8 +300,6 @@ class MonsterRelatedTablesTest extends TestCase
             'charisma' => 16,
             'challenge_rating' => '21',
             'experience_points' => 33000,
-            'source_id' => $mm->id,
-            'source_pages' => '202',
         ]);
 
         $lich = DB::table('monsters')->where('name', 'Lich')->first();
@@ -378,8 +370,6 @@ class MonsterRelatedTablesTest extends TestCase
             'charisma' => 12,
             'challenge_rating' => '7',
             'experience_points' => 2900,
-            'source_id' => $mm->id,
-            'source_pages' => '129',
         ]);
 
         $drowMage = DB::table('monsters')->where('name', 'Drow Mage')->first();
@@ -397,8 +387,6 @@ class MonsterRelatedTablesTest extends TestCase
                 'needs_concentration' => true,
                 'is_ritual' => false,
                 'description' => 'You create up to four torch-sized lights...',
-                'source_id' => $mm->id,
-                'source_pages' => '230',
             ],
             [
                 'name' => 'Invisibility',
@@ -411,8 +399,6 @@ class MonsterRelatedTablesTest extends TestCase
                 'needs_concentration' => true,
                 'is_ritual' => false,
                 'description' => 'A creature you touch becomes invisible...',
-                'source_id' => $mm->id,
-                'source_pages' => '254',
             ],
         ]);
 

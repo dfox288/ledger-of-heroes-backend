@@ -50,8 +50,6 @@ class SpellEffectsTableTest extends TestCase
             'needs_concentration' => false,
             'is_ritual' => false,
             'description' => 'A bright streak flashes from your pointing finger...',
-            'source_id' => $phb->id,
-            'source_pages' => '241',
         ]);
 
         $fireball = DB::table('spells')->where('name', 'Fireball')->first();
@@ -96,8 +94,6 @@ class SpellEffectsTableTest extends TestCase
             'needs_concentration' => false,
             'is_ritual' => false,
             'description' => 'A creature you touch regains hit points...',
-            'source_id' => $phb->id,
-            'source_pages' => '230',
         ]);
 
         $cureWounds = DB::table('spells')->where('name', 'Cure Wounds')->first();
@@ -142,8 +138,6 @@ class SpellEffectsTableTest extends TestCase
             'needs_concentration' => true,
             'is_ritual' => false,
             'description' => 'Choose a humanoid you can see...',
-            'source_id' => $phb->id,
-            'source_pages' => '251',
         ]);
 
         $holdPerson = DB::table('spells')->where('name', 'Hold Person')->first();
@@ -187,8 +181,6 @@ class SpellEffectsTableTest extends TestCase
             'needs_concentration' => false,
             'is_ritual' => false,
             'description' => 'A vertical column of divine fire...',
-            'source_id' => $phb->id,
-            'source_pages' => '242',
         ]);
 
         $flameStrike = DB::table('spells')->where('name', 'Flame Strike')->first();

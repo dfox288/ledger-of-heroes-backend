@@ -15,15 +15,14 @@ class ClassApiTest extends TestCase
     /** @test */
     public function test_class_resource_includes_all_fields()
     {
-        $intAbility = AbilityScore::where('code', 'INT')->first();
-        $source = Source::where('code', 'PHB')->first();
+        $intAbility = $this->getAbilityScore('INT');
+        $source = $this->getSource('PHB');
 
-        $class = CharacterClass::create([
+        $class = CharacterClass::factory()->spellcaster('INT')->create([
             'name' => 'Wizard',
             'hit_die' => 6,
             'description' => 'A scholarly magic-user',
             'primary_ability' => 'Intelligence',
-            'spellcasting_ability_id' => $intAbility->id,
         ]);
 
         $class->sources()->create([

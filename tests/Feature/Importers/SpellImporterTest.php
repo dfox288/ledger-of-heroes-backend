@@ -36,8 +36,9 @@ class SpellImporterTest extends TestCase
             'description' => 'A bright streak flashes...',
             'higher_levels' => null,
             'classes' => ['Wizard', 'Sorcerer'],
-            'source_code' => 'PHB',
-            'source_pages' => '241',
+            'sources' => [
+                ['code' => 'PHB', 'pages' => '241'],
+            ],
             'effects' => [
                 [
                     'effect_type' => 'damage',
@@ -59,15 +60,25 @@ class SpellImporterTest extends TestCase
         $this->assertEquals('Fireball', $spell->name);
         $this->assertEquals(3, $spell->level);
         $this->assertEquals($school->id, $spell->spell_school_id);
-        $this->assertEquals($source->id, $spell->source_id);
-        $this->assertEquals('241', $spell->source_pages);
         $this->assertFalse($spell->needs_concentration);
         $this->assertFalse($spell->is_ritual);
 
         $this->assertDatabaseHas('spells', [
             'name' => 'Fireball',
             'level' => 3,
+        ]);
+
+        // Verify source is linked via entity_sources junction table
+        $this->assertEquals(1, $spell->sources()->count());
+        $entitySource = $spell->sources()->first();
+        $this->assertEquals($source->id, $entitySource->source_id);
+        $this->assertEquals('241', $entitySource->pages);
+
+        $this->assertDatabaseHas('entity_sources', [
+            'reference_type' => Spell::class,
+            'reference_id' => $spell->id,
             'source_id' => $source->id,
+            'pages' => '241',
         ]);
 
         // Verify spell effects are imported

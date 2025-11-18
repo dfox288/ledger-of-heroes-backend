@@ -54,8 +54,8 @@ class MonstersTableTest extends TestCase
         $this->assertTrue(Schema::hasColumn('monsters', 'description'));
 
         // Source
-        $this->assertTrue(Schema::hasColumn('monsters', 'source_id'));
-        $this->assertTrue(Schema::hasColumn('monsters', 'source_pages'));
+        $this->assertFalse(Schema::hasColumn('monsters', 'source_id'));
+        $this->assertFalse(Schema::hasColumn('monsters', 'source_pages'));
     }
 
     public function test_monsters_table_does_not_have_timestamps(): void
@@ -88,8 +88,6 @@ class MonstersTableTest extends TestCase
             'challenge_rating' => '1/4',
             'experience_points' => 50,
             'description' => 'Goblins are small, black-hearted creatures...',
-            'source_id' => $mm->id,
-            'source_pages' => '166',
         ]);
 
         $monster = DB::table('monsters')->where('name', 'Goblin')->first();
@@ -125,8 +123,6 @@ class MonstersTableTest extends TestCase
             'challenge_rating' => '24',
             'experience_points' => 62000,
             'description' => 'The most covetous of dragons...',
-            'source_id' => $mm->id,
-            'source_pages' => '98',
         ]);
 
         $monster = DB::table('monsters')->where('name', 'Ancient Red Dragon')->first();
@@ -159,8 +155,6 @@ class MonstersTableTest extends TestCase
             'challenge_rating' => '0',
             'experience_points' => 10,
             'description' => null,
-            'source_id' => $mm->id,
-            'source_pages' => '335',
         ]);
 
         $monster = DB::table('monsters')->where('name', 'Rat')->first();
@@ -170,9 +164,9 @@ class MonstersTableTest extends TestCase
 
     public function test_monsters_table_uses_correct_naming_conventions(): void
     {
-        $this->assertTrue(Schema::hasColumn('monsters', 'source_id'));
+        $this->assertFalse(Schema::hasColumn('monsters', 'source_id'));
         $this->assertFalse(Schema::hasColumn('monsters', 'source_book_id'));
-        $this->assertTrue(Schema::hasColumn('monsters', 'source_pages'));
+        $this->assertFalse(Schema::hasColumn('monsters', 'source_pages'));
         $this->assertFalse(Schema::hasColumn('monsters', 'source_page'));
     }
 
@@ -198,12 +192,9 @@ class MonstersTableTest extends TestCase
             'charisma' => 10,
             'challenge_rating' => '1/8',
             'experience_points' => 25,
-            'source_id' => $mm->id,
-            'source_pages' => '100',
         ]);
 
         $monster = DB::table('monsters')->where('name', 'Test Monster')->first();
         $this->assertEquals($small->id, $monster->size_id);
-        $this->assertEquals($mm->id, $monster->source_id);
     }
 }

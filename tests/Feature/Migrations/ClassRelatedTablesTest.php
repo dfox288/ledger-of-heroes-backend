@@ -49,8 +49,6 @@ class ClassRelatedTablesTest extends TestCase
             'description' => 'A scholarly magic-user...',
             'primary_ability' => 'Intelligence',
             'spellcasting_ability_id' => $intelligence->id,
-            'source_id' => $phb->id,
-            'source_pages' => '112-116',
         ]);
 
         $wizard = DB::table('classes')->where('name', 'Wizard')->first();
@@ -122,8 +120,6 @@ class ClassRelatedTablesTest extends TestCase
             'description' => 'Rogues rely on skill, stealth...',
             'primary_ability' => 'Dexterity',
             'spellcasting_ability_id' => null,
-            'source_id' => $phb->id,
-            'source_pages' => '94-98',
         ]);
 
         $rogue = DB::table('classes')->where('name', 'Rogue')->first();
@@ -179,8 +175,6 @@ class ClassRelatedTablesTest extends TestCase
             'description' => 'A master of martial combat...',
             'primary_ability' => 'Strength or Dexterity',
             'spellcasting_ability_id' => null,
-            'source_id' => $phb->id,
-            'source_pages' => '70-75',
         ]);
 
         $fighter = DB::table('classes')->where('name', 'Fighter')->first();
@@ -245,8 +239,6 @@ class ClassRelatedTablesTest extends TestCase
             'description' => 'A master of martial arts...',
             'primary_ability' => 'Dexterity and Wisdom',
             'spellcasting_ability_id' => null,
-            'source_id' => $phb->id,
-            'source_pages' => '76-80',
         ]);
 
         $monk = DB::table('classes')->where('name', 'Monk')->first();
@@ -291,8 +283,6 @@ class ClassRelatedTablesTest extends TestCase
             'description' => 'A fierce warrior of primitive background...',
             'primary_ability' => 'Strength',
             'spellcasting_ability_id' => null,
-            'source_id' => $phb->id,
-            'source_pages' => '46-50',
         ]);
 
         $barbarian = DB::table('classes')->where('name', 'Barbarian')->first();

@@ -15,9 +15,7 @@ class TraitModelTest extends TestCase
     {
         $race = Race::factory()->create();
 
-        $trait = CharacterTrait::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
+        $trait = CharacterTrait::factory()->forEntity(Race::class, $race->id)->create([
             'name' => 'Darkvision',
             'category' => 'species',
             'description' => 'You can see in dim light within 60 feet...',
@@ -32,18 +30,14 @@ class TraitModelTest extends TestCase
     {
         $race = Race::factory()->create();
 
-        CharacterTrait::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
+        CharacterTrait::factory()->forEntity(Race::class, $race->id)->create([
             'name' => 'Darkvision',
             'category' => 'species',
             'description' => 'You can see in dim light...',
             'sort_order' => 1,
         ]);
 
-        CharacterTrait::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
+        CharacterTrait::factory()->forEntity(Race::class, $race->id)->create([
             'name' => 'Keen Senses',
             'category' => 'species',
             'description' => 'You have proficiency in Perception...',

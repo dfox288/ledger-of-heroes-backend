@@ -41,7 +41,10 @@ class BackgroundImporter
 
             // 5. Import proficiencies
             foreach ($data['proficiencies'] as $profData) {
-                $background->proficiencies()->create($profData);
+                // Parser now includes 'grants' => true and proficiency_type_id
+                $background->proficiencies()->create(array_merge($profData, [
+                    'grants' => $profData['grants'] ?? true, // Backgrounds grant proficiency
+                ]));
             }
 
             // 6. Import sources

@@ -251,7 +251,8 @@ class RaceImporter
                 'reference_id' => $race->id,
                 'proficiency_type' => $profData['type'],
                 'proficiency_name' => $profData['name'], // Always store name as fallback
-                'proficiency_type_id' => $profData['proficiency_type_id'] ?? null, // NEW: From parser
+                'proficiency_type_id' => $profData['proficiency_type_id'] ?? null, // From parser
+                'grants' => $profData['grants'] ?? true, // Races grant proficiency
             ];
 
             // Handle different proficiency types

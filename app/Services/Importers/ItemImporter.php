@@ -144,6 +144,8 @@ class ItemImporter
                 'reference_id' => $item->id,
                 'proficiency_type' => $profData['type'],
                 'proficiency_name' => $profData['name'],
+                'proficiency_type_id' => $profData['proficiency_type_id'] ?? null,
+                'grants' => $profData['grants'] ?? false, // Items require proficiency
             ]);
         }
     }
@@ -158,7 +160,10 @@ class ItemImporter
                 'reference_type' => Item::class,
                 'reference_id' => $item->id,
                 'modifier_category' => $modData['category'],
-                'value' => $modData['text'],
+                'value' => (string) $modData['value'], // Now an integer from parser
+                'ability_score_id' => $modData['ability_score_id'] ?? null,
+                'skill_id' => $modData['skill_id'] ?? null,
+                'damage_type_id' => $modData['damage_type_id'] ?? null,
             ]);
         }
     }

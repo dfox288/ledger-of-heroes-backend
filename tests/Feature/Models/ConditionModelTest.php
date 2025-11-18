@@ -15,27 +15,27 @@ class ConditionModelTest extends TestCase
     public function it_can_create_a_condition(): void
     {
         $condition = Condition::create([
-            'name' => 'Charmed',
-            'slug' => 'charmed',
-            'description' => 'A charmed creature cannot attack the charmer.',
+            'name' => 'Test Condition',
+            'slug' => 'test-condition',
+            'description' => 'A test condition for unit testing.',
         ]);
 
         $this->assertDatabaseHas('conditions', [
-            'name' => 'Charmed',
-            'slug' => 'charmed',
+            'name' => 'Test Condition',
+            'slug' => 'test-condition',
         ]);
 
-        $this->assertEquals('Charmed', $condition->name);
-        $this->assertEquals('charmed', $condition->slug);
+        $this->assertEquals('Test Condition', $condition->name);
+        $this->assertEquals('test-condition', $condition->slug);
     }
 
     #[Test]
     public function it_does_not_have_timestamps(): void
     {
         $condition = Condition::create([
-            'name' => 'Frightened',
-            'slug' => 'frightened',
-            'description' => 'A frightened creature has disadvantage on ability checks.',
+            'name' => 'Test Timestamps',
+            'slug' => 'test-timestamps',
+            'description' => 'Testing that timestamps are not created.',
         ]);
 
         $this->assertNull($condition->created_at);
@@ -46,16 +46,16 @@ class ConditionModelTest extends TestCase
     public function it_enforces_unique_slug(): void
     {
         Condition::create([
-            'name' => 'Poisoned',
-            'slug' => 'poisoned',
-            'description' => 'A poisoned creature has disadvantage on attack rolls.',
+            'name' => 'Unique Test',
+            'slug' => 'unique-test',
+            'description' => 'First unique test condition.',
         ]);
 
         $this->expectException(\Illuminate\Database\QueryException::class);
 
         Condition::create([
-            'name' => 'Poisoned (Duplicate)',
-            'slug' => 'poisoned', // Same slug
+            'name' => 'Unique Test (Duplicate)',
+            'slug' => 'unique-test', // Same slug
             'description' => 'Duplicate condition.',
         ]);
     }

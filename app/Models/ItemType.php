@@ -10,7 +10,9 @@ class ItemType extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'code',
         'name',
+        'description',
     ];
 
     // Relationships

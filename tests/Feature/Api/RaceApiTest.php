@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\Proficiency;
 use App\Models\Race;
 use App\Models\Size;
+use App\Models\Skill;
 use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -168,5 +170,40 @@ class RaceApiTest extends TestCase
         $response->assertStatus(200);
         $subraces = $response->json('data.subraces');
         $this->assertCount(2, $subraces);
+    }
+
+    /** @test */
+    public function it_includes_proficiencies_in_response()
+    {
+        $race = Race::factory()->create(['name' => 'High Elf']);
+        $skill = Skill::where('name', 'Perception')->first();
+
+        Proficiency::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'proficiency_type' => 'skill',
+            'skill_id' => $skill->id,
+        ]);
+
+        Proficiency::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'proficiency_type' => 'weapon',
+            'proficiency_name' => 'Longsword',
+        ]);
+
+        $response = $this->getJson("/api/v1/races/{$race->id}");
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'data' => [
+                'proficiencies' => [
+                    '*' => ['id', 'proficiency_type']
+                ]
+            ]
+        ]);
+
+        $proficiencies = $response->json('data.proficiencies');
+        $this->assertCount(2, $proficiencies);
     }
 }

@@ -32,6 +32,7 @@ class RaceResource extends JsonResource
                 return new RaceResource($this->whenLoaded('parent'));
             }),
             'subraces' => RaceResource::collection($this->whenLoaded('subraces')),
+            'proficiencies' => ProficiencyResource::collection($this->whenLoaded('proficiencies')),
         ];
     }
 }

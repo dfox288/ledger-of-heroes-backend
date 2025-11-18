@@ -43,11 +43,14 @@ class RaceImporter
             [
                 'size_id' => $size->id,
                 'speed' => $raceData['speed'],
-                'description' => $raceData['description'],
+                'description' => '', // Will be removed in Task 1.4
                 'source_id' => $source->id,
                 'source_pages' => $raceData['source_pages'],
             ]
         );
+
+        // Import traits (clear old ones first)
+        $this->importTraits($race, $raceData['traits'] ?? []);
 
         // Import proficiencies if present
         if (isset($raceData['proficiencies'])) {
@@ -55,6 +58,23 @@ class RaceImporter
         }
 
         return $race;
+    }
+
+    private function importTraits(Race $race, array $traitsData): void
+    {
+        // Clear existing traits for this race
+        $race->traits()->delete();
+
+        foreach ($traitsData as $traitData) {
+            \App\Models\CharacterTrait::create([
+                'reference_type' => Race::class,
+                'reference_id' => $race->id,
+                'name' => $traitData['name'],
+                'category' => $traitData['category'],
+                'description' => $traitData['description'],
+                'sort_order' => $traitData['sort_order'],
+            ]);
+        }
     }
 
     public function importFromFile(string $filePath): int
@@ -114,7 +134,7 @@ class RaceImporter
             'name' => $baseRaceName,
             'size_id' => $size->id,
             'speed' => $speed,
-            'description' => "Base {$baseRaceName} race. See subraces for details.",
+            'description' => '', // Will be removed in Task 1.4
             'source_id' => $source->id,
             'source_pages' => $sourcePages,
             'parent_race_id' => null,

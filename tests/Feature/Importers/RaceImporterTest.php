@@ -30,7 +30,14 @@ class RaceImporterTest extends TestCase
             'name' => 'Dragonborn',
             'size_code' => 'M',
             'speed' => 30,
-            'description' => 'Born of dragons, as their name proclaims.',
+            'traits' => [
+                [
+                    'name' => 'Description',
+                    'category' => 'description',
+                    'description' => 'Born of dragons, as their name proclaims.',
+                    'sort_order' => 0,
+                ],
+            ],
             'source_code' => 'PHB',
             'source_pages' => '32',
         ];
@@ -40,7 +47,11 @@ class RaceImporterTest extends TestCase
         $this->assertInstanceOf(Race::class, $race);
         $this->assertEquals('Dragonborn', $race->name);
         $this->assertEquals(30, $race->speed);
-        $this->assertStringContainsString('Born of dragons', $race->description);
+
+        // Check traits
+        $this->assertCount(1, $race->traits);
+        $trait = $race->traits->first();
+        $this->assertStringContainsString('Born of dragons', $trait->description);
 
         // Check relationships
         $this->assertNotNull($race->size);
@@ -58,7 +69,14 @@ class RaceImporterTest extends TestCase
             'name' => 'Dragonborn',
             'size_code' => 'M',
             'speed' => 30,
-            'description' => 'Original description',
+            'traits' => [
+                [
+                    'name' => 'Description',
+                    'category' => 'description',
+                    'description' => 'Original description',
+                    'sort_order' => 0,
+                ],
+            ],
             'source_code' => 'PHB',
             'source_pages' => '32',
         ];
@@ -66,12 +84,13 @@ class RaceImporterTest extends TestCase
         $this->importer->import($raceData);
         $this->assertEquals(1, Race::count());
 
-        // Re-import with updated description
-        $raceData['description'] = 'Updated description';
+        // Re-import with updated traits
+        $raceData['traits'][0]['description'] = 'Updated description';
         $race = $this->importer->import($raceData);
 
         $this->assertEquals(1, Race::count());
-        $this->assertStringContainsString('Updated description', $race->description);
+        $trait = $race->fresh()->traits->first();
+        $this->assertStringContainsString('Updated description', $trait->description);
     }
 
     /** @test */
@@ -361,5 +380,49 @@ XML;
         $this->assertCount(2, $race->proficiencies);
 
         unlink($tmpFile);
+    }
+
+    /** @test */
+    public function it_imports_race_traits()
+    {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dragonborn</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait category="description">
+      <name>Description</name>
+      <text>Born of dragons.
+Source: Player's Handbook (2014) p. 32</text>
+    </trait>
+    <trait category="species">
+      <name>Breath Weapon</name>
+      <text>You can exhale destructive energy.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $race = Race::where('name', 'Dragonborn')->first();
+        $this->assertNotNull($race);
+
+        $traits = $race->traits;
+        $this->assertCount(2, $traits);
+
+        $descriptionTrait = $traits->where('name', 'Description')->first();
+        $this->assertEquals('description', $descriptionTrait->category);
+        $this->assertStringContainsString('Born of dragons', $descriptionTrait->description);
+
+        $speciesTrait = $traits->where('name', 'Breath Weapon')->first();
+        $this->assertEquals('species', $speciesTrait->category);
     }
 }

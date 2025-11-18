@@ -66,6 +66,11 @@ class Race extends Model
         return $this->morphMany(Modifier::class, 'reference');
     }
 
+    public function entitySources(): MorphMany
+    {
+        return $this->morphMany(EntitySource::class, 'entity', 'entity_type', 'entity_id');
+    }
+
     // Scopes for API filtering
     public function scopeSearch($query, $searchTerm)
     {

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Spell extends Model
 {
@@ -53,6 +54,11 @@ class Spell extends Model
     public function effects(): HasMany
     {
         return $this->hasMany(SpellEffect::class);
+    }
+
+    public function entitySources(): MorphMany
+    {
+        return $this->morphMany(EntitySource::class, 'entity', 'entity_type', 'entity_id');
     }
 
     // Scopes for API filtering

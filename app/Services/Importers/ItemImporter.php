@@ -10,7 +10,11 @@ use App\Models\ItemProperty;
 use App\Models\ItemType;
 use App\Models\Modifier;
 use App\Models\Proficiency;
+use App\Models\RandomTable;
+use App\Models\RandomTableEntry;
 use App\Models\Source;
+use App\Services\Parsers\ItemTableDetector;
+use App\Services\Parsers\ItemTableParser;
 use App\Services\Parsers\ItemXmlParser;
 use Illuminate\Support\Str;
 
@@ -66,6 +70,9 @@ class ItemImporter
 
         // Import abilities
         $this->importAbilities($item, $itemData['abilities']);
+
+        // Import random tables from description text
+        $this->importRandomTables($item, $itemData['description']);
 
         return $item;
     }
@@ -171,6 +178,61 @@ class ItemImporter
                 'sort_order' => $abilityData['sort_order'],
             ]);
         }
+    }
+
+    private function importRandomTables(Item $item, string $description): void
+    {
+        // Detect tables in description
+        $detector = new ItemTableDetector();
+        $tables = $detector->detectTables($description);
+
+        if (empty($tables)) {
+            return;
+        }
+
+        // Clear existing tables
+        $item->randomTables()->delete();
+
+        foreach ($tables as $tableData) {
+            $parser = new ItemTableParser();
+            $parsed = $parser->parse($tableData['text']);
+
+            if (empty($parsed['rows'])) {
+                continue; // Skip tables with no valid rows
+            }
+
+            $table = RandomTable::create([
+                'reference_type' => Item::class,
+                'reference_id' => $item->id,
+                'table_name' => $parsed['table_name'],
+                'dice_type' => $parsed['dice_type'] ?? '',
+            ]);
+
+            foreach ($parsed['rows'] as $index => $row) {
+                // Format roll_value from roll_min/roll_max
+                $rollValue = $this->formatRollValue($row['roll_min'], $row['roll_max']);
+
+                RandomTableEntry::create([
+                    'random_table_id' => $table->id,
+                    'roll_value' => $rollValue,
+                    'result' => $row['result_text'],
+                    'sort_order' => $index,
+                ]);
+            }
+        }
+    }
+
+    private function formatRollValue(?int $rollMin, ?int $rollMax): string
+    {
+        if ($rollMin === null || $rollMax === null) {
+            return '';
+        }
+
+        if ($rollMin === $rollMax) {
+            return (string) $rollMin;
+        }
+
+        return "{$rollMin}-{$rollMax}";
     }
 
     private function getSourceByCode(string $code): Source

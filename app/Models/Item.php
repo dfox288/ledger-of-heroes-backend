@@ -81,4 +81,9 @@ class Item extends Model
     {
         return $this->morphMany(Modifier::class, 'reference');
     }
+
+    public function randomTables(): MorphMany
+    {
+        return $this->morphMany(RandomTable::class, 'reference');
+    }
 }

@@ -2,30 +2,40 @@
 
 **Last Updated:** 2025-11-18
 **Branch:** `schema-redesign`
-**Status:** ✅ Core Infrastructure Complete - Ready for Continued Development
+**Status:** ✅ Core Infrastructure Complete + Normalized Proficiencies - Ready for Class Importer
 
 ---
 
 ## Current Project State
 
 ### Test Status
-- **267 tests passing** (1,580 assertions)
+- **313 tests passing** (+46 from previous session)
+- **1,766 assertions** (+186)
 - **1 incomplete test** (expected - race random table enhancement noted)
 - **0 warnings** - All PHPUnit deprecation warnings resolved
-- **Test Duration:** ~2.5 seconds
+- **Test Duration:** ~3.2 seconds
 
 ### Database State
 
 **Entities Imported:**
+- ✅ **Backgrounds:** 19 (18 PHB + 1 ERLW)
 - ✅ **Races:** 56 (20 base races + 36 subraces)
 - ✅ **Items:** 1,942 (all 17 XML files imported)
 - ⚠️  **Spells:** 0 (database cleared, ready for re-import)
-- **Total Entities:** 1,998
+- **Total Entities:** 2,017
+
+**Proficiency Normalization (NEW):**
+- **Total Proficiencies:** 74
+- **Matched to Types:** 25 (100% of non-skill proficiencies)
+- **Skills (skill_id):** 49
+- **Unmatched:** 0 ✓
+- **Match Rate:** 100% for weapons/armor/tools
 
 **Metadata:**
-- **Random Tables:** 60 tables with 381 entries
+- **Random Tables:** 76 tables with 381+ entries
   - 24 item tables (Deck of Many Things, Apparatus of Kwalish, etc.)
   - 36 race trait tables (personality quirks, features)
+  - 16 background tables (personality traits, ideals, bonds, flaws)
   - 97% have dice_type captured (d4, d6, d8, d10, d12, d20, d100, 1d22, 1d33, 2d6)
 - **Item Abilities:** 379 (with roll formulas like "1d20+3", "2d6 fire damage")
 - **Modifiers:** 846 (ability score bonuses, skill modifiers, etc.)
@@ -35,24 +45,83 @@
 ### Infrastructure
 
 **Database Schema:**
-- ✅ 31 migrations (including 5 from latest enhancements)
-- ✅ 18 Eloquent models with HasFactory trait
+- ✅ 44 migrations (+4 new: conditions, proficiency_types, entity_conditions, proficiency_type_id FK)
+- ✅ 21 Eloquent models with HasFactory trait (+3: Condition, ProficiencyType, EntityCondition)
 - ✅ 10 model factories for test data generation
-- ✅ 9 database seeders for lookup/reference data
+- ✅ 11 database seeders (+2: ConditionSeeder, ProficiencyTypeSeeder)
+- ✅ 47 tables (+3)
+
+**Lookup Tables (NEW):**
+- ✅ **Conditions:** 15 D&D 5e conditions (Blinded, Charmed, Frightened, etc.)
+- ✅ **Proficiency Types:** 80 types across 7 categories
+  - 43 weapons (Longsword, Dagger, etc.)
+  - 4 armor types (Light, Medium, Heavy, Shields)
+  - 23 tools (Smith's Tools, Thieves' Tools, etc.)
+  - 10 musical instruments
+  - 2 vehicles, 2 gaming sets
 
 **API Layer:**
-- ✅ 16 API Resources (standardized, 100% field-complete)
-- ✅ 10 API Controllers
-- ✅ 21 API routes with CORS support
+- ✅ 19 API Resources (+3: ConditionResource, ProficiencyTypeResource, BackgroundResource)
+- ✅ 12 API Controllers (+2: ConditionController, ProficiencyTypeController)
+- ✅ 27 API routes (+6: conditions, proficiency-types, backgrounds)
 
 **Import System:**
-- ✅ 3 working importers: Spell, Race, Item
-- ✅ 3 artisan commands: `import:spells`, `import:races`, `import:items`
-- ✅ 2 table parsers: ItemTableDetector, ItemTableParser
+- ✅ 4 working importers: Spell, Race, Item, Background
+- ✅ 4 artisan commands: `import:spells`, `import:races`, `import:items`, `import:backgrounds`
+- ✅ 3 table parsers: ItemTableDetector, ItemTableParser, (MatchesProficiencyTypes trait)
 
 ---
 
 ## Major Features Completed (2025-11-18)
+
+### Conditions & Proficiency Types System ✅ (Latest)
+
+**Phase 1: Static Lookup Tables**
+1. **Conditions Table** - 15 D&D 5e conditions with full descriptions
+2. **Proficiency Types Table** - 80 types (weapon, armor, tool, vehicle, language, gaming_set, musical_instrument)
+3. **Entity Conditions Junction** - Polymorphic table for spell/monster/item → condition relationships
+4. **Proficiencies Enhanced** - Added proficiency_type_id FK (nullable, backward compatible)
+
+**Phase 2: Parser Integration**
+- Created `MatchesProficiencyTypes` trait (reusable across parsers)
+- Updated `RaceXmlParser` to auto-match proficiency types
+- Updated `BackgroundXmlParser` to auto-match proficiency types
+- Simplified `RaceImporter` proficiency creation logic
+
+**Phase 3: API Endpoints**
+- `GET /api/v1/conditions` - List/search conditions
+- `GET /api/v1/proficiency-types?category=weapon` - Filterable proficiency types
+
+**Results:**
+- ✅ 100% match rate (25/25 non-skill proficiencies matched automatically)
+- ✅ Zero manual data migration needed
+- ✅ Normalized proficiency data enables queries like "Find races proficient with Longsword"
+- ✅ All existing tests pass + 46 new tests
+
+**Documentation:**
+- `docs/HANDOVER-2025-11-18-CONDITIONS-PROFICIENCIES.md`
+- `docs/HANDOVER-2025-11-18-PROFICIENCY-MATCHER.md`
+- `docs/plans/2025-11-18-conditions-proficiency-types-implementation.md`
+- `docs/plans/2025-11-18-proficiency-type-matcher-implementation.md`
+
+### Background Importer ✅
+
+**Features Implemented:**
+1. **BackgroundXmlParser** - Parses proficiencies, traits, sources with multi-source support
+2. **BackgroundImporter** - TDD-based importer with XML reconstruction tests
+3. **Background API** - BackgroundResource + BackgroundController
+4. **Eberron Sources** - Added ERLW, WGTE to SourceSeeder
+
+**Coverage:**
+- 19 backgrounds imported (18 PHB + 1 ERLW)
+- 71 traits (3.7 avg per background)
+- 38 proficiencies (now 100% matched to proficiency_types!)
+- 76 random tables (personality, ideals, bonds, flaws)
+
+**Tests:**
+- 6 parser unit tests
+- 5 XML reconstruction tests
+- 10 API tests
 
 ### Item Enhancements ✅
 
@@ -339,19 +408,23 @@ echo 'Spells: ' . \App\Models\Spell::count() . PHP_EOL;
 
 ## Next Steps Recommendations
 
-### Option A: Class Importer (Highest Value)
-**Why:** Most complex entity, builds on all patterns learned from Race/Spell/Item
+### Option A: Class Importer (⭐ HIGHEST PRIORITY)
+**Why:** Most complex entity, builds on all established patterns
 - 35 XML files ready to import
 - 13 base classes seeded in database
 - Subclass hierarchy using `parent_class_id`
 - Class features, spell slots, counters (Ki, Rage)
 - Spellcasting ability associations
+- **Can reuse MatchesProficiencyTypes trait** for weapon/armor proficiencies
 
 **Approach:**
 1. Write reconstruction tests for class XML structure
-2. Build ClassXmlParser following established patterns
-3. Build ClassImporter with features/counters/spell slots
-4. Verify with real XML data (Fighter, Wizard, etc.)
+2. Build ClassXmlParser following RaceXmlParser/BackgroundXmlParser patterns
+3. Use MatchesProficiencyTypes trait for proficiency normalization
+4. Build ClassImporter with features/counters/spell slots
+5. Verify with real XML data (Fighter, Wizard, etc.)
+
+**Estimated Effort:** 6-8 hours
 
 ### Option B: Monster Importer (Medium Complexity)
 **Why:** Simpler than classes, high value for combat-focused apps
@@ -359,30 +432,43 @@ echo 'Spells: ' . \App\Models\Spell::count() . PHP_EOL;
 - Traits, actions, legendary actions, spellcasting
 - Schema complete and tested
 
-### Option C: API Enhancements (Quick Wins)
-**Why:** Improves usability of existing data
-- Add filtering by `is_magic`, `dice_type`, `rarity`
-- Add sorting by multiple fields
-- Add aggregation endpoints
-- Improve search capabilities
+**Estimated Effort:** 4-6 hours
 
-### Option D: Documentation & Deployment (Polish)
-**Why:** Prepare for production use
-- API documentation (OpenAPI/Swagger)
-- Performance profiling
-- Static analysis (PHPStan)
-- Docker optimization
+### Option C: API Enhancements for Proficiencies (Quick Wins)
+**Why:** Leverage newly normalized proficiency data
+- Add `?proficiency=longsword` filter to Races endpoint
+- Add `?proficiency_category=tool` filter to Backgrounds endpoint
+- Add `?condition=charmed` filter to Spells endpoint (future)
+- Aggregate proficiency statistics
+
+**Estimated Effort:** 2-3 hours
+
+### Option D: Scramble API Documentation Update
+**Why:** Auto-documentation needs to reflect new endpoints
+- Verify 27 endpoints documented
+- Add examples for new lookup endpoints
+- Test interactive API docs at `/docs/api`
+
+**Estimated Effort:** 1 hour
 
 ---
 
 ## Key Design Documents
 
 **Essential Reading:**
-- `CLAUDE.md` - Comprehensive project guide (updated regularly)
+- `CLAUDE.md` - Comprehensive project guide (UPDATE THIS with new counts!)
 - `docs/plans/2025-11-17-dnd-compendium-database-design.md` - Database architecture
 - `docs/plans/2025-11-17-dnd-xml-importer-implementation-v4-vertical-slices.md` - Implementation strategy
 
+**Latest Session Handovers (2025-11-18):**
+- `docs/HANDOVER-2025-11-18-BACKGROUND-API-COMPLETE.md` - Background importer
+- `docs/HANDOVER-2025-11-18-CONDITIONS-PROFICIENCIES.md` - Static lookup tables
+- `docs/HANDOVER-2025-11-18-PROFICIENCY-MATCHER.md` - Parser integration (100% match rate!)
+
 **Completed Implementation Plans:**
+- `docs/plans/2025-11-18-conditions-proficiency-types-implementation.md`
+- `docs/plans/2025-11-18-proficiency-type-matcher-implementation.md`
+- `docs/plans/2025-11-18-background-importer-implementation.md`
 - `docs/plans/2025-11-18-item-enhancements-magic-modifiers-abilities.md`
 - `docs/plans/2025-11-18-item-random-tables-parsing.md`
 

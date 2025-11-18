@@ -11,7 +11,7 @@ class SpellController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Spell::with(['spellSchool', 'source', 'effects', 'classes']);
+        $query = Spell::with(['spellSchool', 'sources.source', 'effects.damageType', 'classes']);
 
         // Apply search filter (FULLTEXT search)
         if ($request->has('search')) {
@@ -49,7 +49,7 @@ class SpellController extends Controller
 
     public function show(Spell $spell)
     {
-        $spell->load(['spellSchool', 'source', 'effects', 'classes']);
+        $spell->load(['spellSchool', 'sources.source', 'effects.damageType', 'classes']);
 
         return new SpellResource($spell);
     }

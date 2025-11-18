@@ -19,6 +19,7 @@ class SpellEffect extends Model
         'min_character_level',
         'min_spell_slot',
         'scaling_increment',
+        'damage_type_id',
     ];
 
     protected $casts = [
@@ -30,5 +31,10 @@ class SpellEffect extends Model
     public function spell(): BelongsTo
     {
         return $this->belongsTo(Spell::class);
+    }
+
+    public function damageType(): BelongsTo
+    {
+        return $this->belongsTo(DamageType::class);
     }
 }

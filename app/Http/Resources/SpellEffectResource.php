@@ -19,6 +19,9 @@ class SpellEffectResource extends JsonResource
             'min_character_level' => $this->min_character_level,
             'min_spell_slot' => $this->min_spell_slot,
             'scaling_increment' => $this->scaling_increment,
+            'damage_type' => $this->when($this->damage_type_id, function () {
+                return new DamageTypeResource($this->whenLoaded('damageType'));
+            }),
         ];
     }
 }

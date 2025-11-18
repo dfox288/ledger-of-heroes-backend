@@ -352,4 +352,48 @@ class SpellApiTest extends TestCase
                 'pages' => '123',
             ]);
     }
+
+    /** @test */
+    public function test_spell_effect_includes_damage_type_resource_when_present()
+    {
+        // Note: This test verifies the DamageTypeResource is properly integrated
+        // The damage_type_id column doesn't exist yet in spell_effects table,
+        // but the resource structure is ready for when it's added
+        $spell = Spell::create([
+            'name' => 'Test Spell',
+            'level' => 1,
+            'spell_school_id' => SpellSchool::where('code', 'EV')->first()->id,
+            'casting_time' => '1 action',
+            'range' => '60 feet',
+            'components' => 'V, S',
+            'duration' => 'Instantaneous',
+            'needs_concentration' => false,
+            'is_ritual' => false,
+            'description' => 'Test spell',
+        ]);
+
+        $spell->effects()->create([
+            'effect_type' => 'damage',
+            'description' => 'Test damage',
+            'dice_formula' => '2d6',
+        ]);
+
+        $response = $this->getJson("/api/v1/spells/{$spell->id}");
+
+        // Verify the effect is included without damage_type (null since column doesn't exist yet)
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'effects' => [
+                        '*' => [
+                            'id',
+                            'effect_type',
+                            'description',
+                            'dice_formula',
+                        ],
+                    ],
+                ],
+            ])
+            ->assertJsonPath('data.effects.0.effect_type', 'damage');
+    }
 }

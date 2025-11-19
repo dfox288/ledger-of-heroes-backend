@@ -57,6 +57,9 @@ class ClassXmlParser
             $data['skill_choices'] = (int) $element->numSkills;
         }
 
+        // Parse features from autolevel elements
+        $data['features'] = $this->parseFeatures($element);
+
         return $data;
     }
 
@@ -168,8 +171,34 @@ class ClassXmlParser
      */
     private function parseFeatures(SimpleXMLElement $element): array
     {
-        // TODO: Implement parseFeatures logic
-        return [];
+        $features = [];
+        $sortOrder = 0;
+
+        // Iterate through all autolevel elements
+        foreach ($element->autolevel as $autolevel) {
+            $level = (int) $autolevel['level'];
+
+            // Parse each feature within this autolevel
+            foreach ($autolevel->feature as $featureElement) {
+                $isOptional = isset($featureElement['optional']) && (string) $featureElement['optional'] === 'YES';
+                $name = (string) $featureElement->name;
+                $text = (string) $featureElement->text;
+
+                // Extract source citation if present
+                $sources = $this->parseSourceCitations($text);
+
+                $features[] = [
+                    'level' => $level,
+                    'name' => $name,
+                    'description' => trim($text),
+                    'is_optional' => $isOptional,
+                    'sources' => $sources,
+                    'sort_order' => $sortOrder++,
+                ];
+            }
+        }
+
+        return $features;
     }
 
     /**

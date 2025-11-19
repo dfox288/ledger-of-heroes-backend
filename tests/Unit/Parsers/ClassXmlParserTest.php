@@ -83,4 +83,45 @@ class ClassXmlParserTest extends TestCase
         $this->assertArrayHasKey('skill_choices', $fighter);
         $this->assertEquals(2, $fighter['skill_choices']);
     }
+
+    #[Test]
+    public function it_parses_fighter_features_from_autolevel()
+    {
+        // Load real Fighter XML from file
+        $xmlPath = base_path('import-files/class-fighter-phb.xml');
+        $xml = file_get_contents($xmlPath);
+
+        // Parse the XML
+        $classes = $this->parser->parse($xml);
+        $fighter = $classes[0];
+
+        // Assert: features key exists
+        $this->assertArrayHasKey('features', $fighter);
+        $this->assertIsArray($fighter['features']);
+
+        // Assert: should have multiple features
+        $this->assertGreaterThan(0, count($fighter['features']));
+
+        // Assert: feature structure
+        $firstFeature = $fighter['features'][0];
+        $this->assertArrayHasKey('level', $firstFeature);
+        $this->assertArrayHasKey('name', $firstFeature);
+        $this->assertArrayHasKey('description', $firstFeature);
+        $this->assertArrayHasKey('is_optional', $firstFeature);
+
+        // Assert: specific features exist at correct levels
+        $featuresByLevel = [];
+        foreach ($fighter['features'] as $feature) {
+            $featuresByLevel[$feature['level']][] = $feature['name'];
+        }
+
+        // Fighter should have "Fighting Style" at level 1
+        $this->assertArrayHasKey(1, $featuresByLevel);
+        $level1Features = array_filter($featuresByLevel[1], fn ($name) => str_contains($name, 'Fighting Style'));
+        $this->assertNotEmpty($level1Features, 'Fighter should have Fighting Style at level 1');
+
+        // Fighter should have "Action Surge" at level 2
+        $this->assertArrayHasKey(2, $featuresByLevel);
+        $this->assertContains('Action Surge', $featuresByLevel[2]);
+    }
 }

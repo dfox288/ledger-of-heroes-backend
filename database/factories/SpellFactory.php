@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Spell;
 use App\Models\SpellSchool;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Spell>
@@ -24,8 +25,11 @@ class SpellFactory extends Factory
         $schoolCode = fake()->randomElement($schools);
         $school = SpellSchool::where('code', $schoolCode)->first();
 
+        $name = fake()->unique()->words(3, true);
+
         return [
-            'name' => fake()->words(3, true),
+            'slug' => Str::slug($name),
+            'name' => $name,
             'level' => fake()->numberBetween(0, 9),
             'spell_school_id' => $school->id,
             'casting_time' => fake()->randomElement(['1 action', '1 bonus action', '1 reaction', '1 minute', '10 minutes']),

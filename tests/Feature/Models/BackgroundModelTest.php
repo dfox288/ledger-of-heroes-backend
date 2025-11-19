@@ -17,7 +17,7 @@ class BackgroundModelTest extends TestCase
     #[Test]
     public function background_has_traits_relationship()
     {
-        $background = Background::create(['name' => 'Test Background']);
+        $background = Background::create(['slug' => 'test-background', 'name' => 'Test Background']);
 
         CharacterTrait::create([
             'reference_type' => Background::class,
@@ -33,7 +33,7 @@ class BackgroundModelTest extends TestCase
     #[Test]
     public function background_has_proficiencies_relationship()
     {
-        $background = Background::create(['name' => 'Test Background']);
+        $background = Background::create(['slug' => 'test-background', 'name' => 'Test Background']);
 
         Proficiency::create([
             'reference_type' => Background::class,
@@ -49,7 +49,7 @@ class BackgroundModelTest extends TestCase
     #[Test]
     public function background_has_sources_relationship()
     {
-        $background = Background::create(['name' => 'Test Background']);
+        $background = Background::create(['slug' => 'test-background', 'name' => 'Test Background']);
 
         EntitySource::create([
             'reference_type' => Background::class,

@@ -7,6 +7,7 @@ use App\Models\Spell;
 use App\Models\SpellSchool;
 use App\Services\Importers\Concerns\ImportsSources;
 use App\Services\Parsers\SpellXmlParser;
+use Illuminate\Support\Str;
 
 class SpellImporter
 {
@@ -17,10 +18,11 @@ class SpellImporter
         // Lookup spell school by code
         $spellSchool = SpellSchool::where('code', $spellData['school'])->firstOrFail();
 
-        // Create or update spell (no longer storing source_id/source_pages directly)
+        // Create or update spell using slug as unique key
         $spell = Spell::updateOrCreate(
-            ['name' => $spellData['name']],
+            ['slug' => Str::slug($spellData['name'])],
             [
+                'name' => $spellData['name'],
                 'level' => $spellData['level'],
                 'spell_school_id' => $spellSchool->id,
                 'casting_time' => $spellData['casting_time'],

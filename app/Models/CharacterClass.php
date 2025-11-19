@@ -18,6 +18,7 @@ class CharacterClass extends Model
     protected $table = 'classes';
 
     protected $fillable = [
+        'slug',
         'name',
         'parent_class_id',
         'hit_die',

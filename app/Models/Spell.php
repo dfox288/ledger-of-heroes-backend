@@ -16,6 +16,7 @@ class Spell extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'slug',
         'name',
         'level',
         'spell_school_id',

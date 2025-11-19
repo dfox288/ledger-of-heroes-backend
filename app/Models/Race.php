@@ -15,6 +15,7 @@ class Race extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'slug',
         'name',
         'size_id',
         'speed',

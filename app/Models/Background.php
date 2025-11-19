@@ -13,6 +13,7 @@ class Background extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'slug',
         'name',
     ];
 

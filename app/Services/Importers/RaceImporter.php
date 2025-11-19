@@ -20,6 +20,7 @@ use App\Services\Importers\Concerns\ImportsTraits;
 use App\Services\Parsers\ItemTableDetector;
 use App\Services\Parsers\ItemTableParser;
 use App\Services\Parsers\RaceXmlParser;
+use Illuminate\Support\Str;
 
 class RaceImporter
 {
@@ -44,13 +45,15 @@ class RaceImporter
             $parentRaceId = $baseRace->id;
         }
 
-        // Create or update race (no longer storing source_id/source_pages directly)
+        // Generate slug for race
+        $slug = $this->generateRaceSlug($raceData['name'], $raceData['base_race_name'] ?? null);
+
+        // Create or update race using slug as unique key
         $race = Race::updateOrCreate(
+            ['slug' => $slug],
             [
                 'name' => $raceData['name'],
                 'parent_race_id' => $parentRaceId,
-            ],
-            [
                 'size_id' => $size->id,
                 'speed' => $raceData['speed'],
             ]
@@ -246,6 +249,7 @@ class RaceImporter
         $size = Size::where('code', $sizeCode)->firstOrFail();
 
         $baseRace = Race::create([
+            'slug' => Str::slug($baseRaceName),
             'name' => $baseRaceName,
             'size_id' => $size->id,
             'speed' => $speed,
@@ -356,5 +360,39 @@ class RaceImporter
                 // and will need to be parsed separately if needed in the future
             }
         }
+    }
+
+    /**
+     * Generate a slug for a race, handling parent/subrace relationships.
+     *
+     * @param string $raceName Full race name (e.g., "Dwarf (Hill)")
+     * @param string|null $baseRaceName Base race name if this is a subrace
+     * @return string Generated slug (e.g., "dwarf-hill")
+     */
+    private function generateRaceSlug(string $raceName, ?string $baseRaceName): string
+    {
+        // If this is a base race (no base_race_name), just slug the name
+        if (empty($baseRaceName)) {
+            return Str::slug($raceName);
+        }
+
+        // For subraces, extract the subrace portion
+        // Format: "Dwarf (Hill)" or "Elf, High"
+
+        // Try parentheses format first: "Dwarf (Hill)"
+        if (preg_match('/^(.+?)\s*\((.+)\)$/', $raceName, $matches)) {
+            $baseRaceName = trim($matches[1]);
+            $subraceName = trim($matches[2]);
+            return Str::slug($baseRaceName) . '-' . Str::slug($subraceName);
+        }
+
+        // Try comma format: "Dwarf, Hill"
+        if (str_contains($raceName, ',')) {
+            [$baseRaceName, $subraceName] = array_map('trim', explode(',', $raceName, 2));
+            return Str::slug($baseRaceName) . '-' . Str::slug($subraceName);
+        }
+
+        // Fallback: just slug the full name
+        return Str::slug($raceName);
     }
 }

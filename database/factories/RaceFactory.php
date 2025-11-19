@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Size;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Race>
@@ -17,8 +18,11 @@ class RaceFactory extends Factory
      */
     public function definition(): array
     {
+        $name = fake()->unique()->word();
+
         return [
-            'name' => fake()->word(),
+            'slug' => Str::slug($name),
+            'name' => $name,
             'size_id' => Size::where('code', 'M')->first()->id,
             'speed' => 30,
             'parent_race_id' => null,

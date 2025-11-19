@@ -16,6 +16,7 @@ class BackgroundResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'slug' => $this->slug,
             'name' => $this->name,
             'traits' => TraitResource::collection($this->whenLoaded('traits')),
             'proficiencies' => ProficiencyResource::collection($this->whenLoaded('proficiencies')),

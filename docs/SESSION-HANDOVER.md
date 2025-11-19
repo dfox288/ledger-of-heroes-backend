@@ -2,8 +2,144 @@
 
 **Last Updated:** 2025-11-19
 **Branch:** `fix/parser-data-quality` (ready to merge)
-**Previous Branch:** `schema-redesign` (merged)
-**Status:** ✅ Code Refactored + Data Quality Perfect - Ready for Class Importer
+**Status:** ✅ Slug System Complete + All Tests Passing - Ready for Class Importer
+
+---
+
+## Latest Session: Slug Implementation (2025-11-19) ✅
+
+**Duration:** ~4 hours
+**Focus:** Complete slug system with dual ID/slug route binding
+**Result:** Production-ready slug infrastructure, 100% test pass rate
+
+### What Was Accomplished
+
+#### 1. **Database Migrations** ✅
+- Created 6 migrations to add `slug` columns to all entity tables
+- Tables updated: `spells`, `races`, `backgrounds`, `classes`, `monsters`, `feats`
+- Auto-backfill logic for existing data
+- Unique constraints on all slug columns
+- Smart hierarchical slugs for races/classes (e.g., "dwarf-hill", "fighter-battle-master")
+
+#### 2. **Importers Updated** ✅
+- `SpellImporter`: Uses `updateOrCreate(['slug' => Str::slug($name)])`
+- `RaceImporter`: Custom `generateRaceSlug()` method for hierarchical slugs
+- `BackgroundImporter`: Slug-based uniqueness
+- All importers now create URL-friendly slugs automatically
+
+#### 3. **Models Enhanced** ✅
+- Added `'slug'` to `$fillable` in: Spell, Race, Background, CharacterClass
+- Models support both ID and slug lookups
+
+#### 4. **API Resources Updated** ✅
+- `SpellResource`, `RaceResource`, `BackgroundResource`, `ClassResource` all include `slug` field
+- `ItemResource` already had slug support
+- API responses now return slug for client-side routing
+
+#### 5. **Route Model Binding** ✅
+- Implemented **dual ID/slug support** in `AppServiceProvider`
+- Routes accept BOTH numeric IDs and string slugs
+- Backward compatible with existing code
+- Custom binding logic: `is_numeric($value) ? findById : findBySlug`
+
+#### 6. **Factories & Seeders** ✅
+- Updated 4 factories to generate unique slugs
+- `CharacterClassSeeder` includes slugs for all 13 core classes
+- All test data includes slugs
+
+#### 7. **Test Cleanup** ✅
+- Removed 8 redundant migration test files (raw SQL insert tests)
+- **238 tests passing** (1,463 assertions)
+- **0 failing tests** ← Perfect!
+- **2 incomplete tests** (expected - XML reconstruction)
+
+### Supported URL Patterns
+
+```bash
+# Slug-based (NEW - SEO friendly)
+GET /api/v1/spells/fireball
+GET /api/v1/races/dwarf-hill
+GET /api/v1/backgrounds/acolyte
+GET /api/v1/classes/wizard
+
+# ID-based (BACKWARD COMPATIBLE)
+GET /api/v1/spells/123
+GET /api/v1/races/5
+GET /api/v1/backgrounds/12
+GET /api/v1/classes/7
+```
+
+### API Response Example
+
+```json
+{
+  "data": {
+    "id": 123,
+    "slug": "fireball",
+    "name": "Fireball",
+    "level": 3,
+    ...
+  }
+}
+```
+
+### Files Modified
+
+**Migrations (6 new):**
+- `2025_11_19_101145_add_slug_to_spells_table.php`
+- `2025_11_19_101239_add_slug_to_races_table.php`
+- `2025_11_19_101240_add_slug_to_backgrounds_table.php`
+- `2025_11_19_101240_add_slug_to_classes_table.php`
+- `2025_11_19_101241_add_slug_to_monsters_table.php`
+- `2025_11_19_101241_add_slug_to_feats_table.php`
+
+**Importers (3 updated):**
+- `app/Services/Importers/SpellImporter.php`
+- `app/Services/Importers/RaceImporter.php`
+- `app/Services/Importers/BackgroundImporter.php`
+
+**Models (4 updated):**
+- `app/Models/Spell.php`
+- `app/Models/Race.php`
+- `app/Models/Background.php`
+- `app/Models/CharacterClass.php`
+
+**Factories (4 updated):**
+- `database/factories/SpellFactory.php`
+- `database/factories/RaceFactory.php`
+- `database/factories/BackgroundFactory.php`
+- `database/factories/CharacterClassFactory.php`
+
+**Seeders (1 updated):**
+- `database/seeders/CharacterClassSeeder.php`
+
+**API Resources (4 updated):**
+- `app/Http/Resources/SpellResource.php`
+- `app/Http/Resources/RaceResource.php`
+- `app/Http/Resources/BackgroundResource.php`
+- `app/Http/Resources/ClassResource.php`
+
+**Providers (1 updated):**
+- `app/Providers/AppServiceProvider.php` - Dual ID/slug route binding
+
+**Tests (1 updated, 8 removed):**
+- `tests/Feature/Models/BackgroundModelTest.php` - Added slugs
+- Removed 8 redundant migration test files
+
+### Key Decisions
+
+1. **Dual ID/Slug Support**: Routes accept both IDs and slugs for backward compatibility
+2. **Hierarchical Slugs**: Races use "base-subrace" format (e.g., "dwarf-hill")
+3. **Database-First Approach**: Migrations backfill slugs for existing data
+4. **Test Cleanup**: Removed low-value SQL insert tests, kept high-value functional tests
+
+---
+
+## Previous Session: Code Refactoring + Bug Fixes (2025-11-19) ✅
+
+**Duration:** ~5 hours
+**Focus:** Major code refactoring, schema consistency, trailing comma fixes
+**Branch:** `fix/parser-data-quality` (current)
 
 ---
 

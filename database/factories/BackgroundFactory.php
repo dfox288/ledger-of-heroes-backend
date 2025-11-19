@@ -7,6 +7,7 @@ use App\Models\CharacterTrait;
 use App\Models\EntitySource;
 use App\Models\Proficiency;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Background>
@@ -22,8 +23,11 @@ class BackgroundFactory extends Factory
      */
     public function definition(): array
     {
+        $name = fake()->unique()->words(2, true);
+
         return [
-            'name' => fake()->unique()->words(2, true),
+            'slug' => Str::slug($name),
+            'name' => $name,
         ];
     }
 

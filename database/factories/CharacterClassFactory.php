@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\AbilityScore;
 use App\Models\CharacterClass;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\CharacterClass>
@@ -21,9 +22,11 @@ class CharacterClassFactory extends Factory
     public function definition(): array
     {
         $abilities = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
+        $name = fake()->unique()->words(2, true);
 
         return [
-            'name' => fake()->words(2, true),
+            'slug' => Str::slug($name),
+            'name' => $name,
             'parent_class_id' => null,
             'hit_die' => fake()->randomElement([6, 8, 10, 12]),
             'description' => fake()->paragraphs(2, true),

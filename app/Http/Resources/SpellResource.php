@@ -11,6 +11,7 @@ class SpellResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'slug' => $this->slug,
             'name' => $this->name,
             'level' => $this->level,
             'school' => new SpellSchoolResource($this->whenLoaded('spellSchool')),

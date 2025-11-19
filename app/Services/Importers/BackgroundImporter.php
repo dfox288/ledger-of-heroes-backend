@@ -7,16 +7,17 @@ use App\Models\CharacterTrait;
 use App\Models\Source;
 use App\Services\Parsers\ItemTableParser;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class BackgroundImporter
 {
     public function import(array $data): Background
     {
         return DB::transaction(function () use ($data) {
-            // 1. Upsert background by name
+            // 1. Upsert background using slug as unique key
             $background = Background::updateOrCreate(
-                ['name' => $data['name']],
-                []
+                ['slug' => Str::slug($data['name'])],
+                ['name' => $data['name']]
             );
 
             // 2. Clear existing polymorphic relationships

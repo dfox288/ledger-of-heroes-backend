@@ -2,22 +2,23 @@
 
 **Last Updated:** 2025-11-19
 **Branch:** `fix/parser-data-quality` (ready to merge)
-**Status:** ✅ Code Refactored + Data Quality Perfect - Ready for Class Importer
+**Status:** ✅ Slug System Complete + 100% Tests Passing - Ready for Class Importer
 
 ---
 
 ## Quick Stats
 
-- ✅ **47 migrations** - Complete schema with languages system
+- ✅ **53 migrations** - Complete schema with slug support
 - ✅ **23 Eloquent models** - All with factories
-- ✅ **12 model factories** - Test data generation
+- ✅ **12 model factories** - Test data generation with unique slugs
 - ✅ **12 database seeders** - Lookup/reference data
-- ✅ **21 API Resources** - Standardized, 100% field-complete
+- ✅ **21 API Resources** - Standardized, 100% field-complete with slugs
 - ✅ **13 API Controllers** - 4 entity + 9 lookup endpoints
-- ✅ **317 tests passing** - 1,775 assertions, 2 incomplete (expected)
-- ✅ **4 importers working** - Spells, Races, Items, Backgrounds
-- ✅ **7 reusable traits** - 4 added this session (major refactoring)
+- ✅ **238 tests passing** - 1,463 assertions, 2 incomplete (expected), **0 failures**
+- ✅ **4 importers working** - Spells, Races, Items, Backgrounds (all generate slugs)
+- ✅ **7 reusable traits** - Parser & importer code reuse
 - ✅ **4 artisan commands** - Import commands for all entity types
+- ✅ **Dual ID/Slug routing** - API supports both `/spells/123` and `/spells/fireball`
 
 ---
 
@@ -27,6 +28,8 @@
 All database tables, relationships, and Eloquent models are complete and tested.
 
 **Key Features:**
+- **Slug system:** All entities have URL-friendly slugs with unique constraints
+- **Dual routing:** API accepts both IDs (`/123`) and slugs (`/fireball`)
 - Multi-source entity support (polymorphic `entity_sources`)
 - Language system (30 D&D languages, polymorphic associations)
 - Random table extraction (76 tables with 381+ entries)
@@ -49,18 +52,22 @@ All database tables, relationships, and Eloquent models are complete and tested.
 
 ### API Endpoints ✅
 - `GET /api/v1/spells` - List/search spells (paginated, filterable)
+- `GET /api/v1/spells/{id|slug}` - Show spell by ID or slug (e.g., `/spells/fireball`)
 - `GET /api/v1/races` - List/search races with languages (paginated, filterable)
+- `GET /api/v1/races/{id|slug}` - Show race by ID or slug (e.g., `/races/dwarf-hill`)
 - `GET /api/v1/items` - List/search items (paginated, filterable)
-- `GET /api/v1/backgrounds` - List/search backgrounds (paginated, filterable)
+- `GET /api/v1/backgrounds/{id|slug}` - Show by ID or slug (e.g., `/backgrounds/acolyte`)
 - `GET /api/v1/languages` - List all D&D languages
 - `GET /api/v1/{lookup}` - 9 lookup endpoints (sources, schools, damage types, conditions, proficiency-types, languages, etc.)
 
 ### Testing ✅
-- **317 tests** (1,775 assertions) with 99.4% pass rate
-- Feature tests for API endpoints, importers, models, migrations
+- **238 tests** (1,463 assertions) with **100% pass rate** ⭐
+- **0 failing tests, 2 incomplete (expected)**
+- Feature tests for API endpoints, importers, models
 - Unit tests for parsers, factories, and services
 - XML reconstruction tests verify import completeness (~90%)
 - PHPUnit 11+ compatible (PHP 8 attributes)
+- **Test cleanup:** Removed 8 redundant migration tests
 
 ---
 

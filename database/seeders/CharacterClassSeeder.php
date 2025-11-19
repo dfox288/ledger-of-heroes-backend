@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Seeds the classes table with the 13 core D&D character classes.
@@ -32,19 +33,19 @@ class CharacterClassSeeder extends Seeder
 
         // Define classes with page numbers for later source association
         $classes = [
-            ['name' => 'Artificer', 'hit_die' => 8, 'description' => 'Masters of invention, artificers use ingenuity and magic to unlock extraordinary capabilities in objects.', 'primary_ability' => 'Intelligence', 'spellcasting_ability_id' => $intId, 'pages' => '0'],
-            ['name' => 'Barbarian', 'hit_die' => 12, 'description' => 'A fierce warrior of primitive background who can enter a battle rage.', 'primary_ability' => 'Strength', 'spellcasting_ability_id' => null, 'pages' => '46'],
-            ['name' => 'Bard', 'hit_die' => 8, 'description' => 'An inspiring magician whose power echoes the music of creation.', 'primary_ability' => 'Charisma', 'spellcasting_ability_id' => $chaId, 'pages' => '51'],
-            ['name' => 'Cleric', 'hit_die' => 8, 'description' => 'A priestly champion who wields divine magic in service of a higher power.', 'primary_ability' => 'Wisdom', 'spellcasting_ability_id' => $wisId, 'pages' => '56'],
-            ['name' => 'Druid', 'hit_die' => 8, 'description' => 'A priest of the Old Faith, wielding the powers of nature and adopting animal forms.', 'primary_ability' => 'Wisdom', 'spellcasting_ability_id' => $wisId, 'pages' => '64'],
-            ['name' => 'Fighter', 'hit_die' => 10, 'description' => 'A master of martial combat, skilled with a variety of weapons and armor.', 'primary_ability' => 'Strength or Dexterity', 'spellcasting_ability_id' => null, 'pages' => '70'],
-            ['name' => 'Monk', 'hit_die' => 8, 'description' => 'A master of martial arts, harnessing the power of the body in pursuit of physical and spiritual perfection.', 'primary_ability' => 'Dexterity and Wisdom', 'spellcasting_ability_id' => null, 'pages' => '76'],
-            ['name' => 'Paladin', 'hit_die' => 10, 'description' => 'A holy warrior bound to a sacred oath.', 'primary_ability' => 'Strength and Charisma', 'spellcasting_ability_id' => $chaId, 'pages' => '82'],
-            ['name' => 'Ranger', 'hit_die' => 10, 'description' => 'A warrior who uses martial prowess and nature magic to combat threats on the edges of civilization.', 'primary_ability' => 'Dexterity and Wisdom', 'spellcasting_ability_id' => $wisId, 'pages' => '89'],
-            ['name' => 'Rogue', 'hit_die' => 8, 'description' => 'A scoundrel who uses stealth and trickery to overcome obstacles and enemies.', 'primary_ability' => 'Dexterity', 'spellcasting_ability_id' => null, 'pages' => '94'],
-            ['name' => 'Sorcerer', 'hit_die' => 6, 'description' => 'A spellcaster who draws on inherent magic from a gift or bloodline.', 'primary_ability' => 'Charisma', 'spellcasting_ability_id' => $chaId, 'pages' => '99'],
-            ['name' => 'Warlock', 'hit_die' => 8, 'description' => 'A wielder of magic that is derived from a bargain with an extraplanar entity.', 'primary_ability' => 'Charisma', 'spellcasting_ability_id' => $chaId, 'pages' => '105'],
-            ['name' => 'Wizard', 'hit_die' => 6, 'description' => 'A scholarly magic-user capable of manipulating the structures of reality.', 'primary_ability' => 'Intelligence', 'spellcasting_ability_id' => $intId, 'pages' => '112'],
+            ['slug' => 'artificer', 'name' => 'Artificer', 'hit_die' => 8, 'description' => 'Masters of invention, artificers use ingenuity and magic to unlock extraordinary capabilities in objects.', 'primary_ability' => 'Intelligence', 'spellcasting_ability_id' => $intId, 'pages' => '0'],
+            ['slug' => 'barbarian', 'name' => 'Barbarian', 'hit_die' => 12, 'description' => 'A fierce warrior of primitive background who can enter a battle rage.', 'primary_ability' => 'Strength', 'spellcasting_ability_id' => null, 'pages' => '46'],
+            ['slug' => 'bard', 'name' => 'Bard', 'hit_die' => 8, 'description' => 'An inspiring magician whose power echoes the music of creation.', 'primary_ability' => 'Charisma', 'spellcasting_ability_id' => $chaId, 'pages' => '51'],
+            ['slug' => 'cleric', 'name' => 'Cleric', 'hit_die' => 8, 'description' => 'A priestly champion who wields divine magic in service of a higher power.', 'primary_ability' => 'Wisdom', 'spellcasting_ability_id' => $wisId, 'pages' => '56'],
+            ['slug' => 'druid', 'name' => 'Druid', 'hit_die' => 8, 'description' => 'A priest of the Old Faith, wielding the powers of nature and adopting animal forms.', 'primary_ability' => 'Wisdom', 'spellcasting_ability_id' => $wisId, 'pages' => '64'],
+            ['slug' => 'fighter', 'name' => 'Fighter', 'hit_die' => 10, 'description' => 'A master of martial combat, skilled with a variety of weapons and armor.', 'primary_ability' => 'Strength or Dexterity', 'spellcasting_ability_id' => null, 'pages' => '70'],
+            ['slug' => 'monk', 'name' => 'Monk', 'hit_die' => 8, 'description' => 'A master of martial arts, harnessing the power of the body in pursuit of physical and spiritual perfection.', 'primary_ability' => 'Dexterity and Wisdom', 'spellcasting_ability_id' => null, 'pages' => '76'],
+            ['slug' => 'paladin', 'name' => 'Paladin', 'hit_die' => 10, 'description' => 'A holy warrior bound to a sacred oath.', 'primary_ability' => 'Strength and Charisma', 'spellcasting_ability_id' => $chaId, 'pages' => '82'],
+            ['slug' => 'ranger', 'name' => 'Ranger', 'hit_die' => 10, 'description' => 'A warrior who uses martial prowess and nature magic to combat threats on the edges of civilization.', 'primary_ability' => 'Dexterity and Wisdom', 'spellcasting_ability_id' => $wisId, 'pages' => '89'],
+            ['slug' => 'rogue', 'name' => 'Rogue', 'hit_die' => 8, 'description' => 'A scoundrel who uses stealth and trickery to overcome obstacles and enemies.', 'primary_ability' => 'Dexterity', 'spellcasting_ability_id' => null, 'pages' => '94'],
+            ['slug' => 'sorcerer', 'name' => 'Sorcerer', 'hit_die' => 6, 'description' => 'A spellcaster who draws on inherent magic from a gift or bloodline.', 'primary_ability' => 'Charisma', 'spellcasting_ability_id' => $chaId, 'pages' => '99'],
+            ['slug' => 'warlock', 'name' => 'Warlock', 'hit_die' => 8, 'description' => 'A wielder of magic that is derived from a bargain with an extraplanar entity.', 'primary_ability' => 'Charisma', 'spellcasting_ability_id' => $chaId, 'pages' => '105'],
+            ['slug' => 'wizard', 'name' => 'Wizard', 'hit_die' => 6, 'description' => 'A scholarly magic-user capable of manipulating the structures of reality.', 'primary_ability' => 'Intelligence', 'spellcasting_ability_id' => $intId, 'pages' => '112'],
         ];
 
         // Insert classes and create entity_sources

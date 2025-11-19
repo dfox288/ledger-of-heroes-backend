@@ -328,18 +328,19 @@ class FeatXmlParserPrerequisitesTest extends TestCase
     {
         // "Proficiency with a martial weapon" should expand to:
         // - Martial Weapons (category) OR
-        // - Longsword OR Greatsword OR ... (all individual martial weapons)
+        // - Longsword OR Greatsword OR ... (ONLY martial weapons, NOT simple)
 
         $result = $this->parser->parsePrerequisites('Proficiency with a martial weapon');
 
         // Should include Martial Weapons category PLUS all individual martial weapons
-        // Get count of individual martial weapons from database
-        $individualWeapons = ProficiencyType::where('category', 'weapon')
-            ->whereNotIn('name', ['Simple Weapons', 'Martial Weapons'])
+        // Get count of individual MARTIAL weapons from database (subcategory LIKE 'martial%')
+        $individualMartialWeapons = ProficiencyType::where('category', 'weapon')
+            ->where('subcategory', 'LIKE', 'martial%')
+            ->whereNotIn('name', ['Martial Weapons'])
             ->count();
 
-        // Should have: 1 (Martial Weapons) + N (individual weapons)
-        $expectedCount = 1 + $individualWeapons;
+        // Should have: 1 (Martial Weapons category) + N (individual martial weapons)
+        $expectedCount = 1 + $individualMartialWeapons;
         $this->assertCount($expectedCount, $result);
 
         // All should be in same group (OR logic)
@@ -357,24 +358,33 @@ class FeatXmlParserPrerequisitesTest extends TestCase
         $longsword = ProficiencyType::where('name', 'Longsword')->first();
         if ($longsword) {
             $hasLongsword = collect($result)->contains('prerequisite_id', $longsword->id);
-            $this->assertTrue($hasLongsword);
+            $this->assertTrue($hasLongsword, 'Should include Longsword (martial weapon)');
+        }
+
+        // Should NOT include simple weapons like Club
+        $club = ProficiencyType::where('name', 'Club')->first();
+        if ($club) {
+            $hasClub = collect($result)->contains('prerequisite_id', $club->id);
+            $this->assertFalse($hasClub, 'Should NOT include Club (simple weapon)');
         }
     }
 
     #[Test]
     public function it_expands_simple_weapons_to_include_all_individual_weapons()
     {
-        // "Proficiency with a simple weapon" should expand similarly
+        // "Proficiency with a simple weapon" should expand similarly (ONLY simple, NOT martial)
 
         $result = $this->parser->parsePrerequisites('Proficiency with a simple weapon');
 
-        // Should include Simple Weapons category PLUS all individual simple weapons
-        $individualWeapons = ProficiencyType::where('category', 'weapon')
-            ->whereNotIn('name', ['Simple Weapons', 'Martial Weapons'])
+        // Should include Simple Weapons category PLUS all individual SIMPLE weapons
+        // Get count of individual SIMPLE weapons from database (subcategory LIKE 'simple%')
+        $individualSimpleWeapons = ProficiencyType::where('category', 'weapon')
+            ->where('subcategory', 'LIKE', 'simple%')
+            ->whereNotIn('name', ['Simple Weapons'])
             ->count();
 
-        // Should have: 1 (Simple Weapons) + N (individual weapons)
-        $expectedCount = 1 + $individualWeapons;
+        // Should have: 1 (Simple Weapons category) + N (individual simple weapons)
+        $expectedCount = 1 + $individualSimpleWeapons;
         $this->assertCount($expectedCount, $result);
 
         // All should be in same group (OR logic)
@@ -392,7 +402,14 @@ class FeatXmlParserPrerequisitesTest extends TestCase
         $club = ProficiencyType::where('name', 'Club')->first();
         if ($club) {
             $hasClub = collect($result)->contains('prerequisite_id', $club->id);
-            $this->assertTrue($hasClub);
+            $this->assertTrue($hasClub, 'Should include Club (simple weapon)');
+        }
+
+        // Should NOT include martial weapons like Longsword
+        $longsword = ProficiencyType::where('name', 'Longsword')->first();
+        if ($longsword) {
+            $hasLongsword = collect($result)->contains('prerequisite_id', $longsword->id);
+            $this->assertFalse($hasLongsword, 'Should NOT include Longsword (martial weapon)');
         }
     }
 }

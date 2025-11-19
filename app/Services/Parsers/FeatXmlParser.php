@@ -463,7 +463,7 @@ class FeatXmlParser
                 // Check if this is a weapon category that should be expanded
                 // "Proficiency with a martial weapon" or "Proficiency with a simple weapon"
                 if ($this->shouldExpandWeaponCategory($profType)) {
-                    $individualWeapons = $this->getIndividualWeapons();
+                    $individualWeapons = $this->getIndividualWeapons($profType);
 
                     foreach ($individualWeapons as $weapon) {
                         $prerequisites[] = [
@@ -501,13 +501,29 @@ class FeatXmlParser
     }
 
     /**
-     * Get all individual weapon proficiency types (excluding category weapons).
+     * Get individual weapons for a weapon category based on subcategory.
      *
      * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProficiencyType>
      */
-    private function getIndividualWeapons(): \Illuminate\Database\Eloquent\Collection
+    private function getIndividualWeapons(\App\Models\ProficiencyType $categoryProfType): \Illuminate\Database\Eloquent\Collection
     {
+        // Map category names to subcategory prefixes
+        $subcategoryPrefix = match ($categoryProfType->name) {
+            'Martial Weapons' => 'martial',
+            'Simple Weapons' => 'simple',
+            default => null,
+        };
+
+        if ($subcategoryPrefix === null) {
+            // Fallback: get all individual weapons
+            return \App\Models\ProficiencyType::where('category', 'weapon')
+                ->whereNotIn('name', ['Simple Weapons', 'Martial Weapons'])
+                ->get();
+        }
+
+        // Get weapons with matching subcategory (e.g., 'martial_melee', 'martial_ranged')
         return \App\Models\ProficiencyType::where('category', 'weapon')
+            ->where('subcategory', 'LIKE', "{$subcategoryPrefix}%")
             ->whereNotIn('name', ['Simple Weapons', 'Martial Weapons'])
             ->get();
     }

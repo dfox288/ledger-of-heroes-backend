@@ -39,6 +39,11 @@ class ItemTableParser
             $rollCell = array_shift($cells);
             [$rollMin, $rollMax] = $this->parseRollRange($rollCell);
 
+            // If first cell wasn't a roll number, include it in the result
+            if ($rollMin === null && $rollMax === null) {
+                array_unshift($cells, $rollCell); // Put it back
+            }
+
             // Remaining cells are the result text
             $resultText = implode(' | ', $cells);
 

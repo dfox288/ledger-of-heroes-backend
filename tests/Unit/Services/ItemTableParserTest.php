@@ -84,7 +84,9 @@ TEXT;
         $this->assertCount(2, $parsed['rows']);
         $this->assertNull($parsed['rows'][0]['roll_min']);
         $this->assertNull($parsed['rows'][0]['roll_max']);
-        $this->assertEquals('Effect A', $parsed['rows'][0]['result_text']);
+        // When first column is not numeric, it's preserved as part of the result
+        $this->assertEquals('A | Effect A', $parsed['rows'][0]['result_text']);
+        $this->assertEquals('B | Effect B', $parsed['rows'][1]['result_text']);
     }
 
     #[Test]

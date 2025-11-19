@@ -197,13 +197,13 @@ class ClassImporterTest extends TestCase
         $secondWind = $counters->where('counter_name', 'Second Wind')->where('level', 1)->first();
         $this->assertNotNull($secondWind);
         $this->assertEquals(1, $secondWind->counter_value);
-        $this->assertEquals('short_rest', $secondWind->reset_timing);
+        $this->assertEquals('S', $secondWind->reset_timing);
 
         // Check Action Surge counter progression
         $actionSurgeLevel2 = $counters->where('counter_name', 'Action Surge')->where('level', 2)->first();
         $this->assertNotNull($actionSurgeLevel2);
         $this->assertEquals(1, $actionSurgeLevel2->counter_value);
-        $this->assertEquals('short_rest', $actionSurgeLevel2->reset_timing);
+        $this->assertEquals('S', $actionSurgeLevel2->reset_timing);
 
         $actionSurgeLevel17 = $counters->where('counter_name', 'Action Surge')->where('level', 17)->first();
         $this->assertNotNull($actionSurgeLevel17);
@@ -213,7 +213,7 @@ class ClassImporterTest extends TestCase
         $indomitableLevel9 = $counters->where('counter_name', 'Indomitable')->where('level', 9)->first();
         $this->assertNotNull($indomitableLevel9);
         $this->assertEquals(1, $indomitableLevel9->counter_value);
-        $this->assertEquals('long_rest', $indomitableLevel9->reset_timing);
+        $this->assertEquals('L', $indomitableLevel9->reset_timing);
 
         $indomitableLevel17 = $counters->where('counter_name', 'Indomitable')->where('level', 17)->first();
         $this->assertNotNull($indomitableLevel17);

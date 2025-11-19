@@ -21,10 +21,10 @@ class DatabaseSeeder extends Seeder
             SkillSeeder::class,              // Depends on AbilityScore
             ItemTypeSeeder::class,
             ItemPropertySeeder::class,
-            CharacterClassSeeder::class,     // Depends on AbilityScore and Source
             ConditionSeeder::class,          // No dependencies
             ProficiencyTypeSeeder::class,    // No dependencies
             LanguageSeeder::class,           // No dependencies
+            // Note: CharacterClassSeeder removed - classes are imported from XML files
         ]);
     }
 }

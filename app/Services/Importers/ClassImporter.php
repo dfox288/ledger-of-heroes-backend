@@ -107,6 +107,13 @@ class ClassImporter
                 $this->importCounters($class, $data['counters']);
             }
 
+            // 12. Import subclasses
+            if (isset($data['subclasses'])) {
+                foreach ($data['subclasses'] as $subclassData) {
+                    $this->importSubclass($class, $subclassData);
+                }
+            }
+
             return $class;
         });
     }
@@ -162,12 +169,19 @@ class ClassImporter
                 continue;
             }
 
+            // Convert reset_timing back to single character for database
+            $resetTiming = match ($counterData['reset_timing']) {
+                'short_rest' => 'S',
+                'long_rest' => 'L',
+                default => null,
+            };
+
             ClassCounter::create([
                 'class_id' => $class->id,
                 'level' => $counterData['level'],
                 'counter_name' => $counterData['name'],
                 'counter_value' => $counterData['value'],
-                'reset_timing' => $counterData['reset_timing'],
+                'reset_timing' => $resetTiming,
             ]);
         }
     }
@@ -207,12 +221,19 @@ class ClassImporter
             // 5. Import subclass-specific counters
             if (! empty($subclassData['counters'])) {
                 foreach ($subclassData['counters'] as $counterData) {
+                    // Convert reset_timing back to single character for database
+                    $resetTiming = match ($counterData['reset_timing']) {
+                        'short_rest' => 'S',
+                        'long_rest' => 'L',
+                        default => null,
+                    };
+
                     ClassCounter::create([
                         'class_id' => $subclass->id,
                         'level' => $counterData['level'],
                         'counter_name' => $counterData['name'],
                         'counter_value' => $counterData['value'],
-                        'reset_timing' => $counterData['reset_timing'],
+                        'reset_timing' => $resetTiming,
                     ]);
                 }
             }

@@ -21,6 +21,8 @@ class BackgroundResource extends JsonResource
             'traits' => TraitResource::collection($this->whenLoaded('traits')),
             'proficiencies' => ProficiencyResource::collection($this->whenLoaded('proficiencies')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
+            'languages' => EntityLanguageResource::collection($this->whenLoaded('languages')),
+            'equipment' => EntityItemResource::collection($this->whenLoaded('equipment')),
         ];
     }
 }

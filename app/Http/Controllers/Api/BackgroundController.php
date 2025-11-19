@@ -36,6 +36,9 @@ class BackgroundController extends Controller
             'sources.source',
             'traits.randomTables.entries',
             'proficiencies.skill.abilityScore',
+            'proficiencies.proficiencyType',
+            'languages.language',
+            'equipment.item',
         ]);
 
         return new BackgroundResource($background);

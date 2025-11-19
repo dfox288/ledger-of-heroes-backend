@@ -60,6 +60,9 @@ class ClassXmlParser
         // Parse features from autolevel elements
         $data['features'] = $this->parseFeatures($element);
 
+        // Parse spell progression from autolevel elements
+        $data['spell_progression'] = $this->parseSpellSlots($element);
+
         return $data;
     }
 
@@ -208,8 +211,37 @@ class ClassXmlParser
      */
     private function parseSpellSlots(SimpleXMLElement $element): array
     {
-        // TODO: Implement parseSpellSlots logic
-        return [];
+        $spellProgression = [];
+
+        // Iterate through all autolevel elements
+        foreach ($element->autolevel as $autolevel) {
+            $level = (int) $autolevel['level'];
+
+            // Check if this autolevel has spell slots
+            if (isset($autolevel->slots)) {
+                $slotsString = (string) $autolevel->slots;
+                $slots = array_map('intval', explode(',', $slotsString));
+
+                // Format: cantrips, 1st, 2nd, 3rd, ..., 9th
+                $progression = [
+                    'level' => $level,
+                    'cantrips_known' => $slots[0] ?? 0,
+                    'spell_slots_1st' => $slots[1] ?? 0,
+                    'spell_slots_2nd' => $slots[2] ?? 0,
+                    'spell_slots_3rd' => $slots[3] ?? 0,
+                    'spell_slots_4th' => $slots[4] ?? 0,
+                    'spell_slots_5th' => $slots[5] ?? 0,
+                    'spell_slots_6th' => $slots[6] ?? 0,
+                    'spell_slots_7th' => $slots[7] ?? 0,
+                    'spell_slots_8th' => $slots[8] ?? 0,
+                    'spell_slots_9th' => $slots[9] ?? 0,
+                ];
+
+                $spellProgression[] = $progression;
+            }
+        }
+
+        return $spellProgression;
     }
 
     /**

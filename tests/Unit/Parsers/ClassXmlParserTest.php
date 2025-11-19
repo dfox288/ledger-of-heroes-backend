@@ -124,4 +124,37 @@ class ClassXmlParserTest extends TestCase
         $this->assertArrayHasKey(2, $featuresByLevel);
         $this->assertContains('Action Surge', $featuresByLevel[2]);
     }
+
+    #[Test]
+    public function it_parses_fighter_spell_slots_for_eldritch_knight()
+    {
+        // Load real Fighter XML from file
+        $xmlPath = base_path('import-files/class-fighter-phb.xml');
+        $xml = file_get_contents($xmlPath);
+
+        // Parse the XML
+        $classes = $this->parser->parse($xml);
+        $fighter = $classes[0];
+
+        // Assert: spell_progression key exists
+        $this->assertArrayHasKey('spell_progression', $fighter);
+        $this->assertIsArray($fighter['spell_progression']);
+
+        // Assert: should have spell slots (Eldritch Knight subclass)
+        // Format: <slots optional="YES">2,2</slots> at level 3 means 2 cantrips, 2 1st-level slots
+        $this->assertGreaterThan(0, count($fighter['spell_progression']));
+
+        // Assert: spell slot structure
+        $firstSlot = $fighter['spell_progression'][0];
+        $this->assertArrayHasKey('level', $firstSlot);
+        $this->assertArrayHasKey('cantrips_known', $firstSlot);
+
+        // Assert: Eldritch Knight starts spell slots at level 3
+        $level3Slots = array_filter($fighter['spell_progression'], fn ($slot) => $slot['level'] === 3);
+        $this->assertNotEmpty($level3Slots, 'Fighter (Eldritch Knight) should have spell slots at level 3');
+
+        $level3Slot = array_values($level3Slots)[0];
+        $this->assertEquals(2, $level3Slot['cantrips_known'], 'Level 3 Eldritch Knight should know 2 cantrips');
+        $this->assertEquals(2, $level3Slot['spell_slots_1st'], 'Level 3 Eldritch Knight should have 2 1st-level slots');
+    }
 }

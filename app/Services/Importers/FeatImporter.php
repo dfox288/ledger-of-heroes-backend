@@ -8,6 +8,7 @@ use App\Models\Feat;
 use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Services\Importers\Concerns\ImportsSources;
+use App\Services\Parsers\FeatXmlParser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -136,5 +137,29 @@ class FeatImporter
                 'description' => $conditionData['description'],
             ]);
         }
+    }
+
+    /**
+     * Import feats from an XML file.
+     *
+     * @return int Number of feats imported
+     */
+    public function importFromFile(string $filePath): int
+    {
+        if (! file_exists($filePath)) {
+            throw new \InvalidArgumentException("File not found: {$filePath}");
+        }
+
+        $xmlContent = file_get_contents($filePath);
+        $parser = new FeatXmlParser;
+        $feats = $parser->parse($xmlContent);
+
+        $count = 0;
+        foreach ($feats as $featData) {
+            $this->import($featData);
+            $count++;
+        }
+
+        return $count;
     }
 }

@@ -14,6 +14,7 @@ class EntityConditionResource extends JsonResource
             'condition_id' => $this->condition_id,
             'condition' => new ConditionResource($this->whenLoaded('condition')),
             'effect_type' => $this->effect_type,
+            'description' => $this->description,
         ];
     }
 }

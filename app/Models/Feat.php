@@ -56,4 +56,14 @@ class Feat extends Model
     {
         return $this->morphMany(EntityCondition::class, 'reference');
     }
+
+    /**
+     * Scope a query to search feats.
+     */
+    public function scopeSearch($query, $searchTerm)
+    {
+        return $query->where('name', 'LIKE', "%{$searchTerm}%")
+            ->orWhere('description', 'LIKE', "%{$searchTerm}%")
+            ->orWhere('prerequisites', 'LIKE', "%{$searchTerm}%");
+    }
 }

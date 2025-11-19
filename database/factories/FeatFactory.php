@@ -49,4 +49,59 @@ class FeatFactory extends Factory
             'prerequisites' => null,
         ]);
     }
+
+    /**
+     * Indicate that the feat has sources.
+     */
+    public function withSources(): static
+    {
+        return $this->afterCreating(function (Feat $feat) {
+            \App\Models\EntitySource::factory()
+                ->forEntity(Feat::class, $feat->id)
+                ->fromSource('PHB')
+                ->create();
+        });
+    }
+
+    /**
+     * Indicate that the feat has modifiers.
+     */
+    public function withModifiers(): static
+    {
+        return $this->afterCreating(function (Feat $feat) {
+            \App\Models\Modifier::factory()
+                ->forEntity(Feat::class, $feat->id)
+                ->create([
+                    'modifier_category' => 'ability_score',
+                    'value' => 1,
+                ]);
+        });
+    }
+
+    /**
+     * Indicate that the feat has proficiencies.
+     */
+    public function withProficiencies(): static
+    {
+        return $this->afterCreating(function (Feat $feat) {
+            \App\Models\Proficiency::factory()
+                ->forEntity(Feat::class, $feat->id)
+                ->create();
+        });
+    }
+
+    /**
+     * Indicate that the feat has conditions.
+     */
+    public function withConditions(): static
+    {
+        return $this->afterCreating(function (Feat $feat) {
+            \App\Models\EntityCondition::factory()
+                ->forEntity(Feat::class, $feat->id)
+                ->create([
+                    'effect_type' => 'advantage',
+                    'description' => 'You have advantage on certain checks.',
+                ]);
+        });
+    }
 }

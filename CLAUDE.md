@@ -44,7 +44,7 @@ This is a Laravel 12.x application that imports D&D 5th Edition content from XML
 7. **Update Controllers**
 8. **Update API Tests** - Verify API returns new fields
 9. **Run FULL test suite** - Ensure no regressions
-10. **Commit to git with clear message**
+10.**Commit to git with clear message**
 
 ### What Must Be Tested:
 

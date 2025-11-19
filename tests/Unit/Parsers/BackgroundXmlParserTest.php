@@ -352,4 +352,92 @@ XML;
             ->where('proficiency_type', 'tool');
         $this->assertCount(1, $toolProfs);
     }
+
+    #[Test]
+    public function it_parses_equipment_from_trait_text()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Guild Artisan</name>
+    <proficiency>Insight</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>• Equipment: A set of artisan's tools (one of your choice), a letter of introduction from your guild, a set of traveler's clothes, and a belt pouch containing 15 gp</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('equipment', $backgrounds[0]);
+        $equipment = $backgrounds[0]['equipment'];
+        $this->assertGreaterThan(0, count($equipment));
+
+        // First item should be artisan's tools with choice
+        $artisanTools = $equipment[0];
+        $this->assertTrue($artisanTools['is_choice']);
+        $this->assertEquals('one of your choice', $artisanTools['choice_description']);
+        $this->assertStringContainsString('artisan', strtolower($artisanTools['item_name']));
+    }
+
+    #[Test]
+    public function it_parses_equipment_with_quantities()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Test</name>
+    <proficiency>Insight</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>• Equipment: 15 gp, 10 torches, a backpack</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        $equipment = $backgrounds[0]['equipment'];
+        $this->assertCount(3, $equipment);
+
+        // First item: 15 gp
+        $this->assertEquals(15, $equipment[0]['quantity']);
+        $this->assertStringContainsString('gp', strtolower($equipment[0]['item_name']));
+
+        // Second item: 10 torches
+        $this->assertEquals(10, $equipment[1]['quantity']);
+        $this->assertStringContainsString('torch', strtolower($equipment[1]['item_name']));
+
+        // Third item: backpack
+        $this->assertEquals(1, $equipment[2]['quantity']);
+        $this->assertStringContainsString('backpack', strtolower($equipment[2]['item_name']));
+    }
+
+    #[Test]
+    public function it_returns_empty_array_when_no_equipment_found()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Test</name>
+    <proficiency>Insight</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>No equipment information here</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('equipment', $backgrounds[0]);
+        $this->assertEmpty($backgrounds[0]['equipment']);
+    }
 }

@@ -31,6 +31,7 @@ class BackgroundXmlParser
                 'traits' => $this->parseTraits($bg->trait),
                 'sources' => $this->extractSources($descriptionText),
                 'languages' => $this->parseLanguagesFromTraitText($descriptionText),
+                'equipment' => $this->parseEquipmentFromTraitText($descriptionText),
             ];
         }
 
@@ -280,5 +281,93 @@ class BackgroundXmlParser
         }
 
         return $proficiencies;
+    }
+
+    /**
+     * Parse equipment from trait Description text.
+     * Pattern: "• Equipment: A set of artisan's tools (one of your choice), a letter..."
+     */
+    private function parseEquipmentFromTraitText(string $text): array
+    {
+        if (! preg_match('/• Equipment:\s*(.+?)(?:\n\n|\n[A-Z•]|$)/ms', $text, $matches)) {
+            return [];
+        }
+
+        $equipmentText = trim($matches[1]);
+        $items = [];
+
+        // Split by commas, but preserve parenthetical content
+        // This regex splits on ", " but not if inside parentheses
+        $parts = preg_split('/,\s*(?![^()]*\))/', $equipmentText);
+
+        foreach ($parts as $part) {
+            $part = trim($part);
+
+            // Skip empty parts and "and" connectors
+            if (empty($part) || strtolower($part) === 'and') {
+                continue;
+            }
+
+            // Remove leading "and"
+            $part = preg_replace('/^and\s+/i', '', $part);
+
+            if (empty($part)) {
+                continue;
+            }
+
+            // Check for choice pattern
+            $isChoice = false;
+            $choiceDescription = null;
+            if (preg_match('/\(([^)]*choice[^)]*)\)/i', $part, $choiceMatch)) {
+                $isChoice = true;
+                $choiceDescription = trim($choiceMatch[1]);
+                $part = trim(preg_replace('/\([^)]*choice[^)]*\)/i', '', $part));
+            }
+
+            // Extract quantity (e.g., "15 gp", "10 torches")
+            $quantity = 1;
+            if (preg_match('/^(\d+)\s+/', $part, $qtyMatch)) {
+                $quantity = (int) $qtyMatch[1];
+                $part = trim(substr($part, strlen($qtyMatch[0])));
+            }
+
+            // Clean up article prefixes
+            $itemName = preg_replace('/^(a|an|the)\s+/i', '', $part);
+            $itemName = preg_replace('/\s*set\s+of\s+/i', '', $itemName);
+            $itemName = trim($itemName);
+
+            // Remove "containing X gp" suffix (e.g., "a belt pouch containing 15 gp")
+            if (preg_match('/^(.+?)\s+containing\s+(\d+)\s+gp$/i', $itemName, $containingMatch)) {
+                // Add the container
+                $items[] = [
+                    'item_id' => null,
+                    'quantity' => $quantity,
+                    'is_choice' => $isChoice,
+                    'choice_description' => $choiceDescription,
+                    'item_name' => trim($containingMatch[1]),
+                ];
+
+                // Add the gp separately
+                $items[] = [
+                    'item_id' => null,
+                    'quantity' => (int) $containingMatch[2],
+                    'is_choice' => false,
+                    'choice_description' => null,
+                    'item_name' => 'gp',
+                ];
+
+                continue;
+            }
+
+            $items[] = [
+                'item_id' => null,
+                'quantity' => $quantity,
+                'is_choice' => $isChoice,
+                'choice_description' => $choiceDescription,
+                'item_name' => $itemName,
+            ];
+        }
+
+        return $items;
     }
 }

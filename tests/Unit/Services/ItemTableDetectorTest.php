@@ -142,4 +142,28 @@ TEXT;
         $this->assertCount(1, $tables);
         $this->assertEquals('2d6', $tables[0]['dice_type']);
     }
+
+    #[Test]
+    public function it_detects_tables_with_text_first_column()
+    {
+        $text = <<<'TEXT'
+Choose one type of dragon from the Draconic Ancestry table.
+
+Draconic Ancestry:
+Dragon | Damage Type | Breath Weapon
+Black | Acid | 5 by 30 ft. line (Dex. save)
+Blue | Lightning | 5 by 30 ft. line (Dex. save)
+Brass | Fire | 5 by 30 ft. line (Dex. save)
+Bronze | Lightning | 5 by 30 ft. line (Dex. save)
+Copper | Acid | 5 by 30 ft. line (Dex. save)
+TEXT;
+
+        $tables = $this->detector->detectTables($text);
+
+        $this->assertCount(1, $tables);
+        $this->assertEquals('Draconic Ancestry', $tables[0]['name']);
+        $this->assertStringContainsString('Black | Acid', $tables[0]['text']);
+        $this->assertStringContainsString('Blue | Lightning', $tables[0]['text']);
+        $this->assertNull($tables[0]['dice_type']); // No dice type for this table
+    }
 }

@@ -654,4 +654,76 @@ XML;
         $hellishRebuke = collect($races[0]['spellcasting']['spells'])->firstWhere('spell_name', 'hellish rebuke');
         $this->assertEquals(3, $hellishRebuke['level_requirement']);
     }
+
+    #[Test]
+    public function it_parses_damage_resistance_from_resist_element()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Warforged</name>
+        <size>M</size>
+        <speed>30</speed>
+        <ability>Con +2</ability>
+        <resist>poison</resist>
+        <trait category="species">
+            <name>Constructed Resilience</name>
+            <text>You have advantage on saving throws against being poisoned, and you have resistance to poison damage.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        // Check that resistance is parsed
+        $this->assertArrayHasKey('resistances', $races[0]);
+        $this->assertCount(1, $races[0]['resistances']);
+        $this->assertEquals('poison', $races[0]['resistances'][0]['damage_type']);
+
+        // Also verify the advantage on saving throws is still captured
+        $this->assertArrayHasKey('conditions', $races[0]);
+        $poisonedCondition = collect($races[0]['conditions'])->firstWhere('condition_name', 'poisoned');
+        $this->assertNotNull($poisonedCondition);
+        $this->assertEquals('advantage', $poisonedCondition['effect_type']);
+    }
+
+    #[Test]
+    public function it_parses_choice_based_proficiencies_from_trait_text()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Warforged</name>
+        <size>M</size>
+        <speed>30</speed>
+        <ability>Con +2</ability>
+        <trait category="species">
+            <name>Specialized Design</name>
+            <text>You gain one skill proficiency and one tool proficiency of your choice.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        // Check that choice-based proficiencies are parsed
+        $this->assertArrayHasKey('proficiencies', $races[0]);
+        $this->assertCount(2, $races[0]['proficiencies']);
+
+        // First: skill proficiency choice
+        $skillChoice = $races[0]['proficiencies'][0];
+        $this->assertEquals('skill', $skillChoice['type']);
+        $this->assertTrue($skillChoice['is_choice']);
+        $this->assertEquals(1, $skillChoice['quantity']);
+
+        // Second: tool proficiency choice
+        $toolChoice = $races[0]['proficiencies'][1];
+        $this->assertEquals('tool', $toolChoice['type']);
+        $this->assertTrue($toolChoice['is_choice']);
+        $this->assertEquals(1, $toolChoice['quantity']);
+    }
 }

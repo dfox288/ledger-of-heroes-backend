@@ -91,6 +91,11 @@ class RaceImporter
             $this->importConditions($race, $raceData['conditions']);
         }
 
+        // Import damage resistances
+        if (isset($raceData['resistances'])) {
+            $this->importResistances($race, $raceData['resistances']);
+        }
+
         // Import spells
         if (isset($raceData['spellcasting'])) {
             $this->importSpells($race, $raceData['spellcasting']);
@@ -487,6 +492,30 @@ class RaceImporter
                     'level_requirement' => $spellData['level_requirement'],
                     'usage_limit' => $spellData['usage_limit'],
                     'is_cantrip' => $spellData['is_cantrip'],
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Import damage resistances as modifiers.
+     */
+    private function importResistances(Race $race, array $resistancesData): void
+    {
+        // Clear existing resistance modifiers
+        $race->modifiers()->where('modifier_category', 'damage_resistance')->delete();
+
+        foreach ($resistancesData as $resistanceData) {
+            // Look up damage type by name
+            $damageType = \App\Models\DamageType::where('name', $resistanceData['damage_type'])->first();
+
+            if ($damageType) {
+                Modifier::create([
+                    'reference_type' => Race::class,
+                    'reference_id' => $race->id,
+                    'modifier_category' => 'damage_resistance',
+                    'damage_type_id' => $damageType->id,
+                    'value' => 'resistance',
                 ]);
             }
         }

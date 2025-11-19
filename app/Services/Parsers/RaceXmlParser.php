@@ -67,6 +67,10 @@ class RaceXmlParser
         // Parse proficiencies
         $proficiencies = $this->parseProficiencies($element);
 
+        // Parse choice-based proficiencies from trait text
+        $proficiencyChoices = $this->parseProficiencyChoicesFromTraits($traits);
+        $proficiencies = array_merge($proficiencies, $proficiencyChoices);
+
         // Parse languages
         $languages = $this->parseLanguages($element);
 
@@ -78,6 +82,9 @@ class RaceXmlParser
 
         // Parse spellcasting
         $spellcasting = $this->parseSpellcasting($element, $traits);
+
+        // Parse resistances
+        $resistances = $this->parseResistances($element);
 
         return [
             'name' => $raceName,
@@ -92,6 +99,7 @@ class RaceXmlParser
             'conditions' => $conditions,
             'ability_choices' => $abilityChoices,
             'spellcasting' => $spellcasting,
+            'resistances' => $resistances,
         ];
     }
 
@@ -419,5 +427,93 @@ class RaceXmlParser
         }
 
         return $spellData;
+    }
+
+    /**
+     * Parse damage resistances from <resist> elements.
+     */
+    private function parseResistances(SimpleXMLElement $element): array
+    {
+        $resistances = [];
+
+        // Parse <resist> elements
+        foreach ($element->resist as $resistElement) {
+            $damageType = trim((string) $resistElement);
+            if (! empty($damageType)) {
+                $resistances[] = [
+                    'damage_type' => $damageType,
+                ];
+            }
+        }
+
+        return $resistances;
+    }
+
+    /**
+     * Parse choice-based proficiencies from trait text.
+     * Patterns like: "one skill proficiency and one tool proficiency of your choice"
+     */
+    private function parseProficiencyChoicesFromTraits(array $traits): array
+    {
+        $choices = [];
+
+        foreach ($traits as $trait) {
+            $text = $trait['description'];
+
+            // Pattern: "one skill proficiency and one tool proficiency of your choice"
+            // This handles the compound case where both are mentioned
+            if (preg_match('/(\w+)\s+skill\s+proficienc(?:y|ies)\s+and\s+(\w+)\s+tool\s+proficienc(?:y|ies)\s+of your choice/i', $text, $m)) {
+                $skillQuantity = $this->wordToNumber($m[1]);
+                $toolQuantity = $this->wordToNumber($m[2]);
+
+                $choices[] = [
+                    'type' => 'skill',
+                    'name' => null,
+                    'proficiency_type_id' => null,
+                    'grants' => true,
+                    'is_choice' => true,
+                    'quantity' => $skillQuantity,
+                ];
+
+                $choices[] = [
+                    'type' => 'tool',
+                    'name' => null,
+                    'proficiency_type_id' => null,
+                    'grants' => true,
+                    'is_choice' => true,
+                    'quantity' => $toolQuantity,
+                ];
+
+                continue; // Skip other patterns if we matched this compound pattern
+            }
+
+            // Pattern: "one skill proficiency...of your choice" (standalone)
+            if (preg_match('/(\w+)\s+skill\s+proficienc(?:y|ies)\s+of your choice/i', $text, $m)) {
+                $quantity = $this->wordToNumber($m[1]);
+                $choices[] = [
+                    'type' => 'skill',
+                    'name' => null,
+                    'proficiency_type_id' => null,
+                    'grants' => true,
+                    'is_choice' => true,
+                    'quantity' => $quantity,
+                ];
+            }
+
+            // Pattern: "one tool proficiency...of your choice" (standalone)
+            if (preg_match('/(\w+)\s+tool\s+proficienc(?:y|ies)\s+of your choice/i', $text, $m)) {
+                $quantity = $this->wordToNumber($m[1]);
+                $choices[] = [
+                    'type' => 'tool',
+                    'name' => null,
+                    'proficiency_type_id' => null,
+                    'grants' => true,
+                    'is_choice' => true,
+                    'quantity' => $quantity,
+                ];
+            }
+        }
+
+        return $choices;
     }
 }

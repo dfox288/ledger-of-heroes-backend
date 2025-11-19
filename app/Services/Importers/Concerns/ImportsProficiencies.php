@@ -38,10 +38,12 @@ trait ImportsProficiencies
                 'proficiency_name' => $profData['name'], // Always store name as fallback
                 'proficiency_type_id' => $profData['proficiency_type_id'] ?? null, // From parser
                 'grants' => $profData['grants'] ?? $grants, // Use provided or default
+                'is_choice' => $profData['is_choice'] ?? false, // Choice-based proficiency
+                'quantity' => $profData['quantity'] ?? 1, // Number of choices
             ];
 
             // Handle skill proficiencies - link to skills table
-            if ($profData['type'] === 'skill') {
+            if ($profData['type'] === 'skill' && ! empty($profData['name'])) {
                 $skill = Skill::where('name', $profData['name'])->first();
                 if ($skill) {
                     $proficiency['skill_id'] = $skill->id;

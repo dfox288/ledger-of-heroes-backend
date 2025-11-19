@@ -26,6 +26,12 @@ class EntityPrerequisiteResource extends JsonResource
             'description' => $this->description,
             'group_id' => $this->group_id,
 
+            // Generic prerequisite field (polymorphic relationship)
+            'prerequisite' => $this->when(
+                $this->relationLoaded('prerequisite'),
+                fn () => $this->formatPrerequisite()
+            ),
+
             // Conditionally include nested resources based on prerequisite type
             'ability_score' => $this->when(
                 $this->prerequisite_type === AbilityScore::class,
@@ -44,5 +50,23 @@ class EntityPrerequisiteResource extends JsonResource
                 fn () => new ProficiencyTypeResource($this->whenLoaded('prerequisite'))
             ),
         ];
+    }
+
+    /**
+     * Format the prerequisite based on its type.
+     */
+    private function formatPrerequisite()
+    {
+        if (! $this->prerequisite) {
+            return null;
+        }
+
+        return match ($this->prerequisite_type) {
+            AbilityScore::class => new AbilityScoreResource($this->prerequisite),
+            Race::class => new RaceResource($this->prerequisite),
+            Skill::class => new SkillResource($this->prerequisite),
+            ProficiencyType::class => new ProficiencyTypeResource($this->prerequisite),
+            default => null,
+        };
     }
 }

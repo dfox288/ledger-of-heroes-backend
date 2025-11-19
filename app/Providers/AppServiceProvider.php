@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Models\Background;
 use App\Models\CharacterClass;
+use App\Models\Feat;
+use App\Models\Item;
 use App\Models\Race;
 use App\Models\Spell;
 use Illuminate\Support\Facades\Route;
@@ -47,6 +49,18 @@ class AppServiceProvider extends ServiceProvider
             return is_numeric($value)
                 ? CharacterClass::findOrFail($value)
                 : CharacterClass::where('slug', $value)->firstOrFail();
+        });
+
+        Route::bind('item', function ($value) {
+            return is_numeric($value)
+                ? Item::findOrFail($value)
+                : Item::where('slug', $value)->firstOrFail();
+        });
+
+        Route::bind('feat', function ($value) {
+            return is_numeric($value)
+                ? Feat::findOrFail($value)
+                : Feat::where('slug', $value)->firstOrFail();
         });
     }
 }

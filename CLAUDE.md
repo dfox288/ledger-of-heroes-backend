@@ -34,6 +34,7 @@ This is a Laravel 12.x application that imports D&D 5th Edition content from XML
 
 ### Required Steps (Non-Negotiable):
 
+0. **Backwards compatibility is NOT important** - Do not waste time on backwards compatibility
 0. **Always use available Superpower Laravel skills**
 1. **WRITE TESTS FIRST** - Before writing any implementation code
 2. **Use PHPUnit 11 Attributes** - Use `#[\PHPUnit\Framework\Attributes\Test]` instead of `/** @test */` doc-comments

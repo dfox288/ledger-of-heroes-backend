@@ -2,7 +2,9 @@
 
 namespace App\Services\Importers;
 
+use App\Models\AbilityScore;
 use App\Models\DamageType;
+use App\Models\EntityPrerequisite;
 use App\Models\EntitySource;
 use App\Models\Item;
 use App\Models\ItemAbility;
@@ -76,6 +78,9 @@ class ItemImporter
 
         // Import random tables from description text
         $this->importRandomTables($item, $itemData['description']);
+
+        // Import prerequisites from strength_requirement
+        $this->importPrerequisites($item, $itemData['strength_requirement']);
 
         return $item;
     }
@@ -246,6 +251,36 @@ class ItemImporter
         }
 
         return $this->itemPropertyCache[$code];
+    }
+
+    private function importPrerequisites(Item $item, ?int $strengthRequirement): void
+    {
+        // Clear existing prerequisites
+        $item->prerequisites()->delete();
+
+        // If no strength requirement, nothing to import
+        if (empty($strengthRequirement) || $strengthRequirement <= 0) {
+            return;
+        }
+
+        // Get STR ability score
+        $strAbilityScore = AbilityScore::where('code', 'STR')->first();
+
+        if (! $strAbilityScore) {
+            // Should never happen, but fail gracefully
+            return;
+        }
+
+        // Create prerequisite record
+        EntityPrerequisite::create([
+            'reference_type' => Item::class,
+            'reference_id' => $item->id,
+            'prerequisite_type' => AbilityScore::class,
+            'prerequisite_id' => $strAbilityScore->id,
+            'minimum_value' => $strengthRequirement,
+            'description' => null,
+            'group_id' => 1,
+        ]);
     }
 
     public function importFromFile(string $filePath): int

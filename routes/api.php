@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\BackgroundController;
 use App\Http\Controllers\Api\ConditionController;
 use App\Http\Controllers\Api\DamageTypeController;
 use App\Http\Controllers\Api\FeatController;
+use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\ItemPropertyController;
 use App\Http\Controllers\Api\ItemTypeController;
 use App\Http\Controllers\Api\LanguageController;
@@ -39,6 +40,9 @@ Route::prefix('v1')->group(function () {
 
     // Backgrounds
     Route::apiResource('backgrounds', BackgroundController::class)->only(['index', 'show']);
+
+    // Items
+    Route::apiResource('items', ItemController::class)->only(['index', 'show']);
 
     // Feats
     Route::apiResource('feats', FeatController::class)->only(['index', 'show']);

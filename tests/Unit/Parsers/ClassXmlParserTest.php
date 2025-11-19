@@ -85,6 +85,42 @@ class ClassXmlParserTest extends TestCase
     }
 
     #[Test]
+    public function it_parses_fighter_traits()
+    {
+        // Load real Fighter XML from file
+        $xmlPath = base_path('import-files/class-fighter-phb.xml');
+        $xml = file_get_contents($xmlPath);
+
+        // Parse the XML
+        $classes = $this->parser->parse($xml);
+        $fighter = $classes[0];
+
+        // Assert: traits key exists
+        $this->assertArrayHasKey('traits', $fighter);
+        $this->assertIsArray($fighter['traits']);
+
+        // Assert: should have multiple traits (flavor text)
+        $this->assertGreaterThan(0, count($fighter['traits']));
+
+        // Assert: trait structure
+        $firstTrait = $fighter['traits'][0];
+        $this->assertArrayHasKey('name', $firstTrait);
+        $this->assertArrayHasKey('description', $firstTrait);
+        $this->assertArrayHasKey('category', $firstTrait);
+        $this->assertArrayHasKey('sort_order', $firstTrait);
+
+        // Assert: specific traits exist
+        $traitNames = array_column($fighter['traits'], 'name');
+        $this->assertContains('Fighter', $traitNames);
+        $this->assertContains('Well-Rounded Specialists', $traitNames);
+
+        // Assert: traits have source citations extracted
+        $fighterTrait = array_values(array_filter($fighter['traits'], fn ($t) => $t['name'] === 'Fighter'))[0];
+        $this->assertArrayHasKey('sources', $fighterTrait);
+        $this->assertNotEmpty($fighterTrait['sources'], 'Fighter trait should have source citations');
+    }
+
+    #[Test]
     public function it_parses_fighter_features_from_autolevel()
     {
         // Load real Fighter XML from file

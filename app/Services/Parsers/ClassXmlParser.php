@@ -57,6 +57,9 @@ class ClassXmlParser
             $data['skill_choices'] = (int) $element->numSkills;
         }
 
+        // Parse traits (flavor text)
+        $data['traits'] = $this->parseTraits($element);
+
         // Parse features from autolevel elements
         $data['features'] = $this->parseFeatures($element);
 
@@ -163,14 +166,48 @@ class ClassXmlParser
     }
 
     /**
-     * Parse traits (features) from class XML.
+     * Parse traits (flavor text) from class XML.
      *
      * @return array<int, array<string, mixed>>
      */
     private function parseTraits(SimpleXMLElement $element): array
     {
-        // TODO: Implement parseTraits logic
-        return [];
+        $traits = [];
+        $sortOrder = 0;
+
+        foreach ($element->trait as $traitElement) {
+            $category = isset($traitElement['category']) ? (string) $traitElement['category'] : null;
+            $name = (string) $traitElement->name;
+            $text = (string) $traitElement->text;
+
+            // Parse rolls within this trait (if any)
+            $rolls = [];
+            foreach ($traitElement->roll as $rollElement) {
+                $description = isset($rollElement['description']) ? (string) $rollElement['description'] : null;
+                $level = isset($rollElement['level']) ? (int) $rollElement['level'] : null;
+                $formula = (string) $rollElement;
+
+                $rolls[] = [
+                    'description' => $description,
+                    'formula' => $formula,
+                    'level' => $level,
+                ];
+            }
+
+            // Extract source citations
+            $sources = $this->parseSourceCitations($text);
+
+            $traits[] = [
+                'name' => $name,
+                'category' => $category,
+                'description' => trim($text),
+                'rolls' => $rolls,
+                'sources' => $sources,
+                'sort_order' => $sortOrder++,
+            ];
+        }
+
+        return $traits;
     }
 
     /**

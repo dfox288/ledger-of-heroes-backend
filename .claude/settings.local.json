@@ -29,7 +29,8 @@
       "Bash(sed:*)",
       "WebFetch(domain:dnd5e.wikidot.com)",
       "Bash(git restore:*)",
-      "Skill(superpowers-laravel:tdd-with-pest)"
+      "Skill(superpowers-laravel:tdd-with-pest)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

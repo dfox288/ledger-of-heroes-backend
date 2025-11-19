@@ -19,10 +19,17 @@ class ClassResource extends JsonResource
             'spellcasting_ability' => $this->when($this->spellcasting_ability_id, function () {
                 return new AbilityScoreResource($this->whenLoaded('spellcastingAbility'));
             }),
+            'parent_class_id' => $this->parent_class_id,
+            'is_base_class' => $this->is_base_class,
             'parent_class' => $this->when($this->parent_class_id, function () {
                 return new ClassResource($this->whenLoaded('parentClass'));
             }),
             'subclasses' => ClassResource::collection($this->whenLoaded('subclasses')),
+            'proficiencies' => ProficiencyResource::collection($this->whenLoaded('proficiencies')),
+            'traits' => TraitResource::collection($this->whenLoaded('traits')),
+            'features' => ClassFeatureResource::collection($this->whenLoaded('features')),
+            'level_progression' => ClassLevelProgressionResource::collection($this->whenLoaded('levelProgression')),
+            'counters' => ClassCounterResource::collection($this->whenLoaded('counters')),
             'spells' => SpellResource::collection($this->whenLoaded('spells')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
         ];

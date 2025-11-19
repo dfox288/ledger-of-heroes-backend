@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AbilityScoreController;
 use App\Http\Controllers\Api\BackgroundController;
+use App\Http\Controllers\Api\ClassController;
 use App\Http\Controllers\Api\ConditionController;
 use App\Http\Controllers\Api\DamageTypeController;
 use App\Http\Controllers\Api\FeatController;
@@ -46,4 +47,7 @@ Route::prefix('v1')->group(function () {
 
     // Feats
     Route::apiResource('feats', FeatController::class)->only(['index', 'show']);
+
+    // Classes
+    Route::apiResource('classes', ClassController::class)->only(['index', 'show']);
 });

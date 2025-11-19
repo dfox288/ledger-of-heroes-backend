@@ -72,49 +72,51 @@ class ProficiencyTypeSeeder extends Seeder
             // Weapons - Special/Exotic
             ['name' => 'Double-Bladed Scimitar', 'category' => 'weapon'],
 
-            // Artisan's Tools
-            ['name' => "Alchemist's Supplies", 'category' => 'tool'],
-            ['name' => "Brewer's Supplies", 'category' => 'tool'],
-            ['name' => "Calligrapher's Supplies", 'category' => 'tool'],
-            ['name' => "Carpenter's Tools", 'category' => 'tool'],
-            ['name' => "Cartographer's Tools", 'category' => 'tool'],
-            ['name' => "Cobbler's Tools", 'category' => 'tool'],
-            ['name' => "Cook's Utensils", 'category' => 'tool'],
-            ['name' => "Glassblower's Tools", 'category' => 'tool'],
-            ['name' => "Jeweler's Tools", 'category' => 'tool'],
-            ['name' => "Leatherworker's Tools", 'category' => 'tool'],
-            ['name' => "Mason's Tools", 'category' => 'tool'],
-            ['name' => "Painter's Supplies", 'category' => 'tool'],
-            ['name' => "Potter's Tools", 'category' => 'tool'],
-            ['name' => "Smith's Tools", 'category' => 'tool'],
-            ['name' => "Tinker's Tools", 'category' => 'tool'],
-            ['name' => "Weaver's Tools", 'category' => 'tool'],
-            ['name' => "Woodcarver's Tools", 'category' => 'tool'],
+            // Artisan's Tools (subcategory: artisan)
+            ['name' => "Alchemist's Supplies", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Brewer's Supplies", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Calligrapher's Supplies", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Carpenter's Tools", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Cartographer's Tools", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Cobbler's Tools", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Cook's Utensils", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Glassblower's Tools", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Jeweler's Tools", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Leatherworker's Tools", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Mason's Tools", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Painter's Supplies", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Potter's Tools", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Smith's Tools", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Tinker's Tools", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Weaver's Tools", 'category' => 'tool', 'subcategory' => 'artisan'],
+            ['name' => "Woodcarver's Tools", 'category' => 'tool', 'subcategory' => 'artisan'],
 
-            // Other Tools
-            ['name' => 'Disguise Kit', 'category' => 'tool'],
-            ['name' => 'Forgery Kit', 'category' => 'tool'],
-            ['name' => 'Herbalism Kit', 'category' => 'tool'],
-            ['name' => "Navigator's Tools", 'category' => 'tool'],
-            ['name' => "Poisoner's Kit", 'category' => 'tool'],
-            ['name' => "Thieves' Tools", 'category' => 'tool'],
+            // Miscellaneous Tools (subcategory: misc)
+            ['name' => 'Disguise Kit', 'category' => 'tool', 'subcategory' => 'misc'],
+            ['name' => 'Forgery Kit', 'category' => 'tool', 'subcategory' => 'misc'],
+            ['name' => 'Herbalism Kit', 'category' => 'tool', 'subcategory' => 'misc'],
+            ['name' => "Navigator's Tools", 'category' => 'tool', 'subcategory' => 'misc'],
+            ['name' => "Poisoner's Kit", 'category' => 'tool', 'subcategory' => 'misc'],
+            ['name' => "Thieves' Tools", 'category' => 'tool', 'subcategory' => 'misc'],
 
             // Vehicles
             ['name' => 'Land Vehicles', 'category' => 'vehicle'],
             ['name' => 'Water Vehicles', 'category' => 'vehicle'],
 
-            // Gaming Sets
+            // Gaming Sets (category already specific, no subcategory needed)
             ['name' => 'Dice Set', 'category' => 'gaming_set'],
+            ['name' => 'Dragonchess Set', 'category' => 'gaming_set'],
             ['name' => 'Playing Card Set', 'category' => 'gaming_set'],
+            ['name' => 'Three-Dragon Ante Set', 'category' => 'gaming_set'],
 
-            // Musical Instruments
+            // Musical Instruments (category already specific, no subcategory needed)
             ['name' => 'Bagpipes', 'category' => 'musical_instrument'],
             ['name' => 'Drum', 'category' => 'musical_instrument'],
             ['name' => 'Dulcimer', 'category' => 'musical_instrument'],
             ['name' => 'Flute', 'category' => 'musical_instrument'],
+            ['name' => 'Horn', 'category' => 'musical_instrument'],
             ['name' => 'Lute', 'category' => 'musical_instrument'],
             ['name' => 'Lyre', 'category' => 'musical_instrument'],
-            ['name' => 'Horn', 'category' => 'musical_instrument'],
             ['name' => 'Pan Flute', 'category' => 'musical_instrument'],
             ['name' => 'Shawm', 'category' => 'musical_instrument'],
             ['name' => 'Viol', 'category' => 'musical_instrument'],

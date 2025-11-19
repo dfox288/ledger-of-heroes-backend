@@ -6,17 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Laravel 12.x application that imports D&D 5th Edition content from XML files and provides a RESTful API for accessing the data. The XML files follow the compendium format used by applications like Fight Club 5e and similar D&D companion apps.
 
-**Current Status (2025-11-18):**
-- ✅ **44 migrations** - Complete database schema with enhancements
-- ✅ **21 Eloquent models** - All with HasFactory trait
-- ✅ **10 model factories** - Test data generation
-- ✅ **11 database seeders** - Lookup/reference data
-- ✅ **19 API Resources** - Standardized and 100% field-complete
-- ✅ **12 API Controllers** - 4 entity + 8 lookup endpoints
-- ✅ **313 tests passing** (1,766 assertions, 1 incomplete expected)
+**Current Status (2025-11-19):**
+- ✅ **50 migrations** - Complete database schema with slug system + languages
+- ✅ **23 Eloquent models** - All with HasFactory trait
+- ✅ **12 model factories** - Test data generation
+- ✅ **12 database seeders** - Lookup/reference data (including 30 languages)
+- ✅ **21 API Resources** - Standardized and 100% field-complete
+- ✅ **13 API Controllers** - 4 entity + 9 lookup endpoints
+- ✅ **238 tests passing** (1,463 assertions, 2 incomplete expected)
 - ✅ **4 importers working** - Spells, Races, Items, Backgrounds
 - ✅ **4 artisan commands** - `import:spells`, `import:races`, `import:items`, `import:backgrounds`
-- ✅ **2,017 entities imported** - 19 backgrounds, 56 races, 1,942 items
+- ✅ **Slug system complete** - Dual ID/slug routing for all entities
+- ✅ **7 reusable traits** - Parser + Importer traits for DRY code
 - ⚠️  **2 importers pending** - Classes (RECOMMENDED NEXT), Monsters
 
 ## Tech Stack
@@ -29,6 +30,34 @@ This is a Laravel 12.x application that imports D&D 5th Edition content from XML
 
 ## Quick Start
 
+### Database Initialization Protocol
+
+**IMPORTANT:** Always start with a clean database and reimport all data:
+
+```bash
+# 1. Fresh database with seeded lookup data
+docker compose exec php php artisan migrate:fresh --seed
+
+# 2. Import all available entities
+# Spells (9 files available, import subset for testing)
+docker compose exec php bash -c 'for file in import-files/spells-phb.xml import-files/spells-tce.xml import-files/spells-xge.xml; do php artisan import:spells "$file" || true; done'
+
+# Races (3 files)
+docker compose exec php bash -c 'for file in import-files/races-*.xml; do php artisan import:races "$file"; done'
+
+# Items (24 files)
+docker compose exec php bash -c 'for file in import-files/items-*.xml; do php artisan import:items "$file"; done'
+
+# Backgrounds (2 files)
+docker compose exec php bash -c 'for file in import-files/backgrounds-*.xml; do php artisan import:backgrounds "$file"; done'
+```
+
+**Rationale:**
+- Ensures consistent state across sessions
+- Catches migration issues early
+- Verifies importers still work with latest schema
+- Rebuilds all slug/language/proficiency associations
+
 ### Running Tests
 ```bash
 docker compose exec php php artisan test                    # All tests
@@ -36,23 +65,69 @@ docker compose exec php php artisan test --filter=Api       # API tests
 docker compose exec php php artisan test --filter=Importer  # Importer tests
 ```
 
-### Database Operations
+### Other Database Operations
 ```bash
-docker compose exec php php artisan migrate:fresh --seed    # Fresh DB with lookup data
 docker compose exec php php artisan tinker                  # Interactive REPL
+docker compose exec php php artisan db:seed                 # Re-seed lookup data only
 ```
 
-### Importing Data
-```bash
-# Import all items (17 files)
-docker compose exec php bash -c 'for file in import-files/items-*.xml; do php artisan import:items "$file"; done'
+## Development Workflow
 
-# Import all races (3 files)
+### Todo-Based Development Protocol
+
+**IMPORTANT:** Follow this workflow for all feature development and bug fixes:
+
+#### Before Starting Each Todo Item:
+```bash
+# 1. Refresh database with latest schema
+docker compose exec php php artisan migrate:fresh --seed
+
+# 2. Import all entities to verify importers still work
+# Spells (subset for speed)
+docker compose exec php bash -c 'for file in import-files/spells-phb.xml import-files/spells-tce.xml import-files/spells-xge.xml; do php artisan import:spells "$file" || true; done'
+
+# Races (all files)
 docker compose exec php bash -c 'for file in import-files/races-*.xml; do php artisan import:races "$file"; done'
 
-# Import all backgrounds (2 files)
+# Items (all files)
+docker compose exec php bash -c 'for file in import-files/items-*.xml; do php artisan import:items "$file"; done'
+
+# Backgrounds (all files)
 docker compose exec php bash -c 'for file in import-files/backgrounds-*.xml; do php artisan import:backgrounds "$file"; done'
+
+# 3. Run tests to verify starting point
+docker compose exec php php artisan test
 ```
+
+#### After Completing Each Todo Item:
+```bash
+# 1. Run tests to verify changes
+docker compose exec php php artisan test
+
+# 2. Format code
+docker compose exec php ./vendor/bin/pint
+
+# 3. Stage and commit changes
+git add .
+git commit -m "feat: [descriptive message]
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+**Rationale:**
+- **Before:** Ensures starting with clean state, catches schema drift, verifies importers work
+- **After:** Validates changes, maintains code quality, creates checkpoint for rollback
+- **Commit per todo:** Keeps changes atomic, makes git history readable, enables easy rollback
+
+**Commit Message Conventions:**
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `refactor:` - Code restructuring
+- `test:` - Adding or updating tests
+- `docs:` - Documentation changes
+- `chore:` - Maintenance tasks
 
 ## Repository Structure
 
@@ -68,15 +143,15 @@ app/
       └── Parsers/                   # XML parsing + table detection
 
 database/
-  ├── migrations/                    # 44 migrations
-  └── seeders/                       # 11 seeders for lookup data
+  ├── migrations/                    # 50 migrations (includes slug + language system)
+  └── seeders/                       # 12 seeders for lookup data
 
-import-files/                        # 86 XML source files
-  ├── spells-*.xml                   # 6 spell files
-  ├── races-*.xml                    # 3 race files (56 imported ✅)
-  ├── items-*.xml                    # 17 item files (1,942 imported ✅)
-  ├── backgrounds-*.xml              # 2 background files (19 imported ✅)
-  ├── class-*.xml                    # 35 class files (READY)
+import-files/                        # XML source files
+  ├── spells-*.xml                   # 9 spell files
+  ├── races-*.xml                    # 3 race files
+  ├── items-*.xml                    # 24 item files
+  ├── backgrounds-*.xml              # 2 background files
+  ├── class-*.xml                    # 35 class files (READY - Priority 1)
   └── bestiary-*.xml                 # 5 monster files
 
 tests/
@@ -85,6 +160,14 @@ tests/
 ```
 
 ## Key Features
+
+### Slug System (NEW 2025-11-19)
+All entities support **dual ID/slug routing** for SEO-friendly URLs:
+- Routes accept BOTH numeric IDs and string slugs
+- Example: `/api/v1/spells/123` OR `/api/v1/spells/fireball`
+- Hierarchical slugs for subraces/subclasses: `dwarf-hill`, `fighter-battle-master`
+- Auto-generated during import via `Str::slug()`
+- Backward compatible with existing code
 
 ### Multi-Source Entity System
 All entities can cite multiple sourcebooks via `entity_sources` polymorphic table.
@@ -97,10 +180,17 @@ All entities can cite multiple sourcebooks via `entity_sources` polymorphic tabl
 - **Proficiencies** - Skills, weapons, armor, tools (with auto-matching to types)
 - **Random Tables** - d6/d8/d100 tables for character features
 
+### Language System (NEW 2025-11-19)
+- 30 D&D 5e languages seeded with metadata (script, type, rarity)
+- Polymorphic `entity_languages` table (works with races, classes, backgrounds)
+- Supports both fixed languages AND choice slots (e.g., "one extra language")
+- `MatchesLanguages` trait auto-matches during import
+- 119 language associations across races (59% coverage)
+
 ### Normalized Proficiency Types
-- 80 proficiency types across 7 categories (weapons, armor, tools, etc.)
+- 82 proficiency types across 7 categories (weapons, armor, tools, etc.)
 - `MatchesProficiencyTypes` trait auto-matches during import
-- 100% match rate (25/25 non-skill proficiencies)
+- 100% match rate during import
 - Enables queries like "Find races proficient with Longsword"
 
 ### Random Table System
@@ -129,9 +219,11 @@ All entities can cite multiple sourcebooks via `entity_sources` polymorphic tabl
 - `GET /api/v1/damage-types` - 13 damage types
 - `GET /api/v1/conditions` - 15 D&D conditions
 - `GET /api/v1/proficiency-types?category=weapon` - Filterable proficiency types
+- `GET /api/v1/languages` - 30 D&D languages
 - Plus: sizes, ability-scores, skills, item-types, item-properties
 
 **Features:**
+- **Dual ID/Slug Routing:** `/spells/fireball` OR `/spells/123`
 - Pagination: `?per_page=25` (default: 15)
 - Search: `?search=term` (FULLTEXT)
 - Filtering: By level, school, size, category, etc.
@@ -176,8 +268,9 @@ These are **intentional** design decisions:
 ## Testing
 
 **Test Statistics:**
-- **313 tests** (1,766 assertions) - 99.7% pass rate
-- **Test Duration:** ~3.2 seconds
+- **238 tests** (1,463 assertions) - 100% pass rate
+- **2 incomplete tests** (expected edge cases documented)
+- **Test Duration:** ~3.2-3.4 seconds
 - Feature tests for API, importers, models, migrations
 - Unit tests for parsers, factories, services
 - **XML reconstruction tests** verify import completeness (~90-95% coverage)
@@ -189,19 +282,41 @@ docker compose exec php php artisan test --filter=Api            # API tests
 docker compose exec php php artisan test --filter=Reconstruction # XML tests
 ```
 
+## Code Architecture (NEW 2025-11-19)
+
+### Reusable Traits
+All importers and parsers use shared traits to eliminate duplication:
+
+**Parser Traits:**
+- `ParsesSourceCitations` - Database-driven source mapping (no hardcoded arrays!)
+- `MatchesProficiencyTypes` - Fuzzy matching for weapons, armor, tools
+- `MatchesLanguages` - Language extraction and matching
+
+**Importer Traits:**
+- `ImportsSources` - Entity source citation handling
+- `ImportsTraits` - Character trait import
+- `ImportsProficiencies` - Proficiency import with skill FK linking
+
+**Benefits:**
+- 150+ lines of duplication eliminated
+- Single source of truth for source mapping
+- Consistent behavior across all importers
+
 ## Factories & Seeders
 
-**10 Model Factories:**
+**12 Model Factories:**
 All entities support factory-based creation. Polymorphic models use `forEntity()` pattern:
 ```php
 CharacterTrait::factory()->forEntity(Race::class, $race->id)->create();
 Proficiency::factory()->forEntity(Race::class, $race->id)->create();
 EntitySource::factory()->forEntity(Spell::class, $spell->id)->fromSource('PHB')->create();
+EntityLanguage::factory()->forEntity(Race::class, $race->id)->create();
 ```
 
-**11 Database Seeders:**
+**12 Database Seeders:**
 - Sources, spell schools, damage types, conditions, proficiency types
 - Sizes, ability scores, skills, item types/properties, character classes
+- **Languages** - 30 D&D languages with script/type/rarity
 - Run with: `docker compose exec php php artisan db:seed`
 
 ## What's Next
@@ -213,8 +328,10 @@ EntitySource::factory()->forEntity(Spell::class, $spell->id)->fromSource('PHB')-
 - 13 base classes seeded in database
 - Subclass hierarchy using `parent_class_id`
 - Class features, spell slots, counters (Ki, Rage)
-- Can reuse `MatchesProficiencyTypes` trait
-- **Estimated Effort:** 6-8 hours
+- **Can reuse NEW importer traits:** `ImportsSources`, `ImportsTraits`, `ImportsProficiencies`
+- **Can reuse NEW parser traits:** `ParsesSourceCitations`, `MatchesProficiencyTypes`, `MatchesLanguages`
+- Hierarchical slugs ready: `fighter-battle-master`
+- **Estimated Effort:** 6-8 hours (now faster with traits!)
 
 ### Priority 2: Monster Importer
 - 5 bestiary XML files available
@@ -235,10 +352,31 @@ EntitySource::factory()->forEntity(Spell::class, $spell->id)->fromSource('PHB')-
 - `docs/plans/2025-11-17-dnd-compendium-database-design.md` - Database architecture
 - `docs/plans/2025-11-17-dnd-xml-importer-implementation-v4-vertical-slices.md` - Implementation strategy
 
-## Recent Accomplishments (2025-11-18)
+## Recent Accomplishments (2025-11-19)
+
+### Latest: Slug System Complete ✅
+- 6 new migrations for slug columns on all entity tables
+- Dual ID/slug route binding in `AppServiceProvider`
+- Hierarchical slug generation for races/classes
+- All API Resources include slug field
+- 238 tests passing (100% pass rate)
+
+### Code Refactoring + Trait System ✅
+- **7 reusable traits** for parsers and importers
+- Database-driven source mapping (no hardcoded arrays!)
+- 150+ lines of duplication eliminated
+- 100% clean source citations (no trailing commas)
+- Schema consistency across all polymorphic tables
+
+### Language System ✅
+- 30 D&D languages seeded with metadata
+- Polymorphic `entity_languages` table
+- 119 language associations across races
+- Supports choice slots (e.g., "one extra language")
+- `MatchesLanguages` trait for parsing
 
 ### Conditions & Proficiency Types System ✅
-- 15 D&D 5e conditions + 80 proficiency types
+- 15 D&D 5e conditions + 82 proficiency types
 - `MatchesProficiencyTypes` trait for auto-matching
 - 100% match rate during import
 - New API endpoints for lookups
@@ -259,6 +397,19 @@ EntitySource::factory()->forEntity(Spell::class, $spell->id)->fromSource('PHB')-
 - 76 tables extracted with 381+ entries
 - Supports standard and unusual dice types
 - Handles roll ranges and non-numeric entries
+
+---
+
+## Branch Status
+
+**Current Branch:** `fix/parser-data-quality`
+**Status:** ✅ Ready to merge
+**Test Status:** 238 tests passing (100% pass rate)
+**Key Changes:**
+- Slug system with dual ID/slug routing
+- Language system with 30 languages
+- 7 reusable parser + importer traits
+- 100% clean data quality (proficiencies, modifiers, sources)
 
 ---
 

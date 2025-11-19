@@ -15,6 +15,7 @@ class ProficiencyType extends Model
     protected $fillable = [
         'name',
         'category',
+        'subcategory',
         'item_id',
     ];
 
@@ -30,5 +31,10 @@ class ProficiencyType extends Model
     public function scopeByCategory($query, string $category)
     {
         return $query->where('category', $category);
+    }
+
+    public function scopeBySubcategory($query, string $subcategory)
+    {
+        return $query->where('subcategory', $subcategory);
     }
 }

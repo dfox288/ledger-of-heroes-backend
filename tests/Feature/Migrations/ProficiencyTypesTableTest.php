@@ -20,6 +20,7 @@ class ProficiencyTypesTableTest extends TestCase
             'id',
             'name',
             'category',
+            'subcategory',
             'item_id',
         ]));
     }
@@ -34,6 +35,29 @@ class ProficiencyTypesTableTest extends TestCase
         });
 
         $this->assertNotNull($categoryIndex, 'Index on category column not found');
+    }
+
+    #[Test]
+    public function it_has_index_on_subcategory(): void
+    {
+        $indexes = Schema::getIndexes('proficiency_types');
+
+        $subcategoryIndex = collect($indexes)->first(function ($index) {
+            return in_array('subcategory', $index['columns']);
+        });
+
+        $this->assertNotNull($subcategoryIndex, 'Index on subcategory column not found');
+    }
+
+    #[Test]
+    public function it_has_nullable_subcategory_column(): void
+    {
+        $columns = Schema::getColumns('proficiency_types');
+
+        $subcategoryColumn = collect($columns)->firstWhere('name', 'subcategory');
+
+        $this->assertNotNull($subcategoryColumn);
+        $this->assertTrue($subcategoryColumn['nullable']);
     }
 
     #[Test]

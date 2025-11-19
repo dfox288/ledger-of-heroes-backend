@@ -18,6 +18,7 @@ class ProficiencyTypeResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'category' => $this->category,
+            'subcategory' => $this->subcategory,
             'item' => new ItemResource($this->whenLoaded('item')),
         ];
     }

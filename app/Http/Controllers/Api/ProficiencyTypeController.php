@@ -21,6 +21,11 @@ class ProficiencyTypeController extends Controller
             $query->byCategory($request->input('category'));
         }
 
+        // Filter by subcategory
+        if ($request->has('subcategory')) {
+            $query->bySubcategory($request->input('subcategory'));
+        }
+
         // Search by name
         if ($request->has('search')) {
             $search = $request->input('search');

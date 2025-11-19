@@ -58,6 +58,14 @@ class Feat extends Model
     }
 
     /**
+     * Get all prerequisites for this feat (polymorphic).
+     */
+    public function prerequisites(): MorphMany
+    {
+        return $this->morphMany(EntityPrerequisite::class, 'reference');
+    }
+
+    /**
      * Scope a query to search feats.
      */
     public function scopeSearch($query, $searchTerm)

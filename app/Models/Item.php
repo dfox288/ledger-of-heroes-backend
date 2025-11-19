@@ -86,4 +86,9 @@ class Item extends Model
     {
         return $this->morphMany(RandomTable::class, 'reference');
     }
+
+    public function prerequisites(): MorphMany
+    {
+        return $this->morphMany(EntityPrerequisite::class, 'reference');
+    }
 }

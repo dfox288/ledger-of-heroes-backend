@@ -10,7 +10,6 @@ use App\Models\RandomTable;
 use App\Models\RandomTableEntry;
 use App\Models\Source;
 use App\Services\Matching\ItemMatchingService;
-use App\Services\Parsers\ItemTableParser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -26,14 +25,12 @@ class BackgroundImporter
             );
 
             // 2. Clear existing polymorphic relationships
+            // Note: Deleting traits will cascade delete their random tables
             $background->traits()->delete();
             $background->proficiencies()->delete();
             $background->sources()->delete();
             $background->languages()->delete();
             $background->equipment()->delete();
-            RandomTable::where('reference_type', Background::class)
-                ->where('reference_id', $background->id)
-                ->delete();
 
             // 3. Import traits
             $traits = [];
@@ -44,11 +41,6 @@ class BackgroundImporter
                     'category' => $traitData['category'],
                 ]);
                 $traits[$traitData['name']] = $trait;
-
-                // 4. Import random tables for characteristics trait (old method for backward compatibility)
-                if ($traitData['category'] === 'characteristics' && ! empty($traitData['rolls'])) {
-                    $this->importRandomTables($trait, $traitData['description'], $traitData['rolls']);
-                }
             }
 
             // 5. Import proficiencies (now with is_choice, quantity, and subcategory support)
@@ -117,11 +109,20 @@ class BackgroundImporter
                 ]);
             }
 
-            // 9. Import ALL embedded random tables (not just characteristics)
+            // 9. Import ALL embedded random tables (linked to traits, NOT background)
             foreach ($data['random_tables'] ?? [] as $tableData) {
+                // Find the trait this table belongs to
+                if (! isset($tableData['trait_name']) || ! isset($traits[$tableData['trait_name']])) {
+                    // Skip tables that don't have a trait association
+                    continue;
+                }
+
+                $trait = $traits[$tableData['trait_name']];
+
+                // Create table linked to the TRAIT (not background)
                 $table = RandomTable::create([
-                    'reference_type' => Background::class,
-                    'reference_id' => $background->id,
+                    'reference_type' => CharacterTrait::class,
+                    'reference_id' => $trait->id,
                     'table_name' => $tableData['name'],
                     'dice_type' => $tableData['dice_type'],
                 ]);
@@ -136,62 +137,11 @@ class BackgroundImporter
                     ]);
                 }
 
-                // Link table to trait if trait_name is specified
-                if (isset($tableData['trait_name']) && isset($traits[$tableData['trait_name']])) {
-                    $traits[$tableData['trait_name']]->update(['random_table_id' => $table->id]);
-                }
+                // Link table back to trait via random_table_id
+                $trait->update(['random_table_id' => $table->id]);
             }
 
             return $background;
         });
-    }
-
-    private function importRandomTables(CharacterTrait $trait, string $text, array $rolls): void
-    {
-        // Use roll elements to extract tables from the trait description
-        // Each roll element has a description and formula (e.g., "Personality Trait", "1d8")
-
-        foreach ($rolls as $rollData) {
-            $tableName = $rollData['description'];
-            $diceType = $rollData['formula'];
-
-            // Find the table in the text by looking for the pattern "d8 | Personality Trait"
-            // or "1d8 | Personality Trait" followed by rows like "1 | ..."
-            $pattern = $this->buildTablePattern($diceType, $tableName);
-
-            if (preg_match($pattern, $text, $matches)) {
-                // Parse the matched table text
-                $parser = new ItemTableParser;
-                $parsed = $parser->parse($tableName.":\n".trim($matches[0]));
-
-                $table = $trait->randomTables()->create([
-                    'table_name' => $tableName,
-                    'dice_type' => $diceType,
-                ]);
-
-                foreach ($parsed['rows'] as $index => $row) {
-                    $table->entries()->create([
-                        'roll_min' => $row['roll_min'],
-                        'roll_max' => $row['roll_max'],
-                        'result_text' => $row['result_text'],
-                        'sort_order' => $index,
-                    ]);
-                }
-            }
-        }
-    }
-
-    private function buildTablePattern(string $diceType, string $tableName): string
-    {
-        // Build a regex pattern to match the table
-        // Format: "d8 | Personality Trait\n1 | ...\n2 | ..."
-        $escapedTableName = preg_quote($tableName, '/');
-
-        // Normalize dice type: "1d8" -> "d8" (the format used in trait text)
-        $normalizedDiceType = preg_replace('/^1(d\d+)$/', '$1', $diceType);
-
-        // Match dice notation and table name header, followed by numbered rows
-        // Use flexible matching for dice notation (optional leading digit)
-        return '/\d*'.preg_quote($normalizedDiceType, '/').'\s*\|\s*'.$escapedTableName.'\s*\n((?:^\d+(?:-\d+)?\s*\|[^\n]+\s*\n?)+)/m';
     }
 }

@@ -169,12 +169,12 @@ XML;
         $this->assertTrue($tables->contains('table_name', 'Bond'));
         $this->assertTrue($tables->contains('table_name', 'Flaw'));
 
-        // Assert: Dice types correct
+        // Assert: Dice types correct (from headerless table format "d8 | Personality Trait")
         $personalityTable = $tables->firstWhere('table_name', 'Personality Trait');
-        $this->assertEquals('1d8', $personalityTable->dice_type);
+        $this->assertEquals('d8', $personalityTable->dice_type);
 
         $idealTable = $tables->firstWhere('table_name', 'Ideal');
-        $this->assertEquals('1d6', $idealTable->dice_type);
+        $this->assertEquals('d6', $idealTable->dice_type);
 
         // Assert: Entries parsed
         $this->assertGreaterThan(0, $personalityTable->entries->count());

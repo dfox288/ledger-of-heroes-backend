@@ -440,4 +440,78 @@ XML;
         $this->assertArrayHasKey('equipment', $backgrounds[0]);
         $this->assertEmpty($backgrounds[0]['equipment']);
     }
+
+    #[Test]
+    public function it_parses_all_embedded_random_tables_from_all_traits()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Guild Artisan</name>
+    <proficiency>Insight</proficiency>
+    <trait>
+      <name>Guild Business</name>
+      <text>Guild Business:
+d20 | Guild Business
+1 | Alchemists and apothecaries
+2 | Armorers, locksmiths, and finesmiths
+3 | Brewers, distillers, and vintners</text>
+    </trait>
+    <trait>
+      <name>Suggested Characteristics</name>
+      <text>Personality Trait:
+d8 | Personality Trait
+1 | I believe that anything worth doing is worth doing right.
+2 | I'm a perfectionist who works long hours.</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('random_tables', $backgrounds[0]);
+        $tables = $backgrounds[0]['random_tables'];
+
+        // Should have at least 2 tables (Guild Business and Personality Trait)
+        $this->assertGreaterThanOrEqual(2, count($tables));
+
+        // Find Guild Business table
+        $guildTable = collect($tables)->firstWhere('name', 'Guild Business');
+        $this->assertNotNull($guildTable);
+        $this->assertEquals('d20', $guildTable['dice_type']);
+        $this->assertEquals('Guild Business', $guildTable['trait_name']);
+        $this->assertCount(3, $guildTable['entries']);
+
+        // Find Personality Trait table
+        $personalityTable = collect($tables)->firstWhere('name', 'Personality Trait');
+        $this->assertNotNull($personalityTable);
+        $this->assertEquals('d8', $personalityTable['dice_type']);
+        $this->assertEquals('Suggested Characteristics', $personalityTable['trait_name']);
+        $this->assertCount(2, $personalityTable['entries']);
+    }
+
+    #[Test]
+    public function it_returns_empty_array_when_no_tables_found()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Test</name>
+    <proficiency>Insight</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>No tables here</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('random_tables', $backgrounds[0]);
+        $this->assertEmpty($backgrounds[0]['random_tables']);
+    }
 }

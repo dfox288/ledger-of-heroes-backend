@@ -25,13 +25,20 @@ class BackgroundXmlParser
             $xmlProfs = $this->parseProficiencies((string) $bg->proficiency);
             $toolProfs = $this->parseToolProficienciesFromTraitText($descriptionText);
 
+            // Parse traits
+            $parsedTraits = $this->parseTraits($bg->trait);
+
+            // Parse random tables from ALL traits
+            $randomTables = $this->parseAllEmbeddedTables($parsedTraits);
+
             $backgrounds[] = [
                 'name' => (string) $bg->name,
                 'proficiencies' => array_merge($xmlProfs, $toolProfs),
-                'traits' => $this->parseTraits($bg->trait),
+                'traits' => $parsedTraits,
                 'sources' => $this->extractSources($descriptionText),
                 'languages' => $this->parseLanguagesFromTraitText($descriptionText),
                 'equipment' => $this->parseEquipmentFromTraitText($descriptionText),
+                'random_tables' => $randomTables,
             ];
         }
 
@@ -369,5 +376,34 @@ class BackgroundXmlParser
         }
 
         return $items;
+    }
+
+    /**
+     * Parse ALL embedded random tables from ALL traits.
+     * Uses ItemTableDetector and ItemTableParser to extract tables from trait text.
+     */
+    private function parseAllEmbeddedTables(array $traits): array
+    {
+        $detector = new ItemTableDetector;
+        $parser = new ItemTableParser;
+        $allTables = [];
+
+        foreach ($traits as $trait) {
+            $text = $trait['description'];
+            $detectedTables = $detector->detectTables($text);
+
+            foreach ($detectedTables as $tableInfo) {
+                $parsedTable = $parser->parse($tableInfo['text'], $tableInfo['dice_type']);
+
+                $allTables[] = [
+                    'name' => $tableInfo['name'],
+                    'dice_type' => $tableInfo['dice_type'],
+                    'trait_name' => $trait['name'], // For linking back to trait
+                    'entries' => $parsedTable['rows'],
+                ];
+            }
+        }
+
+        return $allTables;
     }
 }

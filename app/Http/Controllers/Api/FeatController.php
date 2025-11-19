@@ -11,7 +11,7 @@ class FeatController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Feat::with(['sources.source']);
+        $query = Feat::with(['sources.source', 'prerequisites.prerequisite']);
 
         // Apply search filter
         if ($request->has('search')) {
@@ -39,6 +39,7 @@ class FeatController extends Controller
             'proficiencies.skill.abilityScore',
             'proficiencies.proficiencyType',
             'conditions',
+            'prerequisites.prerequisite',
         ]);
 
         return new FeatResource($feat);

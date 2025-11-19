@@ -262,4 +262,41 @@ class FeatXmlParserPrerequisitesTest extends TestCase
         $race = Race::where('name', 'Dragonborn')->first();
         $this->assertEquals($race->id, $result[0]['prerequisite_id']);
     }
+
+    #[Test]
+    public function it_parses_races_with_skill_suffix()
+    {
+        // "Dwarf, Gnome, Halfling, Small Race, Proficiency in the Acrobatics skill"
+        // This is the real-world Squat Nimbleness case
+        Race::factory()->create(['name' => 'Dwarf', 'slug' => 'dwarf']);
+        Race::factory()->create(['name' => 'Gnome', 'slug' => 'gnome']);
+        Race::factory()->create(['name' => 'Halfling', 'slug' => 'halfling']);
+
+        $result = $this->parser->parsePrerequisites('Dwarf, Gnome, Halfling, Small Race, Proficiency in the Acrobatics skill');
+
+        // Should have at least 5 prerequisites:
+        // - 3 races (Dwarf, Gnome, Halfling) in group 1
+        // - 1 free-form "Small Race" in group 1
+        // - 1 skill (Acrobatics) in group 2
+        $this->assertGreaterThanOrEqual(5, count($result));
+
+        // Check that races are in group 1
+        $racePrereqs = array_filter($result, fn ($p) => $p['prerequisite_type'] === Race::class);
+        $this->assertCount(3, $racePrereqs);
+        foreach ($racePrereqs as $prereq) {
+            $this->assertEquals(1, $prereq['group_id']);
+        }
+
+        // Check that there's a skill in group 2 (AND logic with races)
+        $group2Prereqs = array_filter($result, fn ($p) => $p['group_id'] === 2);
+        $this->assertCount(1, $group2Prereqs);
+
+        $skillPrereq = reset($group2Prereqs);
+        // Should be Skill model (Acrobatics is a skill)
+        $this->assertEquals(Skill::class, $skillPrereq['prerequisite_type']);
+
+        $acrobatics = Skill::where('name', 'Acrobatics')->first();
+        $this->assertNotNull($acrobatics);
+        $this->assertEquals($acrobatics->id, $skillPrereq['prerequisite_id']);
+    }
 }

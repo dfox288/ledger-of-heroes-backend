@@ -496,25 +496,32 @@ class FeatXmlParser
     private function matchesRacePattern(string $text): bool
     {
         // Match single word capitalized names or comma-separated list
-        // But NOT sentences or long phrases with many words
+        // Can optionally end with "Proficiency in X" or "Proficiency in the X skill"
         // "Elf", "Dwarf, Gnome, Halfling" - YES
+        // "Dwarf, Gnome, Halfling, Proficiency in Acrobatics" - YES
+        // "Dwarf, Gnome, Halfling, Small Race, Proficiency in the Acrobatics skill" - YES
         // "The ability to cast..." - NO (too many lowercase words)
         // "Spellcasting or Pact Magic feature" - NO (has "feature" at end)
 
         // Reject if it looks like a sentence or has common non-race words
         $lowerText = strtolower($text);
         if (str_contains($lowerText, 'ability to') ||
-            str_contains($lowerText, 'feature') ||
-            str_contains($lowerText, 'the ') ||
-            str_word_count($text) > 8) { // Long phrases are not races
+            str_contains($lowerText, 'feature')) {
             return false;
         }
 
+        // Allow "Proficiency" at end, but reject "the " in middle (except in "the X skill" at end)
+        $withoutProficiency = preg_replace('/,\s+Proficiency (with|in)\s+(the\s+)?.+$/i', '', $text);
+        if (str_contains(strtolower($withoutProficiency), 'the ')) {
+            return false;
+        }
+
+        // Check for race pattern: capitalized words, comma-separated
         return preg_match('/^[A-Z][a-z]+(\s+[A-Z][a-z]+)?(,\s+[A-Z][a-z]+(\s+[A-Z][a-z]+)*)*/', $text) === 1;
     }
 
     /**
-     * Parse race prerequisites (with optional proficiency at end).
+     * Parse race prerequisites (with optional proficiency/skill at end).
      *
      * @return array<int, array<string, mixed>>
      */
@@ -522,13 +529,19 @@ class FeatXmlParser
     {
         $prerequisites = [];
 
-        // Check if there's a proficiency at the end (indicates AND logic)
-        $hasProficiency = preg_match('/,\s+Proficiency (with|in)\s+(.+)$/i', $text, $profMatch);
+        // Check if there's a proficiency/skill at the end (indicates AND logic)
+        // Patterns: "Proficiency in Acrobatics" or "Proficiency in the Acrobatics skill"
+        $hasProficiency = preg_match('/,\s+Proficiency (with|in)\s+(the\s+)?(.+?)(\s+skill)?$/i', $text, $profMatch);
 
         if ($hasProficiency) {
             // Split into races and proficiency
             $racesPart = preg_replace('/,\s+Proficiency (with|in)\s+.+$/i', '', $text);
-            $proficiencyPart = 'Proficiency '.$profMatch[1].' '.$profMatch[2];
+
+            // Extract skill/proficiency name (remove "the" and "skill" if present)
+            $proficiencyName = trim($profMatch[3]);
+            $preposition = $profMatch[1]; // "with" or "in"
+
+            $proficiencyPart = "Proficiency {$preposition} {$proficiencyName}";
 
             // Parse races (group 1)
             $raceNames = array_map('trim', explode(',', $racesPart));
@@ -554,7 +567,7 @@ class FeatXmlParser
                 }
             }
 
-            // Parse proficiency (group 2 - AND with races)
+            // Parse proficiency/skill (group 2 - AND with races)
             $profPrereqs = $this->parseProficiencyPrerequisites($proficiencyPart, $groupId + 1);
             $prerequisites = array_merge($prerequisites, $profPrereqs);
         } else {

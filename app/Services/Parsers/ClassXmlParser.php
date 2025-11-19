@@ -66,6 +66,9 @@ class ClassXmlParser
         // Parse counters from autolevel elements
         $data['counters'] = $this->parseCounters($element);
 
+        // Detect and group subclasses
+        $data['subclasses'] = $this->detectSubclasses($data['features'], $data['counters']);
+
         return $data;
     }
 
@@ -304,7 +307,76 @@ class ClassXmlParser
      */
     private function detectSubclasses(array $features, array $counters): array
     {
-        // TODO: Implement detectSubclasses logic
-        return [];
+        $subclasses = [];
+        $subclassNames = [];
+
+        // Pattern 1: "Martial Archetype: Battle Master" or "Otherworldly Patron: The Fiend"
+        // Pattern 2: "Combat Superiority (Battle Master)" - name with parentheses
+        foreach ($features as $feature) {
+            $name = $feature['name'];
+
+            // Pattern 1: "Martial Archetype: Subclass Name" or "Primal Path: Subclass Name"
+            if (preg_match('/^(?:Martial Archetype|Primal Path|Monastic Tradition|Otherworldly Patron|Divine Domain|Arcane Tradition|Sacred Oath|Ranger Archetype|Roguish Archetype|Sorcerous Origin|Bard College|Druid Circle|College of|Artificer Specialist):\s*(.+)$/i', $name, $matches)) {
+                $subclassNames[] = trim($matches[1]);
+            }
+
+            // Pattern 2: "Feature Name (Subclass Name)"
+            if (preg_match('/\(([^)]+)\)$/', $name, $matches)) {
+                $possibleSubclass = trim($matches[1]);
+                // Only consider it a subclass if it:
+                // 1. Not a common qualifier like "Revised" or "Alternative"
+                // 2. Not a number (like "Action Surge (2)")
+                // 3. Not a lowercase phrase (like "two uses")
+                // 4. Starts with a capital letter (subclass names are proper nouns)
+                if (! in_array(strtolower($possibleSubclass), ['revised', 'alternative', 'optional', 'variant'])
+                    && ! is_numeric($possibleSubclass)
+                    && preg_match('/^[A-Z]/', $possibleSubclass)
+                    && ! preg_match('/^\d+/', $possibleSubclass)) {
+                    $subclassNames[] = $possibleSubclass;
+                }
+            }
+        }
+
+        // Pattern 3: Direct <subclass> tag in counters
+        foreach ($counters as $counter) {
+            if (! empty($counter['subclass'])) {
+                $subclassNames[] = $counter['subclass'];
+            }
+        }
+
+        // Remove duplicates and sort
+        $subclassNames = array_unique($subclassNames);
+        sort($subclassNames);
+
+        // Group features and counters by subclass
+        foreach ($subclassNames as $subclassName) {
+            $subclassFeatures = [];
+            $subclassCounters = [];
+
+            // Find features belonging to this subclass
+            foreach ($features as $feature) {
+                $name = $feature['name'];
+
+                // Check if feature name contains subclass name
+                if (str_contains($name, $subclassName) || str_contains($name, "($subclassName)")) {
+                    $subclassFeatures[] = $feature;
+                }
+            }
+
+            // Find counters belonging to this subclass
+            foreach ($counters as $counter) {
+                if (! empty($counter['subclass']) && $counter['subclass'] === $subclassName) {
+                    $subclassCounters[] = $counter;
+                }
+            }
+
+            $subclasses[] = [
+                'name' => $subclassName,
+                'features' => $subclassFeatures,
+                'counters' => $subclassCounters,
+            ];
+        }
+
+        return $subclasses;
     }
 }

@@ -195,4 +195,37 @@ class ClassXmlParserTest extends TestCase
         $this->assertEquals('short_rest', $actionSurge['reset_timing']);
         $this->assertEquals(1, $actionSurge['value']);
     }
+
+    #[Test]
+    public function it_detects_fighter_subclasses()
+    {
+        // Load real Fighter XML from file
+        $xmlPath = base_path('import-files/class-fighter-phb.xml');
+        $xml = file_get_contents($xmlPath);
+
+        // Parse the XML
+        $classes = $this->parser->parse($xml);
+        $fighter = $classes[0];
+
+        // Assert: subclasses key exists
+        $this->assertArrayHasKey('subclasses', $fighter);
+        $this->assertIsArray($fighter['subclasses']);
+
+        // Assert: Fighter should have 3 subclasses (Battle Master, Champion, Eldritch Knight)
+        $this->assertCount(3, $fighter['subclasses']);
+
+        // Assert: specific subclasses exist
+        $subclassNames = array_column($fighter['subclasses'], 'name');
+        $this->assertContains('Battle Master', $subclassNames);
+        $this->assertContains('Champion', $subclassNames);
+        $this->assertContains('Eldritch Knight', $subclassNames);
+
+        // Assert: subclass structure includes features and counters
+        $battleMaster = array_values(array_filter($fighter['subclasses'], fn ($s) => $s['name'] === 'Battle Master'))[0];
+        $this->assertArrayHasKey('features', $battleMaster);
+        $this->assertArrayHasKey('counters', $battleMaster);
+
+        // Battle Master should have features
+        $this->assertGreaterThan(0, count($battleMaster['features']));
+    }
 }

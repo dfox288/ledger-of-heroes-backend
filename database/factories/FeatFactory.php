@@ -25,7 +25,7 @@ class FeatFactory extends Factory
         return [
             'name' => ucwords($name),
             'slug' => Str::slug($name),
-            'prerequisites' => fake()->boolean(30) ? fake()->sentence(4) : null,
+            'prerequisites_text' => fake()->boolean(30) ? fake()->sentence(4) : null,
             'description' => fake()->paragraphs(3, true),
         ];
     }
@@ -36,7 +36,7 @@ class FeatFactory extends Factory
     public function withPrerequisites(?string $prerequisites = null): static
     {
         return $this->state(fn (array $attributes) => [
-            'prerequisites' => $prerequisites ?? 'Strength 13 or higher',
+            'prerequisites_text' => $prerequisites ?? 'Strength 13 or higher',
         ]);
     }
 
@@ -46,7 +46,7 @@ class FeatFactory extends Factory
     public function withoutPrerequisites(): static
     {
         return $this->state(fn (array $attributes) => [
-            'prerequisites' => null,
+            'prerequisites_text' => null,
         ]);
     }
 

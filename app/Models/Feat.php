@@ -21,7 +21,7 @@ class Feat extends Model
     protected $fillable = [
         'name',
         'slug',
-        'prerequisites',
+        'prerequisites_text',
         'description',
     ];
 
@@ -72,6 +72,6 @@ class Feat extends Model
     {
         return $query->where('name', 'LIKE', "%{$searchTerm}%")
             ->orWhere('description', 'LIKE', "%{$searchTerm}%")
-            ->orWhere('prerequisites', 'LIKE', "%{$searchTerm}%");
+            ->orWhere('prerequisites_text', 'LIKE', "%{$searchTerm}%");
     }
 }

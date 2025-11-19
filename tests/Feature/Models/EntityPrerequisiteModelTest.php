@@ -27,10 +27,10 @@ class EntityPrerequisiteModelTest extends TestCase
             ->abilityScore('STR', 13)
             ->create();
 
-        $feat = $feat->fresh(['prerequisites']); // Reload with eager loading to avoid attribute conflict
+        $feat->refresh();
 
-        $this->assertCount(1, $feat->getRelation('prerequisites'));
-        $this->assertInstanceOf(EntityPrerequisite::class, $feat->getRelation('prerequisites')->first());
+        $this->assertCount(1, $feat->prerequisites);
+        $this->assertInstanceOf(EntityPrerequisite::class, $feat->prerequisites->first());
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -147,9 +147,9 @@ class EntityPrerequisiteModelTest extends TestCase
             ->inGroup(2)
             ->create();
 
-        $feat = $feat->fresh(['prerequisites']); // Reload with eager loading to avoid attribute conflict
+        $feat->refresh();
 
-        $prerequisites = $feat->getRelation('prerequisites');
+        $prerequisites = $feat->prerequisites;
         $this->assertCount(3, $prerequisites);
 
         $group1 = $prerequisites->where('group_id', 1);

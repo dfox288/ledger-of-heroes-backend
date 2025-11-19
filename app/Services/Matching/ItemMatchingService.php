@@ -9,6 +9,13 @@ class ItemMatchingService
 {
     private static ?array $itemsCache = null;
 
+    private ItemNameMapper $mapper;
+
+    public function __construct()
+    {
+        $this->mapper = new ItemNameMapper;
+    }
+
     /**
      * Attempt to match an item name to an existing Item in the database.
      * Returns Item model if matched, null otherwise.
@@ -22,6 +29,16 @@ class ItemMatchingService
         // Initialize cache on first use
         if (self::$itemsCache === null) {
             $this->initializeCache();
+        }
+
+        // 0. Try hardcoded mapping first (for abbreviations like "gp")
+        $mappedName = $this->mapper->map($itemName);
+        if ($mappedName !== $itemName) {
+            // Mapping found - try to match the mapped name
+            $normalized = $this->normalizeItemName($mappedName);
+            if (isset(self::$itemsCache['by_normalized'][$normalized])) {
+                return self::$itemsCache['by_normalized'][$normalized];
+            }
         }
 
         $normalized = $this->normalizeItemName($itemName);

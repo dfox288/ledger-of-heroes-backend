@@ -20,6 +20,7 @@ class EntityItem extends Model
         'quantity',
         'is_choice',
         'choice_description',
+        'description',
     ];
 
     protected $casts = [

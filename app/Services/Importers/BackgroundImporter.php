@@ -9,6 +9,7 @@ use App\Models\EntityLanguage;
 use App\Models\RandomTable;
 use App\Models\RandomTableEntry;
 use App\Models\Source;
+use App\Services\Matching\ItemMatchingService;
 use App\Services\Parsers\ItemTableParser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -86,15 +87,32 @@ class BackgroundImporter
                 ]);
             }
 
-            // 8. Import equipment
+            // 8. Import equipment (with item matching)
+            $itemMatcher = new ItemMatchingService;
             foreach ($data['equipment'] ?? [] as $equipData) {
+                // Attempt to match item by name if item_id not provided
+                $itemId = $equipData['item_id'] ?? null;
+                $itemName = $equipData['item_name'] ?? null;
+                $description = null;
+
+                if ($itemId === null && $itemName !== null) {
+                    $matchedItem = $itemMatcher->matchItem($itemName);
+                    if ($matchedItem) {
+                        $itemId = $matchedItem->id;
+                    } else {
+                        // No match found - store in description field
+                        $description = $itemName;
+                    }
+                }
+
                 EntityItem::create([
                     'reference_type' => Background::class,
                     'reference_id' => $background->id,
-                    'item_id' => $equipData['item_id'] ?? null,
+                    'item_id' => $itemId,
                     'quantity' => $equipData['quantity'] ?? 1,
                     'is_choice' => $equipData['is_choice'] ?? false,
                     'choice_description' => $equipData['choice_description'] ?? null,
+                    'description' => $description,
                 ]);
             }
 

@@ -157,4 +157,42 @@ class ClassXmlParserTest extends TestCase
         $this->assertEquals(2, $level3Slot['cantrips_known'], 'Level 3 Eldritch Knight should know 2 cantrips');
         $this->assertEquals(2, $level3Slot['spell_slots_1st'], 'Level 3 Eldritch Knight should have 2 1st-level slots');
     }
+
+    #[Test]
+    public function it_parses_fighter_counters()
+    {
+        // Load real Fighter XML from file
+        $xmlPath = base_path('import-files/class-fighter-phb.xml');
+        $xml = file_get_contents($xmlPath);
+
+        // Parse the XML
+        $classes = $this->parser->parse($xml);
+        $fighter = $classes[0];
+
+        // Assert: counters key exists
+        $this->assertArrayHasKey('counters', $fighter);
+        $this->assertIsArray($fighter['counters']);
+
+        // Assert: should have multiple counters (Second Wind, Action Surge, etc.)
+        $this->assertGreaterThan(0, count($fighter['counters']));
+
+        // Assert: counter structure
+        $firstCounter = $fighter['counters'][0];
+        $this->assertArrayHasKey('level', $firstCounter);
+        $this->assertArrayHasKey('name', $firstCounter);
+        $this->assertArrayHasKey('value', $firstCounter);
+        $this->assertArrayHasKey('reset_timing', $firstCounter);
+
+        // Assert: specific counters exist
+        $counterNames = array_column($fighter['counters'], 'name');
+        $this->assertContains('Second Wind', $counterNames);
+        $this->assertContains('Action Surge', $counterNames);
+
+        // Assert: Action Surge counter has correct reset timing (Short rest)
+        $actionSurgeCounters = array_filter($fighter['counters'], fn ($c) => $c['name'] === 'Action Surge');
+        $this->assertNotEmpty($actionSurgeCounters);
+        $actionSurge = array_values($actionSurgeCounters)[0];
+        $this->assertEquals('short_rest', $actionSurge['reset_timing']);
+        $this->assertEquals(1, $actionSurge['value']);
+    }
 }

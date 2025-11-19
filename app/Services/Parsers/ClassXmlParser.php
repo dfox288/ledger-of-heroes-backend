@@ -63,6 +63,9 @@ class ClassXmlParser
         // Parse spell progression from autolevel elements
         $data['spell_progression'] = $this->parseSpellSlots($element);
 
+        // Parse counters from autolevel elements
+        $data['counters'] = $this->parseCounters($element);
+
         return $data;
     }
 
@@ -251,8 +254,45 @@ class ClassXmlParser
      */
     private function parseCounters(SimpleXMLElement $element): array
     {
-        // TODO: Implement parseCounters logic
-        return [];
+        $counters = [];
+
+        // Iterate through all autolevel elements
+        foreach ($element->autolevel as $autolevel) {
+            $level = (int) $autolevel['level'];
+
+            // Parse each counter within this autolevel
+            foreach ($autolevel->counter as $counterElement) {
+                $name = (string) $counterElement->name;
+                $value = (int) $counterElement->value;
+
+                // Parse reset timing
+                $resetTiming = null;
+                if (isset($counterElement->reset)) {
+                    $reset = (string) $counterElement->reset;
+                    $resetTiming = match ($reset) {
+                        'S' => 'short_rest',
+                        'L' => 'long_rest',
+                        default => null,
+                    };
+                }
+
+                // Parse subclass if present
+                $subclass = null;
+                if (isset($counterElement->subclass)) {
+                    $subclass = (string) $counterElement->subclass;
+                }
+
+                $counters[] = [
+                    'level' => $level,
+                    'name' => $name,
+                    'value' => $value,
+                    'reset_timing' => $resetTiming,
+                    'subclass' => $subclass,
+                ];
+            }
+        }
+
+        return $counters;
     }
 
     /**

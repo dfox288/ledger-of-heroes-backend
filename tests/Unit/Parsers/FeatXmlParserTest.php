@@ -447,4 +447,35 @@ XML;
         $this->assertEquals('negates_disadvantage', $condition['effect_type']);
         $this->assertStringContainsString('Stealth', $condition['description']);
     }
+
+    #[Test]
+    public function it_parses_speed_modifier_correctly()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Squat Nimbleness</name>
+        <text>You are uncommonly nimble for your race. You gain the following benefits:
+
+	• Increase your Strength or Dexterity score by 1, to a maximum of 20.
+
+	• Increase your walking speed by 5 feet.
+
+Source:	Xanathar's Guide to Everything p. 75</text>
+        <modifier category="bonus">speed +5</modifier>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('modifiers', $feats[0]);
+        $this->assertCount(1, $feats[0]['modifiers']);
+
+        $modifier = $feats[0]['modifiers'][0];
+        $this->assertEquals('speed', $modifier['category']);
+        $this->assertEquals(5, $modifier['value']);
+    }
 }

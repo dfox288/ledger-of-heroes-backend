@@ -304,14 +304,95 @@ class FeatXmlParserPrerequisitesTest extends TestCase
     #[Test]
     public function it_parses_martial_weapon_proficiency()
     {
-        // "Proficiency with a martial weapon" should map to "Martial Weapons"
+        // "Proficiency with a martial weapon" should expand to include category + all individual weapons
         $result = $this->parser->parsePrerequisites('Proficiency with a martial weapon');
 
-        $this->assertCount(1, $result);
-        $this->assertEquals(ProficiencyType::class, $result[0]['prerequisite_type']);
+        // Should have multiple results (category + individual weapons)
+        $this->assertGreaterThan(1, count($result));
 
+        // All should be ProficiencyType
+        foreach ($result as $prereq) {
+            $this->assertEquals(ProficiencyType::class, $prereq['prerequisite_type']);
+        }
+
+        // Should include the "Martial Weapons" category
         $martialWeapons = ProficiencyType::where('name', 'LIKE', '%Martial%Weapon%')->first();
         $this->assertNotNull($martialWeapons);
-        $this->assertEquals($martialWeapons->id, $result[0]['prerequisite_id']);
+
+        $hasMartialWeapons = collect($result)->contains('prerequisite_id', $martialWeapons->id);
+        $this->assertTrue($hasMartialWeapons);
+    }
+
+    #[Test]
+    public function it_expands_martial_weapons_to_include_all_individual_weapons()
+    {
+        // "Proficiency with a martial weapon" should expand to:
+        // - Martial Weapons (category) OR
+        // - Longsword OR Greatsword OR ... (all individual martial weapons)
+
+        $result = $this->parser->parsePrerequisites('Proficiency with a martial weapon');
+
+        // Should include Martial Weapons category PLUS all individual martial weapons
+        // Get count of individual martial weapons from database
+        $individualWeapons = ProficiencyType::where('category', 'weapon')
+            ->whereNotIn('name', ['Simple Weapons', 'Martial Weapons'])
+            ->count();
+
+        // Should have: 1 (Martial Weapons) + N (individual weapons)
+        $expectedCount = 1 + $individualWeapons;
+        $this->assertCount($expectedCount, $result);
+
+        // All should be in same group (OR logic)
+        foreach ($result as $prereq) {
+            $this->assertEquals(1, $prereq['group_id']);
+            $this->assertEquals(ProficiencyType::class, $prereq['prerequisite_type']);
+        }
+
+        // Should include the Martial Weapons category
+        $martialWeaponsCategory = ProficiencyType::where('name', 'LIKE', '%Martial%Weapon%')->first();
+        $hasMartialWeapons = collect($result)->contains('prerequisite_id', $martialWeaponsCategory->id);
+        $this->assertTrue($hasMartialWeapons);
+
+        // Should include specific martial weapons like Longsword
+        $longsword = ProficiencyType::where('name', 'Longsword')->first();
+        if ($longsword) {
+            $hasLongsword = collect($result)->contains('prerequisite_id', $longsword->id);
+            $this->assertTrue($hasLongsword);
+        }
+    }
+
+    #[Test]
+    public function it_expands_simple_weapons_to_include_all_individual_weapons()
+    {
+        // "Proficiency with a simple weapon" should expand similarly
+
+        $result = $this->parser->parsePrerequisites('Proficiency with a simple weapon');
+
+        // Should include Simple Weapons category PLUS all individual simple weapons
+        $individualWeapons = ProficiencyType::where('category', 'weapon')
+            ->whereNotIn('name', ['Simple Weapons', 'Martial Weapons'])
+            ->count();
+
+        // Should have: 1 (Simple Weapons) + N (individual weapons)
+        $expectedCount = 1 + $individualWeapons;
+        $this->assertCount($expectedCount, $result);
+
+        // All should be in same group (OR logic)
+        foreach ($result as $prereq) {
+            $this->assertEquals(1, $prereq['group_id']);
+            $this->assertEquals(ProficiencyType::class, $prereq['prerequisite_type']);
+        }
+
+        // Should include the Simple Weapons category
+        $simpleWeaponsCategory = ProficiencyType::where('name', 'LIKE', '%Simple%Weapon%')->first();
+        $hasSimpleWeapons = collect($result)->contains('prerequisite_id', $simpleWeaponsCategory->id);
+        $this->assertTrue($hasSimpleWeapons);
+
+        // Should include specific simple weapons like Club
+        $club = ProficiencyType::where('name', 'Club')->first();
+        if ($club) {
+            $hasClub = collect($result)->contains('prerequisite_id', $club->id);
+            $this->assertTrue($hasClub);
+        }
     }
 }

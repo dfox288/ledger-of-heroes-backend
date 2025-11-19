@@ -125,6 +125,7 @@ class FeatXmlParser
     private function determineBonusCategory(string $target): string
     {
         return match (true) {
+            str_contains($target, 'speed') => 'speed',
             str_contains($target, 'initiative') => 'initiative',
             str_contains($target, 'ac') || str_contains($target, 'armor class') => 'ac',
             default => 'bonus',
@@ -421,6 +422,7 @@ class FeatXmlParser
             $profType = $this->findProficiencyType($proficiencyName);
 
             if ($profType) {
+                // Add the category proficiency
                 $prerequisites[] = [
                     'prerequisite_type' => \App\Models\ProficiencyType::class,
                     'prerequisite_id' => $profType->id,
@@ -428,6 +430,22 @@ class FeatXmlParser
                     'description' => null,
                     'group_id' => $groupId,
                 ];
+
+                // Check if this is a weapon category that should be expanded
+                // "Proficiency with a martial weapon" or "Proficiency with a simple weapon"
+                if ($this->shouldExpandWeaponCategory($profType)) {
+                    $individualWeapons = $this->getIndividualWeapons();
+
+                    foreach ($individualWeapons as $weapon) {
+                        $prerequisites[] = [
+                            'prerequisite_type' => \App\Models\ProficiencyType::class,
+                            'prerequisite_id' => $weapon->id,
+                            'minimum_value' => null,
+                            'description' => null,
+                            'group_id' => $groupId, // Same group = OR logic
+                        ];
+                    }
+                }
             } else {
                 // Fallback to free-form if not found
                 $prerequisites[] = [
@@ -441,6 +459,28 @@ class FeatXmlParser
         }
 
         return $prerequisites;
+    }
+
+    /**
+     * Check if a proficiency type is a weapon category that should be expanded.
+     */
+    private function shouldExpandWeaponCategory(\App\Models\ProficiencyType $profType): bool
+    {
+        $weaponCategories = ['Martial Weapons', 'Simple Weapons'];
+
+        return in_array($profType->name, $weaponCategories);
+    }
+
+    /**
+     * Get all individual weapon proficiency types (excluding category weapons).
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProficiencyType>
+     */
+    private function getIndividualWeapons(): \Illuminate\Database\Eloquent\Collection
+    {
+        return \App\Models\ProficiencyType::where('category', 'weapon')
+            ->whereNotIn('name', ['Simple Weapons', 'Martial Weapons'])
+            ->get();
     }
 
     /**

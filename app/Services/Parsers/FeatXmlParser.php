@@ -467,6 +467,9 @@ class FeatXmlParser
     {
         $normalized = strtolower(trim($name));
 
+        // Strip articles "a" or "an" from beginning
+        $normalized = preg_replace('/^(a|an)\s+/', '', $normalized);
+
         // Direct match
         $profType = \App\Models\ProficiencyType::whereRaw('LOWER(name) = ?', [$normalized])->first();
         if ($profType) {
@@ -484,6 +487,15 @@ class FeatXmlParser
 
         if (str_contains($normalized, 'heavy') && str_contains($normalized, 'armor')) {
             return \App\Models\ProficiencyType::where('name', 'LIKE', '%Heavy%Armor%')->first();
+        }
+
+        // Fuzzy match for weapon categories
+        if (str_contains($normalized, 'martial') && str_contains($normalized, 'weapon')) {
+            return \App\Models\ProficiencyType::where('name', 'LIKE', '%Martial%Weapon%')->first();
+        }
+
+        if (str_contains($normalized, 'simple') && str_contains($normalized, 'weapon')) {
+            return \App\Models\ProficiencyType::where('name', 'LIKE', '%Simple%Weapon%')->first();
         }
 
         // Try LIKE match
@@ -546,6 +558,11 @@ class FeatXmlParser
             // Parse races (group 1)
             $raceNames = array_map('trim', explode(',', $racesPart));
             foreach ($raceNames as $raceName) {
+                // Skip "Small Race" - it's a size descriptor, redundant when actual small races are listed
+                if (stripos($raceName, 'Small Race') !== false) {
+                    continue;
+                }
+
                 $race = $this->findRace($raceName);
                 if ($race) {
                     $prerequisites[] = [
@@ -556,7 +573,7 @@ class FeatXmlParser
                         'group_id' => $groupId,
                     ];
                 } else {
-                    // Free-form for unmatched races (e.g., "Small Race")
+                    // Free-form for unmatched races
                     $prerequisites[] = [
                         'prerequisite_type' => null,
                         'prerequisite_id' => null,

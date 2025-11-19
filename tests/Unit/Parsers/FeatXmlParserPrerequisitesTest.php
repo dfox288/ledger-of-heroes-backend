@@ -268,17 +268,18 @@ class FeatXmlParserPrerequisitesTest extends TestCase
     {
         // "Dwarf, Gnome, Halfling, Small Race, Proficiency in the Acrobatics skill"
         // This is the real-world Squat Nimbleness case
+        // "Small Race" should be skipped as redundant (size descriptor)
         Race::factory()->create(['name' => 'Dwarf', 'slug' => 'dwarf']);
         Race::factory()->create(['name' => 'Gnome', 'slug' => 'gnome']);
         Race::factory()->create(['name' => 'Halfling', 'slug' => 'halfling']);
 
         $result = $this->parser->parsePrerequisites('Dwarf, Gnome, Halfling, Small Race, Proficiency in the Acrobatics skill');
 
-        // Should have at least 5 prerequisites:
+        // Should have exactly 4 prerequisites:
         // - 3 races (Dwarf, Gnome, Halfling) in group 1
-        // - 1 free-form "Small Race" in group 1
         // - 1 skill (Acrobatics) in group 2
-        $this->assertGreaterThanOrEqual(5, count($result));
+        // "Small Race" is skipped as redundant
+        $this->assertCount(4, $result);
 
         // Check that races are in group 1
         $racePrereqs = array_filter($result, fn ($p) => $p['prerequisite_type'] === Race::class);
@@ -298,5 +299,19 @@ class FeatXmlParserPrerequisitesTest extends TestCase
         $acrobatics = Skill::where('name', 'Acrobatics')->first();
         $this->assertNotNull($acrobatics);
         $this->assertEquals($acrobatics->id, $skillPrereq['prerequisite_id']);
+    }
+
+    #[Test]
+    public function it_parses_martial_weapon_proficiency()
+    {
+        // "Proficiency with a martial weapon" should map to "Martial Weapons"
+        $result = $this->parser->parsePrerequisites('Proficiency with a martial weapon');
+
+        $this->assertCount(1, $result);
+        $this->assertEquals(ProficiencyType::class, $result[0]['prerequisite_type']);
+
+        $martialWeapons = ProficiencyType::where('name', 'LIKE', '%Martial%Weapon%')->first();
+        $this->assertNotNull($martialWeapons);
+        $this->assertEquals($martialWeapons->id, $result[0]['prerequisite_id']);
     }
 }

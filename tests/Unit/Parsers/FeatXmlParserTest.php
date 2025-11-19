@@ -478,4 +478,65 @@ XML;
         $this->assertEquals('speed', $modifier['category']);
         $this->assertEquals(5, $modifier['value']);
     }
+
+    #[Test]
+    public function it_parses_proficiency_xml_elements()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Squat Nimbleness (Strength + Athletics)</name>
+        <prerequisite>Dwarf, Gnome, Halfling, Small Race</prerequisite>
+        <proficiency>Athletics</proficiency>
+        <text>You are uncommonly nimble for your race.
+
+Source:	Xanathar's Guide to Everything p. 75</text>
+        <modifier category="ability score">strength +1</modifier>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('proficiencies', $feats[0]);
+
+        // Should have proficiencies from XML element
+        $this->assertGreaterThan(0, count($feats[0]['proficiencies']));
+
+        // Should include Athletics from <proficiency> element
+        $hasAthletics = false;
+        foreach ($feats[0]['proficiencies'] as $prof) {
+            if (str_contains(strtolower($prof['description']), 'athletics')) {
+                $hasAthletics = true;
+                break;
+            }
+        }
+        $this->assertTrue($hasAthletics, 'Should parse Athletics from <proficiency> XML element');
+    }
+
+    #[Test]
+    public function it_parses_multiple_proficiency_xml_elements()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Test Feat</name>
+        <proficiency>Athletics</proficiency>
+        <proficiency>Acrobatics</proficiency>
+        <text>Test feat with multiple proficiencies.
+
+Source:	Test Book p. 1</text>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('proficiencies', $feats[0]);
+        $this->assertCount(2, $feats[0]['proficiencies']);
+    }
 }

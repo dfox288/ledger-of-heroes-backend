@@ -47,15 +47,44 @@ class FeatXmlParser
         // Remove source citations from description
         $description = $this->stripSourceCitations($text);
 
+        // Parse proficiencies from both XML elements and description text
+        $proficienciesFromText = $this->parseProficiencies($description);
+        $proficienciesFromXml = $this->parseProficiencyElements($element);
+
         return [
             'name' => (string) $element->name,
             'prerequisites' => isset($element->prerequisite) ? (string) $element->prerequisite : null,
             'description' => trim($description),
             'sources' => $sources,
             'modifiers' => $this->parseModifiers($element),
-            'proficiencies' => $this->parseProficiencies($description),
+            'proficiencies' => array_merge($proficienciesFromXml, $proficienciesFromText),
             'conditions' => $this->parseConditions($description),
         ];
+    }
+
+    /**
+     * Parse proficiency XML elements.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function parseProficiencyElements(SimpleXMLElement $element): array
+    {
+        $proficiencies = [];
+
+        // Parse <proficiency> XML elements
+        foreach ($element->proficiency as $proficiencyElement) {
+            $proficiencyName = trim((string) $proficiencyElement);
+
+            if (! empty($proficiencyName)) {
+                $proficiencies[] = [
+                    'description' => $proficiencyName,
+                    'is_choice' => false,
+                    'quantity' => null,
+                ];
+            }
+        }
+
+        return $proficiencies;
     }
 
     /**

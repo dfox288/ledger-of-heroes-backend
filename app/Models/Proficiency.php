@@ -23,6 +23,8 @@ class Proficiency extends Model
         'ability_score_id',
         'proficiency_name',
         'grants',
+        'is_choice',
+        'quantity',
     ];
 
     protected $casts = [
@@ -32,6 +34,8 @@ class Proficiency extends Model
         'item_id' => 'integer',
         'ability_score_id' => 'integer',
         'grants' => 'boolean',
+        'is_choice' => 'boolean',
+        'quantity' => 'integer',
     ];
 
     // Polymorphic relationship

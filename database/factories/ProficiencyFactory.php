@@ -32,6 +32,8 @@ class ProficiencyFactory extends Factory
             'item_id' => null,
             'ability_score_id' => null,
             'proficiency_name' => fake()->words(2, true),
+            'is_choice' => false,
+            'quantity' => 1,
         ];
     }
 
@@ -62,6 +64,17 @@ class ProficiencyFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'reference_type' => $referenceType,
             'reference_id' => $referenceId,
+        ]);
+    }
+
+    /**
+     * Create a choice proficiency (e.g., "one type of artisan's tools").
+     */
+    public function asChoice(int $quantity = 1): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_choice' => true,
+            'quantity' => $quantity,
         ]);
     }
 }

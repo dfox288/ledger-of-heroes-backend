@@ -1,12 +1,123 @@
 # D&D 5e XML Importer - Session Handover
 
 **Last Updated:** 2025-11-19
-**Branch:** `fix/parser-data-quality` (ready to merge)
-**Status:** ✅ Slug System Complete + All Tests Passing - Ready for Class Importer
+**Branch:** `feature/background-enhancements` (ready to merge)
+**Status:** ✅ Background Enhancements Complete + All Tests Passing
 
 ---
 
-## Latest Session: Slug Implementation (2025-11-19) ✅
+## Latest Session: Background Entity Enhancements (2025-11-19) ✅
+
+**Duration:** ~6 hours
+**Focus:** Parse languages, tool proficiencies, equipment, and all random tables from background trait text
+**Result:** Complete background data extraction with 274 tests passing
+**Branch:** `feature/background-enhancements` (8 commits ahead of `fix/parser-data-quality`)
+
+### What Was Accomplished
+
+#### 1. **Schema Changes** ✅
+**Proficiencies Table Enhancement:**
+- Added `is_choice` boolean column (default false, indexed)
+- Added `quantity` integer column (default 1)
+- Enables storing "One type of artisan's tools" as single record with `is_choice=true`
+
+**Entity Items Polymorphic Table (NEW):**
+- Links equipment to backgrounds (and future: races, classes, monsters)
+- Columns: reference_type/id, item_id (nullable FK), quantity, is_choice, choice_description
+- Handles both specific items and choice items ("one of your choice")
+- 100% reusable across all entity types
+
+#### 2. **Parser Enhancements** ✅
+**BackgroundXmlParser - 4 new methods:**
+- `parseLanguagesFromTraitText()` - Extract "Languages: One of your choice"
+- `parseToolProficienciesFromTraitText()` - Extract "Tool Proficiencies: One type of artisan's tools"
+- `parseEquipmentFromTraitText()` - Parse full equipment lists with quantities and choices
+- `parseAllEmbeddedTables()` - Use ItemTableDetector for ALL traits (not just Suggested Characteristics)
+
+**Parsing Features:**
+- Detects "(one of your choice)" patterns → `is_choice=true`
+- Extracts quantities: "15 gp" → `quantity: 15`
+- Matches items to items table where possible
+- Handles complex patterns: "containing 15 gp", "a set of artisan's tools"
+
+#### 3. **Importer Updates** ✅
+**BackgroundImporter enhanced:**
+- Import languages with choice support
+- Import proficiencies with `is_choice` + `quantity`
+- Import equipment via `entity_items` table
+- Import ALL random tables (Guild Business, Harrowing Event, etc.)
+- Link tables to traits via `random_table_id`
+
+#### 4. **API Enhancements** ✅
+**New Resources:**
+- `EntityItemResource` - Equipment items with choice support
+
+**Updated Resources:**
+- `BackgroundResource` - Added `equipment` and `languages` fields
+- `BackgroundController` - Eager loads equipment.item and languages.language
+
+#### 5. **Test Coverage** ✅
+- **274 tests passing** (1,704 assertions)
+- **23 new tests added:**
+  - 5 migration tests (schema validation)
+  - 11 parser unit tests (all 4 parsing methods)
+  - 7 factory/relationship tests
+- **0 failures, 2 incomplete** (pre-existing edge cases)
+
+#### 6. **Verification Results** ✅
+**Guild Artisan Background (Complete Example):**
+- ✅ 1 language (choice)
+- ✅ 3 proficiencies (2 skills + 1 tool choice)
+- ✅ 5 equipment items (1 with choice)
+- ✅ 5 random tables (Guild Business d20 + 4 characteristics)
+
+**All 21 backgrounds imported successfully with full enhancements**
+
+### Files Modified
+
+**Migrations (2 new):**
+- `2025_11_19_121327_add_choice_support_to_proficiencies_table.php`
+- `2025_11_19_[timestamp]_create_entity_items_table.php`
+
+**Models (3 updated, 1 new):**
+- `app/Models/Proficiency.php` - Added is_choice, quantity
+- `app/Models/Background.php` - Added equipment() relationship
+- `app/Models/EntityItem.php` - NEW model
+
+**Parsers (1 updated):**
+- `app/Services/Parsers/BackgroundXmlParser.php` - 4 new parsing methods
+
+**Importers (1 updated):**
+- `app/Services/Importers/BackgroundImporter.php` - Import all 4 enhancements
+
+**Factories (2 updated, 1 new):**
+- `database/factories/ProficiencyFactory.php` - Added asChoice() state
+- `database/factories/EntityItemFactory.php` - NEW
+
+**Resources (2 updated, 1 new):**
+- `app/Http/Resources/BackgroundResource.php`
+- `app/Http/Resources/EntityItemResource.php` - NEW
+- `app/Http/Controllers/Api/BackgroundController.php`
+
+**Tests (23 new):**
+- `tests/Feature/Migrations/ProficienciesChoiceSupportTest.php`
+- `tests/Feature/Migrations/EntityItemsTableTest.php`
+- `tests/Unit/Parsers/BackgroundXmlParserTest.php` - 11 new tests
+
+### Commits (8 atomic commits)
+
+1. `90985eb` - feat: add choice support to proficiencies table
+2. `4ecfcba` - feat: create entity_items polymorphic table for equipment
+3. `2adb343` - feat: parse languages from background trait text
+4. `2675533` - feat: parse tool proficiencies from background trait text
+5. `c55e640` - feat: parse equipment from background trait text
+6. `e9d413c` - feat: parse all embedded random tables from background traits
+7. `f947d72` - feat: update BackgroundImporter for all enhancements
+8. `a8b08fc` - feat: update BackgroundResource to include equipment and languages
+
+---
+
+## Previous Session: Slug Implementation (2025-11-19) ✅
 
 **Duration:** ~4 hours
 **Focus:** Complete slug system with dual ID/slug route binding
@@ -533,6 +644,35 @@ Once importers complete:
 - Multi-field sorting
 - Aggregation endpoints
 - OpenAPI/Swagger documentation
+
+---
+
+## Summary: Project Status
+
+**Current State (2025-11-19):**
+- ✅ **52 migrations** - Complete schema with choice support + entity_items
+- ✅ **24 Eloquent models** - All with HasFactory trait
+- ✅ **13 model factories** - Test data generation
+- ✅ **12 database seeders** - Lookup/reference data
+- ✅ **22 API Resources** - Standardized and field-complete
+- ✅ **13 API Controllers** - 4 entity + 9 lookup endpoints
+- ✅ **274 tests passing** (1,704 assertions, 2 incomplete expected)
+- ✅ **4 importers working** - Spells, Races, Items, Backgrounds (fully enhanced)
+- ✅ **Entity Items System** - Polymorphic equipment table (reusable)
+- ✅ **Choice Pattern** - proficiencies, languages, equipment support "one of your choice"
+- ⚠️  **2 importers pending** - Classes (READY), Monsters
+
+**Branch Status:**
+- `feature/background-enhancements` - 8 commits, ready to merge into `fix/parser-data-quality`
+- `fix/parser-data-quality` - Ready to merge into main
+
+**Test Health:** 100% pass rate (274/274), 2 expected incomplete tests
+
+**Documentation:**
+- ✅ CLAUDE.md updated with todo-based workflow
+- ✅ SESSION-HANDOVER.md updated with all accomplishments
+- ✅ COMPLETION-background-enhancements.md created
+- ✅ Full implementation plan documented
 
 ---
 

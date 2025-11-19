@@ -2,10 +2,13 @@
 
 namespace App\Services\Parsers;
 
+use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use SimpleXMLElement;
 
 class SpellXmlParser
 {
+    use ParsesSourceCitations;
+
     public function parse(string $xmlContent): array
     {
         $xml = new SimpleXMLElement($xmlContent);
@@ -145,87 +148,5 @@ class SpellXmlParser
         }
 
         return 'other';
-    }
-
-    /**
-     * Parse source citations that may span multiple books.
-     *
-     * Examples:
-     *   "Player's Handbook (2014) p. 241"
-     *   "Dungeon Master's Guide (2014) p. 150,\n\t\tPlayer's Handbook (2014) p. 150"
-     *
-     * @return array Array of ['code' => 'PHB', 'pages' => '241']
-     */
-    private function parseSourceCitations(string $sourcesText): array
-    {
-        $sources = [];
-
-        // Pattern 1: "Book Name (Year) p. PageNumbers" - with year
-        // Pattern 2: "Book Name p. PageNumbers" - without year
-        // Handles: "p. 150" or "p. 150, 152" or "p. 150-152"
-
-        // Try pattern with year first
-        $patternWithYear = '/([^(]+)\s*\((\d{4})\)\s*p\.\s*([\d,\s\-]+)/';
-        preg_match_all($patternWithYear, $sourcesText, $matches, PREG_SET_ORDER);
-
-        if (! empty($matches)) {
-            foreach ($matches as $match) {
-                $sourceName = trim($match[1]);
-                $pages = trim($match[3]);
-                // Remove trailing comma (from multi-source citations)
-                $pages = rtrim($pages, ',');
-
-                $sourceCode = $this->getSourceCode($sourceName);
-
-                $sources[] = [
-                    'code' => $sourceCode,
-                    'pages' => $pages,
-                ];
-            }
-        } else {
-            // Try pattern without year
-            $patternWithoutYear = '/([^\s]+(?:\s+[^\s]+)*?)\s+p\.\s*([\d,\s\-]+)/';
-            preg_match_all($patternWithoutYear, $sourcesText, $matches, PREG_SET_ORDER);
-
-            foreach ($matches as $match) {
-                $sourceName = trim($match[1]);
-                $pages = trim($match[2]);
-                // Remove trailing comma (from multi-source citations)
-                $pages = rtrim($pages, ',');
-
-                $sourceCode = $this->getSourceCode($sourceName);
-
-                $sources[] = [
-                    'code' => $sourceCode,
-                    'pages' => $pages,
-                ];
-            }
-        }
-
-        // Fallback if no sources parsed (shouldn't happen with valid XML)
-        if (empty($sources)) {
-            $sources[] = [
-                'code' => 'PHB',
-                'pages' => '',
-            ];
-        }
-
-        return $sources;
-    }
-
-    private function getSourceCode(string $sourceName): string
-    {
-        $mapping = [
-            "Player's Handbook" => 'PHB',
-            'Dungeon Master\'s Guide' => 'DMG',
-            'Monster Manual' => 'MM',
-            'Xanathar\'s Guide to Everything' => 'XGE',
-            'Tasha\'s Cauldron of Everything' => 'TCE',
-            'Volo\'s Guide to Monsters' => 'VGTM',
-            'Eberron: Rising from the Last War' => 'ERLW',
-            'Wayfinder\'s Guide to Eberron' => 'WGTE',
-        ];
-
-        return $mapping[$sourceName] ?? 'PHB';
     }
 }

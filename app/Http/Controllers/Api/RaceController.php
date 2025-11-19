@@ -48,6 +48,7 @@ class RaceController extends Controller
             'modifiers.abilityScore',
             'modifiers.skill',
             'modifiers.damageType',
+            'languages.language',
         ]);
 
         return new RaceResource($race);

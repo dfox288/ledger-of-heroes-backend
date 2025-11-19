@@ -3,7 +3,9 @@
 namespace App\Services\Importers;
 
 use App\Models\AbilityScore;
+use App\Models\EntityLanguage;
 use App\Models\EntitySource;
+use App\Models\Language;
 use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Models\Race;
@@ -12,12 +14,17 @@ use App\Models\RandomTableEntry;
 use App\Models\Size;
 use App\Models\Skill;
 use App\Models\Source;
+use App\Services\Importers\Concerns\ImportsProficiencies;
+use App\Services\Importers\Concerns\ImportsSources;
+use App\Services\Importers\Concerns\ImportsTraits;
 use App\Services\Parsers\ItemTableDetector;
 use App\Services\Parsers\ItemTableParser;
 use App\Services\Parsers\RaceXmlParser;
 
 class RaceImporter
 {
+    use ImportsProficiencies, ImportsSources, ImportsTraits;
+
     private array $createdBaseRaces = [];
 
     public function import(array $raceData): Race
@@ -51,22 +58,33 @@ class RaceImporter
 
         // Import sources - clear old sources and create new ones
         if (isset($raceData['sources']) && is_array($raceData['sources'])) {
-            $this->importSources($race, $raceData['sources']);
+            $this->importEntitySources($race, $raceData['sources']);
         }
 
         // Import traits (clear old ones first)
-        $this->importTraits($race, $raceData['traits'] ?? []);
+        $createdTraits = $this->importEntityTraits($race, $raceData['traits'] ?? []);
+
+        // Import embedded tables in trait descriptions
+        foreach ($createdTraits as $index => $trait) {
+            $traitData = $raceData['traits'][$index];
+            $this->importTraitTables($trait, $traitData['description']);
+        }
 
         // Import ability bonuses as modifiers
         $this->importAbilityBonuses($race, $raceData['ability_bonuses'] ?? []);
 
         // Import proficiencies if present
         if (isset($raceData['proficiencies'])) {
-            $this->importProficiencies($race, $raceData['proficiencies']);
+            $this->importEntityProficiencies($race, $raceData['proficiencies']);
+        }
+
+        // Import languages if present
+        if (isset($raceData['languages'])) {
+            $this->importLanguages($race, $raceData['languages']);
         }
 
         // Import random tables from trait rolls (also links traits to tables)
-        $this->importRandomTablesFromTraits($race, $raceData['traits'] ?? []);
+        $this->importRandomTablesFromTraits($createdTraits, $raceData['traits'] ?? []);
 
         return $race;
     }
@@ -268,18 +286,47 @@ class RaceImporter
         }
     }
 
-    private function importRandomTablesFromTraits(Race $race, array $traitsData): void
+    private function importLanguages(Race $race, array $languagesData): void
     {
-        foreach ($traitsData as $traitData) {
+        // Clear existing languages for this race
+        $race->languages()->delete();
+
+        foreach ($languagesData as $langData) {
+            $isChoice = $langData['is_choice'] ?? false;
+
+            // For choice slots, language_id is null
+            if ($isChoice) {
+                EntityLanguage::create([
+                    'reference_type' => Race::class,
+                    'reference_id' => $race->id,
+                    'language_id' => null,
+                    'is_choice' => true,
+                ]);
+            } else {
+                // Look up language by slug for fixed languages
+                $language = Language::where('slug', $langData['slug'])->first();
+
+                if ($language) {
+                    EntityLanguage::create([
+                        'reference_type' => Race::class,
+                        'reference_id' => $race->id,
+                        'language_id' => $language->id,
+                        'is_choice' => false,
+                    ]);
+                }
+            }
+        }
+    }
+
+    private function importRandomTablesFromTraits(array $createdTraits, array $traitsData): void
+    {
+        foreach ($traitsData as $index => $traitData) {
             if (empty($traitData['rolls'])) {
                 continue;
             }
 
-            // Find the trait we created earlier
-            $trait = $race->traits()
-                ->where('name', $traitData['name'])
-                ->where('sort_order', $traitData['sort_order'])
-                ->first();
+            // Use the trait we created earlier (by index)
+            $trait = $createdTraits[$index] ?? null;
 
             if (! $trait) {
                 continue;

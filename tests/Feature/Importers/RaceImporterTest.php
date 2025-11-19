@@ -464,11 +464,11 @@ XML;
         $strModifier = $modifiers->where('ability_score_id', AbilityScore::where('code', 'STR')->first()->id)->first();
         $this->assertNotNull($strModifier);
         $this->assertEquals('ability_score', $strModifier->modifier_category);
-        $this->assertEquals('+2', $strModifier->value);
+        $this->assertEquals(2, $strModifier->value);
 
         $chaModifier = $modifiers->where('ability_score_id', AbilityScore::where('code', 'CHA')->first()->id)->first();
         $this->assertNotNull($chaModifier);
-        $this->assertEquals('+1', $chaModifier->value);
+        $this->assertEquals(1, $chaModifier->value);
     }
 
     #[Test]

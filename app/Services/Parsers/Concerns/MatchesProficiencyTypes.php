@@ -41,7 +41,37 @@ trait MatchesProficiencyTypes
 
         $normalized = $this->normalizeName($name);
 
-        return $this->proficiencyTypesCache->get($normalized);
+        // Exact match first
+        $match = $this->proficiencyTypesCache->get($normalized);
+        if ($match) {
+            return $match;
+        }
+
+        // Partial/fuzzy matching for common patterns
+        // "martial" → "Martial Weapons", "simple" → "Simple Weapons"
+        $fuzzyMatches = [
+            'martial' => 'martialweapons',
+            'simple' => 'simpleweapons',
+            'light' => 'lightarmor',
+            'medium' => 'mediumarmor',
+            'heavy' => 'heavyarmor',
+            'shield' => 'shields',
+        ];
+
+        if (isset($fuzzyMatches[$normalized])) {
+            $match = $this->proficiencyTypesCache->get($fuzzyMatches[$normalized]);
+            if ($match) {
+                return $match;
+            }
+        }
+
+        // Partial string matching - find proficiency type that contains the search term
+        // e.g., "staff" should match "Quarterstaff"
+        $match = $this->proficiencyTypesCache->first(function ($type, $key) use ($normalized) {
+            return str_contains($key, $normalized) || str_contains($normalized, $key);
+        });
+
+        return $match;
     }
 
     /**

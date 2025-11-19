@@ -1,0 +1,190 @@
+<?php
+
+namespace App\Services\Parsers\Concerns;
+
+use App\Models\Language;
+use Illuminate\Support\Collection;
+
+trait MatchesLanguages
+{
+    private Collection $languagesCache;
+
+    /**
+     * Initialize the languages cache.
+     * Call this in the parser's constructor.
+     */
+    protected function initializeLanguages(): void
+    {
+        if (! isset($this->languagesCache)) {
+            try {
+                $this->languagesCache = Language::all()
+                    ->keyBy(fn ($language) => $language->slug);
+            } catch (\Exception $e) {
+                // Graceful fallback for unit tests without database
+                $this->languagesCache = collect();
+            }
+        }
+    }
+
+    /**
+     * Extract languages from text, handling both fixed languages and choice slots.
+     *
+     * Example inputs:
+     * - "Common and Dwarvish" → 2 fixed languages
+     * - "Common, Elvish, and one extra language" → 2 fixed + 1 choice
+     * - "one extra language of your choice" → 1 choice slot
+     * - "two other languages" → 2 choice slots
+     * - "Common, plus any three languages of your choice" → 1 fixed + 3 choices
+     *
+     * @param  string  $text  The language description from XML
+     * @return array Array of language data: [['language_id' => X, 'is_choice' => false], ...]
+     */
+    protected function extractLanguagesFromText(string $text): array
+    {
+        // Lazy initialization for backward compatibility with unit tests
+        if (! isset($this->languagesCache)) {
+            $this->initializeLanguages();
+        }
+
+        $results = [];
+
+        // Only parse the first sentence - language mechanics, not flavor text
+        // Split on period or on pattern like "Humans typically" / "The language" / etc
+        $sentences = preg_split('/\.(?:\s|$)/', $text, 2);
+        $remainingText = $sentences[0] ?? $text;
+
+        // Pattern 1: Extract choice slots (must be done first to avoid matching language names within)
+        // Matches: "one extra language", "two other languages", "any three languages"
+        $choicePattern = '/\b(one|two|three|four|any|a|an)\s+(extra|other|additional)?\s*languages?\b/i';
+        if (preg_match_all($choicePattern, $remainingText, $matches, PREG_OFFSET_CAPTURE)) {
+            foreach ($matches[0] as $match) {
+                $quantityWord = $matches[1][array_search($match, $matches[0])][0];
+                $quantity = $this->wordToNumber($quantityWord);
+
+                // Add choice slots
+                for ($i = 0; $i < $quantity; $i++) {
+                    $results[] = [
+                        'slug' => null,
+                        'is_choice' => true,
+                    ];
+                }
+
+                // Remove this match from remaining text to avoid re-matching
+                $remainingText = str_replace($match[0], '', $remainingText);
+            }
+        }
+
+        // Pattern 2: Extract specific language names
+        // Try to match each known language in the cache
+        foreach ($this->languagesCache as $slug => $language) {
+            // Match the language name (case-insensitive, word boundary)
+            $pattern = '/\b'.preg_quote($language->name, '/').'\b/i';
+            if (preg_match($pattern, $remainingText)) {
+                $results[] = [
+                    'slug' => $slug,
+                    'is_choice' => false,
+                ];
+
+                // Remove this language from remaining text to avoid duplicates
+                $remainingText = preg_replace($pattern, '', $remainingText, 1);
+            }
+        }
+
+        // Pattern 3: Handle "plus one of the following" or "choose one from" patterns
+        // This is more complex and might reference specific languages
+        // Example: "Common, plus one of the following: Dwarvish, Elvish, or Giant"
+        if (preg_match('/\bplus\s+one\s+of\s+the\s+following[:\s]+(.*?)(?:\.|$)/i', $remainingText, $followingMatch)) {
+            // This would be a choice from specific languages
+            // For now, we treat it as a single choice slot
+            $results[] = [
+                'slug' => null,
+                'is_choice' => true,
+            ];
+        }
+
+        return $results;
+    }
+
+    /**
+     * Convert word numbers to integers.
+     *
+     * @param  string  $word  The word representation (e.g., "one", "two")
+     * @return int The numeric value
+     */
+    protected function wordToNumber(string $word): int
+    {
+        $word = strtolower(trim($word));
+
+        $mapping = [
+            'a' => 1,
+            'an' => 1,
+            'one' => 1,
+            'two' => 2,
+            'three' => 3,
+            'four' => 4,
+            'five' => 5,
+            'six' => 6,
+            'seven' => 7,
+            'eight' => 8,
+            'nine' => 9,
+            'ten' => 10,
+            'any' => 1, // "any languages" typically means "one language"
+            'several' => 2, // Approximation
+        ];
+
+        return $mapping[$word] ?? 1;
+    }
+
+    /**
+     * Match a language name to a Language model.
+     *
+     * @param  string  $name  The language name from XML
+     * @return Language|null The matched language, or null if no match
+     */
+    protected function matchLanguage(string $name): ?Language
+    {
+        // Lazy initialization
+        if (! isset($this->languagesCache)) {
+            $this->initializeLanguages();
+        }
+
+        $normalized = $this->normalizeLanguageName($name);
+
+        // Exact slug match first
+        $match = $this->languagesCache->get($normalized);
+        if ($match) {
+            return $match;
+        }
+
+        // Try partial matching (e.g., "thieves cant" → "thieves' cant")
+        $match = $this->languagesCache->first(function ($language) use ($normalized) {
+            $langSlug = $this->normalizeLanguageName($language->name);
+
+            return $langSlug === $normalized || str_contains($langSlug, $normalized) || str_contains($normalized, $langSlug);
+        });
+
+        return $match;
+    }
+
+    /**
+     * Normalize a language name for matching.
+     * Handles case differences, apostrophes, and special characters.
+     *
+     * @param  string  $name  The name to normalize
+     * @return string The normalized name (slug format)
+     */
+    protected function normalizeLanguageName(string $name): string
+    {
+        // Remove various apostrophe types
+        $name = str_replace("'", '', $name); // Straight apostrophe
+        $name = str_replace("'", '', $name); // Right single quotation mark (curly)
+        $name = str_replace("'", '', $name); // Left single quotation mark
+
+        // Convert to slug format (lowercase, spaces to hyphens)
+        $name = strtolower($name);
+        $name = preg_replace('/[^a-z0-9]+/', '-', $name);
+        $name = trim($name, '-');
+
+        return $name;
+    }
+}

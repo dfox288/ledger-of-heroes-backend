@@ -63,6 +63,11 @@ class Race extends Model
         return $this->morphMany(EntitySource::class, 'reference', 'reference_type', 'reference_id');
     }
 
+    public function languages(): MorphMany
+    {
+        return $this->morphMany(EntityLanguage::class, 'reference');
+    }
+
     // Scopes for API filtering
     public function scopeSearch($query, $searchTerm)
     {

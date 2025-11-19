@@ -168,7 +168,7 @@ XML;
 
         $chaBonus = $modifiers->firstWhere('abilityScore.code', 'CHA');
         $this->assertNotNull($chaBonus);
-        $this->assertEquals('+2', $chaBonus->value);
+        $this->assertEquals(2, $chaBonus->value);
 
         $reconstructed = $this->reconstructRaceXml($race);
 
@@ -396,7 +396,7 @@ XML;
 
         if ($modifiers->isNotEmpty()) {
             $abilities = $modifiers
-                ->map(fn ($m) => $m->abilityScore->code.' '.$m->value)
+                ->map(fn ($m) => $m->abilityScore->code.' '.($m->value >= 0 ? '+'.$m->value : $m->value))
                 ->join(', ');
             $xml .= "<ability>{$abilities}</ability>";
         }

@@ -2,12 +2,14 @@
 
 namespace App\Services\Parsers;
 
+use App\Services\Parsers\Concerns\MatchesLanguages;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
+use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use SimpleXMLElement;
 
 class RaceXmlParser
 {
-    use MatchesProficiencyTypes;
+    use MatchesLanguages, MatchesProficiencyTypes, ParsesSourceCitations;
 
     public function parse(string $xmlContent): array
     {
@@ -45,10 +47,10 @@ class RaceXmlParser
         $sourceCode = 'PHB';
         $sourcePages = '';
         foreach ($traits as &$trait) {
-            if (preg_match('/Source:\s*([^p]+)\s*p\.\s*([\d,\s]+)/', $trait['description'], $matches)) {
+            if (preg_match('/Source:\s*([^p]+)\s*p\.\s*([\d,\s\-]+?)(?:,|\s|$)/', $trait['description'], $matches)) {
                 $sourceName = trim($matches[1]);
-                $sourcePages = trim($matches[2]);
-                $sourceCode = $this->getSourceCode($sourceName);
+                $sourcePages = rtrim(trim($matches[2]), ", \t\n\r\0\x0B");
+                $sourceCode = $this->mapSourceNameToCode($sourceName);
 
                 // Remove source line from trait description
                 $trait['description'] = trim(preg_replace('/\n*Source:\s*[^\n]+/', '', $trait['description']));
@@ -61,6 +63,9 @@ class RaceXmlParser
 
         // Parse proficiencies
         $proficiencies = $this->parseProficiencies($element);
+
+        // Parse languages
+        $languages = $this->parseLanguages($element);
 
         // Convert single source to sources array for consistency
         $sources = [[
@@ -77,6 +82,7 @@ class RaceXmlParser
             'ability_bonuses' => $abilityBonuses,
             'sources' => $sources,
             'proficiencies' => $proficiencies,
+            'languages' => $languages,
         ];
     }
 
@@ -134,7 +140,7 @@ class RaceXmlParser
             if (preg_match('/^([A-Za-z]{3})\s*([+-]\d+)$/', $part, $matches)) {
                 $bonuses[] = [
                     'ability' => $matches[1],
-                    'value' => $matches[2],
+                    'value' => (int) $matches[2], // Cast to int to remove '+' prefix
                 ];
             }
         }
@@ -221,20 +227,23 @@ class RaceXmlParser
         return 'skill';
     }
 
-    private function getSourceCode(string $sourceName): string
+    /**
+     * Parse languages from traits
+     */
+    private function parseLanguages(SimpleXMLElement $element): array
     {
-        $mapping = [
-            "Player's Handbook" => 'PHB',
-            "Player's Handbook (2014)" => 'PHB',
-            'Dungeon Master\'s Guide' => 'DMG',
-            'Monster Manual' => 'MM',
-            'Xanathar\'s Guide to Everything' => 'XGE',
-            'Tasha\'s Cauldron of Everything' => 'TCE',
-            'Volo\'s Guide to Monsters' => 'VGTM',
-            'Eberron: Rising from the Last War' => 'ERLW',
-            'Wayfinder\'s Guide to Eberron' => 'WGTE',
-        ];
+        // Look for a trait named "Languages"
+        foreach ($element->trait as $traitElement) {
+            $traitName = (string) $traitElement->name;
+            if ($traitName === 'Languages') {
+                $text = (string) $traitElement->text;
 
-        return $mapping[$sourceName] ?? 'PHB';
+                // Use the MatchesLanguages trait to extract language data
+                return $this->extractLanguagesFromText($text);
+            }
+        }
+
+        // No Languages trait found
+        return [];
     }
 }

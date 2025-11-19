@@ -30,39 +30,39 @@ class MatchesProficiencyTypesTest extends TestCase
     #[Test]
     public function it_normalizes_to_lowercase(): void
     {
-        $this->assertEquals('longsword', $this->matcher->testNormalize('Longsword'));
-        $this->assertEquals('longsword', $this->matcher->testNormalize('LONGSWORD'));
-        $this->assertEquals('longsword', $this->matcher->testNormalize('longsword'));
+        $this->assertEquals('longsword', $this->matcher->test_normalize('Longsword'));
+        $this->assertEquals('longsword', $this->matcher->test_normalize('LONGSWORD'));
+        $this->assertEquals('longsword', $this->matcher->test_normalize('longsword'));
     }
 
     #[Test]
     public function it_removes_straight_apostrophes(): void
     {
-        $this->assertEquals('smithstools', $this->matcher->testNormalize("Smith's Tools"));
+        $this->assertEquals('smithstools', $this->matcher->test_normalize("Smith's Tools"));
     }
 
     #[Test]
     public function it_removes_curly_apostrophes(): void
     {
         // Right single quotation mark (curly)
-        $this->assertEquals('smithstools', $this->matcher->testNormalize("Smith's Tools"));
+        $this->assertEquals('smithstools', $this->matcher->test_normalize("Smith's Tools"));
 
         // Left single quotation mark
-        $this->assertEquals('smithstools', $this->matcher->testNormalize("Smith's Tools"));
+        $this->assertEquals('smithstools', $this->matcher->test_normalize("Smith's Tools"));
     }
 
     #[Test]
     public function it_removes_spaces(): void
     {
-        $this->assertEquals('smithstools', $this->matcher->testNormalize('Smiths Tools'));
-        $this->assertEquals('lightarmor', $this->matcher->testNormalize('Light Armor'));
+        $this->assertEquals('smithstools', $this->matcher->test_normalize('Smiths Tools'));
+        $this->assertEquals('lightarmor', $this->matcher->test_normalize('Light Armor'));
     }
 
     #[Test]
     public function it_normalizes_complex_names(): void
     {
-        $this->assertEquals('alchemistssupplies', $this->matcher->testNormalize("Alchemist's Supplies"));
-        $this->assertEquals('brewerssupplies', $this->matcher->testNormalize("Brewer's Supplies"));
-        $this->assertEquals('thievestools', $this->matcher->testNormalize("Thieves' Tools"));
+        $this->assertEquals('alchemistssupplies', $this->matcher->test_normalize("Alchemist's Supplies"));
+        $this->assertEquals('brewerssupplies', $this->matcher->test_normalize("Brewer's Supplies"));
+        $this->assertEquals('thievestools', $this->matcher->test_normalize("Thieves' Tools"));
     }
 }

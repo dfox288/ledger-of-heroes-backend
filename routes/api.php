@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ConditionController;
 use App\Http\Controllers\Api\DamageTypeController;
 use App\Http\Controllers\Api\ItemPropertyController;
 use App\Http\Controllers\Api\ItemTypeController;
+use App\Http\Controllers\Api\LanguageController;
 use App\Http\Controllers\Api\ProficiencyTypeController;
 use App\Http\Controllers\Api\RaceController;
 use App\Http\Controllers\Api\SizeController;
@@ -32,6 +33,7 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('item-properties', ItemPropertyController::class)->only(['index', 'show']);
     Route::apiResource('conditions', ConditionController::class)->only(['index', 'show']);
     Route::apiResource('proficiency-types', ProficiencyTypeController::class)->only(['index', 'show']);
+    Route::apiResource('languages', LanguageController::class)->only(['index', 'show']);
 
     // Spells
     Route::apiResource('spells', SpellController::class)->only(['index', 'show']);

@@ -27,6 +27,7 @@ class RaceResource extends JsonResource
             }),
             'subraces' => RaceResource::collection($this->whenLoaded('subraces')),
             'proficiencies' => ProficiencyResource::collection($this->whenLoaded('proficiencies')),
+            'languages' => EntityLanguageResource::collection($this->whenLoaded('languages')),
         ];
     }
 }

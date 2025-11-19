@@ -3,11 +3,13 @@
 namespace App\Services\Parsers;
 
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
+use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use SimpleXMLElement;
 
 class ItemXmlParser
 {
     use MatchesProficiencyTypes;
+    use ParsesSourceCitations;
 
     public function __construct()
     {
@@ -123,91 +125,6 @@ class ItemXmlParser
         return array_map('trim', explode(',', $propertyString));
     }
 
-    private function parseSourceCitations(string $text): array
-    {
-        $sources = [];
-
-        // Pattern 1: "Book Name (Year) p. PageNumbers" - with year
-        // Pattern 2: "Book Name p. PageNumbers" - without year
-        // Handles: "p. 150" or "p. 150, 152" or "p. 150-152"
-
-        // Extract "Source: ..." text
-        $pattern = '/Source:\s*(.+?)(?:\n|$)/i';
-        if (! preg_match($pattern, $text, $sourceMatch)) {
-            // Fallback if no source found
-            return [
-                [
-                    'code' => 'PHB',
-                    'pages' => '',
-                ],
-            ];
-        }
-
-        $sourcesText = $sourceMatch[1];
-
-        // Try pattern with year first
-        $patternWithYear = '/([^(]+)\s*\((\d{4})\)\s*p\.\s*([\d,\s\-]+)/';
-        preg_match_all($patternWithYear, $sourcesText, $matches, PREG_SET_ORDER);
-
-        if (! empty($matches)) {
-            foreach ($matches as $match) {
-                $sourceName = trim($match[1]);
-                $pages = trim($match[3]);
-                // Remove trailing comma (from multi-source citations)
-                $pages = rtrim($pages, ',');
-
-                $sourceCode = $this->getSourceCode($sourceName);
-
-                $sources[] = [
-                    'code' => $sourceCode,
-                    'pages' => $pages,
-                ];
-            }
-        } else {
-            // Try pattern without year
-            $patternWithoutYear = '/([^\s]+(?:\s+[^\s]+)*?)\s+p\.\s*([\d,\s\-]+)/';
-            preg_match_all($patternWithoutYear, $sourcesText, $matches, PREG_SET_ORDER);
-
-            foreach ($matches as $match) {
-                $sourceName = trim($match[1]);
-                $pages = trim($match[2]);
-                // Remove trailing comma (from multi-source citations)
-                $pages = rtrim($pages, ',');
-
-                $sourceCode = $this->getSourceCode($sourceName);
-
-                $sources[] = [
-                    'code' => $sourceCode,
-                    'pages' => $pages,
-                ];
-            }
-        }
-
-        // Fallback if no sources parsed (shouldn't happen with valid XML)
-        if (empty($sources)) {
-            $sources[] = [
-                'code' => 'PHB',
-                'pages' => '',
-            ];
-        }
-
-        return $sources;
-    }
-
-    private function getSourceCode(string $sourceName): string
-    {
-        $mapping = [
-            "Player's Handbook" => 'PHB',
-            'Dungeon Master\'s Guide' => 'DMG',
-            'Monster Manual' => 'MM',
-            'Xanathar\'s Guide to Everything' => 'XGE',
-            'Tasha\'s Cauldron of Everything' => 'TCE',
-            'Volo\'s Guide to Monsters' => 'VGTM',
-        ];
-
-        return $mapping[$sourceName] ?? 'PHB';
-    }
-
     private function extractProficiencies(string $text): array
     {
         $proficiencies = [];
@@ -287,16 +204,21 @@ class ItemXmlParser
 
         // Map text to structured categories (order matters - check specific before general)
         $category = match (true) {
+            str_contains($target, 'saving throw') => 'saving_throw',
             str_contains($target, 'spell attack') => 'spell_attack',
             str_contains($target, 'spell dc') => 'spell_dc',
-            str_contains($target, 'ac') || $target === 'armor class' => 'ac',
+            $target === 'ac' || $target === 'armor class' => 'ac', // Exact match to avoid matching "acrobatics"
+            str_contains($target, 'initiative') => 'initiative',
             str_contains($target, 'melee attack') => 'melee_attack',
             str_contains($target, 'melee damage') => 'melee_damage',
             str_contains($target, 'ranged attack') => 'ranged_attack',
             str_contains($target, 'ranged damage') => 'ranged_damage',
+            str_contains($target, 'weapon attack') => 'weapon_attack',
+            str_contains($target, 'weapon damage') => 'weapon_damage',
             str_contains($target, 'attack') => 'attack_bonus', // Generic attack (after specific checks)
             str_contains($target, 'damage') => 'damage_bonus', // Generic damage (after specific checks)
             $xmlCategory === 'ability score' => 'ability_score',
+            $xmlCategory === 'skill' => 'skill',
             default => 'bonus', // Generic fallback
         };
 
@@ -311,6 +233,11 @@ class ItemXmlParser
         // For ability score modifiers, match the ability
         if ($category === 'ability_score') {
             $result['ability_score_id'] = $this->matchAbilityScore($target);
+        }
+
+        // For skill modifiers, match the skill
+        if ($category === 'skill') {
+            $result['skill_id'] = $this->matchSkill($target);
         }
 
         return $result;
@@ -335,6 +262,29 @@ class ItemXmlParser
 
         $text = strtolower($text);
         foreach ($abilities as $key => $id) {
+            if (str_contains($text, $key)) {
+                return $id;
+            }
+        }
+
+        return null;
+    }
+
+    private function matchSkill(string $text): ?int
+    {
+        static $skills = null;
+
+        if ($skills === null) {
+            try {
+                $skills = \App\Models\Skill::all()
+                    ->mapWithKeys(fn ($s) => [strtolower($s->name) => $s->id]);
+            } catch (\Exception $e) {
+                $skills = collect();
+            }
+        }
+
+        $text = strtolower($text);
+        foreach ($skills as $key => $id) {
             if (str_contains($text, $key)) {
                 return $id;
             }

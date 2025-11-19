@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             CharacterClassSeeder::class,     // Depends on AbilityScore and Source
             ConditionSeeder::class,          // No dependencies
             ProficiencyTypeSeeder::class,    // No dependencies
+            LanguageSeeder::class,           // No dependencies
         ]);
     }
 }

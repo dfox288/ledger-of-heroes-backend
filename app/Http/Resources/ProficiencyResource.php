@@ -17,6 +17,10 @@ class ProficiencyResource extends JsonResource
         return [
             'id' => $this->id,
             'proficiency_type' => $this->proficiency_type,
+            'proficiency_type_id' => $this->proficiency_type_id,
+            'proficiency_type_detail' => $this->when($this->proficiency_type_id, function () {
+                return new ProficiencyTypeResource($this->whenLoaded('proficiencyType'));
+            }),
             'skill' => $this->when($this->skill_id, function () {
                 return new SkillResource($this->whenLoaded('skill'));
             }),
@@ -30,6 +34,7 @@ class ProficiencyResource extends JsonResource
                 return new AbilityScoreResource($this->whenLoaded('abilityScore'));
             }),
             'proficiency_name' => $this->proficiency_name,
+            'grants' => $this->grants,
         ];
     }
 }

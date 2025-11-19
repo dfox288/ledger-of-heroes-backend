@@ -3,14 +3,15 @@
 namespace App\Services\Importers;
 
 use App\Models\CharacterClass;
-use App\Models\EntitySource;
-use App\Models\Source;
 use App\Models\Spell;
 use App\Models\SpellSchool;
+use App\Services\Importers\Concerns\ImportsSources;
 use App\Services\Parsers\SpellXmlParser;
 
 class SpellImporter
 {
+    use ImportsSources;
+
     public function import(array $spellData): Spell
     {
         // Lookup spell school by code
@@ -46,7 +47,7 @@ class SpellImporter
 
         // Import sources - clear old sources and create new ones
         if (isset($spellData['sources']) && is_array($spellData['sources'])) {
-            $this->importSources($spell, $spellData['sources']);
+            $this->importEntitySources($spell, $spellData['sources']);
         }
 
         // Import class associations
@@ -55,32 +56,6 @@ class SpellImporter
         }
 
         return $spell;
-    }
-
-    /**
-     * Import sources for a spell.
-     * Creates entity_sources junction records for each source.
-     *
-     * @param  array  $sources  Array of ['code' => 'PHB', 'pages' => '241']
-     */
-    private function importSources(Spell $spell, array $sources): void
-    {
-        // Clear existing sources
-        $spell->sources()->delete();
-
-        // Create new source associations
-        foreach ($sources as $sourceData) {
-            $source = Source::where('code', $sourceData['code'])->first();
-
-            if ($source) {
-                EntitySource::create([
-                    'reference_type' => Spell::class,
-                    'reference_id' => $spell->id,
-                    'source_id' => $source->id,
-                    'pages' => $sourceData['pages'] ?? null,
-                ]);
-            }
-        }
     }
 
     /**

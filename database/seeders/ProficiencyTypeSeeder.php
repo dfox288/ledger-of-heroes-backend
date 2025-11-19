@@ -22,6 +22,7 @@ class ProficiencyTypeSeeder extends Seeder
             // Weapons - Categories
             ['name' => 'Simple Weapons', 'category' => 'weapon'],
             ['name' => 'Martial Weapons', 'category' => 'weapon'],
+            ['name' => 'Firearms', 'category' => 'weapon'],
 
             // Weapons - Simple Melee
             ['name' => 'Club', 'category' => 'weapon'],
@@ -67,6 +68,9 @@ class ProficiencyTypeSeeder extends Seeder
             ['name' => 'Heavy Crossbow', 'category' => 'weapon'],
             ['name' => 'Longbow', 'category' => 'weapon'],
             ['name' => 'Net', 'category' => 'weapon'],
+
+            // Weapons - Special/Exotic
+            ['name' => 'Double-Bladed Scimitar', 'category' => 'weapon'],
 
             // Artisan's Tools
             ['name' => "Alchemist's Supplies", 'category' => 'tool'],

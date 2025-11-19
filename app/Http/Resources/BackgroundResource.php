@@ -23,6 +23,7 @@ class BackgroundResource extends JsonResource
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'languages' => EntityLanguageResource::collection($this->whenLoaded('languages')),
             'equipment' => EntityItemResource::collection($this->whenLoaded('equipment')),
+            'random_tables' => RandomTableResource::collection($this->whenLoaded('randomTables')),
         ];
     }
 }

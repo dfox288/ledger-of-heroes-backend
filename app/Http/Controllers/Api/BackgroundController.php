@@ -39,6 +39,7 @@ class BackgroundController extends Controller
             'proficiencies.proficiencyType',
             'languages.language',
             'equipment.item',
+            'randomTables.entries',
         ]);
 
         return new BackgroundResource($background);

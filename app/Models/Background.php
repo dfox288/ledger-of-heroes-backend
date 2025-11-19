@@ -43,6 +43,11 @@ class Background extends Model
         return $this->morphMany(EntityLanguage::class, 'reference');
     }
 
+    public function randomTables(): MorphMany
+    {
+        return $this->morphMany(RandomTable::class, 'reference');
+    }
+
     // Scopes for API filtering
     public function scopeSearch($query, $searchTerm)
     {

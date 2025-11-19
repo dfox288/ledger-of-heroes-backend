@@ -4,6 +4,10 @@ namespace App\Services\Importers;
 
 use App\Models\Background;
 use App\Models\CharacterTrait;
+use App\Models\EntityItem;
+use App\Models\EntityLanguage;
+use App\Models\RandomTable;
+use App\Models\RandomTableEntry;
 use App\Models\Source;
 use App\Services\Parsers\ItemTableParser;
 use Illuminate\Support\Facades\DB;
@@ -24,27 +28,39 @@ class BackgroundImporter
             $background->traits()->delete();
             $background->proficiencies()->delete();
             $background->sources()->delete();
+            $background->languages()->delete();
+            $background->equipment()->delete();
+            RandomTable::where('reference_type', Background::class)
+                ->where('reference_id', $background->id)
+                ->delete();
 
             // 3. Import traits
+            $traits = [];
             foreach ($data['traits'] as $traitData) {
                 $trait = $background->traits()->create([
                     'name' => $traitData['name'],
                     'description' => $traitData['description'],
                     'category' => $traitData['category'],
                 ]);
+                $traits[$traitData['name']] = $trait;
 
-                // 4. Import random tables for characteristics trait
+                // 4. Import random tables for characteristics trait (old method for backward compatibility)
                 if ($traitData['category'] === 'characteristics' && ! empty($traitData['rolls'])) {
                     $this->importRandomTables($trait, $traitData['description'], $traitData['rolls']);
                 }
             }
 
-            // 5. Import proficiencies
+            // 5. Import proficiencies (now with is_choice and quantity support)
             foreach ($data['proficiencies'] as $profData) {
-                // Parser now includes 'grants' => true and proficiency_type_id
-                $background->proficiencies()->create(array_merge($profData, [
-                    'grants' => $profData['grants'] ?? true, // Backgrounds grant proficiency
-                ]));
+                $background->proficiencies()->create([
+                    'proficiency_name' => $profData['proficiency_name'],
+                    'proficiency_type' => $profData['proficiency_type'],
+                    'proficiency_type_id' => $profData['proficiency_type_id'] ?? null,
+                    'skill_id' => $profData['skill_id'] ?? null,
+                    'grants' => $profData['grants'] ?? true,
+                    'is_choice' => $profData['is_choice'] ?? false,
+                    'quantity' => $profData['quantity'] ?? 1,
+                ]);
             }
 
             // 6. Import sources
@@ -56,6 +72,54 @@ class BackgroundImporter
                         'source_id' => $source->id,
                         'pages' => $sourceData['pages'],
                     ]);
+                }
+            }
+
+            // 7. Import languages
+            foreach ($data['languages'] ?? [] as $langData) {
+                EntityLanguage::create([
+                    'reference_type' => Background::class,
+                    'reference_id' => $background->id,
+                    'language_id' => $langData['language_id'],
+                    'is_choice' => $langData['is_choice'] ?? false,
+                    'quantity' => $langData['quantity'] ?? 1,
+                ]);
+            }
+
+            // 8. Import equipment
+            foreach ($data['equipment'] ?? [] as $equipData) {
+                EntityItem::create([
+                    'reference_type' => Background::class,
+                    'reference_id' => $background->id,
+                    'item_id' => $equipData['item_id'] ?? null,
+                    'quantity' => $equipData['quantity'] ?? 1,
+                    'is_choice' => $equipData['is_choice'] ?? false,
+                    'choice_description' => $equipData['choice_description'] ?? null,
+                ]);
+            }
+
+            // 9. Import ALL embedded random tables (not just characteristics)
+            foreach ($data['random_tables'] ?? [] as $tableData) {
+                $table = RandomTable::create([
+                    'reference_type' => Background::class,
+                    'reference_id' => $background->id,
+                    'table_name' => $tableData['name'],
+                    'dice_type' => $tableData['dice_type'],
+                ]);
+
+                foreach ($tableData['entries'] as $index => $entry) {
+                    RandomTableEntry::create([
+                        'random_table_id' => $table->id,
+                        'roll_min' => $entry['roll_min'],
+                        'roll_max' => $entry['roll_max'],
+                        'result_text' => $entry['result_text'],
+                        'sort_order' => $index,
+                    ]);
+                }
+
+                // Link table to trait if trait_name is specified
+                if (isset($tableData['trait_name']) && isset($traits[$tableData['trait_name']])) {
+                    $traits[$tableData['trait_name']]->update(['random_table_id' => $table->id]);
                 }
             }
 

@@ -38,6 +38,11 @@ class Background extends Model
         return $this->morphMany(EntityItem::class, 'reference');
     }
 
+    public function languages(): MorphMany
+    {
+        return $this->morphMany(EntityLanguage::class, 'reference');
+    }
+
     // Scopes for API filtering
     public function scopeSearch($query, $searchTerm)
     {

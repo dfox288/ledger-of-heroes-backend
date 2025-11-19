@@ -57,4 +57,12 @@ class Modifier extends Model
     {
         return $this->belongsTo(DamageType::class);
     }
+
+    /**
+     * Accessor for category (alias for modifier_category).
+     */
+    public function getCategoryAttribute(): ?string
+    {
+        return $this->modifier_category;
+    }
 }

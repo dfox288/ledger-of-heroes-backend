@@ -18,6 +18,7 @@ class EntityCondition extends Model
         'reference_id',
         'condition_id',
         'effect_type',
+        'description',
     ];
 
     protected $casts = [

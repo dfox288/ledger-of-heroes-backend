@@ -23,9 +23,18 @@ class ItemNameMapper
 
         // Common variants
         'belt pouch' => 'Pouch',
+        'purse' => 'Pouch',
         'holy symbol' => 'Holy Symbol',
         'prayer book' => 'Prayer Book',
         'prayer wheel' => 'Prayer Wheel',
+
+        // Writing implements
+        'quill' => 'Ink Pen',
+        'bottle of black ink' => 'Ink (1-ounce bottle)',
+
+        // Rope variants
+        'feet of silk rope' => 'Silk Rope (50 feet)',
+        'silk rope' => 'Silk Rope (50 feet)',
     ];
 
     /**

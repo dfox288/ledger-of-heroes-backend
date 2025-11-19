@@ -17,6 +17,7 @@ class Proficiency extends Model
         'reference_type',
         'reference_id',
         'proficiency_type',
+        'proficiency_subcategory',
         'proficiency_type_id',
         'skill_id',
         'item_id',

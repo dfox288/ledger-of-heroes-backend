@@ -51,11 +51,12 @@ class BackgroundImporter
                 }
             }
 
-            // 5. Import proficiencies (now with is_choice and quantity support)
+            // 5. Import proficiencies (now with is_choice, quantity, and subcategory support)
             foreach ($data['proficiencies'] as $profData) {
                 $background->proficiencies()->create([
                     'proficiency_name' => $profData['proficiency_name'],
                     'proficiency_type' => $profData['proficiency_type'],
+                    'proficiency_subcategory' => $profData['proficiency_subcategory'] ?? null,
                     'proficiency_type_id' => $profData['proficiency_type_id'] ?? null,
                     'skill_id' => $profData['skill_id'] ?? null,
                     'grants' => $profData['grants'] ?? true,

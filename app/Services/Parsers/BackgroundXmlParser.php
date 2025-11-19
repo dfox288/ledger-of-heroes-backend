@@ -255,9 +255,13 @@ class BackgroundXmlParser
             $toolName = trim($choiceMatch[1]);
             $proficiencyType = $this->matchProficiencyType($toolName);
 
+            // Extract subcategory from tool name (e.g., "artisan's tools" -> "artisan")
+            $subcategory = $this->extractToolSubcategory($toolName);
+
             return [[
                 'proficiency_name' => $toolName,
                 'proficiency_type' => 'tool',
+                'proficiency_subcategory' => $subcategory,
                 'proficiency_type_id' => $proficiencyType?->id,
                 'skill_id' => null,
                 'is_choice' => true,
@@ -376,6 +380,35 @@ class BackgroundXmlParser
         }
 
         return $items;
+    }
+
+    /**
+     * Extract tool subcategory from tool name.
+     * Examples: "artisan's tools" -> "artisan", "gaming set" -> "gaming", "musical instrument" -> "musical"
+     */
+    private function extractToolSubcategory(string $toolName): ?string
+    {
+        $normalized = strtolower($toolName);
+
+        // Check for common patterns
+        if (str_contains($normalized, 'artisan')) {
+            return 'artisan';
+        }
+
+        if (str_contains($normalized, 'gaming')) {
+            return 'gaming';
+        }
+
+        if (str_contains($normalized, 'musical')) {
+            return 'musical';
+        }
+
+        // Match pattern: "word's tools/instruments/set"
+        if (preg_match('/^(\w+)[\'\s]s\s+(tools|instrument|set)/i', $toolName, $matches)) {
+            return strtolower($matches[1]);
+        }
+
+        return null;
     }
 
     /**

@@ -34,17 +34,40 @@ This is a Laravel 12.x application that imports D&D 5th Edition content from XML
 
 ### Required Steps (Non-Negotiable):
 
-0. **Always use available Superpower Larael skills**
+0. **Always use available Superpower Laravel skills**
 1. **WRITE TESTS FIRST** - Before writing any implementation code
-2. **Watch them FAIL** - Confirm tests fail for the right reason
-3. **Write MINIMAL code** to pass tests
-4. **Refactor** while keeping tests green
-5. **Update API Resources** - Expose new data via API
-6. **Update Models** 
-7. **Update Controllers**
-8. **Update API Tests** - Verify API returns new fields
-9. **Run FULL test suite** - Ensure no regressions
-10.**Commit to git with clear message**
+2. **Use PHPUnit 11 Attributes** - Use `#[\PHPUnit\Framework\Attributes\Test]` instead of `/** @test */` doc-comments
+3. **Watch them FAIL** - Confirm tests fail for the right reason
+4. **Write MINIMAL code** to pass tests
+5. **Refactor** while keeping tests green
+6. **Update API Resources** - Expose new data via API
+7. **Update Models**
+8. **Update Controllers**
+9. **Update API Tests** - Verify API returns new fields
+10. **Run FULL test suite** - Ensure no regressions
+11. **Commit to git with clear message**
+
+### PHPUnit 11 Testing Standards:
+
+**ALWAYS use PHP attributes instead of doc-comments:**
+
+```php
+// ✅ CORRECT - Use attributes
+#[\PHPUnit\Framework\Attributes\Test]
+public function it_creates_a_record()
+{
+    // test code
+}
+
+// ❌ WRONG - Doc-comments deprecated in PHPUnit 11+
+/** @test */
+public function it_creates_a_record()
+{
+    // test code
+}
+```
+
+**Rationale:** Doc-comment metadata is deprecated and will be removed in PHPUnit 12. Using attributes ensures forward compatibility and eliminates warnings.
 
 ### What Must Be Tested:
 

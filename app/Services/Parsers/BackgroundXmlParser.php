@@ -21,9 +21,13 @@ class BackgroundXmlParser
         foreach ($xml->background as $bg) {
             $descriptionText = (string) ($bg->trait[0]->text ?? '');
 
+            // Merge XML proficiencies with trait-text tool proficiencies
+            $xmlProfs = $this->parseProficiencies((string) $bg->proficiency);
+            $toolProfs = $this->parseToolProficienciesFromTraitText($descriptionText);
+
             $backgrounds[] = [
                 'name' => (string) $bg->name,
-                'proficiencies' => $this->parseProficiencies((string) $bg->proficiency),
+                'proficiencies' => array_merge($xmlProfs, $toolProfs),
                 'traits' => $this->parseTraits($bg->trait),
                 'sources' => $this->extractSources($descriptionText),
                 'languages' => $this->parseLanguagesFromTraitText($descriptionText),
@@ -223,5 +227,58 @@ class BackgroundXmlParser
             // Database not available in unit tests - return empty
             return [];
         }
+    }
+
+    /**
+     * Parse tool proficiencies from trait Description text.
+     * Pattern: "• Tool Proficiencies: One type of artisan's tools" or "• Tool Proficiencies: Navigator's tools"
+     */
+    private function parseToolProficienciesFromTraitText(string $text): array
+    {
+        if (! preg_match('/• Tool Proficiencies:\s*(.+?)(?:\n|$)/m', $text, $matches)) {
+            return [];
+        }
+
+        $toolText = trim($matches[1]);
+        $proficiencies = [];
+
+        // Check for "one type of" or choice pattern
+        if (preg_match('/one\s+type\s+of\s+(.+?)$/i', $toolText, $choiceMatch)) {
+            $toolName = trim($choiceMatch[1]);
+            $proficiencyType = $this->matchProficiencyType($toolName);
+
+            return [[
+                'proficiency_name' => $toolName,
+                'proficiency_type' => 'tool',
+                'proficiency_type_id' => $proficiencyType?->id,
+                'skill_id' => null,
+                'is_choice' => true,
+                'quantity' => 1,
+                'grants' => true,
+            ]];
+        }
+
+        // Parse comma-separated tool list (e.g., "Navigator's tools, vehicles (water)")
+        $tools = array_map('trim', explode(',', $toolText));
+
+        foreach ($tools as $toolName) {
+            if (empty($toolName)) {
+                continue;
+            }
+
+            $proficiencyType = $this->matchProficiencyType($toolName);
+
+            $proficiencies[] = [
+                'proficiency_name' => $toolName,
+                'proficiency_type' => 'tool',
+                'proficiency_type_id' => $proficiencyType?->id,
+                'skill_id' => null,
+                'is_choice' => false,
+                'quantity' => 1,
+                'grants' => true,
+            ];
+        }
+
+        return $proficiencies;
     }
 }

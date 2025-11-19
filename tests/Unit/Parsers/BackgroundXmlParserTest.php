@@ -255,4 +255,101 @@ XML;
         $this->assertArrayHasKey('languages', $backgrounds[0]);
         $this->assertEmpty($backgrounds[0]['languages']);
     }
+
+    #[Test]
+    public function it_parses_tool_proficiency_choice_from_trait_text()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Guild Artisan</name>
+    <proficiency>Insight, Persuasion</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>• Skill Proficiencies: Insight, Persuasion
+• Tool Proficiencies: One type of artisan's tools
+• Languages: One of your choice</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        // Should have 3 proficiencies: Insight, Persuasion, artisan's tools
+        $this->assertCount(3, $backgrounds[0]['proficiencies']);
+
+        $toolProf = collect($backgrounds[0]['proficiencies'])
+            ->firstWhere('proficiency_type', 'tool');
+
+        $this->assertNotNull($toolProf);
+        $this->assertTrue($toolProf['is_choice']);
+        $this->assertEquals(1, $toolProf['quantity']);
+        $this->assertStringContainsString('artisan', strtolower($toolProf['proficiency_name']));
+    }
+
+    #[Test]
+    public function it_parses_specific_tool_proficiency_from_trait_text()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Sailor</name>
+    <proficiency>Athletics, Perception</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>• Skill Proficiencies: Athletics, Perception
+• Tool Proficiencies: Navigator's tools, vehicles (water)</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        // Should have 4 proficiencies: Athletics, Perception, Navigator's tools, vehicles (water)
+        $this->assertCount(4, $backgrounds[0]['proficiencies']);
+
+        $toolProfs = collect($backgrounds[0]['proficiencies'])
+            ->where('proficiency_type', 'tool');
+
+        $this->assertCount(2, $toolProfs);
+
+        foreach ($toolProfs as $toolProf) {
+            $this->assertFalse($toolProf['is_choice'] ?? false);
+        }
+    }
+
+    #[Test]
+    public function it_merges_xml_and_trait_text_proficiencies()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Test</name>
+    <proficiency>Insight, Persuasion</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>• Tool Proficiencies: One type of gaming set</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        // Should have 3 proficiencies total (2 from XML + 1 from trait text)
+        $this->assertCount(3, $backgrounds[0]['proficiencies']);
+
+        $skillProfs = collect($backgrounds[0]['proficiencies'])
+            ->where('proficiency_type', 'skill');
+        $this->assertCount(2, $skillProfs);
+
+        $toolProfs = collect($backgrounds[0]['proficiencies'])
+            ->where('proficiency_type', 'tool');
+        $this->assertCount(1, $toolProfs);
+    }
 }

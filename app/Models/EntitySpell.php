@@ -7,26 +7,23 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
-class EntityItem extends Model
+class EntitySpell extends Model
 {
     use HasFactory;
-
-    public $timestamps = false;
 
     protected $fillable = [
         'reference_type',
         'reference_id',
-        'item_id',
-        'quantity',
-        'is_choice',
-        'choice_description',
-        'proficiency_subcategory',
-        'description',
+        'spell_id',
+        'ability_score_id',
+        'level_requirement',
+        'usage_limit',
+        'is_cantrip',
     ];
 
     protected $casts = [
-        'quantity' => 'integer',
-        'is_choice' => 'boolean',
+        'level_requirement' => 'integer',
+        'is_cantrip' => 'boolean',
     ];
 
     public function reference(): MorphTo
@@ -34,8 +31,13 @@ class EntityItem extends Model
         return $this->morphTo(__FUNCTION__, 'reference_type', 'reference_id');
     }
 
-    public function item(): BelongsTo
+    public function spell(): BelongsTo
     {
-        return $this->belongsTo(Item::class);
+        return $this->belongsTo(Spell::class);
+    }
+
+    public function abilityScore(): BelongsTo
+    {
+        return $this->belongsTo(AbilityScore::class);
     }
 }

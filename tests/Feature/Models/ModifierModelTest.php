@@ -47,4 +47,23 @@ class ModifierModelTest extends TestCase
 
         $this->assertCount(2, $race->modifiers);
     }
+
+    public function test_modifier_supports_choice_fields(): void
+    {
+        $race = Race::factory()->create();
+
+        $modifier = Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'modifier_category' => 'ability_score',
+            'value' => '+1',
+            'is_choice' => true,
+            'choice_count' => 2,
+            'choice_constraint' => 'different',
+        ]);
+
+        $this->assertTrue($modifier->is_choice);
+        $this->assertEquals(2, $modifier->choice_count);
+        $this->assertEquals('different', $modifier->choice_constraint);
+    }
 }

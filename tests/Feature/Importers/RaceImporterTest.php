@@ -519,4 +519,136 @@ XML;
         $this->assertNotNull($sizeTrait->random_table_id);
         $this->assertEquals($sizeTable->id, $sizeTrait->random_table_id);
     }
+
+    #[Test]
+    public function it_imports_multiple_sources()
+    {
+        $raceData = [
+            'name' => 'Test Race',
+            'size_code' => 'M',
+            'speed' => 30,
+            'ability_bonuses' => [],
+            'traits' => [],
+            'proficiencies' => [],
+            'sources' => [
+                ['code' => 'PHB', 'pages' => '35'],
+                ['code' => 'ERLW', 'pages' => '67'],
+            ],
+        ];
+
+        $race = $this->importer->import($raceData);
+
+        $this->assertCount(2, $race->fresh()->sources);
+        $sourceCodes = $race->sources->pluck('source.code')->toArray();
+        $this->assertContains('PHB', $sourceCodes);
+        $this->assertContains('ERLW', $sourceCodes);
+    }
+
+    #[Test]
+    public function it_imports_ability_choices()
+    {
+        $raceData = [
+            'name' => 'Test Race',
+            'size_code' => 'M',
+            'speed' => 30,
+            'ability_bonuses' => [
+                ['ability' => 'Con', 'value' => '+2'],
+            ],
+            'ability_choices' => [
+                [
+                    'is_choice' => true,
+                    'choice_count' => 1,
+                    'value' => 1,
+                    'choice_constraint' => 'any',
+                ],
+            ],
+            'traits' => [],
+            'proficiencies' => [],
+            'sources' => [],
+        ];
+
+        $race = $this->importer->import($raceData);
+
+        $choiceModifier = $race->fresh()->modifiers()->where('is_choice', true)->first();
+        $this->assertNotNull($choiceModifier);
+        $this->assertTrue($choiceModifier->is_choice);
+        $this->assertEquals(1, $choiceModifier->choice_count);
+        $this->assertEquals('any', $choiceModifier->choice_constraint);
+        $this->assertNull($choiceModifier->ability_score_id);
+    }
+
+    #[Test]
+    public function it_imports_conditions()
+    {
+        // Create frightened condition if it doesn't exist
+        $condition = \App\Models\Condition::firstOrCreate(
+            ['slug' => 'frightened'],
+            ['name' => 'Frightened', 'description' => 'Test condition']
+        );
+
+        $raceData = [
+            'name' => 'Test Race',
+            'size_code' => 'M',
+            'speed' => 30,
+            'ability_bonuses' => [],
+            'traits' => [],
+            'proficiencies' => [],
+            'sources' => [],
+            'conditions' => [
+                [
+                    'condition_name' => 'frightened',
+                    'effect_type' => 'advantage',
+                ],
+            ],
+        ];
+
+        $race = $this->importer->import($raceData);
+
+        $this->assertCount(1, $race->fresh()->conditions);
+        $raceCondition = $race->conditions->first();
+        $this->assertEquals('advantage', $raceCondition->effect_type);
+        $this->assertEquals($condition->id, $raceCondition->condition_id);
+    }
+
+    #[Test]
+    public function it_imports_racial_spells()
+    {
+        // Create a test spell
+        $spell = \App\Models\Spell::factory()->create([
+            'name' => 'Thaumaturgy',
+            'slug' => 'thaumaturgy',
+            'level' => 0,
+        ]);
+
+        $charisma = \App\Models\AbilityScore::where('code', 'CHA')->first();
+
+        $raceData = [
+            'name' => 'Test Race',
+            'size_code' => 'M',
+            'speed' => 30,
+            'ability_bonuses' => [],
+            'traits' => [],
+            'proficiencies' => [],
+            'sources' => [],
+            'spellcasting' => [
+                'ability' => 'Charisma',
+                'spells' => [
+                    [
+                        'spell_name' => 'Thaumaturgy',
+                        'is_cantrip' => true,
+                        'level_requirement' => null,
+                        'usage_limit' => null,
+                    ],
+                ],
+            ],
+        ];
+
+        $race = $this->importer->import($raceData);
+
+        $this->assertCount(1, $race->fresh()->spells);
+        $raceSpell = $race->spells->first();
+        $this->assertEquals($spell->id, $raceSpell->spell_id);
+        $this->assertEquals($charisma->id, $raceSpell->ability_score_id);
+        $this->assertTrue($raceSpell->is_cantrip);
+    }
 }

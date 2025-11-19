@@ -449,4 +449,106 @@ class RaceApiTest extends TestCase
                 ],
             ]);
     }
+
+    #[Test]
+    public function race_response_includes_conditions()
+    {
+        $race = Race::factory()->create(['name' => 'Test Race']);
+        $condition = \App\Models\Condition::firstOrCreate(
+            ['slug' => 'frightened'],
+            ['name' => 'Frightened', 'description' => 'Test condition']
+        );
+
+        \Illuminate\Support\Facades\DB::table('entity_conditions')->insert([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'condition_id' => $condition->id,
+            'effect_type' => 'advantage',
+        ]);
+
+        $response = $this->getJson("/api/v1/races/{$race->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'conditions' => [
+                        '*' => [
+                            'id',
+                            'condition_id',
+                            'condition',
+                            'effect_type',
+                        ],
+                    ],
+                ],
+            ])
+            ->assertJsonPath('data.conditions.0.effect_type', 'advantage');
+    }
+
+    #[Test]
+    public function race_response_includes_spells()
+    {
+        $race = Race::factory()->create(['name' => 'Test Race']);
+        $spell = \App\Models\Spell::factory()->create(['name' => 'Test Spell']);
+        $cha = $this->getAbilityScore('CHA');
+
+        \App\Models\EntitySpell::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'spell_id' => $spell->id,
+            'ability_score_id' => $cha->id,
+            'is_cantrip' => true,
+        ]);
+
+        $response = $this->getJson("/api/v1/races/{$race->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'spells' => [
+                        '*' => [
+                            'id',
+                            'spell_id',
+                            'spell',
+                            'ability_score_id',
+                            'ability_score',
+                            'is_cantrip',
+                            'level_requirement',
+                            'usage_limit',
+                        ],
+                    ],
+                ],
+            ])
+            ->assertJsonPath('data.spells.0.is_cantrip', true);
+    }
+
+    #[Test]
+    public function modifier_includes_choice_fields()
+    {
+        $race = Race::factory()->create();
+
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'modifier_category' => 'ability_score',
+            'value' => '+1',
+            'is_choice' => true,
+            'choice_count' => 2,
+            'choice_constraint' => 'different',
+        ]);
+
+        $response = $this->getJson("/api/v1/races/{$race->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'modifiers' => [
+                        '*' => [
+                            'is_choice',
+                            'choice_count',
+                            'choice_constraint',
+                        ],
+                    ],
+                ],
+            ]);
+    }
 }

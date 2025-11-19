@@ -11,7 +11,16 @@ class RaceController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Race::with(['size', 'sources.source']);
+        $query = Race::with([
+            'size',
+            'sources.source',
+            'proficiencies.skill',
+            'traits.randomTables.entries',
+            'modifiers.abilityScore',
+            'conditions.condition',
+            'spells.spell',
+            'spells.abilityScore',
+        ]);
 
         // Apply search filter
         if ($request->has('search')) {
@@ -49,6 +58,9 @@ class RaceController extends Controller
             'modifiers.skill',
             'modifiers.damageType',
             'languages.language',
+            'conditions.condition',
+            'spells.spell',
+            'spells.abilityScore',
         ]);
 
         return new RaceResource($race);

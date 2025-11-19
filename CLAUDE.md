@@ -28,6 +28,90 @@ This is a Laravel 12.x application that imports D&D 5th Edition content from XML
 - **Testing:** PHPUnit 11+ with Feature and Unit tests
 - **Docker:** Multi-container setup (php, mysql, nginx)
 
+## ⚠️ CRITICAL: Test-Driven Development (TDD) Mandate
+
+**EVERY feature implementation MUST follow TDD:**
+
+### Required Steps (Non-Negotiable):
+
+0. **Always use available Superpower Larael skills**
+1. **WRITE TESTS FIRST** - Before writing any implementation code
+2. **Watch them FAIL** - Confirm tests fail for the right reason
+3. **Write MINIMAL code** to pass tests
+4. **Refactor** while keeping tests green
+5. **Update API Resources** - Expose new data via API
+6. **Update Models** 
+7. **Update Controllers**
+8. **Update API Tests** - Verify API returns new fields
+9. **Run FULL test suite** - Ensure no regressions
+10. **Commit to git with clear message**
+
+### What Must Be Tested:
+
+**For Parser Changes:**
+- ✅ Unit tests for new parser methods
+- ✅ Test with real XML snippets
+- ✅ Test edge cases (missing data, malformed XML)
+
+**For Database Schema Changes:**
+- ✅ Migration tests (schema validation)
+- ✅ Model factory tests (can create instances)
+- ✅ Model relationship tests
+
+**For Importer Changes:**
+- ✅ Feature tests for full import flow
+- ✅ Test data integrity after import
+- ✅ Test reimport behavior (updates vs creates)
+
+**For API Changes:**
+- ✅ API Resource includes new fields
+- ✅ API endpoint tests return new data
+- ✅ Test response structure matches documentation
+
+### Example TDD Workflow:
+
+```bash
+# 1. Write failing test
+docker compose exec php php artisan test --filter=RaceSpellcastingTest
+# SHOULD FAIL - feature doesn't exist yet
+
+# 2. Implement minimal code
+# ... write parser/importer/resource code ...
+
+# 3. Watch test pass
+docker compose exec php php artisan test --filter=RaceSpellcastingTest
+# SHOULD PASS
+
+# 4. Run full suite
+docker compose exec php php artisan test
+# ALL TESTS SHOULD PASS
+
+# 5. Format code
+docker compose exec php ./vendor/bin/pint
+```
+
+### ❌ Anti-Patterns to Avoid:
+
+- Writing implementation code before tests
+- "I'll write tests after" (never happens)
+- Skipping API resource updates
+- Not testing edge cases
+- Assuming existing tests cover new features
+
+### ✅ Success Criteria:
+
+Before marking ANY feature complete:
+- [ ] New feature has dedicated tests
+- [ ] All new tests pass
+- [ ] API resources expose new data
+- [ ] API endpoint tests verify new fields
+- [ ] Full test suite passes (no regressions)
+- [ ] Code formatted with Pint
+
+**If tests aren't written, the feature ISN'T done.**
+
+---
+
 ## Quick Start
 
 ### Database Initialization Protocol

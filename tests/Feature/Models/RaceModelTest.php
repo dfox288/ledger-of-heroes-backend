@@ -45,4 +45,39 @@ class RaceModelTest extends TestCase
         $this->assertNull($baseRace->parent);
         $this->assertCount(0, $baseRace->subraces);
     }
+
+    public function test_race_has_conditions_relationship(): void
+    {
+        $race = Race::factory()->create();
+        $condition = \App\Models\Condition::firstOrCreate(
+            ['slug' => 'poisoned'],
+            ['name' => 'Poisoned', 'description' => 'Test condition']
+        );
+
+        \Illuminate\Support\Facades\DB::table('entity_conditions')->insert([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'condition_id' => $condition->id,
+            'effect_type' => 'advantage',
+        ]);
+
+        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $race->conditions);
+        $this->assertCount(1, $race->fresh()->conditions);
+    }
+
+    public function test_race_has_spells_relationship(): void
+    {
+        $race = Race::factory()->create();
+        $spell = \App\Models\Spell::factory()->create();
+
+        \App\Models\EntitySpell::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'spell_id' => $spell->id,
+            'is_cantrip' => true,
+        ]);
+
+        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $race->spells);
+        $this->assertCount(1, $race->fresh()->spells);
+    }
 }

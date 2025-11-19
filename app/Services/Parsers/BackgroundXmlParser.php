@@ -329,10 +329,11 @@ class BackgroundXmlParser
             // Check for choice pattern
             $isChoice = false;
             $choiceDescription = null;
+            $proficiencySubcategory = null;
             if (preg_match('/\(([^)]*choice[^)]*)\)/i', $part, $choiceMatch)) {
                 $isChoice = true;
                 $choiceDescription = trim($choiceMatch[1]);
-                $part = trim(preg_replace('/\([^)]*choice[^)]*\)/i', '', $part));
+                // DON'T remove the choice text yet - we need it to extract subcategory
             }
 
             // Extract quantity (e.g., "15 gp", "10 torches")
@@ -345,6 +346,16 @@ class BackgroundXmlParser
             // Clean up article prefixes
             $itemName = preg_replace('/^(a|an|the)\s+/i', '', $part);
             $itemName = preg_replace('/\s*set\s+of\s+/i', '', $itemName);
+
+            // For choices, extract the subcategory BEFORE removing choice text
+            if ($isChoice) {
+                // Get the base item name without choice parentheses
+                $baseItemName = trim(preg_replace('/\([^)]*choice[^)]*\)/i', '', $itemName));
+                $proficiencySubcategory = $this->extractToolSubcategory($baseItemName);
+            }
+
+            // Now remove the choice text
+            $itemName = trim(preg_replace('/\([^)]*choice[^)]*\)/i', '', $itemName));
             $itemName = trim($itemName);
 
             // Remove "containing X gp" suffix (e.g., "a belt pouch containing 15 gp")
@@ -355,6 +366,7 @@ class BackgroundXmlParser
                     'quantity' => $quantity,
                     'is_choice' => $isChoice,
                     'choice_description' => $choiceDescription,
+                    'proficiency_subcategory' => $proficiencySubcategory,
                     'item_name' => trim($containingMatch[1]),
                 ];
 
@@ -364,6 +376,7 @@ class BackgroundXmlParser
                     'quantity' => (int) $containingMatch[2],
                     'is_choice' => false,
                     'choice_description' => null,
+                    'proficiency_subcategory' => null,
                     'item_name' => 'gp',
                 ];
 
@@ -375,6 +388,7 @@ class BackgroundXmlParser
                 'quantity' => $quantity,
                 'is_choice' => $isChoice,
                 'choice_description' => $choiceDescription,
+                'proficiency_subcategory' => $proficiencySubcategory,
                 'item_name' => $itemName,
             ];
         }

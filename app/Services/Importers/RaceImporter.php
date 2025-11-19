@@ -73,8 +73,8 @@ class RaceImporter
             $this->importTraitTables($trait, $traitData['description']);
         }
 
-        // Import ability bonuses as modifiers
-        $this->importAbilityBonuses($race, $raceData['ability_bonuses'] ?? []);
+        // Import ability bonuses as modifiers (including choices)
+        $this->importAbilityBonuses($race, $raceData['ability_bonuses'] ?? [], $raceData['ability_choices'] ?? []);
 
         // Import proficiencies if present
         if (isset($raceData['proficiencies'])) {
@@ -84,6 +84,16 @@ class RaceImporter
         // Import languages if present
         if (isset($raceData['languages'])) {
             $this->importLanguages($race, $raceData['languages']);
+        }
+
+        // Import conditions (immunities, advantages, resistances)
+        if (isset($raceData['conditions'])) {
+            $this->importConditions($race, $raceData['conditions']);
+        }
+
+        // Import spells
+        if (isset($raceData['spellcasting'])) {
+            $this->importSpells($race, $raceData['spellcasting']);
         }
 
         // Import random tables from trait rolls (also links traits to tables)
@@ -173,11 +183,12 @@ class RaceImporter
         }
     }
 
-    private function importAbilityBonuses(Race $race, array $bonusesData): void
+    private function importAbilityBonuses(Race $race, array $bonusesData, array $choicesData = []): void
     {
         // Clear existing ability score modifiers for this race
         $race->modifiers()->where('modifier_category', 'ability_score')->delete();
 
+        // Import fixed bonuses (existing logic)
         foreach ($bonusesData as $bonusData) {
             // Map ability code to ability_score_id
             $abilityCode = strtoupper($bonusData['ability']);
@@ -193,6 +204,21 @@ class RaceImporter
                 'modifier_category' => 'ability_score',
                 'ability_score_id' => $abilityScore->id,
                 'value' => $bonusData['value'],
+                'is_choice' => false,
+            ]);
+        }
+
+        // Import choice-based bonuses (NEW)
+        foreach ($choicesData as $choiceData) {
+            Modifier::create([
+                'reference_type' => Race::class,
+                'reference_id' => $race->id,
+                'modifier_category' => 'ability_score',
+                'ability_score_id' => null, // NULL for choices
+                'value' => "+{$choiceData['value']}",
+                'is_choice' => true,
+                'choice_count' => $choiceData['choice_count'],
+                'choice_constraint' => $choiceData['choice_constraint'],
             ]);
         }
     }
@@ -396,5 +422,73 @@ class RaceImporter
 
         // Fallback: just slug the full name
         return Str::slug($raceName);
+    }
+
+    /**
+     * Import conditions (immunities, advantages, resistances).
+     */
+    private function importConditions(Race $race, array $conditionsData): void
+    {
+        // Clear existing
+        \Illuminate\Support\Facades\DB::table('entity_conditions')
+            ->where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->delete();
+
+        foreach ($conditionsData as $conditionData) {
+            // Look up condition by name (try slug match)
+            $conditionSlug = Str::slug($conditionData['condition_name']);
+            $condition = \App\Models\Condition::where('slug', $conditionSlug)->first();
+
+            if ($condition) {
+                \App\Models\EntityCondition::create([
+                    'reference_type' => Race::class,
+                    'reference_id' => $race->id,
+                    'condition_id' => $condition->id,
+                    'effect_type' => $conditionData['effect_type'],
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Import race spells.
+     */
+    private function importSpells(Race $race, array $spellcastingData): void
+    {
+        if (empty($spellcastingData['spells'])) {
+            return;
+        }
+
+        // Clear existing
+        \Illuminate\Support\Facades\DB::table('entity_spells')
+            ->where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->delete();
+
+        // Get ability score
+        $abilityScore = null;
+        if (! empty($spellcastingData['ability'])) {
+            $code = strtoupper(substr($spellcastingData['ability'], 0, 3));
+            $abilityScore = \App\Models\AbilityScore::where('code', $code)->first();
+        }
+
+        foreach ($spellcastingData['spells'] as $spellData) {
+            // Look up spell by name (try slug match)
+            $spellSlug = Str::slug($spellData['spell_name']);
+            $spell = \App\Models\Spell::where('slug', $spellSlug)->first();
+
+            if ($spell) {
+                \App\Models\EntitySpell::create([
+                    'reference_type' => Race::class,
+                    'reference_id' => $race->id,
+                    'spell_id' => $spell->id,
+                    'ability_score_id' => $abilityScore?->id,
+                    'level_requirement' => $spellData['level_requirement'],
+                    'usage_limit' => $spellData['usage_limit'],
+                    'is_cantrip' => $spellData['is_cantrip'],
+                ]);
+            }
+        }
     }
 }

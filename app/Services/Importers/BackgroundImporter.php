@@ -83,12 +83,17 @@ class BackgroundImporter
             // 8. Import equipment (with item matching)
             $itemMatcher = new ItemMatchingService;
             foreach ($data['equipment'] ?? [] as $equipData) {
-                // Attempt to match item by name if item_id not provided
                 $itemId = $equipData['item_id'] ?? null;
                 $itemName = $equipData['item_name'] ?? null;
                 $description = null;
+                $isChoice = $equipData['is_choice'] ?? false;
 
-                if ($itemId === null && $itemName !== null) {
+                // For choices, store full context in description and DON'T match to specific item
+                if ($isChoice && $itemName !== null) {
+                    $description = $itemName;
+                    $itemId = null; // Choices should NOT have item_id
+                } elseif ($itemId === null && $itemName !== null) {
+                    // Only match non-choice items
                     $matchedItem = $itemMatcher->matchItem($itemName);
                     if ($matchedItem) {
                         $itemId = $matchedItem->id;
@@ -103,8 +108,9 @@ class BackgroundImporter
                     'reference_id' => $background->id,
                     'item_id' => $itemId,
                     'quantity' => $equipData['quantity'] ?? 1,
-                    'is_choice' => $equipData['is_choice'] ?? false,
+                    'is_choice' => $isChoice,
                     'choice_description' => $equipData['choice_description'] ?? null,
+                    'proficiency_subcategory' => $equipData['proficiency_subcategory'] ?? null,
                     'description' => $description,
                 ]);
             }

@@ -486,4 +486,172 @@ XML;
         $this->assertEquals('Weight Modifier', $sizeTrait['rolls'][1]['description']);
         $this->assertEquals('2d6', $sizeTrait['rolls'][1]['formula']);
     }
+
+    #[Test]
+    public function it_parses_multiple_sources_from_trait_text()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Warforged</name>
+        <size>M</size>
+        <speed>30</speed>
+        <ability>Con +2</ability>
+        <trait>
+            <name>Description</name>
+            <text>Test race.
+
+Source: Eberron: Rising from the Last War p. 35, Wayfinder's Guide to Eberron p. 67</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        // Without database, parser defaults to PHB when source not found
+        // But it should still parse multiple sources (just with default codes)
+        $this->assertCount(2, $races[0]['sources']);
+        $this->assertEquals('35', $races[0]['sources'][0]['pages']);
+        $this->assertEquals('67', $races[0]['sources'][1]['pages']);
+    }
+
+    #[Test]
+    public function it_parses_ability_choice_from_trait_text()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>TestRace</name>
+        <size>M</size>
+        <speed>30</speed>
+        <ability>Con +2</ability>
+        <trait>
+            <name>Ability Score Increase</name>
+            <text>Your Constitution score increases by 2. In addition, one other ability score of your choice increases by 1.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('ability_choices', $races[0]);
+        $this->assertCount(1, $races[0]['ability_choices']);
+        $this->assertTrue($races[0]['ability_choices'][0]['is_choice']);
+        $this->assertEquals(1, $races[0]['ability_choices'][0]['choice_count']);
+        $this->assertEquals(1, $races[0]['ability_choices'][0]['value']);
+    }
+
+    #[Test]
+    public function it_parses_multiple_ability_choices()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Human Variant</name>
+        <size>M</size>
+        <speed>30</speed>
+        <trait>
+            <name>Ability Score Increase</name>
+            <text>Two different ability scores of your choice increase by 1.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races[0]['ability_choices']);
+        $this->assertEquals(2, $races[0]['ability_choices'][0]['choice_count']);
+        $this->assertEquals('different', $races[0]['ability_choices'][0]['choice_constraint']);
+    }
+
+    #[Test]
+    public function it_parses_condition_immunity()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Warforged</name>
+        <size>M</size>
+        <speed>30</speed>
+        <trait>
+            <name>Constructed Resilience</name>
+            <text>You are immune to disease.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('conditions', $races[0]);
+        $this->assertCount(1, $races[0]['conditions']);
+        $this->assertEquals('disease', $races[0]['conditions'][0]['condition_name']);
+        $this->assertEquals('immunity', $races[0]['conditions'][0]['effect_type']);
+    }
+
+    #[Test]
+    public function it_parses_advantage_on_saving_throws()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Halfling</name>
+        <size>S</size>
+        <speed>25</speed>
+        <trait>
+            <name>Brave</name>
+            <text>You have advantage on saving throws against being frightened.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races[0]['conditions']);
+        $this->assertEquals('frightened', $races[0]['conditions'][0]['condition_name']);
+        $this->assertEquals('advantage', $races[0]['conditions'][0]['effect_type']);
+    }
+
+    #[Test]
+    public function it_parses_racial_spellcasting()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Tiefling</name>
+        <size>M</size>
+        <speed>30</speed>
+        <spellAbility>Charisma</spellAbility>
+        <trait>
+            <name>Infernal Legacy</name>
+            <text>You know the Thaumaturgy cantrip. Once you reach 3rd level, you can cast the hellish rebuke spell as a 2nd-level spell. Once you reach 5th level, you can also cast the darkness spell. Charisma is your spellcasting ability for these spells.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('spellcasting', $races[0]);
+        $this->assertEquals('Charisma', $races[0]['spellcasting']['ability']);
+        $this->assertCount(3, $races[0]['spellcasting']['spells']);
+
+        // Check cantrip
+        $cantrip = collect($races[0]['spellcasting']['spells'])->firstWhere('is_cantrip', true);
+        $this->assertEquals('Thaumaturgy', $cantrip['spell_name']);
+
+        // Check leveled spells
+        $hellishRebuke = collect($races[0]['spellcasting']['spells'])->firstWhere('spell_name', 'hellish rebuke');
+        $this->assertEquals(3, $hellishRebuke['level_requirement']);
+    }
 }

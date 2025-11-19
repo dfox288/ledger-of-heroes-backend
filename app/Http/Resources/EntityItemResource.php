@@ -21,6 +21,7 @@ class EntityItemResource extends JsonResource
             'quantity' => $this->quantity,
             'is_choice' => $this->is_choice,
             'choice_description' => $this->choice_description,
+            'proficiency_subcategory' => $this->proficiency_subcategory,
             'description' => $this->description,
         ];
     }

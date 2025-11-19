@@ -43,19 +43,22 @@ class RaceXmlParser
         // Parse traits
         $traits = $this->parseTraits($element);
 
-        // Extract source from first description trait
-        $sourceCode = 'PHB';
-        $sourcePages = '';
+        // Extract sources from first description trait using shared trait
+        $sources = [];
         foreach ($traits as &$trait) {
-            if (preg_match('/Source:\s*([^p]+)\s*p\.\s*([\d,\s\-]+?)(?:,|\s|$)/', $trait['description'], $matches)) {
-                $sourceName = trim($matches[1]);
-                $sourcePages = rtrim(trim($matches[2]), ", \t\n\r\0\x0B");
-                $sourceCode = $this->mapSourceNameToCode($sourceName);
+            if (str_contains($trait['description'], 'Source:')) {
+                // Use the ParsesSourceCitations trait to extract ALL sources
+                $sources = $this->parseSourceCitations($trait['description']);
 
                 // Remove source line from trait description
                 $trait['description'] = trim(preg_replace('/\n*Source:\s*[^\n]+/', '', $trait['description']));
                 break;
             }
+        }
+
+        // Fallback if no sources found
+        if (empty($sources)) {
+            $sources = [['code' => 'PHB', 'pages' => '']];
         }
 
         // Parse ability bonuses
@@ -67,11 +70,14 @@ class RaceXmlParser
         // Parse languages
         $languages = $this->parseLanguages($element);
 
-        // Convert single source to sources array for consistency
-        $sources = [[
-            'code' => $sourceCode,
-            'pages' => $sourcePages,
-        ]];
+        // Parse conditions and immunities
+        $conditions = $this->parseConditionsAndImmunities($traits);
+
+        // Parse ability score choices from trait text
+        $abilityChoices = $this->parseAbilityChoices($traits);
+
+        // Parse spellcasting
+        $spellcasting = $this->parseSpellcasting($element, $traits);
 
         return [
             'name' => $raceName,
@@ -83,6 +89,9 @@ class RaceXmlParser
             'sources' => $sources,
             'proficiencies' => $proficiencies,
             'languages' => $languages,
+            'conditions' => $conditions,
+            'ability_choices' => $abilityChoices,
+            'spellcasting' => $spellcasting,
         ];
     }
 
@@ -245,5 +254,170 @@ class RaceXmlParser
 
         // No Languages trait found
         return [];
+    }
+
+    /**
+     * Parse conditions, immunities, and advantages from trait text.
+     */
+    private function parseConditionsAndImmunities(array $traits): array
+    {
+        $conditions = [];
+
+        foreach ($traits as $trait) {
+            $text = $trait['description'];
+
+            // Pattern: "immune to disease" or "immune to magical aging"
+            if (preg_match('/immune to (disease|magical aging)/i', $text, $m)) {
+                $conditions[] = [
+                    'condition_name' => $m[1],
+                    'effect_type' => 'immunity',
+                ];
+            }
+
+            // Pattern: "advantage on saving throws against being frightened"
+            if (preg_match('/advantage on saving throws against being (\w+)/i', $text, $m)) {
+                $conditions[] = [
+                    'condition_name' => $m[1],
+                    'effect_type' => 'advantage',
+                ];
+            }
+
+            // Pattern: "advantage on saving throws against poison"
+            if (preg_match('/advantage on saving throws against poison/i', $text)) {
+                $conditions[] = [
+                    'condition_name' => 'poisoned',
+                    'effect_type' => 'advantage',
+                ];
+            }
+        }
+
+        return $conditions;
+    }
+
+    /**
+     * Convert word numbers to integers.
+     */
+    private function wordToNumber(string $word): int
+    {
+        $map = [
+            'one' => 1, 'two' => 2, 'three' => 3, 'four' => 4,
+            'five' => 5, 'six' => 6, 'seven' => 7, 'eight' => 8,
+        ];
+
+        return $map[strtolower($word)] ?? 1;
+    }
+
+    /**
+     * Parse choice-based ability score increases from trait text.
+     */
+    private function parseAbilityChoices(array $traits): array
+    {
+        $choices = [];
+
+        foreach ($traits as $trait) {
+            // Only check "Ability Score Increase" traits
+            if ($trait['name'] !== 'Ability Score Increase' &&
+                $trait['name'] !== 'Ability Score Increases') {
+                continue;
+            }
+
+            $text = $trait['description'];
+
+            // Pattern: "Two different ability scores of your choice increase by 1"
+            if (preg_match('/(\w+)\s+different\s+ability scores?\s+of your choice\s+increases?\s+by\s+(\d+)/i', $text, $m)) {
+                $count = $this->wordToNumber($m[1]);
+                $value = (int) $m[2];
+
+                $choices[] = [
+                    'is_choice' => true,
+                    'choice_count' => $count,
+                    'value' => $value,
+                    'choice_constraint' => 'different',
+                ];
+            }
+            // Pattern: "one other ability score of your choice increases by 1"
+            elseif (preg_match('/one other ability score of your choice increases by (\d+)/i', $text, $m)) {
+                $choices[] = [
+                    'is_choice' => true,
+                    'choice_count' => 1,
+                    'value' => (int) $m[1],
+                    'choice_constraint' => 'any',
+                ];
+            }
+            // Pattern: "one ability score of your choice increases by 1"
+            elseif (preg_match('/one ability score of your choice increases by (\d+)/i', $text, $m)) {
+                $choices[] = [
+                    'is_choice' => true,
+                    'choice_count' => 1,
+                    'value' => (int) $m[1],
+                    'choice_constraint' => 'any',
+                ];
+            }
+            // Pattern: "Increase either your Intelligence or Wisdom score by 1"
+            elseif (preg_match('/Increase either your (\w+) or (\w+) score by (\d+)/i', $text, $m)) {
+                $choices[] = [
+                    'is_choice' => true,
+                    'choice_count' => 1,
+                    'value' => (int) $m[3],
+                    'choice_constraint' => 'specific',
+                ];
+            }
+        }
+
+        return $choices;
+    }
+
+    /**
+     * Parse spellcasting ability and spells from race.
+     */
+    private function parseSpellcasting(SimpleXMLElement $element, array $traits): array
+    {
+        $spellData = [
+            'ability' => null,
+            'spells' => [],
+        ];
+
+        // Extract spellcasting ability from XML element
+        if (isset($element->spellAbility)) {
+            $spellData['ability'] = (string) $element->spellAbility;
+        }
+
+        // Parse trait text for spells
+        foreach ($traits as $trait) {
+            $text = $trait['description'];
+
+            // Skip if no spell-related keywords
+            if (! str_contains(strtolower($text), 'cantrip') &&
+                ! str_contains(strtolower($text), 'cast') &&
+                ! str_contains(strtolower($text), 'spell')) {
+                continue;
+            }
+
+            // Pattern: "You know the SPELL cantrip"
+            if (preg_match_all('/You know the ([\w\s\']+) cantrip/i', $text, $matches)) {
+                foreach ($matches[1] as $spellName) {
+                    $spellData['spells'][] = [
+                        'spell_name' => trim($spellName),
+                        'is_cantrip' => true,
+                        'level_requirement' => null,
+                        'usage_limit' => null,
+                    ];
+                }
+            }
+
+            // Pattern: "Once you reach 3rd level, you can cast the SPELL spell"
+            if (preg_match_all('/Once you reach (\d+)(?:st|nd|rd|th) level.*?cast the ([\w\s\']+) spell/i', $text, $matches, PREG_SET_ORDER)) {
+                foreach ($matches as $match) {
+                    $spellData['spells'][] = [
+                        'spell_name' => trim($match[2]),
+                        'is_cantrip' => false,
+                        'level_requirement' => (int) $match[1],
+                        'usage_limit' => '1/long rest',
+                    ];
+                }
+            }
+        }
+
+        return $spellData;
     }
 }

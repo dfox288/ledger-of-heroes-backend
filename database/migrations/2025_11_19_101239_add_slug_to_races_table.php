@@ -51,13 +51,15 @@ return new class extends Migration
         if (preg_match('/^(.+?)\s*\((.+)\)$/', $name, $matches)) {
             $baseRaceName = trim($matches[1]);
             $subraceName = trim($matches[2]);
-            return Str::slug($baseRaceName) . '-' . Str::slug($subraceName);
+
+            return Str::slug($baseRaceName).'-'.Str::slug($subraceName);
         }
 
         // Try comma format: "Dwarf, Hill"
         if (str_contains($name, ',')) {
             [$baseRaceName, $subraceName] = array_map('trim', explode(',', $name, 2));
-            return Str::slug($baseRaceName) . '-' . Str::slug($subraceName);
+
+            return Str::slug($baseRaceName).'-'.Str::slug($subraceName);
         }
 
         // Fallback: just slug the full name

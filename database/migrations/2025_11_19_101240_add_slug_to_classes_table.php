@@ -56,7 +56,7 @@ return new class extends Migration
             ->first();
 
         if ($parentClass) {
-            return Str::slug($parentClass->name) . '-' . Str::slug($class->name);
+            return Str::slug($parentClass->name).'-'.Str::slug($class->name);
         }
 
         // Fallback: just slug the subclass name

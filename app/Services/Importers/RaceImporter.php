@@ -365,8 +365,8 @@ class RaceImporter
     /**
      * Generate a slug for a race, handling parent/subrace relationships.
      *
-     * @param string $raceName Full race name (e.g., "Dwarf (Hill)")
-     * @param string|null $baseRaceName Base race name if this is a subrace
+     * @param  string  $raceName  Full race name (e.g., "Dwarf (Hill)")
+     * @param  string|null  $baseRaceName  Base race name if this is a subrace
      * @return string Generated slug (e.g., "dwarf-hill")
      */
     private function generateRaceSlug(string $raceName, ?string $baseRaceName): string
@@ -383,13 +383,15 @@ class RaceImporter
         if (preg_match('/^(.+?)\s*\((.+)\)$/', $raceName, $matches)) {
             $baseRaceName = trim($matches[1]);
             $subraceName = trim($matches[2]);
-            return Str::slug($baseRaceName) . '-' . Str::slug($subraceName);
+
+            return Str::slug($baseRaceName).'-'.Str::slug($subraceName);
         }
 
         // Try comma format: "Dwarf, Hill"
         if (str_contains($raceName, ',')) {
             [$baseRaceName, $subraceName] = array_map('trim', explode(',', $raceName, 2));
-            return Str::slug($baseRaceName) . '-' . Str::slug($subraceName);
+
+            return Str::slug($baseRaceName).'-'.Str::slug($subraceName);
         }
 
         // Fallback: just slug the full name

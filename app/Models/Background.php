@@ -33,6 +33,11 @@ class Background extends Model
         return $this->morphMany(EntitySource::class, 'reference', 'reference_type', 'reference_id');
     }
 
+    public function equipment(): MorphMany
+    {
+        return $this->morphMany(EntityItem::class, 'reference');
+    }
+
     // Scopes for API filtering
     public function scopeSearch($query, $searchTerm)
     {

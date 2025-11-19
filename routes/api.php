@@ -17,11 +17,6 @@ use App\Http\Controllers\Api\SpellController;
 use App\Http\Controllers\Api\SpellSchoolController;
 use Illuminate\Support\Facades\Route;
 
-// Temporary test route for CORS testing
-Route::get('/test', function () {
-    return response()->json(['message' => 'CORS test']);
-});
-
 Route::prefix('v1')->group(function () {
     // Lookup tables
     Route::apiResource('sources', SourceController::class)->only(['index', 'show']);

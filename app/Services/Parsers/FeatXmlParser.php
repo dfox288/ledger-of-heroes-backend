@@ -394,10 +394,30 @@ class FeatXmlParser
 
         // Extract proficiency name
         if (preg_match('/^Proficiency (with|in)\s+(.+)$/i', $text, $matches)) {
+            $preposition = $matches[1]; // "with" or "in"
             $proficiencyName = trim($matches[2]);
 
-            // Try to find matching proficiency type
-            // Use fuzzy matching for armor types
+            // Strategy: "in" suggests skill, "with" suggests armor/weapon/tool
+            // But try skill first for "in", then fall back to proficiency type
+
+            if (strtolower($preposition) === 'in') {
+                // Try to find as Skill first
+                $skill = $this->findSkill($proficiencyName);
+
+                if ($skill) {
+                    $prerequisites[] = [
+                        'prerequisite_type' => \App\Models\Skill::class,
+                        'prerequisite_id' => $skill->id,
+                        'minimum_value' => null,
+                        'description' => null,
+                        'group_id' => $groupId,
+                    ];
+
+                    return $prerequisites;
+                }
+            }
+
+            // Try to find matching proficiency type (armor, weapon, tool, etc.)
             $profType = $this->findProficiencyType($proficiencyName);
 
             if ($profType) {
@@ -421,6 +441,23 @@ class FeatXmlParser
         }
 
         return $prerequisites;
+    }
+
+    /**
+     * Find skill by name.
+     */
+    private function findSkill(string $name): ?\App\Models\Skill
+    {
+        $normalized = strtolower(trim($name));
+
+        // Try exact match first
+        $skill = \App\Models\Skill::whereRaw('LOWER(name) = ?', [$normalized])->first();
+        if ($skill) {
+            return $skill;
+        }
+
+        // Try LIKE match
+        return \App\Models\Skill::where('name', 'LIKE', "%{$name}%")->first();
     }
 
     /**
@@ -449,7 +486,7 @@ class FeatXmlParser
             return \App\Models\ProficiencyType::where('name', 'LIKE', '%Heavy%Armor%')->first();
         }
 
-        // Try LIKE match for skills
+        // Try LIKE match
         return \App\Models\ProficiencyType::where('name', 'LIKE', "%{$name}%")->first();
     }
 

@@ -5,6 +5,7 @@ namespace Tests\Unit\Parsers;
 use App\Models\AbilityScore;
 use App\Models\ProficiencyType;
 use App\Models\Race;
+use App\Models\Skill;
 use App\Services\Parsers\FeatXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -202,17 +203,17 @@ class FeatXmlParserPrerequisitesTest extends TestCase
         }
 
         // Check that there's a proficiency/skill in group 2 (AND logic with races)
-        // It might be a ProficiencyType or free-form (null type with "Acrobatics" description)
+        // Should be a Skill (Acrobatics), not ProficiencyType
         $group2Prereqs = array_filter($result, fn ($p) => $p['group_id'] === 2);
         $this->assertCount(1, $group2Prereqs);
 
-        $profPrereq = reset($group2Prereqs);
-        // Either it's a ProficiencyType, or it's free-form with Acrobatics in description
-        if ($profPrereq['prerequisite_type'] === null) {
-            $this->assertStringContainsString('Acrobatics', $profPrereq['description']);
-        } else {
-            $this->assertEquals(ProficiencyType::class, $profPrereq['prerequisite_type']);
-        }
+        $skillPrereq = reset($group2Prereqs);
+        // Should be Skill model (Acrobatics is a skill)
+        $this->assertEquals(Skill::class, $skillPrereq['prerequisite_type']);
+
+        $acrobatics = Skill::where('name', 'Acrobatics')->first();
+        $this->assertNotNull($acrobatics);
+        $this->assertEquals($acrobatics->id, $skillPrereq['prerequisite_id']);
     }
 
     #[Test]

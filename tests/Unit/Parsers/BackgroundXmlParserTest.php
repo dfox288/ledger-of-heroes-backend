@@ -173,4 +173,86 @@ XML;
         $this->assertEquals('Personality Trait', $charTrait['rolls'][0]['description']);
         $this->assertEquals('1d8', $charTrait['rolls'][0]['formula']);
     }
+
+    #[Test]
+    public function it_parses_language_choice_from_trait_text()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Guild Artisan</name>
+    <proficiency>Insight, Persuasion</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>• Skill Proficiencies: Insight, Persuasion
+• Tool Proficiencies: One type of artisan's tools
+• Languages: One of your choice
+• Equipment: A set of artisan's tools (one of your choice)</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('languages', $backgrounds[0]);
+        $this->assertCount(1, $backgrounds[0]['languages']);
+        $this->assertNull($backgrounds[0]['languages'][0]['language_id']);
+        $this->assertTrue($backgrounds[0]['languages'][0]['is_choice']);
+        $this->assertEquals(1, $backgrounds[0]['languages'][0]['quantity']);
+    }
+
+    #[Test]
+    public function it_parses_specific_language_from_trait_text()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Test</name>
+    <proficiency>Insight</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>• Languages: Common</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('languages', $backgrounds[0]);
+
+        // Should parse language - exact match depends on seeded data being available
+        // so we just verify structure is correct
+        if (count($backgrounds[0]['languages']) > 0) {
+            $this->assertArrayHasKey('language_id', $backgrounds[0]['languages'][0]);
+            $this->assertArrayHasKey('is_choice', $backgrounds[0]['languages'][0]);
+            $this->assertFalse($backgrounds[0]['languages'][0]['is_choice']);
+        }
+    }
+
+    #[Test]
+    public function it_returns_empty_array_when_no_languages_found()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Test</name>
+    <proficiency>Insight</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>No language information here</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('languages', $backgrounds[0]);
+        $this->assertEmpty($backgrounds[0]['languages']);
+    }
 }

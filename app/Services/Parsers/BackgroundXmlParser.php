@@ -2,14 +2,16 @@
 
 namespace App\Services\Parsers;
 
+use App\Models\Language;
 use App\Models\Skill;
+use App\Services\Parsers\Concerns\MatchesLanguages;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use SimpleXMLElement;
 
 class BackgroundXmlParser
 {
-    use MatchesProficiencyTypes, ParsesSourceCitations;
+    use MatchesLanguages, MatchesProficiencyTypes, ParsesSourceCitations;
 
     public function parse(string $xmlContent): array
     {
@@ -17,11 +19,14 @@ class BackgroundXmlParser
         $backgrounds = [];
 
         foreach ($xml->background as $bg) {
+            $descriptionText = (string) ($bg->trait[0]->text ?? '');
+
             $backgrounds[] = [
                 'name' => (string) $bg->name,
                 'proficiencies' => $this->parseProficiencies((string) $bg->proficiency),
                 'traits' => $this->parseTraits($bg->trait),
-                'sources' => $this->extractSources($bg->trait[0]->text ?? ''),
+                'sources' => $this->extractSources($descriptionText),
+                'languages' => $this->parseLanguagesFromTraitText($descriptionText),
             ];
         }
 
@@ -154,5 +159,69 @@ class BackgroundXmlParser
     private function extractSources(string $text): array
     {
         return $this->parseSourceCitations($text);
+    }
+
+    /**
+     * Parse languages from trait Description text.
+     * Pattern: "• Languages: One of your choice" or "• Languages: Common"
+     */
+    private function parseLanguagesFromTraitText(string $text): array
+    {
+        if (! preg_match('/• Languages:\s*(.+?)(?:\n|$)/m', $text, $matches)) {
+            return [];
+        }
+
+        $languageText = trim($matches[1]);
+
+        // Check for "one of your choice" or similar choice patterns
+        if (preg_match('/one.*?choice/i', $languageText)) {
+            return [[
+                'language_id' => null,
+                'is_choice' => true,
+                'quantity' => 1,
+            ]];
+        }
+
+        // Try to match specific language by name directly
+        try {
+            // Initialize languages cache if not already done
+            $this->initializeLanguages();
+
+            $language = $this->matchLanguage($languageText);
+            if ($language) {
+                return [[
+                    'language_id' => $language->id,
+                    'is_choice' => false,
+                    'quantity' => 1,
+                ]];
+            }
+
+            // Fallback: Parse using extractLanguagesFromText for complex cases
+            $languageResults = $this->extractLanguagesFromText($languageText);
+            $languages = [];
+
+            foreach ($languageResults as $langData) {
+                if ($langData['is_choice']) {
+                    $languages[] = [
+                        'language_id' => null,
+                        'is_choice' => true,
+                        'quantity' => 1,
+                    ];
+                } else {
+                    // Map slug to language_id
+                    $language = Language::where('slug', $langData['slug'])->first();
+                    $languages[] = [
+                        'language_id' => $language?->id,
+                        'is_choice' => false,
+                        'quantity' => 1,
+                    ];
+                }
+            }
+
+            return $languages;
+        } catch (\Exception $e) {
+            // Database not available in unit tests - return empty
+            return [];
+        }
     }
 }

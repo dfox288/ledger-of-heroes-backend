@@ -96,13 +96,13 @@ class FeatModelTest extends TestCase
         $feat = Feat::factory()->create([
             'name' => 'Test Feat',
             'slug' => 'test-feat',
-            'prerequisites' => 'Strength 13 or higher',
+            'prerequisites_text' => 'Strength 13 or higher',
             'description' => 'Test description',
         ]);
 
         $this->assertEquals('Test Feat', $feat->name);
         $this->assertEquals('test-feat', $feat->slug);
-        $this->assertEquals('Strength 13 or higher', $feat->prerequisites);
+        $this->assertEquals('Strength 13 or higher', $feat->prerequisites_text);
         $this->assertEquals('Test description', $feat->description);
     }
 }

@@ -27,7 +27,7 @@ class FeatImporter
                 ['slug' => Str::slug($data['name'])],
                 [
                     'name' => $data['name'],
-                    'prerequisites' => $data['prerequisites'] ?? null,
+                    'prerequisites_text' => $data['prerequisites'] ?? null,
                     'description' => $data['description'],
                 ]
             );

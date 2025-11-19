@@ -40,7 +40,7 @@ class FeatImporterTest extends TestCase
 
         $this->assertInstanceOf(Feat::class, $feat);
         $this->assertEquals('Alert', $feat->name);
-        $this->assertNull($feat->prerequisites);
+        $this->assertNull($feat->prerequisites_text);
         $this->assertStringContainsString('Always on the lookout', $feat->description);
 
         // Check sources
@@ -68,7 +68,7 @@ class FeatImporterTest extends TestCase
         $feat = $this->importer->import($featData);
 
         $this->assertEquals('Defensive Duelist', $feat->name);
-        $this->assertEquals('Dexterity 13 or higher', $feat->prerequisites);
+        $this->assertEquals('Dexterity 13 or higher', $feat->prerequisites_text);
     }
 
     #[Test]

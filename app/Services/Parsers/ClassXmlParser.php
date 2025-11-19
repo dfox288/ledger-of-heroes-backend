@@ -49,6 +49,14 @@ class ClassXmlParser
             $data['description'] = implode("\n\n", $description);
         }
 
+        // Parse proficiencies
+        $data['proficiencies'] = $this->parseProficiencies($element);
+
+        // Parse skill choices
+        if (isset($element->numSkills)) {
+            $data['skill_choices'] = (int) $element->numSkills;
+        }
+
         return $data;
     }
 
@@ -59,8 +67,87 @@ class ClassXmlParser
      */
     private function parseProficiencies(SimpleXMLElement $element): array
     {
-        // TODO: Implement parseProficiencies logic
-        return [];
+        $proficiencies = [];
+
+        // Parse armor proficiencies
+        if (isset($element->armor)) {
+            $armors = array_map('trim', explode(',', (string) $element->armor));
+            foreach ($armors as $armor) {
+                if (strtolower($armor) === 'none') {
+                    continue;
+                }
+                $proficiencyType = $this->matchProficiencyType($armor);
+                $proficiencies[] = [
+                    'type' => 'armor',
+                    'name' => $armor,
+                    'proficiency_type_id' => $proficiencyType?->id,
+                ];
+            }
+        }
+
+        // Parse weapon proficiencies
+        if (isset($element->weapons)) {
+            $weapons = array_map('trim', explode(',', (string) $element->weapons));
+            foreach ($weapons as $weapon) {
+                if (strtolower($weapon) === 'none') {
+                    continue;
+                }
+                $proficiencyType = $this->matchProficiencyType($weapon);
+                $proficiencies[] = [
+                    'type' => 'weapon',
+                    'name' => $weapon,
+                    'proficiency_type_id' => $proficiencyType?->id,
+                ];
+            }
+        }
+
+        // Parse tool proficiencies
+        if (isset($element->tools)) {
+            $tools = array_map('trim', explode(',', (string) $element->tools));
+            foreach ($tools as $tool) {
+                if (strtolower($tool) === 'none') {
+                    continue;
+                }
+                $proficiencyType = $this->matchProficiencyType($tool);
+                $proficiencies[] = [
+                    'type' => 'tool',
+                    'name' => $tool,
+                    'proficiency_type_id' => $proficiencyType?->id,
+                ];
+            }
+        }
+
+        // Parse saving throws and skills from <proficiency> element
+        // Format: "Strength, Constitution, Acrobatics, Animal Handling, ..."
+        // First two are saving throws, rest are available skills
+        if (isset($element->proficiency)) {
+            $items = array_map('trim', explode(',', (string) $element->proficiency));
+
+            // Classes typically list saving throws first (2), then skills
+            // We'll need to detect which are abilities vs skills
+            $abilityScores = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
+
+            foreach ($items as $item) {
+                if (in_array($item, $abilityScores)) {
+                    // This is a saving throw
+                    $proficiencies[] = [
+                        'type' => 'saving_throw',
+                        'name' => $item,
+                        'proficiency_type_id' => null, // Saving throws don't need FK
+                    ];
+                } else {
+                    // This is a skill available for selection
+                    $proficiencyType = $this->matchProficiencyType($item);
+                    $proficiencies[] = [
+                        'type' => 'skill',
+                        'name' => $item,
+                        'proficiency_type_id' => $proficiencyType?->id,
+                    ];
+                }
+            }
+        }
+
+        return $proficiencies;
     }
 
     /**

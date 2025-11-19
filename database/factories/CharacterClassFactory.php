@@ -36,6 +36,32 @@ class CharacterClassFactory extends Factory
     }
 
     /**
+     * Indicate that this is a base class (no parent).
+     */
+    public function baseClass(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'parent_class_id' => null,
+        ]);
+    }
+
+    /**
+     * Indicate that this is a subclass with hierarchical slug.
+     */
+    public function subclass(?CharacterClass $parentClass = null): static
+    {
+        return $this->state(function (array $attributes) use ($parentClass) {
+            $parent = $parentClass ?? CharacterClass::factory()->create();
+            $subclassName = $attributes['name'] ?? fake()->unique()->words(2, true);
+
+            return [
+                'parent_class_id' => $parent->id,
+                'slug' => Str::slug($parent->name.'-'.$subclassName),
+            ];
+        });
+    }
+
+    /**
      * Indicate that the class is a spellcaster.
      */
     public function spellcaster(?string $abilityCode = null): static
@@ -46,20 +72,6 @@ class CharacterClassFactory extends Factory
 
             return [
                 'spellcasting_ability_id' => $ability->id,
-            ];
-        });
-    }
-
-    /**
-     * Indicate that this is a subclass.
-     */
-    public function subclass(?CharacterClass $parentClass = null): static
-    {
-        return $this->state(function (array $attributes) use ($parentClass) {
-            $parent = $parentClass ?? CharacterClass::factory()->create();
-
-            return [
-                'parent_class_id' => $parent->id,
             ];
         });
     }

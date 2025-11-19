@@ -49,6 +49,31 @@ class CharacterClass extends Model
         return $this->hasMany(CharacterClass::class, 'parent_class_id');
     }
 
+    public function features(): HasMany
+    {
+        return $this->hasMany(ClassFeature::class, 'class_id');
+    }
+
+    public function levelProgression(): HasMany
+    {
+        return $this->hasMany(ClassLevelProgression::class, 'class_id');
+    }
+
+    public function counters(): HasMany
+    {
+        return $this->hasMany(ClassCounter::class, 'class_id');
+    }
+
+    public function proficiencies(): MorphMany
+    {
+        return $this->morphMany(Proficiency::class, 'reference');
+    }
+
+    public function traits(): MorphMany
+    {
+        return $this->morphMany(CharacterTrait::class, 'reference');
+    }
+
     public function spells(): BelongsToMany
     {
         return $this->belongsToMany(Spell::class, 'class_spells', 'class_id', 'spell_id');
@@ -57,5 +82,11 @@ class CharacterClass extends Model
     public function sources(): MorphMany
     {
         return $this->morphMany(EntitySource::class, 'reference', 'reference_type', 'reference_id');
+    }
+
+    // Computed property
+    public function getIsBaseClassAttribute(): bool
+    {
+        return is_null($this->parent_class_id);
     }
 }

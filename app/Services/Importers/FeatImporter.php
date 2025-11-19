@@ -4,6 +4,7 @@ namespace App\Services\Importers;
 
 use App\Models\AbilityScore;
 use App\Models\EntityCondition;
+use App\Models\EntityPrerequisite;
 use App\Models\Feat;
 use App\Models\Modifier;
 use App\Models\Proficiency;
@@ -35,6 +36,7 @@ class FeatImporter
             // 2. Clear existing polymorphic relationships
             $feat->modifiers()->delete();
             $feat->proficiencies()->delete();
+            $feat->prerequisites()->delete();
             $feat->sources()->delete();
             $feat->conditions()->delete();
 
@@ -44,10 +46,13 @@ class FeatImporter
             // 4. Import proficiencies
             $this->importProficiencies($feat, $data['proficiencies'] ?? []);
 
-            // 5. Import conditions (advantages/disadvantages)
+            // 5. Import prerequisites (structured from parsed text)
+            $this->importPrerequisites($feat, $data['prerequisites'] ?? null);
+
+            // 6. Import conditions (advantages/disadvantages)
             $this->importConditions($feat, $data['conditions'] ?? []);
 
-            // 6. Import sources using trait
+            // 7. Import sources using trait
             $this->importEntitySources($feat, $data['sources'] ?? []);
 
             return $feat;
@@ -135,6 +140,33 @@ class FeatImporter
                 'condition_id' => null, // Conditions are stored as text descriptions, not FK references
                 'effect_type' => $conditionData['effect_type'],
                 'description' => $conditionData['description'],
+            ]);
+        }
+    }
+
+    /**
+     * Import prerequisites for a feat.
+     */
+    private function importPrerequisites(Feat $feat, ?string $prerequisiteText): void
+    {
+        if (empty($prerequisiteText)) {
+            return;
+        }
+
+        // Use parser to convert text to structured prerequisites
+        $parser = new FeatXmlParser;
+        $prerequisites = $parser->parsePrerequisites($prerequisiteText);
+
+        // Create EntityPrerequisite records
+        foreach ($prerequisites as $prereqData) {
+            EntityPrerequisite::create([
+                'reference_type' => Feat::class,
+                'reference_id' => $feat->id,
+                'prerequisite_type' => $prereqData['prerequisite_type'],
+                'prerequisite_id' => $prereqData['prerequisite_id'],
+                'minimum_value' => $prereqData['minimum_value'],
+                'description' => $prereqData['description'],
+                'group_id' => $prereqData['group_id'],
             ]);
         }
     }

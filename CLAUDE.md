@@ -287,6 +287,7 @@ All entities can cite multiple sourcebooks via `entity_sources` polymorphic tabl
 - **Modifiers** - Ability scores, skills, damage modifiers
 - **Proficiencies** - Skills, weapons, armor, tools (with auto-matching to types)
 - **Random Tables** - d6/d8/d100 tables for character features
+- **Prerequisites** - Structured requirements for feats and items (ability scores, races, skills, proficiencies)
 
 ### Language System (NEW 2025-11-19)
 - 30 D&D 5e languages seeded with metadata (script, type, rarity)
@@ -294,6 +295,37 @@ All entities can cite multiple sourcebooks via `entity_sources` polymorphic tabl
 - Supports both fixed languages AND choice slots (e.g., "one extra language")
 - `MatchesLanguages` trait auto-matches during import
 - 119 language associations across races (59% coverage)
+
+### Entity Prerequisites System (NEW 2025-11-19)
+**Structured, queryable prerequisite data for feats and items.**
+
+- **Double polymorphic design:** Links ANY entity to ANY prerequisite type
+- **Supported prerequisite types:**
+  - AbilityScore (e.g., "Dexterity 13 or higher")
+  - Race (e.g., "Elf", "Dwarf")
+  - Skill (e.g., "Proficiency in Acrobatics")
+  - ProficiencyType (e.g., "Proficiency with medium armor")
+  - Free-form (e.g., "The ability to cast at least one spell")
+
+- **Complex AND/OR logic** via `group_id` field
+  - Same group = OR logic (e.g., "Dwarf OR Gnome OR Halfling")
+  - Different groups = AND logic (e.g., "(Dwarf OR Gnome) AND Proficiency in Acrobatics")
+
+- **Parser patterns supported:**
+  - Single ability score: "Strength 13 or higher"
+  - Dual ability scores: "Intelligence or Wisdom 13 or higher"
+  - Single race: "Elf"
+  - Multiple races: "Dwarf, Gnome, Halfling"
+  - Proficiency requirements: "Proficiency with medium armor"
+  - Skill requirements: "Proficiency in Acrobatics"
+  - Free-form features: "The ability to cast at least one spell"
+
+- **Coverage:**
+  - 28 feats with prerequisites (20% of 138 total)
+  - 34 prerequisite records (16 AbilityScore, 5 ProficiencyType, 13 free-form)
+  - Items with strength requirements auto-migrated
+
+- **API support:** Fully exposed via EntityPrerequisiteResource with nested entity details
 
 ### Normalized Proficiency Types
 - 82 proficiency types across 7 categories (weapons, armor, tools, etc.)
@@ -506,19 +538,31 @@ EntityLanguage::factory()->forEntity(Race::class, $race->id)->create();
 - Supports standard and unusual dice types
 - Handles roll ranges and non-numeric entries
 
+### Entity Prerequisites System ✅ (NEW 2025-11-19)
+- **Double polymorphic structure** for maximum flexibility
+- **Parser with 6+ patterns** (ability scores, races, skills, proficiencies, free-form)
+- **Complex AND/OR logic** via group_id system
+- **Importer integration** for Feats and Items
+- **API layer** with EntityPrerequisiteResource + nested entity details
+- **Data migration** for items.strength_requirement → entity_prerequisites
+- **Coverage:** 28 feats with 34 prerequisite records
+- **27 new tests** (parser, importer, API, migration) - 100% passing
+- **393 total tests** (2,268 assertions)
+
 ---
 
 ## Branch Status
 
-**Current Branch:** `fix/parser-data-quality`
-**Status:** ✅ Ready to merge
-**Test Status:** 238 tests passing (100% pass rate)
+**Current Branch:** `feature/entity-prerequisites`
+**Status:** ✅ Complete and ready for merge
+**Test Status:** 393 tests passing (100% pass rate)
 **Key Changes:**
-- Slug system with dual ID/slug routing
-- Language system with 30 languages
-- 7 reusable parser + importer traits
-- 100% clean data quality (proficiencies, modifiers, sources)
+- Entity prerequisites system (database, parser, importer, API)
+- Skill model support for skill-based prerequisites
+- ItemController with full CRUD operations
+- Route bindings for Items and Feats (dual ID/slug)
+- Data migration for items.strength_requirement
 
 ---
 
-**Project Status:** ✅ Healthy and ready for Class Importer! 🚀
+**Project Status:** ✅ Prerequisites feature complete! Ready for review and merge. 🚀

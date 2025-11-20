@@ -63,7 +63,8 @@
       "Bash(time curl:*)",
       "Bash(git branch:*)",
       "WebFetch(domain:scramble.dedoc.co)",
-      "Bash(/tmp/race_header.php)"
+      "Bash(/tmp/race_header.php)",
+      "Skill(superpowers-laravel:controller-cleanup)"
     ],
     "deny": [],
     "ask": []

@@ -40,6 +40,10 @@ class ConfigureMeilisearchIndexes extends Command
             $configurator->configureSpellsIndex();
             $this->info('✓ Spells index configured successfully');
 
+            $this->info('Configuring items index...');
+            $configurator->configureItemsIndex();
+            $this->info('✓ Items index configured successfully');
+
             $this->newLine();
             $this->info('All indexes configured successfully!');
 

@@ -40,4 +40,35 @@ class MeilisearchIndexConfigurator
             'level',
         ]);
     }
+
+    public function configureItemsIndex(): void
+    {
+        $index = $this->client->index('items');
+
+        // Searchable attributes
+        $index->updateSearchableAttributes([
+            'name',
+            'description',
+            'type_name',
+            'sources',
+            'damage_type',
+        ]);
+
+        // Filterable attributes
+        $index->updateFilterableAttributes([
+            'type_code',
+            'rarity',
+            'is_magic',
+            'requires_attunement',
+            'source_codes',
+        ]);
+
+        // Sortable attributes
+        $index->updateSortableAttributes([
+            'name',
+            'rarity',
+            'cost_cp',
+            'weight',
+        ]);
+    }
 }

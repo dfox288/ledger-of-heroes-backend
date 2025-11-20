@@ -39,7 +39,7 @@ class SearchResource extends JsonResource
      */
     public function with(Request $request): array
     {
-        if (!isset($this->resource['debug'])) {
+        if (! isset($this->resource['debug'])) {
             return [];
         }
 

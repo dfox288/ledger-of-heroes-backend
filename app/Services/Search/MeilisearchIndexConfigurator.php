@@ -71,4 +71,31 @@ class MeilisearchIndexConfigurator
             'weight',
         ]);
     }
+
+    public function configureRacesIndex(): void
+    {
+        $index = $this->client->index('races');
+
+        // Searchable attributes
+        $index->updateSearchableAttributes([
+            'name',
+            'size_name',
+            'sources',
+            'parent_race_name',
+        ]);
+
+        // Filterable attributes
+        $index->updateFilterableAttributes([
+            'size_code',
+            'speed',
+            'source_codes',
+            'is_subrace',
+        ]);
+
+        // Sortable attributes
+        $index->updateSortableAttributes([
+            'name',
+            'speed',
+        ]);
+    }
 }

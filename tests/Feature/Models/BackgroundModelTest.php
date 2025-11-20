@@ -58,7 +58,8 @@ class BackgroundModelTest extends TestCase
             'pages' => '127',
         ]);
 
-        $this->assertCount(1, $background->fresh()->sources);
-        $this->assertEquals('127', $background->sources->first()->pages);
+        $fresh = $background->fresh();
+        $this->assertCount(1, $fresh->sources);
+        $this->assertEquals('127', $fresh->sources->first()->pages);
     }
 }

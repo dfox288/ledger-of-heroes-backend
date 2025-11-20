@@ -538,8 +538,9 @@ XML;
 
         $race = $this->importer->import($raceData);
 
-        $this->assertCount(2, $race->fresh()->sources);
-        $sourceCodes = $race->sources->pluck('source.code')->toArray();
+        $fresh = $race->fresh();
+        $this->assertCount(2, $fresh->sources);
+        $sourceCodes = $fresh->sources->pluck('source.code')->toArray();
         $this->assertContains('PHB', $sourceCodes);
         $this->assertContains('ERLW', $sourceCodes);
     }

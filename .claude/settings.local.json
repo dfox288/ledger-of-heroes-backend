@@ -57,7 +57,10 @@
       "Bash(tests/Feature/Api/FeatSearchTest.php)",
       "Bash(app/Http/Controllers/Api/ItemController.php )",
       "Bash(app/Http/Requests/ItemIndexRequest.php )",
-      "Bash(tests/Feature/Api/ItemSearchTest.php)"
+      "Bash(tests/Feature/Api/ItemSearchTest.php)",
+      "Bash(do echo -n \"$index: \" curl -s \"http://localhost:7700/indexes/$index/stats\" -H \"Authorization: Bearer masterKey\")",
+      "Bash(jq:*)",
+      "Bash(time curl:*)"
     ],
     "deny": [],
     "ask": []

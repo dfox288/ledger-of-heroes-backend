@@ -147,4 +147,27 @@ class MeilisearchIndexConfigurator
             'name',
         ]);
     }
+
+    public function configureFeatsIndex(): void
+    {
+        $index = $this->client->index('feats');
+
+        // Searchable attributes
+        $index->updateSearchableAttributes([
+            'name',
+            'description',
+            'prerequisites_text',
+            'sources',
+        ]);
+
+        // Filterable attributes
+        $index->updateFilterableAttributes([
+            'source_codes',
+        ]);
+
+        // Sortable attributes
+        $index->updateSortableAttributes([
+            'name',
+        ]);
+    }
 }

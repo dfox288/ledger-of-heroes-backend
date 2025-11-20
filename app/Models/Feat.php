@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Laravel\Scout\Searchable;
 
 class Feat extends Model
 {
-    use HasFactory;
+    use HasFactory, Searchable;
 
     /**
      * Indicates if the model should be timestamped.
@@ -175,5 +176,29 @@ class Feat extends Model
                     ->orWhere('name', 'LIKE', "%{$categoryOrName}%");
             });
         });
+    }
+
+    // Scout Searchable Methods
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'description' => $this->description,
+            'prerequisites_text' => $this->prerequisites_text,
+            'sources' => $this->sources->pluck('source.name')->unique()->values()->all(),
+            'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
+        ];
+    }
+
+    public function searchableWith(): array
+    {
+        return ['sources.source'];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'feats';
     }
 }

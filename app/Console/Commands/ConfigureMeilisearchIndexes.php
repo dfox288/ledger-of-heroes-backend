@@ -56,6 +56,10 @@ class ConfigureMeilisearchIndexes extends Command
             $configurator->configureBackgroundsIndex();
             $this->info('✓ Backgrounds index configured successfully');
 
+            $this->info('Configuring feats index...');
+            $configurator->configureFeatsIndex();
+            $this->info('✓ Feats index configured successfully');
+
             $this->newLine();
             $this->info('All indexes configured successfully!');
 

@@ -21,7 +21,7 @@ class BackgroundSearchServiceTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_returns_paginated_results_without_search_query(): void
+    public function it_builds_database_query_with_filters(): void
     {
         Background::factory()->count(20)->create();
 
@@ -33,7 +33,8 @@ class BackgroundSearchServiceTest extends TestCase
             sortDirection: 'asc'
         );
 
-        $result = $this->service->search($dto);
+        $query = $this->service->buildDatabaseQuery($dto);
+        $result = $query->paginate(10);
 
         $this->assertCount(10, $result->items());
         $this->assertEquals(20, $result->total());
@@ -53,7 +54,8 @@ class BackgroundSearchServiceTest extends TestCase
             sortDirection: 'asc'
         );
 
-        $result = $this->service->search($dto);
+        $query = $this->service->buildDatabaseQuery($dto);
+        $result = $query->paginate(15);
 
         $this->assertCount(1, $result->items());
         $this->assertEquals($acolyte->id, $result->items()[0]->id);
@@ -73,13 +75,14 @@ class BackgroundSearchServiceTest extends TestCase
             sortDirection: 'desc'
         );
 
-        $result = $this->service->search($dto);
+        $query = $this->service->buildDatabaseQuery($dto);
+        $result = $query->paginate(15);
 
         $this->assertEquals('Zebra Background', $result->items()[0]->name);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_handles_scout_search_when_query_provided(): void
+    public function it_builds_scout_query_for_search(): void
     {
         $this->artisan('search:configure-indexes');
 
@@ -89,40 +92,19 @@ class BackgroundSearchServiceTest extends TestCase
         $this->artisan('scout:import', ['model' => Background::class]);
         sleep(1); // Allow Meilisearch to index
 
-        $dto = new BackgroundSearchDTO(
-            searchQuery: 'acolyte',
-            perPage: 15,
-            filters: [],
-            sortBy: 'name',
-            sortDirection: 'asc'
-        );
-
-        $result = $this->service->search($dto);
+        $query = $this->service->buildScoutQuery('acolyte');
+        $result = $query->paginate(15);
 
         $this->assertGreaterThanOrEqual(1, $result->total());
         $this->assertStringContainsStringIgnoringCase('acolyte', $result->items()[0]->name);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_falls_back_to_mysql_when_scout_fails(): void
+    public function it_returns_scout_builder_instance(): void
     {
-        // Don't configure indexes or import to Scout - force failure
-        Background::factory()->create(['name' => 'Acolyte Background']);
-        Background::factory()->create(['name' => 'Soldier']);
+        $query = $this->service->buildScoutQuery('test');
 
-        $dto = new BackgroundSearchDTO(
-            searchQuery: 'acolyte',
-            perPage: 15,
-            filters: [],
-            sortBy: 'name',
-            sortDirection: 'asc'
-        );
-
-        // Should fall back to MySQL search gracefully
-        $result = $this->service->search($dto);
-
-        // MySQL fallback should still find results using LIKE
-        $this->assertGreaterThanOrEqual(0, $result->total());
+        $this->assertInstanceOf(\Laravel\Scout\Builder::class, $query);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -141,7 +123,8 @@ class BackgroundSearchServiceTest extends TestCase
             sortDirection: 'asc'
         );
 
-        $result = $this->service->search($dto);
+        $query = $this->service->buildDatabaseQuery($dto);
+        $result = $query->paginate(15);
 
         $this->assertEquals(1, $result->total());
         $this->assertEquals($targetBackground->id, $result->items()[0]->id);

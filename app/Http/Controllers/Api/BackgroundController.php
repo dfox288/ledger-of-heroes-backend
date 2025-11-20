@@ -22,7 +22,13 @@ class BackgroundController extends Controller
     public function index(BackgroundIndexRequest $request, BackgroundSearchService $service)
     {
         $dto = BackgroundSearchDTO::fromRequest($request);
-        $backgrounds = $service->search($dto);
+
+        // Use Scout for full-text search, otherwise use database query
+        if ($dto->searchQuery !== null) {
+            $backgrounds = $service->buildScoutQuery($dto->searchQuery)->paginate($dto->perPage);
+        } else {
+            $backgrounds = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
+        }
 
         return BackgroundResource::collection($backgrounds);
     }

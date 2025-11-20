@@ -4,9 +4,7 @@ namespace App\Services;
 
 use App\DTOs\BackgroundSearchDTO;
 use App\Models\Background;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Service for searching and filtering D&D backgrounds
@@ -18,58 +16,19 @@ use Illuminate\Support\Facades\Log;
 final class BackgroundSearchService
 {
     /**
-     * Search backgrounds using Scout or MySQL fallback
+     * Build Scout search query for full-text search
      */
-    public function search(BackgroundSearchDTO $dto): LengthAwarePaginator
+    public function buildScoutQuery(string $searchQuery): \Laravel\Scout\Builder
     {
-        // If search query provided, use Scout with MySQL fallback
-        if ($dto->searchQuery !== null) {
-            return $this->performScoutSearch($dto);
-        }
-
-        // Otherwise, standard database query
-        return $this->buildStandardQuery($dto)->paginate($dto->perPage);
+        return Background::search($searchQuery);
     }
 
     /**
-     * Perform Scout/Meilisearch search with graceful MySQL fallback
+     * Build Eloquent database query with filters
      */
-    private function performScoutSearch(BackgroundSearchDTO $dto): LengthAwarePaginator
+    public function buildDatabaseQuery(BackgroundSearchDTO $dto): Builder
     {
-        try {
-            $search = Background::search($dto->searchQuery);
-
-            // Apply any additional filters if needed in the future
-            // (Scout doesn't support complex filters well, so we keep it simple)
-
-            return $search->paginate($dto->perPage);
-        } catch (\Exception $e) {
-            // Log the failure and fall back to MySQL
-            Log::warning('Meilisearch search failed, falling back to MySQL', [
-                'query' => $dto->searchQuery,
-                'error' => $e->getMessage(),
-            ]);
-
-            return $this->performMysqlSearch($dto);
-        }
-    }
-
-    /**
-     * Perform MySQL FULLTEXT search fallback
-     */
-    private function performMysqlSearch(BackgroundSearchDTO $dto): LengthAwarePaginator
-    {
-        $query = Background::with(['sources.source']);
-
-        // MySQL search using LIKE
-        if ($dto->searchQuery !== null) {
-            $query->where('name', 'LIKE', '%'.$dto->searchQuery.'%');
-        }
-
-        $this->applyFilters($query, $dto);
-        $this->applySorting($query, $dto);
-
-        return $query->paginate($dto->perPage);
+        return $this->buildStandardQuery($dto);
     }
 
     /**

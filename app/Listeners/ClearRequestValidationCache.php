@@ -13,6 +13,12 @@ class ClearRequestValidationCache
     public function handle(ModelImported $event): void
     {
         // Clear all request validation caches
-        Cache::tags(['request_validation'])->flush();
+        // Only use tags if the cache store supports them (redis, memcached, dynamodb)
+        try {
+            Cache::tags(['request_validation'])->flush();
+        } catch (\BadMethodCallException $e) {
+            // Cache store doesn't support tagging, clear entire cache instead
+            Cache::flush();
+        }
     }
 }

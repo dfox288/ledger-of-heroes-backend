@@ -41,6 +41,6 @@ class SpellSchoolController extends Controller
      */
     public function show(SpellSchool $spellSchool)
     {
-        return $spellSchool;
+        return new SpellSchoolResource($spellSchool);
     }
 }

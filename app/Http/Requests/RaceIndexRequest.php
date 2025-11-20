@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use App\Models\Language;
-use App\Models\ProficiencyType;
 use App\Models\Skill;
 use Illuminate\Validation\Rule;
 

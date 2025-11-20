@@ -2,11 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\AbilityScore;
-use App\Models\ProficiencyType;
-use App\Models\Skill;
-use Illuminate\Validation\Rule;
-
 class ClassIndexRequest extends BaseIndexRequest
 {
     /**

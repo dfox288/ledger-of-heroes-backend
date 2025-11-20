@@ -2,9 +2,6 @@
 
 namespace Tests\Feature\Requests;
 
-use App\Models\Language;
-use App\Models\ProficiencyType;
-use App\Models\Skill;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;

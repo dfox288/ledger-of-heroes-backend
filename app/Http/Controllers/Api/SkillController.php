@@ -17,7 +17,7 @@ class SkillController extends Controller
      */
     public function index(SkillIndexRequest $request)
     {
-        $query = Skill::query();
+        $query = Skill::query()->with('abilityScore');
 
         // Search by name
         if ($request->has('search')) {

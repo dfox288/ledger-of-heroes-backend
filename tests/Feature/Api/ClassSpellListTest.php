@@ -130,7 +130,7 @@ class ClassSpellListTest extends TestCase
 
         $wizard->spells()->attach([$concentrationSpell->id, $nonConcentrationSpell->id]);
 
-        $response = $this->getJson('/api/v1/classes/wizard/spells?concentration=true');
+        $response = $this->getJson('/api/v1/classes/wizard/spells?concentration=1');
 
         $response->assertOk();
         $response->assertJsonCount(1, 'data');
@@ -153,7 +153,7 @@ class ClassSpellListTest extends TestCase
 
         $wizard->spells()->attach([$ritualSpell->id, $nonRitualSpell->id]);
 
-        $response = $this->getJson('/api/v1/classes/wizard/spells?ritual=true');
+        $response = $this->getJson('/api/v1/classes/wizard/spells?ritual=1');
 
         $response->assertOk();
         $response->assertJsonCount(1, 'data');

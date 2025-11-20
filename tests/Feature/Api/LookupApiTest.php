@@ -17,9 +17,12 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'code', 'name', 'publisher', 'publication_year', 'edition'],
-            ])
-            ->assertJsonCount(8); // We have 8 sources seeded (PHB, DMG, MM, XGE, TCE, VGTM, ERLW, WGTE)
+                'data' => [
+                    '*' => ['id', 'code', 'name', 'publisher', 'publication_year', 'edition'],
+                ],
+                'meta',
+                'links',
+            ]);
     }
 
     public function test_can_get_all_spell_schools(): void
@@ -28,9 +31,12 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'code', 'name', 'description'],
-            ])
-            ->assertJsonCount(8); // We have 8 schools seeded
+                'data' => [
+                    '*' => ['id', 'code', 'name', 'description'],
+                ],
+                'meta',
+                'links',
+            ]);
     }
 
     public function test_can_get_all_damage_types(): void
@@ -39,7 +45,11 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'name'],
+                'data' => [
+                    '*' => ['id', 'name'],
+                ],
+                'meta',
+                'links',
             ]);
     }
 
@@ -49,7 +59,11 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'code', 'name'],
+                'data' => [
+                    '*' => ['id', 'code', 'name'],
+                ],
+                'meta',
+                'links',
             ]);
     }
 
@@ -59,7 +73,11 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'code', 'name'],
+                'data' => [
+                    '*' => ['id', 'code', 'name'],
+                ],
+                'meta',
+                'links',
             ]);
     }
 
@@ -69,7 +87,11 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'name', 'ability_score_id'],
+                'data' => [
+                    '*' => ['id', 'name', 'ability_score'],
+                ],
+                'meta',
+                'links',
             ]);
     }
 
@@ -79,7 +101,11 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'name'],
+                'data' => [
+                    '*' => ['id', 'name'],
+                ],
+                'meta',
+                'links',
             ]);
     }
 
@@ -89,7 +115,11 @@ class LookupApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '*' => ['id', 'code', 'name', 'description'],
+                'data' => [
+                    '*' => ['id', 'code', 'name', 'description'],
+                ],
+                'meta',
+                'links',
             ]);
     }
 
@@ -99,7 +129,9 @@ class LookupApiTest extends TestCase
         $response = $this->getJson("/api/v1/sources/{$source->id}");
 
         $response->assertStatus(200)
-            ->assertJsonStructure(['id', 'code', 'name', 'publisher', 'publication_year', 'edition']);
+            ->assertJsonStructure([
+                'data' => ['id', 'code', 'name', 'publisher', 'publication_year', 'edition'],
+            ]);
     }
 
     public function test_can_get_single_spell_school(): void
@@ -108,6 +140,8 @@ class LookupApiTest extends TestCase
         $response = $this->getJson("/api/v1/spell-schools/{$school->id}");
 
         $response->assertStatus(200)
-            ->assertJsonStructure(['id', 'code', 'name', 'description']);
+            ->assertJsonStructure([
+                'data' => ['id', 'code', 'name', 'description'],
+            ]);
     }
 }

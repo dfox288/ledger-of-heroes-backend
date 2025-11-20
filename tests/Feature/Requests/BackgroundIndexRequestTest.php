@@ -3,8 +3,6 @@
 namespace Tests\Feature\Requests;
 
 use App\Models\Background;
-use App\Models\Language;
-use App\Models\Skill;
 use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;

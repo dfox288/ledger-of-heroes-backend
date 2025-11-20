@@ -220,7 +220,7 @@ class ClassApiTest extends TestCase
             'pages' => '73',
         ]);
 
-        $response = $this->getJson('/api/v1/classes?base_only=true');
+        $response = $this->getJson('/api/v1/classes?base_only=1');
 
         $response->assertStatus(200)
             ->assertJsonCount(1, 'data')

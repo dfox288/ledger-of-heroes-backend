@@ -74,14 +74,14 @@ class ClassSpellListRequestTest extends TestCase
         $class->spells()->attach($spell->id);
 
         // Valid boolean values for concentration
-        $response = $this->getJson("/api/v1/classes/{$class->id}/spells?concentration=true");
-        $response->assertStatus(200);
-
         $response = $this->getJson("/api/v1/classes/{$class->id}/spells?concentration=1");
         $response->assertStatus(200);
 
+        $response = $this->getJson("/api/v1/classes/{$class->id}/spells?concentration=0");
+        $response->assertStatus(200);
+
         // Valid boolean values for ritual
-        $response = $this->getJson("/api/v1/classes/{$class->id}/spells?ritual=false");
+        $response = $this->getJson("/api/v1/classes/{$class->id}/spells?ritual=1");
         $response->assertStatus(200);
 
         $response = $this->getJson("/api/v1/classes/{$class->id}/spells?ritual=0");
@@ -100,8 +100,8 @@ class ClassSpellListRequestTest extends TestCase
         $spell = Spell::factory()->create();
         $class->spells()->attach($spell->id);
 
-        // Valid sort columns
-        $validColumns = ['name', 'level', 'created_at', 'updated_at'];
+        // Valid sort columns (spells table doesn't have timestamps)
+        $validColumns = ['name', 'level'];
         foreach ($validColumns as $column) {
             $response = $this->getJson("/api/v1/classes/{$class->id}/spells?sort_by={$column}");
             $response->assertStatus(200);

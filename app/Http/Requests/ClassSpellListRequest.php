@@ -34,8 +34,8 @@ class ClassSpellListRequest extends FormRequest
             'concentration' => ['sometimes', 'boolean'],
             'ritual' => ['sometimes', 'boolean'],
 
-            // Sorting
-            'sort_by' => ['sometimes', Rule::in(['name', 'level', 'created_at', 'updated_at'])],
+            // Sorting (spells table doesn't have timestamps)
+            'sort_by' => ['sometimes', Rule::in(['name', 'level'])],
             'sort_direction' => ['sometimes', Rule::in(['asc', 'desc'])],
         ];
     }

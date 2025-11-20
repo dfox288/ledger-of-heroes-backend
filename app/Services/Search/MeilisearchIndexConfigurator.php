@@ -126,4 +126,25 @@ class MeilisearchIndexConfigurator
             'hit_die',
         ]);
     }
+
+    public function configureBackgroundsIndex(): void
+    {
+        $index = $this->client->index('backgrounds');
+
+        // Searchable attributes
+        $index->updateSearchableAttributes([
+            'name',
+            'sources',
+        ]);
+
+        // Filterable attributes
+        $index->updateFilterableAttributes([
+            'source_codes',
+        ]);
+
+        // Sortable attributes
+        $index->updateSortableAttributes([
+            'name',
+        ]);
+    }
 }

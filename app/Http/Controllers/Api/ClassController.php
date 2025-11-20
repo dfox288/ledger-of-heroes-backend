@@ -3,15 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ClassIndexRequest;
+use App\Http\Requests\ClassShowRequest;
+use App\Http\Requests\ClassSpellListRequest;
 use App\Http\Resources\ClassResource;
 use App\Http\Resources\SpellResource;
 use App\Models\CharacterClass;
-use Illuminate\Http\Request;
 
 class ClassController extends Controller
 {
-    public function index(Request $request)
+    public function index(ClassIndexRequest $request)
     {
+        $validated = $request->validated();
+
         $query = CharacterClass::with([
             'spellcastingAbility',
             'proficiencies.proficiencyType',
@@ -25,28 +29,28 @@ class ClassController extends Controller
         ]);
 
         // Apply search filter
-        if ($request->has('search')) {
-            $query->where('name', 'LIKE', '%'.$request->search.'%');
+        if (isset($validated['search'])) {
+            $query->where('name', 'LIKE', '%'.$validated['search'].'%');
         }
 
         // Apply base_only filter (show only base classes, no subclasses)
-        if ($request->boolean('base_only')) {
+        if (isset($validated['base_only']) && $validated['base_only']) {
             $query->whereNull('parent_class_id');
         }
 
         // Filter by granted proficiency
-        if ($request->has('grants_proficiency')) {
-            $query->grantsProficiency($request->grants_proficiency);
+        if (isset($validated['grants_proficiency'])) {
+            $query->grantsProficiency($validated['grants_proficiency']);
         }
 
         // Filter by granted skill
-        if ($request->has('grants_skill')) {
-            $query->grantsSkill($request->grants_skill);
+        if (isset($validated['grants_skill'])) {
+            $query->grantsSkill($validated['grants_skill']);
         }
 
         // Filter by saving throw proficiency
-        if ($request->has('grants_saving_throw')) {
-            $abilityName = $request->grants_saving_throw;
+        if (isset($validated['grants_saving_throw'])) {
+            $abilityName = $validated['grants_saving_throw'];
             $query->whereHas('proficiencies', function ($q) use ($abilityName) {
                 $q->where('proficiency_type', 'saving_throw')
                     ->whereHas('abilityScore', function ($abilityQuery) use ($abilityName) {
@@ -57,20 +61,23 @@ class ClassController extends Controller
         }
 
         // Apply sorting
-        $sortBy = $request->get('sort_by', 'name');
-        $sortDirection = $request->get('sort_direction', 'asc');
+        $sortBy = $validated['sort_by'] ?? 'name';
+        $sortDirection = $validated['sort_direction'] ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
         // Paginate
-        $perPage = $request->get('per_page', 15);
+        $perPage = $validated['per_page'] ?? 15;
         $classes = $query->paginate($perPage);
 
         return ClassResource::collection($classes);
     }
 
-    public function show(CharacterClass $class)
+    public function show(CharacterClass $class, ClassShowRequest $request)
     {
-        $class->load([
+        $validated = $request->validated();
+
+        // Default relationships
+        $relationships = [
             'spellcastingAbility',
             'parentClass',
             'subclasses',
@@ -84,7 +91,14 @@ class ClassController extends Controller
             'counters',
             'subclasses.features',
             'subclasses.counters',
-        ]);
+        ];
+
+        // Use custom includes if provided
+        if (isset($validated['include'])) {
+            $relationships = $validated['include'];
+        }
+
+        $class->load($relationships);
 
         return new ClassResource($class);
     }
@@ -94,38 +108,40 @@ class ClassController extends Controller
      *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    public function spells(CharacterClass $class, Request $request)
+    public function spells(CharacterClass $class, ClassSpellListRequest $request)
     {
+        $validated = $request->validated();
+
         $query = $class->spells()
             ->with(['spellSchool', 'sources.source', 'effects.damageType', 'classes']);
 
         // Apply same filters as SpellController
-        if ($request->has('search')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('spells.name', 'LIKE', "%{$request->search}%")
-                    ->orWhere('spells.description', 'LIKE', "%{$request->search}%");
+        if (isset($validated['search'])) {
+            $query->where(function ($q) use ($validated) {
+                $q->where('spells.name', 'LIKE', "%{$validated['search']}%")
+                    ->orWhere('spells.description', 'LIKE', "%{$validated['search']}%");
             });
         }
 
-        if ($request->has('level')) {
-            $query->where('spells.level', $request->level);
+        if (isset($validated['level'])) {
+            $query->where('spells.level', $validated['level']);
         }
 
-        if ($request->has('school')) {
-            $query->where('spells.spell_school_id', $request->school);
+        if (isset($validated['school'])) {
+            $query->where('spells.spell_school_id', $validated['school']);
         }
 
-        if ($request->has('concentration')) {
-            $query->where('spells.needs_concentration', $request->boolean('concentration'));
+        if (isset($validated['concentration'])) {
+            $query->where('spells.needs_concentration', $validated['concentration']);
         }
 
-        if ($request->has('ritual')) {
-            $query->where('spells.is_ritual', $request->boolean('ritual'));
+        if (isset($validated['ritual'])) {
+            $query->where('spells.is_ritual', $validated['ritual']);
         }
 
         // Sorting
-        $sortBy = $request->get('sort_by', 'spells.name');
-        $sortDirection = $request->get('sort_direction', 'asc');
+        $sortBy = $validated['sort_by'] ?? 'name';
+        $sortDirection = $validated['sort_direction'] ?? 'asc';
 
         // Ensure we prefix with table name for pivot queries
         if (! str_contains($sortBy, '.')) {
@@ -135,7 +151,7 @@ class ClassController extends Controller
         $query->orderBy($sortBy, $sortDirection);
 
         // Paginate
-        $perPage = $request->get('per_page', 15);
+        $perPage = $validated['per_page'] ?? 15;
         $spells = $query->paginate($perPage);
 
         return SpellResource::collection($spells);

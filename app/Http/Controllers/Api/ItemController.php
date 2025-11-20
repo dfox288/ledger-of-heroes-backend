@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ItemIndexRequest;
+use App\Http\Requests\ItemShowRequest;
 use App\Http\Resources\ItemResource;
 use App\Models\Item;
-use Illuminate\Http\Request;
 
 class ItemController extends Controller
 {
-    public function index(Request $request)
+    public function index(ItemIndexRequest $request)
     {
+        $validated = $request->validated();
+
         $query = Item::with([
             'itemType',
             'damageType',
@@ -20,60 +23,63 @@ class ItemController extends Controller
         ]);
 
         // Apply search filter
-        if ($request->has('search')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', "%{$request->search}%")
-                    ->orWhere('description', 'like', "%{$request->search}%");
+        if (isset($validated['search'])) {
+            $query->where(function ($q) use ($validated) {
+                $q->where('name', 'like', "%{$validated['search']}%")
+                    ->orWhere('description', 'like', "%{$validated['search']}%");
             });
         }
 
         // Filter by item type
-        if ($request->has('item_type_id')) {
-            $query->where('item_type_id', $request->item_type_id);
+        if (isset($validated['item_type_id'])) {
+            $query->where('item_type_id', $validated['item_type_id']);
         }
 
         // Filter by rarity
-        if ($request->has('rarity')) {
-            $query->where('rarity', $request->rarity);
+        if (isset($validated['rarity'])) {
+            $query->where('rarity', $validated['rarity']);
         }
 
         // Filter by magic
-        if ($request->has('is_magic')) {
-            $query->where('is_magic', $request->boolean('is_magic'));
+        if (isset($validated['is_magic'])) {
+            $query->where('is_magic', (bool) $validated['is_magic']);
         }
 
         // Filter by attunement
-        if ($request->has('requires_attunement')) {
-            $query->where('requires_attunement', $request->boolean('requires_attunement'));
+        if (isset($validated['requires_attunement'])) {
+            $query->where('requires_attunement', (bool) $validated['requires_attunement']);
         }
 
         // Filter by minimum strength requirement
-        if ($request->has('min_strength')) {
-            $query->whereMinStrength((int) $request->min_strength);
+        if (isset($validated['min_strength'])) {
+            $query->whereMinStrength((int) $validated['min_strength']);
         }
 
         // Filter by having any prerequisites
-        if ($request->has('has_prerequisites')) {
-            if ($request->boolean('has_prerequisites')) {
+        if (isset($validated['has_prerequisites'])) {
+            if ((bool) $validated['has_prerequisites']) {
                 $query->hasPrerequisites();
             }
         }
 
         // Apply sorting
-        $sortBy = $request->get('sort_by', 'name');
-        $sortDirection = $request->get('sort_direction', 'asc');
+        $sortBy = $validated['sort_by'] ?? 'name';
+        $sortDirection = $validated['sort_direction'] ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
         // Paginate
-        $perPage = $request->get('per_page', 15);
+        $perPage = $validated['per_page'] ?? 15;
         $items = $query->paginate($perPage);
 
         return ItemResource::collection($items);
     }
 
-    public function show(Item $item)
+    public function show(Item $item, ItemShowRequest $request)
     {
-        $item->load([
+        $validated = $request->validated();
+
+        // Default relationships to load
+        $relationships = [
             'itemType',
             'damageType',
             'properties',
@@ -84,7 +90,12 @@ class ItemController extends Controller
             'modifiers.abilityScore',
             'modifiers.skill',
             'prerequisites.prerequisite',
-        ]);
+        ];
+
+        // If 'include' parameter provided, use it (note: this is for additional validation)
+        // The actual loading is still done via the default relationships above
+        // In a more advanced implementation, you might dynamically build the relationships array
+        $item->load($relationships);
 
         return new ItemResource($item);
     }

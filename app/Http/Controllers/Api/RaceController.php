@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\RaceIndexRequest;
+use App\Http\Requests\RaceShowRequest;
 use App\Http\Resources\RaceResource;
 use App\Models\Race;
-use Illuminate\Http\Request;
 
 class RaceController extends Controller
 {
-    public function index(Request $request)
+    public function index(RaceIndexRequest $request)
     {
+        $validated = $request->validated();
+
         $query = Race::with([
             'size',
             'sources.source',
@@ -23,77 +26,85 @@ class RaceController extends Controller
         ]);
 
         // Apply search filter
-        if ($request->has('search')) {
-            $query->search($request->search);
+        if (isset($validated['search'])) {
+            $query->search($validated['search']);
         }
 
         // Apply size filter
-        if ($request->has('size')) {
-            $query->size($request->size);
+        if (isset($validated['size'])) {
+            $query->size($validated['size']);
         }
 
         // Filter by granted proficiency
-        if ($request->has('grants_proficiency')) {
-            $query->grantsProficiency($request->grants_proficiency);
+        if (isset($validated['grants_proficiency'])) {
+            $query->grantsProficiency($validated['grants_proficiency']);
         }
 
         // Filter by granted skill
-        if ($request->has('grants_skill')) {
-            $query->grantsSkill($request->grants_skill);
+        if (isset($validated['grants_skill'])) {
+            $query->grantsSkill($validated['grants_skill']);
         }
 
         // Filter by proficiency type/category
-        if ($request->has('grants_proficiency_type')) {
-            $query->grantsProficiencyType($request->grants_proficiency_type);
+        if (isset($validated['grants_proficiency_type'])) {
+            $query->grantsProficiencyType($validated['grants_proficiency_type']);
         }
 
         // Filter by spoken language
-        if ($request->has('speaks_language')) {
-            $query->speaksLanguage($request->speaks_language);
+        if (isset($validated['speaks_language'])) {
+            $query->speaksLanguage($validated['speaks_language']);
         }
 
         // Filter by language choice count
-        if ($request->has('language_choice_count')) {
-            $query->languageChoiceCount((int) $request->language_choice_count);
+        if (isset($validated['language_choice_count'])) {
+            $query->languageChoiceCount((int) $validated['language_choice_count']);
         }
 
         // Filter entities granting any languages
-        if ($request->has('grants_languages')) {
+        if (isset($validated['grants_languages'])) {
             if ($request->boolean('grants_languages')) {
                 $query->grantsLanguages();
             }
         }
 
         // Apply sorting
-        $sortBy = $request->get('sort_by', 'name');
-        $sortDirection = $request->get('sort_direction', 'asc');
+        $sortBy = $validated['sort_by'] ?? 'name';
+        $sortDirection = $validated['sort_direction'] ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
         // Paginate
-        $perPage = $request->get('per_page', 15);
+        $perPage = $validated['per_page'] ?? 15;
         $races = $query->paginate($perPage);
 
         return RaceResource::collection($races);
     }
 
-    public function show(Race $race)
+    public function show(RaceShowRequest $request, Race $race)
     {
-        $race->load([
-            'size',
-            'sources.source',
-            'parent',
-            'subraces',
-            'proficiencies.skill.abilityScore',
-            'proficiencies.abilityScore',
-            'traits.randomTables.entries', // Load random tables through traits
-            'modifiers.abilityScore',
-            'modifiers.skill',
-            'modifiers.damageType',
-            'languages.language',
-            'conditions.condition',
-            'spells.spell',
-            'spells.abilityScore',
-        ]);
+        $validated = $request->validated();
+
+        // Load relationships if specified in the request
+        if (isset($validated['include']) && ! empty($validated['include'])) {
+            $race->load($validated['include']);
+        } else {
+            // Default relationships
+            $race->load([
+                'size',
+                'sources.source',
+                'parent',
+                'subraces',
+                'proficiencies.skill.abilityScore',
+                'proficiencies.abilityScore',
+                'traits.randomTables.entries',
+                'modifiers.abilityScore',
+                'modifiers.skill',
+                'modifiers.damageType',
+                'languages.language',
+                'conditions.condition',
+                'spells.spell',
+                'spells.abilityScore',
+            ]);
+        }
 
         return new RaceResource($race);
     }

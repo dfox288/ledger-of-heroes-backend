@@ -9,6 +9,12 @@ use App\Models\Source;
 
 class SourceController extends Controller
 {
+    /**
+     * List all D&D sourcebooks
+     *
+     * Returns a paginated list of D&D 5e sourcebooks (PHB, Xanathar's, Tasha's, etc.).
+     * Supports searching by name or code (e.g., "PHB", "XGE").
+     */
     public function index(SourceIndexRequest $request)
     {
         $query = Source::query();
@@ -29,6 +35,12 @@ class SourceController extends Controller
         return SourceResource::collection($entities);
     }
 
+    /**
+     * Get a single sourcebook
+     *
+     * Returns detailed information about a specific D&D sourcebook including its full name,
+     * code abbreviation, and publication date.
+     */
     public function show(Source $source)
     {
         return new SourceResource($source);

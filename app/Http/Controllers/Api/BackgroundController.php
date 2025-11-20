@@ -11,18 +11,11 @@ use App\Models\Background;
 class BackgroundController extends Controller
 {
     /**
-     * List all backgrounds with optional filters
+     * List all backgrounds
      *
-     * @queryParam grants_proficiency string Filter by granted proficiency type (e.g., "longsword", "light armor")
-     * @queryParam grants_skill string Filter by granted skill (e.g., "stealth", "perception")
-     * @queryParam speaks_language string Filter by spoken language (e.g., "elvish", "dwarvish")
-     * @queryParam language_choice_count integer Filter by number of language choices (0-10)
-     * @queryParam grants_languages boolean Filter backgrounds that grant any languages
-     * @queryParam search string Search by name (max 255 characters)
-     * @queryParam sort_by string Sort by field (name, created_at, updated_at)
-     * @queryParam sort_direction string Sort direction (asc, desc)
-     * @queryParam per_page integer Items per page (1-100, default 15)
-     * @queryParam page integer Page number (min 1)
+     * Returns a paginated list of D&D 5e character backgrounds. Supports filtering by
+     * proficiencies, skills, and languages. Includes random tables for personality traits,
+     * ideals, bonds, and flaws. All query parameters are validated automatically.
      */
     public function index(BackgroundIndexRequest $request)
     {
@@ -73,6 +66,13 @@ class BackgroundController extends Controller
         return BackgroundResource::collection($backgrounds);
     }
 
+    /**
+     * Get a single background
+     *
+     * Returns detailed information about a specific background including proficiencies,
+     * traits with random tables (personality, ideals, bonds, flaws), languages, and sources.
+     * Supports selective relationship loading via the 'include' parameter.
+     */
     public function show(Background $background, BackgroundShowRequest $request)
     {
         $validated = $request->validated();

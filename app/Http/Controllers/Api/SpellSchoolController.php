@@ -9,6 +9,12 @@ use App\Models\SpellSchool;
 
 class SpellSchoolController extends Controller
 {
+    /**
+     * List all schools of magic
+     *
+     * Returns a paginated list of the 8 schools of magic in D&D 5e (Abjuration, Conjuration,
+     * Divination, Enchantment, Evocation, Illusion, Necromancy, Transmutation).
+     */
     public function index(SpellSchoolIndexRequest $request)
     {
         $query = SpellSchool::query();
@@ -27,6 +33,12 @@ class SpellSchoolController extends Controller
         );
     }
 
+    /**
+     * Get a single school of magic
+     *
+     * Returns detailed information about a specific school of magic including its name
+     * and associated spells.
+     */
     public function show(SpellSchool $spellSchool)
     {
         return $spellSchool;

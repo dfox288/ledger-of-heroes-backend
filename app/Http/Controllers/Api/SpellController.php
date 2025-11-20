@@ -10,6 +10,13 @@ use App\Models\Spell;
 
 class SpellController extends Controller
 {
+    /**
+     * List all spells
+     *
+     * Returns a paginated list of D&D 5e spells. Supports filtering by level, school,
+     * concentration, ritual, and full-text search. All query parameters are validated
+     * and documented automatically from the SpellIndexRequest.
+     */
     public function index(SpellIndexRequest $request)
     {
         $validated = $request->validated();
@@ -49,6 +56,13 @@ class SpellController extends Controller
         return SpellResource::collection($spells);
     }
 
+    /**
+     * Get a single spell
+     *
+     * Returns detailed information about a specific spell including relationships
+     * like spell school, sources, damage effects, and associated classes.
+     * Supports selective relationship loading via the 'include' parameter.
+     */
     public function show(SpellShowRequest $request, Spell $spell)
     {
         $validated = $request->validated();

@@ -9,6 +9,12 @@ use App\Models\ItemProperty;
 
 class ItemPropertyController extends Controller
 {
+    /**
+     * List all item properties
+     *
+     * Returns a paginated list of D&D 5e item properties (Versatile, Finesse, Two-Handed, etc.).
+     * These special properties modify how weapons and equipment function.
+     */
     public function index(ItemPropertyIndexRequest $request)
     {
         $query = ItemProperty::query();
@@ -26,6 +32,12 @@ class ItemPropertyController extends Controller
         return ItemPropertyResource::collection($itemProperties);
     }
 
+    /**
+     * Get a single item property
+     *
+     * Returns detailed information about a specific item property including its name
+     * and rules text describing how it affects gameplay.
+     */
     public function show(ItemProperty $itemProperty)
     {
         return new ItemPropertyResource($itemProperty);

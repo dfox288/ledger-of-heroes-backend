@@ -10,7 +10,10 @@ use App\Models\Condition;
 class ConditionController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * List all D&D conditions
+     *
+     * Returns a paginated list of D&D 5e conditions (Blinded, Charmed, Frightened, etc.).
+     * These are status effects that can be applied to creatures during combat.
      */
     public function index(ConditionIndexRequest $request)
     {
@@ -30,7 +33,10 @@ class ConditionController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Get a single condition
+     *
+     * Returns detailed information about a specific D&D condition including its rules
+     * and effects on gameplay.
      */
     public function show(Condition $condition)
     {

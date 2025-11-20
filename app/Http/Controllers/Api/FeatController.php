@@ -11,20 +11,11 @@ use App\Models\Feat;
 class FeatController extends Controller
 {
     /**
-     * List all feats with optional filters
+     * List all feats
      *
-     * @queryParam prerequisite_race string Filter by prerequisite race (e.g., "dwarf", "elf")
-     * @queryParam prerequisite_ability string Filter by prerequisite ability (e.g., "str", "dex")
-     * @queryParam min_value integer Minimum ability score value for prerequisite (1-30)
-     * @queryParam prerequisite_proficiency string Filter by prerequisite proficiency (e.g., "medium armor")
-     * @queryParam has_prerequisites boolean Filter feats with/without prerequisites
-     * @queryParam grants_proficiency string Filter by granted proficiency type
-     * @queryParam grants_skill string Filter by granted skill
-     * @queryParam search string Search by name (max 255 characters)
-     * @queryParam sort_by string Sort by field (name, created_at, updated_at)
-     * @queryParam sort_direction string Sort direction (asc, desc)
-     * @queryParam per_page integer Items per page (1-100, default 15)
-     * @queryParam page integer Page number (min 1)
+     * Returns a paginated list of D&D 5e feats. Supports advanced filtering by prerequisites
+     * (race, ability scores, proficiencies), granted benefits (skills, proficiencies),
+     * and full-text search. All query parameters are validated and documented automatically.
      */
     public function index(FeatIndexRequest $request)
     {
@@ -80,6 +71,12 @@ class FeatController extends Controller
         return FeatResource::collection($feats);
     }
 
+    /**
+     * Get a single feat
+     *
+     * Returns detailed information about a specific feat including modifiers, proficiencies,
+     * conditions, prerequisites, and source citations. Supports selective relationship loading.
+     */
     public function show(FeatShowRequest $request, Feat $feat)
     {
         $validated = $request->validated();

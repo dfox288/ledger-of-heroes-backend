@@ -11,19 +11,11 @@ use App\Models\Race;
 class RaceController extends Controller
 {
     /**
-     * List all races with optional filters
+     * List all races and subraces
      *
-     * @queryParam grants_proficiency string Filter by granted proficiency type (e.g., "longsword", "light armor")
-     * @queryParam grants_skill string Filter by granted skill (e.g., "stealth", "perception")
-     * @queryParam grants_proficiency_type string Filter by granted proficiency type category
-     * @queryParam speaks_language string Filter by spoken language (e.g., "elvish", "dwarvish")
-     * @queryParam language_choice_count integer Filter by number of language choices (0-10)
-     * @queryParam grants_languages boolean Filter races that grant any languages
-     * @queryParam search string Search by name (max 255 characters)
-     * @queryParam sort_by string Sort by field (name, size, speed, created_at, updated_at)
-     * @queryParam sort_direction string Sort direction (asc, desc)
-     * @queryParam per_page integer Items per page (1-100, default 15)
-     * @queryParam page integer Page number (min 1)
+     * Returns a paginated list of D&D 5e races and subraces. Supports filtering by
+     * proficiencies, skills, languages, size, and speed. Includes ability score modifiers,
+     * racial traits, and language options. All query parameters are validated automatically.
      */
     public function index(RaceIndexRequest $request)
     {
@@ -94,6 +86,13 @@ class RaceController extends Controller
         return RaceResource::collection($races);
     }
 
+    /**
+     * Get a single race
+     *
+     * Returns detailed information about a specific race or subrace including parent race,
+     * subraces, ability modifiers, proficiencies, traits, languages, and spells.
+     * Supports selective relationship loading via the 'include' parameter.
+     */
     public function show(RaceShowRequest $request, Race $race)
     {
         $validated = $request->validated();

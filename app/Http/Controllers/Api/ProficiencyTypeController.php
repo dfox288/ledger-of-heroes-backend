@@ -10,7 +10,10 @@ use App\Models\ProficiencyType;
 class ProficiencyTypeController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * List all proficiency types
+     *
+     * Returns a paginated list of D&D 5e proficiency types including weapons, armor, tools,
+     * languages, and skills. Supports filtering by category and subcategory (e.g., "weapon/martial").
      */
     public function index(ProficiencyTypeIndexRequest $request)
     {
@@ -40,7 +43,10 @@ class ProficiencyTypeController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Get a single proficiency type
+     *
+     * Returns detailed information about a specific proficiency type including category,
+     * subcategory, and optional associated item.
      */
     public function show(ProficiencyType $proficiencyType)
     {

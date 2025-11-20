@@ -9,6 +9,12 @@ use App\Models\AbilityScore;
 
 class AbilityScoreController extends Controller
 {
+    /**
+     * List all ability scores
+     *
+     * Returns a paginated list of the 6 core ability scores in D&D 5e (Strength, Dexterity,
+     * Constitution, Intelligence, Wisdom, Charisma). Supports searching by name or code (e.g., "STR", "DEX").
+     */
     public function index(AbilityScoreIndexRequest $request)
     {
         $query = AbilityScore::query();
@@ -30,6 +36,12 @@ class AbilityScoreController extends Controller
         );
     }
 
+    /**
+     * Get a single ability score
+     *
+     * Returns detailed information about a specific ability score including its full name,
+     * code abbreviation, and associated skills.
+     */
     public function show(AbilityScore $abilityScore)
     {
         return $abilityScore;

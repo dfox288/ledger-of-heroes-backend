@@ -9,6 +9,12 @@ use App\Models\Language;
 
 class LanguageController extends Controller
 {
+    /**
+     * List all D&D languages
+     *
+     * Returns a paginated list of languages in D&D 5e including Common, Elvish, Dwarvish,
+     * and exotic languages. Includes script information, language type, and rarity.
+     */
     public function index(LanguageIndexRequest $request)
     {
         $query = Language::query();
@@ -26,6 +32,12 @@ class LanguageController extends Controller
         return LanguageResource::collection($entities);
     }
 
+    /**
+     * Get a single language
+     *
+     * Returns detailed information about a specific D&D language including its script,
+     * type (standard/exotic), and rarity.
+     */
     public function show(Language $language)
     {
         return new LanguageResource($language);

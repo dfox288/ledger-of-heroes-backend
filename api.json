@@ -14,6 +14,8 @@
         "/v1/ability-scores": {
             "get": {
                 "operationId": "ability-scores.index",
+                "description": "Returns a paginated list of the 6 core ability scores in D&D 5e (Strength, Dexterity,\nConstitution, Intelligence, Wisdom, Charisma). Supports searching by name or code (e.g., \"STR\", \"DEX\").",
+                "summary": "List all ability scores",
                 "tags": [
                     "AbilityScore"
                 ],
@@ -195,6 +197,8 @@
         "/v1/ability-scores/{abilityScore}": {
             "get": {
                 "operationId": "ability-scores.show",
+                "description": "Returns detailed information about a specific ability score including its full name,\ncode abbreviation, and associated skills.",
+                "summary": "Get a single ability score",
                 "tags": [
                     "AbilityScore"
                 ],
@@ -229,9 +233,118 @@
         "/v1/backgrounds": {
             "get": {
                 "operationId": "backgrounds.index",
-                "summary": "List all backgrounds with optional filters",
+                "description": "Returns a paginated list of D&D 5e character backgrounds. Supports filtering by\nproficiencies, skills, and languages. Includes random tables for personality traits,\nideals, bonds, and flaws. All query parameters are validated automatically.",
+                "summary": "List all backgrounds",
                 "tags": [
                     "Background"
+                ],
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Pagination",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sorting",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "name",
+                                "created_at",
+                                "updated_at"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort_direction",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "grants_proficiency",
+                        "in": "query",
+                        "description": "Filter by granted proficiency",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "grants_skill",
+                        "in": "query",
+                        "description": "Filter by granted skill",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "speaks_language",
+                        "in": "query",
+                        "description": "Filter by spoken language",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "language_choice_count",
+                        "in": "query",
+                        "description": "Filter by language choice count",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 10
+                        }
+                    },
+                    {
+                        "name": "grants_languages",
+                        "in": "query",
+                        "description": "Filter entities granting any languages",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "0",
+                                "1",
+                                "0",
+                                "1",
+                                "1",
+                                "",
+                                "true",
+                                "false"
+                            ]
+                        }
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -382,6 +495,8 @@
         "/v1/backgrounds/{background}": {
             "get": {
                 "operationId": "backgrounds.show",
+                "description": "Returns detailed information about a specific background including proficiencies,\ntraits with random tables (personality, ideals, bonds, flaws), languages, and sources.\nSupports selective relationship loading via the 'include' parameter.",
+                "summary": "Get a single background",
                 "tags": [
                     "Background"
                 ],
@@ -487,7 +602,8 @@
         "/v1/classes": {
             "get": {
                 "operationId": "classes.index",
-                "summary": "List all character classes with optional filters",
+                "description": "Returns a paginated list of D&D 5e character classes and subclasses. Includes hit dice,\nspellcasting abilities, proficiencies, class features, level progression tables, and\nsubclass options. Supports filtering by proficiencies, skills, and saving throws.",
+                "summary": "List all classes and subclasses",
                 "tags": [
                     "Class"
                 ],
@@ -640,6 +756,8 @@
         "/v1/classes/{class}": {
             "get": {
                 "operationId": "classes.show",
+                "description": "Returns detailed information about a specific class or subclass including parent class,\nsubclasses, proficiencies, traits, features, level progression, spell slot tables,\nand counters. Supports selective relationship loading via the 'include' parameter.",
+                "summary": "Get a single class",
                 "tags": [
                     "Class"
                 ],
@@ -745,7 +863,8 @@
         "/v1/classes/{class}/spells": {
             "get": {
                 "operationId": "classes.spells",
-                "summary": "Get spells for a specific class",
+                "description": "Returns a paginated list of spells available to a specific class. Supports the same\nfiltering options as the main spell list (level, school, concentration, ritual).\nUseful for building spell lists for spellcasting classes.",
+                "summary": "Get spells available to a class",
                 "tags": [
                     "Class"
                 ],
@@ -993,7 +1112,8 @@
         "/v1/conditions": {
             "get": {
                 "operationId": "conditions.index",
-                "summary": "Display a listing of the resource",
+                "description": "Returns a paginated list of D&D 5e conditions (Blinded, Charmed, Frightened, etc.).\nThese are status effects that can be applied to creatures during combat.",
+                "summary": "List all D&D conditions",
                 "tags": [
                     "Condition"
                 ],
@@ -1175,7 +1295,8 @@
         "/v1/conditions/{condition}": {
             "get": {
                 "operationId": "conditions.show",
-                "summary": "Display the specified resource",
+                "description": "Returns detailed information about a specific D&D condition including its rules\nand effects on gameplay.",
+                "summary": "Get a single condition",
                 "tags": [
                     "Condition"
                 ],
@@ -1218,6 +1339,8 @@
         "/v1/damage-types": {
             "get": {
                 "operationId": "damage-types.index",
+                "description": "Returns a paginated list of D&D 5e damage types (Fire, Cold, Poison, Slashing, etc.).\nUsed for spell effects, weapon damage, and resistances/immunities.",
+                "summary": "List all damage types",
                 "tags": [
                     "DamageType"
                 ],
@@ -1399,6 +1522,8 @@
         "/v1/damage-types/{damageType}": {
             "get": {
                 "operationId": "damage-types.show",
+                "description": "Returns detailed information about a specific D&D damage type including its name\nand associated spells, weapons, or effects.",
+                "summary": "Get a single damage type",
                 "tags": [
                     "DamageType"
                 ],
@@ -1441,7 +1566,8 @@
         "/v1/feats": {
             "get": {
                 "operationId": "feats.index",
-                "summary": "List all feats with optional filters",
+                "description": "Returns a paginated list of D&D 5e feats. Supports advanced filtering by prerequisites\n(race, ability scores, proficiencies), granted benefits (skills, proficiencies),\nand full-text search. All query parameters are validated and documented automatically.",
+                "summary": "List all feats",
                 "tags": [
                     "Feat"
                 ],
@@ -1594,6 +1720,8 @@
         "/v1/feats/{feat}": {
             "get": {
                 "operationId": "feats.show",
+                "description": "Returns detailed information about a specific feat including modifiers, proficiencies,\nconditions, prerequisites, and source citations. Supports selective relationship loading.",
+                "summary": "Get a single feat",
                 "tags": [
                     "Feat"
                 ],
@@ -1703,6 +1831,8 @@
         "/v1/items": {
             "get": {
                 "operationId": "items.index",
+                "description": "Returns a paginated list of D&D 5e items including weapons, armor, and magic items.\nSupports filtering by item type, rarity, magic properties, attunement requirements,\nand prerequisites. All query parameters are validated automatically.",
+                "summary": "List all items",
                 "tags": [
                     "Item"
                 ],
@@ -1936,6 +2066,8 @@
         "/v1/items/{item}": {
             "get": {
                 "operationId": "items.show",
+                "description": "Returns detailed information about a specific item including item type, damage type,\nproperties, abilities, random tables, modifiers, proficiencies, and prerequisites.\nSupports selective relationship loading via the 'include' parameter.",
+                "summary": "Get a single item",
                 "tags": [
                     "Item"
                 ],
@@ -2043,6 +2175,8 @@
         "/v1/item-properties": {
             "get": {
                 "operationId": "item-properties.index",
+                "description": "Returns a paginated list of D&D 5e item properties (Versatile, Finesse, Two-Handed, etc.).\nThese special properties modify how weapons and equipment function.",
+                "summary": "List all item properties",
                 "tags": [
                     "ItemProperty"
                 ],
@@ -2224,6 +2358,8 @@
         "/v1/item-properties/{itemProperty}": {
             "get": {
                 "operationId": "item-properties.show",
+                "description": "Returns detailed information about a specific item property including its name\nand rules text describing how it affects gameplay.",
+                "summary": "Get a single item property",
                 "tags": [
                     "ItemProperty"
                 ],
@@ -2266,6 +2402,8 @@
         "/v1/item-types": {
             "get": {
                 "operationId": "item-types.index",
+                "description": "Returns a paginated list of D&D 5e item types (Weapon, Armor, Potion, Wondrous Item, etc.).\nUsed to categorize equipment and magical items.",
+                "summary": "List all item types",
                 "tags": [
                     "ItemType"
                 ],
@@ -2447,6 +2585,8 @@
         "/v1/item-types/{itemType}": {
             "get": {
                 "operationId": "item-types.show",
+                "description": "Returns detailed information about a specific item type category including all items\nthat belong to this type.",
+                "summary": "Get a single item type",
                 "tags": [
                     "ItemType"
                 ],
@@ -2489,6 +2629,8 @@
         "/v1/languages": {
             "get": {
                 "operationId": "languages.index",
+                "description": "Returns a paginated list of languages in D&D 5e including Common, Elvish, Dwarvish,\nand exotic languages. Includes script information, language type, and rarity.",
+                "summary": "List all D&D languages",
                 "tags": [
                     "Language"
                 ],
@@ -2670,6 +2812,8 @@
         "/v1/languages/{language}": {
             "get": {
                 "operationId": "languages.show",
+                "description": "Returns detailed information about a specific D&D language including its script,\ntype (standard/exotic), and rarity.",
+                "summary": "Get a single language",
                 "tags": [
                     "Language"
                 ],
@@ -2712,7 +2856,8 @@
         "/v1/proficiency-types": {
             "get": {
                 "operationId": "proficiency-types.index",
-                "summary": "Display a listing of the resource",
+                "description": "Returns a paginated list of D&D 5e proficiency types including weapons, armor, tools,\nlanguages, and skills. Supports filtering by category and subcategory (e.g., \"weapon/martial\").",
+                "summary": "List all proficiency types",
                 "tags": [
                     "ProficiencyType"
                 ],
@@ -2910,7 +3055,8 @@
         "/v1/proficiency-types/{proficiencyType}": {
             "get": {
                 "operationId": "proficiency-types.show",
-                "summary": "Display the specified resource",
+                "description": "Returns detailed information about a specific proficiency type including category,\nsubcategory, and optional associated item.",
+                "summary": "Get a single proficiency type",
                 "tags": [
                     "ProficiencyType"
                 ],
@@ -2953,7 +3099,8 @@
         "/v1/races": {
             "get": {
                 "operationId": "races.index",
-                "summary": "List all races with optional filters",
+                "description": "Returns a paginated list of D&D 5e races and subraces. Supports filtering by\nproficiencies, skills, languages, size, and speed. Includes ability score modifiers,\nracial traits, and language options. All query parameters are validated automatically.",
+                "summary": "List all races and subraces",
                 "tags": [
                     "Race"
                 ],
@@ -3106,6 +3253,8 @@
         "/v1/races/{race}": {
             "get": {
                 "operationId": "races.show",
+                "description": "Returns detailed information about a specific race or subrace including parent race,\nsubraces, ability modifiers, proficiencies, traits, languages, and spells.\nSupports selective relationship loading via the 'include' parameter.",
+                "summary": "Get a single race",
                 "tags": [
                     "Race"
                 ],
@@ -3211,6 +3360,8 @@
         "/v1/sizes": {
             "get": {
                 "operationId": "sizes.index",
+                "description": "Returns a paginated list of D&D 5e creature sizes (Tiny, Small, Medium, Large, Huge, Gargantuan).\nUsed to categorize creatures, races, and determine space occupied in combat.",
+                "summary": "List all creature sizes",
                 "tags": [
                     "Size"
                 ],
@@ -3392,6 +3543,8 @@
         "/v1/sizes/{size}": {
             "get": {
                 "operationId": "sizes.show",
+                "description": "Returns detailed information about a specific creature size including its space\nrequirements and rules implications.",
+                "summary": "Get a single size category",
                 "tags": [
                     "Size"
                 ],
@@ -3426,6 +3579,8 @@
         "/v1/skills": {
             "get": {
                 "operationId": "skills.index",
+                "description": "Returns a paginated list of D&D 5e skills (Acrobatics, Stealth, Perception, etc.).\nSupports filtering by associated ability score (e.g., \"dex\", \"wis\").",
+                "summary": "List all D&D skills",
                 "tags": [
                     "Skill"
                 ],
@@ -3615,6 +3770,8 @@
         "/v1/skills/{skill}": {
             "get": {
                 "operationId": "skills.show",
+                "description": "Returns detailed information about a specific D&D skill including its associated\nability score (Strength, Dexterity, etc.).",
+                "summary": "Get a single skill",
                 "tags": [
                     "Skill"
                 ],
@@ -3649,6 +3806,8 @@
         "/v1/sources": {
             "get": {
                 "operationId": "sources.index",
+                "description": "Returns a paginated list of D&D 5e sourcebooks (PHB, Xanathar's, Tasha's, etc.).\nSupports searching by name or code (e.g., \"PHB\", \"XGE\").",
+                "summary": "List all D&D sourcebooks",
                 "tags": [
                     "Source"
                 ],
@@ -3830,6 +3989,8 @@
         "/v1/sources/{source}": {
             "get": {
                 "operationId": "sources.show",
+                "description": "Returns detailed information about a specific D&D sourcebook including its full name,\ncode abbreviation, and publication date.",
+                "summary": "Get a single sourcebook",
                 "tags": [
                     "Source"
                 ],
@@ -3872,6 +4033,8 @@
         "/v1/spells": {
             "get": {
                 "operationId": "spells.index",
+                "description": "Returns a paginated list of D&D 5e spells. Supports filtering by level, school,\nconcentration, ritual, and full-text search. All query parameters are validated\nand documented automatically from the SpellIndexRequest.",
+                "summary": "List all spells",
                 "tags": [
                     "Spell"
                 ],
@@ -4129,6 +4292,8 @@
         "/v1/spells/{spell}": {
             "get": {
                 "operationId": "spells.show",
+                "description": "Returns detailed information about a specific spell including relationships\nlike spell school, sources, damage effects, and associated classes.\nSupports selective relationship loading via the 'include' parameter.",
+                "summary": "Get a single spell",
                 "tags": [
                     "Spell"
                 ],
@@ -4240,6 +4405,8 @@
         "/v1/spell-schools": {
             "get": {
                 "operationId": "spell-schools.index",
+                "description": "Returns a paginated list of the 8 schools of magic in D&D 5e (Abjuration, Conjuration,\nDivination, Enchantment, Evocation, Illusion, Necromancy, Transmutation).",
+                "summary": "List all schools of magic",
                 "tags": [
                     "SpellSchool"
                 ],
@@ -4421,6 +4588,8 @@
         "/v1/spell-schools/{spellSchool}": {
             "get": {
                 "operationId": "spell-schools.show",
+                "description": "Returns detailed information about a specific school of magic including its name\nand associated spells.",
+                "summary": "Get a single school of magic",
                 "tags": [
                     "SpellSchool"
                 ],

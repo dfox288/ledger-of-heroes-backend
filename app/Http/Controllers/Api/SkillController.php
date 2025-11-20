@@ -9,6 +9,12 @@ use App\Models\Skill;
 
 class SkillController extends Controller
 {
+    /**
+     * List all D&D skills
+     *
+     * Returns a paginated list of D&D 5e skills (Acrobatics, Stealth, Perception, etc.).
+     * Supports filtering by associated ability score (e.g., "dex", "wis").
+     */
     public function index(SkillIndexRequest $request)
     {
         $query = Skill::query();
@@ -33,6 +39,12 @@ class SkillController extends Controller
         );
     }
 
+    /**
+     * Get a single skill
+     *
+     * Returns detailed information about a specific D&D skill including its associated
+     * ability score (Strength, Dexterity, etc.).
+     */
     public function show(Skill $skill)
     {
         return $skill;

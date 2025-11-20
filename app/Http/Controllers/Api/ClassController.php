@@ -13,16 +13,11 @@ use App\Models\CharacterClass;
 class ClassController extends Controller
 {
     /**
-     * List all character classes with optional filters
+     * List all classes and subclasses
      *
-     * @queryParam grants_proficiency string Filter by granted proficiency type (e.g., "longsword", "light armor")
-     * @queryParam grants_skill string Filter by granted skill (e.g., "stealth", "perception")
-     * @queryParam grants_saving_throw string Filter by granted saving throw (e.g., "dex", "wis")
-     * @queryParam search string Search by name (max 255 characters)
-     * @queryParam sort_by string Sort by field (name, hit_die, created_at, updated_at)
-     * @queryParam sort_direction string Sort direction (asc, desc)
-     * @queryParam per_page integer Items per page (1-100, default 15)
-     * @queryParam page integer Page number (min 1)
+     * Returns a paginated list of D&D 5e character classes and subclasses. Includes hit dice,
+     * spellcasting abilities, proficiencies, class features, level progression tables, and
+     * subclass options. Supports filtering by proficiencies, skills, and saving throws.
      */
     public function index(ClassIndexRequest $request)
     {
@@ -84,6 +79,13 @@ class ClassController extends Controller
         return ClassResource::collection($classes);
     }
 
+    /**
+     * Get a single class
+     *
+     * Returns detailed information about a specific class or subclass including parent class,
+     * subclasses, proficiencies, traits, features, level progression, spell slot tables,
+     * and counters. Supports selective relationship loading via the 'include' parameter.
+     */
     public function show(CharacterClass $class, ClassShowRequest $request)
     {
         $validated = $request->validated();
@@ -116,9 +118,11 @@ class ClassController extends Controller
     }
 
     /**
-     * Get spells for a specific class
+     * Get spells available to a class
      *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * Returns a paginated list of spells available to a specific class. Supports the same
+     * filtering options as the main spell list (level, school, concentration, ritual).
+     * Useful for building spell lists for spellcasting classes.
      */
     public function spells(CharacterClass $class, ClassSpellListRequest $request)
     {

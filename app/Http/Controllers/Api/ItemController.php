@@ -10,6 +10,13 @@ use App\Models\Item;
 
 class ItemController extends Controller
 {
+    /**
+     * List all items
+     *
+     * Returns a paginated list of D&D 5e items including weapons, armor, and magic items.
+     * Supports filtering by item type, rarity, magic properties, attunement requirements,
+     * and prerequisites. All query parameters are validated automatically.
+     */
     public function index(ItemIndexRequest $request)
     {
         $validated = $request->validated();
@@ -74,6 +81,13 @@ class ItemController extends Controller
         return ItemResource::collection($items);
     }
 
+    /**
+     * Get a single item
+     *
+     * Returns detailed information about a specific item including item type, damage type,
+     * properties, abilities, random tables, modifiers, proficiencies, and prerequisites.
+     * Supports selective relationship loading via the 'include' parameter.
+     */
     public function show(Item $item, ItemShowRequest $request)
     {
         $validated = $request->validated();

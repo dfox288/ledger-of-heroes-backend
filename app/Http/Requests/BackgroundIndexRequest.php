@@ -16,31 +16,19 @@ class BackgroundIndexRequest extends BaseIndexRequest
     {
         return [
             // Filter by granted proficiency
-            'grants_proficiency' => [
-                'sometimes',
-                'string',
-                Rule::in($this->getCachedLookup('proficiency_types', ProficiencyType::class)),
-            ],
+            'grants_proficiency' => ['sometimes', 'string', 'max:255'],
 
             // Filter by granted skill
-            'grants_skill' => [
-                'sometimes',
-                'string',
-                Rule::in($this->getCachedLookup('skills', Skill::class)),
-            ],
+            'grants_skill' => ['sometimes', 'string', 'max:255'],
 
             // Filter by spoken language
-            'speaks_language' => [
-                'sometimes',
-                'string',
-                Rule::in($this->getCachedLookup('languages', Language::class)),
-            ],
+            'speaks_language' => ['sometimes', 'string', 'max:255'],
 
             // Filter by language choice count
             'language_choice_count' => ['sometimes', 'integer', 'min:0', 'max:10'],
 
             // Filter entities granting any languages
-            'grants_languages' => ['sometimes', 'boolean'],
+            'grants_languages' => ['sometimes', Rule::in([0, 1, '0', '1', true, false, 'true', 'false'])],
         ];
     }
 

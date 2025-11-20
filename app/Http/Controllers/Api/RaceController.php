@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\DTOs\RaceSearchDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RaceIndexRequest;
 use App\Http\Requests\RaceShowRequest;
 use App\Http\Resources\RaceResource;
 use App\Models\Race;
-use Illuminate\Support\Facades\Log;
+use App\Services\RaceSearchService;
 
 class RaceController extends Controller
 {
@@ -18,166 +19,17 @@ class RaceController extends Controller
      * proficiencies, skills, languages, size, and speed. Includes ability score modifiers,
      * racial traits, and language options. All query parameters are validated automatically.
      */
-    public function index(RaceIndexRequest $request)
+    public function index(RaceIndexRequest $request, RaceSearchService $service)
     {
-        $validated = $request->validated();
-        $perPage = $validated['per_page'] ?? 15;
+        $dto = RaceSearchDTO::fromRequest($request);
 
-        if ($request->filled('q')) {
-            try {
-                $races = $this->performScoutSearch($request, $validated, $perPage);
-            } catch (\Exception $e) {
-                Log::warning('Meilisearch search failed, falling back to MySQL', [
-                    'query' => $validated['q'] ?? null,
-                    'error' => $e->getMessage(),
-                ]);
-                $races = $this->performMysqlSearch($validated, $perPage);
-            }
+        if ($dto->searchQuery !== null) {
+            $races = $service->buildScoutQuery($dto)->paginate($dto->perPage);
         } else {
-            $races = $this->buildStandardQuery($validated)->paginate($perPage);
+            $races = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 
         return RaceResource::collection($races);
-    }
-
-    /**
-     * Perform Scout/Meilisearch search
-     */
-    protected function performScoutSearch(RaceIndexRequest $request, array $validated, int $perPage)
-    {
-        $search = Race::search($validated['q']);
-
-        if (isset($validated['size'])) {
-            $search->where('size_id', $validated['size']);
-        }
-
-        return $search->paginate($perPage);
-    }
-
-    /**
-     * Perform MySQL search fallback
-     */
-    protected function performMysqlSearch(array $validated, int $perPage)
-    {
-        $query = Race::with([
-            'size',
-            'sources.source',
-            'proficiencies.skill',
-            'traits.randomTables.entries',
-            'modifiers.abilityScore',
-            'conditions.condition',
-            'spells.spell',
-            'spells.abilityScore',
-        ]);
-
-        // Search by name
-        if (isset($validated['q'])) {
-            $query->where('name', 'LIKE', '%'.$validated['q'].'%');
-        }
-
-        // Apply filters
-        if (isset($validated['size'])) {
-            $query->size($validated['size']);
-        }
-
-        if (isset($validated['grants_proficiency'])) {
-            $query->grantsProficiency($validated['grants_proficiency']);
-        }
-
-        if (isset($validated['grants_skill'])) {
-            $query->grantsSkill($validated['grants_skill']);
-        }
-
-        if (isset($validated['grants_proficiency_type'])) {
-            $query->grantsProficiencyType($validated['grants_proficiency_type']);
-        }
-
-        if (isset($validated['speaks_language'])) {
-            $query->speaksLanguage($validated['speaks_language']);
-        }
-
-        if (isset($validated['language_choice_count'])) {
-            $query->languageChoiceCount((int) $validated['language_choice_count']);
-        }
-
-        if (isset($validated['grants_languages'])) {
-            if ((bool) $validated['grants_languages']) {
-                $query->grantsLanguages();
-            }
-        }
-
-        // Apply sorting
-        $sortBy = $validated['sort_by'] ?? 'name';
-        $sortDirection = $validated['sort_direction'] ?? 'asc';
-        $query->orderBy($sortBy, $sortDirection);
-
-        return $query->paginate($perPage);
-    }
-
-    /**
-     * Build standard database query with filters
-     */
-    protected function buildStandardQuery(array $validated)
-    {
-        $query = Race::with([
-            'size',
-            'sources.source',
-            'proficiencies.skill',
-            'traits.randomTables.entries',
-            'modifiers.abilityScore',
-            'conditions.condition',
-            'spells.spell',
-            'spells.abilityScore',
-        ]);
-
-        // Apply search filter
-        if (isset($validated['search'])) {
-            $query->search($validated['search']);
-        }
-
-        // Apply size filter
-        if (isset($validated['size'])) {
-            $query->size($validated['size']);
-        }
-
-        // Filter by granted proficiency
-        if (isset($validated['grants_proficiency'])) {
-            $query->grantsProficiency($validated['grants_proficiency']);
-        }
-
-        // Filter by granted skill
-        if (isset($validated['grants_skill'])) {
-            $query->grantsSkill($validated['grants_skill']);
-        }
-
-        // Filter by proficiency type/category
-        if (isset($validated['grants_proficiency_type'])) {
-            $query->grantsProficiencyType($validated['grants_proficiency_type']);
-        }
-
-        // Filter by spoken language
-        if (isset($validated['speaks_language'])) {
-            $query->speaksLanguage($validated['speaks_language']);
-        }
-
-        // Filter by language choice count
-        if (isset($validated['language_choice_count'])) {
-            $query->languageChoiceCount((int) $validated['language_choice_count']);
-        }
-
-        // Filter entities granting any languages
-        if (isset($validated['grants_languages'])) {
-            if ((bool) $validated['grants_languages']) {
-                $query->grantsLanguages();
-            }
-        }
-
-        // Apply sorting
-        $sortBy = $validated['sort_by'] ?? 'name';
-        $sortDirection = $validated['sort_direction'] ?? 'asc';
-        $query->orderBy($sortBy, $sortDirection);
-
-        return $query;
     }
 
     /**

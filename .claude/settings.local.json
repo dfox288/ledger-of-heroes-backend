@@ -64,7 +64,9 @@
       "Bash(git branch:*)",
       "WebFetch(domain:scramble.dedoc.co)",
       "Bash(/tmp/race_header.php)",
-      "Skill(superpowers-laravel:controller-cleanup)"
+      "Skill(superpowers-laravel:controller-cleanup)",
+      "Bash(for endpoint in spells races items classes feats backgrounds)",
+      "Bash(do echo \"=== $endpoint ===\")"
     ],
     "deny": [],
     "ask": []

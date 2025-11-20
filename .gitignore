@@ -25,3 +25,6 @@ Thumbs.db
 
 # XML import files (D&D content - not for distribution)
 /import-files/
+
+# Claude Code local settings
+.claude/settings.local.json

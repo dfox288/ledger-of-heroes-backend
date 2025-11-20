@@ -18,6 +18,7 @@ class ClassLevelProgressionResource extends JsonResource
             'id' => $this->id,
             'level' => $this->level,
             'cantrips_known' => $this->cantrips_known,
+            'spells_known' => $this->spells_known,
             'spell_slots_1st' => $this->spell_slots_1st,
             'spell_slots_2nd' => $this->spell_slots_2nd,
             'spell_slots_3rd' => $this->spell_slots_3rd,

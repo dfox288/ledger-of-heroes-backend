@@ -465,4 +465,66 @@ class ClassApiTest extends TestCase
         $progression = $response->json('data.level_progression');
         $this->assertCount(2, $progression);
     }
+
+    #[Test]
+    public function it_includes_spells_known_in_level_progression()
+    {
+        $class = CharacterClass::factory()->spellcaster('CHA')->create([
+            'name' => 'Bard',
+            'slug' => 'bard',
+        ]);
+
+        // Known-spells caster (Bard) - has spells_known
+        ClassLevelProgression::factory()->create([
+            'class_id' => $class->id,
+            'level' => 1,
+            'cantrips_known' => 2,
+            'spell_slots_1st' => 2,
+            'spells_known' => 4,
+        ]);
+
+        ClassLevelProgression::factory()->create([
+            'class_id' => $class->id,
+            'level' => 5,
+            'cantrips_known' => 2,
+            'spell_slots_1st' => 4,
+            'spells_known' => 8,
+        ]);
+
+        $response = $this->getJson("/api/v1/classes/{$class->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'level_progression' => [
+                        '*' => ['id', 'level', 'cantrips_known', 'spells_known', 'spell_slots_1st'],
+                    ],
+                ],
+            ]);
+
+        $progression = $response->json('data.level_progression');
+        $this->assertCount(2, $progression);
+        $this->assertEquals(4, $progression[0]['spells_known']);
+        $this->assertEquals(8, $progression[1]['spells_known']);
+
+        // Test prepared caster (null spells_known)
+        $wizard = CharacterClass::factory()->spellcaster('INT')->create([
+            'name' => 'Wizard',
+            'slug' => 'wizard',
+        ]);
+
+        ClassLevelProgression::factory()->create([
+            'class_id' => $wizard->id,
+            'level' => 1,
+            'cantrips_known' => 3,
+            'spell_slots_1st' => 2,
+            'spells_known' => null, // Prepared casters don't track spells_known
+        ]);
+
+        $response = $this->getJson("/api/v1/classes/{$wizard->id}");
+
+        $response->assertStatus(200);
+        $progression = $response->json('data.level_progression');
+        $this->assertNull($progression[0]['spells_known']);
+    }
 }

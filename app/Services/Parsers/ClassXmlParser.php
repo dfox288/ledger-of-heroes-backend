@@ -282,6 +282,47 @@ class ClassXmlParser
 
                 $spellProgression[] = $progression;
             }
+
+            // Check for "Spells Known" counter
+            $spellsKnown = null;
+            foreach ($autolevel->counter as $counterElement) {
+                if ((string) $counterElement->name === 'Spells Known') {
+                    $spellsKnown = (int) $counterElement->value;
+                    break;
+                }
+            }
+
+            // If we found spells_known, merge it into existing progression or create new entry
+            if ($spellsKnown !== null) {
+                // Find existing progression entry for this level
+                $found = false;
+                foreach ($spellProgression as &$prog) {
+                    if ($prog['level'] === $level) {
+                        $prog['spells_known'] = $spellsKnown;
+                        $found = true;
+                        break;
+                    }
+                }
+                unset($prog);
+
+                // If no existing entry, create one with just spells_known
+                if (! $found) {
+                    $spellProgression[] = [
+                        'level' => $level,
+                        'cantrips_known' => 0,
+                        'spell_slots_1st' => 0,
+                        'spell_slots_2nd' => 0,
+                        'spell_slots_3rd' => 0,
+                        'spell_slots_4th' => 0,
+                        'spell_slots_5th' => 0,
+                        'spell_slots_6th' => 0,
+                        'spell_slots_7th' => 0,
+                        'spell_slots_8th' => 0,
+                        'spell_slots_9th' => 0,
+                        'spells_known' => $spellsKnown,
+                    ];
+                }
+            }
         }
 
         return $spellProgression;
@@ -303,6 +344,12 @@ class ClassXmlParser
             // Parse each counter within this autolevel
             foreach ($autolevel->counter as $counterElement) {
                 $name = (string) $counterElement->name;
+
+                // Skip "Spells Known" counters - they're handled in spell_progression
+                if ($name === 'Spells Known') {
+                    continue;
+                }
+
                 $value = (int) $counterElement->value;
 
                 // Parse reset timing

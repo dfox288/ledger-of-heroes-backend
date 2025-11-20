@@ -248,4 +248,43 @@ XML;
         $this->assertCount(2, $secondImport->proficiencies);
         $this->assertStringContainsString('New text', $secondImport->traits->first()->description);
     }
+
+    #[Test]
+    public function it_reconstructs_background_languages()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Acolyte</name>
+    <proficiency>Insight, Religion</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>You have spent your life in service to a temple.
+
+• Languages: Two extra languages
+
+Source: Player's Handbook (2014) p. 127</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($originalXml);
+        $background = $this->importer->import($backgrounds[0]);
+        $background->load(['languages']);
+
+        // Assert: Language choice slot created
+        $this->assertCount(2, $background->languages, 'Should have 2 language choice slots');
+
+        // Verify both are choice slots (language_id = null, is_choice = true)
+        foreach ($background->languages as $entityLang) {
+            $this->assertTrue($entityLang->is_choice, 'Should be marked as choice slot');
+            $this->assertNull($entityLang->language_id, 'Choice slot should not have language_id');
+        }
+
+        // Verify polymorphic relationship
+        $this->assertEquals(\App\Models\Background::class, $background->languages->first()->reference_type);
+        $this->assertEquals($background->id, $background->languages->first()->reference_id);
+    }
 }

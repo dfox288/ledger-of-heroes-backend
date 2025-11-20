@@ -120,6 +120,9 @@ XML;
         $this->assertNotNull($subrace->parent_race_id, 'Subrace should have parent');
         $this->assertEquals('Dwarf', $subrace->parent->name);
 
+        // Verify hierarchical slug generation
+        $this->assertEquals('dwarf-hill', $subrace->slug, 'Subrace should have hierarchical slug');
+
         $reconstructed = $this->reconstructRaceXml($subrace);
 
         // Verify name format includes subrace notation
@@ -376,6 +379,97 @@ XML;
         $this->assertEquals('Quirk B', $entries[1]->result_text);
         $this->assertEquals(3, $entries[2]->roll_min);
         $this->assertEquals('Quirk C', $entries[2]->result_text);
+    }
+
+    #[Test]
+    public function it_reconstructs_language_associations()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Elf</name>
+    <size>M</size>
+    <speed>30</speed>
+    <ability>Dex +2</ability>
+    <trait>
+      <name>Languages</name>
+      <text>You can speak, read, and write Common and Elvish.
+
+Source:	Player's Handbook (2014) p. 23</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $this->importer->importFromFile($this->createTempXmlFile($originalXml));
+
+        $race = Race::where('name', 'Elf')->with('languages.language')->first();
+        $this->assertNotNull($race, 'Race should be imported');
+
+        // Verify 2 EntityLanguage records created
+        $this->assertCount(2, $race->languages, 'Should have 2 fixed languages');
+
+        // Verify languages are Common and Elvish
+        $languageNames = $race->languages->pluck('language.name')->sort()->values();
+        $this->assertEquals('Common', $languageNames[0]);
+        $this->assertEquals('Elvish', $languageNames[1]);
+
+        // Verify these are fixed languages (not choice slots)
+        foreach ($race->languages as $entityLang) {
+            $this->assertFalse($entityLang->is_choice, 'Should be fixed language, not choice');
+            $this->assertNotNull($entityLang->language_id, 'Fixed language should have language_id');
+        }
+
+        // Verify polymorphic relationship
+        $this->assertEquals(Race::class, $race->languages->first()->reference_type);
+        $this->assertEquals($race->id, $race->languages->first()->reference_id);
+    }
+
+    #[Test]
+    public function it_reconstructs_language_choice_slots()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Half-Elf</name>
+    <size>M</size>
+    <speed>30</speed>
+    <ability>Cha +2</ability>
+    <trait>
+      <name>Languages</name>
+      <text>You can speak, read, and write Common, Elvish, and one extra language of your choice.
+
+Source:	Player's Handbook (2014) p. 39</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $this->importer->importFromFile($this->createTempXmlFile($originalXml));
+
+        $race = Race::where('name', 'Half-Elf')->with('languages.language')->first();
+        $this->assertNotNull($race, 'Race should be imported');
+
+        // Verify we have 3 language records (2 fixed + 1 choice)
+        $this->assertCount(3, $race->languages, 'Should have 2 fixed languages + 1 choice slot');
+
+        // Verify 2 fixed languages (Common, Elvish)
+        $fixedLanguages = $race->languages->where('is_choice', false);
+        $this->assertCount(2, $fixedLanguages, 'Should have 2 fixed languages');
+
+        $fixedNames = $fixedLanguages->pluck('language.name')->sort()->values();
+        $this->assertEquals('Common', $fixedNames[0]);
+        $this->assertEquals('Elvish', $fixedNames[1]);
+
+        // Verify 1 choice slot (language_id = null, is_choice = true)
+        $choiceSlots = $race->languages->where('is_choice', true);
+        $this->assertCount(1, $choiceSlots, 'Should have 1 choice slot');
+
+        $choiceSlot = $choiceSlots->first();
+        $this->assertNull($choiceSlot->language_id, 'Choice slot should not have language_id');
+        $this->assertTrue($choiceSlot->is_choice, 'Should be marked as choice');
     }
 
     /**

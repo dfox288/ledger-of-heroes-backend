@@ -307,8 +307,6 @@ XML;
     #[Test]
     public function it_reconstructs_item_with_modifiers()
     {
-        $this->markTestIncomplete('Modifier parsing edge case - needs investigation for "ranged attack" vs "ac" categorization');
-
         $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
@@ -567,5 +565,86 @@ XML;
 
         $table = $item->randomTables->first();
         $this->assertEquals('1d22', $table->dice_type);
+    }
+
+    #[Test]
+    public function it_reconstructs_strength_requirement_as_prerequisite()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Plate Armor</name>
+    <type>HA</type>
+    <weight>65</weight>
+    <value>1500.0</value>
+    <ac>18</ac>
+    <strength>15</strength>
+    <stealth>YES</stealth>
+    <text>Heavy armor that provides excellent protection.
+
+Proficiency: heavy armor
+
+Source: Player's Handbook (2014) p. 145</text>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify backward compatibility: strength_requirement column still populated
+        $this->assertEquals(15, $item->strength_requirement);
+
+        // Verify new prerequisite system
+        $item->load(['prerequisites.prerequisite']);
+        $this->assertCount(1, $item->prerequisites);
+
+        $prerequisite = $item->prerequisites->first();
+        $this->assertEquals(\App\Models\Item::class, $prerequisite->reference_type);
+        $this->assertEquals($item->id, $prerequisite->reference_id);
+        $this->assertEquals(\App\Models\AbilityScore::class, $prerequisite->prerequisite_type);
+        $this->assertEquals(15, $prerequisite->minimum_value);
+        $this->assertEquals(1, $prerequisite->group_id);
+        $this->assertNull($prerequisite->description);
+
+        // Verify the prerequisite points to the Strength ability score
+        $this->assertNotNull($prerequisite->prerequisite);
+        $this->assertEquals('STR', $prerequisite->prerequisite->code);
+        $this->assertEquals('Strength', $prerequisite->prerequisite->name);
+    }
+
+    #[Test]
+    public function it_handles_items_without_strength_requirement()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Leather Armor</name>
+    <type>LA</type>
+    <weight>10</weight>
+    <value>10.0</value>
+    <ac>11</ac>
+    <text>Light armor with no special requirements.
+
+Proficiency: light armor
+
+Source: Player's Handbook (2014) p. 144</text>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify no strength requirement
+        $this->assertNull($item->strength_requirement);
+
+        // Verify no prerequisites created
+        $item->load('prerequisites');
+        $this->assertCount(0, $item->prerequisites);
     }
 }

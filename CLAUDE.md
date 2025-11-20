@@ -6,21 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Laravel 12.x application that imports D&D 5th Edition content from XML files and provides a RESTful API for accessing the data. The XML files follow the compendium format used by applications like Fight Club 5e and similar D&D companion apps.
 
-**Current Status (2025-11-20):**
+**Current Status (2025-11-20 - Evening Session):**
 - ✅ **60 migrations** - Complete database schema with slug system + languages + prerequisites + spells_known
 - ✅ **23 Eloquent models** - All with HasFactory trait
 - ✅ **12 model factories** - Test data generation
 - ✅ **12 database seeders** - Lookup/reference data (including 30 languages)
-- ✅ **24 API Resources** - Standardized and 100% field-complete
-- ✅ **17 API Controllers** - 6 entity + 11 lookup endpoints (with PHPDoc documentation)
+- ✅ **25 API Resources** - Standardized and 100% field-complete (includes SearchResource)
+- ✅ **17 API Controllers** - 6 entity + 11 lookup endpoints (all properly documented)
 - ✅ **26 Form Request classes** - Full validation layer with Scramble OpenAPI integration
-- ✅ **733 tests passing** (4,603 assertions) - 100% pass rate ⭐
+- ✅ **738 tests passing** (4,637 assertions) - 100% pass rate ⭐
 - ✅ **6 importers working** - Spells, Races, Items, Backgrounds, Classes (with spells_known), Feats
 - ✅ **6 artisan commands** - `import:spells`, `import:races`, `import:items`, `import:backgrounds`, `import:classes`, `import:feats`
 - ✅ **Slug system complete** - Dual ID/slug routing for all entities
 - ✅ **12 reusable traits** - Parser + Importer traits for DRY code
 - ✅ **Class enhancements** - Spells Known tracking + Proficiency Choice metadata
-- ✅ **OpenAPI documentation** - Auto-generated via Scramble (298KB spec)
+- ✅ **OpenAPI documentation** - Auto-generated via Scramble (306KB spec) - All 17 controllers ✅
+- ✅ **Scramble documentation system** - Automated tests validate OpenAPI spec generation
 - ✅ **Search system complete** - Laravel Scout + Meilisearch (3,002 documents indexed, typo-tolerant)
 - ⚠️  **1 importer pending** - Monsters (7 bestiary files ready)
 
@@ -487,6 +488,54 @@ All entities can cite multiple sourcebooks via `entity_sources` polymorphic tabl
 - Sorting: `?sort_by=name&sort_direction=asc`
 - CORS enabled
 
+## OpenAPI Documentation (Scramble)
+
+**Automatic API Documentation via Scramble:**
+
+The API is automatically documented using [Scramble](https://scramble.dedoc.co/), which generates OpenAPI 3.0 specifications by analyzing Laravel code.
+
+### How It Works
+- **Route Analysis:** Scans all `/api/*` routes
+- **Form Request Validation:** Infers request parameters from validation rules
+- **Resource Inference:** Analyzes API Resources to document response schemas
+- **Type Detection:** Uses PHP types and docblocks for accurate schemas
+
+### Accessing Documentation
+- **Interactive UI:** `http://localhost:8080/docs/api` (Stoplight Elements)
+- **OpenAPI JSON:** `http://localhost:8080/docs/api.json` or `api.json` file (306KB)
+- **Export Command:** `php artisan scramble:export`
+
+### Best Practices for Scramble
+
+✅ **DO:**
+- Use API Resources for all responses (`return XResource::collection($items)`)
+- Use Form Requests for validation (rules auto-document parameters)
+- Use PHP native types for properties and return values
+- Let Scramble infer from code (it's smarter than manual annotations)
+
+❌ **DON'T:**
+- Use `@response` annotations (they block Scramble's inference!)
+- Manually construct JSON with `response()->json(['data' => ...])`
+- Return plain arrays from controllers
+- Mix manual and automatic documentation
+
+### Automated Testing
+5 tests in `tests/Feature/ScrambleDocumentationTest.php` validate:
+- Valid OpenAPI 3.0 specification structure
+- All endpoints properly documented
+- Response schemas correctly generated
+- Component schemas properly referenced
+
+**Run tests:** `php artisan test --filter=ScrambleDocumentationTest`
+
+### Troubleshooting
+If Scramble isn't generating correct docs:
+1. Ensure controller returns an API Resource (not plain JSON)
+2. Remove any `@response` annotations
+3. Check Form Request validation rules are complete
+4. Run tests to identify specific issues
+5. Regenerate: `php artisan scramble:export`
+
 ## XML Import System
 
 ### Working Importers
@@ -527,12 +576,13 @@ These are **intentional** design decisions:
 ## Testing
 
 **Test Statistics:**
-- **393 tests** (2,551 assertions) - 100% pass rate
-- **2 incomplete tests** (expected edge cases documented)
-- **Test Duration:** ~3.6 seconds
-- Feature tests for API, importers, models, migrations
+- **738 tests** (4,637 assertions) - 100% pass rate ⭐
+- **1 incomplete test** (expected edge case documented)
+- **Test Duration:** ~24 seconds
+- Feature tests for API, importers, models, migrations, Scramble documentation
 - Unit tests for parsers, factories, services
 - **XML reconstruction tests** verify import completeness (~90-95% coverage)
+- **Scramble documentation tests** (5 tests) validate OpenAPI spec generation
 
 **Running Tests:**
 ```bash

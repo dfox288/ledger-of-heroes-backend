@@ -1,8 +1,8 @@
 # D&D 5e XML Importer - Project Status
 
-**Last Updated:** 2025-11-20
+**Last Updated:** 2025-11-20 (Evening Session)
 **Branch:** `main` (all features merged)
-**Status:** ✅ Production Ready - Form Requests + Class Enhancements Complete
+**Status:** ✅ Production Ready - Scramble Documentation Complete
 
 ---
 
@@ -12,18 +12,60 @@
 - ✅ **23 Eloquent models** - All with HasFactory trait
 - ✅ **12 model factories** - Test data generation
 - ✅ **12 database seeders** - Lookup/reference data (30 languages)
-- ✅ **24 API Resources** - Standardized, 100% field-complete
-- ✅ **17 API Controllers** - 6 entity + 11 lookup endpoints (with PHPDoc docs)
+- ✅ **25 API Resources** - Standardized, 100% field-complete (includes SearchResource)
+- ✅ **17 API Controllers** - All properly documented for Scramble
 - ✅ **26 Form Request classes** - Full validation layer with Scramble integration
-- ✅ **658 tests passing** - 3,881 assertions, **100% pass rate** ⭐
+- ✅ **738 tests passing** - 4,637 assertions, **100% pass rate** ⭐
 - ✅ **6 importers working** - Spells, Races, Items, Backgrounds, Classes (enhanced), Feats
 - ✅ **12 reusable traits** - Parser + Importer code reuse (DRY)
-- ✅ **OpenAPI 3.1.0 spec** - Auto-generated via Scramble (298KB)
+- ✅ **OpenAPI 3.0 spec** - Auto-generated via Scramble (306KB) - Fully validated ✅
+- ✅ **Scramble Documentation** - Automated tests validate OpenAPI generation
 - ✅ **Dual ID/Slug routing** - API supports both `/spells/123` and `/spells/fireball`
 
 ---
 
-## What's New (2025-11-20)
+## What's New (2025-11-20 Evening)
+
+### Scramble Documentation System ✅ COMPLETE
+**Problem:** Three controllers had incorrect `@response` annotations blocking Scramble inference. SearchController manually constructed JSON preventing proper documentation. Additionally, a controller refactoring bug caused 71 test failures.
+
+**Solutions Implemented:**
+1. **Fixed Controller Regression (71 tests failing)**
+   - Fixed helper methods in Race, Background, Class, Feat controllers
+   - Changed methods to return query builders (not wrapped resources)
+   - All 733 baseline tests restored ✅
+
+2. **Removed Blocking Annotations**
+   - Removed incorrect `@response` annotations from Feat, Class, Background controllers
+   - Allowed Scramble to infer from `Resource::collection()` return statements
+   - Tests validate correct OpenAPI generation
+
+3. **Created SearchResource**
+   - New `app/Http/Resources/SearchResource.php` for global search
+   - Wraps multi-entity search results with proper typing
+   - Enables complete OpenAPI documentation for search endpoint
+
+4. **Automated Testing**
+   - 5 new tests in `ScrambleDocumentationTest.php`
+   - Validates OpenAPI structure, endpoint schemas, component references
+   - Prevents future documentation regressions
+
+**Results:**
+- ✅ All 17 controllers now properly documented
+- ✅ OpenAPI spec regenerated (306KB, was 287KB)
+- ✅ 738 tests passing (4,637 assertions)
+- ✅ Automated quality gates for Scramble
+
+**Commits:**
+- `a82f871` - Fix controller regression (71 test failures)
+- `d04becd` - Add Scramble tests (TDD RED)
+- `0470188` - Remove incorrect annotations (TDD GREEN)
+- `2d45690` - Add SearchResource
+- `5f7b811` - Regenerate OpenAPI docs
+
+---
+
+## What's New (2025-11-20 Morning)
 
 ### Form Request Layer ✅ COMPLETE
 **26 Form Request classes** providing validation, type safety, and OpenAPI documentation:
@@ -151,16 +193,17 @@ All database tables, relationships, and Eloquent models are complete and tested.
 - OpenAPI 3.1.0 documentation via Scramble
 
 ### Testing ✅
-- **658 tests** (3,881 assertions) with **100% pass rate** ⭐
+- **738 tests** (4,637 assertions) with **100% pass rate** ⭐
 - **0 failing tests**
 - **Test Coverage:**
+  - 5 Scramble documentation validation tests (NEW)
   - 145 Form Request validation tests
   - Feature tests for API endpoints, importers, models, migrations
   - Unit tests for parsers, factories, services, traits
   - XML reconstruction tests verify import completeness (~90%)
   - Migration tests, model relationship tests
 - **PHPUnit 11+ compatible** (PHP 8 attributes)
-- **Test Duration:** ~8 seconds
+- **Test Duration:** ~24 seconds
 
 ---
 
@@ -193,11 +236,11 @@ All database tables, relationships, and Eloquent models are complete and tested.
 ## Key Design Documents
 
 **Essential Reading:**
-- `CLAUDE.md` - Comprehensive project guide (UPDATED 2025-11-20)
-- `docs/active/SESSION-HANDOVER-2025-11-21-COMPLETE.md` - Latest session details
-- `docs/active/SESSION-HANDOVER-2025-11-20-PHASE-3-COMPLETE.md` - Class importer completion
+- `CLAUDE.md` - Comprehensive project guide (UPDATED 2025-11-20 Evening)
+- `docs/active/SESSION-HANDOVER-2025-11-20-SCRAMBLE-FIXES.md` - Latest session (Scramble docs)
+- `docs/active/SESSION-HANDOVER-2025-11-21-COMPLETE.md` - Class importer session
 - `docs/plans/2025-11-17-dnd-compendium-database-design.md` - Database architecture
-- `docs/plans/2025-11-20-class-importer-enhancements.md` - Class enhancements plan
+- `docs/SEARCH.md` - Scout + Meilisearch documentation
 
 ---
 
@@ -205,10 +248,11 @@ All database tables, relationships, and Eloquent models are complete and tested.
 
 ### Running Tests
 ```bash
-docker compose exec php php artisan test                    # All 658 tests
-docker compose exec php php artisan test --filter=Api       # API tests
-docker compose exec php php artisan test --filter=Request   # Request validation tests
-docker compose exec php php artisan test --filter=Importer  # Importer tests
+docker compose exec php php artisan test                           # All 738 tests
+docker compose exec php php artisan test --filter=Api              # API tests
+docker compose exec php php artisan test --filter=Request          # Request validation tests
+docker compose exec php php artisan test --filter=Importer         # Importer tests
+docker compose exec php php artisan test --filter=Scramble         # Scramble documentation tests
 ```
 
 ### Database Operations

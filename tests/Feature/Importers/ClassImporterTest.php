@@ -339,4 +339,56 @@ class ClassImporterTest extends TestCase
             ->count();
         $this->assertEquals(0, $spellsKnownCounter, 'Should not have Spells Known counter - it belongs in spell_progression');
     }
+
+    #[Test]
+    public function it_imports_skill_proficiencies_as_choices_when_num_skills_present()
+    {
+        // Parse the Fighter XML (has numSkills)
+        $xmlPath = base_path('import-files/class-fighter-phb.xml');
+        $xmlContent = file_get_contents($xmlPath);
+        $parser = new ClassXmlParser;
+        $classes = $parser->parse($xmlContent);
+        $fighterData = $classes[0];
+
+        // Import the Fighter class
+        $fighter = $this->importer->import($fighterData);
+
+        // Get all proficiencies
+        $proficiencies = $fighter->proficiencies;
+        $this->assertGreaterThan(0, $proficiencies->count());
+
+        // Get skill proficiencies
+        $skills = $proficiencies->where('proficiency_type', 'skill');
+        $this->assertGreaterThan(0, $skills->count(), 'Should have skill proficiencies');
+
+        // All skills should be marked as choices with quantity=2
+        foreach ($skills as $skill) {
+            $this->assertTrue((bool) $skill->is_choice, "Skill {$skill->proficiency_name} should be marked as choice");
+            $this->assertEquals(2, $skill->quantity, "Skill {$skill->proficiency_name} should have quantity=2");
+        }
+
+        // Saving throws should NOT be choices
+        $savingThrows = $proficiencies->where('proficiency_type', 'saving_throw');
+        $this->assertCount(2, $savingThrows);
+
+        foreach ($savingThrows as $save) {
+            $this->assertFalse((bool) $save->is_choice, "Saving throw {$save->proficiency_name} should not be choice");
+        }
+
+        // Armor proficiencies should NOT be choices
+        $armor = $proficiencies->where('proficiency_type', 'armor');
+        $this->assertGreaterThan(0, $armor->count());
+
+        foreach ($armor as $armorProf) {
+            $this->assertFalse((bool) $armorProf->is_choice, "Armor {$armorProf->proficiency_name} should not be choice");
+        }
+
+        // Weapon proficiencies should NOT be choices
+        $weapons = $proficiencies->where('proficiency_type', 'weapon');
+        $this->assertGreaterThan(0, $weapons->count());
+
+        foreach ($weapons as $weapon) {
+            $this->assertFalse((bool) $weapon->is_choice, "Weapon {$weapon->proficiency_name} should not be choice");
+        }
+    }
 }

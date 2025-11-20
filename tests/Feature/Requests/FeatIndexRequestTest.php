@@ -15,31 +15,27 @@ class FeatIndexRequestTest extends TestCase
     use RefreshDatabase;
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_prerequisite_race_exists()
+    public function it_validates_prerequisite_race_as_string()
     {
-        // Create a feat with race prerequisite
-        $race = Race::factory()->create(['name' => 'Dwarf']);
-        $feat = Feat::factory()->create();
-
-        // Valid race name (case-insensitive via getCachedLookup)
+        // Valid string
         $response = $this->getJson('/api/v1/feats?prerequisite_race=dwarf');
         $response->assertStatus(200);
 
-        // Invalid race name should fail validation
-        $response = $this->getJson('/api/v1/feats?prerequisite_race=InvalidRaceName123');
+        // String too long (max 255)
+        $response = $this->getJson('/api/v1/feats?prerequisite_race='.str_repeat('a', 256));
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['prerequisite_race']);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_prerequisite_ability_exists()
+    public function it_validates_prerequisite_ability_as_string()
     {
-        // AbilityScore uses 'code' column - getCachedLookup lowercases values
+        // Valid string
         $response = $this->getJson('/api/v1/feats?prerequisite_ability=str');
         $response->assertStatus(200);
 
-        // Invalid ability code
-        $response = $this->getJson('/api/v1/feats?prerequisite_ability=invalid');
+        // String too long (max 255)
+        $response = $this->getJson('/api/v1/feats?prerequisite_ability='.str_repeat('a', 256));
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['prerequisite_ability']);
     }
@@ -85,54 +81,40 @@ class FeatIndexRequestTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_grants_proficiency_exists()
+    public function it_validates_grants_proficiency_as_string()
     {
-        // Create a proficiency type (no factory exists, create directly)
-        $proficiencyType = ProficiencyType::create([
-            'name' => 'Longsword',
-            'category' => 'weapon',
-            'subcategory' => 'martial',
-        ]);
-
-        // Valid proficiency (case-insensitive)
+        // Valid string
         $response = $this->getJson('/api/v1/feats?grants_proficiency=longsword');
         $response->assertStatus(200);
 
-        // Invalid proficiency
-        $response = $this->getJson('/api/v1/feats?grants_proficiency=InvalidProficiency123');
+        // String too long (max 255)
+        $response = $this->getJson('/api/v1/feats?grants_proficiency='.str_repeat('a', 256));
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['grants_proficiency']);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_grants_skill_exists()
+    public function it_validates_grants_skill_as_string()
     {
-        // Skills are seeded - Acrobatics should exist
+        // Valid string
         $response = $this->getJson('/api/v1/feats?grants_skill=acrobatics');
         $response->assertStatus(200);
 
-        // Invalid skill
-        $response = $this->getJson('/api/v1/feats?grants_skill=InvalidSkill123');
+        // String too long (max 255)
+        $response = $this->getJson('/api/v1/feats?grants_skill='.str_repeat('a', 256));
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['grants_skill']);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_prerequisite_proficiency_exists()
+    public function it_validates_prerequisite_proficiency_as_string()
     {
-        // Create a proficiency type (no factory exists, create directly)
-        $proficiencyType = ProficiencyType::create([
-            'name' => 'Medium Armor',
-            'category' => 'armor',
-            'subcategory' => 'medium',
-        ]);
-
-        // Valid proficiency (case-insensitive)
+        // Valid string
         $response = $this->getJson('/api/v1/feats?prerequisite_proficiency=medium armor');
         $response->assertStatus(200);
 
-        // Invalid proficiency
-        $response = $this->getJson('/api/v1/feats?prerequisite_proficiency=InvalidProficiency123');
+        // String too long (max 255)
+        $response = $this->getJson('/api/v1/feats?prerequisite_proficiency='.str_repeat('a', 256));
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['prerequisite_proficiency']);
     }

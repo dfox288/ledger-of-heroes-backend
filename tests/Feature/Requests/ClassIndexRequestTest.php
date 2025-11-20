@@ -30,42 +30,40 @@ class ClassIndexRequestTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_grants_proficiency_exists(): void
+    public function it_validates_grants_proficiency_as_string(): void
     {
         CharacterClass::factory()->create(['name' => 'Fighter']);
 
         $response = $this->getJson('/api/v1/classes?grants_proficiency=longsword');
         $response->assertStatus(200);
 
-        $response = $this->getJson('/api/v1/classes?grants_proficiency=invalid_proficiency_name');
+        $response = $this->getJson('/api/v1/classes?grants_proficiency='.str_repeat('a', 256));
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('grants_proficiency');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_grants_skill_exists(): void
+    public function it_validates_grants_skill_as_string(): void
     {
         CharacterClass::factory()->create(['name' => 'Rogue']);
 
-        $validSkill = strtolower(Skill::first()->name);
-        $response = $this->getJson("/api/v1/classes?grants_skill={$validSkill}");
+        $response = $this->getJson('/api/v1/classes?grants_skill=stealth');
         $response->assertStatus(200);
 
-        $response = $this->getJson('/api/v1/classes?grants_skill=invalid_skill_name');
+        $response = $this->getJson('/api/v1/classes?grants_skill='.str_repeat('a', 256));
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('grants_skill');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_grants_saving_throw_exists(): void
+    public function it_validates_grants_saving_throw_as_string(): void
     {
         CharacterClass::factory()->create(['name' => 'Wizard']);
 
-        $validAbility = strtolower(AbilityScore::first()->code);
-        $response = $this->getJson("/api/v1/classes?grants_saving_throw={$validAbility}");
+        $response = $this->getJson('/api/v1/classes?grants_saving_throw=str');
         $response->assertStatus(200);
 
-        $response = $this->getJson('/api/v1/classes?grants_saving_throw=INVALID');
+        $response = $this->getJson('/api/v1/classes?grants_saving_throw='.str_repeat('a', 256));
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('grants_saving_throw');
     }

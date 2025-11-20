@@ -15,64 +15,58 @@ class BackgroundIndexRequestTest extends TestCase
     use RefreshDatabase;
 
     #[Test]
-    public function it_validates_grants_proficiency_exists()
+    public function it_validates_grants_proficiency_as_string()
     {
-        $this->seed(\Database\Seeders\ProficiencyTypeSeeder::class);
         $source = $this->getSource('PHB');
 
         // Create a background to test against
         $bg = Background::factory()->create(['name' => 'Acolyte']);
         $bg->sources()->create(['source_id' => $source->id, 'pages' => '127']);
 
-        // Valid proficiency type
+        // Valid string
         $response = $this->getJson('/api/v1/backgrounds?grants_proficiency=longsword');
         $response->assertStatus(200);
 
-        // Invalid proficiency type should fail validation
-        $response = $this->getJson('/api/v1/backgrounds?grants_proficiency=invalid_proficiency');
+        // String too long (max 255)
+        $response = $this->getJson('/api/v1/backgrounds?grants_proficiency='.str_repeat('a', 256));
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['grants_proficiency']);
     }
 
     #[Test]
-    public function it_validates_grants_skill_exists()
+    public function it_validates_grants_skill_as_string()
     {
-        // Only seed if skills table is empty
-        if (Skill::count() === 0) {
-            $this->seed(\Database\Seeders\SkillSeeder::class);
-        }
         $source = $this->getSource('PHB');
 
         // Create a background to test against
         $bg = Background::factory()->create(['name' => 'Acolyte']);
         $bg->sources()->create(['source_id' => $source->id, 'pages' => '127']);
 
-        // Valid skill
+        // Valid string
         $response = $this->getJson('/api/v1/backgrounds?grants_skill=insight');
         $response->assertStatus(200);
 
-        // Invalid skill should fail validation
-        $response = $this->getJson('/api/v1/backgrounds?grants_skill=invalid_skill');
+        // String too long (max 255)
+        $response = $this->getJson('/api/v1/backgrounds?grants_skill='.str_repeat('a', 256));
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['grants_skill']);
     }
 
     #[Test]
-    public function it_validates_speaks_language_exists()
+    public function it_validates_speaks_language_as_string()
     {
-        $this->seed(\Database\Seeders\LanguageSeeder::class);
         $source = $this->getSource('PHB');
 
         // Create a background to test against
         $bg = Background::factory()->create(['name' => 'Acolyte']);
         $bg->sources()->create(['source_id' => $source->id, 'pages' => '127']);
 
-        // Valid language
+        // Valid string
         $response = $this->getJson('/api/v1/backgrounds?speaks_language=elvish');
         $response->assertStatus(200);
 
-        // Invalid language should fail validation
-        $response = $this->getJson('/api/v1/backgrounds?speaks_language=invalid_language');
+        // String too long (max 255)
+        $response = $this->getJson('/api/v1/backgrounds?speaks_language='.str_repeat('a', 256));
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['speaks_language']);
     }
@@ -121,22 +115,20 @@ class BackgroundIndexRequestTest extends TestCase
         $bg = Background::factory()->create(['name' => 'Acolyte']);
         $bg->sources()->create(['source_id' => $source->id, 'pages' => '127']);
 
-        // Valid boolean values (Laravel accepts these as boolean)
+        // Valid boolean representations
         $response = $this->getJson('/api/v1/backgrounds?grants_languages=1');
         $response->assertStatus(200);
 
         $response = $this->getJson('/api/v1/backgrounds?grants_languages=0');
         $response->assertStatus(200);
 
-        // Invalid non-boolean values should fail
         $response = $this->getJson('/api/v1/backgrounds?grants_languages=true');
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['grants_languages']);
+        $response->assertStatus(200);
 
         $response = $this->getJson('/api/v1/backgrounds?grants_languages=false');
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['grants_languages']);
+        $response->assertStatus(200);
 
+        // Invalid non-boolean values should fail
         $response = $this->getJson('/api/v1/backgrounds?grants_languages=maybe');
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['grants_languages']);

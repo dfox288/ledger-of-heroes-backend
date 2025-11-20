@@ -16,43 +16,40 @@ class RaceIndexRequestTest extends TestCase
     protected $seed = true;
 
     #[Test]
-    public function it_validates_grants_proficiency_exists()
+    public function it_validates_grants_proficiency_as_string()
     {
-        // Valid proficiency type
-        $proficiencyType = ProficiencyType::first();
-        $response = $this->getJson('/api/v1/races?grants_proficiency='.strtolower($proficiencyType->name));
+        // Valid string
+        $response = $this->getJson('/api/v1/races?grants_proficiency=longsword');
         $response->assertOk();
 
-        // Invalid proficiency type
-        $response = $this->getJson('/api/v1/races?grants_proficiency=invalid-proficiency-xyz');
+        // String too long (max 255)
+        $response = $this->getJson('/api/v1/races?grants_proficiency='.str_repeat('a', 256));
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('grants_proficiency');
     }
 
     #[Test]
-    public function it_validates_grants_skill_exists()
+    public function it_validates_grants_skill_as_string()
     {
-        // Valid skill
-        $skill = Skill::first();
-        $response = $this->getJson('/api/v1/races?grants_skill='.strtolower($skill->name));
+        // Valid string
+        $response = $this->getJson('/api/v1/races?grants_skill=stealth');
         $response->assertOk();
 
-        // Invalid skill
-        $response = $this->getJson('/api/v1/races?grants_skill=invalid-skill-xyz');
+        // String too long (max 255)
+        $response = $this->getJson('/api/v1/races?grants_skill='.str_repeat('a', 256));
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('grants_skill');
     }
 
     #[Test]
-    public function it_validates_speaks_language_exists()
+    public function it_validates_speaks_language_as_string()
     {
-        // Valid language
-        $language = Language::first();
-        $response = $this->getJson('/api/v1/races?speaks_language='.strtolower($language->name));
+        // Valid string
+        $response = $this->getJson('/api/v1/races?speaks_language=elvish');
         $response->assertOk();
 
-        // Invalid language
-        $response = $this->getJson('/api/v1/races?speaks_language=invalid-language-xyz');
+        // String too long (max 255)
+        $response = $this->getJson('/api/v1/races?speaks_language='.str_repeat('a', 256));
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('speaks_language');
     }

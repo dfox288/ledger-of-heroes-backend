@@ -48,6 +48,10 @@ class ConfigureMeilisearchIndexes extends Command
             $configurator->configureRacesIndex();
             $this->info('✓ Races index configured successfully');
 
+            $this->info('Configuring classes index...');
+            $configurator->configureClassesIndex();
+            $this->info('✓ Classes index configured successfully');
+
             $this->newLine();
             $this->info('All indexes configured successfully!');
 

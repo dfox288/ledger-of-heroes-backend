@@ -98,4 +98,32 @@ class MeilisearchIndexConfigurator
             'speed',
         ]);
     }
+
+    public function configureClassesIndex(): void
+    {
+        $index = $this->client->index('classes');
+
+        // Searchable attributes
+        $index->updateSearchableAttributes([
+            'name',
+            'description',
+            'primary_ability',
+            'sources',
+            'parent_class_name',
+        ]);
+
+        // Filterable attributes
+        $index->updateFilterableAttributes([
+            'hit_die',
+            'spellcasting_ability',
+            'source_codes',
+            'is_subclass',
+        ]);
+
+        // Sortable attributes
+        $index->updateSortableAttributes([
+            'name',
+            'hit_die',
+        ]);
+    }
 }

@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Laravel\Scout\Searchable;
 
 class CharacterClass extends Model
 {
-    use HasFactory;
+    use HasFactory, Searchable;
 
     public $timestamps = false;
 
@@ -130,5 +131,33 @@ class CharacterClass extends Model
                     ->orWhere('name', 'LIKE', "%{$categoryOrName}%");
             });
         });
+    }
+
+    // Scout Searchable Methods
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'hit_die' => $this->hit_die,
+            'description' => $this->description,
+            'primary_ability' => $this->primary_ability,
+            'spellcasting_ability' => $this->spellcastingAbility?->code,
+            'sources' => $this->sources->pluck('source.name')->unique()->values()->all(),
+            'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
+            'is_subclass' => $this->parent_class_id !== null,
+            'parent_class_name' => $this->parentClass?->name,
+        ];
+    }
+
+    public function searchableWith(): array
+    {
+        return ['sources.source', 'parentClass', 'spellcastingAbility'];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'classes';
     }
 }

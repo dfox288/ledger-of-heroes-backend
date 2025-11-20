@@ -154,6 +154,7 @@ class ClassImporter
                 'spell_slots_7th' => $levelData['spell_slots_7th'],
                 'spell_slots_8th' => $levelData['spell_slots_8th'],
                 'spell_slots_9th' => $levelData['spell_slots_9th'],
+                'spells_known' => $levelData['spells_known'] ?? null,
             ]);
         }
     }

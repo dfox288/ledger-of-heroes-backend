@@ -27,6 +27,7 @@ class ClassLevelProgression extends Model
         'spell_slots_7th',
         'spell_slots_8th',
         'spell_slots_9th',
+        'spells_known',
     ];
 
     protected $casts = [
@@ -42,6 +43,7 @@ class ClassLevelProgression extends Model
         'spell_slots_7th' => 'integer',
         'spell_slots_8th' => 'integer',
         'spell_slots_9th' => 'integer',
+        'spells_known' => 'integer',
     ];
 
     // Relationships

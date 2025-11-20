@@ -299,4 +299,44 @@ class ClassImporterTest extends TestCase
         // Verify we can query all subclasses from parent
         $this->assertEquals(3, $fighter->subclasses()->count());
     }
+
+    #[Test]
+    public function it_imports_spells_known_into_spell_progression()
+    {
+        // Parse the Bard XML (known-spells caster)
+        $xmlPath = base_path('import-files/class-bard-phb.xml');
+        $xmlContent = file_get_contents($xmlPath);
+        $parser = new ClassXmlParser;
+        $classes = $parser->parse($xmlContent);
+        $bardData = $classes[0];
+
+        // Import the Bard class
+        $bard = $this->importer->import($bardData);
+
+        // Assert spell progression imported
+        $this->assertGreaterThan(0, $bard->levelProgression()->count());
+
+        // Check level 1 progression - should have spells_known
+        $level1 = $bard->levelProgression()->where('level', 1)->first();
+        $this->assertNotNull($level1);
+        $this->assertEquals(4, $level1->spells_known, 'Level 1 should have 4 spells known');
+        $this->assertEquals(2, $level1->cantrips_known);
+        $this->assertEquals(2, $level1->spell_slots_1st);
+
+        // Check level 5 progression
+        $level5 = $bard->levelProgression()->where('level', 5)->first();
+        $this->assertNotNull($level5);
+        $this->assertEquals(8, $level5->spells_known, 'Level 5 should have 8 spells known');
+
+        // Check level 10 progression
+        $level10 = $bard->levelProgression()->where('level', 10)->first();
+        $this->assertNotNull($level10);
+        $this->assertEquals(14, $level10->spells_known, 'Level 10 should have 14 spells known');
+
+        // Verify NO "Spells Known" counter exists (it should be in progression, not counters)
+        $spellsKnownCounter = $bard->counters()
+            ->where('counter_name', 'Spells Known')
+            ->count();
+        $this->assertEquals(0, $spellsKnownCounter, 'Should not have Spells Known counter - it belongs in spell_progression');
+    }
 }

@@ -9,22 +9,19 @@ use App\Models\Language;
 use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Models\Race;
-use App\Models\RandomTable;
-use App\Models\RandomTableEntry;
 use App\Models\Size;
 use App\Models\Skill;
 use App\Models\Source;
 use App\Services\Importers\Concerns\ImportsProficiencies;
+use App\Services\Importers\Concerns\ImportsRandomTables;
 use App\Services\Importers\Concerns\ImportsSources;
 use App\Services\Importers\Concerns\ImportsTraits;
-use App\Services\Parsers\ItemTableDetector;
-use App\Services\Parsers\ItemTableParser;
 use App\Services\Parsers\RaceXmlParser;
 use Illuminate\Support\Str;
 
 class RaceImporter
 {
-    use ImportsProficiencies, ImportsSources, ImportsTraits;
+    use ImportsProficiencies, ImportsRandomTables, ImportsSources, ImportsTraits;
 
     private array $createdBaseRaces = [];
 
@@ -148,43 +145,6 @@ class RaceImporter
 
             // Check for embedded tables in trait description
             $this->importTraitTables($trait, $traitData['description']);
-        }
-    }
-
-    private function importTraitTables(\App\Models\CharacterTrait $trait, string $description): void
-    {
-        // Detect tables in trait description
-        $detector = new ItemTableDetector;
-        $tables = $detector->detectTables($description);
-
-        if (empty($tables)) {
-            return;
-        }
-
-        foreach ($tables as $tableData) {
-            $parser = new ItemTableParser;
-            $parsed = $parser->parse($tableData['text'], $tableData['dice_type'] ?? null);
-
-            if (empty($parsed['rows'])) {
-                continue; // Skip tables with no valid rows
-            }
-
-            $table = RandomTable::create([
-                'reference_type' => \App\Models\CharacterTrait::class,
-                'reference_id' => $trait->id,
-                'table_name' => $parsed['table_name'],
-                'dice_type' => $parsed['dice_type'],
-            ]);
-
-            foreach ($parsed['rows'] as $index => $row) {
-                RandomTableEntry::create([
-                    'random_table_id' => $table->id,
-                    'roll_min' => $row['roll_min'],
-                    'roll_max' => $row['roll_max'],
-                    'result_text' => $row['result_text'],
-                    'sort_order' => $index,
-                ]);
-            }
         }
     }
 

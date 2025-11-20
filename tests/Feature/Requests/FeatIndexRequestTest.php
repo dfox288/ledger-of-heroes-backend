@@ -47,17 +47,17 @@ class FeatIndexRequestTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_min_value_range()
     {
-        // Valid min_value
-        $response = $this->getJson('/api/v1/feats?prerequisite_ability=STR&min_value=13');
+        // Valid min_value (use lowercase for ability code)
+        $response = $this->getJson('/api/v1/feats?prerequisite_ability=str&min_value=13');
         $response->assertStatus(200);
 
         // min_value too low
-        $response = $this->getJson('/api/v1/feats?prerequisite_ability=STR&min_value=0');
+        $response = $this->getJson('/api/v1/feats?prerequisite_ability=str&min_value=0');
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['min_value']);
 
         // min_value too high
-        $response = $this->getJson('/api/v1/feats?prerequisite_ability=STR&min_value=50');
+        $response = $this->getJson('/api/v1/feats?prerequisite_ability=str&min_value=50');
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['min_value']);
     }

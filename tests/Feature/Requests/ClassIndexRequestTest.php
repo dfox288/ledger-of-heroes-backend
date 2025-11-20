@@ -4,6 +4,7 @@ namespace Tests\Feature\Requests;
 
 use App\Models\AbilityScore;
 use App\Models\CharacterClass;
+use App\Models\ProficiencyType;
 use App\Models\Skill;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -19,6 +20,9 @@ class ClassIndexRequestTest extends TestCase
         // Only seed if database is empty
         if (AbilityScore::count() === 0) {
             $this->seed(\Database\Seeders\AbilityScoreSeeder::class);
+        }
+        if (ProficiencyType::count() === 0) {
+            $this->seed(\Database\Seeders\ProficiencyTypeSeeder::class);
         }
         if (Skill::count() === 0) {
             $this->seed(\Database\Seeders\SkillSeeder::class);

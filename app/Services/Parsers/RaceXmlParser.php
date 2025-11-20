@@ -5,11 +5,12 @@ namespace App\Services\Parsers;
 use App\Services\Parsers\Concerns\MatchesLanguages;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
+use App\Services\Parsers\Concerns\ParsesTraits;
 use SimpleXMLElement;
 
 class RaceXmlParser
 {
-    use MatchesLanguages, MatchesProficiencyTypes, ParsesSourceCitations;
+    use MatchesLanguages, MatchesProficiencyTypes, ParsesSourceCitations, ParsesTraits;
 
     public function parse(string $xmlContent): array
     {
@@ -41,7 +42,7 @@ class RaceXmlParser
         }
 
         // Parse traits
-        $traits = $this->parseTraits($element);
+        $traits = $this->parseTraitElements($element);
 
         // Extract sources from first description trait using shared trait
         $sources = [];
@@ -103,40 +104,21 @@ class RaceXmlParser
         ];
     }
 
-    private function parseTraits(SimpleXMLElement $element): array
+    /**
+     * Parse roll elements from XML (temporary implementation).
+     * Will be replaced by ParsesRolls trait in next task.
+     */
+    protected function parseRollElements(SimpleXMLElement $element): array
     {
-        $traits = [];
-        $sortOrder = 0;
-
-        foreach ($element->trait as $traitElement) {
-            $category = isset($traitElement['category']) ? (string) $traitElement['category'] : null;
-            $name = (string) $traitElement->name;
-            $text = (string) $traitElement->text;
-
-            // Parse rolls within this trait
-            $rolls = [];
-            foreach ($traitElement->roll as $rollElement) {
-                $description = isset($rollElement['description']) ? (string) $rollElement['description'] : null;
-                $level = isset($rollElement['level']) ? (int) $rollElement['level'] : null;
-                $formula = (string) $rollElement;
-
-                $rolls[] = [
-                    'description' => $description,
-                    'formula' => $formula,
-                    'level' => $level,
-                ];
-            }
-
-            $traits[] = [
-                'name' => $name,
-                'category' => $category,
-                'description' => trim($text),
-                'rolls' => $rolls,
-                'sort_order' => $sortOrder++,
+        $rolls = [];
+        foreach ($element->roll as $rollElement) {
+            $rolls[] = [
+                'description' => isset($rollElement['description']) ? (string) $rollElement['description'] : null,
+                'formula' => (string) $rollElement,
+                'level' => isset($rollElement['level']) ? (int) $rollElement['level'] : null,
             ];
         }
-
-        return $traits;
+        return $rolls;
     }
 
     private function parseAbilityBonuses(SimpleXMLElement $element): array

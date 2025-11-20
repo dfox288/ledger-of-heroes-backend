@@ -12,6 +12,18 @@ use App\Models\CharacterClass;
 
 class ClassController extends Controller
 {
+    /**
+     * List all character classes with optional filters
+     *
+     * @queryParam grants_proficiency string Filter by granted proficiency type (e.g., "longsword", "light armor")
+     * @queryParam grants_skill string Filter by granted skill (e.g., "stealth", "perception")
+     * @queryParam grants_saving_throw string Filter by granted saving throw (e.g., "dex", "wis")
+     * @queryParam search string Search by name (max 255 characters)
+     * @queryParam sort_by string Sort by field (name, hit_die, created_at, updated_at)
+     * @queryParam sort_direction string Sort direction (asc, desc)
+     * @queryParam per_page integer Items per page (1-100, default 15)
+     * @queryParam page integer Page number (min 1)
+     */
     public function index(ClassIndexRequest $request)
     {
         $validated = $request->validated();

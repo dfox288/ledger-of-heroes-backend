@@ -10,6 +10,20 @@ use App\Models\Background;
 
 class BackgroundController extends Controller
 {
+    /**
+     * List all backgrounds with optional filters
+     *
+     * @queryParam grants_proficiency string Filter by granted proficiency type (e.g., "longsword", "light armor")
+     * @queryParam grants_skill string Filter by granted skill (e.g., "stealth", "perception")
+     * @queryParam speaks_language string Filter by spoken language (e.g., "elvish", "dwarvish")
+     * @queryParam language_choice_count integer Filter by number of language choices (0-10)
+     * @queryParam grants_languages boolean Filter backgrounds that grant any languages
+     * @queryParam search string Search by name (max 255 characters)
+     * @queryParam sort_by string Sort by field (name, created_at, updated_at)
+     * @queryParam sort_direction string Sort direction (asc, desc)
+     * @queryParam per_page integer Items per page (1-100, default 15)
+     * @queryParam page integer Page number (min 1)
+     */
     public function index(BackgroundIndexRequest $request)
     {
         $validated = $request->validated();

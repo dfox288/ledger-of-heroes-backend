@@ -229,6 +229,7 @@
         "/v1/backgrounds": {
             "get": {
                 "operationId": "backgrounds.index",
+                "summary": "List all backgrounds with optional filters",
                 "tags": [
                     "Background"
                 ],
@@ -486,6 +487,7 @@
         "/v1/classes": {
             "get": {
                 "operationId": "classes.index",
+                "summary": "List all character classes with optional filters",
                 "tags": [
                     "Class"
                 ],
@@ -1439,6 +1441,7 @@
         "/v1/feats": {
             "get": {
                 "operationId": "feats.index",
+                "summary": "List all feats with optional filters",
                 "tags": [
                     "Feat"
                 ],
@@ -2950,6 +2953,7 @@
         "/v1/races": {
             "get": {
                 "operationId": "races.index",
+                "summary": "List all races with optional filters",
                 "tags": [
                     "Race"
                 ],

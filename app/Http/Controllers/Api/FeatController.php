@@ -10,6 +10,22 @@ use App\Models\Feat;
 
 class FeatController extends Controller
 {
+    /**
+     * List all feats with optional filters
+     *
+     * @queryParam prerequisite_race string Filter by prerequisite race (e.g., "dwarf", "elf")
+     * @queryParam prerequisite_ability string Filter by prerequisite ability (e.g., "str", "dex")
+     * @queryParam min_value integer Minimum ability score value for prerequisite (1-30)
+     * @queryParam prerequisite_proficiency string Filter by prerequisite proficiency (e.g., "medium armor")
+     * @queryParam has_prerequisites boolean Filter feats with/without prerequisites
+     * @queryParam grants_proficiency string Filter by granted proficiency type
+     * @queryParam grants_skill string Filter by granted skill
+     * @queryParam search string Search by name (max 255 characters)
+     * @queryParam sort_by string Sort by field (name, created_at, updated_at)
+     * @queryParam sort_direction string Sort direction (asc, desc)
+     * @queryParam per_page integer Items per page (1-100, default 15)
+     * @queryParam page integer Page number (min 1)
+     */
     public function index(FeatIndexRequest $request)
     {
         $validated = $request->validated();

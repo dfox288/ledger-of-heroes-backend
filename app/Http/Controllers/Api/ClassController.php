@@ -9,6 +9,7 @@ use App\Http\Requests\ClassSpellListRequest;
 use App\Http\Resources\ClassResource;
 use App\Http\Resources\SpellResource;
 use App\Models\CharacterClass;
+use Illuminate\Support\Facades\Log;
 
 class ClassController extends Controller
 {
@@ -23,6 +24,109 @@ class ClassController extends Controller
     {
         $validated = $request->validated();
 
+        // Handle Scout search if 'q' parameter is provided
+        if ($request->filled('q')) {
+            return $this->searchClasses($request, $validated);
+        }
+
+        // Standard database query for listing/filtering
+        return $this->listClasses($validated);
+    }
+
+    /**
+     * Search classes using Scout/Meilisearch
+     */
+    protected function searchClasses(ClassIndexRequest $request, array $validated)
+    {
+        try {
+            $perPage = $validated['per_page'] ?? 15;
+            $search = CharacterClass::search($validated['q']);
+
+            // Paginate search results
+            $classes = $search->paginate($perPage);
+
+            return ClassResource::collection($classes);
+        } catch (\Exception $e) {
+            // Log the failure and fall back to MySQL
+            Log::warning('Meilisearch search failed, falling back to MySQL', [
+                'query' => $validated['q'] ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->fallbackSearch($validated);
+        }
+    }
+
+    /**
+     * Fallback to MySQL FULLTEXT search when Meilisearch is unavailable
+     */
+    protected function fallbackSearch(array $validated)
+    {
+        $query = CharacterClass::with([
+            'spellcastingAbility',
+            'proficiencies.proficiencyType',
+            'traits',
+            'sources.source',
+            'features',
+            'levelProgression',
+            'counters',
+            'subclasses.features',
+            'subclasses.counters',
+        ]);
+
+        // MySQL FULLTEXT search
+        if (isset($validated['q'])) {
+            $search = $validated['q'];
+            $query->whereRaw(
+                'MATCH(name, description) AGAINST(? IN NATURAL LANGUAGE MODE)',
+                [$search]
+            );
+        }
+
+        // Apply base_only filter (show only base classes, no subclasses)
+        if (isset($validated['base_only']) && $validated['base_only']) {
+            $query->whereNull('parent_class_id');
+        }
+
+        // Filter by granted proficiency
+        if (isset($validated['grants_proficiency'])) {
+            $query->grantsProficiency($validated['grants_proficiency']);
+        }
+
+        // Filter by granted skill
+        if (isset($validated['grants_skill'])) {
+            $query->grantsSkill($validated['grants_skill']);
+        }
+
+        // Filter by saving throw proficiency
+        if (isset($validated['grants_saving_throw'])) {
+            $abilityName = $validated['grants_saving_throw'];
+            $query->whereHas('proficiencies', function ($q) use ($abilityName) {
+                $q->where('proficiency_type', 'saving_throw')
+                    ->whereHas('abilityScore', function ($abilityQuery) use ($abilityName) {
+                        $abilityQuery->where('code', strtoupper($abilityName))
+                            ->orWhere('name', 'LIKE', "%{$abilityName}%");
+                    });
+            });
+        }
+
+        // Apply sorting
+        $sortBy = $validated['sort_by'] ?? 'name';
+        $sortDirection = $validated['sort_direction'] ?? 'asc';
+        $query->orderBy($sortBy, $sortDirection);
+
+        // Paginate
+        $perPage = $validated['per_page'] ?? 15;
+        $classes = $query->paginate($perPage);
+
+        return ClassResource::collection($classes);
+    }
+
+    /**
+     * Standard database listing with filters (no search)
+     */
+    protected function listClasses(array $validated)
+    {
         $query = CharacterClass::with([
             'spellcastingAbility',
             'proficiencies.proficiencyType',

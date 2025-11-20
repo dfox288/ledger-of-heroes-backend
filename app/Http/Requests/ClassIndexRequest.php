@@ -10,6 +10,9 @@ class ClassIndexRequest extends BaseIndexRequest
     protected function entityRules(): array
     {
         return [
+            // Search query (Scout/Meilisearch)
+            'q' => ['sometimes', 'string', 'min:2', 'max:255'],
+
             'base_only' => ['sometimes', 'boolean'],
             'grants_proficiency' => ['sometimes', 'string', 'max:255'],
             'grants_skill' => ['sometimes', 'string', 'max:255'],

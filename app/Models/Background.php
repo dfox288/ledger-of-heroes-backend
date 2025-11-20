@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Laravel\Scout\Searchable;
 
 class Background extends Model
 {
-    use HasFactory;
+    use HasFactory, Searchable;
 
     public $timestamps = false;
 
@@ -125,5 +126,27 @@ class Background extends Model
     public function scopeGrantsLanguages($query)
     {
         return $query->has('languages');
+    }
+
+    // Scout Searchable Methods
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'sources' => $this->sources->pluck('source.name')->unique()->values()->all(),
+            'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
+        ];
+    }
+
+    public function searchableWith(): array
+    {
+        return ['sources.source'];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'backgrounds';
     }
 }

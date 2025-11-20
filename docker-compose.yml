@@ -44,10 +44,33 @@ services:
       - dnd_network
     command: --default-authentication-plugin=mysql_native_password
 
+  # Meilisearch Service
+  meilisearch:
+    image: 'getmeili/meilisearch:v1.10'
+    container_name: dnd_importer_meilisearch
+    ports:
+      - '${FORWARD_MEILISEARCH_PORT:-7700}:7700'
+    environment:
+      MEILI_MASTER_KEY: '${MEILISEARCH_KEY:-masterKey}'
+      MEILI_NO_ANALYTICS: '${MEILI_NO_ANALYTICS:-true}'
+      MEILI_ENV: '${MEILI_ENV:-development}'
+      MEILI_LOG_LEVEL: INFO
+      MEILI_DB_PATH: /meili_data
+    volumes:
+      - 'meilisearch_data:/meili_data'
+    networks:
+      - dnd_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--spider", "http://localhost:7700/health"]
+      retries: 3
+      timeout: 5s
+
 networks:
   dnd_network:
     driver: bridge
 
 volumes:
   mysql_data:
+    driver: local
+  meilisearch_data:
     driver: local

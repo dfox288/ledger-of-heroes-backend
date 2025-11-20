@@ -7,6 +7,7 @@ use App\Http\Requests\RaceIndexRequest;
 use App\Http\Requests\RaceShowRequest;
 use App\Http\Resources\RaceResource;
 use App\Models\Race;
+use Illuminate\Support\Facades\Log;
 
 class RaceController extends Controller
 {
@@ -21,6 +22,113 @@ class RaceController extends Controller
     {
         $validated = $request->validated();
 
+        // Handle Scout search if 'q' parameter is provided
+        if ($request->filled('q')) {
+            return $this->searchRaces($request, $validated);
+        }
+
+        // Standard database query for listing/filtering
+        return $this->listRaces($validated);
+    }
+
+    /**
+     * Search races using Scout/Meilisearch
+     */
+    protected function searchRaces(RaceIndexRequest $request, array $validated)
+    {
+        try {
+            $perPage = $validated['per_page'] ?? 15;
+            $search = Race::search($validated['q']);
+
+            // Apply filters using Scout's where() method
+            if (isset($validated['size'])) {
+                $search->where('size_id', $validated['size']);
+            }
+
+            // Paginate search results
+            $races = $search->paginate($perPage);
+
+            return RaceResource::collection($races);
+        } catch (\Exception $e) {
+            // Log the failure and fall back to MySQL
+            Log::warning('Meilisearch search failed, falling back to MySQL', [
+                'query' => $validated['q'] ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->fallbackSearch($validated);
+        }
+    }
+
+    /**
+     * Fallback to MySQL FULLTEXT search when Meilisearch is unavailable
+     */
+    protected function fallbackSearch(array $validated)
+    {
+        $query = Race::with([
+            'size',
+            'sources.source',
+            'proficiencies.skill',
+            'traits.randomTables.entries',
+            'modifiers.abilityScore',
+            'conditions.condition',
+            'spells.spell',
+            'spells.abilityScore',
+        ]);
+
+        // Search by name
+        if (isset($validated['q'])) {
+            $query->where('name', 'LIKE', '%'.$validated['q'].'%');
+        }
+
+        // Apply filters
+        if (isset($validated['size'])) {
+            $query->size($validated['size']);
+        }
+
+        if (isset($validated['grants_proficiency'])) {
+            $query->grantsProficiency($validated['grants_proficiency']);
+        }
+
+        if (isset($validated['grants_skill'])) {
+            $query->grantsSkill($validated['grants_skill']);
+        }
+
+        if (isset($validated['grants_proficiency_type'])) {
+            $query->grantsProficiencyType($validated['grants_proficiency_type']);
+        }
+
+        if (isset($validated['speaks_language'])) {
+            $query->speaksLanguage($validated['speaks_language']);
+        }
+
+        if (isset($validated['language_choice_count'])) {
+            $query->languageChoiceCount((int) $validated['language_choice_count']);
+        }
+
+        if (isset($validated['grants_languages'])) {
+            if ((bool) $validated['grants_languages']) {
+                $query->grantsLanguages();
+            }
+        }
+
+        // Apply sorting
+        $sortBy = $validated['sort_by'] ?? 'name';
+        $sortDirection = $validated['sort_direction'] ?? 'asc';
+        $query->orderBy($sortBy, $sortDirection);
+
+        // Paginate
+        $perPage = $validated['per_page'] ?? 15;
+        $races = $query->paginate($perPage);
+
+        return RaceResource::collection($races);
+    }
+
+    /**
+     * Standard database listing with filters (no search)
+     */
+    protected function listRaces(array $validated)
+    {
         $query = Race::with([
             'size',
             'sources.source',
@@ -69,7 +177,7 @@ class RaceController extends Controller
 
         // Filter entities granting any languages
         if (isset($validated['grants_languages'])) {
-            if ($request->boolean('grants_languages')) {
+            if ((bool) $validated['grants_languages']) {
                 $query->grantsLanguages();
             }
         }

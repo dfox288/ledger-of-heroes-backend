@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Laravel\Scout\Searchable;
 
 class Item extends Model
 {
     use HasFactory;
+    use Searchable;
 
     protected $fillable = [
         'name',
@@ -121,5 +123,55 @@ class Item extends Model
             $q->whereNotNull('strength_requirement')
                 ->orHas('prerequisites');
         });
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     */
+    public function toSearchableArray(): array
+    {
+        // Load relationships to avoid N+1 queries
+        $this->loadMissing(['itemType', 'sources.source', 'damageType']);
+
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'type_name' => $this->itemType?->name,
+            'type_code' => $this->itemType?->code,
+            'description' => $this->description,
+            'rarity' => $this->rarity,
+            'requires_attunement' => $this->requires_attunement,
+            'is_magic' => $this->is_magic,
+            'weight' => $this->weight,
+            'cost_cp' => $this->cost_cp,
+            'sources' => $this->sources->pluck('source.name')->all(),
+            'source_codes' => $this->sources->pluck('source.code')->all(),
+            // Weapon-specific
+            'damage_dice' => $this->damage_dice,
+            'damage_type' => $this->damageType?->name,
+            'range_normal' => $this->range_normal,
+            'range_long' => $this->range_long,
+            // Armor-specific
+            'armor_class' => $this->armor_class,
+            'strength_requirement' => $this->strength_requirement,
+            'stealth_disadvantage' => $this->stealth_disadvantage,
+        ];
+    }
+
+    /**
+     * Get the relationships that should be eager loaded for search.
+     */
+    public function searchableWith(): array
+    {
+        return ['itemType', 'sources.source', 'damageType'];
+    }
+
+    /**
+     * Get the name of the index associated with the model.
+     */
+    public function searchableAs(): string
+    {
+        return 'items';
     }
 }

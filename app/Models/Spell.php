@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Laravel\Scout\Searchable;
 
 class Spell extends Model
 {
-    use HasFactory;
+    use HasFactory, Searchable;
 
     public $timestamps = false;
 
@@ -93,5 +94,53 @@ class Spell extends Model
             $q->where('name', 'LIKE', "%{$searchTerm}%")
                 ->orWhere('description', 'LIKE', "%{$searchTerm}%");
         });
+    }
+
+    // Scout Search Configuration
+
+    /**
+     * Get the indexable data array for the model.
+     */
+    public function toSearchableArray(): array
+    {
+        // Load relationships to avoid N+1 queries
+        $this->loadMissing(['spellSchool', 'sources.source', 'classes']);
+
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'level' => $this->level,
+            'school_name' => $this->spellSchool?->name,
+            'school_code' => $this->spellSchool?->code,
+            'casting_time' => $this->casting_time,
+            'range' => $this->range,
+            'components' => $this->components,
+            'duration' => $this->duration,
+            'concentration' => $this->needs_concentration,
+            'ritual' => $this->is_ritual,
+            'description' => $this->description,
+            'at_higher_levels' => $this->higher_levels,
+            'sources' => $this->sources->pluck('source.name')->all(),
+            'source_codes' => $this->sources->pluck('source.code')->all(),
+            'classes' => $this->classes->pluck('name')->all(),
+            'class_slugs' => $this->classes->pluck('slug')->all(),
+        ];
+    }
+
+    /**
+     * Get the relationships that should be eager loaded for search.
+     */
+    public function searchableWith(): array
+    {
+        return ['spellSchool', 'sources', 'classes'];
+    }
+
+    /**
+     * Get the name of the index associated with the model.
+     */
+    public function searchableAs(): string
+    {
+        return 'spells';
     }
 }

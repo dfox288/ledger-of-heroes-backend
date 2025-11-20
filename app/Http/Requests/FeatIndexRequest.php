@@ -14,6 +14,9 @@ class FeatIndexRequest extends BaseIndexRequest
     protected function entityRules(): array
     {
         return [
+            // Search query (Scout/Meilisearch)
+            'q' => ['sometimes', 'string', 'min:2', 'max:255'],
+
             // Filter by prerequisite race
             'prerequisite_race' => ['sometimes', 'string', 'max:255'],
 

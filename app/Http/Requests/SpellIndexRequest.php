@@ -12,6 +12,9 @@ class SpellIndexRequest extends BaseIndexRequest
     protected function entityRules(): array
     {
         return [
+            // Search query (Scout/Meilisearch)
+            'q' => ['sometimes', 'string', 'min:2', 'max:255'],
+
             // Spell-specific filters
             'level' => ['sometimes', 'integer', 'min:0', 'max:9'],
             'school' => ['sometimes', 'integer', 'exists:spell_schools,id'],

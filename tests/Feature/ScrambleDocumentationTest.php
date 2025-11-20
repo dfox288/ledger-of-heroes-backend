@@ -94,6 +94,12 @@ class ScrambleDocumentationTest extends TestCase
         $successResponse = $getOperation['responses']['200'];
         $schema = $successResponse['content']['application/json']['schema'];
 
+        // Handle $ref to component schema
+        if (isset($schema['$ref'])) {
+            $refPath = str_replace('#/components/schemas/', '', $schema['$ref']);
+            $schema = $spec['components']['schemas'][$refPath];
+        }
+
         // Verify structure includes data and meta
         $this->assertArrayHasKey('properties', $schema);
         $this->assertArrayHasKey('data', $schema['properties']);

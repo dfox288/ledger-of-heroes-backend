@@ -110,17 +110,13 @@ class ClassController extends Controller
         $sortDirection = $validated['sort_direction'] ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
-        // Paginate
-        $perPage = $validated['per_page'] ?? 15;
-        $classes = $query->paginate($perPage);
-
-        return ClassResource::collection($classes);
+        return $query->paginate($perPage);
     }
 
     /**
-     * Standard database listing with filters (no search)
+     * Build standard database query with filters
      */
-    protected function listClasses(array $validated)
+    protected function buildStandardQuery(array $validated)
     {
         $query = CharacterClass::with([
             'spellcastingAbility',
@@ -171,11 +167,7 @@ class ClassController extends Controller
         $sortDirection = $validated['sort_direction'] ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
-        // Paginate
-        $perPage = $validated['per_page'] ?? 15;
-        $classes = $query->paginate($perPage);
-
-        return ClassResource::collection($classes);
+        return $query;
     }
 
     /**

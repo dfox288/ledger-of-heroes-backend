@@ -111,11 +111,7 @@ class RaceController extends Controller
         $sortDirection = $validated['sort_direction'] ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
-        // Paginate
-        $perPage = $validated['per_page'] ?? 15;
-        $races = $query->paginate($perPage);
-
-        return RaceResource::collection($races);
+        return $query->paginate($perPage);
     }
 
     /**
@@ -181,11 +177,7 @@ class RaceController extends Controller
         $sortDirection = $validated['sort_direction'] ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
-        // Paginate
-        $perPage = $validated['per_page'] ?? 15;
-        $races = $query->paginate($perPage);
-
-        return RaceResource::collection($races);
+        return $query;
     }
 
     /**

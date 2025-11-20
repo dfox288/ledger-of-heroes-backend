@@ -103,11 +103,7 @@ class FeatController extends Controller
         $sortDirection = $validated['sort_direction'] ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
-        // Paginate
-        $perPage = $validated['per_page'] ?? 15;
-        $feats = $query->paginate($perPage);
-
-        return FeatResource::collection($feats);
+        return $query->paginate($perPage);
     }
 
     /**
@@ -159,11 +155,7 @@ class FeatController extends Controller
         $sortDirection = $validated['sort_direction'] ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
-        // Paginate
-        $perPage = $validated['per_page'] ?? 15;
-        $feats = $query->paginate($perPage);
-
-        return FeatResource::collection($feats);
+        return $query;
     }
 
     /**

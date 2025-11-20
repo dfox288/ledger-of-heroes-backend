@@ -61,7 +61,9 @@
       "Bash(do echo -n \"$index: \" curl -s \"http://localhost:7700/indexes/$index/stats\" -H \"Authorization: Bearer masterKey\")",
       "Bash(jq:*)",
       "Bash(time curl:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "WebFetch(domain:scramble.dedoc.co)",
+      "Bash(/tmp/race_header.php)"
     ],
     "deny": [],
     "ask": []

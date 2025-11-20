@@ -94,11 +94,7 @@ class BackgroundController extends Controller
         $sortDirection = $validated['sort_direction'] ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
-        // Paginate
-        $perPage = $validated['per_page'] ?? 15;
-        $backgrounds = $query->paginate($perPage);
-
-        return BackgroundResource::collection($backgrounds);
+        return $query->paginate($perPage);
     }
 
     /**
@@ -145,11 +141,7 @@ class BackgroundController extends Controller
         $sortDirection = $validated['sort_direction'] ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
-        // Paginate
-        $perPage = $validated['per_page'] ?? 15;
-        $backgrounds = $query->paginate($perPage);
-
-        return BackgroundResource::collection($backgrounds);
+        return $query;
     }
 
     /**

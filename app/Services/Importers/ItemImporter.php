@@ -15,15 +15,12 @@ use App\Models\Proficiency;
 use App\Models\RandomTable;
 use App\Models\RandomTableEntry;
 use App\Models\Source;
-use App\Services\Importers\Concerns\GeneratesSlugs;
 use App\Services\Parsers\ItemTableDetector;
 use App\Services\Parsers\ItemTableParser;
 use App\Services\Parsers\ItemXmlParser;
 
-class ItemImporter
+class ItemImporter extends BaseImporter
 {
-    use GeneratesSlugs;
-
     private array $itemTypeCache = [];
 
     private array $damageTypeCache = [];
@@ -32,7 +29,7 @@ class ItemImporter
 
     private array $sourceCache = [];
 
-    public function import(array $itemData): Item
+    protected function importEntity(array $itemData): Item
     {
         // Lookup foreign keys
         $itemTypeId = $this->getItemTypeId($itemData['type_code']);

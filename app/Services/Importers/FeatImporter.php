@@ -8,55 +8,48 @@ use App\Models\EntityPrerequisite;
 use App\Models\Feat;
 use App\Models\Modifier;
 use App\Models\Proficiency;
-use App\Services\Importers\Concerns\GeneratesSlugs;
-use App\Services\Importers\Concerns\ImportsSources;
 use App\Services\Parsers\FeatXmlParser;
-use Illuminate\Support\Facades\DB;
 
-class FeatImporter
+class FeatImporter extends BaseImporter
 {
-    use GeneratesSlugs, ImportsSources;
-
     /**
      * Import a feat from parsed data.
      */
-    public function import(array $data): Feat
+    protected function importEntity(array $data): Feat
     {
-        return DB::transaction(function () use ($data) {
-            // 1. Upsert feat using slug as unique key
-            $feat = Feat::updateOrCreate(
-                ['slug' => $this->generateSlug($data['name'])],
-                [
-                    'name' => $data['name'],
-                    'prerequisites_text' => $data['prerequisites'] ?? null,
-                    'description' => $data['description'],
-                ]
-            );
+        // 1. Upsert feat using slug as unique key
+        $feat = Feat::updateOrCreate(
+            ['slug' => $this->generateSlug($data['name'])],
+            [
+                'name' => $data['name'],
+                'prerequisites_text' => $data['prerequisites'] ?? null,
+                'description' => $data['description'],
+            ]
+        );
 
-            // 2. Clear existing polymorphic relationships
-            $feat->modifiers()->delete();
-            $feat->proficiencies()->delete();
-            $feat->prerequisites()->delete();
-            $feat->sources()->delete();
-            $feat->conditions()->delete();
+        // 2. Clear existing polymorphic relationships
+        $feat->modifiers()->delete();
+        $feat->proficiencies()->delete();
+        $feat->prerequisites()->delete();
+        $feat->sources()->delete();
+        $feat->conditions()->delete();
 
-            // 3. Import modifiers
-            $this->importModifiers($feat, $data['modifiers'] ?? []);
+        // 3. Import modifiers
+        $this->importModifiers($feat, $data['modifiers'] ?? []);
 
-            // 4. Import proficiencies
-            $this->importProficiencies($feat, $data['proficiencies'] ?? []);
+        // 4. Import proficiencies
+        $this->importProficiencies($feat, $data['proficiencies'] ?? []);
 
-            // 5. Import prerequisites (structured from parsed text)
-            $this->importPrerequisites($feat, $data['prerequisites'] ?? null);
+        // 5. Import prerequisites (structured from parsed text)
+        $this->importPrerequisites($feat, $data['prerequisites'] ?? null);
 
-            // 6. Import conditions (advantages/disadvantages)
-            $this->importConditions($feat, $data['conditions'] ?? []);
+        // 6. Import conditions (advantages/disadvantages)
+        $this->importConditions($feat, $data['conditions'] ?? []);
 
-            // 7. Import sources using trait
-            $this->importEntitySources($feat, $data['sources'] ?? []);
+        // 7. Import sources using trait
+        $this->importEntitySources($feat, $data['sources'] ?? []);
 
-            return $feat;
-        });
+        return $feat;
     }
 
     /**

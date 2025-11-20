@@ -12,21 +12,14 @@ use App\Models\Race;
 use App\Models\Size;
 use App\Models\Skill;
 use App\Models\Source;
-use App\Services\Importers\Concerns\GeneratesSlugs;
-use App\Services\Importers\Concerns\ImportsProficiencies;
-use App\Services\Importers\Concerns\ImportsRandomTables;
-use App\Services\Importers\Concerns\ImportsSources;
-use App\Services\Importers\Concerns\ImportsTraits;
 use App\Services\Parsers\RaceXmlParser;
 use Illuminate\Support\Str;
 
-class RaceImporter
+class RaceImporter extends BaseImporter
 {
-    use GeneratesSlugs, ImportsProficiencies, ImportsRandomTables, ImportsSources, ImportsTraits;
-
     private array $createdBaseRaces = [];
 
-    public function import(array $raceData): Race
+    protected function importEntity(array $raceData): Race
     {
         // Lookup size by code
         $size = Size::where('code', $raceData['size_code'])->firstOrFail();
@@ -100,7 +93,7 @@ class RaceImporter
         }
 
         // Import random tables from trait rolls (also links traits to tables)
-        $this->importRandomTablesFromTraits($createdTraits, $raceData['traits'] ?? []);
+        $this->importRandomTablesFromRolls($createdTraits, $raceData['traits'] ?? []);
 
         return $race;
     }
@@ -314,7 +307,7 @@ class RaceImporter
         }
     }
 
-    private function importRandomTablesFromTraits(array $createdTraits, array $traitsData): void
+    private function importRandomTablesFromRolls(array $createdTraits, array $traitsData): void
     {
         foreach ($traitsData as $index => $traitData) {
             if (empty($traitData['rolls'])) {

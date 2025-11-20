@@ -5,15 +5,11 @@ namespace App\Services\Importers;
 use App\Models\CharacterClass;
 use App\Models\Spell;
 use App\Models\SpellSchool;
-use App\Services\Importers\Concerns\GeneratesSlugs;
-use App\Services\Importers\Concerns\ImportsSources;
 use App\Services\Parsers\SpellXmlParser;
 
-class SpellImporter
+class SpellImporter extends BaseImporter
 {
-    use GeneratesSlugs, ImportsSources;
-
-    public function import(array $spellData): Spell
+    protected function importEntity(array $spellData): Spell
     {
         // Lookup spell school by code
         $spellSchool = SpellSchool::where('code', $spellData['school'])->firstOrFail();

@@ -14,6 +14,9 @@ class BackgroundIndexRequest extends BaseIndexRequest
     protected function entityRules(): array
     {
         return [
+            // Search query (Scout/Meilisearch)
+            'q' => ['sometimes', 'string', 'min:2', 'max:255'],
+
             // Filter by granted proficiency
             'grants_proficiency' => ['sometimes', 'string', 'max:255'],
 

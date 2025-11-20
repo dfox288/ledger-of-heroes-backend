@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\ItemTypeController;
 use App\Http\Controllers\Api\LanguageController;
 use App\Http\Controllers\Api\ProficiencyTypeController;
 use App\Http\Controllers\Api\RaceController;
+use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\SizeController;
 use App\Http\Controllers\Api\SkillController;
 use App\Http\Controllers\Api\SourceController;
@@ -20,6 +21,9 @@ use App\Http\Controllers\Api\SpellSchoolController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    // Global search
+    Route::get('/search', SearchController::class)->name('search');
+
     // Lookup tables
     Route::apiResource('sources', SourceController::class)->only(['index', 'show']);
     Route::apiResource('spell-schools', SpellSchoolController::class)->only(['index', 'show']);

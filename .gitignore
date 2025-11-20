@@ -23,5 +23,5 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 
-# XML import files
-/import-files/*.xml
+# XML import files (D&D content - not for distribution)
+/import-files/

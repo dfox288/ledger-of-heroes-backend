@@ -3,7 +3,7 @@
 namespace App\Services\Parsers;
 
 use App\Models\Language;
-use App\Models\Skill;
+use App\Services\Parsers\Concerns\LookupsGameEntities;
 use App\Services\Parsers\Concerns\MatchesLanguages;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
@@ -11,7 +11,7 @@ use SimpleXMLElement;
 
 class BackgroundXmlParser
 {
-    use MatchesLanguages, MatchesProficiencyTypes, ParsesSourceCitations;
+    use LookupsGameEntities, MatchesLanguages, MatchesProficiencyTypes, ParsesSourceCitations;
 
     public function parse(string $xmlContent): array
     {
@@ -70,18 +70,7 @@ class BackgroundXmlParser
         return $profs;
     }
 
-    private function lookupSkillId(string $name): ?int
-    {
-        try {
-            // Query skills table for matching skill
-            $skill = Skill::where('name', $name)->first();
-
-            return $skill?->id;
-        } catch (\Exception $e) {
-            // If database isn't available (unit tests), return null
-            return null;
-        }
-    }
+    // Removed lookupSkillId() - now using LookupsGameEntities trait
 
     private function parseTraits($traits): array
     {

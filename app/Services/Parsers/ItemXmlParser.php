@@ -2,12 +2,14 @@
 
 namespace App\Services\Parsers;
 
+use App\Services\Parsers\Concerns\LookupsGameEntities;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use SimpleXMLElement;
 
 class ItemXmlParser
 {
+    use LookupsGameEntities;
     use MatchesProficiencyTypes;
     use ParsesSourceCitations;
 
@@ -219,51 +221,60 @@ class ItemXmlParser
         return $result;
     }
 
+    /**
+     * Match ability score by fuzzy text search.
+     * First tries exact lookup, then falls back to contains matching.
+     */
     private function matchAbilityScore(string $text): ?int
     {
-        static $abilities = null;
-
-        if ($abilities === null) {
-            try {
-                $abilities = \App\Models\AbilityScore::all()
-                    ->keyBy(fn ($a) => strtolower($a->name))
-                    ->mapWithKeys(fn ($a, $k) => [
-                        $k => $a->id,
-                        strtolower($a->code) => $a->id,
-                    ]);
-            } catch (\Exception $e) {
-                $abilities = collect();
-            }
+        // Try exact match first (common case)
+        $exactMatch = $this->lookupAbilityScoreId($text);
+        if ($exactMatch !== null) {
+            return $exactMatch;
         }
 
-        $text = strtolower($text);
-        foreach ($abilities as $key => $id) {
-            if (str_contains($text, $key)) {
-                return $id;
+        // Fall back to fuzzy matching (e.g., "Strength save" contains "strength")
+        try {
+            $text = strtolower($text);
+            $abilities = \App\Models\AbilityScore::all();
+
+            foreach ($abilities as $ability) {
+                if (str_contains($text, strtolower($ability->name)) ||
+                    str_contains($text, strtolower($ability->code))) {
+                    return $ability->id;
+                }
             }
+        } catch (\Exception $e) {
+            // Database not available
         }
 
         return null;
     }
 
+    /**
+     * Match skill by fuzzy text search.
+     * First tries exact lookup, then falls back to contains matching.
+     */
     private function matchSkill(string $text): ?int
     {
-        static $skills = null;
-
-        if ($skills === null) {
-            try {
-                $skills = \App\Models\Skill::all()
-                    ->mapWithKeys(fn ($s) => [strtolower($s->name) => $s->id]);
-            } catch (\Exception $e) {
-                $skills = collect();
-            }
+        // Try exact match first (common case)
+        $exactMatch = $this->lookupSkillId($text);
+        if ($exactMatch !== null) {
+            return $exactMatch;
         }
 
-        $text = strtolower($text);
-        foreach ($skills as $key => $id) {
-            if (str_contains($text, $key)) {
-                return $id;
+        // Fall back to fuzzy matching (e.g., "Acrobatics check" contains "acrobatics")
+        try {
+            $text = strtolower($text);
+            $skills = \App\Models\Skill::all();
+
+            foreach ($skills as $skill) {
+                if (str_contains($text, strtolower($skill->name))) {
+                    return $skill->id;
+                }
             }
+        } catch (\Exception $e) {
+            // Database not available
         }
 
         return null;

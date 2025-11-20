@@ -91,4 +91,43 @@ trait MatchesProficiencyTypes
 
         return strtolower($name);
     }
+
+    /**
+     * Infer proficiency type from proficiency name.
+     *
+     * Uses keyword detection to categorize as armor, weapon, tool, or skill.
+     *
+     * @param  string  $name  Proficiency name
+     * @return string Proficiency type (armor, weapon, tool, skill)
+     */
+    protected function inferProficiencyTypeFromName(string $name): string
+    {
+        $lowerName = strtolower($name);
+
+        // Check for armor
+        if (str_contains($lowerName, 'armor') || str_contains($lowerName, 'shield')) {
+            return 'armor';
+        }
+
+        // Check for weapons
+        if (str_contains($lowerName, 'weapon') ||
+            in_array($lowerName, [
+                'battleaxe', 'handaxe', 'light hammer', 'warhammer',
+                'longsword', 'shortsword', 'rapier', 'greatsword',
+                'dagger', 'mace', 'quarterstaff', 'crossbow', 'bow',
+            ])) {
+            return 'weapon';
+        }
+
+        // Check for tools
+        if (str_contains($lowerName, 'tools') ||
+            str_contains($lowerName, 'kit') ||
+            str_contains($lowerName, 'gaming set') ||
+            str_contains($lowerName, 'instrument')) {
+            return 'tool';
+        }
+
+        // Default to skill
+        return 'skill';
+    }
 }

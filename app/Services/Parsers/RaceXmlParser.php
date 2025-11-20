@@ -139,7 +139,7 @@ class RaceXmlParser
         foreach ($element->proficiency as $profElement) {
             $profName = trim((string) $profElement);
             // Determine type based on common patterns
-            $type = $this->determineProficiencyType($profName);
+            $type = $this->inferProficiencyTypeFromName($profName);
 
             // NEW: Match to proficiency_types table
             $proficiencyType = $this->matchProficiencyType($profName);
@@ -181,33 +181,6 @@ class RaceXmlParser
         }
 
         return $proficiencies;
-    }
-
-    /**
-     * Determine proficiency type based on name
-     */
-    private function determineProficiencyType(string $name): string
-    {
-        $lowerName = strtolower($name);
-
-        // Check for armor
-        if (str_contains($lowerName, 'armor')) {
-            return 'armor';
-        }
-
-        // Check for weapons
-        if (str_contains($lowerName, 'weapon') ||
-            in_array($lowerName, ['battleaxe', 'handaxe', 'light hammer', 'warhammer', 'longsword', 'shortsword', 'rapier'])) {
-            return 'weapon';
-        }
-
-        // Check for tools
-        if (str_contains($lowerName, 'tools') || str_contains($lowerName, 'kit')) {
-            return 'tool';
-        }
-
-        // Default to skill
-        return 'skill';
     }
 
     /**

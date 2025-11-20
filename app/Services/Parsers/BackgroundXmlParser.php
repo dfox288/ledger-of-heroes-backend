@@ -60,7 +60,7 @@ class BackgroundXmlParser
 
             $profs[] = [
                 'proficiency_name' => $name,
-                'proficiency_type' => $this->inferProficiencyType($name),
+                'proficiency_type' => $this->inferProficiencyTypeFromName($name),
                 'skill_id' => $this->lookupSkillId($name),
                 'proficiency_type_id' => $proficiencyType?->id, // NEW
                 'grants' => true, // Backgrounds GRANT proficiency
@@ -68,27 +68,6 @@ class BackgroundXmlParser
         }
 
         return $profs;
-    }
-
-    private function inferProficiencyType(string $name): string
-    {
-        $nameLower = strtolower($name);
-
-        // Check for tool indicators
-        if (str_contains($nameLower, 'kit') ||
-            str_contains($nameLower, 'tools') ||
-            str_contains($nameLower, 'gaming set') ||
-            str_contains($nameLower, 'instrument')) {
-            return 'tool';
-        }
-
-        // Check for language indicators
-        if (str_contains($nameLower, 'language')) {
-            return 'language';
-        }
-
-        // Default to skill (will be validated via skill_id lookup)
-        return 'skill';
     }
 
     private function lookupSkillId(string $name): ?int

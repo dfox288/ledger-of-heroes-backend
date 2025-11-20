@@ -137,7 +137,7 @@ class ItemXmlParser
 
                 $proficiencies[] = [
                     'name' => $profName,
-                    'type' => $this->inferProficiencyType($profName),
+                    'type' => $this->inferProficiencyTypeFromName($profName),
                     'proficiency_type_id' => $matchedType?->id,
                     'grants' => false, // Items REQUIRE proficiency
                 ];
@@ -145,30 +145,6 @@ class ItemXmlParser
         }
 
         return $proficiencies;
-    }
-
-    private function inferProficiencyType(string $name): string
-    {
-        $name = strtolower($name);
-
-        // Armor types
-        if (in_array($name, ['light armor', 'medium armor', 'heavy armor', 'shields'])) {
-            return 'armor';
-        }
-
-        // Weapon types
-        if (in_array($name, ['simple', 'martial', 'simple weapons', 'martial weapons']) ||
-            str_contains($name, 'weapon')) {
-            return 'weapon';
-        }
-
-        // Tool types
-        if (str_contains($name, 'tools') || str_contains($name, 'kit')) {
-            return 'tool';
-        }
-
-        // Default to weapon for specific weapon names
-        return 'weapon';
     }
 
     private function parseModifiers(SimpleXMLElement $element): array

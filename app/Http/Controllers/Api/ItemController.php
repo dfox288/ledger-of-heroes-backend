@@ -7,6 +7,7 @@ use App\Http\Requests\ItemIndexRequest;
 use App\Http\Requests\ItemShowRequest;
 use App\Http\Resources\ItemResource;
 use App\Models\Item;
+use Illuminate\Support\Facades\Log;
 
 class ItemController extends Controller
 {
@@ -21,6 +22,61 @@ class ItemController extends Controller
     {
         $validated = $request->validated();
 
+        // Handle Scout search if 'q' parameter is provided
+        if ($request->filled('q')) {
+            return $this->searchItems($request, $validated);
+        }
+
+        // Standard database query for listing/filtering
+        return $this->listItems($validated);
+    }
+
+    /**
+     * Search items using Scout/Meilisearch
+     */
+    protected function searchItems(ItemIndexRequest $request, array $validated)
+    {
+        try {
+            $perPage = $validated['per_page'] ?? 15;
+            $search = Item::search($validated['q']);
+
+            // Apply filters using Scout's where() method
+            if (isset($validated['item_type_id'])) {
+                $search->where('item_type_id', $validated['item_type_id']);
+            }
+
+            if (isset($validated['rarity'])) {
+                $search->where('rarity', $validated['rarity']);
+            }
+
+            if (isset($validated['is_magic'])) {
+                $search->where('is_magic', $request->boolean('is_magic'));
+            }
+
+            if (isset($validated['requires_attunement'])) {
+                $search->where('requires_attunement', $request->boolean('requires_attunement'));
+            }
+
+            // Paginate search results
+            $items = $search->paginate($perPage);
+
+            return ItemResource::collection($items);
+        } catch (\Exception $e) {
+            // Log the failure and fall back to MySQL
+            Log::warning('Meilisearch search failed, falling back to MySQL', [
+                'query' => $validated['q'] ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->fallbackSearch($validated);
+        }
+    }
+
+    /**
+     * Fallback to MySQL FULLTEXT search when Meilisearch is unavailable
+     */
+    protected function fallbackSearch(array $validated)
+    {
         $query = Item::with([
             'itemType',
             'damageType',
@@ -29,7 +85,68 @@ class ItemController extends Controller
             'prerequisites.prerequisite',
         ]);
 
-        // Apply search filter
+        // MySQL FULLTEXT search
+        if (isset($validated['q'])) {
+            $search = $validated['q'];
+            $query->whereRaw(
+                'MATCH(name, description) AGAINST(? IN NATURAL LANGUAGE MODE)',
+                [$search]
+            );
+        }
+
+        // Apply filters
+        if (isset($validated['item_type_id'])) {
+            $query->where('item_type_id', $validated['item_type_id']);
+        }
+
+        if (isset($validated['rarity'])) {
+            $query->where('rarity', $validated['rarity']);
+        }
+
+        if (isset($validated['is_magic'])) {
+            $query->where('is_magic', (bool) $validated['is_magic']);
+        }
+
+        if (isset($validated['requires_attunement'])) {
+            $query->where('requires_attunement', (bool) $validated['requires_attunement']);
+        }
+
+        if (isset($validated['min_strength'])) {
+            $query->whereMinStrength((int) $validated['min_strength']);
+        }
+
+        if (isset($validated['has_prerequisites'])) {
+            if ((bool) $validated['has_prerequisites']) {
+                $query->hasPrerequisites();
+            }
+        }
+
+        // Apply sorting
+        $sortBy = $validated['sort_by'] ?? 'name';
+        $sortDirection = $validated['sort_direction'] ?? 'asc';
+        $query->orderBy($sortBy, $sortDirection);
+
+        // Paginate
+        $perPage = $validated['per_page'] ?? 15;
+        $items = $query->paginate($perPage);
+
+        return ItemResource::collection($items);
+    }
+
+    /**
+     * Standard database listing with filters (no search)
+     */
+    protected function listItems(array $validated)
+    {
+        $query = Item::with([
+            'itemType',
+            'damageType',
+            'properties',
+            'sources.source',
+            'prerequisites.prerequisite',
+        ]);
+
+        // Apply search filter (legacy 'search' parameter using LIKE)
         if (isset($validated['search'])) {
             $query->where(function ($q) use ($validated) {
                 $q->where('name', 'like', "%{$validated['search']}%")

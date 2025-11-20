@@ -21,61 +21,57 @@ class ItemController extends Controller
     public function index(ItemIndexRequest $request)
     {
         $validated = $request->validated();
+        $perPage = $validated['per_page'] ?? 15;
 
         // Handle Scout search if 'q' parameter is provided
         if ($request->filled('q')) {
-            return $this->searchItems($request, $validated);
+            try {
+                $items = $this->performScoutSearch($request, $validated, $perPage);
+            } catch (\Exception $e) {
+                Log::warning('Meilisearch search failed, falling back to MySQL', [
+                    'query' => $validated['q'] ?? null,
+                    'error' => $e->getMessage(),
+                ]);
+                $items = $this->performMysqlSearch($validated, $perPage);
+            }
+        } else {
+            $items = $this->buildStandardQuery($validated)->paginate($perPage);
         }
 
-        // Standard database query for listing/filtering
-        return $this->listItems($validated);
+        return ItemResource::collection($items);
     }
 
     /**
-     * Search items using Scout/Meilisearch
+     * Perform Scout/Meilisearch search
      */
-    protected function searchItems(ItemIndexRequest $request, array $validated)
+    protected function performScoutSearch(ItemIndexRequest $request, array $validated, int $perPage)
     {
-        try {
-            $perPage = $validated['per_page'] ?? 15;
-            $search = Item::search($validated['q']);
+        $search = Item::search($validated['q']);
 
-            // Apply filters using Scout's where() method
-            if (isset($validated['item_type_id'])) {
-                $search->where('item_type_id', $validated['item_type_id']);
-            }
-
-            if (isset($validated['rarity'])) {
-                $search->where('rarity', $validated['rarity']);
-            }
-
-            if (isset($validated['is_magic'])) {
-                $search->where('is_magic', $request->boolean('is_magic'));
-            }
-
-            if (isset($validated['requires_attunement'])) {
-                $search->where('requires_attunement', $request->boolean('requires_attunement'));
-            }
-
-            // Paginate search results
-            $items = $search->paginate($perPage);
-
-            return ItemResource::collection($items);
-        } catch (\Exception $e) {
-            // Log the failure and fall back to MySQL
-            Log::warning('Meilisearch search failed, falling back to MySQL', [
-                'query' => $validated['q'] ?? null,
-                'error' => $e->getMessage(),
-            ]);
-
-            return $this->fallbackSearch($validated);
+        // Apply filters
+        if (isset($validated['item_type_id'])) {
+            $search->where('item_type_id', $validated['item_type_id']);
         }
+
+        if (isset($validated['rarity'])) {
+            $search->where('rarity', $validated['rarity']);
+        }
+
+        if (isset($validated['is_magic'])) {
+            $search->where('is_magic', $request->boolean('is_magic'));
+        }
+
+        if (isset($validated['requires_attunement'])) {
+            $search->where('requires_attunement', $request->boolean('requires_attunement'));
+        }
+
+        return $search->paginate($perPage);
     }
 
     /**
-     * Fallback to MySQL FULLTEXT search when Meilisearch is unavailable
+     * Perform MySQL FULLTEXT search fallback
      */
-    protected function fallbackSearch(array $validated)
+    protected function performMysqlSearch(array $validated, int $perPage)
     {
         $query = Item::with([
             'itemType',
@@ -87,56 +83,26 @@ class ItemController extends Controller
 
         // MySQL FULLTEXT search
         if (isset($validated['q'])) {
-            $search = $validated['q'];
             $query->whereRaw(
                 'MATCH(name, description) AGAINST(? IN NATURAL LANGUAGE MODE)',
-                [$search]
+                [$validated['q']]
             );
         }
 
-        // Apply filters
-        if (isset($validated['item_type_id'])) {
-            $query->where('item_type_id', $validated['item_type_id']);
-        }
-
-        if (isset($validated['rarity'])) {
-            $query->where('rarity', $validated['rarity']);
-        }
-
-        if (isset($validated['is_magic'])) {
-            $query->where('is_magic', (bool) $validated['is_magic']);
-        }
-
-        if (isset($validated['requires_attunement'])) {
-            $query->where('requires_attunement', (bool) $validated['requires_attunement']);
-        }
-
-        if (isset($validated['min_strength'])) {
-            $query->whereMinStrength((int) $validated['min_strength']);
-        }
-
-        if (isset($validated['has_prerequisites'])) {
-            if ((bool) $validated['has_prerequisites']) {
-                $query->hasPrerequisites();
-            }
-        }
+        $this->applyItemFilters($query, $validated);
 
         // Apply sorting
         $sortBy = $validated['sort_by'] ?? 'name';
         $sortDirection = $validated['sort_direction'] ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
-        // Paginate
-        $perPage = $validated['per_page'] ?? 15;
-        $items = $query->paginate($perPage);
-
-        return ItemResource::collection($items);
+        return $query->paginate($perPage);
     }
 
     /**
-     * Standard database listing with filters (no search)
+     * Build standard database query with filters
      */
-    protected function listItems(array $validated)
+    protected function buildStandardQuery(array $validated)
     {
         $query = Item::with([
             'itemType',
@@ -146,7 +112,7 @@ class ItemController extends Controller
             'prerequisites.prerequisite',
         ]);
 
-        // Apply search filter (legacy 'search' parameter using LIKE)
+        // Legacy search parameter using LIKE
         if (isset($validated['search'])) {
             $query->where(function ($q) use ($validated) {
                 $q->where('name', 'like', "%{$validated['search']}%")
@@ -154,48 +120,44 @@ class ItemController extends Controller
             });
         }
 
-        // Filter by item type
-        if (isset($validated['item_type_id'])) {
-            $query->where('item_type_id', $validated['item_type_id']);
-        }
-
-        // Filter by rarity
-        if (isset($validated['rarity'])) {
-            $query->where('rarity', $validated['rarity']);
-        }
-
-        // Filter by magic
-        if (isset($validated['is_magic'])) {
-            $query->where('is_magic', (bool) $validated['is_magic']);
-        }
-
-        // Filter by attunement
-        if (isset($validated['requires_attunement'])) {
-            $query->where('requires_attunement', (bool) $validated['requires_attunement']);
-        }
-
-        // Filter by minimum strength requirement
-        if (isset($validated['min_strength'])) {
-            $query->whereMinStrength((int) $validated['min_strength']);
-        }
-
-        // Filter by having any prerequisites
-        if (isset($validated['has_prerequisites'])) {
-            if ((bool) $validated['has_prerequisites']) {
-                $query->hasPrerequisites();
-            }
-        }
+        $this->applyItemFilters($query, $validated);
 
         // Apply sorting
         $sortBy = $validated['sort_by'] ?? 'name';
         $sortDirection = $validated['sort_direction'] ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
-        // Paginate
-        $perPage = $validated['per_page'] ?? 15;
-        $items = $query->paginate($perPage);
+        return $query;
+    }
 
-        return ItemResource::collection($items);
+    /**
+     * Apply common item filters to query
+     */
+    protected function applyItemFilters($query, array $validated): void
+    {
+        if (isset($validated['item_type_id'])) {
+            $query->where('item_type_id', $validated['item_type_id']);
+        }
+
+        if (isset($validated['rarity'])) {
+            $query->where('rarity', $validated['rarity']);
+        }
+
+        if (isset($validated['is_magic'])) {
+            $query->where('is_magic', (bool) $validated['is_magic']);
+        }
+
+        if (isset($validated['requires_attunement'])) {
+            $query->where('requires_attunement', (bool) $validated['requires_attunement']);
+        }
+
+        if (isset($validated['min_strength'])) {
+            $query->whereMinStrength((int) $validated['min_strength']);
+        }
+
+        if (isset($validated['has_prerequisites']) && (bool) $validated['has_prerequisites']) {
+            $query->hasPrerequisites();
+        }
     }
 
     /**

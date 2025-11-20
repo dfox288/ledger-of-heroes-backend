@@ -7,18 +7,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a Laravel 12.x application that imports D&D 5th Edition content from XML files and provides a RESTful API for accessing the data. The XML files follow the compendium format used by applications like Fight Club 5e and similar D&D companion apps.
 
 **Current Status (2025-11-19):**
-- ✅ **50 migrations** - Complete database schema with slug system + languages
+- ✅ **59 migrations** - Complete database schema with slug system + languages + prerequisites
 - ✅ **23 Eloquent models** - All with HasFactory trait
 - ✅ **12 model factories** - Test data generation
 - ✅ **12 database seeders** - Lookup/reference data (including 30 languages)
-- ✅ **21 API Resources** - Standardized and 100% field-complete
-- ✅ **13 API Controllers** - 4 entity + 9 lookup endpoints
-- ✅ **238 tests passing** (1,463 assertions, 2 incomplete expected)
-- ✅ **4 importers working** - Spells, Races, Items, Backgrounds
-- ✅ **4 artisan commands** - `import:spells`, `import:races`, `import:items`, `import:backgrounds`
+- ✅ **24 API Resources** - Standardized and 100% field-complete
+- ✅ **14 API Controllers** - 6 entity + 8 lookup endpoints
+- ✅ **393 tests passing** (2,551 assertions, 2 incomplete expected)
+- ✅ **6 importers working** - Spells, Races, Items, Backgrounds, Classes, Feats
+- ✅ **6 artisan commands** - `import:spells`, `import:races`, `import:items`, `import:backgrounds`, `import:classes`, `import:feats`
 - ✅ **Slug system complete** - Dual ID/slug routing for all entities
 - ✅ **7 reusable traits** - Parser + Importer traits for DRY code
-- ⚠️  **2 importers pending** - Classes (RECOMMENDED NEXT), Monsters
+- ⚠️  **1 importer pending** - Monsters (7 bestiary files ready)
 
 ## Tech Stack
 
@@ -150,14 +150,20 @@ docker compose exec php php artisan migrate:fresh --seed
 # Spells (9 files available, import subset for testing)
 docker compose exec php bash -c 'for file in import-files/spells-phb.xml import-files/spells-tce.xml import-files/spells-xge.xml; do php artisan import:spells "$file" || true; done'
 
-# Races (3 files)
+# Races (5 files)
 docker compose exec php bash -c 'for file in import-files/races-*.xml; do php artisan import:races "$file"; done'
 
-# Items (24 files)
+# Items (25 files)
 docker compose exec php bash -c 'for file in import-files/items-*.xml; do php artisan import:items "$file"; done'
 
-# Backgrounds (2 files)
+# Backgrounds (4 files)
 docker compose exec php bash -c 'for file in import-files/backgrounds-*.xml; do php artisan import:backgrounds "$file"; done'
+
+# Classes (35 files)
+docker compose exec php bash -c 'for file in import-files/class-*.xml; do php artisan import:classes "$file"; done'
+
+# Feats (4 files)
+docker compose exec php bash -c 'for file in import-files/feats-*.xml; do php artisan import:feats "$file"; done'
 ```
 
 **Rationale:**
@@ -203,6 +209,12 @@ docker compose exec php bash -c 'for file in import-files/items-*.xml; do php ar
 # Backgrounds (all files)
 docker compose exec php bash -c 'for file in import-files/backgrounds-*.xml; do php artisan import:backgrounds "$file"; done'
 
+# Classes (all files)
+docker compose exec php bash -c 'for file in import-files/class-*.xml; do php artisan import:classes "$file"; done'
+
+# Feats (all files)
+docker compose exec php bash -c 'for file in import-files/feats-*.xml; do php artisan import:feats "$file"; done'
+
 # 3. Run tests to verify starting point
 docker compose exec php php artisan test
 ```
@@ -241,26 +253,29 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ```
 app/
-  ├── Console/Commands/              # 4 import commands
+  ├── Console/Commands/              # 6 import commands
   ├── Http/
-  │   ├── Controllers/Api/           # 12 API controllers
-  │   └── Resources/                 # 19 standardized API Resources
-  ├── Models/                        # 21 Eloquent models
+  │   ├── Controllers/Api/           # 14 API controllers
+  │   └── Resources/                 # 24 standardized API Resources
+  ├── Models/                        # 23 Eloquent models
   └── Services/
-      ├── Importers/                 # 4 XML importers
+      ├── Importers/                 # 6 XML importers (Spells, Races, Items, Backgrounds, Classes, Feats)
       └── Parsers/                   # XML parsing + table detection
 
 database/
-  ├── migrations/                    # 50 migrations (includes slug + language system)
+  ├── migrations/                    # 59 migrations (includes slug + language + prerequisites)
   └── seeders/                       # 12 seeders for lookup data
 
 import-files/                        # XML source files
   ├── spells-*.xml                   # 9 spell files
-  ├── races-*.xml                    # 3 race files
-  ├── items-*.xml                    # 24 item files
-  ├── backgrounds-*.xml              # 2 background files
-  ├── class-*.xml                    # 35 class files (READY - Priority 1)
-  └── bestiary-*.xml                 # 5 monster files
+  ├── races-*.xml                    # 5 race files
+  ├── items-*.xml                    # 25 item files
+  ├── backgrounds-*.xml              # 4 background files
+  ├── class-*.xml                    # 35 class files (✅ DONE)
+  ├── feats-*.xml                    # 4 feat files (✅ DONE)
+  ├── bestiary-*.xml                 # 7 monster files (⚠️ PENDING)
+  ├── optionalfeatures-*.xml         # 3 files (NOT IN SCHEMA)
+  └── source-*.xml                   # 6 files (METADATA ONLY)
 
 tests/
   ├── Feature/                       # API, importers, models, migrations
@@ -352,6 +367,8 @@ All entities can cite multiple sourcebooks via `entity_sources` polymorphic tabl
 - `GET /api/v1/races` - List/search races (paginated, filterable)
 - `GET /api/v1/items` - List/search items (paginated, filterable)
 - `GET /api/v1/backgrounds` - List/search backgrounds (paginated, filterable)
+- `GET /api/v1/classes` - List/search classes (paginated, filterable, includes subclasses)
+- `GET /api/v1/feats` - List/search feats (paginated, filterable)
 
 **Lookup Endpoints:**
 - `GET /api/v1/sources` - D&D sourcebooks
@@ -374,9 +391,11 @@ All entities can cite multiple sourcebooks via `entity_sources` polymorphic tabl
 
 ### Working Importers
 1. **SpellImporter** - Imports spells with effects, class associations, multi-source citations
-2. **RaceImporter** - Imports races/subraces with traits, modifiers, proficiencies, random tables
-3. **ItemImporter** - Imports items with magic flags, modifiers, abilities, embedded tables
-4. **BackgroundImporter** - Imports backgrounds with proficiencies, traits, random tables
+2. **RaceImporter** - Imports races/subraces with traits, modifiers, proficiencies, random tables, languages
+3. **ItemImporter** - Imports items with magic flags, modifiers, abilities, embedded tables, prerequisites
+4. **BackgroundImporter** - Imports backgrounds with proficiencies, traits, random tables, languages
+5. **ClassImporter** - Imports classes/subclasses with features, spell progression, counters, proficiencies
+6. **FeatImporter** - Imports feats with modifiers, proficiencies, conditions, prerequisites
 
 ### XML Format Structure
 All XML files: `<compendium version="5" auto_indent="NO">`
@@ -408,9 +427,9 @@ These are **intentional** design decisions:
 ## Testing
 
 **Test Statistics:**
-- **238 tests** (1,463 assertions) - 100% pass rate
+- **393 tests** (2,551 assertions) - 100% pass rate
 - **2 incomplete tests** (expected edge cases documented)
-- **Test Duration:** ~3.2-3.4 seconds
+- **Test Duration:** ~3.6 seconds
 - Feature tests for API, importers, models, migrations
 - Unit tests for parsers, factories, services
 - **XML reconstruction tests** verify import completeness (~90-95% coverage)
@@ -461,28 +480,26 @@ EntityLanguage::factory()->forEntity(Race::class, $race->id)->create();
 
 ## What's Next
 
-### Priority 1: Class Importer ⭐ RECOMMENDED
-**Why:** Most complex entity, builds on all established patterns, highest value
+### Priority 1: Monster Importer ⭐ RECOMMENDED
+**Why:** Last major entity type, schema is ready, completes the core D&D compendium
 
-- 35 XML files ready to import
-- 13 base classes seeded in database
-- Subclass hierarchy using `parent_class_id`
-- Class features, spell slots, counters (Ki, Rage)
-- **Can reuse NEW importer traits:** `ImportsSources`, `ImportsTraits`, `ImportsProficiencies`
-- **Can reuse NEW parser traits:** `ParsesSourceCitations`, `MatchesProficiencyTypes`, `MatchesLanguages`
-- Hierarchical slugs ready: `fighter-battle-master`
-- **Estimated Effort:** 6-8 hours (now faster with traits!)
-
-### Priority 2: Monster Importer
-- 5 bestiary XML files available
+- 7 bestiary XML files available
 - Traits, actions, legendary actions, spellcasting
-- Schema complete and tested
-- **Estimated Effort:** 4-6 hours
+- Schema complete and tested (monsters table + related tables)
+- **Can reuse existing importer traits:** `ImportsSources`, `ImportsTraits`, `ImportsProficiencies`
+- **Can reuse existing parser traits:** `ParsesSourceCitations`, `MatchesProficiencyTypes`
+- **Estimated Effort:** 6-8 hours (with TDD)
 
-### Priority 3: API Enhancements
+### Priority 2: API Enhancements
 - Filtering by proficiency types, conditions, rarity, attunement
 - Aggregation endpoints (counts by type, rarity, school)
+- Class spell list endpoints (GET /api/v1/classes/{id}/spells)
 - OpenAPI/Swagger documentation
+
+### Priority 3: Optional Features
+- 3 optionalfeatures XML files (requires schema design)
+- These are class variants like Fighting Styles, Eldritch Invocations, Metamagic
+- Would need new table structure and relationships
 
 ## Documentation
 

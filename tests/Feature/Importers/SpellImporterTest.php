@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Importers;
 
+use App\Models\CharacterClass;
 use App\Models\Source;
 use App\Models\Spell;
 use App\Models\SpellEffect;
@@ -16,6 +17,10 @@ class SpellImporterTest extends TestCase
 
     public function test_imports_spell_from_parsed_data(): void
     {
+        // Create required classes for spell associations
+        CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+        CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
+
         $school = SpellSchool::where('code', 'EV')->first();
         $source = Source::where('code', 'PHB')->first();
 

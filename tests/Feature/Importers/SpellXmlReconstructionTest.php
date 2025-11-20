@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Importers;
 
+use App\Models\CharacterClass;
 use App\Models\Spell;
 use App\Services\Importers\SpellImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -23,6 +24,10 @@ class SpellXmlReconstructionTest extends TestCase
     #[Test]
     public function it_reconstructs_simple_cantrip()
     {
+        // Create required classes for spell associations
+        CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
+        CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+
         // Original XML for Acid Splash cantrip
         $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -290,6 +295,10 @@ XML;
     #[Test]
     public function it_reconstructs_spell_effects_with_damage_types()
     {
+        // Create required classes for spell associations
+        CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+        CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
+
         $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
@@ -334,6 +343,13 @@ XML;
     #[Test]
     public function it_reconstructs_class_associations()
     {
+        // Create required classes for spell associations
+        CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter']);
+        CharacterClass::factory()->create(['name' => 'Rogue', 'slug' => 'rogue']);
+        CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
+        CharacterClass::factory()->create(['name' => 'Warlock', 'slug' => 'warlock']);
+        CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+
         $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">

@@ -2,12 +2,13 @@
 
 namespace App\Services\Parsers;
 
+use App\Services\Parsers\Concerns\ConvertsWordNumbers;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use SimpleXMLElement;
 
 class FeatXmlParser
 {
-    use ParsesSourceCitations;
+    use ConvertsWordNumbers, ParsesSourceCitations;
 
     /**
      * Parse feats from XML string.
@@ -228,23 +229,6 @@ class FeatXmlParser
         }
 
         return $proficiencies;
-    }
-
-    /**
-     * Convert number words to integers.
-     */
-    private function wordToNumber(string $word): int
-    {
-        $map = [
-            'one' => 1,
-            'two' => 2,
-            'three' => 3,
-            'four' => 4,
-            'five' => 5,
-            'six' => 6,
-        ];
-
-        return $map[strtolower($word)] ?? 1;
     }
 
     /**

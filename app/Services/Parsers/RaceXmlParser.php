@@ -2,6 +2,7 @@
 
 namespace App\Services\Parsers;
 
+use App\Services\Parsers\Concerns\ConvertsWordNumbers;
 use App\Services\Parsers\Concerns\MatchesLanguages;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
@@ -10,7 +11,7 @@ use SimpleXMLElement;
 
 class RaceXmlParser
 {
-    use MatchesLanguages, MatchesProficiencyTypes, ParsesSourceCitations, ParsesTraits;
+    use ConvertsWordNumbers, MatchesLanguages, MatchesProficiencyTypes, ParsesSourceCitations, ParsesTraits;
 
     public function parse(string $xmlContent): array
     {
@@ -265,19 +266,6 @@ class RaceXmlParser
         }
 
         return $conditions;
-    }
-
-    /**
-     * Convert word numbers to integers.
-     */
-    private function wordToNumber(string $word): int
-    {
-        $map = [
-            'one' => 1, 'two' => 2, 'three' => 3, 'four' => 4,
-            'five' => 5, 'six' => 6, 'seven' => 7, 'eight' => 8,
-        ];
-
-        return $map[strtolower($word)] ?? 1;
     }
 
     /**

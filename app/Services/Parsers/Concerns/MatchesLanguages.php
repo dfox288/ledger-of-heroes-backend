@@ -7,6 +7,8 @@ use Illuminate\Support\Collection;
 
 trait MatchesLanguages
 {
+    use ConvertsWordNumbers;
+
     private Collection $languagesCache;
 
     /**
@@ -103,36 +105,6 @@ trait MatchesLanguages
         }
 
         return $results;
-    }
-
-    /**
-     * Convert word numbers to integers.
-     *
-     * @param  string  $word  The word representation (e.g., "one", "two")
-     * @return int The numeric value
-     */
-    protected function wordToNumber(string $word): int
-    {
-        $word = strtolower(trim($word));
-
-        $mapping = [
-            'a' => 1,
-            'an' => 1,
-            'one' => 1,
-            'two' => 2,
-            'three' => 3,
-            'four' => 4,
-            'five' => 5,
-            'six' => 6,
-            'seven' => 7,
-            'eight' => 8,
-            'nine' => 9,
-            'ten' => 10,
-            'any' => 1, // "any languages" typically means "one language"
-            'several' => 2, // Approximation
-        ];
-
-        return $mapping[$word] ?? 1;
     }
 
     /**

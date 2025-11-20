@@ -89,6 +89,9 @@ class ClassXmlParser
     {
         $proficiencies = [];
 
+        // Check if this class has skill choices
+        $numSkills = isset($element->numSkills) ? (int) $element->numSkills : null;
+
         // Parse armor proficiencies
         if (isset($element->armor)) {
             $armors = array_map('trim', explode(',', (string) $element->armor));
@@ -149,20 +152,31 @@ class ClassXmlParser
 
             foreach ($items as $item) {
                 if (in_array($item, $abilityScores)) {
-                    // This is a saving throw
+                    // This is a saving throw - never a choice
                     $proficiencies[] = [
                         'type' => 'saving_throw',
                         'name' => $item,
                         'proficiency_type_id' => null, // Saving throws don't need FK
+                        'is_choice' => false,
                     ];
                 } else {
                     // This is a skill available for selection
                     $proficiencyType = $this->matchProficiencyType($item);
-                    $proficiencies[] = [
+                    $skillProf = [
                         'type' => 'skill',
                         'name' => $item,
                         'proficiency_type_id' => $proficiencyType?->id,
                     ];
+
+                    // If numSkills exists, mark skills as choices
+                    if ($numSkills !== null) {
+                        $skillProf['is_choice'] = true;
+                        $skillProf['quantity'] = $numSkills;
+                    } else {
+                        $skillProf['is_choice'] = false;
+                    }
+
+                    $proficiencies[] = $skillProf;
                 }
             }
         }

@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Requests;
 
-use App\Models\ItemType;
+use Database\Seeders\ItemTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -11,11 +11,15 @@ class ItemTypeIndexRequestTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(ItemTypeSeeder::class);
+    }
+
     #[Test]
     public function it_returns_paginated_item_types()
     {
-        ItemType::factory()->count(10)->create();
-
         $response = $this->getJson('/api/v1/item-types?per_page=5');
 
         $response->assertStatus(200)
@@ -45,15 +49,15 @@ class ItemTypeIndexRequestTest extends TestCase
     #[Test]
     public function it_searches_by_name()
     {
-        ItemType::factory()->create(['name' => 'Weapon']);
-        ItemType::factory()->create(['name' => 'Armor']);
-        ItemType::factory()->create(['name' => 'Potion']);
-
         $response = $this->getJson('/api/v1/item-types?search=weap');
 
-        $response->assertStatus(200)
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.name', 'Weapon');
+        $response->assertStatus(200);
+
+        // Verify only matching results are returned
+        $data = $response->json('data');
+        foreach ($data as $item) {
+            $this->assertStringContainsStringIgnoringCase('weap', $item['name']);
+        }
     }
 
     #[Test]

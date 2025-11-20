@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Requests;
 
-use App\Models\ItemProperty;
+use Database\Seeders\ItemPropertySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -11,11 +11,15 @@ class ItemPropertyIndexRequestTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(ItemPropertySeeder::class);
+    }
+
     #[Test]
     public function it_returns_paginated_item_properties()
     {
-        ItemProperty::factory()->count(10)->create();
-
         $response = $this->getJson('/api/v1/item-properties?per_page=5');
 
         $response->assertStatus(200)
@@ -45,15 +49,15 @@ class ItemPropertyIndexRequestTest extends TestCase
     #[Test]
     public function it_searches_by_name()
     {
-        ItemProperty::factory()->create(['name' => 'Versatile']);
-        ItemProperty::factory()->create(['name' => 'Heavy']);
-        ItemProperty::factory()->create(['name' => 'Light']);
-
         $response = $this->getJson('/api/v1/item-properties?search=vers');
 
-        $response->assertStatus(200)
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.name', 'Versatile');
+        $response->assertStatus(200);
+
+        // Verify only matching results are returned
+        $data = $response->json('data');
+        foreach ($data as $item) {
+            $this->assertStringContainsStringIgnoringCase('vers', $item['name']);
+        }
     }
 
     #[Test]

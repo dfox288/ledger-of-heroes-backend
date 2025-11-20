@@ -527,4 +527,93 @@ class ClassApiTest extends TestCase
         $progression = $response->json('data.level_progression');
         $this->assertNull($progression[0]['spells_known']);
     }
+
+    #[Test]
+    public function it_exposes_proficiency_choice_metadata_in_api()
+    {
+        $source = $this->getSource('PHB');
+
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'fighter',
+            'hit_die' => 10,
+        ]);
+
+        $fighter->sources()->create([
+            'source_id' => $source->id,
+            'pages' => '70',
+        ]);
+
+        // Create skill proficiencies as choices (Fighter gets to choose 2 from list)
+        $acrobatics = $this->getSkill('Acrobatics');
+        $athletics = $this->getSkill('Athletics');
+        $history = $this->getSkill('History');
+
+        $fighter->proficiencies()->create([
+            'proficiency_type' => 'skill',
+            'proficiency_name' => 'Acrobatics',
+            'skill_id' => $acrobatics->id,
+            'is_choice' => true,
+            'quantity' => 2,
+            'grants' => true,
+        ]);
+
+        $fighter->proficiencies()->create([
+            'proficiency_type' => 'skill',
+            'proficiency_name' => 'Athletics',
+            'skill_id' => $athletics->id,
+            'is_choice' => true,
+            'quantity' => 2,
+            'grants' => true,
+        ]);
+
+        $fighter->proficiencies()->create([
+            'proficiency_type' => 'skill',
+            'proficiency_name' => 'History',
+            'skill_id' => $history->id,
+            'is_choice' => true,
+            'quantity' => 2,
+            'grants' => true,
+        ]);
+
+        // Create saving throw (not a choice)
+        $fighter->proficiencies()->create([
+            'proficiency_type' => 'saving_throw',
+            'proficiency_name' => 'Strength',
+            'is_choice' => false,
+            'quantity' => 1,
+            'grants' => true,
+        ]);
+
+        $response = $this->getJson("/api/v1/classes/{$fighter->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'proficiencies' => [
+                        '*' => ['id', 'proficiency_type', 'proficiency_name', 'is_choice', 'quantity', 'grants'],
+                    ],
+                ],
+            ]);
+
+        $proficiencies = $response->json('data.proficiencies');
+
+        // Find skill proficiencies
+        $skills = array_filter($proficiencies, fn ($p) => $p['proficiency_type'] === 'skill');
+        $this->assertCount(3, $skills);
+
+        // All skills should be marked as choices with quantity=2
+        foreach ($skills as $skill) {
+            $this->assertTrue($skill['is_choice'], 'Skill should be marked as choice');
+            $this->assertEquals(2, $skill['quantity'], 'Skill should have quantity=2');
+        }
+
+        // Find saving throw
+        $saves = array_filter($proficiencies, fn ($p) => $p['proficiency_type'] === 'saving_throw');
+        $this->assertCount(1, $saves);
+
+        $save = array_values($saves)[0];
+        $this->assertFalse($save['is_choice'], 'Saving throw should not be a choice');
+        $this->assertEquals(1, $save['quantity']);
+    }
 }

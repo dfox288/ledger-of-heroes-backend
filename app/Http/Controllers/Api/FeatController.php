@@ -17,8 +17,6 @@ class FeatController extends Controller
      * Returns a paginated list of D&D 5e feats. Supports advanced filtering by prerequisites
      * (race, ability scores, proficiencies), granted benefits (skills, proficiencies),
      * and full-text search. All query parameters are validated and documented automatically.
-     *
-     * @response \Illuminate\Http\Resources\Json\AnonymousResourceCollection<FeatResource>
      */
     public function index(FeatIndexRequest $request)
     {

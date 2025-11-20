@@ -39,9 +39,9 @@ class ScrambleDocumentationTest extends TestCase
     {
         $spec = $this->getOpenApiSpec();
 
-        $this->assertArrayHasKey('/api/v1/feats', $spec['paths']);
+        $this->assertArrayHasKey('/v1/feats', $spec['paths']);
 
-        $getOperation = $spec['paths']['/api/v1/feats']['get'];
+        $getOperation = $spec['paths']['/v1/feats']['get'];
         $this->assertArrayHasKey('responses', $getOperation);
         $this->assertArrayHasKey('200', $getOperation['responses']);
 
@@ -58,9 +58,9 @@ class ScrambleDocumentationTest extends TestCase
     {
         $spec = $this->getOpenApiSpec();
 
-        $this->assertArrayHasKey('/api/v1/classes', $spec['paths']);
+        $this->assertArrayHasKey('/v1/classes', $spec['paths']);
 
-        $getOperation = $spec['paths']['/api/v1/classes']['get'];
+        $getOperation = $spec['paths']['/v1/classes']['get'];
         $successResponse = $getOperation['responses']['200'];
         $schema = $successResponse['content']['application/json']['schema'];
 
@@ -73,9 +73,9 @@ class ScrambleDocumentationTest extends TestCase
     {
         $spec = $this->getOpenApiSpec();
 
-        $this->assertArrayHasKey('/api/v1/backgrounds', $spec['paths']);
+        $this->assertArrayHasKey('/v1/backgrounds', $spec['paths']);
 
-        $getOperation = $spec['paths']['/api/v1/backgrounds']['get'];
+        $getOperation = $spec['paths']['/v1/backgrounds']['get'];
         $successResponse = $getOperation['responses']['200'];
         $schema = $successResponse['content']['application/json']['schema'];
 
@@ -88,9 +88,9 @@ class ScrambleDocumentationTest extends TestCase
     {
         $spec = $this->getOpenApiSpec();
 
-        $this->assertArrayHasKey('/api/v1/search', $spec['paths']);
+        $this->assertArrayHasKey('/v1/search', $spec['paths']);
 
-        $getOperation = $spec['paths']['/api/v1/search']['get'];
+        $getOperation = $spec['paths']['/v1/search']['get'];
         $successResponse = $getOperation['responses']['200'];
         $schema = $successResponse['content']['application/json']['schema'];
 

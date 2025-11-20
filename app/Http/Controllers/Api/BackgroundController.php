@@ -17,8 +17,6 @@ class BackgroundController extends Controller
      * Returns a paginated list of D&D 5e character backgrounds. Supports filtering by
      * proficiencies, skills, and languages. Includes random tables for personality traits,
      * ideals, bonds, and flaws. All query parameters are validated automatically.
-     *
-     * @response \Illuminate\Http\Resources\Json\AnonymousResourceCollection<BackgroundResource>
      */
     public function index(BackgroundIndexRequest $request)
     {

@@ -19,8 +19,6 @@ class ClassController extends Controller
      * Returns a paginated list of D&D 5e character classes and subclasses. Includes hit dice,
      * spellcasting abilities, proficiencies, class features, level progression tables, and
      * subclass options. Supports filtering by proficiencies, skills, and saving throws.
-     *
-     * @response \Illuminate\Http\Resources\Json\AnonymousResourceCollection<CharacterClassResource>
      */
     public function index(ClassIndexRequest $request)
     {

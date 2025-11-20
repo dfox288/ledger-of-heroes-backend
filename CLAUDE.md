@@ -14,14 +14,14 @@ This is a Laravel 12.x application that imports D&D 5th Edition content from XML
 - ✅ **24 API Resources** - Standardized and 100% field-complete
 - ✅ **17 API Controllers** - 6 entity + 11 lookup endpoints (with PHPDoc documentation)
 - ✅ **26 Form Request classes** - Full validation layer with Scramble OpenAPI integration
-- ✅ **658 tests passing** (3,881 assertions) - 100% pass rate
+- ✅ **733 tests passing** (4,603 assertions) - 100% pass rate ⭐
 - ✅ **6 importers working** - Spells, Races, Items, Backgrounds, Classes (with spells_known), Feats
 - ✅ **6 artisan commands** - `import:spells`, `import:races`, `import:items`, `import:backgrounds`, `import:classes`, `import:feats`
 - ✅ **Slug system complete** - Dual ID/slug routing for all entities
 - ✅ **12 reusable traits** - Parser + Importer traits for DRY code
 - ✅ **Class enhancements** - Spells Known tracking + Proficiency Choice metadata
 - ✅ **OpenAPI documentation** - Auto-generated via Scramble (298KB spec)
-- ✅ **Search system** - Laravel Scout + Meilisearch (3,002 documents indexed)
+- ✅ **Search system complete** - Laravel Scout + Meilisearch (3,002 documents indexed, typo-tolerant)
 - ⚠️  **1 importer pending** - Monsters (7 bestiary files ready)
 
 ## Tech Stack

@@ -21,66 +21,64 @@ class SpellController extends Controller
     public function index(SpellIndexRequest $request)
     {
         $validated = $request->validated();
+        $perPage = $validated['per_page'] ?? 15;
 
         // Handle Scout search if 'q' parameter is provided
         if ($request->filled('q')) {
-            return $this->searchSpells($request, $validated);
+            try {
+                $spells = $this->performScoutSearch($request, $validated, $perPage);
+            } catch (\Exception $e) {
+                // Log the failure and fall back to MySQL
+                Log::warning('Meilisearch search failed, falling back to MySQL', [
+                    'query' => $validated['q'] ?? null,
+                    'error' => $e->getMessage(),
+                ]);
+                $spells = $this->performMysqlSearch($validated, $perPage);
+            }
+        } else {
+            // Standard database query for listing/filtering
+            $spells = $this->buildStandardQuery($validated)->paginate($perPage);
         }
 
-        // Standard database query for listing/filtering
-        return $this->listSpells($validated);
+        return SpellResource::collection($spells);
     }
 
     /**
-     * Search spells using Scout/Meilisearch
+     * Perform Scout/Meilisearch search
      */
-    protected function searchSpells(SpellIndexRequest $request, array $validated)
+    protected function performScoutSearch(SpellIndexRequest $request, array $validated, int $perPage)
     {
-        try {
-            $perPage = $validated['per_page'] ?? 15;
-            $search = Spell::search($validated['q']);
+        $search = Spell::search($validated['q']);
 
-            // Apply filters using Scout's where() method
-            if (isset($validated['level'])) {
-                $search->where('level', $validated['level']);
-            }
-
-            if (isset($validated['school'])) {
-                // Get school name for Meilisearch (it indexes the name, not ID)
-                $schoolId = $validated['school'];
-                $schoolName = \App\Models\SpellSchool::find($schoolId)?->name;
-                if ($schoolName) {
-                    $search->where('school_name', $schoolName);
-                }
-            }
-
-            if (isset($validated['concentration'])) {
-                $search->where('concentration', $request->boolean('concentration'));
-            }
-
-            if (isset($validated['ritual'])) {
-                $search->where('ritual', $request->boolean('ritual'));
-            }
-
-            // Paginate search results
-            $spells = $search->paginate($perPage);
-
-            return SpellResource::collection($spells);
-        } catch (\Exception $e) {
-            // Log the failure and fall back to MySQL
-            Log::warning('Meilisearch search failed, falling back to MySQL', [
-                'query' => $validated['q'] ?? null,
-                'error' => $e->getMessage(),
-            ]);
-
-            return $this->fallbackSearch($validated);
+        // Apply filters using Scout's where() method
+        if (isset($validated['level'])) {
+            $search->where('level', $validated['level']);
         }
+
+        if (isset($validated['school'])) {
+            // Get school name for Meilisearch (it indexes the name, not ID)
+            $schoolId = $validated['school'];
+            $schoolName = \App\Models\SpellSchool::find($schoolId)?->name;
+            if ($schoolName) {
+                $search->where('school_name', $schoolName);
+            }
+        }
+
+        if (isset($validated['concentration'])) {
+            $search->where('concentration', $request->boolean('concentration'));
+        }
+
+        if (isset($validated['ritual'])) {
+            $search->where('ritual', $request->boolean('ritual'));
+        }
+
+        return $search->paginate($perPage);
     }
 
     /**
-     * Fallback to MySQL FULLTEXT search when Meilisearch is unavailable
+     * Perform MySQL FULLTEXT search fallback
      */
-    protected function fallbackSearch(array $validated)
+    protected function performMysqlSearch(array $validated, int $perPage)
     {
         $query = Spell::with(['spellSchool', 'sources.source', 'effects.damageType', 'classes']);
 
@@ -115,17 +113,13 @@ class SpellController extends Controller
         $sortDirection = $validated['sort_direction'] ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
-        // Paginate
-        $perPage = $validated['per_page'] ?? 15;
-        $spells = $query->paginate($perPage);
-
-        return SpellResource::collection($spells);
+        return $query->paginate($perPage);
     }
 
     /**
-     * Standard database listing with filters (no search)
+     * Build standard database query with filters
      */
-    protected function listSpells(array $validated)
+    protected function buildStandardQuery(array $validated)
     {
         $query = Spell::with(['spellSchool', 'sources.source', 'effects.damageType', 'classes']);
 
@@ -156,11 +150,7 @@ class SpellController extends Controller
         $sortDirection = $validated['sort_direction'] ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
-        // Paginate
-        $perPage = $validated['per_page'] ?? 15;
-        $spells = $query->paginate($perPage);
-
-        return SpellResource::collection($spells);
+        return $query;
     }
 
     /**

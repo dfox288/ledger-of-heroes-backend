@@ -9,18 +9,20 @@ use App\Models\EntityLanguage;
 use App\Models\RandomTable;
 use App\Models\RandomTableEntry;
 use App\Models\Source;
+use App\Services\Importers\Concerns\GeneratesSlugs;
 use App\Services\Matching\ItemMatchingService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class BackgroundImporter
 {
+    use GeneratesSlugs;
+
     public function import(array $data): Background
     {
         return DB::transaction(function () use ($data) {
             // 1. Upsert background using slug as unique key
             $background = Background::updateOrCreate(
-                ['slug' => Str::slug($data['name'])],
+                ['slug' => $this->generateSlug($data['name'])],
                 ['name' => $data['name']]
             );
 

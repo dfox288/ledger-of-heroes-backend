@@ -15,13 +15,15 @@ use App\Models\Proficiency;
 use App\Models\RandomTable;
 use App\Models\RandomTableEntry;
 use App\Models\Source;
+use App\Services\Importers\Concerns\GeneratesSlugs;
 use App\Services\Parsers\ItemTableDetector;
 use App\Services\Parsers\ItemTableParser;
 use App\Services\Parsers\ItemXmlParser;
-use Illuminate\Support\Str;
 
 class ItemImporter
 {
+    use GeneratesSlugs;
+
     private array $itemTypeCache = [];
 
     private array $damageTypeCache = [];
@@ -40,7 +42,7 @@ class ItemImporter
 
         // Create or update item
         $item = Item::updateOrCreate(
-            ['slug' => Str::slug($itemData['name'])],
+            ['slug' => $this->generateSlug($itemData['name'])],
             [
                 'name' => $itemData['name'],
                 'item_type_id' => $itemTypeId,

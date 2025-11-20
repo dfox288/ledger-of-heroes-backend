@@ -8,14 +8,14 @@ use App\Models\EntityPrerequisite;
 use App\Models\Feat;
 use App\Models\Modifier;
 use App\Models\Proficiency;
+use App\Services\Importers\Concerns\GeneratesSlugs;
 use App\Services\Importers\Concerns\ImportsSources;
 use App\Services\Parsers\FeatXmlParser;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class FeatImporter
 {
-    use ImportsSources;
+    use GeneratesSlugs, ImportsSources;
 
     /**
      * Import a feat from parsed data.
@@ -25,7 +25,7 @@ class FeatImporter
         return DB::transaction(function () use ($data) {
             // 1. Upsert feat using slug as unique key
             $feat = Feat::updateOrCreate(
-                ['slug' => Str::slug($data['name'])],
+                ['slug' => $this->generateSlug($data['name'])],
                 [
                     'name' => $data['name'],
                     'prerequisites_text' => $data['prerequisites'] ?? null,

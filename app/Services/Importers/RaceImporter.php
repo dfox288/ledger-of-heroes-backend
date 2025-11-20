@@ -12,6 +12,7 @@ use App\Models\Race;
 use App\Models\Size;
 use App\Models\Skill;
 use App\Models\Source;
+use App\Services\Importers\Concerns\GeneratesSlugs;
 use App\Services\Importers\Concerns\ImportsProficiencies;
 use App\Services\Importers\Concerns\ImportsRandomTables;
 use App\Services\Importers\Concerns\ImportsSources;
@@ -21,7 +22,7 @@ use Illuminate\Support\Str;
 
 class RaceImporter
 {
-    use ImportsProficiencies, ImportsRandomTables, ImportsSources, ImportsTraits;
+    use GeneratesSlugs, ImportsProficiencies, ImportsRandomTables, ImportsSources, ImportsTraits;
 
     private array $createdBaseRaces = [];
 
@@ -43,7 +44,7 @@ class RaceImporter
         }
 
         // Generate slug for race
-        $slug = $this->generateRaceSlug($raceData['name'], $raceData['base_race_name'] ?? null);
+        $slug = $this->generateSlugForRace($raceData['name'], $raceData['base_race_name'] ?? null);
 
         // Create or update race using slug as unique key
         $race = Race::updateOrCreate(
@@ -240,7 +241,7 @@ class RaceImporter
         $size = Size::where('code', $sizeCode)->firstOrFail();
 
         $baseRace = Race::create([
-            'slug' => Str::slug($baseRaceName),
+            'slug' => $this->generateSlug($baseRaceName),
             'name' => $baseRaceName,
             'size_id' => $size->id,
             'speed' => $speed,
@@ -360,11 +361,11 @@ class RaceImporter
      * @param  string|null  $baseRaceName  Base race name if this is a subrace
      * @return string Generated slug (e.g., "dwarf-hill")
      */
-    private function generateRaceSlug(string $raceName, ?string $baseRaceName): string
+    private function generateSlugForRace(string $raceName, ?string $baseRaceName): string
     {
         // If this is a base race (no base_race_name), just slug the name
         if (empty($baseRaceName)) {
-            return Str::slug($raceName);
+            return $this->generateSlug($raceName);
         }
 
         // For subraces, extract the subrace portion
@@ -375,18 +376,18 @@ class RaceImporter
             $baseRaceName = trim($matches[1]);
             $subraceName = trim($matches[2]);
 
-            return Str::slug($baseRaceName).'-'.Str::slug($subraceName);
+            return $this->generateSlug($subraceName, $this->generateSlug($baseRaceName));
         }
 
         // Try comma format: "Dwarf, Hill"
         if (str_contains($raceName, ',')) {
             [$baseRaceName, $subraceName] = array_map('trim', explode(',', $raceName, 2));
 
-            return Str::slug($baseRaceName).'-'.Str::slug($subraceName);
+            return $this->generateSlug($subraceName, $this->generateSlug($baseRaceName));
         }
 
         // Fallback: just slug the full name
-        return Str::slug($raceName);
+        return $this->generateSlug($raceName);
     }
 
     /**

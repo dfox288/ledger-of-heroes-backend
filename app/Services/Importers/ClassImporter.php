@@ -7,15 +7,15 @@ use App\Models\CharacterClass;
 use App\Models\ClassCounter;
 use App\Models\ClassFeature;
 use App\Models\ClassLevelProgression;
+use App\Services\Importers\Concerns\GeneratesSlugs;
 use App\Services\Importers\Concerns\ImportsProficiencies;
 use App\Services\Importers\Concerns\ImportsSources;
 use App\Services\Importers\Concerns\ImportsTraits;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class ClassImporter
 {
-    use ImportsProficiencies, ImportsSources, ImportsTraits;
+    use GeneratesSlugs, ImportsProficiencies, ImportsSources, ImportsTraits;
 
     /**
      * Import a class from parsed data.
@@ -24,7 +24,7 @@ class ClassImporter
     {
         return DB::transaction(function () use ($data) {
             // 1. Generate slug
-            $slug = Str::slug($data['name']);
+            $slug = $this->generateSlug($data['name']);
 
             // 2. Check if this file has complete base class data
             // Files with hit_die = 0 only contain supplemental content (subclasses, flavor text)
@@ -219,9 +219,7 @@ class ClassImporter
     {
         return DB::transaction(function () use ($parentClass, $subclassData) {
             // 1. Generate hierarchical slug: "fighter-battle-master"
-            $parentSlug = $parentClass->slug;
-            $subclassSlug = Str::slug($subclassData['name']);
-            $fullSlug = "{$parentSlug}-{$subclassSlug}";
+            $fullSlug = $this->generateSlug($subclassData['name'], $parentClass->slug);
 
             // 2. Create or update subclass
             $subclass = CharacterClass::updateOrCreate(

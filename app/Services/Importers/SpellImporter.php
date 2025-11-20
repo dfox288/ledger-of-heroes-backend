@@ -5,13 +5,13 @@ namespace App\Services\Importers;
 use App\Models\CharacterClass;
 use App\Models\Spell;
 use App\Models\SpellSchool;
+use App\Services\Importers\Concerns\GeneratesSlugs;
 use App\Services\Importers\Concerns\ImportsSources;
 use App\Services\Parsers\SpellXmlParser;
-use Illuminate\Support\Str;
 
 class SpellImporter
 {
-    use ImportsSources;
+    use GeneratesSlugs, ImportsSources;
 
     public function import(array $spellData): Spell
     {
@@ -20,7 +20,7 @@ class SpellImporter
 
         // Create or update spell using slug as unique key
         $spell = Spell::updateOrCreate(
-            ['slug' => Str::slug($spellData['name'])],
+            ['slug' => $this->generateSlug($spellData['name'])],
             [
                 'name' => $spellData['name'],
                 'level' => $spellData['level'],

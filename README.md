@@ -147,6 +147,50 @@ See `docs/plans/2025-11-17-dnd-compendium-database-design.md` for detailed schem
 | `import:backgrounds {file}` | Import backgrounds from XML file |
 | `import:feats {file}` | Import feats from XML file |
 
+## Search
+
+This application uses [Laravel Scout](https://laravel.com/docs/scout) with [Meilisearch](https://www.meilisearch.com/) for fast, typo-tolerant search.
+
+### Features
+- **Fast:** Search responses in <50ms
+- **Typo-tolerant:** "firebll" finds "Fireball"
+- **Ranked:** Results ordered by relevance
+- **Faceted:** Filter by level, school, type, etc.
+
+### Usage
+
+**Entity-specific search:**
+```bash
+GET /api/v1/spells?q=fireball
+GET /api/v1/items?q=longsword&rarity=rare
+GET /api/v1/races?q=elf
+```
+
+**Global search (all entities):**
+```bash
+GET /api/v1/search?q=dragon
+GET /api/v1/search?q=fire&types[]=spell&types[]=item&limit=10
+```
+
+### Management Commands
+
+```bash
+# Configure Meilisearch indexes
+php artisan search:configure-indexes
+
+# Import all models
+php artisan scout:import "App\Models\Spell"
+php artisan scout:import "App\Models\Item"
+php artisan scout:import "App\Models\Race"
+php artisan scout:import "App\Models\CharacterClass"
+php artisan scout:import "App\Models\Background"
+php artisan scout:import "App\Models\Feat"
+
+# Flush and reimport
+php artisan scout:flush "App\Models\Spell"
+php artisan scout:import "App\Models\Spell"
+```
+
 ## Project Structure
 
 ```

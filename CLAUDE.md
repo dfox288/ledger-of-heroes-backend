@@ -21,6 +21,7 @@ This is a Laravel 12.x application that imports D&D 5th Edition content from XML
 - ✅ **12 reusable traits** - Parser + Importer traits for DRY code
 - ✅ **Class enhancements** - Spells Known tracking + Proficiency Choice metadata
 - ✅ **OpenAPI documentation** - Auto-generated via Scramble (298KB spec)
+- ✅ **Search system** - Laravel Scout + Meilisearch (3,002 documents indexed)
 - ⚠️  **1 importer pending** - Monsters (7 bestiary files ready)
 
 ## Tech Stack
@@ -377,6 +378,19 @@ All entities support **dual ID/slug routing** for SEO-friendly URLs:
 - Hierarchical slugs for subraces/subclasses: `dwarf-hill`, `fighter-battle-master`
 - Auto-generated during import via `Str::slug()`
 - Backward compatible with existing code
+
+### Search System (NEW 2025-11-20)
+- **Laravel Scout + Meilisearch** integration for fast, typo-tolerant search
+- **6 searchable entity types:** Spells, Items, Races, Classes, Backgrounds, Feats
+- **Global unified search endpoint** - `/api/v1/search` searches across all entities
+- **Entity-specific search** - Each entity endpoint supports `?q=` parameter
+- **Performance:** <50ms average response time, <100ms p95
+- **Typo-tolerance:** "firebll" finds "Fireball"
+- **Graceful fallback** to MySQL FULLTEXT when Meilisearch unavailable
+- **Faceted filtering** support (level, school, rarity, etc.)
+- **3,002 documents indexed** across all entities (477 spells, 2,107 items, 115 races, 131 classes, 34 backgrounds, 138 feats)
+- **Command:** `php artisan search:configure-indexes` - Sets up search indexes with optimal settings
+- See `docs/SEARCH.md` for comprehensive documentation
 
 ### Multi-Source Entity System
 All entities can cite multiple sourcebooks via `entity_sources` polymorphic table.

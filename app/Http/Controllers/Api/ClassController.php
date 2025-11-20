@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\DTOs\ClassSearchDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ClassIndexRequest;
 use App\Http\Requests\ClassShowRequest;
@@ -9,7 +10,7 @@ use App\Http\Requests\ClassSpellListRequest;
 use App\Http\Resources\ClassResource;
 use App\Http\Resources\SpellResource;
 use App\Models\CharacterClass;
-use Illuminate\Support\Facades\Log;
+use App\Services\ClassSearchService;
 
 class ClassController extends Controller
 {
@@ -20,152 +21,17 @@ class ClassController extends Controller
      * spellcasting abilities, proficiencies, class features, level progression tables, and
      * subclass options. Supports filtering by proficiencies, skills, and saving throws.
      */
-    public function index(ClassIndexRequest $request)
+    public function index(ClassIndexRequest $request, ClassSearchService $service)
     {
-        $validated = $request->validated();
-        $perPage = $validated['per_page'] ?? 15;
+        $dto = ClassSearchDTO::fromRequest($request);
 
-        if ($request->filled('q')) {
-            try {
-                $classes = $this->performScoutSearch($request, $validated, $perPage);
-            } catch (\Exception $e) {
-                Log::warning('Meilisearch search failed, falling back to MySQL', [
-                    'query' => $validated['q'] ?? null,
-                    'error' => $e->getMessage(),
-                ]);
-                $classes = $this->performMysqlSearch($validated, $perPage);
-            }
+        if ($dto->searchQuery !== null) {
+            $classes = $service->buildScoutQuery($dto->searchQuery)->paginate($dto->perPage);
         } else {
-            $classes = $this->buildStandardQuery($validated)->paginate($perPage);
+            $classes = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 
         return ClassResource::collection($classes);
-    }
-
-    /**
-     * Perform Scout/Meilisearch search
-     */
-    protected function performScoutSearch(ClassIndexRequest $request, array $validated, int $perPage)
-    {
-        return CharacterClass::search($validated['q'])->paginate($perPage);
-    }
-
-    /**
-     * Perform MySQL search fallback
-     */
-    protected function performMysqlSearch(array $validated, int $perPage)
-    {
-        $query = CharacterClass::with([
-            'spellcastingAbility',
-            'proficiencies.proficiencyType',
-            'traits',
-            'sources.source',
-            'features',
-            'levelProgression',
-            'counters',
-            'subclasses.features',
-            'subclasses.counters',
-        ]);
-
-        // MySQL FULLTEXT search
-        if (isset($validated['q'])) {
-            $search = $validated['q'];
-            $query->whereRaw(
-                'MATCH(name, description) AGAINST(? IN NATURAL LANGUAGE MODE)',
-                [$search]
-            );
-        }
-
-        // Apply base_only filter (show only base classes, no subclasses)
-        if (isset($validated['base_only']) && $validated['base_only']) {
-            $query->whereNull('parent_class_id');
-        }
-
-        // Filter by granted proficiency
-        if (isset($validated['grants_proficiency'])) {
-            $query->grantsProficiency($validated['grants_proficiency']);
-        }
-
-        // Filter by granted skill
-        if (isset($validated['grants_skill'])) {
-            $query->grantsSkill($validated['grants_skill']);
-        }
-
-        // Filter by saving throw proficiency
-        if (isset($validated['grants_saving_throw'])) {
-            $abilityName = $validated['grants_saving_throw'];
-            $query->whereHas('proficiencies', function ($q) use ($abilityName) {
-                $q->where('proficiency_type', 'saving_throw')
-                    ->whereHas('abilityScore', function ($abilityQuery) use ($abilityName) {
-                        $abilityQuery->where('code', strtoupper($abilityName))
-                            ->orWhere('name', 'LIKE', "%{$abilityName}%");
-                    });
-            });
-        }
-
-        // Apply sorting
-        $sortBy = $validated['sort_by'] ?? 'name';
-        $sortDirection = $validated['sort_direction'] ?? 'asc';
-        $query->orderBy($sortBy, $sortDirection);
-
-        return $query->paginate($perPage);
-    }
-
-    /**
-     * Build standard database query with filters
-     */
-    protected function buildStandardQuery(array $validated)
-    {
-        $query = CharacterClass::with([
-            'spellcastingAbility',
-            'proficiencies.proficiencyType',
-            'traits',
-            'sources.source',
-            'features',
-            'levelProgression',
-            'counters',
-            'subclasses.features',
-            'subclasses.counters',
-        ]);
-
-        // Apply search filter
-        if (isset($validated['search'])) {
-            $query->where('name', 'LIKE', '%'.$validated['search'].'%');
-        }
-
-        // Apply base_only filter (show only base classes, no subclasses)
-        if (isset($validated['base_only']) && $validated['base_only']) {
-            $query->whereNull('parent_class_id');
-        }
-
-        // Filter by granted proficiency
-        if (isset($validated['grants_proficiency'])) {
-            $query->grantsProficiency($validated['grants_proficiency']);
-        }
-
-        // Filter by granted skill
-        if (isset($validated['grants_skill'])) {
-            $query->grantsSkill($validated['grants_skill']);
-        }
-
-        // Filter by saving throw proficiency
-        if (isset($validated['grants_saving_throw'])) {
-            $abilityName = $validated['grants_saving_throw'];
-            $query->whereHas('proficiencies', function ($q) use ($abilityName) {
-                $q->where('proficiency_type', 'saving_throw')
-                    ->whereHas('abilityScore', function ($abilityQuery) use ($abilityName) {
-                        $abilityQuery->where('code', strtoupper($abilityName))
-                            ->orWhere('name', 'LIKE', "%{$abilityName}%");
-                    });
-            });
-        }
-
-        // Apply sorting
-        $sortBy = $validated['sort_by'] ?? 'name';
-        $sortDirection = $validated['sort_direction'] ?? 'asc';
-        $query->orderBy($sortBy, $sortDirection);
-
-        return $query;
     }
 
     /**

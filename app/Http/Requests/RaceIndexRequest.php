@@ -16,46 +16,22 @@ class RaceIndexRequest extends BaseIndexRequest
     {
         return [
             // Filter by granted proficiency
-            'grants_proficiency' => [
-                'sometimes',
-                'string',
-                Rule::in($this->getCachedLookup('proficiency_types', ProficiencyType::class)),
-            ],
+            'grants_proficiency' => ['sometimes', 'string', 'max:255'],
 
             // Filter by granted skill
-            'grants_skill' => [
-                'sometimes',
-                'string',
-                Rule::in($this->getCachedLookup('skills', Skill::class)),
-            ],
+            'grants_skill' => ['sometimes', 'string', 'max:255'],
 
             // Filter by proficiency type/category
-            'grants_proficiency_type' => [
-                'sometimes',
-                'string',
-                Rule::in($this->getCachedLookup('proficiency_types', ProficiencyType::class)),
-            ],
+            'grants_proficiency_type' => ['sometimes', 'string', 'max:255'],
 
             // Filter by spoken language
-            'speaks_language' => [
-                'sometimes',
-                'string',
-                Rule::in($this->getCachedLookup('languages', Language::class)),
-            ],
+            'speaks_language' => ['sometimes', 'string', 'max:255'],
 
             // Filter by language choice count
-            'language_choice_count' => [
-                'sometimes',
-                'integer',
-                'min:0',
-                'max:10',
-            ],
+            'language_choice_count' => ['sometimes', 'integer', 'min:0', 'max:10'],
 
             // Filter entities granting any languages
-            'grants_languages' => [
-                'sometimes',
-                Rule::in(['true', 'false', '1', '0', 1, 0, true, false]),
-            ],
+            'grants_languages' => ['sometimes', Rule::in([0, 1, '0', '1', true, false, 'true', 'false'])],
         ];
     }
 

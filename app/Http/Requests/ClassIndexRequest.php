@@ -16,21 +16,9 @@ class ClassIndexRequest extends BaseIndexRequest
     {
         return [
             'base_only' => ['sometimes', 'boolean'],
-            'grants_proficiency' => [
-                'sometimes',
-                'string',
-                Rule::in($this->getCachedLookup('proficiency_types', ProficiencyType::class)),
-            ],
-            'grants_skill' => [
-                'sometimes',
-                'string',
-                Rule::in($this->getCachedLookup('skills', Skill::class)),
-            ],
-            'grants_saving_throw' => [
-                'sometimes',
-                'string',
-                Rule::in($this->getCachedLookup('ability_scores', AbilityScore::class, 'code')),
-            ],
+            'grants_proficiency' => ['sometimes', 'string', 'max:255'],
+            'grants_skill' => ['sometimes', 'string', 'max:255'],
+            'grants_saving_throw' => ['sometimes', 'string', 'max:255'],
         ];
     }
 

@@ -17,53 +17,25 @@ class FeatIndexRequest extends BaseIndexRequest
     {
         return [
             // Filter by prerequisite race
-            'prerequisite_race' => [
-                'sometimes',
-                'string',
-                Rule::in($this->getCachedLookup('races', Race::class)),
-            ],
+            'prerequisite_race' => ['sometimes', 'string', 'max:255'],
 
             // Filter by prerequisite ability score
-            'prerequisite_ability' => [
-                'sometimes',
-                'string',
-                Rule::in($this->getCachedLookup('ability_scores', AbilityScore::class, 'code')),
-            ],
+            'prerequisite_ability' => ['sometimes', 'string', 'max:255'],
 
             // Minimum ability score value
-            'min_value' => [
-                'sometimes',
-                'integer',
-                'min:1',
-                'max:30',
-            ],
+            'min_value' => ['sometimes', 'integer', 'min:1', 'max:30'],
 
             // Filter by prerequisite proficiency
-            'prerequisite_proficiency' => [
-                'sometimes',
-                'string',
-                Rule::in($this->getCachedLookup('proficiency_types', ProficiencyType::class)),
-            ],
+            'prerequisite_proficiency' => ['sometimes', 'string', 'max:255'],
 
             // Filter by presence of prerequisites
-            'has_prerequisites' => [
-                'sometimes',
-                Rule::in(['true', 'false', '1', '0', true, false, 1, 0]),
-            ],
+            'has_prerequisites' => ['sometimes', Rule::in([0, 1, '0', '1', true, false, 'true', 'false'])],
 
             // Filter by granted proficiency
-            'grants_proficiency' => [
-                'sometimes',
-                'string',
-                Rule::in($this->getCachedLookup('proficiency_types_grants', ProficiencyType::class)),
-            ],
+            'grants_proficiency' => ['sometimes', 'string', 'max:255'],
 
             // Filter by granted skill
-            'grants_skill' => [
-                'sometimes',
-                'string',
-                Rule::in($this->getCachedLookup('skills', Skill::class)),
-            ],
+            'grants_skill' => ['sometimes', 'string', 'max:255'],
         ];
     }
 

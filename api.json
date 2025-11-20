@@ -607,6 +607,91 @@
                 "tags": [
                     "Class"
                 ],
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Pagination",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sorting",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "name",
+                                "hit_die",
+                                "created_at",
+                                "updated_at"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort_direction",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "base_only",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "grants_proficiency",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "grants_skill",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "grants_saving_throw",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Paginated set of `ClassResource`",
@@ -1570,6 +1655,132 @@
                 "summary": "List all feats",
                 "tags": [
                     "Feat"
+                ],
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Pagination",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sorting",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "name",
+                                "created_at",
+                                "updated_at"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort_direction",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "prerequisite_race",
+                        "in": "query",
+                        "description": "Filter by prerequisite race",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "prerequisite_ability",
+                        "in": "query",
+                        "description": "Filter by prerequisite ability score",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "min_value",
+                        "in": "query",
+                        "description": "Minimum ability score value",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 30
+                        }
+                    },
+                    {
+                        "name": "prerequisite_proficiency",
+                        "in": "query",
+                        "description": "Filter by prerequisite proficiency",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "has_prerequisites",
+                        "in": "query",
+                        "description": "Filter by presence of prerequisites",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "0",
+                                "1",
+                                "0",
+                                "1",
+                                "1",
+                                "",
+                                "true",
+                                "false"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "grants_proficiency",
+                        "in": "query",
+                        "description": "Filter by granted proficiency",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "grants_skill",
+                        "in": "query",
+                        "description": "Filter by granted skill",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -3103,6 +3314,125 @@
                 "summary": "List all races and subraces",
                 "tags": [
                     "Race"
+                ],
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Pagination",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sorting",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "name",
+                                "size",
+                                "speed",
+                                "created_at",
+                                "updated_at"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort_direction",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "grants_proficiency",
+                        "in": "query",
+                        "description": "Filter by granted proficiency",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "grants_skill",
+                        "in": "query",
+                        "description": "Filter by granted skill",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "grants_proficiency_type",
+                        "in": "query",
+                        "description": "Filter by proficiency type/category",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "speaks_language",
+                        "in": "query",
+                        "description": "Filter by spoken language",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "language_choice_count",
+                        "in": "query",
+                        "description": "Filter by language choice count",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 10
+                        }
+                    },
+                    {
+                        "name": "grants_languages",
+                        "in": "query",
+                        "description": "Filter entities granting any languages",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "0",
+                                "1",
+                                "0",
+                                "1",
+                                "1",
+                                "",
+                                "true",
+                                "false"
+                            ]
+                        }
+                    }
                 ],
                 "responses": {
                     "200": {

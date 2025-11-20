@@ -91,4 +91,35 @@ class Item extends Model
     {
         return $this->morphMany(EntityPrerequisite::class, 'reference');
     }
+
+    /**
+     * Scope: Filter by minimum strength requirement
+     * Usage: Item::whereMinStrength(15)->get()
+     */
+    public function scopeWhereMinStrength($query, int $minStrength)
+    {
+        // Support both old column and new prerequisite system
+        return $query->where(function ($q) use ($minStrength) {
+            $q->where('strength_requirement', '>=', $minStrength)
+                ->orWhereHas('prerequisites', function ($prereqQuery) use ($minStrength) {
+                    $prereqQuery->where('prerequisite_type', AbilityScore::class)
+                        ->whereHas('prerequisite', function ($abilityQuery) {
+                            $abilityQuery->where('code', 'STR');
+                        })
+                        ->where('minimum_value', '>=', $minStrength);
+                });
+        });
+    }
+
+    /**
+     * Scope: Filter by any prerequisite
+     * Usage: Item::hasPrerequisites()->get()
+     */
+    public function scopeHasPrerequisites($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNotNull('strength_requirement')
+                ->orHas('prerequisites');
+        });
+    }
 }

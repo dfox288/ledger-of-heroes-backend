@@ -18,6 +18,38 @@ class BackgroundController extends Controller
             $query->search($request->search);
         }
 
+        // Filter by granted proficiency
+        if ($request->has('grants_proficiency')) {
+            $query->grantsProficiency($request->grants_proficiency);
+        }
+
+        // Filter by granted skill
+        if ($request->has('grants_skill')) {
+            $query->grantsSkill($request->grants_skill);
+        }
+
+        // Filter by proficiency type/category
+        if ($request->has('grants_proficiency_type')) {
+            $query->grantsProficiencyType($request->grants_proficiency_type);
+        }
+
+        // Filter by spoken language
+        if ($request->has('speaks_language')) {
+            $query->speaksLanguage($request->speaks_language);
+        }
+
+        // Filter by language choice count
+        if ($request->has('language_choice_count')) {
+            $query->languageChoiceCount((int) $request->language_choice_count);
+        }
+
+        // Filter entities granting any languages
+        if ($request->has('grants_languages')) {
+            if ($request->boolean('grants_languages')) {
+                $query->grantsLanguages();
+            }
+        }
+
         // Apply sorting
         $sortBy = $request->get('sort_by', 'name');
         $sortDirection = $request->get('sort_direction', 'asc');

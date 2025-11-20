@@ -89,4 +89,46 @@ class CharacterClass extends Model
     {
         return is_null($this->parent_class_id);
     }
+
+    /**
+     * Scope: Filter by granted proficiency name
+     * Usage: CharacterClass::grantsProficiency('longsword')->get()
+     */
+    public function scopeGrantsProficiency($query, string $proficiencyName)
+    {
+        return $query->whereHas('proficiencies', function ($q) use ($proficiencyName) {
+            $q->where('proficiency_name', 'LIKE', "%{$proficiencyName}%")
+                ->orWhereHas('proficiencyType', function ($typeQuery) use ($proficiencyName) {
+                    $typeQuery->where('name', 'LIKE', "%{$proficiencyName}%");
+                });
+        });
+    }
+
+    /**
+     * Scope: Filter by granted skill proficiency
+     * Usage: CharacterClass::grantsSkill('insight')->get()
+     */
+    public function scopeGrantsSkill($query, string $skillName)
+    {
+        return $query->whereHas('proficiencies', function ($q) use ($skillName) {
+            $q->where('proficiency_type', 'skill')
+                ->whereHas('skill', function ($skillQuery) use ($skillName) {
+                    $skillQuery->where('name', 'LIKE', "%{$skillName}%");
+                });
+        });
+    }
+
+    /**
+     * Scope: Filter by proficiency type category
+     * Usage: CharacterClass::grantsProficiencyType('martial')->get()
+     */
+    public function scopeGrantsProficiencyType($query, string $categoryOrName)
+    {
+        return $query->whereHas('proficiencies', function ($q) use ($categoryOrName) {
+            $q->whereHas('proficiencyType', function ($typeQuery) use ($categoryOrName) {
+                $typeQuery->where('category', 'LIKE', "%{$categoryOrName}%")
+                    ->orWhere('name', 'LIKE', "%{$categoryOrName}%");
+            });
+        });
+    }
 }

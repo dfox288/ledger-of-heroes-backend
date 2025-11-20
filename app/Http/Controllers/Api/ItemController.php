@@ -47,6 +47,18 @@ class ItemController extends Controller
             $query->where('requires_attunement', $request->boolean('requires_attunement'));
         }
 
+        // Filter by minimum strength requirement
+        if ($request->has('min_strength')) {
+            $query->whereMinStrength((int) $request->min_strength);
+        }
+
+        // Filter by having any prerequisites
+        if ($request->has('has_prerequisites')) {
+            if ($request->boolean('has_prerequisites')) {
+                $query->hasPrerequisites();
+            }
+        }
+
         // Apply sorting
         $sortBy = $request->get('sort_by', 'name');
         $sortDirection = $request->get('sort_direction', 'asc');

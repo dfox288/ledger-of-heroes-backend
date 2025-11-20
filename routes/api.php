@@ -50,4 +50,8 @@ Route::prefix('v1')->group(function () {
 
     // Classes
     Route::apiResource('classes', ClassController::class)->only(['index', 'show']);
+
+    // Class spell list endpoint
+    Route::get('classes/{class}/spells', [ClassController::class, 'spells'])
+        ->name('classes.spells');
 });

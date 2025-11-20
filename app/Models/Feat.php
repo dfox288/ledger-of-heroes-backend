@@ -74,4 +74,106 @@ class Feat extends Model
             ->orWhere('description', 'LIKE', "%{$searchTerm}%")
             ->orWhere('prerequisites_text', 'LIKE', "%{$searchTerm}%");
     }
+
+    /**
+     * Scope: Filter by prerequisite race
+     * Usage: Feat::wherePrerequisiteRace('dwarf')->get()
+     */
+    public function scopeWherePrerequisiteRace($query, string $raceName)
+    {
+        return $query->whereHas('prerequisites', function ($q) use ($raceName) {
+            $q->where('prerequisite_type', Race::class)
+                ->whereHas('prerequisite', function ($raceQuery) use ($raceName) {
+                    $raceQuery->where('name', 'LIKE', "%{$raceName}%");
+                });
+        });
+    }
+
+    /**
+     * Scope: Filter by prerequisite ability score
+     * Usage: Feat::wherePrerequisiteAbility('strength', 13)->get()
+     */
+    public function scopeWherePrerequisiteAbility($query, string $abilityName, ?int $minValue = null)
+    {
+        return $query->whereHas('prerequisites', function ($q) use ($abilityName, $minValue) {
+            $q->where('prerequisite_type', AbilityScore::class)
+                ->whereHas('prerequisite', function ($abilityQuery) use ($abilityName) {
+                    $abilityQuery->where('code', strtoupper($abilityName))
+                        ->orWhere('name', 'LIKE', "%{$abilityName}%");
+                });
+
+            if ($minValue !== null) {
+                $q->where('minimum_value', '>=', $minValue);
+            }
+        });
+    }
+
+    /**
+     * Scope: Filter by presence of prerequisites
+     * Usage: Feat::withOrWithoutPrerequisites(false)->get() // feats without prereqs
+     */
+    public function scopeWithOrWithoutPrerequisites($query, bool $hasPrerequisites)
+    {
+        if ($hasPrerequisites) {
+            return $query->has('prerequisites');
+        }
+
+        return $query->doesntHave('prerequisites');
+    }
+
+    /**
+     * Scope: Filter by prerequisite proficiency
+     * Usage: Feat::wherePrerequisiteProficiency('medium armor')->get()
+     */
+    public function scopeWherePrerequisiteProficiency($query, string $proficiencyName)
+    {
+        return $query->whereHas('prerequisites', function ($q) use ($proficiencyName) {
+            $q->where('prerequisite_type', ProficiencyType::class)
+                ->whereHas('prerequisite', function ($profQuery) use ($proficiencyName) {
+                    $profQuery->where('name', 'LIKE', "%{$proficiencyName}%");
+                });
+        });
+    }
+
+    /**
+     * Scope: Filter by granted proficiency name
+     * Usage: Feat::grantsProficiency('longsword')->get()
+     */
+    public function scopeGrantsProficiency($query, string $proficiencyName)
+    {
+        return $query->whereHas('proficiencies', function ($q) use ($proficiencyName) {
+            $q->where('proficiency_name', 'LIKE', "%{$proficiencyName}%")
+                ->orWhereHas('proficiencyType', function ($typeQuery) use ($proficiencyName) {
+                    $typeQuery->where('name', 'LIKE', "%{$proficiencyName}%");
+                });
+        });
+    }
+
+    /**
+     * Scope: Filter by granted skill proficiency
+     * Usage: Feat::grantsSkill('insight')->get()
+     */
+    public function scopeGrantsSkill($query, string $skillName)
+    {
+        return $query->whereHas('proficiencies', function ($q) use ($skillName) {
+            $q->where('proficiency_type', 'skill')
+                ->whereHas('skill', function ($skillQuery) use ($skillName) {
+                    $skillQuery->where('name', 'LIKE', "%{$skillName}%");
+                });
+        });
+    }
+
+    /**
+     * Scope: Filter by proficiency type category
+     * Usage: Feat::grantsProficiencyType('martial')->get()
+     */
+    public function scopeGrantsProficiencyType($query, string $categoryOrName)
+    {
+        return $query->whereHas('proficiencies', function ($q) use ($categoryOrName) {
+            $q->whereHas('proficiencyType', function ($typeQuery) use ($categoryOrName) {
+                $typeQuery->where('category', 'LIKE', "%{$categoryOrName}%")
+                    ->orWhere('name', 'LIKE', "%{$categoryOrName}%");
+            });
+        });
+    }
 }

@@ -18,6 +18,37 @@ class FeatController extends Controller
             $query->search($request->search);
         }
 
+        // Filter by prerequisite race
+        if ($request->has('prerequisite_race')) {
+            $query->wherePrerequisiteRace($request->prerequisite_race);
+        }
+
+        // Filter by prerequisite ability score
+        if ($request->has('prerequisite_ability')) {
+            $minValue = $request->has('min_value') ? (int) $request->min_value : null;
+            $query->wherePrerequisiteAbility($request->prerequisite_ability, $minValue);
+        }
+
+        // Filter by prerequisite proficiency
+        if ($request->has('prerequisite_proficiency')) {
+            $query->wherePrerequisiteProficiency($request->prerequisite_proficiency);
+        }
+
+        // Filter by presence of prerequisites
+        if ($request->has('has_prerequisites')) {
+            $query->withOrWithoutPrerequisites($request->boolean('has_prerequisites'));
+        }
+
+        // Filter by granted proficiency
+        if ($request->has('grants_proficiency')) {
+            $query->grantsProficiency($request->grants_proficiency);
+        }
+
+        // Filter by granted skill
+        if ($request->has('grants_skill')) {
+            $query->grantsSkill($request->grants_skill);
+        }
+
         // Apply sorting
         $sortBy = $request->get('sort_by', 'name');
         $sortDirection = $request->get('sort_direction', 'asc');

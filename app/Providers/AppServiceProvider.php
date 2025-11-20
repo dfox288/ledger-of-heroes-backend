@@ -2,12 +2,15 @@
 
 namespace App\Providers;
 
+use App\Events\ModelImported;
+use App\Listeners\ClearRequestValidationCache;
 use App\Models\Background;
 use App\Models\CharacterClass;
 use App\Models\Feat;
 use App\Models\Item;
 use App\Models\Race;
 use App\Models\Spell;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,6 +29,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register event listeners
+        Event::listen(
+            ModelImported::class,
+            ClearRequestValidationCache::class
+        );
+
         // Custom route model binding that supports both ID and slug
         Route::bind('spell', function ($value) {
             return is_numeric($value)

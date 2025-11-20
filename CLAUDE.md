@@ -47,6 +47,8 @@ This is a Laravel 12.x application that imports D&D 5th Edition content from XML
 9. **Update API Tests** - Verify API returns new fields
 10. **Run FULL test suite** - Ensure no regressions
 11. **Commit to git with clear message**
+12. **Update todos, clean up documents**
+13. **Update handover document**
 
 ### PHPUnit 11 Testing Standards:
 
@@ -133,6 +135,87 @@ Before marking ANY feature complete:
 - [ ] Code formatted with Pint
 
 **If tests aren't written, the feature ISN'T done.**
+
+---
+
+## 📋 Form Request Naming Convention
+
+**ALWAYS follow this naming pattern for Form Request classes:**
+
+### Pattern: `{Entity}{Action}Request`
+
+```php
+// ✅ CORRECT - Entity first, then controller action
+SpellIndexRequest      // GET /api/v1/spells (list)
+SpellShowRequest       // GET /api/v1/spells/{id} (single)
+SpellStoreRequest      // POST /api/v1/spells (create)
+SpellUpdateRequest     // PATCH /api/v1/spells/{id} (update)
+
+FeatIndexRequest       // GET /api/v1/feats
+FeatShowRequest        // GET /api/v1/feats/{id}
+
+RaceIndexRequest       // GET /api/v1/races
+RaceShowRequest        // GET /api/v1/races/{id}
+
+// ❌ WRONG - Don't use Laravel's verb-first convention
+IndexSpellRequest      // NO - verb first
+StoreSpellRequest      // NO - verb first
+```
+
+### Purpose & Benefits
+
+**Form Requests serve THREE critical functions:**
+
+1. **Validation** - Validate incoming query parameters and request body
+2. **Documentation** - Scramble reads Request classes to generate OpenAPI docs
+3. **Type Safety** - IDE autocomplete and static analysis support
+
+**Example Request Class:**
+```php
+class SpellIndexRequest extends FormRequest
+{
+    public function rules(): array
+    {
+        return [
+            // Pagination
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+
+            // Sorting (whitelist for security)
+            'sort_by' => ['sometimes', Rule::in(['name', 'level', 'created_at'])],
+            'sort_direction' => ['sometimes', Rule::in(['asc', 'desc'])],
+
+            // Filters
+            'level' => ['sometimes', 'integer', 'min:0', 'max:9'],
+            'school' => ['sometimes', 'exists:spell_schools,id'],
+            'concentration' => ['sometimes', Rule::in([true, false, 'true', 'false', 1, 0])],
+        ];
+    }
+}
+```
+
+### ⚠️ CRITICAL Maintenance Rule
+
+**WHENEVER you modify Models or Controllers, you MUST update corresponding Request classes:**
+
+| Change Type | Required Updates |
+|-------------|------------------|
+| **Add model scope** | Add validation rule to `{Entity}IndexRequest` |
+| **Add controller filter** | Add validation rule to Request class |
+| **Add sortable column** | Add to `sort_by` Rule::in() whitelist |
+| **Add relationship** | Add to `include` validation in `{Entity}ShowRequest` |
+| **Add API field** | Add to `fields` validation in Show/Index requests |
+
+**Why this matters:**
+- ❌ Missing validation = unvalidated user input = security risk
+- ❌ Missing validation = Scramble docs incomplete = poor DX
+- ❌ Missing validation = no type hints = harder debugging
+
+**Checklist before marking work complete:**
+- [ ] Model scopes have corresponding Request validation
+- [ ] Controller filters are validated in Request class
+- [ ] Sortable columns are whitelisted
+- [ ] Request class tests verify validation rules
+- [ ] Scramble docs updated (run `php artisan scramble:docs`)
 
 ---
 

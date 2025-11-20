@@ -2,6 +2,7 @@
 
 namespace App\Services\Importers;
 
+use App\Events\ModelImported;
 use App\Services\Importers\Concerns\GeneratesSlugs;
 use App\Services\Importers\Concerns\ImportsProficiencies;
 use App\Services\Importers\Concerns\ImportsRandomTables;
@@ -38,9 +39,14 @@ abstract class BaseImporter
      */
     public function import(array $data): Model
     {
-        return DB::transaction(function () use ($data) {
+        $entity = DB::transaction(function () use ($data) {
             return $this->importEntity($data);
         });
+
+        // Dispatch event to clear validation caches
+        event(new ModelImported($entity));
+
+        return $entity;
     }
 
     /**

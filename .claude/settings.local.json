@@ -35,7 +35,10 @@
       "Bash(done)",
       "Bash(/dev/null)",
       "Bash(docs/refactoring-baseline-tests.txt)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(git mv:*)"
     ],
     "deny": [],
     "ask": []

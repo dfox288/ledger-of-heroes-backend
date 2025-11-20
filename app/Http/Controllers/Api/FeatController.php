@@ -17,48 +17,43 @@ class FeatController extends Controller
      * Returns a paginated list of D&D 5e feats. Supports advanced filtering by prerequisites
      * (race, ability scores, proficiencies), granted benefits (skills, proficiencies),
      * and full-text search. All query parameters are validated and documented automatically.
+     *
+     * @response \Illuminate\Http\Resources\Json\AnonymousResourceCollection<FeatResource>
      */
     public function index(FeatIndexRequest $request)
     {
         $validated = $request->validated();
+        $perPage = $validated['per_page'] ?? 15;
 
-        // Handle Scout search if 'q' parameter is provided
         if ($request->filled('q')) {
-            return $this->searchFeats($request, $validated);
+            try {
+                $feats = $this->performScoutSearch($request, $validated, $perPage);
+            } catch (\Exception $e) {
+                Log::warning('Meilisearch search failed, falling back to MySQL', [
+                    'query' => $validated['q'] ?? null,
+                    'error' => $e->getMessage(),
+                ]);
+                $feats = $this->performMysqlSearch($validated, $perPage);
+            }
+        } else {
+            $feats = $this->buildStandardQuery($validated)->paginate($perPage);
         }
 
-        // Standard database query for listing/filtering
-        return $this->listFeats($validated);
+        return FeatResource::collection($feats);
     }
 
     /**
      * Search feats using Scout/Meilisearch
      */
-    protected function searchFeats(FeatIndexRequest $request, array $validated)
+    protected function performScoutSearch(FeatIndexRequest $request, array $validated, int $perPage)
     {
-        try {
-            $perPage = $validated['per_page'] ?? 15;
-            $search = Feat::search($validated['q']);
-
-            // Paginate search results
-            $feats = $search->paginate($perPage);
-
-            return FeatResource::collection($feats);
-        } catch (\Exception $e) {
-            // Log the failure and fall back to MySQL
-            Log::warning('Meilisearch search failed, falling back to MySQL', [
-                'query' => $validated['q'] ?? null,
-                'error' => $e->getMessage(),
-            ]);
-
-            return $this->fallbackSearch($validated);
-        }
+        return Feat::search($validated['q'])->paginate($perPage);
     }
 
     /**
      * Fallback to MySQL FULLTEXT search when Meilisearch is unavailable
      */
-    protected function fallbackSearch(array $validated)
+    protected function performMysqlSearch(array $validated, int $perPage)
     {
         $query = Feat::with(['sources.source', 'prerequisites.prerequisite']);
 
@@ -118,7 +113,7 @@ class FeatController extends Controller
     /**
      * Standard database listing with filters (no search)
      */
-    protected function listFeats(array $validated)
+    protected function buildStandardQuery(array $validated)
     {
         $query = Feat::with(['sources.source', 'prerequisites.prerequisite']);
 

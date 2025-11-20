@@ -17,48 +17,43 @@ class BackgroundController extends Controller
      * Returns a paginated list of D&D 5e character backgrounds. Supports filtering by
      * proficiencies, skills, and languages. Includes random tables for personality traits,
      * ideals, bonds, and flaws. All query parameters are validated automatically.
+     *
+     * @response \Illuminate\Http\Resources\Json\AnonymousResourceCollection<BackgroundResource>
      */
     public function index(BackgroundIndexRequest $request)
     {
         $validated = $request->validated();
+        $perPage = $validated['per_page'] ?? 15;
 
-        // Handle Scout search if 'q' parameter is provided
         if ($request->filled('q')) {
-            return $this->searchBackgrounds($request, $validated);
+            try {
+                $backgrounds = $this->performScoutSearch($request, $validated, $perPage);
+            } catch (\Exception $e) {
+                Log::warning('Meilisearch search failed, falling back to MySQL', [
+                    'query' => $validated['q'] ?? null,
+                    'error' => $e->getMessage(),
+                ]);
+                $backgrounds = $this->performMysqlSearch($validated, $perPage);
+            }
+        } else {
+            $backgrounds = $this->buildStandardQuery($validated)->paginate($perPage);
         }
 
-        // Standard database query for listing/filtering
-        return $this->listBackgrounds($validated);
+        return BackgroundResource::collection($backgrounds);
     }
 
     /**
      * Search backgrounds using Scout/Meilisearch
      */
-    protected function searchBackgrounds(BackgroundIndexRequest $request, array $validated)
+    protected function performScoutSearch(BackgroundIndexRequest $request, array $validated, int $perPage)
     {
-        try {
-            $perPage = $validated['per_page'] ?? 15;
-            $search = Background::search($validated['q']);
-
-            // Paginate search results
-            $backgrounds = $search->paginate($perPage);
-
-            return BackgroundResource::collection($backgrounds);
-        } catch (\Exception $e) {
-            // Log the failure and fall back to MySQL
-            Log::warning('Meilisearch search failed, falling back to MySQL', [
-                'query' => $validated['q'] ?? null,
-                'error' => $e->getMessage(),
-            ]);
-
-            return $this->fallbackSearch($validated);
-        }
+        return Background::search($validated['q'])->paginate($perPage);
     }
 
     /**
      * Fallback to MySQL FULLTEXT search when Meilisearch is unavailable
      */
-    protected function fallbackSearch(array $validated)
+    protected function performMysqlSearch(array $validated, int $perPage)
     {
         $query = Background::with(['sources.source']);
 
@@ -109,7 +104,7 @@ class BackgroundController extends Controller
     /**
      * Standard database listing with filters (no search)
      */
-    protected function listBackgrounds(array $validated)
+    protected function buildStandardQuery(array $validated)
     {
         $query = Background::with(['sources.source']);
 

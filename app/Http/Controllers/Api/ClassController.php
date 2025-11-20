@@ -19,48 +19,43 @@ class ClassController extends Controller
      * Returns a paginated list of D&D 5e character classes and subclasses. Includes hit dice,
      * spellcasting abilities, proficiencies, class features, level progression tables, and
      * subclass options. Supports filtering by proficiencies, skills, and saving throws.
+     *
+     * @response \Illuminate\Http\Resources\Json\AnonymousResourceCollection<CharacterClassResource>
      */
     public function index(ClassIndexRequest $request)
     {
         $validated = $request->validated();
+        $perPage = $validated['per_page'] ?? 15;
 
-        // Handle Scout search if 'q' parameter is provided
         if ($request->filled('q')) {
-            return $this->searchClasses($request, $validated);
+            try {
+                $classes = $this->performScoutSearch($request, $validated, $perPage);
+            } catch (\Exception $e) {
+                Log::warning('Meilisearch search failed, falling back to MySQL', [
+                    'query' => $validated['q'] ?? null,
+                    'error' => $e->getMessage(),
+                ]);
+                $classes = $this->performMysqlSearch($validated, $perPage);
+            }
+        } else {
+            $classes = $this->buildStandardQuery($validated)->paginate($perPage);
         }
 
-        // Standard database query for listing/filtering
-        return $this->listClasses($validated);
+        return ClassResource::collection($classes);
     }
 
     /**
-     * Search classes using Scout/Meilisearch
+     * Perform Scout/Meilisearch search
      */
-    protected function searchClasses(ClassIndexRequest $request, array $validated)
+    protected function performScoutSearch(ClassIndexRequest $request, array $validated, int $perPage)
     {
-        try {
-            $perPage = $validated['per_page'] ?? 15;
-            $search = CharacterClass::search($validated['q']);
-
-            // Paginate search results
-            $classes = $search->paginate($perPage);
-
-            return ClassResource::collection($classes);
-        } catch (\Exception $e) {
-            // Log the failure and fall back to MySQL
-            Log::warning('Meilisearch search failed, falling back to MySQL', [
-                'query' => $validated['q'] ?? null,
-                'error' => $e->getMessage(),
-            ]);
-
-            return $this->fallbackSearch($validated);
-        }
+        return CharacterClass::search($validated['q'])->paginate($perPage);
     }
 
     /**
-     * Fallback to MySQL FULLTEXT search when Meilisearch is unavailable
+     * Perform MySQL search fallback
      */
-    protected function fallbackSearch(array $validated)
+    protected function performMysqlSearch(array $validated, int $perPage)
     {
         $query = CharacterClass::with([
             'spellcastingAbility',

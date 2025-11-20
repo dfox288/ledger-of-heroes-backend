@@ -119,9 +119,9 @@ class RaceController extends Controller
     }
 
     /**
-     * Standard database listing with filters (no search)
+     * Build standard database query with filters
      */
-    protected function listRaces(array $validated)
+    protected function buildStandardQuery(array $validated)
     {
         $query = Race::with([
             'size',

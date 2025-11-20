@@ -21,49 +21,43 @@ class RaceController extends Controller
     public function index(RaceIndexRequest $request)
     {
         $validated = $request->validated();
+        $perPage = $validated['per_page'] ?? 15;
 
-        // Handle Scout search if 'q' parameter is provided
         if ($request->filled('q')) {
-            return $this->searchRaces($request, $validated);
-        }
-
-        // Standard database query for listing/filtering
-        return $this->listRaces($validated);
-    }
-
-    /**
-     * Search races using Scout/Meilisearch
-     */
-    protected function searchRaces(RaceIndexRequest $request, array $validated)
-    {
-        try {
-            $perPage = $validated['per_page'] ?? 15;
-            $search = Race::search($validated['q']);
-
-            // Apply filters using Scout's where() method
-            if (isset($validated['size'])) {
-                $search->where('size_id', $validated['size']);
+            try {
+                $races = $this->performScoutSearch($request, $validated, $perPage);
+            } catch (\Exception $e) {
+                Log::warning('Meilisearch search failed, falling back to MySQL', [
+                    'query' => $validated['q'] ?? null,
+                    'error' => $e->getMessage(),
+                ]);
+                $races = $this->performMysqlSearch($validated, $perPage);
             }
-
-            // Paginate search results
-            $races = $search->paginate($perPage);
-
-            return RaceResource::collection($races);
-        } catch (\Exception $e) {
-            // Log the failure and fall back to MySQL
-            Log::warning('Meilisearch search failed, falling back to MySQL', [
-                'query' => $validated['q'] ?? null,
-                'error' => $e->getMessage(),
-            ]);
-
-            return $this->fallbackSearch($validated);
+        } else {
+            $races = $this->buildStandardQuery($validated)->paginate($perPage);
         }
+
+        return RaceResource::collection($races);
     }
 
     /**
-     * Fallback to MySQL FULLTEXT search when Meilisearch is unavailable
+     * Perform Scout/Meilisearch search
      */
-    protected function fallbackSearch(array $validated)
+    protected function performScoutSearch(RaceIndexRequest $request, array $validated, int $perPage)
+    {
+        $search = Race::search($validated['q']);
+
+        if (isset($validated['size'])) {
+            $search->where('size_id', $validated['size']);
+        }
+
+        return $search->paginate($perPage);
+    }
+
+    /**
+     * Perform MySQL search fallback
+     */
+    protected function performMysqlSearch(array $validated, int $perPage)
     {
         $query = Race::with([
             'size',

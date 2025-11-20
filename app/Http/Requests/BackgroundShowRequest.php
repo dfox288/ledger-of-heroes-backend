@@ -13,11 +13,13 @@ class BackgroundShowRequest extends BaseShowRequest
             'sources',
             'sources.source',
             'traits',
+            'traits.randomTables',
+            'traits.randomTables.entries',
             'proficiencies',
             'proficiencies.skill',
             'proficiencies.proficiencyType',
             'languages',
-            'randomTables',
+            'languages.language',
         ];
     }
 

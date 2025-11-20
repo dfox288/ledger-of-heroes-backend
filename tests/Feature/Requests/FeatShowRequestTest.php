@@ -3,18 +3,12 @@
 namespace Tests\Feature\Requests;
 
 use App\Models\Feat;
-use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class FeatShowRequestTest extends TestCase
 {
-    use LazilyRefreshDatabase;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->seed(); // Seed lookup tables
-    }
+    use RefreshDatabase;
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_includable_relationships()

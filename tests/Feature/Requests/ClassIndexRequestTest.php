@@ -15,9 +15,14 @@ class ClassIndexRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\AbilityScoreSeeder::class);
-        $this->seed(\Database\Seeders\ProficiencyTypeSeeder::class);
-        $this->seed(\Database\Seeders\SkillSeeder::class);
+
+        // Only seed if database is empty
+        if (AbilityScore::count() === 0) {
+            $this->seed(\Database\Seeders\AbilityScoreSeeder::class);
+        }
+        if (Skill::count() === 0) {
+            $this->seed(\Database\Seeders\SkillSeeder::class);
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -107,10 +112,10 @@ class ClassIndexRequestTest extends TestCase
     {
         CharacterClass::factory()->create(['name' => 'Monk']);
 
-        $response = $this->getJson('/api/v1/classes?base_only=true');
+        $response = $this->getJson('/api/v1/classes?base_only=1');
         $response->assertStatus(200);
 
-        $response = $this->getJson('/api/v1/classes?base_only=1');
+        $response = $this->getJson('/api/v1/classes?base_only=0');
         $response->assertStatus(200);
 
         $response = $this->getJson('/api/v1/classes?base_only=invalid');

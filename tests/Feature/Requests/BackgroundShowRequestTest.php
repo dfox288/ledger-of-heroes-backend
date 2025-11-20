@@ -25,11 +25,13 @@ class BackgroundShowRequestTest extends TestCase
             'sources',
             'sources.source',
             'traits',
+            'traits.randomTables',
+            'traits.randomTables.entries',
             'proficiencies',
             'proficiencies.skill',
             'proficiencies.proficiencyType',
             'languages',
-            'randomTables',
+            'languages.language',
         ];
 
         foreach ($validIncludes as $include) {

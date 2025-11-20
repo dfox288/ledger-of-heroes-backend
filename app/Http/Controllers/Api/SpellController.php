@@ -49,9 +49,13 @@ class SpellController extends Controller
         return SpellResource::collection($spells);
     }
 
-    public function show(Spell $spell)
+    public function show(SpellShowRequest $request, Spell $spell)
     {
-        $spell->load(['spellSchool', 'sources.source', 'effects.damageType', 'classes']);
+        $validated = $request->validated();
+
+        // Load relationships based on validated 'include' parameter
+        $includes = $validated['include'] ?? ['spellSchool', 'sources.source', 'effects.damageType', 'classes'];
+        $spell->load($includes);
 
         return new SpellResource($spell);
     }

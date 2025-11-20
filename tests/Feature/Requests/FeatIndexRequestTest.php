@@ -7,18 +7,12 @@ use App\Models\Feat;
 use App\Models\ProficiencyType;
 use App\Models\Race;
 use App\Models\Skill;
-use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class FeatIndexRequestTest extends TestCase
 {
-    use LazilyRefreshDatabase;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->seed(); // Seed lookup tables
-    }
+    use RefreshDatabase;
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_prerequisite_race_exists()
@@ -40,12 +34,12 @@ class FeatIndexRequestTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_prerequisite_ability_exists()
     {
-        // AbilityScore uses 'code' column
-        $response = $this->getJson('/api/v1/feats?prerequisite_ability=STR');
+        // AbilityScore uses 'code' column - getCachedLookup lowercases values
+        $response = $this->getJson('/api/v1/feats?prerequisite_ability=str');
         $response->assertStatus(200);
 
         // Invalid ability code
-        $response = $this->getJson('/api/v1/feats?prerequisite_ability=INVALID');
+        $response = $this->getJson('/api/v1/feats?prerequisite_ability=invalid');
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['prerequisite_ability']);
     }

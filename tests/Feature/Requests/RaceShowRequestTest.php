@@ -27,7 +27,6 @@ class RaceShowRequestTest extends TestCase
             'proficiencies.proficiencyType',
             'modifiers',
             'languages',
-            'randomTables',
         ];
 
         foreach ($validRelationships as $relationship) {

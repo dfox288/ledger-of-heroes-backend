@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Validation\Rule;
+
 class SpellIndexRequest extends BaseIndexRequest
 {
     /**
@@ -13,8 +15,8 @@ class SpellIndexRequest extends BaseIndexRequest
             // Spell-specific filters
             'level' => ['sometimes', 'integer', 'min:0', 'max:9'],
             'school' => ['sometimes', 'integer', 'exists:spell_schools,id'],
-            'concentration' => ['sometimes', 'boolean'],
-            'ritual' => ['sometimes', 'boolean'],
+            'concentration' => ['sometimes', Rule::in([true, false, 1, 0, '1', '0', 'true', 'false'])],
+            'ritual' => ['sometimes', Rule::in([true, false, 1, 0, '1', '0', 'true', 'false'])],
         ];
     }
 

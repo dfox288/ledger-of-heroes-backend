@@ -17,6 +17,8 @@ use SimpleXMLElement;
  */
 trait ParsesTraits
 {
+    use ParsesRolls;
+
     /**
      * Parse trait elements from XML.
      *
@@ -45,13 +47,4 @@ trait ParsesTraits
 
         return $traits;
     }
-
-    /**
-     * Parse roll elements from a trait or feature.
-     * Must be implemented by ParsesRolls trait or by the using class.
-     *
-     * @param  SimpleXMLElement  $element  Element containing <roll> children
-     * @return array<int, array<string, mixed>>
-     */
-    abstract protected function parseRollElements(SimpleXMLElement $element): array;
 }

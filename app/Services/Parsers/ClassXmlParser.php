@@ -192,26 +192,6 @@ class ClassXmlParser
     }
 
     /**
-     * Parse roll elements from a trait or feature.
-     * Temporary implementation - will be replaced by ParsesRolls concern.
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    protected function parseRollElements(SimpleXMLElement $element): array
-    {
-        $rolls = [];
-        foreach ($element->roll as $rollElement) {
-            $rolls[] = [
-                'description' => isset($rollElement['description']) ? (string) $rollElement['description'] : null,
-                'formula' => (string) $rollElement,
-                'level' => isset($rollElement['level']) ? (int) $rollElement['level'] : null,
-            ];
-        }
-
-        return $rolls;
-    }
-
-    /**
      * Parse features from autolevel elements.
      *
      * @return array<int, array<string, mixed>>

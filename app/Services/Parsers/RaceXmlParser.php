@@ -104,23 +104,6 @@ class RaceXmlParser
         ];
     }
 
-    /**
-     * Parse roll elements from XML (temporary implementation).
-     * Will be replaced by ParsesRolls trait in next task.
-     */
-    protected function parseRollElements(SimpleXMLElement $element): array
-    {
-        $rolls = [];
-        foreach ($element->roll as $rollElement) {
-            $rolls[] = [
-                'description' => isset($rollElement['description']) ? (string) $rollElement['description'] : null,
-                'formula' => (string) $rollElement,
-                'level' => isset($rollElement['level']) ? (int) $rollElement['level'] : null,
-            ];
-        }
-        return $rolls;
-    }
-
     private function parseAbilityBonuses(SimpleXMLElement $element): array
     {
         $bonuses = [];

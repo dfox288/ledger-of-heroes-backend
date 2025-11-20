@@ -33,7 +33,9 @@
       "Bash(curl:*)",
       "Bash(xargs:*)",
       "Bash(done)",
-      "Bash(/dev/null)"
+      "Bash(/dev/null)",
+      "Bash(docs/refactoring-baseline-tests.txt)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

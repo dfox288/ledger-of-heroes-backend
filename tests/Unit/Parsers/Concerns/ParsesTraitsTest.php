@@ -14,7 +14,7 @@ class ParsesTraitsTest extends TestCase
     #[Test]
     public function it_parses_basic_trait_with_name_and_description()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
         <root>
             <trait>
                 <name>Darkvision</name>
@@ -36,7 +36,7 @@ class ParsesTraitsTest extends TestCase
     #[Test]
     public function it_parses_trait_with_category()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
         <root>
             <trait category="racial">
                 <name>Fey Ancestry</name>
@@ -54,7 +54,7 @@ class ParsesTraitsTest extends TestCase
     #[Test]
     public function it_parses_multiple_traits_with_sort_order()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
         <root>
             <trait><name>First</name><text>One</text></trait>
             <trait><name>Second</name><text>Two</text></trait>
@@ -74,7 +74,7 @@ class ParsesTraitsTest extends TestCase
     #[Test]
     public function it_parses_traits_with_embedded_rolls()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
         <root>
             <trait>
                 <name>Breath Weapon</name>
@@ -99,7 +99,7 @@ class ParsesTraitsTest extends TestCase
     #[Test]
     public function it_handles_traits_without_rolls()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
         <root>
             <trait>
                 <name>Lucky</name>
@@ -117,7 +117,7 @@ class ParsesTraitsTest extends TestCase
     #[Test]
     public function it_trims_whitespace_from_descriptions()
     {
-        $xml = <<<XML
+        $xml = <<<'XML'
         <root>
             <trait>
                 <name>Test</name>
@@ -147,6 +147,7 @@ class ParsesTraitsTest extends TestCase
                 'level' => isset($rollElement['level']) ? (int) $rollElement['level'] : null,
             ];
         }
+
         return $rolls;
     }
 }

@@ -3,12 +3,13 @@
 namespace App\Services\Parsers;
 
 use App\Services\Parsers\Concerns\ConvertsWordNumbers;
+use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use SimpleXMLElement;
 
 class FeatXmlParser
 {
-    use ConvertsWordNumbers, ParsesSourceCitations;
+    use ConvertsWordNumbers, MapsAbilityCodes, ParsesSourceCitations;
 
     /**
      * Parse feats from XML string.
@@ -143,7 +144,7 @@ class FeatXmlParser
 
         // For ability score modifiers, extract the ability code
         if ($category === 'ability_score') {
-            $result['ability_code'] = $this->mapAbilityCode($target);
+            $result['ability_code'] = $this->mapAbilityNameToCode($target);
         }
 
         return $result;
@@ -160,25 +161,6 @@ class FeatXmlParser
             str_contains($target, 'ac') || str_contains($target, 'armor class') => 'ac',
             default => 'bonus',
         };
-    }
-
-    /**
-     * Map ability name to ability code.
-     */
-    private function mapAbilityCode(string $abilityName): string
-    {
-        $map = [
-            'strength' => 'STR',
-            'dexterity' => 'DEX',
-            'constitution' => 'CON',
-            'intelligence' => 'INT',
-            'wisdom' => 'WIS',
-            'charisma' => 'CHA',
-        ];
-
-        $normalized = strtolower(trim($abilityName));
-
-        return $map[$normalized] ?? strtoupper(substr($normalized, 0, 3));
     }
 
     /**
@@ -369,7 +351,7 @@ class FeatXmlParser
 
             foreach ($abilities as $abilityName) {
                 $abilityName = trim($abilityName);
-                $abilityCode = $this->mapAbilityCode($abilityName);
+                $abilityCode = $this->mapAbilityNameToCode($abilityName);
 
                 // Look up ability score ID
                 $abilityScore = \App\Models\AbilityScore::where('code', $abilityCode)->first();

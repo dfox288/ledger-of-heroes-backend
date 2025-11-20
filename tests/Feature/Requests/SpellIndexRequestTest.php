@@ -28,7 +28,7 @@ class SpellIndexRequestTest extends TestCase
     #[Test]
     public function it_validates_school_exists()
     {
-        $school = SpellSchool::factory()->create();
+        $school = SpellSchool::first(); // Use seeded data instead of factory
 
         // Valid school ID
         $response = $this->getJson("/api/v1/spells?school={$school->id}");

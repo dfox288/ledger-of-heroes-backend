@@ -13,7 +13,6 @@ class ClassShowRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\CharacterClassSeeder::class);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

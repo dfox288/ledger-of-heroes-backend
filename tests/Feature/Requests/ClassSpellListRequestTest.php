@@ -15,8 +15,11 @@ class ClassSpellListRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\CharacterClassSeeder::class);
-        $this->seed(\Database\Seeders\SpellSchoolSeeder::class);
+
+        // Only seed if database is empty
+        if (SpellSchool::count() === 0) {
+            $this->seed(\Database\Seeders\SpellSchoolSeeder::class);
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

@@ -47,7 +47,7 @@ class ClassIndexRequestTest extends TestCase
     {
         CharacterClass::factory()->create(['name' => 'Rogue']);
 
-        $validSkill = Skill::first()->name;
+        $validSkill = strtolower(Skill::first()->name);
         $response = $this->getJson("/api/v1/classes?grants_skill={$validSkill}");
         $response->assertStatus(200);
 
@@ -61,7 +61,7 @@ class ClassIndexRequestTest extends TestCase
     {
         CharacterClass::factory()->create(['name' => 'Wizard']);
 
-        $validAbility = AbilityScore::first()->code;
+        $validAbility = strtolower(AbilityScore::first()->code);
         $response = $this->getJson("/api/v1/classes?grants_saving_throw={$validAbility}");
         $response->assertStatus(200);
 

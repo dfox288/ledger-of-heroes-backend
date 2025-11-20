@@ -87,8 +87,12 @@ class FeatIndexRequestTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_grants_proficiency_exists()
     {
-        // Create a proficiency type
-        $proficiencyType = ProficiencyType::factory()->create(['name' => 'Longsword']);
+        // Create a proficiency type (no factory exists, create directly)
+        $proficiencyType = ProficiencyType::create([
+            'name' => 'Longsword',
+            'category' => 'weapon',
+            'subcategory' => 'martial',
+        ]);
 
         // Valid proficiency (case-insensitive)
         $response = $this->getJson('/api/v1/feats?grants_proficiency=longsword');
@@ -116,8 +120,12 @@ class FeatIndexRequestTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_prerequisite_proficiency_exists()
     {
-        // Create a proficiency type
-        $proficiencyType = ProficiencyType::factory()->create(['name' => 'Medium Armor']);
+        // Create a proficiency type (no factory exists, create directly)
+        $proficiencyType = ProficiencyType::create([
+            'name' => 'Medium Armor',
+            'category' => 'armor',
+            'subcategory' => 'medium',
+        ]);
 
         // Valid proficiency (case-insensitive)
         $response = $this->getJson('/api/v1/feats?prerequisite_proficiency=medium armor');

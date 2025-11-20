@@ -4,11 +4,12 @@ namespace App\Services\Parsers;
 
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
+use App\Services\Parsers\Concerns\ParsesTraits;
 use SimpleXMLElement;
 
 class ClassXmlParser
 {
-    use MatchesProficiencyTypes, ParsesSourceCitations;
+    use MatchesProficiencyTypes, ParsesSourceCitations, ParsesTraits;
 
     /**
      * Parse classes from XML string.
@@ -63,7 +64,13 @@ class ClassXmlParser
         }
 
         // Parse traits (flavor text)
-        $data['traits'] = $this->parseTraits($element);
+        $data['traits'] = $this->parseTraitElements($element);
+
+        // Extract source citations from each trait description
+        foreach ($data['traits'] as &$trait) {
+            $trait['sources'] = $this->parseSourceCitations($trait['description']);
+        }
+        unset($trait);
 
         // Parse features from autolevel elements
         $data['features'] = $this->parseFeatures($element);
@@ -185,48 +192,23 @@ class ClassXmlParser
     }
 
     /**
-     * Parse traits (flavor text) from class XML.
+     * Parse roll elements from a trait or feature.
+     * Temporary implementation - will be replaced by ParsesRolls concern.
      *
      * @return array<int, array<string, mixed>>
      */
-    private function parseTraits(SimpleXMLElement $element): array
+    protected function parseRollElements(SimpleXMLElement $element): array
     {
-        $traits = [];
-        $sortOrder = 0;
-
-        foreach ($element->trait as $traitElement) {
-            $category = isset($traitElement['category']) ? (string) $traitElement['category'] : null;
-            $name = (string) $traitElement->name;
-            $text = (string) $traitElement->text;
-
-            // Parse rolls within this trait (if any)
-            $rolls = [];
-            foreach ($traitElement->roll as $rollElement) {
-                $description = isset($rollElement['description']) ? (string) $rollElement['description'] : null;
-                $level = isset($rollElement['level']) ? (int) $rollElement['level'] : null;
-                $formula = (string) $rollElement;
-
-                $rolls[] = [
-                    'description' => $description,
-                    'formula' => $formula,
-                    'level' => $level,
-                ];
-            }
-
-            // Extract source citations
-            $sources = $this->parseSourceCitations($text);
-
-            $traits[] = [
-                'name' => $name,
-                'category' => $category,
-                'description' => trim($text),
-                'rolls' => $rolls,
-                'sources' => $sources,
-                'sort_order' => $sortOrder++,
+        $rolls = [];
+        foreach ($element->roll as $rollElement) {
+            $rolls[] = [
+                'description' => isset($rollElement['description']) ? (string) $rollElement['description'] : null,
+                'formula' => (string) $rollElement,
+                'level' => isset($rollElement['level']) ? (int) $rollElement['level'] : null,
             ];
         }
 
-        return $traits;
+        return $rolls;
     }
 
     /**

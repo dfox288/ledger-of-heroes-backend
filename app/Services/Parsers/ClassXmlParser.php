@@ -40,6 +40,11 @@ class ClassXmlParser
             'hit_die' => (int) $element->hd,
         ];
 
+        // Parse spellcasting ability
+        if (isset($element->spellAbility)) {
+            $data['spellcasting_ability'] = (string) $element->spellAbility;
+        }
+
         // Parse description from first text element if exists
         if (isset($element->text)) {
             $description = [];

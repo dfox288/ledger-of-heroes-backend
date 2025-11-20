@@ -26,85 +26,110 @@ class ClassImporter
             // 1. Generate slug
             $slug = Str::slug($data['name']);
 
-            // 2. Look up spellcasting ability if present
+            // 2. Check if this file has complete base class data
+            // Files with hit_die = 0 only contain supplemental content (subclasses, flavor text)
+            $hasBaseClassData = ($data['hit_die'] ?? 0) > 0;
+
+            // 3. Look up spellcasting ability if present
             $spellcastingAbilityId = null;
             if (! empty($data['spellcasting_ability'])) {
                 $ability = AbilityScore::where('name', $data['spellcasting_ability'])->first();
                 $spellcastingAbilityId = $ability?->id;
             }
 
-            // 3. Build description from traits if not directly provided
+            // 4. Build description from traits if not directly provided
             $description = $data['description'] ?? null;
             if (empty($description) && ! empty($data['traits'])) {
                 // Use first trait's description as class description
                 $description = $data['traits'][0]['description'] ?? '';
             }
 
-            // 4. Create or update base class using slug as unique key
-            $class = CharacterClass::updateOrCreate(
-                ['slug' => $slug],
-                [
-                    'name' => $data['name'],
-                    'parent_class_id' => null, // Base class
-                    'hit_die' => $data['hit_die'],
-                    'description' => $description ?: 'No description available',
-                    'spellcasting_ability_id' => $spellcastingAbilityId,
-                ]
-            );
+            // 5. Create or update base class using slug as unique key
+            if ($hasBaseClassData) {
+                // Full base class data - create or fully update
+                $class = CharacterClass::updateOrCreate(
+                    ['slug' => $slug],
+                    [
+                        'name' => $data['name'],
+                        'parent_class_id' => null, // Base class
+                        'hit_die' => $data['hit_die'],
+                        'description' => $description ?: 'No description available',
+                        'spellcasting_ability_id' => $spellcastingAbilityId,
+                    ]
+                );
 
-            // 5. Clear existing relationships
-            $class->proficiencies()->delete();
-            $class->traits()->delete();
-            $class->sources()->delete();
-            $class->features()->delete();
-            $class->levelProgression()->delete();
-            $class->counters()->delete();
+                // Clear existing relationships when doing full update
+                $class->proficiencies()->delete();
+                $class->traits()->delete();
+                $class->sources()->delete();
+                $class->features()->delete();
+                $class->levelProgression()->delete();
+                $class->counters()->delete();
+            } else {
+                // Supplemental file - only add to existing class, don't overwrite
+                $class = CharacterClass::firstOrCreate(
+                    ['slug' => $slug],
+                    [
+                        'name' => $data['name'],
+                        'parent_class_id' => null,
+                        'hit_die' => 0, // Will be set by full file
+                        'description' => $description ?: 'No description available',
+                        'spellcasting_ability_id' => null,
+                    ]
+                );
 
-            // 6. Import proficiencies using trait
-            if (isset($data['proficiencies'])) {
-                $this->importEntityProficiencies($class, $data['proficiencies']);
+                // Don't clear existing relationships - we're adding, not replacing
             }
 
-            // 7. Import traits (flavor text) using trait
-            if (isset($data['traits'])) {
-                $this->importEntityTraits($class, $data['traits']);
-            }
+            // 6-11. Only import base class data if this file has complete base class info
+            // Supplemental files (TCE, XGE) only add subclasses, not base mechanics
+            if ($hasBaseClassData) {
+                // 6. Import proficiencies
+                if (isset($data['proficiencies'])) {
+                    $this->importEntityProficiencies($class, $data['proficiencies']);
+                }
 
-            // 8. Import sources using trait
-            if (isset($data['traits'])) {
-                // Extract sources from all traits
-                $sources = [];
-                foreach ($data['traits'] as $trait) {
-                    if (! empty($trait['sources'])) {
-                        $sources = array_merge($sources, $trait['sources']);
+                // 7. Import traits (flavor text)
+                if (isset($data['traits'])) {
+                    $this->importEntityTraits($class, $data['traits']);
+                }
+
+                // 8. Import sources
+                if (isset($data['traits'])) {
+                    // Extract sources from all traits
+                    $sources = [];
+                    foreach ($data['traits'] as $trait) {
+                        if (! empty($trait['sources'])) {
+                            $sources = array_merge($sources, $trait['sources']);
+                        }
+                    }
+
+                    // Remove duplicates based on code
+                    $uniqueSources = [];
+                    foreach ($sources as $source) {
+                        $uniqueSources[$source['code']] = $source;
+                    }
+                    $sources = array_values($uniqueSources);
+
+                    if (! empty($sources)) {
+                        $this->importEntitySources($class, $sources);
                     }
                 }
 
-                // Remove duplicates based on code
-                $uniqueSources = [];
-                foreach ($sources as $source) {
-                    $uniqueSources[$source['code']] = $source;
+                // 9. Import features
+                if (isset($data['features'])) {
+                    $this->importFeatures($class, $data['features']);
                 }
-                $sources = array_values($uniqueSources);
 
-                if (! empty($sources)) {
-                    $this->importEntitySources($class, $sources);
+                // 10. Import spell progression
+                if (isset($data['spell_progression'])) {
+                    $this->importSpellProgression($class, $data['spell_progression']);
                 }
-            }
 
-            // 9. Import features
-            if (isset($data['features'])) {
-                $this->importFeatures($class, $data['features']);
-            }
-
-            // 10. Import spell progression
-            if (isset($data['spell_progression'])) {
-                $this->importSpellProgression($class, $data['spell_progression']);
-            }
-
-            // 11. Import counters
-            if (isset($data['counters'])) {
-                $this->importCounters($class, $data['counters']);
+                // 11. Import counters
+                if (isset($data['counters'])) {
+                    $this->importCounters($class, $data['counters']);
+                }
             }
 
             // 12. Import subclasses

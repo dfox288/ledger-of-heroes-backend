@@ -31,7 +31,9 @@
       "Bash(git restore:*)",
       "Skill(superpowers-laravel:tdd-with-pest)",
       "Bash(curl:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(done)",
+      "Bash(/dev/null)"
     ],
     "deny": [],
     "ask": []

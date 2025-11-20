@@ -73,35 +73,47 @@
 
 ---
 
-### 4. ⚠️  TODO: Parse Modifiers from Features
-**Status:** Needs investigation
-**Issue:** Class features may contain `<modifier>` elements that aren't being parsed
-**Example:** Need to check if any class features have modifier elements
+### 4. ⚠️  CONFIRMED: Parse Modifiers from Features
+**Status:** Confirmed - Needs implementation (FUTURE ENHANCEMENT)
+**Issue:** Class features contain `<modifier>` elements that aren't being parsed
+
+**Investigation Results (BATCH 1.1):**
+- ✅ Found 10 modifier elements across 4 class files
+- Files: Barbarian (3), Monk (5), Ranger TCE (1), Sidekick Warrior (1)
+- Types: Speed bonuses, Ability score increases, AC bonuses
 
 **Current Behavior:**
-- Features are parsed as plain text
-- Modifiers within features are not extracted
+- Features are parsed as plain text only
+- Modifiers within features are stored in description but not as structured data
 
-**Investigation Needed:**
-```bash
-grep -B 5 -A 15 "<modifier>" import-files/class-*.xml | head -100
+**Examples:**
+```xml
+<!-- Barbarian Fast Movement -->
+<feature>
+  <modifier category="bonus">speed +10</modifier>
+</feature>
+
+<!-- Barbarian Primal Champion -->
+<feature>
+  <modifier category="ability score">strength +4</modifier>
+  <modifier category="ability score">constitution +4</modifier>
+</feature>
 ```
+
+**Decision:** Document for future enhancement, not in current scope to stay on timeline
 
 ---
 
-### 5. ⚠️  TODO: Parse Proficiencies from Features
-**Status:** Needs investigation
-**Issue:** Class features may contain `<proficiency>` elements that aren't being parsed
-**Example:** Subclass features might grant additional proficiencies
+### 5. ✅  CLOSED: Parse Proficiencies from Features
+**Status:** Closed - Non-issue
+**Issue:** Investigated whether class features contain `<proficiency>` elements
 
-**Current Behavior:**
-- Only top-level `<armor>`, `<weapons>`, `<tools>`, `<proficiency>` are parsed
-- Feature-level proficiencies are ignored
+**Investigation Results (BATCH 1.1):**
+- ❌ No `<proficiency>` elements found within `<feature>` elements
+- Searched all 42 class XML files
+- Proficiencies only appear at class level, not feature level
 
-**Investigation Needed:**
-```bash
-grep -B 5 -A 15 "<proficiency>" import-files/class-fighter-phb.xml | grep -A 10 "<feature>"
-```
+**Conclusion:** Not an issue - no action needed
 
 ---
 

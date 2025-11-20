@@ -308,6 +308,102 @@ cat docs/plans/2025-11-20-class-importer-enhancements.md | grep -A 50 "BATCH 2.2
 **Ready to Resume:** ✅ Yes
 **Next Command:** See "Quick Resume Commands" above
 
+---
+
+## ✅ SESSION COMPLETION SUMMARY (2025-11-20)
+
+### 🎉 Phase 2 Complete: Spells Known Feature
+
+**Status:** ✅ **COMPLETE** - All batches 2.1-2.5 finished successfully
+
+#### What Was Accomplished
+
+**BATCH 2.1-2.3: Schema + Parser + Importer** (COMPLETE)
+- ✅ Added `spells_known` column to `class_level_progression` table
+- ✅ Updated `ClassXmlParser` to extract "Spells Known" counters and merge into spell progression
+- ✅ Updated `ClassImporter` to save spells_known to database
+- ✅ Added 6 comprehensive tests (migration, parser, importer)
+- ✅ All tests passing
+
+**BATCH 2.4-2.5: Data Migration + API** (COMPLETE)
+- ✅ Fixed critical multi-source XML import bug:
+  - Problem: TCE/XGE files were overwriting complete PHB data with empty values
+  - Solution: Importer now detects complete vs supplemental files via `hit_die > 0`
+  - Complete files (PHB): Full import with relationship clearing
+  - Supplemental files (TCE/XGE): Only add subclasses, preserve base class data
+- ✅ Added `spellAbility` parsing to `ClassXmlParser`
+- ✅ Imported all 42 class XML files successfully
+- ✅ Verified data integrity:
+  - Bard: 8 hit die, Charisma, 27 proficiencies, spells_known (4→8→14→22) ✅
+  - Ranger: 10 hit die, Wisdom, spells_known (2→4→6→11) ✅
+  - Wizard: 6 hit die, Intelligence, spells_known=null ✅
+  - 16 base classes, 108 subclasses, all with complete data ✅
+- ✅ Updated `ClassLevelProgressionResource` to expose spells_known
+- ✅ Added comprehensive API test (19 assertions)
+- ✅ **433 tests passing** (2,777 assertions)
+
+#### Key Technical Achievements
+
+1. **Multi-Source File Handling**
+   - Sophisticated importer logic to handle PHB/TCE/XGE file overlaps
+   - Prevents data corruption from incomplete supplemental files
+   - Preserves complete base class data while adding subclasses
+
+2. **Complete Data Flow**
+   - XML → Parser → Importer → Model → Database → API
+   - Known-spells casters (Bard, Ranger, Sorcerer, etc.) track spells_known
+   - Prepared casters (Wizard, Cleric, etc.) correctly show null
+
+3. **Robust Testing**
+   - Unit tests for parser extraction
+   - Feature tests for importer integration
+   - Migration tests for schema
+   - API tests for response structure
+   - All edge cases covered
+
+#### Files Changed
+- `app/Services/Importers/ClassImporter.php` - Multi-source handling + spells_known import
+- `app/Services/Parsers/ClassXmlParser.php` - spellAbility + spells_known extraction
+- `app/Models/ClassLevelProgression.php` - Added spells_known to fillable/casts
+- `app/Http/Resources/ClassLevelProgressionResource.php` - Exposed spells_known
+- `tests/Feature/Api/ClassApiTest.php` - Added spells_known API test
+- `database/migrations/2025_11_20_083334_add_spells_known_to_class_level_progression.php` - Migration
+
+#### Git Commits
+1. `caf1919` - fix: handle multi-source class XML files and add spellAbility parsing
+2. `22455fc` - feat: expose spells_known in Class API
+
+---
+
+## 📋 Phase 3: Next Steps (Proficiency Choices)
+
+**Remaining Work:** ~2 hours
+
+### BATCH 3.1: Add Proficiency Choice Fields (30 min)
+- Migration to add `is_choice` and `choices_allowed` to proficiencies
+- Tests for migration
+- **Challenge:** Already exists! (added in earlier session)
+- **Action:** Verify and use existing fields
+
+### BATCH 3.2: Update Parser (45 min)
+- Extract `numSkills` from XML
+- Mark skill proficiencies as choice-based when numSkills present
+- Tests for parser
+
+### BATCH 3.3: Update Importer (30 min)
+- Import proficiency choice metadata
+- Tests for importer
+
+### BATCH 3.4: Update API (15 min)
+- Verify ProficiencyResource exposes choice fields
+- API test
+
+---
+
+**Session Status:** ✅ COMPLETE - Phase 2 Done!
+**Next Session:** Phase 3 (Proficiency Choices) or wrap up and merge
+**Branch:** `feature/class-importer-enhancements` (ready for next phase)
+
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>

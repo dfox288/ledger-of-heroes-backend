@@ -44,6 +44,6 @@ class AbilityScoreController extends Controller
      */
     public function show(AbilityScore $abilityScore)
     {
-        return $abilityScore;
+        return new AbilityScoreResource($abilityScore);
     }
 }

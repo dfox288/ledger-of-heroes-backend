@@ -14,6 +14,7 @@ use App\Models\Proficiency;
 use App\Models\RandomTable;
 use App\Models\RandomTableEntry;
 use App\Models\Source;
+use App\Services\Importers\Concerns\CachesLookupTables;
 use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Parsers\ItemTableDetector;
 use App\Services\Parsers\ItemTableParser;
@@ -21,22 +22,15 @@ use App\Services\Parsers\ItemXmlParser;
 
 class ItemImporter extends BaseImporter
 {
+    use CachesLookupTables;
     use ImportsModifiers;
-
-    private array $itemTypeCache = [];
-
-    private array $damageTypeCache = [];
-
-    private array $itemPropertyCache = [];
-
-    private array $sourceCache = [];
 
     protected function importEntity(array $itemData): Item
     {
         // Lookup foreign keys
-        $itemTypeId = $this->getItemTypeId($itemData['type_code']);
+        $itemTypeId = $this->cachedFindId(ItemType::class, 'code', $itemData['type_code']);
         $damageTypeId = ! empty($itemData['damage_type_code'])
-            ? $this->getDamageTypeId($itemData['damage_type_code'])
+            ? $this->cachedFindId(DamageType::class, 'code', $itemData['damage_type_code'])
             : null;
 
         // Create or update item
@@ -86,35 +80,13 @@ class ItemImporter extends BaseImporter
         return $item;
     }
 
-    private function getItemTypeId(string $code): int
-    {
-        if (! isset($this->itemTypeCache[$code])) {
-            $itemType = ItemType::where('code', $code)->firstOrFail();
-            $this->itemTypeCache[$code] = $itemType->id;
-        }
-
-        return $this->itemTypeCache[$code];
-    }
-
-    private function getDamageTypeId(string $code): int
-    {
-        $code = strtoupper($code);
-
-        if (! isset($this->damageTypeCache[$code])) {
-            $damageType = DamageType::where('code', $code)->firstOrFail();
-            $this->damageTypeCache[$code] = $damageType->id;
-        }
-
-        return $this->damageTypeCache[$code];
-    }
-
     private function importSources(Item $item, array $sources): void
     {
         // Clear existing sources
         $item->sources()->delete();
 
         foreach ($sources as $sourceData) {
-            $source = $this->getSourceByCode($sourceData['code']);
+            $source = $this->cachedFind(Source::class, 'code', $sourceData['code']);
 
             EntitySource::create([
                 'reference_type' => Item::class,
@@ -132,7 +104,7 @@ class ItemImporter extends BaseImporter
 
         $propertyIds = [];
         foreach ($propertyCodes as $code) {
-            $propertyId = $this->getItemPropertyId($code);
+            $propertyId = $this->cachedFindId(ItemProperty::class, 'code', $code, useFail: false);
             if ($propertyId) {
                 $propertyIds[] = $propertyId;
             }
@@ -214,26 +186,6 @@ class ItemImporter extends BaseImporter
                 ]);
             }
         }
-    }
-
-    private function getSourceByCode(string $code): Source
-    {
-        if (! isset($this->sourceCache[$code])) {
-            $source = Source::where('code', $code)->firstOrFail();
-            $this->sourceCache[$code] = $source;
-        }
-
-        return $this->sourceCache[$code];
-    }
-
-    private function getItemPropertyId(string $code): ?int
-    {
-        if (! isset($this->itemPropertyCache[$code])) {
-            $property = ItemProperty::where('code', $code)->first();
-            $this->itemPropertyCache[$code] = $property?->id;
-        }
-
-        return $this->itemPropertyCache[$code];
     }
 
     private function importPrerequisites(Item $item, ?int $strengthRequirement): void

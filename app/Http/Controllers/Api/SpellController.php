@@ -31,25 +31,19 @@ class SpellController extends Controller
             try {
                 $spells = $service->searchWithMeilisearch($dto, $meilisearch);
             } catch (\MeiliSearch\Exceptions\ApiException $e) {
-                // Invalid filter syntax
-                return response()->json([
+                // Invalid filter syntax - abort without breaking Scramble type inference
+                abort(response()->json([
                     'message' => 'Invalid filter syntax',
                     'error' => $e->getMessage(),
-                ], 422);
+                ], 422));
             }
-
-            return SpellResource::collection($spells);
-        }
-
-        // Use Scout search with backwards-compatible filters
-        if ($dto->searchQuery !== null) {
+        } elseif ($dto->searchQuery !== null) {
+            // Use Scout search with backwards-compatible filters
             $spells = $service->buildScoutQuery($dto)->paginate($dto->perPage);
-
-            return SpellResource::collection($spells);
+        } else {
+            // Fallback to database query (no search, no filters)
+            $spells = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
-
-        // Fallback to database query (no search, no filters)
-        $spells = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
 
         return SpellResource::collection($spells);
     }

@@ -9,10 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Laravel\Scout\Searchable;
+use Spatie\Tags\HasTags;
 
 class Spell extends Model
 {
-    use HasFactory, Searchable;
+    use HasFactory, HasTags, Searchable;
 
     public $timestamps = false;
 

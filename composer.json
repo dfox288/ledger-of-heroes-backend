@@ -12,7 +12,8 @@
         "laravel/framework": "^12.0",
         "laravel/scout": "^10.22",
         "laravel/tinker": "^2.10.1",
-        "meilisearch/meilisearch-php": "^1.16"
+        "meilisearch/meilisearch-php": "^1.16",
+        "spatie/laravel-tags": "^4.10"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

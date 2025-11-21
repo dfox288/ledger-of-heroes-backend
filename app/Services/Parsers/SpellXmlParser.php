@@ -37,10 +37,30 @@ class SpellXmlParser
 
         $isRitual = isset($element->ritual) && strtoupper((string) $element->ritual) === 'YES';
 
-        // Parse classes (strip "School: X, " prefix if present)
+        // Parse classes and tags (strip "School: X, " prefix if present)
         $classesString = (string) $element->classes;
         $classesString = preg_replace('/^School:\s*[^,]+,\s*/', '', $classesString);
-        $classes = array_map('trim', explode(',', $classesString));
+        $parts = array_map('trim', explode(',', $classesString));
+
+        // Separate classes from tags
+        $classes = [];
+        $tags = [];
+        $knownBaseClasses = ['Wizard', 'Sorcerer', 'Warlock', 'Bard', 'Cleric', 'Druid', 'Paladin', 'Ranger', 'Fighter', 'Rogue', 'Barbarian', 'Monk', 'Artificer'];
+
+        foreach ($parts as $part) {
+            // If it has parentheses, it's a class/subclass
+            if (preg_match('/\(/', $part)) {
+                $classes[] = $part;
+            }
+            // If it's a known base class, it's a class
+            elseif (in_array($part, $knownBaseClasses)) {
+                $classes[] = $part;
+            }
+            // Otherwise, it's a tag
+            else {
+                $tags[] = $part;
+            }
+        }
 
         // Parse description, higher_levels, and sources from text elements
         $description = '';
@@ -91,6 +111,7 @@ class SpellXmlParser
             'description' => trim($description),
             'higher_levels' => $higherLevels, // Extracted from "At Higher Levels:" section
             'classes' => $classes,
+            'tags' => $tags, // NEW: Non-class categories (Touch Spells, Ritual Caster, Mark of X, etc.)
             'sources' => $sources, // NEW: Array of sources instead of single source
             'effects' => $effects,
         ];

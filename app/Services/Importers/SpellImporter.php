@@ -87,6 +87,11 @@ class SpellImporter extends BaseImporter
             $this->importClassAssociations($spell, $spellData['classes']);
         }
 
+        // Import tags (Touch Spells, Ritual Caster, Mark of X, etc.)
+        if (isset($spellData['tags']) && is_array($spellData['tags']) && ! empty($spellData['tags'])) {
+            $spell->syncTags($spellData['tags']);
+        }
+
         return $spell;
     }
 

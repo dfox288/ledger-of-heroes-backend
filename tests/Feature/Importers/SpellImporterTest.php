@@ -436,4 +436,49 @@ XML;
         $this->assertContains('Warlock', $classNames);
         $this->assertContains('Wizard', $classNames);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_extracts_tags_from_classes_field(): void
+    {
+        // Seed base class
+        CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <spell>
+    <name>Simulacrum</name>
+    <level>7</level>
+    <school>I</school>
+    <time>12 hours</time>
+    <range>Touch</range>
+    <components>V, S, M</components>
+    <duration>Until dispelled</duration>
+    <classes>School: Illusion, Touch Spells, Wizard</classes>
+    <text>You shape an illusory duplicate of one beast or humanoid...
+
+Source:	Player's Handbook (2014) p. 276</text>
+  </spell>
+</compendium>
+XML;
+
+        $parser = new SpellXmlParser;
+        $parsedSpells = $parser->parse($xml);
+
+        $importer = new SpellImporter;
+        foreach ($parsedSpells as $spellData) {
+            $importer->import($spellData);
+        }
+
+        $spell = Spell::where('name', 'Simulacrum')->first();
+        $this->assertNotNull($spell);
+
+        // Should have Wizard class
+        $this->assertEquals(1, $spell->classes()->count());
+        $this->assertEquals('Wizard', $spell->classes->first()->name);
+
+        // Should have "Touch Spells" tag
+        $this->assertCount(1, $spell->tags);
+        $this->assertEquals('Touch Spells', $spell->tags->first()->name);
+    }
 }

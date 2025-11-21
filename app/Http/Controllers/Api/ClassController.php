@@ -11,6 +11,7 @@ use App\Http\Resources\ClassResource;
 use App\Http\Resources\SpellResource;
 use App\Models\CharacterClass;
 use App\Services\ClassSearchService;
+use Dedoc\Scramble\Attributes\QueryParameter;
 
 class ClassController extends Controller
 {
@@ -21,6 +22,7 @@ class ClassController extends Controller
      * spellcasting abilities, proficiencies, class features, level progression tables, and
      * subclass options. Supports filtering by proficiencies, skills, and saving throws.
      */
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR. Available fields: hit_die (int), is_spellcaster (bool), spellcasting_ability_code (string), is_subclass (bool).', example: 'is_spellcaster = true AND hit_die >= 8')]
     public function index(ClassIndexRequest $request, ClassSearchService $service)
     {
         $dto = ClassSearchDTO::fromRequest($request);

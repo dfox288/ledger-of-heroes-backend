@@ -9,6 +9,7 @@ use App\Http\Requests\SpellShowRequest;
 use App\Http\Resources\SpellResource;
 use App\Models\Spell;
 use App\Services\SpellSearchService;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use MeiliSearch\Client;
 
 class SpellController extends Controller
@@ -20,6 +21,7 @@ class SpellController extends Controller
      * concentration, ritual, and full-text search. All query parameters are validated
      * and documented automatically from the SpellIndexRequest.
      */
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR. Available fields: level (int), school_code (string), concentration (bool), ritual (bool).', example: 'level >= 1 AND level <= 3 AND school_code = EV')]
     public function index(SpellIndexRequest $request, SpellSearchService $service, Client $meilisearch)
     {
         $dto = SpellSearchDTO::fromRequest($request);

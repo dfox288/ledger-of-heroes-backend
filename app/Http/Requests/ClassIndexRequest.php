@@ -13,6 +13,10 @@ class ClassIndexRequest extends BaseIndexRequest
             // Search query (Scout/Meilisearch)
             'q' => ['sometimes', 'string', 'min:2', 'max:255'],
 
+            // Meilisearch filter expression
+            'filter' => ['sometimes', 'string', 'max:1000'],
+
+            // Class-specific filters (backwards compatibility)
             'base_only' => ['sometimes', 'boolean'],
             'grants_proficiency' => ['sometimes', 'string', 'max:255'],
             'grants_skill' => ['sometimes', 'string', 'max:255'],

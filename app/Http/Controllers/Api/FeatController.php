@@ -9,6 +9,7 @@ use App\Http\Requests\FeatShowRequest;
 use App\Http\Resources\FeatResource;
 use App\Models\Feat;
 use App\Services\FeatSearchService;
+use Dedoc\Scramble\Attributes\QueryParameter;
 
 class FeatController extends Controller
 {
@@ -19,6 +20,7 @@ class FeatController extends Controller
      * (race, ability scores, proficiencies), granted benefits (skills, proficiencies),
      * and full-text search. All query parameters are validated and documented automatically.
      */
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Note: Prerequisites are stored relationally. Use legacy parameters (prerequisite_race, prerequisite_ability) for prerequisite filtering.', example: 'name = "War Caster"')]
     public function index(FeatIndexRequest $request, FeatSearchService $service)
     {
         $dto = FeatSearchDTO::fromRequest($request);

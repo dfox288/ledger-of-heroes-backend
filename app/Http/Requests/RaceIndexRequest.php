@@ -17,7 +17,10 @@ class RaceIndexRequest extends BaseIndexRequest
             // Search query (Scout/Meilisearch)
             'q' => ['sometimes', 'string', 'min:2', 'max:255'],
 
-            // Filter by granted proficiency
+            // Meilisearch filter expression
+            'filter' => ['sometimes', 'string', 'max:1000'],
+
+            // Race-specific filters (backwards compatibility)
             'grants_proficiency' => ['sometimes', 'string', 'max:255'],
 
             // Filter by granted skill

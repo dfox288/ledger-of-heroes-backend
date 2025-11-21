@@ -9,6 +9,7 @@ use App\Http\Requests\ItemShowRequest;
 use App\Http\Resources\ItemResource;
 use App\Models\Item;
 use App\Services\ItemSearchService;
+use Dedoc\Scramble\Attributes\QueryParameter;
 
 class ItemController extends Controller
 {
@@ -19,6 +20,7 @@ class ItemController extends Controller
      * Supports filtering by item type, rarity, magic properties, attunement requirements,
      * and prerequisites. All query parameters are validated automatically.
      */
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: is_magic (bool), requires_attunement (bool), rarity (string), type (string), weight (float).', example: 'is_magic = true AND rarity IN [rare, very_rare, legendary]')]
     public function index(ItemIndexRequest $request, ItemSearchService $service)
     {
         $dto = ItemSearchDTO::fromRequest($request);

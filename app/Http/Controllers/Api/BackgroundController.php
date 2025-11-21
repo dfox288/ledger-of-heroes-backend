@@ -9,6 +9,7 @@ use App\Http\Requests\BackgroundShowRequest;
 use App\Http\Resources\BackgroundResource;
 use App\Models\Background;
 use App\Services\BackgroundSearchService;
+use Dedoc\Scramble\Attributes\QueryParameter;
 
 class BackgroundController extends Controller
 {
@@ -19,6 +20,7 @@ class BackgroundController extends Controller
      * proficiencies, skills, and languages. Includes random tables for personality traits,
      * ideals, bonds, and flaws. All query parameters are validated automatically.
      */
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Note: Backgrounds have limited filterable fields. Use search (q parameter) for most queries.', example: 'name = Acolyte')]
     public function index(BackgroundIndexRequest $request, BackgroundSearchService $service)
     {
         $dto = BackgroundSearchDTO::fromRequest($request);

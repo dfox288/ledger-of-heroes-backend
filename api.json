@@ -303,7 +303,7 @@
                     {
                         "name": "grants_proficiency",
                         "in": "query",
-                        "description": "Filter by granted proficiency",
+                        "description": "Background-specific filters (backwards compatibility)",
                         "schema": {
                             "type": "string",
                             "maxLength": 255
@@ -354,6 +354,16 @@
                                 "false"
                             ]
                         }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Meilisearch filter expression for advanced filtering. Note: Backgrounds have limited filterable fields. Use search (q parameter) for most queries.",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 1000
+                        },
+                        "example": "name = Acolyte"
                     }
                 ],
                 "responses": {
@@ -683,6 +693,7 @@
                     {
                         "name": "base_only",
                         "in": "query",
+                        "description": "Class-specific filters (backwards compatibility)",
                         "schema": {
                             "type": "boolean"
                         }
@@ -710,6 +721,16 @@
                             "type": "string",
                             "maxLength": 255
                         }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR. Available fields: hit_die (int), is_spellcaster (bool), spellcasting_ability_code (string), is_subclass (bool).",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 1000
+                        },
+                        "example": "is_spellcaster = true AND hit_die >= 8"
                     }
                 ],
                 "responses": {
@@ -1741,7 +1762,7 @@
                     {
                         "name": "prerequisite_race",
                         "in": "query",
-                        "description": "Filter by prerequisite race",
+                        "description": "Feat-specific filters (backwards compatibility)",
                         "schema": {
                             "type": "string",
                             "maxLength": 255
@@ -1810,6 +1831,16 @@
                             "type": "string",
                             "maxLength": 255
                         }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Meilisearch filter expression for advanced filtering. Note: Prerequisites are stored relationally. Use legacy parameters (prerequisite_race, prerequisite_ability) for prerequisite filtering.",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 1000
+                        },
+                        "example": "name = \"War Caster\""
                     }
                 ],
                 "responses": {
@@ -2134,6 +2165,7 @@
                     {
                         "name": "q",
                         "in": "query",
+                        "description": "Search query (Scout/Meilisearch)",
                         "schema": {
                             "type": "string",
                             "minLength": 2,
@@ -2143,6 +2175,7 @@
                     {
                         "name": "min_strength",
                         "in": "query",
+                        "description": "Item-specific filters (backwards compatibility)",
                         "schema": {
                             "type": "integer",
                             "minimum": 1,
@@ -2165,6 +2198,16 @@
                                 "false"
                             ]
                         }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: is_magic (bool), requires_attunement (bool), rarity (string), type (string), weight (float).",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 1000
+                        },
+                        "example": "is_magic = true AND rarity IN [rare, very_rare, legendary]"
                     }
                 ],
                 "responses": {
@@ -3421,7 +3464,7 @@
                     {
                         "name": "grants_proficiency",
                         "in": "query",
-                        "description": "Filter by granted proficiency",
+                        "description": "Race-specific filters (backwards compatibility)",
                         "schema": {
                             "type": "string",
                             "maxLength": 255
@@ -3481,6 +3524,16 @@
                                 "false"
                             ]
                         }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR. Available fields: size (string), speed (int), has_darkvision (bool), darkvision_range (int).",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 1000
+                        },
+                        "example": "speed >= 30 AND has_darkvision = true"
                     }
                 ],
                 "responses": {
@@ -4560,15 +4613,6 @@
                         }
                     },
                     {
-                        "name": "filter",
-                        "in": "query",
-                        "description": "Meilisearch filter expression (NEW)",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 1000
-                        }
-                    },
-                    {
                         "name": "level",
                         "in": "query",
                         "description": "Spell-specific filters (backwards compatibility)",
@@ -4618,6 +4662,16 @@
                                 "false"
                             ]
                         }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR. Available fields: level (int), school_code (string), concentration (bool), ritual (bool).",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 1000
+                        },
+                        "example": "level >= 1 AND level <= 3 AND school_code = EV"
                     }
                 ],
                 "responses": {

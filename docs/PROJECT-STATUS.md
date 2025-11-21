@@ -1,8 +1,8 @@
 # D&D 5e XML Importer - Project Status
 
-**Last Updated:** 2025-11-20 (Evening Session)
+**Last Updated:** 2025-11-21 (Meilisearch Documentation Enhancement)
 **Branch:** `main` (all features merged)
-**Status:** ✅ Production Ready - Scramble Documentation Complete
+**Status:** ✅ Production Ready - Complete API Documentation with Filter Examples
 
 ---
 
@@ -13,14 +13,52 @@
 - ✅ **12 model factories** - Test data generation
 - ✅ **12 database seeders** - Lookup/reference data (30 languages)
 - ✅ **25 API Resources** - Standardized, 100% field-complete (includes SearchResource)
-- ✅ **17 API Controllers** - All properly documented for Scramble
-- ✅ **26 Form Request classes** - Full validation layer with Scramble integration
-- ✅ **738 tests passing** - 4,637 assertions, **100% pass rate** ⭐
+- ✅ **17 API Controllers** - All with QueryParameter examples for filtering
+- ✅ **26 Form Request classes** - Full validation + OpenAPI documentation
+- ✅ **769 tests passing** - 4,711 assertions, **100% pass rate** ⭐
 - ✅ **6 importers working** - Spells, Races, Items, Backgrounds, Classes (enhanced), Feats
 - ✅ **12 reusable traits** - Parser + Importer code reuse (DRY)
-- ✅ **OpenAPI 3.0 spec** - Auto-generated via Scramble (306KB) - Fully validated ✅
-- ✅ **Scramble Documentation** - Automated tests validate OpenAPI generation
+- ✅ **OpenAPI 3.0 spec** - Auto-generated with filter examples (306KB+) ✅
+- ✅ **Meilisearch Filtering** - Fully documented with entity-specific examples
 - ✅ **Dual ID/Slug routing** - API supports both `/spells/123` and `/spells/fireball`
+
+---
+
+## What's New (2025-11-21)
+
+### Meilisearch Filter Documentation ✅ COMPLETE
+**Problem:** Only the Spells endpoint documented the `filter` parameter in OpenAPI. Users couldn't discover filtering capabilities for Items, Races, Classes, Backgrounds, or Feats.
+
+**Solutions Implemented:**
+1. **Added Filter Validation to Request Classes**
+   - Added `filter` validation rule to 5 Request classes (Items, Races, Classes, Backgrounds, Feats)
+   - Consistent 1000-character max length across all entities
+   - Scramble now generates filter parameter in OpenAPI spec
+
+2. **Added QueryParameter Attributes with Examples**
+   - Added `#[QueryParameter]` attributes to all 6 entity controller index methods
+   - Entity-specific examples showing real-world use cases
+   - Rich descriptions listing filterable fields and supported operators
+   - Guidance on limitations (e.g., Backgrounds have fewer filterable fields)
+
+3. **Example Filter Expressions:**
+   - **Spells:** `level >= 1 AND level <= 3 AND school_code = EV`
+   - **Items:** `is_magic = true AND rarity IN [rare, very_rare, legendary]`
+   - **Races:** `speed >= 30 AND has_darkvision = true`
+   - **Classes:** `is_spellcaster = true AND hit_die >= 8`
+   - **Backgrounds:** `name = Acolyte`
+   - **Feats:** `name = "War Caster"`
+
+**Results:**
+- ✅ All 6 entity endpoints document `filter` parameter with examples
+- ✅ OpenAPI spec includes copy-pasteable filter examples
+- ✅ Users can discover filtering from API documentation UI
+- ✅ 769 tests passing (4,711 assertions)
+- ✅ Zero breaking changes, pure enhancement
+
+**Documentation:**
+- See `docs/MEILISEARCH-FILTERS.md` for comprehensive filtering guide
+- See `docs/active/SESSION-HANDOVER-2025-11-21-MEILISEARCH-DOCS.md` for session details
 
 ---
 
@@ -193,17 +231,18 @@ All database tables, relationships, and Eloquent models are complete and tested.
 - OpenAPI 3.1.0 documentation via Scramble
 
 ### Testing ✅
-- **738 tests** (4,637 assertions) with **100% pass rate** ⭐
+- **769 tests** (4,711 assertions) with **100% pass rate** ⭐
 - **0 failing tests**
 - **Test Coverage:**
-  - 5 Scramble documentation validation tests (NEW)
+  - 5 Scramble documentation validation tests
   - 145 Form Request validation tests
-  - Feature tests for API endpoints, importers, models, migrations
+  - 167 API endpoint tests (including filter validation)
+  - Feature tests for importers, models, migrations
   - Unit tests for parsers, factories, services, traits
   - XML reconstruction tests verify import completeness (~90%)
   - Migration tests, model relationship tests
 - **PHPUnit 11+ compatible** (PHP 8 attributes)
-- **Test Duration:** ~24 seconds
+- **Test Duration:** ~27 seconds
 
 ---
 
@@ -236,11 +275,11 @@ All database tables, relationships, and Eloquent models are complete and tested.
 ## Key Design Documents
 
 **Essential Reading:**
-- `CLAUDE.md` - Comprehensive project guide (UPDATED 2025-11-20 Evening)
-- `docs/active/SESSION-HANDOVER-2025-11-20-SCRAMBLE-FIXES.md` - Latest session (Scramble docs)
-- `docs/active/SESSION-HANDOVER-2025-11-21-COMPLETE.md` - Class importer session
+- `CLAUDE.md` - Comprehensive project guide (UPDATED 2025-11-21)
+- `docs/active/SESSION-HANDOVER-2025-11-21-MEILISEARCH-DOCS.md` - Latest session (Filter documentation)
+- `docs/MEILISEARCH-FILTERS.md` - Comprehensive filtering guide with examples
+- `docs/SEARCH.md` - Scout + Meilisearch search system
 - `docs/plans/2025-11-17-dnd-compendium-database-design.md` - Database architecture
-- `docs/SEARCH.md` - Scout + Meilisearch documentation
 
 ---
 

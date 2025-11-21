@@ -9,6 +9,7 @@ use App\Http\Requests\RaceShowRequest;
 use App\Http\Resources\RaceResource;
 use App\Models\Race;
 use App\Services\RaceSearchService;
+use Dedoc\Scramble\Attributes\QueryParameter;
 
 class RaceController extends Controller
 {
@@ -19,6 +20,7 @@ class RaceController extends Controller
      * proficiencies, skills, languages, size, and speed. Includes ability score modifiers,
      * racial traits, and language options. All query parameters are validated automatically.
      */
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR. Available fields: size (string), speed (int), has_darkvision (bool), darkvision_range (int).', example: 'speed >= 30 AND has_darkvision = true')]
     public function index(RaceIndexRequest $request, RaceSearchService $service)
     {
         $dto = RaceSearchDTO::fromRequest($request);

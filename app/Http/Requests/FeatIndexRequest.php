@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Race;
 use App\Models\Skill;
 use Illuminate\Validation\Rule;
 
@@ -17,7 +16,10 @@ class FeatIndexRequest extends BaseIndexRequest
             // Search query (Scout/Meilisearch)
             'q' => ['sometimes', 'string', 'min:2', 'max:255'],
 
-            // Filter by prerequisite race
+            // Meilisearch filter expression
+            'filter' => ['sometimes', 'string', 'max:1000'],
+
+            // Feat-specific filters (backwards compatibility)
             'prerequisite_race' => ['sometimes', 'string', 'max:255'],
 
             // Filter by prerequisite ability score

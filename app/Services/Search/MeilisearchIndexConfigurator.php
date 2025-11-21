@@ -26,8 +26,10 @@ class MeilisearchIndexConfigurator
 
         // Configure filterable attributes (fields that can be used in filters)
         $index->updateFilterableAttributes([
+            'id',
             'level',
             'school_code',
+            'school_name',
             'concentration',
             'ritual',
             'source_codes',

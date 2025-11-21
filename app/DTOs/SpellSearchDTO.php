@@ -11,6 +11,8 @@ final readonly class SpellSearchDTO
 {
     public function __construct(
         public ?string $searchQuery,
+        public ?string $meilisearchFilter,
+        public int $page,
         public int $perPage,
         public array $filters,
         public string $sortBy,
@@ -23,6 +25,8 @@ final readonly class SpellSearchDTO
 
         return new self(
             searchQuery: $validated['q'] ?? null,
+            meilisearchFilter: $validated['filter'] ?? null,
+            page: $validated['page'] ?? 1,
             perPage: $validated['per_page'] ?? 15,
             filters: [
                 'search' => $validated['search'] ?? null,

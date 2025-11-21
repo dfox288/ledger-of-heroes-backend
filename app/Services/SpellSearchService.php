@@ -5,6 +5,8 @@ namespace App\Services;
 use App\DTOs\SpellSearchDTO;
 use App\Models\Spell;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
+use MeiliSearch\Client;
 
 /**
  * Service for searching and filtering D&D spells
@@ -81,5 +83,52 @@ final class SpellSearchService
     private function applySorting(Builder $query, SpellSearchDTO $dto): void
     {
         $query->orderBy($dto->sortBy, $dto->sortDirection);
+    }
+
+    /**
+     * Search using Meilisearch with custom filter expressions
+     */
+    public function searchWithMeilisearch(SpellSearchDTO $dto, Client $client): LengthAwarePaginator
+    {
+        $searchParams = [
+            'limit' => $dto->perPage,
+            'offset' => ($dto->page - 1) * $dto->perPage,
+        ];
+
+        // Add filter if provided
+        if ($dto->meilisearchFilter) {
+            $searchParams['filter'] = $dto->meilisearchFilter;
+        }
+
+        // Add sort if needed
+        if ($dto->sortBy && $dto->sortDirection) {
+            $searchParams['sort'] = ["{$dto->sortBy}:{$dto->sortDirection}"];
+        }
+
+        // Execute search
+        $results = $client->index('spells')->search($dto->searchQuery ?? '', $searchParams);
+
+        // Hydrate Eloquent models to use with API Resources
+        $spellIds = collect($results['hits'])->pluck('id');
+
+        if ($spellIds->isEmpty()) {
+            return new LengthAwarePaginator([], 0, $dto->perPage, $dto->page);
+        }
+
+        $spells = Spell::with(['spellSchool', 'sources.source', 'effects.damageType', 'classes'])
+            ->findMany($spellIds);
+
+        // Preserve Meilisearch result order
+        $orderedSpells = $spellIds->map(function ($id) use ($spells) {
+            return $spells->firstWhere('id', $id);
+        })->filter();
+
+        return new LengthAwarePaginator(
+            $orderedSpells,
+            $results['estimatedTotalHits'] ?? 0,
+            $dto->perPage,
+            $dto->page ?? 1,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
     }
 }

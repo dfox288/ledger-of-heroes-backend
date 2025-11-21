@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Optional include support via `?include=randomTables.entries`
   - Returns structured dice tables with roll ranges and results
   - Example: Prismatic Spray's d8 ray color table, Confusion's d10 behavior table
+- **Test Coverage for Item Lookup Endpoints** - Completed test coverage for `?q` search parameter
+  - New test suite: `ItemTypeApiTest` (4 tests, 26 assertions)
+  - New test suite: `ItemPropertyApiTest` (4 tests, 27 assertions)
+  - Verifies search by name, case-insensitive search, empty results handling
 
 ### Changed
 - Updated `SpellResource` to include `RandomTableResource::collection($this->whenLoaded('randomTables'))`
@@ -22,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added 2 new tests for random table API exposure (17 assertions)
 
 ### Test Coverage
-- **790 tests passing** (5,262 assertions)
+- **798 tests passing** (5,390 assertions)
 
 `★ Insight ─────────────────────────────────────`
 **API Design Pattern:**

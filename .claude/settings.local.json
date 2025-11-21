@@ -68,7 +68,8 @@
       "Bash(for endpoint in spells races items classes feats backgrounds)",
       "Bash(do echo \"=== $endpoint ===\")",
       "WebFetch(domain:spatie.be)",
-      "WebFetch(domain:www.meilisearch.com)"
+      "WebFetch(domain:www.meilisearch.com)",
+      "WebFetch(domain:laravel-news.com)"
     ],
     "deny": [],
     "ask": []

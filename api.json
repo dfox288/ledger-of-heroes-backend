@@ -215,11 +215,19 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "`AbilityScore`",
+                        "description": "`AbilityScoreResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/AbilityScore"
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AbilityScoreResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
                                 }
                             }
                         }
@@ -4072,11 +4080,19 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "`Size`",
+                        "description": "`SizeResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Size"
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/SizeResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
                                 }
                             }
                         }
@@ -4299,11 +4315,19 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "`Skill`",
+                        "description": "`SkillResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Skill"
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/SkillResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
                                 }
                             }
                         }
@@ -5163,26 +5187,6 @@
     },
     "components": {
         "schemas": {
-            "AbilityScore": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "code": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "id",
-                    "code",
-                    "name"
-                ],
-                "title": "AbilityScore"
-            },
             "AbilityScoreResource": {
                 "type": "object",
                 "properties": {
@@ -6586,26 +6590,6 @@
                 ],
                 "title": "SearchResource"
             },
-            "Size": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "code": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "id",
-                    "code",
-                    "name"
-                ],
-                "title": "Size"
-            },
             "SizeResource": {
                 "type": "object",
                 "properties": {
@@ -6625,26 +6609,6 @@
                     "name"
                 ],
                 "title": "SizeResource"
-            },
-            "Skill": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "ability_score_id": {
-                        "type": "integer"
-                    }
-                },
-                "required": [
-                    "id",
-                    "name",
-                    "ability_score_id"
-                ],
-                "title": "Skill"
             },
             "SkillResource": {
                 "type": "object",

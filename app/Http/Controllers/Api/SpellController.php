@@ -28,15 +28,7 @@ class SpellController extends Controller
 
         // Use new Meilisearch filter syntax if provided
         if ($dto->meilisearchFilter !== null) {
-            try {
-                $spells = $service->searchWithMeilisearch($dto, $meilisearch);
-            } catch (\MeiliSearch\Exceptions\ApiException $e) {
-                // Invalid filter syntax - abort without breaking Scramble type inference
-                abort(response()->json([
-                    'message' => 'Invalid filter syntax',
-                    'error' => $e->getMessage(),
-                ], 422));
-            }
+            $spells = $service->searchWithMeilisearch($dto, $meilisearch);
         } elseif ($dto->searchQuery !== null) {
             // Use Scout search with backwards-compatible filters
             $spells = $service->buildScoutQuery($dto)->paginate($dto->perPage);

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\DTOs\SpellSearchDTO;
+use App\Exceptions\Search\InvalidFilterSyntaxException;
 use App\Models\Spell;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -106,7 +107,15 @@ final class SpellSearchService
         }
 
         // Execute search
-        $results = $client->index('spells')->search($dto->searchQuery ?? '', $searchParams);
+        try {
+            $results = $client->index('spells')->search($dto->searchQuery ?? '', $searchParams);
+        } catch (\MeiliSearch\Exceptions\ApiException $e) {
+            throw new InvalidFilterSyntaxException(
+                filter: $dto->meilisearchFilter ?? 'unknown',
+                meilisearchMessage: $e->getMessage(),
+                previous: $e
+            );
+        }
 
         // Convert SearchResult object to array
         $resultsArray = $results->toArray();

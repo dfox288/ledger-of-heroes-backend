@@ -10,6 +10,7 @@ use App\Models\RandomTableEntry;
 use App\Models\Source;
 use App\Services\Importers\Concerns\ImportsLanguages;
 use App\Services\Matching\ItemMatchingService;
+use App\Services\Parsers\BackgroundXmlParser;
 
 class BackgroundImporter extends BaseImporter
 {
@@ -139,5 +140,10 @@ class BackgroundImporter extends BaseImporter
         }
 
         return $background;
+    }
+
+    protected function getParser(): object
+    {
+        return new BackgroundXmlParser;
     }
 }

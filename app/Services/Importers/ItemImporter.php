@@ -266,22 +266,8 @@ class ItemImporter extends BaseImporter
         ]);
     }
 
-    public function importFromFile(string $filePath): int
+    protected function getParser(): object
     {
-        if (! file_exists($filePath)) {
-            throw new \InvalidArgumentException("File not found: {$filePath}");
-        }
-
-        $xmlContent = file_get_contents($filePath);
-        $parser = new ItemXmlParser;
-        $items = $parser->parse($xmlContent);
-
-        $count = 0;
-        foreach ($items as $itemData) {
-            $this->import($itemData);
-            $count++;
-        }
-
-        return $count;
+        return new ItemXmlParser;
     }
 }

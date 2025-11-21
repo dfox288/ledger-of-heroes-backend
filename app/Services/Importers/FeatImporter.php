@@ -149,27 +149,8 @@ class FeatImporter extends BaseImporter
         }
     }
 
-    /**
-     * Import feats from an XML file.
-     *
-     * @return int Number of feats imported
-     */
-    public function importFromFile(string $filePath): int
+    protected function getParser(): object
     {
-        if (! file_exists($filePath)) {
-            throw new \InvalidArgumentException("File not found: {$filePath}");
-        }
-
-        $xmlContent = file_get_contents($filePath);
-        $parser = new FeatXmlParser;
-        $feats = $parser->parse($xmlContent);
-
-        $count = 0;
-        foreach ($feats as $featData) {
-            $this->import($featData);
-            $count++;
-        }
-
-        return $count;
+        return new FeatXmlParser;
     }
 }

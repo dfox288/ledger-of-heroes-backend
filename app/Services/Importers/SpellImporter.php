@@ -87,22 +87,8 @@ class SpellImporter extends BaseImporter
         $spell->classes()->sync($classIds);
     }
 
-    public function importFromFile(string $filePath): int
+    protected function getParser(): object
     {
-        if (! file_exists($filePath)) {
-            throw new \InvalidArgumentException("File not found: {$filePath}");
-        }
-
-        $xmlContent = file_get_contents($filePath);
-        $parser = new SpellXmlParser;
-        $spells = $parser->parse($xmlContent);
-
-        $count = 0;
-        foreach ($spells as $spellData) {
-            $this->import($spellData);
-            $count++;
-        }
-
-        return $count;
+        return new SpellXmlParser;
     }
 }

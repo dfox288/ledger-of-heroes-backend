@@ -3,12 +3,9 @@
 namespace App\Services\Importers;
 
 use App\Models\AbilityScore;
-use App\Models\EntitySource;
 use App\Models\Modifier;
-use App\Models\Proficiency;
 use App\Models\Race;
 use App\Models\Size;
-use App\Models\Skill;
 use App\Models\Source;
 use App\Services\Importers\Concerns\ImportsConditions;
 use App\Services\Importers\Concerns\ImportsLanguages;
@@ -104,50 +101,6 @@ class RaceImporter extends BaseImporter
     }
 
     /**
-     * Import sources for a race.
-     * Creates entity_sources junction records for each source.
-     */
-    private function importSources(Race $race, array $sources): void
-    {
-        // Clear existing sources
-        $race->sources()->delete();
-
-        // Create new source associations
-        foreach ($sources as $sourceData) {
-            $source = Source::where('code', $sourceData['code'])->first();
-
-            if ($source) {
-                EntitySource::create([
-                    'reference_type' => Race::class,
-                    'reference_id' => $race->id,
-                    'source_id' => $source->id,
-                    'pages' => $sourceData['pages'] ?? null,
-                ]);
-            }
-        }
-    }
-
-    private function importTraits(Race $race, array $traitsData): void
-    {
-        // Clear existing traits for this race
-        $race->traits()->delete();
-
-        foreach ($traitsData as $traitData) {
-            $trait = \App\Models\CharacterTrait::create([
-                'reference_type' => Race::class,
-                'reference_id' => $race->id,
-                'name' => $traitData['name'],
-                'category' => $traitData['category'],
-                'description' => $traitData['description'],
-                'sort_order' => $traitData['sort_order'],
-            ]);
-
-            // Check for embedded tables in trait description
-            $this->importTraitTables($trait, $traitData['description']);
-        }
-    }
-
-    /**
      * Import all modifiers at once (ability bonuses, choices, and resistances).
      * This ensures we don't clear modifiers between multiple imports.
      */
@@ -207,6 +160,15 @@ class RaceImporter extends BaseImporter
         $this->importEntityModifiers($race, $modifiersData);
     }
 
+    protected function getParser(): object
+    {
+        return new RaceXmlParser;
+    }
+
+    /**
+     * Override importFromFile to handle base race counting.
+     * RaceImporter needs to count base races that are auto-created for subraces.
+     */
     public function importFromFile(string $filePath): int
     {
         if (! file_exists($filePath)) {
@@ -214,7 +176,7 @@ class RaceImporter extends BaseImporter
         }
 
         $xmlContent = file_get_contents($filePath);
-        $parser = new RaceXmlParser;
+        $parser = $this->getParser();
         $races = $parser->parse($xmlContent);
 
         // Reset tracking for base races
@@ -267,37 +229,9 @@ class RaceImporter extends BaseImporter
         ]);
 
         // Create source associations for base race
-        $this->importSources($baseRace, $sources);
+        $this->importEntitySources($baseRace, $sources);
 
         return $baseRace;
-    }
-
-    private function importProficiencies(Race $race, array $proficienciesData): void
-    {
-        // Clear existing proficiencies for this race
-        $race->proficiencies()->delete();
-
-        foreach ($proficienciesData as $profData) {
-            $proficiency = [
-                'reference_type' => Race::class,
-                'reference_id' => $race->id,
-                'proficiency_type' => $profData['type'],
-                'proficiency_name' => $profData['name'], // Always store name as fallback
-                'proficiency_type_id' => $profData['proficiency_type_id'] ?? null, // From parser
-                'grants' => $profData['grants'] ?? true, // Races grant proficiency
-            ];
-
-            // Handle different proficiency types
-            if ($profData['type'] === 'skill') {
-                // Look up skill by name
-                $skill = Skill::where('name', $profData['name'])->first();
-                if ($skill) {
-                    $proficiency['skill_id'] = $skill->id;
-                }
-            }
-
-            Proficiency::create($proficiency);
-        }
     }
 
     private function importRandomTablesFromRolls(array $createdTraits, array $traitsData): void

@@ -7,6 +7,7 @@ use App\Models\CharacterClass;
 use App\Models\ClassCounter;
 use App\Models\ClassFeature;
 use App\Models\ClassLevelProgression;
+use App\Services\Parsers\ClassXmlParser;
 
 class ClassImporter extends BaseImporter
 {
@@ -253,5 +254,10 @@ class ClassImporter extends BaseImporter
         }
 
         return $subclass;
+    }
+
+    protected function getParser(): object
+    {
+        return new ClassXmlParser;
     }
 }

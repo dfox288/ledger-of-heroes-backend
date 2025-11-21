@@ -41,6 +41,6 @@ class SizeController extends Controller
      */
     public function show(Size $size)
     {
-        return $size;
+        return new SizeResource($size);
     }
 }

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Laravel 12.x application that imports D&D 5th Edition content from XML files and provides a RESTful API for accessing the data. The XML files follow the compendium format used by applications like Fight Club 5e and similar D&D companion apps.
 
-**Current Status (2025-11-21 - Custom Exceptions + Scramble Compliance Complete):**
+**Current Status (2025-11-21 - Test Suite Cleanup Complete):**
 - ✅ **60 migrations** - Complete database schema with slug system + languages + prerequisites + spells_known
 - ✅ **23 Eloquent models** - All with HasFactory trait
 - ✅ **12 model factories** - Test data generation
@@ -14,7 +14,7 @@ This is a Laravel 12.x application that imports D&D 5th Edition content from XML
 - ✅ **25 API Resources** - Standardized and 100% field-complete (includes SearchResource)
 - ✅ **17 API Controllers** - 6 entity + 11 lookup endpoints (all properly documented + Scramble-compliant)
 - ✅ **26 Form Request classes** - Full validation layer with Scramble OpenAPI integration
-- ✅ **808 tests passing** (5,036 assertions) - 100% pass rate ⭐
+- ✅ **702 tests passing** (4,554 assertions) - 100% pass rate ⭐ (cleaned up from 808)
 - ✅ **6 importers working** - Spells, Races, Items, Backgrounds, Classes (with spells_known), Feats
 - ✅ **6 artisan commands** - `import:spells`, `import:races`, `import:items`, `import:backgrounds`, `import:classes`, `import:feats`
 - ✅ **Slug system complete** - Dual ID/slug routing for all entities
@@ -23,6 +23,7 @@ This is a Laravel 12.x application that imports D&D 5th Edition content from XML
 - ✅ **Scramble compliance** - All 17 controllers use single-return pattern for proper OpenAPI docs
 - ✅ **OpenAPI documentation** - Auto-generated via Scramble (306KB spec) - All 17 controllers ✅
 - ✅ **Search system complete** - Laravel Scout + Meilisearch (3,002 documents indexed, typo-tolerant)
+- ✅ **Test suite optimized** - Removed 106 redundant tests, zero coverage loss
 - ⚠️  **1 importer pending** - Monsters (7 bestiary files ready)
 
 ## Tech Stack

@@ -108,8 +108,11 @@ final class SpellSearchService
         // Execute search
         $results = $client->index('spells')->search($dto->searchQuery ?? '', $searchParams);
 
+        // Convert SearchResult object to array
+        $resultsArray = $results->toArray();
+
         // Hydrate Eloquent models to use with API Resources
-        $spellIds = collect($results['hits'])->pluck('id');
+        $spellIds = collect($resultsArray['hits'])->pluck('id');
 
         if ($spellIds->isEmpty()) {
             return new LengthAwarePaginator([], 0, $dto->perPage, $dto->page);
@@ -125,7 +128,7 @@ final class SpellSearchService
 
         return new LengthAwarePaginator(
             $orderedSpells,
-            $results['estimatedTotalHits'] ?? 0,
+            $resultsArray['estimatedTotalHits'] ?? 0,
             $dto->perPage,
             $dto->page ?? 1,
             ['path' => request()->url(), 'query' => request()->query()]

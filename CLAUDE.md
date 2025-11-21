@@ -473,6 +473,21 @@ All entities can cite multiple sourcebooks via `entity_sources` polymorphic tabl
 - `GET /api/v1/classes` - List/search classes (paginated, filterable, includes subclasses)
 - `GET /api/v1/feats` - List/search feats (paginated, filterable)
 
+**Advanced Filtering:**
+All entity endpoints support Meilisearch's powerful filter syntax via the `filter` parameter.
+See `docs/MEILISEARCH-FILTERS.md` for comprehensive examples.
+
+```bash
+# Range queries
+GET /api/v1/spells?filter=level >= 1 AND level <= 3
+
+# Logical operators
+GET /api/v1/spells?filter=school_code = EV OR school_code = C
+
+# Combined search + filter
+GET /api/v1/spells?q=fire&filter=level <= 3
+```
+
 **Lookup Endpoints:**
 - `GET /api/v1/sources` - D&D sourcebooks
 - `GET /api/v1/spell-schools` - 8 schools of magic

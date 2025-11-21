@@ -78,7 +78,18 @@ class CachesLookupTablesTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_throws_exception_for_missing_records_when_using_first_or_fail()
     {
-        $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        // Now throws EntityNotFoundException instead of ModelNotFoundException
+        $this->expectException(\App\Exceptions\Lookup\EntityNotFoundException::class);
+
+        $this->importer->testCachedFind(Source::class, 'code', 'NONEXISTENT', useFail: true);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_throws_entity_not_found_exception_with_context()
+    {
+        $this->expectException(\App\Exceptions\Lookup\EntityNotFoundException::class);
+        $this->expectExceptionMessage('Source not found');
+        $this->expectExceptionCode(404);
 
         $this->importer->testCachedFind(Source::class, 'code', 'NONEXISTENT', useFail: true);
     }

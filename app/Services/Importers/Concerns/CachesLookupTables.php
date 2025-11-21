@@ -2,6 +2,7 @@
 
 namespace App\Services\Importers\Concerns;
 
+use App\Exceptions\Lookup\EntityNotFoundException;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -30,7 +31,7 @@ trait CachesLookupTables
      * @param  bool  $useFail  Use firstOrFail() instead of first()
      * @return Model|null The found model or null
      *
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws EntityNotFoundException
      */
     protected function cachedFind(string $model, string $column, mixed $value, bool $useFail = true): ?Model
     {
@@ -39,12 +40,17 @@ trait CachesLookupTables
 
         // Check cache
         if (! isset($this->lookupCache[$model][$column][$normalizedValue])) {
-            // Query database with normalized value
-            $query = $model::where($column, $normalizedValue);
-            $result = $useFail ? $query->firstOrFail() : $query->first();
+            try {
+                // Query database with normalized value
+                $query = $model::where($column, $normalizedValue);
+                $result = $useFail ? $query->firstOrFail() : $query->first();
 
-            // Cache result (even if null)
-            $this->lookupCache[$model][$column][$normalizedValue] = $result;
+                // Cache result (even if null)
+                $this->lookupCache[$model][$column][$normalizedValue] = $result;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $entityType = class_basename($model);
+                throw new EntityNotFoundException($entityType, $normalizedValue, $column);
+            }
         }
 
         return $this->lookupCache[$model][$column][$normalizedValue];
@@ -59,7 +65,7 @@ trait CachesLookupTables
      * @param  bool  $useFail  Use firstOrFail() instead of first()
      * @return int|null The model's ID or null
      *
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws EntityNotFoundException
      */
     protected function cachedFindId(string $model, string $column, mixed $value, bool $useFail = true): ?int
     {

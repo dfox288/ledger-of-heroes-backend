@@ -181,11 +181,23 @@ class SpellImporterTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_imports_acid_splash_from_xml(): void
     {
-        // Seed base classes that Acid Splash is available to
-        CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter']);
-        CharacterClass::factory()->create(['name' => 'Rogue', 'slug' => 'rogue']);
+        // Seed base classes
+        $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter']);
+        $rogue = CharacterClass::factory()->create(['name' => 'Rogue', 'slug' => 'rogue']);
         CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
         CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+
+        // Seed subclasses (required for subclass-specific spells)
+        CharacterClass::factory()->create([
+            'name' => 'Eldritch Knight',
+            'slug' => 'eldritch-knight',
+            'parent_class_id' => $fighter->id,
+        ]);
+        CharacterClass::factory()->create([
+            'name' => 'Arcane Trickster',
+            'slug' => 'arcane-trickster',
+            'parent_class_id' => $rogue->id,
+        ]);
 
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -235,11 +247,53 @@ XML;
                 "Effect '{$effect->dice_formula}' should have acid damage type");
         }
 
-        // Check class associations
+        // Check class associations - should use SUBCLASSES when specified in parentheses
         $this->assertEquals(4, $spell->classes()->count(), 'Should have 4 class associations');
 
         $classNames = $spell->classes()->pluck('name')->sort()->values()->toArray();
-        $this->assertEquals(['Fighter', 'Rogue', 'Sorcerer', 'Wizard'], $classNames,
-            'Should have Fighter, Rogue, Sorcerer, and Wizard (subclasses stripped)');
+        $this->assertEquals(['Arcane Trickster', 'Eldritch Knight', 'Sorcerer', 'Wizard'], $classNames,
+            'Should use subclasses when specified: Eldritch Knight (not Fighter), Arcane Trickster (not Rogue)');
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_uses_base_class_when_no_subclass_specified(): void
+    {
+        // Seed base classes
+        CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+        CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
+
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <spell>
+    <name>Magic Missile</name>
+    <level>1</level>
+    <school>EV</school>
+    <time>1 action</time>
+    <range>120 feet</range>
+    <components>V, S</components>
+    <duration>Instantaneous</duration>
+    <classes>School: Evocation, Wizard, Sorcerer</classes>
+    <text>Test spell</text>
+  </spell>
+</compendium>
+XML;
+
+        $parser = new SpellXmlParser;
+        $parsedSpells = $parser->parse($xml);
+
+        $importer = new SpellImporter;
+        foreach ($parsedSpells as $spellData) {
+            $importer->import($spellData);
+        }
+
+        $spell = Spell::where('name', 'Magic Missile')->first();
+        $this->assertNotNull($spell);
+
+        // Should use BASE classes when no subclass specified
+        $this->assertEquals(2, $spell->classes()->count());
+        $classNames = $spell->classes()->pluck('name')->sort()->values()->toArray();
+        $this->assertEquals(['Sorcerer', 'Wizard'], $classNames,
+            'Should use base classes when no parentheses present');
     }
 }

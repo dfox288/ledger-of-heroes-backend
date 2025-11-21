@@ -68,7 +68,10 @@ class SpellImporter extends BaseImporter
 
     /**
      * Import class associations for a spell.
-     * Extracts base class names and creates class_spells junction records.
+     *
+     * Logic:
+     * - "Fighter (Eldritch Knight)" → Use SUBCLASS (Eldritch Knight)
+     * - "Wizard" → Use BASE CLASS (Wizard)
      *
      * @param  array  $classNames  Array of class names (may include subclasses in parentheses)
      */
@@ -77,16 +80,27 @@ class SpellImporter extends BaseImporter
         $classIds = [];
 
         foreach ($classNames as $className) {
-            // Extract base class name (strip subclass in parentheses)
-            // "Fighter (Eldritch Knight)" → "Fighter"
-            // "Druid (Moon)" → "Druid"
-            $baseClassName = preg_replace('/\s*\([^)]+\)/', '', $className);
-            $baseClassName = trim($baseClassName);
+            $class = null;
 
-            // Find matching class in database
-            $class = CharacterClass::where('name', $baseClassName)
-                ->whereNull('parent_class_id') // Only match base classes
-                ->first();
+            // Check if subclass is specified in parentheses: "Fighter (Eldritch Knight)"
+            if (preg_match('/^(.+?)\s*\(([^)]+)\)$/', $className, $matches)) {
+                $baseClassName = trim($matches[1]);
+                $subclassName = trim($matches[2]);
+
+                // Try to find the SUBCLASS first
+                $class = CharacterClass::where('name', $subclassName)->first();
+
+                // If subclass not found, log warning and skip (don't fallback to base class)
+                if (! $class) {
+                    // Could add logging here if needed
+                    continue;
+                }
+            } else {
+                // No parentheses = use base class
+                $class = CharacterClass::where('name', $className)
+                    ->whereNull('parent_class_id') // Only match base classes
+                    ->first();
+            }
 
             if ($class) {
                 $classIds[] = $class->id;

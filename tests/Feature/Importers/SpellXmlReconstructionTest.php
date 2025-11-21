@@ -343,12 +343,24 @@ XML;
     #[Test]
     public function it_reconstructs_class_associations()
     {
-        // Create required classes for spell associations
-        CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter']);
-        CharacterClass::factory()->create(['name' => 'Rogue', 'slug' => 'rogue']);
+        // Create required base classes
+        $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter']);
+        $rogue = CharacterClass::factory()->create(['name' => 'Rogue', 'slug' => 'rogue']);
         CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
         CharacterClass::factory()->create(['name' => 'Warlock', 'slug' => 'warlock']);
         CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+
+        // Create subclasses (needed for subclass-specific spells)
+        CharacterClass::factory()->create([
+            'name' => 'Eldritch Knight',
+            'slug' => 'eldritch-knight',
+            'parent_class_id' => $fighter->id,
+        ]);
+        CharacterClass::factory()->create([
+            'name' => 'Arcane Trickster',
+            'slug' => 'arcane-trickster',
+            'parent_class_id' => $rogue->id,
+        ]);
 
         $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -376,23 +388,25 @@ XML;
         $this->importer->importFromFile($this->createTempXmlFile($originalXml));
         $spell = Spell::where('name', 'Booming Blade')->first();
 
-        // Verify class associations (base classes only, subclass stripped)
-        $classNames = $spell->classes->pluck('name')->toArray();
+        // Verify class associations (subclasses when specified in parentheses)
+        $classNames = $spell->classes->pluck('name')->sort()->values()->toArray();
 
-        // Should have base classes: Fighter, Rogue, Sorcerer, Warlock, Wizard
+        // Should have: Eldritch Knight, Arcane Trickster (subclasses), Sorcerer, Warlock, Wizard (base classes)
         $this->assertCount(5, $classNames);
-        $this->assertContains('Fighter', $classNames);
-        $this->assertContains('Rogue', $classNames);
-        $this->assertContains('Sorcerer', $classNames);
-        $this->assertContains('Warlock', $classNames);
-        $this->assertContains('Wizard', $classNames);
+        $this->assertEquals([
+            'Arcane Trickster',
+            'Eldritch Knight',
+            'Sorcerer',
+            'Warlock',
+            'Wizard',
+        ], $classNames, 'Should use subclasses when specified in XML');
 
         $reconstructed = $this->reconstructSpellXml($spell);
 
-        // Verify classes reconstructed (without subclass notation)
+        // Verify classes reconstructed
         $classesText = (string) $reconstructed->classes;
-        $this->assertStringContainsString('Fighter', $classesText);
-        $this->assertStringContainsString('Rogue', $classesText);
+        $this->assertStringContainsString('Eldritch Knight', $classesText);
+        $this->assertStringContainsString('Arcane Trickster', $classesText);
         $this->assertStringContainsString('Sorcerer', $classesText);
         $this->assertStringContainsString('Warlock', $classesText);
         $this->assertStringContainsString('Wizard', $classesText);

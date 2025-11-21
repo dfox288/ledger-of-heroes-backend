@@ -53,6 +53,7 @@ class FeatController extends Controller
             'proficiencies.proficiencyType',
             'conditions',
             'prerequisites.prerequisite',
+            'tags',
         ];
 
         // Use validated include parameter if provided

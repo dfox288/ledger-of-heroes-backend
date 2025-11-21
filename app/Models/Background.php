@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Laravel\Scout\Searchable;
+use Spatie\Tags\HasTags;
 
 class Background extends Model
 {
-    use HasFactory, Searchable;
+    use HasFactory, HasTags, Searchable;
 
     public $timestamps = false;
 

@@ -53,6 +53,7 @@ class BackgroundController extends Controller
             'proficiencies.skill.abilityScore',
             'proficiencies.proficiencyType',
             'languages.language',
+            'tags',
         ];
 
         $background->load($includes);

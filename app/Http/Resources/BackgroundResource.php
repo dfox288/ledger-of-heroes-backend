@@ -18,6 +18,7 @@ class BackgroundResource extends JsonResource
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'languages' => EntityLanguageResource::collection($this->whenLoaded('languages')),
             'equipment' => EntityItemResource::collection($this->whenLoaded('equipment')),
+            'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];
     }
 }

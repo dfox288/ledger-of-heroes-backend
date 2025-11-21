@@ -62,6 +62,7 @@ class ClassController extends Controller
             'counters',
             'subclasses.features',
             'subclasses.counters',
+            'tags',
         ];
 
         // Use custom includes if provided

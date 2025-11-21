@@ -25,6 +25,7 @@ class FeatResource extends JsonResource
             'proficiencies' => ProficiencyResource::collection($this->whenLoaded('proficiencies')),
             'conditions' => EntityConditionResource::collection($this->whenLoaded('conditions')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
+            'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];
     }
 }

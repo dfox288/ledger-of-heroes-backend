@@ -9,11 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Laravel\Scout\Searchable;
+use Spatie\Tags\HasTags;
 
 class Item extends Model
 {
-    use HasFactory;
-    use Searchable;
+    use HasFactory, HasTags, Searchable;
 
     protected $fillable = [
         'name',

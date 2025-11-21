@@ -31,6 +31,7 @@ class RaceResource extends JsonResource
             'languages' => EntityLanguageResource::collection($this->whenLoaded('languages')),
             'conditions' => EntityConditionResource::collection($this->whenLoaded('conditions')),
             'spells' => EntitySpellResource::collection($this->whenLoaded('spells')),
+            'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];
     }
 }

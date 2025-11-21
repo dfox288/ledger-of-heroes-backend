@@ -65,6 +65,7 @@ class RaceController extends Controller
                 'conditions.condition',
                 'spells.spell',
                 'spells.abilityScore',
+                'tags',
             ]);
         }
 

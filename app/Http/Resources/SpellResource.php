@@ -27,9 +27,7 @@ class SpellResource extends JsonResource
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'effects' => SpellEffectResource::collection($this->whenLoaded('effects')),
             'classes' => ClassResource::collection($this->whenLoaded('classes')),
-            'tags' => $this->when($this->relationLoaded('tags'), function () {
-                return $this->tags->pluck('name')->values();
-            }),
+            'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];
     }
 }

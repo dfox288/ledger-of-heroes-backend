@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Laravel\Scout\Searchable;
+use Spatie\Tags\HasTags;
 
 class Race extends Model
 {
-    use HasFactory, Searchable;
+    use HasFactory, HasTags, Searchable;
 
     public $timestamps = false;
 

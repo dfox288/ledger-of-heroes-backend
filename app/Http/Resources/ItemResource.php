@@ -41,6 +41,7 @@ class ItemResource extends JsonResource
             'proficiencies' => ProficiencyResource::collection($this->whenLoaded('proficiencies')),
             'modifiers' => ModifierResource::collection($this->whenLoaded('modifiers')),
             'prerequisites' => EntityPrerequisiteResource::collection($this->whenLoaded('prerequisites')),
+            'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];
     }
 }

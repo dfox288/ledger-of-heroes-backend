@@ -57,6 +57,7 @@ class ItemController extends Controller
             'modifiers.abilityScore',
             'modifiers.skill',
             'prerequisites.prerequisite',
+            'tags',
         ];
 
         // If 'include' parameter provided, use it (note: this is for additional validation)

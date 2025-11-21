@@ -32,6 +32,7 @@ class ClassResource extends JsonResource
             'counters' => ClassCounterResource::collection($this->whenLoaded('counters')),
             'spells' => SpellResource::collection($this->whenLoaded('spells')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
+            'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];
     }
 }

@@ -63,7 +63,7 @@ class SpellMeilisearchFilterTest extends TestCase
 
         if ($response->json('meta.total') > 0) {
             foreach ($response->json('data') as $spell) {
-                $this->assertEquals('Evocation', $spell['spell_school']['name']);
+                $this->assertEquals('Evocation', $spell['school']['name']);
             }
         } else {
             $this->markTestSkipped('No Evocation spells in test data');
@@ -92,7 +92,7 @@ class SpellMeilisearchFilterTest extends TestCase
 
         if ($response->json('meta.total') > 0) {
             foreach ($response->json('data') as $spell) {
-                $this->assertContains($spell['spell_school']['name'], ['Evocation', 'Conjuration']);
+                $this->assertContains($spell['school']['name'], ['Evocation', 'Conjuration']);
             }
         }
     }
@@ -131,7 +131,7 @@ class SpellMeilisearchFilterTest extends TestCase
         foreach ($response->json('data') as $spell) {
             $this->assertLessThanOrEqual(3, $spell['level']);
             // Name or description should contain "fire"
-            $nameOrDesc = strtolower($spell['name'] . ' ' . $spell['description']);
+            $nameOrDesc = strtolower($spell['name'].' '.$spell['description']);
             $this->assertStringContainsString('fire', $nameOrDesc);
         }
     }
@@ -141,7 +141,7 @@ class SpellMeilisearchFilterTest extends TestCase
     {
         $longFilter = str_repeat('level = 1 AND ', 100);
 
-        $response = $this->getJson("/api/v1/spells?filter={$longFilter}");
+        $response = $this->getJson('/api/v1/spells?filter='.urlencode($longFilter));
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('filter');
@@ -150,7 +150,8 @@ class SpellMeilisearchFilterTest extends TestCase
     #[Test]
     public function it_returns_error_for_invalid_filter_syntax()
     {
-        $response = $this->getJson('/api/v1/spells?filter=invalid%20syntax%20here%20%40%40%23%23');
+        // Use a clearly invalid filter that Meilisearch will reject
+        $response = $this->getJson('/api/v1/spells?filter=invalid_field = value');
 
         $response->assertStatus(422);
         $response->assertJsonStructure(['message', 'error']);

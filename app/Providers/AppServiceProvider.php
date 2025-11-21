@@ -21,7 +21,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Bind Meilisearch Client
+        $this->app->singleton(\MeiliSearch\Client::class, function ($app) {
+            return new \MeiliSearch\Client(
+                config('scout.meilisearch.host'),
+                config('scout.meilisearch.key')
+            );
+        });
     }
 
     /**

@@ -9,6 +9,7 @@ use App\Http\Requests\SpellShowRequest;
 use App\Http\Resources\SpellResource;
 use App\Models\Spell;
 use App\Services\SpellSearchService;
+use MeiliSearch\Client;
 
 class SpellController extends Controller
 {
@@ -19,15 +20,27 @@ class SpellController extends Controller
      * concentration, ritual, and full-text search. All query parameters are validated
      * and documented automatically from the SpellIndexRequest.
      */
-    public function index(SpellIndexRequest $request, SpellSearchService $service)
+    public function index(SpellIndexRequest $request, SpellSearchService $service, Client $meilisearch)
     {
         $dto = SpellSearchDTO::fromRequest($request);
 
-        if ($dto->searchQuery !== null) {
-            $spells = $service->buildScoutQuery($dto)->paginate($dto->perPage);
-        } else {
-            $spells = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
+        // Use Meilisearch if search query OR filter provided
+        if ($dto->searchQuery !== null || $dto->meilisearchFilter !== null) {
+            try {
+                $spells = $service->searchWithMeilisearch($dto, $meilisearch);
+            } catch (\MeiliSearch\Exceptions\ApiException $e) {
+                // Invalid filter syntax
+                return response()->json([
+                    'message' => 'Invalid filter syntax',
+                    'error' => $e->getMessage(),
+                ], 422);
+            }
+
+            return SpellResource::collection($spells);
         }
+
+        // Fallback to database query (existing logic)
+        $spells = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
 
         return SpellResource::collection($spells);
     }

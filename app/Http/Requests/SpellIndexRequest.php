@@ -15,7 +15,10 @@ class SpellIndexRequest extends BaseIndexRequest
             // Search query (Scout/Meilisearch)
             'q' => ['sometimes', 'string', 'min:2', 'max:255'],
 
-            // Spell-specific filters
+            // Meilisearch filter expression (NEW)
+            'filter' => ['sometimes', 'string', 'max:1000'],
+
+            // Spell-specific filters (backwards compatibility)
             'level' => ['sometimes', 'integer', 'min:0', 'max:9'],
             'school' => ['sometimes', 'integer', 'exists:spell_schools,id'],
             'concentration' => ['sometimes', Rule::in([true, false, 1, 0, '1', '0', 'true', 'false'])],

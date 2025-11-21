@@ -12,12 +12,14 @@ use App\Models\Race;
 use App\Models\Size;
 use App\Models\Skill;
 use App\Models\Source;
+use App\Services\Importers\Concerns\ImportsConditions;
 use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Parsers\RaceXmlParser;
 use Illuminate\Support\Str;
 
 class RaceImporter extends BaseImporter
 {
+    use ImportsConditions;
     use ImportsModifiers;
 
     private array $createdBaseRaces = [];
@@ -87,7 +89,7 @@ class RaceImporter extends BaseImporter
 
         // Import conditions (immunities, advantages, resistances)
         if (isset($raceData['conditions'])) {
-            $this->importConditions($race, $raceData['conditions']);
+            $this->importEntityConditions($race, $raceData['conditions']);
         }
 
         // Import spells
@@ -404,33 +406,6 @@ class RaceImporter extends BaseImporter
 
         // Fallback: just slug the full name
         return $this->generateSlug($raceName);
-    }
-
-    /**
-     * Import conditions (immunities, advantages, resistances).
-     */
-    private function importConditions(Race $race, array $conditionsData): void
-    {
-        // Clear existing
-        \Illuminate\Support\Facades\DB::table('entity_conditions')
-            ->where('reference_type', Race::class)
-            ->where('reference_id', $race->id)
-            ->delete();
-
-        foreach ($conditionsData as $conditionData) {
-            // Look up condition by name (try slug match)
-            $conditionSlug = Str::slug($conditionData['condition_name']);
-            $condition = \App\Models\Condition::where('slug', $conditionSlug)->first();
-
-            if ($condition) {
-                \App\Models\EntityCondition::create([
-                    'reference_type' => Race::class,
-                    'reference_id' => $race->id,
-                    'condition_id' => $condition->id,
-                    'effect_type' => $conditionData['effect_type'],
-                ]);
-            }
-        }
     }
 
     /**

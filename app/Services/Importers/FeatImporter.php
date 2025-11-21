@@ -3,15 +3,16 @@
 namespace App\Services\Importers;
 
 use App\Models\AbilityScore;
-use App\Models\EntityCondition;
 use App\Models\EntityPrerequisite;
 use App\Models\Feat;
 use App\Models\Proficiency;
+use App\Services\Importers\Concerns\ImportsConditions;
 use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Parsers\FeatXmlParser;
 
 class FeatImporter extends BaseImporter
 {
+    use ImportsConditions;
     use ImportsModifiers;
 
     /**
@@ -46,7 +47,7 @@ class FeatImporter extends BaseImporter
         $this->importPrerequisites($feat, $data['prerequisites'] ?? null);
 
         // 6. Import conditions (advantages/disadvantages)
-        $this->importConditions($feat, $data['conditions'] ?? []);
+        $this->importEntityConditions($feat, $data['conditions'] ?? []);
 
         // 7. Import sources using trait
         $this->importEntitySources($feat, $data['sources'] ?? []);
@@ -119,22 +120,6 @@ class FeatImporter extends BaseImporter
             str_contains($normalized, 'tool') => 'tool',
             default => 'other',
         };
-    }
-
-    /**
-     * Import conditions (advantages/disadvantages) for a feat.
-     */
-    private function importConditions(Feat $feat, array $conditions): void
-    {
-        foreach ($conditions as $conditionData) {
-            EntityCondition::create([
-                'reference_type' => Feat::class,
-                'reference_id' => $feat->id,
-                'condition_id' => null, // Conditions are stored as text descriptions, not FK references
-                'effect_type' => $conditionData['effect_type'],
-                'description' => $conditionData['description'],
-            ]);
-        }
     }
 
     /**

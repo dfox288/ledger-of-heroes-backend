@@ -6,26 +6,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Laravel 12.x application that imports D&D 5th Edition content from XML files and provides a RESTful API for accessing the data. The XML files follow the compendium format used by applications like Fight Club 5e and similar D&D companion apps.
 
-**Current Status (2025-11-21 - Refactoring Session Complete):**
+**Current Status (2025-11-21 - Custom Exceptions + Scramble Compliance Complete):**
 - ✅ **60 migrations** - Complete database schema with slug system + languages + prerequisites + spells_known
 - ✅ **23 Eloquent models** - All with HasFactory trait
 - ✅ **12 model factories** - Test data generation
 - ✅ **12 database seeders** - Lookup/reference data (including 30 languages)
 - ✅ **25 API Resources** - Standardized and 100% field-complete (includes SearchResource)
-- ✅ **17 API Controllers** - 6 entity + 11 lookup endpoints (all properly documented)
+- ✅ **17 API Controllers** - 6 entity + 11 lookup endpoints (all properly documented + Scramble-compliant)
 - ✅ **26 Form Request classes** - Full validation layer with Scramble OpenAPI integration
-- ✅ **769 tests passing** (4,711 assertions) - 100% pass rate ⭐
+- ✅ **808 tests passing** (5,036 assertions) - 100% pass rate ⭐
 - ✅ **6 importers working** - Spells, Races, Items, Backgrounds, Classes (with spells_known), Feats
 - ✅ **6 artisan commands** - `import:spells`, `import:races`, `import:items`, `import:backgrounds`, `import:classes`, `import:feats`
 - ✅ **Slug system complete** - Dual ID/slug routing for all entities
-- ✅ **15 reusable traits** - Parser + Importer traits for DRY code (3 NEW: ImportsModifiers, ImportsConditions, ImportsLanguages)
-- ✅ **Code refactoring complete** - 285 lines eliminated, template method pattern in BaseImporter
-- ✅ **Class enhancements** - Spells Known tracking + Proficiency Choice metadata
+- ✅ **15 reusable traits** - Parser + Importer traits for DRY code
+- ✅ **Custom exceptions** - Phase 1 complete (3 exceptions + 4 base classes, 16 tests)
+- ✅ **Scramble compliance** - All 17 controllers use single-return pattern for proper OpenAPI docs
 - ✅ **OpenAPI documentation** - Auto-generated via Scramble (306KB spec) - All 17 controllers ✅
-- ✅ **Scramble documentation system** - Automated tests validate OpenAPI spec generation
 - ✅ **Search system complete** - Laravel Scout + Meilisearch (3,002 documents indexed, typo-tolerant)
 - ⚠️  **1 importer pending** - Monsters (7 bestiary files ready)
-- 📋 **Refactoring progress** - 5 of 11 refactorings complete (see `docs/HANDOVER-2025-11-21-REFACTORING-SESSION.md`)
 
 ## Tech Stack
 
@@ -223,6 +221,223 @@ class SpellIndexRequest extends FormRequest
 - [ ] Sortable columns are whitelisted
 - [ ] Request class tests verify validation rules
 - [ ] Scramble docs updated (run `php artisan scramble:docs`)
+
+---
+
+## 🔥 Custom Exceptions & Error Handling
+
+**Status:** Phase 1 Complete (2025-11-21) - 3 custom exceptions + 4 base classes implemented
+
+### Exception Architecture
+
+The application uses **custom domain exceptions** for better error handling, consistent API responses, and easier debugging.
+
+```
+app/Exceptions/
+├── ApiException.php                    # Abstract base for all API exceptions
+├── Import/
+│   ├── ImportException.php             # Base for import failures
+│   └── FileNotFoundException.php       # XML file not found (404)
+├── Lookup/
+│   ├── LookupException.php             # Base for lookup failures
+│   └── EntityNotFoundException.php     # Entity not found (404)
+└── Search/
+    ├── SearchException.php             # Base for search failures
+    └── InvalidFilterSyntaxException.php # Meilisearch filter errors (422)
+```
+
+### When to Use Custom Exceptions
+
+**✅ DO throw custom exceptions for:**
+- Missing files during import → `FileNotFoundException`
+- Entity lookup failures → `EntityNotFoundException`
+- Invalid filter syntax → `InvalidFilterSyntaxException`
+- Domain-specific validation errors
+
+**❌ DON'T throw custom exceptions for:**
+- Framework-level errors (let Laravel handle them)
+- Validation that belongs in Form Requests
+- Business logic better expressed as return values
+
+### Pattern: Service Layer Throws, Controller Returns
+
+**Controllers should be clean with single return statements:**
+
+```php
+// ✅ CORRECT - Service throws, controller returns Resource
+public function index(SpellIndexRequest $request, SpellSearchService $service)
+{
+    $dto = SpellSearchDTO::fromRequest($request);
+
+    if ($dto->meilisearchFilter !== null) {
+        // Service throws InvalidFilterSyntaxException if syntax is invalid
+        $spells = $service->searchWithMeilisearch($dto, $meilisearch);
+    } else {
+        $spells = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
+    }
+
+    return SpellResource::collection($spells);  // Single return
+}
+
+// ❌ WRONG - Controller handles exceptions manually
+public function index(SpellIndexRequest $request, SpellSearchService $service)
+{
+    try {
+        $spells = $service->search(...);
+    } catch (\MeiliSearch\Exceptions\ApiException $e) {
+        return response()->json(['error' => $e->getMessage()], 422);  // Manual error handling
+    }
+    return SpellResource::collection($spells);  // Multiple returns breaks Scramble
+}
+```
+
+**Service layer throws domain exceptions:**
+
+```php
+// app/Services/SpellSearchService.php
+public function searchWithMeilisearch(SpellSearchDTO $dto, Client $client): LengthAwarePaginator
+{
+    try {
+        $results = $client->index('spells')->search($dto->searchQuery ?? '', $searchParams);
+    } catch (\MeiliSearch\Exceptions\ApiException $e) {
+        // Wrap infrastructure exception in domain exception
+        throw new InvalidFilterSyntaxException(
+            filter: $dto->meilisearchFilter,
+            meilisearchMessage: $e->getMessage(),
+            previous: $e
+        );
+    }
+
+    return $this->buildPaginator($results, $dto->perPage);
+}
+```
+
+**Laravel exception handler automatically renders:**
+
+```php
+// bootstrap/app.php
+->withExceptions(function (Exceptions $exceptions) {
+    $exceptions->renderable(function (ApiException $e, Request $request) {
+        return $e->render($request);
+    });
+})
+```
+
+### Creating New Custom Exceptions
+
+**1. Extend appropriate base class:**
+
+```php
+namespace App\Exceptions\Import;
+
+use App\Exceptions\Import\ImportException;
+
+class InvalidXmlException extends ImportException
+{
+    public function __construct(
+        string $filePath,
+        string $xmlError,
+        ?\Throwable $previous = null
+    ) {
+        parent::__construct(
+            message: "Invalid XML in {$filePath}: {$xmlError}",
+            code: 422,
+            previous: $previous
+        );
+
+        $this->filePath = $filePath;
+        $this->xmlError = $xmlError;
+    }
+
+    public function render($request)
+    {
+        return response()->json([
+            'message' => 'Invalid XML format',
+            'file_path' => $this->filePath,
+            'xml_error' => $this->xmlError,
+        ], 422);
+    }
+}
+```
+
+**2. Write tests FIRST (TDD):**
+
+```php
+#[\PHPUnit\Framework\Attributes\Test]
+public function it_throws_invalid_xml_exception_for_malformed_xml()
+{
+    $this->expectException(InvalidXmlException::class);
+
+    $importer = new SpellImporter();
+    $importer->importFromFile('tests/fixtures/malformed-spell.xml');
+}
+
+#[\PHPUnit\Framework\Attributes\Test]
+public function it_returns_422_for_invalid_xml()
+{
+    // Create malformed XML file
+    Storage::fake('local');
+    Storage::put('malformed.xml', '<?xml version="1.0"?><compendium><spell><name>Test');
+
+    $response = $this->postJson('/api/v1/import/spells', [
+        'file_path' => Storage::path('malformed.xml'),
+    ]);
+
+    $response->assertStatus(422);
+    $response->assertJsonStructure(['message', 'file_path', 'xml_error']);
+}
+```
+
+**3. Throw from service layer:**
+
+```php
+public function importFromFile(string $filePath): void
+{
+    $this->validateFile($filePath);  // Throws FileNotFoundException
+
+    $xml = @simplexml_load_file($filePath);
+    if ($xml === false) {
+        throw new InvalidXmlException($filePath, libxml_get_last_error()->message);
+    }
+
+    // ... rest of import logic
+}
+```
+
+### Why This Pattern Matters
+
+**Benefits:**
+- ✅ **Cleaner controllers** - Single return statement, no manual error handling
+- ✅ **Consistent API responses** - All errors follow same format
+- ✅ **Better debugging** - Specific exception types in logs
+- ✅ **Type safety** - Catch specific exceptions, not generic ones
+- ✅ **Scramble-friendly** - Single return type = proper OpenAPI docs
+
+**Example Error Response:**
+```json
+{
+  "message": "Invalid filter syntax",
+  "error": "Attribute `invalid_field` is not filterable",
+  "filter": "invalid_field = value",
+  "documentation": "http://localhost:8080/docs/meilisearch-filters"
+}
+```
+
+### Available Exceptions (Phase 1)
+
+| Exception | HTTP Status | Used In | Purpose |
+|-----------|-------------|---------|---------|
+| `InvalidFilterSyntaxException` | 422 | SpellSearchService | Meilisearch filter validation |
+| `FileNotFoundException` | 404 | BaseImporter | Missing XML files |
+| `EntityNotFoundException` | 404 | CachesLookupTables | Missing entities in lookups |
+
+### Future Exceptions (Phase 2 - Optional)
+
+See `docs/recommendations/CUSTOM-EXCEPTIONS-ANALYSIS.md` for:
+- `InvalidXmlException` - Malformed XML handling
+- `SearchUnavailableException` - Meilisearch offline fallback
+- `DuplicateEntityException` - Unique constraint violations
+- `SchemaViolationException` - XML structure validation
 
 ---
 

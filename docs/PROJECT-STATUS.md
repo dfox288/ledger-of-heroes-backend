@@ -1,8 +1,8 @@
 # D&D 5e XML Importer - Project Status
 
-**Last Updated:** 2025-11-21 (Meilisearch Documentation Enhancement)
+**Last Updated:** 2025-11-21 (Custom Exceptions + Scramble Compliance)
 **Branch:** `main` (all features merged)
-**Status:** ✅ Production Ready - Complete API Documentation with Filter Examples
+**Status:** ✅ Production Ready - Phase 1 Custom Exceptions Complete
 
 ---
 
@@ -13,18 +13,84 @@
 - ✅ **12 model factories** - Test data generation
 - ✅ **12 database seeders** - Lookup/reference data (30 languages)
 - ✅ **25 API Resources** - Standardized, 100% field-complete (includes SearchResource)
-- ✅ **17 API Controllers** - All with QueryParameter examples for filtering
+- ✅ **17 API Controllers** - All Scramble-compliant (single-return pattern) + filter examples
 - ✅ **26 Form Request classes** - Full validation + OpenAPI documentation
-- ✅ **769 tests passing** - 4,711 assertions, **100% pass rate** ⭐
+- ✅ **808 tests passing** - 5,036 assertions, **100% pass rate** ⭐
 - ✅ **6 importers working** - Spells, Races, Items, Backgrounds, Classes (enhanced), Feats
-- ✅ **12 reusable traits** - Parser + Importer code reuse (DRY)
+- ✅ **15 reusable traits** - Parser + Importer code reuse (DRY)
+- ✅ **7 custom exceptions** - 4 base classes + 3 Phase 1 exceptions (16 tests)
 - ✅ **OpenAPI 3.0 spec** - Auto-generated with filter examples (306KB+) ✅
 - ✅ **Meilisearch Filtering** - Fully documented with entity-specific examples
 - ✅ **Dual ID/Slug routing** - API supports both `/spells/123` and `/spells/fireball`
 
 ---
 
-## What's New (2025-11-21)
+## What's New (2025-11-21 Session 2)
+
+### Custom Exceptions + Scramble Compliance ✅ COMPLETE
+**Context:** Previous session identified zero custom exceptions in codebase and discovered that multiple return statements break Scramble's OpenAPI type inference. This session implements both fixes using parallel subagent execution.
+
+**Solutions Implemented:**
+
+1. **Phase 1 Custom Exceptions (3 high-priority)**
+   - `InvalidFilterSyntaxException` - Meilisearch filter validation (422)
+   - `FileNotFoundException` - Missing XML import files (404)
+   - `EntityNotFoundException` - Entity lookup failures (404)
+   - 4 base exception classes (ApiException, ImportException, LookupException, SearchException)
+   - 16 new tests (10 unit + 6 integration)
+
+2. **Exception Architecture Benefits**
+   - ✅ Cleaner controllers (no manual error handling, single return statements)
+   - ✅ Consistent API error responses across all endpoints
+   - ✅ Better debugging (specific exception types in logs with context)
+   - ✅ Type safety (catch specific exceptions, not generic ones)
+   - ✅ Scramble-friendly (preserves type inference for proper OpenAPI docs)
+
+3. **Scramble Single-Return Pattern (All 17 Controllers)**
+   - Fixed 3 controllers (AbilityScore, Size, Skill) - had multiple returns in show()
+   - Verified 14 controllers already compliant
+   - **100% Scramble compliance** - All controllers now generate proper Resource references
+
+4. **Code Quality Improvements**
+   - Removed duplicate file validation from importers (now in BaseImporter)
+   - Proper HTTP status codes (404 for missing entities, not 500)
+   - Rich error context (filter syntax, file paths, entity details)
+   - Documentation links in error responses
+
+**Results:**
+- ✅ 808 tests passing (up from 769) - **+39 new tests**
+- ✅ 5,036 assertions (up from 4,711) - **+325 assertions**
+- ✅ 100% pass rate maintained
+- ✅ 6 incremental commits (3 exceptions + 3 controller fixes)
+- ✅ Zero regressions
+- ✅ All 17 controllers Scramble-compliant
+
+**Example Error Response:**
+```json
+{
+  "message": "Invalid filter syntax",
+  "error": "Attribute `invalid_field` is not filterable",
+  "filter": "invalid_field = value",
+  "documentation": "http://localhost:8080/docs/meilisearch-filters"
+}
+```
+
+**Documentation:**
+- See `docs/active/SESSION-HANDOVER-2025-11-21-CUSTOM-EXCEPTIONS.md` for full session details
+- See `docs/recommendations/CUSTOM-EXCEPTIONS-ANALYSIS.md` for Phase 2 roadmap
+- See `CLAUDE.md` "Custom Exceptions & Error Handling" section for usage guidelines
+
+**Commits:**
+- `df6719c` - feat: add InvalidFilterSyntaxException for Meilisearch filter errors
+- `c64704c` - feat: add FileNotFoundException for import file errors
+- `f5c96a2` - feat: add EntityNotFoundException for lookup failures
+- `abd3981` - refactor: return SizeResource from SizeController show()
+- `f5d021d` - refactor: return AbilityScoreResource from AbilityScoreController show()
+- `d4f13f8` - refactor: return SkillResource from SkillController show()
+
+---
+
+## What's New (2025-11-21 Session 1)
 
 ### Meilisearch Filter Documentation ✅ COMPLETE
 **Problem:** Only the Spells endpoint documented the `filter` parameter in OpenAPI. Users couldn't discover filtering capabilities for Items, Races, Classes, Backgrounds, or Feats.

@@ -312,4 +312,82 @@ class SpellApiTest extends TestCase
             ])
             ->assertJsonPath('data.effects.0.effect_type', 'damage');
     }
+
+    #[Test]
+    public function test_spell_includes_random_tables_in_response()
+    {
+        $spell = Spell::factory()->create([
+            'name' => 'Prismatic Spray',
+            'level' => 7,
+        ]);
+
+        // Create random table with entries
+        $table = $spell->randomTables()->create([
+            'table_name' => 'Ray Color',
+            'dice_type' => 'd8',
+            'description' => 'Roll 1d8 to determine ray color',
+        ]);
+
+        $table->entries()->createMany([
+            [
+                'roll_min' => 1,
+                'roll_max' => 1,
+                'result_text' => 'Red: 10d6 fire damage',
+                'sort_order' => 1,
+            ],
+            [
+                'roll_min' => 2,
+                'roll_max' => 2,
+                'result_text' => 'Orange: 10d6 acid damage',
+                'sort_order' => 2,
+            ],
+        ]);
+
+        $response = $this->getJson("/api/v1/spells/{$spell->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'name',
+                    'random_tables' => [
+                        '*' => [
+                            'id',
+                            'table_name',
+                            'dice_type',
+                            'description',
+                            'entries' => [
+                                '*' => [
+                                    'id',
+                                    'roll_min',
+                                    'roll_max',
+                                    'result_text',
+                                    'sort_order',
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ])
+            ->assertJsonCount(1, 'data.random_tables')
+            ->assertJsonPath('data.random_tables.0.table_name', 'Ray Color')
+            ->assertJsonPath('data.random_tables.0.dice_type', 'd8')
+            ->assertJsonCount(2, 'data.random_tables.0.entries')
+            ->assertJsonPath('data.random_tables.0.entries.0.result_text', 'Red: 10d6 fire damage')
+            ->assertJsonPath('data.random_tables.0.entries.1.result_text', 'Orange: 10d6 acid damage');
+    }
+
+    #[Test]
+    public function test_spell_without_random_tables_returns_empty_array()
+    {
+        $spell = Spell::factory()->create([
+            'name' => 'Magic Missile',
+            'level' => 1,
+        ]);
+
+        $response = $this->getJson("/api/v1/spells/{$spell->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.random_tables', []);
+    }
 }

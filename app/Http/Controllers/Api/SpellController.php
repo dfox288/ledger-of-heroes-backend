@@ -52,7 +52,7 @@ class SpellController extends Controller
         $validated = $request->validated();
 
         // Load relationships based on validated 'include' parameter
-        $includes = $validated['include'] ?? ['spellSchool', 'sources.source', 'effects.damageType', 'classes', 'tags'];
+        $includes = $validated['include'] ?? ['spellSchool', 'sources.source', 'effects.damageType', 'classes', 'tags', 'savingThrows', 'randomTables.entries'];
         $spell->load($includes);
 
         return new SpellResource($spell);

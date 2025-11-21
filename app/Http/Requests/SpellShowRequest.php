@@ -16,6 +16,8 @@ class SpellShowRequest extends BaseShowRequest
             'effects',
             'effects.damageType',
             'classes',
+            'randomTables',
+            'randomTables.entries',
         ];
     }
 

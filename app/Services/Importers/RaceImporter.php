@@ -12,11 +12,14 @@ use App\Models\Race;
 use App\Models\Size;
 use App\Models\Skill;
 use App\Models\Source;
+use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Parsers\RaceXmlParser;
 use Illuminate\Support\Str;
 
 class RaceImporter extends BaseImporter
 {
+    use ImportsModifiers;
+
     private array $createdBaseRaces = [];
 
     protected function importEntity(array $raceData): Race
@@ -64,8 +67,13 @@ class RaceImporter extends BaseImporter
             $this->importTraitTables($trait, $traitData['description']);
         }
 
-        // Import ability bonuses as modifiers (including choices)
-        $this->importAbilityBonuses($race, $raceData['ability_bonuses'] ?? [], $raceData['ability_choices'] ?? []);
+        // Import all modifiers (ability bonuses, choices, and resistances)
+        $this->importAllModifiers(
+            $race,
+            $raceData['ability_bonuses'] ?? [],
+            $raceData['ability_choices'] ?? [],
+            $raceData['resistances'] ?? []
+        );
 
         // Import proficiencies if present
         if (isset($raceData['proficiencies'])) {
@@ -80,11 +88,6 @@ class RaceImporter extends BaseImporter
         // Import conditions (immunities, advantages, resistances)
         if (isset($raceData['conditions'])) {
             $this->importConditions($race, $raceData['conditions']);
-        }
-
-        // Import damage resistances
-        if (isset($raceData['resistances'])) {
-            $this->importResistances($race, $raceData['resistances']);
         }
 
         // Import spells
@@ -142,12 +145,19 @@ class RaceImporter extends BaseImporter
         }
     }
 
-    private function importAbilityBonuses(Race $race, array $bonusesData, array $choicesData = []): void
-    {
-        // Clear existing ability score modifiers for this race
-        $race->modifiers()->where('modifier_category', 'ability_score')->delete();
+    /**
+     * Import all modifiers at once (ability bonuses, choices, and resistances).
+     * This ensures we don't clear modifiers between multiple imports.
+     */
+    private function importAllModifiers(
+        Race $race,
+        array $bonusesData,
+        array $choicesData,
+        array $resistancesData
+    ): void {
+        $modifiersData = [];
 
-        // Import fixed bonuses (existing logic)
+        // Transform fixed ability bonuses into modifier format
         foreach ($bonusesData as $bonusData) {
             // Map ability code to ability_score_id
             $abilityCode = strtoupper($bonusData['ability']);
@@ -157,29 +167,42 @@ class RaceImporter extends BaseImporter
                 continue; // Skip if ability score not found
             }
 
-            Modifier::create([
-                'reference_type' => Race::class,
-                'reference_id' => $race->id,
-                'modifier_category' => 'ability_score',
-                'ability_score_id' => $abilityScore->id,
+            $modifiersData[] = [
+                'category' => 'ability_score',
                 'value' => $bonusData['value'],
+                'ability_score_id' => $abilityScore->id,
                 'is_choice' => false,
-            ]);
+            ];
         }
 
-        // Import choice-based bonuses (NEW)
+        // Transform choice-based bonuses into modifier format
         foreach ($choicesData as $choiceData) {
-            Modifier::create([
-                'reference_type' => Race::class,
-                'reference_id' => $race->id,
-                'modifier_category' => 'ability_score',
-                'ability_score_id' => null, // NULL for choices
+            $modifiersData[] = [
+                'category' => 'ability_score',
                 'value' => "+{$choiceData['value']}",
+                'ability_score_id' => null, // NULL for choices
                 'is_choice' => true,
                 'choice_count' => $choiceData['choice_count'],
                 'choice_constraint' => $choiceData['choice_constraint'],
-            ]);
+            ];
         }
+
+        // Transform damage resistances into modifier format
+        foreach ($resistancesData as $resistanceData) {
+            // Look up damage type by name
+            $damageType = \App\Models\DamageType::where('name', $resistanceData['damage_type'])->first();
+
+            if ($damageType) {
+                $modifiersData[] = [
+                    'category' => 'damage_resistance',
+                    'value' => 'resistance',
+                    'damage_type_id' => $damageType->id,
+                ];
+            }
+        }
+
+        // Use trait to import all modifiers at once
+        $this->importEntityModifiers($race, $modifiersData);
     }
 
     public function importFromFile(string $filePath): int
@@ -446,30 +469,6 @@ class RaceImporter extends BaseImporter
                     'level_requirement' => $spellData['level_requirement'],
                     'usage_limit' => $spellData['usage_limit'],
                     'is_cantrip' => $spellData['is_cantrip'],
-                ]);
-            }
-        }
-    }
-
-    /**
-     * Import damage resistances as modifiers.
-     */
-    private function importResistances(Race $race, array $resistancesData): void
-    {
-        // Clear existing resistance modifiers
-        $race->modifiers()->where('modifier_category', 'damage_resistance')->delete();
-
-        foreach ($resistancesData as $resistanceData) {
-            // Look up damage type by name
-            $damageType = \App\Models\DamageType::where('name', $resistanceData['damage_type'])->first();
-
-            if ($damageType) {
-                Modifier::create([
-                    'reference_type' => Race::class,
-                    'reference_id' => $race->id,
-                    'modifier_category' => 'damage_resistance',
-                    'damage_type_id' => $damageType->id,
-                    'value' => 'resistance',
                 ]);
             }
         }

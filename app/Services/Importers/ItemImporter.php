@@ -10,17 +10,19 @@ use App\Models\Item;
 use App\Models\ItemAbility;
 use App\Models\ItemProperty;
 use App\Models\ItemType;
-use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Models\RandomTable;
 use App\Models\RandomTableEntry;
 use App\Models\Source;
+use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Parsers\ItemTableDetector;
 use App\Services\Parsers\ItemTableParser;
 use App\Services\Parsers\ItemXmlParser;
 
 class ItemImporter extends BaseImporter
 {
+    use ImportsModifiers;
+
     private array $itemTypeCache = [];
 
     private array $damageTypeCache = [];
@@ -70,7 +72,7 @@ class ItemImporter extends BaseImporter
         $this->importProficiencies($item, $itemData['proficiencies']);
 
         // Import modifiers (polymorphic)
-        $this->importModifiers($item, $itemData['modifiers']);
+        $this->importEntityModifiers($item, $itemData['modifiers']);
 
         // Import abilities
         $this->importAbilities($item, $itemData['abilities']);
@@ -153,24 +155,6 @@ class ItemImporter extends BaseImporter
                 'proficiency_name' => $profData['name'],
                 'proficiency_type_id' => $profData['proficiency_type_id'] ?? null,
                 'grants' => $profData['grants'] ?? false, // Items require proficiency
-            ]);
-        }
-    }
-
-    private function importModifiers(Item $item, array $modifiers): void
-    {
-        // Clear existing modifiers
-        $item->modifiers()->delete();
-
-        foreach ($modifiers as $modData) {
-            Modifier::create([
-                'reference_type' => Item::class,
-                'reference_id' => $item->id,
-                'modifier_category' => $modData['category'],
-                'value' => (string) $modData['value'], // Now an integer from parser
-                'ability_score_id' => $modData['ability_score_id'] ?? null,
-                'skill_id' => $modData['skill_id'] ?? null,
-                'damage_type_id' => $modData['damage_type_id'] ?? null,
             ]);
         }
     }

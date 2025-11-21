@@ -6,12 +6,14 @@ use App\Models\AbilityScore;
 use App\Models\EntityCondition;
 use App\Models\EntityPrerequisite;
 use App\Models\Feat;
-use App\Models\Modifier;
 use App\Models\Proficiency;
+use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Parsers\FeatXmlParser;
 
 class FeatImporter extends BaseImporter
 {
+    use ImportsModifiers;
+
     /**
      * Import a feat from parsed data.
      */
@@ -28,14 +30,14 @@ class FeatImporter extends BaseImporter
         );
 
         // 2. Clear existing polymorphic relationships
-        $feat->modifiers()->delete();
         $feat->proficiencies()->delete();
         $feat->prerequisites()->delete();
         $feat->sources()->delete();
         $feat->conditions()->delete();
 
-        // 3. Import modifiers
-        $this->importModifiers($feat, $data['modifiers'] ?? []);
+        // 3. Import modifiers (convert ability_code to ability_score_id)
+        $modifiersData = $this->prepareModifiersData($data['modifiers'] ?? []);
+        $this->importEntityModifiers($feat, $modifiersData);
 
         // 4. Import proficiencies
         $this->importProficiencies($feat, $data['proficiencies'] ?? []);
@@ -53,31 +55,29 @@ class FeatImporter extends BaseImporter
     }
 
     /**
-     * Import modifiers for a feat.
+     * Prepare modifiers data by converting ability_code to ability_score_id.
      */
-    private function importModifiers(Feat $feat, array $modifiers): void
+    private function prepareModifiersData(array $modifiers): array
     {
-        foreach ($modifiers as $modifierData) {
-            $modifier = [
-                'reference_type' => Feat::class,
-                'reference_id' => $feat->id,
-                'modifier_category' => $modifierData['category'], // Use correct field name
+        return array_map(function ($modifierData) {
+            $prepared = [
+                'category' => $modifierData['category'],
                 'value' => $modifierData['value'],
                 'ability_score_id' => null,
                 'skill_id' => null,
                 'damage_type_id' => null,
             ];
 
-            // For ability score modifiers, look up the ability score ID
+            // For ability score modifiers, convert ability_code to ability_score_id
             if ($modifierData['category'] === 'ability_score' && isset($modifierData['ability_code'])) {
                 $abilityScore = AbilityScore::where('code', $modifierData['ability_code'])->first();
                 if ($abilityScore) {
-                    $modifier['ability_score_id'] = $abilityScore->id;
+                    $prepared['ability_score_id'] = $abilityScore->id;
                 }
             }
 
-            Modifier::create($modifier);
-        }
+            return $prepared;
+        }, $modifiers);
     }
 
     /**

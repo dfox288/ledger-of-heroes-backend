@@ -3,9 +3,7 @@
 namespace App\Services\Importers;
 
 use App\Models\AbilityScore;
-use App\Models\EntityLanguage;
 use App\Models\EntitySource;
-use App\Models\Language;
 use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Models\Race;
@@ -13,6 +11,7 @@ use App\Models\Size;
 use App\Models\Skill;
 use App\Models\Source;
 use App\Services\Importers\Concerns\ImportsConditions;
+use App\Services\Importers\Concerns\ImportsLanguages;
 use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Parsers\RaceXmlParser;
 use Illuminate\Support\Str;
@@ -20,6 +19,7 @@ use Illuminate\Support\Str;
 class RaceImporter extends BaseImporter
 {
     use ImportsConditions;
+    use ImportsLanguages;
     use ImportsModifiers;
 
     private array $createdBaseRaces = [];
@@ -84,7 +84,7 @@ class RaceImporter extends BaseImporter
 
         // Import languages if present
         if (isset($raceData['languages'])) {
-            $this->importLanguages($race, $raceData['languages']);
+            $this->importEntityLanguages($race, $raceData['languages']);
         }
 
         // Import conditions (immunities, advantages, resistances)
@@ -297,38 +297,6 @@ class RaceImporter extends BaseImporter
             }
 
             Proficiency::create($proficiency);
-        }
-    }
-
-    private function importLanguages(Race $race, array $languagesData): void
-    {
-        // Clear existing languages for this race
-        $race->languages()->delete();
-
-        foreach ($languagesData as $langData) {
-            $isChoice = $langData['is_choice'] ?? false;
-
-            // For choice slots, language_id is null
-            if ($isChoice) {
-                EntityLanguage::create([
-                    'reference_type' => Race::class,
-                    'reference_id' => $race->id,
-                    'language_id' => null,
-                    'is_choice' => true,
-                ]);
-            } else {
-                // Look up language by slug for fixed languages
-                $language = Language::where('slug', $langData['slug'])->first();
-
-                if ($language) {
-                    EntityLanguage::create([
-                        'reference_type' => Race::class,
-                        'reference_id' => $race->id,
-                        'language_id' => $language->id,
-                        'is_choice' => false,
-                    ]);
-                }
-            }
         }
     }
 

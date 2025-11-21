@@ -5,14 +5,16 @@ namespace App\Services\Importers;
 use App\Models\Background;
 use App\Models\CharacterTrait;
 use App\Models\EntityItem;
-use App\Models\EntityLanguage;
 use App\Models\RandomTable;
 use App\Models\RandomTableEntry;
 use App\Models\Source;
+use App\Services\Importers\Concerns\ImportsLanguages;
 use App\Services\Matching\ItemMatchingService;
 
 class BackgroundImporter extends BaseImporter
 {
+    use ImportsLanguages;
+
     protected function importEntity(array $data): Background
     {
         // 1. Upsert background using slug as unique key
@@ -67,15 +69,7 @@ class BackgroundImporter extends BaseImporter
         }
 
         // 7. Import languages
-        foreach ($data['languages'] ?? [] as $langData) {
-            EntityLanguage::create([
-                'reference_type' => Background::class,
-                'reference_id' => $background->id,
-                'language_id' => $langData['language_id'],
-                'is_choice' => $langData['is_choice'] ?? false,
-                'quantity' => $langData['quantity'] ?? 1,
-            ]);
-        }
+        $this->importEntityLanguages($background, $data['languages'] ?? []);
 
         // 8. Import equipment (with item matching)
         $itemMatcher = new ItemMatchingService;

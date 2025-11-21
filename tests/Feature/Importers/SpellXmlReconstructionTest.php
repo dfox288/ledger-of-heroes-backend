@@ -442,15 +442,18 @@ XML;
         $this->importer->importFromFile($this->createTempXmlFile($originalXml));
         $spell = Spell::where('name', 'Cure Wounds')->first();
 
-        // Note: Parser currently stores "At Higher Levels" in description
-        // This is acceptable - we're documenting current behavior
-        $this->assertStringContainsString('At Higher Levels', $spell->description);
+        // Verify "At Higher Levels" is extracted to separate field
+        $this->assertNotNull($spell->higher_levels);
+        $this->assertStringContainsString('2nd level or higher', $spell->higher_levels);
+        $this->assertStringContainsString('healing increases by 1d8', $spell->higher_levels);
+
+        // Should NOT be in description anymore
+        $this->assertStringNotContainsString('At Higher Levels', $spell->description);
 
         $reconstructed = $this->reconstructSpellXml($spell);
 
-        // Verify "At Higher Levels" text preserved in reconstruction
+        // Verify reconstruction includes higher_levels data (in text for now)
         $text = (string) $reconstructed->text;
-        $this->assertStringContainsString('At Higher Levels', $text);
         $this->assertStringContainsString('healing increases by 1d8', $text);
     }
 

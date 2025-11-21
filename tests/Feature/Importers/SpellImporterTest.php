@@ -296,4 +296,75 @@ XML;
         $this->assertEquals(['Sorcerer', 'Wizard'], $classNames,
             'Should use base classes when no parentheses present');
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_imports_sleep_spell_with_archfey_and_higher_levels(): void
+    {
+        // Seed base classes
+        $rogue = CharacterClass::factory()->create(['name' => 'Rogue', 'slug' => 'rogue']);
+        $warlock = CharacterClass::factory()->create(['name' => 'Warlock', 'slug' => 'warlock']);
+        CharacterClass::factory()->create(['name' => 'Bard', 'slug' => 'bard']);
+        CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
+        CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+
+        // Seed subclasses (note: database has "The Archfey", XML has "Archfey")
+        CharacterClass::factory()->create([
+            'name' => 'Arcane Trickster',
+            'slug' => 'arcane-trickster',
+            'parent_class_id' => $rogue->id,
+        ]);
+        CharacterClass::factory()->create([
+            'name' => 'The Archfey',
+            'slug' => 'the-archfey',
+            'parent_class_id' => $warlock->id,
+        ]);
+
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <spell>
+    <name>Sleep</name>
+    <level>1</level>
+    <school>EN</school>
+    <time>1 action</time>
+    <range>90 feet</range>
+    <components>V, S, M (a pinch of fine sand, rose petals, or a cricket)</components>
+    <duration>1 minute</duration>
+    <classes>School: Enchantment, Rogue (Arcane Trickster), Bard, Sorcerer, Wizard, Warlock (Archfey)</classes>
+    <text>This spell sends creatures into a magical slumber. Roll 5d8; the total is how many hit points of creatures this spell can affect.
+
+At Higher Levels: When you cast this spell using a spell slot of 2nd level or higher, roll an additional 2d8 for each slot level above 1st.
+
+Source:	Player's Handbook (2014) p. 276</text>
+    <roll description="Hit Points" level="1">5d8</roll>
+  </spell>
+</compendium>
+XML;
+
+        $parser = new SpellXmlParser;
+        $parsedSpells = $parser->parse($xml);
+
+        $importer = new SpellImporter;
+        foreach ($parsedSpells as $spellData) {
+            $importer->import($spellData);
+        }
+
+        $spell = Spell::where('name', 'Sleep')->with('classes')->first();
+        $this->assertNotNull($spell);
+
+        // Issue #1: Should parse "At Higher Levels" section
+        $this->assertNotNull($spell->higher_levels, 'higher_levels should not be null');
+        $this->assertStringContainsString('2nd level or higher', $spell->higher_levels);
+        $this->assertStringContainsString('2d8', $spell->higher_levels);
+
+        // Issue #2: Should match "Archfey" to "The Archfey" subclass
+        $this->assertEquals(5, $spell->classes()->count(), 'Should have 5 class associations');
+
+        $classNames = $spell->classes->pluck('name')->sort()->values()->toArray();
+        $this->assertContains('The Archfey', $classNames, 'Should match "Archfey" to "The Archfey"');
+        $this->assertContains('Arcane Trickster', $classNames);
+        $this->assertContains('Bard', $classNames);
+        $this->assertContains('Sorcerer', $classNames);
+        $this->assertContains('Wizard', $classNames);
+    }
 }

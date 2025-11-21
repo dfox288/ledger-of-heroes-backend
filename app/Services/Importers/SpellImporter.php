@@ -87,10 +87,15 @@ class SpellImporter extends BaseImporter
                 $baseClassName = trim($matches[1]);
                 $subclassName = trim($matches[2]);
 
-                // Try to find the SUBCLASS first
+                // Try to find the SUBCLASS - try exact match first, then fuzzy match
                 $class = CharacterClass::where('name', $subclassName)->first();
 
-                // If subclass not found, log warning and skip (don't fallback to base class)
+                // If exact match fails, try fuzzy match (e.g., "Archfey" -> "The Archfey")
+                if (! $class) {
+                    $class = CharacterClass::where('name', 'LIKE', "%{$subclassName}%")->first();
+                }
+
+                // If subclass still not found, skip (don't fallback to base class)
                 if (! $class) {
                     // Could add logging here if needed
                     continue;

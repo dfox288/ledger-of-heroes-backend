@@ -42,8 +42,9 @@ class SpellXmlParser
         $classesString = preg_replace('/^School:\s*[^,]+,\s*/', '', $classesString);
         $classes = array_map('trim', explode(',', $classesString));
 
-        // Parse description and sources from text elements
+        // Parse description, higher_levels, and sources from text elements
         $description = '';
+        $higherLevels = null;
         $sources = [];
 
         foreach ($element->text as $text) {
@@ -59,7 +60,15 @@ class SpellXmlParser
                 $textContent = preg_replace('/\n*Source:\s*.+/s', '', $textContent);
             }
 
-            // Add the remaining text to description (even if we extracted source)
+            // Extract "At Higher Levels" section if present
+            if (preg_match('/At Higher Levels:\s*(.+?)(?=\n\n|\z)/s', $textContent, $matches)) {
+                $higherLevels = trim($matches[1]);
+
+                // Remove the "At Higher Levels" section from description
+                $textContent = preg_replace('/\n*At Higher Levels:\s*.+?(?=\n\n|\z)/s', '', $textContent);
+            }
+
+            // Add the remaining text to description (even if we extracted higher levels/source)
             if (trim($textContent)) {
                 $description .= $textContent."\n\n";
             }
@@ -80,7 +89,7 @@ class SpellXmlParser
             'needs_concentration' => $needsConcentration,
             'is_ritual' => $isRitual,
             'description' => trim($description),
-            'higher_levels' => null, // TODO: Parse from description if present
+            'higher_levels' => $higherLevels, // Extracted from "At Higher Levels:" section
             'classes' => $classes,
             'sources' => $sources, // NEW: Array of sources instead of single source
             'effects' => $effects,

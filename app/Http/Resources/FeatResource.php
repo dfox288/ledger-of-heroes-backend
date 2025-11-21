@@ -18,6 +18,7 @@ class FeatResource extends JsonResource
             'id' => $this->id,
             'slug' => $this->slug,
             'name' => $this->name,
+            'prerequisites_text' => $this->prerequisites_text,
             'prerequisites' => EntityPrerequisiteResource::collection($this->whenLoaded('prerequisites')),
             'description' => $this->description,
             'modifiers' => ModifierResource::collection($this->whenLoaded('modifiers')),

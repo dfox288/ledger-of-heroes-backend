@@ -457,6 +457,278 @@ XML;
         $this->assertStringContainsString('healing increases by 1d8', $text);
     }
 
+    #[Test]
+    public function it_reconstructs_spell_effects_with_damage_type_associations()
+    {
+        // Create required classes
+        CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+        CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
+
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <spell>
+    <name>Magic Missile</name>
+    <level>1</level>
+    <school>EV</school>
+    <time>1 action</time>
+    <range>120 feet</range>
+    <components>V, S</components>
+    <duration>Instantaneous</duration>
+    <classes>Sorcerer, Wizard</classes>
+    <text>You create three glowing darts of magical force. Each dart hits a creature of your choice that you can see within range.
+
+At Higher Levels: When you cast this spell using a spell slot of 2nd level or higher, the spell creates one more dart for each slot level above 1st.
+
+Source:	Player's Handbook (2014) p. 257</text>
+    <roll description="Force Damage">1d4+1</roll>
+  </spell>
+</compendium>
+XML;
+
+        $this->importer->importFromFile($this->createTempXmlFile($originalXml));
+        $spell = Spell::where('name', 'Magic Missile')->first();
+
+        // Verify spell effect has damage type FK populated
+        $this->assertCount(1, $spell->effects);
+        $effect = $spell->effects->first();
+
+        $this->assertEquals('1d4+1', $effect->dice_formula);
+        $this->assertEquals('Force Damage', $effect->description);
+
+        // NEW: Verify damage_type_id is set (not NULL)
+        $this->assertNotNull($effect->damage_type_id, 'Damage type FK should be populated');
+        $this->assertEquals('Force', $effect->damageType->name);
+        $this->assertEquals('Fc', $effect->damageType->code);
+    }
+
+    #[Test]
+    public function it_reconstructs_spell_with_tags()
+    {
+        // Create required classes
+        CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <spell>
+    <name>Simulacrum</name>
+    <level>7</level>
+    <school>I</school>
+    <time>12 hours</time>
+    <range>Touch</range>
+    <components>V, S, M (snow or ice in quantities sufficient to made a life-size copy of the duplicated creature; some hair, fingernail clippings, or other piece of that creature's body placed inside the snow or ice; and powdered ruby worth 1,500 gp, sprinkled over the duplicate and consumed by the spell)</components>
+    <duration>Until dispelled</duration>
+    <classes>Touch Spells, Wizard</classes>
+    <text>You shape an illusory duplicate of one beast or humanoid that is within range for the entire casting time of the spell.
+
+Source:	Player's Handbook (2014) p. 276</text>
+  </spell>
+</compendium>
+XML;
+
+        $this->importer->importFromFile($this->createTempXmlFile($originalXml));
+        $spell = Spell::where('name', 'Simulacrum')->first();
+
+        // Verify class associations (only real classes, not tags)
+        $classNames = $spell->classes->pluck('name')->toArray();
+        $this->assertContains('Wizard', $classNames);
+        $this->assertNotContains('Touch Spells', $classNames, 'Touch Spells should be a tag, not a class');
+
+        // NEW: Verify tag system
+        $this->assertCount(1, $spell->tags, 'Should have 1 tag');
+        $this->assertEquals('Touch Spells', $spell->tags->first()->name);
+
+        // Verify range is "Touch" (why it's tagged as Touch Spells)
+        $this->assertEquals('Touch', $spell->range);
+    }
+
+    #[Test]
+    public function it_reconstructs_spell_with_subclass_alias_mapping()
+    {
+        // Create Druid base class
+        $druid = CharacterClass::factory()->create(['name' => 'Druid', 'slug' => 'druid']);
+        CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
+        CharacterClass::factory()->create(['name' => 'Warlock', 'slug' => 'warlock']);
+        CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+
+        // Create Circle of the Land subclass (the REAL subclass)
+        CharacterClass::factory()->create([
+            'name' => 'Circle of the Land',
+            'slug' => 'circle-of-the-land',
+            'parent_class_id' => $druid->id,
+        ]);
+
+        // Create Paladin and subclasses
+        $paladin = CharacterClass::factory()->create(['name' => 'Paladin', 'slug' => 'paladin']);
+        CharacterClass::factory()->create([
+            'name' => 'Oath of the Ancients',
+            'slug' => 'oath-of-the-ancients',
+            'parent_class_id' => $paladin->id,
+        ]);
+        CharacterClass::factory()->create([
+            'name' => 'Oath of Vengeance',
+            'slug' => 'oath-of-vengeance',
+            'parent_class_id' => $paladin->id,
+        ]);
+
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <spell>
+    <name>Misty Step</name>
+    <level>2</level>
+    <school>C</school>
+    <time>1 bonus action</time>
+    <range>Self</range>
+    <components>V</components>
+    <duration>Instantaneous</duration>
+    <classes>Sorcerer, Warlock, Wizard, Druid (Coast), Paladin (Ancients), Paladin (Vengeance)</classes>
+    <text>Briefly surrounded by silvery mist, you teleport up to 30 feet to an unoccupied space that you can see.
+
+Source:	Player's Handbook (2014) p. 260</text>
+  </spell>
+</compendium>
+XML;
+
+        $this->importer->importFromFile($this->createTempXmlFile($originalXml));
+        $spell = Spell::where('name', 'Misty Step')->first();
+
+        // Verify alias mapping worked
+        $classNames = $spell->classes->pluck('name')->sort()->values()->toArray();
+
+        // "Coast" should map to "Circle of the Land"
+        $this->assertContains('Circle of the Land', $classNames, 'Coast should map to Circle of the Land');
+
+        // "Ancients" should map to "Oath of the Ancients"
+        $this->assertContains('Oath of the Ancients', $classNames, 'Ancients should map to Oath of the Ancients');
+
+        // "Vengeance" should map to "Oath of Vengeance"
+        $this->assertContains('Oath of Vengeance', $classNames, 'Vengeance should map to Oath of Vengeance');
+
+        // Also verify base classes
+        $this->assertContains('Sorcerer', $classNames);
+        $this->assertContains('Warlock', $classNames);
+        $this->assertContains('Wizard', $classNames);
+    }
+
+    #[Test]
+    public function it_reconstructs_spell_with_fuzzy_subclass_matching()
+    {
+        // Create Warlock base class
+        $warlock = CharacterClass::factory()->create(['name' => 'Warlock', 'slug' => 'warlock']);
+        CharacterClass::factory()->create(['name' => 'Bard', 'slug' => 'bard']);
+        CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
+        CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+
+        // Create subclass with "The" prefix (database has "The Archfey", XML has "Archfey")
+        CharacterClass::factory()->create([
+            'name' => 'The Archfey',
+            'slug' => 'the-archfey',
+            'parent_class_id' => $warlock->id,
+        ]);
+
+        // Create Rogue and subclass
+        $rogue = CharacterClass::factory()->create(['name' => 'Rogue', 'slug' => 'rogue']);
+        CharacterClass::factory()->create([
+            'name' => 'Arcane Trickster',
+            'slug' => 'arcane-trickster',
+            'parent_class_id' => $rogue->id,
+        ]);
+
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <spell>
+    <name>Sleep</name>
+    <level>1</level>
+    <school>EN</school>
+    <time>1 action</time>
+    <range>90 feet</range>
+    <components>V, S, M (a pinch of fine sand, rose petals, or a cricket)</components>
+    <duration>1 minute</duration>
+    <classes>Bard, Sorcerer, Wizard, Rogue (Arcane Trickster), Warlock (Archfey)</classes>
+    <text>This spell sends creatures into a magical slumber. Roll 5d8; the total is how many hit points of creatures this spell can affect.
+
+At Higher Levels: When you cast this spell using a spell slot of 2nd level or higher, roll an additional 2d8 for each slot level above 1st.
+
+Source:	Player's Handbook (2014) p. 276</text>
+  </spell>
+</compendium>
+XML;
+
+        $this->importer->importFromFile($this->createTempXmlFile($originalXml));
+        $spell = Spell::where('name', 'Sleep')->first();
+
+        // Verify fuzzy matching worked
+        $classNames = $spell->classes->pluck('name')->sort()->values()->toArray();
+
+        // "Archfey" should match "The Archfey" via fuzzy LIKE
+        $this->assertContains('The Archfey', $classNames, 'Archfey should fuzzy match The Archfey');
+
+        // Also verify other classes
+        $this->assertContains('Arcane Trickster', $classNames);
+        $this->assertContains('Bard', $classNames);
+        $this->assertContains('Sorcerer', $classNames);
+        $this->assertContains('Wizard', $classNames);
+
+        // Should have 5 classes total
+        $this->assertCount(5, $classNames);
+    }
+
+    #[Test]
+    public function it_reconstructs_spell_with_multiple_damage_types()
+    {
+        CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <spell>
+    <name>Chaos Bolt</name>
+    <level>1</level>
+    <school>EV</school>
+    <time>1 action</time>
+    <range>120 feet</range>
+    <components>V, S</components>
+    <duration>Instantaneous</duration>
+    <classes>Wizard</classes>
+    <text>You hurl an undulating, warbling mass of chaotic energy at one creature in range.
+
+At Higher Levels: When you cast this spell using a spell slot of 2nd level or higher, each target takes an extra 1d6 damage of the type rolled for each slot level above 1st.
+
+Source:	Xanathar's Guide to Everything (2017) p. 151</text>
+    <roll description="Acid Damage">2d8+1d6</roll>
+    <roll description="Cold Damage">2d8+1d6</roll>
+    <roll description="Fire Damage">2d8+1d6</roll>
+    <roll description="Force Damage">2d8+1d6</roll>
+    <roll description="Lightning Damage">2d8+1d6</roll>
+    <roll description="Poison Damage">2d8+1d6</roll>
+    <roll description="Psychic Damage">2d8+1d6</roll>
+    <roll description="Thunder Damage">2d8+1d6</roll>
+  </spell>
+</compendium>
+XML;
+
+        $this->importer->importFromFile($this->createTempXmlFile($originalXml));
+        $spell = Spell::where('name', 'Chaos Bolt')->first();
+
+        // Verify all damage type effects imported
+        $this->assertCount(8, $spell->effects, 'Should have 8 effects for 8 damage types');
+
+        // Verify each effect has proper damage_type_id
+        $damageTypes = $spell->effects->pluck('damageType.name')->sort()->values()->toArray();
+        $expectedTypes = ['Acid', 'Cold', 'Fire', 'Force', 'Lightning', 'Poison', 'Psychic', 'Thunder'];
+
+        $this->assertEquals($expectedTypes, $damageTypes, 'All damage types should be properly associated');
+
+        // Verify all effects have the same formula
+        foreach ($spell->effects as $effect) {
+            $this->assertEquals('2d8+1d6', $effect->dice_formula);
+            $this->assertNotNull($effect->damage_type_id, 'Each effect should have damage type FK');
+        }
+    }
+
     /**
      * Create temporary XML file for import testing
      */

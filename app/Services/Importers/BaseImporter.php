@@ -3,6 +3,7 @@
 namespace App\Services\Importers;
 
 use App\Events\ModelImported;
+use App\Exceptions\Import\FileNotFoundException;
 use App\Services\Importers\Concerns\GeneratesSlugs;
 use App\Services\Importers\Concerns\ImportsProficiencies;
 use App\Services\Importers\Concerns\ImportsRandomTables;
@@ -80,12 +81,12 @@ abstract class BaseImporter
      * @param  string  $filePath  Path to XML file
      * @return int Number of entities imported
      *
-     * @throws \InvalidArgumentException If file doesn't exist
+     * @throws FileNotFoundException If file doesn't exist
      */
     public function importFromFile(string $filePath): int
     {
         if (! file_exists($filePath)) {
-            throw new \InvalidArgumentException("File not found: {$filePath}");
+            throw new FileNotFoundException($filePath);
         }
 
         $xmlContent = file_get_contents($filePath);

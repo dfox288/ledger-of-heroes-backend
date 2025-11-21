@@ -171,8 +171,9 @@ class RaceImporter extends BaseImporter
      */
     public function importFromFile(string $filePath): int
     {
+        // Use parent's file validation (throws FileNotFoundException)
         if (! file_exists($filePath)) {
-            throw new \InvalidArgumentException("File not found: {$filePath}");
+            throw new \App\Exceptions\Import\FileNotFoundException($filePath);
         }
 
         $xmlContent = file_get_contents($filePath);

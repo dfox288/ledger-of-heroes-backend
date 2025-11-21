@@ -302,6 +302,13 @@ $spell->attachTag('Ritual Caster', 'spell_list');
    - Can reuse existing traits (ImportsSources, ImportsTraits, etc.)
    - **Estimated:** 6-8 hours with TDD
 
+4. **Spell Saving Throws** (New Analysis - Session 3) 🆕
+   - See: `docs/recommendations/SPELL-SAVING-THROWS-ANALYSIS.md`
+   - **Coverage:** 238/477 spells (49.9%) mention saving throws
+   - **Implementation:** M2M table linking spells to ability_scores
+   - **Estimated:** 6-10 hours with TDD
+   - **Priority:** Medium-High (after Monster importer)
+
 ### Future Enhancements
 
 1. **Tag Types Implementation**
@@ -385,20 +392,76 @@ $spell->attachTag('Ritual Caster', 'spell_list');
 - **docs/SEARCH.md** - Search system documentation
 - **docs/MEILISEARCH-FILTERS.md** - Filter syntax examples
 - **docs/recommendations/CUSTOM-EXCEPTIONS-ANALYSIS.md** - Exception patterns
+- **docs/recommendations/SPELL-SAVING-THROWS-ANALYSIS.md** - NEW: Saving throws proposal
+
+---
+
+## 📊 Session 3: Analysis & Testing (Bonus Work)
+
+### Spell XML Reconstruction Tests Enhanced ✅
+- **Added:** 5 new comprehensive tests for recent enhancements
+- **Coverage:** Damage type FKs, tags, alias mapping, fuzzy matching, multiple damage types
+- **Tests:** 724 passing (up from 719) - 4,741 assertions
+- **Commit:** `20fc9b2` - test: enhance spell XML reconstruction tests
+
+### Spell Saving Throws Analysis ✅
+**Analysis completed on 477 imported spells:**
+
+| Metric | Value |
+|--------|-------|
+| Spells with saves | 238 (49.9%) |
+| Most common | Dexterity (79 spells, 16.6%) |
+| Least common | Intelligence (12 spells, 2.5%) |
+| Multiple saves | 26 spells (5.5%) |
+
+**Proposed Implementation:**
+- New M2M table: `spell_saving_throws`
+- Links spells to `ability_scores` (reuses existing table)
+- Additional fields: `save_effect` (half_damage, negates, etc.), `is_initial_save` (vs recurring)
+- Parser with 90%+ expected accuracy
+- Estimated: 6-10 hours with TDD
+
+**Pattern Examples:**
+```
+"must succeed on a Dexterity saving throw or take 8d6 fire damage"
+  → DEX save, save_effect='half_damage', is_initial_save=true
+
+"make a Wisdom saving throw at the end of each turn"
+  → WIS save, save_effect='ends_effect', is_initial_save=false (recurring)
+```
+
+**Benefits:**
+- ✅ Queryable: Filter spells by saving throw type
+- ✅ Strategic: "Which spells target enemy's weak saves?"
+- ✅ Complete: Expose all mechanical spell aspects
+- ✅ Competitive: Most D&D APIs don't have this data
+
+**Full documentation:** `docs/recommendations/SPELL-SAVING-THROWS-ANALYSIS.md`
 
 ---
 
 ## 🚦 Status: READY FOR NEXT SESSION
 
-The spell importer is production-ready with comprehensive tag support across all entities. All identified data quality issues have been resolved. The next session can:
+The spell importer is production-ready with comprehensive tag support across all entities. All identified data quality issues have been resolved. Comprehensive analysis of saving throws completed with implementation plan ready.
+
+**Test Suite:** 724 tests passing (4,741 assertions)
+
+**The next session can:**
 - Continue manual XML review
 - Import remaining entities (Races, Items, etc.)
-- Implement Monster importer
+- Implement Monster importer ⭐ (recommended priority)
+- Implement Spell Saving Throws (medium-high priority)
 - Add additional features
 
 **No blockers. System is stable and fully tested.** 🚀
 
 ---
 
-*Session completed: 2025-11-21*
-*Next session: Continue with Monster importer or data imports*
+*Session completed: 2025-11-21 (3 sessions total)*
+*Final commits:*
+- `231c4d9` feat: add comprehensive tag support to all main entities
+- `59df358` docs: consolidate and update all documentation
+- `20fc9b2` test: enhance spell XML reconstruction tests
+- `d1b4053` docs: add comprehensive spell saving throws analysis
+
+*Next session: Monster importer or Spell Saving Throws implementation*

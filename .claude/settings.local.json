@@ -69,7 +69,11 @@
       "Bash(do echo \"=== $endpoint ===\")",
       "WebFetch(domain:spatie.be)",
       "WebFetch(domain:www.meilisearch.com)",
-      "WebFetch(domain:laravel-news.com)"
+      "WebFetch(domain:laravel-news.com)",
+      "Bash(for controller in Spell Race Item Background Class Feat)",
+      "Bash(do echo \"=== $controller API Tests ===\")",
+      "Bash(for file in /Users/dfox/Development/dnd/importer/tests/Feature/Migrations/*.php)",
+      "Bash(for type in spells races items backgrounds class feats)"
     ],
     "deny": [],
     "ask": []

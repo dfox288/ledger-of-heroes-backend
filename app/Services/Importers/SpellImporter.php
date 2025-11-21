@@ -3,6 +3,7 @@
 namespace App\Services\Importers;
 
 use App\Models\CharacterClass;
+use App\Models\DamageType;
 use App\Models\Spell;
 use App\Models\SpellSchool;
 use App\Services\Parsers\SpellXmlParser;
@@ -39,6 +40,15 @@ class SpellImporter extends BaseImporter
         // Import spell effects
         if (isset($spellData['effects'])) {
             foreach ($spellData['effects'] as $effectData) {
+                // Lookup damage type if damage_type_name is present
+                if (isset($effectData['damage_type_name']) && $effectData['damage_type_name']) {
+                    $damageType = DamageType::where('name', $effectData['damage_type_name'])->first();
+                    $effectData['damage_type_id'] = $damageType?->id;
+                }
+
+                // Remove damage_type_name (not a database column)
+                unset($effectData['damage_type_name']);
+
                 $spell->effects()->create($effectData);
             }
         }

@@ -100,6 +100,9 @@ class SpellXmlParser
             // Determine effect type based on description
             $effectType = $this->determineEffectType($description);
 
+            // Extract damage type name from description (e.g., "Acid Damage" -> "Acid")
+            $damageTypeName = $this->extractDamageTypeName($description);
+
             // Determine scaling type and levels
             if ($rollLevel !== null) {
                 if ($spellLevel === 0 && in_array($rollLevel, [0, 5, 11, 17])) {
@@ -123,6 +126,7 @@ class SpellXmlParser
             $effects[] = [
                 'effect_type' => $effectType,
                 'description' => $description,
+                'damage_type_name' => $damageTypeName, // NEW: Pass damage type name for lookup
                 'dice_formula' => $diceFormula,
                 'base_value' => null,
                 'scaling_type' => $scalingType,
@@ -148,5 +152,27 @@ class SpellXmlParser
         }
 
         return 'other';
+    }
+
+    /**
+     * Extract damage type name from effect description.
+     *
+     * Examples:
+     * - "Acid Damage" -> "Acid"
+     * - "Fire damage" -> "Fire"
+     * - "Temporary Hit Points" -> null
+     *
+     * @param  string  $description  Effect description from roll element
+     * @return string|null Damage type name or null if not found
+     */
+    private function extractDamageTypeName(string $description): ?string
+    {
+        // Match pattern: "{DamageType} Damage" (case-insensitive)
+        if (preg_match('/^(\w+)\s+damage$/i', trim($description), $matches)) {
+            // Capitalize first letter to match damage_types table format
+            return ucfirst(strtolower($matches[1]));
+        }
+
+        return null;
     }
 }

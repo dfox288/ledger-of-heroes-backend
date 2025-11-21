@@ -18,6 +18,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Testing:** 835 tests passing (no regressions)
 
 ### Added
+- **Magic Item Charge Mechanics** - Automatically parses and stores charge-based item mechanics
+  - **NEW Columns:** `items.charges_max`, `items.recharge_formula`, `items.recharge_timing`
+  - **Parser:** `ParsesCharges` trait with 6 regex patterns
+  - **Patterns Detected:**
+    - Max capacity: "has 3 charges", "starts with 36 charges" → `charges_max`
+    - Dice recharge: "regains 1d6+1 expended charges" → `recharge_formula`
+    - Full recharge: "regains all expended charges" → `recharge_formula: "all"`
+    - Timing: "daily at dawn", "after a long rest" → `recharge_timing`
+  - **Coverage:** ~70 items (Wands, Staffs, Rings, Helms, Cubes)
+  - **Examples:**
+    - Wand of Smiles: 3 charges, all at dawn
+    - Wand of Binding: 7 charges, 1d6+1 at dawn
+    - Cubic Gate: 36 charges, 1d20 at dawn
+  - **API Response:** Exposed via `ItemResource` (charges_max, recharge_formula, recharge_timing)
+  - **Use Cases:** Character sheet automation, item filtering, charge tracking
+  - **Testing:** 15 new tests (10 parser + 5 importer) = 850 total tests passing
+  - **Documentation:** `docs/MAGIC-ITEM-CHARGES-ANALYSIS.md` (comprehensive analysis)
 - **Item Detail Field** - Stores raw subcategory information from XML `<detail>` elements
   - **NEW Column:** `items.detail` VARCHAR(255) NULL
   - **Preserves Subcategories:** "firearm, renaissance", "druidic focus", "artisan tools", etc.

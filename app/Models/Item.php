@@ -36,6 +36,9 @@ class Item extends Model
         'strength_requirement',
         'stealth_disadvantage',
         'description',
+        'charges_max',
+        'recharge_formula',
+        'recharge_timing',
     ];
 
     protected $casts = [
@@ -48,6 +51,7 @@ class Item extends Model
         'stealth_disadvantage' => 'boolean',
         'range_normal' => 'integer',
         'range_long' => 'integer',
+        'charges_max' => 'integer',
     ];
 
     // Relationships

@@ -4,6 +4,7 @@ namespace App\Services\Parsers;
 
 use App\Services\Parsers\Concerns\LookupsGameEntities;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
+use App\Services\Parsers\Concerns\ParsesCharges;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use SimpleXMLElement;
 
@@ -11,6 +12,7 @@ class ItemXmlParser
 {
     use LookupsGameEntities;
     use MatchesProficiencyTypes;
+    use ParsesCharges;
     use ParsesSourceCitations;
 
     public function __construct()
@@ -48,6 +50,9 @@ class ItemXmlParser
 
         $detailString = (string) $element->detail;
 
+        // Parse charge mechanics from description
+        $chargeData = $this->parseCharges($text);
+
         return [
             'name' => (string) $element->name,
             'type_code' => (string) $element->type,
@@ -71,6 +76,9 @@ class ItemXmlParser
             'proficiencies' => $this->extractProficiencies($text),
             'modifiers' => $this->parseModifiers($element),
             'abilities' => $this->parseAbilities($element),
+            'charges_max' => $chargeData['charges_max'],
+            'recharge_formula' => $chargeData['recharge_formula'],
+            'recharge_timing' => $chargeData['recharge_timing'],
         ];
     }
 

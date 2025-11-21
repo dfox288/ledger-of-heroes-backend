@@ -54,6 +54,9 @@ class ItemImporter extends BaseImporter
                 'strength_requirement' => $itemData['strength_requirement'],
                 'stealth_disadvantage' => $itemData['stealth_disadvantage'],
                 'description' => $itemData['description'],
+                'charges_max' => $itemData['charges_max'] ?? null,
+                'recharge_formula' => $itemData['recharge_formula'] ?? null,
+                'recharge_timing' => $itemData['recharge_timing'] ?? null,
             ]
         );
 

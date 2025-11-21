@@ -30,6 +30,11 @@ class ItemResource extends JsonResource
             'stealth_disadvantage' => $this->stealth_disadvantage,
             'description' => $this->description,
 
+            // Charge mechanics (magic items)
+            'charges_max' => $this->charges_max,
+            'recharge_formula' => $this->recharge_formula,
+            'recharge_timing' => $this->recharge_timing,
+
             // Relationships
             'item_type' => ItemTypeResource::make($this->whenLoaded('itemType')),
             'damage_type' => DamageTypeResource::make($this->whenLoaded('damageType')),

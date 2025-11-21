@@ -10,6 +10,30 @@ use App\Services\Parsers\SpellXmlParser;
 
 class SpellImporter extends BaseImporter
 {
+    /**
+     * Subclass name aliases for XML → Database mapping.
+     *
+     * XML files use abbreviated/variant names that differ from official subclass names.
+     * This map handles special cases where fuzzy matching won't work.
+     *
+     * Format: 'XML Name' => 'Database Name'
+     */
+    private const SUBCLASS_ALIASES = [
+        // Druid Circle of the Land variants (Coast, Desert, Forest, etc. are terrain options, not separate subclasses)
+        'Coast' => 'Circle of the Land',
+        'Desert' => 'Circle of the Land',
+        'Forest' => 'Circle of the Land',
+        'Grassland' => 'Circle of the Land',
+        'Mountain' => 'Circle of the Land',
+        'Swamp' => 'Circle of the Land',
+        'Underdark' => 'Circle of the Land',
+        'Arctic' => 'Circle of the Land',
+
+        // Common abbreviations
+        'Ancients' => 'Oath of the Ancients',
+        'Vengeance' => 'Oath of Vengeance',
+    ];
+
     protected function importEntity(array $spellData): Spell
     {
         // Lookup spell school by code
@@ -86,6 +110,11 @@ class SpellImporter extends BaseImporter
             if (preg_match('/^(.+?)\s*\(([^)]+)\)$/', $className, $matches)) {
                 $baseClassName = trim($matches[1]);
                 $subclassName = trim($matches[2]);
+
+                // Check if there's an alias mapping for this subclass name
+                if (isset(self::SUBCLASS_ALIASES[$subclassName])) {
+                    $subclassName = self::SUBCLASS_ALIASES[$subclassName];
+                }
 
                 // Try to find the SUBCLASS - try exact match first, then fuzzy match
                 $class = CharacterClass::where('name', $subclassName)->first();

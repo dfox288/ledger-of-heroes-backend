@@ -367,4 +367,73 @@ XML;
         $this->assertContains('Sorcerer', $classNames);
         $this->assertContains('Wizard', $classNames);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_maps_druid_coast_to_circle_of_the_land(): void
+    {
+        // Seed base classes
+        $druid = CharacterClass::factory()->create(['name' => 'Druid', 'slug' => 'druid']);
+        $paladin = CharacterClass::factory()->create(['name' => 'Paladin', 'slug' => 'paladin']);
+        CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
+        CharacterClass::factory()->create(['name' => 'Warlock', 'slug' => 'warlock']);
+        CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+
+        // Seed subclasses
+        CharacterClass::factory()->create([
+            'name' => 'Circle of the Land',
+            'slug' => 'circle-of-the-land',
+            'parent_class_id' => $druid->id,
+        ]);
+        CharacterClass::factory()->create([
+            'name' => 'Oath of the Ancients',
+            'slug' => 'oath-of-the-ancients',
+            'parent_class_id' => $paladin->id,
+        ]);
+        CharacterClass::factory()->create([
+            'name' => 'Oath of Vengeance',
+            'slug' => 'oath-of-vengeance',
+            'parent_class_id' => $paladin->id,
+        ]);
+
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <spell>
+    <name>Misty Step</name>
+    <level>2</level>
+    <school>C</school>
+    <time>1 bonus action</time>
+    <range>Self</range>
+    <components>V</components>
+    <duration>Instantaneous</duration>
+    <classes>School: Conjuration, Sorcerer, Warlock, Wizard, Druid (Coast), Paladin (Ancients), Paladin (Vengeance)</classes>
+    <text>Briefly surrounded by silvery mist, you teleport up to 30 feet to an unoccupied space that you can see.
+
+Source:	Player's Handbook (2014) p. 260</text>
+  </spell>
+</compendium>
+XML;
+
+        $parser = new SpellXmlParser;
+        $parsedSpells = $parser->parse($xml);
+
+        $importer = new SpellImporter;
+        foreach ($parsedSpells as $spellData) {
+            $importer->import($spellData);
+        }
+
+        $spell = Spell::where('name', 'Misty Step')->with('classes')->first();
+        $this->assertNotNull($spell);
+
+        // Should map "Coast" to "Circle of the Land"
+        $this->assertEquals(6, $spell->classes()->count(), 'Should have 6 class associations');
+
+        $classNames = $spell->classes->pluck('name')->sort()->values()->toArray();
+        $this->assertContains('Circle of the Land', $classNames, 'Should map "Druid (Coast)" to "Circle of the Land"');
+        $this->assertContains('Oath of the Ancients', $classNames);
+        $this->assertContains('Oath of Vengeance', $classNames);
+        $this->assertContains('Sorcerer', $classNames);
+        $this->assertContains('Warlock', $classNames);
+        $this->assertContains('Wizard', $classNames);
+    }
 }

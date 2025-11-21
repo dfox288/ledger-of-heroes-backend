@@ -47,6 +47,6 @@ class SkillController extends Controller
      */
     public function show(Skill $skill)
     {
-        return $skill;
+        return new SkillResource($skill);
     }
 }

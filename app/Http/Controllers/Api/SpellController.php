@@ -24,8 +24,8 @@ class SpellController extends Controller
     {
         $dto = SpellSearchDTO::fromRequest($request);
 
-        // Use Meilisearch if search query OR filter provided
-        if ($dto->searchQuery !== null || $dto->meilisearchFilter !== null) {
+        // Use new Meilisearch filter syntax if provided
+        if ($dto->meilisearchFilter !== null) {
             try {
                 $spells = $service->searchWithMeilisearch($dto, $meilisearch);
             } catch (\MeiliSearch\Exceptions\ApiException $e) {
@@ -39,7 +39,14 @@ class SpellController extends Controller
             return SpellResource::collection($spells);
         }
 
-        // Fallback to database query (existing logic)
+        // Use Scout search with backwards-compatible filters
+        if ($dto->searchQuery !== null) {
+            $spells = $service->buildScoutQuery($dto)->paginate($dto->perPage);
+
+            return SpellResource::collection($spells);
+        }
+
+        // Fallback to database query (no search, no filters)
         $spells = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
 
         return SpellResource::collection($spells);

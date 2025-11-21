@@ -4,695 +4,209 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a Laravel 12.x application that imports D&D 5th Edition content from XML files and provides a RESTful API for accessing the data. The XML files follow the compendium format used by applications like Fight Club 5e and similar D&D companion apps.
+Laravel 12.x application importing D&D 5th Edition XML content and providing a RESTful API.
 
-**Current Status (2025-11-21 - Test Suite Cleanup Complete):**
-- ✅ **60 migrations** - Complete database schema with slug system + languages + prerequisites + spells_known
-- ✅ **23 Eloquent models** - All with HasFactory trait
-- ✅ **12 model factories** - Test data generation
-- ✅ **12 database seeders** - Lookup/reference data (including 30 languages)
-- ✅ **25 API Resources** - Standardized and 100% field-complete (includes SearchResource)
-- ✅ **17 API Controllers** - 6 entity + 11 lookup endpoints (all properly documented + Scramble-compliant)
-- ✅ **26 Form Request classes** - Full validation layer with Scramble OpenAPI integration
-- ✅ **702 tests passing** (4,554 assertions) - 100% pass rate ⭐ (cleaned up from 808)
-- ✅ **6 importers working** - Spells, Races, Items, Backgrounds, Classes (with spells_known), Feats
-- ✅ **6 artisan commands** - `import:spells`, `import:races`, `import:items`, `import:backgrounds`, `import:classes`, `import:feats`
-- ✅ **Slug system complete** - Dual ID/slug routing for all entities
-- ✅ **15 reusable traits** - Parser + Importer traits for DRY code
-- ✅ **Custom exceptions** - Phase 1 complete (3 exceptions + 4 base classes, 16 tests)
-- ✅ **Scramble compliance** - All 17 controllers use single-return pattern for proper OpenAPI docs
-- ✅ **OpenAPI documentation** - Auto-generated via Scramble (306KB spec) - All 17 controllers ✅
-- ✅ **Search system complete** - Laravel Scout + Meilisearch (3,002 documents indexed, typo-tolerant)
-- ✅ **Test suite optimized** - Removed 106 redundant tests, zero coverage loss
-- ⚠️  **1 importer pending** - Monsters (7 bestiary files ready)
+**Current Status (2025-11-21):**
+- ✅ **719 tests passing** (4,700 assertions) - 100% pass rate
+- ✅ **60 migrations** - Complete schema (slugs, languages, prerequisites, spell tags)
+- ✅ **23 models + 25 API Resources + 17 controllers** - Full CRUD + Search
+- ✅ **6 importers** - Spells, Races, Items, Backgrounds, Classes, Feats
+- ✅ **Universal tag system** - All entities support Spatie Tags
+- ✅ **Search complete** - Laravel Scout + Meilisearch (3,002 documents)
+- ✅ **OpenAPI docs** - Auto-generated via Scramble (306KB spec)
+- ⚠️  **1 importer pending** - Monsters (7 bestiary XML files ready)
 
-## Tech Stack
+**Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 | PHPUnit 11+ | Docker
 
-- **Framework:** Laravel 12.x
-- **PHP Version:** 8.4
-- **Database:** MySQL 8.0 (production), SQLite (testing)
-- **Testing:** PHPUnit 11+ with Feature and Unit tests
-- **Docker:** Multi-container setup (php, mysql, nginx)
+**📖 Read handover:** `docs/SESSION-HANDOVER-2025-11-21.md` for latest session details
 
-## ⚠️ CRITICAL: Test-Driven Development (TDD) Mandate
+---
 
-**EVERY feature implementation MUST follow TDD:**
+## ⚠️ CRITICAL: Development Standards
 
-### Required Steps (Non-Negotiable):
+### 1. Test-Driven Development (Mandatory)
 
-0. **Backwards compatibility is NOT important** - Do not waste time on backwards compatibility
-0. **Always use available Superpower Laravel skills**
-1. **WRITE TESTS FIRST** - Before writing any implementation code
-2. **Use PHPUnit 11 Attributes** - Use `#[\PHPUnit\Framework\Attributes\Test]` instead of `/** @test */` doc-comments
-3. **Watch them FAIL** - Confirm tests fail for the right reason
-4. **Write MINIMAL code** to pass tests
-5. **Refactor** while keeping tests green
-6. **Update API Resources** - Expose new data via API
-7. **Update Models**
-8. **Update Controllers**
-9. **Update API Tests** - Verify API returns new fields
-10. **Run FULL test suite** - Ensure no regressions
-11. **Commit to git with clear message**
-12. **Update todos, clean up documents**
-13. **Update handover document**
+**EVERY feature MUST follow TDD:**
+1. Write tests FIRST (watch them fail)
+2. Write minimal code to pass
+3. Refactor while green
+4. Update API Resources/Controllers
+5. Run full test suite
+6. Format with Pint
+7. Commit with clear message
 
-### PHPUnit 11 Testing Standards:
-
-**ALWAYS use PHP attributes instead of doc-comments:**
-
+**PHPUnit 11 Requirement:**
 ```php
 // ✅ CORRECT - Use attributes
 #[\PHPUnit\Framework\Attributes\Test]
-public function it_creates_a_record()
-{
-    // test code
-}
+public function it_creates_a_record() { }
 
-// ❌ WRONG - Doc-comments deprecated in PHPUnit 11+
+// ❌ WRONG - Doc-comments deprecated
 /** @test */
-public function it_creates_a_record()
-{
-    // test code
-}
+public function it_creates_a_record() { }
 ```
 
-**Rationale:** Doc-comment metadata is deprecated and will be removed in PHPUnit 12. Using attributes ensures forward compatibility and eliminates warnings.
+### 2. Form Request Naming: `{Entity}{Action}Request`
 
-### What Must Be Tested:
+```php
+// ✅ CORRECT
+SpellIndexRequest      // GET /api/v1/spells
+SpellShowRequest       // GET /api/v1/spells/{id}
 
-**For Parser Changes:**
-- ✅ Unit tests for new parser methods
-- ✅ Test with real XML snippets
-- ✅ Test edge cases (missing data, malformed XML)
-
-**For Database Schema Changes:**
-- ✅ Migration tests (schema validation)
-- ✅ Model factory tests (can create instances)
-- ✅ Model relationship tests
-
-**For Importer Changes:**
-- ✅ Feature tests for full import flow
-- ✅ Test data integrity after import
-- ✅ Test reimport behavior (updates vs creates)
-
-**For API Changes:**
-- ✅ API Resource includes new fields
-- ✅ API endpoint tests return new data
-- ✅ Test response structure matches documentation
-
-### Example TDD Workflow:
-
-```bash
-# 1. Write failing test
-docker compose exec php php artisan test --filter=RaceSpellcastingTest
-# SHOULD FAIL - feature doesn't exist yet
-
-# 2. Implement minimal code
-# ... write parser/importer/resource code ...
-
-# 3. Watch test pass
-docker compose exec php php artisan test --filter=RaceSpellcastingTest
-# SHOULD PASS
-
-# 4. Run full suite
-docker compose exec php php artisan test
-# ALL TESTS SHOULD PASS
-
-# 5. Format code
-docker compose exec php ./vendor/bin/pint
+// ❌ WRONG
+IndexSpellRequest      // No - verb first
 ```
 
-### ❌ Anti-Patterns to Avoid:
+**Purpose:** Validation + OpenAPI documentation + Type safety
 
-- Writing implementation code before tests
-- "I'll write tests after" (never happens)
-- Skipping API resource updates
-- Not testing edge cases
-- Assuming existing tests cover new features
+**⚠️ CRITICAL Maintenance:** WHENEVER you modify Models/Controllers, update corresponding Request validation rules (filters, sorts, relationships).
 
-### ✅ Success Criteria:
+### 3. Backwards Compatibility
 
-Before marking ANY feature complete:
-- [ ] New feature has dedicated tests
-- [ ] All new tests pass
-- [ ] API resources expose new data
-- [ ] API endpoint tests verify new fields
-- [ ] Full test suite passes (no regressions)
-- [ ] Code formatted with Pint
+**NOT important** - Do not waste time on backwards compatibility
 
-**If tests aren't written, the feature ISN'T done.**
+### 4. Use Superpower Laravel Skills
+
+**ALWAYS** check for available Laravel skills before starting work
 
 ---
 
-## 📋 Form Request Naming Convention
+## 🔥 Custom Exceptions
 
-**ALWAYS follow this naming pattern for Form Request classes:**
-
-### Pattern: `{Entity}{Action}Request`
+**Pattern: Service throws → Controller returns Resource (single return)**
 
 ```php
-// ✅ CORRECT - Entity first, then controller action
-SpellIndexRequest      // GET /api/v1/spells (list)
-SpellShowRequest       // GET /api/v1/spells/{id} (single)
-SpellStoreRequest      // POST /api/v1/spells (create)
-SpellUpdateRequest     // PATCH /api/v1/spells/{id} (update)
+// ✅ Service throws domain exception
+public function search(DTO $dto): Collection {
+    throw new InvalidFilterSyntaxException($dto->filter, $e->getMessage());
+}
 
-FeatIndexRequest       // GET /api/v1/feats
-FeatShowRequest        // GET /api/v1/feats/{id}
-
-RaceIndexRequest       // GET /api/v1/races
-RaceShowRequest        // GET /api/v1/races/{id}
-
-// ❌ WRONG - Don't use Laravel's verb-first convention
-IndexSpellRequest      // NO - verb first
-StoreSpellRequest      // NO - verb first
-```
-
-### Purpose & Benefits
-
-**Form Requests serve THREE critical functions:**
-
-1. **Validation** - Validate incoming query parameters and request body
-2. **Documentation** - Scramble reads Request classes to generate OpenAPI docs
-3. **Type Safety** - IDE autocomplete and static analysis support
-
-**Example Request Class:**
-```php
-class SpellIndexRequest extends FormRequest
-{
-    public function rules(): array
-    {
-        return [
-            // Pagination
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-
-            // Sorting (whitelist for security)
-            'sort_by' => ['sometimes', Rule::in(['name', 'level', 'created_at'])],
-            'sort_direction' => ['sometimes', Rule::in(['asc', 'desc'])],
-
-            // Filters
-            'level' => ['sometimes', 'integer', 'min:0', 'max:9'],
-            'school' => ['sometimes', 'exists:spell_schools,id'],
-            'concentration' => ['sometimes', Rule::in([true, false, 'true', 'false', 1, 0])],
-        ];
-    }
+// ✅ Controller has single return (Scramble-friendly)
+public function index(Request $request, Service $service) {
+    $results = $service->search($dto);  // May throw
+    return Resource::collection($results);  // Single return
 }
 ```
 
-### ⚠️ CRITICAL Maintenance Rule
+**Available Exceptions (Phase 1):**
+- `InvalidFilterSyntaxException` (422) - Meilisearch filter validation
+- `FileNotFoundException` (404) - Missing XML files
+- `EntityNotFoundException` (404) - Missing lookup entities
 
-**WHENEVER you modify Models or Controllers, you MUST update corresponding Request classes:**
-
-| Change Type | Required Updates |
-|-------------|------------------|
-| **Add model scope** | Add validation rule to `{Entity}IndexRequest` |
-| **Add controller filter** | Add validation rule to Request class |
-| **Add sortable column** | Add to `sort_by` Rule::in() whitelist |
-| **Add relationship** | Add to `include` validation in `{Entity}ShowRequest` |
-| **Add API field** | Add to `fields` validation in Show/Index requests |
-
-**Why this matters:**
-- ❌ Missing validation = unvalidated user input = security risk
-- ❌ Missing validation = Scramble docs incomplete = poor DX
-- ❌ Missing validation = no type hints = harder debugging
-
-**Checklist before marking work complete:**
-- [ ] Model scopes have corresponding Request validation
-- [ ] Controller filters are validated in Request class
-- [ ] Sortable columns are whitelisted
-- [ ] Request class tests verify validation rules
-- [ ] Scramble docs updated (run `php artisan scramble:docs`)
+**Laravel exception handler auto-renders** - no manual error handling in controllers needed.
 
 ---
 
-## 🔥 Custom Exceptions & Error Handling
+## 🏷️ Universal Tag System (NEW 2025-11-21)
 
-**Status:** Phase 1 Complete (2025-11-21) - 3 custom exceptions + 4 base classes implemented
-
-### Exception Architecture
-
-The application uses **custom domain exceptions** for better error handling, consistent API responses, and easier debugging.
-
-```
-app/Exceptions/
-├── ApiException.php                    # Abstract base for all API exceptions
-├── Import/
-│   ├── ImportException.php             # Base for import failures
-│   └── FileNotFoundException.php       # XML file not found (404)
-├── Lookup/
-│   ├── LookupException.php             # Base for lookup failures
-│   └── EntityNotFoundException.php     # Entity not found (404)
-└── Search/
-    ├── SearchException.php             # Base for search failures
-    └── InvalidFilterSyntaxException.php # Meilisearch filter errors (422)
-```
-
-### When to Use Custom Exceptions
-
-**✅ DO throw custom exceptions for:**
-- Missing files during import → `FileNotFoundException`
-- Entity lookup failures → `EntityNotFoundException`
-- Invalid filter syntax → `InvalidFilterSyntaxException`
-- Domain-specific validation errors
-
-**❌ DON'T throw custom exceptions for:**
-- Framework-level errors (let Laravel handle them)
-- Validation that belongs in Form Requests
-- Business logic better expressed as return values
-
-### Pattern: Service Layer Throws, Controller Returns
-
-**Controllers should be clean with single return statements:**
+**All 6 main entities support tags:** Spell, Race, Item, Background, Class, Feat
 
 ```php
-// ✅ CORRECT - Service throws, controller returns Resource
-public function index(SpellIndexRequest $request, SpellSearchService $service)
+// Model
+use Spatie\Tags\HasTags;
+class Spell extends Model { use HasTags; }
+
+// Resource (always included, no ?include= needed)
+'tags' => TagResource::collection($this->whenLoaded('tags')),
+
+// Controller (eager-load by default)
+$spell->load(['spellSchool', 'sources', 'effects', 'classes', 'tags']);
+
+// API Response
 {
-    $dto = SpellSearchDTO::fromRequest($request);
-
-    if ($dto->meilisearchFilter !== null) {
-        // Service throws InvalidFilterSyntaxException if syntax is invalid
-        $spells = $service->searchWithMeilisearch($dto, $meilisearch);
-    } else {
-        $spells = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
-    }
-
-    return SpellResource::collection($spells);  // Single return
-}
-
-// ❌ WRONG - Controller handles exceptions manually
-public function index(SpellIndexRequest $request, SpellSearchService $service)
-{
-    try {
-        $spells = $service->search(...);
-    } catch (\MeiliSearch\Exceptions\ApiException $e) {
-        return response()->json(['error' => $e->getMessage()], 422);  // Manual error handling
-    }
-    return SpellResource::collection($spells);  // Multiple returns breaks Scramble
+  "tags": [
+    {"id": 2, "name": "Touch Spells", "slug": "touch-spells", "type": null}
+  ]
 }
 ```
 
-**Service layer throws domain exceptions:**
-
-```php
-// app/Services/SpellSearchService.php
-public function searchWithMeilisearch(SpellSearchDTO $dto, Client $client): LengthAwarePaginator
-{
-    try {
-        $results = $client->index('spells')->search($dto->searchQuery ?? '', $searchParams);
-    } catch (\MeiliSearch\Exceptions\ApiException $e) {
-        // Wrap infrastructure exception in domain exception
-        throw new InvalidFilterSyntaxException(
-            filter: $dto->meilisearchFilter,
-            meilisearchMessage: $e->getMessage(),
-            previous: $e
-        );
-    }
-
-    return $this->buildPaginator($results, $dto->perPage);
-}
-```
-
-**Laravel exception handler automatically renders:**
-
-```php
-// bootstrap/app.php
-->withExceptions(function (Exceptions $exceptions) {
-    $exceptions->renderable(function (ApiException $e, Request $request) {
-        return $e->render($request);
-    });
-})
-```
-
-### Creating New Custom Exceptions
-
-**1. Extend appropriate base class:**
-
-```php
-namespace App\Exceptions\Import;
-
-use App\Exceptions\Import\ImportException;
-
-class InvalidXmlException extends ImportException
-{
-    public function __construct(
-        string $filePath,
-        string $xmlError,
-        ?\Throwable $previous = null
-    ) {
-        parent::__construct(
-            message: "Invalid XML in {$filePath}: {$xmlError}",
-            code: 422,
-            previous: $previous
-        );
-
-        $this->filePath = $filePath;
-        $this->xmlError = $xmlError;
-    }
-
-    public function render($request)
-    {
-        return response()->json([
-            'message' => 'Invalid XML format',
-            'file_path' => $this->filePath,
-            'xml_error' => $this->xmlError,
-        ], 422);
-    }
-}
-```
-
-**2. Write tests FIRST (TDD):**
-
-```php
-#[\PHPUnit\Framework\Attributes\Test]
-public function it_throws_invalid_xml_exception_for_malformed_xml()
-{
-    $this->expectException(InvalidXmlException::class);
-
-    $importer = new SpellImporter();
-    $importer->importFromFile('tests/fixtures/malformed-spell.xml');
-}
-
-#[\PHPUnit\Framework\Attributes\Test]
-public function it_returns_422_for_invalid_xml()
-{
-    // Create malformed XML file
-    Storage::fake('local');
-    Storage::put('malformed.xml', '<?xml version="1.0"?><compendium><spell><name>Test');
-
-    $response = $this->postJson('/api/v1/import/spells', [
-        'file_path' => Storage::path('malformed.xml'),
-    ]);
-
-    $response->assertStatus(422);
-    $response->assertJsonStructure(['message', 'file_path', 'xml_error']);
-}
-```
-
-**3. Throw from service layer:**
-
-```php
-public function importFromFile(string $filePath): void
-{
-    $this->validateFile($filePath);  // Throws FileNotFoundException
-
-    $xml = @simplexml_load_file($filePath);
-    if ($xml === false) {
-        throw new InvalidXmlException($filePath, libxml_get_last_error()->message);
-    }
-
-    // ... rest of import logic
-}
-```
-
-### Why This Pattern Matters
-
-**Benefits:**
-- ✅ **Cleaner controllers** - Single return statement, no manual error handling
-- ✅ **Consistent API responses** - All errors follow same format
-- ✅ **Better debugging** - Specific exception types in logs
-- ✅ **Type safety** - Catch specific exceptions, not generic ones
-- ✅ **Scramble-friendly** - Single return type = proper OpenAPI docs
-
-**Example Error Response:**
-```json
-{
-  "message": "Invalid filter syntax",
-  "error": "Attribute `invalid_field` is not filterable",
-  "filter": "invalid_field = value",
-  "documentation": "http://localhost:8080/docs/meilisearch-filters"
-}
-```
-
-### Available Exceptions (Phase 1)
-
-| Exception | HTTP Status | Used In | Purpose |
-|-----------|-------------|---------|---------|
-| `InvalidFilterSyntaxException` | 422 | SpellSearchService | Meilisearch filter validation |
-| `FileNotFoundException` | 404 | BaseImporter | Missing XML files |
-| `EntityNotFoundException` | 404 | CachesLookupTables | Missing entities in lookups |
-
-### Future Exceptions (Phase 2 - Optional)
-
-See `docs/recommendations/CUSTOM-EXCEPTIONS-ANALYSIS.md` for:
-- `InvalidXmlException` - Malformed XML handling
-- `SearchUnavailableException` - Meilisearch offline fallback
-- `DuplicateEntityException` - Unique constraint violations
-- `SchemaViolationException` - XML structure validation
+**Benefits:** Categorization, filtering, consistent structure, type support
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
-### Database Initialization Protocol
-
-**IMPORTANT:** Always start with a clean database and reimport all data:
+### Database Initialization (Always Start Here)
 
 ```bash
 # 1. Fresh database with seeded lookup data
 docker compose exec php php artisan migrate:fresh --seed
 
-# 2. Import all available entities
-# Spells (9 files available, import subset for testing)
-docker compose exec php bash -c 'for file in import-files/spells-phb.xml import-files/spells-tce.xml import-files/spells-xge.xml; do php artisan import:spells "$file" || true; done'
+# 2. Import entities (example: spells subset)
+docker compose exec php bash -c 'for file in import-files/spells-phb.xml import-files/spells-tce.xml; do php artisan import:spells "$file" || true; done'
 
-# Races (5 files)
-docker compose exec php bash -c 'for file in import-files/races-*.xml; do php artisan import:races "$file"; done'
+# 3. Configure search indexes
+docker compose exec php php artisan search:configure-indexes
 
-# Items (25 files)
-docker compose exec php bash -c 'for file in import-files/items-*.xml; do php artisan import:items "$file"; done'
-
-# Backgrounds (4 files)
-docker compose exec php bash -c 'for file in import-files/backgrounds-*.xml; do php artisan import:backgrounds "$file"; done'
-
-# Classes (35 files)
-docker compose exec php bash -c 'for file in import-files/class-*.xml; do php artisan import:classes "$file"; done'
-
-# Feats (4 files)
-docker compose exec php bash -c 'for file in import-files/feats-*.xml; do php artisan import:feats "$file"; done'
-```
-
-**Rationale:**
-- Ensures consistent state across sessions
-- Catches migration issues early
-- Verifies importers still work with latest schema
-- Rebuilds all slug/language/proficiency associations
-
-### Running Tests
-```bash
-docker compose exec php php artisan test                    # All tests
-docker compose exec php php artisan test --filter=Api       # API tests
-docker compose exec php php artisan test --filter=Importer  # Importer tests
-```
-
-### Other Database Operations
-```bash
-docker compose exec php php artisan tinker                  # Interactive REPL
-docker compose exec php php artisan db:seed                 # Re-seed lookup data only
-```
-
-## Development Workflow
-
-### Todo-Based Development Protocol
-
-**IMPORTANT:** Follow this workflow for all feature development and bug fixes:
-
-#### Before Starting Each Todo Item:
-```bash
-# 1. Refresh database with latest schema
-docker compose exec php php artisan migrate:fresh --seed
-
-# 2. Import all entities to verify importers still work
-# Spells (subset for speed)
-docker compose exec php bash -c 'for file in import-files/spells-phb.xml import-files/spells-tce.xml import-files/spells-xge.xml; do php artisan import:spells "$file" || true; done'
-
-# Races (all files)
-docker compose exec php bash -c 'for file in import-files/races-*.xml; do php artisan import:races "$file"; done'
-
-# Items (all files)
-docker compose exec php bash -c 'for file in import-files/items-*.xml; do php artisan import:items "$file"; done'
-
-# Backgrounds (all files)
-docker compose exec php bash -c 'for file in import-files/backgrounds-*.xml; do php artisan import:backgrounds "$file"; done'
-
-# Classes (all files)
-docker compose exec php bash -c 'for file in import-files/class-*.xml; do php artisan import:classes "$file"; done'
-
-# Feats (all files)
-docker compose exec php bash -c 'for file in import-files/feats-*.xml; do php artisan import:feats "$file"; done'
-
-# 3. Run tests to verify starting point
+# 4. Run tests
 docker compose exec php php artisan test
 ```
 
-#### After Completing Each Todo Item:
+**Rationale:** Ensures consistent state, catches schema issues, verifies importers
+
+### Development Workflow (Per Todo Item)
+
 ```bash
-# 1. Run tests to verify changes
-docker compose exec php php artisan test
+# BEFORE starting:
+docker compose exec php php artisan migrate:fresh --seed  # Fresh state
+docker compose exec php php artisan test                   # Verify starting point
 
-# 2. Format code
-docker compose exec php ./vendor/bin/pint
-
-# 3. Stage and commit changes
-git add .
-git commit -m "feat: [descriptive message]
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
+# AFTER completing:
+docker compose exec php php artisan test                   # Verify changes
+docker compose exec php ./vendor/bin/pint                  # Format code
+git add . && git commit -m "feat: clear message"           # Commit
 ```
 
-**Rationale:**
-- **Before:** Ensures starting with clean state, catches schema drift, verifies importers work
-- **After:** Validates changes, maintains code quality, creates checkpoint for rollback
-- **Commit per todo:** Keeps changes atomic, makes git history readable, enables easy rollback
+---
 
-**Commit Message Conventions:**
-- `feat:` - New feature
-- `fix:` - Bug fix
-- `refactor:` - Code restructuring
-- `test:` - Adding or updating tests
-- `docs:` - Documentation changes
-- `chore:` - Maintenance tasks
-
-## Repository Structure
+## 📐 Repository Structure
 
 ```
 app/
-  ├── Console/Commands/              # 6 import commands
   ├── Http/
-  │   ├── Controllers/Api/           # 14 API controllers
-  │   └── Resources/                 # 24 standardized API Resources
-  ├── Models/                        # 23 Eloquent models
+  │   ├── Controllers/Api/     # 17 controllers (6 entity + 11 lookup)
+  │   ├── Resources/           # 25 API Resources (+ TagResource)
+  │   └── Requests/            # 26 Form Requests
+  ├── Models/                  # 23 models (all have HasFactory)
   └── Services/
-      ├── Importers/                 # 6 XML importers (Spells, Races, Items, Backgrounds, Classes, Feats)
-      └── Parsers/                   # XML parsing + table detection
+      ├── Importers/           # 6 XML importers + reusable traits
+      └── Parsers/             # XML parsing + 15 reusable traits
 
 database/
-  ├── migrations/                    # 59 migrations (includes slug + language + prerequisites)
-  └── seeders/                       # 12 seeders for lookup data
+  ├── migrations/              # 60 migrations
+  └── seeders/                 # 12 seeders (sources, schools, languages, etc.)
 
-import-files/                        # XML source files
-  ├── spells-*.xml                   # 9 spell files
-  ├── races-*.xml                    # 5 race files
-  ├── items-*.xml                    # 25 item files
-  ├── backgrounds-*.xml              # 4 background files
-  ├── class-*.xml                    # 35 class files (✅ DONE)
-  ├── feats-*.xml                    # 4 feat files (✅ DONE)
-  ├── bestiary-*.xml                 # 7 monster files (⚠️ PENDING)
-  ├── optionalfeatures-*.xml         # 3 files (NOT IN SCHEMA)
-  └── source-*.xml                   # 6 files (METADATA ONLY)
+import-files/                  # XML source files
+  ├── spells-*.xml            # 9 files (477 imported)
+  ├── races-*.xml             # 5 files
+  ├── items-*.xml             # 25 files
+  ├── class-*.xml             # 35 files (131 imported)
+  ├── feats-*.xml             # 4 files
+  └── bestiary-*.xml          # 7 files (⚠️ PENDING)
 
 tests/
-  ├── Feature/                       # API, importers, models, migrations
-  └── Unit/                          # Parsers, factories, services
+  ├── Feature/                # API, importers, models, migrations
+  └── Unit/                   # Parsers, factories, services
 ```
 
-## Key Features
+---
 
-### Slug System (NEW 2025-11-19)
-All entities support **dual ID/slug routing** for SEO-friendly URLs:
-- Routes accept BOTH numeric IDs and string slugs
-- Example: `/api/v1/spells/123` OR `/api/v1/spells/fireball`
-- Hierarchical slugs for subraces/subclasses: `dwarf-hill`, `fighter-battle-master`
-- Auto-generated during import via `Str::slug()`
-- Backward compatible with existing code
+## 🔍 Key Features
 
-### Search System (NEW 2025-11-20)
-- **Laravel Scout + Meilisearch** integration for fast, typo-tolerant search
-- **6 searchable entity types:** Spells, Items, Races, Classes, Backgrounds, Feats
-- **Global unified search endpoint** - `/api/v1/search` searches across all entities
-- **Entity-specific search** - Each entity endpoint supports `?q=` parameter
-- **Performance:** <50ms average response time, <100ms p95
-- **Typo-tolerance:** "firebll" finds "Fireball"
-- **Graceful fallback** to MySQL FULLTEXT when Meilisearch unavailable
-- **Faceted filtering** support (level, school, rarity, etc.)
-- **3,002 documents indexed** across all entities (477 spells, 2,107 items, 115 races, 131 classes, 34 backgrounds, 138 feats)
-- **Command:** `php artisan search:configure-indexes` - Sets up search indexes with optimal settings
-- See `docs/SEARCH.md` for comprehensive documentation
+### 1. Dual ID/Slug Routing (All Entities)
+```
+/api/v1/spells/123       ← Numeric ID
+/api/v1/spells/fireball  ← SEO-friendly slug
+```
 
-### Multi-Source Entity System
-All entities can cite multiple sourcebooks via `entity_sources` polymorphic table.
-- Example: Spell appears in PHB p.151 and TCE p.108
-- Enables accurate source attribution and page references
+### 2. Laravel Scout + Meilisearch
+- **6 searchable types:** Spells, Items, Races, Classes, Backgrounds, Feats
+- **Global search:** `/api/v1/search?q=fire&types=spells,items`
+- **Typo-tolerant:** "firebll" finds "Fireball"
+- **Performance:** <50ms average, <100ms p95
+- **Graceful fallback** to MySQL FULLTEXT
 
-### Polymorphic Relationships
-- **Traits** - Belong to races, classes, backgrounds
-- **Modifiers** - Ability scores, skills, damage modifiers
-- **Proficiencies** - Skills, weapons, armor, tools (with auto-matching to types)
-- **Random Tables** - d6/d8/d100 tables for character features
-- **Prerequisites** - Structured requirements for feats and items (ability scores, races, skills, proficiencies)
-
-### Language System (NEW 2025-11-19)
-- 30 D&D 5e languages seeded with metadata (script, type, rarity)
-- Polymorphic `entity_languages` table (works with races, classes, backgrounds)
-- Supports both fixed languages AND choice slots (e.g., "one extra language")
-- `MatchesLanguages` trait auto-matches during import
-- 119 language associations across races (59% coverage)
-
-### Entity Prerequisites System (NEW 2025-11-19)
-**Structured, queryable prerequisite data for feats and items.**
-
-- **Double polymorphic design:** Links ANY entity to ANY prerequisite type
-- **Supported prerequisite types:**
-  - AbilityScore (e.g., "Dexterity 13 or higher")
-  - Race (e.g., "Elf", "Dwarf")
-  - Skill (e.g., "Proficiency in Acrobatics")
-  - ProficiencyType (e.g., "Proficiency with medium armor")
-  - Free-form (e.g., "The ability to cast at least one spell")
-
-- **Complex AND/OR logic** via `group_id` field
-  - Same group = OR logic (e.g., "Dwarf OR Gnome OR Halfling")
-  - Different groups = AND logic (e.g., "(Dwarf OR Gnome) AND Proficiency in Acrobatics")
-
-- **Parser patterns supported:**
-  - Single ability score: "Strength 13 or higher"
-  - Dual ability scores: "Intelligence or Wisdom 13 or higher"
-  - Single race: "Elf"
-  - Multiple races: "Dwarf, Gnome, Halfling"
-  - Proficiency requirements: "Proficiency with medium armor"
-  - Skill requirements: "Proficiency in Acrobatics"
-  - Free-form features: "The ability to cast at least one spell"
-
-- **Coverage:**
-  - 28 feats with prerequisites (20% of 138 total)
-  - 34 prerequisite records (16 AbilityScore, 5 ProficiencyType, 13 free-form)
-  - Items with strength requirements auto-migrated
-
-- **API support:** Fully exposed via EntityPrerequisiteResource with nested entity details
-
-### Normalized Proficiency Types
-- 82 proficiency types across 7 categories (weapons, armor, tools, etc.)
-- `MatchesProficiencyTypes` trait auto-matches during import
-- 100% match rate during import
-- Enables queries like "Find races proficient with Longsword"
-
-### Random Table System
-- Extracts embedded tables from XML (76 tables, 381+ entries)
-- Supports standard (d4-d100) and unusual dice (1d22, 1d33, 2d6)
-- Handles roll ranges (1, 2-3, 01-02) and non-dice tables (Lever, Face)
-- 97% have dice_type captured
-
-### Hierarchical Entities
-- **Races:** Base races (`parent_race_id IS NULL`) + subraces
-- **Classes:** 13 core classes seeded + subclass support via `parent_class_id`
-
-## API Endpoints
-
-### Base URL: `/api/v1`
-
-**Entity Endpoints:**
-- `GET /api/v1/spells` - List/search spells (paginated, filterable)
-- `GET /api/v1/races` - List/search races (paginated, filterable)
-- `GET /api/v1/items` - List/search items (paginated, filterable)
-- `GET /api/v1/backgrounds` - List/search backgrounds (paginated, filterable)
-- `GET /api/v1/classes` - List/search classes (paginated, filterable, includes subclasses)
-- `GET /api/v1/feats` - List/search feats (paginated, filterable)
-
-**Advanced Filtering:**
-All entity endpoints support Meilisearch's powerful filter syntax via the `filter` parameter.
-See `docs/MEILISEARCH-FILTERS.md` for comprehensive examples.
-
+### 3. Advanced Meilisearch Filtering
 ```bash
 # Range queries
 GET /api/v1/spells?filter=level >= 1 AND level <= 3
@@ -703,266 +217,240 @@ GET /api/v1/spells?filter=school_code = EV OR school_code = C
 # Combined search + filter
 GET /api/v1/spells?q=fire&filter=level <= 3
 ```
+See `docs/MEILISEARCH-FILTERS.md` for full syntax
+
+### 4. Multi-Source Citations
+Entities cite multiple sourcebooks via `entity_sources` polymorphic table.
+
+### 5. Polymorphic Relationships
+- **Traits, Modifiers, Proficiencies** - Shared across races/classes/backgrounds
+- **Tags** - Universal categorization system (NEW)
+- **Prerequisites** - Double polymorphic (entity → prerequisite type)
+- **Random Tables** - d6/d8/d100 embedded in descriptions
+
+### 6. Language System
+30 D&D languages + choice slots ("choose one extra language")
+
+---
+
+## 🌐 API Endpoints
+
+**Base:** `/api/v1`
+
+**Entity Endpoints:**
+- `GET /spells`, `GET /spells/{id|slug}` - 477 spells
+- `GET /races`, `GET /races/{id|slug}` - Races/subraces
+- `GET /items`, `GET /items/{id|slug}` - Items/equipment
+- `GET /backgrounds`, `GET /backgrounds/{id|slug}` - Character backgrounds
+- `GET /classes`, `GET /classes/{id|slug}` - 131 classes/subclasses
+- `GET /classes/{id}/spells` - Class spell lists
+- `GET /feats`, `GET /feats/{id|slug}` - Character feats
+- `GET /search?q=term&types=spells,items` - Global search
 
 **Lookup Endpoints:**
-- `GET /api/v1/sources` - D&D sourcebooks
-- `GET /api/v1/spell-schools` - 8 schools of magic
-- `GET /api/v1/damage-types` - 13 damage types
-- `GET /api/v1/conditions` - 15 D&D conditions
-- `GET /api/v1/proficiency-types?category=weapon` - Filterable proficiency types
-- `GET /api/v1/languages` - 30 D&D languages
-- Plus: sizes, ability-scores, skills, item-types, item-properties
+- `GET /sources` - D&D sourcebooks
+- `GET /spell-schools` - 8 schools of magic
+- `GET /damage-types` - 13 damage types
+- `GET /conditions` - 15 D&D conditions
+- `GET /proficiency-types` - 82 weapon/armor/tool types
+- `GET /languages` - 30 languages
 
-**Features:**
-- **Dual ID/Slug Routing:** `/spells/fireball` OR `/spells/123`
-- Pagination: `?per_page=25` (default: 15)
-- Search: `?search=term` (FULLTEXT)
-- Filtering: By level, school, size, category, etc.
-- Sorting: `?sort_by=name&sort_direction=asc`
-- CORS enabled
+**Features:** Pagination, search, filtering, sorting, CORS enabled
 
-## OpenAPI Documentation (Scramble)
+**📖 OpenAPI Docs:** `http://localhost:8080/docs/api` (auto-generated via Scramble)
 
-**Automatic API Documentation via Scramble:**
+---
 
-The API is automatically documented using [Scramble](https://scramble.dedoc.co/), which generates OpenAPI 3.0 specifications by analyzing Laravel code.
+## 🧪 Testing
 
-### How It Works
-- **Route Analysis:** Scans all `/api/*` routes
-- **Form Request Validation:** Infers request parameters from validation rules
-- **Resource Inference:** Analyzes API Resources to document response schemas
-- **Type Detection:** Uses PHP types and docblocks for accurate schemas
+**719 tests** (4,700 assertions) - 40s duration
 
-### Accessing Documentation
-- **Interactive UI:** `http://localhost:8080/docs/api` (Stoplight Elements)
-- **OpenAPI JSON:** `http://localhost:8080/docs/api.json` or `api.json` file (306KB)
-- **Export Command:** `php artisan scramble:export`
-
-### Best Practices for Scramble
-
-✅ **DO:**
-- Use API Resources for all responses (`return XResource::collection($items)`)
-- Use Form Requests for validation (rules auto-document parameters)
-- Use PHP native types for properties and return values
-- Let Scramble infer from code (it's smarter than manual annotations)
-
-❌ **DON'T:**
-- Use `@response` annotations (they block Scramble's inference!)
-- Manually construct JSON with `response()->json(['data' => ...])`
-- Return plain arrays from controllers
-- Mix manual and automatic documentation
-
-### Automated Testing
-5 tests in `tests/Feature/ScrambleDocumentationTest.php` validate:
-- Valid OpenAPI 3.0 specification structure
-- All endpoints properly documented
-- Response schemas correctly generated
-- Component schemas properly referenced
-
-**Run tests:** `php artisan test --filter=ScrambleDocumentationTest`
-
-### Troubleshooting
-If Scramble isn't generating correct docs:
-1. Ensure controller returns an API Resource (not plain JSON)
-2. Remove any `@response` annotations
-3. Check Form Request validation rules are complete
-4. Run tests to identify specific issues
-5. Regenerate: `php artisan scramble:export`
-
-## XML Import System
-
-### Working Importers
-1. **SpellImporter** - Imports spells with effects, class associations, multi-source citations
-2. **RaceImporter** - Imports races/subraces with traits, modifiers, proficiencies, random tables, languages
-3. **ItemImporter** - Imports items with magic flags, modifiers, abilities, embedded tables, prerequisites
-4. **BackgroundImporter** - Imports backgrounds with proficiencies, traits, random tables, languages
-5. **ClassImporter** - Imports classes/subclasses with features, spell progression, counters, proficiencies
-6. **FeatImporter** - Imports feats with modifiers, proficiencies, conditions, prerequisites
-
-### XML Format Structure
-All XML files: `<compendium version="5" auto_indent="NO">`
-
-**Common Elements:**
-- `<name>` - Entity name
-- `<text>` - Descriptive text (may contain embedded tables)
-- `<trait>` - Features/abilities (with optional category)
-- `<proficiency>` - Skills, weapons, armor, tools
-- `<modifier category="">` - Ability scores, skills, damage
-- `<roll description="">` - Dice formulas for abilities
-- Random tables embedded in descriptions (pipe-separated, e.g., "1|Result|2|Result")
-
-### Known Import Behaviors
-These are **intentional** design decisions:
-
-1. **Subclass information stripped** - "Fighter (Eldritch Knight)" → "Fighter"
-   - Rationale: Spell associations are class-level
-
-2. **Ability code normalization** - "Str +2" → "STR +2"
-   - Rationale: Consistent with database lookup tables
-
-3. **Random tables preserved in description** - Extracted to tables but NOT removed from text
-   - Rationale: Original context preserved; frontend chooses rendering
-
-4. **Roll descriptions from XML attribute** - 80.5% coverage (305/379 abilities)
-   - Rationale: Not all rolls have description attribute in XML
-
-## Testing
-
-**Test Statistics:**
-- **738 tests** (4,637 assertions) - 100% pass rate ⭐
-- **1 incomplete test** (expected edge case documented)
-- **Test Duration:** ~24 seconds
-- Feature tests for API, importers, models, migrations, Scramble documentation
-- Unit tests for parsers, factories, services
-- **XML reconstruction tests** verify import completeness (~90-95% coverage)
-- **Scramble documentation tests** (5 tests) validate OpenAPI spec generation
-
-**Running Tests:**
 ```bash
-docker compose exec php php artisan test                         # All tests
-docker compose exec php php artisan test --filter=Api            # API tests
-docker compose exec php php artisan test --filter=Reconstruction # XML tests
+docker compose exec php php artisan test                    # All tests
+docker compose exec php php artisan test --filter=Api       # API tests
+docker compose exec php php artisan test --filter=Importer  # Importer tests
 ```
 
-## Code Architecture (NEW 2025-11-19)
+**Test Categories:**
+- Feature: API endpoints, importers, models, migrations, Scramble docs
+- Unit: Parsers, factories, services, exceptions
 
-### Reusable Traits
-All importers and parsers use shared traits to eliminate duplication:
+---
 
+## 📥 XML Import System
+
+### Available Importers (6 Working)
+```bash
+php artisan import:spells <file>       # Spells (9 files available)
+php artisan import:races <file>        # Races (5 files)
+php artisan import:items <file>        # Items (25 files)
+php artisan import:backgrounds <file>  # Backgrounds (4 files)
+php artisan import:classes <file>      # Classes (35 files)
+php artisan import:feats <file>        # Feats (4 files)
+```
+
+### Reusable Traits (15)
 **Parser Traits:**
-- `ParsesSourceCitations` - Database-driven source mapping (no hardcoded arrays!)
-- `MatchesProficiencyTypes` - Fuzzy matching for weapons, armor, tools
-- `MatchesLanguages` - Language extraction and matching
+- `ParsesSourceCitations`, `ParsesTraits`, `ParsesRolls`
+- `MatchesProficiencyTypes`, `MatchesLanguages`
 
 **Importer Traits:**
-- `ImportsSources` - Entity source citation handling
-- `ImportsTraits` - Character trait import
-- `ImportsProficiencies` - Proficiency import with skill FK linking
+- `ImportsSources`, `ImportsTraits`, `ImportsProficiencies`
+- `ImportsModifiers`, `ImportsLanguages`, `ImportsConditions`
+- `ImportsRandomTables`, `CachesLookupTables`, `GeneratesSlugs`
 
-**Benefits:**
-- 150+ lines of duplication eliminated
-- Single source of truth for source mapping
-- Consistent behavior across all importers
+**Benefits:** DRY code, consistent behavior, easy to maintain
 
-## Factories & Seeders
+---
 
-**12 Model Factories:**
-All entities support factory-based creation. Polymorphic models use `forEntity()` pattern:
+## 📚 Code Architecture
+
+### Form Request Pattern
+Every controller action has dedicated Request class:
+```php
+// SpellIndexRequest validates: per_page, sort_by, level, school, etc.
+public function index(SpellIndexRequest $request) { }
+
+// SpellShowRequest validates: include relationships
+public function show(SpellShowRequest $request, Spell $spell) { }
+```
+
+### Service Layer Pattern
+Controllers delegate to services for business logic:
+```php
+// SpellSearchService handles Scout/Meilisearch/database queries
+public function index(Request $request, SpellSearchService $service) {
+    $dto = SpellSearchDTO::fromRequest($request);
+    $spells = $service->searchWithMeilisearch($dto, $meilisearch);
+    return SpellResource::collection($spells);  // Single return
+}
+```
+
+### Resource Pattern
+Consistent API serialization via JsonResource classes:
+```php
+class SpellResource extends JsonResource {
+    public function toArray(Request $request): array {
+        return [
+            'id' => $this->id,
+            'slug' => $this->slug,
+            'name' => $this->name,
+            'tags' => TagResource::collection($this->whenLoaded('tags')),
+            // ... all fields explicitly defined
+        ];
+    }
+}
+```
+
+---
+
+## 🗂️ Factories & Seeders
+
+**12 Model Factories:** All entities support factory-based test data creation
+
+**Polymorphic Factory Pattern:**
 ```php
 CharacterTrait::factory()->forEntity(Race::class, $race->id)->create();
-Proficiency::factory()->forEntity(Race::class, $race->id)->create();
 EntitySource::factory()->forEntity(Spell::class, $spell->id)->fromSource('PHB')->create();
-EntityLanguage::factory()->forEntity(Race::class, $race->id)->create();
 ```
 
 **12 Database Seeders:**
-- Sources, spell schools, damage types, conditions, proficiency types
-- Sizes, ability scores, skills, item types/properties, character classes
-- **Languages** - 30 D&D languages with script/type/rarity
-- Run with: `docker compose exec php php artisan db:seed`
+- Sources (D&D sourcebooks)
+- Spell schools, damage types, conditions
+- Proficiency types (82 entries)
+- Languages (30 entries)
+- Sizes, ability scores, skills
+- Item types/properties, character classes
 
-## What's Next
+**Run:** `docker compose exec php php artisan db:seed`
+
+---
+
+## 🚦 What's Next
 
 ### Priority 1: Monster Importer ⭐ RECOMMENDED
-**Why:** Last major entity type, schema is ready, completes the core D&D compendium
+- 7 bestiary XML files ready
+- Schema complete and tested
+- Can reuse all 15 importer/parser traits
+- **Estimated:** 6-8 hours with TDD
 
-- 7 bestiary XML files available
-- Traits, actions, legendary actions, spellcasting
-- Schema complete and tested (monsters table + related tables)
-- **Can reuse existing importer traits:** `ImportsSources`, `ImportsTraits`, `ImportsProficiencies`
-- **Can reuse existing parser traits:** `ParsesSourceCitations`, `MatchesProficiencyTypes`
-- **Estimated Effort:** 6-8 hours (with TDD)
+### Priority 2: Import Remaining Data
+- 6 more spell files (~300 spells)
+- Races, Items, Backgrounds, Feats (importers ready, just need to run commands)
 
-### Priority 2: API Enhancements
-- Filtering by proficiency types, conditions, rarity, attunement
-- Aggregation endpoints (counts by type, rarity, school)
-- Class spell list endpoints (GET /api/v1/classes/{id}/spells)
-- OpenAPI/Swagger documentation
+### Priority 3: API Enhancements
+- Additional filtering/aggregation
+- Rate limiting
+- Caching strategy
 
-### Priority 3: Optional Features
-- 3 optionalfeatures XML files (requires schema design)
-- These are class variants like Fighting Styles, Eldritch Invocations, Metamagic
-- Would need new table structure and relationships
+---
 
-## Documentation
+## 📖 Documentation
 
 **Essential Reading:**
-- `docs/SESSION-HANDOVER.md` - Latest session details and recommendations
-- `docs/PROJECT-STATUS.md` - Quick project status and stats
+- `docs/SESSION-HANDOVER-2025-11-21.md` - Latest session (spell enhancements + tags)
+- `docs/SEARCH.md` - Search system documentation
+- `docs/MEILISEARCH-FILTERS.md` - Advanced filter syntax
+- `docs/recommendations/CUSTOM-EXCEPTIONS-ANALYSIS.md` - Exception patterns
+
+**Plans:**
 - `docs/plans/2025-11-17-dnd-compendium-database-design.md` - Database architecture
 - `docs/plans/2025-11-17-dnd-xml-importer-implementation-v4-vertical-slices.md` - Implementation strategy
 
-## Recent Accomplishments (2025-11-19)
+---
 
-### Latest: Slug System Complete ✅
-- 6 new migrations for slug columns on all entity tables
-- Dual ID/slug route binding in `AppServiceProvider`
-- Hierarchical slug generation for races/classes
-- All API Resources include slug field
-- 238 tests passing (100% pass rate)
+## Git Workflow
 
-### Code Refactoring + Trait System ✅
-- **7 reusable traits** for parsers and importers
-- Database-driven source mapping (no hardcoded arrays!)
-- 150+ lines of duplication eliminated
-- 100% clean source citations (no trailing commas)
-- Schema consistency across all polymorphic tables
+### Commit Message Convention
+```
+feat: add universal tag support
+fix: correct damage type parsing
+refactor: extract ImportsSources trait
+test: add tag integration tests
+docs: update session handover
 
-### Language System ✅
-- 30 D&D languages seeded with metadata
-- Polymorphic `entity_languages` table
-- 119 language associations across races
-- Supports choice slots (e.g., "one extra language")
-- `MatchesLanguages` trait for parsing
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
 
-### Conditions & Proficiency Types System ✅
-- 15 D&D 5e conditions + 82 proficiency types
-- `MatchesProficiencyTypes` trait for auto-matching
-- 100% match rate during import
-- New API endpoints for lookups
+### Creating Pull Requests
+```bash
+# 1. Check diff and commit history
+git log origin/main..HEAD --oneline
+git diff origin/main...HEAD
 
-### Background Importer ✅
-- 19 backgrounds imported (18 PHB + 1 ERLW)
-- 71 traits, 38 proficiencies (100% matched)
-- 76 random tables (personality, ideals, bonds, flaws)
+# 2. Push and create PR
+git push -u origin feature/your-branch
+gh pr create --title "Title" --body "$(cat <<'EOF'
+## Summary
+- Feature 1
+- Feature 2
 
-### Item Enhancement Suite ✅
-- Magic flag detection (1,447 magic items)
-- Attunement parsing (631 items)
-- Weapon range split (normal/long)
-- Roll descriptions (80.5% coverage)
-- Modifiers and abilities fully parsed
+## Test Plan
+- [ ] All tests passing
+- [ ] Manual testing complete
 
-### Random Table Extraction System ✅
-- 76 tables extracted with 381+ entries
-- Supports standard and unusual dice types
-- Handles roll ranges and non-numeric entries
-
-### Entity Prerequisites System ✅ (NEW 2025-11-19)
-- **Double polymorphic structure** for maximum flexibility
-- **Parser with 6+ patterns** (ability scores, races, skills, proficiencies, free-form)
-- **Complex AND/OR logic** via group_id system
-- **Importer integration** for Feats and Items
-- **API layer** with EntityPrerequisiteResource + nested entity details
-- **Data migration** for items.strength_requirement → entity_prerequisites
-- **Coverage:** 28 feats with 34 prerequisite records
-- **27 new tests** (parser, importer, API, migration) - 100% passing
-- **393 total tests** (2,268 assertions)
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
+```
 
 ---
 
-## Branch Status
+## 🎯 Success Checklist
 
-**Current Branch:** `feature/entity-prerequisites`
-**Status:** ✅ Complete and ready for merge
-**Test Status:** 393 tests passing (100% pass rate)
-**Key Changes:**
-- Entity prerequisites system (database, parser, importer, API)
-- Skill model support for skill-based prerequisites
-- ItemController with full CRUD operations
-- Route bindings for Items and Feats (dual ID/slug)
-- Data migration for items.strength_requirement
+Before marking work complete:
+- [ ] All tests passing (719+ tests)
+- [ ] Code formatted with Pint
+- [ ] API Resources expose new data
+- [ ] Form Requests validate new parameters
+- [ ] Controllers eager-load new relationships
+- [ ] Session handover document updated
+- [ ] Commit messages are clear
+- [ ] No uncommitted changes
+
+**If tests aren't written, the feature ISN'T done.**
 
 ---
 
-**Project Status:** ✅ Prerequisites feature complete! Ready for review and merge. 🚀
+**Branch:** `main` | **Status:** ✅ Production-Ready | **Tests:** 719 passing

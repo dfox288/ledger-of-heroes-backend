@@ -1,25 +1,32 @@
 # Documentation Index
 
-**Last Updated:** 2025-11-20
+**Last Updated:** 2025-11-21
 **Current Branch:** main
-**Status:** ✅ Refactoring Phase 1 & 2 Complete
+**Status:** ✅ Production-Ready - Universal Tag System Complete
 
 ---
 
 ## 🎯 Start Here
 
 ### For Current Session Context
-**→ [SESSION-HANDOVER-2025-11-20-REFACTORING.md](SESSION-HANDOVER-2025-11-20-REFACTORING.md)** ⭐ LATEST (MAIN BRANCH)
-- Parser/Importer refactoring complete (Phase 1 & 2)
-- 468 tests passing
-- 6 new concerns created
-- Ready to continue with Phase 2.4 or Phase 3
+**→ [SESSION-HANDOVER-2025-11-21.md](SESSION-HANDOVER-2025-11-21.md)** ⭐ LATEST
 
-### For Work In Progress (Feature Branch)
-**→ [active/SESSION-HANDOVER-2025-11-21-COMPLETE.md](active/SESSION-HANDOVER-2025-11-21-COMPLETE.md)**
-- Branch: `feature/class-importer-enhancements` (NOT merged)
-- Status: BATCH 2.1-2.3 complete (spells_known feature)
-- Tests: 432 passing
+**What Changed:**
+- Session 1: Spell importer enhancements (damage types, higher levels, subclass matching, tagging)
+- Session 2: Universal tag system across all 6 main entities
+- 719 tests passing (4,700 assertions)
+- All entities now support Spatie Tags with dedicated TagResource
+
+---
+
+## 📊 Quick Stats
+
+- **Tests:** 719 passing (4,700 assertions) - 40s duration
+- **Migrations:** 60 complete
+- **Models:** 23 (all with HasFactory + HasTags where applicable)
+- **API:** 25 Resources + 17 Controllers + 26 Form Requests
+- **Importers:** 6 working (Spells, Races, Items, Backgrounds, Classes, Feats)
+- **Search:** 3,002 documents indexed (Scout + Meilisearch)
 
 ---
 
@@ -28,120 +35,50 @@
 ### Active Documentation
 ```
 docs/
-├── README.md                                          ← You are here
-├── SESSION-HANDOVER-2025-11-20-REFACTORING.md        ← Main branch state
-├── PROJECT-STATUS.md                                  ← Quick stats
-├── CLASS-IMPORTER-ISSUES-FOUND.md                    ← Investigation results
-├── active/                                            ← Work in progress
-│   ├── SESSION-HANDOVER-2025-11-21-COMPLETE.md       ← Feature branch
-│   ├── SESSION-HANDOVER-2025-11-20-PHASE-3-COMPLETE.md
-│   └── investigation-findings-BATCH-1.1.md
-└── plans/                                             ← Implementation plans
-    ├── 2025-11-20-parser-importer-refactoring.md     ← Active refactoring plan
-    ├── 2025-11-20-class-importer-enhancements.md     ← Class importer plan
-    └── (reference plans...)
+├── README.md                          ← You are here
+├── SESSION-HANDOVER-2025-11-21.md     ← Latest session (spell + tags)
+├── PROJECT-STATUS.md                  ← Quick reference stats
+├── SEARCH.md                          ← Search system docs
+├── MEILISEARCH-FILTERS.md             ← Advanced filtering syntax
+├── plans/                             ← Implementation plans (reference)
+├── recommendations/                   ← Analysis docs (exceptions, etc.)
+└── archive/                           ← Older handovers (2025-11-19 to 2025-11-21)
 ```
 
-### Archived Documentation
-Older handovers and completed work documentation has been moved to `archive/` for reference.
-
----
-
-## 📊 Current Project State
-
-### Main Branch (Merged & Stable)
-- **Tests:** 468 passing (2,966 assertions)
-- **Migrations:** 59 complete
-- **Models:** 23 Eloquent models
-- **Concerns:** 10 total (6 new from refactoring)
-- **Importers:** 6 working (Spells, Races, Items, Backgrounds, Classes, Feats)
-- **API Endpoints:** 14 controllers, 24 resources
-
-### Recent Accomplishments (Main Branch)
-✅ **Parser/Importer Refactoring (Phase 1 & 2 - 75%)**
-- Eliminated ~215 lines of duplication
-- Created 6 reusable concerns (ParsesTraits, ParsesRolls, ImportsRandomTables, etc.)
-- 30 new tests added
-- All existing tests still passing
-
-### Feature Branch Work (Not Yet Merged)
-🔀 **Class Importer Enhancements** (branch: `feature/class-importer-enhancements`)
-- Spells Known feature (BATCH 2.1-2.3 complete)
-- 432 tests passing
-- Ready to continue or merge
+### Main Codebase Documentation
+- **`../CLAUDE.md`** - Essential development guide (compacted from 968 → 457 lines)
+  - TDD workflow
+  - Form Request patterns
+  - Exception handling
+  - Tag system usage
+  - Quick start commands
+  - Architecture patterns
 
 ---
 
 ## 🚀 Quick Commands
 
-### Verify Current State
+### Database Setup
 ```bash
-# Check which branch you're on
-git branch --show-current
+# Full reset + seed + import subset
+docker compose exec php php artisan migrate:fresh --seed
+docker compose exec php bash -c 'for file in import-files/spells-phb.xml import-files/spells-tce.xml; do php artisan import:spells "$file" || true; done'
+docker compose exec php php artisan search:configure-indexes
+docker compose exec php php artisan test
+```
 
+### Development
+```bash
 # Run tests
 docker compose exec php php artisan test
+docker compose exec php php artisan test --filter=Api
 
-# Check latest commits
-git log --oneline -10
+# Format code
+docker compose exec php ./vendor/bin/pint
+
+# Check git status
+git status && git log --oneline -5
 ```
-
-### Resume Refactoring Work (Main Branch)
-```bash
-# Continue with Task 2.4: LookupsGameEntities (~1-2 hours)
-# See: docs/plans/2025-11-20-parser-importer-refactoring.md
-
-# Or continue with Phase 3: Architecture improvements
-# See: SESSION-HANDOVER-2025-11-20-REFACTORING.md
-```
-
-### Resume Class Importer Work (Feature Branch)
-```bash
-# Switch to feature branch
-git checkout feature/class-importer-enhancements
-
-# Continue with BATCH 2.4: Data Migration
-# See: active/SESSION-HANDOVER-2025-11-21-COMPLETE.md
-```
-
----
-
-## 📐 Implementation Plans
-
-### Active Plans
-- **[plans/2025-11-20-parser-importer-refactoring.md](plans/2025-11-20-parser-importer-refactoring.md)** - Refactoring roadmap (75% complete)
-- **[plans/2025-11-20-class-importer-enhancements.md](plans/2025-11-20-class-importer-enhancements.md)** - Class importer improvements
-
-### Reference Plans (Completed)
-- **[plans/2025-11-17-dnd-compendium-database-design.md](plans/2025-11-17-dnd-compendium-database-design.md)** - Database architecture
-- **[plans/2025-11-17-dnd-xml-importer-implementation-v4-vertical-slices.md](plans/2025-11-17-dnd-xml-importer-implementation-v4-vertical-slices.md)** - Original implementation strategy
-
----
-
-## 🎯 Next Steps (Choose Your Path)
-
-### Option A: Continue Refactoring (Main Branch) ⭐ RECOMMENDED
-**Why:** Delivers more value, completes architectural improvements
-- Task 2.4: LookupsGameEntities concern (~1-2 hours)
-- Phase 3: GeneratesSlugs + BaseImporter (~3-4 hours)
-- **Total:** 4-6 hours to complete refactoring
-
-**See:** [SESSION-HANDOVER-2025-11-20-REFACTORING.md](SESSION-HANDOVER-2025-11-20-REFACTORING.md)
-
-### Option B: Continue Class Importer (Feature Branch)
-**Why:** Complete the spells_known feature work
-- BATCH 2.4: Data migration (~60 min)
-- BATCH 2.5: Update API (~15 min)
-- Phase 3: Proficiency choices (~2 hours)
-- **Total:** ~3.5 hours to complete
-
-**See:** [active/SESSION-HANDOVER-2025-11-21-COMPLETE.md](active/SESSION-HANDOVER-2025-11-21-COMPLETE.md)
-
-### Option C: Start New Feature
-**Next Priority:** Monster Importer (~6-8 hours)
-- 7 bestiary XML files ready
-- Schema complete
-- Can leverage all new refactoring concerns
 
 ---
 
@@ -149,27 +86,85 @@ git checkout feature/class-importer-enhancements
 
 | Need | Document |
 |------|----------|
-| Current state (main) | [SESSION-HANDOVER-2025-11-20-REFACTORING.md](SESSION-HANDOVER-2025-11-20-REFACTORING.md) |
-| Feature branch work | [active/SESSION-HANDOVER-2025-11-21-COMPLETE.md](active/SESSION-HANDOVER-2025-11-21-COMPLETE.md) |
-| Quick stats | [PROJECT-STATUS.md](PROJECT-STATUS.md) |
-| Refactoring plan | [plans/2025-11-20-parser-importer-refactoring.md](plans/2025-11-20-parser-importer-refactoring.md) |
-| Database design | [plans/2025-11-17-dnd-compendium-database-design.md](plans/2025-11-17-dnd-compendium-database-design.md) |
-| TDD workflow | [../CLAUDE.md](../CLAUDE.md) |
+| **Latest session** | [SESSION-HANDOVER-2025-11-21.md](SESSION-HANDOVER-2025-11-21.md) |
+| **Quick stats** | [PROJECT-STATUS.md](PROJECT-STATUS.md) |
+| **TDD workflow** | [../CLAUDE.md](../CLAUDE.md#critical-development-standards) |
+| **Search system** | [SEARCH.md](SEARCH.md) |
+| **Filter syntax** | [MEILISEARCH-FILTERS.md](MEILISEARCH-FILTERS.md) |
+| **Database design** | [plans/2025-11-17-dnd-compendium-database-design.md](plans/2025-11-17-dnd-compendium-database-design.md) |
+| **Exception patterns** | [recommendations/CUSTOM-EXCEPTIONS-ANALYSIS.md](recommendations/CUSTOM-EXCEPTIONS-ANALYSIS.md) |
 
 ---
 
-## 📦 Branch Overview
+## 🎯 Next Steps
 
-| Branch | Status | Description | Tests |
-|--------|--------|-------------|-------|
-| `main` | ✅ Stable | Refactoring Phase 1 & 2 complete | 468 passing |
-| `feature/class-importer-enhancements` | 🔀 WIP | Spells Known feature (BATCH 2.1-2.3) | 432 passing |
-| `refactor/parser-importer-deduplication` | ✅ Merged | (Same as main) | - |
-| `feature/entity-prerequisites` | ✅ Merged | Prerequisites system | - |
-| `feature/background-enhancements` | ❓ Unknown | Needs verification | - |
+### Priority 1: Monster Importer ⭐ RECOMMENDED
+- **Why:** Completes the D&D compendium (last major entity type)
+- **Effort:** 6-8 hours with TDD
+- **Benefits:** 7 bestiary XML files ready, schema complete, can reuse all 15 traits
+- **See:** [SESSION-HANDOVER-2025-11-21.md](SESSION-HANDOVER-2025-11-21.md#next-steps)
+
+### Priority 2: Import Remaining Data
+- **Why:** Populate database with full content
+- **Effort:** 1-2 hours (just running import commands)
+- **Content:**
+  - 6 more spell files (~300 spells)
+  - Races, Items, Backgrounds, Feats (importers ready)
+
+### Priority 3: API Enhancements
+- Additional filtering/aggregation endpoints
+- Rate limiting implementation
+- Caching strategy
+- Tag-based filtering
 
 ---
 
-**Navigation:** [Project Status](PROJECT-STATUS.md) | [Main Codebase](../CLAUDE.md) | [Plans](plans/)
+## 📦 Recent Accomplishments (2025-11-21)
+
+### Spell Importer Enhancements ✅
+1. **Damage Type Parsing** - SpellEffect.damage_type_id now populated
+2. **Subclass-Specific Associations** - "Fighter (Eldritch Knight)" → Eldritch Knight subclass
+3. **Higher Levels Extraction** - "At Higher Levels:" section in dedicated column
+4. **Fuzzy Subclass Matching** - "Archfey" → "The Archfey"
+5. **Subclass Alias Mapping** - "Coast" → "Circle of the Land"
+
+### Universal Tag System ✅
+1. **TagResource Created** - Consistent serialization (id, name, slug, type)
+2. **6 Models Updated** - Spell, Race, Item, Background, Class, Feat all have HasTags
+3. **6 Resources Updated** - All include tags by default
+4. **6 Controllers Updated** - All eager-load tags
+5. **11 Tests Added** - Comprehensive coverage (3 unit + 8 integration)
+6. **83 Touch Spells** + **33 Ritual Caster** spells tagged
+
+---
+
+## 📚 Historical Context
+
+### Archived Sessions
+- **2025-11-20:** Refactoring, API enhancements, Form Requests, Scramble fixes
+- **2025-11-19:** Class importer, entity prerequisites, slug system, language system
+- **Earlier:** Initial importers, database design, search system
+
+See `archive/` for detailed history.
+
+---
+
+## 🚦 Status: READY FOR NEXT SESSION
+
+The application is production-ready with:
+- ✅ 6 working importers
+- ✅ Universal tag support
+- ✅ Complete search system
+- ✅ 719 tests passing
+- ✅ Clean git history
+- ✅ Comprehensive documentation
+
+**Next agent can:** Implement Monster importer, import remaining data, or add new features
+
+**No blockers.** 🚀
+
+---
+
+**Navigation:** [Main Codebase](../CLAUDE.md) | [Project Status](PROJECT-STATUS.md) | [Latest Session](SESSION-HANDOVER-2025-11-21.md)
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

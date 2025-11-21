@@ -20,8 +20,8 @@ class SizeController extends Controller
         $query = Size::query();
 
         // Search by name
-        if ($request->has('search')) {
-            $search = $request->validated('search');
+        if ($request->has('q')) {
+            $search = $request->validated('q');
             $query->where('name', 'LIKE', "%{$search}%");
         }
 

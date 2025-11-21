@@ -73,7 +73,12 @@
       "Bash(for controller in Spell Race Item Background Class Feat)",
       "Bash(do echo \"=== $controller API Tests ===\")",
       "Bash(for file in /Users/dfox/Development/dnd/importer/tests/Feature/Migrations/*.php)",
-      "Bash(for type in spells races items backgrounds class feats)"
+      "Bash(for type in spells races items backgrounds class feats)",
+      "Bash(tee:*)",
+      "Bash(echo:*)",
+      "Bash(for file in app/Models/*.php)",
+      "Bash(do if ! grep -q \"public $timestamps\" \"$file\")",
+      "Bash(fi)"
     ],
     "deny": [],
     "ask": []

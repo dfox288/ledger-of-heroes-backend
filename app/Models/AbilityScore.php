@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class AbilityScore extends Model
 {
@@ -23,5 +24,18 @@ class AbilityScore extends Model
     public function abilityScoreBonuses(): HasMany
     {
         return $this->hasMany(AbilityScoreBonus::class);
+    }
+
+    public function entitiesRequiringSave(): MorphToMany
+    {
+        return $this->morphedByMany(
+            Spell::class,
+            'entity',
+            'entity_saving_throws',
+            'ability_score_id',
+            'entity_id'
+        )
+            ->withPivot('save_effect', 'is_initial_save')
+            ->withTimestamps();
     }
 }

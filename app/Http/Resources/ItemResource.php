@@ -14,6 +14,7 @@ class ItemResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'item_type_id' => $this->item_type_id,
+            'detail' => $this->detail,
             'rarity' => $this->rarity,
             'requires_attunement' => $this->requires_attunement,
             'is_magic' => $this->is_magic,
@@ -28,8 +29,6 @@ class ItemResource extends JsonResource
             'strength_requirement' => $this->strength_requirement,
             'stealth_disadvantage' => $this->stealth_disadvantage,
             'description' => $this->description,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
 
             // Relationships
             'item_type' => ItemTypeResource::make($this->whenLoaded('itemType')),

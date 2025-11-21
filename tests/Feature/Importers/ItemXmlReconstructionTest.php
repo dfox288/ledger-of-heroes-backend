@@ -647,4 +647,617 @@ XML;
         $item->load('prerequisites');
         $this->assertCount(0, $item->prerequisites);
     }
+
+    #[Test]
+    public function it_creates_base_ac_modifier_for_regular_shield()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Shield</name>
+    <type>S</type>
+    <weight>6</weight>
+    <value>10.0</value>
+    <ac>2</ac>
+    <text>A shield is made from wood or metal and is carried in one hand.
+
+Proficiency: shields
+
+Source: Player's Handbook (2014) p. 144</text>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify dual storage pattern: armor_class column populated
+        $this->assertEquals(2, $item->armor_class);
+
+        // Verify shield type
+        $item->load('itemType');
+        $this->assertEquals('S', $item->itemType->code);
+
+        // Verify base AC modifier created (dual storage)
+        $item->load('modifiers');
+        $this->assertCount(1, $item->modifiers, 'Shield should have exactly one AC modifier');
+
+        $acModifier = $item->modifiers->first();
+        $this->assertEquals('ac_bonus', $acModifier->modifier_category);
+        $this->assertEquals('2', $acModifier->value);
+    }
+
+    #[Test]
+    public function it_creates_both_base_and_magic_modifiers_for_magic_shield()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Shield +1</name>
+    <detail>uncommon</detail>
+    <type>S</type>
+    <weight>6</weight>
+    <ac>2</ac>
+    <magic>YES</magic>
+    <text>While holding this shield, you have a +2 bonus to AC. This bonus is in addition to the shield's normal bonus to AC. A shield +1 grants a +3 bonus to AC total (+2 base shield + 1 magic).
+
+Proficiency: shields
+
+Source: Dungeon Master's Guide (2014) p. 200</text>
+    <modifier category="bonus">ac +1</modifier>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify dual storage pattern
+        $this->assertEquals(2, $item->armor_class);
+        $this->assertTrue($item->is_magic);
+        $this->assertEquals('uncommon', $item->rarity);
+
+        // Verify TWO AC modifiers: base shield (2) + magic enchantment (1)
+        $item->load('modifiers');
+        $this->assertCount(2, $item->modifiers, 'Shield +1 should have two AC modifiers: base (2) + magic (1)');
+
+        // Verify base shield bonus (ac_bonus category)
+        $baseModifier = $item->modifiers->where('modifier_category', 'ac_bonus')->first();
+        $this->assertNotNull($baseModifier, 'Should have base shield modifier (ac_bonus)');
+        $this->assertEquals('2', $baseModifier->value);
+
+        // Verify magic enchantment (ac_magic category)
+        $magicModifier = $item->modifiers->where('modifier_category', 'ac_magic')->first();
+        $this->assertNotNull($magicModifier, 'Should have magic enchantment modifier (ac_magic)');
+        $this->assertEquals('1', $magicModifier->value);
+
+        // Calculate total AC bonus
+        $totalAcBonus = $item->modifiers->sum(fn ($m) => (int) $m->value);
+        $this->assertEquals(3, $totalAcBonus, 'Total AC bonus should be +3 (2 base + 1 magic)');
+    }
+
+    #[Test]
+    public function it_creates_both_base_and_magic_modifiers_for_shield_plus_3()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Shield +3</name>
+    <detail>very rare</detail>
+    <type>S</type>
+    <weight>6</weight>
+    <ac>2</ac>
+    <magic>YES</magic>
+    <text>While holding this shield, you have a +5 bonus to AC (+2 base shield + 3 magic).
+
+Proficiency: shields
+
+Source: Dungeon Master's Guide (2014) p. 200</text>
+    <modifier category="bonus">ac +3</modifier>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify dual storage
+        $this->assertEquals(2, $item->armor_class);
+        $this->assertTrue($item->is_magic);
+        $this->assertEquals('very rare', $item->rarity);
+
+        // Verify TWO AC modifiers: base (2) + magic (3)
+        $item->load('modifiers');
+        $this->assertCount(2, $item->modifiers);
+
+        // Verify base shield bonus
+        $baseModifier = $item->modifiers->where('modifier_category', 'ac_bonus')->first();
+        $this->assertNotNull($baseModifier, 'Should have base shield modifier (ac_bonus)');
+        $this->assertEquals('2', $baseModifier->value);
+
+        // Verify magic enchantment
+        $magicModifier = $item->modifiers->where('modifier_category', 'ac_magic')->first();
+        $this->assertNotNull($magicModifier, 'Should have magic enchantment modifier (ac_magic)');
+        $this->assertEquals('3', $magicModifier->value);
+
+        // Verify total AC bonus
+        $totalAcBonus = $item->modifiers->sum(fn ($m) => (int) $m->value);
+        $this->assertEquals(5, $totalAcBonus, 'Total AC bonus should be +5 (2 base + 3 magic)');
+    }
+
+    #[Test]
+    public function it_does_not_create_ac_modifier_for_non_shield_items()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Plate Armor</name>
+    <type>HA</type>
+    <weight>65</weight>
+    <value>1500.0</value>
+    <ac>18</ac>
+    <strength>15</strength>
+    <stealth>YES</stealth>
+    <text>Heavy armor providing maximum protection.
+
+Proficiency: heavy armor
+
+Source: Player's Handbook (2014) p. 145</text>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify armor_class column populated (base AC, not a bonus)
+        $this->assertEquals(18, $item->armor_class);
+
+        // Verify item type is Heavy Armor, NOT Shield
+        $item->load('itemType');
+        $this->assertEquals('HA', $item->itemType->code);
+
+        // Verify armor gets ac_base modifier (NOT ac_bonus like shields)
+        $item->load('modifiers');
+        $this->assertGreaterThanOrEqual(1, $item->modifiers->count(), 'Armor should have at least ac_base modifier');
+
+        // Find the AC modifier
+        $acModifier = $item->modifiers->firstWhere('modifier_category', 'ac_base');
+        $this->assertNotNull($acModifier, 'Should have ac_base modifier');
+        $this->assertEquals('ac_base', $acModifier->modifier_category, 'Armor should use ac_base, not ac_bonus');
+        $this->assertEquals('18', $acModifier->value);
+        $this->assertEquals('dex_modifier: none', $acModifier->condition, 'Heavy armor does not allow DEX modifier');
+    }
+
+    #[Test]
+    public function it_does_not_create_ac_modifier_for_shield_without_ac_value()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Broken Shield</name>
+    <type>S</type>
+    <weight>6</weight>
+    <text>This shield is broken and provides no AC bonus.
+
+Source: Test Source p. 1</text>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify shield type
+        $item->load('itemType');
+        $this->assertEquals('S', $item->itemType->code);
+
+        // Verify no AC value
+        $this->assertNull($item->armor_class);
+
+        // Verify no AC modifiers created
+        $item->load('modifiers');
+        $this->assertCount(0, $item->modifiers, 'Shield without AC value should not have modifiers');
+    }
+
+    #[Test]
+    public function it_prevents_duplicate_ac_modifiers_on_reimport()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Shield</name>
+    <type>S</type>
+    <weight>6</weight>
+    <value>10.0</value>
+    <ac>2</ac>
+    <text>A standard shield.
+
+Proficiency: shields
+
+Source: Player's Handbook (2014) p. 144</text>
+  </item>
+</compendium>
+XML;
+
+        // First import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+        $item->load('modifiers');
+        $this->assertCount(1, $item->modifiers, 'First import should create 1 AC modifier');
+
+        // Re-import the same item (simulates re-running import command)
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+        $item->load('modifiers');
+        $this->assertCount(1, $item->modifiers, 'Re-import should not create duplicate AC modifier');
+
+        // Verify the modifier is still correct
+        $acModifier = $item->modifiers->first();
+        $this->assertEquals('ac_bonus', $acModifier->modifier_category);
+        $this->assertEquals('2', $acModifier->value);
+    }
+
+    #[Test]
+    public function it_handles_magic_shield_with_numeric_modifiers()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Spellguard Shield</name>
+    <detail>very rare</detail>
+    <type>S</type>
+    <weight>6</weight>
+    <ac>2</ac>
+    <magic>YES</magic>
+    <text>While holding this shield, you have advantage on saving throws against spells and other magical effects, and spell attacks have disadvantage against you. The shield provides +2 bonus to AC and +2 bonus to spell saves.
+
+Proficiency: shields
+
+Source: Dungeon Master's Guide (2014) p. 201</text>
+    <modifier category="bonus">ac +2</modifier>
+    <modifier category="bonus">saving throw +2</modifier>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify shield properties
+        $this->assertEquals(2, $item->armor_class);
+        $this->assertTrue($item->is_magic);
+
+        // Verify modifiers: Now with distinct categories, we should have THREE modifiers:
+        // 1. Base shield AC bonus (ac_bonus, 2) - from importShieldAcModifier()
+        // 2. Magic AC bonus (ac_magic, 2) - from XML <modifier>
+        // 3. Saving throw bonus (saving_throw, 2) - from XML <modifier>
+        $item->load('modifiers');
+        $this->assertCount(3, $item->modifiers, 'Should have base AC bonus + magic AC bonus + saving throw modifier');
+
+        // Verify base shield AC bonus
+        $baseAcModifier = $item->modifiers->where('modifier_category', 'ac_bonus')->first();
+        $this->assertNotNull($baseAcModifier, 'Should have base shield AC bonus (ac_bonus)');
+        $this->assertEquals('2', $baseAcModifier->value);
+
+        // Verify magic AC bonus
+        $magicAcModifier = $item->modifiers->where('modifier_category', 'ac_magic')->first();
+        $this->assertNotNull($magicAcModifier, 'Should have magic AC bonus (ac_magic)');
+        $this->assertEquals('2', $magicAcModifier->value);
+
+        // Verify saving throw modifier exists
+        $savingThrowModifier = $item->modifiers->where('modifier_category', 'saving_throw')->first();
+        $this->assertNotNull($savingThrowModifier, 'Should have saving throw modifier');
+        $this->assertEquals('2', $savingThrowModifier->value);
+
+        // Total AC bonus should be +4 (2 base + 2 magic)
+        $totalAcBonus = $item->modifiers->whereIn('modifier_category', ['ac_bonus', 'ac_magic'])->sum(fn ($m) => (int) $m->value);
+        $this->assertEquals(4, $totalAcBonus, 'Total AC bonus should be +4 (2 base + 2 magic)');
+    }
+
+    #[Test]
+    public function it_creates_ac_base_modifier_for_light_armor()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Leather Armor</name>
+    <type>LA</type>
+    <weight>10</weight>
+    <value>10.0</value>
+    <ac>11</ac>
+    <text>Light armor that allows full DEX modifier to AC.
+
+Proficiency: light armor
+
+Source: Player's Handbook (2014) p. 144</text>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify armor properties
+        $this->assertEquals(11, $item->armor_class);
+        $item->load('itemType');
+        $this->assertEquals('LA', $item->itemType->code);
+
+        // Verify base AC modifier created with DEX metadata
+        $item->load('modifiers');
+        $this->assertCount(1, $item->modifiers, 'Light armor should have one ac_base modifier');
+
+        $acModifier = $item->modifiers->first();
+        $this->assertEquals('ac_base', $acModifier->modifier_category);
+        $this->assertEquals('11', $acModifier->value);
+        $this->assertEquals('dex_modifier: full', $acModifier->condition);
+    }
+
+    #[Test]
+    public function it_creates_ac_base_modifier_for_medium_armor()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Half Plate Armor</name>
+    <type>MA</type>
+    <weight>40</weight>
+    <value>750.0</value>
+    <ac>15</ac>
+    <stealth>YES</stealth>
+    <text>Medium armor that allows DEX modifier (max +2) to AC.
+
+Proficiency: medium armor
+
+Source: Player's Handbook (2014) p. 144</text>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify armor properties
+        $this->assertEquals(15, $item->armor_class);
+        $item->load('itemType');
+        $this->assertEquals('MA', $item->itemType->code);
+
+        // Verify base AC modifier with DEX cap
+        $item->load('modifiers');
+        $this->assertGreaterThanOrEqual(1, $item->modifiers->count(), 'Should have at least 1 modifier (AC base, potentially also stealth)');
+
+        // Find the AC modifier
+        $acModifier = $item->modifiers->firstWhere('modifier_category', 'ac_base');
+        $this->assertNotNull($acModifier, 'Should have ac_base modifier');
+        $this->assertEquals('ac_base', $acModifier->modifier_category);
+        $this->assertEquals('15', $acModifier->value);
+        $this->assertEquals('dex_modifier: max_2', $acModifier->condition);
+    }
+
+    #[Test]
+    public function it_creates_ac_base_modifier_for_heavy_armor()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Plate Armor</name>
+    <type>HA</type>
+    <weight>65</weight>
+    <value>1500.0</value>
+    <ac>18</ac>
+    <strength>15</strength>
+    <stealth>YES</stealth>
+    <text>Heavy armor providing maximum protection with no DEX bonus.
+
+Proficiency: heavy armor
+
+Source: Player's Handbook (2014) p. 145</text>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify armor properties
+        $this->assertEquals(18, $item->armor_class);
+        $item->load('itemType');
+        $this->assertEquals('HA', $item->itemType->code);
+
+        // Verify base AC modifier with no DEX
+        $item->load('modifiers');
+        $this->assertGreaterThanOrEqual(1, $item->modifiers->count(), 'Should have at least 1 modifier (AC base, potentially also stealth)');
+
+        // Find the AC modifier
+        $acModifier = $item->modifiers->firstWhere('modifier_category', 'ac_base');
+        $this->assertNotNull($acModifier, 'Should have ac_base modifier');
+        $this->assertEquals('ac_base', $acModifier->modifier_category);
+        $this->assertEquals('18', $acModifier->value);
+        $this->assertEquals('dex_modifier: none', $acModifier->condition);
+    }
+
+    #[Test]
+    public function it_creates_both_ac_base_and_ac_magic_for_magic_armor()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Leather Armor +1</name>
+    <detail>rare</detail>
+    <type>LA</type>
+    <magic>YES</magic>
+    <weight>10</weight>
+    <ac>11</ac>
+    <text>You have a +1 bonus to AC while wearing this magic armor.
+
+Proficiency: light armor
+
+Source: Dungeon Master's Guide (2014) p. 152</text>
+    <modifier category="bonus">ac +1</modifier>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify armor properties
+        $this->assertEquals(11, $item->armor_class);
+        $this->assertTrue($item->is_magic);
+        $this->assertEquals('rare', $item->rarity);
+
+        // Verify TWO modifiers: base AC (11) + magic enchantment (1)
+        $item->load('modifiers');
+        $this->assertCount(2, $item->modifiers, 'Magic armor should have ac_base + ac_magic');
+
+        // Verify base armor AC
+        $baseModifier = $item->modifiers->where('modifier_category', 'ac_base')->first();
+        $this->assertNotNull($baseModifier, 'Should have base armor AC (ac_base)');
+        $this->assertEquals('11', $baseModifier->value);
+        $this->assertEquals('dex_modifier: full', $baseModifier->condition);
+
+        // Verify magic enchantment
+        $magicModifier = $item->modifiers->where('modifier_category', 'ac_magic')->first();
+        $this->assertNotNull($magicModifier, 'Should have magic enchantment (ac_magic)');
+        $this->assertEquals('1', $magicModifier->value);
+    }
+
+    #[Test]
+    public function it_does_not_create_ac_base_for_non_armor_items()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Longsword</name>
+    <type>M</type>
+    <weight>3</weight>
+    <value>15.0</value>
+    <dmg1>1d8</dmg1>
+    <dmg2>1d10</dmg2>
+    <dmgType>S</dmgType>
+    <property>V</property>
+    <text>A versatile martial weapon.
+
+Proficiency: martial, longsword
+
+Source: Player's Handbook (2014) p. 149</text>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify item type is NOT armor
+        $item->load('itemType');
+        $this->assertEquals('M', $item->itemType->code);
+
+        // Verify NO AC modifiers created for weapons
+        $item->load('modifiers');
+        $this->assertCount(0, $item->modifiers, 'Non-armor items should not have AC modifiers');
+    }
+
+    #[Test]
+    public function it_imports_stealth_disadvantage_as_skill_modifier()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Chain Mail</name>
+    <type>HA</type>
+    <weight>55</weight>
+    <value>75.0</value>
+    <ac>16</ac>
+    <stealth>YES</stealth>
+    <strength>13</strength>
+    <text>Made of interlocking metal rings, chain mail includes a layer of quilted fabric worn underneath the mail to prevent chafing and to cushion the impact of blows. The suit includes gauntlets.
+
+The wearer has disadvantage on Stealth (Dexterity) checks.
+
+If the wearer has a Strength score lower than 13, their speed is reduced by 10 feet.
+
+Source: Player's Handbook (2014) p. 145</text>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify stealth_disadvantage column is set (legacy column, still maintained)
+        $this->assertTrue($item->stealth_disadvantage, 'stealth_disadvantage column should be true');
+
+        // Verify skill modifier with disadvantage is created
+        $item->load('modifiers.skill', 'modifiers.abilityScore');
+
+        // Filter to skill modifiers only
+        $skillModifiers = $item->modifiers->where('modifier_category', 'skill');
+        $this->assertGreaterThanOrEqual(1, $skillModifiers->count(), 'Should have at least 1 skill modifier (stealth disadvantage)');
+
+        // Find the stealth disadvantage modifier
+        $stealthMod = $skillModifiers->first(fn ($m) => $m->skill?->name === 'Stealth');
+        $this->assertNotNull($stealthMod, 'Should have a Stealth skill modifier');
+        $this->assertEquals('skill', $stealthMod->modifier_category);
+        $this->assertEquals('disadvantage', $stealthMod->value, 'Should have disadvantage value');
+        $this->assertEquals('DEX', $stealthMod->abilityScore->code, 'Should be linked to Dexterity');
+        $this->assertEquals('Stealth', $stealthMod->skill->name);
+    }
+
+    #[Test]
+    public function it_does_not_create_skill_modifiers_for_items_without_stealth()
+    {
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <item>
+    <name>Breastplate</name>
+    <type>MA</type>
+    <weight>20</weight>
+    <value>400.0</value>
+    <ac>14</ac>
+    <text>This armor consists of a fitted metal chest piece worn with supple leather. Although it leaves the legs and arms relatively unprotected, this armor provides good protection for the wearer's vital organs while leaving the wearer relatively unencumbered.
+
+Source: Player's Handbook (2014) p. 144</text>
+  </item>
+</compendium>
+XML;
+
+        // Parse and import
+        $items = $this->parser->parse($originalXml);
+        $item = $this->importer->import($items[0]);
+
+        // Verify stealth_disadvantage column is false
+        $this->assertFalse($item->stealth_disadvantage, 'stealth_disadvantage column should be false');
+
+        // Verify NO skill modifiers for stealth
+        $item->load('modifiers.skill');
+        $skillModifiers = $item->modifiers->where('modifier_category', 'skill');
+        $stealthMods = $skillModifiers->filter(fn ($m) => $m->skill?->name === 'Stealth');
+        $this->assertCount(0, $stealthMods, 'Should have no stealth skill modifiers');
+    }
 }

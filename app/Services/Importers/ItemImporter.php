@@ -39,6 +39,7 @@ class ItemImporter extends BaseImporter
             [
                 'name' => $itemData['name'],
                 'item_type_id' => $itemTypeId,
+                'detail' => $itemData['detail'] ?? null,
                 'rarity' => $itemData['rarity'],
                 'requires_attunement' => $itemData['requires_attunement'],
                 'is_magic' => $itemData['is_magic'],
@@ -68,6 +69,12 @@ class ItemImporter extends BaseImporter
         // Import modifiers (polymorphic)
         $this->importEntityModifiers($item, $itemData['modifiers']);
 
+        // Import shield AC modifier (for all shields with AC values)
+        $this->importShieldAcModifier($item, $itemData);
+
+        // Import armor AC modifier (for all armor with AC values)
+        $this->importArmorAcModifier($item, $itemData);
+
         // Import abilities
         $this->importAbilities($item, $itemData['abilities']);
 
@@ -85,14 +92,27 @@ class ItemImporter extends BaseImporter
         // Clear existing sources
         $item->sources()->delete();
 
+        // Deduplicate sources by source_id and merge page numbers
+        // Example: XGE p.137, XGE p.83 → XGE p.137, 83
+        $sourcesByCode = [];
         foreach ($sources as $sourceData) {
-            $source = $this->cachedFind(Source::class, 'code', $sourceData['code']);
+            $code = $sourceData['code'];
+            if (! isset($sourcesByCode[$code])) {
+                $sourcesByCode[$code] = [];
+            }
+            if (! empty($sourceData['pages'])) {
+                $sourcesByCode[$code][] = $sourceData['pages'];
+            }
+        }
+
+        foreach ($sourcesByCode as $code => $pagesList) {
+            $source = $this->cachedFind(Source::class, 'code', $code);
 
             EntitySource::create([
                 'reference_type' => Item::class,
                 'reference_id' => $item->id,
                 'source_id' => $source->id,
-                'pages' => $sourceData['pages'],
+                'pages' => implode(', ', $pagesList),
             ]);
         }
     }
@@ -215,6 +235,106 @@ class ItemImporter extends BaseImporter
             'minimum_value' => $strengthRequirement,
             'description' => null,
             'group_id' => 1,
+        ]);
+    }
+
+    /**
+     * Import shield AC modifier.
+     *
+     * For shields with AC values, create a base AC bonus modifier in addition to the armor_class column.
+     * This provides dual storage for backward compatibility while making shields consistent with
+     * magic items that use modifiers.
+     *
+     * Uses 'ac_bonus' category to distinguish from magic enchantments ('ac_magic').
+     *
+     * Examples:
+     * - Regular Shield (AC=2): Creates modifier(ac_bonus, 2)
+     * - Shield +1 (AC=2): Creates modifier(ac_bonus, 2) for base + modifier(ac_magic, 1) from XML
+     * - Shield +2 (AC=2): Creates modifier(ac_bonus, 2) for base + modifier(ac_magic, 2) from XML
+     *
+     * @param  Item  $item  The imported item
+     * @param  array  $itemData  The parsed item data
+     */
+    private function importShieldAcModifier(Item $item, array $itemData): void
+    {
+        // Only process items with type_code 'S' (Shield) and armor_class > 0
+        if ($itemData['type_code'] !== 'S' || empty($itemData['armor_class']) || $itemData['armor_class'] <= 0) {
+            return;
+        }
+
+        // Check if base AC bonus modifier already exists (avoid duplicates on re-import)
+        $hasBaseModifier = $item->modifiers()
+            ->where('modifier_category', 'ac_bonus')
+            ->where('value', $itemData['armor_class'])
+            ->exists();
+
+        if ($hasBaseModifier) {
+            return; // Already has base modifier, skip
+        }
+
+        // Create base AC bonus modifier
+        $item->modifiers()->create([
+            'modifier_category' => 'ac_bonus',
+            'value' => $itemData['armor_class'],
+        ]);
+    }
+
+    /**
+     * Import armor AC base modifier.
+     *
+     * For armor with AC values, create a base AC modifier that represents the armor's base AC.
+     * Also stores metadata about DEX modifier applicability based on armor type.
+     *
+     * Uses 'ac_base' category to distinguish from additive bonuses (shields/magic).
+     *
+     * D&D 5e AC Rules:
+     * - Light Armor (LA): AC = base + full DEX modifier
+     * - Medium Armor (MA): AC = base + DEX modifier (max +2)
+     * - Heavy Armor (HA): AC = base only (no DEX modifier)
+     *
+     * Examples:
+     * - Leather Armor (LA, AC=11): ac_base(11) with "dex_modifier: full"
+     * - Half Plate (MA, AC=15): ac_base(15) with "dex_modifier: max_2"
+     * - Plate Armor (HA, AC=18): ac_base(18) with "dex_modifier: none"
+     *
+     * @param  Item  $item  The imported item
+     * @param  array  $itemData  The parsed item data
+     */
+    private function importArmorAcModifier(Item $item, array $itemData): void
+    {
+        // Only process armor types: LA (Light), MA (Medium), HA (Heavy)
+        if (! in_array($itemData['type_code'], ['LA', 'MA', 'HA'])) {
+            return;
+        }
+
+        // Only process if armor has AC value
+        if (empty($itemData['armor_class']) || $itemData['armor_class'] <= 0) {
+            return;
+        }
+
+        // Check if base AC modifier already exists (avoid duplicates on re-import)
+        $hasBaseModifier = $item->modifiers()
+            ->where('modifier_category', 'ac_base')
+            ->where('value', $itemData['armor_class'])
+            ->exists();
+
+        if ($hasBaseModifier) {
+            return; // Already has base modifier, skip
+        }
+
+        // Determine DEX modifier applicability based on armor type
+        $dexModifier = match ($itemData['type_code']) {
+            'LA' => 'full',      // Light armor: full DEX modifier
+            'MA' => 'max_2',     // Medium armor: DEX modifier capped at +2
+            'HA' => 'none',      // Heavy armor: no DEX modifier
+            default => null,
+        };
+
+        // Create base AC modifier with DEX modifier metadata
+        $item->modifiers()->create([
+            'modifier_category' => 'ac_base',
+            'value' => $itemData['armor_class'],
+            'condition' => $dexModifier ? "dex_modifier: {$dexModifier}" : null,
         ]);
     }
 

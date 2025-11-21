@@ -2,7 +2,9 @@
 
 namespace App\Services\Importers\Concerns;
 
+use App\Models\AbilityScore;
 use App\Models\Modifier;
+use App\Models\Skill;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -29,17 +31,32 @@ trait ImportsModifiers
         $entity->modifiers()->delete();
 
         foreach ($modifiersData as $modData) {
+            // Resolve skill_id from skill_name if needed
+            $skillId = $modData['skill_id'] ?? null;
+            if (! $skillId && isset($modData['skill_name'])) {
+                $skill = Skill::where('name', $modData['skill_name'])->first();
+                $skillId = $skill?->id;
+            }
+
+            // Resolve ability_score_id from ability_score_code if needed
+            $abilityScoreId = $modData['ability_score_id'] ?? null;
+            if (! $abilityScoreId && isset($modData['ability_score_code'])) {
+                $ability = AbilityScore::where('code', $modData['ability_score_code'])->first();
+                $abilityScoreId = $ability?->id;
+            }
+
             $modifier = [
                 'reference_type' => get_class($entity),
                 'reference_id' => $entity->id,
-                'modifier_category' => $modData['category'],
+                'modifier_category' => $modData['modifier_category'] ?? $modData['category'],
                 'value' => $modData['value'],
-                'ability_score_id' => $modData['ability_score_id'] ?? null,
-                'skill_id' => $modData['skill_id'] ?? null,
+                'ability_score_id' => $abilityScoreId,
+                'skill_id' => $skillId,
                 'damage_type_id' => $modData['damage_type_id'] ?? null,
                 'is_choice' => $modData['is_choice'] ?? false,
                 'choice_count' => $modData['choice_count'] ?? null,
                 'choice_constraint' => $modData['choice_constraint'] ?? null,
+                'condition' => $modData['condition'] ?? null,
             ];
 
             Modifier::create($modifier);

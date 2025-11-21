@@ -27,7 +27,7 @@ class SourceIndexRequestTest extends TestCase
     #[Test]
     public function it_searches_sources_by_name()
     {
-        $response = $this->getJson('/api/v1/sources?search=Player');
+        $response = $this->getJson('/api/v1/sources?q=Player');
         $response->assertOk();
         $response->assertJsonFragment(['name' => "Player's Handbook"]);
     }
@@ -35,7 +35,7 @@ class SourceIndexRequestTest extends TestCase
     #[Test]
     public function it_searches_sources_by_code()
     {
-        $response = $this->getJson('/api/v1/sources?search=PHB');
+        $response = $this->getJson('/api/v1/sources?q=PHB');
         $response->assertOk();
         $response->assertJsonFragment(['code' => 'PHB']);
     }
@@ -67,17 +67,17 @@ class SourceIndexRequestTest extends TestCase
     }
 
     #[Test]
-    public function it_validates_search_max_length()
+    public function it_validates_q_max_length()
     {
         // Valid: 255 characters
         $search = str_repeat('a', 255);
-        $response = $this->getJson("/api/v1/sources?search={$search}");
+        $response = $this->getJson("/api/v1/sources?q={$search}");
         $response->assertStatus(200);
 
         // Invalid: 256 characters
         $search = str_repeat('a', 256);
-        $response = $this->getJson("/api/v1/sources?search={$search}");
+        $response = $this->getJson("/api/v1/sources?q={$search}");
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['search']);
+            ->assertJsonValidationErrors(['q']);
     }
 }

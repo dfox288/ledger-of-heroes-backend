@@ -20,8 +20,8 @@ class LanguageController extends Controller
         $query = Language::query();
 
         // Add search support
-        if ($request->has('search')) {
-            $search = $request->validated('search');
+        if ($request->has('q')) {
+            $search = $request->validated('q');
             $query->where('name', 'LIKE', "%{$search}%");
         }
 

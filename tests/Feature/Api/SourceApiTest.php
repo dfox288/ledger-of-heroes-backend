@@ -1,0 +1,127 @@
+<?php
+
+namespace Tests\Feature\Api;
+
+use App\Models\Source;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
+
+class SourceApiTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Only seed if not already seeded (prevents duplicate key errors)
+        if (\App\Models\Source::count() === 0) {
+            $this->seed(\Database\Seeders\SourceSeeder::class);
+        }
+    }
+
+    #[Test]
+    public function it_can_list_all_sources(): void
+    {
+        $response = $this->getJson('/api/v1/sources');
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => ['id', 'code', 'name', 'publisher', 'publication_year', 'edition'],
+                ],
+            ]);
+    }
+
+    #[Test]
+    public function it_can_search_sources_by_name_using_q_parameter(): void
+    {
+        $response = $this->getJson('/api/v1/sources?q=xanathar');
+
+        $response->assertOk();
+
+        $data = $response->json('data');
+        $this->assertNotEmpty($data, 'Search should return results for "xanathar"');
+
+        foreach ($data as $item) {
+            $this->assertStringContainsStringIgnoringCase('xanathar', $item['name']);
+        }
+    }
+
+    #[Test]
+    public function it_can_search_sources_by_code_using_q_parameter(): void
+    {
+        $response = $this->getJson('/api/v1/sources?q=XGE');
+
+        $response->assertOk();
+
+        $data = $response->json('data');
+        $this->assertNotEmpty($data, 'Search should return results for "XGE"');
+
+        $names = collect($data)->pluck('code')->toArray();
+        $this->assertContains('XGE', $names);
+    }
+
+    #[Test]
+    public function it_returns_empty_results_when_no_sources_match_search(): void
+    {
+        $response = $this->getJson('/api/v1/sources?q=nonexistent123');
+
+        $response->assertOk();
+
+        $data = $response->json('data');
+        $this->assertEmpty($data);
+    }
+
+    #[Test]
+    public function it_returns_all_sources_when_no_search_query_provided(): void
+    {
+        $totalSources = Source::count();
+
+        $response = $this->getJson('/api/v1/sources');
+
+        $response->assertOk();
+
+        $data = $response->json('data');
+        $this->assertCount($totalSources, $data);
+    }
+
+    #[Test]
+    public function it_can_get_a_single_source_by_id(): void
+    {
+        $source = Source::first();
+
+        $response = $this->getJson("/api/v1/sources/{$source->id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.id', $source->id)
+            ->assertJsonPath('data.code', $source->code)
+            ->assertJsonPath('data.name', $source->name);
+    }
+
+    #[Test]
+    public function search_is_case_insensitive(): void
+    {
+        $response = $this->getJson('/api/v1/sources?q=XANATHAR');
+
+        $response->assertOk();
+
+        $data = $response->json('data');
+        $this->assertNotEmpty($data, 'Case insensitive search should work');
+    }
+
+    #[Test]
+    public function it_supports_pagination(): void
+    {
+        $response = $this->getJson('/api/v1/sources?per_page=2');
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data',
+                'links',
+                'meta' => ['current_page', 'per_page', 'total'],
+            ])
+            ->assertJsonPath('meta.per_page', 2);
+    }
+}

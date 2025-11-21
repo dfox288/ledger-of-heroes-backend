@@ -103,9 +103,9 @@ class ProficiencyTypeApiTest extends TestCase
     }
 
     #[Test]
-    public function it_can_search_proficiency_types(): void
+    public function it_can_search_proficiency_types_using_q_parameter(): void
     {
-        $response = $this->getJson('/api/v1/proficiency-types?search=sword');
+        $response = $this->getJson('/api/v1/proficiency-types?q=sword');
 
         $response->assertOk();
 

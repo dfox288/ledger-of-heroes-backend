@@ -11,6 +11,8 @@ class Modifier extends Model
 {
     use HasFactory;
 
+    protected $table = 'entity_modifiers';
+
     public $timestamps = false;
 
     protected $fillable = [

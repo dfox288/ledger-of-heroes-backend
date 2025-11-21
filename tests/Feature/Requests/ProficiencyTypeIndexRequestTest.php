@@ -49,7 +49,7 @@ class ProficiencyTypeIndexRequestTest extends TestCase
     #[Test]
     public function it_searches_by_name()
     {
-        $response = $this->getJson('/api/v1/proficiency-types?search=long');
+        $response = $this->getJson('/api/v1/proficiency-types?q=long');
 
         $response->assertStatus(200);
 
@@ -75,18 +75,18 @@ class ProficiencyTypeIndexRequestTest extends TestCase
     }
 
     #[Test]
-    public function it_validates_search_max_length()
+    public function it_validates_q_max_length()
     {
         // Valid: 255 characters
         $search = str_repeat('a', 255);
-        $response = $this->getJson("/api/v1/proficiency-types?search={$search}");
+        $response = $this->getJson("/api/v1/proficiency-types?q={$search}");
         $response->assertStatus(200);
 
         // Invalid: 256 characters
         $search = str_repeat('a', 256);
-        $response = $this->getJson("/api/v1/proficiency-types?search={$search}");
+        $response = $this->getJson("/api/v1/proficiency-types?q={$search}");
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['search']);
+            ->assertJsonValidationErrors(['q']);
     }
 
     #[Test]

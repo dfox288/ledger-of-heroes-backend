@@ -30,8 +30,8 @@ class ProficiencyTypeController extends Controller
         }
 
         // Search by name
-        if ($request->has('search')) {
-            $search = $request->validated('search');
+        if ($request->has('q')) {
+            $search = $request->validated('q');
             $query->where('name', 'like', "%{$search}%");
         }
 

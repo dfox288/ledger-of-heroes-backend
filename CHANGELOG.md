@@ -7,7 +7,126 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Item Importer Duplicate Source Bug** - Fixed crash when importing items with multiple citations to the same source
+  - **Root Cause:** Items like "Instrument of Illusions" cited same source twice with different pages (XGE p.137, XGE p.83)
+  - **Error:** Unique constraint violation on `entity_sources(reference_type, reference_id, source_id)`
+  - **Solution:** Deduplicate sources by source_id and merge page numbers
+  - **Result:** XGE p.137 + XGE p.83 → XGE p.137, 83 (single entity_sources record)
+  - **Impact:** Fixes import of 43+ items from items-xge.xml (including Wand of Smiles)
+  - **Modified:** `app/Services/Importers/ItemImporter.php` - Enhanced `importSources()` method
+  - **Testing:** 835 tests passing (no regressions)
+
 ### Added
+- **Item Detail Field** - Stores raw subcategory information from XML `<detail>` elements
+  - **NEW Column:** `items.detail` VARCHAR(255) NULL
+  - **Preserves Subcategories:** "firearm, renaissance", "druidic focus", "artisan tools", etc.
+  - **188 Unique Values:** Covers weapon types, tool categories, containers, clothing types
+  - **Use Cases:**
+    - Filter firearms by era (renaissance vs modern vs futuristic)
+    - Distinguish spellcasting focus types (arcane, druidic, holy symbol)
+    - Categorize tools (artisan, gaming, musical)
+    - Search/display additional item context
+  - **Migration:** `2025_11_21_225238_add_detail_to_items_table.php`
+  - **Example:** Pistol now shows `{"detail": "firearm, renaissance", "rarity": "common"}`
+  - **Flexible:** Raw string can be parsed client-side; can be structured later if patterns emerge
+  - **Testing:** 3 new parser tests verify detail field preservation
+- **Conditional Speed Modifier System** - Heavy armor now tracks speed penalties when strength requirement not met
+  - **NEW `speed` Modifier Category** - Tracks movement speed bonuses/penalties
+  - **Conditional Modifiers** - Uses `condition` field for prerequisite-based penalties
+  - **Example:** Plate Armor (STR 15) creates modifier: `{category: 'speed', value: -10, condition: 'strength < 15'}`
+  - **D&D 5e Semantics:** Distinguishes between "can't equip" (prerequisite) vs "penalty if equipped" (conditional modifier)
+  - **Parser Enhancement:** Automatically detects "speed is reduced by X feet" patterns in item descriptions
+  - **Benefits:**
+    - Character builders can calculate actual speed based on STR score
+    - Query-friendly: Filter all items that reduce speed
+    - Distinguishes Plate Armor (has penalty) from Plate Barding (no penalty for mounts)
+    - Reusable pattern for other conditional effects (caltrops, spells, exhaustion)
+  - **API Response:** Modifiers exposed via `/api/v1/items/{id}?include=modifiers`
+  - **Testing:** 11 new tests verify parser + importer + API integration
+- **Test Output Logging Workflow** - Documented standard procedure for capturing test output to files
+  - Added section to CLAUDE.md explaining `tee` command for logging test results
+  - Created `tests/results/` directory for storing test logs (gitignored)
+  - Benefits: No re-runs needed to review failures, easier debugging, shareable test output
+  - Example: `docker compose exec php php artisan test 2>&1 | tee tests/results/test-output.log`
+  - Can grep log files for failures: `grep -E "(FAIL|FAILED)" tests/results/test-output.log`
+
+### Changed
+- **Removed Timestamps from Static Tables** - Dropped `created_at`/`updated_at` columns from reference data
+  - **Affected Tables:** `items`, `entity_spells`
+  - **Rationale:** D&D 5e content is static reference data that doesn't require change tracking
+  - **Benefits:** Cleaner API responses, reduced storage overhead, faster queries
+  - **Models Updated:** Added `public $timestamps = false` to `Item` and `EntitySpell`
+  - **Resources Updated:** Removed timestamp fields from `ItemResource`
+  - **Migration:** `2025_11_21_224033_remove_timestamps_from_static_tables.php`
+  - **Note:** Other entities (Spell, Race, Class, Background, Feat) already had timestamps disabled
+- **Verified API Resource Completeness** - Audited all 6 main entity resources against models
+  - Confirmed all relationships are exposed in API responses
+  - All controllers properly eager-load related data
+  - Resources include: Spell, Race, Item, Background, Class, Feat
+  - All polymorphic relationships (tags, sources, modifiers, proficiencies) are exposed
+  - All entity-specific relationships (saving throws, random tables, prerequisites) are included
+- **Renamed `modifiers` → `entity_modifiers` Table** - For consistency with other polymorphic tables
+  - Renamed via migration `2025_11_21_214255_rename_modifiers_to_entity_modifiers.php`
+  - Updated `Modifier` model to specify `$table = 'entity_modifiers'`
+  - Aligns with naming convention: `entity_sources`, `entity_saving_throws`, `entity_modifiers`
+  - All existing modifiers preserved during rename (zero data loss)
+- **Item Stealth Disadvantage via Skill Modifiers** - Heavy armor stealth penalties now use `entity_modifiers` table
+  - `<stealth>YES</stealth>` XML element creates skill modifier with `disadvantage` value
+  - `ItemXmlParser::parseModifiers()` adds Stealth (DEX) skill modifier when stealth=YES
+  - `ImportsModifiers` trait enhanced to resolve skill/ability lookups from names/codes
+  - **Correct D&D 5e Semantics:** Stealth disadvantage is a SKILL CHECK penalty, not a saving throw
+  - **Backwards Compatible:** `stealth_disadvantage` column remains unchanged
+  - **Query Example:** `Item::whereHas('modifiers', fn($q) => $q->where('modifier_category', 'skill')->where('value', 'disadvantage'))`
+  - **Testing:** 2 tests verify skill modifier creation for items with/without stealth penalty
+- **Reusable Parser/Importer Traits** - Extracted saving throw and random table logic into traits
+  - **Parser Traits:**
+    - `ParsesSavingThrows` - Parses saving throw requirements with advantage/disadvantage detection
+    - `ParsesRandomTables` - Parses pipe-delimited d6/d8/d100 tables from descriptions
+  - **Importer Traits:**
+    - `ImportsSavingThrows` - Persists saving throws to polymorphic `entity_saving_throws` table
+  - **Benefits:**
+    - Makes logic reusable across all entity types (Spell, Item, Monster, etc.)
+    - Single source of truth for complex regex patterns and detection logic
+    - Ready for Monster importer (Priority 1 task)
+    - Zero code duplication - follows existing pattern of 15 reusable traits
+  - **Refactored:**
+    - `SpellXmlParser` now uses `ParsesSavingThrows` and `ParsesRandomTables` traits
+    - `SpellImporter` now uses `ImportsSavingThrows` trait
+    - Removed 240 lines of duplicate code from spell parser/importer
+  - **Testing:** All 757 tests still passing - zero regression
+- **AC Modifier Category System** - Distinct categories for different AC modifier types
+  - `ac_base` - Base armor AC (replaces natural AC, includes DEX modifier rules)
+  - `ac_bonus` - Equipment AC bonuses (shields, always additive)
+  - `ac_magic` - Magic enchantment bonuses (always additive)
+  - **Fixes Shield +2 Bug** - Previously shield +2 only had one modifier because base (+2) and magic (+2) had same value
+  - **Armor DEX Modifiers** - Stores DEX modifier rules in `condition` field:
+    - Light Armor (LA): `"dex_modifier: full"` - Full DEX bonus
+    - Medium Armor (MA): `"dex_modifier: max_2"` - DEX bonus capped at +2
+    - Heavy Armor (HA): `"dex_modifier: none"` - No DEX bonus
+  - Regular shields: `armor_class=2` + auto-created modifier(ac_bonus, 2)
+  - Magic shields: Two distinct modifiers - base (ac_bonus) + enchantment (ac_magic)
+  - Light armor: `armor_class=11` + auto-created modifier(ac_base, 11, condition: "dex_modifier: full")
+  - Medium armor: `armor_class=14` + auto-created modifier(ac_base, 14, condition: "dex_modifier: max_2")
+  - Heavy armor: `armor_class=18` + auto-created modifier(ac_base, 18, condition: "dex_modifier: none")
+  - Example: Shield +1 has `armor_class=2` + modifiers(ac_bonus, 2) + modifiers(ac_magic, 1) = +3 total AC
+  - Example: Shield +2 has `armor_class=2` + modifiers(ac_bonus, 2) + modifiers(ac_magic, 2) = +4 total AC
+  - Example: Plate + Shield +1 = ac_base(18) + ac_bonus(2) + ac_magic(1) = 21 AC
+  - Migration `2025_11_21_191858_add_ac_modifiers_for_shields.php` backfilled existing shields
+  - `ItemImporter::importShieldAcModifier()` auto-creates base AC bonuses on import
+  - `ItemImporter::importArmorAcModifier()` auto-creates base AC with DEX rules on import
+  - `ItemXmlParser::parseModifierText()` now distinguishes magic AC bonuses (`category="bonus"` + `ac` = `ac_magic`)
+  - Includes duplicate prevention logic for re-imports
+- **Comprehensive AC Modifier Tests** - Added 13 new tests for shield and armor AC modifiers
+  - **Shield tests (8):** Regular shields, magic shields (Shield +1, +2, +3), duplicate prevention
+  - **Armor tests (5):** Light/medium/heavy armor with DEX modifier rules, magic armor
+  - Tests that non-armor items don't get AC modifiers
+  - Tests that items without AC values don't get modifiers
+  - Tests re-import idempotency and multiple modifier types
+  - **Validates distinct categories** - Tests verify `ac_base` vs `ac_bonus` vs `ac_magic` separation
+  - **Validates DEX rules** - Tests verify `condition` field stores correct DEX modifier rules
+  - Total: 28 tests in `ItemXmlReconstructionTest` (176 assertions)
+  - Updated 2 unit tests in `ItemXmlParserTest` to expect `ac_magic` category
 - **Spell Random Tables API Exposure** - Random tables now available in API responses
   - `SpellResource` includes `random_tables` field with nested entries
   - Eager-loaded by default on spell detail endpoint
@@ -26,7 +145,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added 2 new tests for random table API exposure (17 assertions)
 
 ### Test Coverage
-- **798 tests passing** (5,390 assertions)
+- **823 tests passing** (5,513 assertions)
 
 `★ Insight ─────────────────────────────────────`
 **API Design Pattern:**

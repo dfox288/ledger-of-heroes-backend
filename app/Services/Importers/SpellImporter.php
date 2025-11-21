@@ -4,12 +4,19 @@ namespace App\Services\Importers;
 
 use App\Models\CharacterClass;
 use App\Models\DamageType;
+use App\Models\RandomTable;
+use App\Models\RandomTableEntry;
 use App\Models\Spell;
 use App\Models\SpellSchool;
+use App\Services\Importers\Concerns\ImportsRandomTables;
+use App\Services\Importers\Concerns\ImportsSavingThrows;
 use App\Services\Parsers\SpellXmlParser;
 
 class SpellImporter extends BaseImporter
 {
+    use ImportsRandomTables;
+    use ImportsSavingThrows;
+
     /**
      * Subclass name aliases for XML → Database mapping.
      *
@@ -92,6 +99,16 @@ class SpellImporter extends BaseImporter
             $spell->syncTags($spellData['tags']);
         }
 
+        // Import saving throws
+        if (isset($spellData['saving_throws']) && is_array($spellData['saving_throws'])) {
+            $this->importSavingThrows($spell, $spellData['saving_throws']);
+        }
+
+        // Import random tables
+        if (isset($spellData['random_tables']) && is_array($spellData['random_tables'])) {
+            $this->importSpellRandomTables($spell, $spellData['random_tables']);
+        }
+
         return $spell;
     }
 
@@ -148,6 +165,48 @@ class SpellImporter extends BaseImporter
 
         // Sync class associations (removes old associations, adds new ones)
         $spell->classes()->sync($classIds);
+    }
+
+    /**
+     * Import random tables embedded in spell description.
+     *
+     * Similar to importTraitTables but for spells (Prismatic Spray, Confusion, etc.)
+     *
+     * @param  Spell  $spell  The spell entity
+     * @param  array  $tablesData  Array of table data from parser
+     */
+    private function importSpellRandomTables(Spell $spell, array $tablesData): void
+    {
+        // Delete existing random tables (for re-imports)
+        $spell->randomTables()->each(function ($table) {
+            $table->entries()->delete();
+            $table->delete();
+        });
+
+        foreach ($tablesData as $tableData) {
+            if (empty($tableData['entries'])) {
+                continue; // Skip tables with no entries
+            }
+
+            // Create random table linked to spell
+            $table = RandomTable::create([
+                'reference_type' => Spell::class,
+                'reference_id' => $spell->id,
+                'table_name' => $tableData['table_name'],
+                'dice_type' => $tableData['dice_type'],
+            ]);
+
+            // Create table entries
+            foreach ($tableData['entries'] as $index => $entry) {
+                RandomTableEntry::create([
+                    'random_table_id' => $table->id,
+                    'roll_min' => $entry['roll_min'],
+                    'roll_max' => $entry['roll_max'],
+                    'result_text' => $entry['result_text'],
+                    'sort_order' => $index,
+                ]);
+            }
+        }
     }
 
     protected function getParser(): object

@@ -34,7 +34,7 @@ class SpellSchoolIndexRequestTest extends TestCase
     {
         // Use seeded data - spell schools include Evocation, Abjuration, Conjuration, etc.
         // Search for 'Evocation'
-        $response = $this->getJson('/api/v1/spell-schools?search=Evocation');
+        $response = $this->getJson('/api/v1/spell-schools?q=Evocation');
         $response->assertStatus(200);
 
         // Should find Evocation school
@@ -57,18 +57,18 @@ class SpellSchoolIndexRequestTest extends TestCase
     }
 
     #[Test]
-    public function it_validates_search_max_length()
+    public function it_validates_q_max_length()
     {
         // Valid: 255 characters
         $search = str_repeat('a', 255);
-        $response = $this->getJson("/api/v1/spell-schools?search={$search}");
+        $response = $this->getJson("/api/v1/spell-schools?q={$search}");
         $response->assertStatus(200);
 
         // Invalid: 256 characters
         $search = str_repeat('a', 256);
-        $response = $this->getJson("/api/v1/spell-schools?search={$search}");
+        $response = $this->getJson("/api/v1/spell-schools?q={$search}");
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['search']);
+            ->assertJsonValidationErrors(['q']);
     }
 
     #[Test]

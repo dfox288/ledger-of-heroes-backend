@@ -11,6 +11,8 @@ class EntitySpell extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     protected $fillable = [
         'reference_type',
         'reference_id',

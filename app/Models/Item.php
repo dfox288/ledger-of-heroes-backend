@@ -15,10 +15,13 @@ class Item extends Model
 {
     use HasFactory, HasTags, Searchable;
 
+    public $timestamps = false;
+
     protected $fillable = [
         'name',
         'slug',
         'item_type_id',
+        'detail',
         'rarity',
         'requires_attunement',
         'is_magic',

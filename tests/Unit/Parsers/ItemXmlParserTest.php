@@ -65,7 +65,8 @@ XML;
         $items = $this->parser->parse($xml);
 
         $this->assertCount(1, $items[0]['modifiers']);
-        $this->assertEquals('ac', $items[0]['modifiers'][0]['category']);
+        // AC modifiers with category="bonus" are parsed as 'ac_magic'
+        $this->assertEquals('ac_magic', $items[0]['modifiers'][0]['category']);
         $this->assertEquals(2, $items[0]['modifiers'][0]['value']);
         $this->assertIsInt($items[0]['modifiers'][0]['value']);
     }
@@ -141,7 +142,160 @@ XML;
         $items = $this->parser->parse($xml);
 
         // Should have 1 parseable modifier (ac +1), skip unparseable
+        // AC modifiers with category="bonus" are parsed as 'ac_magic'
         $this->assertCount(1, $items[0]['modifiers']);
-        $this->assertEquals('ac', $items[0]['modifiers'][0]['category']);
+        $this->assertEquals('ac_magic', $items[0]['modifiers'][0]['category']);
+    }
+
+    #[Test]
+    public function it_parses_conditional_speed_penalty_from_strength_requirement(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Plate</name>
+        <type>HA</type>
+        <ac>18</ac>
+        <strength>15</strength>
+        <text>If the wearer has a Strength score lower than 15, their speed is reduced by 10 feet.
+
+Source: Player's Handbook (2014) p. 145</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        // Should have strength requirement AND speed modifier
+        $this->assertEquals(15, $items[0]['strength_requirement']);
+
+        // Find speed modifier
+        $speedModifiers = collect($items[0]['modifiers'])->where('category', 'speed');
+        $this->assertCount(1, $speedModifiers);
+
+        $speedMod = $speedModifiers->first();
+        $this->assertEquals('speed', $speedMod['category']);
+        $this->assertEquals(-10, $speedMod['value']);
+        $this->assertEquals('strength < 15', $speedMod['condition']);
+    }
+
+    #[Test]
+    public function it_parses_alternative_speed_penalty_phrasing(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Chain Mail</name>
+        <type>HA</type>
+        <ac>16</ac>
+        <strength>13</strength>
+        <text>If the wearer has a Strength score lower than 13, their speed is reduced by 10 feet.
+
+Source: Player's Handbook (2014) p. 145</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        // Should parse different strength values correctly
+        $this->assertEquals(13, $items[0]['strength_requirement']);
+
+        $speedModifiers = collect($items[0]['modifiers'])->where('category', 'speed');
+        $this->assertCount(1, $speedModifiers);
+        $this->assertEquals('strength < 13', $speedModifiers->first()['condition']);
+    }
+
+    #[Test]
+    public function it_does_not_create_speed_modifier_without_penalty_text(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Longsword</name>
+        <type>M</type>
+        <text>A longsword is a versatile weapon.
+
+Source: Player's Handbook (2014) p. 149</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        // Should not have any speed modifiers
+        $speedModifiers = collect($items[0]['modifiers'] ?? [])->where('category', 'speed');
+        $this->assertCount(0, $speedModifiers);
+    }
+
+    #[Test]
+    public function it_preserves_detail_field_from_xml(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Pistol</name>
+        <detail>firearm, renaissance</detail>
+        <type>R</type>
+        <text>A ranged weapon.
+
+Source: Dungeon Master's Guide (2014) p. 268</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertEquals('firearm, renaissance', $items[0]['detail']);
+        $this->assertEquals('common', $items[0]['rarity']); // Rarity still extracted
+    }
+
+    #[Test]
+    public function it_preserves_detail_with_rarity(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Druidic Focus</name>
+        <detail>druidic focus, uncommon</detail>
+        <type>W</type>
+        <text>A spellcasting focus.
+
+Source: Player's Handbook (2014) p. 150</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertEquals('druidic focus, uncommon', $items[0]['detail']);
+        $this->assertEquals('uncommon', $items[0]['rarity']); // Rarity still extracted
+    }
+
+    #[Test]
+    public function it_handles_empty_detail_field(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Longsword</name>
+        <type>M</type>
+        <text>A versatile weapon.
+
+Source: Player's Handbook (2014) p. 149</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertNull($items[0]['detail']);
+        $this->assertEquals('common', $items[0]['rarity']); // Default rarity
     }
 }

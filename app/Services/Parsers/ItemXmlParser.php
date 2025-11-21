@@ -46,11 +46,14 @@ class ItemXmlParser
             $rangeNormal = (int) $range;
         }
 
+        $detailString = (string) $element->detail;
+
         return [
             'name' => (string) $element->name,
             'type_code' => (string) $element->type,
-            'rarity' => $this->parseRarity((string) $element->detail),
-            'requires_attunement' => $this->parseAttunement($text, (string) $element->detail),
+            'detail' => ! empty($detailString) ? $detailString : null,
+            'rarity' => $this->parseRarity($detailString),
+            'requires_attunement' => $this->parseAttunement($text, $detailString),
             'is_magic' => $this->parseMagic($element),
             'cost_cp' => $this->parseCost((string) $element->value),
             'weight' => isset($element->weight) ? (float) $element->weight : null,
@@ -165,6 +168,39 @@ class ItemXmlParser
             }
         }
 
+        // Add stealth disadvantage modifier if present
+        if (isset($element->stealth) && strtoupper((string) $element->stealth) === 'YES') {
+            $modifiers[] = [
+                'category' => 'skill',
+                'skill_id' => null, // Will be looked up by name in importer
+                'skill_name' => 'Stealth', // For lookup
+                'ability_score_id' => null, // Will be looked up by code in importer
+                'ability_score_code' => 'DEX', // For lookup
+                'value' => 'disadvantage',
+                'condition' => null,
+            ];
+        }
+
+        // Add conditional speed penalty if strength requirement present
+        if (isset($element->strength)) {
+            $strengthReq = (int) $element->strength;
+            $text = (string) $element->text;
+
+            // Pattern: "speed is reduced by 10 feet" + mentions strength requirement
+            if (preg_match('/speed\s+is\s+reduced\s+by\s+(\d+)\s+feet/i', $text, $matches)) {
+                $speedPenalty = (int) $matches[1];
+
+                $modifiers[] = [
+                    'category' => 'speed',
+                    'value' => -$speedPenalty,  // Negative value for penalty
+                    'condition' => "strength < {$strengthReq}",
+                    'skill_id' => null,
+                    'ability_score_id' => null,
+                    'damage_type_id' => null,
+                ];
+            }
+        }
+
         return $modifiers;
     }
 
@@ -185,7 +221,9 @@ class ItemXmlParser
             str_contains($target, 'saving throw') => 'saving_throw',
             str_contains($target, 'spell attack') => 'spell_attack',
             str_contains($target, 'spell dc') => 'spell_dc',
-            $target === 'ac' || $target === 'armor class' => 'ac', // Exact match to avoid matching "acrobatics"
+            // AC modifiers: distinguish between magic enchantments and generic bonuses
+            ($target === 'ac' || $target === 'armor class') && $xmlCategory === 'bonus' => 'ac_magic', // Magic item AC bonuses
+            $target === 'ac' || $target === 'armor class' => 'ac', // Generic AC (exact match to avoid matching "acrobatics")
             str_contains($target, 'initiative') => 'initiative',
             str_contains($target, 'melee attack') => 'melee_attack',
             str_contains($target, 'melee damage') => 'melee_damage',

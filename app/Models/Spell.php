@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
@@ -58,6 +59,24 @@ class Spell extends Model
     public function sources(): MorphMany
     {
         return $this->morphMany(EntitySource::class, 'reference', 'reference_type', 'reference_id');
+    }
+
+    public function savingThrows(): MorphToMany
+    {
+        return $this->morphToMany(
+            AbilityScore::class,
+            'entity',
+            'entity_saving_throws',
+            'entity_id',
+            'ability_score_id'
+        )
+            ->withPivot('save_effect', 'is_initial_save', 'save_modifier')
+            ->withTimestamps();
+    }
+
+    public function randomTables(): MorphMany
+    {
+        return $this->morphMany(RandomTable::class, 'reference');
     }
 
     // Scopes for API filtering

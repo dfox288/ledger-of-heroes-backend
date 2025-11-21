@@ -24,8 +24,8 @@ class BaseLookupIndexRequest extends FormRequest
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
             'page' => ['sometimes', 'integer', 'min:1'],
 
-            // Search
-            'search' => ['sometimes', 'string', 'max:255'],
+            // Search (consistent with main entity endpoints)
+            'q' => ['sometimes', 'string', 'max:255'],
         ];
     }
 }

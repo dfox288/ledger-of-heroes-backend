@@ -2,11 +2,15 @@
 
 namespace App\Services\Parsers;
 
+use App\Services\Parsers\Concerns\ParsesRandomTables;
+use App\Services\Parsers\Concerns\ParsesSavingThrows;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use SimpleXMLElement;
 
 class SpellXmlParser
 {
+    use ParsesRandomTables;
+    use ParsesSavingThrows;
     use ParsesSourceCitations;
 
     public function parse(string $xmlContent): array
@@ -97,6 +101,12 @@ class SpellXmlParser
         // Parse roll elements for spell effects
         $effects = $this->parseRollElements($element);
 
+        // Parse saving throws from description
+        $savingThrows = $this->parseSavingThrows($description);
+
+        // Parse random tables from description
+        $randomTables = $this->parseRandomTables($description);
+
         return [
             'name' => (string) $element->name,
             'level' => (int) $element->level,
@@ -114,6 +124,8 @@ class SpellXmlParser
             'tags' => $tags, // NEW: Non-class categories (Touch Spells, Ritual Caster, Mark of X, etc.)
             'sources' => $sources, // NEW: Array of sources instead of single source
             'effects' => $effects,
+            'saving_throws' => $savingThrows, // NEW: Saving throw requirements
+            'random_tables' => $randomTables, // NEW: Random tables embedded in description
         ];
     }
 

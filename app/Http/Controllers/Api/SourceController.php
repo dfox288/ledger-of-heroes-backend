@@ -20,8 +20,8 @@ class SourceController extends Controller
         $query = Source::query();
 
         // Add search support
-        if ($request->has('search')) {
-            $search = $request->validated('search');
+        if ($request->has('q')) {
+            $search = $request->validated('q');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'LIKE', "%{$search}%")
                     ->orWhere('code', 'LIKE', "%{$search}%");

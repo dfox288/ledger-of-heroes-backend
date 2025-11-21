@@ -6,19 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Laravel 12.x application importing D&D 5th Edition XML content and providing a RESTful API.
 
-**Current Status (2025-11-21):**
-- ✅ **719 tests passing** (4,700 assertions) - 100% pass rate
-- ✅ **60 migrations** - Complete schema (slugs, languages, prerequisites, spell tags)
+**Current Status (2025-11-22):**
+- ✅ **757 tests passing** (4,859 assertions) - 100% pass rate
+- ✅ **63 migrations** - Complete schema (slugs, languages, prerequisites, spell tags, saving throws with advantage/disadvantage)
 - ✅ **23 models + 25 API Resources + 17 controllers** - Full CRUD + Search
-- ✅ **6 importers** - Spells, Races, Items, Backgrounds, Classes, Feats
+- ✅ **8 importers** - Spells, Classes, Races, Items, Backgrounds, Feats, Spell Class Mappings, **Master Import (NEW)**
+- ✅ **One-command import** - `import:all` handles all 51+ XML files in correct order (NEW)
 - ✅ **Universal tag system** - All entities support Spatie Tags
+- ✅ **Saving throw modifiers** - Detects advantage/disadvantage on saves
+- ✅ **Additive spell imports** - Handles supplemental class association files
 - ✅ **Search complete** - Laravel Scout + Meilisearch (3,002 documents)
 - ✅ **OpenAPI docs** - Auto-generated via Scramble (306KB spec)
 - ⚠️  **1 importer pending** - Monsters (7 bestiary XML files ready)
 
 **Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 | PHPUnit 11+ | Docker
 
-**📖 Read handover:** `docs/SESSION-HANDOVER-2025-11-21.md` for latest session details
+**📖 Read handover:** `docs/SESSION-HANDOVER-2025-11-22.md` for latest session details
 
 ---
 
@@ -128,19 +131,52 @@ $spell->load(['spellSchool', 'sources', 'effects', 'classes', 'tags']);
 
 ### Database Initialization (Always Start Here)
 
+**Option 1: One-Command Import (Recommended)**
+```bash
+# Import EVERYTHING with one command (takes ~2-5 minutes)
+docker compose exec php php artisan import:all
+
+# Options:
+docker compose exec php php artisan import:all --skip-migrate  # Keep existing DB
+docker compose exec php php artisan import:all --only=spells   # Import only spells
+docker compose exec php php artisan import:all --only=classes,spells  # Multiple types
+docker compose exec php php artisan import:all --skip-search   # Skip search config
+```
+
+**Option 2: Manual Step-by-Step Import**
 ```bash
 # 1. Fresh database with seeded lookup data
 docker compose exec php php artisan migrate:fresh --seed
 
-# 2. Import entities (example: spells subset)
-docker compose exec php bash -c 'for file in import-files/spells-phb.xml import-files/spells-tce.xml; do php artisan import:spells "$file" || true; done'
+# 2. Import classes FIRST (spells reference classes via class_spells table)
+docker compose exec php bash -c 'for file in import-files/class-*.xml; do php artisan import:classes "$file" || true; done'
 
-# 3. Configure search indexes
+# 3. Import spells (main files with full definitions)
+docker compose exec php bash -c 'for file in import-files/spell-*.xml; do [[ ! "$file" =~ \+.*\.xml$ ]] && php artisan import:spells "$file" || true; done'
+
+# 4. Import additive spell class mappings (supplemental class associations)
+docker compose exec php bash -c 'for file in import-files/spells-*+*.xml; do php artisan import:spell-class-mappings "$file" || true; done'
+
+# 5. Import races
+docker compose exec php bash -c 'for file in import-files/race-*.xml; do php artisan import:races "$file" || true; done'
+
+# 6. Import items
+docker compose exec php bash -c 'for file in import-files/item-*.xml; do php artisan import:items "$file" || true; done'
+
+# 7. Import backgrounds
+docker compose exec php bash -c 'for file in import-files/background-*.xml; do php artisan import:backgrounds "$file" || true; done'
+
+# 8. Import feats
+docker compose exec php bash -c 'for file in import-files/feat-*.xml; do php artisan import:feats "$file" || true; done'
+
+# 9. Configure search indexes
 docker compose exec php php artisan search:configure-indexes
 
-# 4. Run tests
+# 10. Run tests
 docker compose exec php php artisan test
 ```
+
+**⚠️ CRITICAL ORDER:** Classes → Spells → Spell Class Mappings → Other entities. Spells require classes to exist for `class_spells` pivot table.
 
 **Rationale:** Ensures consistent state, catches schema issues, verifies importers
 
@@ -231,6 +267,105 @@ Entities cite multiple sourcebooks via `entity_sources` polymorphic table.
 ### 6. Language System
 30 D&D languages + choice slots ("choose one extra language")
 
+### 7. Saving Throw Modifiers (NEW 2025-11-21)
+
+**Tracks advantage/disadvantage on saving throws**
+
+```json
+{
+  "saving_throws": [{
+    "ability_score": {"code": "WIS", "name": "Wisdom"},
+    "save_effect": "half_damage",
+    "save_modifier": "none"  // 'none', 'advantage', or 'disadvantage'
+  }]
+}
+```
+
+**Semantic Meaning:**
+- `'none'` = Standard save (Fireball: "make a DEX save")
+- `'advantage'` = Grants advantage on saves (Heroes' Feast: "makes WIS saves with advantage")
+- `'disadvantage'` = Imposes disadvantage (Charm Monster: "does so with advantage if fighting")
+- `NULL` = Parser couldn't determine (data quality indicator)
+
+**Use Cases:**
+- Filter buff spells that grant advantage on saves
+- Identify spells with conditional saves
+- Character builders can optimize spell selection
+
+### 8. AC Modifier Category System (NEW 2025-11-22)
+
+**Shields use BOTH `armor_class` column AND `modifiers` table with distinct categories**
+
+```json
+{
+  "name": "Shield",
+  "armor_class": 2,
+  "modifiers": [
+    {"modifier_category": "ac_bonus", "value": "2"}
+  ]
+}
+
+{
+  "name": "Shield +1",
+  "armor_class": 2,
+  "modifiers": [
+    {"modifier_category": "ac_bonus", "value": "2"},  // Base shield bonus
+    {"modifier_category": "ac_magic", "value": "1"}   // Magic enchantment
+  ]
+}
+
+{
+  "name": "Shield +2",
+  "armor_class": 2,
+  "modifiers": [
+    {"modifier_category": "ac_bonus", "value": "2"},  // Base shield bonus
+    {"modifier_category": "ac_magic", "value": "2"}   // Magic enchantment (+2)
+  ]
+}
+```
+
+**AC Modifier Categories:**
+- `ac_base` - Base armor AC (replaces natural AC, stores DEX modifier rules)
+- `ac_bonus` - Equipment AC bonuses (shields, always additive)
+- `ac_magic` - Magic enchantment bonuses (always additive)
+- `ac` - Generic AC (legacy, may be deprecated)
+
+**Why Distinct Categories?**
+1. **Semantic Clarity** - `ac_bonus` vs `ac_magic` makes intent explicit
+2. **Fixes Shield +2 Bug** - No longer confused with base bonus (both were +2)
+3. **Query Flexibility** - Can filter by type: magic-only, equipment-only, or total
+4. **Future-Proof** - Ready for complex armor calculations (Mage Armor, Barbarian AC)
+
+**D&D 5e AC Calculation:**
+```php
+// Complete AC calculation model
+$baseAC = $modifiers->where('category', 'ac_base')->max('value') ?? 10; // Armor or natural AC
+
+// Apply DEX modifier based on armor type
+$dexMod = $character->dexModifier;
+$armorMod = $modifiers->where('category', 'ac_base')->first();
+if ($armorMod) {
+    $dexRule = $armorMod->condition; // 'dex_modifier: full' | 'max_2' | 'none'
+    if (str_contains($dexRule, 'max_2')) $dexMod = min($dexMod, 2);
+    if (str_contains($dexRule, 'none')) $dexMod = 0;
+}
+
+$totalAC = $baseAC + $dexMod
+    + $modifiers->where('category', 'ac_bonus')->sum('value')  // Shields
+    + $modifiers->where('category', 'ac_magic')->sum('value'); // Enchantments
+```
+
+**Implementation Details:**
+- **Light Armor (LA):** `armor_class=11` + auto-created modifier(ac_base, 11) with `condition: "dex_modifier: full"`
+- **Medium Armor (MA):** `armor_class=14` + auto-created modifier(ac_base, 14) with `condition: "dex_modifier: max_2"`
+- **Heavy Armor (HA):** `armor_class=18` + auto-created modifier(ac_base, 18) with `condition: "dex_modifier: none"`
+- **Regular shields:** `armor_class=2` + auto-created modifier(ac_bonus, 2)
+- **Magic shields:** `armor_class=2` + base modifier(ac_bonus, 2) + magic modifier(ac_magic, +N)
+- **Total AC from Shield +2:** `ac_bonus(2) + ac_magic(2) = +4`
+- **Total AC from Plate + Shield +1:** `ac_base(18) + ac_bonus(2) + ac_magic(1) = 21`
+
+**Migration:** Existing shields were backfilled with base AC modifiers via `2025_11_21_191858_add_ac_modifiers_for_shields.php`
+
 ---
 
 ## 🌐 API Endpoints
@@ -263,7 +398,7 @@ Entities cite multiple sourcebooks via `entity_sources` polymorphic table.
 
 ## 🧪 Testing
 
-**719 tests** (4,700 assertions) - 40s duration
+**826 tests** (5,500+ assertions) - ~40s duration
 
 ```bash
 docker compose exec php php artisan test                    # All tests
@@ -271,7 +406,30 @@ docker compose exec php php artisan test --filter=Api       # API tests
 docker compose exec php php artisan test --filter=Importer  # Importer tests
 ```
 
-**Test Categories:**
+### Test Output Logging
+
+**Always capture test output to a file for easier review:**
+
+```bash
+# Run tests with output logging (recommended)
+docker compose exec php php artisan test 2>&1 | tee tests/results/test-output.log
+
+# Check for failures in the log file
+grep -E "(FAIL|FAILED)" tests/results/test-output.log
+
+# Extract failed test details
+grep -A 20 "FAILED" tests/results/test-output.log
+```
+
+**Benefits:**
+- No need to re-run tests to see failure details
+- Easier to share test output with team
+- Can be committed to repo for debugging sessions
+- Faster debugging workflow
+
+**Note:** The `tests/results/` directory is gitignored. Create it if needed: `mkdir -p tests/results`
+
+### Test Categories
 - Feature: API endpoints, importers, models, migrations, Scramble docs
 - Unit: Parsers, factories, services, exceptions
 
@@ -279,15 +437,46 @@ docker compose exec php php artisan test --filter=Importer  # Importer tests
 
 ## 📥 XML Import System
 
-### Available Importers (6 Working)
+### One-Command Import (Recommended)
 ```bash
-php artisan import:spells <file>       # Spells (9 files available)
-php artisan import:races <file>        # Races (5 files)
-php artisan import:items <file>        # Items (25 files)
-php artisan import:backgrounds <file>  # Backgrounds (4 files)
-php artisan import:classes <file>      # Classes (35 files)
-php artisan import:feats <file>        # Feats (4 files)
+php artisan import:all                   # Import EVERYTHING (fresh DB + all entities)
+php artisan import:all --skip-migrate    # Keep existing DB, just import data
+php artisan import:all --only=spells     # Import only specific entity type(s)
+php artisan import:all --skip-search     # Skip search index configuration
 ```
+
+**Features:**
+- ✅ Automatically maintains correct import order
+- ✅ Per-entity progress tracking
+- ✅ Detailed summary table with success/fail counts
+- ✅ Excludes additive files from main spell import
+- ✅ Handles all 51+ XML files in one command
+
+### Individual Importers (8 Available)
+```bash
+php artisan import:all                         # ⭐ MASTER COMMAND - imports everything
+php artisan import:classes <file>              # Classes (35 files) - IMPORT FIRST!
+php artisan import:spells <file>               # Spells (9 files - main definitions)
+php artisan import:spell-class-mappings <file> # Additive class mappings (6 files)
+php artisan import:races <file>                # Races (5 files)
+php artisan import:items <file>                # Items (25 files)
+php artisan import:backgrounds <file>          # Backgrounds (4 files)
+php artisan import:feats <file>                # Feats (4 files)
+```
+
+**⚠️ Import Order Matters:**
+1. **Classes first** - Required by spells for `class_spells` pivot table
+2. **Main spell files** - Full spell definitions (spells-phb.xml, spells-xge.xml, etc.)
+3. **Additive spell files** - Only class mappings (spells-phb+dmg.xml, spells-*+*.xml)
+
+**Additive Spell Files:**
+These files contain ONLY `<name>` and `<classes>` elements. They add subclass associations to spells already imported from main files:
+- `spells-phb+dmg.xml` - Death Domain, Oathbreaker additions
+- `spells-phb+scag.xml` - Arcana Domain, Crown Paladin additions
+- `spells-phb+tce.xml` - Tasha's subclass spell lists
+- `spells-phb+xge.xml` - Xanathar's subclass spell lists
+- `spells-xge+erlw.xml` - Eberron additions
+- `spells-phb+erlw.xml` - Eberron additions
 
 ### Reusable Traits (15)
 **Parser Traits:**
@@ -445,11 +634,14 @@ Before marking work complete:
 - [ ] API Resources expose new data
 - [ ] Form Requests validate new parameters
 - [ ] Controllers eager-load new relationships
+- [ ] **CHANGELOG.md updated** with new features/changes
 - [ ] Session handover document updated
 - [ ] Commit messages are clear
 - [ ] No uncommitted changes
 
 **If tests aren't written, the feature ISN'T done.**
+
+**⚠️ IMPORTANT:** After completing ANY feature, always update `CHANGELOG.md` under the `[Unreleased]` section. Before each release, move unreleased items to a dated version section.
 
 ---
 

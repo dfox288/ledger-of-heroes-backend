@@ -82,7 +82,7 @@ class SpellSchoolController extends Controller
      * - Transmutation: ~55 spells (versatile utility)
      * - Conjuration: ~45 spells (summoning & teleportation)
      *
-     * @param SpellSchool $spellSchool The school of magic (by ID, code, or slug)
+     * @param  SpellSchool  $spellSchool  The school of magic (by ID, code, or slug)
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function spells(Request $request, SpellSchool $spellSchool)

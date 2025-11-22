@@ -93,7 +93,7 @@ class ConditionController extends Controller
      * - Most powerful: Paralyzed (auto-crits), Stunned (no actions), Incapacitated
      * - Duration: Varies from 1 round to 1 minute (concentration) to permanent
      *
-     * @param Condition $condition The condition (by ID or slug)
+     * @param  Condition  $condition  The condition (by ID or slug)
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function spells(Condition $condition)
@@ -162,7 +162,7 @@ class ConditionController extends Controller
      * - Most dangerous: Paralyzed (auto-crits), Petrified (permanent), Stunned (helpless)
      * - CR correlation: Higher CR monsters inflict more conditions simultaneously
      *
-     * @param Condition $condition The condition (by ID or slug)
+     * @param  Condition  $condition  The condition (by ID or slug)
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function monsters(Condition $condition)

@@ -86,7 +86,7 @@ class DamageTypeController extends Controller
      * - Least resisted: Force, Psychic, Radiant (best for reliable damage)
      * - Most resisted: Fire, Poison (many creatures have resistance/immunity)
      *
-     * @param DamageType $damageType The damage type (by ID, code, or name)
+     * @param  DamageType  $damageType  The damage type (by ID, code, or name)
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function spells(DamageType $damageType)
@@ -143,7 +143,7 @@ class DamageTypeController extends Controller
      * - Elemental types: Fire (~12), Poison (~6), Cold (~5), Lightning (~4)
      * - Magic weapons override resistances to non-magical damage
      *
-     * @param DamageType $damageType The damage type (by ID, code, or name)
+     * @param  DamageType  $damageType  The damage type (by ID, code, or name)
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function items(DamageType $damageType)

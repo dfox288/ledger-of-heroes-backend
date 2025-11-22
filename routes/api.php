@@ -28,6 +28,11 @@ Route::prefix('v1')->group(function () {
     // Lookup tables
     Route::apiResource('sources', SourceController::class)->only(['index', 'show']);
     Route::apiResource('spell-schools', SpellSchoolController::class)->only(['index', 'show']);
+
+    // Spell school spell list endpoint
+    Route::get('spell-schools/{spellSchool}/spells', [SpellSchoolController::class, 'spells'])
+        ->name('spell-schools.spells');
+
     Route::apiResource('damage-types', DamageTypeController::class)->only(['index', 'show']);
     Route::apiResource('sizes', SizeController::class)->only(['index', 'show']);
     Route::apiResource('ability-scores', AbilityScoreController::class)->only(['index', 'show']);
@@ -35,6 +40,11 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('item-types', ItemTypeController::class)->only(['index', 'show']);
     Route::apiResource('item-properties', ItemPropertyController::class)->only(['index', 'show']);
     Route::apiResource('conditions', ConditionController::class)->only(['index', 'show']);
+
+    // Condition spell list endpoint
+    Route::get('conditions/{condition}/spells', [ConditionController::class, 'spells'])
+        ->name('conditions.spells');
+
     Route::apiResource('proficiency-types', ProficiencyTypeController::class)->only(['index', 'show']);
     Route::apiResource('languages', LanguageController::class)->only(['index', 'show']);
 

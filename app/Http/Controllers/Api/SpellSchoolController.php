@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SpellSchoolIndexRequest;
+use App\Http\Resources\SpellResource;
 use App\Http\Resources\SpellSchoolResource;
 use App\Models\SpellSchool;
 
@@ -42,5 +43,22 @@ class SpellSchoolController extends Controller
     public function show(SpellSchool $spellSchool)
     {
         return new SpellSchoolResource($spellSchool);
+    }
+
+    /**
+     * List all spells in this school of magic
+     *
+     * Returns a paginated list of spells belonging to a specific school of magic.
+     *
+     * @param SpellSchool $spellSchool The school of magic (by ID or code)
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
+    public function spells(SpellSchool $spellSchool)
+    {
+        $spells = $spellSchool->spells()
+            ->with(['spellSchool', 'sources', 'tags'])
+            ->paginate(50);
+
+        return SpellResource::collection($spells);
     }
 }

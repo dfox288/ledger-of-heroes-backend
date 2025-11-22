@@ -27,7 +27,14 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 - ✅ **Item enhancements** - Usage limits ("at will"), set scores (`set:19`), potion resistance (23 items)
 - ✅ **Test suite optimized** - Removed 36 redundant tests, 10 files deleted, 48.58s duration
 
-**Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 | PHPUnit 11+ | Docker | Meilisearch
+**Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 | PHPUnit 11+ | Docker Compose (not Sail) | Meilisearch
+
+**⚠️ IMPORTANT: Docker Compose Setup**
+- This project uses **Docker Compose directly**, NOT Laravel Sail
+- Commands use `docker compose exec php` instead of `sail`
+- All PHP commands: `docker compose exec php php artisan ...`
+- All Composer commands: `docker compose exec php composer ...`
+- Database access: `docker compose exec mysql mysql -uroot -ppassword dnd_importer`
 
 **📖 Read handovers:**
 - `docs/PROJECT-STATUS.md` - **START HERE** Comprehensive project overview with metrics

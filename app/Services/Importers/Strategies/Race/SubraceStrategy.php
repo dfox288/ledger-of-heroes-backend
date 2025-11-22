@@ -37,13 +37,38 @@ class SubraceStrategy extends AbstractRaceStrategy
         // Set parent_race_id
         $data['parent_race_id'] = $baseRace->id;
 
+        // Extract subrace portion from name for slug generation
+        $subraceName = $this->extractSubraceName($data['name'], $baseRaceName);
+
         // Generate compound slug (base-race-subrace)
-        $data['slug'] = $baseRaceSlug.'-'.Str::slug($data['name']);
+        $data['slug'] = $baseRaceSlug.'-'.Str::slug($subraceName);
 
         // Track metric
         $this->incrementMetric('subraces_processed');
 
         return $data;
+    }
+
+    /**
+     * Extract the subrace portion from the full name.
+     * e.g., "Dwarf (Hill)" -> "Hill", "Dwarf, Hill" -> "Hill"
+     */
+    private function extractSubraceName(string $fullName, string $baseName): string
+    {
+        // Try parentheses format first: "Dwarf (Hill)"
+        if (preg_match('/\(([^)]+)\)/', $fullName, $matches)) {
+            return trim($matches[1]);
+        }
+
+        // Try comma format: "Dwarf, Hill"
+        if (str_contains($fullName, ',')) {
+            [, $subraceName] = array_map('trim', explode(',', $fullName, 2));
+
+            return $subraceName;
+        }
+
+        // Fallback: use full name
+        return $fullName;
     }
 
     /**

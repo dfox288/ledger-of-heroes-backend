@@ -6,12 +6,15 @@ use App\Models\AbilityScore;
 use App\Models\Modifier;
 use App\Models\Race;
 use App\Models\Size;
-use App\Models\Source;
 use App\Services\Importers\Concerns\ImportsConditions;
 use App\Services\Importers\Concerns\ImportsEntitySpells;
 use App\Services\Importers\Concerns\ImportsLanguages;
 use App\Services\Importers\Concerns\ImportsModifiers;
+use App\Services\Importers\Strategies\Race\BaseRaceStrategy;
+use App\Services\Importers\Strategies\Race\RacialVariantStrategy;
+use App\Services\Importers\Strategies\Race\SubraceStrategy;
 use App\Services\Parsers\RaceXmlParser;
+use Illuminate\Support\Facades\Log;
 
 class RaceImporter extends BaseImporter
 {
@@ -24,39 +27,42 @@ class RaceImporter extends BaseImporter
 
     protected function importEntity(array $raceData): Race
     {
+        // Apply all applicable strategies
+        $strategies = [
+            new BaseRaceStrategy,
+            new SubraceStrategy,
+            new RacialVariantStrategy,
+        ];
+
+        foreach ($strategies as $strategy) {
+            if ($strategy->appliesTo($raceData)) {
+                $raceData = $strategy->enhance($raceData);
+                $this->logStrategyApplication($strategy, $raceData);
+            }
+        }
+
         // Lookup size by code
         $size = Size::where('code', $raceData['size_code'])->firstOrFail();
 
-        // If this is a subrace, ensure base race exists first
-        $parentRaceId = null;
-        if (! empty($raceData['base_race_name'])) {
-            $baseRace = $this->getOrCreateBaseRace(
-                $raceData['base_race_name'],
-                $raceData['size_code'],
-                $raceData['speed'],
-                $raceData['sources']
-            );
-            $parentRaceId = $baseRace->id;
+        // If slug not set by strategy, generate from name
+        if (! isset($raceData['slug'])) {
+            $raceData['slug'] = $this->generateSlug($raceData['name']);
         }
-
-        // Generate slug for race
-        $slug = $this->generateSlugForRace($raceData['name'], $raceData['base_race_name'] ?? null);
 
         // Create or update race using slug as unique key
         $race = Race::updateOrCreate(
-            ['slug' => $slug],
+            ['slug' => $raceData['slug']],
             [
                 'name' => $raceData['name'],
-                'parent_race_id' => $parentRaceId,
+                'parent_race_id' => $raceData['parent_race_id'] ?? null,
                 'size_id' => $size->id,
                 'speed' => $raceData['speed'],
+                'description' => $raceData['description'] ?? '',
             ]
         );
 
-        // Import sources - clear old sources and create new ones
-        if (isset($raceData['sources']) && is_array($raceData['sources'])) {
-            $this->importEntitySources($race, $raceData['sources']);
-        }
+        // Import relationships using existing traits
+        $this->importEntitySources($race, $raceData['sources'] ?? []);
 
         // Import traits (clear old ones first)
         $createdTraits = $this->importEntityTraits($race, $raceData['traits'] ?? []);
@@ -76,19 +82,13 @@ class RaceImporter extends BaseImporter
         );
 
         // Import proficiencies if present
-        if (isset($raceData['proficiencies'])) {
-            $this->importEntityProficiencies($race, $raceData['proficiencies']);
-        }
+        $this->importEntityProficiencies($race, $raceData['proficiencies'] ?? []);
 
         // Import languages if present
-        if (isset($raceData['languages'])) {
-            $this->importEntityLanguages($race, $raceData['languages']);
-        }
+        $this->importEntityLanguages($race, $raceData['languages'] ?? []);
 
         // Import conditions (immunities, advantages, resistances)
-        if (isset($raceData['conditions'])) {
-            $this->importEntityConditions($race, $raceData['conditions']);
-        }
+        $this->importEntityConditions($race, $raceData['conditions'] ?? []);
 
         // Import spells
         if (isset($raceData['spellcasting'])) {
@@ -99,6 +99,22 @@ class RaceImporter extends BaseImporter
         $this->importRandomTablesFromRolls($createdTraits, $raceData['traits'] ?? []);
 
         return $race;
+    }
+
+    /**
+     * Log strategy application to import-strategy channel.
+     */
+    private function logStrategyApplication($strategy, array $data): void
+    {
+        Log::channel('import-strategy')->info('Strategy applied', [
+            'race' => $data['name'],
+            'strategy' => class_basename($strategy),
+            'warnings' => $strategy->getWarnings(),
+            'metrics' => $strategy->getMetrics(),
+        ]);
+
+        // Reset strategy for next entity
+        $strategy->reset();
     }
 
     /**
@@ -204,38 +220,6 @@ class RaceImporter extends BaseImporter
         return $count;
     }
 
-    private function getOrCreateBaseRace(
-        string $baseRaceName,
-        string $sizeCode,
-        int $speed,
-        array $sources
-    ): Race {
-        // Check if base race already exists
-        $existing = Race::where('name', $baseRaceName)
-            ->whereNull('parent_race_id')
-            ->first();
-
-        if ($existing) {
-            return $existing;
-        }
-
-        // Create base race with minimal data
-        $size = Size::where('code', $sizeCode)->firstOrFail();
-
-        $baseRace = Race::create([
-            'slug' => $this->generateSlug($baseRaceName),
-            'name' => $baseRaceName,
-            'size_id' => $size->id,
-            'speed' => $speed,
-            'parent_race_id' => null,
-        ]);
-
-        // Create source associations for base race
-        $this->importEntitySources($baseRace, $sources);
-
-        return $baseRace;
-    }
-
     private function importRandomTablesFromRolls(array $createdTraits, array $traitsData): void
     {
         foreach ($traitsData as $index => $traitData) {
@@ -274,42 +258,6 @@ class RaceImporter extends BaseImporter
                 // and will need to be parsed separately if needed in the future
             }
         }
-    }
-
-    /**
-     * Generate a slug for a race, handling parent/subrace relationships.
-     *
-     * @param  string  $raceName  Full race name (e.g., "Dwarf (Hill)")
-     * @param  string|null  $baseRaceName  Base race name if this is a subrace
-     * @return string Generated slug (e.g., "dwarf-hill")
-     */
-    private function generateSlugForRace(string $raceName, ?string $baseRaceName): string
-    {
-        // If this is a base race (no base_race_name), just slug the name
-        if (empty($baseRaceName)) {
-            return $this->generateSlug($raceName);
-        }
-
-        // For subraces, extract the subrace portion
-        // Format: "Dwarf (Hill)" or "Elf, High"
-
-        // Try parentheses format first: "Dwarf (Hill)"
-        if (preg_match('/^(.+?)\s*\((.+)\)$/', $raceName, $matches)) {
-            $baseRaceName = trim($matches[1]);
-            $subraceName = trim($matches[2]);
-
-            return $this->generateSlug($subraceName, $this->generateSlug($baseRaceName));
-        }
-
-        // Try comma format: "Dwarf, Hill"
-        if (str_contains($raceName, ',')) {
-            [$baseRaceName, $subraceName] = array_map('trim', explode(',', $raceName, 2));
-
-            return $this->generateSlug($subraceName, $this->generateSlug($baseRaceName));
-        }
-
-        // Fallback: just slug the full name
-        return $this->generateSlug($raceName);
     }
 
     /**

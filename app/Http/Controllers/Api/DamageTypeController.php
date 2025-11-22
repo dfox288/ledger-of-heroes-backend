@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DamageTypeIndexRequest;
 use App\Http\Resources\DamageTypeResource;
+use App\Http\Resources\ItemResource;
 use App\Http\Resources\SpellResource;
 use App\Models\DamageType;
 
@@ -62,5 +63,25 @@ class DamageTypeController extends Controller
             ->paginate($perPage);
 
         return SpellResource::collection($spells);
+    }
+
+    /**
+     * List all items that deal this damage type
+     *
+     * Returns a paginated list of items (weapons, ammunition) that deal this type of damage.
+     *
+     * @param DamageType $damageType The damage type (by ID, code, or name)
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
+    public function items(DamageType $damageType)
+    {
+        $perPage = request()->input('per_page', 50);
+
+        $items = $damageType->items()
+            ->with(['itemType', 'sources', 'tags'])
+            ->orderBy('name')
+            ->paginate($perPage);
+
+        return ItemResource::collection($items);
     }
 }

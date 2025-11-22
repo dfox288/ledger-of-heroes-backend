@@ -37,6 +37,10 @@ Route::prefix('v1')->group(function () {
     Route::get('damage-types/{damageType}/spells', [DamageTypeController::class, 'spells'])
         ->name('damage-types.spells');
 
+    // Damage type item list endpoint
+    Route::get('damage-types/{damageType}/items', [DamageTypeController::class, 'items'])
+        ->name('damage-types.items');
+
     Route::apiResource('damage-types', DamageTypeController::class)->only(['index', 'show']);
 
     Route::apiResource('sizes', SizeController::class)->only(['index', 'show']);

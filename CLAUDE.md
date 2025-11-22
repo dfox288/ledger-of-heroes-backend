@@ -24,7 +24,7 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 
 **Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 | PHPUnit 11+ | Docker
 
-**📖 Read handover:** `docs/SESSION-HANDOVER-2025-11-22-ITEM-ENHANCEMENTS.md` for latest session details
+**📖 Read handover:** `docs/SESSION-HANDOVER-2025-11-22-PARSER-ENHANCEMENTS.md` for latest session details
 
 ---
 

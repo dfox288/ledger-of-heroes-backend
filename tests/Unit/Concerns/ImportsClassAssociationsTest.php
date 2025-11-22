@@ -175,6 +175,56 @@ class ImportsClassAssociationsTest extends TestCase
         $this->assertEquals(0, $count, 'Should return 0 for no new associations');
         $this->assertEquals(2, $spell->classes()->count());
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_skips_unresolved_classes(): void
+    {
+        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+
+        $spell = Spell::factory()->create();
+
+        // Mix of valid and invalid class names
+        $this->importer->syncClassAssociations($spell, ['Wizard', 'FakeClass', 'Fighter (Nonexistent)']);
+
+        // Should only associate valid class
+        $this->assertEquals(1, $spell->classes()->count());
+        $this->assertEquals($wizard->id, $spell->classes()->first()->id);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_handles_empty_class_array(): void
+    {
+        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+
+        $spell = Spell::factory()->create();
+        $spell->classes()->attach($wizard->id);
+
+        // Sync with empty array should clear all associations
+        $this->importer->syncClassAssociations($spell, []);
+
+        $this->assertEquals(0, $spell->classes()->count());
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_handles_mixed_base_and_subclass_names(): void
+    {
+        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+        $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter']);
+        $eldritchKnight = CharacterClass::factory()->create([
+            'name' => 'Eldritch Knight',
+            'slug' => 'eldritch-knight',
+            'parent_class_id' => $fighter->id,
+        ]);
+
+        $spell = Spell::factory()->create();
+
+        // Mix of base class and subclass
+        $this->importer->syncClassAssociations($spell, ['Wizard', 'Fighter (Eldritch Knight)']);
+
+        $this->assertEquals(2, $spell->classes()->count());
+        $classIds = $spell->classes()->pluck('id')->sort()->values()->toArray();
+        $this->assertEquals([$wizard->id, $eldritchKnight->id], $classIds);
+    }
 }
 
 // Test helper class that uses the trait

@@ -17,7 +17,7 @@ class ImportsClassAssociationsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->importer = new TestImporter();
+        $this->importer = new TestImporter;
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -36,6 +36,25 @@ class ImportsClassAssociationsTest extends TestCase
 
         $this->assertEquals(1, $spell->classes()->count());
         $this->assertEquals($eldritchKnight->id, $spell->classes()->first()->id);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_resolves_subclass_with_fuzzy_match(): void
+    {
+        $warlock = CharacterClass::factory()->create(['name' => 'Warlock', 'slug' => 'warlock']);
+        $archfey = CharacterClass::factory()->create([
+            'name' => 'The Archfey',  // Database has "The Archfey"
+            'slug' => 'the-archfey',
+            'parent_class_id' => $warlock->id,
+        ]);
+
+        $spell = Spell::factory()->create();
+
+        // XML has "Archfey" (without "The")
+        $this->importer->syncClassAssociations($spell, ['Warlock (Archfey)']);
+
+        $this->assertEquals(1, $spell->classes()->count());
+        $this->assertEquals($archfey->id, $spell->classes()->first()->id);
     }
 }
 

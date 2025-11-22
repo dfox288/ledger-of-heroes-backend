@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\ProficiencyType;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class ProficiencyTypeSeeder extends Seeder
 {
@@ -123,6 +124,9 @@ class ProficiencyTypeSeeder extends Seeder
         ];
 
         foreach ($proficiencyTypes as $type) {
+            // Auto-generate slug from name
+            $type['slug'] = Str::slug($type['name']);
+
             ProficiencyType::updateOrCreate(
                 ['name' => $type['name'], 'category' => $type['category']],
                 $type

@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<compendium version="5">
+    <race>
+        <name>High Elf</name>
+        <size>M</size>
+        <speed>30</speed>
+        <ability>Int 1</ability>
+        <trait>
+            <name>Elf Weapon Training</name>
+            <text>You have proficiency with longswords and shortbows.</text>
+        </trait>
+        <text>Source: Player's Handbook p. 23</text>
+        <modifier category="bonus">Intelligence +1</modifier>
+    </race>
+</compendium>

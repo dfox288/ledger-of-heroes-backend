@@ -39,9 +39,9 @@
                         }
                     },
                     {
-                        "name": "search",
+                        "name": "q",
                         "in": "query",
-                        "description": "Search",
+                        "description": "Search (consistent with main entity endpoints)",
                         "schema": {
                             "type": "string",
                             "maxLength": 255
@@ -1271,9 +1271,9 @@
                         }
                     },
                     {
-                        "name": "search",
+                        "name": "q",
                         "in": "query",
-                        "description": "Search",
+                        "description": "Search (consistent with main entity endpoints)",
                         "schema": {
                             "type": "string",
                             "maxLength": 255
@@ -1498,9 +1498,9 @@
                         }
                     },
                     {
-                        "name": "search",
+                        "name": "q",
                         "in": "query",
-                        "description": "Search",
+                        "description": "Search (consistent with main entity endpoints)",
                         "schema": {
                             "type": "string",
                             "maxLength": 255
@@ -2393,7 +2393,9 @@
                                 "modifiers",
                                 "abilities",
                                 "prerequisites",
-                                "prerequisites.prerequisite"
+                                "prerequisites.prerequisite",
+                                "spells",
+                                "spells.spellSchool"
                             ],
                             "items": {
                                 "type": "string",
@@ -2403,7 +2405,9 @@
                                     "modifiers",
                                     "abilities",
                                     "prerequisites",
-                                    "prerequisites.prerequisite"
+                                    "prerequisites.prerequisite",
+                                    "spells",
+                                    "spells.spellSchool"
                                 ]
                             }
                         }
@@ -2501,9 +2505,9 @@
                         }
                     },
                     {
-                        "name": "search",
+                        "name": "q",
                         "in": "query",
-                        "description": "Search",
+                        "description": "Search (consistent with main entity endpoints)",
                         "schema": {
                             "type": "string",
                             "maxLength": 255
@@ -2728,9 +2732,9 @@
                         }
                     },
                     {
-                        "name": "search",
+                        "name": "q",
                         "in": "query",
-                        "description": "Search",
+                        "description": "Search (consistent with main entity endpoints)",
                         "schema": {
                             "type": "string",
                             "maxLength": 255
@@ -2955,9 +2959,9 @@
                         }
                     },
                     {
-                        "name": "search",
+                        "name": "q",
                         "in": "query",
-                        "description": "Search",
+                        "description": "Search (consistent with main entity endpoints)",
                         "schema": {
                             "type": "string",
                             "maxLength": 255
@@ -3154,6 +3158,436 @@
                 }
             }
         },
+        "/v1/monsters": {
+            "get": {
+                "operationId": "monsters.index",
+                "description": "Returns a paginated list of D&D 5e monsters. Supports filtering by challenge rating,\ntype, size, alignment, and full-text search. All query parameters are validated\nand documented automatically from the MonsterIndexRequest.",
+                "summary": "List all monsters",
+                "tags": [
+                    "Monster"
+                ],
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Pagination",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sorting",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "name",
+                                "challenge_rating",
+                                "hit_points_average",
+                                "armor_class",
+                                "experience_points"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort_direction",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search query",
+                        "schema": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "challenge_rating",
+                        "in": "query",
+                        "description": "Challenge rating filters",
+                        "schema": {
+                            "type": "number",
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "min_cr",
+                        "in": "query",
+                        "schema": {
+                            "type": "number",
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "max_cr",
+                        "in": "query",
+                        "schema": {
+                            "type": "number",
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Type filter (dragon, humanoid, undead, etc.)",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50
+                        }
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "description": "Size filter (T, S, M, L, H, G)",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 2
+                        }
+                    },
+                    {
+                        "name": "alignment",
+                        "in": "query",
+                        "description": "Alignment filter",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50
+                        }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR. Available fields: challenge_rating (string), type (string), size_code (string), alignment (string), armor_class (int), hit_points_average (int), experience_points (int).",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 1000
+                        },
+                        "example": "challenge_rating >= 5 AND challenge_rating <= 10 AND type = dragon"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `MonsterResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/MonsterResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/monsters/{monster}": {
+            "get": {
+                "operationId": "monsters.show",
+                "description": "Returns detailed information about a specific monster including traits, actions,\nlegendary actions, spellcasting, modifiers, conditions, and source citations.\nSupports selective relationship loading via the 'include' parameter.",
+                "summary": "Get a single monster",
+                "tags": [
+                    "Monster"
+                ],
+                "parameters": [
+                    {
+                        "name": "monster",
+                        "in": "path",
+                        "required": true,
+                        "description": "The monster ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "include[]",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "enum": [
+                                "size",
+                                "traits",
+                                "actions",
+                                "legendaryActions",
+                                "spellcasting",
+                                "sources",
+                                "sources.source",
+                                "modifiers",
+                                "modifiers.abilityScore",
+                                "modifiers.skill",
+                                "modifiers.damageType",
+                                "conditions"
+                            ],
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "size",
+                                    "traits",
+                                    "actions",
+                                    "legendaryActions",
+                                    "spellcasting",
+                                    "sources",
+                                    "sources.source",
+                                    "modifiers",
+                                    "modifiers.abilityScore",
+                                    "modifiers.skill",
+                                    "modifiers.damageType",
+                                    "conditions"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "fields[]",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "enum": [
+                                "id",
+                                "name",
+                                "slug",
+                                "size_id",
+                                "type",
+                                "alignment",
+                                "armor_class",
+                                "armor_type",
+                                "hit_points_average",
+                                "hit_dice",
+                                "speed_walk",
+                                "speed_fly",
+                                "speed_swim",
+                                "speed_burrow",
+                                "speed_climb",
+                                "can_hover",
+                                "strength",
+                                "dexterity",
+                                "constitution",
+                                "intelligence",
+                                "wisdom",
+                                "charisma",
+                                "challenge_rating",
+                                "experience_points",
+                                "description"
+                            ],
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "id",
+                                    "name",
+                                    "slug",
+                                    "size_id",
+                                    "type",
+                                    "alignment",
+                                    "armor_class",
+                                    "armor_type",
+                                    "hit_points_average",
+                                    "hit_dice",
+                                    "speed_walk",
+                                    "speed_fly",
+                                    "speed_swim",
+                                    "speed_burrow",
+                                    "speed_climb",
+                                    "can_hover",
+                                    "strength",
+                                    "dexterity",
+                                    "constitution",
+                                    "intelligence",
+                                    "wisdom",
+                                    "charisma",
+                                    "challenge_rating",
+                                    "experience_points",
+                                    "description"
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`MonsterResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/MonsterResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
         "/v1/proficiency-types": {
             "get": {
                 "operationId": "proficiency-types.index",
@@ -3182,9 +3616,9 @@
                         }
                     },
                     {
-                        "name": "search",
+                        "name": "q",
                         "in": "query",
-                        "description": "Search",
+                        "description": "Search (consistent with main entity endpoints)",
                         "schema": {
                             "type": "string",
                             "maxLength": 255
@@ -3800,7 +4234,7 @@
         "/v1/search": {
             "get": {
                 "operationId": "search",
-                "description": "Search simultaneously across spells, items, races, classes, backgrounds, and feats.\nReturns grouped results with relevance ranking powered by Meilisearch.",
+                "description": "Search simultaneously across spells, items, races, classes, backgrounds, feats, and monsters.\nReturns grouped results with relevance ranking powered by Meilisearch.",
                 "summary": "Global search across all D&D entities",
                 "tags": [
                     "Search"
@@ -3827,7 +4261,8 @@
                                 "race",
                                 "class",
                                 "background",
-                                "feat"
+                                "feat",
+                                "monster"
                             ],
                             "items": {
                                 "type": "string",
@@ -3837,7 +4272,8 @@
                                     "race",
                                     "class",
                                     "background",
-                                    "feat"
+                                    "feat",
+                                    "monster"
                                 ]
                             }
                         }
@@ -3904,9 +4340,9 @@
                         }
                     },
                     {
-                        "name": "search",
+                        "name": "q",
                         "in": "query",
-                        "description": "Search",
+                        "description": "Search (consistent with main entity endpoints)",
                         "schema": {
                             "type": "string",
                             "maxLength": 255
@@ -4131,9 +4567,9 @@
                         }
                     },
                     {
-                        "name": "search",
+                        "name": "q",
                         "in": "query",
-                        "description": "Search",
+                        "description": "Search (consistent with main entity endpoints)",
                         "schema": {
                             "type": "string",
                             "maxLength": 255
@@ -4366,9 +4802,9 @@
                         }
                     },
                     {
-                        "name": "search",
+                        "name": "q",
                         "in": "query",
-                        "description": "Search",
+                        "description": "Search (consistent with main entity endpoints)",
                         "schema": {
                             "type": "string",
                             "maxLength": 255
@@ -4873,7 +5309,9 @@
                                 "sources.source",
                                 "effects",
                                 "effects.damageType",
-                                "classes"
+                                "classes",
+                                "randomTables",
+                                "randomTables.entries"
                             ],
                             "items": {
                                 "type": "string",
@@ -4883,7 +5321,9 @@
                                     "sources.source",
                                     "effects",
                                     "effects.damageType",
-                                    "classes"
+                                    "classes",
+                                    "randomTables",
+                                    "randomTables.entries"
                                 ]
                             }
                         }
@@ -4985,9 +5425,9 @@
                         }
                     },
                     {
-                        "name": "search",
+                        "name": "q",
                         "in": "query",
-                        "description": "Search",
+                        "description": "Search (consistent with main entity endpoints)",
                         "schema": {
                             "type": "string",
                             "maxLength": 255
@@ -5248,6 +5688,12 @@
                         "items": {
                             "$ref": "#/components/schemas/EntityItemResource"
                         }
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TagResource"
+                        }
                     }
                 },
                 "required": [
@@ -5494,6 +5940,12 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/EntitySourceResource"
+                        }
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TagResource"
                         }
                     }
                 },
@@ -5783,6 +6235,25 @@
                     },
                     "is_cantrip": {
                         "type": "boolean"
+                    },
+                    "charges_cost_min": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Charge costs (for items that cast spells)"
+                    },
+                    "charges_cost_max": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "charges_cost_formula": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -5791,7 +6262,10 @@
                     "ability_score_id",
                     "level_requirement",
                     "usage_limit",
-                    "is_cantrip"
+                    "is_cantrip",
+                    "charges_cost_min",
+                    "charges_cost_max",
+                    "charges_cost_formula"
                 ],
                 "title": "EntitySpellResource"
             },
@@ -5806,6 +6280,12 @@
                     },
                     "name": {
                         "type": "string"
+                    },
+                    "prerequisites_text": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "prerequisites": {
                         "type": "array",
@@ -5839,12 +6319,19 @@
                         "items": {
                             "$ref": "#/components/schemas/EntitySourceResource"
                         }
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TagResource"
+                        }
                     }
                 },
                 "required": [
                     "id",
                     "slug",
                     "name",
+                    "prerequisites_text",
                     "description"
                 ],
                 "title": "FeatResource"
@@ -5972,6 +6459,12 @@
                     "item_type_id": {
                         "type": "integer"
                     },
+                    "detail": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
                     "rarity": {
                         "type": [
                             "string",
@@ -6044,19 +6537,24 @@
                     "description": {
                         "type": "string"
                     },
-                    "created_at": {
+                    "charges_max": {
                         "type": [
                             "string",
                             "null"
                         ],
-                        "format": "date-time"
+                        "description": "Charge mechanics (magic items)"
                     },
-                    "updated_at": {
+                    "recharge_formula": {
                         "type": [
                             "string",
                             "null"
-                        ],
-                        "format": "date-time"
+                        ]
+                    },
+                    "recharge_timing": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "item_type": {
                         "description": "Relationships",
@@ -6106,6 +6604,24 @@
                         "items": {
                             "$ref": "#/components/schemas/EntityPrerequisiteResource"
                         }
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TagResource"
+                        }
+                    },
+                    "spells": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ItemSpellResource"
+                        }
+                    },
+                    "saving_throws": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SavingThrowResource"
+                        }
                     }
                 },
                 "required": [
@@ -6113,6 +6629,7 @@
                     "name",
                     "slug",
                     "item_type_id",
+                    "detail",
                     "rarity",
                     "requires_attunement",
                     "is_magic",
@@ -6127,10 +6644,60 @@
                     "strength_requirement",
                     "stealth_disadvantage",
                     "description",
-                    "created_at",
-                    "updated_at"
+                    "charges_max",
+                    "recharge_formula",
+                    "recharge_timing"
                 ],
                 "title": "ItemResource"
+            },
+            "ItemSpellResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "level": {
+                        "type": "string"
+                    },
+                    "school": {
+                        "$ref": "#/components/schemas/SpellSchoolResource"
+                    },
+                    "charges_cost_min": {
+                        "type": "string",
+                        "description": "Charge cost data from pivot table (entity_spells)"
+                    },
+                    "charges_cost_max": {
+                        "type": "string"
+                    },
+                    "charges_cost_formula": {
+                        "type": "string"
+                    },
+                    "usage_limit": {
+                        "type": "string",
+                        "description": "Other usage metadata from pivot"
+                    },
+                    "level_requirement": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "slug",
+                    "level",
+                    "charges_cost_min",
+                    "charges_cost_max",
+                    "charges_cost_formula",
+                    "usage_limit",
+                    "level_requirement"
+                ],
+                "title": "ItemSpellResource"
             },
             "ItemTypeResource": {
                 "type": "object",
@@ -6216,7 +6783,15 @@
                         "$ref": "#/components/schemas/SkillResource"
                     },
                     "damage_type": {
-                        "$ref": "#/components/schemas/DamageTypeResource"
+                        "anyOf": [
+                            {
+                                "description": "Always include damage_type field for damage_resistance category, even if NULL\nThis is important for items like Potion of Invulnerability (resistance:all)",
+                                "$ref": "#/components/schemas/DamageTypeResource"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     },
                     "value": {
                         "type": "string"
@@ -6253,6 +6828,336 @@
                     "choice_constraint"
                 ],
                 "title": "ModifierResource"
+            },
+            "MonsterActionResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "action_type": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "attack_data": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "recharge": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "sort_order": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "id",
+                    "action_type",
+                    "name",
+                    "description",
+                    "attack_data",
+                    "recharge",
+                    "sort_order"
+                ],
+                "title": "MonsterActionResource"
+            },
+            "MonsterLegendaryActionResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "action_cost": {
+                        "type": "integer"
+                    },
+                    "is_lair_action": {
+                        "type": "boolean"
+                    },
+                    "attack_data": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "recharge": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "sort_order": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "action_cost",
+                    "is_lair_action",
+                    "attack_data",
+                    "recharge",
+                    "sort_order"
+                ],
+                "title": "MonsterLegendaryActionResource"
+            },
+            "MonsterResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "size": {
+                        "$ref": "#/components/schemas/SizeResource"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "alignment": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "armor_class": {
+                        "type": "integer"
+                    },
+                    "armor_type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "hit_points_average": {
+                        "type": "integer"
+                    },
+                    "hit_dice": {
+                        "type": "string"
+                    },
+                    "speed_walk": {
+                        "type": "integer"
+                    },
+                    "speed_fly": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "speed_swim": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "speed_burrow": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "speed_climb": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "can_hover": {
+                        "type": "boolean"
+                    },
+                    "strength": {
+                        "type": "integer"
+                    },
+                    "dexterity": {
+                        "type": "integer"
+                    },
+                    "constitution": {
+                        "type": "integer"
+                    },
+                    "intelligence": {
+                        "type": "integer"
+                    },
+                    "wisdom": {
+                        "type": "integer"
+                    },
+                    "charisma": {
+                        "type": "integer"
+                    },
+                    "challenge_rating": {
+                        "type": "string"
+                    },
+                    "experience_points": {
+                        "type": "integer"
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "traits": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MonsterTraitResource"
+                        }
+                    },
+                    "actions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MonsterActionResource"
+                        }
+                    },
+                    "legendary_actions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MonsterLegendaryActionResource"
+                        }
+                    },
+                    "spellcasting": {
+                        "$ref": "#/components/schemas/MonsterSpellcastingResource"
+                    },
+                    "modifiers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ModifierResource"
+                        }
+                    },
+                    "conditions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EntityConditionResource"
+                        }
+                    },
+                    "sources": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EntitySourceResource"
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "slug",
+                    "name",
+                    "type",
+                    "alignment",
+                    "armor_class",
+                    "armor_type",
+                    "hit_points_average",
+                    "hit_dice",
+                    "speed_walk",
+                    "speed_fly",
+                    "speed_swim",
+                    "speed_burrow",
+                    "speed_climb",
+                    "can_hover",
+                    "strength",
+                    "dexterity",
+                    "constitution",
+                    "intelligence",
+                    "wisdom",
+                    "charisma",
+                    "challenge_rating",
+                    "experience_points",
+                    "description"
+                ],
+                "title": "MonsterResource"
+            },
+            "MonsterSpellcastingResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "spell_slots": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "spellcasting_ability": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "spell_save_dc": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "spell_attack_bonus": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "description",
+                    "spell_slots",
+                    "spellcasting_ability",
+                    "spell_save_dc",
+                    "spell_attack_bonus"
+                ],
+                "title": "MonsterSpellcastingResource"
+            },
+            "MonsterTraitResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "attack_data": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "sort_order": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "attack_data",
+                    "sort_order"
+                ],
+                "title": "MonsterTraitResource"
             },
             "ProficiencyResource": {
                 "type": "object",
@@ -6425,6 +7330,12 @@
                         "items": {
                             "$ref": "#/components/schemas/EntitySpellResource"
                         }
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TagResource"
+                        }
                     }
                 },
                 "required": [
@@ -6508,6 +7419,50 @@
                 ],
                 "title": "RandomTableResource"
             },
+            "SavingThrowResource": {
+                "type": "object",
+                "properties": {
+                    "ability_score": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "code": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "code",
+                            "name"
+                        ]
+                    },
+                    "dc": {
+                        "type": "string"
+                    },
+                    "save_effect": {
+                        "type": "string"
+                    },
+                    "is_initial_save": {
+                        "type": "boolean"
+                    },
+                    "save_modifier": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ability_score",
+                    "dc",
+                    "save_effect",
+                    "is_initial_save",
+                    "save_modifier"
+                ],
+                "title": "SavingThrowResource"
+            },
             "SearchResource": {
                 "type": "object",
                 "properties": {
@@ -6549,6 +7504,12 @@
                                 "items": {
                                     "$ref": "#/components/schemas/FeatResource"
                                 }
+                            },
+                            "monsters": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/MonsterResource"
+                                }
                             }
                         },
                         "required": [
@@ -6557,7 +7518,8 @@
                             "races",
                             "classes",
                             "backgrounds",
-                            "feats"
+                            "feats",
+                            "monsters"
                         ]
                     },
                     "meta": {
@@ -6797,6 +7759,24 @@
                         "items": {
                             "$ref": "#/components/schemas/ClassResource"
                         }
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TagResource"
+                        }
+                    },
+                    "saving_throws": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SavingThrowResource"
+                        }
+                    },
+                    "random_tables": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RandomTableResource"
+                        }
                     }
                 },
                 "required": [
@@ -6842,6 +7822,30 @@
                     "description"
                 ],
                 "title": "SpellSchoolResource"
+            },
+            "TagResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "slug",
+                    "type"
+                ],
+                "title": "TagResource"
             },
             "TraitResource": {
                 "type": "object",

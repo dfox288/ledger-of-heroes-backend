@@ -171,7 +171,7 @@ class Item extends Model
     public function toSearchableArray(): array
     {
         // Load relationships to avoid N+1 queries
-        $this->loadMissing(['itemType', 'sources.source', 'damageType']);
+        $this->loadMissing(['itemType', 'sources.source', 'damageType', 'spells']);
 
         return [
             'id' => $this->id,
@@ -196,6 +196,8 @@ class Item extends Model
             'armor_class' => $this->armor_class,
             'strength_requirement' => $this->strength_requirement,
             'stealth_disadvantage' => $this->stealth_disadvantage,
+            // Spell filtering (similar to Monster)
+            'spell_slugs' => $this->spells->pluck('slug')->all(),
         ];
     }
 
@@ -204,7 +206,7 @@ class Item extends Model
      */
     public function searchableWith(): array
     {
-        return ['itemType', 'sources.source', 'damageType'];
+        return ['itemType', 'sources.source', 'damageType', 'spells'];
     }
 
     /**

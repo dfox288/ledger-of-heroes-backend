@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Item Spell Filtering API** - Query items by their granted spells via REST API (following Monster implementation pattern)
+  - **Filter endpoint:** `GET /api/v1/items?spells=fireball` - Find items that grant specific spell(s)
+  - **Multiple spells:** `GET /api/v1/items?spells=fireball,lightning-bolt` - AND logic (must grant ALL specified spells)
+  - **OR Logic:** `GET /api/v1/items?spells=fireball,lightning-bolt&spells_operator=OR` - Find items with ANY of the specified spells
+  - **Spell Level Filter:** `GET /api/v1/items?spell_level=7` - Find items with specific spell level (0-9, where 0=cantrips)
+  - **Item Type Filter:** `GET /api/v1/items?type=WD` - Filter by item type (WD=wand, ST=staff, SCR=scroll, RD=rod)
+  - **Has Charges Filter:** `GET /api/v1/items?has_charges=true` - Filter items with charges (100 items)
+  - **Combined Filters:** `GET /api/v1/items?spells=teleport&spell_level=7&type=WD` - Complex multi-criteria queries
+  - **Implementation:**
+    - Updated `ItemIndexRequest` with 6 new filter validations (spells, spells_operator, spell_level, type, has_charges, rarity)
+    - Enhanced `ItemSearchDTO` with new filter parameters and Meilisearch support
+    - Created `ItemSearchService` with Meilisearch integration and database filtering (219 lines, following MonsterSearchService pattern)
+    - Updated `Item::toSearchableArray()` with `spell_slugs` field for Meilisearch filtering
+    - Added comprehensive PHPDoc to `ItemController::index()` with examples and use cases (54 lines, Scramble-compatible)
+  - **Tests:** 9 comprehensive feature tests (1,050 total tests passing, +9 new)
+  - **Leverages:** 107 spell relationships across 84 items (wands, staves, scrolls, rods)
+  - **Use Cases:** Magic item shops, scroll discovery, loot tables, themed item collections
+  - **Pattern:** Reuses proven Monster spell filtering architecture (TDD, service layer, DTO pattern)
+
+- **Monster Enhanced Filtering Tests** - Comprehensive test coverage for advanced Monster filtering features
+  - 25 new feature tests covering OR logic, spell level, and spellcasting ability filtering
+  - 85 new assertions validating happy paths, edge cases, and validation scenarios
+  - **OR Logic Tests (6):** Multi-spell OR logic, comparison with AND, single spell edge case, backward compatibility, invalid slug handling
+  - **Spell Level Tests (7):** All level ranges (0-9), combined with name filtering, validation errors (< 0, > 9)
+  - **Spellcasting Ability Tests (6):** All abilities (INT/WIS/CHA), combined with CR filtering, case sensitivity, validation errors
+  - **Combined Filter Tests (6):** Two-way combinations (OR+level, level+ability), three-way (all enhanced), integration with base filters
+  - **Test Quality:** PHPUnit 11 attributes, descriptive names, arrange-act-assert structure, realistic test data
+  - **Coverage:** 100% feature coverage with edge cases, validation errors, and backward compatibility
+  - **File:** `tests/Feature/Api/MonsterEnhancedFilteringApiTest.php` (763 lines, 1,048 total tests passing)
+
 ### Performance
 - **Three-Layer Performance Optimization** - 5-10x faster queries with 78% bandwidth reduction
   - **Database Indexes:** Composite index on `entity_spells(reference_type, spell_id)` for faster spell filtering

@@ -25,8 +25,48 @@ class ProficiencyTypeApiTest extends TestCase
         $response->assertOk()
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'name', 'category', 'subcategory'],
+                    '*' => ['id', 'slug', 'name', 'category', 'subcategory'],
                 ],
+            ]);
+    }
+
+    #[Test]
+    public function it_retrieves_proficiency_type_by_slug(): void
+    {
+        $type = ProficiencyType::where('name', "Alchemist's Supplies")->first();
+
+        $response = $this->getJson('/api/v1/proficiency-types/alchemists-supplies');
+
+        $response->assertOk()
+            ->assertJsonFragment([
+                'slug' => 'alchemists-supplies',
+                'name' => "Alchemist's Supplies",
+            ]);
+    }
+
+    #[Test]
+    public function it_retrieves_proficiency_type_by_slug_with_apostrophe(): void
+    {
+        $type = ProficiencyType::where('name', "Cook's Utensils")->first();
+
+        $response = $this->getJson('/api/v1/proficiency-types/cooks-utensils');
+
+        $response->assertOk()
+            ->assertJsonFragment([
+                'slug' => 'cooks-utensils',
+                'name' => "Cook's Utensils",
+            ]);
+    }
+
+    #[Test]
+    public function it_retrieves_proficiency_type_by_slug_with_spaces(): void
+    {
+        $response = $this->getJson('/api/v1/proficiency-types/light-armor');
+
+        $response->assertOk()
+            ->assertJsonFragment([
+                'slug' => 'light-armor',
+                'name' => 'Light Armor',
             ]);
     }
 
@@ -93,11 +133,11 @@ class ProficiencyTypeApiTest extends TestCase
     {
         $proficiencyType = ProficiencyType::where('name', "Alchemist's Supplies")->first();
 
-        $response = $this->getJson("/api/v1/proficiency-types/{$proficiencyType->id}");
+        $response = $this->getJson("/api/v1/proficiency-types/{$proficiencyType->slug}");
 
         $response->assertOk()
             ->assertJsonStructure([
-                'data' => ['id', 'name', 'category', 'subcategory', 'item'],
+                'data' => ['id', 'slug', 'name', 'category', 'subcategory', 'item'],
             ])
             ->assertJsonPath('data.subcategory', 'artisan');
     }

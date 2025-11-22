@@ -16,6 +16,7 @@ class ProficiencyTypeResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'slug' => $this->slug,
             'name' => $this->name,
             'category' => $this->category,
             'subcategory' => $this->subcategory,

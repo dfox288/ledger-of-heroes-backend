@@ -17,6 +17,7 @@ class SkillResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'slug' => $this->slug,
             'ability_score' => new AbilityScoreResource($this->whenLoaded('abilityScore')),
         ];
     }

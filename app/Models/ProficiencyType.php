@@ -15,6 +15,7 @@ class ProficiencyType extends Model
 
     protected $fillable = [
         'name',
+        'slug',
         'category',
         'subcategory',
         'item_id',
@@ -23,6 +24,11 @@ class ProficiencyType extends Model
     protected $casts = [
         'item_id' => 'integer',
     ];
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
 
     public function item(): BelongsTo
     {

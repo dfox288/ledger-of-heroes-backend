@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\ProficiencyType;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ProficiencyType>
@@ -28,8 +29,11 @@ class ProficiencyTypeFactory extends Factory
             'tool' => ['artisan', 'gaming', 'musical'],
         ];
 
+        $name = fake()->words(2, true);
+
         return [
-            'name' => fake()->words(2, true),
+            'name' => $name,
+            'slug' => Str::slug($name),
             'category' => $category,
             'subcategory' => isset($subcategories[$category]) ? fake()->randomElement($subcategories[$category]) : null,
             'item_id' => null,

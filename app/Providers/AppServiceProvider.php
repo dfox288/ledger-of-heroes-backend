@@ -15,6 +15,7 @@ use App\Models\Language;
 use App\Models\Monster;
 use App\Models\ProficiencyType;
 use App\Models\Race;
+use App\Models\Skill;
 use App\Models\Spell;
 use App\Models\SpellSchool;
 use Illuminate\Support\Facades\Event;
@@ -151,6 +152,15 @@ class AppServiceProvider extends ServiceProvider
 
             // Try name (case-insensitive, e.g., "Longsword", "Stealth", "Heavy Armor")
             return ProficiencyType::whereRaw('LOWER(name) = ?', [strtolower($value)])->firstOrFail();
+        });
+
+        Route::bind('skill', function ($value) {
+            if (is_numeric($value)) {
+                return Skill::findOrFail($value);
+            }
+
+            // Try slug (e.g., "acrobatics", "animal-handling", "sleight-of-hand")
+            return Skill::where('slug', $value)->firstOrFail();
         });
     }
 }

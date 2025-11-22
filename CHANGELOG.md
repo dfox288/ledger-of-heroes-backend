@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Item Parser Strategy Pattern** - Refactored ItemXmlParser from 481-line monolith into 5 composable type-specific strategies
+  - `ChargedItemStrategy`: Extracts spell references and charge costs from staves/wands/rods (spell matching, variable costs)
+  - `ScrollStrategy`: Spell level extraction + protection vs spell scroll detection
+  - `PotionStrategy`: Duration extraction + effect categorization (healing, resistance, buff, debuff, utility)
+  - `TattooStrategy`: Tattoo type extraction, activation methods, body location detection
+  - `LegendaryStrategy`: Sentience detection, alignment extraction, personality traits, artifact destruction methods
+- **Strategy Statistics Display** - Import command now shows per-strategy metrics table (items enhanced, warnings)
+- **StrategyStatistics Service** - Parses import-strategy logs and aggregates metrics by strategy
+- **Structured Strategy Logging** - Dedicated `import-strategy` log channel with JSON format, cleared per import
+- **44 New Strategy Tests** - Comprehensive test coverage for all 5 strategies (85%+ coverage each)
+- **ItemTypeStrategy Interface** - Granular enhancement methods for modifiers, abilities, relationships, and metadata
+- **AbstractItemStrategy Base Class** - Shared metadata tracking (warnings, metrics) and default implementations
+
+### Added
 - **Spell Usage Limit Tracking** - Items that cast spells "at will" now store usage information
   - New pivot column: `entity_spells.usage_limit` (VARCHAR 50)
   - Parser detects "at will", "1/day", "3/day" patterns
@@ -30,6 +44,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tests: 4 new parser tests verify standard and special resistance patterns
 
 ### Changed
+- **ItemXmlParser Refactoring** - Reduced from 481-line monolith to ~200 lines base + 5 focused strategies
+  - Base parser handles common fields (name, rarity, cost, damage, etc.)
+  - Type-specific logic delegated to strategies via Strategy Pattern
+  - Each strategy ~100-150 lines (focused and maintainable)
+  - Strategies can be combined (items can be both Legendary + Charged)
+  - Real XML fixtures used in all strategy tests for realistic coverage
+- **Spell References from Charged Items** - Now creates entity_spells relationships automatically
+  - ChargedItemStrategy extracts spells from item descriptions
+  - Case-insensitive matching: "cure wounds" matches "Cure Wounds" in database
+  - Variable charge costs: "1 charge per spell level, up to 4th" → min:1, max:4
+  - Warnings logged when spells not found in database
+  - Example: Staff of Fire → 3 spell relationships (Burning Hands, Fireball, Wall of Fire)
 - **DRY Refactoring: Damage Type Mapping** - Eliminated duplicate mapping code
   - Removed 20 lines from `ItemXmlParser::mapDamageTypeNameToCode()`
   - Parser now passes damage_type_name directly (e.g., "Acid")

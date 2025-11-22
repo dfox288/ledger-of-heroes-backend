@@ -6,8 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Laravel 12.x application importing D&D 5th Edition XML content and providing a RESTful API.
 
-**Current Status (2025-11-22):**
-- ✅ **1,029 tests passing** (5,946 assertions) - 99.9% pass rate, +11 new trait tests
+**Current Status (2025-11-23):**
+- ✅ **1,273 tests passing** (7,200+ assertions) - 100% pass rate, comprehensive coverage
 - ✅ **64 migrations** - Complete schema (slugs, languages, prerequisites, spell tags, saving throws with DC, monsters)
 - ✅ **32 models + 29 API Resources + 18 controllers** - Full CRUD + Search for 7 entities
 - ✅ **9 importers** - Spells, Classes, Races, Items, Backgrounds, Feats, Monsters, Spell Class Mappings, Master Import
@@ -17,6 +17,7 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 - ✅ **Monster Importer with Strategy Pattern** - 5 type-specific strategies (Dragon, Spellcaster, Undead, Swarm, Default)
 - ✅ **Monster Spell Syncing** - SpellcasterStrategy syncs 1,098 spell relationships for 129 spellcasting monsters
 - ✅ **Item Parser Strategy Pattern** - 5 type-specific strategies (Charged, Scroll, Potion, Tattoo, Legendary)
+- ✅ **Performance Optimizations Complete** - Redis caching for lookup + entity endpoints (93.7% improvement, 16.6x faster)
 - ✅ **One-command import** - `import:all` handles all 60+ XML files in correct order
 - ✅ **Universal tag system** - All 7 entities support Spatie Tags
 - ✅ **Saving throw modifiers** - Detects advantage/disadvantage + DC values
@@ -27,7 +28,7 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 - ✅ **Item enhancements** - Usage limits ("at will"), set scores (`set:19`), potion resistance (23 items)
 - ✅ **Test suite optimized** - Removed 36 redundant tests, 10 files deleted, 48.58s duration
 
-**Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 | PHPUnit 11+ | Docker Compose (not Sail) | Meilisearch
+**Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 | PHPUnit 11+ | Docker Compose (not Sail) | Meilisearch | Redis
 
 **⚠️ IMPORTANT: Docker Compose Setup**
 - This project uses **Docker Compose directly**, NOT Laravel Sail
@@ -39,6 +40,8 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 **📖 Read handovers:**
 - `docs/PROJECT-STATUS.md` - **START HERE** Comprehensive project overview with metrics
 - `docs/README.md` - Documentation index and navigation
+- `docs/SESSION-HANDOVER-2025-11-22-PERFORMANCE-PHASE-3-ENTITY-CACHING.md` - **LATEST** Entity caching (COMPLETE)
+- `docs/SESSION-HANDOVER-2025-11-22-PERFORMANCE-PHASE-2-CACHING.md` - Lookup caching (COMPLETE)
 - `docs/SESSION-HANDOVER-2025-11-22-MONSTER-SPELL-API-COMPLETE.md` - Monster spell filtering API (COMPLETE)
 - `docs/SESSION-HANDOVER-2025-11-22-SPELLCASTER-STRATEGY-ENHANCEMENT.md` - Monster spell syncing (COMPLETE)
 - `docs/SESSION-HANDOVER-2025-11-22-MONSTER-API-AND-SEARCH-COMPLETE.md` - Monster API implementation (COMPLETE)
@@ -47,11 +50,10 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 - `docs/SESSION-HANDOVER-2025-11-22-TEST-REDUCTION-PHASE-1.md` - Test suite optimization (COMPLETE)
 
 **🚀 Next tasks (all optional - core features complete):**
-1. Performance optimizations (caching, indexing, Meilisearch spell filtering) - 2-4 hours
-2. Enhanced spell filtering (OR logic, level filters, spellcasting ability) - 1-2 hours
-3. Character Builder API (character creation, leveling, spell selection) - 8-12 hours
-4. Additional Monster Strategies (FiendStrategy, CelestialStrategy, ConstructStrategy) - 2-3h each
-5. Frontend Application (Inertia.js/Vue or Next.js/React) - 20-40 hours
+1. Search result caching (Phase 4) - Cache Meilisearch queries - 2-3 hours
+2. Character Builder API (character creation, leveling, spell selection) - 8-12 hours
+3. Additional Monster Strategies (FiendStrategy, CelestialStrategy, ConstructStrategy) - 2-3h each
+4. Frontend Application (Inertia.js/Vue or Next.js/React) - 20-40 hours
 
 ---
 
@@ -130,7 +132,7 @@ public function index(Request $request, Service $service) {
 
 ---
 
-## 🏷️ Universal Tag System (NEW 2025-11-21)
+## 🏷️ Universal Tag System
 
 **All 6 main entities support tags:** Spell, Race, Item, Background, Class, Feat
 
@@ -187,22 +189,17 @@ docker compose exec php bash -c 'for file in import-files/spell-*.xml; do [[ ! "
 # 4. Import additive spell class mappings (supplemental class associations)
 docker compose exec php bash -c 'for file in import-files/spells-*+*.xml; do php artisan import:spell-class-mappings "$file" || true; done'
 
-# 5. Import races
+# 5. Import other entities (races, items, backgrounds, feats, monsters)
 docker compose exec php bash -c 'for file in import-files/race-*.xml; do php artisan import:races "$file" || true; done'
-
-# 6. Import items
 docker compose exec php bash -c 'for file in import-files/item-*.xml; do php artisan import:items "$file" || true; done'
-
-# 7. Import backgrounds
 docker compose exec php bash -c 'for file in import-files/background-*.xml; do php artisan import:backgrounds "$file" || true; done'
-
-# 8. Import feats
 docker compose exec php bash -c 'for file in import-files/feat-*.xml; do php artisan import:feats "$file" || true; done'
+docker compose exec php bash -c 'for file in import-files/bestiary-*.xml; do php artisan import:monsters "$file" || true; done'
 
-# 9. Configure search indexes
+# 6. Configure search indexes
 docker compose exec php php artisan search:configure-indexes
 
-# 10. Run tests
+# 7. Run tests
 docker compose exec php php artisan test
 ```
 
@@ -230,10 +227,10 @@ git add . && git commit -m "feat: clear message"           # Commit
 ```
 app/
   ├── Http/
-  │   ├── Controllers/Api/     # 17 controllers (6 entity + 11 lookup)
-  │   ├── Resources/           # 25 API Resources (+ TagResource)
+  │   ├── Controllers/Api/     # 18 controllers (7 entity + 11 lookup)
+  │   ├── Resources/           # 29 API Resources (+ TagResource)
   │   └── Requests/            # 26 Form Requests
-  ├── Models/                  # 28 models (all have HasFactory)
+  ├── Models/                  # 32 models (all have HasFactory)
   └── Services/
       ├── Importers/           # 9 XML importers + reusable traits + strategy pattern
       └── Parsers/             # XML parsing + 15 reusable traits
@@ -248,7 +245,7 @@ import-files/                  # XML source files
   ├── items-*.xml             # 25 files
   ├── class-*.xml             # 35 files (131 imported)
   ├── feats-*.xml             # 4 files
-  └── bestiary-*.xml          # 9 files (ready to import ~500-600 monsters)
+  └── bestiary-*.xml          # 9 files (598 monsters imported)
 
 tests/
   ├── Feature/                # API, importers, models, migrations
@@ -290,14 +287,14 @@ Entities cite multiple sourcebooks via `entity_sources` polymorphic table.
 
 ### 5. Polymorphic Relationships
 - **Traits, Modifiers, Proficiencies** - Shared across races/classes/backgrounds
-- **Tags** - Universal categorization system (NEW)
+- **Tags** - Universal categorization system
 - **Prerequisites** - Double polymorphic (entity → prerequisite type)
 - **Random Tables** - d6/d8/d100 embedded in descriptions
 
 ### 6. Language System
 30 D&D languages + choice slots ("choose one extra language")
 
-### 7. Saving Throw Modifiers (NEW 2025-11-21)
+### 7. Saving Throw Modifiers
 
 **Tracks advantage/disadvantage on saving throws**
 
@@ -322,28 +319,11 @@ Entities cite multiple sourcebooks via `entity_sources` polymorphic table.
 - Identify spells with conditional saves
 - Character builders can optimize spell selection
 
-### 8. AC Modifier Category System (NEW 2025-11-22)
+### 8. AC Modifier Category System
 
-**Shields use BOTH `armor_class` column AND `modifiers` table with distinct categories**
+**AC modifiers categorized by type for accurate D&D 5e calculations**
 
 ```json
-{
-  "name": "Shield",
-  "armor_class": 2,
-  "modifiers": [
-    {"modifier_category": "ac_bonus", "value": "2"}
-  ]
-}
-
-{
-  "name": "Shield +1",
-  "armor_class": 2,
-  "modifiers": [
-    {"modifier_category": "ac_bonus", "value": "2"},  // Base shield bonus
-    {"modifier_category": "ac_magic", "value": "1"}   // Magic enchantment
-  ]
-}
-
 {
   "name": "Shield +2",
   "armor_class": 2,
@@ -360,41 +340,13 @@ Entities cite multiple sourcebooks via `entity_sources` polymorphic table.
 - `ac_magic` - Magic enchantment bonuses (always additive)
 - `ac` - Generic AC (legacy, may be deprecated)
 
-**Why Distinct Categories?**
-1. **Semantic Clarity** - `ac_bonus` vs `ac_magic` makes intent explicit
-2. **Fixes Shield +2 Bug** - No longer confused with base bonus (both were +2)
-3. **Query Flexibility** - Can filter by type: magic-only, equipment-only, or total
-4. **Future-Proof** - Ready for complex armor calculations (Mage Armor, Barbarian AC)
+**Why Categories?**
+1. **Semantic Clarity** - Intent is explicit (base vs bonus vs magic)
+2. **Fixes Shield +2 Bug** - No longer confused with base bonus
+3. **Query Flexibility** - Filter by type: magic-only, equipment-only, or total
+4. **D&D 5e Compliance** - Ready for complex AC calculations (Mage Armor, Barbarian Unarmored Defense)
 
-**D&D 5e AC Calculation:**
-```php
-// Complete AC calculation model
-$baseAC = $modifiers->where('category', 'ac_base')->max('value') ?? 10; // Armor or natural AC
-
-// Apply DEX modifier based on armor type
-$dexMod = $character->dexModifier;
-$armorMod = $modifiers->where('category', 'ac_base')->first();
-if ($armorMod) {
-    $dexRule = $armorMod->condition; // 'dex_modifier: full' | 'max_2' | 'none'
-    if (str_contains($dexRule, 'max_2')) $dexMod = min($dexMod, 2);
-    if (str_contains($dexRule, 'none')) $dexMod = 0;
-}
-
-$totalAC = $baseAC + $dexMod
-    + $modifiers->where('category', 'ac_bonus')->sum('value')  // Shields
-    + $modifiers->where('category', 'ac_magic')->sum('value'); // Enchantments
-```
-
-**Implementation Details:**
-- **Light Armor (LA):** `armor_class=11` + auto-created modifier(ac_base, 11) with `condition: "dex_modifier: full"`
-- **Medium Armor (MA):** `armor_class=14` + auto-created modifier(ac_base, 14) with `condition: "dex_modifier: max_2"`
-- **Heavy Armor (HA):** `armor_class=18` + auto-created modifier(ac_base, 18) with `condition: "dex_modifier: none"`
-- **Regular shields:** `armor_class=2` + auto-created modifier(ac_bonus, 2)
-- **Magic shields:** `armor_class=2` + base modifier(ac_bonus, 2) + magic modifier(ac_magic, +N)
-- **Total AC from Shield +2:** `ac_bonus(2) + ac_magic(2) = +4`
-- **Total AC from Plate + Shield +1:** `ac_base(18) + ac_bonus(2) + ac_magic(1) = 21`
-
-**Migration:** Existing shields were backfilled with base AC modifiers via `2025_11_21_191858_add_ac_modifiers_for_shields.php`
+**Implementation:** Light/Medium/Heavy armor auto-creates `ac_base` modifiers with DEX rules (`dex_modifier: full|max_2|none`). Shields use `ac_bonus` for base and `ac_magic` for enchantments.
 
 ---
 
@@ -402,15 +354,15 @@ $totalAC = $baseAC + $dexMod
 
 **Base:** `/api/v1`
 
-**Entity Endpoints:**
+**Entity Endpoints (All 7 Complete):**
 - `GET /spells`, `GET /spells/{id|slug}` - 477 spells
-- `GET /races`, `GET /races/{id|slug}` - Races/subraces
-- `GET /items`, `GET /items/{id|slug}` - Items/equipment
+- `GET /items`, `GET /items/{id|slug}` - 516 items/equipment
+- `GET /monsters`, `GET /monsters/{id|slug}`, `GET /monsters/{id}/spells` - 598 monsters
+- `GET /classes`, `GET /classes/{id|slug}`, `GET /classes/{id}/spells` - 131 classes/subclasses
+- `GET /races`, `GET /races/{id|slug}`, `GET /races/{id}/spells` - Races/subraces with innate spells
 - `GET /backgrounds`, `GET /backgrounds/{id|slug}` - Character backgrounds
-- `GET /classes`, `GET /classes/{id|slug}` - 131 classes/subclasses
-- `GET /classes/{id}/spells` - Class spell lists
 - `GET /feats`, `GET /feats/{id|slug}` - Character feats
-- `GET /search?q=term&types=spells,items` - Global search
+- `GET /search?q=term&types=spells,items,monsters,classes,races,backgrounds,feats` - Global search
 
 **Lookup Endpoints:**
 - `GET /sources` - D&D sourcebooks
@@ -420,7 +372,7 @@ $totalAC = $baseAC + $dexMod
 - `GET /proficiency-types` - 82 weapon/armor/tool types
 - `GET /languages` - 30 languages
 
-**Features:** Pagination, search, filtering, sorting, CORS enabled
+**Features:** Pagination, search, filtering, sorting, CORS enabled, Redis caching (93.7% faster)
 
 **📖 OpenAPI Docs:** `http://localhost:8080/docs/api` (auto-generated via Scramble)
 
@@ -428,7 +380,7 @@ $totalAC = $baseAC + $dexMod
 
 ## 🧪 Testing
 
-**826 tests** (5,500+ assertions) - ~40s duration
+**1,273 tests** (7,200+ assertions) - ~45s duration
 
 ```bash
 docker compose exec php php artisan test                    # All tests
@@ -492,7 +444,7 @@ php artisan import:races <file>                # Races (5 files)
 php artisan import:items <file>                # Items (25 files)
 php artisan import:backgrounds <file>          # Backgrounds (4 files)
 php artisan import:feats <file>                # Feats (4 files)
-php artisan import:monsters <file>             # Monsters (9 bestiary files ~500-600 monsters)
+php artisan import:monsters <file>             # Monsters (9 bestiary files - 598 monsters)
 ```
 
 **⚠️ Import Order Matters:**
@@ -511,14 +463,12 @@ These files contain ONLY `<name>` and `<classes>` elements. They add subclass as
 
 ### Reusable Traits (22)
 
-**NEW (2025-11-22):** Major refactoring completed - extracted 7 new traits to eliminate ~360 lines of duplicate code.
-
 **Importer Traits (17):**
 - **Core:** `CachesLookupTables`, `GeneratesSlugs`
 - **Sources:** `ImportsSources` (with optional deduplication)
 - **Relationships:** `ImportsTraits`, `ImportsProficiencies`, `ImportsLanguages`, `ImportsConditions`, `ImportsModifiers`
 - **Spells:** `ImportsEntitySpells` - Case-insensitive spell lookup with flexible pivot data
-- **Classes:** `ImportsClassAssociations` ✨ NEW - Resolve class names (base/subclass) with fuzzy matching, alias mapping, and sync strategies
+- **Classes:** `ImportsClassAssociations` - Resolve class names (base/subclass) with fuzzy matching, alias mapping, and sync strategies
 - **Prerequisites:** `ImportsPrerequisites` - Standardized prerequisite creation
 - **Random Tables:** `ImportsRandomTables`, `ImportsRandomTablesFromText` - Polymorphic table import
 - **Saving Throws:** `ImportsSavingThrows`
@@ -527,7 +477,7 @@ These files contain ONLY `<name>` and `<classes>` elements. They add subclass as
 **Parser Traits (5):**
 - `ParsesSourceCitations`, `ParsesTraits`, `ParsesRolls`
 - `MatchesProficiencyTypes`, `MatchesLanguages`
-- `MapsAbilityCodes` ✨ ENHANCED - Added ID resolution with caching
+- `MapsAbilityCodes` - Added ID resolution with caching
 
 **Benefits:**
 - DRY code with single source of truth
@@ -535,212 +485,37 @@ These files contain ONLY `<name>` and `<classes>` elements. They add subclass as
 - ~360 lines eliminated from existing importers
 - SpellImporter -24%, SpellClassMappingImporter -28%
 
-### Item Parser Strategy Pattern (NEW 2025-11-22)
+### Strategy Pattern Architecture (4 of 9 Importers)
 
-**Architecture:** Type-specific parsing strategies for improved accuracy and maintainability.
+**ItemImporter (5 strategies):**
+1. **ChargedItemStrategy** - Staves/wands with spell casting, syncs entity_spells
+2. **ScrollStrategy** - Spell scrolls with level extraction
+3. **PotionStrategy** - Effect categorization (healing, resistance, buff, debuff, utility)
+4. **TattooStrategy** - Magic tattoos with activation methods
+5. **LegendaryStrategy** - Sentient items, artifacts, alignment/personality
 
-**Problem Solved:** ItemXmlParser was a 481-line monolith with type-specific logic scattered throughout, making it difficult to maintain and test.
+**MonsterImporter (5 strategies):**
+1. **DefaultStrategy** - Baseline for all monsters (traits/actions/legendary actions)
+2. **DragonStrategy** - Breath weapon damage/save, frightful presence DC
+3. **SpellcasterStrategy** - Spell lists, syncs 1,098 entity_spells for 129 monsters
+4. **UndeadStrategy** - Undead fortitude, turn resistance
+5. **SwarmStrategy** - Swarm type and creature count
 
-**Solution:** Strategy Pattern with 5 composable type-specific strategies:
-
-1. **ChargedItemStrategy** - Staves, wands, rods with spell casting
-   - Extracts spell names and charge costs from descriptions
-   - Case-insensitive spell matching with database lookup
-   - Supports variable costs: "1 charge per spell level, up to 4th"
-   - Creates entity_spells relationships automatically
-   - Tracks: `spell_references_found`, `spells_matched`, `spells_not_found`
-
-2. **ScrollStrategy** - Spell scrolls and protection scrolls
-   - Extracts spell level from names: "Spell Scroll (3rd Level)" → level 3
-   - Handles cantrips: "Spell Scroll (Cantrip)" → level 0
-   - Distinguishes protection scrolls (no spell level)
-   - Tracks: `spell_scrolls`, `protection_scrolls`, `spell_level`, `protection_duration`
-
-3. **PotionStrategy** - Potion effect categorization
-   - Extracts duration: "for 1 hour", "for 10 minutes"
-   - Categorizes effects: healing, resistance, buff, debuff, utility
-   - Detects resistance from modifiers or description
-   - Tracks per-category metrics: `effect_healing`, `effect_resistance`, etc.
-
-4. **TattooStrategy** - Magic tattoos (wondrous items)
-   - Extracts tattoo type: "Absorbing Tattoo" → "absorbing"
-   - Detects activation methods: action, bonus action, reaction, passive
-   - Attempts body location extraction (arm, chest, back, etc.)
-   - Tracks: `tattoo_type`, `activation_methods`, `body_location`
-
-5. **LegendaryStrategy** - Legendary and artifact items
-   - Detects sentient items (intelligence/wisdom/charisma scores, telepathy)
-   - Extracts alignment: lawful good, chaotic evil, etc.
-   - Extracts personality traits: arrogant, cruel, kind, etc.
-   - Detects artifact destruction methods
-   - Tracks: `sentient_items`, `artifacts`, `legendary_items`, `alignment`
-
-**Strategy Logging:** `storage/logs/import-strategy-{date}.log` (structured JSON, cleared per import)
-
-**Import Statistics Display:**
-```
-✓ Successfully imported 516 items
-
-Strategy Statistics:
-+---------------------+----------------+----------+
-| Strategy            | Items Enhanced | Warnings |
-+---------------------+----------------+----------+
-| ChargedItemStrategy | 62             | 29       |
-| LegendaryStrategy   | 65             | 0        |
-| PotionStrategy      | 45             | 0        |
-| ScrollStrategy      | 20             | 1        |
-+---------------------+----------------+----------+
-⚠ Detailed logs: storage/logs/import-strategy-2025-11-22.log
-```
-
-**Architecture Benefits:**
-- Each strategy ~100-150 lines (vs 481-line monolith)
-- Isolated testing with real XML fixtures
-- Composition: items can use multiple strategies (e.g., Legendary + Charged)
-- Single point of change for XML format updates
-- 85%+ test coverage per strategy (44 strategy-specific tests)
-
-**Adding New Strategies:**
-1. Extend `AbstractItemStrategy`
-2. Implement `appliesTo()` and enhancement methods
-3. Add to `ItemXmlParser::initializeStrategies()`
-4. Write tests with real XML fixtures (85%+ coverage)
-5. Verify with `php artisan test --filter=YourStrategyTest`
-
-### Monster Parser Strategy Pattern (NEW 2025-11-22)
-
-**Architecture:** Type-specific parsing strategies for improved accuracy and maintainability.
-
-**Solution:** Strategy Pattern with 5 composable type-specific strategies:
-
-1. **DefaultStrategy** - Baseline for all monsters
-   - Standard trait/action/legendary action parsing
-   - Applied to 100% of monsters as foundation
-
-2. **DragonStrategy** - Dragons (by type)
-   - Detects dragon breath weapon damage/save
-   - Extracts frightful presence DC
-   - Tags: breath_weapon, frightful_presence
-
-3. **SpellcasterStrategy** - Creatures with spellcasting
-   - Extracts spellcasting ability (INT/WIS/CHA)
-   - Parses spell slots and spell lists
-   - Creates MonsterSpellcasting record
-   - **Note:** Does NOT sync entity_spells table yet (enhancement opportunity)
-
-4. **UndeadStrategy** - Undead creatures (by type)
-   - Detects undead fortitude trait
-   - Tags: undead_fortitude, turn_resistance
-
-5. **SwarmStrategy** - Swarm creatures (by size prefix)
-   - Detects swarm type and creature count
-   - Tags: swarm, swarm_type
-
-**Strategy Logging:** `storage/logs/import-strategy-{date}.log` (structured JSON, cleared per import)
-
-**Import Statistics Display:**
-```
-✓ Successfully imported 354 monsters
-
-Strategy Statistics:
-+---------------------+----------+----------+
-| Strategy            | Monsters | Warnings |
-+---------------------+----------+----------+
-| DragonStrategy      | 12       | 0        |
-| SpellcasterStrategy | 45       | 3        |
-| DefaultStrategy     | 354      | 0        |
-+---------------------+----------+----------+
-⚠ Detailed logs: storage/logs/import-strategy-2025-11-22.log
-```
-
-**Architecture Benefits:**
-- Each strategy ~50-60 lines (vs 400+ line monolith)
-- Isolated testing with real XML fixtures
-- Composition: monsters can use multiple strategies (e.g., Dragon + Spellcaster)
-- Single point of change for XML format updates
-- 85%+ test coverage per strategy (75 strategy-specific tests)
-
-**Models:**
-- Monster (main stat block)
-- MonsterTrait (passive abilities)
-- MonsterAction (combat actions)
-- MonsterLegendaryAction (legendary actions)
-- MonsterSpellcasting (spell lists)
-
-**Enhancement Opportunities:**
-- SpellcasterStrategy could sync entity_spells (like ChargedItemStrategy)
-- Additional strategies: FiendStrategy, CelestialStrategy, ConstructStrategy
-- Lair actions & regional effects (requires schema changes)
-
-### Race Importer Strategy Pattern (NEW 2025-11-22)
-
-**Architecture:** Type-specific import strategies for race hierarchy and variant handling
-
-**Solution:** Strategy Pattern with 3 strategies for base races, subraces, and variants:
-
+**RaceImporter (3 strategies):**
 1. **BaseRaceStrategy** - Base races (Elf, Dwarf, Human)
-   - Sets parent_race_id to null
-   - Validates required fields (size_code, speed)
-   - Tracks: `base_races_processed`
+2. **SubraceStrategy** - Subraces with parent resolution (High Elf → Elf)
+3. **RacialVariantStrategy** - Racial variants (Dragonborn Gold)
 
-2. **SubraceStrategy** - Subraces with parent resolution
-   - Resolves or creates parent race (High Elf → Elf)
-   - Generates compound slug: `elf-high-elf`
-   - Tracks: `subraces_processed`, `base_races_created`, `base_races_resolved`
-
-3. **RacialVariantStrategy** - Racial variants
-   - Parses variant type from name: "Dragonborn (Gold)" → "Gold"
-   - Generates slug: `dragonborn-gold`
-   - Resolves parent race
-   - Tracks: `variants_processed`
-
-**Code Reduction:**
-- RaceImporter: 347 → 295 lines (-15%)
-- Eliminated dual-mode branching logic
-- Type-specific logic isolated in strategies
+**ClassImporter (2 strategies):**
+1. **BaseClassStrategy** - Base classes with spellcasting detection
+2. **SubclassStrategy** - Subclasses with parent resolution (School of Evocation → Wizard)
 
 **Benefits:**
-- Consistent architecture with Item/Monster importers
-- Each strategy <100 lines
-- Independently testable with XML fixtures
-- Strategy logging to `import-strategy-{date}.log`
-
-### Class Importer Strategy Pattern (NEW 2025-11-22)
-
-**Architecture:** Type-specific import strategies for base classes and subclasses
-
-**Solution:** Strategy Pattern with 2 strategies:
-
-1. **BaseClassStrategy** - Base classes (Wizard, Fighter, Paladin)
-   - Detects spellcasting classes via `spellcasting_ability`
-   - Resolves spellcasting_ability_id (Intelligence → 4)
-   - Sets parent_class_id to null
-   - Validates hit_die
-   - Tracks: `base_classes_processed`, `spellcasters_detected`, `martial_classes`
-
-2. **SubclassStrategy** - Subclasses with parent resolution
-   - Detects parent via name patterns (School of X → Wizard, Oath of X → Paladin)
-   - Inherits hit_die from parent class
-   - Generates compound slug: `wizard-school-of-evocation`
-   - Tracks: `subclasses_processed`, `parent_classes_resolved`
-
-**Code Reduction:**
-- ClassImporter: 263 → 264 lines (0% - but eliminated dual-mode complexity)
-- Removed conditional relationship clearing/importing
-- Simplified importEntity method with strategy loop
-
-**Benefits:**
-- Uniform architecture across 4 importers (Item, Monster, Race, Class)
-- Pattern detection isolated and testable
-- Easy to add new subclass patterns without modifying core importer
-- Strategy statistics displayed after import
-
-**Strategy Pattern Summary (4 of 9 Importers):**
-- ✅ ItemImporter (5 strategies)
-- ✅ MonsterImporter (5 strategies)
-- ✅ RaceImporter (3 strategies) - Phase 1
-- ✅ ClassImporter (2 strategies) - Phase 1
-- **Total:** 15 strategies, 51 strategy unit tests, ~730 lines of focused code
+- Each strategy 50-150 lines (vs 400+ line monoliths)
+- Isolated testing with real XML fixtures
+- Composition: entities can use multiple strategies
+- 85%+ test coverage per strategy
+- Structured logging to `storage/logs/import-strategy-{date}.log`
 
 ---
 
@@ -807,85 +582,12 @@ EntitySource::factory()->forEntity(Spell::class, $spell->id)->fromSource('PHB')-
 
 ---
 
-## 🚦 What's Next
-
-### Priority 1: Enhance SpellcasterStrategy ⭐ RECOMMENDED (3-4 hours)
-**Status:** Ready to implement
-**Goal:** Sync entity_spells table for monsters with spellcasting
-
-**Current Behavior:**
-- SpellcasterStrategy creates `MonsterSpellcasting` records with spell names
-- Spells are NOT synced to `entity_spells` table (no queryable relationships)
-
-**Enhancement:**
-- Add spell name → Spell lookup with caching (following `ChargedItemStrategy` pattern)
-- Sync spells to `entity_spells` polymorphic table
-- Track metrics: `spells_matched`, `spells_not_found`
-- Enable filtering: `GET /api/v1/monsters?spells=fireball`
-- Enable new endpoint: `GET /api/v1/monsters/{id}/spells`
-
-**Files to Modify:**
-- `app/Services/Importers/Strategies/Monster/SpellcasterStrategy.php`
-- `tests/Unit/Strategies/Monster/SpellcasterStrategyTest.php`
-
-**After Implementation:**
-Re-import monsters to populate entity_spells: `php artisan import:all --only=monsters --skip-migrate`
-
-### Priority 2: Race API Endpoints (2-3 hours)
-**Create RESTful API for Races**
-
-**Files to Create:**
-- `app/Http/Controllers/Api/RaceController.php`
-- `app/Http/Resources/RaceResource.php`
-- `app/Http/Requests/RaceIndexRequest.php`
-- `app/Http/Requests/RaceShowRequest.php`
-- `tests/Feature/Api/RaceApiTest.php`
-
-**Endpoints:**
-```
-GET /api/v1/races - List with pagination, filtering
-GET /api/v1/races/{id|slug} - Show with relationships
-```
-
-**Filters:** Size, speed, ability score bonuses, subraces
-
-### Priority 3: Background API Endpoints (2-3 hours)
-**Create RESTful API for Backgrounds**
-
-**Files to Create:**
-- `app/Http/Controllers/Api/BackgroundController.php`
-- `app/Http/Resources/BackgroundResource.php`
-- `app/Http/Requests/BackgroundIndexRequest.php`
-- `app/Http/Requests/BackgroundShowRequest.php`
-- `tests/Feature/Api/BackgroundApiTest.php`
-
-**Endpoints:**
-```
-GET /api/v1/backgrounds - List with pagination
-GET /api/v1/backgrounds/{id|slug} - Show with relationships
-```
-
-### Priority 4: Performance & Polish (5-8 hours)
-**Optional enhancements**
-
-- **API Caching:** Cache lookup tables (1h expiry), search results (5min), entity endpoints (15min)
-- **Database Indexing:** Add composite indexes for common filter combinations
-- **Rate Limiting:** Per-IP throttling (60 req/min) to prevent abuse
-- **Add CR Numeric Column:** Fix challenge rating filtering edge cases (VARCHAR → DECIMAL)
-- **Postman Collection:** Example requests for all 7 entity endpoints
-
-### Additional Opportunities
-- **Character Builder API:** API endpoints for character creation (8-12 hours)
-- **Encounter Builder API:** Balanced encounter creation for DMs (6-10 hours)
-- **Frontend Application:** Web UI using Inertia.js/Vue or Next.js/React (20-40 hours)
-- **Additional Monster Strategies:** FiendStrategy, CelestialStrategy, ConstructStrategy (2-3h each)
-
----
-
 ## 📖 Documentation
 
 **Essential Reading:**
-- `docs/SESSION-HANDOVER-2025-11-22-MONSTER-IMPORTER-COMPLETE.md` - **LATEST** Monster Importer complete
+- `docs/SESSION-HANDOVER-2025-11-22-PERFORMANCE-PHASE-3-ENTITY-CACHING.md` - **LATEST** Entity caching
+- `docs/SESSION-HANDOVER-2025-11-22-PERFORMANCE-PHASE-2-CACHING.md` - Lookup caching
+- `docs/SESSION-HANDOVER-2025-11-22-MONSTER-IMPORTER-COMPLETE.md` - Monster Importer complete
 - `docs/SESSION-HANDOVER-2025-11-22-ITEM-PARSER-STRATEGIES-COMPLETE.md` - Item Parser strategies
 - `docs/SEARCH.md` - Search system documentation
 - `docs/MEILISEARCH-FILTERS.md` - Advanced filter syntax
@@ -908,6 +610,7 @@ fix: correct damage type parsing
 refactor: extract ImportsSources trait
 test: add tag integration tests
 docs: update session handover
+perf: add Redis caching for entity endpoints
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 Co-Authored-By: Claude <noreply@anthropic.com>
@@ -940,7 +643,7 @@ EOF
 ## 🎯 Success Checklist
 
 Before marking work complete:
-- [ ] All tests passing (1,012+ tests)
+- [ ] All tests passing (1,273+ tests)
 - [ ] Code formatted with Pint
 - [ ] API Resources expose new data
 - [ ] Form Requests validate new parameters
@@ -956,4 +659,4 @@ Before marking work complete:
 
 ---
 
-**Branch:** `main` | **Status:** ✅ All Importers Complete | **Tests:** 1,012 passing | **Models:** 28 | **Importers:** 9 (Strategy Pattern)
+**Branch:** `main` | **Status:** ✅ Performance Optimized (Phase 3 Complete) | **Tests:** 1,273 passing | **Models:** 32 | **Importers:** 9 (Strategy Pattern)

@@ -56,6 +56,25 @@ class ImportsClassAssociationsTest extends TestCase
         $this->assertEquals(1, $spell->classes()->count());
         $this->assertEquals($archfey->id, $spell->classes()->first()->id);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_resolves_subclass_with_alias_mapping(): void
+    {
+        $druid = CharacterClass::factory()->create(['name' => 'Druid', 'slug' => 'druid']);
+        $circleOfLand = CharacterClass::factory()->create([
+            'name' => 'Circle of the Land',
+            'slug' => 'circle-of-the-land',
+            'parent_class_id' => $druid->id,
+        ]);
+
+        $spell = Spell::factory()->create();
+
+        // XML has "Coast" which should map to "Circle of the Land"
+        $this->importer->syncClassAssociations($spell, ['Druid (Coast)']);
+
+        $this->assertEquals(1, $spell->classes()->count());
+        $this->assertEquals($circleOfLand->id, $spell->classes()->first()->id);
+    }
 }
 
 // Test helper class that uses the trait

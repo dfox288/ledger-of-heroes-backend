@@ -276,5 +276,11 @@ class ImportAllDataCommand extends Command
         } else {
             $this->warn('⚠️  Some imports failed. Check output above for details.');
         }
+
+        // Clear entity caches after import
+        $this->newLine();
+        $this->info('Clearing entity caches...');
+        app(\App\Services\Cache\EntityCacheService::class)->clearAll();
+        $this->info('✓ Entity caches cleared');
     }
 }

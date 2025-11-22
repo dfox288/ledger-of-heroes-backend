@@ -121,6 +121,19 @@ class Item extends Model
         ]);
     }
 
+    public function savingThrows(): MorphToMany
+    {
+        return $this->morphToMany(
+            AbilityScore::class,
+            'entity',
+            'entity_saving_throws',
+            'entity_id',
+            'ability_score_id'
+        )
+            ->withPivot('save_effect', 'is_initial_save', 'save_modifier')
+            ->withTimestamps();
+    }
+
     /**
      * Scope: Filter by minimum strength requirement
      * Usage: Item::whereMinStrength(15)->get()

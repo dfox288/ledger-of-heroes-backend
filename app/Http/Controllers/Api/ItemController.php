@@ -59,6 +59,7 @@ class ItemController extends Controller
             'prerequisites.prerequisite',
             'tags',
             'spells',
+            'savingThrows',
         ];
 
         // If 'include' parameter provided, use it (note: this is for additional validation)

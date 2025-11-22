@@ -47,6 +47,7 @@ class ItemResource extends JsonResource
             'prerequisites' => EntityPrerequisiteResource::collection($this->whenLoaded('prerequisites')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
             'spells' => ItemSpellResource::collection($this->whenLoaded('spells')),
+            'saving_throws' => SavingThrowResource::collection($this->whenLoaded('savingThrows')),
         ];
     }
 }

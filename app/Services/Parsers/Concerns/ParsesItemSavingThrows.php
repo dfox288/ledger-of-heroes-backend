@@ -1,0 +1,98 @@
+<?php
+
+namespace App\Services\Parsers\Concerns;
+
+trait ParsesItemSavingThrows
+{
+    /**
+     * Parse saving throw from item description
+     *
+     * Examples:
+     * - "succeed on a DC 10 Charisma saving throw"
+     *   -> ability:'CHA', effect:'negates', is_initial_save:true
+     *
+     * - "make a DC 15 Dexterity saving throw or take 5d4 damage"
+     *   -> ability:'DEX', effect:'half_damage', is_initial_save:true
+     *
+     * - "DC 15 Dexterity saving throw, taking damage on failure or half damage on success"
+     *   -> ability:'DEX', effect:'half_damage', is_initial_save:true
+     *
+     * @param  string  $description  Full item description
+     * @return array|null ['ability_code' => 'CHA', 'save_effect' => 'negates', 'is_initial_save' => true]
+     */
+    protected function parseItemSavingThrow(string $description): ?array
+    {
+        // Pattern 1: "DC X [Ability] saving throw" or "DC X [Ability] save"
+        // Supports both full names (Charisma) and abbreviations (CHA, DEX)
+        if (! preg_match('/DC\s+(\d+)\s+(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma|STR|DEX|CON|INT|WIS|CHA)\s+sav(?:ing\s+throw|e)/i', $description, $matches)) {
+            return null;
+        }
+
+        $dc = (int) $matches[1];
+        $abilityName = $matches[2];
+
+        // Map ability name to code
+        $abilityMap = [
+            'strength' => 'STR',
+            'dexterity' => 'DEX',
+            'constitution' => 'CON',
+            'intelligence' => 'INT',
+            'wisdom' => 'WIS',
+            'charisma' => 'CHA',
+            // Support abbreviations
+            'str' => 'STR',
+            'dex' => 'DEX',
+            'con' => 'CON',
+            'int' => 'INT',
+            'wis' => 'WIS',
+            'cha' => 'CHA',
+        ];
+
+        $abilityCode = $abilityMap[strtolower($abilityName)] ?? strtoupper($abilityName);
+
+        if (! $abilityCode) {
+            return null;
+        }
+
+        // Detect save effect
+        $saveEffect = $this->detectSaveEffect($description);
+
+        return [
+            'ability_code' => $abilityCode,
+            'save_effect' => $saveEffect,
+            'is_initial_save' => true,
+        ];
+    }
+
+    /**
+     * Detect the effect of a successful saving throw
+     *
+     * @return string 'negates', 'half_damage', or 'none'
+     */
+    protected function detectSaveEffect(string $description): string
+    {
+        // Pattern 1: "half as much damage" or "half damage" or "half on success"
+        if (preg_match('/half\s+(?:as\s+much\s+)?damage|half\s+on\s+success/i', $description)) {
+            return 'half_damage';
+        }
+
+        // Pattern 2: "or take damage" without "half" usually means negates (no damage on save)
+        // But if description has both "take" and "half", it's half_damage (handled above)
+        if (preg_match('/(?:or\s+take|taking).*damage/i', $description)) {
+            // Check if there's a "half" reference we missed
+            if (preg_match('/half/i', $description)) {
+                return 'half_damage';
+            }
+
+            return 'half_damage'; // Most damage saves are half damage in D&D 5e
+        }
+
+        // Pattern 3: "or be [condition]" = negates (avoid condition on save)
+        if (preg_match('/or\s+be\s+(frightened|charmed|stunned|paralyzed|petrified|forced|pushed)/i', $description)) {
+            return 'negates';
+        }
+
+        // Default: negates (most common for non-damage effects)
+        return 'negates';
+    }
+}

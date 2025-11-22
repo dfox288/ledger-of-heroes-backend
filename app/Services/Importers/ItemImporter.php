@@ -16,6 +16,7 @@ use App\Models\RandomTableEntry;
 use App\Models\Source;
 use App\Services\Importers\Concerns\CachesLookupTables;
 use App\Services\Importers\Concerns\ImportsModifiers;
+use App\Services\Parsers\Concerns\ParsesItemSavingThrows;
 use App\Services\Parsers\Concerns\ParsesItemSpells;
 use App\Services\Parsers\ItemTableDetector;
 use App\Services\Parsers\ItemTableParser;
@@ -25,6 +26,7 @@ class ItemImporter extends BaseImporter
 {
     use CachesLookupTables;
     use ImportsModifiers;
+    use ParsesItemSavingThrows;
     use ParsesItemSpells;
 
     protected function importEntity(array $itemData): Item
@@ -91,6 +93,9 @@ class ItemImporter extends BaseImporter
 
         // Import spells (from description text)
         $this->importSpells($item, $itemData['description']);
+
+        // Import saving throws (from description text)
+        $this->importSavingThrows($item, $itemData['description']);
 
         return $item;
     }
@@ -380,6 +385,40 @@ class ItemImporter extends BaseImporter
                 ]
             );
         }
+    }
+
+    private function importSavingThrows(Item $item, string $description): void
+    {
+        // Parse saving throw from description
+        $saveData = $this->parseItemSavingThrow($description);
+
+        if (! $saveData) {
+            return; // No saving throw found
+        }
+
+        // Look up ability score
+        $abilityScore = $this->cachedFind(AbilityScore::class, 'code', $saveData['ability_code']);
+
+        if (! $abilityScore) {
+            \Log::warning("Ability score not found: {$saveData['ability_code']} (for item: {$item->name})");
+
+            return;
+        }
+
+        // Create or update saving throw
+        \DB::table('entity_saving_throws')->updateOrInsert(
+            [
+                'entity_type' => Item::class,
+                'entity_id' => $item->id,
+                'ability_score_id' => $abilityScore->id,
+            ],
+            [
+                'save_effect' => $saveData['save_effect'],
+                'is_initial_save' => $saveData['is_initial_save'],
+                'save_modifier' => 'none',
+                'updated_at' => now(),
+            ]
+        );
     }
 
     protected function getParser(): object

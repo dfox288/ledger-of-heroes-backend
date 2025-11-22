@@ -10,6 +10,10 @@ use App\Services\Parsers\Concerns\ParsesItemProficiencies;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use App\Services\Parsers\Strategies\ChargedItemStrategy;
 use App\Services\Parsers\Strategies\ItemTypeStrategy;
+use App\Services\Parsers\Strategies\LegendaryStrategy;
+use App\Services\Parsers\Strategies\PotionStrategy;
+use App\Services\Parsers\Strategies\ScrollStrategy;
+use App\Services\Parsers\Strategies\TattooStrategy;
 use SimpleXMLElement;
 
 class ItemXmlParser
@@ -39,6 +43,10 @@ class ItemXmlParser
     {
         $this->strategies = [
             new ChargedItemStrategy,
+            new ScrollStrategy,
+            new PotionStrategy,
+            new TattooStrategy,
+            new LegendaryStrategy,
         ];
     }
 

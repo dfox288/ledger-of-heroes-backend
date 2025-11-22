@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
@@ -99,6 +100,25 @@ class Item extends Model
     public function prerequisites(): MorphMany
     {
         return $this->morphMany(EntityPrerequisite::class, 'reference');
+    }
+
+    public function spells(): MorphToMany
+    {
+        return $this->morphToMany(
+            Spell::class,
+            'reference',
+            'entity_spells',
+            'reference_id',
+            'spell_id'
+        )->withPivot([
+            'charges_cost_min',
+            'charges_cost_max',
+            'charges_cost_formula',
+            'ability_score_id',
+            'level_requirement',
+            'usage_limit',
+            'is_cantrip',
+        ]);
     }
 
     /**

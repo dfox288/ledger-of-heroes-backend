@@ -16,6 +16,8 @@ class ItemShowRequest extends BaseShowRequest
             'abilities',
             'prerequisites',
             'prerequisites.prerequisite',
+            'spells',
+            'spells.spellSchool',
         ];
     }
 

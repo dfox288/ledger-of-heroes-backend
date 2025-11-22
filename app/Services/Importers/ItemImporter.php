@@ -16,6 +16,7 @@ use App\Models\RandomTableEntry;
 use App\Models\Source;
 use App\Services\Importers\Concerns\CachesLookupTables;
 use App\Services\Importers\Concerns\ImportsModifiers;
+use App\Services\Parsers\Concerns\ParsesItemSpells;
 use App\Services\Parsers\ItemTableDetector;
 use App\Services\Parsers\ItemTableParser;
 use App\Services\Parsers\ItemXmlParser;
@@ -24,6 +25,7 @@ class ItemImporter extends BaseImporter
 {
     use CachesLookupTables;
     use ImportsModifiers;
+    use ParsesItemSpells;
 
     protected function importEntity(array $itemData): Item
     {
@@ -86,6 +88,9 @@ class ItemImporter extends BaseImporter
 
         // Import prerequisites from strength_requirement
         $this->importPrerequisites($item, $itemData['strength_requirement']);
+
+        // Import spells (from description text)
+        $this->importSpells($item, $itemData['description']);
 
         return $item;
     }
@@ -339,6 +344,42 @@ class ItemImporter extends BaseImporter
             'value' => $itemData['armor_class'],
             'condition' => $dexModifier ? "dex_modifier: {$dexModifier}" : null,
         ]);
+    }
+
+    private function importSpells(Item $item, string $description): void
+    {
+        // Parse spells from description
+        $spellsData = $this->parseItemSpells($description);
+
+        if (empty($spellsData)) {
+            return; // No spells found
+        }
+
+        foreach ($spellsData as $spellData) {
+            // Look up spell by name (case-insensitive)
+            $spell = \App\Models\Spell::whereRaw('LOWER(name) = ?', [strtolower($spellData['spell_name'])])
+                ->first();
+
+            if (! $spell) {
+                \Log::warning("Spell not found: {$spellData['spell_name']} (for item: {$item->name})");
+
+                continue;
+            }
+
+            // Create or update entity_spell record
+            \DB::table('entity_spells')->updateOrInsert(
+                [
+                    'reference_type' => Item::class,
+                    'reference_id' => $item->id,
+                    'spell_id' => $spell->id,
+                ],
+                [
+                    'charges_cost_min' => $spellData['charges_cost_min'],
+                    'charges_cost_max' => $spellData['charges_cost_max'],
+                    'charges_cost_formula' => $spellData['charges_cost_formula'],
+                ]
+            );
+        }
     }
 
     protected function getParser(): object

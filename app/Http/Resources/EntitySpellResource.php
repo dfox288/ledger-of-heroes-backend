@@ -18,6 +18,11 @@ class EntitySpellResource extends JsonResource
             'level_requirement' => $this->level_requirement,
             'usage_limit' => $this->usage_limit,
             'is_cantrip' => $this->is_cantrip,
+
+            // Charge costs (for items that cast spells)
+            'charges_cost_min' => $this->charges_cost_min,
+            'charges_cost_max' => $this->charges_cost_max,
+            'charges_cost_formula' => $this->charges_cost_formula,
         ];
     }
 }

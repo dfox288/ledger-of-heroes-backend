@@ -34,7 +34,12 @@ class ItemXmlParser
 
     private function parseItem(SimpleXMLElement $element): array
     {
-        $text = (string) $element->text;
+        // Concatenate all <text> elements (items can have multiple text blocks)
+        $textParts = [];
+        foreach ($element->text as $textElement) {
+            $textParts[] = trim((string) $textElement);
+        }
+        $text = implode("\n\n", $textParts);
 
         // Parse range (can be "50/150" format)
         $range = (string) $element->range;

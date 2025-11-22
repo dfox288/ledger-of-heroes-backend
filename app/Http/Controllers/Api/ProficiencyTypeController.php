@@ -10,6 +10,7 @@ use App\Http\Resources\ClassResource;
 use App\Http\Resources\ProficiencyTypeResource;
 use App\Http\Resources\RaceResource;
 use App\Models\ProficiencyType;
+use App\Services\Cache\LookupCacheService;
 use Illuminate\Http\JsonResponse;
 
 class ProficiencyTypeController extends Controller
@@ -20,7 +21,7 @@ class ProficiencyTypeController extends Controller
      * Returns a paginated list of D&D 5e proficiency types including weapons, armor, tools,
      * languages, and skills. Supports filtering by category and subcategory (e.g., "weapon/martial").
      */
-    public function index(ProficiencyTypeIndexRequest $request)
+    public function index(ProficiencyTypeIndexRequest $request, LookupCacheService $cache)
     {
         $query = ProficiencyType::query();
 
@@ -42,6 +43,22 @@ class ProficiencyTypeController extends Controller
 
         // Pagination
         $perPage = $request->validated('per_page', 50);
+
+        // Use cache for unfiltered queries
+        if (! $request->has('q') && ! $request->has('category') && ! $request->has('subcategory')) {
+            $allProficiencyTypes = $cache->getProficiencyTypes();
+            $currentPage = $request->input('page', 1);
+            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+                $allProficiencyTypes->forPage($currentPage, $perPage),
+                $allProficiencyTypes->count(),
+                $perPage,
+                $currentPage,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return ProficiencyTypeResource::collection($paginated);
+        }
+
         $proficiencyTypes = $query->paginate($perPage);
 
         return ProficiencyTypeResource::collection($proficiencyTypes);

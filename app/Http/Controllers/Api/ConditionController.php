@@ -8,6 +8,7 @@ use App\Http\Resources\ConditionResource;
 use App\Http\Resources\MonsterResource;
 use App\Http\Resources\SpellResource;
 use App\Models\Condition;
+use App\Services\Cache\LookupCacheService;
 
 class ConditionController extends Controller
 {
@@ -17,7 +18,7 @@ class ConditionController extends Controller
      * Returns a paginated list of D&D 5e conditions (Blinded, Charmed, Frightened, etc.).
      * These are status effects that can be applied to creatures during combat.
      */
-    public function index(ConditionIndexRequest $request)
+    public function index(ConditionIndexRequest $request, LookupCacheService $cache)
     {
         $query = Condition::query();
 
@@ -29,6 +30,22 @@ class ConditionController extends Controller
 
         // Add pagination support
         $perPage = $request->validated('per_page', 50); // Higher default for lookups
+
+        // Use cache for unfiltered queries
+        if (! $request->has('q')) {
+            $allConditions = $cache->getConditions();
+            $currentPage = $request->input('page', 1);
+            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+                $allConditions->forPage($currentPage, $perPage),
+                $allConditions->count(),
+                $perPage,
+                $currentPage,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return ConditionResource::collection($paginated);
+        }
+
         $entities = $query->paginate($perPage);
 
         return ConditionResource::collection($entities);

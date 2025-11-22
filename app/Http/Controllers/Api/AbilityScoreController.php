@@ -7,6 +7,7 @@ use App\Http\Requests\AbilityScoreIndexRequest;
 use App\Http\Resources\AbilityScoreResource;
 use App\Http\Resources\SpellResource;
 use App\Models\AbilityScore;
+use App\Services\Cache\LookupCacheService;
 
 class AbilityScoreController extends Controller
 {
@@ -16,7 +17,7 @@ class AbilityScoreController extends Controller
      * Returns a paginated list of the 6 core ability scores in D&D 5e (Strength, Dexterity,
      * Constitution, Intelligence, Wisdom, Charisma). Supports searching by name or code (e.g., "STR", "DEX").
      */
-    public function index(AbilityScoreIndexRequest $request)
+    public function index(AbilityScoreIndexRequest $request, LookupCacheService $cache)
     {
         $query = AbilityScore::query();
 
@@ -31,6 +32,21 @@ class AbilityScoreController extends Controller
 
         // Pagination
         $perPage = $request->validated('per_page', 50);
+
+        // Use cache for unfiltered queries
+        if (! $request->has('q')) {
+            $allAbilityScores = $cache->getAbilityScores();
+            $currentPage = $request->input('page', 1);
+            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+                $allAbilityScores->forPage($currentPage, $perPage),
+                $allAbilityScores->count(),
+                $perPage,
+                $currentPage,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return AbilityScoreResource::collection($paginated);
+        }
 
         return AbilityScoreResource::collection(
             $query->paginate($perPage)

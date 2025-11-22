@@ -8,6 +8,7 @@ use App\Http\Resources\DamageTypeResource;
 use App\Http\Resources\ItemResource;
 use App\Http\Resources\SpellResource;
 use App\Models\DamageType;
+use App\Services\Cache\LookupCacheService;
 
 class DamageTypeController extends Controller
 {
@@ -17,7 +18,7 @@ class DamageTypeController extends Controller
      * Returns a paginated list of D&D 5e damage types (Fire, Cold, Poison, Slashing, etc.).
      * Used for spell effects, weapon damage, and resistances/immunities.
      */
-    public function index(DamageTypeIndexRequest $request)
+    public function index(DamageTypeIndexRequest $request, LookupCacheService $cache)
     {
         $query = DamageType::query();
 
@@ -29,6 +30,22 @@ class DamageTypeController extends Controller
 
         // Add pagination support
         $perPage = $request->validated('per_page', 50); // Higher default for lookups
+
+        // Use cache for unfiltered queries
+        if (! $request->has('q')) {
+            $allTypes = $cache->getDamageTypes();
+            $currentPage = $request->input('page', 1);
+            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+                $allTypes->forPage($currentPage, $perPage),
+                $allTypes->count(),
+                $perPage,
+                $currentPage,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return DamageTypeResource::collection($paginated);
+        }
+
         $entities = $query->paginate($perPage);
 
         return DamageTypeResource::collection($entities);

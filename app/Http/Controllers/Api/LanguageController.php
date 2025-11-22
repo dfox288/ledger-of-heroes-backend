@@ -9,6 +9,7 @@ use App\Http\Resources\BackgroundResource;
 use App\Http\Resources\LanguageResource;
 use App\Http\Resources\RaceResource;
 use App\Models\Language;
+use App\Services\Cache\LookupCacheService;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class LanguageController extends Controller
@@ -19,7 +20,7 @@ class LanguageController extends Controller
      * Returns a paginated list of languages in D&D 5e including Common, Elvish, Dwarvish,
      * and exotic languages. Includes script information, language type, and rarity.
      */
-    public function index(LanguageIndexRequest $request)
+    public function index(LanguageIndexRequest $request, LookupCacheService $cache)
     {
         $query = Language::query();
 
@@ -31,6 +32,22 @@ class LanguageController extends Controller
 
         // Add pagination support
         $perPage = $request->validated('per_page', 50); // Higher default for lookups
+
+        // Use cache for unfiltered queries
+        if (! $request->has('q')) {
+            $allLanguages = $cache->getLanguages();
+            $currentPage = $request->input('page', 1);
+            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+                $allLanguages->forPage($currentPage, $perPage),
+                $allLanguages->count(),
+                $perPage,
+                $currentPage,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return LanguageResource::collection($paginated);
+        }
+
         $entities = $query->paginate($perPage);
 
         return LanguageResource::collection($entities);

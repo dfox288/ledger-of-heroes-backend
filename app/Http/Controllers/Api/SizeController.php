@@ -8,6 +8,7 @@ use App\Http\Resources\MonsterResource;
 use App\Http\Resources\RaceResource;
 use App\Http\Resources\SizeResource;
 use App\Models\Size;
+use App\Services\Cache\LookupCacheService;
 use Illuminate\Http\Request;
 
 class SizeController extends Controller
@@ -18,7 +19,7 @@ class SizeController extends Controller
      * Returns a paginated list of D&D 5e creature sizes (Tiny, Small, Medium, Large, Huge, Gargantuan).
      * Used to categorize creatures, races, and determine space occupied in combat.
      */
-    public function index(SizeIndexRequest $request)
+    public function index(SizeIndexRequest $request, LookupCacheService $cache)
     {
         $query = Size::query();
 
@@ -30,6 +31,21 @@ class SizeController extends Controller
 
         // Pagination
         $perPage = $request->validated('per_page', 50);
+
+        // Use cache for unfiltered queries
+        if (! $request->has('q')) {
+            $allSizes = $cache->getSizes();
+            $currentPage = $request->input('page', 1);
+            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+                $allSizes->forPage($currentPage, $perPage),
+                $allSizes->count(),
+                $perPage,
+                $currentPage,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return SizeResource::collection($paginated);
+        }
 
         return SizeResource::collection(
             $query->paginate($perPage)

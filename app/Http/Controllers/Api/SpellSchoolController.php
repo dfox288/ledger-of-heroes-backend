@@ -7,6 +7,7 @@ use App\Http\Requests\SpellSchoolIndexRequest;
 use App\Http\Resources\SpellResource;
 use App\Http\Resources\SpellSchoolResource;
 use App\Models\SpellSchool;
+use App\Services\Cache\LookupCacheService;
 use Illuminate\Http\Request;
 
 class SpellSchoolController extends Controller
@@ -17,7 +18,7 @@ class SpellSchoolController extends Controller
      * Returns a paginated list of the 8 schools of magic in D&D 5e (Abjuration, Conjuration,
      * Divination, Enchantment, Evocation, Illusion, Necromancy, Transmutation).
      */
-    public function index(SpellSchoolIndexRequest $request)
+    public function index(SpellSchoolIndexRequest $request, LookupCacheService $cache)
     {
         $query = SpellSchool::query();
 
@@ -29,6 +30,22 @@ class SpellSchoolController extends Controller
 
         // Pagination
         $perPage = $request->validated('per_page', 50);
+
+        // Use cache for unfiltered queries, otherwise hit database
+        if (! $request->has('q')) {
+            // Manually paginate the cached collection to maintain API contract
+            $allSchools = $cache->getSpellSchools();
+            $currentPage = $request->input('page', 1);
+            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+                $allSchools->forPage($currentPage, $perPage),
+                $allSchools->count(),
+                $perPage,
+                $currentPage,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return SpellSchoolResource::collection($paginated);
+        }
 
         return SpellSchoolResource::collection(
             $query->paginate($perPage)

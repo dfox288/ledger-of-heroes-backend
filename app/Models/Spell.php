@@ -79,6 +79,41 @@ class Spell extends Model
         return $this->morphMany(RandomTable::class, 'reference');
     }
 
+    // Reverse relationships (entities that reference this spell)
+
+    public function monsters(): MorphToMany
+    {
+        return $this->morphedByMany(
+            Monster::class,
+            'reference',
+            'entity_spells',
+            'spell_id',
+            'reference_id'
+        )->withPivot(['usage_limit', 'charges_cost_min', 'charges_cost_max']);
+    }
+
+    public function items(): MorphToMany
+    {
+        return $this->morphedByMany(
+            Item::class,
+            'reference',
+            'entity_spells',
+            'spell_id',
+            'reference_id'
+        )->withPivot(['usage_limit', 'charges_cost_min', 'charges_cost_max']);
+    }
+
+    public function races(): MorphToMany
+    {
+        return $this->morphedByMany(
+            Race::class,
+            'reference',
+            'entity_spells',
+            'spell_id',
+            'reference_id'
+        )->withPivot(['usage_limit', 'level_requirement']);
+    }
+
     // Scopes for API filtering
     public function scopeLevel($query, $level)
     {

@@ -61,6 +61,34 @@ final class ClassSearchService
                     });
             });
         }
+
+        // Spell filter (AND/OR logic)
+        if (isset($dto->filters['spells'])) {
+            $spellSlugs = array_map('trim', explode(',', $dto->filters['spells']));
+            $operator = $dto->filters['spells_operator'] ?? 'AND';
+
+            if ($operator === 'AND') {
+                // Must have ALL spells (nested whereHas)
+                foreach ($spellSlugs as $slug) {
+                    $query->whereHas('spells', function ($q) use ($slug) {
+                        $q->where('slug', strtolower($slug));
+                    });
+                }
+            } else {
+                // Must have AT LEAST ONE spell (single whereHas with whereIn)
+                $spellSlugs = array_map('strtolower', $spellSlugs);
+                $query->whereHas('spells', function ($q) use ($spellSlugs) {
+                    $q->whereIn('slug', $spellSlugs);
+                });
+            }
+        }
+
+        // Spell level filter (classes that have spells of specific level)
+        if (isset($dto->filters['spell_level'])) {
+            $query->whereHas('spells', function ($q) use ($dto) {
+                $q->where('level', $dto->filters['spell_level']);
+            });
+        }
     }
 
     private function applySorting(Builder $query, ClassSearchDTO $dto): void

@@ -20,7 +20,50 @@ class ClassController extends Controller
      *
      * Returns a paginated list of D&D 5e character classes and subclasses. Includes hit dice,
      * spellcasting abilities, proficiencies, class features, level progression tables, and
-     * subclass options. Supports filtering by proficiencies, skills, and saving throws.
+     * subclass options. Supports filtering by proficiencies, skills, saving throws, and spells.
+     *
+     * **Basic Examples:**
+     * - All classes: `GET /api/v1/classes`
+     * - Base classes only: `GET /api/v1/classes?base_only=1`
+     * - By hit die: `GET /api/v1/classes?filter=hit_die = 12`
+     * - Spellcasters only: `GET /api/v1/classes?filter=is_spellcaster = true`
+     *
+     * **Spell Filtering Examples:**
+     * - Single spell: `GET /api/v1/classes?spells=fireball`
+     * - Multiple spells (AND): `GET /api/v1/classes?spells=fireball,counterspell`
+     * - Multiple spells (OR): `GET /api/v1/classes?spells=cure-wounds,healing-word&spells_operator=OR`
+     * - Spell level: `GET /api/v1/classes?spell_level=9`
+     * - Combined: `GET /api/v1/classes?spells=fireball&spell_level=3&base_only=1`
+     *
+     * **Spell Filtering Logic:**
+     * - AND (default): Class must have ALL specified spells
+     * - OR: Class must have AT LEAST ONE specified spell
+     * - Spell slugs are case-insensitive (fireball = FIREBALL)
+     * - Use spell slugs, not IDs (e.g., "cure-wounds" not "Cure Wounds")
+     *
+     * **Use Cases:**
+     * - **Multiclass Planning:** Which classes get Fireball? (`?spells=fireball`)
+     * - **Healer Identification:** Classes with healing magic (`?spells=cure-wounds,healing-word&spells_operator=OR`)
+     * - **Full Spellcasters:** Classes with 9th level spells (`?spell_level=9`)
+     * - **Optimization:** Find INT-based spellcasters (`?filter=spellcasting_ability_code = INT`)
+     * - **Build Planning:** Cleric or Paladin with specific spells (`?spells=revivify&filter=spellcasting_ability_code = WIS OR spellcasting_ability_code = CHA`)
+     *
+     * **Parameter Reference:**
+     * - `spells` (string): Comma-separated spell slugs (max 500 chars)
+     * - `spells_operator` (string): "AND" or "OR" (default: AND)
+     * - `spell_level` (int): Spell level 0-9 (0=cantrip, 9=9th level)
+     * - `base_only` (bool): Filter to base classes only (exclude subclasses)
+     * - `grants_proficiency` (string): Filter by proficiency type
+     * - `grants_skill` (string): Filter by skill proficiency
+     * - `grants_saving_throw` (string): Filter by saving throw proficiency
+     * - `filter` (string): Meilisearch filter expression (see Scramble docs)
+     *
+     * **Data Source:**
+     * - 1,917 class-spell relationships across 63 classes/subclasses
+     * - Spell filtering powered by `class_spells` pivot table
+     * - Results include subclasses in nested `subclasses` array
+     *
+     * See `docs/API-EXAMPLES.md` for comprehensive usage examples.
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR. Available fields: hit_die (int), is_spellcaster (bool), spellcasting_ability_code (string), is_subclass (bool).', example: 'is_spellcaster = true AND hit_die >= 8')]
     public function index(ClassIndexRequest $request, ClassSearchService $service)

@@ -41,8 +41,22 @@ Route::prefix('v1')->group(function () {
     // Spells
     Route::apiResource('spells', SpellController::class)->only(['index', 'show']);
 
+    // Spell reverse relationship endpoints
+    Route::get('spells/{spell}/classes', [SpellController::class, 'classes'])
+        ->name('spells.classes');
+    Route::get('spells/{spell}/monsters', [SpellController::class, 'monsters'])
+        ->name('spells.monsters');
+    Route::get('spells/{spell}/items', [SpellController::class, 'items'])
+        ->name('spells.items');
+    Route::get('spells/{spell}/races', [SpellController::class, 'races'])
+        ->name('spells.races');
+
     // Races
     Route::apiResource('races', RaceController::class)->only(['index', 'show']);
+
+    // Race spell list endpoint
+    Route::get('races/{race}/spells', [RaceController::class, 'spells'])
+        ->name('races.spells');
 
     // Backgrounds
     Route::apiResource('backgrounds', BackgroundController::class)->only(['index', 'show']);

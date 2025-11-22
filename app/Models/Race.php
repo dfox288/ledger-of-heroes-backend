@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
@@ -79,6 +80,22 @@ class Race extends Model
     public function spells(): MorphMany
     {
         return $this->morphMany(EntitySpell::class, 'reference', 'reference_type', 'reference_id');
+    }
+
+    public function entitySpells(): MorphToMany
+    {
+        return $this->morphToMany(
+            Spell::class,
+            'reference',
+            'entity_spells',
+            'reference_id',
+            'spell_id'
+        )->withPivot([
+            'ability_score_id',
+            'level_requirement',
+            'usage_limit',
+            'is_cantrip',
+        ]);
     }
 
     // Scopes for API filtering

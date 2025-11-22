@@ -8,6 +8,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Spell Reverse Relationship Endpoints** - Query which classes/monsters/items/races can cast any spell (CRITICAL feature unlocking 3,143 relationships)
+  - **4 new endpoints:** Access spell relationships from the spell's perspective
+    - `GET /api/v1/spells/{id}/classes` - Which classes can learn this spell? (1,917 relationships)
+    - `GET /api/v1/spells/{id}/monsters` - Which monsters can cast this spell? (1,098 relationships)
+    - `GET /api/v1/spells/{id}/items` - Which items grant this spell? (107 relationships)
+    - `GET /api/v1/spells/{id}/races` - Which races have innate access? (21 relationships)
+  - **Use Cases:**
+    - Character building: "Can my Cleric learn Fireball?" → Check `/spells/fireball/classes`
+    - Multiclass planning: "Which classes get Counterspell?" → `/spells/counterspell/classes`
+    - DM tools: "Which monsters will counterspell my players?" → `/spells/counterspell/monsters`
+    - Item discovery: "Where can I find Teleport as an item?" → `/spells/teleport/items`
+    - Race optimization: "Which races get free Misty Step?" → `/spells/misty-step/races`
+  - **Implementation:**
+    - Added 3 reverse relationships to `Spell.php` (monsters, items, races via `morphedByMany`)
+    - Added 4 controller methods to `SpellController.php` with comprehensive PHPDoc
+    - Registered 4 new routes supporting both numeric ID and slug routing
+    - Results ordered alphabetically by name for predictable output
+  - **Tests:** 16 comprehensive tests (40 assertions) - success, empty, numeric ID, error handling
+  - **Total Impact:** All 3,143 spell relationships now accessible via reverse lookup
+  - **Pattern:** Follows `ClassController::spells()` existing pattern for consistency
+
+- **Class Reverse Spell Filtering** - Query classes by the spells they can learn (HIGH-VALUE multiclass optimization)
+  - **Filter endpoint:** `GET /api/v1/classes?spells=fireball` - Which classes can learn Fireball? (7 classes)
+  - **Multiple spells (AND):** `GET /api/v1/classes?spells=fireball,counterspell` - Must have BOTH spells (3 classes: Wizard, Sorcerer, Eldritch Knight)
+  - **Multiple spells (OR):** `GET /api/v1/classes?spells=cure-wounds,healing-word&spells_operator=OR` - Healer classes (11 classes)
+  - **Spell level filter:** `GET /api/v1/classes?spell_level=9` - Full spellcasters only (7 classes)
+  - **Combined filters:** `GET /api/v1/classes?spells=fireball&base_only=1` - Base classes with Fireball (Wizard, Sorcerer)
+  - **Implementation:**
+    - Updated `ClassIndexRequest` with 3 new filter validations (spells, spells_operator, spell_level)
+    - Enhanced `ClassSearchDTO` with spell filter parameters
+    - Updated `ClassSearchService` with AND/OR spell logic (copied from MonsterSearchService pattern)
+    - Enhanced `ClassController` PHPDoc with 48 lines of examples and use cases
+  - **Tests:** 9 comprehensive tests (38 assertions) - single spell, AND/OR logic, spell level, combined filters, case-insensitivity
+  - **Leverages:** 1,917 class-spell relationships across 131 classes/subclasses (via `class_spells` pivot table)
+  - **Use Cases:** Multiclass planning, healer identification, full spellcaster discovery, build optimization
+  - **Pattern:** Reuses proven MonsterSearchService spell filtering architecture (TDD, AND/OR logic, case-insensitive)
+
+- **Race Spell Filtering API** - Query races by their innate spells (COMPLETE spell filtering ecosystem)
+  - **Filter endpoint:** `GET /api/v1/races?spells=misty-step` - Which races can teleport innately?
+  - **Multiple spells (OR):** `GET /api/v1/races?spells=dancing-lights,faerie-fire&spells_operator=OR` - Drow racial spells (2 races)
+  - **Spell level filter:** `GET /api/v1/races?spell_level=0` - Races with cantrips (13 races)
+  - **Has innate spells:** `GET /api/v1/races?has_innate_spells=true` - All spellcasting races (13 races)
+  - **Combined filters:** `GET /api/v1/races?spells=darkness&spell_level=2` - Specific spell + level
+  - **New endpoint:** `GET /api/v1/races/{id}/spells` - List all innate spells for a race (e.g., Tiefling: Thaumaturgy, Hellish Rebuke, Darkness)
+  - **Implementation:**
+    - Added `entitySpells()` MorphToMany relationship to `Race.php`
+    - Updated `RaceIndexRequest` with 4 new filter validations (spells, spells_operator, spell_level, has_innate_spells)
+    - Enhanced `RaceSearchDTO` with spell filter parameters
+    - Updated `RaceSearchService` with spell filtering logic (copied from MonsterSearchService pattern)
+    - Enhanced `RaceController` PHPDoc with 70+ lines of examples, use cases, and racial spell data
+    - Added `RaceController::spells()` method for dedicated spell endpoint
+    - Registered `/races/{race}/spells` route
+  - **Tests:** 9 comprehensive tests (29 assertions) - single spell, AND/OR logic, spell level, has_innate_spells, endpoint tests
+  - **Leverages:** 21 racial spell relationships across 13 races with innate spellcasting (19.4% of all races)
+  - **Use Cases:** Character optimization (free teleportation), spell synergy (innate invisibility), cantrip access, build planning
+  - **Pattern:** Reuses Monster/Item spell filtering architecture (TDD, polymorphic relationships, comprehensive PHPDoc)
+  - **Examples:** Drow (Dancing Lights), Tiefling (Thaumaturgy, Hellish Rebuke, Darkness), High Elf (1 wizard cantrip), Forest Gnome (Minor Illusion)
+
 - **Item Spell Filtering API** - Query items by their granted spells via REST API (following Monster implementation pattern)
   - **Filter endpoint:** `GET /api/v1/items?spells=fireball` - Find items that grant specific spell(s)
   - **Multiple spells:** `GET /api/v1/items?spells=fireball,lightning-bolt` - AND logic (must grant ALL specified spells)

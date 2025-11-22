@@ -21,6 +21,11 @@ class ClassIndexRequest extends BaseIndexRequest
             'grants_proficiency' => ['sometimes', 'string', 'max:255'],
             'grants_skill' => ['sometimes', 'string', 'max:255'],
             'grants_saving_throw' => ['sometimes', 'string', 'max:255'],
+
+            // Spell filtering
+            'spells' => ['sometimes', 'string', 'max:500'],
+            'spells_operator' => ['sometimes', 'string', 'in:AND,OR'],
+            'spell_level' => ['sometimes', 'integer', 'min:0', 'max:9'],
         ];
     }
 

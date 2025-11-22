@@ -71,6 +71,39 @@ final class RaceSearchService
         if (isset($dto->filters['grants_languages']) && $dto->filters['grants_languages']) {
             $query->grantsLanguages();
         }
+
+        // Spell filter (AND/OR logic) - Uses entity_spells polymorphic table
+        if (isset($dto->filters['spells'])) {
+            $spellSlugs = array_map('trim', explode(',', $dto->filters['spells']));
+            $spellSlugs = array_map('strtolower', $spellSlugs); // Case-insensitive
+            $operator = $dto->filters['spells_operator'] ?? 'AND';
+
+            if ($operator === 'AND') {
+                // Must have ALL spells (nested whereHas)
+                foreach ($spellSlugs as $slug) {
+                    $query->whereHas('entitySpells', function ($q) use ($slug) {
+                        $q->whereRaw('LOWER(slug) = ?', [$slug]);
+                    });
+                }
+            } else {
+                // Must have AT LEAST ONE spell (single whereHas with whereIn)
+                $query->whereHas('entitySpells', function ($q) use ($spellSlugs) {
+                    $q->whereIn(\DB::raw('LOWER(slug)'), $spellSlugs);
+                });
+            }
+        }
+
+        // Spell level filter (races that know spells of specific level)
+        if (isset($dto->filters['spell_level'])) {
+            $query->whereHas('entitySpells', function ($q) use ($dto) {
+                $q->where('level', $dto->filters['spell_level']);
+            });
+        }
+
+        // Has innate spells filter
+        if (isset($dto->filters['has_innate_spells']) && filter_var($dto->filters['has_innate_spells'], FILTER_VALIDATE_BOOLEAN)) {
+            $query->has('entitySpells');
+        }
     }
 
     private function applySorting(Builder $query, RaceSearchDTO $dto): void

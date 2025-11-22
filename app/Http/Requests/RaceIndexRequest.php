@@ -37,6 +37,12 @@ class RaceIndexRequest extends BaseIndexRequest
 
             // Filter entities granting any languages
             'grants_languages' => ['sometimes', Rule::in([0, 1, '0', '1', true, false, 'true', 'false'])],
+
+            // Spell filtering
+            'spells' => ['sometimes', 'string', 'max:500'],
+            'spells_operator' => ['sometimes', 'string', Rule::in(['AND', 'OR'])],
+            'spell_level' => ['sometimes', 'integer', 'min:0', 'max:9'],
+            'has_innate_spells' => ['sometimes', Rule::in([0, 1, '0', '1', true, false, 'true', 'false'])],
         ];
     }
 

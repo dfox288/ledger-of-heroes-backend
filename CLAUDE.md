@@ -24,7 +24,9 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 
 **Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 | PHPUnit 11+ | Docker
 
-**📖 Read handover:** `docs/SESSION-HANDOVER-2025-11-22-PARSER-ENHANCEMENTS.md` for latest session details
+**📖 Read handover:** `docs/SESSION-HANDOVER-2025-11-22-STRATEGY-PATTERN-PLANNING.md` for latest session details
+
+**🚀 Next task:** Implement Item Parser Strategy Pattern (see `docs/plans/2025-11-22-item-parser-strategy-pattern.md`)
 
 ---
 
@@ -573,43 +575,56 @@ EntitySource::factory()->forEntity(Spell::class, $spell->id)->fromSource('PHB')-
 
 ## 🚦 What's Next
 
-### Priority 1: Monster Importer ⭐ HIGHLY RECOMMENDED
+### Priority 1: Item Parser Strategy Pattern ⭐ IN PROGRESS
+**Status:** Planning complete, ready for implementation
+
+**Goal:** Refactor ItemXmlParser from 481-line monolith into composable strategies for better accuracy and maintainability.
+
+**Plan:** `docs/plans/2025-11-22-item-parser-strategy-pattern.md`
+**Handover:** `docs/SESSION-HANDOVER-2025-11-22-STRATEGY-PATTERN-PLANNING.md`
+
+**Strategies to Implement:**
+1. ChargedItemStrategy (ST, WD, RD) - Spell references + enhanced charges
+2. ScrollStrategy (SC) - Spell level extraction + protection scrolls
+3. PotionStrategy (P) - Duration + effect categorization
+4. TattooStrategy (W) - Body location + activation methods
+5. LegendaryStrategy (legendary/artifact) - Sentience + alignment
+
+**Estimated:** 8-12 hours (TDD with real XML fixtures)
+**Benefits:**
+- Type-specific parsing accuracy
+- ~250 lines eliminated from monolith
+- 85%+ test coverage per strategy
+- Structured logging with metrics
+
+### Priority 2: Monster Importer ⭐ HIGHLY RECOMMENDED
 - 7 bestiary XML files ready
 - Schema complete and tested
-- **Can reuse 6 brand new traits** from 2025-11-22 refactoring:
-  - `ImportsRandomTablesFromText` - Legendary/lair actions
-  - `ImportsEntitySpells` - Innate spellcasting
-  - `ImportsPrerequisites` - Legendary resistances
-  - `ImportsSources` - Multi-sourcebook attribution
-  - `MapsAbilityCodes` - Ability score lookups
-  - `ImportsArmorModifiers` - Natural armor
+- **Can reuse 6 brand new traits** from 2025-11-22 refactoring
 - **Estimated:** 4-6 hours with TDD (down from 8-10 hours!)
 - **Size:** ~200 lines vs. ~350 lines without refactorings
 
-### Priority 2: Import Remaining Data
+### Priority 3: Import Remaining Data
 - 6 more spell files (~300 spells)
 - Races, Items, Backgrounds, Feats (importers ready, just need to run commands)
 
-### Priority 3: API Enhancements
+### Priority 4: API Enhancements
 - Additional filtering/aggregation
 - Rate limiting
 - Caching strategy
-
-### Priority 4: Further Refactoring (Optional)
-- Additional low-priority patterns identified but not yet implemented
-- See refactoring analysis for details
 
 ---
 
 ## 📖 Documentation
 
 **Essential Reading:**
-- `docs/SESSION-HANDOVER-2025-11-21.md` - Latest session (spell enhancements + tags)
+- `docs/SESSION-HANDOVER-2025-11-22-STRATEGY-PATTERN-PLANNING.md` - Latest session (strategy pattern planning)
 - `docs/SEARCH.md` - Search system documentation
 - `docs/MEILISEARCH-FILTERS.md` - Advanced filter syntax
 - `docs/recommendations/CUSTOM-EXCEPTIONS-ANALYSIS.md` - Exception patterns
 
 **Plans:**
+- `docs/plans/2025-11-22-item-parser-strategy-pattern.md` - **CURRENT** Item parser refactoring
 - `docs/plans/2025-11-17-dnd-compendium-database-design.md` - Database architecture
 - `docs/plans/2025-11-17-dnd-xml-importer-implementation-v4-vertical-slices.md` - Implementation strategy
 

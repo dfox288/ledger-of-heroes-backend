@@ -1,33 +1,36 @@
 {
-    "permissions": {
-        "allow": [
-            "Bash(docker:*)",
-            "Bash(docker compose:*)",
-            "Bash(git:*)",
-            "Bash(php:*)",
-            "Bash(find:*)",
-            "Bash(sed:*)",
-            "Bash(curl:*)",
-            "Bash(xargs:*)",
-            "Bash(cat:*)",
-            "Bash(tree:*)",
-            "Bash(python3:*)",
-            "Bash(jq:*)",
-            "Bash(tee:*)",
-            "Bash(echo:*)",
-            "Bash(grep:*)",
-            "Bash(time:*)",
-            "WebSearch",
-            "WebFetch(domain:dnd5e.wikidot.com)",
-            "WebFetch(domain:scramble.dedoc.co)",
-            "WebFetch(domain:spatie.be)",
-            "WebFetch(domain:www.meilisearch.com)",
-            "WebFetch(domain:laravel-news.com)",
-            "Skill(superpowers-laravel:*)",
-            "SlashCommand(/superpowers-laravel:*)"
-        ],
-        "deny": [],
-        "ask": []
-    },
-    "outputStyle": "Explanatory"
+  "permissions": {
+    "allow": [
+      "Bash(docker:*)",
+      "Bash(docker compose:*)",
+      "Bash(git:*)",
+      "Bash(php:*)",
+      "Bash(find:*)",
+      "Bash(sed:*)",
+      "Bash(curl:*)",
+      "Bash(xargs:*)",
+      "Bash(cat:*)",
+      "Bash(tree:*)",
+      "Bash(python3:*)",
+      "Bash(jq:*)",
+      "Bash(tee:*)",
+      "Bash(echo:*)",
+      "Bash(grep:*)",
+      "Bash(time:*)",
+      "WebSearch",
+      "WebFetch(domain:dnd5e.wikidot.com)",
+      "WebFetch(domain:scramble.dedoc.co)",
+      "WebFetch(domain:spatie.be)",
+      "WebFetch(domain:www.meilisearch.com)",
+      "WebFetch(domain:laravel-news.com)",
+      "Skill(superpowers-laravel:*)",
+      "SlashCommand(/superpowers-laravel:*)",
+      "Skill(superpowers:brainstorming)",
+      "Skill(superpowers:writing-plans)",
+      "Skill(superpowers:subagent-driven-development)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "outputStyle": "Explanatory"
 }

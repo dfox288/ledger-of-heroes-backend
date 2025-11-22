@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Models;
 
+use App\Models\Modifier;
 use App\Models\Monster;
 use App\Models\MonsterAction;
 use App\Models\MonsterLegendaryAction;
@@ -66,5 +67,18 @@ class MonsterTest extends TestCase
     public function it_does_not_use_timestamps(): void
     {
         $this->assertFalse(Monster::make()->usesTimestamps());
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_has_many_modifiers(): void
+    {
+        $monster = Monster::factory()->create();
+        Modifier::factory()->count(2)->create([
+            'reference_type' => Monster::class,
+            'reference_id' => $monster->id,
+        ]);
+
+        $this->assertCount(2, $monster->modifiers);
+        $this->assertInstanceOf(Modifier::class, $monster->modifiers->first());
     }
 }

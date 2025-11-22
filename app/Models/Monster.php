@@ -85,7 +85,7 @@ class Monster extends Model
 
     public function modifiers(): MorphMany
     {
-        return $this->morphMany(Modifier::class, 'entity');
+        return $this->morphMany(Modifier::class, 'reference');
     }
 
     public function conditions(): MorphToMany

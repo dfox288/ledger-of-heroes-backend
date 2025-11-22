@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ConditionIndexRequest;
 use App\Http\Resources\ConditionResource;
+use App\Http\Resources\MonsterResource;
 use App\Http\Resources\SpellResource;
 use App\Models\Condition;
 
@@ -62,5 +63,26 @@ class ConditionController extends Controller
             ->paginate($perPage);
 
         return SpellResource::collection($spells);
+    }
+
+    /**
+     * List all monsters that inflict this condition
+     *
+     * Returns a paginated list of monsters that can inflict this condition through
+     * their attacks, traits, or special abilities.
+     *
+     * @param Condition $condition The condition (by ID or slug)
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
+    public function monsters(Condition $condition)
+    {
+        $perPage = request()->input('per_page', 50);
+
+        $monsters = $condition->monsters()
+            ->with(['size', 'sources'])
+            ->orderBy('name')
+            ->paginate($perPage);
+
+        return MonsterResource::collection($monsters);
     }
 }

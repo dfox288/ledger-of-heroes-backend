@@ -34,6 +34,11 @@ Route::prefix('v1')->group(function () {
         ->name('spell-schools.spells');
 
     Route::apiResource('damage-types', DamageTypeController::class)->only(['index', 'show']);
+
+    // Damage type spell list endpoint
+    Route::get('damage-types/{damageType}/spells', [DamageTypeController::class, 'spells'])
+        ->name('damage-types.spells');
+
     Route::apiResource('sizes', SizeController::class)->only(['index', 'show']);
     Route::apiResource('ability-scores', AbilityScoreController::class)->only(['index', 'show']);
     Route::apiResource('skills', SkillController::class)->only(['index', 'show']);
@@ -44,6 +49,10 @@ Route::prefix('v1')->group(function () {
     // Condition spell list endpoint
     Route::get('conditions/{condition}/spells', [ConditionController::class, 'spells'])
         ->name('conditions.spells');
+
+    // Condition monster list endpoint
+    Route::get('conditions/{condition}/monsters', [ConditionController::class, 'monsters'])
+        ->name('conditions.monsters');
 
     Route::apiResource('proficiency-types', ProficiencyTypeController::class)->only(['index', 'show']);
     Route::apiResource('languages', LanguageController::class)->only(['index', 'show']);

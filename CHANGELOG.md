@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Spell Usage Limit Tracking** - Items that cast spells "at will" now store usage information
+  - New pivot column: `entity_spells.usage_limit` (VARCHAR 50)
+  - Parser detects "at will", "1/day", "3/day" patterns
+  - Enhanced 8 items: Hat of Disguise, Boots of Levitation, Helm of Comprehending Languages, etc.
+  - API exposure: Usage limits appear in item spell pivot data
+  - Tests: 3 new parser tests verify usage limit detection
+- **Set Ability Score Modifiers** - Magic items that override ability scores use `set:X` notation
+  - Pattern: "Your Intelligence score is 19 while you wear this headband"
+  - Uses existing `entity_modifiers` infrastructure with `set:19` notation
+  - Enhanced 3 iconic items: Headband of Intellect, Gauntlets of Ogre Power, Amulet of Health
+  - Self-documenting values distinguish from traditional +2 bonuses
+  - API usage: Parse with `str_starts_with($value, 'set:')` pattern
+  - Tests: 4 new parser tests verify set score detection and prevent false positives
+- **Potion Resistance Modifiers** - Damage resistance potions track specific types and duration
+  - Detects "resistance to [type] damage for [duration]" patterns
+  - Special case: Potion of Invulnerability uses `resistance:all` notation with NULL damage_type_id
+  - Enhanced 12 potions: All resistance types plus Invulnerability
+  - Duration tracking: "for 1 hour", "for 1 minute" stored in condition field
+  - Single database record for "all damage types" (not 13 separate records)
+  - Tests: 4 new parser tests verify standard and special resistance patterns
+
+### Changed
+- **DRY Refactoring: Damage Type Mapping** - Eliminated duplicate mapping code
+  - Removed 20 lines from `ItemXmlParser::mapDamageTypeNameToCode()`
+  - Parser now passes damage_type_name directly (e.g., "Acid")
+  - Importer queries database by name instead of code
+  - Single source of truth: `DamageTypeSeeder` is canonical
+  - Backward compatible: damage_type_code still supported as fallback
+
 ### Fixed
 - **Item Importer Duplicate Source Bug** - Fixed crash when importing items with multiple citations to the same source
   - **Root Cause:** Items like "Instrument of Illusions" cited same source twice with different pages (XGE p.137, XGE p.83)

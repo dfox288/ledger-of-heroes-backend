@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Laravel 12.x application importing D&D 5th Edition XML content and providing a RESTful API.
 
 **Current Status (2025-11-22):**
-- ✅ **875 tests passing** (5,704 assertions) - 99.8% pass rate
+- ✅ **886 tests passing** (5,747 assertions) - 99.7% pass rate
 - ✅ **64 migrations** - Complete schema (slugs, languages, prerequisites, spell tags, saving throws with DC)
 - ✅ **23 models + 25 API Resources + 17 controllers** - Full CRUD + Search
 - ✅ **8 importers** - Spells, Classes, Races, Items, Backgrounds, Feats, Spell Class Mappings, Master Import
@@ -19,11 +19,12 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 - ✅ **Additive spell imports** - Handles supplemental class association files
 - ✅ **Search complete** - Laravel Scout + Meilisearch (3,002 documents)
 - ✅ **OpenAPI docs** - Auto-generated via Scramble (306KB spec)
+- ✅ **Item enhancements** - Usage limits ("at will"), set scores (`set:19`), potion resistance (23 items) 🆕
 - ⚠️  **1 importer pending** - Monsters (7 bestiary XML files ready, now 43% easier!)
 
 **Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 | PHPUnit 11+ | Docker
 
-**📖 Read handover:** `docs/SESSION-HANDOVER-2025-11-22-REFACTORING-COMPLETE.md` for latest session details
+**📖 Read handover:** `docs/SESSION-HANDOVER-2025-11-22-ITEM-ENHANCEMENTS.md` for latest session details
 
 ---
 

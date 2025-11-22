@@ -603,6 +603,11 @@ EntitySource::factory()->forEntity(Spell::class, $spell->id)->fromSource('PHB')-
 
 ## Git Workflow
 
+**⚠️ IMPORTANT: Git Worktrees NOT Used**
+- This project does NOT use git worktrees
+- All work happens on main branch or feature branches
+- Do NOT suggest or use `git worktree` commands
+
 ### Commit Message Convention
 ```
 feat: add universal tag support

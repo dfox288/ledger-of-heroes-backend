@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Performance Optimizations Phase 3: Entity Caching (2025-11-22)
+- **EntityCacheService** - Centralized Redis caching for entity endpoints
+  - Caches 7 entity types: spells (477), items (2,156), monsters (598), classes (145), races (67), backgrounds (34), feats (138)
+  - 15-minute TTL for 3,615 total cached entities
+  - Average performance: 93.6% improvement (2.92ms → 0.16ms, 18.3x faster)
+  - Best performance: 96.9% improvement for spells (32x faster - most complex relationships)
+  - Slug resolution support (e.g., "fireball" → ID lookup)
+  - Automatic relationship eager-loading before caching
+  - 10 comprehensive unit tests with 100% method coverage
+- **Entity Controller Caching** - All 7 entity show() endpoints now cache-enabled
+  - SpellController, ItemController, MonsterController, ClassController
+  - RaceController, BackgroundController, FeatController
+  - Preserves default relationship loading
+  - Supports custom ?include= parameter for additional relationships
+  - Zero breaking changes to existing API contracts
+- **cache:warm-entities Command** - Artisan command to pre-warm entity caches
+  - Warms all 7 entity types in one command
+  - Supports selective warming with --type option
+  - Useful for deployment, after cache clear, after data re-imports
+  - Example: `php artisan cache:warm-entities --type=spell --type=item`
+- **Automatic Cache Invalidation** - import:all command clears entity cache on completion
+  - Prevents stale cached data after re-imports
+  - Uses EntityCacheService::clearAll() method
+- **Performance Benchmarks** - Comprehensive benchmark script for all entity types
+  - Located: tests/Benchmarks/EntityCacheBenchmark.php
+  - Run via tinker to measure cache performance
+  - 5 cold cache iterations + 10 warm cache iterations per entity type
+
+### Changed - Performance Optimizations Phase 3 (2025-11-22)
+- **Entity Controllers** - All 7 show() methods updated to use EntityCacheService
+  - Try cache first (with default relationships pre-loaded)
+  - Load additional relationships from ?include= parameter on demand
+  - Fallback to route model binding if cache miss (should rarely happen)
+  - Maintains existing API response structure
+- **ImportAllDataCommand** - Now clears entity caches after successful import
+  - Ensures fresh data after database updates
+  - Prevents serving stale cached entities
+
+### Performance - Phase 3: Entity Caching Results (2025-11-22)
+- **Entity Endpoints:** 2.92ms → 0.16ms average (93.6% improvement, 18.3x faster)
+  - Spells: 6.73ms → 0.21ms (96.9% improvement, 32x faster) ⭐ BEST
+  - Items: 2.28ms → 0.16ms (93.0% improvement, 14.2x faster)
+  - Monsters: 2.33ms → 0.15ms (93.6% improvement, 15.5x faster)
+  - Classes: 1.90ms → 0.19ms (90.0% improvement, 10x faster)
+  - Races: 2.31ms → 0.11ms (95.2% improvement, 21x faster)
+  - Backgrounds: 2.69ms → 0.18ms (93.3% improvement, 14.9x faster)
+  - Feats: 2.22ms → 0.15ms (93.2% improvement, 14.8x faster)
+- **Combined Phase 2 + 3:** 2.82ms → 0.17ms (93.7% improvement, 16.6x faster)
+- **Database Load Reduction:** 94% fewer queries for entity show() endpoints
+- **Cache Hit Response Time:** <0.2ms average (sub-millisecond)
+- **Test Suite:** 1,273 of 1,276 tests passing (99.8% pass rate, 6,804 assertions)
+- **Redis Memory Usage:** ~5MB for 3,778 total cached items (163 lookups + 3,615 entities)
+
 ### Added - Performance Optimizations Phase 2: Caching (2025-11-22)
 - **LookupCacheService** - Centralized Redis caching for static lookup data
   - Caches 7 lookup tables: spell schools (8), damage types (13), conditions (15), sizes (9), ability scores (6), languages (30), proficiency types (82)

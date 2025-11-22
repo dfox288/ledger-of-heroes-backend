@@ -22,9 +22,9 @@ class AbstractMonsterStrategyTest extends TestCase
             }
         };
 
-        $this->assertEquals(1, $strategy->testExtractCost('Detect'));
-        $this->assertEquals(2, $strategy->testExtractCost('Wing Attack (Costs 2 Actions)'));
-        $this->assertEquals(3, $strategy->testExtractCost('Psychic Drain (Costs 3 Actions)'));
+        $this->assertEquals(1, $strategy->test_extract_cost('Detect'));
+        $this->assertEquals(2, $strategy->test_extract_cost('Wing Attack (Costs 2 Actions)'));
+        $this->assertEquals(3, $strategy->test_extract_cost('Psychic Drain (Costs 3 Actions)'));
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

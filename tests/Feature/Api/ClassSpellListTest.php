@@ -66,12 +66,16 @@ class ClassSpellListTest extends TestCase
     {
         $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
         $evocation = SpellSchool::where('code', 'EV')->first();
+        $abjuration = SpellSchool::where('code', 'A')->first();
 
         $spell1 = Spell::factory()->create([
             'name' => 'Fireball',
             'spell_school_id' => $evocation->id,
         ]);
-        $spell2 = Spell::factory()->create(['name' => 'Magic Missile']);
+        $spell2 = Spell::factory()->create([
+            'name' => 'Magic Missile',
+            'spell_school_id' => $abjuration->id,
+        ]);
 
         $wizard->spells()->attach([$spell1->id, $spell2->id]);
 

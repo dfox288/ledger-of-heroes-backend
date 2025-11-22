@@ -7,27 +7,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Laravel 12.x application importing D&D 5th Edition XML content and providing a RESTful API.
 
 **Current Status (2025-11-22):**
-- ✅ **937 tests passing** (5,848 assertions) - 99.9% pass rate
-- ✅ **64 migrations** - Complete schema (slugs, languages, prerequisites, spell tags, saving throws with DC)
-- ✅ **23 models + 25 API Resources + 17 controllers** - Full CRUD + Search
-- ✅ **8 importers** - Spells, Classes, Races, Items, Backgrounds, Feats, Spell Class Mappings, Master Import
+- ✅ **1,012 tests passing** (6,081 assertions) - 99.9% pass rate
+- ✅ **64 migrations** - Complete schema (slugs, languages, prerequisites, spell tags, saving throws with DC, monsters)
+- ✅ **28 models + 25 API Resources + 17 controllers** - Full CRUD + Search
+- ✅ **9 importers** - Spells, Classes, Races, Items, Backgrounds, Feats, Monsters, Spell Class Mappings, Master Import
 - ✅ **21 reusable traits** - 6 NEW from refactoring (2025-11-22), ~260 lines eliminated
+- ✅ **Monster Importer with Strategy Pattern** - 5 type-specific strategies, 75 new tests, ready to import 9 bestiary files 🆕
 - ✅ **Item Parser Strategy Pattern** - 5 type-specific strategies, 44 new tests, improved parsing accuracy
-- ✅ **One-command import** - `import:all` handles all 51+ XML files in correct order
+- ✅ **One-command import** - `import:all` handles all 60+ XML files in correct order
 - ✅ **Universal tag system** - All entities support Spatie Tags
 - ✅ **Saving throw modifiers** - Detects advantage/disadvantage + DC values
 - ✅ **AC modifier categories** - Base AC, bonuses, and magic (with DEX rules)
 - ✅ **Additive spell imports** - Handles supplemental class association files
 - ✅ **Search complete** - Laravel Scout + Meilisearch (3,002 documents)
 - ✅ **OpenAPI docs** - Auto-generated via Scramble (306KB spec)
-- ✅ **Item enhancements** - Usage limits ("at will"), set scores (`set:19`), potion resistance (23 items) 🆕
-- ⚠️  **1 importer pending** - Monsters (7 bestiary XML files ready, now 43% easier!)
+- ✅ **Item enhancements** - Usage limits ("at will"), set scores (`set:19`), potion resistance (23 items)
 
 **Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 | PHPUnit 11+ | Docker
 
-**📖 Read handover:** `docs/SESSION-HANDOVER-2025-11-22-ITEM-PARSER-STRATEGIES-COMPLETE.md` for latest session details
+**📖 Read handover:** `docs/SESSION-HANDOVER-2025-11-22-MONSTER-IMPORTER-COMPLETE.md` for latest session details
 
-**🚀 Next task:** Monster Importer (7 bestiary XML files ready, can reuse 6 new traits + strategy pattern knowledge)
+**🚀 Next task:** Import monster data (`import:all --only=monsters`), then create Monster API endpoints
 
 ---
 
@@ -209,13 +209,13 @@ app/
   │   ├── Controllers/Api/     # 17 controllers (6 entity + 11 lookup)
   │   ├── Resources/           # 25 API Resources (+ TagResource)
   │   └── Requests/            # 26 Form Requests
-  ├── Models/                  # 23 models (all have HasFactory)
+  ├── Models/                  # 28 models (all have HasFactory)
   └── Services/
-      ├── Importers/           # 6 XML importers + reusable traits
+      ├── Importers/           # 9 XML importers + reusable traits + strategy pattern
       └── Parsers/             # XML parsing + 15 reusable traits
 
 database/
-  ├── migrations/              # 60 migrations
+  ├── migrations/              # 64 migrations
   └── seeders/                 # 12 seeders (sources, schools, languages, etc.)
 
 import-files/                  # XML source files
@@ -224,7 +224,7 @@ import-files/                  # XML source files
   ├── items-*.xml             # 25 files
   ├── class-*.xml             # 35 files (131 imported)
   ├── feats-*.xml             # 4 files
-  └── bestiary-*.xml          # 7 files (⚠️ PENDING)
+  └── bestiary-*.xml          # 9 files (ready to import ~500-600 monsters)
 
 tests/
   ├── Feature/                # API, importers, models, migrations
@@ -458,7 +458,7 @@ php artisan import:all --skip-search     # Skip search index configuration
 - ✅ Excludes additive files from main spell import
 - ✅ Handles all 51+ XML files in one command
 
-### Individual Importers (8 Available)
+### Individual Importers (9 Available)
 ```bash
 php artisan import:all                         # ⭐ MASTER COMMAND - imports everything
 php artisan import:classes <file>              # Classes (35 files) - IMPORT FIRST!
@@ -468,6 +468,7 @@ php artisan import:races <file>                # Races (5 files)
 php artisan import:items <file>                # Items (25 files)
 php artisan import:backgrounds <file>          # Backgrounds (4 files)
 php artisan import:feats <file>                # Feats (4 files)
+php artisan import:monsters <file>             # Monsters (9 bestiary files ~500-600 monsters)
 ```
 
 **⚠️ Import Order Matters:**
@@ -581,6 +582,71 @@ Strategy Statistics:
 4. Write tests with real XML fixtures (85%+ coverage)
 5. Verify with `php artisan test --filter=YourStrategyTest`
 
+### Monster Parser Strategy Pattern (NEW 2025-11-22)
+
+**Architecture:** Type-specific parsing strategies for improved accuracy and maintainability.
+
+**Solution:** Strategy Pattern with 5 composable type-specific strategies:
+
+1. **DefaultStrategy** - Baseline for all monsters
+   - Standard trait/action/legendary action parsing
+   - Applied to 100% of monsters as foundation
+
+2. **DragonStrategy** - Dragons (by type)
+   - Detects dragon breath weapon damage/save
+   - Extracts frightful presence DC
+   - Tags: breath_weapon, frightful_presence
+
+3. **SpellcasterStrategy** - Creatures with spellcasting
+   - Extracts spellcasting ability (INT/WIS/CHA)
+   - Parses spell slots and spell lists
+   - Creates MonsterSpellcasting record
+   - **Note:** Does NOT sync entity_spells table yet (enhancement opportunity)
+
+4. **UndeadStrategy** - Undead creatures (by type)
+   - Detects undead fortitude trait
+   - Tags: undead_fortitude, turn_resistance
+
+5. **SwarmStrategy** - Swarm creatures (by size prefix)
+   - Detects swarm type and creature count
+   - Tags: swarm, swarm_type
+
+**Strategy Logging:** `storage/logs/import-strategy-{date}.log` (structured JSON, cleared per import)
+
+**Import Statistics Display:**
+```
+✓ Successfully imported 354 monsters
+
+Strategy Statistics:
++---------------------+----------+----------+
+| Strategy            | Monsters | Warnings |
++---------------------+----------+----------+
+| DragonStrategy      | 12       | 0        |
+| SpellcasterStrategy | 45       | 3        |
+| DefaultStrategy     | 354      | 0        |
++---------------------+----------+----------+
+⚠ Detailed logs: storage/logs/import-strategy-2025-11-22.log
+```
+
+**Architecture Benefits:**
+- Each strategy ~50-60 lines (vs 400+ line monolith)
+- Isolated testing with real XML fixtures
+- Composition: monsters can use multiple strategies (e.g., Dragon + Spellcaster)
+- Single point of change for XML format updates
+- 85%+ test coverage per strategy (75 strategy-specific tests)
+
+**Models:**
+- Monster (main stat block)
+- MonsterTrait (passive abilities)
+- MonsterAction (combat actions)
+- MonsterLegendaryAction (legendary actions)
+- MonsterSpellcasting (spell lists)
+
+**Enhancement Opportunities:**
+- SpellcasterStrategy could sync entity_spells (like ChargedItemStrategy)
+- Additional strategies: FiendStrategy, CelestialStrategy, ConstructStrategy
+- Lair actions & regional effects (requires schema changes)
+
 ---
 
 ## 📚 Code Architecture
@@ -648,40 +714,64 @@ EntitySource::factory()->forEntity(Spell::class, $spell->id)->fromSource('PHB')-
 
 ## 🚦 What's Next
 
-### Priority 1: Item Parser Strategy Pattern ⭐ IN PROGRESS
-**Status:** Planning complete, ready for implementation
+### Priority 1: Import Monster Data ⭐ HIGHLY RECOMMENDED (1-2 hours)
+**Status:** Monster Importer complete, ready to populate database
 
-**Goal:** Refactor ItemXmlParser from 481-line monolith into composable strategies for better accuracy and maintainability.
+**Run:**
+```bash
+# Option 1: Import all bestiary files at once
+docker compose exec php php artisan import:all --only=monsters --skip-migrate
 
-**Plan:** `docs/plans/2025-11-22-item-parser-strategy-pattern.md`
-**Handover:** `docs/SESSION-HANDOVER-2025-11-22-STRATEGY-PATTERN-PLANNING.md`
+# Option 2: Import one file for testing
+docker compose exec php php artisan import:monsters import-files/bestiary-mm.xml
 
-**Strategies to Implement:**
-1. ChargedItemStrategy (ST, WD, RD) - Spell references + enhanced charges
-2. ScrollStrategy (SC) - Spell level extraction + protection scrolls
-3. PotionStrategy (P) - Duration + effect categorization
-4. TattooStrategy (W) - Body location + activation methods
-5. LegendaryStrategy (legendary/artifact) - Sentience + alignment
+# Option 3: Full fresh import (all entities)
+docker compose exec php php artisan import:all
+```
 
-**Estimated:** 8-12 hours (TDD with real XML fixtures)
-**Benefits:**
-- Type-specific parsing accuracy
-- ~250 lines eliminated from monolith
-- 85%+ test coverage per strategy
-- Structured logging with metrics
+**Expected:**
+- ~500-600 monsters from 9 bestiary XML files
+- Strategy statistics per file (Dragon, Spellcaster, Undead, Swarm)
+- Detailed logs in `storage/logs/import-strategy-2025-11-22.log`
 
-### Priority 2: Monster Importer ⭐ HIGHLY RECOMMENDED
-- 7 bestiary XML files ready
-- Schema complete and tested
-- **Can reuse 6 brand new traits** from 2025-11-22 refactoring
-- **Estimated:** 4-6 hours with TDD (down from 8-10 hours!)
-- **Size:** ~200 lines vs. ~350 lines without refactorings
+### Priority 2: Monster API Endpoints (3-4 hours)
+**Create RESTful API for monster data**
 
-### Priority 3: Import Remaining Data
-- 6 more spell files (~300 spells)
+**Files to Create:**
+- `app/Http/Controllers/Api/MonsterController.php`
+- `app/Http/Resources/MonsterResource.php` (+ 4 related resources)
+- `app/Http/Requests/MonsterIndexRequest.php`
+- `app/Http/Requests/MonsterShowRequest.php`
+- `tests/Feature/Api/MonsterControllerTest.php`
+
+**Endpoints:**
+```
+GET /api/v1/monsters - List with pagination, filtering, search
+GET /api/v1/monsters/{id|slug} - Show with relationships
+GET /api/v1/monsters/{id}/spells - Spell list (if entity_spells synced)
+```
+
+### Priority 3: Add Monster Search to Meilisearch (2 hours)
+**Make monsters searchable via global search**
+
+- Add Scout trait to Monster model
+- Configure searchable attributes
+- Add 'monsters' to SearchController types
+- Create MonsterSearchService
+- Add tests for monster search
+
+### Priority 4: Enhance SpellcasterStrategy (3-4 hours)
+**Sync entity_spells for spellcasting monsters**
+
+- Modify SpellcasterStrategy::enhance() to sync entity_spells
+- Add spell name → Spell lookup with caching
+- Track metrics: spells_matched, spells_not_found
+- Benefits: Query monster spell lists via relationships
+
+### Priority 5: Import Remaining Data
 - Races, Items, Backgrounds, Feats (importers ready, just need to run commands)
 
-### Priority 4: API Enhancements
+### Priority 6: API Enhancements
 - Additional filtering/aggregation
 - Rate limiting
 - Caching strategy
@@ -691,13 +781,15 @@ EntitySource::factory()->forEntity(Spell::class, $spell->id)->fromSource('PHB')-
 ## 📖 Documentation
 
 **Essential Reading:**
-- `docs/SESSION-HANDOVER-2025-11-22-STRATEGY-PATTERN-PLANNING.md` - Latest session (strategy pattern planning)
+- `docs/SESSION-HANDOVER-2025-11-22-MONSTER-IMPORTER-COMPLETE.md` - **LATEST** Monster Importer complete
+- `docs/SESSION-HANDOVER-2025-11-22-ITEM-PARSER-STRATEGIES-COMPLETE.md` - Item Parser strategies
 - `docs/SEARCH.md` - Search system documentation
 - `docs/MEILISEARCH-FILTERS.md` - Advanced filter syntax
 - `docs/recommendations/CUSTOM-EXCEPTIONS-ANALYSIS.md` - Exception patterns
 
 **Plans:**
-- `docs/plans/2025-11-22-item-parser-strategy-pattern.md` - **CURRENT** Item parser refactoring
+- `docs/plans/2025-11-22-monster-importer-implementation.md` - Monster importer implementation
+- `docs/plans/2025-11-22-monster-importer-strategy-pattern.md` - Monster strategy design
 - `docs/plans/2025-11-17-dnd-compendium-database-design.md` - Database architecture
 - `docs/plans/2025-11-17-dnd-xml-importer-implementation-v4-vertical-slices.md` - Implementation strategy
 
@@ -744,7 +836,7 @@ EOF
 ## 🎯 Success Checklist
 
 Before marking work complete:
-- [ ] All tests passing (719+ tests)
+- [ ] All tests passing (1,012+ tests)
 - [ ] Code formatted with Pint
 - [ ] API Resources expose new data
 - [ ] Form Requests validate new parameters
@@ -760,4 +852,4 @@ Before marking work complete:
 
 ---
 
-**Branch:** `main` | **Status:** ✅ Production-Ready + Refactored + Strategy Pattern | **Tests:** 937 passing | **Code Reduction:** -260 lines (traits) + strategy pattern refactoring
+**Branch:** `main` | **Status:** ✅ All Importers Complete | **Tests:** 1,012 passing | **Models:** 28 | **Importers:** 9 (Strategy Pattern)

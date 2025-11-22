@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Performance Optimizations Phase 2: Caching (2025-11-22)
+- **LookupCacheService** - Centralized Redis caching for static lookup data
+  - Caches 7 lookup tables: spell schools (8), damage types (13), conditions (15), sizes (9), ability scores (6), languages (30), proficiency types (82)
+  - 1-hour TTL for 163 total cached records
+  - Average performance: 93.7% improvement (2.72ms → 0.17ms)
+  - Best performance: 97.9% improvement for spell schools (40x faster)
+  - 5 comprehensive unit tests with query counting verification
+- **Lookup Controller Caching** - All 7 lookup endpoints now cache-enabled
+  - SpellSchoolController, DamageTypeController, ConditionController
+  - SizeController, AbilityScoreController, LanguageController, ProficiencyTypeController
+  - Maintains pagination structure with manual LengthAwarePaginator
+  - Falls back to database for filtered queries (search, category filters)
+- **cache:warm-lookups Command** - Artisan command to pre-warm all lookup caches
+  - Useful for deployment, after cache clear, after data re-imports
+  - Warms all 163 entries across 7 tables in one command
+- **Monster Spell Filtering Tests** - 2 new integration tests for Meilisearch
+  - Verifies spell_slugs present in Monster search index
+  - Tests filtering monsters by spell slugs via Meilisearch
+
+### Changed - Performance Optimizations Phase 2 (2025-11-22)
+- **Lookup Controllers** - All 7 controllers updated to use LookupCacheService
+  - Cache applied only for unfiltered requests (no search query)
+  - Filtered requests fall back to database query
+  - Maintains existing API contract (pagination, search, filters)
+
+### Performance - Phase 2: Caching Results (2025-11-22)
+- **Lookup Endpoints:** 2.72ms → 0.17ms average (93.7% improvement, 16x faster)
+  - Spell Schools: 11.51ms → 0.24ms (97.9% improvement, 48x faster)
+  - Damage Types: 1.27ms → 0.13ms (89.9% improvement)
+  - Conditions: 1.13ms → 0.11ms (90.4% improvement)
+  - Sizes: 0.75ms → 0.06ms (92.3% improvement)
+  - Ability Scores: 0.86ms → 0.06ms (92.8% improvement)
+  - Languages: 1.36ms → 0.22ms (83.6% improvement)
+  - Proficiency Types: 2.13ms → 0.38ms (82.0% improvement)
+- **Database Load Reduction:** 94%+ fewer queries for static lookup data
+- **Test Suite:** 1,257 of 1,260 tests passing (99.8% pass rate, 6,751 assertions)
+- **Monster Spell Filtering:** Already optimized with Meilisearch spell_slugs field (from previous session)
+
 ### Added - Performance Optimizations Phase 1 (2025-11-22)
 - **Redis Caching Infrastructure**
   - Added Redis 7-alpine service to docker-compose.yml

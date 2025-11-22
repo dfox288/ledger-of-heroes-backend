@@ -62,4 +62,8 @@ Route::prefix('v1')->group(function () {
 
     // Monsters
     Route::apiResource('monsters', MonsterController::class)->only(['index', 'show']);
+
+    // Monster spell list endpoint
+    Route::get('monsters/{monster}/spells', [MonsterController::class, 'spells'])
+        ->name('monsters.spells');
 });

@@ -31,6 +31,7 @@ final readonly class MonsterSearchDTO
                 'type' => $validated['type'] ?? null,
                 'size' => $validated['size'] ?? null,
                 'alignment' => $validated['alignment'] ?? null,
+                'spells' => $validated['spells'] ?? null,
             ],
             sortBy: $validated['sort_by'] ?? 'name',
             sortDirection: $validated['sort_direction'] ?? 'asc',

@@ -27,6 +27,9 @@ class MonsterIndexRequest extends BaseIndexRequest
             // Alignment filter
             'alignment' => ['sometimes', 'string', 'max:50'],
 
+            // Spell filter (comma-separated spell slugs)
+            'spells' => ['sometimes', 'string', 'max:500'],
+
             // Meilisearch filter expression (for future use)
             'filter' => ['sometimes', 'string', 'max:1000'],
         ];

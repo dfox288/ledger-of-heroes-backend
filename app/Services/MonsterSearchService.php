@@ -98,6 +98,17 @@ final class MonsterSearchService
         if (isset($dto->filters['alignment'])) {
             $query->where('alignment', 'like', '%'.$dto->filters['alignment'].'%');
         }
+
+        // Spell filter (AND logic: monster must have ALL specified spells)
+        if (isset($dto->filters['spells'])) {
+            $spellSlugs = array_map('trim', explode(',', $dto->filters['spells']));
+
+            foreach ($spellSlugs as $slug) {
+                $query->whereHas('entitySpells', function ($q) use ($slug) {
+                    $q->where('slug', $slug);
+                });
+            }
+        }
     }
 
     private function applySorting(Builder $query, MonsterSearchDTO $dto): void

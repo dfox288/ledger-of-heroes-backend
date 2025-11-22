@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Monster Spell Filtering API** - Query monsters by their known spells via REST API
+  - **Filter endpoint:** `GET /api/v1/monsters?spells=fireball` - Find monsters that know specific spell(s)
+  - **Multiple spells:** `GET /api/v1/monsters?spells=fireball,lightning-bolt` - AND logic (must know ALL specified spells)
+  - **Spell list endpoint:** `GET /api/v1/monsters/{id}/spells` - Get all spells for a monster (ordered by level then name)
+  - **Implementation:**
+    - Added `spells` filter validation to `MonsterIndexRequest`
+    - Enhanced `MonsterSearchService` with `filterBySpells()` method (AND logic via nested `whereHas`)
+    - Added `MonsterController::spells()` method returning `SpellResource` collection
+    - Registered `monsters/{monster}/spells` route
+    - Updated `MonsterSearchDTO` to pass spells filter parameter
+  - **Tests:** 5 comprehensive API tests (1,018 total tests passing, +5 new)
+  - **Leverages:** 1,098 spell relationships from SpellcasterStrategy enhancement
+  - **Supports:** 129 spellcasting monsters (11 have Fireball, 3 have both Fireball and Lightning Bolt)
+  - **Pattern:** Follows `ClassController::spells()` endpoint pattern
+  - **Documentation:** `docs/SESSION-HANDOVER-2025-11-22-MONSTER-SPELL-API-COMPLETE.md`
+
 - **Monster Spell Syncing** - Spellcasting monsters now have queryable spell relationships via `entity_spells` table
   - SpellcasterStrategy enhanced to sync spell names to Spell models
   - Case-insensitive spell lookup with performance caching
@@ -17,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Use Cases:**
     - Query monster spells: `$lich->entitySpells` (26 spells for Lich)
     - Filter monsters by spell: `Monster::whereHas('entitySpells', fn($q) => $q->where('slug', 'fireball'))->get()`
-    - Ready for API endpoints: `GET /api/v1/monsters?spells=fireball`, `GET /api/v1/monsters/{id}/spells`
+    - API endpoints implemented (see Monster Spell Filtering API above)
   - **Pattern:** Follows ChargedItemStrategy spell syncing pattern
   - **Documentation:** `docs/SESSION-HANDOVER-2025-11-22-SPELLCASTER-STRATEGY-ENHANCEMENT.md`
 
@@ -115,6 +131,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Backward compatible: damage_type_code still supported as fallback
 
 ### Fixed
+- **Monster Model Source Relationship Bug** - Fixed incorrect relationship type causing "Call to undefined relationship [source]" errors
+  - **Root Cause:** `Monster::sources()` was using `MorphToMany` to `Source` (wrong) instead of `MorphMany` to `EntitySource` (correct)
+  - **Impact:** Monster API/search endpoints crashed when trying to load sources
+  - **Solution:** Changed relationship from `MorphToMany(Source::class)` to `MorphMany(EntitySource::class)` to match other models
+  - **Pattern:** Now consistent with all other entities (Spell, Race, Item, Feat, Background, CharacterClass)
+  - **Modified:** `app/Models/Monster.php` - Fixed `sources()` relationship and `toSearchableArray()` method
+  - **Testing:** 1,018 tests passing (all 5 new monster spell API tests pass)
+
 - **Item Importer Duplicate Source Bug** - Fixed crash when importing items with multiple citations to the same source
   - **Root Cause:** Items like "Instrument of Illusions" cited same source twice with different pages (XGE p.137, XGE p.83)
   - **Error:** Unique constraint violation on `entity_sources(reference_type, reference_id, source_id)`

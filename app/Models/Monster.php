@@ -111,10 +111,9 @@ class Monster extends Model
             ->withPivot('description');
     }
 
-    public function sources(): MorphToMany
+    public function sources(): MorphMany
     {
-        return $this->morphToMany(Source::class, 'reference', 'entity_sources')
-            ->withPivot('pages');
+        return $this->morphMany(EntitySource::class, 'reference');
     }
 
     // Scout Search Configuration

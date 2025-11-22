@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\MonsterIndexRequest;
 use App\Http\Requests\MonsterShowRequest;
 use App\Http\Resources\MonsterResource;
+use App\Http\Resources\SpellResource;
 use App\Models\Monster;
 use App\Services\MonsterSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
@@ -73,5 +74,20 @@ class MonsterController extends Controller
         $monster->load($with);
 
         return new MonsterResource($monster);
+    }
+
+    /**
+     * Get all spells for a specific monster
+     *
+     * Returns a collection of spells that the monster can cast.
+     * Empty collection for non-spellcasters. Spells are ordered by level then name.
+     */
+    public function spells(Monster $monster)
+    {
+        $monster->load(['entitySpells' => function ($query) {
+            $query->orderBy('level')->orderBy('name');
+        }, 'entitySpells.spellSchool']);
+
+        return SpellResource::collection($monster->entitySpells);
     }
 }

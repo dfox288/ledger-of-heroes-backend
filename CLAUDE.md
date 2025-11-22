@@ -7,12 +7,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Laravel 12.x application importing D&D 5th Edition XML content and providing a RESTful API.
 
 **Current Status (2025-11-22):**
-- ✅ **1,013 tests passing** (5,865 assertions) - 99.9% pass rate, +8 new SpellcasterStrategy tests
+- ✅ **1,018 tests passing** (5,915 assertions) - 99.9% pass rate, +5 new monster spell API tests
 - ✅ **64 migrations** - Complete schema (slugs, languages, prerequisites, spell tags, saving throws with DC, monsters)
 - ✅ **32 models + 29 API Resources + 18 controllers** - Full CRUD + Search for 7 entities
 - ✅ **9 importers** - Spells, Classes, Races, Items, Backgrounds, Feats, Monsters, Spell Class Mappings, Master Import
 - ✅ **21 reusable traits** - 6 NEW from refactoring (2025-11-22), ~260 lines eliminated
-- ✅ **Monster API Complete** - 598 monsters imported, full REST API with filtering by CR/type/size/alignment
+- ✅ **Monster API Complete** - 598 monsters imported, full REST API with filtering by CR/type/size/alignment/spells
+- ✅ **Monster Spell Filtering API** - Query monsters by spells (`?spells=fireball`), list monster spells (`GET /monsters/{id}/spells`)
 - ✅ **Monster Importer with Strategy Pattern** - 5 type-specific strategies (Dragon, Spellcaster, Undead, Swarm, Default)
 - ✅ **Monster Spell Syncing** - SpellcasterStrategy syncs 1,098 spell relationships for 129 spellcasting monsters
 - ✅ **Item Parser Strategy Pattern** - 5 type-specific strategies (Charged, Scroll, Potion, Tattoo, Legendary)
@@ -29,15 +30,21 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 **Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 | PHPUnit 11+ | Docker | Meilisearch
 
 **📖 Read handovers:**
-- `docs/SESSION-HANDOVER-2025-11-22-MONSTER-API-AND-SEARCH-COMPLETE.md` - Monster API implementation
-- `docs/SESSION-HANDOVER-2025-11-22-TEST-REDUCTION-PHASE-1.md` - Test suite optimization
+- `docs/PROJECT-STATUS.md` - **START HERE** Comprehensive project overview with metrics
+- `docs/README.md` - Documentation index and navigation
+- `docs/SESSION-HANDOVER-2025-11-22-MONSTER-SPELL-API-COMPLETE.md` - Monster spell filtering API (COMPLETE)
 - `docs/SESSION-HANDOVER-2025-11-22-SPELLCASTER-STRATEGY-ENHANCEMENT.md` - Monster spell syncing (COMPLETE)
-- `docs/SESSION-HANDOVER-2025-11-22-MONSTER-SPELL-API-IN-PROGRESS.md` - **START HERE NEXT SESSION** - Monster spell filtering (TDD RED phase, ready for implementation)
+- `docs/SESSION-HANDOVER-2025-11-22-MONSTER-API-AND-SEARCH-COMPLETE.md` - Monster API implementation (COMPLETE)
+- `docs/SESSION-HANDOVER-2025-11-22-MONSTER-IMPORTER-COMPLETE.md` - Monster importer with strategies (COMPLETE)
+- `docs/SESSION-HANDOVER-2025-11-22-ITEM-PARSER-STRATEGIES-COMPLETE.md` - Item parser refactoring (COMPLETE)
+- `docs/SESSION-HANDOVER-2025-11-22-TEST-REDUCTION-PHASE-1.md` - Test suite optimization (COMPLETE)
 
-**🚀 Next tasks:**
-1. Add monster spell filtering (`GET /monsters?spells=fireball`) - ~1 hour
-2. Add monster spell list endpoint (`GET /monsters/{id}/spells`) - ~30 minutes
-3. Performance optimizations (caching, indexing) - optional
+**🚀 Next tasks (all optional - core features complete):**
+1. Performance optimizations (caching, indexing, Meilisearch spell filtering) - 2-4 hours
+2. Enhanced spell filtering (OR logic, level filters, spellcasting ability) - 1-2 hours
+3. Character Builder API (character creation, leveling, spell selection) - 8-12 hours
+4. Additional Monster Strategies (FiendStrategy, CelestialStrategy, ConstructStrategy) - 2-3h each
+5. Frontend Application (Inertia.js/Vue or Next.js/React) - 20-40 hours
 
 ---
 

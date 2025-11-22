@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Monster Spell Syncing** - Spellcasting monsters now have queryable spell relationships via `entity_spells` table
+  - SpellcasterStrategy enhanced to sync spell names to Spell models
+  - Case-insensitive spell lookup with performance caching
+  - **Metrics:** 1,098 spell relationships synced for 129 spellcasting monsters (100% match rate)
+  - **New relationship:** `Monster::entitySpells()` polymorphic relationship
+  - **Tests:** 8 comprehensive SpellcasterStrategyEnhancementTests (1,013 total tests passing)
+  - **Use Cases:**
+    - Query monster spells: `$lich->entitySpells` (26 spells for Lich)
+    - Filter monsters by spell: `Monster::whereHas('entitySpells', fn($q) => $q->where('slug', 'fireball'))->get()`
+    - Ready for API endpoints: `GET /api/v1/monsters?spells=fireball`, `GET /api/v1/monsters/{id}/spells`
+  - **Pattern:** Follows ChargedItemStrategy spell syncing pattern
+  - **Documentation:** `docs/SESSION-HANDOVER-2025-11-22-SPELLCASTER-STRATEGY-ENHANCEMENT.md`
+
 ### Changed
 - **Test Suite Optimization (Phase 1)** - Removed 36 redundant tests, improved performance by 9.4%
   - **Tests:** 1,041 → 1,005 (-3.5%)
@@ -24,8 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Documentation:** `docs/recommendations/TEST-REDUCTION-STRATEGY.md` - Comprehensive audit with 5-phase roadmap
   - **Impact:** Cleaner test suite, faster CI, easier maintenance
   - **Potential:** Additional 123 tests could be removed in future phases (15% further reduction)
-
-### Added
 - **Monster Search with Meilisearch** - Fast, typo-tolerant search for 598 monsters
   - Laravel Scout integration with Monster model
   - MonsterSearchService for Scout/Meilisearch/database queries

@@ -7,13 +7,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Laravel 12.x application importing D&D 5th Edition XML content and providing a RESTful API.
 
 **Current Status (2025-11-22):**
-- ✅ **1,005 tests passing** (5,815 assertions) - 99.9% pass rate, 9.4% faster after optimization
+- ✅ **1,013 tests passing** (5,865 assertions) - 99.9% pass rate, +8 new SpellcasterStrategy tests
 - ✅ **64 migrations** - Complete schema (slugs, languages, prerequisites, spell tags, saving throws with DC, monsters)
 - ✅ **32 models + 29 API Resources + 18 controllers** - Full CRUD + Search for 7 entities
 - ✅ **9 importers** - Spells, Classes, Races, Items, Backgrounds, Feats, Monsters, Spell Class Mappings, Master Import
 - ✅ **21 reusable traits** - 6 NEW from refactoring (2025-11-22), ~260 lines eliminated
 - ✅ **Monster API Complete** - 598 monsters imported, full REST API with filtering by CR/type/size/alignment
 - ✅ **Monster Importer with Strategy Pattern** - 5 type-specific strategies (Dragon, Spellcaster, Undead, Swarm, Default)
+- ✅ **Monster Spell Syncing** - SpellcasterStrategy syncs 1,098 spell relationships for 129 spellcasting monsters
 - ✅ **Item Parser Strategy Pattern** - 5 type-specific strategies (Charged, Scroll, Potion, Tattoo, Legendary)
 - ✅ **One-command import** - `import:all` handles all 60+ XML files in correct order
 - ✅ **Universal tag system** - All 7 entities support Spatie Tags
@@ -30,11 +31,12 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 **📖 Read handovers:**
 - `docs/SESSION-HANDOVER-2025-11-22-MONSTER-API-AND-SEARCH-COMPLETE.md` - Monster API implementation
 - `docs/SESSION-HANDOVER-2025-11-22-TEST-REDUCTION-PHASE-1.md` - Test suite optimization
+- `docs/SESSION-HANDOVER-2025-11-22-SPELLCASTER-STRATEGY-ENHANCEMENT.md` - Monster spell syncing
 
 **🚀 Next tasks:**
-1. Enhance SpellcasterStrategy to sync entity_spells (make monster spells queryable)
-2. Create Race API endpoints (importer ready)
-3. Create Background API endpoints (importer ready)
+1. Create Race API endpoints (importer ready)
+2. Create Background API endpoints (importer ready)
+3. Add monster spell filtering and `/monsters/{id}/spells` endpoint
 
 ---
 

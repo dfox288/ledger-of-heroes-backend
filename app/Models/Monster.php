@@ -84,6 +84,22 @@ class Monster extends Model
         )->withPivot('usage_type', 'usage_limit');
     }
 
+    public function entitySpells(): MorphToMany
+    {
+        return $this->morphToMany(
+            Spell::class,
+            'reference',
+            'entity_spells',
+            'reference_id',
+            'spell_id'
+        )->withPivot([
+            'ability_score_id',
+            'level_requirement',
+            'usage_limit',
+            'is_cantrip',
+        ]);
+    }
+
     public function modifiers(): MorphMany
     {
         return $this->morphMany(Modifier::class, 'reference');

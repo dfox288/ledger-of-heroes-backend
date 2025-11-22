@@ -25,6 +25,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **System Intelligence:** Auto-selects best approach (Meilisearch for search queries, database for filters only)
 
 ### Added
+- **Enhanced Monster Spell Filtering** - Advanced spell query capabilities with OR logic, spell level, and spellcasting ability filters
+  - **OR Logic:** `GET /api/v1/monsters?spells=fireball,lightning-bolt&spells_operator=OR` - Find monsters with ANY of the specified spells (~17 monsters vs 3 with AND)
+  - **Spell Level Filter:** `GET /api/v1/monsters?spell_level=9` - Find monsters with specific spell slot levels (0-9, where 0=cantrips)
+  - **Spellcasting Ability Filter:** `GET /api/v1/monsters?spellcasting_ability=INT` - Filter by caster type (INT/WIS/CHA for arcane/divine/charisma casters)
+  - **Combined Filters:** `GET /api/v1/monsters?spell_level=3&spells=fireball&min_cr=5` - Complex multi-criteria queries
+  - **Implementation:**
+    - Updated `MonsterIndexRequest` with 3 new filter validations
+    - Enhanced `MonsterSearchDTO` to pass new filter parameters
+    - Updated `MonsterSearchService` for OR logic (single `whereHas` with `whereIn`), spell level filtering, and spellcasting ability filtering
+    - Both Meilisearch and database query paths supported
+  - **Documentation:** `docs/API-EXAMPLES.md` - 200+ lines of real-world usage examples
+  - **Use Cases:** Encounter building, spell tracking, themed campaigns, boss rush creation
+
 - **Monster Spell Filtering API** - Query monsters by their known spells via REST API
   - **Filter endpoint:** `GET /api/v1/monsters?spells=fireball` - Find monsters that know specific spell(s)
   - **Multiple spells:** `GET /api/v1/monsters?spells=fireball,lightning-bolt` - AND logic (must know ALL specified spells)

@@ -30,6 +30,15 @@ class MonsterIndexRequest extends BaseIndexRequest
             // Spell filter (comma-separated spell slugs)
             'spells' => ['sometimes', 'string', 'max:500'],
 
+            // Spell filter operator (AND = must have all spells, OR = must have at least one)
+            'spells_operator' => ['sometimes', 'string', 'in:AND,OR'],
+
+            // Spell level filter (0-9, where 0 = cantrips)
+            'spell_level' => ['sometimes', 'integer', 'min:0', 'max:9'],
+
+            // Spellcasting ability filter (INT, WIS, CHA)
+            'spellcasting_ability' => ['sometimes', 'string', 'in:INT,WIS,CHA'],
+
             // Meilisearch filter expression (for future use)
             'filter' => ['sometimes', 'string', 'max:1000'],
         ];

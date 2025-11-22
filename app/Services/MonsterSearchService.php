@@ -38,14 +38,21 @@ final class MonsterSearchService
             $search->where('alignment', $dto->filters['alignment']);
         }
 
-        // Spell filter (Meilisearch-optimized with AND logic)
+        // Spell filter (Meilisearch-optimized with AND/OR logic)
         // Uses spell_slugs array field for fast filtering
         if (isset($dto->filters['spells'])) {
             $spellSlugs = array_map('trim', explode(',', $dto->filters['spells']));
+            $operator = $dto->filters['spells_operator'] ?? 'AND';
 
-            // Build Meilisearch filter: spell_slugs = 'fireball' AND spell_slugs = 'lightning-bolt'
-            foreach ($spellSlugs as $slug) {
-                $search->where('spell_slugs', $slug);
+            if ($operator === 'AND') {
+                // Must have ALL spells: spell_slugs = 'fireball' AND spell_slugs = 'lightning-bolt'
+                foreach ($spellSlugs as $slug) {
+                    $search->where('spell_slugs', $slug);
+                }
+            } else {
+                // Must have AT LEAST ONE spell: spell_slugs IN ['fireball', 'lightning-bolt']
+                // Note: Meilisearch uses = for IN operator with arrays
+                $search->whereIn('spell_slugs', $spellSlugs);
             }
         }
 
@@ -110,15 +117,38 @@ final class MonsterSearchService
             $query->where('alignment', 'like', '%'.$dto->filters['alignment'].'%');
         }
 
-        // Spell filter (AND logic: monster must have ALL specified spells)
+        // Spell filter (AND/OR logic)
         if (isset($dto->filters['spells'])) {
             $spellSlugs = array_map('trim', explode(',', $dto->filters['spells']));
+            $operator = $dto->filters['spells_operator'] ?? 'AND';
 
-            foreach ($spellSlugs as $slug) {
-                $query->whereHas('entitySpells', function ($q) use ($slug) {
-                    $q->where('slug', $slug);
+            if ($operator === 'AND') {
+                // Must have ALL spells (nested whereHas)
+                foreach ($spellSlugs as $slug) {
+                    $query->whereHas('entitySpells', function ($q) use ($slug) {
+                        $q->where('slug', $slug);
+                    });
+                }
+            } else {
+                // Must have AT LEAST ONE spell (single whereHas with whereIn)
+                $query->whereHas('entitySpells', function ($q) use ($spellSlugs) {
+                    $q->whereIn('slug', $spellSlugs);
                 });
             }
+        }
+
+        // Spell level filter (monsters that know spells of specific level)
+        if (isset($dto->filters['spell_level'])) {
+            $query->whereHas('entitySpells', function ($q) use ($dto) {
+                $q->where('level', $dto->filters['spell_level']);
+            });
+        }
+
+        // Spellcasting ability filter (INT/WIS/CHA based casters)
+        if (isset($dto->filters['spellcasting_ability'])) {
+            $query->whereHas('spellcasting', function ($q) use ($dto) {
+                $q->where('spellcasting_ability', 'LIKE', '%'.$dto->filters['spellcasting_ability'].'%');
+            });
         }
     }
 

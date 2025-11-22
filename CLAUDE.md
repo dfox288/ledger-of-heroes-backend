@@ -34,9 +34,9 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 - `docs/SESSION-HANDOVER-2025-11-22-SPELLCASTER-STRATEGY-ENHANCEMENT.md` - Monster spell syncing
 
 **🚀 Next tasks:**
-1. Create Race API endpoints (importer ready)
-2. Create Background API endpoints (importer ready)
-3. Add monster spell filtering and `/monsters/{id}/spells` endpoint
+1. Add monster spell filtering (`GET /monsters?spells=fireball`) - ~1 hour
+2. Add monster spell list endpoint (`GET /monsters/{id}/spells`) - ~30 minutes
+3. Performance optimizations (caching, indexing) - optional
 
 ---
 

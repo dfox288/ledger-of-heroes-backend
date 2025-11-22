@@ -310,4 +310,207 @@ class MonsterApiTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    #[Test]
+    public function can_filter_monsters_by_spell()
+    {
+        $source = $this->getSource('PHB');
+        $school = \App\Models\SpellSchool::factory()->create(['code' => 'EVO']);
+
+        // Create spells
+        $fireball = \App\Models\Spell::factory()->create([
+            'name' => 'Fireball',
+            'slug' => 'fireball',
+            'spell_school_id' => $school->id,
+        ]);
+
+        $lightning = \App\Models\Spell::factory()->create([
+            'name' => 'Lightning Bolt',
+            'slug' => 'lightning-bolt',
+            'spell_school_id' => $school->id,
+        ]);
+
+        // Create monsters
+        $lich = Monster::factory()->create(['name' => 'Lich']);
+        \App\Models\EntitySource::create([
+            'reference_type' => Monster::class,
+            'reference_id' => $lich->id,
+            'source_id' => $source->id,
+            'pages' => '202',
+        ]);
+        $lich->entitySpells()->attach([$fireball->id, $lightning->id]);
+
+        $archmage = Monster::factory()->create(['name' => 'Archmage']);
+        \App\Models\EntitySource::create([
+            'reference_type' => Monster::class,
+            'reference_id' => $archmage->id,
+            'source_id' => $source->id,
+            'pages' => '342',
+        ]);
+        $archmage->entitySpells()->attach([$fireball->id]);
+
+        $goblin = Monster::factory()->create(['name' => 'Goblin']);
+        \App\Models\EntitySource::create([
+            'reference_type' => Monster::class,
+            'reference_id' => $goblin->id,
+            'source_id' => $source->id,
+            'pages' => '166',
+        ]);
+        // Goblin has no spells
+
+        // Filter by Fireball - should return Lich and Archmage
+        $response = $this->getJson('/api/v1/monsters?spells=fireball');
+
+        $response->assertOk();
+        $response->assertJsonCount(2, 'data');
+
+        $names = collect($response->json('data'))->pluck('name')->all();
+        $this->assertContains('Lich', $names);
+        $this->assertContains('Archmage', $names);
+        $this->assertNotContains('Goblin', $names);
+    }
+
+    #[Test]
+    public function can_filter_monsters_by_multiple_spells()
+    {
+        $source = $this->getSource('PHB');
+        $school = \App\Models\SpellSchool::factory()->create(['code' => 'EVO']);
+
+        // Create spells
+        $fireball = \App\Models\Spell::factory()->create([
+            'name' => 'Fireball',
+            'slug' => 'fireball',
+            'spell_school_id' => $school->id,
+        ]);
+
+        $lightning = \App\Models\Spell::factory()->create([
+            'name' => 'Lightning Bolt',
+            'slug' => 'lightning-bolt',
+            'spell_school_id' => $school->id,
+        ]);
+
+        // Create monsters
+        $lich = Monster::factory()->create(['name' => 'Lich']);
+        \App\Models\EntitySource::create([
+            'reference_type' => Monster::class,
+            'reference_id' => $lich->id,
+            'source_id' => $source->id,
+            'pages' => '202',
+        ]);
+        $lich->entitySpells()->attach([$fireball->id, $lightning->id]);
+
+        $archmage = Monster::factory()->create(['name' => 'Archmage']);
+        \App\Models\EntitySource::create([
+            'reference_type' => Monster::class,
+            'reference_id' => $archmage->id,
+            'source_id' => $source->id,
+            'pages' => '342',
+        ]);
+        $archmage->entitySpells()->attach([$fireball->id]); // Only Fireball
+
+        // Filter by both spells - should only return Lich
+        $response = $this->getJson('/api/v1/monsters?spells=fireball,lightning-bolt');
+
+        $response->assertOk();
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonPath('data.0.name', 'Lich');
+    }
+
+    #[Test]
+    public function can_get_monster_spell_list()
+    {
+        $source = $this->getSource('PHB');
+        $school = \App\Models\SpellSchool::factory()->create(['code' => 'EVO']);
+
+        // Create spells
+        $fireball = \App\Models\Spell::factory()->create([
+            'name' => 'Fireball',
+            'slug' => 'fireball',
+            'level' => 3,
+            'spell_school_id' => $school->id,
+        ]);
+
+        $lightning = \App\Models\Spell::factory()->create([
+            'name' => 'Lightning Bolt',
+            'slug' => 'lightning-bolt',
+            'level' => 3,
+            'spell_school_id' => $school->id,
+        ]);
+
+        $mageHand = \App\Models\Spell::factory()->create([
+            'name' => 'Mage Hand',
+            'slug' => 'mage-hand',
+            'level' => 0,
+            'spell_school_id' => $school->id,
+        ]);
+
+        // Create monster with spells
+        $lich = Monster::factory()->create(['name' => 'Lich']);
+        \App\Models\EntitySource::create([
+            'reference_type' => Monster::class,
+            'reference_id' => $lich->id,
+            'source_id' => $source->id,
+            'pages' => '202',
+        ]);
+        $lich->entitySpells()->attach([$fireball->id, $lightning->id, $mageHand->id]);
+
+        // Get monster's spell list
+        $response = $this->getJson("/api/v1/monsters/{$lich->id}/spells");
+
+        $response->assertOk();
+        $response->assertJsonCount(3, 'data');
+        $response->assertJsonStructure([
+            'data' => [
+                '*' => [
+                    'id',
+                    'name',
+                    'slug',
+                    'level',
+                    'school' => ['id', 'name', 'code'],
+                ],
+            ],
+        ]);
+
+        // Verify spell names
+        $spellNames = collect($response->json('data'))->pluck('name')->all();
+        $this->assertContains('Fireball', $spellNames);
+        $this->assertContains('Lightning Bolt', $spellNames);
+        $this->assertContains('Mage Hand', $spellNames);
+    }
+
+    #[Test]
+    public function monster_spell_list_returns_empty_for_non_spellcaster()
+    {
+        $source = $this->getSource('PHB');
+
+        $goblin = Monster::factory()->create(['name' => 'Goblin']);
+        \App\Models\EntitySource::create([
+            'reference_type' => Monster::class,
+            'reference_id' => $goblin->id,
+            'source_id' => $source->id,
+            'pages' => '166',
+        ]);
+
+        $response = $this->getJson("/api/v1/monsters/{$goblin->id}/spells");
+
+        $response->assertOk();
+        $response->assertJsonCount(0, 'data');
+    }
+
+    #[Test]
+    public function monster_spell_list_returns_404_for_nonexistent_monster()
+    {
+        $response = $this->getJson('/api/v1/monsters/999999/spells');
+
+        $response->assertNotFound();
+    }
+
+    /**
+     * Override getSource to create source if it doesn't exist
+     */
+    protected function getSource(string $code): \App\Models\Source
+    {
+        return \App\Models\Source::where('code', $code)->first()
+            ?? \App\Models\Source::factory()->create(['code' => $code, 'name' => "Test Source {$code}"]);
+    }
 }

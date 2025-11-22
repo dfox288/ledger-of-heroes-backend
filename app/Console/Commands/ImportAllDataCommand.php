@@ -15,7 +15,7 @@ class ImportAllDataCommand extends Command
     protected $signature = 'import:all
                             {--skip-migrate : Skip database migration and seeding}
                             {--skip-search : Skip search index configuration}
-                            {--only= : Only import specific entity types (comma-separated: classes,spells,races,items,backgrounds,feats)}';
+                            {--only= : Only import specific entity types (comma-separated: classes,spells,races,items,backgrounds,feats,monsters)}';
 
     /**
      * The console command description.
@@ -53,47 +53,53 @@ class ImportAllDataCommand extends Command
 
         // Step 2: Import classes FIRST (required by spells)
         if (! $onlyTypes || in_array('classes', $onlyTypes)) {
-            $this->step('Importing classes (STEP 1/6)');
+            $this->step('Importing classes (STEP 1/7)');
             $this->importEntityType('class', 'import:classes');
         }
 
         // Step 3: Import main spell files
         if (! $onlyTypes || in_array('spells', $onlyTypes)) {
-            $this->step('Importing spells (STEP 2/6)');
+            $this->step('Importing spells (STEP 2/7)');
             $this->importEntityType('spells', 'import:spells', exclude: ['*+*']);
         }
 
         // Step 4: Import additive spell class mappings
         if (! $onlyTypes || in_array('spells', $onlyTypes)) {
-            $this->step('Importing spell class mappings (STEP 3/6)');
+            $this->step('Importing spell class mappings (STEP 3/7)');
             $this->importAdditiveSpellFiles();
         }
 
         // Step 5: Import races
         if (! $onlyTypes || in_array('races', $onlyTypes)) {
-            $this->step('Importing races (STEP 4/6)');
+            $this->step('Importing races (STEP 4/7)');
             $this->importEntityType('races', 'import:races');
         }
 
         // Step 6: Import items
         if (! $onlyTypes || in_array('items', $onlyTypes)) {
-            $this->step('Importing items (STEP 5/6)');
+            $this->step('Importing items (STEP 5/7)');
             $this->importEntityType('items', 'import:items');
         }
 
         // Step 7: Import backgrounds
         if (! $onlyTypes || in_array('backgrounds', $onlyTypes)) {
-            $this->step('Importing backgrounds (STEP 6/6)');
+            $this->step('Importing backgrounds (STEP 6/7)');
             $this->importEntityType('backgrounds', 'import:backgrounds');
         }
 
         // Step 8: Import feats
         if (! $onlyTypes || in_array('feats', $onlyTypes)) {
-            $this->step('Importing feats (STEP 7/6) - BONUS');
+            $this->step('Importing feats (STEP 7/7)');
             $this->importEntityType('feats', 'import:feats');
         }
 
-        // Step 9: Configure search indexes
+        // Step 9: Import monsters
+        if (! $onlyTypes || in_array('monsters', $onlyTypes)) {
+            $this->step('Importing monsters (STEP 8/7) - BONUS');
+            $this->importEntityType('bestiary', 'import:monsters');
+        }
+
+        // Step 10: Configure search indexes
         if (! $this->option('skip-search')) {
             $this->step('Configuring search indexes');
             $this->call('search:configure-indexes');

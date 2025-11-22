@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ConditionIndexRequest;
 use App\Http\Resources\ConditionResource;
+use App\Http\Resources\SpellResource;
 use App\Models\Condition;
 
 class ConditionController extends Controller
@@ -41,5 +42,25 @@ class ConditionController extends Controller
     public function show(Condition $condition)
     {
         return new ConditionResource($condition);
+    }
+
+    /**
+     * List all spells that inflict this condition
+     *
+     * Returns a paginated list of spells that can inflict this condition on targets.
+     *
+     * @param Condition $condition The condition (by ID or slug)
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
+    public function spells(Condition $condition)
+    {
+        $perPage = request()->input('per_page', 50);
+
+        $spells = $condition->spells()
+            ->with(['spellSchool', 'sources', 'tags'])
+            ->orderBy('name')
+            ->paginate($perPage);
+
+        return SpellResource::collection($spells);
     }
 }

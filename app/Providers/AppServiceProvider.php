@@ -6,6 +6,7 @@ use App\Events\ModelImported;
 use App\Listeners\ClearRequestValidationCache;
 use App\Models\Background;
 use App\Models\CharacterClass;
+use App\Models\Condition;
 use App\Models\Feat;
 use App\Models\Item;
 use App\Models\Monster;
@@ -83,6 +84,12 @@ class AppServiceProvider extends ServiceProvider
             return is_numeric($value)
                 ? Monster::findOrFail($value)
                 : Monster::where('slug', $value)->firstOrFail();
+        });
+
+        Route::bind('condition', function ($value) {
+            return is_numeric($value)
+                ? Condition::findOrFail($value)
+                : Condition::where('slug', $value)->firstOrFail();
         });
     }
 }

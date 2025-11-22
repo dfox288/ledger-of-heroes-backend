@@ -23,9 +23,16 @@ class ModifierResource extends JsonResource
             'skill' => $this->when($this->skill_id, function () {
                 return new SkillResource($this->whenLoaded('skill'));
             }),
-            'damage_type' => $this->when($this->damage_type_id, function () {
-                return new DamageTypeResource($this->whenLoaded('damageType'));
-            }),
+            // Always include damage_type field for damage_resistance category, even if NULL
+            // This is important for items like Potion of Invulnerability (resistance:all)
+            'damage_type' => $this->when(
+                $this->modifier_category === 'damage_resistance' || $this->damage_type_id,
+                function () {
+                    return $this->damage_type_id
+                        ? new DamageTypeResource($this->whenLoaded('damageType'))
+                        : null;
+                }
+            ),
             'value' => $this->value,
             'condition' => $this->condition,
             'is_choice' => $this->is_choice,

@@ -90,8 +90,13 @@ class ItemImporter extends BaseImporter
         // Import prerequisites from strength_requirement
         $this->importPrerequisites($item, $itemData['strength_requirement']);
 
-        // Import spells (from description text)
-        $this->importSpells($item, $itemData['description']);
+        // Import spells from strategy (if present) or parse from description
+        if (! empty($itemData['spell_references'])) {
+            $this->importSpellReferences($item, $itemData['spell_references']);
+        } else {
+            // Fallback to parsing from description text (legacy behavior)
+            $this->importSpells($item, $itemData['description']);
+        }
 
         // Import saving throws (from description text)
         $this->importSavingThrows($item, $itemData['description']);
@@ -175,6 +180,35 @@ class ItemImporter extends BaseImporter
 
         // Use trait method for creating strength prerequisite
         $this->createStrengthPrerequisite($item, $strengthRequirement);
+    }
+
+    /**
+     * Import spell references extracted by ChargedItemStrategy.
+     *
+     * @param  Item  $item  The item to attach spells to
+     * @param  array  $spellReferences  Array of spell references from strategy
+     */
+    private function importSpellReferences(Item $item, array $spellReferences): void
+    {
+        if (empty($spellReferences)) {
+            return;
+        }
+
+        // Transform spell references into format expected by ImportsEntitySpells trait
+        $spellsData = array_map(function ($spellRef) {
+            return [
+                'spell_name' => $spellRef['name'],
+                'spell_id' => $spellRef['spell_id'] ?? null, // May be null if spell not found
+                'pivot_data' => [
+                    'charges_cost_min' => $spellRef['charges_cost_min'] ?? null,
+                    'charges_cost_max' => $spellRef['charges_cost_max'] ?? null,
+                    'charges_cost_formula' => $spellRef['charges_cost_formula'] ?? null,
+                ],
+            ];
+        }, $spellReferences);
+
+        // Delegate to the generalized trait method
+        $this->importEntitySpells($item, $spellsData);
     }
 
     private function importSpells(Item $item, string $description): void

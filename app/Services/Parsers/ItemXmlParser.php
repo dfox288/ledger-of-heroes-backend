@@ -8,6 +8,8 @@ use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesCharges;
 use App\Services\Parsers\Concerns\ParsesItemProficiencies;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
+use App\Services\Parsers\Strategies\ChargedItemStrategy;
+use App\Services\Parsers\Strategies\ItemTypeStrategy;
 use SimpleXMLElement;
 
 class ItemXmlParser
@@ -19,9 +21,25 @@ class ItemXmlParser
     use ParsesItemProficiencies;
     use ParsesSourceCitations;
 
+    /**
+     * @var ItemTypeStrategy[]
+     */
+    protected array $strategies = [];
+
     public function __construct()
     {
         $this->initializeProficiencyTypes();
+        $this->initializeStrategies();
+    }
+
+    /**
+     * Initialize type-specific parsing strategies.
+     */
+    private function initializeStrategies(): void
+    {
+        $this->strategies = [
+            new ChargedItemStrategy,
+        ];
     }
 
     public function parse(string $xmlContent): array
@@ -62,7 +80,7 @@ class ItemXmlParser
         // Parse charge mechanics from description
         $chargeData = $this->parseCharges($text);
 
-        return [
+        $baseData = [
             'name' => (string) $element->name,
             'type_code' => (string) $element->type,
             'detail' => ! empty($detailString) ? $detailString : null,
@@ -89,6 +107,41 @@ class ItemXmlParser
             'recharge_formula' => $chargeData['recharge_formula'],
             'recharge_timing' => $chargeData['recharge_timing'],
         ];
+
+        // Apply type-specific parsing strategies
+        foreach ($this->strategies as $strategy) {
+            $strategy->reset(); // Clear previous item's data
+
+            if (! $strategy->appliesTo($baseData, $element)) {
+                continue;
+            }
+
+            // Apply strategy enhancements
+            $baseData['modifiers'] = $strategy->enhanceModifiers($baseData['modifiers'], $baseData, $element);
+            $baseData['abilities'] = $strategy->enhanceAbilities($baseData['abilities'], $baseData, $element);
+            $relationshipData = $strategy->enhanceRelationships($baseData, $element);
+            $baseData = array_merge($baseData, $relationshipData);
+
+            // Log strategy application
+            $this->logStrategyMetrics($baseData['name'], get_class($strategy), $strategy->extractMetadata());
+        }
+
+        return $baseData;
+    }
+
+    /**
+     * Log strategy metrics to the import-strategy channel.
+     */
+    private function logStrategyMetrics(string $itemName, string $strategyClass, array $metadata): void
+    {
+        $strategyName = class_basename($strategyClass);
+
+        \Log::channel('import-strategy')->info("Strategy applied: {$strategyName}", [
+            'item' => $itemName,
+            'strategy' => $strategyName,
+            'warnings' => $metadata['warnings'] ?? [],
+            'metrics' => $metadata['metrics'] ?? [],
+        ]);
     }
 
     private function parseCost(string $value): ?int

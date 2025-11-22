@@ -3,7 +3,7 @@
 namespace App\Services\Cache;
 
 use App\Models\Background;
-use App\Models\ClassModel;
+use App\Models\CharacterClass;
 use App\Models\Feat;
 use App\Models\Item;
 use App\Models\Monster;
@@ -79,9 +79,9 @@ class EntityCacheService
     /**
      * Get a class by ID or slug
      */
-    public function getClass(int|string $id): ?ClassModel
+    public function getClass(int|string $id): ?CharacterClass
     {
-        $numericId = is_int($id) ? $id : $this->resolveId(ClassModel::class, $id);
+        $numericId = is_int($id) ? $id : $this->resolveId(CharacterClass::class, $id);
 
         if (! $numericId) {
             return null;
@@ -91,7 +91,7 @@ class EntityCacheService
         $cacheKey = $this->cacheKey('class', $numericId);
 
         return Cache::remember($cacheKey, self::TTL, function () use ($numericId) {
-            return ClassModel::with($this->getRelationships('class'))
+            return CharacterClass::with($this->getRelationships('class'))
                 ->find($numericId);
         });
     }
@@ -284,7 +284,7 @@ class EntityCacheService
             'spell' => ['spellSchool', 'sources.source', 'effects', 'classes', 'tags'],
             'item' => ['itemType', 'sources.source', 'modifiers', 'tags'],
             'monster' => ['size', 'sources.source', 'traits', 'actions', 'legendaryActions'],
-            'class' => ['sources.source', 'parent', 'subclasses', 'tags'],
+            'class' => ['sources.source', 'parentClass', 'subclasses', 'tags'],
             'race' => ['size', 'sources.source', 'parent', 'subraces', 'traits', 'tags'],
             'background' => ['sources.source', 'traits', 'proficiencies', 'languages', 'tags'],
             'feat' => ['sources.source', 'prerequisites', 'modifiers', 'tags'],

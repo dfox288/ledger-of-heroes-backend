@@ -77,7 +77,9 @@ trait ParsesItemSpells
         $spells = [];
 
         // Common pattern: "cast one of the following spells: spell1 (cost), spell2 (cost)"
-        if (preg_match('/cast\s+(?:one\s+of\s+)?the\s+following\s+spells[^:]*:\s*(.+?)(?:\.|The\s+\w+\s+regains)/is', $description, $matches)) {
+        // Updated regex: Look for "The <word> regains" instead of any period
+        // This handles cases where spell lists contain periods (e.g., "restoration (2 charges). or mass cure wounds")
+        if (preg_match('/cast\s+(?:one\s+of\s+)?the\s+following\s+spells[^:]*:\s*(.+?)(?:The\s+\w+\s+regains|$)/is', $description, $matches)) {
             $spellList = $matches[1];
 
             // Extract all "spell name (cost)" patterns
@@ -85,9 +87,9 @@ trait ParsesItemSpells
             preg_match_all('/([a-z\s\']+?)\s*\(([^)]+)\)/i', $spellList, $spellMatches, PREG_SET_ORDER);
 
             foreach ($spellMatches as $spellMatch) {
-                // Clean up spell name (remove leading "or", commas, etc.)
+                // Clean up spell name (remove leading "or", commas, periods, etc.)
                 $spellName = trim($spellMatch[1]);
-                $spellName = preg_replace('/^(?:or|,)\s+/i', '', $spellName);
+                $spellName = preg_replace('/^(?:or|,|\.)\s+/i', '', $spellName);
                 $spellName = trim($spellName);
 
                 $costText = '('.$spellMatch[2].')'; // Wrap in parens for parsing

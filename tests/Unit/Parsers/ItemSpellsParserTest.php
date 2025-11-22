@@ -67,8 +67,9 @@ class ItemSpellsParserTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_extracts_multiple_spells_from_staff_of_healing_description()
     {
+        // This matches the ACTUAL XML format with a period before "or mass cure wounds"
         $description = <<<'TEXT'
-This staff has 10 charges. While holding it, you can use an action to expend 1 or more of its charges to cast one of the following spells from it, using your spell save DC and spellcasting ability modifier: cure wounds (1 charge per spell level, up to 4th), lesser restoration (2 charges), or mass cure wounds (5 charges).
+This staff has 10 charges. While holding it, you can use an action to expend 1 or more of its charges to cast one of the following spells from it, using your spell save DC and spellcasting ability modifier: cure wounds (1 charge per spell level, up to 4th), lesser restoration (2 charges). or mass cure wounds (5 charges).
 The staff regains 1d6 + 4 expended charges daily at dawn.
 TEXT;
 

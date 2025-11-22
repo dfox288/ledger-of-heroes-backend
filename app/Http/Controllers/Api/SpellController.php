@@ -22,8 +22,45 @@ class SpellController extends Controller
      * List all spells
      *
      * Returns a paginated list of D&D 5e spells. Supports filtering by level, school,
-     * concentration, ritual, and full-text search. All query parameters are validated
-     * and documented automatically from the SpellIndexRequest.
+     * concentration, ritual, damage type, saving throw, spell components, and full-text search.
+     * All query parameters are validated and documented automatically from the SpellIndexRequest.
+     *
+     * **Damage Type Filtering Examples:**
+     * - Fire spells: `GET /api/v1/spells?damage_type=fire`
+     * - Fire or cold: `GET /api/v1/spells?damage_type=fire,cold`
+     * - Low-level fire: `GET /api/v1/spells?damage_type=fire&level=2`
+     * - Psychic damage: `GET /api/v1/spells?damage_type=psychic`
+     *
+     * **Saving Throw Filtering Examples:**
+     * - DEX saves: `GET /api/v1/spells?saving_throw=DEX`
+     * - DEX or CON: `GET /api/v1/spells?saving_throw=DEX,CON`
+     * - Mental saves (INT/WIS/CHA): `GET /api/v1/spells?saving_throw=INT,WIS,CHA`
+     * - Enchantment WIS saves: `GET /api/v1/spells?saving_throw=WIS&school=4`
+     *
+     * **Component Filtering Examples:**
+     * - Silent casting (no verbal): `GET /api/v1/spells?requires_verbal=false`
+     * - Subtle spell (no somatic): `GET /api/v1/spells?requires_somatic=false`
+     * - No material components: `GET /api/v1/spells?requires_material=false`
+     * - Verbal only: `GET /api/v1/spells?requires_verbal=true&requires_somatic=false&requires_material=false`
+     *
+     * **Combined Filtering Examples:**
+     * - Low-level fire DEX saves: `GET /api/v1/spells?damage_type=fire&saving_throw=DEX&level=1`
+     * - Silent enchantment spells: `GET /api/v1/spells?school=4&requires_verbal=false`
+     * - Material-free evocation: `GET /api/v1/spells?school=3&requires_material=false`
+     *
+     * **Use Cases:**
+     * - Build a fire mage: Filter by damage_type=fire to find all fire spells
+     * - Counter strategy: Find spells requiring DEX saves to target low-DEX enemies
+     * - Silent casting builds: Filter spells without verbal components for sneaky casters
+     * - Component optimization: Find spells without material components for imprisoned casters
+     * - Tactical planning: Combine damage type + saving throw filters for combat optimization
+     * - Mental resistance: Filter by INT/WIS/CHA saves to test mental fortitude
+     *
+     * **Available Damage Types:**
+     * Fire, Cold, Lightning, Thunder, Acid, Poison, Necrotic, Radiant, Psychic, Force, Bludgeoning, Piercing, Slashing
+     *
+     * **Available Saving Throws:**
+     * STR (Strength), DEX (Dexterity), CON (Constitution), INT (Intelligence), WIS (Wisdom), CHA (Charisma)
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR. Available fields: level (int), school_code (string), concentration (bool), ritual (bool).', example: 'level >= 1 AND level <= 3 AND school_code = EV')]
     public function index(SpellIndexRequest $request, SpellSearchService $service, Client $meilisearch)

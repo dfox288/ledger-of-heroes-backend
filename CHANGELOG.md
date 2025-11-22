@@ -45,6 +45,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Use Cases:** Multiclass planning, healer identification, full spellcaster discovery, build optimization
   - **Pattern:** Reuses proven MonsterSearchService spell filtering architecture (TDD, AND/OR logic, case-insensitive)
 
+- **Spell Damage/Effect Filtering** - Build-specific spell queries (fire mage, silent caster, mental domination)
+  - **Damage type filtering:** `GET /api/v1/spells?damage_type=fire` - Find spells by damage type (24 fire spells)
+  - **Multiple damage types:** `GET /api/v1/spells?damage_type=fire,cold` - Fire or cold damage (35 spells)
+  - **Saving throw filtering:** `GET /api/v1/spells?saving_throw=DEX` - Spells requiring DEX saves (79 spells)
+  - **Mental saves:** `GET /api/v1/spells?saving_throw=INT,WIS,CHA` - Mind-affecting spells (78 spells)
+  - **Component filtering:** `GET /api/v1/spells?requires_verbal=false` - Silent spells for stealth (24 spells)
+  - **Material-free:** `GET /api/v1/spells?requires_material=false` - Spells castable without materials (224 spells)
+  - **Combined filters:** `GET /api/v1/spells?damage_type=fire&saving_throw=DEX&level<=3` - Low-level fire AOE
+  - **Implementation:**
+    - Updated `SpellIndexRequest` with 5 new filter validations (damage_type, saving_throw, requires_verbal, requires_somatic, requires_material)
+    - Enhanced `SpellSearchDTO` with damage/effect filter parameters
+    - Updated `SpellSearchService` with damage type filtering (via spellEffects→damageType relationship)
+    - Updated `SpellSearchService` with saving throw filtering (via savingThrows→abilityScore relationship)
+    - Updated `SpellSearchService` with component filtering (via components column LIKE matching)
+    - Enhanced `SpellController` PHPDoc with 45+ lines of build-specific examples
+  - **Tests:** 12 comprehensive tests (55 assertions) - damage types, saving throws, components, combined filters
+  - **Use Cases:**
+    - Fire mage builds: Filter all fire damage spells
+    - Counter strategy: Find spells targeting low enemy stats (DEX saves)
+    - Silent casting: Spells without verbal components for stealth gameplay
+    - Imprisoned casters: Material-free spells when captured
+    - Subtle spell metamagic: Identify spells with minimal components
+  - **Pattern:** Case-insensitive matching for damage types (fire/Fire/FIRE) and abilities (DEX/dex/Dexterity)
+
+- **Class Entity-Specific Filters** - Advanced class filtering for character optimization
+  - **Is spellcaster:** `GET /api/v1/classes?is_spellcaster=true` - All spellcasting classes (107 classes)
+  - **Hit die filtering:** `GET /api/v1/classes?hit_die=12` - Tank classes with d12 hit die (9 Barbarian paths)
+  - **Combined martial/caster:** `GET /api/v1/classes?hit_die=10&is_spellcaster=true` - Half-casters (28 classes: Paladin, Ranger paths)
+  - **Full spellcasters:** `GET /api/v1/classes?max_spell_level=9` - Classes with 9th level spells (6 classes)
+  - **Implementation:**
+    - Updated `ClassIndexRequest` with 3 new filter validations (is_spellcaster, hit_die, max_spell_level)
+    - Enhanced `ClassSearchDTO` with entity-specific filter parameters
+    - Updated `ClassSearchService` with spellcaster detection (checks `spellcasting_ability_id` not null)
+    - Updated `ClassSearchService` with hit die filtering (validates: 6, 8, 10, 12)
+    - Updated `ClassSearchService` with max spell level filtering (via spells relationship)
+    - Enhanced `ClassController` PHPDoc with character optimization examples
+  - **Tests:** 10 comprehensive tests - spellcaster detection, hit die, max spell level, combined filters, validation
+  - **Use Cases:**
+    - Tank optimization: Find d12 classes for survivability
+    - Half-caster builds: d10 + spellcasting for balanced characters
+    - Full caster identification: 9th level spell access for powerful builds
+    - Martial vs caster planning: Separate pure martials from spellcasters
+  - **Pattern:** Enum validation for hit_die (6/8/10/12), boolean conversion for is_spellcaster
+
+- **Race Entity-Specific Filters** - Advanced race filtering for character optimization
+  - **Ability bonus filtering:** `GET /api/v1/races?ability_bonus=INT` - Races with INT bonuses (14 races)
+  - **Size filtering:** `GET /api/v1/races?size=S` - Small races for stealth (22 races)
+  - **Speed filtering:** `GET /api/v1/races?min_speed=35` - Fast races for mobile builds (4 races: Wood Elf variants, Mark of Passage)
+  - **Darkvision filtering:** `GET /api/v1/races?has_darkvision=true` - Races with darkvision (45 races)
+  - **Combined optimization:** `GET /api/v1/races?ability_bonus=INT&has_darkvision=true` - Smart races with darkvision (11 races)
+  - **Implementation:**
+    - Updated `RaceIndexRequest` with 4 new filter validations (ability_bonus, size, min_speed, has_darkvision)
+    - Enhanced `RaceSearchDTO` with entity-specific filter parameters
+    - Updated `RaceSearchService` with ability bonus filtering (via modifiers relationship, positive bonuses only)
+    - Updated `RaceSearchService` with size filtering (accepts size codes: T, S, M, L, H, G)
+    - Updated `RaceSearchService` with speed filtering (minimum walking speed)
+    - Updated `RaceSearchService` with darkvision filtering (case-insensitive trait name search)
+    - Enhanced `RaceController` PHPDoc with race optimization examples
+  - **Tests:** 11 comprehensive tests - ability bonuses, size, speed, darkvision, combined filters, validation
+  - **Use Cases:**
+    - Wizard builds: INT bonus races (High Elf, Gnome, Tiefling variants)
+    - Stealth builds: Small size races (Halfling, Gnome)
+    - Mobile characters: Fast races for Monk/Rogue builds (Wood Elf = 35 speed)
+    - Dungeon crawling: Darkvision for low-light environments
+    - Combined optimization: Smart races with darkvision for Wizard dungeon delving
+  - **Pattern:** Case-insensitive enum validation for size/ability, relationship-based filtering for ability bonuses
+
 - **Race Spell Filtering API** - Query races by their innate spells (COMPLETE spell filtering ecosystem)
   - **Filter endpoint:** `GET /api/v1/races?spells=misty-step` - Which races can teleport innately?
   - **Multiple spells (OR):** `GET /api/v1/races?spells=dancing-lights,faerie-fire&spells_operator=OR` - Drow racial spells (2 races)

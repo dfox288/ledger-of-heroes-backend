@@ -23,6 +23,15 @@ class SpellIndexRequest extends BaseIndexRequest
             'school' => ['sometimes', 'integer', 'exists:spell_schools,id'],
             'concentration' => ['sometimes', Rule::in([true, false, 1, 0, '1', '0', 'true', 'false'])],
             'ritual' => ['sometimes', Rule::in([true, false, 1, 0, '1', '0', 'true', 'false'])],
+
+            // Damage/Effect filtering (NEW)
+            'damage_type' => ['sometimes', 'string', 'max:255'],
+            'saving_throw' => ['sometimes', 'string', 'max:255'],
+
+            // Component filtering (NEW)
+            'requires_verbal' => ['sometimes', Rule::in([0, 1, '0', '1', true, false, 'true', 'false'])],
+            'requires_somatic' => ['sometimes', Rule::in([0, 1, '0', '1', true, false, 'true', 'false'])],
+            'requires_material' => ['sometimes', Rule::in([0, 1, '0', '1', true, false, 'true', 'false'])],
         ];
     }
 

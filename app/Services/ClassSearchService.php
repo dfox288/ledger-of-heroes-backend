@@ -89,6 +89,32 @@ final class ClassSearchService
                 $q->where('level', $dto->filters['spell_level']);
             });
         }
+
+        // Is spellcaster filter
+        if (isset($dto->filters['is_spellcaster'])) {
+            $value = filter_var($dto->filters['is_spellcaster'], FILTER_VALIDATE_BOOLEAN);
+
+            if ($value) {
+                // Has spellcasting ability
+                $query->whereNotNull('spellcasting_ability_id');
+            } else {
+                // No spellcasting ability
+                $query->whereNull('spellcasting_ability_id');
+            }
+        }
+
+        // Hit die filter
+        if (isset($dto->filters['hit_die'])) {
+            $query->where('hit_die', $dto->filters['hit_die']);
+        }
+
+        // Max spell level filter (classes that have spells of this level)
+        if (isset($dto->filters['max_spell_level'])) {
+            $level = (int) $dto->filters['max_spell_level'];
+            $query->whereHas('spells', function ($q) use ($level) {
+                $q->where('level', $level);
+            });
+        }
     }
 
     private function applySorting(Builder $query, ClassSearchDTO $dto): void

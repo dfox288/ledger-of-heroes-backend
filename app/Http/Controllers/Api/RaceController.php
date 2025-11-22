@@ -24,10 +24,13 @@ class RaceController extends Controller
      *
      * **Basic Filtering Examples:**
      * - All races: `GET /api/v1/races`
+     * - By size: `GET /api/v1/races?size=S` (Small races like Halfling, Gnome)
+     * - By ability bonus: `GET /api/v1/races?ability_bonus=INT` (races with INT bonus)
+     * - By speed: `GET /api/v1/races?min_speed=35` (fast races like Wood Elf)
+     * - With darkvision: `GET /api/v1/races?has_darkvision=true`
      * - By language: `GET /api/v1/races?speaks_language=Elvish`
-     * - By size: `GET /api/v1/races?size=Medium`
      * - By skill proficiency: `GET /api/v1/races?grants_skill=Perception`
-     * - By speed: `GET /api/v1/races?filter=speed >= 35`
+     * - Combined filters: `GET /api/v1/races?ability_bonus=INT&has_darkvision=true` (smart races with darkvision)
      *
      * **Spell Filtering Examples:**
      * - Single spell: `GET /api/v1/races?spells=misty-step`
@@ -56,6 +59,10 @@ class RaceController extends Controller
      * - Rules lookup: Quick reference for racial spellcasting features
      *
      * **Query Parameters:**
+     * - `ability_bonus` (string): Filter by ability score bonus (STR, DEX, CON, INT, WIS, CHA)
+     * - `size` (string): Filter by creature size (T, S, M, L, H, G)
+     * - `min_speed` (int): Filter by minimum walking speed (0-100)
+     * - `has_darkvision` (bool): Filter races with darkvision trait
      * - `spells` (string): Comma-separated spell slugs to filter by
      * - `spells_operator` (string): 'AND' (default) or 'OR' for multi-spell filtering
      * - `spell_level` (integer): Filter races by spell level (0-9, where 0 = cantrips)

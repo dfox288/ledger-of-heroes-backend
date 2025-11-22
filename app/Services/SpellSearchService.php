@@ -79,6 +79,70 @@ final class SpellSearchService
         if (isset($dto->filters['ritual'])) {
             $query->ritual($dto->filters['ritual']);
         }
+
+        // Damage type filter (via effects relationship)
+        if (isset($dto->filters['damage_type'])) {
+            $damageTypes = array_map('trim', explode(',', $dto->filters['damage_type']));
+
+            $query->whereHas('effects', function ($q) use ($damageTypes) {
+                $q->whereHas('damageType', function ($dq) use ($damageTypes) {
+                    // Try code first (exact match), fallback to name (case-insensitive)
+                    $dq->where(function ($sq) use ($damageTypes) {
+                        foreach ($damageTypes as $type) {
+                            $sq->orWhere('code', strtoupper($type))
+                                ->orWhereRaw('LOWER(name) = ?', [strtolower($type)]);
+                        }
+                    });
+                });
+            });
+        }
+
+        // Saving throw filter (via savingThrows relationship)
+        if (isset($dto->filters['saving_throw'])) {
+            $abilities = array_map('trim', explode(',', $dto->filters['saving_throw']));
+
+            // Get ability score IDs for the requested abilities
+            $abilityIds = \App\Models\AbilityScore::where(function ($q) use ($abilities) {
+                foreach ($abilities as $ability) {
+                    $q->orWhere('ability_scores.code', strtoupper($ability))
+                        ->orWhereRaw('LOWER(ability_scores.name) = ?', [strtolower($ability)]);
+                }
+            })->pluck('id')->toArray();
+
+            if (! empty($abilityIds)) {
+                $query->whereHas('savingThrows', function ($q) use ($abilityIds) {
+                    $q->whereIn('ability_scores.id', $abilityIds);
+                });
+            }
+        }
+
+        // Component filters (direct column checks using LIKE for string matching)
+        if (isset($dto->filters['requires_verbal'])) {
+            $value = filter_var($dto->filters['requires_verbal'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($value === true) {
+                $query->where('components', 'LIKE', '%V%');
+            } elseif ($value === false) {
+                $query->where('components', 'NOT LIKE', '%V%');
+            }
+        }
+
+        if (isset($dto->filters['requires_somatic'])) {
+            $value = filter_var($dto->filters['requires_somatic'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($value === true) {
+                $query->where('components', 'LIKE', '%S%');
+            } elseif ($value === false) {
+                $query->where('components', 'NOT LIKE', '%S%');
+            }
+        }
+
+        if (isset($dto->filters['requires_material'])) {
+            $value = filter_var($dto->filters['requires_material'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($value === true) {
+                $query->where('components', 'LIKE', '%M%');
+            } elseif ($value === false) {
+                $query->where('components', 'NOT LIKE', '%M%');
+            }
+        }
     }
 
     private function applySorting(Builder $query, SpellSearchDTO $dto): void

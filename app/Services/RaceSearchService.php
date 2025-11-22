@@ -45,7 +45,10 @@ final class RaceSearchService
         }
 
         if (isset($dto->filters['size'])) {
-            $query->size($dto->filters['size']);
+            $sizeCode = strtoupper($dto->filters['size']);
+            $query->whereHas('size', function ($q) use ($sizeCode) {
+                $q->where('code', $sizeCode);
+            });
         }
 
         if (isset($dto->filters['grants_proficiency'])) {
@@ -103,6 +106,35 @@ final class RaceSearchService
         // Has innate spells filter
         if (isset($dto->filters['has_innate_spells']) && filter_var($dto->filters['has_innate_spells'], FILTER_VALIDATE_BOOLEAN)) {
             $query->has('entitySpells');
+        }
+
+        // Ability bonus filter (via modifiers relationship)
+        if (isset($dto->filters['ability_bonus'])) {
+            $abilityCode = strtoupper($dto->filters['ability_bonus']);
+
+            $query->whereHas('modifiers', function ($q) use ($abilityCode) {
+                $q->where('modifier_category', 'ability_score')
+                    ->whereHas('abilityScore', function ($aq) use ($abilityCode) {
+                        $aq->where('code', $abilityCode);
+                    })
+                    ->where('value', '>', 0); // Must be positive bonus
+            });
+        }
+
+        // Min speed filter
+        if (isset($dto->filters['min_speed'])) {
+            $query->where('speed', '>=', (int) $dto->filters['min_speed']);
+        }
+
+        // Has darkvision filter (via traits)
+        if (isset($dto->filters['has_darkvision'])) {
+            $value = filter_var($dto->filters['has_darkvision'], FILTER_VALIDATE_BOOLEAN);
+
+            if ($value) {
+                $query->whereHas('traits', function ($q) {
+                    $q->whereRaw('LOWER(name) LIKE ?', ['%darkvision%']);
+                });
+            }
         }
     }
 

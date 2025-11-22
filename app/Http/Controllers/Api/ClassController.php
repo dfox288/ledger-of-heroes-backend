@@ -25,8 +25,11 @@ class ClassController extends Controller
      * **Basic Examples:**
      * - All classes: `GET /api/v1/classes`
      * - Base classes only: `GET /api/v1/classes?base_only=1`
-     * - By hit die: `GET /api/v1/classes?filter=hit_die = 12`
-     * - Spellcasters only: `GET /api/v1/classes?filter=is_spellcaster = true`
+     * - By hit die: `GET /api/v1/classes?hit_die=12`
+     * - Spellcasters only: `GET /api/v1/classes?is_spellcaster=true`
+     * - Non-spellcasters: `GET /api/v1/classes?is_spellcaster=false`
+     * - Classes with 9th level spells: `GET /api/v1/classes?max_spell_level=9`
+     * - Combined filters: `GET /api/v1/classes?hit_die=10&is_spellcaster=true` (Paladin, Ranger)
      *
      * **Spell Filtering Examples:**
      * - Single spell: `GET /api/v1/classes?spells=fireball`
@@ -49,6 +52,9 @@ class ClassController extends Controller
      * - **Build Planning:** Cleric or Paladin with specific spells (`?spells=revivify&filter=spellcasting_ability_code = WIS OR spellcasting_ability_code = CHA`)
      *
      * **Parameter Reference:**
+     * - `is_spellcaster` (bool): Filter by spellcasting ability (true=has spellcasting, false=no spellcasting)
+     * - `hit_die` (int): Filter by hit die size (6, 8, 10, or 12)
+     * - `max_spell_level` (int): Filter classes that have spells of this level (0-9)
      * - `spells` (string): Comma-separated spell slugs (max 500 chars)
      * - `spells_operator` (string): "AND" or "OR" (default: AND)
      * - `spell_level` (int): Spell level 0-9 (0=cantrip, 9=9th level)

@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Validation\Rule;
+
 class ClassIndexRequest extends BaseIndexRequest
 {
     /**
@@ -26,6 +28,11 @@ class ClassIndexRequest extends BaseIndexRequest
             'spells' => ['sometimes', 'string', 'max:500'],
             'spells_operator' => ['sometimes', 'string', 'in:AND,OR'],
             'spell_level' => ['sometimes', 'integer', 'min:0', 'max:9'],
+
+            // Entity-specific filters
+            'is_spellcaster' => ['sometimes', Rule::in([0, 1, '0', '1', true, false, 'true', 'false'])],
+            'hit_die' => ['sometimes', 'integer', 'in:6,8,10,12'],
+            'max_spell_level' => ['sometimes', 'integer', 'min:0', 'max:9'],
         ];
     }
 

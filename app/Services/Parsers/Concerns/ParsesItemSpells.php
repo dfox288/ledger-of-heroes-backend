@@ -153,6 +153,12 @@ trait ParsesItemSpells
                 $costData['min'] = (int) $costMatches[1];
                 $costData['max'] = (int) $costMatches[1];
             }
+            // Pattern: "expend X charge(s)"
+            // Examples: "expend 1 charge and cast", "expend 2 charges to cast"
+            elseif (preg_match('/expend\s+(\d+)\s+charges?/i', $description, $costMatches)) {
+                $costData['min'] = (int) $costMatches[1];
+                $costData['max'] = (int) $costMatches[1];
+            }
             // Pattern: "expend 1 or more"
             elseif (preg_match('/expend\s+(\d+)\s+or\s+more/i', $description)) {
                 $costData['min'] = 1;

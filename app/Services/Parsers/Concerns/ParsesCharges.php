@@ -32,10 +32,18 @@ trait ParsesCharges
             'recharge_timing' => null,
         ];
 
-        // Pattern 1: "has X charges" or "starts with X charges"
-        // Examples: "This wand has 3 charges", "This cube starts with 36 charges"
-        if (preg_match('/(has|starts with|contains)\s+(\d+)\s+charges?/i', $text, $matches)) {
-            $charges['charges_max'] = (int) $matches[2];
+        // Pattern 1a: "has XdY+Z charges" (dice formula for variable charges)
+        // Examples: "has 1d4-1 charges", "has 1d6+2 charges"
+        // Note: Store as string formula, not int
+        if (preg_match('/(has|starts with|contains)\s+([\dd\s\+\-]+)\s+charges?/i', $text, $matches)) {
+            $formula = strtolower(str_replace(' ', '', $matches[2]));
+
+            // If it's a dice formula, store as string; otherwise parse as int
+            if (preg_match('/\d+d\d+/', $formula)) {
+                $charges['charges_max'] = $formula;
+            } else {
+                $charges['charges_max'] = (int) $matches[2];
+            }
         }
 
         // Pattern 2: "regains XdY+Z expended charges" (dice-based recharge)
@@ -52,9 +60,9 @@ trait ParsesCharges
             $charges['recharge_formula'] = 'all';
         }
 
-        // Pattern 4: "daily at dawn|dusk" (most common timing)
-        // Examples: "daily at dawn", "daily at dusk"
-        if (preg_match('/daily\s+at\s+(dawn|dusk)/i', $text, $matches)) {
+        // Pattern 4: "daily at dawn|dusk" or "until the next dawn|dusk"
+        // Examples: "daily at dawn", "daily at dusk", "until the next dawn"
+        if (preg_match('/(?:daily\s+at|until\s+the\s+next)\s+(dawn|dusk)/i', $text, $matches)) {
             $charges['recharge_timing'] = strtolower($matches[1]);
         }
 

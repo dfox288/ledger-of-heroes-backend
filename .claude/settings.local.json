@@ -78,7 +78,9 @@
       "Bash(echo:*)",
       "Bash(for file in app/Models/*.php)",
       "Bash(do if ! grep -q \"public $timestamps\" \"$file\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(for model in Spell Race Item Background Class Feat)",
+      "Bash(do echo '=== $model ===' echo 'Model fillable/casts:' grep -A 30 'protected \\$fillable' app/Models/$model.php)"
     ],
     "deny": [],
     "ask": []

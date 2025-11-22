@@ -52,7 +52,7 @@ class Item extends Model
         'stealth_disadvantage' => 'boolean',
         'range_normal' => 'integer',
         'range_long' => 'integer',
-        'charges_max' => 'integer',
+        // charges_max is string to support both static values ("7") and dice formulas ("1d4-1")
     ];
 
     // Relationships

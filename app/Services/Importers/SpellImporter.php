@@ -8,38 +8,16 @@ use App\Models\RandomTable;
 use App\Models\RandomTableEntry;
 use App\Models\Spell;
 use App\Models\SpellSchool;
+use App\Services\Importers\Concerns\ImportsClassAssociations;
 use App\Services\Importers\Concerns\ImportsRandomTables;
 use App\Services\Importers\Concerns\ImportsSavingThrows;
 use App\Services\Parsers\SpellXmlParser;
 
 class SpellImporter extends BaseImporter
 {
+    use ImportsClassAssociations;
     use ImportsRandomTables;
     use ImportsSavingThrows;
-
-    /**
-     * Subclass name aliases for XML → Database mapping.
-     *
-     * XML files use abbreviated/variant names that differ from official subclass names.
-     * This map handles special cases where fuzzy matching won't work.
-     *
-     * Format: 'XML Name' => 'Database Name'
-     */
-    private const SUBCLASS_ALIASES = [
-        // Druid Circle of the Land variants (Coast, Desert, Forest, etc. are terrain options, not separate subclasses)
-        'Coast' => 'Circle of the Land',
-        'Desert' => 'Circle of the Land',
-        'Forest' => 'Circle of the Land',
-        'Grassland' => 'Circle of the Land',
-        'Mountain' => 'Circle of the Land',
-        'Swamp' => 'Circle of the Land',
-        'Underdark' => 'Circle of the Land',
-        'Arctic' => 'Circle of the Land',
-
-        // Common abbreviations
-        'Ancients' => 'Oath of the Ancients',
-        'Vengeance' => 'Oath of Vengeance',
-    ];
 
     protected function importEntity(array $spellData): Spell
     {
@@ -91,7 +69,7 @@ class SpellImporter extends BaseImporter
 
         // Import class associations
         if (isset($spellData['classes']) && is_array($spellData['classes'])) {
-            $this->importClassAssociations($spell, $spellData['classes']);
+            $this->syncClassAssociations($spell, $spellData['classes']);
         }
 
         // Import tags (Touch Spells, Ritual Caster, Mark of X, etc.)
@@ -110,61 +88,6 @@ class SpellImporter extends BaseImporter
         }
 
         return $spell;
-    }
-
-    /**
-     * Import class associations for a spell.
-     *
-     * Logic:
-     * - "Fighter (Eldritch Knight)" → Use SUBCLASS (Eldritch Knight)
-     * - "Wizard" → Use BASE CLASS (Wizard)
-     *
-     * @param  array  $classNames  Array of class names (may include subclasses in parentheses)
-     */
-    private function importClassAssociations(Spell $spell, array $classNames): void
-    {
-        $classIds = [];
-
-        foreach ($classNames as $className) {
-            $class = null;
-
-            // Check if subclass is specified in parentheses: "Fighter (Eldritch Knight)"
-            if (preg_match('/^(.+?)\s*\(([^)]+)\)$/', $className, $matches)) {
-                $baseClassName = trim($matches[1]);
-                $subclassName = trim($matches[2]);
-
-                // Check if there's an alias mapping for this subclass name
-                if (isset(self::SUBCLASS_ALIASES[$subclassName])) {
-                    $subclassName = self::SUBCLASS_ALIASES[$subclassName];
-                }
-
-                // Try to find the SUBCLASS - try exact match first, then fuzzy match
-                $class = CharacterClass::where('name', $subclassName)->first();
-
-                // If exact match fails, try fuzzy match (e.g., "Archfey" -> "The Archfey")
-                if (! $class) {
-                    $class = CharacterClass::where('name', 'LIKE', "%{$subclassName}%")->first();
-                }
-
-                // If subclass still not found, skip (don't fallback to base class)
-                if (! $class) {
-                    // Could add logging here if needed
-                    continue;
-                }
-            } else {
-                // No parentheses = use base class
-                $class = CharacterClass::where('name', $className)
-                    ->whereNull('parent_class_id') // Only match base classes
-                    ->first();
-            }
-
-            if ($class) {
-                $classIds[] = $class->id;
-            }
-        }
-
-        // Sync class associations (removes old associations, adds new ones)
-        $spell->classes()->sync($classIds);
     }
 
     /**

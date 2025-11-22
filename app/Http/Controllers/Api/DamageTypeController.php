@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DamageTypeIndexRequest;
 use App\Http\Resources\DamageTypeResource;
+use App\Http\Resources\SpellResource;
 use App\Models\DamageType;
 
 class DamageTypeController extends Controller
@@ -41,5 +42,25 @@ class DamageTypeController extends Controller
     public function show(DamageType $damageType)
     {
         return new DamageTypeResource($damageType);
+    }
+
+    /**
+     * List all spells that deal this damage type
+     *
+     * Returns a paginated list of spells that deal this type of damage.
+     *
+     * @param DamageType $damageType The damage type (by ID, code, or name)
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
+    public function spells(DamageType $damageType)
+    {
+        $perPage = request()->input('per_page', 50);
+
+        $spells = $damageType->spells()
+            ->with(['spellSchool', 'sources', 'tags'])
+            ->orderBy('name')
+            ->paginate($perPage);
+
+        return SpellResource::collection($spells);
     }
 }

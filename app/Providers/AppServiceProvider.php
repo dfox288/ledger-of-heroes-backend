@@ -7,11 +7,13 @@ use App\Listeners\ClearRequestValidationCache;
 use App\Models\Background;
 use App\Models\CharacterClass;
 use App\Models\Condition;
+use App\Models\DamageType;
 use App\Models\Feat;
 use App\Models\Item;
 use App\Models\Monster;
 use App\Models\Race;
 use App\Models\Spell;
+use App\Models\SpellSchool;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -90,6 +92,29 @@ class AppServiceProvider extends ServiceProvider
             return is_numeric($value)
                 ? Condition::findOrFail($value)
                 : Condition::where('slug', $value)->firstOrFail();
+        });
+
+        Route::bind('spellSchool', function ($value) {
+            return is_numeric($value)
+                ? SpellSchool::findOrFail($value)
+                : SpellSchool::where('code', $value)
+                    ->orWhere('slug', $value)
+                    ->firstOrFail();
+        });
+
+        Route::bind('damageType', function ($value) {
+            if (is_numeric($value)) {
+                return DamageType::findOrFail($value);
+            }
+
+            // Try code first (case-sensitive)
+            $damageType = DamageType::where('code', $value)->first();
+            if ($damageType) {
+                return $damageType;
+            }
+
+            // Try name (case-insensitive)
+            return DamageType::whereRaw('LOWER(name) = ?', [strtolower($value)])->firstOrFail();
         });
     }
 }

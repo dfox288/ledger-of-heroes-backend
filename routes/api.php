@@ -33,11 +33,11 @@ Route::prefix('v1')->group(function () {
     Route::get('spell-schools/{spellSchool}/spells', [SpellSchoolController::class, 'spells'])
         ->name('spell-schools.spells');
 
-    Route::apiResource('damage-types', DamageTypeController::class)->only(['index', 'show']);
-
-    // Damage type spell list endpoint
+    // Damage type spell list endpoint (must be before apiResource)
     Route::get('damage-types/{damageType}/spells', [DamageTypeController::class, 'spells'])
         ->name('damage-types.spells');
+
+    Route::apiResource('damage-types', DamageTypeController::class)->only(['index', 'show']);
 
     Route::apiResource('sizes', SizeController::class)->only(['index', 'show']);
     Route::apiResource('ability-scores', AbilityScoreController::class)->only(['index', 'show']);

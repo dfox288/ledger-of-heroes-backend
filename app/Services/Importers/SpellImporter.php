@@ -2,7 +2,6 @@
 
 namespace App\Services\Importers;
 
-use App\Models\CharacterClass;
 use App\Models\DamageType;
 use App\Models\RandomTable;
 use App\Models\RandomTableEntry;

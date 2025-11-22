@@ -2,7 +2,6 @@
 
 namespace App\Services\Importers;
 
-use App\Models\CharacterClass;
 use App\Models\Spell;
 use App\Services\Importers\Concerns\ImportsClassAssociations;
 use App\Services\Parsers\SpellClassMappingParser;

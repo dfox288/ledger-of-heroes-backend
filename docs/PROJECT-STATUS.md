@@ -10,8 +10,8 @@
 
 | Metric | Value | Status |
 |--------|-------|--------|
-| **Tests** | 1,018 passing (5,915 assertions) | ✅ 99.9% pass rate |
-| **Duration** | ~50.7 seconds | ✅ Fast (optimized -9.4%) |
+| **Tests** | 1,141 passing (6,328 assertions) | ✅ 99.9% pass rate |
+| **Duration** | ~69 seconds | ✅ Fast |
 | **Migrations** | 64 complete | ✅ Stable |
 | **Models** | 32 (all with HasFactory) | ✅ Complete |
 | **API** | 29 Resources + 18 Controllers + 26+ Form Requests | ✅ Production-ready |
@@ -23,6 +23,28 @@
 ---
 
 ## 🚀 Recent Milestones (2025-11-22)
+
+### Ability Score Spells Endpoint ✅ COMPLETE (NEW)
+- **Endpoint:** `GET /api/v1/ability-scores/{id|code|name}/spells` - Query spells by required saving throw
+- **Routing:** Triple support (ID, code like DEX/STR, name like "dexterity")
+- **Data:** 88 DEX saves, 63 WIS saves, ~50 CON, ~25 STR, ~20 CHA, ~15 INT
+- **Use Cases:** Target enemy weaknesses, build save-focused characters, exploit rare saves
+- **Implementation:** MorphToMany relationship via `entity_saving_throws` polymorphic table
+- **Tests:** 4 new tests (12 assertions) - 1,141 total passing
+- **Documentation:** 67 lines of 5-star PHPDoc with tactical advice
+- **Total:** Tier 2 static reference reverse relationship (first of 3 planned)
+- **Handover:** `docs/SESSION-HANDOVER-2025-11-22-ABILITY-SCORE-SPELLS-ENDPOINT.md`
+
+### Static Reference Reverse Relationships ✅ COMPLETE
+- **Tier 1:** 6 new endpoints for querying entities by lookup tables (20 tests, 60 assertions)
+  - `GET /api/v1/spell-schools/{id|code|slug}/spells` - Spells by school
+  - `GET /api/v1/damage-types/{id|code}/spells` - Spells by damage type
+  - `GET /api/v1/damage-types/{id|code}/items` - Items by damage type
+  - `GET /api/v1/conditions/{id|slug}/spells` - Spells that inflict condition
+  - `GET /api/v1/conditions/{id|slug}/monsters` - Monsters that inflict condition
+- **Patterns:** HasMany, HasManyThrough, MorphToMany - comprehensive relationship showcase
+- **Documentation:** 236 lines of 5-star PHPDoc with real entity names
+- **Handover:** `docs/SESSION-HANDOVER-2025-11-22-STATIC-REFERENCE-REVERSE-RELATIONSHIPS.md`
 
 ### Monster Spell Filtering API ✅ COMPLETE
 - **Endpoints:**

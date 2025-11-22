@@ -413,6 +413,7 @@ class ItemImporter extends BaseImporter
                 'ability_score_id' => $abilityScore->id,
             ],
             [
+                'dc' => $saveData['dc'],
                 'save_effect' => $saveData['save_effect'],
                 'is_initial_save' => $saveData['is_initial_save'],
                 'save_modifier' => 'none',

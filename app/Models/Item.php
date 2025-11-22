@@ -130,7 +130,7 @@ class Item extends Model
             'entity_id',
             'ability_score_id'
         )
-            ->withPivot('save_effect', 'is_initial_save', 'save_modifier')
+            ->withPivot('dc', 'save_effect', 'is_initial_save', 'save_modifier')
             ->withTimestamps();
     }
 

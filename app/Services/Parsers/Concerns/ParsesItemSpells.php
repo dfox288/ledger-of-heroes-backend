@@ -76,7 +76,7 @@ trait ParsesItemSpells
     {
         $spells = [];
 
-        // Common pattern: "cast one of the following spells: spell1 (cost), spell2 (cost)"
+        // Pattern 1: "cast one of the following spells: spell1 (cost), spell2 (cost)"
         // Updated regex: Look for "The <word> regains" instead of any period
         // This handles cases where spell lists contain periods (e.g., "restoration (2 charges). or mass cure wounds")
         if (preg_match('/cast\s+(?:one\s+of\s+)?the\s+following\s+spells[^:]*:\s*(.+?)(?:The\s+\w+\s+regains|$)/is', $description, $matches)) {
@@ -105,6 +105,36 @@ trait ParsesItemSpells
                     ];
                 }
             }
+        }
+
+        // Pattern 2: "cast the X spell" (single spell pattern)
+        // Example: "cast the lightning bolt spell (save DC 15)"
+        // Only check if we haven't found spells yet
+        if (empty($spells) && preg_match('/cast\s+the\s+([a-z\s\']+?)\s+spell/i', $description, $matches)) {
+            $spellName = trim($matches[1]);
+
+            // Try to find charge cost near the spell mention
+            // Look for patterns like "For 1 charge" or "expend 1 or more"
+            $costData = ['min' => null, 'max' => null, 'formula' => null];
+
+            // Pattern: "For 1 charge, you cast"
+            if (preg_match('/For\s+(\d+)\s+charges?,\s+you\s+cast/i', $description, $costMatches)) {
+                $costData['min'] = (int) $costMatches[1];
+                $costData['max'] = (int) $costMatches[1];
+            }
+            // Pattern: "expend 1 or more"
+            elseif (preg_match('/expend\s+(\d+)\s+or\s+more/i', $description)) {
+                $costData['min'] = 1;
+                $costData['max'] = null; // Variable cost
+            }
+
+            // Only add if we found a cost or if it's worth noting the spell exists
+            $spells[] = [
+                'spell_name' => $spellName,
+                'charges_cost_min' => $costData['min'],
+                'charges_cost_max' => $costData['max'],
+                'charges_cost_formula' => $costData['formula'],
+            ];
         }
 
         return $spells;

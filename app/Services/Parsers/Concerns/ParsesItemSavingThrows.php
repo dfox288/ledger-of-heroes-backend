@@ -9,16 +9,16 @@ trait ParsesItemSavingThrows
      *
      * Examples:
      * - "succeed on a DC 10 Charisma saving throw"
-     *   -> ability:'CHA', effect:'negates', is_initial_save:true
+     *   -> dc:10, ability:'CHA', effect:'negates', is_initial_save:true
      *
      * - "make a DC 15 Dexterity saving throw or take 5d4 damage"
-     *   -> ability:'DEX', effect:'half_damage', is_initial_save:true
+     *   -> dc:15, ability:'DEX', effect:'half_damage', is_initial_save:true
      *
      * - "DC 15 Dexterity saving throw, taking damage on failure or half damage on success"
-     *   -> ability:'DEX', effect:'half_damage', is_initial_save:true
+     *   -> dc:15, ability:'DEX', effect:'half_damage', is_initial_save:true
      *
      * @param  string  $description  Full item description
-     * @return array|null ['ability_code' => 'CHA', 'save_effect' => 'negates', 'is_initial_save' => true]
+     * @return array|null ['dc' => 10, 'ability_code' => 'CHA', 'save_effect' => 'negates', 'is_initial_save' => true]
      */
     protected function parseItemSavingThrow(string $description): ?array
     {
@@ -58,6 +58,7 @@ trait ParsesItemSavingThrows
         $saveEffect = $this->detectSaveEffect($description);
 
         return [
+            'dc' => $dc,
             'ability_code' => $abilityCode,
             'save_effect' => $saveEffect,
             'is_initial_save' => true,

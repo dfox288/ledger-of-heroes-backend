@@ -23,6 +23,7 @@ class SavingThrowResource extends JsonResource
                 'code' => $this->code,
                 'name' => $this->name,
             ],
+            'dc' => $this->pivot?->dc,
             'save_effect' => $this->pivot?->save_effect,
             'is_initial_save' => (bool) ($this->pivot?->is_initial_save ?? true),
             'save_modifier' => $this->pivot?->save_modifier, // 'advantage', 'disadvantage', or null

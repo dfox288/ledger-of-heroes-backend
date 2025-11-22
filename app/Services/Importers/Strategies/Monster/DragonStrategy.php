@@ -12,16 +12,13 @@ class DragonStrategy extends AbstractMonsterStrategy
     public function enhanceActions(array $actions, array $monsterData): array
     {
         foreach ($actions as &$action) {
-            // Detect breath weapon pattern and extract recharge
+            // Detect breath weapon pattern
             if (str_contains($action['name'], 'Breath')) {
                 // Extract recharge: "Fire Breath (Recharge 5-6)" → "5-6"
                 if (preg_match('/\(Recharge ([\d\-]+)\)/i', $action['name'], $matches)) {
                     $action['recharge'] = $matches[1];
                 }
             }
-
-            // Future: Could extract multiattack patterns here
-            // if ($action['name'] === 'Multiattack') { ... }
         }
 
         return $actions;
@@ -33,7 +30,7 @@ class DragonStrategy extends AbstractMonsterStrategy
             // Legendary Resistance (3/Day) → extract recharge
             if (str_contains($trait['name'], 'Legendary Resistance')) {
                 if (preg_match('/\((\d+)\/Day\)/i', $trait['name'], $matches)) {
-                    $trait['recharge'] = $matches[1] . '/DAY';
+                    $trait['recharge'] = $matches[1].'/DAY';
                 }
             }
         }
@@ -51,11 +48,12 @@ class DragonStrategy extends AbstractMonsterStrategy
             ->filter(fn ($l) => ($l['category'] ?? null) === 'lair')
             ->count();
 
-        return [
-            'breath_weapons_detected' => $breathWeapons,
-            'legendary_resistance' => collect($monsterData['traits'] ?? [])
-                ->contains(fn ($t) => str_contains($t['name'], 'Legendary Resistance')),
-            'lair_actions' => $lairActions,
-        ];
+        $metadata = parent::extractMetadata($monsterData);
+        $metadata['breath_weapons_detected'] = $breathWeapons;
+        $metadata['legendary_resistance'] = collect($monsterData['traits'] ?? [])
+            ->contains(fn ($t) => str_contains($t['name'], 'Legendary Resistance'));
+        $metadata['lair_actions'] = $lairActions;
+
+        return $metadata;
     }
 }

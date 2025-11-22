@@ -12,7 +12,7 @@ class DragonStrategyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->strategy = new DragonStrategy();
+        $this->strategy = new DragonStrategy;
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

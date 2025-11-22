@@ -9,10 +9,14 @@ class AbstractMonsterStrategyTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_extracts_action_cost_from_legendary_name(): void
     {
-        $strategy = new class extends \App\Services\Importers\Strategies\Monster\AbstractMonsterStrategy {
-            public function appliesTo(array $monsterData): bool { return true; }
+        $strategy = new class extends \App\Services\Importers\Strategies\Monster\AbstractMonsterStrategy
+        {
+            public function appliesTo(array $monsterData): bool
+            {
+                return true;
+            }
 
-            public function testExtractCost(string $name): int
+            public function test_extract_cost(string $name): int
             {
                 return $this->extractActionCost($name);
             }
@@ -26,8 +30,12 @@ class AbstractMonsterStrategyTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_detects_lair_actions_from_category(): void
     {
-        $strategy = new class extends \App\Services\Importers\Strategies\Monster\AbstractMonsterStrategy {
-            public function appliesTo(array $monsterData): bool { return true; }
+        $strategy = new class extends \App\Services\Importers\Strategies\Monster\AbstractMonsterStrategy
+        {
+            public function appliesTo(array $monsterData): bool
+            {
+                return true;
+            }
         };
 
         $legendary = [

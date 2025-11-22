@@ -7,12 +7,22 @@ use App\Models\Monster;
 abstract class AbstractMonsterStrategy
 {
     /**
-     * Determine if this strategy applies to the given monster data
+     * Warnings generated during strategy application.
+     */
+    protected array $warnings = [];
+
+    /**
+     * Metrics tracked during strategy application.
+     */
+    protected array $metrics = [];
+
+    /**
+     * Determine if this strategy applies to the given monster data.
      */
     abstract public function appliesTo(array $monsterData): bool;
 
     /**
-     * Apply type-specific enhancements to parsed traits
+     * Apply type-specific enhancements to parsed traits.
      */
     public function enhanceTraits(array $traits, array $monsterData): array
     {
@@ -20,7 +30,7 @@ abstract class AbstractMonsterStrategy
     }
 
     /**
-     * Apply type-specific action parsing (multiattack, recharge, etc.)
+     * Apply type-specific action parsing (multiattack, recharge, etc.).
      */
     public function enhanceActions(array $actions, array $monsterData): array
     {
@@ -28,7 +38,7 @@ abstract class AbstractMonsterStrategy
     }
 
     /**
-     * Parse legendary actions with cost detection
+     * Parse legendary actions with cost detection.
      */
     public function enhanceLegendaryActions(array $legendary, array $monsterData): array
     {
@@ -45,7 +55,7 @@ abstract class AbstractMonsterStrategy
 
     /**
      * Post-creation hook for additional relationship syncing
-     * (e.g., SpellcasterStrategy syncs spells)
+     * (e.g., SpellcasterStrategy syncs spells).
      */
     public function afterCreate(Monster $monster, array $monsterData): void
     {
@@ -53,15 +63,18 @@ abstract class AbstractMonsterStrategy
     }
 
     /**
-     * Extract metadata for logging and statistics
+     * Extract metadata for logging and statistics.
      */
     public function extractMetadata(array $monsterData): array
     {
-        return []; // Strategy-specific metrics
+        return [
+            'warnings' => $this->warnings,
+            'metrics' => $this->metrics,
+        ];
     }
 
     /**
-     * Extract action cost from legendary action name
+     * Extract action cost from legendary action name.
      * "Wing Attack (Costs 2 Actions)" → 2
      * "Detect" → 1 (default)
      */
@@ -72,5 +85,42 @@ abstract class AbstractMonsterStrategy
         }
 
         return 1; // Default cost
+    }
+
+    /**
+     * Add a warning message.
+     */
+    protected function addWarning(string $message): void
+    {
+        $this->warnings[] = $message;
+    }
+
+    /**
+     * Increment a metric counter.
+     */
+    protected function incrementMetric(string $key, int $amount = 1): void
+    {
+        if (! isset($this->metrics[$key])) {
+            $this->metrics[$key] = 0;
+        }
+
+        $this->metrics[$key] += $amount;
+    }
+
+    /**
+     * Set a metric value.
+     */
+    protected function setMetric(string $key, mixed $value): void
+    {
+        $this->metrics[$key] = $value;
+    }
+
+    /**
+     * Reset warnings and metrics (called before processing each monster).
+     */
+    public function reset(): void
+    {
+        $this->warnings = [];
+        $this->metrics = [];
     }
 }

@@ -8,6 +8,4 @@ class DefaultStrategy extends AbstractMonsterStrategy
     {
         return true; // Always applicable as fallback
     }
-
-    // Uses base implementations (no enhancements)
 }

@@ -12,7 +12,7 @@ class UndeadStrategyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->strategy = new UndeadStrategy();
+        $this->strategy = new UndeadStrategy;
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

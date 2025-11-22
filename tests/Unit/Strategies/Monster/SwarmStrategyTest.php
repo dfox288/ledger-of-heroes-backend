@@ -12,7 +12,7 @@ class SwarmStrategyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->strategy = new SwarmStrategy();
+        $this->strategy = new SwarmStrategy;
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

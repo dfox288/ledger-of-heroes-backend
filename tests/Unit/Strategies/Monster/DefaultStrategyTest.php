@@ -12,7 +12,7 @@ class DefaultStrategyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->strategy = new DefaultStrategy();
+        $this->strategy = new DefaultStrategy;
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

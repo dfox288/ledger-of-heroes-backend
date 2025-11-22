@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Ability Score Spells Endpoint** - Query spells by their required saving throw ability score (HIGH-VALUE tactical optimization)
+  - **New endpoint:** `GET /api/v1/ability-scores/{id|code|name}/spells` - List all spells requiring this save
+  - **Examples:**
+    - Dexterity saves: `GET /api/v1/ability-scores/DEX/spells` (Fireball, Lightning Bolt, ~80 spells)
+    - Wisdom saves: `GET /api/v1/ability-scores/WIS/spells` (Charm Person, Hold Person, ~60 spells)
+    - By name: `GET /api/v1/ability-scores/dexterity/spells` (supports lowercase names)
+  - **Use Cases:**
+    - Target enemy weaknesses (low STR? Use Entangle, Web)
+    - Build save-focused characters (Evocation Wizard focuses DEX saves)
+    - Spell selection diversity (cover 3+ save types)
+    - Exploit least-common saves (INT has only ~15 spells!)
+  - **Implementation:**
+    - Added `spells()` MorphToMany relationship to `AbilityScore.php`
+    - Added `spells()` controller method with pagination support
+    - Added route model binding supporting ID, code (DEX/STR/etc), and name (dexterity)
+    - Eager-loads spell relationships (school, sources, tags) to prevent N+1
+  - **Tests:** 4 comprehensive tests (12 assertions) - success, empty results, code routing, pagination
+  - **Documentation:** 67 lines of 5-star PHPDoc with save distribution, tactics, character building advice
+  - **Save Distribution:** DEX (~80), WIS (~60), CON (~50), STR (~25), CHA (~20), INT (~15)
+  - **Total Tests:** 1,141 passing (up from 1,137)
+
 - **Static Reference Reverse Relationships** - 6 new endpoints for querying entities by lookup tables
   - `GET /api/v1/spell-schools/{id|code|slug}/spells` - List all spells in a school of magic
   - `GET /api/v1/damage-types/{id|code}/spells` - List all spells dealing this damage type

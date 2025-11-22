@@ -38,4 +38,20 @@ class AbilityScore extends Model
             ->withPivot('save_effect', 'is_initial_save')
             ->withTimestamps();
     }
+
+    /**
+     * Get all spells that require saving throws with this ability score.
+     */
+    public function spells(): MorphToMany
+    {
+        return $this->morphedByMany(
+            Spell::class,
+            'entity',
+            'entity_saving_throws',
+            'ability_score_id',
+            'entity_id'
+        )
+            ->withPivot('save_effect', 'is_initial_save', 'save_modifier', 'dc')
+            ->withTimestamps();
+    }
 }

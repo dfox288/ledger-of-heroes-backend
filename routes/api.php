@@ -45,6 +45,11 @@ Route::prefix('v1')->group(function () {
 
     Route::apiResource('sizes', SizeController::class)->only(['index', 'show']);
     Route::apiResource('ability-scores', AbilityScoreController::class)->only(['index', 'show']);
+
+    // Ability score spell list endpoint
+    Route::get('ability-scores/{abilityScore}/spells', [AbilityScoreController::class, 'spells'])
+        ->name('ability-scores.spells');
+
     Route::apiResource('skills', SkillController::class)->only(['index', 'show']);
     Route::apiResource('item-types', ItemTypeController::class)->only(['index', 'show']);
     Route::apiResource('item-properties', ItemPropertyController::class)->only(['index', 'show']);

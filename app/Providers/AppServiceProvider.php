@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Events\ModelImported;
 use App\Listeners\ClearRequestValidationCache;
+use App\Models\AbilityScore;
 use App\Models\Background;
 use App\Models\CharacterClass;
 use App\Models\Condition;
@@ -115,6 +116,21 @@ class AppServiceProvider extends ServiceProvider
 
             // Try name (case-insensitive)
             return DamageType::whereRaw('LOWER(name) = ?', [strtolower($value)])->firstOrFail();
+        });
+
+        Route::bind('abilityScore', function ($value) {
+            if (is_numeric($value)) {
+                return AbilityScore::findOrFail($value);
+            }
+
+            // Try code first (e.g., "DEX", "STR")
+            $abilityScore = AbilityScore::where('code', $value)->first();
+            if ($abilityScore) {
+                return $abilityScore;
+            }
+
+            // Try name (case-insensitive, e.g., "dexterity")
+            return AbilityScore::whereRaw('LOWER(name) = ?', [strtolower($value)])->firstOrFail();
         });
     }
 }

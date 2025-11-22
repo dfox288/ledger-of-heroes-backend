@@ -104,7 +104,44 @@ class DamageTypeController extends Controller
     /**
      * List all items that deal this damage type
      *
-     * Returns a paginated list of items (weapons, ammunition) that deal this type of damage.
+     * Returns a paginated list of weapons, ammunition, and magic items that deal
+     * this type of damage. Useful for optimizing weapon selection and finding items
+     * that exploit enemy vulnerabilities.
+     *
+     * **Basic Examples:**
+     * - Slashing weapons: `GET /api/v1/damage-types/slashing/items`
+     * - Fire items: `GET /api/v1/damage-types/fire/items`
+     * - By ID: `GET /api/v1/damage-types/1/items`
+     * - Pagination: `GET /api/v1/damage-types/slashing/items?per_page=50`
+     *
+     * **Physical Damage Types (Weapons):**
+     * - Slashing: Longsword, Greatsword, Scimitar, Battleaxe (~80 items)
+     * - Piercing: Rapier, Longbow, Shortbow, Dagger, Pike (~70 items)
+     * - Bludgeoning: Mace, Warhammer, Club, Quarterstaff, Maul (~60 items)
+     *
+     * **Elemental Damage Types (Magic Items):**
+     * - Fire: Flame Tongue, Fire Arrow, Javelin of Lightning (~12 items)
+     * - Cold: Frost Brand, Arrows of Ice Slaying (~5 items)
+     * - Lightning: Javelin of Lightning, Lightning Arrow (~4 items)
+     * - Poison: Serpent Venom (poison), Poison Dagger (~6 items)
+     * - Acid: Acid Vial, Acid Arrow (~3 items)
+     *
+     * **Character Building:**
+     * - Martial characters: Identify all weapons matching your proficiencies
+     * - Damage optimization: Find magic weapons with bonus elemental damage
+     * - Versatility: Carry multiple damage types to bypass resistances
+     * - Exploit vulnerabilities: Trolls regenerate except for fire/acid damage
+     *
+     * **Combat Tactics:**
+     * - Physical damage: Most common, many creatures resist
+     * - Magical slashing/piercing/bludgeoning: Bypass non-magical resistance
+     * - Elemental damage: Exploit specific vulnerabilities (fire vs. ice creatures)
+     *
+     * **Reference Data:**
+     * - 13 damage types total
+     * - Physical types: Slashing (~80), Piercing (~70), Bludgeoning (~60)
+     * - Elemental types: Fire (~12), Poison (~6), Cold (~5), Lightning (~4)
+     * - Magic weapons override resistances to non-magical damage
      *
      * @param DamageType $damageType The damage type (by ID, code, or name)
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection

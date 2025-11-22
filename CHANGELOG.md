@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed - Phase 1 Importer Strategy Refactoring (2025-11-22)
+- **RaceImporter:** Refactored to use Strategy Pattern (3 strategies)
+  - BaseRaceStrategy: Handles base races (Elf, Dwarf, Human) with validation
+  - SubraceStrategy: Handles subraces with parent resolution and stub creation (High Elf, Mountain Dwarf)
+  - RacialVariantStrategy: Handles variants with type extraction (Dragonborn colors, Tiefling bloodlines)
+  - Code impact: 347 → 295 lines (-15% but eliminated dual-mode branching complexity)
+- **ClassImporter:** Refactored to use Strategy Pattern (2 strategies)
+  - BaseClassStrategy: Handles base classes with spellcasting detection (Wizard, Fighter)
+  - SubclassStrategy: Handles subclasses with parent resolution via name patterns (School of Evocation)
+  - Code impact: 263 → 264 lines (0% but eliminated conditional relationship clearing)
+- **Architecture Benefits:**
+  - Uniform strategy pattern across 4 of 9 importers (Item, Monster, Race, Class)
+  - 15 total strategies with ~730 lines of focused, testable code
+  - Each strategy <100 lines with isolated concerns
+  - Consistent logging and statistics display
+
+### Added
+- 5 new strategy base and implementation classes (3 race, 2 class)
+- 51 new strategy unit tests with real XML fixtures
+- Strategy statistics logging and display for race/class imports
+- AbstractRaceStrategy and AbstractClassStrategy base classes with metadata tracking
+
 ### Added
 - **API Comprehensive Verification & Documentation COMPLETE** - All 40+ endpoints verified and documented
   - **Verification Results:** All 7 entity APIs + 15 reverse relationships + 18 lookup endpoints working perfectly

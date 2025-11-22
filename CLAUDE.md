@@ -664,6 +664,76 @@ Strategy Statistics:
 - Additional strategies: FiendStrategy, CelestialStrategy, ConstructStrategy
 - Lair actions & regional effects (requires schema changes)
 
+### Race Importer Strategy Pattern (NEW 2025-11-22)
+
+**Architecture:** Type-specific import strategies for race hierarchy and variant handling
+
+**Solution:** Strategy Pattern with 3 strategies for base races, subraces, and variants:
+
+1. **BaseRaceStrategy** - Base races (Elf, Dwarf, Human)
+   - Sets parent_race_id to null
+   - Validates required fields (size_code, speed)
+   - Tracks: `base_races_processed`
+
+2. **SubraceStrategy** - Subraces with parent resolution
+   - Resolves or creates parent race (High Elf → Elf)
+   - Generates compound slug: `elf-high-elf`
+   - Tracks: `subraces_processed`, `base_races_created`, `base_races_resolved`
+
+3. **RacialVariantStrategy** - Racial variants
+   - Parses variant type from name: "Dragonborn (Gold)" → "Gold"
+   - Generates slug: `dragonborn-gold`
+   - Resolves parent race
+   - Tracks: `variants_processed`
+
+**Code Reduction:**
+- RaceImporter: 347 → 295 lines (-15%)
+- Eliminated dual-mode branching logic
+- Type-specific logic isolated in strategies
+
+**Benefits:**
+- Consistent architecture with Item/Monster importers
+- Each strategy <100 lines
+- Independently testable with XML fixtures
+- Strategy logging to `import-strategy-{date}.log`
+
+### Class Importer Strategy Pattern (NEW 2025-11-22)
+
+**Architecture:** Type-specific import strategies for base classes and subclasses
+
+**Solution:** Strategy Pattern with 2 strategies:
+
+1. **BaseClassStrategy** - Base classes (Wizard, Fighter, Paladin)
+   - Detects spellcasting classes via `spellcasting_ability`
+   - Resolves spellcasting_ability_id (Intelligence → 4)
+   - Sets parent_class_id to null
+   - Validates hit_die
+   - Tracks: `base_classes_processed`, `spellcasters_detected`, `martial_classes`
+
+2. **SubclassStrategy** - Subclasses with parent resolution
+   - Detects parent via name patterns (School of X → Wizard, Oath of X → Paladin)
+   - Inherits hit_die from parent class
+   - Generates compound slug: `wizard-school-of-evocation`
+   - Tracks: `subclasses_processed`, `parent_classes_resolved`
+
+**Code Reduction:**
+- ClassImporter: 263 → 264 lines (0% - but eliminated dual-mode complexity)
+- Removed conditional relationship clearing/importing
+- Simplified importEntity method with strategy loop
+
+**Benefits:**
+- Uniform architecture across 4 importers (Item, Monster, Race, Class)
+- Pattern detection isolated and testable
+- Easy to add new subclass patterns without modifying core importer
+- Strategy statistics displayed after import
+
+**Strategy Pattern Summary (4 of 9 Importers):**
+- ✅ ItemImporter (5 strategies)
+- ✅ MonsterImporter (5 strategies)
+- ✅ RaceImporter (3 strategies) - Phase 1
+- ✅ ClassImporter (2 strategies) - Phase 1
+- **Total:** 15 strategies, 51 strategy unit tests, ~730 lines of focused code
+
 ---
 
 ## 📚 Code Architecture

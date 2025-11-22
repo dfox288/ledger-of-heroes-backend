@@ -197,6 +197,7 @@ class MeilisearchIndexConfigurator
             'hit_points_average',
             'experience_points',
             'source_codes',
+            'spell_slugs', // For fast spell filtering (1,098 relationships for 129 spellcasters)
         ]);
 
         // Sortable attributes

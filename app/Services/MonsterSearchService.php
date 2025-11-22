@@ -38,6 +38,17 @@ final class MonsterSearchService
             $search->where('alignment', $dto->filters['alignment']);
         }
 
+        // Spell filter (Meilisearch-optimized with AND logic)
+        // Uses spell_slugs array field for fast filtering
+        if (isset($dto->filters['spells'])) {
+            $spellSlugs = array_map('trim', explode(',', $dto->filters['spells']));
+
+            // Build Meilisearch filter: spell_slugs = 'fireball' AND spell_slugs = 'lightning-bolt'
+            foreach ($spellSlugs as $slug) {
+                $search->where('spell_slugs', $slug);
+            }
+        }
+
         return $search;
     }
 

@@ -12,42 +12,43 @@
 Successfully refactored **RaceImporter** and **ClassImporter** to use Strategy Pattern for architectural consistency with existing Item and Monster importers. This Phase 1 refactoring creates a **uniform architecture across 4 of 9 importers** with type-specific logic isolated into composable, testable strategies.
 
 **Key Metrics:**
-- **51 new strategy unit tests** - All passing with real XML fixtures
+- **51 new strategy unit tests** - All passing (108 total strategy tests across project)
 - **5 strategy classes** - 3 race strategies + 2 class strategies
-- **7 git commits** - Clean, incremental delivery with TDD
+- **10 git commits** - Clean, incremental delivery with TDD + code review
 - **Architectural consistency** - 15 total strategies across 4 importers (Item, Monster, Race, Class)
-- **Code quality** - Each strategy <100 lines, independently testable
+- **Code quality** - Each strategy <110 lines, independently testable
 - **Zero regressions** - All existing importer tests passing
 
 **Code Impact:**
-- RaceImporter: 347 → 295 lines (-15%)
-- ClassImporter: 263 → 264 lines (0% but eliminated dual-mode complexity)
-- Total strategies: 15 strategies, ~730 lines of focused code
+- RaceImporter: 347 → 295 lines (-15%, -52 lines of conditional logic)
+- ClassImporter: 263 → 264 lines (0%, but eliminated dual-mode complexity)
+- Total: 13 strategy files, 13 test files, 559 total lines (importers)
 
 ---
 
 ## What We Accomplished
 
-### Task 1: AbstractRaceStrategy Base Class (Commit a7e8f3b)
+### Task 1: AbstractRaceStrategy Base Class (Commit 26ead32)
 ✅ Created foundation for race strategies:
 - `AbstractRaceStrategy` with metadata tracking (warnings, metrics)
 - `appliesTo()` and `enhance()` abstract methods
 - `reset()` for per-entity cleanup
-- 3 unit tests validating base functionality
+- 3 unit tests validating base functionality (6 assertions)
 
-### Task 2: BaseRaceStrategy (Commit 8c9d4a2)
+### Task 2: BaseRaceStrategy (Commit 78a0018)
 ✅ Implemented base race handling:
 - Detects base races (no parent, not variant)
 - Sets parent_race_id to null
 - Validates required fields (size_code, speed)
 - Tracks: `base_races_processed`
-- 8 unit tests with real XML fixture
+- 8 unit tests with real XML fixture (13 assertions)
 
-### Task 3: SubraceStrategy (Commit 1f5e2b3)
+### Task 3: SubraceStrategy (Commit 9ba121b)
 ✅ Implemented subrace with parent resolution:
 - Resolves existing parent or creates stub base race
 - Generates compound slug: `elf-high-elf`
 - Handles missing parent gracefully
+- 11 unit tests with database integration (14 assertions)
 - Tracks: `subraces_processed`, `base_races_created`, `base_races_resolved`
 - 11 unit tests covering resolution and creation scenarios
 

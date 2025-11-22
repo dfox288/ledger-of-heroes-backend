@@ -29,7 +29,11 @@
       "Skill(superpowers:writing-plans)",
       "Skill(superpowers:subagent-driven-development)",
       "Bash(for file in /Users/dfox/Development/dnd/importer/import-files/bestiary-*.xml)",
-      "Bash(done)"
+      "Bash(done)",
+      "Skill(superpowers:using-superpowers)",
+      "Bash(./vendor/bin/pint:*)",
+      "Bash(SCOUT_DRIVER=null php artisan test:*)",
+      "Bash(SCOUT_DRIVER=null php artisan migrate:fresh:*)"
     ],
     "deny": [],
     "ask": []

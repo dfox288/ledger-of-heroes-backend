@@ -48,7 +48,50 @@ class ConditionController extends Controller
     /**
      * List all spells that inflict this condition
      *
-     * Returns a paginated list of spells that can inflict this condition on targets.
+     * Returns a paginated list of spells that can inflict this condition on targets
+     * through saving throw failures. Useful for building control-focused characters
+     * and identifying debuff options.
+     *
+     * **Basic Examples:**
+     * - Poison spells: `GET /api/v1/conditions/poisoned/spells`
+     * - Stun spells: `GET /api/v1/conditions/stunned/spells`
+     * - By ID: `GET /api/v1/conditions/5/spells`
+     * - Pagination: `GET /api/v1/conditions/paralyzed/spells?per_page=25`
+     *
+     * **Common Condition Use Cases:**
+     * - Poisoned: Poison Spray, Cloudkill, Contagion (~8 spells, CON save)
+     * - Stunned: Power Word Stun, Shocking Grasp (high levels) (~4 spells, CON save)
+     * - Paralyzed: Hold Person, Hold Monster (~6 spells, WIS save, auto-crit)
+     * - Charmed: Charm Person, Dominate Monster, Suggestion (~12 spells, WIS save)
+     * - Frightened: Cause Fear, Fear, Phantasmal Killer (~8 spells, WIS save)
+     * - Restrained: Entangle, Web, Evard's Black Tentacles (~10 spells, STR/DEX save)
+     * - Blinded: Blindness/Deafness, Sunburst (~6 spells, CON save)
+     * - Deafened: Deafness, Thunder Step (~4 spells, CON save)
+     * - Prone: Grease, Thunderwave (~8 spells, STR/DEX save)
+     * - Invisible: Invisibility, Greater Invisibility (~6 spells, no save)
+     *
+     * **Control Wizard Builds:**
+     * - Crowd control: Paralyzed (auto-crits), Stunned (no actions), Restrained (reduced movement)
+     * - Debuffs: Poisoned (disadvantage on attacks), Frightened (can't approach)
+     * - Social manipulation: Charmed (friendly, can't attack), Suggestion (follow command)
+     *
+     * **Combat Tactics:**
+     * - High-value targets: Paralyze enemy spellcasters (no verbal components)
+     * - Melee threats: Restrain or frighten to reduce effectiveness
+     * - Action denial: Stunned removes actions, reactions, and movement
+     * - Save optimization: Target low saves (STR for wizards, INT for beasts)
+     *
+     * **Condition Synergies:**
+     * - Paralyzed: Attack rolls auto-crit within 5 feet (massive damage)
+     * - Restrained: Advantage on attacks against target, disadvantage on DEX saves
+     * - Prone: Advantage on melee attacks, disadvantage on ranged attacks
+     * - Invisible: Advantage on attacks, disadvantage on attacks against you
+     *
+     * **Reference Data:**
+     * - 15 conditions in D&D 5e
+     * - Most common: Poisoned (~8 spells), Charmed (~12 spells), Frightened (~8 spells)
+     * - Most powerful: Paralyzed (auto-crits), Stunned (no actions), Incapacitated
+     * - Duration: Varies from 1 round to 1 minute (concentration) to permanent
      *
      * @param Condition $condition The condition (by ID or slug)
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection

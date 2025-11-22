@@ -112,6 +112,69 @@ class ImportsClassAssociationsTest extends TestCase
         $classIds = $spell->classes()->pluck('id')->sort()->values()->toArray();
         $this->assertEquals([$wizard->id, $sorcerer->id], $classIds);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function sync_replaces_existing_associations(): void
+    {
+        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+        $sorcerer = CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
+        $warlock = CharacterClass::factory()->create(['name' => 'Warlock', 'slug' => 'warlock']);
+
+        $spell = Spell::factory()->create();
+
+        // Initial association
+        $spell->classes()->attach($wizard->id);
+        $this->assertEquals(1, $spell->classes()->count());
+
+        // Sync with different classes (should REPLACE)
+        $this->importer->syncClassAssociations($spell, ['Sorcerer', 'Warlock']);
+
+        $this->assertEquals(2, $spell->classes()->count());
+        $classIds = $spell->classes()->pluck('id')->sort()->values()->toArray();
+        $this->assertEquals([$sorcerer->id, $warlock->id], $classIds);
+        $this->assertNotContains($wizard->id, $classIds);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function add_merges_with_existing_associations(): void
+    {
+        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+        $sorcerer = CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
+        $warlock = CharacterClass::factory()->create(['name' => 'Warlock', 'slug' => 'warlock']);
+
+        $spell = Spell::factory()->create();
+
+        // Initial association
+        $spell->classes()->attach($wizard->id);
+        $this->assertEquals(1, $spell->classes()->count());
+
+        // Add new classes (should MERGE)
+        $count = $this->importer->addClassAssociations($spell, ['Sorcerer', 'Warlock']);
+
+        $this->assertEquals(2, $count, 'Should return count of new associations');
+        $this->assertEquals(3, $spell->classes()->count());
+        $classIds = $spell->classes()->pluck('id')->sort()->values()->toArray();
+        $this->assertEquals([$wizard->id, $sorcerer->id, $warlock->id], $classIds);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function add_handles_duplicate_classes_correctly(): void
+    {
+        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+        $sorcerer = CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
+
+        $spell = Spell::factory()->create();
+
+        // Initial associations
+        $spell->classes()->attach([$wizard->id, $sorcerer->id]);
+        $this->assertEquals(2, $spell->classes()->count());
+
+        // Add class that already exists (should not create duplicate)
+        $count = $this->importer->addClassAssociations($spell, ['Wizard', 'Sorcerer']);
+
+        $this->assertEquals(0, $count, 'Should return 0 for no new associations');
+        $this->assertEquals(2, $spell->classes()->count());
+    }
 }
 
 // Test helper class that uses the trait

@@ -22,27 +22,31 @@ class RacialVariantStrategy extends AbstractRaceStrategy
     {
         $variantOfName = $data['variant_of'];
 
-        // Parse variant type from name: "Dragonborn (Gold)" → "Gold"
+        // Parse variant type from name FIRST: "Dragonborn (Gold)" → "Gold"
         if (preg_match('/\(([^)]+)\)/', $data['name'], $matches)) {
             $data['variant_type'] = $matches[1];
-
-            // Generate slug from base + variant: dragonborn-gold
-            $baseSlug = Str::slug($variantOfName);
             $variantTypeSlug = Str::slug($matches[1]);
-            $data['slug'] = "{$baseSlug}-{$variantTypeSlug}";
         } else {
-            // No variant type in parentheses, use full name
-            $data['slug'] = Str::slug($data['name']);
+            $variantTypeSlug = null;
         }
 
         // Resolve parent race
-        $parentRace = Race::where('slug', Str::slug($variantOfName))->first();
+        $parentRace = Race::where('name', $variantOfName)->first();
 
         if ($parentRace) {
             $data['parent_race_id'] = $parentRace->id;
+
+            // Generate slug using parent's ACTUAL slug
+            if ($variantTypeSlug) {
+                $data['slug'] = "{$parentRace->slug}-{$variantTypeSlug}";
+            } else {
+                // No variant type in parentheses, use full name
+                $data['slug'] = Str::slug($data['name']);
+            }
         } else {
             $this->addWarning("Parent race '{$variantOfName}' not found for variant '{$data['name']}'");
             $data['parent_race_id'] = null;
+            $data['slug'] = Str::slug($data['name']);
         }
 
         // Track metric

@@ -119,4 +119,30 @@ class RacialVariantStrategyTest extends TestCase
         $this->assertArrayNotHasKey('variant_type', $result);
         $this->assertEquals('variant-dragonborn', $result['slug']);
     }
+
+    #[Test]
+    public function it_generates_slug_using_parent_actual_slug(): void
+    {
+        $this->seedSizes();
+        $size = Size::where('code', 'M')->first();
+
+        // Given: A parent race with a custom slug that doesn't match slugified name
+        $parent = Race::factory()->create([
+            'name' => 'Elf, Eladrin',
+            'slug' => 'elf-eladrin-custom',  // Custom slug different from Str::slug(name)
+            'size_id' => $size->id,
+        ]);
+
+        // When: Importing a variant (format: "ParentName (VariantType)")
+        $data = [
+            'name' => 'Elf, Eladrin (DMG)',
+            'variant_of' => 'Elf, Eladrin',
+        ];
+
+        $result = $this->strategy->enhance($data);
+
+        // Then: Child slug should use parent's ACTUAL slug, not re-slugified name
+        $this->assertEquals('elf-eladrin-custom-dmg', $result['slug']);
+        $this->assertEquals($parent->id, $result['parent_race_id']);
+    }
 }

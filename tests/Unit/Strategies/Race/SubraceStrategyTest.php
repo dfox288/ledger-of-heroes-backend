@@ -196,4 +196,32 @@ class SubraceStrategyTest extends TestCase
 
         $this->assertFalse($this->strategy->appliesTo($data));
     }
+
+    #[Test]
+    public function it_generates_hierarchical_slug_using_parent_actual_slug(): void
+    {
+        $this->seedSizes();
+        $size = Size::where('code', 'M')->first();
+
+        // Given: A parent race with a custom slug that doesn't match slugified name
+        $parent = Race::factory()->create([
+            'name' => 'Dwarf, Mark of Warding',
+            'slug' => 'dwarf-mark-warding-custom',  // Custom slug different from Str::slug(name)
+            'size_id' => $size->id,
+        ]);
+
+        // When: Importing a child subrace (format: "BaseName, SubraceName")
+        $data = [
+            'name' => 'Dwarf, Mark of Warding (Eberron)',
+            'base_race_name' => 'Dwarf, Mark of Warding',
+            'size_code' => 'M',
+            'speed' => 30,
+        ];
+
+        $result = $this->strategy->enhance($data);
+
+        // Then: Child slug should use parent's ACTUAL slug, not re-slugified name
+        $this->assertEquals('dwarf-mark-warding-custom-eberron', $result['slug']);
+        $this->assertEquals($parent->id, $result['parent_race_id']);
+    }
 }

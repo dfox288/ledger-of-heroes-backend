@@ -22,10 +22,9 @@ class SubraceStrategy extends AbstractRaceStrategy
     public function enhance(array $data): array
     {
         $baseRaceName = $data['base_race_name'];
-        $baseRaceSlug = Str::slug($baseRaceName);
 
         // Find or create base race
-        $baseRace = Race::where('slug', $baseRaceSlug)->first();
+        $baseRace = Race::where('name', $baseRaceName)->first();
 
         if (! $baseRace) {
             $baseRace = $this->createStubBaseRace($baseRaceName, $data);
@@ -40,8 +39,8 @@ class SubraceStrategy extends AbstractRaceStrategy
         // Extract subrace portion from name for slug generation
         $subraceName = $this->extractSubraceName($data['name'], $baseRaceName);
 
-        // Generate compound slug (base-race-subrace)
-        $data['slug'] = $baseRaceSlug.'-'.Str::slug($subraceName);
+        // Generate compound slug using parent's ACTUAL slug (not re-slugified name)
+        $data['slug'] = $baseRace->slug.'-'.Str::slug($subraceName);
 
         // Track metric
         $this->incrementMetric('subraces_processed');

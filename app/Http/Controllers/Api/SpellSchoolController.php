@@ -7,6 +7,7 @@ use App\Http\Requests\SpellSchoolIndexRequest;
 use App\Http\Resources\SpellResource;
 use App\Http\Resources\SpellSchoolResource;
 use App\Models\SpellSchool;
+use Illuminate\Http\Request;
 
 class SpellSchoolController extends Controller
 {
@@ -53,11 +54,13 @@ class SpellSchoolController extends Controller
      * @param SpellSchool $spellSchool The school of magic (by ID or code)
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    public function spells(SpellSchool $spellSchool)
+    public function spells(Request $request, SpellSchool $spellSchool)
     {
+        $perPage = $request->input('per_page', 50);
+
         $spells = $spellSchool->spells()
             ->with(['spellSchool', 'sources', 'tags'])
-            ->paginate(50);
+            ->paginate($perPage);
 
         return SpellResource::collection($spells);
     }

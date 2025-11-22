@@ -43,4 +43,41 @@ class SpellSchoolReverseRelationshipsApiTest extends TestCase
             ->assertJsonPath('data.0.name', 'Fireball')
             ->assertJsonPath('data.1.name', 'Magic Missile');
     }
+
+    #[Test]
+    public function it_returns_empty_when_school_has_no_spells()
+    {
+        $school = SpellSchool::where('code', 'D')->first();
+
+        $response = $this->getJson("/api/v1/spell-schools/{$school->id}/spells");
+
+        $response->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    #[Test]
+    public function it_accepts_numeric_id_for_spells_endpoint()
+    {
+        $school = SpellSchool::where('code', 'EV')->first();
+        $spell = Spell::factory()->create(['spell_school_id' => $school->id]);
+
+        $response = $this->getJson("/api/v1/spell-schools/{$school->id}/spells");
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data');
+    }
+
+    #[Test]
+    public function it_paginates_spell_results()
+    {
+        $school = SpellSchool::where('code', 'EV')->first();
+        Spell::factory()->count(75)->create(['spell_school_id' => $school->id]);
+
+        $response = $this->getJson("/api/v1/spell-schools/{$school->id}/spells?per_page=25");
+
+        $response->assertOk()
+            ->assertJsonCount(25, 'data')
+            ->assertJsonPath('meta.total', 75)
+            ->assertJsonPath('meta.per_page', 25);
+    }
 }

@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Static Reference Reverse Relationships** - 6 new endpoints for querying entities by lookup tables
+  - `GET /api/v1/spell-schools/{id|code|slug}/spells` - List all spells in a school of magic
+  - `GET /api/v1/damage-types/{id|code}/spells` - List all spells dealing this damage type
+  - `GET /api/v1/damage-types/{id|code}/items` - List all items dealing this damage type
+  - `GET /api/v1/conditions/{id|slug}/spells` - List all spells inflicting this condition
+  - `GET /api/v1/conditions/{id|slug}/monsters` - List all monsters inflicting this condition
+  - All endpoints support pagination (50 per page default), slug/ID/code routing, and follow proven `/spells/{id}/classes` pattern
+  - 20 new tests (60 assertions) with 100% pass rate
+  - 5-star PHPDoc documentation with real entity names, use cases, and reference data
+  - Three Eloquent relationship patterns: HasMany, HasManyThrough, MorphToMany
+
+### Added
 - **Spell Reverse Relationship Endpoints** - Query which classes/monsters/items/races can cast any spell (CRITICAL feature unlocking 3,143 relationships)
   - **4 new endpoints:** Access spell relationships from the spell's perspective
     - `GET /api/v1/spells/{id}/classes` - Which classes can learn this spell? (1,917 relationships)

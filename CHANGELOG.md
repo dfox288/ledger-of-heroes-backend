@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Refactored - Phase 2: Spell Importer Trait Extraction (2025-11-22)
+- **Extracted ImportsClassAssociations Trait** - Eliminated 100 lines of code duplication between SpellImporter and SpellClassMappingImporter
+  - Created reusable trait with `syncClassAssociations()` and `addClassAssociations()` methods
+  - Supports exact match, fuzzy match, and alias mapping for subclass resolution
+  - SpellImporter: 217 → 165 lines (-24%)
+  - SpellClassMappingImporter: 173 → 125 lines (-28%)
+  - 11 comprehensive unit tests for trait (exact match, fuzzy match, alias mapping, sync/add behavior, edge cases)
+  - Zero breaking changes (all 1,029+ tests pass)
+  - Single source of truth for class resolution logic
+
 ### Changed - Phase 1 Importer Strategy Refactoring (2025-11-22)
 - **RaceImporter:** Refactored to use Strategy Pattern (3 strategies)
   - BaseRaceStrategy: Handles base races (Elf, Dwarf, Human) with validation

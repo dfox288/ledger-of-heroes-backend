@@ -7,11 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Laravel 12.x application importing D&D 5th Edition XML content and providing a RESTful API.
 
 **Current Status (2025-11-22):**
-- ✅ **1,018 tests passing** (5,915 assertions) - 99.9% pass rate, +5 new monster spell API tests
+- ✅ **1,029 tests passing** (5,946 assertions) - 99.9% pass rate, +11 new trait tests
 - ✅ **64 migrations** - Complete schema (slugs, languages, prerequisites, spell tags, saving throws with DC, monsters)
 - ✅ **32 models + 29 API Resources + 18 controllers** - Full CRUD + Search for 7 entities
 - ✅ **9 importers** - Spells, Classes, Races, Items, Backgrounds, Feats, Monsters, Spell Class Mappings, Master Import
-- ✅ **21 reusable traits** - 6 NEW from refactoring (2025-11-22), ~260 lines eliminated
+- ✅ **22 reusable traits** - 7 NEW from refactoring (2025-11-22), ~360 lines eliminated
 - ✅ **Monster API Complete** - 598 monsters imported, full REST API with filtering by CR/type/size/alignment/spells
 - ✅ **Monster Spell Filtering API** - Query monsters by spells (`?spells=fireball`), list monster spells (`GET /monsters/{id}/spells`)
 - ✅ **Monster Importer with Strategy Pattern** - 5 type-specific strategies (Dragon, Spellcaster, Undead, Swarm, Default)
@@ -502,19 +502,20 @@ These files contain ONLY `<name>` and `<classes>` elements. They add subclass as
 - `spells-xge+erlw.xml` - Eberron additions
 - `spells-phb+erlw.xml` - Eberron additions
 
-### Reusable Traits (21)
+### Reusable Traits (22)
 
-**NEW (2025-11-22):** Major refactoring completed - extracted 6 new traits to eliminate ~260 lines of duplicate code.
+**NEW (2025-11-22):** Major refactoring completed - extracted 7 new traits to eliminate ~360 lines of duplicate code.
 
-**Importer Traits (16):**
+**Importer Traits (17):**
 - **Core:** `CachesLookupTables`, `GeneratesSlugs`
 - **Sources:** `ImportsSources` (with optional deduplication)
 - **Relationships:** `ImportsTraits`, `ImportsProficiencies`, `ImportsLanguages`, `ImportsConditions`, `ImportsModifiers`
-- **Spells:** `ImportsEntitySpells` ✨ NEW - Case-insensitive spell lookup with flexible pivot data
-- **Prerequisites:** `ImportsPrerequisites` ✨ NEW - Standardized prerequisite creation
-- **Random Tables:** `ImportsRandomTables`, `ImportsRandomTablesFromText` ✨ NEW - Polymorphic table import
+- **Spells:** `ImportsEntitySpells` - Case-insensitive spell lookup with flexible pivot data
+- **Classes:** `ImportsClassAssociations` ✨ NEW - Resolve class names (base/subclass) with fuzzy matching, alias mapping, and sync strategies
+- **Prerequisites:** `ImportsPrerequisites` - Standardized prerequisite creation
+- **Random Tables:** `ImportsRandomTables`, `ImportsRandomTablesFromText` - Polymorphic table import
 - **Saving Throws:** `ImportsSavingThrows`
-- **Armor Modifiers:** `ImportsArmorModifiers` ✨ NEW - Consolidated AC modifier logic
+- **Armor Modifiers:** `ImportsArmorModifiers` - Consolidated AC modifier logic
 
 **Parser Traits (5):**
 - `ParsesSourceCitations`, `ParsesTraits`, `ParsesRolls`
@@ -524,8 +525,8 @@ These files contain ONLY `<name>` and `<classes>` elements. They add subclass as
 **Benefits:**
 - DRY code with single source of truth
 - Consistent behavior across all importers
-- ~260 lines eliminated from existing importers
-- Monster importer will be ~43% smaller
+- ~360 lines eliminated from existing importers
+- SpellImporter -24%, SpellClassMappingImporter -28%
 
 ### Item Parser Strategy Pattern (NEW 2025-11-22)
 

@@ -8,14 +8,15 @@ use App\Models\Race;
 use App\Models\Size;
 use App\Models\Source;
 use App\Services\Importers\Concerns\ImportsConditions;
+use App\Services\Importers\Concerns\ImportsEntitySpells;
 use App\Services\Importers\Concerns\ImportsLanguages;
 use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Parsers\RaceXmlParser;
-use Illuminate\Support\Str;
 
 class RaceImporter extends BaseImporter
 {
     use ImportsConditions;
+    use ImportsEntitySpells;
     use ImportsLanguages;
     use ImportsModifiers;
 
@@ -320,12 +321,6 @@ class RaceImporter extends BaseImporter
             return;
         }
 
-        // Clear existing
-        \Illuminate\Support\Facades\DB::table('entity_spells')
-            ->where('reference_type', Race::class)
-            ->where('reference_id', $race->id)
-            ->delete();
-
         // Get ability score
         $abilityScore = null;
         if (! empty($spellcastingData['ability'])) {
@@ -333,22 +328,20 @@ class RaceImporter extends BaseImporter
             $abilityScore = \App\Models\AbilityScore::where('code', $code)->first();
         }
 
-        foreach ($spellcastingData['spells'] as $spellData) {
-            // Look up spell by name (try slug match)
-            $spellSlug = Str::slug($spellData['spell_name']);
-            $spell = \App\Models\Spell::where('slug', $spellSlug)->first();
-
-            if ($spell) {
-                \App\Models\EntitySpell::create([
-                    'reference_type' => Race::class,
-                    'reference_id' => $race->id,
-                    'spell_id' => $spell->id,
+        // Transform parsed spells into format expected by ImportsEntitySpells trait
+        $spellsData = array_map(function ($spellData) use ($abilityScore) {
+            return [
+                'spell_name' => $spellData['spell_name'],
+                'pivot_data' => [
                     'ability_score_id' => $abilityScore?->id,
                     'level_requirement' => $spellData['level_requirement'],
                     'usage_limit' => $spellData['usage_limit'],
                     'is_cantrip' => $spellData['is_cantrip'],
-                ]);
-            }
-        }
+                ],
+            ];
+        }, $spellcastingData['spells']);
+
+        // Delegate to the generalized trait method
+        $this->importEntitySpells($race, $spellsData);
     }
 }

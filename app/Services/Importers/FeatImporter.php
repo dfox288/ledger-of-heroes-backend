@@ -3,17 +3,18 @@
 namespace App\Services\Importers;
 
 use App\Models\AbilityScore;
-use App\Models\EntityPrerequisite;
 use App\Models\Feat;
 use App\Models\Proficiency;
 use App\Services\Importers\Concerns\ImportsConditions;
 use App\Services\Importers\Concerns\ImportsModifiers;
+use App\Services\Importers\Concerns\ImportsPrerequisites;
 use App\Services\Parsers\FeatXmlParser;
 
 class FeatImporter extends BaseImporter
 {
     use ImportsConditions;
     use ImportsModifiers;
+    use ImportsPrerequisites;
 
     /**
      * Import a feat from parsed data.
@@ -128,6 +129,9 @@ class FeatImporter extends BaseImporter
     private function importPrerequisites(Feat $feat, ?string $prerequisiteText): void
     {
         if (empty($prerequisiteText)) {
+            // Clear any existing prerequisites if no text provided
+            $feat->prerequisites()->delete();
+
             return;
         }
 
@@ -135,18 +139,8 @@ class FeatImporter extends BaseImporter
         $parser = new FeatXmlParser;
         $prerequisites = $parser->parsePrerequisites($prerequisiteText);
 
-        // Create EntityPrerequisite records
-        foreach ($prerequisites as $prereqData) {
-            EntityPrerequisite::create([
-                'reference_type' => Feat::class,
-                'reference_id' => $feat->id,
-                'prerequisite_type' => $prereqData['prerequisite_type'],
-                'prerequisite_id' => $prereqData['prerequisite_id'],
-                'minimum_value' => $prereqData['minimum_value'],
-                'description' => $prereqData['description'],
-                'group_id' => $prereqData['group_id'],
-            ]);
-        }
+        // Delegate to the generalized trait method
+        $this->importEntityPrerequisites($feat, $prerequisites);
     }
 
     protected function getParser(): object

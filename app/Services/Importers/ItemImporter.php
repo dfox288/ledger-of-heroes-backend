@@ -4,28 +4,29 @@ namespace App\Services\Importers;
 
 use App\Models\AbilityScore;
 use App\Models\DamageType;
-use App\Models\EntityPrerequisite;
 use App\Models\EntitySource;
 use App\Models\Item;
 use App\Models\ItemAbility;
 use App\Models\ItemProperty;
 use App\Models\ItemType;
 use App\Models\Proficiency;
-use App\Models\RandomTable;
-use App\Models\RandomTableEntry;
 use App\Models\Source;
 use App\Services\Importers\Concerns\CachesLookupTables;
+use App\Services\Importers\Concerns\ImportsEntitySpells;
 use App\Services\Importers\Concerns\ImportsModifiers;
+use App\Services\Importers\Concerns\ImportsPrerequisites;
+use App\Services\Importers\Concerns\ImportsRandomTablesFromText;
 use App\Services\Parsers\Concerns\ParsesItemSavingThrows;
 use App\Services\Parsers\Concerns\ParsesItemSpells;
-use App\Services\Parsers\ItemTableDetector;
-use App\Services\Parsers\ItemTableParser;
 use App\Services\Parsers\ItemXmlParser;
 
 class ItemImporter extends BaseImporter
 {
     use CachesLookupTables;
+    use ImportsEntitySpells;
     use ImportsModifiers;
+    use ImportsPrerequisites;
+    use ImportsRandomTablesFromText;
     use ParsesItemSavingThrows;
     use ParsesItemSpells;
 
@@ -183,72 +184,21 @@ class ItemImporter extends BaseImporter
 
     private function importRandomTables(Item $item, string $description): void
     {
-        // Detect tables in description
-        $detector = new ItemTableDetector;
-        $tables = $detector->detectTables($description);
-
-        if (empty($tables)) {
-            return;
-        }
-
-        // Clear existing tables
-        $item->randomTables()->delete();
-
-        foreach ($tables as $tableData) {
-            $parser = new ItemTableParser;
-            $parsed = $parser->parse($tableData['text'], $tableData['dice_type'] ?? null);
-
-            if (empty($parsed['rows'])) {
-                continue; // Skip tables with no valid rows
-            }
-
-            $table = RandomTable::create([
-                'reference_type' => Item::class,
-                'reference_id' => $item->id,
-                'table_name' => $parsed['table_name'],
-                'dice_type' => $parsed['dice_type'],
-            ]);
-
-            foreach ($parsed['rows'] as $index => $row) {
-                RandomTableEntry::create([
-                    'random_table_id' => $table->id,
-                    'roll_min' => $row['roll_min'],
-                    'roll_max' => $row['roll_max'],
-                    'result_text' => $row['result_text'],
-                    'sort_order' => $index,
-                ]);
-            }
-        }
+        // Delegate to the generalized trait method
+        $this->importRandomTablesFromText($item, $description);
     }
 
     private function importPrerequisites(Item $item, ?int $strengthRequirement): void
     {
-        // Clear existing prerequisites
-        $item->prerequisites()->delete();
-
-        // If no strength requirement, nothing to import
+        // If no strength requirement, clear any existing prerequisites
         if (empty($strengthRequirement) || $strengthRequirement <= 0) {
+            $item->prerequisites()->delete();
+
             return;
         }
 
-        // Get STR ability score
-        $strAbilityScore = AbilityScore::where('code', 'STR')->first();
-
-        if (! $strAbilityScore) {
-            // Should never happen, but fail gracefully
-            return;
-        }
-
-        // Create prerequisite record
-        EntityPrerequisite::create([
-            'reference_type' => Item::class,
-            'reference_id' => $item->id,
-            'prerequisite_type' => AbilityScore::class,
-            'prerequisite_id' => $strAbilityScore->id,
-            'minimum_value' => $strengthRequirement,
-            'description' => null,
-            'group_id' => 1,
-        ]);
+        // Use trait method for creating strength prerequisite
+        $this->createStrengthPrerequisite($item, $strengthRequirement);
     }
 
     /**
@@ -354,37 +304,26 @@ class ItemImporter extends BaseImporter
     private function importSpells(Item $item, string $description): void
     {
         // Parse spells from description
-        $spellsData = $this->parseItemSpells($description);
+        $parsedSpells = $this->parseItemSpells($description);
 
-        if (empty($spellsData)) {
+        if (empty($parsedSpells)) {
             return; // No spells found
         }
 
-        foreach ($spellsData as $spellData) {
-            // Look up spell by name (case-insensitive)
-            $spell = \App\Models\Spell::whereRaw('LOWER(name) = ?', [strtolower($spellData['spell_name'])])
-                ->first();
-
-            if (! $spell) {
-                \Log::warning("Spell not found: {$spellData['spell_name']} (for item: {$item->name})");
-
-                continue;
-            }
-
-            // Create or update entity_spell record
-            \DB::table('entity_spells')->updateOrInsert(
-                [
-                    'reference_type' => Item::class,
-                    'reference_id' => $item->id,
-                    'spell_id' => $spell->id,
-                ],
-                [
+        // Transform parsed spells into format expected by ImportsEntitySpells trait
+        $spellsData = array_map(function ($spellData) {
+            return [
+                'spell_name' => $spellData['spell_name'],
+                'pivot_data' => [
                     'charges_cost_min' => $spellData['charges_cost_min'],
                     'charges_cost_max' => $spellData['charges_cost_max'],
                     'charges_cost_formula' => $spellData['charges_cost_formula'],
-                ]
-            );
-        }
+                ],
+            ];
+        }, $parsedSpells);
+
+        // Delegate to the generalized trait method
+        $this->importEntitySpells($item, $spellsData);
     }
 
     private function importSavingThrows(Item $item, string $description): void

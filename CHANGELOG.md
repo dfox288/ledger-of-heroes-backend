@@ -112,6 +112,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Combined optimization: Smart races with darkvision for Wizard dungeon delving
   - **Pattern:** Case-insensitive enum validation for size/ability, relationship-based filtering for ability bonuses
 
+### Documentation
+- **5-Star PHPDoc Enhancement** - All entity controllers now have professional-grade API documentation (211 net lines added)
+  - **SpellController:** Enhanced from 40 to 102 lines (+62 lines)
+    - 35+ real query examples (Fireball, Burning Hands, Charm Person with actual spell names)
+    - 8 comprehensive use cases (character building, combat tactics, stealth, resource management, metamagic planning)
+    - 14 query parameters fully documented (damage_type, saving_throw, components, etc.)
+    - 3 reference data sections (13 damage types, 6 saving throws, 8 spell schools with IDs)
+    - Matches and EXCEEDS Monster/Item documentation standard
+  - **BackgroundController:** Enhanced from 6 to 76 lines (+70 lines)
+    - 19+ real query examples (Acolyte, Criminal, Urchin, Guild Artisan with actual background names)
+    - 6 comprehensive use cases (character creation, proficiency planning, roleplaying, language optimization)
+    - 11 query parameters fully documented (grants_proficiency, speaks_language, language_choice_count, etc.)
+    - Unique features section (random personality tables, starting equipment variants)
+    - Exceeds Monster/Item documentation standard
+  - **FeatController:** Enhanced from 6 to 85 lines (+79 lines)
+    - 20+ real query examples (War Caster, Elven Accuracy, Lucky, Sharpshooter with actual feat names)
+    - 6 comprehensive use cases (character optimization, ASI decisions, prerequisite planning, multiclass synergies)
+    - 12 query parameters fully documented (prerequisite_race, prerequisite_ability, min_value, grants_proficiency, etc.)
+    - Common ability prerequisites section (13+ for spellcasting/combat feats)
+    - Exceeds Monster/Item documentation standard
+  - **Impact:**
+    - All 7 entity endpoints now have consistent, professional documentation
+    - Scramble-compatible @param/@return tags for auto-generated OpenAPI docs
+    - Real entity names in every example for clarity (not generic placeholders)
+    - Complete parameter reference (100% coverage from Form Request validation rules)
+    - Visit `http://localhost:8080/docs/api` to see auto-generated Scramble documentation
+
 - **Race Spell Filtering API** - Query races by their innate spells (COMPLETE spell filtering ecosystem)
   - **Filter endpoint:** `GET /api/v1/races?spells=misty-step` - Which races can teleport innately?
   - **Multiple spells (OR):** `GET /api/v1/races?spells=dancing-lights,faerie-fire&spells_operator=OR` - Drow racial spells (2 races)

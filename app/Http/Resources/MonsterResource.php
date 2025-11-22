@@ -1,0 +1,47 @@
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class MonsterResource extends JsonResource
+{
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'slug' => $this->slug,
+            'name' => $this->name,
+            'size' => new SizeResource($this->whenLoaded('size')),
+            'type' => $this->type,
+            'alignment' => $this->alignment,
+            'armor_class' => $this->armor_class,
+            'armor_type' => $this->armor_type,
+            'hit_points_average' => $this->hit_points_average,
+            'hit_dice' => $this->hit_dice,
+            'speed_walk' => $this->speed_walk,
+            'speed_fly' => $this->speed_fly,
+            'speed_swim' => $this->speed_swim,
+            'speed_burrow' => $this->speed_burrow,
+            'speed_climb' => $this->speed_climb,
+            'can_hover' => $this->can_hover,
+            'strength' => $this->strength,
+            'dexterity' => $this->dexterity,
+            'constitution' => $this->constitution,
+            'intelligence' => $this->intelligence,
+            'wisdom' => $this->wisdom,
+            'charisma' => $this->charisma,
+            'challenge_rating' => $this->challenge_rating,
+            'experience_points' => $this->experience_points,
+            'description' => $this->description,
+            'traits' => MonsterTraitResource::collection($this->whenLoaded('traits')),
+            'actions' => MonsterActionResource::collection($this->whenLoaded('actions')),
+            'legendary_actions' => MonsterLegendaryActionResource::collection($this->whenLoaded('legendaryActions')),
+            'spellcasting' => new MonsterSpellcastingResource($this->whenLoaded('spellcasting')),
+            'modifiers' => ModifierResource::collection($this->whenLoaded('modifiers')),
+            'conditions' => EntityConditionResource::collection($this->whenLoaded('conditions')),
+            'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
+        ];
+    }
+}

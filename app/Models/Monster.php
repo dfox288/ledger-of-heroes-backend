@@ -90,13 +90,13 @@ class Monster extends Model
 
     public function conditions(): MorphToMany
     {
-        return $this->morphToMany(Condition::class, 'entity', 'entity_conditions')
+        return $this->morphToMany(Condition::class, 'reference', 'entity_conditions')
             ->withPivot('description');
     }
 
     public function sources(): MorphToMany
     {
-        return $this->morphToMany(Source::class, 'entity', 'entity_sources')
-            ->withPivot('source_pages');
+        return $this->morphToMany(Source::class, 'reference', 'entity_sources')
+            ->withPivot('pages');
     }
 }

@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\ItemPropertyController;
 use App\Http\Controllers\Api\ItemTypeController;
 use App\Http\Controllers\Api\LanguageController;
+use App\Http\Controllers\Api\MonsterController;
 use App\Http\Controllers\Api\ProficiencyTypeController;
 use App\Http\Controllers\Api\RaceController;
 use App\Http\Controllers\Api\SearchController;
@@ -58,4 +59,7 @@ Route::prefix('v1')->group(function () {
     // Class spell list endpoint
     Route::get('classes/{class}/spells', [ClassController::class, 'spells'])
         ->name('classes.spells');
+
+    // Monsters
+    Route::apiResource('monsters', MonsterController::class)->only(['index', 'show']);
 });

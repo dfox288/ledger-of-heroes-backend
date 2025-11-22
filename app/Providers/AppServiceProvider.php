@@ -8,6 +8,7 @@ use App\Models\Background;
 use App\Models\CharacterClass;
 use App\Models\Feat;
 use App\Models\Item;
+use App\Models\Monster;
 use App\Models\Race;
 use App\Models\Spell;
 use Illuminate\Support\Facades\Event;
@@ -76,6 +77,12 @@ class AppServiceProvider extends ServiceProvider
             return is_numeric($value)
                 ? Feat::findOrFail($value)
                 : Feat::where('slug', $value)->firstOrFail();
+        });
+
+        Route::bind('monster', function ($value) {
+            return is_numeric($value)
+                ? Monster::findOrFail($value)
+                : Monster::where('slug', $value)->firstOrFail();
         });
     }
 }

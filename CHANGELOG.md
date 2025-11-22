@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Monster API Endpoints** - RESTful API for 598 imported monsters with comprehensive filtering
+  - `GET /api/v1/monsters` - List monsters with pagination, search, sorting
+  - `GET /api/v1/monsters/{id|slug}` - Get single monster by ID or slug
+  - **Filters:** Challenge rating (exact, min/max range), type (dragon, humanoid, undead, etc.), size (T/S/M/L/H/G), alignment
+  - **Relationships:** Size, traits, actions, legendary actions, spellcasting, modifiers, conditions, sources
+  - **Resources:** 5 API Resources (Monster, MonsterTrait, MonsterAction, MonsterLegendaryAction, MonsterSpellcasting)
+  - **Validation:** 2 Form Requests (MonsterIndexRequest, MonsterShowRequest)
+  - **Route Binding:** Dual ID/slug routing support
+  - **Tests:** 20 comprehensive API tests (1,032 total tests passing)
+  - **CR Range Filtering:** CAST to DECIMAL for proper numeric comparison of challenge_rating strings
 - **Item Parser Strategy Pattern** - Refactored ItemXmlParser from 481-line monolith into 5 composable type-specific strategies
   - `ChargedItemStrategy`: Extracts spell references and charge costs from staves/wands/rods (spell matching, variable costs)
   - `ScrollStrategy`: Spell level extraction + protection vs spell scroll detection

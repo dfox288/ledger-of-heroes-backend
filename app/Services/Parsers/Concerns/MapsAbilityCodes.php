@@ -2,15 +2,19 @@
 
 namespace App\Services\Parsers\Concerns;
 
+use App\Models\AbilityScore;
+
 /**
- * Trait for mapping ability score names to standardized codes.
+ * Trait for mapping ability score names to standardized codes and resolving IDs.
  *
  * Converts full names or abbreviations to uppercase 3-letter codes:
  * - "Strength" -> "STR"
  * - "dexterity" -> "DEX"
  * - "int" -> "INT"
  *
- * Used by: Parsers that handle ability scores
+ * Also provides methods to resolve ability codes to database IDs with optional caching.
+ *
+ * Used by: Parsers and Importers that handle ability scores
  */
 trait MapsAbilityCodes
 {
@@ -22,7 +26,52 @@ trait MapsAbilityCodes
      */
     protected function mapAbilityNameToCode(string $abilityName): string
     {
-        $map = [
+        $map = $this->getAbilityCodeMap();
+
+        $normalized = strtolower(trim($abilityName));
+
+        // Check the map first
+        if (isset($map[$normalized])) {
+            return $map[$normalized];
+        }
+
+        // Fallback: return first 3 letters uppercase
+        return strtoupper(substr($normalized, 0, 3));
+    }
+
+    /**
+     * Resolve an ability code or name to its database ID.
+     *
+     * Uses cachedFindId() if available (from CachesLookupTables trait),
+     * otherwise performs a direct query.
+     *
+     * @param  string  $codeOrName  Ability code ("STR") or name ("Strength")
+     * @return int|null Database ID or null if not found
+     */
+    protected function resolveAbilityScoreId(string $codeOrName): ?int
+    {
+        // Normalize to code first
+        $code = $this->mapAbilityNameToCode($codeOrName);
+
+        // Use cached lookup if available (from CachesLookupTables trait)
+        if (method_exists($this, 'cachedFindId')) {
+            return $this->cachedFindId(AbilityScore::class, 'code', $code, useFail: false);
+        }
+
+        // Fallback to direct query
+        return AbilityScore::where('code', $code)->value('id');
+    }
+
+    /**
+     * Get the ability score code mapping.
+     *
+     * Centralized map for all ability score name variations.
+     *
+     * @return array Map of ability names to codes
+     */
+    private function getAbilityCodeMap(): array
+    {
+        return [
             'strength' => 'STR',
             'dexterity' => 'DEX',
             'constitution' => 'CON',
@@ -36,15 +85,5 @@ trait MapsAbilityCodes
             'wis' => 'WIS',
             'cha' => 'CHA',
         ];
-
-        $normalized = strtolower(trim($abilityName));
-
-        // Check the map first
-        if (isset($map[$normalized])) {
-            return $map[$normalized];
-        }
-
-        // Fallback: return first 3 letters uppercase
-        return strtoupper(substr($normalized, 0, 3));
     }
 }

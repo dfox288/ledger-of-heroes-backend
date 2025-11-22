@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Performance Optimizations Phase 1 (2025-11-22)
+- **Redis Caching Infrastructure**
+  - Added Redis 7-alpine service to docker-compose.yml
+  - Installed PHP Redis extension in Dockerfile
+  - Configured Laravel to use Redis cache driver (CACHE_STORE=redis)
+  - Redis running on port 6379 with persistent data volume
+- **Database Performance Indexes** - 17 indexes for common query patterns
+  - entity_spells: Composite indexes for monster spell queries (reference_type + spell_id, reference_type + reference_id)
+  - monsters: slug, challenge_rating, type, size_id indexes
+  - spells: slug, level indexes
+  - items, races, classes, backgrounds, feats: slug indexes
+- **Documentation Updates**
+  - Updated CLAUDE.md to document Docker Compose (not Sail) setup
+  - Added command reference for `docker compose exec php` patterns
+  - Marked monster importer priorities 1-4 as COMPLETE in handover doc
+
+### Changed
+- **Docker Compose Setup** - NOT using Laravel Sail
+  - All commands use `docker compose exec php` instead of `sail`
+  - Database access: `docker compose exec mysql mysql ...`
+  - Clear documentation in CLAUDE.md
+
+### Performance (Phase 1)
+- **Database Query Optimization:** 17 new indexes speed up common queries
+  - Slug-based lookups now use single-column indexes
+  - Monster filtering by CR/type/size uses dedicated indexes
+  - entity_spells joins use composite indexes
+- **Infrastructure Ready:** Redis caching configured for Phase 2 implementation
+
 ### Refactored - Phase 2: Spell Importer Trait Extraction (2025-11-22)
 - **Extracted ImportsClassAssociations Trait** - Eliminated 100 lines of code duplication between SpellImporter and SpellClassMappingImporter
   - Created reusable trait with `syncClassAssociations()` and `addClassAssociations()` methods

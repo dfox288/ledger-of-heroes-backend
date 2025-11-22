@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8'?>
+<compendium version="5">
+    <race>
+        <name>Dragonborn (Gold)</name>
+        <size>M</size>
+        <speed>30</speed>
+        <ability>Str 2, Cha 1</ability>
+        <trait>
+            <name>Draconic Ancestry</name>
+            <text>Gold. Damage Type: Fire. Breath Weapon: 15 ft. cone (Dex. save)</text>
+        </trait>
+        <text>Your draconic ancestry determines your damage resistance and breath weapon.</text>
+    </race>
+</compendium>

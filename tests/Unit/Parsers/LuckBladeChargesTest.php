@@ -38,7 +38,7 @@ class LuckBladeChargesTest extends TestCase
     {
         $text = 'The sword has 1d4 - 1 charges. While holding it, you can use an action to expend 1 charge and cast the wish spell from it.';
 
-        $result = $this->parser->testParseCharges($text);
+        $result = $this->parser->test_parse_charges($text);
 
         // Should detect variable charge count from "has 1d4-1 charges"
         $this->assertEquals('1d4-1', $result['charges_max']);
@@ -49,7 +49,7 @@ class LuckBladeChargesTest extends TestCase
     {
         $text = 'While holding it, you can use an action to expend 1 charge and cast the wish spell from it.';
 
-        $result = $this->parser->testParseItemSpells($text);
+        $result = $this->parser->test_parse_item_spells($text);
 
         $this->assertCount(1, $result);
         $this->assertEquals('wish', $result[0]['spell_name']); // Parser returns lowercase
@@ -62,7 +62,7 @@ class LuckBladeChargesTest extends TestCase
     {
         $text = "This property can't be used again until the next dawn.";
 
-        $result = $this->parser->testParseCharges($text);
+        $result = $this->parser->test_parse_charges($text);
 
         $this->assertEquals('dawn', $result['recharge_timing']);
     }

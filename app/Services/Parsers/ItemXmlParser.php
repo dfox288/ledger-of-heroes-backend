@@ -6,6 +6,7 @@ use App\Services\Parsers\Concerns\LookupsGameEntities;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesCharges;
+use App\Services\Parsers\Concerns\ParsesItemProficiencies;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use SimpleXMLElement;
 
@@ -15,6 +16,7 @@ class ItemXmlParser
     use MapsAbilityCodes;
     use MatchesProficiencyTypes;
     use ParsesCharges;
+    use ParsesItemProficiencies;
     use ParsesSourceCitations;
 
     public function __construct()
@@ -148,8 +150,9 @@ class ItemXmlParser
     private function extractProficiencies(string $text): array
     {
         $proficiencies = [];
-        $pattern = '/Proficienc(?:y|ies):\s*([^\n]+)/i';
 
+        // Pattern 1: Explicit "Proficiency:" list (requirements)
+        $pattern = '/Proficienc(?:y|ies):\s*([^\n]+)/i';
         if (preg_match($pattern, $text, $matches)) {
             $profList = array_map('trim', explode(',', $matches[1]));
             foreach ($profList as $profName) {
@@ -162,6 +165,19 @@ class ItemXmlParser
                     'grants' => false, // Items REQUIRE proficiency
                 ];
             }
+        }
+
+        // Pattern 2: "you have proficiency with the X" (grants proficiency)
+        $grantedProfs = $this->parseProficienciesFromText($text);
+        foreach ($grantedProfs as $prof) {
+            $matchedType = $this->matchProficiencyType($prof['proficiency_name']);
+
+            $proficiencies[] = [
+                'name' => $prof['proficiency_name'],
+                'type' => $prof['proficiency_type'],
+                'proficiency_type_id' => $matchedType?->id,
+                'grants' => true, // Item GRANTS proficiency
+            ];
         }
 
         return $proficiencies;

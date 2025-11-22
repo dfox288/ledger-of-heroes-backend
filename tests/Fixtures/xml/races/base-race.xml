@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8'?>
+<compendium version="5">
+    <race>
+        <name>Elf</name>
+        <size>M</size>
+        <speed>30</speed>
+        <ability>Dex 2</ability>
+        <trait>
+            <name>Darkvision</name>
+            <text>You can see in dim light within 60 feet of you as if it were bright light.</text>
+        </trait>
+        <text>Elves are a magical people of otherworldly grace.</text>
+    </race>
+</compendium>

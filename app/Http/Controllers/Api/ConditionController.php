@@ -112,7 +112,55 @@ class ConditionController extends Controller
      * List all monsters that inflict this condition
      *
      * Returns a paginated list of monsters that can inflict this condition through
-     * their attacks, traits, or special abilities.
+     * their attacks, traits, special abilities, or innate spellcasting. Useful for
+     * DMs designing encounters and players understanding enemy threats.
+     *
+     * **Basic Examples:**
+     * - Poisoning monsters: `GET /api/v1/conditions/poisoned/monsters`
+     * - Paralyzing monsters: `GET /api/v1/conditions/paralyzed/monsters`
+     * - By ID: `GET /api/v1/conditions/5/monsters`
+     * - Pagination: `GET /api/v1/conditions/frightened/monsters?per_page=25`
+     *
+     * **Common Condition Monsters:**
+     * - Poisoned: Yuan-ti, Giant Spiders, Carrion Crawlers (~40 monsters)
+     * - Paralyzed: Ghouls, Gelatinous Cubes, Beholders (paralysis ray) (~25 monsters)
+     * - Frightened: Dragons (frightful presence), Banshees, Death Knights (~30 monsters)
+     * - Charmed: Succubus/Incubus, Vampires, Sirens (~15 monsters)
+     * - Stunned: Mind Flayers (mind blast), Monks (stunning strike) (~10 monsters)
+     * - Restrained: Giant Spiders (webs), Ropers, Vine Blights (~20 monsters)
+     * - Blinded: Umber Hulks (confusing gaze), Basilisks (~8 monsters)
+     * - Petrified: Basilisks, Medusas, Cockatrices (~6 monsters)
+     * - Grappled: Giant Octopuses, Mimics, Ropers (~35 monsters)
+     *
+     * **DM Encounter Design:**
+     * - Threat assessment: Identify monsters with debilitating conditions
+     * - Tactical variety: Mix damage dealers with control monsters
+     * - Save targeting: Combine STR/DEX conditions with INT/WIS/CHA conditions
+     * - Difficulty scaling: Paralysis/Stun can swing encounters dramatically
+     *
+     * **Player Preparation:**
+     * - Condition immunity: Paladins (Aura of Protection), Monks (Diamond Soul)
+     * - Lesser Restoration: Cures poisoned, paralyzed, blinded, deafened
+     * - Greater Restoration: Cures charmed, petrified, stunned, exhaustion
+     * - Protection spells: Protection from Poison, Heroes' Feast (poison immunity)
+     *
+     * **Dangerous Monster Conditions:**
+     * - Paralyzed: Auto-crits from melee attacks (ghouls, gelatinous cubes)
+     * - Petrified: Permanent until Greater Restoration (medusas, basilisks)
+     * - Stunned: No actions, failed STR/DEX saves (mind flayers)
+     * - Frightened: Cannot move closer (ancient dragons, death knights)
+     *
+     * **Condition Delivery Mechanisms:**
+     * - Saving throws: Most common (CON for poison, WIS for charm/fear)
+     * - Attack hits: Ghoul claws (paralysis), spider bites (poison)
+     * - Failed ability checks: Gelatinous cube engulf (paralysis)
+     * - Aura effects: Dragon frightful presence (WIS save), banshee wail
+     *
+     * **Reference Data:**
+     * - 15 conditions total
+     * - Most common monster conditions: Poisoned (~40), Frightened (~30), Grappled (~35)
+     * - Most dangerous: Paralyzed (auto-crits), Petrified (permanent), Stunned (helpless)
+     * - CR correlation: Higher CR monsters inflict more conditions simultaneously
      *
      * @param Condition $condition The condition (by ID or slug)
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection

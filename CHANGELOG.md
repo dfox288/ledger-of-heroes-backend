@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Monster Search with Meilisearch** - Fast, typo-tolerant search for 598 monsters
+  - Laravel Scout integration with Monster model
+  - MonsterSearchService for Scout/Meilisearch/database queries
+  - Global search support: `GET /api/v1/search?q=dragon&types[]=monster`
+  - Advanced filtering: CR range, type, size, alignment combined with search
+  - Meilisearch filter syntax: `filter=challenge_rating >= 5 AND type = dragon`
+  - Searchable fields: name, description, type, size_name, sources
+  - Filterable fields: type, size_code, alignment, challenge_rating, armor_class, HP, XP
+  - Sortable fields: name, challenge_rating, armor_class, HP, XP
+  - 8 comprehensive search tests (1,040 total tests passing)
+  - 598 monsters indexed in Meilisearch (~2.5MB index)
 - **Monster API Endpoints** - RESTful API for 598 imported monsters with comprehensive filtering
   - `GET /api/v1/monsters` - List monsters with pagination, search, sorting
   - `GET /api/v1/monsters/{id|slug}` - Get single monster by ID or slug

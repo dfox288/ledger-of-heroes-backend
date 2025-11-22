@@ -17,7 +17,7 @@ class SearchRequest extends FormRequest
         return [
             'q' => ['required', 'string', 'min:2', 'max:255'],
             'types' => ['sometimes', 'array'],
-            'types.*' => ['string', Rule::in(['spell', 'item', 'race', 'class', 'background', 'feat'])],
+            'types.*' => ['string', Rule::in(['spell', 'item', 'race', 'class', 'background', 'feat', 'monster'])],
             'limit' => ['sometimes', 'integer', 'min:1', 'max:100'],
             'debug' => ['sometimes', 'boolean'],
         ];
@@ -28,7 +28,7 @@ class SearchRequest extends FormRequest
         return [
             'q.required' => 'Please provide a search query',
             'q.min' => 'Search query must be at least 2 characters',
-            'types.*.in' => 'Invalid entity type. Valid types: spell, item, race, class, background, feat',
+            'types.*.in' => 'Invalid entity type. Valid types: spell, item, race, class, background, feat, monster',
         ];
     }
 }

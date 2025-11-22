@@ -16,7 +16,7 @@ class SearchController extends Controller
     /**
      * Global search across all D&D entities
      *
-     * Search simultaneously across spells, items, races, classes, backgrounds, and feats.
+     * Search simultaneously across spells, items, races, classes, backgrounds, feats, and monsters.
      * Returns grouped results with relevance ranking powered by Meilisearch.
      */
     public function __invoke(SearchRequest $request)
@@ -41,6 +41,7 @@ class SearchController extends Controller
             'classes' => $results['classes'] ?? collect(),
             'backgrounds' => $results['backgrounds'] ?? collect(),
             'feats' => $results['feats'] ?? collect(),
+            'monsters' => $results['monsters'] ?? collect(),
             'query' => $query,
             'types_searched' => $types ?? $this->searchService->getAvailableTypes(),
             'limit_per_type' => $limit,

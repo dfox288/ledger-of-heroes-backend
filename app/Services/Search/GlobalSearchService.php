@@ -6,6 +6,7 @@ use App\Models\Background;
 use App\Models\CharacterClass;
 use App\Models\Feat;
 use App\Models\Item;
+use App\Models\Monster;
 use App\Models\Race;
 use App\Models\Spell;
 use Illuminate\Support\Collection;
@@ -20,6 +21,7 @@ class GlobalSearchService
         'class' => CharacterClass::class,
         'background' => Background::class,
         'feat' => Feat::class,
+        'monster' => Monster::class,
     ];
 
     protected array $pluralMap = [
@@ -29,6 +31,7 @@ class GlobalSearchService
         'class' => 'classes',
         'background' => 'backgrounds',
         'feat' => 'feats',
+        'monster' => 'monsters',
     ];
 
     /**

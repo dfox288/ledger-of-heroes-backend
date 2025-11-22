@@ -60,6 +60,10 @@ class ConfigureMeilisearchIndexes extends Command
             $configurator->configureFeatsIndex();
             $this->info('✓ Feats index configured successfully');
 
+            $this->info('Configuring monsters index...');
+            $configurator->configureMonstersIndex();
+            $this->info('✓ Monsters index configured successfully');
+
             $this->newLine();
             $this->info('All indexes configured successfully!');
 

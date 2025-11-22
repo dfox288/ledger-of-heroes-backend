@@ -9,10 +9,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Laravel\Scout\Searchable;
 
 class Monster extends Model
 {
-    use HasFactory;
+    use HasFactory, Searchable;
 
     public $timestamps = false;
 
@@ -98,5 +99,42 @@ class Monster extends Model
     {
         return $this->morphToMany(Source::class, 'reference', 'entity_sources')
             ->withPivot('pages');
+    }
+
+    // Scout Search Configuration
+
+    /**
+     * Get the indexable data array for the model.
+     */
+    public function toSearchableArray(): array
+    {
+        // Load relationships to avoid N+1 queries
+        $this->loadMissing(['size', 'sources.source']);
+
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'size_code' => $this->size?->code,
+            'size_name' => $this->size?->name,
+            'type' => $this->type,
+            'alignment' => $this->alignment,
+            'armor_class' => $this->armor_class,
+            'armor_type' => $this->armor_type,
+            'hit_points_average' => $this->hit_points_average,
+            'challenge_rating' => $this->challenge_rating,
+            'experience_points' => $this->experience_points,
+            'description' => $this->description,
+            'sources' => $this->sources->pluck('source.name')->all(),
+            'source_codes' => $this->sources->pluck('source.code')->all(),
+        ];
+    }
+
+    /**
+     * Get the name of the index associated with the model.
+     */
+    public function searchableAs(): string
+    {
+        return 'monsters_index';
     }
 }

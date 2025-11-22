@@ -22,6 +22,7 @@ class SearchResource extends JsonResource
                 'classes' => ClassResource::collection($this->resource['classes'] ?? collect()),
                 'backgrounds' => BackgroundResource::collection($this->resource['backgrounds'] ?? collect()),
                 'feats' => FeatResource::collection($this->resource['feats'] ?? collect()),
+                'monsters' => MonsterResource::collection($this->resource['monsters'] ?? collect()),
             ],
             'meta' => [
                 'query' => $this->resource['query'],

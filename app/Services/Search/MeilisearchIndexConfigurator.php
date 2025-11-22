@@ -172,4 +172,40 @@ class MeilisearchIndexConfigurator
             'name',
         ]);
     }
+
+    public function configureMonstersIndex(): void
+    {
+        $index = $this->client->index('monsters_index');
+
+        // Searchable attributes
+        $index->updateSearchableAttributes([
+            'name',
+            'description',
+            'type',
+            'size_name',
+            'sources',
+        ]);
+
+        // Filterable attributes
+        $index->updateFilterableAttributes([
+            'id',
+            'type',
+            'size_code',
+            'alignment',
+            'challenge_rating',
+            'armor_class',
+            'hit_points_average',
+            'experience_points',
+            'source_codes',
+        ]);
+
+        // Sortable attributes
+        $index->updateSortableAttributes([
+            'name',
+            'challenge_rating',
+            'armor_class',
+            'hit_points_average',
+            'experience_points',
+        ]);
+    }
 }

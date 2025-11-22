@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\DTOs\MonsterSearchDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MonsterIndexRequest;
 use App\Http\Requests\MonsterShowRequest;
 use App\Http\Resources\MonsterResource;
 use App\Models\Monster;
+use App\Services\MonsterSearchService;
+use Dedoc\Scramble\Attributes\QueryParameter;
+use MeiliSearch\Client;
 
 class MonsterController extends Controller
 {
@@ -14,69 +18,26 @@ class MonsterController extends Controller
      * List all monsters
      *
      * Returns a paginated list of D&D 5e monsters. Supports filtering by challenge rating,
-     * type, size, and alignment. All query parameters are validated and documented automatically.
+     * type, size, alignment, and full-text search. All query parameters are validated
+     * and documented automatically from the MonsterIndexRequest.
      */
-    public function index(MonsterIndexRequest $request)
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR. Available fields: challenge_rating (string), type (string), size_code (string), alignment (string), armor_class (int), hit_points_average (int), experience_points (int).', example: 'challenge_rating >= 5 AND challenge_rating <= 10 AND type = dragon')]
+    public function index(MonsterIndexRequest $request, MonsterSearchService $service, Client $meilisearch)
     {
-        $validated = $request->validated();
+        $dto = MonsterSearchDTO::fromRequest($request);
 
-        $query = Monster::query()
-            ->with([
-                'size',
-                'sources.source',
-                'modifiers.abilityScore',
-                'modifiers.skill',
-                'modifiers.damageType',
-                'conditions',
-            ]);
-
-        // Filter by challenge rating
-        if (isset($validated['challenge_rating'])) {
-            $query->where('challenge_rating', $validated['challenge_rating']);
+        // Use new Meilisearch filter syntax if provided
+        if ($dto->meilisearchFilter !== null) {
+            $monsters = $service->searchWithMeilisearch($dto, $meilisearch);
+        } elseif ($dto->searchQuery !== null) {
+            // Use Scout search with backwards-compatible filters
+            $monsters = $service->buildScoutQuery($dto)->paginate($dto->perPage);
+        } else {
+            // Fallback to database query (no search, no filters)
+            $monsters = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 
-        // Filter by minimum challenge rating
-        // Note: challenge_rating is VARCHAR to support fractions (1/4, 1/2)
-        // We cast to DECIMAL for numeric comparison, which works for whole numbers
-        if (isset($validated['min_cr'])) {
-            $query->whereRaw('CAST(challenge_rating AS DECIMAL(5,2)) >= ?', [$validated['min_cr']]);
-        }
-
-        // Filter by maximum challenge rating
-        if (isset($validated['max_cr'])) {
-            $query->whereRaw('CAST(challenge_rating AS DECIMAL(5,2)) <= ?', [$validated['max_cr']]);
-        }
-
-        // Filter by type
-        if (isset($validated['type'])) {
-            $query->where('type', $validated['type']);
-        }
-
-        // Filter by size
-        if (isset($validated['size'])) {
-            $query->whereHas('size', function ($q) use ($validated) {
-                $q->where('code', $validated['size']);
-            });
-        }
-
-        // Filter by alignment
-        if (isset($validated['alignment'])) {
-            $query->where('alignment', 'like', '%'.$validated['alignment'].'%');
-        }
-
-        // Search by name
-        if (isset($validated['q'])) {
-            $query->where('name', 'like', '%'.$validated['q'].'%');
-        }
-
-        // Sort
-        $sortBy = $validated['sort_by'] ?? 'name';
-        $sortDirection = $validated['sort_direction'] ?? 'asc';
-        $query->orderBy($sortBy, $sortDirection);
-
-        $perPage = $validated['per_page'] ?? 15;
-
-        return MonsterResource::collection($query->paginate($perPage));
+        return MonsterResource::collection($monsters);
     }
 
     /**

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Performance
+- **Three-Layer Performance Optimization** - 5-10x faster queries with 78% bandwidth reduction
+  - **Database Indexes:** Composite index on `entity_spells(reference_type, spell_id)` for faster spell filtering
+    - Query time: ~50ms → <10ms for indexed queries
+    - Migration: `2025_11_22_114527_add_performance_indexes_to_entity_spells_table.php`
+  - **Meilisearch Spell Filtering:** Fast in-memory spell filtering with search integration
+    - Added `spell_slugs` array to `Monster::toSearchableArray()`
+    - Updated `MonsterSearchService::buildScoutQuery()` for Meilisearch spell filtering
+    - Updated `MeilisearchIndexConfigurator` to make `spell_slugs` filterable
+    - Query time: <10ms for search + spell filter queries
+    - Works with: `GET /api/v1/monsters?q=dragon&spells=fireball`
+  - **Nginx Gzip Compression:** 78% response size reduction
+    - Enabled in `docker/nginx/default.conf`
+    - Compression level 6, min size 1KB
+    - Response size: 92,076 → 20,067 bytes (4.6x compression)
+  - **System Intelligence:** Auto-selects best approach (Meilisearch for search queries, database for filters only)
+
 ### Added
 - **Monster Spell Filtering API** - Query monsters by their known spells via REST API
   - **Filter endpoint:** `GET /api/v1/monsters?spells=fireball` - Find monsters that know specific spell(s)

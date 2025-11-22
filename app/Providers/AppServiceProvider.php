@@ -11,7 +11,9 @@ use App\Models\Condition;
 use App\Models\DamageType;
 use App\Models\Feat;
 use App\Models\Item;
+use App\Models\Language;
 use App\Models\Monster;
+use App\Models\ProficiencyType;
 use App\Models\Race;
 use App\Models\Spell;
 use App\Models\SpellSchool;
@@ -131,6 +133,24 @@ class AppServiceProvider extends ServiceProvider
 
             // Try name (case-insensitive, e.g., "dexterity")
             return AbilityScore::whereRaw('LOWER(name) = ?', [strtolower($value)])->firstOrFail();
+        });
+
+        Route::bind('language', function ($value) {
+            if (is_numeric($value)) {
+                return Language::findOrFail($value);
+            }
+
+            // Try slug (e.g., "elvish", "common", "thieves-cant")
+            return Language::where('slug', $value)->firstOrFail();
+        });
+
+        Route::bind('proficiencyType', function ($value) {
+            if (is_numeric($value)) {
+                return ProficiencyType::findOrFail($value);
+            }
+
+            // Try name (case-insensitive, e.g., "Longsword", "Stealth", "Heavy Armor")
+            return ProficiencyType::whereRaw('LOWER(name) = ?', [strtolower($value)])->firstOrFail();
         });
     }
 }

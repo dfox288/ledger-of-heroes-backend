@@ -44,6 +44,13 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('damage-types', DamageTypeController::class)->only(['index', 'show']);
 
     Route::apiResource('sizes', SizeController::class)->only(['index', 'show']);
+
+    // Size reverse relationship endpoints
+    Route::get('sizes/{size}/races', [SizeController::class, 'races'])
+        ->name('sizes.races');
+    Route::get('sizes/{size}/monsters', [SizeController::class, 'monsters'])
+        ->name('sizes.monsters');
+
     Route::apiResource('ability-scores', AbilityScoreController::class)->only(['index', 'show']);
 
     // Ability score spell list endpoint
@@ -64,7 +71,22 @@ Route::prefix('v1')->group(function () {
         ->name('conditions.monsters');
 
     Route::apiResource('proficiency-types', ProficiencyTypeController::class)->only(['index', 'show']);
+
+    // Proficiency type reverse relationship endpoints
+    Route::get('proficiency-types/{proficiencyType}/classes', [ProficiencyTypeController::class, 'classes'])
+        ->name('proficiency-types.classes');
+    Route::get('proficiency-types/{proficiencyType}/races', [ProficiencyTypeController::class, 'races'])
+        ->name('proficiency-types.races');
+    Route::get('proficiency-types/{proficiencyType}/backgrounds', [ProficiencyTypeController::class, 'backgrounds'])
+        ->name('proficiency-types.backgrounds');
+
     Route::apiResource('languages', LanguageController::class)->only(['index', 'show']);
+
+    // Language reverse relationship endpoints
+    Route::get('languages/{language}/races', [LanguageController::class, 'races'])
+        ->name('languages.races');
+    Route::get('languages/{language}/backgrounds', [LanguageController::class, 'backgrounds'])
+        ->name('languages.backgrounds');
 
     // Spells
     Route::apiResource('spells', SpellController::class)->only(['index', 'show']);

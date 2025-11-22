@@ -136,4 +136,37 @@ TEXT;
         $this->assertSame(1, $result['max']);
         $this->assertNull($result['formula']);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_detects_at_will_usage()
+    {
+        $description = 'While wearing this hat, you can use an action to cast the disguise self spell from it at will.';
+        $spells = $this->parseItemSpells($description);
+
+        $this->assertCount(1, $spells);
+        $this->assertSame('disguise self', $spells[0]['spell_name']);
+        $this->assertSame('at will', $spells[0]['usage_limit']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_detects_at_will_with_on_yourself()
+    {
+        $description = 'While you wear these boots, you can use an action to cast the levitate spell on yourself at will.';
+        $spells = $this->parseItemSpells($description);
+
+        $this->assertCount(1, $spells);
+        $this->assertSame('levitate', $spells[0]['spell_name']);
+        $this->assertSame('at will', $spells[0]['usage_limit']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_returns_null_usage_limit_when_not_specified()
+    {
+        // Staff of Fire has charge-based casting, not usage limits
+        $description = 'The staff has 10 charges. While holding it, you can use an action to expend 1 or more of its charges to cast one of the following spells from it: fireball (3 charges).';
+        $spells = $this->parseItemSpells($description);
+
+        $this->assertCount(1, $spells);
+        $this->assertNull($spells[0]['usage_limit'] ?? null);
+    }
 }

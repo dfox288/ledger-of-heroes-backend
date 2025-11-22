@@ -194,6 +194,7 @@ class ItemImporter extends BaseImporter
                     'charges_cost_min' => $spellData['charges_cost_min'],
                     'charges_cost_max' => $spellData['charges_cost_max'],
                     'charges_cost_formula' => $spellData['charges_cost_formula'],
+                    'usage_limit' => $spellData['usage_limit'] ?? null,
                 ],
             ];
         }, $parsedSpells);

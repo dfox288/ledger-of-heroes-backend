@@ -67,6 +67,37 @@ trait ParsesItemSpells
     }
 
     /**
+     * Detect usage limit from spell description context
+     *
+     * @param  string  $description  Full item description
+     * @return string|null Usage limit like "at will", "1/day", "3/day", etc.
+     */
+    protected function parseUsageLimit(string $description): ?string
+    {
+        // Pattern: "at will"
+        if (preg_match('/\bat\s+will\b/i', $description)) {
+            return 'at will';
+        }
+
+        // Pattern: "once per day" or "1/day"
+        if (preg_match('/\b(?:once|1)\s*(?:per\s+day|\/day)\b/i', $description)) {
+            return '1/day';
+        }
+
+        // Pattern: "twice per day" or "2/day"
+        if (preg_match('/\b(?:twice|2)\s*(?:per\s+day|\/day)\b/i', $description)) {
+            return '2/day';
+        }
+
+        // Pattern: "X times per day" or "X/day"
+        if (preg_match('/\b(\d+)\s*(?:times?\s+per\s+day|\/day)\b/i', $description, $matches)) {
+            return $matches[1].'/day';
+        }
+
+        return null;
+    }
+
+    /**
      * Extract spell names and their charge costs from item description
      *
      * @param  string  $description  Full item description
@@ -108,7 +139,7 @@ trait ParsesItemSpells
         }
 
         // Pattern 2: "cast the X spell" (single spell pattern)
-        // Example: "cast the lightning bolt spell (save DC 15)"
+        // Example: "cast the disguise self spell from it at will"
         // Only check if we haven't found spells yet
         if (empty($spells) && preg_match('/cast\s+the\s+([a-z\s\']+?)\s+spell/i', $description, $matches)) {
             $spellName = trim($matches[1]);
@@ -128,12 +159,16 @@ trait ParsesItemSpells
                 $costData['max'] = null; // Variable cost
             }
 
+            // Detect usage limit for single spell pattern
+            $usageLimit = $this->parseUsageLimit($description);
+
             // Only add if we found a cost or if it's worth noting the spell exists
             $spells[] = [
                 'spell_name' => $spellName,
                 'charges_cost_min' => $costData['min'],
                 'charges_cost_max' => $costData['max'],
                 'charges_cost_formula' => $costData['formula'],
+                'usage_limit' => $usageLimit,
             ];
         }
 

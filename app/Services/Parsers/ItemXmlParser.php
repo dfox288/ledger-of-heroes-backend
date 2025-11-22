@@ -3,6 +3,7 @@
 namespace App\Services\Parsers;
 
 use App\Services\Parsers\Concerns\LookupsGameEntities;
+use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesCharges;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
@@ -11,6 +12,7 @@ use SimpleXMLElement;
 class ItemXmlParser
 {
     use LookupsGameEntities;
+    use MapsAbilityCodes;
     use MatchesProficiencyTypes;
     use ParsesCharges;
     use ParsesSourceCitations;
@@ -212,6 +214,108 @@ class ItemXmlParser
                     'damage_type_id' => null,
                 ];
             }
+        }
+
+        // Parse "set score to X" modifiers from description text
+        $setScoreModifiers = $this->parseSetScoreModifiers((string) $element->text);
+        $modifiers = array_merge($modifiers, $setScoreModifiers);
+
+        // Parse damage resistance modifiers from description text (potions, etc.)
+        $resistanceModifiers = $this->parseResistanceModifiers((string) $element->text);
+        $modifiers = array_merge($modifiers, $resistanceModifiers);
+
+        return $modifiers;
+    }
+
+    /**
+     * Parse "Your [Ability] score is [X]" patterns from description text.
+     *
+     * Examples:
+     * - "Your Intelligence score is 19 while you wear this headband."
+     * - "Your Strength score is 19 while you wear these gauntlets."
+     *
+     * @param  string  $text  Item description text
+     * @return array Array of modifier data with 'set:X' value notation
+     */
+    private function parseSetScoreModifiers(string $text): array
+    {
+        $modifiers = [];
+
+        // Pattern: "Your [Ability] score is [Number] while..."
+        // Captures: 1=ability name, 2=score value, 3=condition including "while"
+        if (preg_match('/Your\s+(\w+)\s+score\s+is\s+(\d+)\s+(while\s+[^.]+)/i', $text, $matches)) {
+            $abilityName = $matches[1];
+            $scoreValue = (int) $matches[2];
+            $condition = trim($matches[3]);
+
+            // Map ability name to code
+            $abilityCode = $this->mapAbilityNameToCode($abilityName);
+
+            $modifiers[] = [
+                'category' => 'ability_score',
+                'value' => "set:{$scoreValue}",
+                'condition' => $condition,
+                'ability_score_id' => null, // Will be resolved by importer
+                'ability_score_code' => $abilityCode, // For lookup
+                'skill_id' => null,
+                'damage_type_id' => null,
+            ];
+        }
+
+        return $modifiers;
+    }
+
+    /**
+     * Parse damage resistance patterns from potion descriptions.
+     *
+     * Handles two patterns:
+     * 1. Specific damage type: "you gain resistance to fire damage for 1 hour"
+     * 2. All damage types: "you have resistance to all damage"
+     *
+     * @param  string  $text  Item description text
+     * @return array Array of modifier data for resistance
+     */
+    private function parseResistanceModifiers(string $text): array
+    {
+        $modifiers = [];
+
+        // Pattern 1: "resistance to all damage" (Potion of Invulnerability)
+        // Check for "For X minutes/hours" before OR after the resistance text
+        if (preg_match('/you (?:gain|have) resistance to all damage/i', $text)) {
+            // Try to find duration either before or after
+            $duration = null;
+            if (preg_match('/(for \d+ (?:minute|hour)s?)/i', $text, $durationMatch)) {
+                $duration = trim(strtolower($durationMatch[1]));
+            }
+
+            $modifiers[] = [
+                'category' => 'damage_resistance',
+                'value' => 'resistance:all',  // Special notation for all types
+                'condition' => $duration,
+                'ability_score_id' => null,
+                'skill_id' => null,
+                'damage_type_id' => null,
+                // No damage_type_code - null damage_type_id means ALL types
+            ];
+
+            return $modifiers; // Return early - don't try to parse specific type
+        }
+
+        // Pattern 2: "resistance to [damage type] damage for [duration]"
+        // Handles both "you gain resistance" and "you have resistance"
+        if (preg_match('/you (?:gain|have) resistance to (\w+) damage[^.]*?(for [^.]+)/i', $text, $matches)) {
+            $damageTypeName = ucfirst(strtolower(trim($matches[1]))); // Capitalize first letter to match seeder
+            $duration = trim($matches[2]);
+
+            $modifiers[] = [
+                'category' => 'damage_resistance',
+                'value' => 'resistance',
+                'condition' => $duration,
+                'ability_score_id' => null,
+                'skill_id' => null,
+                'damage_type_id' => null, // Will be resolved by importer
+                'damage_type_name' => $damageTypeName, // For lookup by name (not code)
+            ];
         }
 
         return $modifiers;

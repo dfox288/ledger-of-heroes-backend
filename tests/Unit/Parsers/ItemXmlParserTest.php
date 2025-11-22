@@ -298,4 +298,207 @@ XML;
         $this->assertNull($items[0]['detail']);
         $this->assertEquals('common', $items[0]['rarity']); // Default rarity
     }
+
+    #[Test]
+    public function it_parses_set_intelligence_score_modifier(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Headband of Intellect</name>
+        <type>W</type>
+        <detail>uncommon (requires attunement)</detail>
+        <text>Your Intelligence score is 19 while you wear this headband. It has no effect on you if your Intelligence is already 19 or higher without it.
+
+Source: Dungeon Master's Guide (2014) p. 173</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertCount(1, $items[0]['modifiers']);
+        $this->assertEquals('ability_score', $items[0]['modifiers'][0]['category']);
+        $this->assertEquals('set:19', $items[0]['modifiers'][0]['value']);
+        $this->assertEquals('while you wear this headband', $items[0]['modifiers'][0]['condition']);
+
+        // Check that ability score lookup data is present
+        $this->assertArrayHasKey('ability_score_code', $items[0]['modifiers'][0]);
+        $this->assertEquals('INT', $items[0]['modifiers'][0]['ability_score_code']);
+    }
+
+    #[Test]
+    public function it_parses_set_strength_score_modifier(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Gauntlets of Ogre Power</name>
+        <type>W</type>
+        <detail>uncommon (requires attunement)</detail>
+        <text>Your Strength score is 19 while you wear these gauntlets.
+
+Source: Dungeon Master's Guide (2014) p. 171</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertCount(1, $items[0]['modifiers']);
+        $this->assertEquals('ability_score', $items[0]['modifiers'][0]['category']);
+        $this->assertEquals('set:19', $items[0]['modifiers'][0]['value']);
+        $this->assertEquals('while you wear these gauntlets', $items[0]['modifiers'][0]['condition']);
+        $this->assertEquals('STR', $items[0]['modifiers'][0]['ability_score_code']);
+    }
+
+    #[Test]
+    public function it_parses_set_constitution_score_modifier(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Amulet of Health</name>
+        <type>W</type>
+        <detail>rare (requires attunement)</detail>
+        <text>Your Constitution score is 19 while you wear this amulet. It has no effect on you if your Constitution is already 19 or higher.
+
+Source: Dungeon Master's Guide (2014) p. 150</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertCount(1, $items[0]['modifiers']);
+        $this->assertEquals('ability_score', $items[0]['modifiers'][0]['category']);
+        $this->assertEquals('set:19', $items[0]['modifiers'][0]['value']);
+        $this->assertEquals('CON', $items[0]['modifiers'][0]['ability_score_code']);
+    }
+
+    #[Test]
+    public function it_does_not_parse_set_score_from_barding_descriptions(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Chain Barding</name>
+        <type>HA</type>
+        <text>Barding is armor designed to protect an animal's head, neck, chest, and body. Any type of armor shown on the Armor table can be purchased as barding. The cost is four times the equivalent armor made for humanoids, and it weighs twice as much.
+
+Source: Player's Handbook (2014) p. 155</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        // Should not have any "set score" modifiers
+        $setScoreModifiers = array_filter($items[0]['modifiers'], function ($mod) {
+            return isset($mod['value']) && str_starts_with((string) $mod['value'], 'set:');
+        });
+
+        $this->assertEmpty($setScoreModifiers);
+    }
+
+    #[Test]
+    public function it_parses_potion_of_acid_resistance(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Potion of Acid Resistance</name>
+        <type>P</type>
+        <detail>uncommon</detail>
+        <text>When you drink this potion, you gain resistance to acid damage for 1 hour.
+
+Source: Dungeon Master's Guide (2014) p. 188</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertCount(1, $items[0]['modifiers']);
+        $this->assertEquals('damage_resistance', $items[0]['modifiers'][0]['category']);
+        $this->assertEquals('resistance', $items[0]['modifiers'][0]['value']);
+        $this->assertEquals('for 1 hour', $items[0]['modifiers'][0]['condition']);
+        $this->assertArrayHasKey('damage_type_name', $items[0]['modifiers'][0]);
+        $this->assertEquals('Acid', $items[0]['modifiers'][0]['damage_type_name']);
+    }
+
+    #[Test]
+    public function it_parses_potion_of_fire_resistance(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Potion of Fire Resistance</name>
+        <type>P</type>
+        <text>When you drink this potion, you gain resistance to fire damage for 1 hour.</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertCount(1, $items[0]['modifiers']);
+        $this->assertEquals('damage_resistance', $items[0]['modifiers'][0]['category']);
+        $this->assertEquals('Fire', $items[0]['modifiers'][0]['damage_type_name']);
+    }
+
+    #[Test]
+    public function it_parses_potion_of_invulnerability_with_all_damage_resistance(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Potion of Invulnerability</name>
+        <type>P</type>
+        <detail>rare</detail>
+        <text>For 1 minute after you drink this potion, you have resistance to all damage. The potion's syrupy liquid looks like liquefied iron.
+
+Source: Dungeon Master's Guide (2014) p. 188</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertCount(1, $items[0]['modifiers']);
+        $this->assertEquals('damage_resistance', $items[0]['modifiers'][0]['category']);
+        $this->assertEquals('resistance:all', $items[0]['modifiers'][0]['value']);
+        $this->assertEquals('for 1 minute', $items[0]['modifiers'][0]['condition']);
+        $this->assertNull($items[0]['modifiers'][0]['damage_type_id']);
+        $this->assertArrayNotHasKey('damage_type_name', $items[0]['modifiers'][0]); // No name for "all"
+    }
+
+    #[Test]
+    public function it_parses_alternative_resistance_phrasing(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Test Potion</name>
+        <type>P</type>
+        <text>You have resistance to cold damage for 10 minutes.</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertCount(1, $items[0]['modifiers']);
+        $this->assertEquals('damage_resistance', $items[0]['modifiers'][0]['category']);
+        $this->assertEquals('Cold', $items[0]['modifiers'][0]['damage_type_name']);
+        $this->assertEquals('for 10 minutes', $items[0]['modifiers'][0]['condition']);
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Services\Importers\Concerns;
 
 use App\Models\AbilityScore;
+use App\Models\DamageType;
 use App\Models\Modifier;
 use App\Models\Skill;
 use Illuminate\Database\Eloquent\Model;
@@ -45,6 +46,18 @@ trait ImportsModifiers
                 $abilityScoreId = $ability?->id;
             }
 
+            // Resolve damage_type_id from damage_type_name or damage_type_code if needed
+            $damageTypeId = $modData['damage_type_id'] ?? null;
+            if (! $damageTypeId && isset($modData['damage_type_name'])) {
+                // Prefer lookup by name (matches seeder data exactly)
+                $damageType = DamageType::where('name', $modData['damage_type_name'])->first();
+                $damageTypeId = $damageType?->id;
+            } elseif (! $damageTypeId && isset($modData['damage_type_code'])) {
+                // Fallback to lookup by code (for backward compatibility)
+                $damageType = DamageType::where('code', $modData['damage_type_code'])->first();
+                $damageTypeId = $damageType?->id;
+            }
+
             $modifier = [
                 'reference_type' => get_class($entity),
                 'reference_id' => $entity->id,
@@ -52,7 +65,7 @@ trait ImportsModifiers
                 'value' => $modData['value'],
                 'ability_score_id' => $abilityScoreId,
                 'skill_id' => $skillId,
-                'damage_type_id' => $modData['damage_type_id'] ?? null,
+                'damage_type_id' => $damageTypeId,
                 'is_choice' => $modData['is_choice'] ?? false,
                 'choice_count' => $modData['choice_count'] ?? null,
                 'choice_constraint' => $modData['choice_constraint'] ?? null,

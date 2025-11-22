@@ -75,6 +75,43 @@ class ImportsClassAssociationsTest extends TestCase
         $this->assertEquals(1, $spell->classes()->count());
         $this->assertEquals($circleOfLand->id, $spell->classes()->first()->id);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_resolves_base_class_only(): void
+    {
+        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+
+        // Create a subclass with same name pattern (should NOT be matched)
+        $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter']);
+        CharacterClass::factory()->create([
+            'name' => 'Wizard Subclass',
+            'slug' => 'wizard-subclass',
+            'parent_class_id' => $fighter->id,
+        ]);
+
+        $spell = Spell::factory()->create();
+
+        // Should match base class only (no parentheses)
+        $this->importer->syncClassAssociations($spell, ['Wizard']);
+
+        $this->assertEquals(1, $spell->classes()->count());
+        $this->assertEquals($wizard->id, $spell->classes()->first()->id);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_resolves_multiple_base_classes(): void
+    {
+        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+        $sorcerer = CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
+
+        $spell = Spell::factory()->create();
+
+        $this->importer->syncClassAssociations($spell, ['Wizard', 'Sorcerer']);
+
+        $this->assertEquals(2, $spell->classes()->count());
+        $classIds = $spell->classes()->pluck('id')->sort()->values()->toArray();
+        $this->assertEquals([$wizard->id, $sorcerer->id], $classIds);
+    }
 }
 
 // Test helper class that uses the trait

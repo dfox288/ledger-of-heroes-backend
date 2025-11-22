@@ -9,6 +9,7 @@ use App\Http\Requests\RaceShowRequest;
 use App\Http\Resources\RaceResource;
 use App\Http\Resources\SpellResource;
 use App\Models\Race;
+use App\Services\Cache\EntityCacheService;
 use App\Services\RaceSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 
@@ -113,33 +114,43 @@ class RaceController extends Controller
      * subraces, ability modifiers, proficiencies, traits, languages, and spells.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(RaceShowRequest $request, Race $race)
+    public function show(RaceShowRequest $request, Race $race, EntityCacheService $cache)
     {
         $validated = $request->validated();
 
-        // Load relationships if specified in the request
-        if (isset($validated['include']) && ! empty($validated['include'])) {
-            $race->load($validated['include']);
-        } else {
-            // Default relationships
-            $race->load([
-                'size',
-                'sources.source',
-                'parent',
-                'subraces',
-                'proficiencies.skill.abilityScore',
-                'proficiencies.abilityScore',
-                'traits.randomTables.entries',
-                'modifiers.abilityScore',
-                'modifiers.skill',
-                'modifiers.damageType',
-                'languages.language',
-                'conditions.condition',
-                'spells.spell',
-                'spells.abilityScore',
-                'tags',
-            ]);
+        // Default relationships
+        $defaultRelationships = [
+            'size',
+            'sources.source',
+            'parent',
+            'subraces',
+            'proficiencies.skill.abilityScore',
+            'proficiencies.abilityScore',
+            'traits.randomTables.entries',
+            'modifiers.abilityScore',
+            'modifiers.skill',
+            'modifiers.damageType',
+            'languages.language',
+            'conditions.condition',
+            'spells.spell',
+            'spells.abilityScore',
+            'tags',
+        ];
+
+        // Try cache first
+        $cachedRace = $cache->getRace($race->id);
+
+        if ($cachedRace) {
+            // If include parameter provided, use it; otherwise load defaults
+            $includes = $validated['include'] ?? $defaultRelationships;
+            $cachedRace->load($includes);
+
+            return new RaceResource($cachedRace);
         }
+
+        // Fallback to route model binding result (should rarely happen)
+        $includes = $validated['include'] ?? $defaultRelationships;
+        $race->load($includes);
 
         return new RaceResource($race);
     }

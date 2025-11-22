@@ -8,6 +8,7 @@ use App\Http\Requests\FeatIndexRequest;
 use App\Http\Requests\FeatShowRequest;
 use App\Http\Resources\FeatResource;
 use App\Models\Feat;
+use App\Services\Cache\EntityCacheService;
 use App\Services\FeatSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 
@@ -119,12 +120,12 @@ class FeatController extends Controller
      * Returns detailed information about a specific feat including modifiers, proficiencies,
      * conditions, prerequisites, and source citations. Supports selective relationship loading.
      */
-    public function show(FeatShowRequest $request, Feat $feat)
+    public function show(FeatShowRequest $request, Feat $feat, EntityCacheService $cache)
     {
         $validated = $request->validated();
 
         // Default relationships
-        $with = [
+        $defaultRelationships = [
             'sources.source',
             'modifiers.abilityScore',
             'modifiers.skill',
@@ -136,12 +137,20 @@ class FeatController extends Controller
             'tags',
         ];
 
-        // Use validated include parameter if provided
-        if (isset($validated['include'])) {
-            $with = $validated['include'];
+        // Try cache first
+        $cachedFeat = $cache->getFeat($feat->id);
+
+        if ($cachedFeat) {
+            // If include parameter provided, use it; otherwise load defaults
+            $includes = $validated['include'] ?? $defaultRelationships;
+            $cachedFeat->load($includes);
+
+            return new FeatResource($cachedFeat);
         }
 
-        $feat->load($with);
+        // Fallback to route model binding result (should rarely happen)
+        $includes = $validated['include'] ?? $defaultRelationships;
+        $feat->load($includes);
 
         return new FeatResource($feat);
     }

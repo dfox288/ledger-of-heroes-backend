@@ -9,6 +9,7 @@ use App\Http\Requests\BackgroundShowRequest;
 use App\Http\Resources\BackgroundResource;
 use App\Models\Background;
 use App\Services\BackgroundSearchService;
+use App\Services\Cache\EntityCacheService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 
 class BackgroundController extends Controller
@@ -112,12 +113,12 @@ class BackgroundController extends Controller
      * traits with random tables (personality, ideals, bonds, flaws), languages, and sources.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(Background $background, BackgroundShowRequest $request)
+    public function show(BackgroundShowRequest $request, Background $background, EntityCacheService $cache)
     {
         $validated = $request->validated();
 
-        // Load relationships based on validated 'include' parameter
-        $includes = $validated['include'] ?? [
+        // Default relationships
+        $defaultRelationships = [
             'sources.source',
             'traits.randomTables.entries',
             'proficiencies.skill.abilityScore',
@@ -126,6 +127,19 @@ class BackgroundController extends Controller
             'tags',
         ];
 
+        // Try cache first
+        $cachedBackground = $cache->getBackground($background->id);
+
+        if ($cachedBackground) {
+            // If include parameter provided, use it; otherwise load defaults
+            $includes = $validated['include'] ?? $defaultRelationships;
+            $cachedBackground->load($includes);
+
+            return new BackgroundResource($cachedBackground);
+        }
+
+        // Fallback to route model binding result (should rarely happen)
+        $includes = $validated['include'] ?? $defaultRelationships;
         $background->load($includes);
 
         return new BackgroundResource($background);

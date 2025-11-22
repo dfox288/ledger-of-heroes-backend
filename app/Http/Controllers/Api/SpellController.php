@@ -12,6 +12,7 @@ use App\Http\Resources\MonsterResource;
 use App\Http\Resources\RaceResource;
 use App\Http\Resources\SpellResource;
 use App\Models\Spell;
+use App\Services\Cache\EntityCacheService;
 use App\Services\SpellSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use MeiliSearch\Client;
@@ -147,12 +148,34 @@ class SpellController extends Controller
      * like spell school, sources, damage effects, and associated classes.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(SpellShowRequest $request, Spell $spell)
+    public function show(SpellShowRequest $request, Spell $spell, EntityCacheService $cache)
     {
         $validated = $request->validated();
 
-        // Load relationships based on validated 'include' parameter
-        $includes = $validated['include'] ?? ['spellSchool', 'sources.source', 'effects.damageType', 'classes', 'tags', 'savingThrows', 'randomTables.entries'];
+        // Default relationships
+        $defaultRelationships = [
+            'spellSchool',
+            'sources.source',
+            'effects.damageType',
+            'classes',
+            'tags',
+            'savingThrows',
+            'randomTables.entries',
+        ];
+
+        // Try cache first
+        $cachedSpell = $cache->getSpell($spell->id);
+
+        if ($cachedSpell) {
+            // If include parameter provided, use it; otherwise load defaults
+            $includes = $validated['include'] ?? $defaultRelationships;
+            $cachedSpell->load($includes);
+
+            return new SpellResource($cachedSpell);
+        }
+
+        // Fallback to route model binding result (should rarely happen)
+        $includes = $validated['include'] ?? $defaultRelationships;
         $spell->load($includes);
 
         return new SpellResource($spell);

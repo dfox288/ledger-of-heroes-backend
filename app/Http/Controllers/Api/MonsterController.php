@@ -9,6 +9,7 @@ use App\Http\Requests\MonsterShowRequest;
 use App\Http\Resources\MonsterResource;
 use App\Http\Resources\SpellResource;
 use App\Models\Monster;
+use App\Services\Cache\EntityCacheService;
 use App\Services\MonsterSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use MeiliSearch\Client;
@@ -86,12 +87,12 @@ class MonsterController extends Controller
      * legendary actions, spellcasting, modifiers, conditions, and source citations.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(MonsterShowRequest $request, Monster $monster)
+    public function show(MonsterShowRequest $request, Monster $monster, EntityCacheService $cache)
     {
         $validated = $request->validated();
 
         // Default relationships
-        $with = [
+        $defaultRelationships = [
             'size',
             'traits',
             'actions',
@@ -104,12 +105,20 @@ class MonsterController extends Controller
             'conditions',
         ];
 
-        // Use validated include parameter if provided
-        if (isset($validated['include'])) {
-            $with = $validated['include'];
+        // Try cache first
+        $cachedMonster = $cache->getMonster($monster->id);
+
+        if ($cachedMonster) {
+            // If include parameter provided, use it; otherwise load defaults
+            $includes = $validated['include'] ?? $defaultRelationships;
+            $cachedMonster->load($includes);
+
+            return new MonsterResource($cachedMonster);
         }
 
-        $monster->load($with);
+        // Fallback to route model binding result (should rarely happen)
+        $includes = $validated['include'] ?? $defaultRelationships;
+        $monster->load($includes);
 
         return new MonsterResource($monster);
     }

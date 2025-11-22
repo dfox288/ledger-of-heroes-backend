@@ -10,6 +10,7 @@ use App\Http\Requests\ClassSpellListRequest;
 use App\Http\Resources\ClassResource;
 use App\Http\Resources\SpellResource;
 use App\Models\CharacterClass;
+use App\Services\Cache\EntityCacheService;
 use App\Services\ClassSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 
@@ -92,12 +93,12 @@ class ClassController extends Controller
      * subclasses, proficiencies, traits, features, level progression, spell slot tables,
      * and counters. Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(CharacterClass $class, ClassShowRequest $request)
+    public function show(ClassShowRequest $request, CharacterClass $class, EntityCacheService $cache)
     {
         $validated = $request->validated();
 
         // Default relationships
-        $relationships = [
+        $defaultRelationships = [
             'spellcastingAbility',
             'parentClass',
             'subclasses',
@@ -114,12 +115,20 @@ class ClassController extends Controller
             'tags',
         ];
 
-        // Use custom includes if provided
-        if (isset($validated['include'])) {
-            $relationships = $validated['include'];
+        // Try cache first
+        $cachedClass = $cache->getClass($class->id);
+
+        if ($cachedClass) {
+            // If include parameter provided, use it; otherwise load defaults
+            $includes = $validated['include'] ?? $defaultRelationships;
+            $cachedClass->load($includes);
+
+            return new ClassResource($cachedClass);
         }
 
-        $class->load($relationships);
+        // Fallback to route model binding result (should rarely happen)
+        $includes = $validated['include'] ?? $defaultRelationships;
+        $class->load($includes);
 
         return new ClassResource($class);
     }

@@ -8,6 +8,7 @@ use App\Http\Requests\ItemIndexRequest;
 use App\Http\Requests\ItemShowRequest;
 use App\Http\Resources\ItemResource;
 use App\Models\Item;
+use App\Services\Cache\EntityCacheService;
 use App\Services\ItemSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 
@@ -88,12 +89,12 @@ class ItemController extends Controller
      * properties, abilities, random tables, modifiers, proficiencies, and prerequisites.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(Item $item, ItemShowRequest $request)
+    public function show(ItemShowRequest $request, Item $item, EntityCacheService $cache)
     {
         $validated = $request->validated();
 
         // Default relationships to load
-        $relationships = [
+        $defaultRelationships = [
             'itemType',
             'damageType',
             'properties',
@@ -110,10 +111,20 @@ class ItemController extends Controller
             'savingThrows',
         ];
 
-        // If 'include' parameter provided, use it (note: this is for additional validation)
-        // The actual loading is still done via the default relationships above
-        // In a more advanced implementation, you might dynamically build the relationships array
-        $item->load($relationships);
+        // Try cache first
+        $cachedItem = $cache->getItem($item->id);
+
+        if ($cachedItem) {
+            // If include parameter provided, use it; otherwise load defaults
+            $includes = $validated['include'] ?? $defaultRelationships;
+            $cachedItem->load($includes);
+
+            return new ItemResource($cachedItem);
+        }
+
+        // Fallback to route model binding result (should rarely happen)
+        $includes = $validated['include'] ?? $defaultRelationships;
+        $item->load($includes);
 
         return new ItemResource($item);
     }

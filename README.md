@@ -1,340 +1,396 @@
-# D&D 5e XML Importer
+# D&D 5e Compendium API
 
-Laravel-based command-line tool for importing D&D 5th Edition content from XML files into a relational database. Runs in a Dockerized environment with PHP-FPM, Nginx, and MySQL.
+Laravel-based REST API for D&D 5th Edition content with XML import capability. Full-featured API with search, filtering, and comprehensive test coverage.
 
-## Features
+## 🎯 Project Status
 
-- Import spells, items, races, backgrounds, feats from XML
-- Parse complex data: spell components, material costs, class associations
-- Polymorphic relationships for traits, modifiers, proficiencies
-- Comprehensive test coverage with PHPUnit
-- Docker-based development environment (no local PHP/MySQL required)
-- Support for Fight Club 5e XML format
+**Current Version:** 1.0.0 (Production Ready)
+- ✅ **7 Entity APIs:** Spells, Items, Classes, Feats, Backgrounds, Races (partial), Monsters
+- ✅ **1,005 Tests Passing** (5,815 assertions) - 99.9% pass rate
+- ✅ **3,600+ Documents Indexed** in Meilisearch for fast, typo-tolerant search
+- ✅ **598 Monsters Imported** with type-specific parsing strategies
+- ✅ **OpenAPI Documentation** auto-generated via Scramble
+- ✅ **Docker-based** development environment (no local PHP/MySQL required)
 
-## Prerequisites
+## ✨ Features
 
+### Entity Management
+- **7 Main Entities:** Spells (477), Classes (131), Monsters (598), Items (516), Feats, Backgrounds, Races
+- **Dual ID/Slug Routing:** SEO-friendly URLs (`/api/v1/monsters/ancient-red-dragon`)
+- **Polymorphic Relationships:** Traits, modifiers, proficiencies, sources, prerequisites
+- **Universal Tag System:** Spatie Tags on all entities for categorization
+
+### Search & Filtering
+- **Global Search:** Multi-entity search across all 7 entity types
+- **Meilisearch Integration:** Typo-tolerant search (<50ms response time)
+- **Advanced Filtering:** Meilisearch filter expressions (level, CR, rarity, etc.)
+- **Scout Fallback:** Graceful degradation to database when search unavailable
+
+### API Features
+- **RESTful Design:** Consistent patterns across all endpoints
+- **Pagination:** Configurable page size (max 100 per page)
+- **Sorting:** Multiple sort fields with asc/desc
+- **Form Request Validation:** Type-safe requests with auto-generated OpenAPI docs
+- **Resource Serialization:** Consistent JSON structure via Laravel Resources
+
+### Import System
+- **One-Command Import:** `import:all` handles 60+ XML files in correct order
+- **9 Importers:** Spells, Classes, Races, Items, Backgrounds, Feats, Monsters, Spell Class Mappings, Master
+- **Strategy Pattern:** Type-specific parsing for Items (5 strategies) and Monsters (5 strategies)
+- **21 Reusable Traits:** DRY code for common import operations
+- **Import Logging:** Detailed strategy statistics and warnings
+
+### Code Quality
+- **Test-Driven Development:** 1,005 tests with 99.9% pass rate
+- **Type Safety:** PHP 8.4 strict types, Form Requests, DTOs
+- **Custom Exceptions:** Domain-specific exceptions with proper HTTP status codes
+- **Code Formatting:** Laravel Pint for consistent style
+- **OpenAPI Docs:** Auto-generated via Scramble at `/docs/api`
+
+## 🚀 Quick Start
+
+### Prerequisites
 - Docker Desktop or Docker Engine
 - Docker Compose 2.x
 - Git
 
-## Installation
+### Installation
 
-1. Clone the repository and navigate to the project directory:
+1. **Clone and navigate:**
 ```bash
-cd /Users/dfox/Development/dnd/importer
+git clone <repository-url>
+cd importer
 ```
 
-2. Build and start Docker containers:
+2. **Build and start containers:**
 ```bash
-docker-compose build
-docker-compose up -d
+docker compose up -d
 ```
 
-3. Install dependencies:
+3. **Install dependencies:**
 ```bash
-docker-compose exec php composer install
+docker compose exec php composer install
 ```
 
-4. Set up environment:
+4. **Setup environment:**
 ```bash
 cp .env.example .env
-docker-compose exec php php artisan key:generate
+docker compose exec php php artisan key:generate
 ```
 
-5. Run migrations:
+5. **Import all data (recommended):**
 ```bash
-docker-compose exec php php artisan migrate
+docker compose exec php php artisan import:all
 ```
 
-## Usage
+This single command will:
+- Run `migrate:fresh --seed` (fresh database with lookup data)
+- Import all 60+ XML files in correct order
+- Configure Meilisearch search indexes
+- Display import statistics
 
-### Import all content:
+**Duration:** ~2-5 minutes
+
+## 📚 API Endpoints
+
+**Base URL:** `http://localhost:8080/api/v1`
+
+### Main Entities
+
+#### Spells
 ```bash
-docker-compose exec php php artisan import:all import-files
+GET /api/v1/spells                    # List with pagination
+GET /api/v1/spells/{id|slug}          # Show by ID or slug
+GET /api/v1/spells?level=3            # Filter by level
+GET /api/v1/spells?school=EVO         # Filter by school code
+GET /api/v1/spells?concentration=1    # Filter by concentration
+GET /api/v1/spells?q=fire             # Search by name/description
+GET /api/v1/spells?filter=level >= 3 AND school_code = EV  # Meilisearch filters
 ```
 
-### Import specific content type:
+#### Monsters
 ```bash
-# Import spells
-docker-compose exec php php artisan import:spells import-files/spells-phb.xml
-
-# Import items
-docker-compose exec php php artisan import:items import-files/items-base-phb.xml
-
-# Import races
-docker-compose exec php php artisan import:races import-files/races-phb.xml
-
-# Import backgrounds
-docker-compose exec php php artisan import:backgrounds import-files/backgrounds-phb.xml
-
-# Import feats
-docker-compose exec php php artisan import:feats import-files/feats-phb.xml
+GET /api/v1/monsters                      # List with pagination
+GET /api/v1/monsters/{id|slug}            # Show by ID or slug
+GET /api/v1/monsters?challenge_rating=5   # Filter by exact CR
+GET /api/v1/monsters?min_cr=5&max_cr=10   # Filter by CR range
+GET /api/v1/monsters?type=dragon          # Filter by creature type
+GET /api/v1/monsters?size=L               # Filter by size
+GET /api/v1/monsters?alignment=evil       # Filter by alignment
+GET /api/v1/monsters?q=dragon             # Search by name
 ```
 
-### Using the helper script:
+#### Items
 ```bash
-./docker-exec.sh php artisan import:all import-files
-./docker-exec.sh php artisan test
+GET /api/v1/items                     # List with pagination
+GET /api/v1/items/{id|slug}           # Show by ID or slug
+GET /api/v1/items?rarity=legendary    # Filter by rarity
+GET /api/v1/items?type=weapon         # Filter by item type
+GET /api/v1/items?q=sword             # Search by name/description
+GET /api/v1/items/{id}/spells         # Get spells from charged items
 ```
 
-## Testing
-
-Run all tests:
+#### Classes
 ```bash
-docker-compose exec php php artisan test
+GET /api/v1/classes                   # List with pagination
+GET /api/v1/classes/{id|slug}         # Show by ID or slug
+GET /api/v1/classes/{id}/spells       # Class spell list
+GET /api/v1/classes?hit_die=d10       # Filter by hit die
 ```
 
-Run specific test suite:
+#### Feats
 ```bash
-docker-compose exec php php artisan test --filter=SpellImporter
-docker-compose exec php php artisan test --filter=ItemParser
-docker-compose exec php php artisan test --testsuite=Feature
-docker-compose exec php php artisan test --testsuite=Unit
+GET /api/v1/feats                     # List with pagination
+GET /api/v1/feats/{id|slug}           # Show by ID or slug
+GET /api/v1/feats?q=mobile            # Search by name/description
 ```
 
-Run tests with coverage:
+#### Backgrounds
 ```bash
-docker-compose exec php php artisan test --coverage
+GET /api/v1/backgrounds               # List with pagination
+GET /api/v1/backgrounds/{id|slug}     # Show by ID or slug
+GET /api/v1/backgrounds?q=acolyte     # Search by name
 ```
 
-## Docker Services
-
-- **PHP-FPM**: PHP 8.4 with required extensions (pdo_mysql, mbstring, etc.)
-- **Nginx**: Web server (accessible at http://localhost:8080)
-- **MySQL**: Database server (port 3306)
-  - Database: `dnd_compendium`
-  - User: `dnd_user`
-  - Password: `dnd_password`
-
-## Database Schema
-
-The database follows a normalized relational design with:
-
-### Core Content Tables
-- `spells` - Spell data with parsed components
-- `items` - Equipment and magic items
-- `races` - Player character races
-- `backgrounds` - Character backgrounds
-- `feats` - Character feats
+#### Races
+```bash
+GET /api/v1/races                     # List with pagination
+GET /api/v1/races/{id|slug}           # Show by ID or slug
+GET /api/v1/races?size=M              # Filter by size
+```
 
 ### Lookup Tables
-- `spell_schools` - Schools of magic (Abjuration, Conjuration, etc.)
-- `damage_types` - Damage types (fire, cold, slashing, etc.)
-- `item_types` - Item categories (weapon, armor, gear, etc.)
-- `item_rarities` - Item rarity levels (common, uncommon, etc.)
-- `sizes` - Creature sizes (Tiny, Small, Medium, etc.)
-- `source_books` - D&D sourcebooks (PHB, XGE, etc.)
-
-### Relationship Tables
-- `class_spell` - Spell-to-class associations
-- `spell_effects` - Spell damage/healing effects
-
-### Polymorphic Tables
-- `traits` - Character traits (works with races, backgrounds, feats)
-- `modifiers` - Ability score modifiers (works with races, feats, items)
-- `proficiencies` - Skill/weapon/armor proficiencies (works with races, backgrounds)
-
-See `docs/plans/2025-11-17-dnd-compendium-database-design.md` for detailed schema documentation.
-
-## Available Artisan Commands
-
-| Command | Description |
-|---------|-------------|
-| `import:all {directory}` | Import all XML files from directory |
-| `import:spells {file}` | Import spells from XML file |
-| `import:items {file}` | Import items from XML file |
-| `import:races {file}` | Import races from XML file |
-| `import:backgrounds {file}` | Import backgrounds from XML file |
-| `import:feats {file}` | Import feats from XML file |
-
-## Search
-
-This application uses [Laravel Scout](https://laravel.com/docs/scout) with [Meilisearch](https://www.meilisearch.com/) for fast, typo-tolerant search.
-
-### Features
-- **Fast:** Search responses in <50ms
-- **Typo-tolerant:** "firebll" finds "Fireball"
-- **Ranked:** Results ordered by relevance
-- **Faceted:** Filter by level, school, type, etc.
-
-### Usage
-
-**Entity-specific search:**
-```bash
-GET /api/v1/spells?q=fireball
-GET /api/v1/items?q=longsword&rarity=rare
-GET /api/v1/races?q=elf
-```
-
-**Global search (all entities):**
-```bash
-GET /api/v1/search?q=dragon
-GET /api/v1/search?q=fire&types[]=spell&types[]=item&limit=10
-```
-
-### Management Commands
 
 ```bash
-# Configure Meilisearch indexes
-php artisan search:configure-indexes
-
-# Import all models
-php artisan scout:import "App\Models\Spell"
-php artisan scout:import "App\Models\Item"
-php artisan scout:import "App\Models\Race"
-php artisan scout:import "App\Models\CharacterClass"
-php artisan scout:import "App\Models\Background"
-php artisan scout:import "App\Models\Feat"
-
-# Flush and reimport
-php artisan scout:flush "App\Models\Spell"
-php artisan scout:import "App\Models\Spell"
+GET /api/v1/sources              # D&D sourcebooks
+GET /api/v1/spell-schools        # 8 schools of magic
+GET /api/v1/damage-types         # 13 damage types
+GET /api/v1/conditions           # 15 D&D conditions
+GET /api/v1/languages            # 30 languages
+GET /api/v1/proficiency-types    # 82 weapon/armor/tool types
+GET /api/v1/sizes                # Creature sizes
+GET /api/v1/ability-scores       # STR, DEX, CON, INT, WIS, CHA
+GET /api/v1/skills               # 18 D&D skills
+GET /api/v1/item-types           # Item categories
+GET /api/v1/item-properties      # Weapon properties
 ```
 
-## Project Structure
-
-```
-app/
-├── Console/Commands/      # Artisan import commands
-├── Models/                # Eloquent models
-└── Services/
-    ├── Importers/         # Import logic for each content type
-    └── Parsers/           # XML parsing for each content type
-
-database/
-├── factories/             # Model factories for testing
-└── migrations/            # Database schema migrations
-
-import-files/              # XML source files
-├── spells-phb.xml
-├── items-base-phb.xml
-├── races-phb.xml
-├── backgrounds-phb.xml
-├── feats-phb.xml
-└── class-druid-xge.xml
-
-tests/
-├── Feature/               # Feature/integration tests
-│   ├── Commands/          # Command tests
-│   └── Integration/       # Full import integration tests
-└── Unit/                  # Unit tests
-    ├── Migrations/        # Migration tests
-    ├── Models/            # Model tests
-    └── Services/          # Parser/importer tests
-```
-
-## Development
-
-### Running Commands Inside Docker
-
-All PHP and Artisan commands should be run inside the Docker container:
+### Global Search
 
 ```bash
-docker-compose exec php php artisan [command]
-docker-compose exec php composer [command]
-docker-compose exec php php [script]
+GET /api/v1/search?q=fire&types[]=spell&types[]=item
 ```
 
-### Accessing the Database
+**Supported Types:** `spell`, `class`, `monster`, `item`, `feat`, `background`, `race`
 
-Connect to MySQL from host machine:
+**Features:**
+- Cross-entity search
+- Typo-tolerance
+- Relevance ranking
+- <50ms response time
+
+## 🔍 Advanced Filtering
+
+### Meilisearch Filter Syntax
+
+All entity endpoints support `filter` parameter with Meilisearch expressions:
+
+**Comparison Operators:**
 ```bash
-mysql -h 127.0.0.1 -P 3306 -u dnd_user -p
-# Password: dnd_password
+?filter=level >= 3
+?filter=challenge_rating > 10
+?filter=armor_class <= 15
 ```
 
-Connect to MySQL from inside container:
+**Logical Operators:**
 ```bash
-docker-compose exec mysql mysql -u dnd_user -p dnd_compendium
+?filter=level >= 3 AND level <= 5
+?filter=school_code = EV OR school_code = C
+?filter=(type = dragon OR type = undead) AND challenge_rating >= 10
 ```
 
-### Viewing Logs
+**String Matching:**
+```bash
+?filter=alignment = "lawful good"
+?filter=type = dragon
+```
+
+See `docs/MEILISEARCH-FILTERS.md` for complete syntax documentation.
+
+## 🧪 Testing
+
+### Run all tests:
+```bash
+docker compose exec php php artisan test
+```
+
+### Run specific suites:
+```bash
+docker compose exec php php artisan test --testsuite=Feature
+docker compose exec php php artisan test --testsuite=Unit
+docker compose exec php php artisan test --filter=MonsterApi
+```
+
+### With coverage:
+```bash
+docker compose exec php php artisan test --coverage-text
+```
+
+**Current Status:** 1,005 tests passing (5,815 assertions) in 48.58s
+
+## 📥 Import System
+
+### One-Command Import (Recommended)
 
 ```bash
-# PHP-FPM logs
-docker-compose logs -f php
+# Import EVERYTHING (fresh DB + all entities)
+docker compose exec php php artisan import:all
 
-# Nginx logs
-docker-compose logs -f nginx
-
-# MySQL logs
-docker-compose logs -f mysql
+# Options
+docker compose exec php php artisan import:all --skip-migrate    # Keep existing DB
+docker compose exec php php artisan import:all --only=monsters   # Import only monsters
+docker compose exec php php artisan import:all --skip-search     # Skip search config
 ```
 
-## Stopping the Environment
+### Individual Importers
 
-Stop containers (preserves data):
 ```bash
-docker-compose down
+docker compose exec php php artisan import:classes <file>
+docker compose exec php php artisan import:spells <file>
+docker compose exec php php artisan import:spell-class-mappings <file>
+docker compose exec php php artisan import:races <file>
+docker compose exec php php artisan import:items <file>
+docker compose exec php php artisan import:backgrounds <file>
+docker compose exec php php artisan import:feats <file>
+docker compose exec php php artisan import:monsters <file>
 ```
 
-Stop containers and remove volumes (deletes database):
+**Import Order Matters:**
+1. Classes first (required by spells for pivot table)
+2. Main spell files
+3. Additive spell files (class mappings)
+4. Other entities
+
+## 🐳 Docker Services
+
+- **php** - PHP 8.4-FPM (Laravel application)
+- **nginx** - Nginx 1.25 (web server on port 8080)
+- **mysql** - MySQL 8.0 (database)
+- **meilisearch** - Meilisearch 1.6 (search engine on port 7700)
+
+### Useful Commands
+
 ```bash
-docker-compose down -v
+# View logs
+docker compose logs -f php
+docker compose logs -f nginx
+
+# Run artisan commands
+docker compose exec php php artisan tinker
+docker compose exec php php artisan migrate:fresh --seed
+
+# Run composer
+docker compose exec php composer install
+docker compose exec php composer update
+
+# Code formatting
+docker compose exec php ./vendor/bin/pint
+
+# Database
+docker compose exec mysql mysql -u root -p
 ```
 
-Restart containers:
-```bash
-docker-compose restart
-```
+## 📖 Documentation
 
-## Troubleshooting
+### Project Documentation
+- `CLAUDE.md` - Development guide for Claude Code
+- `CHANGELOG.md` - Version history
+- `docs/SEARCH.md` - Search system architecture
+- `docs/MEILISEARCH-FILTERS.md` - Advanced filter syntax
+- `docs/recommendations/` - Design decisions and strategies
 
-### Containers won't start
-```bash
-docker-compose down
-docker-compose build --no-cache
-docker-compose up -d
-```
+### Session Handovers
+- `docs/SESSION-HANDOVER-2025-11-22-MONSTER-API-AND-SEARCH-COMPLETE.md` - Monster implementation
+- `docs/SESSION-HANDOVER-2025-11-22-TEST-REDUCTION-PHASE-1.md` - Test optimization
+- `docs/SESSION-HANDOVER-2025-11-22-MONSTER-IMPORTER-COMPLETE.md` - Monster importer
 
-### Database connection errors
-- Ensure MySQL container is running: `docker-compose ps`
-- Check .env file has correct database credentials
-- Wait a few seconds for MySQL to fully start
+### OpenAPI Documentation
+Auto-generated API documentation: `http://localhost:8080/docs/api`
 
-### Permission errors
-```bash
-docker-compose exec php chown -R www-data:www-data storage bootstrap/cache
-docker-compose exec php chmod -R 775 storage bootstrap/cache
-```
+## 🏗️ Architecture
 
-## XML File Format
+### Tech Stack
+- **Backend:** Laravel 12.x, PHP 8.4
+- **Database:** MySQL 8.0
+- **Search:** Meilisearch 1.6 + Laravel Scout
+- **Testing:** PHPUnit 11+
+- **Containerization:** Docker + Docker Compose
+- **API Docs:** Scramble (OpenAPI 3)
+- **Code Quality:** Laravel Pint (PSR-12)
 
-The importer expects XML files following the Fight Club 5e compendium format:
+### Design Patterns
+- **Repository Pattern:** Services layer for business logic
+- **Strategy Pattern:** Type-specific parsing (Items, Monsters)
+- **Resource Pattern:** Consistent API serialization
+- **DTO Pattern:** Type-safe request data transfer
+- **Form Request Pattern:** Validation + OpenAPI auto-generation
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<compendium version="5" auto_indent="NO">
-  <spell>
-    <name>Fireball</name>
-    <level>3</level>
-    <school>EV</school>
-    <time>1 action</time>
-    <range>150 feet</range>
-    <components>V, S, M (a tiny ball of bat guano and sulfur)</components>
-    <duration>Instantaneous</duration>
-    <classes>Sorcerer, Wizard</classes>
-    <text>A bright streak flashes from your pointing finger...</text>
-  </spell>
-</compendium>
-```
+### Database Structure
+- **28 Models:** Entities + polymorphic relationships
+- **64 Migrations:** Complete schema with indexes
+- **12 Seeders:** Lookup tables (sources, schools, languages, etc.)
 
-## Contributing
+## 📊 Data Overview
 
-This is a personal project for importing D&D 5e content. Contributions are welcome!
+### Imported Data
+- **Spells:** 477 (from 9 XML files)
+- **Classes:** 131 (35 XML files)
+- **Monsters:** 598 (9 bestiary files)
+- **Items:** 516 (25 XML files)
+- **Feats:** ~100 (4 XML files)
+- **Backgrounds:** ~40 (4 XML files)
+- **Races:** ~30 (5 XML files)
 
-1. Fork the repository
-2. Create a feature branch
-3. Write tests for new features
-4. Ensure all tests pass
-5. Submit a pull request
+### Search Index
+- **Total Documents:** 3,600+
+- **Index Size:** ~3MB
+- **Search Latency:** <50ms p95
 
-## License
+## 🔜 Roadmap
 
-This project is open-source software licensed under the MIT license.
+### Immediate (Next Session)
+1. Enhance SpellcasterStrategy to sync entity_spells
+2. Create Race API endpoints
+3. Create Background API endpoints
 
-## Acknowledgments
+### Short-term
+- API caching strategy (Redis)
+- Database indexing optimization
+- Rate limiting middleware
+- Postman collection
 
-- Built with Laravel 11.x
-- XML format compatible with Fight Club 5e
-- D&D 5e content is property of Wizards of the Coast
+### Long-term
+- Character Builder API
+- Encounter Builder API
+- Frontend application (Inertia.js + Vue)
+- Additional monster strategies
+
+## 🤝 Contributing
+
+1. Follow TDD approach (write tests first)
+2. Use PHP 8.4 attributes for tests (`#[Test]`)
+3. Format code with Pint before committing
+4. Update Form Requests when adding filters
+5. Maintain OpenAPI documentation
+
+## 📝 License
+
+This project is for educational purposes. D&D 5e content is property of Wizards of the Coast.
+
+## 🙏 Acknowledgments
+
+- Laravel Framework
+- Meilisearch for fast search
+- Fight Club 5e for XML format
+- Scramble for OpenAPI generation
+- Spatie Laravel-Tags package

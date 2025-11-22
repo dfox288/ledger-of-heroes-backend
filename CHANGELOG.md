@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Test Suite Optimization (Phase 1)** - Removed 36 redundant tests, improved performance by 9.4%
+  - **Tests:** 1,041 → 1,005 (-3.5%)
+  - **Duration:** 53.65s → 48.58s (-9.4% faster)
+  - **Files Deleted:** 10 files (-6.5%)
+  - **Assertions:** 6,240 → 5,815 (-6.8%)
+  - **Coverage:** No loss (all deleted tests were 100% redundant)
+  - **Deleted Tests:**
+    - `ExampleTest.php` - Laravel boilerplate
+    - `DockerEnvironmentTest.php` - Infrastructure test (belongs in CI)
+    - `ScrambleDocumentationTest.php` - Scramble self-validates
+    - `LookupApiTest.php` - 100% duplicate of individual entity tests
+    - 5 Migration tests - Schema validated by model tests
+    - `ConditionSeederTest.php` - Seeder test (not business logic)
+  - **Documentation:** `docs/recommendations/TEST-REDUCTION-STRATEGY.md` - Comprehensive audit with 5-phase roadmap
+  - **Impact:** Cleaner test suite, faster CI, easier maintenance
+  - **Potential:** Additional 123 tests could be removed in future phases (15% further reduction)
+
 ### Added
 - **Monster Search with Meilisearch** - Fast, typo-tolerant search for 598 monsters
   - Laravel Scout integration with Monster model

@@ -7,27 +7,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Laravel 12.x application importing D&D 5th Edition XML content and providing a RESTful API.
 
 **Current Status (2025-11-22):**
-- ✅ **1,012 tests passing** (6,081 assertions) - 99.9% pass rate
+- ✅ **1,005 tests passing** (5,815 assertions) - 99.9% pass rate, 9.4% faster after optimization
 - ✅ **64 migrations** - Complete schema (slugs, languages, prerequisites, spell tags, saving throws with DC, monsters)
-- ✅ **28 models + 25 API Resources + 17 controllers** - Full CRUD + Search
+- ✅ **32 models + 29 API Resources + 18 controllers** - Full CRUD + Search for 7 entities
 - ✅ **9 importers** - Spells, Classes, Races, Items, Backgrounds, Feats, Monsters, Spell Class Mappings, Master Import
 - ✅ **21 reusable traits** - 6 NEW from refactoring (2025-11-22), ~260 lines eliminated
-- ✅ **Monster Importer with Strategy Pattern** - 5 type-specific strategies, 75 new tests, ready to import 9 bestiary files 🆕
-- ✅ **Item Parser Strategy Pattern** - 5 type-specific strategies, 44 new tests, improved parsing accuracy
+- ✅ **Monster API Complete** - 598 monsters imported, full REST API with filtering by CR/type/size/alignment
+- ✅ **Monster Importer with Strategy Pattern** - 5 type-specific strategies (Dragon, Spellcaster, Undead, Swarm, Default)
+- ✅ **Item Parser Strategy Pattern** - 5 type-specific strategies (Charged, Scroll, Potion, Tattoo, Legendary)
 - ✅ **One-command import** - `import:all` handles all 60+ XML files in correct order
-- ✅ **Universal tag system** - All entities support Spatie Tags
+- ✅ **Universal tag system** - All 7 entities support Spatie Tags
 - ✅ **Saving throw modifiers** - Detects advantage/disadvantage + DC values
 - ✅ **AC modifier categories** - Base AC, bonuses, and magic (with DEX rules)
 - ✅ **Additive spell imports** - Handles supplemental class association files
-- ✅ **Search complete** - Laravel Scout + Meilisearch (3,002 documents)
+- ✅ **Search complete** - Laravel Scout + Meilisearch (3,600+ documents indexed)
 - ✅ **OpenAPI docs** - Auto-generated via Scramble (306KB spec)
 - ✅ **Item enhancements** - Usage limits ("at will"), set scores (`set:19`), potion resistance (23 items)
+- ✅ **Test suite optimized** - Removed 36 redundant tests, 10 files deleted, 48.58s duration
 
-**Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 | PHPUnit 11+ | Docker
+**Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 | PHPUnit 11+ | Docker | Meilisearch
 
-**📖 Read handover:** `docs/SESSION-HANDOVER-2025-11-22-MONSTER-IMPORTER-COMPLETE.md` for latest session details
+**📖 Read handovers:**
+- `docs/SESSION-HANDOVER-2025-11-22-MONSTER-API-AND-SEARCH-COMPLETE.md` - Monster API implementation
+- `docs/SESSION-HANDOVER-2025-11-22-TEST-REDUCTION-PHASE-1.md` - Test suite optimization
 
-**🚀 Next task:** Import monster data (`import:all --only=monsters`), then create Monster API endpoints
+**🚀 Next tasks:**
+1. Enhance SpellcasterStrategy to sync entity_spells (make monster spells queryable)
+2. Create Race API endpoints (importer ready)
+3. Create Background API endpoints (importer ready)
 
 ---
 
@@ -714,67 +721,76 @@ EntitySource::factory()->forEntity(Spell::class, $spell->id)->fromSource('PHB')-
 
 ## 🚦 What's Next
 
-### Priority 1: Import Monster Data ⭐ HIGHLY RECOMMENDED (1-2 hours)
-**Status:** Monster Importer complete, ready to populate database
+### Priority 1: Enhance SpellcasterStrategy ⭐ RECOMMENDED (3-4 hours)
+**Status:** Ready to implement
+**Goal:** Sync entity_spells table for monsters with spellcasting
 
-**Run:**
-```bash
-# Option 1: Import all bestiary files at once
-docker compose exec php php artisan import:all --only=monsters --skip-migrate
+**Current Behavior:**
+- SpellcasterStrategy creates `MonsterSpellcasting` records with spell names
+- Spells are NOT synced to `entity_spells` table (no queryable relationships)
 
-# Option 2: Import one file for testing
-docker compose exec php php artisan import:monsters import-files/bestiary-mm.xml
+**Enhancement:**
+- Add spell name → Spell lookup with caching (following `ChargedItemStrategy` pattern)
+- Sync spells to `entity_spells` polymorphic table
+- Track metrics: `spells_matched`, `spells_not_found`
+- Enable filtering: `GET /api/v1/monsters?spells=fireball`
+- Enable new endpoint: `GET /api/v1/monsters/{id}/spells`
 
-# Option 3: Full fresh import (all entities)
-docker compose exec php php artisan import:all
-```
+**Files to Modify:**
+- `app/Services/Importers/Strategies/Monster/SpellcasterStrategy.php`
+- `tests/Unit/Strategies/Monster/SpellcasterStrategyTest.php`
 
-**Expected:**
-- ~500-600 monsters from 9 bestiary XML files
-- Strategy statistics per file (Dragon, Spellcaster, Undead, Swarm)
-- Detailed logs in `storage/logs/import-strategy-2025-11-22.log`
+**After Implementation:**
+Re-import monsters to populate entity_spells: `php artisan import:all --only=monsters --skip-migrate`
 
-### Priority 2: Monster API Endpoints (3-4 hours)
-**Create RESTful API for monster data**
+### Priority 2: Race API Endpoints (2-3 hours)
+**Create RESTful API for Races**
 
 **Files to Create:**
-- `app/Http/Controllers/Api/MonsterController.php`
-- `app/Http/Resources/MonsterResource.php` (+ 4 related resources)
-- `app/Http/Requests/MonsterIndexRequest.php`
-- `app/Http/Requests/MonsterShowRequest.php`
-- `tests/Feature/Api/MonsterControllerTest.php`
+- `app/Http/Controllers/Api/RaceController.php`
+- `app/Http/Resources/RaceResource.php`
+- `app/Http/Requests/RaceIndexRequest.php`
+- `app/Http/Requests/RaceShowRequest.php`
+- `tests/Feature/Api/RaceApiTest.php`
 
 **Endpoints:**
 ```
-GET /api/v1/monsters - List with pagination, filtering, search
-GET /api/v1/monsters/{id|slug} - Show with relationships
-GET /api/v1/monsters/{id}/spells - Spell list (if entity_spells synced)
+GET /api/v1/races - List with pagination, filtering
+GET /api/v1/races/{id|slug} - Show with relationships
 ```
 
-### Priority 3: Add Monster Search to Meilisearch (2 hours)
-**Make monsters searchable via global search**
+**Filters:** Size, speed, ability score bonuses, subraces
 
-- Add Scout trait to Monster model
-- Configure searchable attributes
-- Add 'monsters' to SearchController types
-- Create MonsterSearchService
-- Add tests for monster search
+### Priority 3: Background API Endpoints (2-3 hours)
+**Create RESTful API for Backgrounds**
 
-### Priority 4: Enhance SpellcasterStrategy (3-4 hours)
-**Sync entity_spells for spellcasting monsters**
+**Files to Create:**
+- `app/Http/Controllers/Api/BackgroundController.php`
+- `app/Http/Resources/BackgroundResource.php`
+- `app/Http/Requests/BackgroundIndexRequest.php`
+- `app/Http/Requests/BackgroundShowRequest.php`
+- `tests/Feature/Api/BackgroundApiTest.php`
 
-- Modify SpellcasterStrategy::enhance() to sync entity_spells
-- Add spell name → Spell lookup with caching
-- Track metrics: spells_matched, spells_not_found
-- Benefits: Query monster spell lists via relationships
+**Endpoints:**
+```
+GET /api/v1/backgrounds - List with pagination
+GET /api/v1/backgrounds/{id|slug} - Show with relationships
+```
 
-### Priority 5: Import Remaining Data
-- Races, Items, Backgrounds, Feats (importers ready, just need to run commands)
+### Priority 4: Performance & Polish (5-8 hours)
+**Optional enhancements**
 
-### Priority 6: API Enhancements
-- Additional filtering/aggregation
-- Rate limiting
-- Caching strategy
+- **API Caching:** Cache lookup tables (1h expiry), search results (5min), entity endpoints (15min)
+- **Database Indexing:** Add composite indexes for common filter combinations
+- **Rate Limiting:** Per-IP throttling (60 req/min) to prevent abuse
+- **Add CR Numeric Column:** Fix challenge rating filtering edge cases (VARCHAR → DECIMAL)
+- **Postman Collection:** Example requests for all 7 entity endpoints
+
+### Additional Opportunities
+- **Character Builder API:** API endpoints for character creation (8-12 hours)
+- **Encounter Builder API:** Balanced encounter creation for DMs (6-10 hours)
+- **Frontend Application:** Web UI using Inertia.js/Vue or Next.js/React (20-40 hours)
+- **Additional Monster Strategies:** FiendStrategy, CelestialStrategy, ConstructStrategy (2-3h each)
 
 ---
 

@@ -199,4 +199,41 @@ class MonsterSearchTest extends TestCase
         // May or may not find results depending on Meilisearch's typo tolerance
         // This is just to verify the search doesn't crash
     }
+
+    #[Test]
+    public function monster_search_index_includes_spell_slugs(): void
+    {
+        $monster = Monster::factory()->create();
+        $fireball = \App\Models\Spell::factory()->create(['name' => 'Fireball', 'slug' => 'fireball']);
+        $monster->entitySpells()->attach($fireball->id);
+
+        $searchableArray = $monster->toSearchableArray();
+
+        $this->assertArrayHasKey('spell_slugs', $searchableArray);
+        $this->assertContains('fireball', $searchableArray['spell_slugs']);
+    }
+
+    #[Test]
+    public function it_filters_monsters_by_spell_slugs_in_meilisearch(): void
+    {
+        // Skip if Meilisearch not available
+        if (config('scout.driver') !== 'meilisearch') {
+            $this->markTestSkipped('Meilisearch not configured');
+        }
+
+        $lich = Monster::factory()->create(['name' => 'Lich']);
+        $goblin = Monster::factory()->create(['name' => 'Goblin']);
+        $fireball = \App\Models\Spell::factory()->create(['slug' => 'fireball']);
+        $lich->entitySpells()->attach($fireball->id);
+
+        // Re-index
+        $this->artisan('scout:import', ['model' => Monster::class]);
+        sleep(1); // Allow Meilisearch to index
+
+        // Search with spell filter using Meilisearch
+        $results = Monster::search('')->where('spell_slugs', 'fireball')->get();
+
+        $this->assertTrue($results->contains('id', $lich->id));
+        $this->assertFalse($results->contains('id', $goblin->id));
+    }
 }

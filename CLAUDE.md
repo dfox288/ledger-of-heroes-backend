@@ -31,7 +31,8 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 **📖 Read handovers:**
 - `docs/SESSION-HANDOVER-2025-11-22-MONSTER-API-AND-SEARCH-COMPLETE.md` - Monster API implementation
 - `docs/SESSION-HANDOVER-2025-11-22-TEST-REDUCTION-PHASE-1.md` - Test suite optimization
-- `docs/SESSION-HANDOVER-2025-11-22-SPELLCASTER-STRATEGY-ENHANCEMENT.md` - Monster spell syncing
+- `docs/SESSION-HANDOVER-2025-11-22-SPELLCASTER-STRATEGY-ENHANCEMENT.md` - Monster spell syncing (COMPLETE)
+- `docs/SESSION-HANDOVER-2025-11-22-MONSTER-SPELL-API-IN-PROGRESS.md` - **START HERE NEXT SESSION** - Monster spell filtering (TDD RED phase, ready for implementation)
 
 **🚀 Next tasks:**
 1. Add monster spell filtering (`GET /monsters?spells=fireball`) - ~1 hour

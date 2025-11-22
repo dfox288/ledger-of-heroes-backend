@@ -49,6 +49,7 @@ class FeatController extends Controller
             'sources.source',
             'modifiers.abilityScore',
             'modifiers.skill',
+            'modifiers.damageType',
             'proficiencies.skill.abilityScore',
             'proficiencies.proficiencyType',
             'conditions',

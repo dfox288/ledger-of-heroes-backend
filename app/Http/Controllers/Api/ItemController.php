@@ -56,6 +56,7 @@ class ItemController extends Controller
             'proficiencies.proficiencyType',
             'modifiers.abilityScore',
             'modifiers.skill',
+            'modifiers.damageType',
             'prerequisites.prerequisite',
             'tags',
             'spells',

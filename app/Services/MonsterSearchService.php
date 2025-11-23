@@ -35,11 +35,12 @@ final class MonsterSearchService
         'actions',
         'legendaryActions',
         'spellcasting',
-        'entitySpells',
+        'spells',
         'sources.source',
         'modifiers.abilityScore',
         'modifiers.skill',
         'modifiers.damageType',
+        'conditions',
         'tags',
     ];
 

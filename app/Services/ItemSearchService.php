@@ -37,7 +37,8 @@ final class ItemSearchService
         'modifiers.skill',
         'modifiers.damageType',
         'prerequisites.prerequisite',
-        'entitySpells',
+        'spells',
+        'savingThrows',
         'tags',
     ];
 

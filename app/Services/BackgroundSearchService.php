@@ -31,6 +31,7 @@ final class BackgroundSearchService
         'proficiencies.skill.abilityScore',
         'proficiencies.proficiencyType',
         'languages.language',
+        'equipment',
         'tags',
     ];
 

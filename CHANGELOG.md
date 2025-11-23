@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Complete Show Endpoint Relationship Exposure (2025-11-23)
+- **Show Endpoints Now Expose ALL Available Model Relationships**
+  - Fixed incorrect relationship names: `'entitySpells'` → `'spells'` in Monster and Item services
+  - Added missing direct relationships across all 7 entities:
+    - **Class**: Added `'spells'` (class spell lists) - critical for character builders
+    - **Monster**: Added `'conditions'` (immunities/resistances)
+    - **Item**: Added `'savingThrows'` (save-requiring items like grenades)
+    - **Background**: Added `'equipment'` (starting equipment)
+  - Added reverse relationships to Spell for "Who can use X?" queries:
+    - `'monsters'` - Which monsters can cast this spell
+    - `'items'` - Which items grant this spell (scrolls, wands, etc.)
+    - `'races'` - Which races have innate access to this spell
+  - **Result**: All 7 show endpoints now expose 100% of available model data
+  - **Use Cases:**
+    - Character builders can fetch complete class spell lists in one call
+    - "Which monsters can cast Fireball?" queries now possible
+    - Item details include all saving throw requirements
+    - Background starting equipment now visible
+  - Created comprehensive analysis document: `docs/analysis/SHOW-ENDPOINT-COMPLETENESS-ANALYSIS.md`
+
 ### Added - Parent Relationships in List Views (2025-11-23)
 - **Index Endpoints Now Return Parent Data for Subraces/Subclasses**
   - `/api/v1/races` now includes minimal parent race data (id, slug, name) for subraces

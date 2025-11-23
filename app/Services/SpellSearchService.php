@@ -35,6 +35,9 @@ final class SpellSearchService
         'tags',
         'savingThrows',
         'randomTables.entries',
+        'monsters',
+        'items',
+        'races',
     ];
 
     /**

@@ -61,9 +61,17 @@ class SpellController extends Controller
      * - Verbal + Somatic: `GET /api/v1/spells?requires_verbal=true&requires_somatic=true&requires_material=false`
      *
      * **Advanced Meilisearch Filtering:**
-     * - Level range: `GET /api/v1/spells?filter=level >= 1 AND level <= 3`
-     * - Multiple schools: `GET /api/v1/spells?filter=school_code = EV OR school_code = C`
-     * - Concentration + level: `GET /api/v1/spells?filter=concentration = true AND level <= 2`
+     * - Level range: `GET /api/v1/spells?filter=level >= 1 AND level <= 3` (low-tier spells)
+     * - Low-level spells: `GET /api/v1/spells?filter=level IN [0, 1, 2, 3]` (early-game options)
+     * - High-level spells: `GET /api/v1/spells?filter=level >= 7` (legendary magic)
+     * - Multiple schools: `GET /api/v1/spells?filter=school_code = EV OR school_code = C` (damage or buffs)
+     * - Concentration + level: `GET /api/v1/spells?filter=concentration = true AND level <= 2` (early buffs)
+     * - Non-concentration damage: `GET /api/v1/spells?filter=concentration = false AND school_code = EV` (burst damage)
+     *
+     * **Meilisearch Operators:**
+     * - Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`
+     * - Logic: `AND`, `OR`
+     * - Membership: `IN [value1, value2]`
      *
      * **Combined Filtering Examples:**
      * - Low-level fire DEX saves: `GET /api/v1/spells?damage_type=fire&saving_throw=DEX&level=1` (Burning Hands)

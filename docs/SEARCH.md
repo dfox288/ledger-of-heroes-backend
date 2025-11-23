@@ -91,6 +91,96 @@ curl "http://localhost:8080/api/v1/search?q=fire&types[]=spell&types[]=item"
 curl "http://localhost:8080/api/v1/search?q=magic&debug=1"
 ```
 
+## Advanced Meilisearch Filtering
+
+The `filter` parameter accepts Meilisearch's filter syntax for complex queries beyond basic search.
+
+### Syntax
+
+```
+?filter=FIELD OPERATOR VALUE [AND|OR FIELD OPERATOR VALUE]
+```
+
+**Operators:**
+- Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`
+- Logic: `AND`, `OR`
+- Membership: `IN [value1, value2, value3]`
+
+### Monster Filter Examples
+
+```bash
+# Challenge Rating range (CR 10-15)
+curl "http://localhost:8080/api/v1/monsters?filter=challenge_rating >= 10 AND challenge_rating <= 15"
+
+# High HP monsters (100+ HP)
+curl "http://localhost:8080/api/v1/monsters?filter=hit_points_average > 100"
+
+# Boss fights (CR 20+, 25000+ XP)
+curl "http://localhost:8080/api/v1/monsters?filter=challenge_rating >= 20 AND experience_points >= 25000"
+
+# Tank enemies (AC 18+, HP 100+)
+curl "http://localhost:8080/api/v1/monsters?filter=armor_class >= 18 AND hit_points_average >= 100"
+
+# Multiple creature types
+curl "http://localhost:8080/api/v1/monsters?filter=type IN [dragon, fiend, celestial]"
+
+# Tag filtering (fiends with fire immunity)
+curl "http://localhost:8080/api/v1/monsters?filter=tag_slugs=fiend AND tag_slugs=fire-immune"
+```
+
+### Spell Filter Examples
+
+```bash
+# Level range (low-tier spells, levels 1-3)
+curl "http://localhost:8080/api/v1/spells?filter=level >= 1 AND level <= 3"
+
+# Multiple levels using IN
+curl "http://localhost:8080/api/v1/spells?filter=level IN [0, 1, 2, 3]"
+
+# High-level spells (7th level and above)
+curl "http://localhost:8080/api/v1/spells?filter=level >= 7"
+
+# Multiple schools (Evocation OR Conjuration)
+curl "http://localhost:8080/api/v1/spells?filter=school_code = EV OR school_code = C"
+
+# Low-level concentration spells
+curl "http://localhost:8080/api/v1/spells?filter=concentration = true AND level <= 2"
+
+# Non-concentration damage spells
+curl "http://localhost:8080/api/v1/spells?filter=concentration = false AND school_code = EV"
+```
+
+### Item Filter Examples
+
+```bash
+# Rare or legendary items
+curl "http://localhost:8080/api/v1/items?filter=rarity IN [rare, legendary]"
+
+# Magic weapons
+curl "http://localhost:8080/api/v1/items?filter=is_magic = true AND type_code = weapon"
+
+# High-cost items (1000+ gp)
+curl "http://localhost:8080/api/v1/items?filter=cost_cp >= 100000"
+
+# Heavy armor (AC 15+)
+curl "http://localhost:8080/api/v1/items?filter=type_code = armor AND armor_class >= 15"
+```
+
+### Combined with Search
+
+Filters work alongside full-text search:
+
+```bash
+# Fire spells, level 3 or higher
+curl "http://localhost:8080/api/v1/spells?q=fire&filter=level >= 3"
+
+# Dragon monsters, CR 10+
+curl "http://localhost:8080/api/v1/monsters?q=dragon&filter=challenge_rating >= 10"
+
+# Magic swords, rare or better
+curl "http://localhost:8080/api/v1/items?q=sword&filter=is_magic = true AND rarity IN [rare, legendary]"
+```
+
 ## Management Commands
 
 ### Automated Setup (Recommended)

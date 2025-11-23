@@ -59,6 +59,19 @@ class MonsterController extends Controller
      * - `WIS` = Divine casters (Clerics, Druids, Monks)
      * - `CHA` = Charisma casters (Sorcerers, Warlocks, Bards)
      *
+     * **Advanced Meilisearch Filter Examples:**
+     * - CR range: `GET /api/v1/monsters?filter=challenge_rating >= 10 AND challenge_rating <= 15`
+     * - High HP: `GET /api/v1/monsters?filter=hit_points_average > 100`
+     * - Multiple ranges: `GET /api/v1/monsters?filter=challenge_rating >= 5 AND hit_points_average > 50 AND armor_class >= 15`
+     * - Boss fights: `GET /api/v1/monsters?filter=challenge_rating >= 20 AND experience_points >= 25000`
+     * - Weak monsters: `GET /api/v1/monsters?filter=challenge_rating <= 1 AND hit_points_average < 20`
+     * - Tank enemies: `GET /api/v1/monsters?filter=armor_class >= 18 AND hit_points_average >= 100`
+     *
+     * **Meilisearch Operators:**
+     * - Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`
+     * - Logic: `AND`, `OR`
+     * - Membership: `IN [value1, value2]`
+     *
      * See `docs/API-EXAMPLES.md` for 300+ lines of comprehensive usage examples.
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR. Available fields: challenge_rating (string), type (string), size_code (string), alignment (string), armor_class (int), hit_points_average (int), experience_points (int), spell_slugs (array).', example: 'challenge_rating >= 5 AND challenge_rating <= 10 AND type = dragon')]

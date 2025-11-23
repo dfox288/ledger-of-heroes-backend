@@ -68,7 +68,9 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 4. Update API Resources/Controllers
 5. Run full test suite
 6. Format with Pint
-7. Commit with clear message
+7. **Update CHANGELOG.md** under `[Unreleased]` section
+8. Commit with clear message
+9. **Push to remote** (`git push`)
 
 **PHPUnit 11 Requirement:**
 ```php
@@ -648,19 +650,26 @@ EOF
 ## 🎯 Success Checklist
 
 Before marking work complete:
-- [ ] All tests passing (1,273+ tests)
+- [ ] All tests passing (1,303+ tests)
 - [ ] Code formatted with Pint
 - [ ] API Resources expose new data
 - [ ] Form Requests validate new parameters
 - [ ] Controllers eager-load new relationships
-- [ ] **CHANGELOG.md updated** with new features/changes
-- [ ] Session handover document updated
+- [ ] **CHANGELOG.md updated** with new features/changes under `[Unreleased]`
+- [ ] Session handover document updated (if major feature)
 - [ ] Commit messages are clear
-- [ ] No uncommitted changes
+- [ ] **All changes pushed to remote** (`git push`)
 
 **If tests aren't written, the feature ISN'T done.**
 
-**⚠️ IMPORTANT:** After completing ANY feature, always update `CHANGELOG.md` under the `[Unreleased]` section. Before each release, move unreleased items to a dated version section.
+**⚠️ CRITICAL POST-FEATURE WORKFLOW:**
+After completing ANY feature (bug fix, enhancement, new functionality):
+1. **Update CHANGELOG.md** - Add entry under `[Unreleased]` section with clear description
+2. **Commit all changes** - Include CHANGELOG update in final commit
+3. **Push to remote** - Run `git push` to sync with GitHub
+4. Before each release, move `[Unreleased]` items to a dated version section
+
+**Why this matters:** CHANGELOG serves as release notes and project history. Pushing ensures work is backed up and visible to team.
 
 ---
 

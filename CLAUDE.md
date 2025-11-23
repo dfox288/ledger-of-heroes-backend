@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Laravel 12.x application importing D&D 5th Edition XML content and providing a RESTful API.
 
 **Current Status (2025-11-23):**
-- ✅ **1,303 tests passing** (7,276+ assertions) - 100% pass rate, comprehensive coverage
+- ✅ **1,513 tests passing** (7,600+ assertions) - 99.8% pass rate, comprehensive coverage
 - ✅ **64 migrations** - Complete schema (slugs, languages, prerequisites, spell tags, saving throws with DC, monsters)
 - ✅ **32 models + 29 API Resources + 18 controllers** - Full CRUD + Search for 7 entities
 - ✅ **9 importers** - Spells, Classes, Races, Items, Backgrounds, Feats, Monsters, Spell Class Mappings, Master Import
@@ -27,7 +27,8 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 - ✅ **Search complete** - Laravel Scout + Meilisearch (3,600+ documents indexed)
 - ✅ **OpenAPI docs** - Auto-generated via Scramble (306KB spec)
 - ✅ **Item enhancements** - Usage limits ("at will"), set scores (`set:19`), potion resistance (23 items)
-- ✅ **Test suite optimized** - Removed 36 redundant tests, 10 files deleted, 48.58s duration
+- ✅ **Test suite optimized** - Removed 36 redundant tests, added 120 SearchService unit tests
+- ✅ **Class Feature Random Tables** - 54 tables imported (Sneak Attack, Wild Magic, spell progression)
 
 **Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 | PHPUnit 11+ | Docker Compose (not Sail) | Meilisearch | Redis
 
@@ -52,15 +53,11 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 - `docs/SESSION-HANDOVER-2025-11-22-TEST-REDUCTION-PHASE-1.md` - Test suite optimization (COMPLETE)
 
 **🚀 Next tasks (all optional - core features complete):**
-1. **Class Feature Random Tables** - Store `<roll>` elements and pipe-delimited tables - 1-1.5 hours
-   - See: `docs/plans/2025-11-23-class-feature-random-tables-implementation.md`
-   - All infrastructure exists, just need to connect the dots!
-   - Enables character builders to access Sneak Attack damage, Wild Magic tables, etc.
-2. Search result caching (Phase 4) - Cache Meilisearch queries - 2-3 hours
-3. Tag-based filtering in MonsterController - Enable `?filter=tags.slug = fire_immune` - 1-2 hours
-4. Additional Monster Strategies (ShapechangerStrategy, ElementalStrategy, AberrationStrategy) - 2-3h each
-5. Character Builder API (character creation, leveling, spell selection) - 8-12 hours
-6. Frontend Application (Inertia.js/Vue or Next.js/React) - 20-40 hours
+1. **Search result caching (Phase 4)** - Cache Meilisearch queries in Redis - 2-3 hours
+2. **Tag-based filtering in MonsterController** - Enable `?filter=tags.slug = fire_immune` - 1-2 hours
+3. **Additional Monster Strategies** - ShapechangerStrategy, ElementalStrategy, AberrationStrategy - 2-3h each
+4. **Character Builder API** - Character creation, leveling, spell selection endpoints - 8-12 hours
+5. **Frontend Application** - Inertia.js/Vue or Next.js/React UI - 20-40 hours
 
 ---
 

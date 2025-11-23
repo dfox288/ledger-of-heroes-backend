@@ -41,7 +41,8 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 **📖 Read handovers:**
 - `docs/PROJECT-STATUS.md` - **START HERE** Comprehensive project overview with metrics
 - `docs/README.md` - Documentation index and navigation
-- `docs/SESSION-HANDOVER-2025-11-22-PERFORMANCE-PHASE-3-ENTITY-CACHING.md` - **LATEST** Entity caching (COMPLETE)
+- `docs/SESSION-HANDOVER-2025-11-23-ADDITIONAL-MONSTER-STRATEGIES.md` - **LATEST** Additional monster strategies (COMPLETE)
+- `docs/SESSION-HANDOVER-2025-11-22-PERFORMANCE-PHASE-3-ENTITY-CACHING.md` - Entity caching (COMPLETE)
 - `docs/SESSION-HANDOVER-2025-11-22-PERFORMANCE-PHASE-2-CACHING.md` - Lookup caching (COMPLETE)
 - `docs/SESSION-HANDOVER-2025-11-22-MONSTER-SPELL-API-COMPLETE.md` - Monster spell filtering API (COMPLETE)
 - `docs/SESSION-HANDOVER-2025-11-22-SPELLCASTER-STRATEGY-ENHANCEMENT.md` - Monster spell syncing (COMPLETE)

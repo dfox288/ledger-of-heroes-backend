@@ -76,8 +76,7 @@ class AbilityScoreController extends Controller
      * - Dexterity saves: `GET /api/v1/ability-scores/DEX/spells` (Fireball, Lightning Bolt)
      * - Wisdom saves: `GET /api/v1/ability-scores/WIS/spells` (Charm Person, Hold Person)
      * - Constitution saves: `GET /api/v1/ability-scores/CON/spells` (Cloudkill, Stinking Cloud)
-     * - By ID: `GET /api/v1/ability-scores/2/spells`
-     * - By name: `GET /api/v1/ability-scores/dexterity/spells`
+     * - By name (lowercase): `GET /api/v1/ability-scores/dexterity/spells`
      * - Pagination: `GET /api/v1/ability-scores/STR/spells?per_page=25`
      *
      * **Common Save Distribution (Approximate):**

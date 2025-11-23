@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Improved - API Documentation Examples (2025-11-23)
+- **User-Friendly Identifiers** - Updated all API documentation examples to use slugs/codes instead of numeric IDs
+  - Spell school: `school=EV` instead of `school=3`, `school=EN` instead of `school=4`
+  - Size: `/sizes/S/races` instead of `/sizes/2/races`, `/sizes/L/monsters` instead of `/sizes/4/monsters`
+  - Damage type: `/damage-types/F/spells` instead of `/damage-types/1/spells`
+  - Condition: `/conditions/grappled/spells` instead of `/conditions/5/spells`
+  - Language: `/languages/gnomish/races` instead of `/languages/5/races`
+  - Proficiency: `/proficiency-types/flail/classes` instead of `/proficiency-types/23/classes`
+  - Ability score: `/ability-scores/DEX/spells` instead of `/ability-scores/2/spells`
+- **Enhanced Spell School Filtering** - `school` parameter now accepts codes, names, or IDs
+  - Updated `SpellIndexRequest` to accept strings: `school=EV`, `school=evocation`, or `school=5`
+  - Updated `Spell::scopeSchool()` to resolve codes/names to IDs automatically
+  - Updated `SpellSearchService` to handle Scout searches with codes/names
+- **Benefits:** More intuitive API usage, better discoverability, matches REST best practices
+- **Impact:** 20+ controller examples updated across 7 controllers, 100% backwards compatible
+
 ### Fixed - Scout/Meilisearch Search Indexing (2025-11-23)
 - **Production Index Re-synchronization** - Fixed stale test data in search indexes
   - Deleted all existing indexes and re-imported 3,601 entities with real data

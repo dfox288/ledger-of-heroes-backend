@@ -71,7 +71,7 @@ class DamageTypeController extends Controller
      *
      * **Basic Examples:**
      * - Fire spells: `GET /api/v1/damage-types/fire/spells`
-     * - Fire by ID: `GET /api/v1/damage-types/1/spells`
+     * - Fire by code: `GET /api/v1/damage-types/F/spells`
      * - Pagination: `GET /api/v1/damage-types/fire/spells?per_page=25&page=2`
      *
      * **Damage Type Use Cases:**
@@ -128,7 +128,7 @@ class DamageTypeController extends Controller
      * **Basic Examples:**
      * - Slashing weapons: `GET /api/v1/damage-types/slashing/items`
      * - Fire items: `GET /api/v1/damage-types/fire/items`
-     * - By ID: `GET /api/v1/damage-types/1/items`
+     * - Slashing by code: `GET /api/v1/damage-types/S/items`
      * - Pagination: `GET /api/v1/damage-types/slashing/items?per_page=50`
      *
      * **Physical Damage Types (Weapons):**

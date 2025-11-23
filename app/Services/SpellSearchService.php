@@ -27,10 +27,16 @@ final class SpellSearchService
         }
 
         if (isset($dto->filters['school'])) {
-            $schoolId = $dto->filters['school'];
-            $schoolName = \App\Models\SpellSchool::find($schoolId)?->name;
-            if ($schoolName) {
-                $search->where('school_name', $schoolName);
+            $schoolIdentifier = $dto->filters['school'];
+            // Resolve school (accepts ID, code like "EV", or name like "evocation")
+            $school = is_numeric($schoolIdentifier)
+                ? \App\Models\SpellSchool::find($schoolIdentifier)
+                : \App\Models\SpellSchool::where('code', strtoupper($schoolIdentifier))
+                    ->orWhere('name', 'LIKE', $schoolIdentifier)
+                    ->first();
+
+            if ($school) {
+                $search->where('school_name', $school->name);
             }
         }
 

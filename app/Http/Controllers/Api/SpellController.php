@@ -31,8 +31,8 @@ class SpellController extends Controller
      * - Cantrips (level 0): `GET /api/v1/spells?level=0` (67 cantrips)
      * - Low-level spells: `GET /api/v1/spells?level=1` (93 1st level spells)
      * - High-level spells: `GET /api/v1/spells?level=9` (17 legendary 9th level spells)
-     * - Evocation school: `GET /api/v1/spells?school=3` (all evocation spells)
-     * - Enchantment school: `GET /api/v1/spells?school=4` (all enchantment spells)
+     * - Evocation school: `GET /api/v1/spells?school=EV` (all evocation spells)
+     * - Enchantment school: `GET /api/v1/spells?school=EN` (all enchantment spells)
      * - Concentration spells: `GET /api/v1/spells?concentration=true` (buffing, control)
      * - Ritual spells: `GET /api/v1/spells?ritual=true` (non-combat utility spells)
      * - Pagination: `GET /api/v1/spells?per_page=50&page=2`
@@ -49,7 +49,7 @@ class SpellController extends Controller
      * - DEX saves: `GET /api/v1/spells?saving_throw=DEX` (Fireball, Lightning Bolt, Grease)
      * - DEX or CON: `GET /api/v1/spells?saving_throw=DEX,CON` (physical resistance tests)
      * - Mental saves (INT/WIS/CHA): `GET /api/v1/spells?saving_throw=INT,WIS,CHA` (mind-affecting)
-     * - Enchantment WIS saves: `GET /api/v1/spells?saving_throw=WIS&school=4` (Charm Person, Dominate)
+     * - Enchantment WIS saves: `GET /api/v1/spells?saving_throw=WIS&school=EN` (Charm Person, Dominate)
      * - STR saves: `GET /api/v1/spells?saving_throw=STR` (forced movement, restraints)
      * - CON saves: `GET /api/v1/spells?saving_throw=CON` (poison, disease, exhaustion)
      *
@@ -67,8 +67,8 @@ class SpellController extends Controller
      *
      * **Combined Filtering Examples:**
      * - Low-level fire DEX saves: `GET /api/v1/spells?damage_type=fire&saving_throw=DEX&level=1` (Burning Hands)
-     * - Silent enchantment spells: `GET /api/v1/spells?school=4&requires_verbal=false` (sneaky mind control)
-     * - Material-free evocation: `GET /api/v1/spells?school=3&requires_material=false` (pure arcane damage)
+     * - Silent enchantment spells: `GET /api/v1/spells?school=EN&requires_verbal=false` (sneaky mind control)
+     * - Material-free evocation: `GET /api/v1/spells?school=EV&requires_material=false` (pure arcane damage)
      * - Low-level AOE ritual: `GET /api/v1/spells?level=2&ritual=true` (utility without slots)
      * - Search + filter: `GET /api/v1/spells?q=fire&level=3` (3rd level fire-themed spells)
      *

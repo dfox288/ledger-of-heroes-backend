@@ -83,7 +83,7 @@ class ProficiencyTypeController extends Controller
      * **Examples:**
      * ```bash
      * # By numeric ID
-     * GET /api/v1/proficiency-types/23/classes
+     * GET /api/v1/proficiency-types/flail/classes
      *
      * # By name (most common for proficiencies)
      * GET /api/v1/proficiency-types/Longsword/classes
@@ -91,7 +91,7 @@ class ProficiencyTypeController extends Controller
      * GET /api/v1/proficiency-types/Heavy%20Armor/classes
      *
      * # With pagination
-     * GET /api/v1/proficiency-types/Longsword/classes?per_page=25
+     * GET /api/v1/proficiency-types/longsword/classes?per_page=25
      * ```
      *
      * **Common Proficiency Queries:**
@@ -150,7 +150,7 @@ class ProficiencyTypeController extends Controller
      * **Examples:**
      * ```bash
      * # By numeric ID
-     * GET /api/v1/proficiency-types/15/races
+     * GET /api/v1/proficiency-types/quarterstaff/races
      *
      * # By name (recommended for readability)
      * GET /api/v1/proficiency-types/Elvish/races
@@ -158,7 +158,7 @@ class ProficiencyTypeController extends Controller
      * GET /api/v1/proficiency-types/Darkvision/races
      *
      * # With pagination
-     * GET /api/v1/proficiency-types/Dwarven%20Resilience/races?per_page=10
+     * GET /api/v1/proficiency-types/dwarven-resilience/races?per_page=10
      * ```
      *
      * **Common Racial Proficiency Queries:**
@@ -213,7 +213,7 @@ class ProficiencyTypeController extends Controller
      * **Examples:**
      * ```bash
      * # By numeric ID
-     * GET /api/v1/proficiency-types/9/backgrounds
+     * GET /api/v1/proficiency-types/dagger/backgrounds
      *
      * # By name (recommended for clarity)
      * GET /api/v1/proficiency-types/Stealth/backgrounds
@@ -221,7 +221,7 @@ class ProficiencyTypeController extends Controller
      * GET /api/v1/proficiency-types/Deception/backgrounds
      *
      * # With pagination
-     * GET /api/v1/proficiency-types/Insight/backgrounds?per_page=15
+     * GET /api/v1/proficiency-types/insight/backgrounds?per_page=15
      * ```
      *
      * **Common Background Proficiency Queries:**

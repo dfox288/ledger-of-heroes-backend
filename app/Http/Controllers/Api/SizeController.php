@@ -71,10 +71,10 @@ class SizeController extends Controller
      *
      * **Examples:**
      * ```bash
-     * # By ID (sizes use numeric IDs: 1=Tiny, 2=Small, 3=Medium, 4=Large, 5=Huge, 6=Gargantuan)
-     * GET /api/v1/sizes/2/races      # Small races
-     * GET /api/v1/sizes/3/races      # Medium races
-     * GET /api/v1/sizes/1/races?per_page=25
+     * # By code (T=Tiny, S=Small, M=Medium, L=Large, H=Huge, G=Gargantuan)
+     * GET /api/v1/sizes/S/races      # Small races
+     * GET /api/v1/sizes/M/races      # Medium races
+     * GET /api/v1/sizes/T/races?per_page=25
      * ```
      *
      * **Size Categories & Common Races:**
@@ -159,10 +159,10 @@ class SizeController extends Controller
      *
      * **Examples:**
      * ```bash
-     * # By ID (sizes use numeric IDs: 1=Tiny, 2=Small, 3=Medium, 4=Large, 5=Huge, 6=Gargantuan)
-     * GET /api/v1/sizes/1/monsters     # Tiny monsters
-     * GET /api/v1/sizes/4/monsters     # Large monsters
-     * GET /api/v1/sizes/5/monsters?per_page=25  # Huge monsters
+     * # By code (T=Tiny, S=Small, M=Medium, L=Large, H=Huge, G=Gargantuan)
+     * GET /api/v1/sizes/T/monsters     # Tiny monsters
+     * GET /api/v1/sizes/L/monsters     # Large monsters
+     * GET /api/v1/sizes/H/monsters?per_page=25  # Huge monsters
      * ```
      *
      * **Size Categories & Common Monsters:**

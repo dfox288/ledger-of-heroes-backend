@@ -116,9 +116,21 @@ class Spell extends BaseModel
         return $query->where('level', $level);
     }
 
-    public function scopeSchool($query, $schoolId)
+    public function scopeSchool($query, $schoolIdentifier)
     {
-        return $query->where('spell_school_id', $schoolId);
+        // Accept ID, code (EV, EN), or name (evocation, enchantment)
+        if (is_numeric($schoolIdentifier)) {
+            return $query->where('spell_school_id', $schoolIdentifier);
+        }
+
+        // Resolve by code or name
+        $school = SpellSchool::where('code', strtoupper($schoolIdentifier))
+            ->orWhere('name', 'LIKE', $schoolIdentifier)
+            ->first();
+
+        return $school
+            ? $query->where('spell_school_id', $school->id)
+            : $query->whereRaw('1 = 0'); // No results if school not found
     }
 
     public function scopeConcentration($query, $needsConcentration)

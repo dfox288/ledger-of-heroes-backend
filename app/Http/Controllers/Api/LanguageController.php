@@ -79,7 +79,7 @@ class LanguageController extends Controller
      * GET /api/v1/languages/common/races
      *
      * # By numeric ID
-     * GET /api/v1/languages/5/races?per_page=25
+     * GET /api/v1/languages/gnomish/races?per_page=25
      * ```
      *
      * **Common Language → Race Queries:**
@@ -140,7 +140,7 @@ class LanguageController extends Controller
      * GET /api/v1/languages/common/backgrounds
      *
      * # By numeric ID
-     * GET /api/v1/languages/8/backgrounds?per_page=20
+     * GET /api/v1/languages/orc/backgrounds?per_page=20
      * ```
      *
      * **Common Language → Background Queries:**

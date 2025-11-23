@@ -72,7 +72,7 @@ class ConditionController extends Controller
      * **Basic Examples:**
      * - Poison spells: `GET /api/v1/conditions/poisoned/spells`
      * - Stun spells: `GET /api/v1/conditions/stunned/spells`
-     * - By ID: `GET /api/v1/conditions/5/spells`
+     * - By slug: `GET /api/v1/conditions/grappled/spells`
      * - Pagination: `GET /api/v1/conditions/paralyzed/spells?per_page=25`
      *
      * **Common Condition Use Cases:**
@@ -135,7 +135,7 @@ class ConditionController extends Controller
      * **Basic Examples:**
      * - Poisoning monsters: `GET /api/v1/conditions/poisoned/monsters`
      * - Paralyzing monsters: `GET /api/v1/conditions/paralyzed/monsters`
-     * - By ID: `GET /api/v1/conditions/5/monsters`
+     * - By slug: `GET /api/v1/conditions/frightened/monsters`
      * - Pagination: `GET /api/v1/conditions/frightened/monsters?per_page=25`
      *
      * **Common Condition Monsters:**

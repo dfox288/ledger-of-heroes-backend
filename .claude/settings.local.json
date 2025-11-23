@@ -34,7 +34,11 @@
       "Bash(./vendor/bin/pint:*)",
       "Bash(SCOUT_DRIVER=null php artisan test:*)",
       "Bash(SCOUT_DRIVER=null php artisan migrate:fresh:*)",
-      "Skill(superpowers:executing-plans)"
+      "Skill(superpowers:executing-plans)",
+      "Bash(for index in spells items monsters_index races classes backgrounds feats)",
+      "Bash(do echo -n \"$index: \")",
+      "Bash(chmod:*)",
+      "Bash(bash:*)"
     ],
     "deny": [],
     "ask": []

@@ -20,7 +20,7 @@ class SpellIndexRequest extends BaseIndexRequest
 
             // Spell-specific filters (backwards compatibility)
             'level' => ['sometimes', 'integer', 'min:0', 'max:9'],
-            'school' => ['sometimes', 'integer', 'exists:spell_schools,id'],
+            'school' => ['sometimes', 'string', 'max:20'],  // Accepts ID, code (EV, EN), or name (evocation)
             'concentration' => ['sometimes', Rule::in([true, false, 1, 0, '1', '0', 'true', 'false'])],
             'ritual' => ['sometimes', Rule::in([true, false, 1, 0, '1', '0', 'true', 'false'])],
 

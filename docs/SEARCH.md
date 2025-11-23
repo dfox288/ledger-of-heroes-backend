@@ -15,13 +15,16 @@ This D&D compendium uses Laravel Scout with Meilisearch for fast, typo-tolerant 
 | Entity | Index | Documents | Searchable Fields |
 |--------|-------|-----------|-------------------|
 | Spells | `spells` | 477 | name, description, school, sources, classes |
-| Items | `items` | 2,107 | name, description, type, sources |
-| Races | `races` | 115 | name, size, sources |
+| Items | `items` | 2,156 | name, description, type, sources |
+| Monsters | `monsters_index` | 598 | name, description, type, size, sources |
+| Races | `races` | 67 | name, size, sources |
 | Classes | `classes` | 131 | name, description, sources |
 | Backgrounds | `backgrounds` | 34 | name, sources |
 | Feats | `feats` | 138 | name, description, prerequisites, sources |
 
-**Total: 3,002 documents indexed**
+**Total: 3,601 documents indexed**
+
+**Note:** The monsters index is named `monsters_index` (not `monsters`) to avoid potential conflicts with the `monsters` database table in some configurations.
 
 ## API Endpoints
 
@@ -161,9 +164,9 @@ Configured via `SCOUT_PREFIX=test_` in `phpunit.xml`. Test indexes are automatic
 - MySQL fallback: 50-150ms
 
 **Index Stats:**
-- Total documents: 3,002
-- Total indexes: 6
-- Disk usage: ~15MB
+- Total documents: 3,601
+- Total indexes: 7
+- Disk usage: ~20MB
 
 ## Troubleshooting
 

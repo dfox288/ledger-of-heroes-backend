@@ -38,7 +38,9 @@
       "Bash(for index in spells items monsters_index races classes backgrounds feats)",
       "Bash(do echo -n \"$index: \")",
       "Bash(chmod:*)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(for idx in spells items monsters_index races classes backgrounds feats)",
+      "Bash(do echo -n \"$idx searchable: \")"
     ],
     "deny": [],
     "ask": []

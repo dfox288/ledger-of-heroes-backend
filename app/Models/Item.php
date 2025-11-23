@@ -167,7 +167,7 @@ class Item extends BaseModel
     public function toSearchableArray(): array
     {
         // Load relationships to avoid N+1 queries
-        $this->loadMissing(['itemType', 'sources.source', 'damageType', 'spells']);
+        $this->loadMissing(['itemType', 'sources.source', 'damageType', 'spells', 'tags']);
 
         return [
             'id' => $this->id,
@@ -194,6 +194,8 @@ class Item extends BaseModel
             'stealth_disadvantage' => $this->stealth_disadvantage,
             // Spell filtering (similar to Monster)
             'spell_slugs' => $this->spells->pluck('slug')->all(),
+            // Tag filtering
+            'tag_slugs' => $this->tags->pluck('slug')->all(),
         ];
     }
 

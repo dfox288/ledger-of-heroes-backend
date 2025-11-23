@@ -34,6 +34,7 @@ class MeilisearchIndexConfigurator
             'ritual',
             'source_codes',
             'class_slugs',
+            'tag_slugs',
         ]);
 
         // Configure sortable attributes (fields that can be used for sorting)
@@ -63,6 +64,7 @@ class MeilisearchIndexConfigurator
             'is_magic',
             'requires_attunement',
             'source_codes',
+            'tag_slugs',
         ]);
 
         // Sortable attributes
@@ -198,6 +200,7 @@ class MeilisearchIndexConfigurator
             'experience_points',
             'source_codes',
             'spell_slugs', // For fast spell filtering (1,098 relationships for 129 spellcasters)
+            'tag_slugs', // For filtering by tags (e.g., fire_immune, undead, construct)
         ]);
 
         // Sortable attributes

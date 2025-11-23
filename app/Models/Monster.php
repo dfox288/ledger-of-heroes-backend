@@ -121,7 +121,7 @@ class Monster extends BaseModel
     public function toSearchableArray(): array
     {
         // Load relationships to avoid N+1 queries
-        $this->loadMissing(['size', 'sources.source', 'entitySpells']);
+        $this->loadMissing(['size', 'sources.source', 'entitySpells', 'tags']);
 
         return [
             'id' => $this->id,
@@ -141,6 +141,8 @@ class Monster extends BaseModel
             'source_codes' => $this->sources->pluck('source.code')->all(),
             // Spell slugs for fast Meilisearch filtering (1,098 relationships for 129 spellcasters)
             'spell_slugs' => $this->entitySpells->pluck('slug')->all(),
+            // Tag slugs for filtering (e.g., fire_immune, undead, construct)
+            'tag_slugs' => $this->tags->pluck('slug')->all(),
         ];
     }
 

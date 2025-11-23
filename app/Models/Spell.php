@@ -167,7 +167,7 @@ class Spell extends BaseModel
     public function toSearchableArray(): array
     {
         // Load relationships to avoid N+1 queries
-        $this->loadMissing(['spellSchool', 'sources.source', 'classes']);
+        $this->loadMissing(['spellSchool', 'sources.source', 'classes', 'tags']);
 
         return [
             'id' => $this->id,
@@ -188,6 +188,7 @@ class Spell extends BaseModel
             'source_codes' => $this->sources->pluck('source.code')->all(),
             'classes' => $this->classes->pluck('name')->all(),
             'class_slugs' => $this->classes->pluck('slug')->all(),
+            'tag_slugs' => $this->tags->pluck('slug')->all(),
         ];
     }
 

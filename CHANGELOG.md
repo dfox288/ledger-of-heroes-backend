@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Improved - Search & API Enhancements (2025-11-23)
+- **Tag Filtering Support** - Added tag_slugs to Meilisearch filterable attributes
+  - Updated Monster, Spell, and Item models to include tag_slugs in toSearchableArray()
+  - Added tag_slugs to filterable attributes in MeilisearchIndexConfigurator
+  - Enables queries like `?filter=tag_slugs=undead` or `?filter=tag_slugs=fire_immune`
+  - Requires re-indexing: Run `search:configure-indexes` then `scout:import` for affected models
+- **Updated Search Documentation** - Fixed outdated counts and added monsters
+  - Updated SEARCH.md: 3,002 → 3,601 total documents
+  - Corrected entity counts: items (2,156), races (67), added monsters (598)
+  - Documented monsters_index naming convention
+  - Updated index stats: 7 indexes, ~20MB disk usage
+- **Search Improvement Roadmap** - Created comprehensive handover document
+  - Documented 6 remaining improvements (faceted search, autocomplete, range queries, OR operators, spell school filter)
+  - See `docs/SEARCH-API-IMPROVEMENTS-HANDOVER.md` for implementation details
+
 ### Improved - API Documentation Examples (2025-11-23)
 - **User-Friendly Identifiers** - Updated all API documentation examples to use slugs/codes instead of numeric IDs
   - Spell school: `school=EV` instead of `school=3`, `school=EN` instead of `school=4`

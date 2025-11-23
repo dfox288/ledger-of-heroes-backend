@@ -117,8 +117,13 @@ class MonsterImporter
             // Strategy post-creation hook (for spellcasters, etc.)
             $strategy->afterCreate($monster, $monsterData);
 
-            // Log strategy metadata
+            // Sync tags from strategy
             $metadata = $strategy->extractMetadata($monsterData);
+            if (! empty($metadata['metrics']['tags_applied'])) {
+                $monster->syncTags($metadata['metrics']['tags_applied']);
+            }
+
+            // Log strategy metadata
             if (! empty($metadata['warnings'])) {
                 $this->strategyStats[$strategyName]['warnings'] += count($metadata['warnings']);
             }

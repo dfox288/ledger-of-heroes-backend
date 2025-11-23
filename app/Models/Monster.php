@@ -10,10 +10,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Scout\Searchable;
+use Spatie\Tags\HasTags;
 
 class Monster extends Model
 {
-    use HasFactory, Searchable;
+    use HasFactory, HasTags, Searchable;
 
     public $timestamps = false;
 

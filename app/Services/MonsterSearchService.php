@@ -24,6 +24,7 @@ final class MonsterSearchService
         'modifiers.skill',
         'modifiers.damageType',
         'conditions',
+        'tags',
     ];
 
     /**

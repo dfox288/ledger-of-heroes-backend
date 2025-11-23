@@ -41,7 +41,7 @@ class MonsterSearchServiceTest extends TestCase
         $relationships = $this->service->getIndexRelationships();
 
         $this->assertIsArray($relationships);
-        $this->assertCount(6, $relationships);
+        $this->assertCount(7, $relationships);
         $this->assertEquals([
             'size',
             'sources.source',
@@ -49,6 +49,7 @@ class MonsterSearchServiceTest extends TestCase
             'modifiers.skill',
             'modifiers.damageType',
             'conditions',
+            'tags',
         ], $relationships);
     }
 

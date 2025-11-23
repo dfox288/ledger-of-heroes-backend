@@ -6,6 +6,7 @@ use App\Models\Background;
 use App\Models\CharacterClass;
 use App\Models\Feat;
 use App\Models\Item;
+use App\Models\Monster;
 use App\Models\Race;
 use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -169,6 +170,32 @@ class TagIntegrationTest extends TestCase
         $this->assertCount(2, $tags);
         $tagNames = collect($tags)->pluck('name')->sort()->values()->all();
         $this->assertEquals(['Combat', 'Martial'], $tagNames);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function monster_api_includes_tags_by_default()
+    {
+        $monster = Monster::factory()->create(['name' => 'Test Monster']);
+        $monster->attachTag('Fiend');
+        $monster->attachTag('Fire Immune');
+
+        $response = $this->getJson("/api/v1/monsters/{$monster->slug}");
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'data' => [
+                'id',
+                'name',
+                'tags' => [
+                    '*' => ['id', 'name', 'slug', 'type'],
+                ],
+            ],
+        ]);
+
+        $tags = $response->json('data.tags');
+        $this->assertCount(2, $tags);
+        $tagNames = collect($tags)->pluck('name')->sort()->values()->all();
+        $this->assertEquals(['Fiend', 'Fire Immune'], $tagNames);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

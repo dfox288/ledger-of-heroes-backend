@@ -7,6 +7,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Monster API Tag Support**: Added 'tags' to MonsterSearchService INDEX_RELATIONSHIPS
+  - Monster tags now included in list/index views (previously only in show/detail views)
+  - Added test coverage for Monster API tags in TagIntegrationTest
+  - All 7 main entities (Spell, Class, Race, Item, Background, Feat, Monster) now have complete tag support
+
+### Added - High-Priority XML Parser Features (2025-11-23)
+
+**6. Class ASI Tracking (Attribute-Based)**
+- **Parser**: ClassXmlParser now extracts `scoreImprovement="YES"` attribute from `<autolevel>` elements
+  - Passes `grants_asi` boolean flag with feature data
+  - More reliable than name-based detection
+- **Importer**: ClassImporter uses attribute instead of name parsing
+  - Replaced `stripos($featureData['name'], 'Ability Score Improvement')` check
+  - Uses `!empty($featureData['grants_asi'])` for explicit detection
+- **Benefit**:
+  - More reliable ASI detection (doesn't depend on feature naming)
+  - Handles edge cases where ASI might be named differently
+  - Cleaner code - uses structured XML data instead of text parsing
+- **No database changes**: Reuses existing `entity_modifiers` table structure
+
+**5. Monster Sort Name and NPC Flag**
+- **Migration**: Added `sort_name` (VARCHAR 255 NULL) and `is_npc` (BOOLEAN DEFAULT FALSE) to monsters table
+- **Parser**: MonsterXmlParser now extracts:
+  - `<sortname>` element for alphabetical sorting (43 monsters affected)
+  - `<npc>` flag to distinguish NPCs from monsters (23 NPCs affected)
+- **Model**: Added fields to Monster $fillable and $casts arrays
+- **API**: MonsterResource exposes both fields in API responses
+- **Factory**: MonsterFactory generates test data (optional sort_name, 10% NPC chance)
+- **Use Cases**:
+  - **Sort Name**: "Ancient Black Dragon" sorts as "Dragon, Ancient Black" for proper alphabetization
+  - **NPC Flag**: Filter `?is_npc=false` to exclude Commoner, Noble, Acolyte from monster lists
+  - **Character Builders**: Separate encounter monsters from NPC stat blocks
+- **Benefit**: Better monster organization and filtering for DMs and encounter builders
+
+**4. Class Feature Modifier Parsing**
+- **Parser**: ClassXmlParser now extracts `<modifier>` elements from class features
+  - Supports categories: Speed bonuses, AC bonuses, HP bonuses, ability score increases
+  - Examples: Barbarian "Fast Movement" (+10 speed), Monk speed progression, Primal Champion (+4 STR/CON)
+  - Added `MapsAbilityCodes` trait for ability score resolution
+- **Importer**: ClassImporter saves modifiers to `entity_modifiers` table with level tracking
+  - Modifiers linked to CharacterClass via polymorphic relationship
+  - Level field tracks when modifier becomes available
+- **Impact**: 23 class features now have structured modifiers
+  - Character builders can calculate accurate bonuses at each level
+  - API can filter classes by modifier type (speed bonuses, AC bonuses, etc.)
+- **Benefit**: Structured speed/AC/ability bonuses instead of text-only descriptions
+
+**1. Monster Passive Perception Field**
+- **Migration**: Added `passive_perception` column to `monsters` table (TINYINT UNSIGNED NULL)
+- **Parser**: MonsterXmlParser now extracts `<passive>` XML element (598 monsters affected)
+- **Model**: Added field to Monster $fillable array
+- **API**: MonsterResource now exposes `passive_perception` in API responses
+- **Factory**: MonsterFactory generates test data (6-25 range)
+- **Impact**: Better monster stat tracking for DMs and character builders
+
+**2. Race Modifier Parsing**
+- **Parser**: RaceXmlParser now extracts `<modifier>` elements from traits
+  - Supports categories: HP bonuses, speed bonuses, AC bonuses, initiative bonuses
+  - Example: Hill Dwarf "Dwarven Toughness" trait now parses `HP +1` modifier
+- **Importer**: RaceImporter saves modifiers to `entity_modifiers` table
+- **Implementation**: Reuses existing `entity_modifiers` polymorphic table
+- **Benefit**: Structured HP/speed/AC bonuses instead of free-text parsing
+
+**3. Class Feature Special Tags**
+- **Migration**: Created `class_feature_special_tags` table (class_feature_id, tag, indexed on tag)
+- **Model**: Created ClassFeatureSpecialTag model with relationship to ClassFeature
+- **Parser**: ClassXmlParser now extracts `<special>` elements (51 features affected)
+  - Examples: "fighting style archery", "Unarmored Defense: Constitution"
+- **Importer**: ClassImporter saves special tags for each feature
+- **Use Cases**:
+  - Semantic filtering: Query all fighting style options
+  - Character builders: Validate user choices (only one fighting style)
+  - API filtering: `?filter=special_tags CONTAINS 'fighting style'`
+
+**Test Coverage**: All 1,483 tests passing (220 Monster, 229 Race, 223 Class tests verified)
+
 ### Analyzed - XML Parser Completeness Audit (2025-11-23)
 - **Comprehensive Audit of All 7 XML Parsers** (90% completeness)
   - Inventoried 115 XML source files (11 spell, 51 class, 6 race, 30 item, 4 background, 4 feat, 9 bestiary)

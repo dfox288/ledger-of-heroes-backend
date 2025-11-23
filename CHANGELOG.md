@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Monster Strategies (2025-11-23)
+- **FiendStrategy** - Detects devils, demons, yugoloths with fire/poison immunity and magic resistance tagging
+  - Type detection: fiend, devil, demon, yugoloth
+  - Fire immunity detection (Hell Hounds, Balors, Pit Fiends)
+  - Poison immunity detection (most fiends)
+  - Magic resistance trait detection
+  - Tags: fiend, fire_immune, poison_immune, magic_resistance
+  - 28 fiends enhanced across 9 bestiary files
+- **CelestialStrategy** - Detects angels with radiant damage and healing ability tagging
+  - Type detection: celestial
+  - Radiant damage detection in actions
+  - Healing ability detection (Healing Touch, etc.)
+  - Tags: celestial, radiant_damage, healer
+  - 2 celestials enhanced across 9 bestiary files
+- **ConstructStrategy** - Detects golems and animated objects with poison/condition immunity tagging
+  - Type detection: construct
+  - Poison immunity detection (constructs don't breathe)
+  - Condition immunity detection (charm, exhaustion, frightened, paralyzed, petrified)
+  - Constructed nature trait detection
+  - Tags: construct, poison_immune, condition_immune, constructed_nature
+  - 42 constructs enhanced across 9 bestiary files
+- **Shared utility methods in AbstractMonsterStrategy** for immunity detection and trait searching
+  - hasDamageResistance() - damage resistance detection
+  - hasDamageImmunity() - damage immunity detection
+  - hasConditionImmunity() - condition immunity detection
+  - hasTraitContaining() - keyword search in trait names and descriptions
+  - Defensive programming with null coalescing for missing data
+- **30 new tests** for monster strategies with real XML fixtures
+  - FiendStrategyTest (7 tests, 23 assertions)
+  - CelestialStrategyTest (6 tests, 17 assertions)
+  - ConstructStrategyTest (7 tests, 18 assertions)
+  - AbstractMonsterStrategyTest (4 new utility tests, 18 assertions)
+  - Real XML fixtures: test-fiends.xml, test-celestials.xml, test-constructs.xml
+
 ### Added - Class Importer Phases 3 & 4: Equipment Parsing + Multi-File Merge (2025-11-23)
 - **Equipment Parsing** - ClassXmlParser now extracts starting equipment from class XML
   - Parses `<wealth>` tag for starting gold formulas (e.g., "2d4x10")

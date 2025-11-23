@@ -22,8 +22,6 @@ final class SpellSearchService
         'sources.source',
         'effects.damageType',
         'classes',
-        'savingThrows.abilityScore',
-        'tags',
     ];
 
     /**

@@ -20,11 +20,6 @@ final class BackgroundSearchService
      */
     private const DEFAULT_RELATIONSHIPS = [
         'sources.source',
-        'modifiers',
-        'proficiencies',
-        'traits',
-        'languages',
-        'tags',
     ];
 
     /**

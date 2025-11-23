@@ -19,7 +19,6 @@ final class FeatSearchService
         'proficiencies.proficiencyType',
         'conditions.condition',
         'prerequisites.prerequisite',
-        'tags',
     ];
 
     public function buildScoutQuery(string $searchQuery): \Laravel\Scout\Builder

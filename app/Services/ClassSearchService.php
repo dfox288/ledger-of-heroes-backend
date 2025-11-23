@@ -12,8 +12,6 @@ final class ClassSearchService
      * Default relationships to eager-load for both Scout and database queries
      */
     private const DEFAULT_RELATIONSHIPS = [
-        'parent',
-        'subclasses',
         'spellcastingAbility',
         'proficiencies.proficiencyType',
         'traits',
@@ -21,7 +19,8 @@ final class ClassSearchService
         'features',
         'levelProgression',
         'counters',
-        'modifiers',
+        'subclasses.features',
+        'subclasses.counters',
         'tags',
     ];
 

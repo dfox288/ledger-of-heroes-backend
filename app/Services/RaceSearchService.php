@@ -20,10 +20,6 @@ final class RaceSearchService
         'conditions.condition',
         'spells.spell',
         'spells.abilityScore',
-        'parent',
-        'subraces',
-        'languages.language',
-        'tags',
     ];
 
     public function buildScoutQuery(RaceSearchDTO $dto): \Laravel\Scout\Builder

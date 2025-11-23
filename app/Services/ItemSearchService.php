@@ -20,10 +20,6 @@ final class ItemSearchService
         'properties',
         'sources.source',
         'prerequisites.prerequisite',
-        'modifiers',
-        'abilities',
-        'spells.spell',
-        'tags',
     ];
 
     /**

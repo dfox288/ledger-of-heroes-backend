@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class ItemProperty extends Model
+class ItemProperty extends BaseModel
 {
-    public $timestamps = false;
-
     protected $fillable = [
         'code',
         'name',

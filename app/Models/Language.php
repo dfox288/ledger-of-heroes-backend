@@ -2,17 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
-class Language extends Model
+class Language extends BaseModel
 {
-    use HasFactory;
-
-    public $timestamps = false;
-
     protected $fillable = [
         'name',
         'slug',

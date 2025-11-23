@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Source extends Model
+class Source extends BaseModel
 {
-    public $timestamps = false; // CRITICAL: No timestamps on static data
-
     protected $fillable = [
         'code',
         'name',

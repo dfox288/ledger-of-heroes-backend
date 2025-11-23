@@ -2,16 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ItemAbility extends Model
+class ItemAbility extends BaseModel
 {
-    use HasFactory;
-
-    public $timestamps = false;
-
     protected $fillable = [
         'item_id',
         'ability_type',

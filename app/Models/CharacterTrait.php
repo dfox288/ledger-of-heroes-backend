@@ -2,19 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
-class CharacterTrait extends Model
+class CharacterTrait extends BaseModel
 {
-    use HasFactory;
-
     protected $table = 'traits';
-
-    public $timestamps = false;
 
     protected $fillable = [
         'reference_type',

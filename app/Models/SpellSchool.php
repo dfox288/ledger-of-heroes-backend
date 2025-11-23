@@ -2,16 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class SpellSchool extends Model
+class SpellSchool extends BaseModel
 {
-    use HasFactory;
-
-    public $timestamps = false;
-
     protected $fillable = [
         'code',
         'name',

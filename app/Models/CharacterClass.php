@@ -2,8 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\HasProficiencyScopes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,11 +10,9 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
-class CharacterClass extends Model
+class CharacterClass extends BaseModel
 {
-    use HasFactory, HasTags, Searchable;
-
-    public $timestamps = false;
+    use HasProficiencyScopes, HasTags, Searchable;
 
     protected $table = 'classes';
 
@@ -95,48 +92,6 @@ class CharacterClass extends Model
     public function getIsBaseClassAttribute(): bool
     {
         return is_null($this->parent_class_id);
-    }
-
-    /**
-     * Scope: Filter by granted proficiency name
-     * Usage: CharacterClass::grantsProficiency('longsword')->get()
-     */
-    public function scopeGrantsProficiency($query, string $proficiencyName)
-    {
-        return $query->whereHas('proficiencies', function ($q) use ($proficiencyName) {
-            $q->where('proficiency_name', 'LIKE', "%{$proficiencyName}%")
-                ->orWhereHas('proficiencyType', function ($typeQuery) use ($proficiencyName) {
-                    $typeQuery->where('name', 'LIKE', "%{$proficiencyName}%");
-                });
-        });
-    }
-
-    /**
-     * Scope: Filter by granted skill proficiency
-     * Usage: CharacterClass::grantsSkill('insight')->get()
-     */
-    public function scopeGrantsSkill($query, string $skillName)
-    {
-        return $query->whereHas('proficiencies', function ($q) use ($skillName) {
-            $q->where('proficiency_type', 'skill')
-                ->whereHas('skill', function ($skillQuery) use ($skillName) {
-                    $skillQuery->where('name', 'LIKE', "%{$skillName}%");
-                });
-        });
-    }
-
-    /**
-     * Scope: Filter by proficiency type category
-     * Usage: CharacterClass::grantsProficiencyType('martial')->get()
-     */
-    public function scopeGrantsProficiencyType($query, string $categoryOrName)
-    {
-        return $query->whereHas('proficiencies', function ($q) use ($categoryOrName) {
-            $q->whereHas('proficiencyType', function ($typeQuery) use ($categoryOrName) {
-                $typeQuery->where('category', 'LIKE', "%{$categoryOrName}%")
-                    ->orWhere('name', 'LIKE', "%{$categoryOrName}%");
-            });
-        });
     }
 
     // Scout Searchable Methods

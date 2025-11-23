@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -12,11 +10,9 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
-class Monster extends Model
+class Monster extends BaseModel
 {
-    use HasFactory, HasTags, Searchable;
-
-    public $timestamps = false;
+    use HasTags, Searchable;
 
     protected $fillable = [
         'name',

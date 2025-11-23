@@ -2,17 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class MonsterSpellcasting extends Model
+class MonsterSpellcasting extends BaseModel
 {
-    use HasFactory;
-
     protected $table = 'monster_spellcasting';
-
-    public $timestamps = false;
 
     protected $fillable = [
         'monster_id',

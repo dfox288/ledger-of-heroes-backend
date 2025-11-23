@@ -2,16 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class MonsterTrait extends Model
+class MonsterTrait extends BaseModel
 {
-    use HasFactory;
-
-    public $timestamps = false;
-
     protected $fillable = [
         'monster_id',
         'name',

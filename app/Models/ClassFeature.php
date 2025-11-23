@@ -2,16 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ClassFeature extends Model
+class ClassFeature extends BaseModel
 {
-    use HasFactory;
-
-    public $timestamps = false;
-
     protected $table = 'class_features';
 
     protected $fillable = [

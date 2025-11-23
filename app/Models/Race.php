@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\HasLanguageScopes;
+use App\Models\Concerns\HasProficiencyScopes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -11,11 +11,9 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
-class Race extends Model
+class Race extends BaseModel
 {
-    use HasFactory, HasTags, Searchable;
-
-    public $timestamps = false;
+    use HasLanguageScopes, HasProficiencyScopes, HasTags, Searchable;
 
     protected $fillable = [
         'slug',
@@ -108,83 +106,6 @@ class Race extends Model
     public function scopeSize($query, $sizeId)
     {
         return $query->where('size_id', $sizeId);
-    }
-
-    /**
-     * Scope: Filter by granted proficiency name
-     * Usage: Race::grantsProficiency('longsword')->get()
-     */
-    public function scopeGrantsProficiency($query, string $proficiencyName)
-    {
-        return $query->whereHas('proficiencies', function ($q) use ($proficiencyName) {
-            $q->where('proficiency_name', 'LIKE', "%{$proficiencyName}%")
-                ->orWhereHas('proficiencyType', function ($typeQuery) use ($proficiencyName) {
-                    $typeQuery->where('name', 'LIKE', "%{$proficiencyName}%");
-                });
-        });
-    }
-
-    /**
-     * Scope: Filter by granted skill proficiency
-     * Usage: Race::grantsSkill('insight')->get()
-     */
-    public function scopeGrantsSkill($query, string $skillName)
-    {
-        return $query->whereHas('proficiencies', function ($q) use ($skillName) {
-            $q->where('proficiency_type', 'skill')
-                ->whereHas('skill', function ($skillQuery) use ($skillName) {
-                    $skillQuery->where('name', 'LIKE', "%{$skillName}%");
-                });
-        });
-    }
-
-    /**
-     * Scope: Filter by proficiency type category
-     * Usage: Race::grantsProficiencyType('martial')->get()
-     */
-    public function scopeGrantsProficiencyType($query, string $categoryOrName)
-    {
-        return $query->whereHas('proficiencies', function ($q) use ($categoryOrName) {
-            $q->whereHas('proficiencyType', function ($typeQuery) use ($categoryOrName) {
-                $typeQuery->where('category', 'LIKE', "%{$categoryOrName}%")
-                    ->orWhere('name', 'LIKE', "%{$categoryOrName}%");
-            });
-        });
-    }
-
-    /**
-     * Scope: Filter by spoken language
-     * Usage: Race::speaksLanguage('elvish')->get()
-     */
-    public function scopeSpeaksLanguage($query, string $languageName)
-    {
-        return $query->whereHas('languages', function ($q) use ($languageName) {
-            $q->where('is_choice', false)
-                ->whereHas('language', function ($langQuery) use ($languageName) {
-                    $langQuery->where('name', 'LIKE', "%{$languageName}%");
-                });
-        });
-    }
-
-    /**
-     * Scope: Filter by language choice count
-     * Usage: Race::languageChoiceCount(2)->get()
-     * Note: Counts the number of choice slots (is_choice=true records)
-     */
-    public function scopeLanguageChoiceCount($query, int $count)
-    {
-        return $query->whereHas('languages', function ($q) {
-            $q->where('is_choice', true);
-        }, '=', $count);
-    }
-
-    /**
-     * Scope: Filter entities that grant any languages
-     * Usage: Race::grantsLanguages()->get()
-     */
-    public function scopeGrantsLanguages($query)
-    {
-        return $query->has('languages');
     }
 
     // Scout Searchable Methods

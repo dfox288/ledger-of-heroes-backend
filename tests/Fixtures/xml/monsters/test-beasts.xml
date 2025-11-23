@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <monster>
+    <name>Wolf</name>
+    <size>M</size>
+    <type>beast</type>
+    <alignment>Unaligned</alignment>
+    <ac>13 (natural armor)</ac>
+    <hp>11 (2d8+2)</hp>
+    <speed>walk 40 ft.</speed>
+    <str>12</str>
+    <dex>15</dex>
+    <con>12</con>
+    <int>3</int>
+    <wis>12</wis>
+    <cha>6</cha>
+    <skill>Perception +3, Stealth +4</skill>
+    <passive>13</passive>
+    <languages/>
+    <cr>1/4</cr>
+    <senses>passive Perception 13</senses>
+    <trait>
+      <name>Keen Hearing and Smell</name>
+      <text>The wolf has advantage on Wisdom (Perception) checks that rely on hearing or smell.</text>
+    </trait>
+    <trait>
+      <name>Pack Tactics</name>
+      <text>The wolf has advantage on an attack roll against a creature if at least one of the wolf's allies is within 5 feet of the creature and the ally isn't incapacitated.</text>
+    </trait>
+    <action>
+      <name>Bite</name>
+      <text>Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 7 (2d4 + 2) piercing damage. If the target is a creature, it must succeed on a DC 11 Strength saving throw or be knocked prone.</text>
+      <attack>Piercing|+4|2d4+2</attack>
+    </action>
+  </monster>
+  <monster>
+    <name>Brown Bear</name>
+    <size>L</size>
+    <type>beast</type>
+    <alignment>Unaligned</alignment>
+    <ac>11 (natural armor)</ac>
+    <hp>34 (4d10+12)</hp>
+    <speed>walk 40 ft., climb 30 ft.</speed>
+    <str>19</str>
+    <dex>10</dex>
+    <con>16</con>
+    <int>2</int>
+    <wis>13</wis>
+    <cha>7</cha>
+    <skill>Perception +3</skill>
+    <passive>13</passive>
+    <languages/>
+    <cr>1</cr>
+    <senses>passive Perception 13</senses>
+    <trait>
+      <name>Keen Smell</name>
+      <text>The bear has advantage on Wisdom (Perception) checks that rely on smell.</text>
+    </trait>
+    <action>
+      <name>Multiattack</name>
+      <text>The bear makes two attacks: one with its bite and one with its claws.</text>
+    </action>
+    <action>
+      <name>Bite</name>
+      <text>Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 8 (1d8 + 4) piercing damage.</text>
+      <attack>Piercing|+5|1d8+4</attack>
+    </action>
+  </monster>
+  <monster>
+    <name>Lion</name>
+    <size>L</size>
+    <type>beast</type>
+    <alignment>Unaligned</alignment>
+    <ac>12</ac>
+    <hp>26 (4d10+4)</hp>
+    <speed>walk 50 ft.</speed>
+    <str>17</str>
+    <dex>15</dex>
+    <con>13</con>
+    <int>3</int>
+    <wis>12</wis>
+    <cha>8</cha>
+    <skill>Perception +3, Stealth +6</skill>
+    <passive>13</passive>
+    <languages/>
+    <cr>1</cr>
+    <senses>passive Perception 13</senses>
+    <trait>
+      <name>Keen Smell</name>
+      <text>The lion has advantage on Wisdom (Perception) checks that rely on smell.</text>
+    </trait>
+    <trait>
+      <name>Pack Tactics</name>
+      <text>The lion has advantage on attack rolls against a creature if at least one of the lion's allies is within 5 feet of the creature and the ally isn't incapacitated.</text>
+    </trait>
+    <trait>
+      <name>Pounce</name>
+      <text>If the lion moves at least 20 feet straight toward a creature and then hits it with a claw attack on the same turn, that target must succeed on a DC 13 Strength saving throw or be knocked prone. If the target is prone, the lion can make one bite attack against it as a bonus action.</text>
+    </trait>
+    <trait>
+      <name>Running Leap</name>
+      <text>With a 10-foot running start, the lion can long jump up to 25 feet.</text>
+    </trait>
+  </monster>
+  <monster>
+    <name>Giant Spider</name>
+    <size>L</size>
+    <type>beast</type>
+    <alignment>Unaligned</alignment>
+    <ac>14 (natural armor)</ac>
+    <hp>26 (4d10+4)</hp>
+    <speed>walk 30 ft., climb 30 ft.</speed>
+    <str>14</str>
+    <dex>16</dex>
+    <con>12</con>
+    <int>2</int>
+    <wis>11</wis>
+    <cha>4</cha>
+    <skill>Stealth +7</skill>
+    <passive>10</passive>
+    <languages/>
+    <cr>1</cr>
+    <senses>blindsight 10 ft., darkvision 60 ft.</senses>
+    <trait>
+      <name>Spider Climb</name>
+      <text>The spider can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check.</text>
+    </trait>
+    <trait>
+      <name>Web Sense</name>
+      <text>While in contact with a web, the spider knows the exact location of any other creature in contact with the same web.</text>
+    </trait>
+    <trait>
+      <name>Web Walker</name>
+      <text>The spider ignores movement restrictions caused by webbing.</text>
+    </trait>
+    <action>
+      <name>Bite</name>
+      <text>Melee Weapon Attack: +5 to hit, reach 5 ft., one creature. Hit: 7 (1d8 + 3) piercing damage, and the target must make a DC 11 Constitution saving throw, taking 9 (2d8) poison damage on a failed save, or half as much damage on a successful one. If the poison damage reduces the target to 0 hit points, the target is stable but poisoned for 1 hour, even after regaining hit points, and is paralyzed while poisoned in this way.</text>
+      <attack>Piercing|+5|1d8+3</attack>
+    </action>
+  </monster>
+</compendium>

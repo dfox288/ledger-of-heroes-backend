@@ -62,18 +62,8 @@ class MonsterApiTest extends TestCase
         $response->assertJsonPath('data.name', 'Ancient Red Dragon');
     }
 
-    #[Test]
-    public function can_search_monsters_by_name()
-    {
-        Monster::factory()->create(['name' => 'Red Dragon']);
-        Monster::factory()->create(['name' => 'Blue Dragon']);
-        Monster::factory()->create(['name' => 'Goblin']);
-
-        $response = $this->getJson('/api/v1/monsters?q=Dragon');
-
-        $response->assertOk();
-        $response->assertJsonCount(2, 'data');
-    }
+    // Search functionality is tested in MonsterSearchTest.php (requires Scout/Meilisearch)
+    // Basic CRUD tests in this file should not depend on search infrastructure
 
     #[Test]
     public function can_filter_monsters_by_challenge_rating()

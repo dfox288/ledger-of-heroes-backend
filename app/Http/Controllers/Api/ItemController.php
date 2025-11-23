@@ -11,6 +11,7 @@ use App\Models\Item;
 use App\Services\Cache\EntityCacheService;
 use App\Services\ItemSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use MeiliSearch\Client;
 
 class ItemController extends Controller
 {
@@ -69,7 +70,7 @@ class ItemController extends Controller
      * See `docs/API-EXAMPLES.md` for comprehensive usage examples.
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: is_magic (bool), requires_attunement (bool), rarity (string), type_code (string), weight (float), cost_cp (int), spell_slugs (array), tag_slugs (array).', example: 'is_magic = true AND rarity IN [rare, very_rare, legendary]')]
-    public function index(ItemIndexRequest $request, ItemSearchService $service)
+    public function index(ItemIndexRequest $request, ItemSearchService $service, Client $meilisearch)
     {
         $dto = ItemSearchDTO::fromRequest($request);
 

@@ -104,14 +104,29 @@ class ClassXmlParserTest extends TestCase
         // Find skill proficiencies
         $skillProfs = array_filter($proficiencies, fn ($p) => $p['type'] === 'skill');
 
-        // All should have same quantity (2)
-        foreach ($skillProfs as $prof) {
-            $this->assertTrue($prof['is_choice'], "Skill {$prof['name']} should be a choice");
-            $this->assertEquals(2, $prof['quantity'], 'All skills should have quantity=2 (choose 2 from list)');
-        }
-
         // Should have 6 skill options (Athletics, Animal Handling, etc.)
         $this->assertCount(6, $skillProfs);
+
+        // All should be marked as choices
+        foreach ($skillProfs as $prof) {
+            $this->assertTrue($prof['is_choice'], "Skill {$prof['name']} should be a choice");
+        }
+
+        // NEW BEHAVIOR: Only first skill in group has quantity
+        // All skills should be in same choice group
+        $choiceGroups = array_unique(array_column($skillProfs, 'choice_group'));
+        $this->assertCount(1, $choiceGroups, 'All skills should be in one choice group');
+
+        // First skill should have quantity=2, others should be null
+        $skillsArray = array_values($skillProfs);
+        $this->assertEquals(2, $skillsArray[0]['quantity'], 'First skill should have quantity=2');
+        $this->assertNull($skillsArray[1]['quantity'], 'Second skill should have null quantity');
+        $this->assertNull($skillsArray[2]['quantity'], 'Third skill should have null quantity');
+
+        // All skills should have choice_option numbers (1, 2, 3, 4, 5, 6)
+        $choiceOptions = array_column($skillProfs, 'choice_option');
+        sort($choiceOptions);
+        $this->assertEquals([1, 2, 3, 4, 5, 6], $choiceOptions, 'Skills should have sequential choice_option numbers');
 
         // Saving throws should NOT be choices
         $savingThrows = array_filter($proficiencies, fn ($p) => $p['type'] === 'saving_throw');

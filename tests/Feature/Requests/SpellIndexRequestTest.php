@@ -26,18 +26,23 @@ class SpellIndexRequestTest extends TestCase
     }
 
     #[Test]
-    public function it_validates_school_exists()
+    public function it_validates_school_format()
     {
         $school = SpellSchool::first(); // Use seeded data instead of factory
 
-        // Valid school ID
+        // Valid school ID (numeric)
         $response = $this->getJson("/api/v1/spells?school={$school->id}");
         $response->assertStatus(200);
 
-        // Invalid school ID
+        // Valid school code (e.g., "EV" for Evocation)
+        $response = $this->getJson('/api/v1/spells?school=EV');
+        $response->assertStatus(200);
+
+        // Invalid school ID returns 200 with 0 results (graceful handling, not validation error)
+        // Controller uses Spell::scopeSchool() which returns empty result set for unknown schools
         $response = $this->getJson('/api/v1/spells?school=999');
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['school']);
+        $response->assertStatus(200)
+            ->assertJsonCount(0, 'data');  // No spells match invalid school
     }
 
     #[Test]

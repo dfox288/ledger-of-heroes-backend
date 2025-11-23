@@ -70,17 +70,6 @@ class Monster extends BaseModel
         return $this->hasOne(MonsterSpellcasting::class);
     }
 
-    public function spells(): MorphToMany
-    {
-        return $this->morphToMany(
-            Spell::class,
-            'entity',
-            'monster_spells',
-            'monster_id',
-            'spell_id'
-        )->withPivot('usage_type', 'usage_limit');
-    }
-
     public function entitySpells(): MorphToMany
     {
         return $this->morphToMany(

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <monster>
+    <name>Animated Armor</name>
+    <size>M</size>
+    <type>construct</type>
+    <alignment>Unaligned</alignment>
+    <ac>18 (natural armor)</ac>
+    <hp>33 (6d8+6)</hp>
+    <speed>25 ft.</speed>
+    <str>14</str>
+    <dex>11</dex>
+    <con>13</con>
+    <int>1</int>
+    <wis>3</wis>
+    <cha>1</cha>
+    <immune>poison, psychic</immune>
+    <conditionImmune>blinded, charmed, deafened, exhaustion, frightened, paralyzed, petrified, poisoned</conditionImmune>
+    <senses>blindsight 60 ft. (blind beyond this radius)</senses>
+    <passive>6</passive>
+    <cr>1</cr>
+    <trait>
+      <name>Antimagic Susceptibility</name>
+      <text>The armor is incapacitated while in the area of an antimagic field. If targeted by dispel magic, the armor must succeed on a Constitution saving throw against the caster's spell save DC or fall unconscious for 1 minute.</text>
+    </trait>
+    <trait>
+      <name>False Appearance</name>
+      <text>While the armor remains motionless, it is indistinguishable from a normal suit of armor.</text>
+    </trait>
+  </monster>
+  <monster>
+    <name>Iron Golem</name>
+    <size>L</size>
+    <type>construct</type>
+    <alignment>Unaligned</alignment>
+    <ac>20 (natural armor)</ac>
+    <hp>210 (20d10+100)</hp>
+    <speed>30 ft.</speed>
+    <str>24</str>
+    <dex>9</dex>
+    <con>20</con>
+    <int>3</int>
+    <wis>11</wis>
+    <cha>1</cha>
+    <immune>fire, poison, psychic; bludgeoning, piercing, and slashing from nonmagical attacks that aren't adamantine</immune>
+    <conditionImmune>charmed, exhaustion, frightened, paralyzed, petrified, poisoned</conditionImmune>
+    <senses>darkvision 120 ft.</senses>
+    <passive>10</passive>
+    <languages>understands the languages of its creator but can't speak</languages>
+    <cr>16</cr>
+    <trait>
+      <name>Fire Absorption</name>
+      <text>Whenever the golem is subjected to fire damage, it takes no damage and instead regains a number of hit points equal to the fire damage dealt.</text>
+    </trait>
+    <trait>
+      <name>Immutable Form</name>
+      <text>The golem is immune to any spell or effect that would alter its form.</text>
+    </trait>
+    <trait>
+      <name>Magic Resistance</name>
+      <text>The golem has advantage on saving throws against spells and other magical effects.</text>
+    </trait>
+    <trait>
+      <name>Magic Weapons</name>
+      <text>The golem's weapon attacks are magical.</text>
+    </trait>
+  </monster>
+</compendium>

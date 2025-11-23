@@ -52,7 +52,9 @@
       "Bash(for file in docs/plans/2025-11-23-additional-monster-strategies*.md docs/plans/2025-11-23-beast-strategy*.md docs/plans/2025-11-23-class-feature-random-tables-implementation.md docs/plans/2025-11-23-class-importer-overhaul.md docs/plans/2025-11-23-parent-relationships-index-show-split.md)",
       "Bash(for file in docs/plans/2025-11-17-*.md docs/plans/2025-11-20-*.md docs/plans/2025-11-21-*.md)",
       "Bash(for table in ability_score_bonuses class_spells entity_conditions entity_items entity_languages entity_modifiers entity_prerequisites entity_saving_throws entity_sources entity_spells item_property monster_spells proficiencies random_table_entries skill_proficiencies taggables traits)",
-      "Bash(do echo '=== $table ===' docker compose exec mysql mysql -udnd_user -pdnd_password dnd_compendium -e \"DESCRIBE $table;\")"
+      "Bash(do echo '=== $table ===' docker compose exec mysql mysql -udnd_user -pdnd_password dnd_compendium -e \"DESCRIBE $table;\")",
+      "Bash(for file in /Users/dfox/Development/dnd/importer/import-files/spells-*.xml)",
+      "Bash(do grep -ho \"<[a-z][a-z]*\" \"$file\")"
     ],
     "deny": [],
     "ask": []

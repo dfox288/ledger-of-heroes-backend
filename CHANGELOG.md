@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Monster Strategies (2025-11-23)
+- **BeastStrategy** - Tags 102 beast-type monsters (17% of all monsters) with D&D 5e mechanical features
+  - Keen senses detection (Keen Smell/Sight/Hearing traits) - 32 beasts
+  - Pack tactics detection (cooperative hunting advantage) - 14 beasts
+  - Charge/pounce detection (movement-based attack bonuses) - 20 beasts
+  - Special movement detection (Spider Climb/Web Walker/Amphibious) - 9 beasts
+  - Tags: `beast`, `keen_senses`, `pack_tactics`, `charge`, `special_movement`
+  - 8 new tests (24 assertions) with real XML fixtures (Wolf, Brown Bear, Lion, Giant Spider)
+  - Total tagged monsters now ~140 (23% coverage, up from 20%)
+
 ### Added - Monster Strategies Phase 2 (2025-11-23)
 - **ElementalStrategy** - Detects elemental type with fire/water/earth/air subtype tagging via name, immunity, and language detection
   - Fire elemental detection: name, fire immunity, or Ignan language

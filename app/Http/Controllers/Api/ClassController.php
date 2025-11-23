@@ -58,6 +58,12 @@ class ClassController extends Controller
      * - Half casters: `GET /api/v1/classes?filter=tag_slugs IN [half-caster]`
      * - Combined filters: `GET /api/v1/classes?filter=tag_slugs IN [spellcaster] AND hit_die >= 8`
      *
+     * **Base Class vs Subclass Filtering (Meilisearch):**
+     * - Base classes only: `GET /api/v1/classes?filter=is_subclass = false`
+     * - Subclasses only: `GET /api/v1/classes?filter=is_subclass = true`
+     * - Base spellcasters: `GET /api/v1/classes?filter=is_subclass = false AND tag_slugs IN [spellcaster]`
+     * - High HP subclasses: `GET /api/v1/classes?filter=is_subclass = true AND hit_die >= 10`
+     *
      * **Parameter Reference:**
      * - `is_spellcaster` (bool): Filter by spellcasting ability (true=has spellcasting, false=no spellcasting)
      * - `hit_die` (int): Filter by hit die size (6, 8, 10, or 12)
@@ -78,7 +84,7 @@ class ClassController extends Controller
      *
      * See `docs/API-EXAMPLES.md` for comprehensive usage examples.
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: hit_die (int), is_spellcaster (bool), spellcasting_ability_code (string), is_subclass (bool), tag_slugs (array).', example: 'tag_slugs IN [full-caster] AND hit_die >= 8')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: hit_die (int), is_spellcaster (bool), spellcasting_ability_code (string), is_subclass (bool), tag_slugs (array).', example: 'is_subclass = false AND tag_slugs IN [spellcaster]')]
     public function index(ClassIndexRequest $request, ClassSearchService $service)
     {
         $dto = ClassSearchDTO::fromRequest($request);

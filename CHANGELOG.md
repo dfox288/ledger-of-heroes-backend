@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Base Class vs Subclass Filtering Documentation**: Enhanced ClassController documentation
+  - Added dedicated section for base class/subclass filtering using `is_subclass` field
+  - Examples: `?filter=is_subclass = false` (base classes only), `?filter=is_subclass = true` (subclasses only)
+  - Combined examples: `?filter=is_subclass = false AND tag_slugs IN [spellcaster]` (base spellcasting classes)
+  - Updated QueryParameter example to highlight is_subclass filtering capability
+  - Field was already filterable in Meilisearch, now properly documented
+
 - **Universal Tag-Based Filtering**: Completed tag support for ALL 7 searchable entities in Meilisearch
   - **Entities Enhanced**: Race, CharacterClass, Background, Feat (Monster, Spell, Item already had tag support)
   - **Model Updates**: Added `tag_slugs` field to toSearchableArray() for Race, CharacterClass, Background, Feat models

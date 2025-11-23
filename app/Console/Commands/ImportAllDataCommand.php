@@ -51,10 +51,10 @@ class ImportAllDataCommand extends Command
             $this->call('migrate:fresh', ['--seed' => true]);
         }
 
-        // Step 2: Import classes FIRST (required by spells)
+        // Step 2: Import classes FIRST (required by spells) - using batch merge strategy
         if (! $onlyTypes || in_array('classes', $onlyTypes)) {
-            $this->step('Importing classes (STEP 1/7)');
-            $this->importEntityType('class', 'import:classes');
+            $this->step('Importing classes (STEP 1/7) - with multi-file merge');
+            $this->importClassesBatch();
         }
 
         // Step 3: Import main spell files
@@ -178,6 +178,77 @@ class ImportAllDataCommand extends Command
     }
 
     /**
+     * Import classes using batch merge strategy.
+     *
+     * Groups files by class name and merges PHB + supplements.
+     */
+    private function importClassesBatch(): void
+    {
+        $importPath = base_path('import-files');
+        $files = File::glob("{$importPath}/class-*.xml");
+
+        if (empty($files)) {
+            $this->warn('  ⚠️  No class files found');
+
+            return;
+        }
+
+        // Group files by class name (e.g., all barbarian files together)
+        $classByName = [];
+        foreach ($files as $file) {
+            $filename = basename($file);
+            // Extract class name from "class-barbarian-phb.xml" → "barbarian"
+            if (preg_match('/^class-([a-z]+)-/', $filename, $matches)) {
+                $className = $matches[1];
+                $classByName[$className][] = $file;
+            }
+        }
+
+        $this->info('  Found '.count($files).' file(s) for '.count($classByName).' unique class(es)');
+        $this->newLine();
+
+        $classesImported = 0;
+        $subclassesImported = 0;
+
+        foreach ($classByName as $className => $classFiles) {
+            $this->line("  → ".ucfirst($className).' ('.count($classFiles).' file(s))');
+
+            // Use batch importer with merge mode
+            $exitCode = $this->call('import:classes:batch', [
+                'pattern' => "import-files/class-{$className}-*.xml",
+                '--merge' => true,
+            ]);
+
+            $this->totalFiles += count($classFiles);
+
+            if ($exitCode === 0) {
+                $this->successCount += count($classFiles);
+                $classesImported++;
+
+                // Count subclasses for this class
+                $subclassCount = \App\Models\CharacterClass::where('slug', 'like', "{$className}%")
+                    ->count();
+                if ($subclassCount > 1) {
+                    $subclassesImported += ($subclassCount - 1); // -1 for base class
+                    $this->line("     (1 base class + ".($subclassCount - 1).' subclass(es))');
+                }
+            } else {
+                $this->failCount += count($classFiles);
+                $this->error('    ✗ Import failed!');
+            }
+        }
+
+        $this->stats['classes'] = [
+            'success' => $classesImported,
+            'fail' => count($classByName) - $classesImported,
+            'total' => count($classByName),
+            'subclasses' => $subclassesImported,
+        ];
+
+        $this->newLine();
+    }
+
+    /**
      * Import additive spell class mapping files (spells-*+*.xml).
      */
     private function importAdditiveSpellFiles(): void
@@ -248,13 +319,19 @@ class ImportAllDataCommand extends Command
 
         // Per-entity breakdown
         $this->table(
-            ['Entity Type', 'Success', 'Failed', 'Total'],
+            ['Entity Type', 'Success', 'Failed', 'Total', 'Extras'],
             collect($this->stats)->map(function ($stats, $type) {
+                $extras = '';
+                if (isset($stats['subclasses'])) {
+                    $extras = "{$stats['subclasses']} subclasses";
+                }
+
                 return [
                     ucfirst(str_replace('-', ' ', $type)),
                     $stats['success'],
                     $stats['fail'],
                     $stats['total'],
+                    $extras,
                 ];
             })->toArray()
         );

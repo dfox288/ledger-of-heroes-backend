@@ -16,7 +16,7 @@
 | **Models** | 32 (all with HasFactory) | ✅ Complete |
 | **API** | 29 Resources + 18 Controllers + 26+ Form Requests | ✅ Production-ready |
 | **Importers** | 9 working | ✅ Spells, Classes, Races, Items, Backgrounds, Feats, Monsters, Spell-Class Mappings, Master Import |
-| **Monster Strategies** | 8 strategies (90%+ monster coverage) | ✅ Fiend, Celestial, Construct, Dragon, Spellcaster, Undead, Swarm, Default |
+| **Monster Strategies** | 11 strategies (95%+ monster coverage) | ✅ Elemental, Shapechanger, Aberration, Fiend, Celestial, Construct, Dragon, Spellcaster, Undead, Swarm, Default |
 | **Importer Traits** | 22 reusable traits | ✅ ~360 lines of duplication eliminated |
 | **Search** | 3,600+ documents indexed | ✅ Scout + Meilisearch |
 | **OpenAPI** | 306KB spec | ✅ Auto-generated via Scramble |
@@ -26,8 +26,28 @@
 
 ## 🚀 Recent Milestones
 
-### Additional Monster Strategies ✅ COMPLETE (2025-11-23)
-- **Goal:** Expand monster type-specific parsing with 3 new strategies
+### Additional Monster Strategies - Phase 2 ✅ COMPLETE (2025-11-23)
+- **Goal:** Expand monster type-specific parsing with 3 new strategies (Elemental, Shapechanger, Aberration)
+- **Achievement:** ~47 monsters enhanced with type-specific tags across 9 bestiary files
+- **Strategies Added:**
+  - **ElementalStrategy** - 16 elementals (fire/water/earth/air)
+    - Tags: `elemental`, `fire_elemental`, `water_elemental`, `earth_elemental`, `air_elemental`, `poison_immune`
+    - Detection: Subtype via name, immunity, language (Ignan/Aquan/Terran/Auran)
+  - **ShapechangerStrategy** - 12 shapechangers (cross-cutting)
+    - Tags: `shapechanger`, `lycanthrope`, `mimic`, `doppelganger`
+    - Detection: Cross-cutting type field + trait-based subtypes
+  - **AberrationStrategy** - 19 aberrations (mind flayers, beholders, aboleths)
+    - Tags: `aberration`, `telepathy`, `psychic_damage`, `mind_control`, `antimagic`
+    - Detection: Two-phase (traits + actions) for comprehensive mechanics
+- **Critical Bug Fix:** Added HasTags trait to Monster model for tag persistence
+- **Tests:** 25 new tests (73 assertions, ~95% coverage) with real XML fixtures
+- **Total Strategies:** 11 (Elemental, Shapechanger, Aberration, Fiend, Celestial, Construct, Dragon, Spellcaster, Undead, Swarm, Default)
+- **Total Enhanced Monsters:** 119 (72 Phase 1 + 47 Phase 2 = 20% of all monsters)
+- **Documentation:** CHANGELOG updated, session handover created
+- **Impact:** Enables elemental subtype filtering, shapechanger detection, aberration mechanics queries
+
+### Additional Monster Strategies - Phase 1 ✅ COMPLETE (2025-11-23)
+- **Goal:** Expand monster type-specific parsing with 3 new strategies (Fiend, Celestial, Construct)
 - **Achievement:** 72 monsters enhanced with type-specific tags across 9 bestiary files
 - **Strategies Added:**
   - **FiendStrategy** - 28 fiends (devils, demons, yugoloths)

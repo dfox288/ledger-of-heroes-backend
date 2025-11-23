@@ -7,7 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added - Monster Strategies (2025-11-23)
+### Added - Monster Strategies Phase 2 (2025-11-23)
+- **ElementalStrategy** - Detects elemental type with fire/water/earth/air subtype tagging via name, immunity, and language detection
+  - Fire elemental detection: name, fire immunity, or Ignan language
+  - Water elemental detection: name or Aquan language
+  - Earth elemental detection: name or Terran language
+  - Air elemental detection: name or Auran language
+  - Poison immunity detection (common to most elementals)
+  - Tags: `elemental`, `fire_elemental`, `water_elemental`, `earth_elemental`, `air_elemental`, `poison_immune`
+  - 16 elementals enhanced across 9 bestiary files
+- **ShapechangerStrategy** - Cross-cutting detection for shapechangers with lycanthrope/mimic/doppelganger subtype tagging
+  - Detects shapechanger keyword in type field (cross-cutting concern)
+  - Lycanthrope detection via name, type, or trait keywords (werewolves, wereboars)
+  - Mimic detection via adhesive trait + false appearance
+  - Doppelganger detection via name or read thoughts ability
+  - Tags: `shapechanger`, `lycanthrope`, `mimic`, `doppelganger`
+  - 12 shapechangers enhanced across 9 bestiary files
+- **AberrationStrategy** - Detects aberration type with psychic damage, telepathy, mind control, and antimagic tagging
+  - Telepathy detection via languages field
+  - Psychic damage detection in actions (two-phase enhancement)
+  - Mind control detection in traits and actions (charm, dominate, enslave)
+  - Antimagic detection (beholder cone)
+  - Tags: `aberration`, `telepathy`, `psychic_damage`, `mind_control`, `antimagic`
+  - 19 aberrations enhanced across 9 bestiary files
+- **25 new tests** for Phase 2 monster strategies with real XML fixtures (elementals, shapechangers, aberrations)
+- **Phase 2 Total:** ~47 monsters enhanced with type-specific tags (16 elementals + 12 shapechangers + 19 aberrations)
+- **Critical Bug Fix:** Added HasTags trait to Monster model to enable tag synchronization
+  - Fixed: Tags were being detected by strategies but not persisting to database
+  - Monsters now properly sync tags during import via `$monster->syncTagsWithType()` call
+  - Verified working: Werewolf has "shapechanger, lycanthrope", Fire Elemental has "elemental, fire_elemental, poison_immune"
+
+### Added - Monster Strategies Phase 1 (2025-11-23)
 - **FiendStrategy** - Detects devils, demons, yugoloths with fire/poison immunity and magic resistance tagging
   - Type detection: fiend, devil, demon, yugoloth
   - Fire immunity detection (Hell Hounds, Balors, Pit Fiends)

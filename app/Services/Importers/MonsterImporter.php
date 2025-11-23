@@ -11,8 +11,11 @@ use App\Services\Importers\Concerns\GeneratesSlugs;
 use App\Services\Importers\Concerns\ImportsConditions;
 use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Importers\Concerns\ImportsSources;
+use App\Services\Importers\Strategies\Monster\CelestialStrategy;
+use App\Services\Importers\Strategies\Monster\ConstructStrategy;
 use App\Services\Importers\Strategies\Monster\DefaultStrategy;
 use App\Services\Importers\Strategies\Monster\DragonStrategy;
+use App\Services\Importers\Strategies\Monster\FiendStrategy;
 use App\Services\Importers\Strategies\Monster\SpellcasterStrategy;
 use App\Services\Importers\Strategies\Monster\SwarmStrategy;
 use App\Services\Importers\Strategies\Monster\UndeadStrategy;
@@ -39,11 +42,14 @@ class MonsterImporter
     protected function initializeStrategies(): void
     {
         $this->strategies = [
-            new SpellcasterStrategy, // Check first (has spells)
+            new SpellcasterStrategy,  // Check first (highest priority)
+            new FiendStrategy,        // NEW
+            new CelestialStrategy,    // NEW
+            new ConstructStrategy,    // NEW
             new DragonStrategy,
             new UndeadStrategy,
             new SwarmStrategy,
-            new DefaultStrategy, // Fallback (must be last)
+            new DefaultStrategy,      // Fallback (must be last)
         ];
     }
 

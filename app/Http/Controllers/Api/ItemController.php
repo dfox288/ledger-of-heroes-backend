@@ -68,7 +68,7 @@ class ItemController extends Controller
      *
      * See `docs/API-EXAMPLES.md` for comprehensive usage examples.
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: is_magic (bool), requires_attunement (bool), rarity (string), type (string), weight (float), spell_slugs (array).', example: 'is_magic = true AND rarity IN [rare, very_rare, legendary]')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: is_magic (bool), requires_attunement (bool), rarity (string), type_code (string), weight (float), cost_cp (int), spell_slugs (array), tag_slugs (array).', example: 'is_magic = true AND rarity IN [rare, very_rare, legendary]')]
     public function index(ItemIndexRequest $request, ItemSearchService $service)
     {
         $dto = ItemSearchDTO::fromRequest($request);

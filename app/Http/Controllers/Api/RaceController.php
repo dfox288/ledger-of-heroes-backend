@@ -93,7 +93,7 @@ class RaceController extends Controller
      *
      * See `docs/API-EXAMPLES.md` for comprehensive usage examples and best practices.
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR. Available fields: size (string), speed (int), has_darkvision (bool), darkvision_range (int).', example: 'speed >= 30 AND has_darkvision = true')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: size_code (string), speed (int), has_darkvision (bool), darkvision_range (int), spell_slugs (array).', example: 'speed >= 30 AND has_darkvision = true')]
     public function index(RaceIndexRequest $request, RaceSearchService $service)
     {
         $dto = RaceSearchDTO::fromRequest($request);

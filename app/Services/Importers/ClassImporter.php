@@ -271,6 +271,90 @@ class ClassImporter extends BaseImporter
     }
 
     /**
+     * Import class with merge strategy for multi-file imports.
+     *
+     * Handles scenarios like:
+     * - PHB defines base Barbarian class with Path of the Berserker
+     * - XGE adds Path of the Ancestral Guardian, Path of the Storm Herald
+     * - TCE adds Path of the Beast
+     *
+     * @param  array  $data  Parsed class data
+     * @param  MergeMode  $mode  Merge strategy
+     * @return CharacterClass
+     */
+    public function importWithMerge(array $data, MergeMode $mode = MergeMode::CREATE): CharacterClass
+    {
+        $slug = $this->generateSlug($data['name']);
+        $existingClass = CharacterClass::where('slug', $slug)->first();
+
+        // Handle SKIP_IF_EXISTS mode
+        if ($existingClass && $mode === MergeMode::SKIP_IF_EXISTS) {
+            Log::channel('import-strategy')->info('Skipped existing class', [
+                'class' => $data['name'],
+                'slug' => $slug,
+                'mode' => $mode->value,
+            ]);
+
+            return $existingClass;
+        }
+
+        // Handle MERGE mode
+        if ($existingClass && $mode === MergeMode::MERGE) {
+            return $this->mergeSupplementData($existingClass, $data);
+        }
+
+        // Default CREATE mode
+        return $this->import($data);
+    }
+
+    /**
+     * Merge supplement data (subclasses, features) into existing class.
+     *
+     * @param  CharacterClass  $existingClass  Base class from PHB
+     * @param  array  $supplementData  Data from XGE/TCE/SCAG
+     * @return CharacterClass
+     */
+    private function mergeSupplementData(CharacterClass $existingClass, array $supplementData): CharacterClass
+    {
+        $mergedSubclasses = 0;
+        $skippedSubclasses = 0;
+
+        // Get existing subclass names to prevent duplicates
+        $existingSubclassNames = $existingClass->subclasses()
+            ->pluck('name')
+            ->map(fn ($name) => strtolower(trim($name)))
+            ->toArray();
+
+        // Merge subclasses
+        if (! empty($supplementData['subclasses'])) {
+            foreach ($supplementData['subclasses'] as $subclassData) {
+                $normalizedName = strtolower(trim($subclassData['name']));
+
+                if (in_array($normalizedName, $existingSubclassNames)) {
+                    $skippedSubclasses++;
+                    Log::channel('import-strategy')->debug('Skipped duplicate subclass', [
+                        'class' => $existingClass->name,
+                        'subclass' => $subclassData['name'],
+                    ]);
+                    continue;
+                }
+
+                // Import new subclass
+                $this->importSubclass($existingClass, $subclassData);
+                $mergedSubclasses++;
+            }
+        }
+
+        Log::channel('import-strategy')->info('Merged supplement data', [
+            'class' => $existingClass->name,
+            'subclasses_merged' => $mergedSubclasses,
+            'subclasses_skipped' => $skippedSubclasses,
+        ]);
+
+        return $existingClass->fresh(); // Reload to get new subclasses
+    }
+
+    /**
      * Import starting equipment for a class.
      *
      * Uses existing entity_items polymorphic table.

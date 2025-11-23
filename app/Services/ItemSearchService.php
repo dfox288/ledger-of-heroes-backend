@@ -12,6 +12,21 @@ use MeiliSearch\Client;
 final class ItemSearchService
 {
     /**
+     * Default relationships to eager-load for both Scout and database queries
+     */
+    private const DEFAULT_RELATIONSHIPS = [
+        'itemType',
+        'damageType',
+        'properties',
+        'sources.source',
+        'prerequisites.prerequisite',
+        'modifiers',
+        'abilities',
+        'spells.spell',
+        'tags',
+    ];
+
+    /**
      * Build Scout search query for full-text search
      */
     public function buildScoutQuery(ItemSearchDTO $dto): \Laravel\Scout\Builder
@@ -58,18 +73,20 @@ final class ItemSearchService
      */
     public function buildDatabaseQuery(ItemSearchDTO $dto): Builder
     {
-        $query = Item::with([
-            'itemType',
-            'damageType',
-            'properties',
-            'sources.source',
-            'prerequisites.prerequisite',
-        ]);
+        $query = Item::with(self::DEFAULT_RELATIONSHIPS);
 
         $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
 
         return $query;
+    }
+
+    /**
+     * Get default relationships for eager loading
+     */
+    public function getDefaultRelationships(): array
+    {
+        return self::DEFAULT_RELATIONSHIPS;
     }
 
     private function applyFilters(Builder $query, ItemSearchDTO $dto): void

@@ -15,6 +15,20 @@ use MeiliSearch\Client;
 final class MonsterSearchService
 {
     /**
+     * Default relationships to eager-load for both Scout and database queries
+     */
+    private const DEFAULT_RELATIONSHIPS = [
+        'size',
+        'sources.source',
+        'modifiers.abilityScore',
+        'modifiers.skill',
+        'modifiers.damageType',
+        'conditions',
+        'spells.spell',
+        'tags',
+    ];
+
+    /**
      * Build Scout search query for full-text search
      */
     public function buildScoutQuery(MonsterSearchDTO $dto): \Laravel\Scout\Builder
@@ -64,19 +78,20 @@ final class MonsterSearchService
      */
     public function buildDatabaseQuery(MonsterSearchDTO $dto): Builder
     {
-        $query = Monster::with([
-            'size',
-            'sources.source',
-            'modifiers.abilityScore',
-            'modifiers.skill',
-            'modifiers.damageType',
-            'conditions',
-        ]);
+        $query = Monster::with(self::DEFAULT_RELATIONSHIPS);
 
         $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
 
         return $query;
+    }
+
+    /**
+     * Get default relationships for eager loading
+     */
+    public function getDefaultRelationships(): array
+    {
+        return self::DEFAULT_RELATIONSHIPS;
     }
 
     private function applyFilters(Builder $query, MonsterSearchDTO $dto): void

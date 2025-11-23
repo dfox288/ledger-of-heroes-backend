@@ -8,6 +8,24 @@ use Illuminate\Database\Eloquent\Builder;
 
 final class RaceSearchService
 {
+    /**
+     * Default relationships to eager-load for both Scout and database queries
+     */
+    private const DEFAULT_RELATIONSHIPS = [
+        'size',
+        'sources.source',
+        'proficiencies.skill',
+        'traits.randomTables.entries',
+        'modifiers.abilityScore',
+        'conditions.condition',
+        'spells.spell',
+        'spells.abilityScore',
+        'parent',
+        'subraces',
+        'languages.language',
+        'tags',
+    ];
+
     public function buildScoutQuery(RaceSearchDTO $dto): \Laravel\Scout\Builder
     {
         $search = Race::search($dto->searchQuery);
@@ -21,21 +39,20 @@ final class RaceSearchService
 
     public function buildDatabaseQuery(RaceSearchDTO $dto): Builder
     {
-        $query = Race::with([
-            'size',
-            'sources.source',
-            'proficiencies.skill',
-            'traits.randomTables.entries',
-            'modifiers.abilityScore',
-            'conditions.condition',
-            'spells.spell',
-            'spells.abilityScore',
-        ]);
+        $query = Race::with(self::DEFAULT_RELATIONSHIPS);
 
         $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
 
         return $query;
+    }
+
+    /**
+     * Get default relationships for eager loading
+     */
+    public function getDefaultRelationships(): array
+    {
+        return self::DEFAULT_RELATIONSHIPS;
     }
 
     private function applyFilters(Builder $query, RaceSearchDTO $dto): void

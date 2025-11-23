@@ -16,6 +16,18 @@ use Illuminate\Database\Eloquent\Builder;
 final class BackgroundSearchService
 {
     /**
+     * Default relationships to eager-load for both Scout and database queries
+     */
+    private const DEFAULT_RELATIONSHIPS = [
+        'sources.source',
+        'modifiers',
+        'proficiencies',
+        'traits',
+        'languages',
+        'tags',
+    ];
+
+    /**
      * Build Scout search query for full-text search
      */
     public function buildScoutQuery(string $searchQuery): \Laravel\Scout\Builder
@@ -36,12 +48,20 @@ final class BackgroundSearchService
      */
     private function buildStandardQuery(BackgroundSearchDTO $dto): Builder
     {
-        $query = Background::with(['sources.source']);
+        $query = Background::with(self::DEFAULT_RELATIONSHIPS);
 
         $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
 
         return $query;
+    }
+
+    /**
+     * Get default relationships for eager loading
+     */
+    public function getDefaultRelationships(): array
+    {
+        return self::DEFAULT_RELATIONSHIPS;
     }
 
     /**

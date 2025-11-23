@@ -98,8 +98,11 @@ class BackgroundController extends Controller
 
         // Use Scout for full-text search, otherwise use database query
         if ($dto->searchQuery !== null) {
+            // Scout search - paginate first, then eager-load relationships
             $backgrounds = $service->buildScoutQuery($dto->searchQuery)->paginate($dto->perPage);
+            $backgrounds->load($service->getDefaultRelationships());
         } else {
+            // Database query - relationships already eager-loaded via with()
             $backgrounds = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 

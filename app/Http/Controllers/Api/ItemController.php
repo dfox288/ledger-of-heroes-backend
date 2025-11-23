@@ -74,8 +74,11 @@ class ItemController extends Controller
         $dto = ItemSearchDTO::fromRequest($request);
 
         if ($dto->searchQuery !== null) {
+            // Scout search - paginate first, then eager-load relationships
             $items = $service->buildScoutQuery($dto)->paginate($dto->perPage);
+            $items->load($service->getDefaultRelationships());
         } else {
+            // Database query - relationships already eager-loaded via with()
             $items = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 

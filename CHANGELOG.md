@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed - Scout Search Relationship Loading (2025-11-23)
+- **Fixed Missing Data in Search Results** - Scout search queries now return complete entity data
+  - Added DEFAULT_RELATIONSHIPS constant to all 7 SearchService classes
+  - Updated all entity controllers to eager-load relationships after Scout pagination
+  - Affects: Races, Spells, Monsters, Items, Classes, Backgrounds, Feats
+  - Search results (`?q=term`) now identical to regular list views
+  - Fixed reported issue: `/races?q=light` now returns full Lightfoot subrace data
+  - Performance: +1 query per search request (~1ms overhead, minimal impact)
+
 ### Improved - Search & API Enhancements (2025-11-23)
 - **Tag Filtering Support** - Added tag_slugs to Meilisearch filterable attributes
   - Updated Monster, Spell, and Item models to include tag_slugs in toSearchableArray()

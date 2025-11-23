@@ -139,10 +139,11 @@ class SpellController extends Controller
         if ($dto->meilisearchFilter !== null) {
             $spells = $service->searchWithMeilisearch($dto, $meilisearch);
         } elseif ($dto->searchQuery !== null) {
-            // Use Scout search with backwards-compatible filters
+            // Scout search - paginate first, then eager-load relationships
             $spells = $service->buildScoutQuery($dto)->paginate($dto->perPage);
+            $spells->load($service->getDefaultRelationships());
         } else {
-            // Fallback to database query (no search, no filters)
+            // Database query - relationships already eager-loaded via with()
             $spells = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 

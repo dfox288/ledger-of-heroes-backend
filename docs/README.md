@@ -56,6 +56,8 @@ docs/
 │   ├── 2025-11-22-monster-importer-strategy-pattern.md
 │   ├── 2025-11-17-dnd-compendium-database-design.md
 │   └── ...
+├── analysis/                                              ← Data analysis docs
+│   └── OPTIONAL-FEATURES-IMPORT-ANALYSIS.md               ← Optional features analysis
 ├── recommendations/                                       ← Analysis docs
 │   ├── CUSTOM-EXCEPTIONS-ANALYSIS.md
 │   ├── NEXT-STEPS-OVERVIEW.md
@@ -170,6 +172,7 @@ curl http://localhost:7700/health
 | **Search system** | [SEARCH.md](SEARCH.md) |
 | **Filter syntax** | [MEILISEARCH-FILTERS.md](MEILISEARCH-FILTERS.md) |
 | **Database design** | [plans/2025-11-17-dnd-compendium-database-design.md](plans/2025-11-17-dnd-compendium-database-design.md) |
+| **Optional features analysis** | [analysis/OPTIONAL-FEATURES-IMPORT-ANALYSIS.md](analysis/OPTIONAL-FEATURES-IMPORT-ANALYSIS.md) |
 | **Exception patterns** | [recommendations/CUSTOM-EXCEPTIONS-ANALYSIS.md](recommendations/CUSTOM-EXCEPTIONS-ANALYSIS.md) |
 | **Next steps** | [recommendations/NEXT-STEPS-OVERVIEW.md](recommendations/NEXT-STEPS-OVERVIEW.md) |
 | **Test optimization** | [recommendations/TEST-REDUCTION-STRATEGY.md](recommendations/TEST-REDUCTION-STRATEGY.md) |

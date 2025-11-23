@@ -99,8 +99,11 @@ class RaceController extends Controller
         $dto = RaceSearchDTO::fromRequest($request);
 
         if ($dto->searchQuery !== null) {
+            // Scout search - paginate first, then eager-load relationships
             $races = $service->buildScoutQuery($dto)->paginate($dto->perPage);
+            $races->load($service->getDefaultRelationships());
         } else {
+            // Database query - relationships already eager-loaded via with()
             $races = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 

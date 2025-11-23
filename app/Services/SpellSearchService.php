@@ -15,6 +15,18 @@ use MeiliSearch\Client;
 final class SpellSearchService
 {
     /**
+     * Default relationships to eager-load for both Scout and database queries
+     */
+    private const DEFAULT_RELATIONSHIPS = [
+        'spellSchool',
+        'sources.source',
+        'effects.damageType',
+        'classes',
+        'savingThrows.abilityScore',
+        'tags',
+    ];
+
+    /**
      * Build Scout search query for full-text search
      */
     public function buildScoutQuery(SpellSearchDTO $dto): \Laravel\Scout\Builder
@@ -56,12 +68,20 @@ final class SpellSearchService
      */
     public function buildDatabaseQuery(SpellSearchDTO $dto): Builder
     {
-        $query = Spell::with(['spellSchool', 'sources.source', 'effects.damageType', 'classes']);
+        $query = Spell::with(self::DEFAULT_RELATIONSHIPS);
 
         $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
 
         return $query;
+    }
+
+    /**
+     * Get default relationships for eager loading
+     */
+    public function getDefaultRelationships(): array
+    {
+        return self::DEFAULT_RELATIONSHIPS;
     }
 
     private function applyFilters(Builder $query, SpellSearchDTO $dto): void

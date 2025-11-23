@@ -106,8 +106,11 @@ class FeatController extends Controller
         $dto = FeatSearchDTO::fromRequest($request);
 
         if ($dto->searchQuery !== null) {
+            // Scout search - paginate first, then eager-load relationships
             $feats = $service->buildScoutQuery($dto->searchQuery)->paginate($dto->perPage);
+            $feats->load($service->getDefaultRelationships());
         } else {
+            // Database query - relationships already eager-loaded via with()
             $feats = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 

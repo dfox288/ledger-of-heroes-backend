@@ -83,10 +83,11 @@ class MonsterController extends Controller
         if ($dto->meilisearchFilter !== null) {
             $monsters = $service->searchWithMeilisearch($dto, $meilisearch);
         } elseif ($dto->searchQuery !== null) {
-            // Use Scout search with backwards-compatible filters
+            // Scout search - paginate first, then eager-load relationships
             $monsters = $service->buildScoutQuery($dto)->paginate($dto->perPage);
+            $monsters->load($service->getDefaultRelationships());
         } else {
-            // Fallback to database query (no search, no filters)
+            // Database query - relationships already eager-loaded via with()
             $monsters = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 

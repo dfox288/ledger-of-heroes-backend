@@ -8,6 +8,20 @@ use Illuminate\Database\Eloquent\Builder;
 
 final class FeatSearchService
 {
+    /**
+     * Default relationships to eager-load for both Scout and database queries
+     */
+    private const DEFAULT_RELATIONSHIPS = [
+        'sources.source',
+        'modifiers.abilityScore',
+        'modifiers.skill',
+        'proficiencies.skill.abilityScore',
+        'proficiencies.proficiencyType',
+        'conditions.condition',
+        'prerequisites.prerequisite',
+        'tags',
+    ];
+
     public function buildScoutQuery(string $searchQuery): \Laravel\Scout\Builder
     {
         return Feat::search($searchQuery);
@@ -15,20 +29,20 @@ final class FeatSearchService
 
     public function buildDatabaseQuery(FeatSearchDTO $dto): Builder
     {
-        $query = Feat::with([
-            'sources.source',
-            'modifiers.abilityScore',
-            'modifiers.skill',
-            'proficiencies.skill.abilityScore',
-            'proficiencies.proficiencyType',
-            'conditions.condition',
-            'prerequisites.prerequisite',
-        ]);
+        $query = Feat::with(self::DEFAULT_RELATIONSHIPS);
 
         $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
 
         return $query;
+    }
+
+    /**
+     * Get default relationships for eager loading
+     */
+    public function getDefaultRelationships(): array
+    {
+        return self::DEFAULT_RELATIONSHIPS;
     }
 
     private function applyFilters(Builder $query, FeatSearchDTO $dto): void

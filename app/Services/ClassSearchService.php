@@ -8,6 +8,23 @@ use Illuminate\Database\Eloquent\Builder;
 
 final class ClassSearchService
 {
+    /**
+     * Default relationships to eager-load for both Scout and database queries
+     */
+    private const DEFAULT_RELATIONSHIPS = [
+        'parent',
+        'subclasses',
+        'spellcastingAbility',
+        'proficiencies.proficiencyType',
+        'traits',
+        'sources.source',
+        'features',
+        'levelProgression',
+        'counters',
+        'modifiers',
+        'tags',
+    ];
+
     public function buildScoutQuery(string $searchQuery): \Laravel\Scout\Builder
     {
         return CharacterClass::search($searchQuery);
@@ -15,22 +32,20 @@ final class ClassSearchService
 
     public function buildDatabaseQuery(ClassSearchDTO $dto): Builder
     {
-        $query = CharacterClass::with([
-            'spellcastingAbility',
-            'proficiencies.proficiencyType',
-            'traits',
-            'sources.source',
-            'features',
-            'levelProgression',
-            'counters',
-            'subclasses.features',
-            'subclasses.counters',
-        ]);
+        $query = CharacterClass::with(self::DEFAULT_RELATIONSHIPS);
 
         $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
 
         return $query;
+    }
+
+    /**
+     * Get default relationships for eager loading
+     */
+    public function getDefaultRelationships(): array
+    {
+        return self::DEFAULT_RELATIONSHIPS;
     }
 
     private function applyFilters(Builder $query, ClassSearchDTO $dto): void

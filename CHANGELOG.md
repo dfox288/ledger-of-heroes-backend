@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Improved - Proficiency Choice Grouping (2025-11-23)
+- **Skill Proficiencies Now Properly Grouped Like Equipment**
+  - Added `choice_group` and `choice_option` columns to `proficiencies` table (mirroring equipment pattern)
+  - Made `quantity` column nullable (only first item in group needs it)
+  - **Before**: Fighter with `numSkills=2` created 8 separate records each saying "is_choice=true, quantity=2" (confusing - which 2 out of 8?)
+  - **After**: 8 skills in one `"skill_choice_1"` group, first skill has `quantity=2` (clear - pick 2 from this group of 8)
+  - Updated `ClassXmlParser::parseProficiencies()` to group skills when `numSkills` present
+  - Updated `ImportsProficiencies` trait to handle new fields
+  - Updated `ProficiencyResource` to expose `choice_group` and `choice_option` in API
+  - **Result**: Frontend apps can now render proficiency choices correctly, matching equipment choice UI pattern
+  - **Use Case**: Character builders can display "Choose 2 skills from: Acrobatics, Animal Handling, Athletics, History..." as a single choice group
+
 ### Fixed - API Resources and Monster Relationships (2025-11-23)
 - **EntityItemResource Now Exposes All Fields**
   - Added `choice_group` and `choice_option` fields to `EntityItemResource` API serialization

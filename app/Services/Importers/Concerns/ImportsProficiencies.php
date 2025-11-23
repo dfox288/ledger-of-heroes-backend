@@ -39,7 +39,9 @@ trait ImportsProficiencies
                 'proficiency_type_id' => $profData['proficiency_type_id'] ?? null, // From parser
                 'grants' => $profData['grants'] ?? $grants, // Use provided or default
                 'is_choice' => $profData['is_choice'] ?? false, // Choice-based proficiency
-                'quantity' => $profData['quantity'] ?? 1, // Number of choices
+                'choice_group' => $profData['choice_group'] ?? null, // Group related choices together
+                'choice_option' => $profData['choice_option'] ?? null, // Option number within group
+                'quantity' => $profData['quantity'] ?? null, // Number of choices (only set for first in group)
             ];
 
             // Handle skill proficiencies - link to skills table

@@ -112,6 +112,7 @@ class ClassXmlParser
 
         // Check if this class has skill choices
         $numSkills = isset($element->numSkills) ? (int) $element->numSkills : null;
+        $choiceCounter = 1; // Track choice groups
 
         // Parse armor proficiencies
         if (isset($element->armor)) {
@@ -171,6 +172,8 @@ class ClassXmlParser
             // We'll need to detect which are abilities vs skills
             $abilityScores = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
 
+            // Collect skills first to apply choice grouping
+            $skills = [];
             foreach ($items as $item) {
                 if (in_array($item, $abilityScores)) {
                     // This is a saving throw - never a choice
@@ -183,21 +186,36 @@ class ClassXmlParser
                 } else {
                     // This is a skill available for selection
                     $proficiencyType = $this->matchProficiencyType($item);
-                    $skillProf = [
+                    $skills[] = [
                         'type' => 'skill',
                         'name' => $item,
                         'proficiency_type_id' => $proficiencyType?->id,
                     ];
+                }
+            }
 
-                    // If numSkills exists, mark skills as choices
-                    if ($numSkills !== null) {
-                        $skillProf['is_choice'] = true;
-                        $skillProf['quantity'] = $numSkills;
-                    } else {
-                        $skillProf['is_choice'] = false;
+            // Apply choice grouping to skills if numSkills exists
+            if (! empty($skills)) {
+                if ($numSkills !== null) {
+                    // All skills are part of one choice group
+                    $choiceGroup = "skill_choice_{$choiceCounter}";
+                    $choiceCounter++;
+
+                    foreach ($skills as $index => $skill) {
+                        $skill['is_choice'] = true;
+                        $skill['choice_group'] = $choiceGroup;
+                        $skill['choice_option'] = $index + 1;
+                        // Only the first skill in the group gets the quantity
+                        // This tells frontend: "pick X from this group"
+                        $skill['quantity'] = ($index === 0) ? $numSkills : null;
+                        $proficiencies[] = $skill;
                     }
-
-                    $proficiencies[] = $skillProf;
+                } else {
+                    // No choices, add skills without grouping
+                    foreach ($skills as $skill) {
+                        $skill['is_choice'] = false;
+                        $proficiencies[] = $skill;
+                    }
                 }
             }
         }

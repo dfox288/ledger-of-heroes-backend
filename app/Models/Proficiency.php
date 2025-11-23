@@ -19,6 +19,8 @@ class Proficiency extends BaseModel
         'proficiency_name',
         'grants',
         'is_choice',
+        'choice_group',
+        'choice_option',
         'quantity',
     ];
 
@@ -30,6 +32,7 @@ class Proficiency extends BaseModel
         'ability_score_id' => 'integer',
         'grants' => 'boolean',
         'is_choice' => 'boolean',
+        'choice_option' => 'integer',
         'quantity' => 'integer',
     ];
 

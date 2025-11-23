@@ -37,6 +37,8 @@ class ProficiencyResource extends JsonResource
             'proficiency_name' => $this->proficiency_name,
             'grants' => $this->grants,
             'is_choice' => $this->is_choice,
+            'choice_group' => $this->choice_group,
+            'choice_option' => $this->choice_option,
             'quantity' => $this->quantity,
         ];
     }

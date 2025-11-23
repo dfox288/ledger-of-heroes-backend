@@ -35,11 +35,23 @@ XML;
         $skills = array_filter($proficiencies, fn ($p) => $p['type'] === 'skill');
         $this->assertCount(4, $skills);
 
-        // All skills should be marked as choices with quantity
-        foreach ($skills as $skill) {
+        // All skills should be in the same choice group
+        $skills = array_values($skills); // Re-index
+        $choiceGroup = $skills[0]['choice_group'];
+        $this->assertEquals('skill_choice_1', $choiceGroup);
+
+        // All skills should be marked as choices with same group
+        foreach ($skills as $index => $skill) {
             $this->assertTrue($skill['is_choice'], "Skill {$skill['name']} should be marked as choice");
-            $this->assertEquals(2, $skill['quantity'], "Skill {$skill['name']} should have quantity=2");
+            $this->assertEquals($choiceGroup, $skill['choice_group'], "Skill {$skill['name']} should have same choice_group");
+            $this->assertEquals($index + 1, $skill['choice_option'], "Skill {$skill['name']} should have sequential choice_option");
         }
+
+        // Only first skill in group should have quantity
+        $this->assertEquals(2, $skills[0]['quantity'], 'First skill should have quantity=2');
+        $this->assertNull($skills[1]['quantity'], 'Second skill should have null quantity');
+        $this->assertNull($skills[2]['quantity'], 'Third skill should have null quantity');
+        $this->assertNull($skills[3]['quantity'], 'Fourth skill should have null quantity');
 
         // Saving throws should NOT be choices
         $savingThrows = array_filter($proficiencies, fn ($p) => $p['type'] === 'saving_throw');
@@ -71,12 +83,23 @@ XML;
         $proficiencies = $data[0]['proficiencies'];
 
         // Find skill proficiencies
-        $skills = array_filter($proficiencies, fn ($p) => $p['type'] === 'skill');
+        $skills = array_values(array_filter($proficiencies, fn ($p) => $p['type'] === 'skill'));
 
-        // All skills should be marked as choices
-        foreach ($skills as $skill) {
+        // All skills should be marked as choices in same group
+        $this->assertGreaterThan(0, count($skills));
+        $choiceGroup = $skills[0]['choice_group'];
+        $this->assertEquals('skill_choice_1', $choiceGroup);
+
+        foreach ($skills as $index => $skill) {
             $this->assertTrue($skill['is_choice']);
-            $this->assertEquals(4, $skill['quantity']);
+            $this->assertEquals($choiceGroup, $skill['choice_group']);
+            $this->assertEquals($index + 1, $skill['choice_option']);
+        }
+
+        // Only first skill should have quantity
+        $this->assertEquals(4, $skills[0]['quantity']);
+        for ($i = 1; $i < count($skills); $i++) {
+            $this->assertNull($skills[$i]['quantity'], "Skill at index {$i} should have null quantity");
         }
     }
 

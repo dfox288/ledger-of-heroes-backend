@@ -358,13 +358,25 @@ class ClassImporterTest extends TestCase
         $this->assertGreaterThan(0, $proficiencies->count());
 
         // Get skill proficiencies
-        $skills = $proficiencies->where('proficiency_type', 'skill');
+        $skills = $proficiencies->where('proficiency_type', 'skill')->values();
         $this->assertGreaterThan(0, $skills->count(), 'Should have skill proficiencies');
 
-        // All skills should be marked as choices with quantity=2
-        foreach ($skills as $skill) {
+        // All skills should be in the same choice group
+        $choiceGroup = $skills[0]->choice_group;
+        $this->assertNotNull($choiceGroup, 'Skills should have a choice_group');
+        $this->assertEquals('skill_choice_1', $choiceGroup);
+
+        // All skills should be marked as choices with same group
+        foreach ($skills as $index => $skill) {
             $this->assertTrue((bool) $skill->is_choice, "Skill {$skill->proficiency_name} should be marked as choice");
-            $this->assertEquals(2, $skill->quantity, "Skill {$skill->proficiency_name} should have quantity=2");
+            $this->assertEquals($choiceGroup, $skill->choice_group, "Skill {$skill->proficiency_name} should have same choice_group");
+            $this->assertEquals($index + 1, $skill->choice_option, "Skill {$skill->proficiency_name} should have sequential choice_option");
+        }
+
+        // Only first skill should have quantity
+        $this->assertEquals(2, $skills[0]->quantity, 'First skill should have quantity=2');
+        for ($i = 1; $i < $skills->count(); $i++) {
+            $this->assertNull($skills[$i]->quantity, "Skill at index {$i} should have null quantity");
         }
 
         // Saving throws should NOT be choices

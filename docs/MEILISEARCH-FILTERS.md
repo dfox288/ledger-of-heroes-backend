@@ -176,6 +176,115 @@ GET /api/v1/classes?filter=is_subclass = false
 GET /api/v1/classes?filter=spellcasting_ability != null
 ```
 
+### Monsters
+
+**Filterable Attributes:**
+- `challenge_rating` - Challenge rating (string: "0", "1/8", "1/4", "1/2", "1"-"30")
+- `type` - Monster type (dragon, fiend, undead, etc.)
+- `size_code` - Size code (T, S, M, L, H, G)
+- `alignment` - Alignment string
+- `armor_class` - Armor class (integer)
+- `hit_points_average` - Average hit points (integer)
+- `experience_points` - XP value (integer)
+- `spell_slugs` - Array of spell slugs the monster can cast
+- `tag_slugs` - Array of tag slugs (creature_type, immunities, etc.)
+- `source_codes` - Source book codes (array)
+
+**Examples:**
+
+```bash
+# Dragons only
+GET /api/v1/monsters?filter=type = dragon
+
+# Challenge Rating 10-15
+GET /api/v1/monsters?filter=challenge_rating IN [10, 11, 12, 13, 14, 15]
+
+# High AC tanks (AC 18+, HP 100+)
+GET /api/v1/monsters?filter=armor_class >= 18 AND hit_points_average >= 100
+
+# Boss monsters (CR 20+)
+GET /api/v1/monsters?filter=challenge_rating IN [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+```
+
+**Tag-Based Filtering (Advanced):**
+
+```bash
+# All fiends
+GET /api/v1/monsters?filter=tag_slugs IN [fiend]
+
+# Fire-immune creatures
+GET /api/v1/monsters?filter=tag_slugs IN [fire-immune]
+
+# Fiends OR undead (multiple tags, OR logic)
+GET /api/v1/monsters?filter=tag_slugs IN [fiend, undead]
+
+# Fire-immune dragons (combining tag + type)
+GET /api/v1/monsters?filter=tag_slugs IN [fire-immune] AND type = dragon
+
+# High CR fiends (combining tag + CR)
+GET /api/v1/monsters?filter=tag_slugs IN [fiend] AND challenge_rating IN [15, 16, 17, 18, 19, 20]
+
+# Poison-immune AND magic-resistant creatures
+GET /api/v1/monsters?filter=tag_slugs IN [poison-immune] AND tag_slugs IN [magic-resistance]
+```
+
+**Spell-Based Filtering (Advanced):**
+
+```bash
+# Monsters that can cast Fireball
+GET /api/v1/monsters?filter=spell_slugs IN [fireball]
+
+# Monsters with Fireball OR Lightning Bolt
+GET /api/v1/monsters?filter=spell_slugs IN [fireball, lightning-bolt]
+
+# Spellcasting dragons
+GET /api/v1/monsters?filter=type = dragon AND spell_slugs IN [fireball, polymorph, teleport]
+
+# High CR spellcasters with crowd control
+GET /api/v1/monsters?filter=challenge_rating >= 10 AND spell_slugs IN [hold-person, dominate-person]
+```
+
+**Use Cases:**
+- **Encounter Building:** Find balanced enemies for your party's level
+- **Themed Campaigns:** All fire-themed enemies, all undead necromancers
+- **Spell Tracking:** Identify monsters that can counterspell, teleport, or summon
+- **DM Preparation:** Find monsters with specific abilities or immunities
+
+### Backgrounds
+
+**Filterable Attributes:**
+- `source_codes` - Source book codes (array)
+- `tag_slugs` - Array of tag slugs for categorization
+
+**Examples:**
+
+```bash
+# Backgrounds from Player's Handbook
+GET /api/v1/backgrounds?filter=source_codes IN [PHB]
+
+# Urban-themed backgrounds
+GET /api/v1/backgrounds?filter=tag_slugs IN [urban]
+```
+
+### Feats
+
+**Filterable Attributes:**
+- `source_codes` - Source book codes (array)
+- `tag_slugs` - Array of tag slugs (combat, spellcasting, etc.)
+
+**Examples:**
+
+```bash
+# Combat-focused feats
+GET /api/v1/feats?filter=tag_slugs IN [combat]
+
+# Feats from Xanathar's Guide
+GET /api/v1/feats?filter=source_codes IN [XGE]
+
+# Spellcasting feats
+GET /api/v1/feats?filter=tag_slugs IN [spellcasting]
+```
+
 ---
 
 ## Combining Search with Filters
@@ -391,5 +500,5 @@ GET /api/v1/items?filter=is_magic = true AND rarity = uncommon&sort_by=name
 
 ---
 
-**Last Updated:** 2025-11-21
+**Last Updated:** 2025-11-23
 **API Version:** v1

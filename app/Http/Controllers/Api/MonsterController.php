@@ -67,12 +67,24 @@ class MonsterController extends Controller
      * - Weak monsters: `GET /api/v1/monsters?filter=challenge_rating <= 1 AND hit_points_average < 20`
      * - Tank enemies: `GET /api/v1/monsters?filter=armor_class >= 18 AND hit_points_average >= 100`
      *
+     * **Tag-Based Filtering Examples:**
+     * - All fiends: `GET /api/v1/monsters?filter=tag_slugs IN [fiend]`
+     * - Fire-immune creatures: `GET /api/v1/monsters?filter=tag_slugs IN [fire-immune]`
+     * - Fiends OR undead: `GET /api/v1/monsters?filter=tag_slugs IN [fiend, undead]`
+     * - Fire-immune dragons: `GET /api/v1/monsters?filter=tag_slugs IN [fire-immune] AND type = dragon`
+     * - High CR fiends: `GET /api/v1/monsters?filter=tag_slugs IN [fiend] AND challenge_rating IN [15, 16, 17, 18, 19, 20]`
+     *
+     * **Spell-Based Filtering Examples:**
+     * - Fireball casters: `GET /api/v1/monsters?filter=spell_slugs IN [fireball]`
+     * - Fireball OR Lightning Bolt: `GET /api/v1/monsters?filter=spell_slugs IN [fireball, lightning-bolt]`
+     * - Spellcasting dragons: `GET /api/v1/monsters?filter=type = dragon AND spell_slugs IN [fireball, polymorph]`
+     *
      * **Meilisearch Operators:**
      * - Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`
      * - Logic: `AND`, `OR`
      * - Membership: `IN [value1, value2]`
      *
-     * See `docs/API-EXAMPLES.md` for 300+ lines of comprehensive usage examples.
+     * See `docs/API-EXAMPLES.md` and `docs/MEILISEARCH-FILTERS.md` for comprehensive examples.
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: challenge_rating (string), type (string), size_code (string), alignment (string), armor_class (int), hit_points_average (int), experience_points (int), spell_slugs (array), tag_slugs (array).', example: 'challenge_rating >= 5 AND challenge_rating <= 10 AND type = dragon')]
     public function index(MonsterIndexRequest $request, MonsterSearchService $service, Client $meilisearch)

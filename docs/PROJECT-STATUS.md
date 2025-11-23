@@ -2,7 +2,7 @@
 
 **Last Updated:** 2025-11-23
 **Branch:** main
-**Status:** ✅ Production-Ready - Monster Strategies Complete
+**Status:** ✅ Production-Ready - Equipment Parsing Complete
 
 ---
 
@@ -10,14 +10,14 @@
 
 | Metric | Value | Status |
 |--------|-------|--------|
-| **Tests** | 1,336 passing (7,300+ assertions) | ✅ 100% pass rate |
-| **Duration** | ~52 seconds | ✅ Fast |
+| **Tests** | 1,389 passing (7,500+ assertions) | ✅ 100% pass rate |
+| **Duration** | ~68 seconds | ✅ Fast |
 | **Migrations** | 64 complete | ✅ Stable |
 | **Models** | 32 (all with HasFactory) | ✅ Complete |
 | **API** | 29 Resources + 18 Controllers + 26+ Form Requests | ✅ Production-ready |
 | **Importers** | 9 working | ✅ Spells, Classes, Races, Items, Backgrounds, Feats, Monsters, Spell-Class Mappings, Master Import |
 | **Monster Strategies** | 12 strategies (95%+ monster coverage) | ✅ Beast, Elemental, Shapechanger, Aberration, Fiend, Celestial, Construct, Dragon, Spellcaster, Undead, Swarm, Default |
-| **Importer Traits** | 22 reusable traits | ✅ ~360 lines of duplication eliminated |
+| **Importer Traits** | 23 reusable traits | ✅ ~360 lines of duplication eliminated |
 | **Search** | 3,600+ documents indexed | ✅ Scout + Meilisearch |
 | **OpenAPI** | 306KB spec | ✅ Auto-generated via Scramble |
 | **Code Quality** | Laravel Pint formatted | ✅ Clean |
@@ -25,6 +25,29 @@
 ---
 
 ## 🚀 Recent Milestones
+
+### Class Equipment Parsing - Phase 1 & 2 ✅ COMPLETE (2025-11-23)
+- **Goal:** Fix broken equipment parsing and add item matching
+- **Achievement:** Equipment system now 100% functional with intelligent item matching
+- **Phase 1 - Parser Fixes:**
+  - Fixed bullet point regex to handle tab-indented bullets (`\s*` in lookahead)
+  - Fixed choice extraction to allow parentheses in item names (`.+?` instead of `[^()]+?`)
+  - Added UTF-8 support (`u` flag) to handle bullet character (•) correctly
+  - Improved item splitting regex to handle Oxford commas (`", and "`)
+  - Removed ASCII-only filter that was corrupting UTF-8
+  - All 5 equipment parser tests now passing (was 4/5)
+- **Phase 2 - Item Matching:**
+  - Created `ImportsEntityItems` trait with intelligent fuzzy matching
+  - Handles articles, plurals, quantities, compound items, possessives
+  - Prefers non-magic items (`ORDER BY is_magic ASC`)
+  - Populates `item_id` foreign key when matches found
+  - 9 new tests with 45 assertions (100% passing)
+  - 100% match rate on Rogue equipment (10/10 items)
+- **Impact:**
+  - Character builders can present structured equipment choices
+  - API can display full item details via `item_id` FK
+  - Equipment now correctly grouped (choice_1, choice_2, choice_3)
+- **Documentation:** Session handover, CHANGELOG, PROJECT-STATUS updated
 
 ### BeastStrategy ✅ COMPLETE (2025-11-23)
 - **Goal:** Tag 102 beast-type monsters (highest single type - 17% of all monsters)

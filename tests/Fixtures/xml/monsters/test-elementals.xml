@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <monster>
+    <name>Fire Elemental</name>
+    <size>L</size>
+    <type>elemental</type>
+    <alignment>Neutral</alignment>
+    <ac>13</ac>
+    <hp>102 (12d10+36)</hp>
+    <speed>walk 50 ft.</speed>
+    <str>10</str>
+    <dex>17</dex>
+    <con>16</con>
+    <int>6</int>
+    <wis>10</wis>
+    <cha>7</cha>
+    <passive>10</passive>
+    <languages>Ignan</languages>
+    <cr>5</cr>
+    <resist>bludgeoning, piercing, slashing from nonmagical attacks</resist>
+    <immune>fire, poison</immune>
+    <conditionImmune>exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious</conditionImmune>
+    <senses>darkvision 60 ft.</senses>
+    <trait>
+      <name>Fire Form</name>
+      <text>The elemental can move through a space as narrow as 1 inch wide without squeezing. A creature that touches the elemental or hits it with a melee attack while within 5 feet of it takes 5 (1d10) fire damage. In addition, the elemental can enter a hostile creature's space and stop there. The first time it enters a creature's space on a turn, that creature takes 5 (1d10) fire damage and catches fire; until someone takes an action to douse the fire, the creature takes 5 (1d10) fire damage at the start of each of its turns.</text>
+      </trait>
+  </monster>
+  <monster>
+    <name>Water Elemental</name>
+    <size>L</size>
+    <type>elemental</type>
+    <alignment>Neutral</alignment>
+    <ac>14 (natural armor)</ac>
+    <hp>114 (12d10+48)</hp>
+    <speed>walk 30 ft., swim 90 ft.</speed>
+    <str>18</str>
+    <dex>14</dex>
+    <con>18</con>
+    <int>5</int>
+    <wis>10</wis>
+    <cha>8</cha>
+    <passive>10</passive>
+    <languages>Aquan</languages>
+    <cr>5</cr>
+    <resist>acid; bludgeoning, piercing, slashing from nonmagical attacks</resist>
+    <immune>poison</immune>
+    <conditionImmune>exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious</conditionImmune>
+    <senses>darkvision 60 ft.</senses>
+    <trait>
+      <name>Water Form</name>
+      <text>The elemental can enter a hostile creature's space and stop there. It can move through a space as narrow as 1 inch wide without squeezing.</text>
+    </trait>
+  </monster>
+  <monster>
+    <name>Earth Elemental</name>
+    <size>L</size>
+    <type>elemental</type>
+    <alignment>Neutral</alignment>
+    <ac>17 (natural armor)</ac>
+    <hp>126 (12d10+60)</hp>
+    <speed>walk 30 ft., burrow 30 ft.</speed>
+    <str>20</str>
+    <dex>8</dex>
+    <con>20</con>
+    <int>5</int>
+    <wis>10</wis>
+    <cha>5</cha>
+    <passive>10</passive>
+    <languages>Terran</languages>
+    <cr>5</cr>
+    <vulnerable>thunder</vulnerable>
+    <resist>bludgeoning, piercing, slashing from nonmagical attacks</resist>
+    <immune>poison</immune>
+    <conditionImmune>exhaustion, paralyzed, petrified, poisoned, unconscious</conditionImmune>
+    <senses>darkvision 60 ft., tremorsense 60 ft.</senses>
+    <trait>
+      <name>Earth Glide</name>
+      <text>The elemental can burrow through nonmagical, unworked earth and stone. While doing so, the elemental doesn't disturb the material it moves through.</text>
+    </trait>
+  </monster>
+  <monster>
+    <name>Air Elemental</name>
+    <size>L</size>
+    <type>elemental</type>
+    <alignment>Neutral</alignment>
+    <ac>15</ac>
+    <hp>90 (12d10+24)</hp>
+    <speed>walk 0 ft., fly 90 ft.</speed>
+    <str>14</str>
+    <dex>20</dex>
+    <con>14</con>
+    <int>6</int>
+    <wis>10</wis>
+    <cha>6</cha>
+    <passive>10</passive>
+    <languages>Auran</languages>
+    <cr>5</cr>
+    <resist>lightning, thunder; bludgeoning, piercing, slashing from nonmagical attacks</resist>
+    <immune>poison</immune>
+    <conditionImmune>exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious</conditionImmune>
+    <senses>darkvision 60 ft.</senses>
+    <trait>
+      <name>Air Form</name>
+      <text>The elemental can enter a hostile creature's space and stop there. It can move through a space as narrow as 1 inch wide without squeezing.</text>
+    </trait>
+  </monster>
+</compendium>

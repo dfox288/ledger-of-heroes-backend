@@ -226,7 +226,16 @@ class ClassImporter extends BaseImporter
         // 1. Generate hierarchical slug: "fighter-battle-master"
         $fullSlug = $this->generateSlug($subclassData['name'], $parentClass->slug);
 
-        // 2. Create or update subclass
+        // 2. Determine spellcasting ability
+        // Use subclass-specific ability if present (e.g., Arcane Trickster, Eldritch Knight)
+        // Otherwise inherit from parent
+        $spellcastingAbilityId = $parentClass->spellcasting_ability_id;
+        if (! empty($subclassData['spellcasting_ability'])) {
+            $ability = \App\Models\AbilityScore::where('name', $subclassData['spellcasting_ability'])->first();
+            $spellcastingAbilityId = $ability?->id;
+        }
+
+        // 3. Create or update subclass
         $subclass = CharacterClass::updateOrCreate(
             ['slug' => $fullSlug],
             [
@@ -234,13 +243,14 @@ class ClassImporter extends BaseImporter
                 'parent_class_id' => $parentClass->id,
                 'hit_die' => $parentClass->hit_die, // Inherit from parent
                 'description' => "Subclass of {$parentClass->name}",
-                'spellcasting_ability_id' => $parentClass->spellcasting_ability_id, // Inherit from parent
+                'spellcasting_ability_id' => $spellcastingAbilityId,
             ]
         );
 
-        // 3. Clear existing relationships
+        // 4. Clear existing relationships
         $subclass->features()->delete();
         $subclass->counters()->delete();
+        $subclass->levelProgression()->delete();
 
         // 4. Import subclass-specific features
         if (! empty($subclassData['features'])) {
@@ -265,6 +275,11 @@ class ClassImporter extends BaseImporter
                     'reset_timing' => $resetTiming,
                 ]);
             }
+        }
+
+        // 6. Import subclass-specific spell progression (e.g., Arcane Trickster, Eldritch Knight)
+        if (! empty($subclassData['spell_progression'])) {
+            $this->importSpellProgression($subclass, $subclassData['spell_progression']);
         }
 
         return $subclass;

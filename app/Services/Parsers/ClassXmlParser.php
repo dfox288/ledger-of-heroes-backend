@@ -82,8 +82,15 @@ class ClassXmlParser
         // Parse counters from autolevel elements
         $data['counters'] = $this->parseCounters($element);
 
+        // Parse optional spell slots (for subclasses like Arcane Trickster, Eldritch Knight)
+        $optionalSpellData = $this->parseOptionalSpellSlots($element);
+
         // Detect and group subclasses, and filter base class features
-        $subclassData = $this->detectSubclasses($data['features'], $data['counters']);
+        $subclassData = $this->detectSubclasses(
+            $data['features'],
+            $data['counters'],
+            $optionalSpellData
+        );
         $data['subclasses'] = $subclassData['subclasses'];
         $data['features'] = $subclassData['filtered_base_features']; // Use filtered list
 
@@ -337,6 +344,102 @@ class ClassXmlParser
     }
 
     /**
+     * Parse optional spell slots and match them to spellcasting subclasses.
+     * Returns array keyed by subclass name containing spell progression data.
+     *
+     * @return array<string, array{spellcasting_ability: string, spell_progression: array}>
+     */
+    private function parseOptionalSpellSlots(SimpleXMLElement $element): array
+    {
+        $optionalSlots = [];
+        $spellsKnownByLevel = [];
+        $spellcastingAbility = null;
+
+        // First pass: Collect all optional spell slots and "Spells Known" counters
+        foreach ($element->autolevel as $autolevel) {
+            $level = (int) $autolevel['level'];
+
+            // Check if this autolevel has optional spell slots
+            if (isset($autolevel->slots)) {
+                $isOptional = isset($autolevel->slots['optional'])
+                    && (string) $autolevel->slots['optional'] === 'YES';
+
+                if ($isOptional) {
+                    $slotsString = (string) $autolevel->slots;
+                    $slots = array_map('intval', explode(',', $slotsString));
+
+                    $optionalSlots[] = [
+                        'level' => $level,
+                        'cantrips_known' => $slots[0] ?? 0,
+                        'spell_slots_1st' => $slots[1] ?? 0,
+                        'spell_slots_2nd' => $slots[2] ?? 0,
+                        'spell_slots_3rd' => $slots[3] ?? 0,
+                        'spell_slots_4th' => $slots[4] ?? 0,
+                        'spell_slots_5th' => $slots[5] ?? 0,
+                        'spell_slots_6th' => $slots[6] ?? 0,
+                        'spell_slots_7th' => $slots[7] ?? 0,
+                        'spell_slots_8th' => $slots[8] ?? 0,
+                        'spell_slots_9th' => $slots[9] ?? 0,
+                    ];
+                }
+            }
+
+            // Collect ALL "Spells Known" counters (might be in separate autolevel blocks)
+            foreach ($autolevel->counter as $counterElement) {
+                if ((string) $counterElement->name === 'Spells Known') {
+                    $spellsKnownByLevel[$level] = (int) $counterElement->value;
+                    break;
+                }
+            }
+        }
+
+        // If no optional slots, return empty
+        if (empty($optionalSlots)) {
+            return [];
+        }
+
+        // Get spellcasting ability if defined (for optional spellcasters)
+        if (isset($element->spellAbility)) {
+            $spellcastingAbility = (string) $element->spellAbility;
+        }
+
+        // Second pass: Find "Spellcasting (SubclassName)" features to match slots to subclass
+        $spellcastingSubclass = null;
+        foreach ($element->autolevel as $autolevel) {
+            foreach ($autolevel->feature as $featureElement) {
+                $featureName = (string) $featureElement->name;
+
+                // Pattern: "Spellcasting (Arcane Trickster)" or "Spellcasting (Eldritch Knight)"
+                if (preg_match('/^Spellcasting\s*\((.+)\)$/', $featureName, $matches)) {
+                    $spellcastingSubclass = trim($matches[1]);
+                    break 2; // Break both loops
+                }
+            }
+        }
+
+        // If we found a spellcasting subclass, assign the optional slots to it
+        if ($spellcastingSubclass !== null) {
+            // Merge spells_known counters into progression
+            foreach ($optionalSlots as &$progression) {
+                if (isset($spellsKnownByLevel[$progression['level']])) {
+                    $progression['spells_known'] = $spellsKnownByLevel[$progression['level']];
+                }
+            }
+            unset($progression);
+
+            return [
+                $spellcastingSubclass => [
+                    'spellcasting_ability' => $spellcastingAbility,
+                    'spell_progression' => $optionalSlots,
+                ],
+            ];
+        }
+
+        // No spellcasting subclass found - slots remain unassigned
+        return [];
+    }
+
+    /**
      * Parse counters (Ki, Rage, etc.) from autolevel elements.
      *
      * @return array<int, array<string, mixed>>
@@ -400,7 +503,7 @@ class ClassXmlParser
      * @param  array<int, array<string, mixed>>  $counters
      * @return array{subclasses: array, filtered_base_features: array}
      */
-    private function detectSubclasses(array $features, array $counters): array
+    private function detectSubclasses(array $features, array $counters, array $optionalSpellData = []): array
     {
         $subclasses = [];
         $subclassNames = [];
@@ -469,11 +572,22 @@ class ClassXmlParser
                 }
             }
 
-            $subclasses[] = [
+            $subclass = [
                 'name' => $subclassName,
                 'features' => $subclassFeatures,
                 'counters' => $subclassCounters,
             ];
+
+            // Add spell progression if this subclass has optional spellcasting
+            if (isset($optionalSpellData[$subclassName])) {
+                $spellData = $optionalSpellData[$subclassName];
+                $subclass['spell_progression'] = $spellData['spell_progression'];
+                if ($spellData['spellcasting_ability']) {
+                    $subclass['spellcasting_ability'] = $spellData['spellcasting_ability'];
+                }
+            }
+
+            $subclasses[] = $subclass;
         }
 
         // Filter base class features - remove any that belong to subclasses

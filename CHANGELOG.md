@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Subclass Spell Progression Assignment (2025-11-23)
+- **Optional Spell Slots Now Correctly Assigned to Spellcasting Subclasses**
+  - Parser now detects "Spellcasting (SubclassName)" features to identify which subclass receives optional spell slots
+  - Arcane Trickster and Eldritch Knight now have complete spell progression (18 levels each)
+  - Subclass spellcasting ability (Intelligence) correctly set instead of inheriting from parent
+  - "Spells Known" counters now merged with spell progression for subclasses
+  - **Example**: Arcane Trickster L3 → 3 cantrips, 2 1st-level slots, 3 spells known
+  - **Example**: Eldritch Knight L3 → 2 cantrips, 2 1st-level slots, 3 spells known
+  - Added `parseOptionalSpellSlots()` method to ClassXmlParser with feature text pattern matching
+  - Updated `importSubclass()` in ClassImporter to store spell progression and ability
+  - Added 6 comprehensive tests in `ClassXmlParserSubclassSpellSlotsTest`
+  - All 33 ClassXmlParser tests passing (272 assertions)
+  - **Use Case**: Character builders can now display spell progression for 1/3 caster subclasses
+
 ### Added - Complete Show Endpoint Relationship Exposure (2025-11-23)
 - **Show Endpoints Now Expose ALL Available Model Relationships**
   - Fixed incorrect relationship names: `'entitySpells'` → `'spells'` in Monster and Item services

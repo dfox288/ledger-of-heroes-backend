@@ -52,6 +52,12 @@ class RaceController extends Controller
      * - Combined filters: `GET /api/v1/races?spells=darkness&spell_level=1`
      *   (Returns: Races with Darkness AND at least one level 1 spell)
      *
+     * **Tag-Based Filtering Examples (Meilisearch):**
+     * - Darkvision races: `GET /api/v1/races?filter=tag_slugs IN [darkvision]`
+     * - Fey ancestry: `GET /api/v1/races?filter=tag_slugs IN [fey-ancestry]`
+     * - Multiple tags (OR): `GET /api/v1/races?filter=tag_slugs IN [darkvision, fey-ancestry]`
+     * - Combined filters: `GET /api/v1/races?filter=tag_slugs IN [darkvision] AND speed >= 35`
+     *
      * **Use Cases:**
      * - Character optimization: Which races get free teleportation? (`?spells=misty-step`)
      * - Spell synergy: Races with innate invisibility (`?spells=invisibility`)
@@ -93,7 +99,7 @@ class RaceController extends Controller
      *
      * See `docs/API-EXAMPLES.md` for comprehensive usage examples and best practices.
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: size_code (string), speed (int), has_darkvision (bool), darkvision_range (int), spell_slugs (array).', example: 'speed >= 30 AND has_darkvision = true')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: size_code (string), speed (int), has_darkvision (bool), darkvision_range (int), spell_slugs (array), tag_slugs (array).', example: 'speed >= 30 AND tag_slugs IN [darkvision]')]
     public function index(RaceIndexRequest $request, RaceSearchService $service)
     {
         $dto = RaceSearchDTO::fromRequest($request);

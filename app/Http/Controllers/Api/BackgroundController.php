@@ -59,6 +59,12 @@ class BackgroundController extends Controller
      * - Equipment Planning: Compare starting equipment for early-game optimization
      * - Build Synergy: Match background skills with class features (Rogue + Criminal)
      *
+     * **Tag-Based Filtering Examples (Meilisearch):**
+     * - Criminal backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [criminal]`
+     * - Noble backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [noble]`
+     * - Guild member backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [guild-member]`
+     * - Multiple tags (OR): `GET /api/v1/backgrounds?filter=tag_slugs IN [criminal, outlander]`
+     *
      * **Query Parameters:**
      * - `q` (string): Full-text search term (searches name, description, feature text)
      * - `filter` (string): Meilisearch filter expression (limited fields for backgrounds)
@@ -91,7 +97,7 @@ class BackgroundController extends Controller
      * @param  BackgroundSearchService  $service  Service layer for background queries
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Note: Backgrounds have limited filterable fields. Use search (q parameter) for most queries.', example: 'name = Acolyte')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Available fields: source_codes (array), tag_slugs (array). Use search (q parameter) for text queries.', example: 'tag_slugs IN [criminal, noble]')]
     public function index(BackgroundIndexRequest $request, BackgroundSearchService $service)
     {
         $dto = BackgroundSearchDTO::fromRequest($request);

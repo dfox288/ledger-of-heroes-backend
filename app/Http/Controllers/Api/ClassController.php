@@ -52,6 +52,12 @@ class ClassController extends Controller
      * - **Optimization:** Find INT-based spellcasters (`?filter=spellcasting_ability_code = INT`)
      * - **Build Planning:** Cleric or Paladin with specific spells (`?spells=revivify&filter=spellcasting_ability_code = WIS OR spellcasting_ability_code = CHA`)
      *
+     * **Tag-Based Filtering Examples (Meilisearch):**
+     * - Full spellcasters: `GET /api/v1/classes?filter=tag_slugs IN [full-caster]`
+     * - Martial classes: `GET /api/v1/classes?filter=tag_slugs IN [martial]`
+     * - Half casters: `GET /api/v1/classes?filter=tag_slugs IN [half-caster]`
+     * - Combined filters: `GET /api/v1/classes?filter=tag_slugs IN [spellcaster] AND hit_die >= 8`
+     *
      * **Parameter Reference:**
      * - `is_spellcaster` (bool): Filter by spellcasting ability (true=has spellcasting, false=no spellcasting)
      * - `hit_die` (int): Filter by hit die size (6, 8, 10, or 12)
@@ -72,7 +78,7 @@ class ClassController extends Controller
      *
      * See `docs/API-EXAMPLES.md` for comprehensive usage examples.
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: hit_die (int), is_spellcaster (bool), spellcasting_ability_code (string), is_subclass (bool).', example: 'is_spellcaster = true AND hit_die >= 8')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: hit_die (int), is_spellcaster (bool), spellcasting_ability_code (string), is_subclass (bool), tag_slugs (array).', example: 'tag_slugs IN [full-caster] AND hit_die >= 8')]
     public function index(ClassIndexRequest $request, ClassSearchService $service)
     {
         $dto = ClassSearchDTO::fromRequest($request);

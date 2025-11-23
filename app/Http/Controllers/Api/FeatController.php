@@ -60,6 +60,12 @@ class FeatController extends Controller
      * - Multiclass Synergies: Match feats with class features (War Caster for Sorcerer/Paladin)
      * - Min-Max Optimization: Filter by granted bonuses (Lucky, Great Weapon Master)
      *
+     * **Tag-Based Filtering Examples (Meilisearch):**
+     * - Combat feats: `GET /api/v1/feats?filter=tag_slugs IN [combat]`
+     * - Magic feats: `GET /api/v1/feats?filter=tag_slugs IN [magic]`
+     * - Skill improvement feats: `GET /api/v1/feats?filter=tag_slugs IN [skill-improvement]`
+     * - Multiple tags (OR): `GET /api/v1/feats?filter=tag_slugs IN [combat, magic]`
+     *
      * **Query Parameters:**
      * - `q` (string): Full-text search term (searches name, description, text)
      * - `filter` (string): Meilisearch filter expression (limited - use legacy parameters)
@@ -100,7 +106,7 @@ class FeatController extends Controller
      * @param  FeatSearchService  $service  Service layer for feat queries
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Note: Prerequisites are stored relationally. Use legacy parameters (prerequisite_race, prerequisite_ability) for prerequisite filtering.', example: 'name = "War Caster"')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Available fields: source_codes (array), tag_slugs (array). Use legacy parameters (prerequisite_race, prerequisite_ability) for prerequisite filtering.', example: 'tag_slugs IN [combat, magic]')]
     public function index(FeatIndexRequest $request, FeatSearchService $service)
     {
         $dto = FeatSearchDTO::fromRequest($request);

@@ -7,14 +7,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Laravel 12.x application importing D&D 5th Edition XML content and providing a RESTful API.
 
 **Current Status (2025-11-23):**
-- ✅ **1,273 tests passing** (7,200+ assertions) - 100% pass rate, comprehensive coverage
+- ✅ **1,303 tests passing** (7,276+ assertions) - 100% pass rate, comprehensive coverage
 - ✅ **64 migrations** - Complete schema (slugs, languages, prerequisites, spell tags, saving throws with DC, monsters)
 - ✅ **32 models + 29 API Resources + 18 controllers** - Full CRUD + Search for 7 entities
 - ✅ **9 importers** - Spells, Classes, Races, Items, Backgrounds, Feats, Monsters, Spell Class Mappings, Master Import
 - ✅ **22 reusable traits** - 7 NEW from refactoring (2025-11-22), ~360 lines eliminated
 - ✅ **Monster API Complete** - 598 monsters imported, full REST API with filtering by CR/type/size/alignment/spells
 - ✅ **Monster Spell Filtering API** - Query monsters by spells (`?spells=fireball`), list monster spells (`GET /monsters/{id}/spells`)
-- ✅ **Monster Importer with Strategy Pattern** - 5 type-specific strategies (Dragon, Spellcaster, Undead, Swarm, Default)
+- ✅ **Monster Importer with Strategy Pattern** - 8 type-specific strategies (Fiend, Celestial, Construct, Dragon, Spellcaster, Undead, Swarm, Default)
+- ✅ **Monster Strategy Tags** - 72 monsters enhanced with tags (28 fiends, 2 celestials, 42 constructs)
 - ✅ **Monster Spell Syncing** - SpellcasterStrategy syncs 1,098 spell relationships for 129 spellcasting monsters
 - ✅ **Item Parser Strategy Pattern** - 5 type-specific strategies (Charged, Scroll, Potion, Tattoo, Legendary)
 - ✅ **Performance Optimizations Complete** - Redis caching for lookup + entity endpoints (93.7% improvement, 16.6x faster)
@@ -51,9 +52,10 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 
 **🚀 Next tasks (all optional - core features complete):**
 1. Search result caching (Phase 4) - Cache Meilisearch queries - 2-3 hours
-2. Character Builder API (character creation, leveling, spell selection) - 8-12 hours
-3. Additional Monster Strategies (FiendStrategy, CelestialStrategy, ConstructStrategy) - 2-3h each
-4. Frontend Application (Inertia.js/Vue or Next.js/React) - 20-40 hours
+2. Additional Monster Strategies (ShapechangerStrategy, ElementalStrategy, AberrationStrategy) - 2-3h each
+3. Tag-based filtering in MonsterController - Enable `?filter=tags.slug = fire_immune` - 1-2 hours
+4. Character Builder API (character creation, leveling, spell selection) - 8-12 hours
+5. Frontend Application (Inertia.js/Vue or Next.js/React) - 20-40 hours
 
 ---
 
@@ -673,4 +675,4 @@ After completing ANY feature (bug fix, enhancement, new functionality):
 
 ---
 
-**Branch:** `main` | **Status:** ✅ Performance Optimized (Phase 3 Complete) | **Tests:** 1,273 passing | **Models:** 32 | **Importers:** 9 (Strategy Pattern)
+**Branch:** `main` | **Status:** ✅ Monster Strategies Complete (8 Strategies) | **Tests:** 1,303 passing | **Models:** 32 | **Importers:** 9 (Strategy Pattern)

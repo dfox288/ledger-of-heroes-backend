@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Search results (`?q=term`) now identical to regular list views
   - Fixed reported issue: `/races?q=light` now returns full Lightfoot subrace data
   - Performance: +1 query per search request (~1ms overhead, minimal impact)
+  - **Corrections Applied** - Fixed 500 errors from incorrect relationship names
+    - ClassSearchService: Changed 'parent' → 'parentClass', restored nested notation
+    - Removed excessive relationships added in initial fix (tags, spells, etc.)
+    - All services now use EXACT original relationships for consistency
+    - See `docs/SESSION-HANDOVER-2025-11-23-SCOUT-SEARCH-RELATIONSHIP-FIX.md` for details
 
 ### Improved - Search & API Enhancements (2025-11-23)
 - **Tag Filtering Support** - Added tag_slugs to Meilisearch filterable attributes

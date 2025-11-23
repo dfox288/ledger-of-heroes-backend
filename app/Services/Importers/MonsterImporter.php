@@ -12,6 +12,7 @@ use App\Services\Importers\Concerns\ImportsConditions;
 use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Importers\Concerns\ImportsSources;
 use App\Services\Importers\Strategies\Monster\AberrationStrategy;
+use App\Services\Importers\Strategies\Monster\BeastStrategy;
 use App\Services\Importers\Strategies\Monster\CelestialStrategy;
 use App\Services\Importers\Strategies\Monster\ConstructStrategy;
 use App\Services\Importers\Strategies\Monster\DefaultStrategy;
@@ -49,9 +50,10 @@ class MonsterImporter
             new FiendStrategy,
             new CelestialStrategy,
             new ConstructStrategy,
-            new ElementalStrategy,     // NEW
-            new AberrationStrategy,    // NEW
-            new ShapechangerStrategy,  // NEW (cross-cutting, runs after type-specific)
+            new ElementalStrategy,
+            new AberrationStrategy,
+            new BeastStrategy,         // NEW
+            new ShapechangerStrategy,  // Cross-cutting (after type-specific)
             new DragonStrategy,
             new UndeadStrategy,
             new SwarmStrategy,

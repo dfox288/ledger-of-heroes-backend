@@ -391,4 +391,38 @@ class ClassImporterTest extends TestCase
             $this->assertFalse((bool) $weapon->is_choice, "Weapon {$weapon->proficiency_name} should not be choice");
         }
     }
+
+    #[Test]
+    public function it_imports_starting_equipment_for_class()
+    {
+        // Load Barbarian XML (has wealth tag and starting equipment)
+        $xmlPath = base_path('import-files/class-barbarian-phb.xml');
+        $this->assertFileExists($xmlPath);
+
+        $xmlContent = file_get_contents($xmlPath);
+        $parser = new ClassXmlParser;
+        $classes = $parser->parse($xmlContent);
+        $barbarianData = $classes[0];
+
+        // Import the Barbarian class
+        $barbarian = $this->importer->import($barbarianData);
+
+        // Assert: equipment was imported
+        $this->assertGreaterThan(0, $barbarian->equipment()->count(), 'Barbarian should have equipment');
+
+        // Assert: verify choice structure
+        $choices = $barbarian->equipment()->where('is_choice', true)->get();
+        $this->assertGreaterThan(0, $choices->count(), 'Should have at least one equipment choice');
+
+        // Assert: all equipment has description
+        foreach ($barbarian->equipment as $item) {
+            $this->assertNotEmpty($item->description, 'Equipment item should have description');
+            $this->assertIsInt($item->quantity, 'Equipment item should have quantity');
+            $this->assertGreaterThan(0, $item->quantity, 'Equipment quantity should be at least 1');
+        }
+
+        // Assert: non-choice items exist
+        $nonChoices = $barbarian->equipment()->where('is_choice', false)->get();
+        $this->assertGreaterThan(0, $nonChoices->count(), 'Should have non-choice equipment items');
+    }
 }

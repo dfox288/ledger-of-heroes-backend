@@ -125,6 +125,11 @@ class ClassImporter extends BaseImporter
             }
         }
 
+        // Import starting equipment
+        if (! empty($data['equipment'])) {
+            $this->importEquipment($class, $data['equipment']);
+        }
+
         return $class;
     }
 
@@ -263,6 +268,39 @@ class ClassImporter extends BaseImporter
         }
 
         return $subclass;
+    }
+
+    /**
+     * Import starting equipment for a class.
+     *
+     * Uses existing entity_items polymorphic table.
+     *
+     * @param  CharacterClass  $class  The class model
+     * @param  array  $equipmentData  Parsed equipment data
+     */
+    private function importEquipment(CharacterClass $class, array $equipmentData): void
+    {
+        if (empty($equipmentData['items'])) {
+            return;
+        }
+
+        // Clear existing equipment
+        $class->equipment()->delete();
+
+        foreach ($equipmentData['items'] as $itemData) {
+            // TODO Phase 5: Try to match item name to items table
+            // For now, just store description as text
+
+            $class->equipment()->create([
+                'item_id' => null, // No FK match yet (Phase 5 backlog)
+                'description' => $itemData['description'],
+                'is_choice' => $itemData['is_choice'],
+                'quantity' => $itemData['quantity'],
+                'choice_description' => $itemData['is_choice']
+                    ? 'Starting equipment choice'
+                    : null,
+            ]);
+        }
     }
 
     protected function getParser(): object

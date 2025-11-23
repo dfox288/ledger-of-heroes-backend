@@ -84,6 +84,9 @@ class ClassXmlParser
         // Detect and group subclasses
         $data['subclasses'] = $this->detectSubclasses($data['features'], $data['counters']);
 
+        // Parse starting equipment
+        $data['equipment'] = $this->parseEquipment($element);
+
         return $data;
     }
 
@@ -443,5 +446,129 @@ class ClassXmlParser
         }
 
         return $subclasses;
+    }
+
+    /**
+     * Parse starting equipment from class XML.
+     *
+     * Extracts:
+     * - Wealth formula (<wealth> tag)
+     * - Starting equipment from "Starting [Class]" feature text
+     *
+     * @return array{wealth: string|null, items: array}
+     */
+    private function parseEquipment(SimpleXMLElement $element): array
+    {
+        $equipment = [
+            'wealth' => null,
+            'items' => [],
+        ];
+
+        // Parse wealth formula (e.g., "2d4x10")
+        if (isset($element->wealth)) {
+            $equipment['wealth'] = (string) $element->wealth;
+        }
+
+        // Parse starting equipment from level 1 "Starting [Class]" feature
+        foreach ($element->autolevel as $autolevel) {
+            if ((int) $autolevel['level'] !== 1) {
+                continue;
+            }
+
+            foreach ($autolevel->feature as $feature) {
+                $featureName = (string) $feature->name;
+
+                // Match "Starting Barbarian", "Starting Fighter", etc.
+                if (preg_match('/^Starting\s+\w+$/i', $featureName)) {
+                    $text = (string) $feature->text;
+                    $equipment['items'] = $this->parseEquipmentChoices($text);
+                    break 2; // Found it, exit both loops
+                }
+            }
+        }
+
+        return $equipment;
+    }
+
+    /**
+     * Parse equipment choice text into structured items.
+     *
+     * Handles patterns like:
+     * - "(a) a greataxe or (b) any martial melee weapon"
+     * - "An explorer's pack, and four javelins"
+     *
+     * @return array<int, array{description: string, is_choice: bool, quantity: int}>
+     */
+    private function parseEquipmentChoices(string $text): array
+    {
+        $items = [];
+
+        // Extract bullet points (• or - prefix)
+        preg_match_all('/[•\-]\s*(.+?)(?=\n[•\-]|\n\n|$)/s', $text, $bullets);
+
+        foreach ($bullets[1] as $bulletText) {
+            $bulletText = trim($bulletText);
+
+            // Check if this is a choice: "(a) X or (b) Y"
+            if (preg_match_all('/\(([a-z])\)\s*([^()]+?)(?=\s+or\s+\(|\s*$)/i', $bulletText, $choices)) {
+                // Multiple choice options
+                foreach ($choices[2] as $choiceText) {
+                    $items[] = [
+                        'description' => trim($choiceText),
+                        'is_choice' => true,
+                        'quantity' => 1,
+                    ];
+                }
+            } else {
+                // Simple item (no choice) - may have multiple items separated by "and" or ","
+                // Split by "and" or ","
+                $parts = preg_split('/\s+and\s+|,\s+and\s+/i', $bulletText);
+
+                foreach ($parts as $part) {
+                    $part = trim($part);
+                    if (empty($part)) {
+                        continue;
+                    }
+
+                    // Extract quantity if present: "four javelins" → quantity=4
+                    $quantity = 1;
+                    if (preg_match('/^(two|three|four|five|six|seven|eight|nine|ten)\s+/i', $part, $qtyMatch)) {
+                        $quantity = $this->convertWordToNumber(strtolower($qtyMatch[1]));
+                        $part = preg_replace('/^(two|three|four|five|six|seven|eight|nine|ten)\s+/i', '', $part);
+                    }
+
+                    $items[] = [
+                        'description' => trim($part),
+                        'is_choice' => false,
+                        'quantity' => $quantity,
+                    ];
+                }
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * Convert word numbers to integers.
+     *
+     * @param  string  $word  Number word (e.g., "two")
+     * @return int
+     */
+    private function convertWordToNumber(string $word): int
+    {
+        return match (strtolower($word)) {
+            'one' => 1,
+            'two' => 2,
+            'three' => 3,
+            'four' => 4,
+            'five' => 5,
+            'six' => 6,
+            'seven' => 7,
+            'eight' => 8,
+            'nine' => 9,
+            'ten' => 10,
+            default => 1,
+        };
     }
 }

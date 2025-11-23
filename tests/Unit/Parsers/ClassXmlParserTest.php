@@ -305,4 +305,65 @@ class ClassXmlParserTest extends TestCase
         // Battle Master should have features
         $this->assertGreaterThan(0, count($battleMaster['features']));
     }
+
+    #[Test]
+    public function it_parses_starting_equipment_from_class()
+    {
+        $xml = <<<'XML'
+<compendium>
+    <class>
+        <name>Barbarian</name>
+        <hd>12</hd>
+        <wealth>2d4x10</wealth>
+        <autolevel level="1">
+            <feature optional="YES">
+                <name>Starting Barbarian</name>
+                <text>You begin play with the following equipment:
+• (a) a greataxe or (b) any martial melee weapon
+• (a) two handaxes or (b) any simple weapon
+• An explorer's pack, and four javelins
+
+If you forgo this starting equipment, you start with 2d4 × 10 gp to buy your equipment.</text>
+            </feature>
+        </autolevel>
+    </class>
+</compendium>
+XML;
+
+        $classes = $this->parser->parse($xml);
+
+        // Assert: equipment key exists
+        $this->assertArrayHasKey('equipment', $classes[0]);
+        $equipment = $classes[0]['equipment'];
+
+        // Assert: wealth formula is extracted
+        $this->assertArrayHasKey('wealth', $equipment);
+        $this->assertEquals('2d4x10', $equipment['wealth']);
+
+        // Assert: equipment items were parsed
+        $this->assertArrayHasKey('items', $equipment);
+        $this->assertNotEmpty($equipment['items']);
+
+        // Assert: should extract choice groups: (a) X or (b) Y
+        // Expected: 4 choices + 2 non-choice items = 6 total items
+        $this->assertGreaterThanOrEqual(4, count($equipment['items']));
+
+        // Assert: each item has required structure
+        foreach ($equipment['items'] as $item) {
+            $this->assertArrayHasKey('description', $item);
+            $this->assertArrayHasKey('is_choice', $item);
+            $this->assertArrayHasKey('quantity', $item);
+        }
+
+        // Assert: verify choice parsing
+        $choices = array_filter($equipment['items'], fn ($item) => $item['is_choice']);
+        $this->assertGreaterThan(0, count($choices), 'Should have at least one choice item');
+
+        // Assert: verify quantity extraction from "four javelins"
+        $javelins = array_filter($equipment['items'], fn ($item) => str_contains($item['description'], 'javelins'));
+        if (! empty($javelins)) {
+            $javelin = array_values($javelins)[0];
+            $this->assertEquals(4, $javelin['quantity'], 'Four javelins should have quantity=4');
+        }
+    }
 }

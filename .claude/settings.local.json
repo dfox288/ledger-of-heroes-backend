@@ -45,7 +45,12 @@
       "Bash(do echo \"=== $fileSearchService ===\" echo \"BEFORE:\" git show HEAD~1:app/Services/$fileSearchService.php)",
       "Bash(for controller in Monster Item Background Feat)",
       "Bash(do echo \"=== $controllerController ===\")",
-      "Bash(/dev/null)"
+      "Bash(/dev/null)",
+      "Bash(for file in docs/plans/2025-11-22-*.md)",
+      "Bash(do)",
+      "Bash([ -f \"$file\" ])",
+      "Bash(for file in docs/plans/2025-11-23-additional-monster-strategies*.md docs/plans/2025-11-23-beast-strategy*.md docs/plans/2025-11-23-class-feature-random-tables-implementation.md docs/plans/2025-11-23-class-importer-overhaul.md docs/plans/2025-11-23-parent-relationships-index-show-split.md)",
+      "Bash(for file in docs/plans/2025-11-17-*.md docs/plans/2025-11-20-*.md docs/plans/2025-11-21-*.md)"
     ],
     "deny": [],
     "ask": []

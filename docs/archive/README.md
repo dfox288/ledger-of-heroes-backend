@@ -1,72 +1,52 @@
-# Archive - Historical Documentation
+# Documentation Archive
 
-This directory contains completed and superseded documentation for reference purposes.
+This directory contains completed session handovers and implementation plans that are no longer actively referenced.
 
----
+## Directory Structure
 
-## 📚 Archived Session Handovers
+- **`handovers/`** - Completed session handover documents from previous work sessions
+- **`plans/`** - Completed implementation plans and design documents
 
-### Completed Features (2025-11-19)
-- **[HANDOVER-2025-11-19-CLASS-IMPORTER-COMPLETE.md](HANDOVER-2025-11-19-CLASS-IMPORTER-COMPLETE.md)**
-  - Initial Class Importer implementation
-  - 24 tests, 283 assertions
-  - Fighter + Barbarian imported
-  - Status: ✅ Merged to main
+## Why Archive?
 
-- **[HANDOVER-2025-11-19-ENTITY-PREREQUISITES-COMPLETE.md](HANDOVER-2025-11-19-ENTITY-PREREQUISITES-COMPLETE.md)**
-  - Entity Prerequisites system
-  - Double polymorphic design
-  - 27 new tests
-  - Status: ✅ Merged to main
+Documentation is archived when:
+1. The feature/improvement is complete and merged
+2. The implementation details are no longer needed for day-to-day development
+3. The information is preserved for historical reference but clutters the main docs
 
-- **[SESSION-HANDOVER.md](SESSION-HANDOVER.md)**
-  - Generic handover from 2025-11-19
-  - Feat Importer complete
-  - 340 tests passing
-  - Status: ✅ Merged to main
+## Active Documentation
 
-### Planning Sessions (2025-11-20)
-- **[SESSION-HANDOVER-2025-11-20.md](SESSION-HANDOVER-2025-11-20.md)**
-  - Evening planning session
-  - Investigation + planning for class importer enhancements
-  - No code changes, planning only
-  - Status: Superseded by actual implementation
+For current documentation, see:
+- `../PROJECT-STATUS.md` - Current project status and metrics
+- `../README.md` - Main documentation index
+- `../plans/` - Active implementation plans
+- `../CLAUDE.md` - Developer guidance (main reference)
 
-### Other Documents
-- **[refactoring-summary-2025-11-20.md](refactoring-summary-2025-11-20.md)**
-  - Summary of refactoring Phase 1 & partial Phase 2
-  - Status: Superseded by SESSION-HANDOVER-2025-11-20-REFACTORING.md
+## Archive Contents
 
-- **[QUICK-START-2025-11-21.md](QUICK-START-2025-11-21.md)** (if exists)
-  - Quick start guide for 2025-11-21 session
-  - Status: Superseded by implementation completion
+### Handovers (12 documents)
+Session handovers documenting completed work from November 2025:
+- Monster strategy implementations (Beast, Fiend, Celestial, etc.)
+- Class import improvements and equipment parsing
+- Proficiency choice grouping
+- Scout search relationship fixes
+- Subclass spell progression
+- Test suite improvements
+- Refactoring phases
 
----
+### Plans (27 documents)
+Implementation plans from November 2025:
+- Database design (2025-11-17)
+- XML importer implementation (2025-11-17)
+- API enhancements (2025-11-20)
+- Parser/importer refactoring (2025-11-20)
+- Meilisearch filtering (2025-11-21)
+- Monster importer strategy pattern (2025-11-22)
+- Item parser strategies (2025-11-22)
+- Performance optimizations (2025-11-22)
+- Spell importer trait extraction (2025-11-22)
+- Additional monster strategies (2025-11-23)
+- Class feature random tables (2025-11-23)
+- Parent relationship optimizations (2025-11-23)
 
-## 🗂️ Why These Are Archived
-
-These documents represent:
-1. **Completed work** that has been merged to main
-2. **Planning sessions** that led to actual implementations
-3. **Superseded documents** replaced by more current versions
-
-They remain available for:
-- Historical reference
-- Understanding project evolution
-- Learning from past decisions
-- Audit trail
-
----
-
-## 📖 Current Documentation
-
-For current project state and active work, see:
-- **Main branch state:** [../SESSION-HANDOVER-2025-11-20-REFACTORING.md](../SESSION-HANDOVER-2025-11-20-REFACTORING.md)
-- **Feature branch work:** [../active/](../active/)
-- **Documentation index:** [../README.md](../README.md)
-
----
-
-**Note:** These documents are preserved "as-is" for historical accuracy. Information may be outdated.
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
+All archived features are fully implemented and tested.

@@ -22,6 +22,7 @@ class Proficiency extends BaseModel
         'choice_group',
         'choice_option',
         'quantity',
+        'level',
     ];
 
     protected $casts = [
@@ -34,6 +35,7 @@ class Proficiency extends BaseModel
         'is_choice' => 'boolean',
         'choice_option' => 'integer',
         'quantity' => 'integer',
+        'level' => 'integer',
     ];
 
     // Polymorphic relationship

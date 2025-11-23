@@ -38,6 +38,7 @@ class ModifierResource extends JsonResource
             'is_choice' => $this->is_choice,
             'choice_count' => $this->choice_count,
             'choice_constraint' => $this->choice_constraint,
+            'level' => $this->level,
         ];
     }
 }

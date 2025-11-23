@@ -7,6 +7,7 @@ use App\Models\ClassCounter;
 use App\Models\ClassFeature;
 use App\Models\ClassLevelProgression;
 use App\Models\Modifier;
+use App\Models\Proficiency;
 use App\Models\RandomTable;
 use App\Models\RandomTableEntry;
 use App\Services\Importers\Concerns\ImportsEntityItems;
@@ -190,6 +191,11 @@ class ClassImporter extends BaseImporter
                 ]);
             }
 
+            // Detect Bonus Proficiencies and create proficiency records
+            if (stripos($featureData['name'], 'Bonus Proficiencies') !== false) {
+                $this->importBonusProficiencies($class, $featureData);
+            }
+
             // Import random tables from <roll> XML elements
             if (! empty($featureData['rolls'])) {
                 $this->importFeatureRolls($feature, $featureData['rolls']);
@@ -199,6 +205,90 @@ class ClassImporter extends BaseImporter
             // This handles BOTH dice-based random tables AND reference tables (dice_type = null)
             $this->importRandomTablesFromText($feature, $featureData['description'], clearExisting: false);
         }
+    }
+
+    /**
+     * Import bonus proficiencies from feature description text.
+     */
+    private function importBonusProficiencies(CharacterClass $class, array $featureData): void
+    {
+        $text = $featureData['description'];
+        $level = $featureData['level'];
+
+        // Check if it's a choice-based proficiency
+        if (preg_match('/proficiency with (\w+) skills? of your choice/i', $text, $matches)) {
+            // Extract number (e.g., "three skills" -> 3)
+            $quantityWords = ['one' => 1, 'two' => 2, 'three' => 3, 'four' => 4, 'five' => 5];
+            $quantityWord = strtolower($matches[1]);
+            $quantity = $quantityWords[$quantityWord] ?? 1;
+
+            // Create a single choice record - player chooses X skills from all available
+            Proficiency::create([
+                'reference_type' => get_class($class),
+                'reference_id' => $class->id,
+                'proficiency_type' => 'skill',
+                'proficiency_name' => null, // Player chooses
+                'grants' => true,
+                'is_choice' => true,
+                'quantity' => $quantity,
+                'level' => $level,
+            ]);
+
+            return;
+        }
+
+        // Parse fixed proficiencies from text
+        // Patterns: "proficiency with X, Y, and Z" or "proficiency with X and Y"
+        if (preg_match('/proficiency with (.+?)(?:\.|$)/i', $text, $matches)) {
+            $proficienciesText = $matches[1];
+
+            // Split by commas and "and"
+            $proficiencies = preg_split('/,\s*(?:and\s+)?|\s+and\s+/', $proficienciesText);
+
+            foreach ($proficiencies as $profName) {
+                $profName = trim($profName);
+                if (empty($profName)) {
+                    continue;
+                }
+
+                // Determine proficiency type based on keywords
+                $profType = $this->determineProficiencyType($profName);
+
+                Proficiency::create([
+                    'reference_type' => get_class($class),
+                    'reference_id' => $class->id,
+                    'proficiency_type' => $profType,
+                    'proficiency_name' => $profName,
+                    'grants' => true,
+                    'is_choice' => false,
+                    'level' => $level,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Determine proficiency type from proficiency name.
+     */
+    private function determineProficiencyType(string $name): string
+    {
+        $lowerName = strtolower($name);
+
+        if (str_contains($lowerName, 'armor')) {
+            return 'armor';
+        }
+        if (str_contains($lowerName, 'weapon') || str_contains($lowerName, 'martial')) {
+            return 'weapon';
+        }
+        if (str_contains($lowerName, 'kit') || str_contains($lowerName, 'tools')) {
+            return 'tool';
+        }
+        if (str_contains($lowerName, 'shield')) {
+            return 'armor'; // Shields are armor category
+        }
+
+        // Default to tool for unknown types
+        return 'tool';
     }
 
     /**

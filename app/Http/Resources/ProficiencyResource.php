@@ -40,6 +40,7 @@ class ProficiencyResource extends JsonResource
             'choice_group' => $this->choice_group,
             'choice_option' => $this->choice_option,
             'quantity' => $this->quantity,
+            'level' => $this->level,
         ];
     }
 }

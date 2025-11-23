@@ -14,6 +14,7 @@ class RandomTableEntryResource extends JsonResource
             'roll_min' => $this->roll_min,
             'roll_max' => $this->roll_max,
             'result_text' => $this->result_text,
+            'level' => $this->level,
             'sort_order' => $this->sort_order,
         ];
     }

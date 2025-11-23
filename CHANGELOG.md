@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Universal Tag-Based Filtering**: Completed tag support for ALL 7 searchable entities in Meilisearch
+  - **Entities Enhanced**: Race, CharacterClass, Background, Feat (Monster, Spell, Item already had tag support)
+  - **Model Updates**: Added `tag_slugs` field to toSearchableArray() for Race, CharacterClass, Background, Feat models
+  - **Index Configuration**: Added `tag_slugs` to filterableAttributes for races, classes, backgrounds, feats indexes
+  - **Eager Loading**: Updated searchableWith() to include 'tags' relationship for all 4 entities
+  - **Use Cases**:
+    - Filter races with darkvision: `?filter=tag_slugs IN [darkvision]`
+    - Filter spellcaster classes: `?filter=tag_slugs IN [spellcaster]`
+    - Filter criminal backgrounds: `?filter=tag_slugs IN [criminal]`
+    - Filter combat feats: `?filter=tag_slugs IN [combat]`
+  - **Consistency**: All 7 entities (Spell, Class, Race, Item, Background, Feat, Monster) now have identical tag filtering capabilities
+
 - **Tag-Based Filtering for Monsters**: Enable Meilisearch tag filtering via `?filter=tag_slugs IN [...]` syntax
   - Filter monsters by single tag: `?filter=tag_slugs IN [fiend]`
   - Filter monsters by multiple tags (OR logic): `?filter=tag_slugs IN [fiend, fire-immune]`

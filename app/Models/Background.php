@@ -53,18 +53,23 @@ class Background extends BaseModel
     // Scout Searchable Methods
     public function toSearchableArray(): array
     {
+        // Load tags relationship if not already loaded
+        $this->loadMissing(['tags']);
+
         return [
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
             'sources' => $this->sources->pluck('source.name')->unique()->values()->all(),
             'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
+            // Tag slugs for filtering (e.g., criminal, noble, guild_member)
+            'tag_slugs' => $this->tags->pluck('slug')->all(),
         ];
     }
 
     public function searchableWith(): array
     {
-        return ['sources.source'];
+        return ['sources.source', 'tags'];
     }
 
     public function searchableAs(): string

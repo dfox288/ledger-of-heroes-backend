@@ -111,6 +111,9 @@ class Race extends BaseModel
     // Scout Searchable Methods
     public function toSearchableArray(): array
     {
+        // Load tags relationship if not already loaded
+        $this->loadMissing(['tags']);
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -122,12 +125,14 @@ class Race extends BaseModel
             'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
             'is_subrace' => $this->parent_race_id !== null,
             'parent_race_name' => $this->parent?->name,
+            // Tag slugs for filtering (e.g., darkvision, fey_ancestry)
+            'tag_slugs' => $this->tags->pluck('slug')->all(),
         ];
     }
 
     public function searchableWith(): array
     {
-        return ['size', 'sources.source', 'parent'];
+        return ['size', 'sources.source', 'parent', 'tags'];
     }
 
     public function searchableAs(): string

@@ -94,6 +94,7 @@ class MeilisearchIndexConfigurator
             'speed',
             'source_codes',
             'is_subrace',
+            'tag_slugs',
         ]);
 
         // Sortable attributes
@@ -122,6 +123,7 @@ class MeilisearchIndexConfigurator
             'spellcasting_ability',
             'source_codes',
             'is_subclass',
+            'tag_slugs',
         ]);
 
         // Sortable attributes
@@ -144,6 +146,7 @@ class MeilisearchIndexConfigurator
         // Filterable attributes
         $index->updateFilterableAttributes([
             'source_codes',
+            'tag_slugs',
         ]);
 
         // Sortable attributes
@@ -167,6 +170,7 @@ class MeilisearchIndexConfigurator
         // Filterable attributes
         $index->updateFilterableAttributes([
             'source_codes',
+            'tag_slugs',
         ]);
 
         // Sortable attributes

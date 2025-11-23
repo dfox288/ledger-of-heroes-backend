@@ -140,6 +140,9 @@ class CharacterClass extends BaseModel
     // Scout Searchable Methods
     public function toSearchableArray(): array
     {
+        // Load tags relationship if not already loaded
+        $this->loadMissing(['tags']);
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -152,12 +155,14 @@ class CharacterClass extends BaseModel
             'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
             'is_subclass' => $this->parent_class_id !== null,
             'parent_class_name' => $this->parentClass?->name,
+            // Tag slugs for filtering (e.g., spellcaster, martial, half_caster)
+            'tag_slugs' => $this->tags->pluck('slug')->all(),
         ];
     }
 
     public function searchableWith(): array
     {
-        return ['sources.source', 'parentClass', 'spellcastingAbility'];
+        return ['sources.source', 'parentClass', 'spellcastingAbility', 'tags'];
     }
 
     public function searchableAs(): string

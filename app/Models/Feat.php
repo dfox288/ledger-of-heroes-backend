@@ -134,6 +134,9 @@ class Feat extends BaseModel
     // Scout Searchable Methods
     public function toSearchableArray(): array
     {
+        // Load tags relationship if not already loaded
+        $this->loadMissing(['tags']);
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -142,12 +145,14 @@ class Feat extends BaseModel
             'prerequisites_text' => $this->prerequisites_text,
             'sources' => $this->sources->pluck('source.name')->unique()->values()->all(),
             'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
+            // Tag slugs for filtering (e.g., combat, magic, skill_improvement)
+            'tag_slugs' => $this->tags->pluck('slug')->all(),
         ];
     }
 
     public function searchableWith(): array
     {
-        return ['sources.source'];
+        return ['sources.source', 'tags'];
     }
 
     public function searchableAs(): string

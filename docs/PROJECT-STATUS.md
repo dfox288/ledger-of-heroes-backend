@@ -26,6 +26,33 @@
 
 ## 🚀 Recent Milestones
 
+### Universal Tag-Based Filtering ✅ COMPLETE (2025-11-23)
+- **Goal:** Complete tag filtering support for ALL 7 entities with Meilisearch integration
+- **Achievement:** Universal tag filtering across Spell, Monster, Item, Race, Class, Background, Feat
+- **Implementation:**
+  - Added `tag_slugs` field to `toSearchableArray()` for Race, CharacterClass, Background, Feat models
+  - Updated Meilisearch index configurations to include `tag_slugs` in filterableAttributes
+  - Added tags relationship to `searchableWith()` for optimal eager loading
+  - Enhanced all 4 entity controllers with comprehensive tag filtering documentation
+  - Updated QueryParameter attributes with tag_slugs field examples
+- **API Examples Added:**
+  - Race: `?filter=tag_slugs IN [darkvision, fey-ancestry]`
+  - Class: `?filter=tag_slugs IN [full-caster, martial]`
+  - Background: `?filter=tag_slugs IN [criminal, noble]`
+  - Feat: `?filter=tag_slugs IN [combat, magic]`
+  - Monster: `?filter=tag_slugs IN [fiend, fire-immune]` (already implemented)
+  - Spell: `?filter=tag_slugs IN [touch-spells]` (already implemented)
+  - Item: `?filter=tag_slugs IN [magic-weapon]` (already implemented)
+- **Impact:**
+  - **Before:** Only 3/7 entities had tag filtering (Monster, Spell, Item)
+  - **After:** All 7 entities have identical tag filtering capabilities
+  - Consistent API pattern across entire application
+  - Combined filters: `?filter=tag_slugs IN [darkvision] AND speed >= 35`
+  - Complete OpenAPI/Scramble documentation auto-generated
+- **Test Results:** 1,489 tests passing (7,704 assertions) - 0 regressions
+- **Files Modified:** 10 files (4 models, 4 controllers, 1 configurator, 1 CHANGELOG)
+- **Documentation:** CLAUDE.md, PROJECT-STATUS.md, CHANGELOG.md all updated
+
 ### Test Suite Stabilization + SearchService Unit Tests ✅ COMPLETE (2025-11-23)
 - **Goal:** Fix all failing tests and add SearchService unit test coverage
 - **Achievement:** 100% test pass rate + comprehensive SpellSearchService unit tests

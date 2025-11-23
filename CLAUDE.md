@@ -20,7 +20,7 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 - ✅ **Item Parser Strategy Pattern** - 5 type-specific strategies (Charged, Scroll, Potion, Tattoo, Legendary)
 - ✅ **Performance Optimizations Complete** - Redis caching for lookup + entity endpoints (93.7% improvement, 16.6x faster)
 - ✅ **One-command import** - `import:all` handles all 60+ XML files in correct order
-- ✅ **Universal tag system** - All 7 entities support Spatie Tags
+- ✅ **Universal tag system** - All 7 entities support Spatie Tags with Meilisearch filtering
 - ✅ **Saving throw modifiers** - Detects advantage/disadvantage + DC values
 - ✅ **AC modifier categories** - Base AC, bonuses, and magic (with DEX rules)
 - ✅ **Additive spell imports** - Handles supplemental class association files
@@ -54,10 +54,9 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 
 **🚀 Next tasks (all optional - core features complete):**
 1. **Search result caching (Phase 4)** - Cache Meilisearch queries in Redis - 2-3 hours
-2. **Tag-based filtering in MonsterController** - Enable `?filter=tags.slug = fire_immune` - 1-2 hours
-3. **Additional Monster Strategies** - ShapechangerStrategy, ElementalStrategy, AberrationStrategy - 2-3h each
-4. **Character Builder API** - Character creation, leveling, spell selection endpoints - 8-12 hours
-5. **Frontend Application** - Inertia.js/Vue or Next.js/React UI - 20-40 hours
+2. **Additional Monster Strategies** - ShapechangerStrategy, ElementalStrategy, AberrationStrategy - 2-3h each
+3. **Character Builder API** - Character creation, leveling, spell selection endpoints - 8-12 hours
+4. **Frontend Application** - Inertia.js/Vue or Next.js/React UI - 20-40 hours
 
 ---
 
@@ -140,12 +139,21 @@ public function index(Request $request, Service $service) {
 
 ## 🏷️ Universal Tag System
 
-**All 6 main entities support tags:** Spell, Race, Item, Background, Class, Feat
+**All 7 entities support tags with Meilisearch filtering:** Spell, Monster, Item, Race, Class, Background, Feat
 
 ```php
 // Model
 use Spatie\Tags\HasTags;
-class Spell extends Model { use HasTags; }
+class Spell extends Model {
+    use HasTags, Searchable;
+
+    public function toSearchableArray(): array {
+        return [
+            // ... other fields
+            'tag_slugs' => $this->tags->pluck('slug')->all(),  // ✅ Filterable in Meilisearch
+        ];
+    }
+}
 
 // Resource (always included, no ?include= needed)
 'tags' => TagResource::collection($this->whenLoaded('tags')),
@@ -159,9 +167,22 @@ $spell->load(['spellSchool', 'sources', 'effects', 'classes', 'tags']);
     {"id": 2, "name": "Touch Spells", "slug": "touch-spells", "type": null}
   ]
 }
+
+// Meilisearch Filtering (ALL 7 entities)
+GET /api/v1/spells?filter=tag_slugs IN [touch-spells, verbal-only]
+GET /api/v1/monsters?filter=tag_slugs IN [fiend, fire-immune]
+GET /api/v1/races?filter=tag_slugs IN [darkvision, fey-ancestry]
+GET /api/v1/classes?filter=tag_slugs IN [full-caster, martial]
+GET /api/v1/backgrounds?filter=tag_slugs IN [criminal, noble]
+GET /api/v1/feats?filter=tag_slugs IN [combat, magic]
 ```
 
-**Benefits:** Categorization, filtering, consistent structure, type support
+**Benefits:**
+- Universal categorization across all entities
+- Fast Meilisearch filtering via `tag_slugs` field
+- Consistent structure and API pattern
+- Type support for custom taxonomies
+- Combined filters: `?filter=tag_slugs IN [darkvision] AND speed >= 35`
 
 ---
 

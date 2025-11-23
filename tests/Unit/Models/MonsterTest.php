@@ -6,7 +6,6 @@ use App\Models\Modifier;
 use App\Models\Monster;
 use App\Models\MonsterAction;
 use App\Models\MonsterLegendaryAction;
-use App\Models\MonsterSpellcasting;
 use App\Models\MonsterTrait;
 use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -52,15 +51,6 @@ class MonsterTest extends TestCase
 
         $this->assertCount(3, $monster->legendaryActions);
         $this->assertInstanceOf(MonsterLegendaryAction::class, $monster->legendaryActions->first());
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_has_one_spellcasting(): void
-    {
-        $monster = Monster::factory()->create();
-        MonsterSpellcasting::factory()->create(['monster_id' => $monster->id]);
-
-        $this->assertInstanceOf(MonsterSpellcasting::class, $monster->spellcasting);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Proficiency extends BaseModel
 {
+    protected $table = 'entity_proficiencies';
+
     protected $fillable = [
         'reference_type',
         'reference_id',

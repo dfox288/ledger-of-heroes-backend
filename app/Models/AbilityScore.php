@@ -27,10 +27,10 @@ class AbilityScore extends BaseModel
     {
         return $this->morphedByMany(
             Spell::class,
-            'entity',
+            'reference',
             'entity_saving_throws',
             'ability_score_id',
-            'entity_id'
+            'reference_id'
         )
             ->withPivot('save_effect', 'is_initial_save')
             ->withTimestamps();
@@ -43,10 +43,10 @@ class AbilityScore extends BaseModel
     {
         return $this->morphedByMany(
             Spell::class,
-            'entity',
+            'reference',
             'entity_saving_throws',
             'ability_score_id',
-            'entity_id'
+            'reference_id'
         )
             ->withPivot('save_effect', 'is_initial_save', 'save_modifier', 'dc')
             ->withTimestamps();

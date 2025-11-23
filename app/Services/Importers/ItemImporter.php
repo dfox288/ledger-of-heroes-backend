@@ -258,8 +258,8 @@ class ItemImporter extends BaseImporter
         // Create or update saving throw
         \DB::table('entity_saving_throws')->updateOrInsert(
             [
-                'entity_type' => Item::class,
-                'entity_id' => $item->id,
+                'reference_type' => Item::class,
+                'reference_id' => $item->id,
                 'ability_score_id' => $abilityScore->id,
             ],
             [

@@ -61,9 +61,9 @@ class Spell extends BaseModel
     {
         return $this->morphToMany(
             AbilityScore::class,
-            'entity',
+            'reference',
             'entity_saving_throws',
-            'entity_id',
+            'reference_id',
             'ability_score_id'
         )
             ->withPivot('save_effect', 'is_initial_save', 'save_modifier')

@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Scout\Searchable;
@@ -63,11 +62,6 @@ class Monster extends BaseModel
     public function legendaryActions(): HasMany
     {
         return $this->hasMany(MonsterLegendaryAction::class);
-    }
-
-    public function spellcasting(): HasOne
-    {
-        return $this->hasOne(MonsterSpellcasting::class);
     }
 
     public function entitySpells(): MorphToMany

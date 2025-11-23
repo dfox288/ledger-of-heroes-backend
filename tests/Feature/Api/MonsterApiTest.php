@@ -209,26 +209,8 @@ class MonsterApiTest extends TestCase
         ]);
     }
 
-    #[Test]
-    public function monster_includes_spellcasting_in_response()
-    {
-        $monster = Monster::factory()
-            ->hasSpellcasting()
-            ->create();
-
-        $response = $this->getJson("/api/v1/monsters/{$monster->id}");
-
-        $response->assertOk();
-        $response->assertJsonStructure([
-            'data' => [
-                'spellcasting' => [
-                    'id',
-                    'description',
-                    'spellcasting_ability',
-                ],
-            ],
-        ]);
-    }
+    // REMOVED: Test relied on monster_spellcasting table which was deleted
+    // Monster spells are now accessed via entity_spells polymorphic relationship
 
     #[Test]
     public function monster_includes_modifiers_in_response()

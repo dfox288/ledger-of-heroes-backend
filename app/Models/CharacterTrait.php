@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class CharacterTrait extends BaseModel
 {
-    protected $table = 'traits';
+    protected $table = 'entity_traits';
 
     protected $fillable = [
         'reference_type',

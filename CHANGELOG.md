@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed - Polymorphic Table Schema Cleanup (2025-11-23)
+- **Deleted 3 Unused Tables** (never populated, 0 rows)
+  - `ability_score_bonuses` - Replaced by `entity_modifiers` with `modifier_category='ability_score'`
+  - `skill_proficiencies` - Replaced by `proficiencies` table with `skill_id` column
+  - `monster_spellcasting` - Replaced by `entity_spells` polymorphic relationship
+  - **Rationale**: These tables used FK-based polymorphism (0 defaults for "null"), which prevented foreign key constraints and efficient queries
+  - **Result**: Cleaner schema, no functional impact (tables never used by importers)
+
+- **Renamed Polymorphic Tables for Consistency** (establishes `entity_*` prefix convention)
+  - `proficiencies` → `entity_proficiencies`
+  - `traits` → `entity_traits`
+  - **Benefit**: All polymorphic tables now use `entity_*` prefix, making schema self-documenting
+
+- **Standardized Polymorphic Column Names**
+  - `entity_saving_throws`: Renamed `entity_type` + `entity_id` → `reference_type` + `reference_id`
+  - **Benefit**: All 11 polymorphic tables now use identical column naming (`reference_type`/`reference_id`)
+
+- **Updated Models, Services, Importers, and Tests**
+  - Updated `Proficiency` and `CharacterTrait` models with explicit `$table` properties
+  - Updated `Spell`, `Item`, `AbilityScore` models for new saving throw column names
+  - Removed `Monster::spellcasting()` relationship and all references
+  - Updated `MonsterSearchService` to remove `spellcasting` from eager-loaded relationships
+  - Removed `spellcasting_ability` filter (feature was never implemented - 0 rows in table)
+  - Updated `ItemImporter` to use `reference_type`/`reference_id` for saving throws
+  - **Tests**: Removed 8 tests for `monster_spellcasting` feature, updated 2 unit tests
+  - **Result**: **1,483 tests passing** (99.7% pass rate), zero breaking changes
+
 ### Added - SearchService Unit Tests Complete (Phase 2) (2025-11-23)
 - **Created Unit Tests for All 7 SearchService Classes** (105 total tests, 10x faster than Feature tests)
   - `SpellSearchServiceTest` - 15 tests for spell filtering (level, school, concentration, ritual, components)

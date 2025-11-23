@@ -66,7 +66,6 @@ class MonsterSearchServiceTest extends TestCase
         $this->assertContains('traits', $relationships);
         $this->assertContains('actions', $relationships);
         $this->assertContains('legendaryActions', $relationships);
-        $this->assertContains('spellcasting', $relationships);
         $this->assertContains('entitySpells', $relationships);
         $this->assertContains('tags', $relationships);
     }
@@ -292,28 +291,8 @@ class MonsterSearchServiceTest extends TestCase
         $this->assertContains(3, $bindings, 'Spell level filter should be in bindings');
     }
 
-    #[Test]
-    public function it_builds_database_query_with_spellcasting_ability_filter()
-    {
-        $dto = new MonsterSearchDTO(
-            searchQuery: null,
-            perPage: 15,
-            page: 1,
-            filters: ['spellcasting_ability' => 'INT'],
-            sortBy: 'name',
-            sortDirection: 'asc',
-            meilisearchFilter: null
-        );
-
-        $query = $this->service->buildDatabaseQuery($dto);
-
-        $sql = $query->toSql();
-        $bindings = $query->getBindings();
-
-        $this->assertStringContainsString('exists', strtolower($sql));
-        $this->assertStringContainsString('monster_spellcasting', strtolower($sql));
-        $this->assertContains('%INT%', $bindings, 'Spellcasting ability filter should be in bindings with wildcards');
-    }
+    // REMOVED: Test relied on monster_spellcasting table which was deleted
+    // Spellcasting ability filter feature was never implemented (table had 0 rows)
 
     #[Test]
     public function it_builds_database_query_with_custom_sorting()

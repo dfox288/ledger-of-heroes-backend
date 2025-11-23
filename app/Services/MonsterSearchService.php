@@ -34,7 +34,6 @@ final class MonsterSearchService
         'traits',
         'actions',
         'legendaryActions',
-        'spellcasting',
         'entitySpells',
         'sources.source',
         'modifiers.abilityScore',
@@ -196,12 +195,8 @@ final class MonsterSearchService
             });
         }
 
-        // Spellcasting ability filter (INT/WIS/CHA based casters)
-        if (isset($dto->filters['spellcasting_ability'])) {
-            $query->whereHas('spellcasting', function ($q) use ($dto) {
-                $q->where('spellcasting_ability', 'LIKE', '%'.$dto->filters['spellcasting_ability'].'%');
-            });
-        }
+        // REMOVED: spellcasting_ability filter - monster_spellcasting table deleted
+        // Feature was never implemented (0 rows). Spells are now in entity_spells polymorphic table
     }
 
     private function applySorting(Builder $query, MonsterSearchDTO $dto): void

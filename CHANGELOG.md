@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed - Scout/Meilisearch Search Indexing (2025-11-23)
+- **Production Index Re-synchronization** - Fixed stale test data in search indexes
+  - Deleted all existing indexes and re-imported 3,601 entities with real data
+  - Spells: 477, Items: 2,156, Monsters: 598, Races: 67, Classes: 131, Backgrounds: 34, Feats: 138
+  - Searches now return correct results (e.g., "halfling" finds Halfling, Half-Elf, Half-Orc)
+  - All relationship data now properly indexed (sources, classes, spells)
+- **Test Isolation** - Configured separate index namespace for tests
+  - Added `SCOUT_PREFIX=test_` to phpunit.xml
+  - Production indexes: `spells`, `items`, `races`, etc.
+  - Test indexes: `test_spells`, `test_items`, `test_races`, etc.
+  - Tests no longer pollute production search data
+- **Import Integration** - Updated `import:all` command to auto-index after import
+  - Automatically configures Meilisearch indexes
+  - Imports all 7 searchable entities to Scout
+  - No manual `scout:import` commands needed
+  - Skip with `--skip-search` flag if desired
+- **Documentation** - Updated SEARCH.md with test isolation notes and re-indexing instructions
+
 ### Refactored - Phase 1: Model Layer Cleanup (2025-11-23)
 - **BaseModel Abstract Class** - Centralized common model patterns
   - All 38 models now extend BaseModel instead of Model

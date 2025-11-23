@@ -99,10 +99,32 @@ class ImportAllDataCommand extends Command
             $this->importEntityType('bestiary', 'import:monsters');
         }
 
-        // Step 10: Configure search indexes
+        // Step 10: Configure and populate search indexes
         if (! $this->option('skip-search')) {
-            $this->step('Configuring search indexes');
+            $this->step('Configuring and indexing search data');
             $this->call('search:configure-indexes');
+
+            // Re-index all searchable entities with fresh data
+            $this->info('  Importing entities to Scout...');
+            $this->newLine();
+
+            $searchableModels = [
+                'Spell' => 'App\\Models\\Spell',
+                'Item' => 'App\\Models\\Item',
+                'Monster' => 'App\\Models\\Monster',
+                'Race' => 'App\\Models\\Race',
+                'CharacterClass' => 'App\\Models\\CharacterClass',
+                'Background' => 'App\\Models\\Background',
+                'Feat' => 'App\\Models\\Feat',
+            ];
+
+            foreach ($searchableModels as $name => $class) {
+                $this->line("  → Indexing {$name}...");
+                $this->call('scout:import', ['model' => $class]);
+            }
+
+            $this->newLine();
+            $this->info('✓ Search indexes populated with fresh data');
         }
 
         // Final summary

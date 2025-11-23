@@ -20,6 +20,23 @@ abstract class TestCase extends BaseTestCase
     protected $seed = true;
 
     /**
+     * Scout test isolation notes:
+     *
+     * Tests use SCOUT_PREFIX=test_ (configured in phpunit.xml) which creates separate indexes:
+     * - Production: spells, items, races, etc.
+     * - Test: test_spells, test_items, test_races, etc.
+     *
+     * This ensures test data never pollutes production indexes.
+     * Test indexes are ephemeral and can be manually cleaned via:
+     *   curl -X DELETE http://localhost:7700/indexes/test_spells
+     *
+     * We do NOT auto-flush test indexes in tearDown() because:
+     * 1. removeAllFromSearch() may flush production indexes in some Scout versions
+     * 2. Test index prefix isolation is sufficient for test isolation
+     * 3. Test indexes use minimal space (<1MB typically)
+     */
+
+    /**
      * Helper methods for commonly used lookup data
      */
     protected function getSize(string $code): Size

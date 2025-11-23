@@ -90,47 +90,68 @@ curl "http://localhost:8080/api/v1/search?q=magic&debug=1"
 
 ## Management Commands
 
-### Initial Setup
+### Automated Setup (Recommended)
+
+The `import:all` command automatically configures and populates search indexes:
 
 ```bash
-# Configure index settings
-php artisan search:configure-indexes
+# Full database + import + search indexing (one command)
+docker compose exec php php artisan import:all
 
-# Import all entities
-php artisan scout:import "App\Models\Spell"
-php artisan scout:import "App\Models\Item"
-php artisan scout:import "App\Models\Race"
-php artisan scout:import "App\Models\CharacterClass"
-php artisan scout:import "App\Models\Background"
-php artisan scout:import "App\Models\Feat"
+# Skip search indexing if you only want database import
+docker compose exec php php artisan import:all --skip-search
 ```
 
-### During XML Imports
+This command:
+1. Imports all XML data
+2. Configures Meilisearch index settings
+3. Imports all entities to Scout automatically
 
-```php
-// Disable Scout during bulk import to prevent queue overflow
-Model::withoutSyncingToSearch(function () {
-    // Import XML data
-});
+**No manual Scout commands needed!**
 
-// Re-index after import
-php artisan scout:import "App\Models\Spell"
+### Manual Setup (If Needed)
+
+```bash
+# 1. Configure index settings
+docker compose exec php php artisan search:configure-indexes
+
+# 2. Import all entities
+docker compose exec php php artisan scout:import "App\\Models\\Spell"
+docker compose exec php php artisan scout:import "App\\Models\\Item"
+docker compose exec php php artisan scout:import "App\\Models\\Monster"
+docker compose exec php php artisan scout:import "App\\Models\\Race"
+docker compose exec php php artisan scout:import "App\\Models\\CharacterClass"
+docker compose exec php php artisan scout:import "App\\Models\\Background"
+docker compose exec php php artisan scout:import "App\\Models\\Feat"
 ```
 
 ### Rebuilding Indexes
 
-```bash
-# Flush and reimport specific model
-php artisan scout:flush "App\Models\Spell"
-php artisan scout:import "App\Models\Spell"
+If search results are stale or incorrect:
 
-# Or delete index and reconfigure
-php artisan tinker
-> app(\MeiliSearch\Client::class)->deleteIndex('spells');
-> exit
-php artisan search:configure-indexes
-php artisan scout:import "App\Models\Spell"
+```bash
+# Delete all indexes and rebuild from scratch
+docker compose exec php php artisan scout:delete-all-indexes
+docker compose exec php php artisan search:configure-indexes
+
+# Re-import all entities
+docker compose exec php php artisan scout:import "App\\Models\\Spell"
+docker compose exec php php artisan scout:import "App\\Models\\Item"
+docker compose exec php php artisan scout:import "App\\Models\\Monster"
+docker compose exec php php artisan scout:import "App\\Models\\Race"
+docker compose exec php php artisan scout:import "App\\Models\\CharacterClass"
+docker compose exec php php artisan scout:import "App\\Models\\Background"
+docker compose exec php php artisan scout:import "App\\Models\\Feat"
 ```
+
+### Test Isolation
+
+Tests use a separate index namespace to avoid polluting production data:
+
+- **Production indexes**: `spells`, `items`, `monsters`, etc.
+- **Test indexes**: `test_spells`, `test_items`, `test_monsters`, etc.
+
+Configured via `SCOUT_PREFIX=test_` in `phpunit.xml`. Test indexes are automatically flushed after each test.
 
 ## Performance
 

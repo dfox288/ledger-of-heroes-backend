@@ -98,11 +98,13 @@ class MonsterController extends Controller
             'actions',
             'legendaryActions',
             'spellcasting',
+            'entitySpells',
             'sources.source',
             'modifiers.abilityScore',
             'modifiers.skill',
             'modifiers.damageType',
             'conditions',
+            'tags',
         ];
 
         // Try cache first

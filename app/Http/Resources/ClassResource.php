@@ -31,6 +31,7 @@ class ClassResource extends JsonResource
             'level_progression' => ClassLevelProgressionResource::collection($this->whenLoaded('levelProgression')),
             'counters' => ClassCounterResource::collection($this->whenLoaded('counters')),
             'spells' => SpellResource::collection($this->whenLoaded('spells')),
+            'equipment' => EntityItemResource::collection($this->whenLoaded('equipment')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];

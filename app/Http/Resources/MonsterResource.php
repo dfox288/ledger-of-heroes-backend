@@ -39,9 +39,11 @@ class MonsterResource extends JsonResource
             'actions' => MonsterActionResource::collection($this->whenLoaded('actions')),
             'legendary_actions' => MonsterLegendaryActionResource::collection($this->whenLoaded('legendaryActions')),
             'spellcasting' => new MonsterSpellcastingResource($this->whenLoaded('spellcasting')),
+            'spells' => EntitySpellResource::collection($this->whenLoaded('entitySpells')),
             'modifiers' => ModifierResource::collection($this->whenLoaded('modifiers')),
             'conditions' => EntityConditionResource::collection($this->whenLoaded('conditions')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
+            'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];
     }
 }

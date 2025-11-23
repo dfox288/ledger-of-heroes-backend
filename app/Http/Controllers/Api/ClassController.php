@@ -110,6 +110,7 @@ class ClassController extends Controller
             'features',
             'levelProgression',
             'counters',
+            'equipment',
             'subclasses.features',
             'subclasses.counters',
             'tags',

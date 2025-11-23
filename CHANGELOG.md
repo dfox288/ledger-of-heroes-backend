@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed - API Resource Completeness (2025-11-23)
+- **MonsterResource** - Added missing `tags` and `spells` relationships
+  - Now exposes 102 beast tags and 1,098 spell relationships for 129 spellcasters
+  - Updated MonsterController to eager-load `entitySpells` and `tags` by default
+  - Monster API now returns complete data including spell lists and semantic tags
+- **ClassResource** - Added missing `equipment` relationship
+  - Starting equipment data now accessible for character builder use cases
+  - Updated ClassController to eager-load `equipment` by default
+- **DamageTypeResource** - Added missing `code` attribute
+  - Consistency improvement: matches other lookup resources (SpellSchool, AbilityScore, etc.)
+  - Enables filtering/grouping by damage type codes (e.g., "FIRE", "COLD")
+- **Impact:** 3 resources updated, 4 relationships/attributes added, 0 regressions
+- **Coverage:** 82% of resources already complete (14/17), now 100% complete (17/17)
+
 ### Added - Monster Strategies (2025-11-23)
 - **BeastStrategy** - Tags 102 beast-type monsters (17% of all monsters) with D&D 5e mechanical features
   - Keen senses detection (Keen Smell/Sight/Hearing traits) - 32 beasts

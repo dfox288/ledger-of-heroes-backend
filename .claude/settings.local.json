@@ -33,7 +33,8 @@
       "Skill(superpowers:using-superpowers)",
       "Bash(./vendor/bin/pint:*)",
       "Bash(SCOUT_DRIVER=null php artisan test:*)",
-      "Bash(SCOUT_DRIVER=null php artisan migrate:fresh:*)"
+      "Bash(SCOUT_DRIVER=null php artisan migrate:fresh:*)",
+      "Skill(superpowers:executing-plans)"
     ],
     "deny": [],
     "ask": []

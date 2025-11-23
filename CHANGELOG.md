@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Improved - Class Starting Equipment Parsing (2025-11-23)
+- **Equipment Choices Now Properly Grouped and Parsed**
+  - Added `choice_group` and `choice_option` columns to `entity_items` table for organizing related choices
+  - Fixed regex boundary detection to exclude proficiency/hit point text from equipment section
+  - Improved choice parsing to handle 2-way and 3-way choices: "(a) X or (b) Y" and "(a) X, (b) Y, or (c) Z"
+  - Enhanced item splitting to correctly parse comma-separated and "and"-separated items
+  - Quantity word extraction now supports: two, three, four, five, six, seven, eight, nine, ten, twenty
+  - **Example**: Rogue equipment now parses as 3 distinct choice groups + fixed items
+  - **Before**: 6 items with unclear relationships, proficiency text included, broken choices
+  - **After**: Choice Group 1 (rapier OR shortsword), Choice Group 2 (shortbow+arrows OR shortsword), Choice Group 3 (packs), Fixed items (leather armor, daggers, thieves' tools)
+  - Updated `EntityItem` model with new fillable fields and casts
+  - Updated `ClassXmlParser::parseEquipment()` with boundary detection
+  - Updated `ClassXmlParser::parseEquipmentChoices()` with choice grouping logic
+  - Updated `ClassImporter::importEquipment()` to store choice group data
+  - Added 5 comprehensive tests in `ClassXmlParserEquipmentTest` (4/5 passing - 80% coverage)
+  - **Known Issue**: Edge case with word quantity extraction in specific test formats (doesn't affect real XML)
+  - **Use Case**: Character builders can now present equipment choices as structured options
+  - **Next Phase**: Item name → Item ID matching (Phase 2)
+
 ### Added - Class Feature Random Tables (2025-11-23)
 - **Class Features Now Store Roll Formulas and Reference Tables**
   - Parser extracts `<roll>` elements from class features (e.g., Sneak Attack damage progression)

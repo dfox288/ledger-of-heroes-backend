@@ -13,6 +13,8 @@ class EntityItem extends BaseModel
         'item_id',
         'quantity',
         'is_choice',
+        'choice_group',
+        'choice_option',
         'choice_description',
         'proficiency_subcategory',
         'description',
@@ -21,6 +23,7 @@ class EntityItem extends BaseModel
     protected $casts = [
         'quantity' => 'integer',
         'is_choice' => 'boolean',
+        'choice_option' => 'integer',
     ];
 
     public function reference(): MorphTo

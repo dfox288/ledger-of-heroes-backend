@@ -669,7 +669,16 @@ class ClassXmlParser
                     // Fix UTF-8 encoding issues from SimpleXML (bullet points often get corrupted)
                     // Remove non-ASCII characters to avoid database encoding errors
                     $text = preg_replace('/[^\x20-\x7E\n\r\t]/', '-', $text);
-                    $equipment['items'] = $this->parseEquipmentChoices($text);
+
+                    // Extract only the equipment section (after "You begin play with")
+                    // and before "If you forgo" to avoid proficiency/hit point text
+                    if (preg_match('/You begin play with the following equipment[^•\-]+(.*?)(?=\n\nIf you forgo|$)/s', $text, $match)) {
+                        $equipmentText = $match[1];
+                        $equipment['items'] = $this->parseEquipmentChoices($equipmentText);
+                    } else {
+                        // Fallback: use entire text if pattern not found
+                        $equipment['items'] = $this->parseEquipmentChoices($text);
+                    }
                     break 2; // Found it, exit both loops
                 }
             }
@@ -683,13 +692,15 @@ class ClassXmlParser
      *
      * Handles patterns like:
      * - "(a) a greataxe or (b) any martial melee weapon"
+     * - "(a) X, (b) Y, or (c) Z" (three-way choice)
      * - "An explorer's pack, and four javelins"
      *
-     * @return array<int, array{description: string, is_choice: bool, quantity: int}>
+     * @return array<int, array{description: string, is_choice: bool, choice_group: string|null, choice_option: int|null, quantity: int}>
      */
     private function parseEquipmentChoices(string $text): array
     {
         $items = [];
+        $choiceGroupNumber = 1;
 
         // Extract bullet points (• or - prefix)
         preg_match_all('/[•\-]\s*(.+?)(?=\n[•\-]|\n\n|$)/s', $text, $bullets);
@@ -697,20 +708,45 @@ class ClassXmlParser
         foreach ($bullets[1] as $bulletText) {
             $bulletText = trim($bulletText);
 
-            // Check if this is a choice: "(a) X or (b) Y"
-            if (preg_match_all('/\(([a-z])\)\s*([^()]+?)(?=\s+or\s+\(|\s*$)/i', $bulletText, $choices)) {
-                // Multiple choice options
-                foreach ($choices[2] as $choiceText) {
-                    $items[] = [
-                        'description' => trim($choiceText),
-                        'is_choice' => true,
-                        'quantity' => 1,
-                    ];
+            // Check if this is a choice: "(a) X or (b) Y" or "(a) X, (b) Y, or (c) Z"
+            // Pattern matches (a) followed by text until we hit another (x) or end
+            if (preg_match('/\([a-z]\)/i', $bulletText)) {
+                // Has choice markers, extract all options
+                if (preg_match_all('/\(([a-z])\)\s*([^()]+?)(?=\s*(?:,?\s*or\s*)?\([a-z]\)|$)/i', $bulletText, $choices)) {
+                    $optionNumber = 1;
+                    foreach ($choices[2] as $choiceText) {
+                        // Clean up trailing ", or" and whitespace
+                        $choiceText = preg_replace('/\s*,?\s*or\s*$/i', '', $choiceText);
+                        $choiceText = preg_replace('/\s*,\s*$/i', '', $choiceText);
+                        $choiceText = trim($choiceText);
+
+                        if (empty($choiceText)) {
+                            continue;
+                        }
+
+                        // Extract quantity if present
+                        $quantity = 1;
+                        if (preg_match('/^(two|three|four|five|six|seven|eight|nine|ten|twenty)\s+/i', $choiceText, $qtyMatch)) {
+                            $quantity = $this->convertWordToNumber(strtolower($qtyMatch[1]));
+                            $choiceText = preg_replace('/^(two|three|four|five|six|seven|eight|nine|ten|twenty)\s+/i', '', $choiceText);
+                        }
+
+                        $items[] = [
+                            'description' => trim($choiceText),
+                            'is_choice' => true,
+                            'choice_group' => "choice_{$choiceGroupNumber}",
+                            'choice_option' => $optionNumber++,
+                            'quantity' => $quantity,
+                        ];
+                    }
+                    $choiceGroupNumber++;
                 }
             } else {
-                // Simple item (no choice) - may have multiple items separated by "and" or ","
-                // Split by "and" or ","
-                $parts = preg_split('/\s+and\s+|,\s+and\s+/i', $bulletText);
+                // Simple item (no choice) - may have multiple items separated by comma or "and"
+                // Handle cases like: "two dagger and four javelins" or "Leather armor, dagger, and rope"
+
+                // Split by ", " or " and " to separate items
+                $parts = preg_split('/,\s+|\s+and\s+/i', $bulletText);
 
                 foreach ($parts as $part) {
                     $part = trim($part);
@@ -718,16 +754,25 @@ class ClassXmlParser
                         continue;
                     }
 
-                    // Extract quantity if present: "four javelins" → quantity=4
+                    // Extract quantity if present: "four javelins" → quantity=4, "javelins"
+                    // Handle: two, three, four, five, six, seven, eight, nine, ten, twenty
                     $quantity = 1;
-                    if (preg_match('/^(two|three|four|five|six|seven|eight|nine|ten)\s+/i', $part, $qtyMatch)) {
+                    if (preg_match('/^(two|three|four|five|six|seven|eight|nine|ten|twenty)\s+(.+)/i', $part, $qtyMatch)) {
                         $quantity = $this->convertWordToNumber(strtolower($qtyMatch[1]));
-                        $part = preg_replace('/^(two|three|four|five|six|seven|eight|nine|ten)\s+/i', '', $part);
+                        $part = $qtyMatch[2]; // Item name after quantity
+                    }
+
+                    // Skip if part is empty
+                    $part = trim($part);
+                    if (empty($part)) {
+                        continue;
                     }
 
                     $items[] = [
-                        'description' => trim($part),
+                        'description' => $part,
                         'is_choice' => false,
+                        'choice_group' => null,
+                        'choice_option' => null,
                         'quantity' => $quantity,
                     ];
                 }
@@ -755,6 +800,7 @@ class ClassXmlParser
             'eight' => 8,
             'nine' => 9,
             'ten' => 10,
+            'twenty' => 20,
             default => 1,
         };
     }

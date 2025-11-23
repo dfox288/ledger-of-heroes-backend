@@ -407,6 +407,8 @@ class ClassImporter extends BaseImporter
                 'item_id' => null, // No FK match yet (Phase 5 backlog)
                 'description' => $itemData['description'],
                 'is_choice' => $itemData['is_choice'],
+                'choice_group' => $itemData['choice_group'] ?? null,
+                'choice_option' => $itemData['choice_option'] ?? null,
                 'quantity' => $itemData['quantity'],
                 'choice_description' => $itemData['is_choice']
                     ? 'Starting equipment choice'

@@ -107,7 +107,7 @@ class ClassXmlParserTest extends TestCase
         // All should have same quantity (2)
         foreach ($skillProfs as $prof) {
             $this->assertTrue($prof['is_choice'], "Skill {$prof['name']} should be a choice");
-            $this->assertEquals(2, $prof['quantity'], "All skills should have quantity=2 (choose 2 from list)");
+            $this->assertEquals(2, $prof['quantity'], 'All skills should have quantity=2 (choose 2 from list)');
         }
 
         // Should have 6 skill options (Athletics, Animal Handling, etc.)

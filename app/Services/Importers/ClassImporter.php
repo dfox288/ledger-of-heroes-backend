@@ -280,7 +280,6 @@ class ClassImporter extends BaseImporter
      *
      * @param  array  $data  Parsed class data
      * @param  MergeMode  $mode  Merge strategy
-     * @return CharacterClass
      */
     public function importWithMerge(array $data, MergeMode $mode = MergeMode::CREATE): CharacterClass
     {
@@ -312,7 +311,6 @@ class ClassImporter extends BaseImporter
      *
      * @param  CharacterClass  $existingClass  Base class from PHB
      * @param  array  $supplementData  Data from XGE/TCE/SCAG
-     * @return CharacterClass
      */
     private function mergeSupplementData(CharacterClass $existingClass, array $supplementData): CharacterClass
     {
@@ -336,6 +334,7 @@ class ClassImporter extends BaseImporter
                         'class' => $existingClass->name,
                         'subclass' => $subclassData['name'],
                     ]);
+
                     continue;
                 }
 

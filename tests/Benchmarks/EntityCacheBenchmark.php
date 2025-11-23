@@ -8,14 +8,20 @@
  * require 'tests/Benchmarks/EntityCacheBenchmark.php';
  */
 
+use App\Models\Background;
+use App\Models\CharacterClass;
+use App\Models\Feat;
+use App\Models\Item;
+use App\Models\Monster;
+use App\Models\Race;
+use App\Models\Spell;
 use App\Services\Cache\EntityCacheService;
-use App\Models\{Spell, Item, Monster, CharacterClass, Race, Background, Feat};
 use Illuminate\Support\Facades\Cache;
 
 function benchmarkEntity(string $entityType, string $modelClass, int $sampleId = 1): array
 {
     $cache = app(EntityCacheService::class);
-    $methodName = 'get' . ucfirst($entityType);
+    $methodName = 'get'.ucfirst($entityType);
 
     // Clear cache for clean test
     Cache::flush();
@@ -71,7 +77,7 @@ $results[] = benchmarkEntity('feat', Feat::class, 1);
 // Display results table
 printf("%-15s | %-12s | %-14s | %-12s | %-14s\n",
     'Entity Type', 'Cold (DB)', 'Warm (Cache)', 'Improvement', 'Speed Increase');
-echo str_repeat('-', 80) . "\n";
+echo str_repeat('-', 80)."\n";
 
 foreach ($results as $result) {
     printf("%-15s | %9.2f ms | %11.2f ms | %10.1f%% | %14s\n",
@@ -88,20 +94,20 @@ $avgCold = round(array_sum(array_column($results, 'cold_cache_ms')) / count($res
 $avgWarm = round(array_sum(array_column($results, 'warm_cache_ms')) / count($results), 2);
 $avgImprovement = round(array_sum(array_column($results, 'improvement_pct')) / count($results), 1);
 
-echo str_repeat('-', 80) . "\n";
+echo str_repeat('-', 80)."\n";
 printf("%-15s | %9.2f ms | %11.2f ms | %10.1f%% | %14s\n",
     'AVERAGE',
     $avgCold,
     $avgWarm,
     $avgImprovement,
-    round($avgCold / $avgWarm, 1) . 'x'
+    round($avgCold / $avgWarm, 1).'x'
 );
 
 echo "\n=== Summary ===\n";
 echo "Average improvement: {$avgImprovement}%\n";
 echo "Average cold cache: {$avgCold}ms\n";
 echo "Average warm cache: {$avgWarm}ms\n";
-echo "Database load reduction: " . round($avgImprovement, 0) . "%\n";
+echo 'Database load reduction: '.round($avgImprovement, 0)."%\n";
 
 echo "\nBenchmark complete! 🚀\n\n";
 

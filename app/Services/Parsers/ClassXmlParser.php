@@ -481,6 +481,9 @@ class ClassXmlParser
                 // Match "Starting Barbarian", "Starting Fighter", etc.
                 if (preg_match('/^Starting\s+\w+$/i', $featureName)) {
                     $text = (string) $feature->text;
+                    // Fix UTF-8 encoding issues from SimpleXML (bullet points often get corrupted)
+                    // Remove non-ASCII characters to avoid database encoding errors
+                    $text = preg_replace('/[^\x20-\x7E\n\r\t]/', '-', $text);
                     $equipment['items'] = $this->parseEquipmentChoices($text);
                     break 2; // Found it, exit both loops
                 }
@@ -553,7 +556,6 @@ class ClassXmlParser
      * Convert word numbers to integers.
      *
      * @param  string  $word  Number word (e.g., "two")
-     * @return int
      */
     private function convertWordToNumber(string $word): int
     {

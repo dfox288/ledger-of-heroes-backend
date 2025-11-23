@@ -211,7 +211,7 @@ class ImportAllDataCommand extends Command
         $subclassesImported = 0;
 
         foreach ($classByName as $className => $classFiles) {
-            $this->line("  → ".ucfirst($className).' ('.count($classFiles).' file(s))');
+            $this->line('  → '.ucfirst($className).' ('.count($classFiles).' file(s))');
 
             // Use batch importer with merge mode
             $exitCode = $this->call('import:classes:batch', [
@@ -230,7 +230,7 @@ class ImportAllDataCommand extends Command
                     ->count();
                 if ($subclassCount > 1) {
                     $subclassesImported += ($subclassCount - 1); // -1 for base class
-                    $this->line("     (1 base class + ".($subclassCount - 1).' subclass(es))');
+                    $this->line('     (1 base class + '.($subclassCount - 1).' subclass(es))');
                 }
             } else {
                 $this->failCount += count($classFiles);

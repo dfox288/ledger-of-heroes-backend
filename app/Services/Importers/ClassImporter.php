@@ -8,6 +8,7 @@ use App\Models\ClassFeature;
 use App\Models\ClassLevelProgression;
 use App\Models\RandomTable;
 use App\Models\RandomTableEntry;
+use App\Services\Importers\Concerns\ImportsEntityItems;
 use App\Services\Importers\Concerns\ImportsRandomTablesFromText;
 use App\Services\Importers\Strategies\CharacterClass\BaseClassStrategy;
 use App\Services\Importers\Strategies\CharacterClass\SubclassStrategy;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 
 class ClassImporter extends BaseImporter
 {
+    use ImportsEntityItems;
     use ImportsRandomTablesFromText;
 
     private array $strategies = [];
@@ -400,11 +402,11 @@ class ClassImporter extends BaseImporter
         $class->equipment()->delete();
 
         foreach ($equipmentData['items'] as $itemData) {
-            // TODO Phase 5: Try to match item name to items table
-            // For now, just store description as text
+            // Try to match item description to Item record
+            $item = $this->matchItemByDescription($itemData['description']);
 
             $class->equipment()->create([
-                'item_id' => null, // No FK match yet (Phase 5 backlog)
+                'item_id' => $item?->id,
                 'description' => $itemData['description'],
                 'is_choice' => $itemData['is_choice'],
                 'choice_group' => $itemData['choice_group'] ?? null,

@@ -7,8 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Improved - Class Starting Equipment Parsing (2025-11-23)
-- **Equipment Choices Now Properly Grouped and Parsed**
+### Improved - Class Starting Equipment Parsing Phase 1 & 2 Complete (2025-11-23)
+- **Equipment Choices Now Properly Grouped and Parsed (Phase 1)**
   - Added `choice_group` and `choice_option` columns to `entity_items` table for organizing related choices
   - Fixed regex boundary detection to exclude proficiency/hit point text from equipment section
   - Improved choice parsing to handle 2-way and 3-way choices: "(a) X or (b) Y" and "(a) X, (b) Y, or (c) Z"
@@ -18,13 +18,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Before**: 6 items with unclear relationships, proficiency text included, broken choices
   - **After**: Choice Group 1 (rapier OR shortsword), Choice Group 2 (shortbow+arrows OR shortsword), Choice Group 3 (packs), Fixed items (leather armor, daggers, thieves' tools)
   - Updated `EntityItem` model with new fillable fields and casts
-  - Updated `ClassXmlParser::parseEquipment()` with boundary detection
-  - Updated `ClassXmlParser::parseEquipmentChoices()` with choice grouping logic
-  - Updated `ClassImporter::importEquipment()` to store choice group data
-  - Added 5 comprehensive tests in `ClassXmlParserEquipmentTest` (4/5 passing - 80% coverage)
-  - **Known Issue**: Edge case with word quantity extraction in specific test formats (doesn't affect real XML)
-  - **Use Case**: Character builders can now present equipment choices as structured options
-  - **Next Phase**: Item name → Item ID matching (Phase 2)
+  - Updated `ClassXmlParser::parseEquipment()` with boundary detection and UTF-8 support
+  - Updated `ClassXmlParser::parseEquipmentChoices()` with choice grouping logic and improved regex patterns
+  - Added 5 comprehensive tests in `ClassXmlParserEquipmentTest` (5/5 passing - 100% coverage)
+
+- **Equipment Item Matching to Items Table (Phase 2)**
+  - Created `ImportsEntityItems` trait with intelligent item name matching
+  - Matches equipment descriptions to Item records with fuzzy matching, article removal, plural handling, and compound item extraction
+  - Prefers non-magic items for base equipment (e.g., "Dagger" over "Dagger +1")
+  - Handles complex cases: "a shortbow and quiver of arrows (20)" → matches "Shortbow"
+  - Removes quantity words and articles: "two dagger" → "Dagger"
+  - Case-insensitive matching with possessive support: "thieves' tools" → "Thieves' Tools"
+  - Updated `ClassImporter` to use trait and populate `item_id` field
+  - Added 9 comprehensive tests in `ImportsEntityItemsTest` (9/9 passing - 45 assertions)
+  - **Result**: Equipment descriptions now link to Item records when available, enabling equipment detail lookups
+  - **Use Case**: Character builders can display equipment stats, costs, and properties by following item_id foreign key
 
 ### Added - Class Feature Random Tables (2025-11-23)
 - **Class Features Now Store Roll Formulas and Reference Tables**

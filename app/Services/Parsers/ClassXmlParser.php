@@ -666,9 +666,6 @@ class ClassXmlParser
                 // Match "Starting Barbarian", "Starting Fighter", etc.
                 if (preg_match('/^Starting\s+\w+$/i', $featureName)) {
                     $text = (string) $feature->text;
-                    // Fix UTF-8 encoding issues from SimpleXML (bullet points often get corrupted)
-                    // Remove non-ASCII characters to avoid database encoding errors
-                    $text = preg_replace('/[^\x20-\x7E\n\r\t]/', '-', $text);
 
                     // Extract only the equipment section (after "You begin play with")
                     // and before "If you forgo" to avoid proficiency/hit point text
@@ -702,17 +699,19 @@ class ClassXmlParser
         $items = [];
         $choiceGroupNumber = 1;
 
-        // Extract bullet points (• or - prefix)
-        preg_match_all('/[•\-]\s*(.+?)(?=\n[•\-]|\n\n|$)/s', $text, $bullets);
+        // Extract bullet points (• or - prefix, with optional leading whitespace)
+        // Use 'u' flag for UTF-8 support (bullet • is 3-byte UTF-8 character)
+        preg_match_all('/[•\-]\s*(.+?)(?=\n\s*[•\-]|\n\n|$)/su', $text, $bullets);
 
         foreach ($bullets[1] as $bulletText) {
             $bulletText = trim($bulletText);
 
             // Check if this is a choice: "(a) X or (b) Y" or "(a) X, (b) Y, or (c) Z"
-            // Pattern matches (a) followed by text until we hit another (x) or end
+            // Pattern matches (a) followed by text (allowing nested parentheses) until next choice or end
             if (preg_match('/\([a-z]\)/i', $bulletText)) {
                 // Has choice markers, extract all options
-                if (preg_match_all('/\(([a-z])\)\s*([^()]+?)(?=\s*(?:,?\s*or\s*)?\([a-z]\)|$)/i', $bulletText, $choices)) {
+                // Lookahead matches: " or (x)", ", (x)", or end of string
+                if (preg_match_all('/\(([a-z])\)\s*(.+?)(?=\s+(?:,\s*)?or\s+\([a-z]\)|\s*,\s*\([a-z]\)|$)/i', $bulletText, $choices)) {
                     $optionNumber = 1;
                     foreach ($choices[2] as $choiceText) {
                         // Clean up trailing ", or" and whitespace
@@ -745,8 +744,8 @@ class ClassXmlParser
                 // Simple item (no choice) - may have multiple items separated by comma or "and"
                 // Handle cases like: "two dagger and four javelins" or "Leather armor, dagger, and rope"
 
-                // Split by ", " or " and " to separate items
-                $parts = preg_split('/,\s+|\s+and\s+/i', $bulletText);
+                // Split by ", and " (Oxford comma) or ", " or " and "
+                $parts = preg_split('/,\s+(?:and\s+)?|\s+and\s+/i', $bulletText);
 
                 foreach ($parts as $part) {
                     $part = trim($part);

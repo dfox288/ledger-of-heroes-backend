@@ -52,11 +52,15 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 - `docs/SESSION-HANDOVER-2025-11-22-TEST-REDUCTION-PHASE-1.md` - Test suite optimization (COMPLETE)
 
 **🚀 Next tasks (all optional - core features complete):**
-1. Search result caching (Phase 4) - Cache Meilisearch queries - 2-3 hours
-2. Additional Monster Strategies (ShapechangerStrategy, ElementalStrategy, AberrationStrategy) - 2-3h each
+1. **Class Feature Random Tables** - Store `<roll>` elements and pipe-delimited tables - 1-1.5 hours
+   - See: `docs/plans/2025-11-23-class-feature-random-tables-implementation.md`
+   - All infrastructure exists, just need to connect the dots!
+   - Enables character builders to access Sneak Attack damage, Wild Magic tables, etc.
+2. Search result caching (Phase 4) - Cache Meilisearch queries - 2-3 hours
 3. Tag-based filtering in MonsterController - Enable `?filter=tags.slug = fire_immune` - 1-2 hours
-4. Character Builder API (character creation, leveling, spell selection) - 8-12 hours
-5. Frontend Application (Inertia.js/Vue or Next.js/React) - 20-40 hours
+4. Additional Monster Strategies (ShapechangerStrategy, ElementalStrategy, AberrationStrategy) - 2-3h each
+5. Character Builder API (character creation, leveling, spell selection) - 8-12 hours
+6. Frontend Application (Inertia.js/Vue or Next.js/React) - 20-40 hours
 
 ---
 

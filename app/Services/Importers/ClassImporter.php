@@ -69,7 +69,15 @@ class ClassImporter extends BaseImporter
 
         // Import relationships
         if (! empty($data['traits'])) {
-            $this->importEntityTraits($class, $data['traits']);
+            $createdTraits = $this->importEntityTraits($class, $data['traits']);
+
+            // Import random tables from traits with pipe-delimited tables or <roll> elements
+            foreach ($createdTraits as $index => $trait) {
+                if (isset($data['traits'][$index]['description'])) {
+                    // This handles both pipe-delimited tables AND <roll> XML tags
+                    $this->importRandomTablesFromText($trait, $data['traits'][$index]['description']);
+                }
+            }
 
             // Extract and import sources from traits
             $sources = [];

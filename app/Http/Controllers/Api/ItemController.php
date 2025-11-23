@@ -92,27 +92,12 @@ class ItemController extends Controller
      * properties, abilities, random tables, modifiers, proficiencies, and prerequisites.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(ItemShowRequest $request, Item $item, EntityCacheService $cache)
+    public function show(ItemShowRequest $request, Item $item, EntityCacheService $cache, ItemSearchService $service)
     {
         $validated = $request->validated();
 
-        // Default relationships to load
-        $defaultRelationships = [
-            'itemType',
-            'damageType',
-            'properties',
-            'abilities',
-            'randomTables.entries',
-            'sources.source',
-            'proficiencies.proficiencyType',
-            'modifiers.abilityScore',
-            'modifiers.skill',
-            'modifiers.damageType',
-            'prerequisites.prerequisite',
-            'tags',
-            'spells',
-            'savingThrows',
-        ];
+        // Default relationships from service
+        $defaultRelationships = $service->getShowRelationships();
 
         // Try cache first
         $cachedItem = $cache->getItem($item->id);

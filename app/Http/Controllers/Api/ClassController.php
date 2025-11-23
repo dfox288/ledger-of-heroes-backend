@@ -95,29 +95,23 @@ class ClassController extends Controller
      * Returns detailed information about a specific class or subclass including parent class,
      * subclasses, proficiencies, traits, features, level progression, spell slot tables,
      * and counters. Supports selective relationship loading via the 'include' parameter.
+     *
+     * **Feature Inheritance for Subclasses:**
+     * - By default, subclasses return ALL features (inherited base class features + subclass-specific features)
+     * - Use `?include_base_features=false` to return only subclass-specific features
+     * - Base classes are unaffected by this parameter
+     *
+     * **Examples:**
+     * - Get Arcane Trickster with all 40 features: `GET /classes/rogue-arcane-trickster`
+     * - Get only Arcane Trickster's 6 unique features: `GET /classes/rogue-arcane-trickster?include_base_features=false`
+     * - Get base Rogue (always 34 features): `GET /classes/rogue`
      */
-    public function show(ClassShowRequest $request, CharacterClass $class, EntityCacheService $cache)
+    public function show(ClassShowRequest $request, CharacterClass $class, EntityCacheService $cache, ClassSearchService $service)
     {
         $validated = $request->validated();
 
-        // Default relationships
-        $defaultRelationships = [
-            'spellcastingAbility',
-            'parentClass',
-            'subclasses',
-            'proficiencies.proficiencyType',
-            'proficiencies.skill.abilityScore',
-            'proficiencies.abilityScore',
-            'traits.randomTables.entries',
-            'sources.source',
-            'features',
-            'levelProgression',
-            'counters',
-            'equipment',
-            'subclasses.features',
-            'subclasses.counters',
-            'tags',
-        ];
+        // Default relationships from service
+        $defaultRelationships = $service->getShowRelationships();
 
         // Try cache first
         $cachedClass = $cache->getClass($class->id);
@@ -125,6 +119,13 @@ class ClassController extends Controller
         if ($cachedClass) {
             // If include parameter provided, use it; otherwise load defaults
             $includes = $validated['include'] ?? $defaultRelationships;
+
+            // If this is a subclass and we're including base features, eager-load parent features
+            $includeBaseFeatures = $request->boolean('include_base_features', true);
+            if ($includeBaseFeatures && $cachedClass->parent_class_id !== null && in_array('features', $includes)) {
+                $includes[] = 'parentClass.features';
+            }
+
             $cachedClass->load($includes);
 
             return new ClassResource($cachedClass);
@@ -132,6 +133,13 @@ class ClassController extends Controller
 
         // Fallback to route model binding result (should rarely happen)
         $includes = $validated['include'] ?? $defaultRelationships;
+
+        // If this is a subclass and we're including base features, eager-load parent features
+        $includeBaseFeatures = $request->boolean('include_base_features', true);
+        if ($includeBaseFeatures && $class->parent_class_id !== null && in_array('features', $includes)) {
+            $includes[] = 'parentClass.features';
+        }
+
         $class->load($includes);
 
         return new ClassResource($class);

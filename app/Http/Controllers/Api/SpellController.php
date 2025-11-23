@@ -157,20 +157,12 @@ class SpellController extends Controller
      * like spell school, sources, damage effects, and associated classes.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(SpellShowRequest $request, Spell $spell, EntityCacheService $cache)
+    public function show(SpellShowRequest $request, Spell $spell, EntityCacheService $cache, SpellSearchService $service)
     {
         $validated = $request->validated();
 
-        // Default relationships
-        $defaultRelationships = [
-            'spellSchool',
-            'sources.source',
-            'effects.damageType',
-            'classes',
-            'tags',
-            'savingThrows',
-            'randomTables.entries',
-        ];
+        // Default relationships from service
+        $defaultRelationships = $service->getShowRelationships();
 
         // Try cache first
         $cachedSpell = $cache->getSpell($spell->id);

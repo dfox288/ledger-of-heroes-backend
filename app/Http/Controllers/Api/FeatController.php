@@ -123,22 +123,12 @@ class FeatController extends Controller
      * Returns detailed information about a specific feat including modifiers, proficiencies,
      * conditions, prerequisites, and source citations. Supports selective relationship loading.
      */
-    public function show(FeatShowRequest $request, Feat $feat, EntityCacheService $cache)
+    public function show(FeatShowRequest $request, Feat $feat, EntityCacheService $cache, FeatSearchService $service)
     {
         $validated = $request->validated();
 
-        // Default relationships
-        $defaultRelationships = [
-            'sources.source',
-            'modifiers.abilityScore',
-            'modifiers.skill',
-            'modifiers.damageType',
-            'proficiencies.skill.abilityScore',
-            'proficiencies.proficiencyType',
-            'conditions',
-            'prerequisites.prerequisite',
-            'tags',
-        ];
+        // Default relationships from service
+        $defaultRelationships = $service->getShowRelationships();
 
         // Try cache first
         $cachedFeat = $cache->getFeat($feat->id);

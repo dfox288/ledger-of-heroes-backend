@@ -15,9 +15,9 @@ use MeiliSearch\Client;
 final class MonsterSearchService
 {
     /**
-     * Default relationships to eager-load for both Scout and database queries
+     * Relationships for index/list endpoints (lightweight)
      */
-    private const DEFAULT_RELATIONSHIPS = [
+    private const INDEX_RELATIONSHIPS = [
         'size',
         'sources.source',
         'modifiers.abilityScore',
@@ -25,6 +25,28 @@ final class MonsterSearchService
         'modifiers.damageType',
         'conditions',
     ];
+
+    /**
+     * Relationships for show/detail endpoints (comprehensive)
+     */
+    private const SHOW_RELATIONSHIPS = [
+        'size',
+        'traits',
+        'actions',
+        'legendaryActions',
+        'spellcasting',
+        'entitySpells',
+        'sources.source',
+        'modifiers.abilityScore',
+        'modifiers.skill',
+        'modifiers.damageType',
+        'tags',
+    ];
+
+    /**
+     * Backward compatibility alias
+     */
+    private const DEFAULT_RELATIONSHIPS = self::INDEX_RELATIONSHIPS;
 
     /**
      * Build Scout search query for full-text search
@@ -76,7 +98,7 @@ final class MonsterSearchService
      */
     public function buildDatabaseQuery(MonsterSearchDTO $dto): Builder
     {
-        $query = Monster::with(self::DEFAULT_RELATIONSHIPS);
+        $query = Monster::with(self::INDEX_RELATIONSHIPS);
 
         $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
@@ -85,11 +107,27 @@ final class MonsterSearchService
     }
 
     /**
-     * Get default relationships for eager loading
+     * Get default relationships for eager loading (index endpoints)
      */
     public function getDefaultRelationships(): array
     {
-        return self::DEFAULT_RELATIONSHIPS;
+        return self::INDEX_RELATIONSHIPS;
+    }
+
+    /**
+     * Get relationships for index/list endpoints
+     */
+    public function getIndexRelationships(): array
+    {
+        return self::INDEX_RELATIONSHIPS;
+    }
+
+    /**
+     * Get relationships for show/detail endpoints
+     */
+    public function getShowRelationships(): array
+    {
+        return self::SHOW_RELATIONSHIPS;
     }
 
     private function applyFilters(Builder $query, MonsterSearchDTO $dto): void

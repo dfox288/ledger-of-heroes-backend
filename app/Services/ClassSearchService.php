@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\Builder;
 final class ClassSearchService
 {
     /**
-     * Default relationships to eager-load for both Scout and database queries
+     * Relationships for index/list endpoints (lightweight)
      */
-    private const DEFAULT_RELATIONSHIPS = [
+    private const INDEX_RELATIONSHIPS = [
         'spellcastingAbility',
         'proficiencies.proficiencyType',
         'traits',
@@ -22,7 +22,44 @@ final class ClassSearchService
         'subclasses.features',
         'subclasses.counters',
         'tags',
+        'parentClass',
     ];
+
+    /**
+     * Relationships for show/detail endpoints (comprehensive)
+     */
+    private const SHOW_RELATIONSHIPS = [
+        'spellcastingAbility',
+        'parentClass.spellcastingAbility',
+        'parentClass.proficiencies.proficiencyType',
+        'parentClass.proficiencies.skill.abilityScore',
+        'parentClass.proficiencies.abilityScore',
+        'parentClass.traits.randomTables.entries',
+        'parentClass.sources.source',
+        'parentClass.features',
+        'parentClass.levelProgression',
+        'parentClass.counters',
+        'parentClass.equipment',
+        'parentClass.tags',
+        'subclasses',
+        'proficiencies.proficiencyType',
+        'proficiencies.skill.abilityScore',
+        'proficiencies.abilityScore',
+        'traits.randomTables.entries',
+        'sources.source',
+        'features',
+        'levelProgression',
+        'counters',
+        'equipment',
+        'subclasses.features',
+        'subclasses.counters',
+        'tags',
+    ];
+
+    /**
+     * Backward compatibility alias
+     */
+    private const DEFAULT_RELATIONSHIPS = self::INDEX_RELATIONSHIPS;
 
     public function buildScoutQuery(string $searchQuery): \Laravel\Scout\Builder
     {
@@ -31,7 +68,7 @@ final class ClassSearchService
 
     public function buildDatabaseQuery(ClassSearchDTO $dto): Builder
     {
-        $query = CharacterClass::with(self::DEFAULT_RELATIONSHIPS);
+        $query = CharacterClass::with(self::INDEX_RELATIONSHIPS);
 
         $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
@@ -40,11 +77,27 @@ final class ClassSearchService
     }
 
     /**
-     * Get default relationships for eager loading
+     * Get default relationships for eager loading (index endpoints)
      */
     public function getDefaultRelationships(): array
     {
-        return self::DEFAULT_RELATIONSHIPS;
+        return self::INDEX_RELATIONSHIPS;
+    }
+
+    /**
+     * Get relationships for index/list endpoints
+     */
+    public function getIndexRelationships(): array
+    {
+        return self::INDEX_RELATIONSHIPS;
+    }
+
+    /**
+     * Get relationships for show/detail endpoints
+     */
+    public function getShowRelationships(): array
+    {
+        return self::SHOW_RELATIONSHIPS;
     }
 
     private function applyFilters(Builder $query, ClassSearchDTO $dto): void

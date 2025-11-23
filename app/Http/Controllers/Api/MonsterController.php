@@ -101,25 +101,12 @@ class MonsterController extends Controller
      * legendary actions, spellcasting, modifiers, conditions, and source citations.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(MonsterShowRequest $request, Monster $monster, EntityCacheService $cache)
+    public function show(MonsterShowRequest $request, Monster $monster, EntityCacheService $cache, MonsterSearchService $service)
     {
         $validated = $request->validated();
 
-        // Default relationships
-        $defaultRelationships = [
-            'size',
-            'traits',
-            'actions',
-            'legendaryActions',
-            'spellcasting',
-            'entitySpells',
-            'sources.source',
-            'modifiers.abilityScore',
-            'modifiers.skill',
-            'modifiers.damageType',
-            'conditions',
-            'tags',
-        ];
+        // Default relationships from service
+        $defaultRelationships = $service->getShowRelationships();
 
         // Try cache first
         $cachedMonster = $cache->getMonster($monster->id);

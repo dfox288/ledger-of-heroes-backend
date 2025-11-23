@@ -117,28 +117,12 @@ class RaceController extends Controller
      * subraces, ability modifiers, proficiencies, traits, languages, and spells.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(RaceShowRequest $request, Race $race, EntityCacheService $cache)
+    public function show(RaceShowRequest $request, Race $race, EntityCacheService $cache, RaceSearchService $service)
     {
         $validated = $request->validated();
 
-        // Default relationships
-        $defaultRelationships = [
-            'size',
-            'sources.source',
-            'parent',
-            'subraces',
-            'proficiencies.skill.abilityScore',
-            'proficiencies.abilityScore',
-            'traits.randomTables.entries',
-            'modifiers.abilityScore',
-            'modifiers.skill',
-            'modifiers.damageType',
-            'languages.language',
-            'conditions.condition',
-            'spells.spell',
-            'spells.abilityScore',
-            'tags',
-        ];
+        // Default relationships from service
+        $defaultRelationships = $service->getShowRelationships();
 
         // Try cache first
         $cachedRace = $cache->getRace($race->id);

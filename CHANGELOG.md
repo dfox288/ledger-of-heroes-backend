@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Parent Relationships in List Views (2025-11-23)
+- **Index Endpoints Now Return Parent Data for Subraces/Subclasses**
+  - `/api/v1/races` now includes minimal parent race data (id, slug, name) for subraces
+  - `/api/v1/classes` now includes minimal parent class data (id, slug, name, hit_die, description) for subclasses
+  - **Example**: `GET /races` → High Elf shows `{"parent_race": {"id": 5, "slug": "elf", "name": "Elf"}}`
+  - **Example**: `GET /classes` → Arcane Trickster shows parent Rogue with basic info
+  - Search queries (`?q=term`) also return parent data consistently
+  - Show endpoints load full parent data with all relationships (traits, modifiers, features, etc.)
+  - **Performance**: +1 query per index request (~1ms overhead, negligible with Redis caching)
+  - Split SearchService relationship constants: `INDEX_RELATIONSHIPS` (lightweight) vs `SHOW_RELATIONSHIPS` (comprehensive)
+  - All 7 controllers now use `$service->getShowRelationships()` for consistent relationship management
+  - **Use Case**: Frontend list views can display "High Elf (Elf)" or "School of Evocation (Wizard)" without extra API calls
+
+### Added - Subclass Feature Inheritance API (2025-11-23)
+- **Subclass API Now Returns Complete Feature Set**
+  - Added `getAllFeatures()` method to CharacterClass model to merge base + subclass features
+  - API endpoint `/classes/{slug}` now returns ALL features for subclasses by default (base class features + subclass-specific features)
+  - New parameter `?include_base_features=false` to return only subclass-specific features
+  - Features sorted by level, then sort_order to maintain correct D&D 5e progression
+  - **Example**: `GET /classes/rogue-arcane-trickster` returns 40 features (34 base Rogue + 6 Arcane Trickster)
+  - **Example**: `GET /classes/rogue-arcane-trickster?include_base_features=false` returns 6 features (Arcane Trickster only)
+  - Base classes unaffected (always return only their own features)
+  - Efficient eager loading: Controller loads `parentClass.features` when needed
+  - Added 6 feature tests covering merging logic, sorting, and edge cases
+  - **Use Case**: Character builders can display full feature list for a subclass in one API call
+
+### Fixed - Class Import Data Quality (2025-11-23)
+- **Issue #6: Optional Spell Slots No Longer Assigned to Base Classes**
+  - Classes with subclass-only spellcasting (Rogue Arcane Trickster, Fighter Eldritch Knight) no longer have spell slots or spellcasting ability on base class
+  - Parser now skips `<slots optional="YES">` when creating base class spell progression
+  - Parser also skips `<spellAbility>` tag when all spell slots are optional
+  - "Spells Known" counters no longer create empty spell progression for optional-only classes
+  - **Impact**: Base Rogue/Fighter classes now correctly show NULL spellcasting ability, 0 spell slots
+  - **Affected Classes**: Rogue (Arcane Trickster), Fighter (Eldritch Knight), Barbarian (no spellcasting)
+  - Added 6 unit tests covering optional slot filtering logic
+- **Issue #1: Subclass Features No Longer Leak to Base Classes**
+  - Base class features no longer include subclass-specific features
+  - Parser now filters features matching patterns: `(Subclass Name)` or `Archetype: Subclass Name`
+  - `detectSubclasses()` method now returns both subclasses AND filtered base features
+  - **Impact**: Base Rogue has 34 features (down from 40+), no Arcane Trickster/Assassin/Thief features
+  - **Example**: "Spellcasting (Arcane Trickster)" only appears in rogue-arcane-trickster, not base rogue
+  - Added 6 unit tests covering subclass feature filtering patterns
+- **Verification**: Full test suite passes (33 tests, 240 assertions)
+- **Documentation**: See `docs/analysis/CLASS-XML-IMPROVEMENTS-ANALYSIS.md` for detailed analysis
+
 ### Fixed - Scout Search Relationship Loading (2025-11-23)
 - **Fixed Missing Data in Search Results** - Scout search queries now return complete entity data
   - Added DEFAULT_RELATIONSHIPS constant to all 7 SearchService classes

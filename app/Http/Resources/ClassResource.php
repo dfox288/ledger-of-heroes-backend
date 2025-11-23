@@ -9,6 +9,9 @@ class ClassResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        // Determine if we should include base class features for subclasses
+        $includeBaseFeatures = $request->boolean('include_base_features', true);
+
         return [
             'id' => $this->id,
             'slug' => $this->slug,
@@ -27,7 +30,12 @@ class ClassResource extends JsonResource
             'subclasses' => ClassResource::collection($this->whenLoaded('subclasses')),
             'proficiencies' => ProficiencyResource::collection($this->whenLoaded('proficiencies')),
             'traits' => TraitResource::collection($this->whenLoaded('traits')),
-            'features' => ClassFeatureResource::collection($this->whenLoaded('features')),
+
+            // Features: Use getAllFeatures() to merge base + subclass features when appropriate
+            'features' => $this->when($this->relationLoaded('features'), function () use ($includeBaseFeatures) {
+                return ClassFeatureResource::collection($this->getAllFeatures($includeBaseFeatures));
+            }),
+
             'level_progression' => ClassLevelProgressionResource::collection($this->whenLoaded('levelProgression')),
             'counters' => ClassCounterResource::collection($this->whenLoaded('counters')),
             'spells' => SpellResource::collection($this->whenLoaded('spells')),

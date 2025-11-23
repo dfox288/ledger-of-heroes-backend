@@ -94,6 +94,44 @@ class CharacterClass extends BaseModel
         return is_null($this->parent_class_id);
     }
 
+    /**
+     * Get all features including inherited base class features.
+     *
+     * For subclasses, merges parent class features with subclass-specific features.
+     * Features are sorted by level, then by sort_order to maintain proper ordering.
+     *
+     * @param  bool  $includeInherited  Whether to include parent class features (default: true)
+     * @return \Illuminate\Support\Collection
+     */
+    public function getAllFeatures(bool $includeInherited = true)
+    {
+        // Base classes or when inheritance disabled: return only this class's features
+        if (! $includeInherited || $this->parent_class_id === null) {
+            return $this->features->sortBy([
+                ['level', 'asc'],
+                ['sort_order', 'asc'],
+            ])->values();
+        }
+
+        // Subclasses: merge parent + subclass features
+        // Only if parent relationship and its features are loaded
+        if ($this->relationLoaded('parentClass') && $this->parentClass->relationLoaded('features')) {
+            return $this->parentClass->features
+                ->concat($this->features)
+                ->sortBy([
+                    ['level', 'asc'],
+                    ['sort_order', 'asc'],
+                ])
+                ->values();
+        }
+
+        // Fallback: If parent features not loaded, return only subclass features
+        return $this->features->sortBy([
+            ['level', 'asc'],
+            ['sort_order', 'asc'],
+        ])->values();
+    }
+
     // Scout Searchable Methods
     public function toSearchableArray(): array
     {

@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\Builder;
 final class RaceSearchService
 {
     /**
-     * Default relationships to eager-load for both Scout and database queries
+     * Relationships for index/list endpoints (lightweight)
      */
-    private const DEFAULT_RELATIONSHIPS = [
+    private const INDEX_RELATIONSHIPS = [
         'size',
         'sources.source',
         'proficiencies.skill',
@@ -20,7 +20,46 @@ final class RaceSearchService
         'conditions.condition',
         'spells.spell',
         'spells.abilityScore',
+        'parent',
     ];
+
+    /**
+     * Relationships for show/detail endpoints (comprehensive)
+     */
+    private const SHOW_RELATIONSHIPS = [
+        'size',
+        'sources.source',
+        'parent.size',
+        'parent.sources.source',
+        'parent.proficiencies.skill.abilityScore',
+        'parent.proficiencies.abilityScore',
+        'parent.traits.randomTables.entries',
+        'parent.modifiers.abilityScore',
+        'parent.modifiers.skill',
+        'parent.modifiers.damageType',
+        'parent.languages.language',
+        'parent.conditions.condition',
+        'parent.spells.spell',
+        'parent.spells.abilityScore',
+        'parent.tags',
+        'subraces',
+        'proficiencies.skill.abilityScore',
+        'proficiencies.abilityScore',
+        'traits.randomTables.entries',
+        'modifiers.abilityScore',
+        'modifiers.skill',
+        'modifiers.damageType',
+        'languages.language',
+        'conditions.condition',
+        'spells.spell',
+        'spells.abilityScore',
+        'tags',
+    ];
+
+    /**
+     * Backward compatibility alias
+     */
+    private const DEFAULT_RELATIONSHIPS = self::INDEX_RELATIONSHIPS;
 
     public function buildScoutQuery(RaceSearchDTO $dto): \Laravel\Scout\Builder
     {
@@ -35,7 +74,7 @@ final class RaceSearchService
 
     public function buildDatabaseQuery(RaceSearchDTO $dto): Builder
     {
-        $query = Race::with(self::DEFAULT_RELATIONSHIPS);
+        $query = Race::with(self::INDEX_RELATIONSHIPS);
 
         $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
@@ -44,11 +83,27 @@ final class RaceSearchService
     }
 
     /**
-     * Get default relationships for eager loading
+     * Get default relationships for eager loading (index endpoints)
      */
     public function getDefaultRelationships(): array
     {
-        return self::DEFAULT_RELATIONSHIPS;
+        return self::INDEX_RELATIONSHIPS;
+    }
+
+    /**
+     * Get relationships for index/list endpoints
+     */
+    public function getIndexRelationships(): array
+    {
+        return self::INDEX_RELATIONSHIPS;
+    }
+
+    /**
+     * Get relationships for show/detail endpoints
+     */
+    public function getShowRelationships(): array
+    {
+        return self::SHOW_RELATIONSHIPS;
     }
 
     private function applyFilters(Builder $query, RaceSearchDTO $dto): void

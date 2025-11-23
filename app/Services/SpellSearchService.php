@@ -15,14 +15,32 @@ use MeiliSearch\Client;
 final class SpellSearchService
 {
     /**
-     * Default relationships to eager-load for both Scout and database queries
+     * Relationships for index/list endpoints (lightweight)
      */
-    private const DEFAULT_RELATIONSHIPS = [
+    private const INDEX_RELATIONSHIPS = [
         'spellSchool',
         'sources.source',
         'effects.damageType',
         'classes',
     ];
+
+    /**
+     * Relationships for show/detail endpoints (comprehensive)
+     */
+    private const SHOW_RELATIONSHIPS = [
+        'spellSchool',
+        'sources.source',
+        'effects.damageType',
+        'classes',
+        'tags',
+        'savingThrows',
+        'randomTables.entries',
+    ];
+
+    /**
+     * Backward compatibility alias
+     */
+    private const DEFAULT_RELATIONSHIPS = self::INDEX_RELATIONSHIPS;
 
     /**
      * Build Scout search query for full-text search
@@ -66,7 +84,7 @@ final class SpellSearchService
      */
     public function buildDatabaseQuery(SpellSearchDTO $dto): Builder
     {
-        $query = Spell::with(self::DEFAULT_RELATIONSHIPS);
+        $query = Spell::with(self::INDEX_RELATIONSHIPS);
 
         $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
@@ -75,11 +93,27 @@ final class SpellSearchService
     }
 
     /**
-     * Get default relationships for eager loading
+     * Get default relationships for eager loading (index endpoints)
      */
     public function getDefaultRelationships(): array
     {
-        return self::DEFAULT_RELATIONSHIPS;
+        return self::INDEX_RELATIONSHIPS;
+    }
+
+    /**
+     * Get relationships for index/list endpoints
+     */
+    public function getIndexRelationships(): array
+    {
+        return self::INDEX_RELATIONSHIPS;
+    }
+
+    /**
+     * Get relationships for show/detail endpoints
+     */
+    public function getShowRelationships(): array
+    {
+        return self::SHOW_RELATIONSHIPS;
     }
 
     private function applyFilters(Builder $query, SpellSearchDTO $dto): void

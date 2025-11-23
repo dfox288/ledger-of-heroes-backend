@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\Builder;
 final class FeatSearchService
 {
     /**
-     * Default relationships to eager-load for both Scout and database queries
+     * Relationships for index/list endpoints (lightweight)
      */
-    private const DEFAULT_RELATIONSHIPS = [
+    private const INDEX_RELATIONSHIPS = [
         'sources.source',
         'modifiers.abilityScore',
         'modifiers.skill',
@@ -21,6 +21,26 @@ final class FeatSearchService
         'prerequisites.prerequisite',
     ];
 
+    /**
+     * Relationships for show/detail endpoints (comprehensive)
+     */
+    private const SHOW_RELATIONSHIPS = [
+        'sources.source',
+        'modifiers.abilityScore',
+        'modifiers.skill',
+        'modifiers.damageType',
+        'proficiencies.skill.abilityScore',
+        'proficiencies.proficiencyType',
+        'conditions',
+        'prerequisites.prerequisite',
+        'tags',
+    ];
+
+    /**
+     * Backward compatibility alias
+     */
+    private const DEFAULT_RELATIONSHIPS = self::INDEX_RELATIONSHIPS;
+
     public function buildScoutQuery(string $searchQuery): \Laravel\Scout\Builder
     {
         return Feat::search($searchQuery);
@@ -28,7 +48,7 @@ final class FeatSearchService
 
     public function buildDatabaseQuery(FeatSearchDTO $dto): Builder
     {
-        $query = Feat::with(self::DEFAULT_RELATIONSHIPS);
+        $query = Feat::with(self::INDEX_RELATIONSHIPS);
 
         $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
@@ -37,11 +57,27 @@ final class FeatSearchService
     }
 
     /**
-     * Get default relationships for eager loading
+     * Get default relationships for eager loading (index endpoints)
      */
     public function getDefaultRelationships(): array
     {
-        return self::DEFAULT_RELATIONSHIPS;
+        return self::INDEX_RELATIONSHIPS;
+    }
+
+    /**
+     * Get relationships for index/list endpoints
+     */
+    public function getIndexRelationships(): array
+    {
+        return self::INDEX_RELATIONSHIPS;
+    }
+
+    /**
+     * Get relationships for show/detail endpoints
+     */
+    public function getShowRelationships(): array
+    {
+        return self::SHOW_RELATIONSHIPS;
     }
 
     private function applyFilters(Builder $query, FeatSearchDTO $dto): void

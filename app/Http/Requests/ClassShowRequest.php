@@ -5,6 +5,16 @@ namespace App\Http\Requests;
 class ClassShowRequest extends BaseShowRequest
 {
     /**
+     * Get the validation rules that apply to the request.
+     */
+    public function rules(): array
+    {
+        return array_merge(parent::rules(), [
+            'include_base_features' => ['sometimes', 'boolean'],
+        ]);
+    }
+
+    /**
      * Relationships that can be included via ?include
      */
     protected function getIncludableRelationships(): array

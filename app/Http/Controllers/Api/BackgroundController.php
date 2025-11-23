@@ -116,19 +116,12 @@ class BackgroundController extends Controller
      * traits with random tables (personality, ideals, bonds, flaws), languages, and sources.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(BackgroundShowRequest $request, Background $background, EntityCacheService $cache)
+    public function show(BackgroundShowRequest $request, Background $background, EntityCacheService $cache, BackgroundSearchService $service)
     {
         $validated = $request->validated();
 
-        // Default relationships
-        $defaultRelationships = [
-            'sources.source',
-            'traits.randomTables.entries',
-            'proficiencies.skill.abilityScore',
-            'proficiencies.proficiencyType',
-            'languages.language',
-            'tags',
-        ];
+        // Default relationships from service
+        $defaultRelationships = $service->getShowRelationships();
 
         // Try cache first
         $cachedBackground = $cache->getBackground($background->id);

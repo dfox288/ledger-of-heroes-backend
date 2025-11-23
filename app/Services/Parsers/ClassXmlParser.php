@@ -41,8 +41,9 @@ class ClassXmlParser
             'hit_die' => (int) $element->hd,
         ];
 
-        // Parse spellcasting ability
-        if (isset($element->spellAbility)) {
+        // Parse spellcasting ability - but only if class has non-optional spell slots
+        // Classes like Rogue have spellAbility defined but only for subclasses (Arcane Trickster)
+        if (isset($element->spellAbility) && $this->hasNonOptionalSpellSlots($element)) {
             $data['spellcasting_ability'] = (string) $element->spellAbility;
         }
 
@@ -81,8 +82,10 @@ class ClassXmlParser
         // Parse counters from autolevel elements
         $data['counters'] = $this->parseCounters($element);
 
-        // Detect and group subclasses
-        $data['subclasses'] = $this->detectSubclasses($data['features'], $data['counters']);
+        // Detect and group subclasses, and filter base class features
+        $subclassData = $this->detectSubclasses($data['features'], $data['counters']);
+        $data['subclasses'] = $subclassData['subclasses'];
+        $data['features'] = $subclassData['filtered_base_features']; // Use filtered list
 
         // Parse starting equipment
         $data['equipment'] = $this->parseEquipment($element);
@@ -246,6 +249,16 @@ class ClassXmlParser
 
             // Check if this autolevel has spell slots
             if (isset($autolevel->slots)) {
+                // Check if slots are marked as optional (subclass-only)
+                $isOptional = isset($autolevel->slots['optional'])
+                    && (string) $autolevel->slots['optional'] === 'YES';
+
+                // Skip optional slots for base class - they belong to subclasses
+                // Example: Rogue has optional="YES" for Arcane Trickster only
+                if ($isOptional) {
+                    continue;
+                }
+
                 $slotsString = (string) $autolevel->slots;
                 $slots = array_map('intval', explode(',', $slotsString));
 
@@ -268,6 +281,8 @@ class ClassXmlParser
             }
 
             // Check for "Spells Known" counter
+            // NOTE: Only process these if there are non-optional spell slots
+            // (Rogue has "Spells Known" counters for Arcane Trickster, but slots are optional)
             $spellsKnown = null;
             foreach ($autolevel->counter as $counterElement) {
                 if ((string) $counterElement->name === 'Spells Known') {
@@ -276,8 +291,17 @@ class ClassXmlParser
                 }
             }
 
-            // If we found spells_known, merge it into existing progression or create new entry
-            if ($spellsKnown !== null) {
+            // If we found spells_known, merge it into existing progression
+            // BUT: Only if this level has non-optional spell slots
+            if ($spellsKnown !== null && isset($autolevel->slots)) {
+                $isOptional = isset($autolevel->slots['optional'])
+                    && (string) $autolevel->slots['optional'] === 'YES';
+
+                // Skip if slots are optional (subclass-only spellcasting)
+                if ($isOptional) {
+                    continue;
+                }
+
                 // Find existing progression entry for this level
                 $found = false;
                 foreach ($spellProgression as &$prog) {
@@ -369,9 +393,12 @@ class ClassXmlParser
     /**
      * Detect subclasses from features and counters.
      *
+     * Returns both the detected subclasses AND filtered base class features.
+     * Base class features will have subclass-specific features removed.
+     *
      * @param  array<int, array<string, mixed>>  $features
      * @param  array<int, array<string, mixed>>  $counters
-     * @return array<int, array<string, mixed>>
+     * @return array{subclasses: array, filtered_base_features: array}
      */
     private function detectSubclasses(array $features, array $counters): array
     {
@@ -416,18 +443,22 @@ class ClassXmlParser
         $subclassNames = array_unique($subclassNames);
         sort($subclassNames);
 
+        // Track which feature indices belong to subclasses
+        $subclassFeatureIndices = [];
+
         // Group features and counters by subclass
         foreach ($subclassNames as $subclassName) {
             $subclassFeatures = [];
             $subclassCounters = [];
 
             // Find features belonging to this subclass
-            foreach ($features as $feature) {
+            foreach ($features as $index => $feature) {
                 $name = $feature['name'];
 
                 // Check if feature name contains subclass name
-                if (str_contains($name, $subclassName) || str_contains($name, "($subclassName)")) {
+                if ($this->featureBelongsToSubclass($name, $subclassName)) {
                     $subclassFeatures[] = $feature;
+                    $subclassFeatureIndices[] = $index; // Track this index for removal from base
                 }
             }
 
@@ -445,7 +476,45 @@ class ClassXmlParser
             ];
         }
 
-        return $subclasses;
+        // Filter base class features - remove any that belong to subclasses
+        $baseFeatures = [];
+        foreach ($features as $index => $feature) {
+            if (! in_array($index, $subclassFeatureIndices)) {
+                $baseFeatures[] = $feature;
+            }
+        }
+
+        return [
+            'subclasses' => $subclasses,
+            'filtered_base_features' => $baseFeatures,
+        ];
+    }
+
+    /**
+     * Check if a feature belongs to a specific subclass based on naming patterns.
+     *
+     * @param  string  $featureName  The feature name to check
+     * @param  string  $subclassName  The subclass name to match against
+     */
+    private function featureBelongsToSubclass(string $featureName, string $subclassName): bool
+    {
+        // Pattern 1: "Archetype: Subclass Name" (intro feature)
+        if (preg_match('/^(?:Martial Archetype|Primal Path|Monastic Tradition|Otherworldly Patron|Divine Domain|Arcane Tradition|Sacred Oath|Ranger Archetype|Roguish Archetype|Sorcerous Origin|Bard College|Druid Circle|College of|Artificer Specialist):\s*'.preg_quote($subclassName, '/').'$/i', $featureName)) {
+            return true;
+        }
+
+        // Pattern 2: "Feature Name (Subclass Name)" (subsequent features)
+        if (preg_match('/\('.preg_quote($subclassName, '/').'\)$/i', $featureName)) {
+            return true;
+        }
+
+        // Pattern 3: Feature name contains subclass name without parentheses
+        // (less common, but some XML files use this)
+        if (str_contains($featureName, $subclassName)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -572,5 +641,27 @@ class ClassXmlParser
             'ten' => 10,
             default => 1,
         };
+    }
+
+    /**
+     * Check if class has non-optional spell slots (i.e., base class spellcasting).
+     *
+     * Returns false if all spell slots are marked optional="YES" (subclass-only).
+     * Example: Rogue has only optional slots (Arcane Trickster), Wizard has non-optional.
+     */
+    private function hasNonOptionalSpellSlots(SimpleXMLElement $element): bool
+    {
+        foreach ($element->autolevel as $autolevel) {
+            if (isset($autolevel->slots)) {
+                $isOptional = isset($autolevel->slots['optional'])
+                    && (string) $autolevel->slots['optional'] === 'YES';
+
+                if (! $isOptional) {
+                    return true; // Found at least one non-optional slot progression
+                }
+            }
+        }
+
+        return false; // No spell slots, or all are optional (subclass-only)
     }
 }

@@ -16,11 +16,28 @@ use Illuminate\Database\Eloquent\Builder;
 final class BackgroundSearchService
 {
     /**
-     * Default relationships to eager-load for both Scout and database queries
+     * Relationships for index/list endpoints (lightweight)
      */
-    private const DEFAULT_RELATIONSHIPS = [
+    private const INDEX_RELATIONSHIPS = [
         'sources.source',
     ];
+
+    /**
+     * Relationships for show/detail endpoints (comprehensive)
+     */
+    private const SHOW_RELATIONSHIPS = [
+        'sources.source',
+        'traits.randomTables.entries',
+        'proficiencies.skill.abilityScore',
+        'proficiencies.proficiencyType',
+        'languages.language',
+        'tags',
+    ];
+
+    /**
+     * Backward compatibility alias
+     */
+    private const DEFAULT_RELATIONSHIPS = self::INDEX_RELATIONSHIPS;
 
     /**
      * Build Scout search query for full-text search
@@ -43,7 +60,7 @@ final class BackgroundSearchService
      */
     private function buildStandardQuery(BackgroundSearchDTO $dto): Builder
     {
-        $query = Background::with(self::DEFAULT_RELATIONSHIPS);
+        $query = Background::with(self::INDEX_RELATIONSHIPS);
 
         $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
@@ -52,11 +69,27 @@ final class BackgroundSearchService
     }
 
     /**
-     * Get default relationships for eager loading
+     * Get default relationships for eager loading (index endpoints)
      */
     public function getDefaultRelationships(): array
     {
-        return self::DEFAULT_RELATIONSHIPS;
+        return self::INDEX_RELATIONSHIPS;
+    }
+
+    /**
+     * Get relationships for index/list endpoints
+     */
+    public function getIndexRelationships(): array
+    {
+        return self::INDEX_RELATIONSHIPS;
+    }
+
+    /**
+     * Get relationships for show/detail endpoints
+     */
+    public function getShowRelationships(): array
+    {
+        return self::SHOW_RELATIONSHIPS;
     }
 
     /**

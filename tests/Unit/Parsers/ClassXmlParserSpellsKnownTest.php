@@ -10,21 +10,23 @@ class ClassXmlParserSpellsKnownTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_parses_spells_known_into_spell_progression(): void
     {
+        // Test with NON-optional slots (e.g., Wizard)
+        // Optional slots should NOT create base class spell progression
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
   <class>
-    <name>Fighter</name>
-    <hd>10</hd>
+    <name>Wizard</name>
+    <hd>6</hd>
     <autolevel level="3">
-      <slots optional="YES">2,2</slots>
+      <slots>2,4,2</slots>
       <counter>
         <name>Spells Known</name>
         <value>3</value>
       </counter>
     </autolevel>
     <autolevel level="4">
-      <slots optional="YES">2,3</slots>
+      <slots>3,4,3</slots>
       <counter>
         <name>Spells Known</name>
         <value>4</value>
@@ -82,10 +84,10 @@ XML;
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_handles_spells_known_without_slots(): void
+    public function it_skips_spells_known_for_optional_slots(): void
     {
-        // Some levels might have spells_known counter but no slots element
-        // Parser should still create spell_progression entry
+        // Classes with optional slots (Fighter, Rogue) should NOT have spell progression
+        // The "Spells Known" counters are for subclasses only
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5">
@@ -93,6 +95,7 @@ XML;
     <name>Fighter</name>
     <hd>10</hd>
     <autolevel level="3">
+      <slots optional="YES">2,2</slots>
       <counter>
         <name>Spells Known</name>
         <value>3</value>
@@ -105,9 +108,7 @@ XML;
         $parser = new ClassXmlParser;
         $data = $parser->parse($xml);
 
-        $this->assertCount(1, $data[0]['spell_progression']);
-        $this->assertEquals(3, $data[0]['spell_progression'][0]['level']);
-        $this->assertEquals(3, $data[0]['spell_progression'][0]['spells_known']);
-        $this->assertEquals(0, $data[0]['spell_progression'][0]['cantrips_known']);
+        // Optional slots should NOT create spell progression
+        $this->assertEmpty($data[0]['spell_progression'], 'Optional slots should not create base class spell progression');
     }
 }

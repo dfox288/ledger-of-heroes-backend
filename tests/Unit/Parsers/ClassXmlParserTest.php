@@ -217,22 +217,16 @@ class ClassXmlParserTest extends TestCase
         $this->assertArrayHasKey('spell_progression', $fighter);
         $this->assertIsArray($fighter['spell_progression']);
 
-        // Assert: should have spell slots (Eldritch Knight subclass)
-        // Format: <slots optional="YES">2,2</slots> at level 3 means 2 cantrips, 2 1st-level slots
-        $this->assertGreaterThan(0, count($fighter['spell_progression']));
+        // Assert: Base Fighter should NOT have spell slots (they're all optional="YES" for Eldritch Knight)
+        // Optional slots belong to subclasses only
+        $this->assertEmpty($fighter['spell_progression'], 'Base Fighter should not have spell progression (Eldritch Knight only)');
 
-        // Assert: spell slot structure
-        $firstSlot = $fighter['spell_progression'][0];
-        $this->assertArrayHasKey('level', $firstSlot);
-        $this->assertArrayHasKey('cantrips_known', $firstSlot);
+        // Assert: Eldritch Knight subclass should exist and have features
+        $subclasses = $fighter['subclasses'];
+        $eldritchKnight = array_values(array_filter($subclasses, fn ($s) => $s['name'] === 'Eldritch Knight'))[0] ?? null;
 
-        // Assert: Eldritch Knight starts spell slots at level 3
-        $level3Slots = array_filter($fighter['spell_progression'], fn ($slot) => $slot['level'] === 3);
-        $this->assertNotEmpty($level3Slots, 'Fighter (Eldritch Knight) should have spell slots at level 3');
-
-        $level3Slot = array_values($level3Slots)[0];
-        $this->assertEquals(2, $level3Slot['cantrips_known'], 'Level 3 Eldritch Knight should know 2 cantrips');
-        $this->assertEquals(2, $level3Slot['spell_slots_1st'], 'Level 3 Eldritch Knight should have 2 1st-level slots');
+        $this->assertNotNull($eldritchKnight, 'Should detect Eldritch Knight subclass');
+        $this->assertGreaterThan(0, count($eldritchKnight['features']), 'Eldritch Knight should have features');
     }
 
     #[Test]

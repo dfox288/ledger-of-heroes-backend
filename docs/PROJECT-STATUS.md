@@ -2,7 +2,7 @@
 
 **Last Updated:** 2025-11-23
 **Branch:** main
-**Status:** ✅ Production-Ready - Equipment Parsing Complete
+**Status:** ✅ Production-Ready - Proficiency Choice Grouping Complete
 
 ---
 
@@ -10,9 +10,9 @@
 
 | Metric | Value | Status |
 |--------|-------|--------|
-| **Tests** | 1,389 passing (7,500+ assertions) | ✅ 100% pass rate |
-| **Duration** | ~68 seconds | ✅ Fast |
-| **Migrations** | 64 complete | ✅ Stable |
+| **Tests** | 1,382 passing (7,359 assertions) | ✅ 100% pass rate |
+| **Duration** | ~80 seconds | ✅ Fast |
+| **Migrations** | 66 complete | ✅ Stable |
 | **Models** | 32 (all with HasFactory) | ✅ Complete |
 | **API** | 29 Resources + 18 Controllers + 26+ Form Requests | ✅ Production-ready |
 | **Importers** | 9 working | ✅ Spells, Classes, Races, Items, Backgrounds, Feats, Monsters, Spell-Class Mappings, Master Import |
@@ -25,6 +25,23 @@
 ---
 
 ## 🚀 Recent Milestones
+
+### Proficiency Choice Grouping ✅ COMPLETE (2025-11-23)
+- **Goal:** Group skill proficiency choices like equipment choices for clear frontend UX
+- **Achievement:** Skill choices now properly grouped using choice_group/choice_option pattern
+- **Implementation:**
+  - Added `choice_group` and `choice_option` columns to `proficiencies` table
+  - Made `quantity` nullable (only first item in group needs it)
+  - Updated `ClassXmlParser` to group skills when `numSkills` present
+  - Updated `ImportsProficiencies` trait and `ProficiencyResource`
+  - 4 tests updated/validated (1,382 total passing)
+- **Impact:**
+  - **Before:** Fighter with `numSkills=2` → 8 skills each saying "quantity=2" (confusing)
+  - **After:** 8 skills in `"skill_choice_1"` group, first has `quantity=2` (clear)
+  - Frontend can render "Choose 2 from: [8 skills]" as single choice group
+  - Matches equipment choice pattern for consistency
+  - Extensible to tools, languages, expertise, fighting styles
+- **Documentation:** Session handover, CHANGELOG, PROJECT-STATUS updated
 
 ### Class Equipment Parsing - Phase 1 & 2 ✅ COMPLETE (2025-11-23)
 - **Goal:** Fix broken equipment parsing and add item matching

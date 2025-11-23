@@ -3,13 +3,14 @@
 namespace App\Services\Parsers;
 
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
+use App\Services\Parsers\Concerns\ParsesRolls;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use App\Services\Parsers\Concerns\ParsesTraits;
 use SimpleXMLElement;
 
 class ClassXmlParser
 {
-    use MatchesProficiencyTypes, ParsesSourceCitations, ParsesTraits;
+    use MatchesProficiencyTypes, ParsesRolls, ParsesSourceCitations, ParsesTraits;
 
     /**
      * Parse classes from XML string.
@@ -234,6 +235,7 @@ class ClassXmlParser
                     'is_optional' => $isOptional,
                     'sources' => $sources,
                     'sort_order' => $sortOrder++,
+                    'rolls' => $this->parseRollElements($featureElement),
                 ];
             }
         }

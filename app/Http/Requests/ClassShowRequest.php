@@ -23,6 +23,8 @@ class ClassShowRequest extends BaseShowRequest
             'sources',
             'sources.source',
             'features',
+            'features.randomTables',
+            'features.randomTables.entries',
             'proficiencies',
             'proficiencies.skill',
             'proficiencies.proficiencyType',

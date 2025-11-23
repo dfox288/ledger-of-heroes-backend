@@ -21,6 +21,11 @@ class ClassFeatureResource extends JsonResource
             'description' => $this->description,
             'is_optional' => $this->is_optional,
             'sort_order' => $this->sort_order,
+
+            // Relationships
+            'random_tables' => RandomTableResource::collection(
+                $this->whenLoaded('randomTables')
+            ),
         ];
     }
 }

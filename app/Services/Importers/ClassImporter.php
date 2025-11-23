@@ -6,6 +6,9 @@ use App\Models\CharacterClass;
 use App\Models\ClassCounter;
 use App\Models\ClassFeature;
 use App\Models\ClassLevelProgression;
+use App\Models\RandomTable;
+use App\Models\RandomTableEntry;
+use App\Services\Importers\Concerns\ImportsRandomTablesFromText;
 use App\Services\Importers\Strategies\CharacterClass\BaseClassStrategy;
 use App\Services\Importers\Strategies\CharacterClass\SubclassStrategy;
 use App\Services\Parsers\ClassXmlParser;
@@ -13,6 +16,8 @@ use Illuminate\Support\Facades\Log;
 
 class ClassImporter extends BaseImporter
 {
+    use ImportsRandomTablesFromText;
+
     private array $strategies = [];
 
     public function __construct()
@@ -155,7 +160,7 @@ class ClassImporter extends BaseImporter
     private function importFeatures(CharacterClass $class, array $features): void
     {
         foreach ($features as $featureData) {
-            ClassFeature::create([
+            $feature = ClassFeature::create([
                 'class_id' => $class->id,
                 'level' => $featureData['level'],
                 'feature_name' => $featureData['name'],
@@ -163,6 +168,15 @@ class ClassImporter extends BaseImporter
                 'description' => $featureData['description'],
                 'sort_order' => $featureData['sort_order'],
             ]);
+
+            // Import random tables from <roll> XML elements
+            if (! empty($featureData['rolls'])) {
+                $this->importFeatureRolls($feature, $featureData['rolls']);
+            }
+
+            // Import random tables from pipe-delimited tables in description text
+            // This handles BOTH dice-based random tables AND reference tables (dice_type = null)
+            $this->importRandomTablesFromText($feature, $featureData['description'], clearExisting: false);
         }
     }
 
@@ -399,6 +413,64 @@ class ClassImporter extends BaseImporter
                     : null,
             ]);
         }
+    }
+
+    /**
+     * Import random tables from <roll> XML elements.
+     *
+     * Groups rolls by description to create tables with level-based entries.
+     *
+     * Example: Sneak Attack has 10 rolls with description "Extra Damage"
+     *          → Creates 1 table with 10 entries (one per level)
+     *
+     * @param  array  $rolls  Array of ['description' => string, 'formula' => string, 'level' => int|null]
+     */
+    private function importFeatureRolls(ClassFeature $feature, array $rolls): void
+    {
+        // Group rolls by description (table name)
+        // Example: All "Extra Damage" rolls → one table
+        $groupedRolls = collect($rolls)->groupBy('description');
+
+        foreach ($groupedRolls as $tableName => $rollGroup) {
+            // Extract dice type from first roll formula
+            // Examples: "1d6" → "d6", "2d12" → "d12"
+            $firstFormula = $rollGroup->first()['formula'];
+            $diceType = $this->extractDiceType($firstFormula);
+
+            $table = RandomTable::create([
+                'reference_type' => ClassFeature::class,
+                'reference_id' => $feature->id,
+                'table_name' => $tableName,
+                'dice_type' => $diceType,
+                'description' => null,
+            ]);
+
+            foreach ($rollGroup as $index => $roll) {
+                RandomTableEntry::create([
+                    'random_table_id' => $table->id,
+                    'roll_min' => $roll['level'] ?? 1, // Use level as roll value, or 1 if no level
+                    'roll_max' => $roll['level'] ?? 1,
+                    'result_text' => $roll['formula'], // "1d6", "2d6", etc.
+                    'sort_order' => $index,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Extract dice type from formula (e.g., "1d6" → "d6", "2d12" → "d12").
+     *
+     * @param  string  $formula  Dice formula like "1d6", "2d12+5"
+     * @return string|null Dice type like "d6", "d12" or null if not found
+     */
+    private function extractDiceType(string $formula): ?string
+    {
+        if (preg_match('/\d*d\d+/', $formula, $matches)) {
+            // Remove leading number: "2d6" → "d6"
+            return preg_replace('/^\d+/', '', $matches[0]);
+        }
+
+        return null;
     }
 
     protected function getParser(): object

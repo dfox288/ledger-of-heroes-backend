@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Class Feature Random Tables (2025-11-23)
+- **Class Features Now Store Roll Formulas and Reference Tables**
+  - Parser extracts `<roll>` elements from class features (e.g., Sneak Attack damage progression)
+  - Importer creates `random_tables` and `random_table_entries` for level-scaled formulas
+  - Pipe-delimited tables in feature descriptions automatically detected and imported
+  - Supports both rollable tables (with dice_type) and reference tables (dice_type = null)
+  - **Example**: Rogue Sneak Attack → 1 table with 9 entries (1d6 at level 1, 2d6 at level 2, ..., 10d6 at level 19)
+  - **Example**: Wild Magic Surge → d8 table with 8 magical effects
+  - **Example**: Arcane Trickster Spells Known → reference table (no dice)
+  - Added `ParsesRolls` trait to `ClassXmlParser` for `<roll>` element extraction
+  - Added `randomTables()` morphMany relationship to `ClassFeature` model
+  - Added `importFeatureRolls()` method to `ClassImporter` with roll grouping by description
+  - Added `ImportsRandomTablesFromText` trait to `ClassImporter` for pipe-delimited tables
+  - Added `random_tables` to `ClassFeatureResource` with full entry details
+  - Updated `ClassShowRequest` to allow `features.randomTables` and `features.randomTables.entries` includes
+  - Added 4 comprehensive tests in `ClassImporterRandomTablesTest` (18 assertions)
+  - **Use Case**: Character builders can display Sneak Attack damage by level, roll on Wild Magic tables, reference spell progression
+  - **API Example**: `GET /classes/rogue?include=features.randomTables.entries` returns Sneak Attack roll table
+
 ### Added - Subclass Spell Progression Assignment (2025-11-23)
 - **Optional Spell Slots Now Correctly Assigned to Spellcasting Subclasses**
   - Parser now detects "Spellcasting (SubclassName)" features to identify which subclass receives optional spell slots

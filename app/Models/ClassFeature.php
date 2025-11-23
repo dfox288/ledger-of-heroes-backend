@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class ClassFeature extends BaseModel
 {
@@ -28,5 +29,19 @@ class ClassFeature extends BaseModel
     public function characterClass(): BelongsTo
     {
         return $this->belongsTo(CharacterClass::class, 'class_id');
+    }
+
+    /**
+     * Random tables and reference tables associated with this feature.
+     * Includes <roll> elements and pipe-delimited tables from feature text.
+     */
+    public function randomTables(): MorphMany
+    {
+        return $this->morphMany(
+            RandomTable::class,
+            'reference',
+            'reference_type',
+            'reference_id'
+        );
     }
 }

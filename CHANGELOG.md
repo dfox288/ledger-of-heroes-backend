@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed - API Resources and Monster Relationships (2025-11-23)
+- **EntityItemResource Now Exposes All Fields**
+  - Added `choice_group` and `choice_option` fields to `EntityItemResource` API serialization
+  - These fields were added to database in migration `2025_11_23_153945_add_choice_grouping_to_entity_items_table` but missing from API response
+  - Frontend apps can now properly render equipment choice groups (e.g., "(a) rapier OR (b) shortsword")
+
+- **Fixed Monster API 500 Errors**
+  - Fixed `MonsterSearchService::SHOW_RELATIONSHIPS` to use `'entitySpells'` instead of incorrect `'spells'` relationship
+  - Monster model has two spell relationships: `spells()` (misconfigured, uses non-existent `monster_spells` table) and `entitySpells()` (correct, uses `entity_spells` table)
+  - `MonsterResource` already correctly used `entitySpells` for `whenLoaded()` check
+  - Bug was causing "SQLSTATE[HY000]: General error: 1 no such column: monster_spells.entity_type" errors
+  - **Result**: Monster show endpoint now works correctly, all relationship 500 errors resolved
+
 ### Improved - Class Starting Equipment Parsing Phase 1 & 2 Complete (2025-11-23)
 - **Equipment Choices Now Properly Grouped and Parsed (Phase 1)**
   - Added `choice_group` and `choice_option` columns to `entity_items` table for organizing related choices

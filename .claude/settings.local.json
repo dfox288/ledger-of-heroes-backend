@@ -44,7 +44,8 @@
       "Bash(for file in Spell Monster Item Background Feat)",
       "Bash(do echo \"=== $fileSearchService ===\" echo \"BEFORE:\" git show HEAD~1:app/Services/$fileSearchService.php)",
       "Bash(for controller in Monster Item Background Feat)",
-      "Bash(do echo \"=== $controllerController ===\")"
+      "Bash(do echo \"=== $controllerController ===\")",
+      "Bash(/dev/null)"
     ],
     "deny": [],
     "ask": []

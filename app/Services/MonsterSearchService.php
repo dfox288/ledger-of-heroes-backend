@@ -240,14 +240,7 @@ final class MonsterSearchService
         $monsterIds = collect($results->getHits())->pluck('id')->all();
 
         // Fetch full monsters from database in correct order
-        $monsters = Monster::with([
-            'size',
-            'sources.source',
-            'modifiers.abilityScore',
-            'modifiers.skill',
-            'modifiers.damageType',
-            'conditions',
-        ])
+        $monsters = Monster::with(self::INDEX_RELATIONSHIPS)
             ->whereIn('id', $monsterIds)
             ->get()
             ->sortBy(function ($monster) use ($monsterIds) {

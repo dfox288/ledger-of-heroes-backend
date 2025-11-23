@@ -48,9 +48,11 @@ class MonsterXmlParser
         return [
             // Basic info
             'name' => (string) $xml->name,
+            'sort_name' => isset($xml->sortname) ? (string) $xml->sortname : null,
             'size' => (string) $xml->size,
             'type' => (string) $xml->type,
             'alignment' => (string) $xml->alignment ?: null,
+            'is_npc' => isset($xml->npc) && strtoupper((string) $xml->npc) === 'YES',
 
             // Combat stats
             'armor_class' => $this->parseArmorClass((string) $xml->ac),
@@ -81,6 +83,7 @@ class MonsterXmlParser
             'damage_immunities' => (string) $xml->immune ?: null,
             'condition_immunities' => (string) $xml->conditionImmune ?: null,
             'senses' => (string) $xml->senses ?: null,
+            'passive_perception' => isset($xml->passive) ? (int) $xml->passive : null,
             'languages' => (string) $xml->languages ?: null,
 
             // Descriptions

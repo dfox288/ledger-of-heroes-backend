@@ -15,6 +15,7 @@ class MonsterFactory extends Factory
         return [
             'name' => fake()->words(2, true),
             'slug' => fake()->slug(),
+            'sort_name' => fake()->optional()->words(2, true),
             'size_id' => fn () => Size::inRandomOrder()->first()->id ?? 1,
             'type' => fake()->randomElement(['beast', 'humanoid', 'dragon', 'undead', 'aberration']),
             'alignment' => fake()->randomElement(['Lawful Good', 'Neutral Evil', 'Chaotic Neutral', null]),
@@ -36,7 +37,9 @@ class MonsterFactory extends Factory
             'charisma' => fake()->numberBetween(1, 30),
             'challenge_rating' => fake()->randomElement(['0', '1/8', '1/4', '1/2', '1', '5', '10', '20']),
             'experience_points' => fake()->numberBetween(10, 50000),
+            'passive_perception' => fake()->numberBetween(6, 25),
             'description' => fake()->optional()->paragraph(),
+            'is_npc' => fake()->boolean(10), // 10% chance of being NPC
         ];
     }
 }

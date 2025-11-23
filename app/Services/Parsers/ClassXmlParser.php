@@ -2,6 +2,7 @@
 
 namespace App\Services\Parsers;
 
+use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesRolls;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
@@ -10,7 +11,7 @@ use SimpleXMLElement;
 
 class ClassXmlParser
 {
-    use MatchesProficiencyTypes, ParsesRolls, ParsesSourceCitations, ParsesTraits;
+    use MapsAbilityCodes, MatchesProficiencyTypes, ParsesRolls, ParsesSourceCitations, ParsesTraits;
 
     /**
      * Parse classes from XML string.
@@ -236,6 +237,7 @@ class ClassXmlParser
         // Iterate through all autolevel elements
         foreach ($element->autolevel as $autolevel) {
             $level = (int) $autolevel['level'];
+            $grantsAsi = isset($autolevel['scoreImprovement']) && strtoupper((string) $autolevel['scoreImprovement']) === 'YES';
 
             // Parse each feature within this autolevel
             foreach ($autolevel->feature as $featureElement) {
@@ -246,6 +248,28 @@ class ClassXmlParser
                 // Extract source citation if present
                 $sources = $this->parseSourceCitations($text);
 
+                // Parse special tags
+                $specialTags = [];
+                foreach ($featureElement->special as $specialElement) {
+                    $tag = trim((string) $specialElement);
+                    if (! empty($tag)) {
+                        $specialTags[] = $tag;
+                    }
+                }
+
+                // Parse modifiers
+                $modifiers = [];
+                foreach ($featureElement->modifier as $modifierElement) {
+                    $category = (string) $modifierElement['category'] ?? 'bonus';
+                    $text = trim((string) $modifierElement);
+
+                    $parsed = $this->parseModifierText($text, $category);
+
+                    if ($parsed !== null) {
+                        $modifiers[] = $parsed;
+                    }
+                }
+
                 $features[] = [
                     'level' => $level,
                     'name' => $name,
@@ -254,11 +278,67 @@ class ClassXmlParser
                     'sources' => $sources,
                     'sort_order' => $sortOrder++,
                     'rolls' => $this->parseRollElements($featureElement),
+                    'special_tags' => $specialTags,
+                    'modifiers' => $modifiers,
+                    'grants_asi' => $grantsAsi,
                 ];
             }
         }
 
         return $features;
+    }
+
+    /**
+     * Parse modifier text to extract structured data.
+     * Pattern: "HP +1", "Speed +10", "strength +4", etc.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function parseModifierText(string $text, string $xmlCategory): ?array
+    {
+        $text = strtolower($text);
+
+        // Pattern: "target +/-value"
+        if (! preg_match('/([\w\s]+)\s*([+\-]\d+)/', $text, $matches)) {
+            return null;
+        }
+
+        $target = trim($matches[1]);
+        $value = (int) $matches[2];
+
+        // Determine category based on XML category and target
+        $category = match ($xmlCategory) {
+            'ability score' => 'ability_score',
+            'skill' => 'skill',
+            'bonus' => $this->determineBonusCategory($target),
+            default => 'bonus',
+        };
+
+        $result = [
+            'modifier_category' => $category,
+            'value' => (string) $value,
+        ];
+
+        // For ability score modifiers, extract the ability code
+        if ($category === 'ability_score') {
+            $result['ability_code'] = $this->mapAbilityNameToCode($target);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Determine the specific category for bonus modifiers.
+     */
+    private function determineBonusCategory(string $target): string
+    {
+        return match (true) {
+            str_contains($target, 'hp') || str_contains($target, 'hit point') => 'hp',
+            str_contains($target, 'speed') => 'speed',
+            str_contains($target, 'initiative') => 'initiative',
+            str_contains($target, 'ac') || str_contains($target, 'armor class') => 'ac',
+            default => 'bonus',
+        };
     }
 
     /**

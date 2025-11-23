@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class ClassFeature extends BaseModel
@@ -43,5 +44,13 @@ class ClassFeature extends BaseModel
             'reference_type',
             'reference_id'
         );
+    }
+
+    /**
+     * Special tags for this class feature (fighting styles, unarmored defense, etc.).
+     */
+    public function specialTags(): HasMany
+    {
+        return $this->hasMany(ClassFeatureSpecialTag::class);
     }
 }

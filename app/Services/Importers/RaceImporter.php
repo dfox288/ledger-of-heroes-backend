@@ -73,12 +73,13 @@ class RaceImporter extends BaseImporter
             $this->importTraitTables($trait, $traitData['description']);
         }
 
-        // Import all modifiers (ability bonuses, choices, and resistances)
+        // Import all modifiers (ability bonuses, choices, resistances, and trait modifiers)
         $this->importAllModifiers(
             $race,
             $raceData['ability_bonuses'] ?? [],
             $raceData['ability_choices'] ?? [],
-            $raceData['resistances'] ?? []
+            $raceData['resistances'] ?? [],
+            $raceData['modifiers'] ?? []
         );
 
         // Import proficiencies if present
@@ -118,14 +119,15 @@ class RaceImporter extends BaseImporter
     }
 
     /**
-     * Import all modifiers at once (ability bonuses, choices, and resistances).
+     * Import all modifiers at once (ability bonuses, choices, resistances, and trait modifiers).
      * This ensures we don't clear modifiers between multiple imports.
      */
     private function importAllModifiers(
         Race $race,
         array $bonusesData,
         array $choicesData,
-        array $resistancesData
+        array $resistancesData,
+        array $traitModifiersData
     ): void {
         $modifiersData = [];
 
@@ -171,6 +173,26 @@ class RaceImporter extends BaseImporter
                     'damage_type_id' => $damageType->id,
                 ];
             }
+        }
+
+        // Add trait modifiers (HP bonuses, speed bonuses, etc.) directly
+        // These come from <modifier> elements within <trait> elements
+        foreach ($traitModifiersData as $traitModifier) {
+            // Rename modifier_category to category for consistency with importEntityModifiers trait
+            $modifier = [
+                'category' => $traitModifier['modifier_category'],
+                'value' => $traitModifier['value'],
+            ];
+
+            // Add ability_code if present (for ability_score category)
+            if (isset($traitModifier['ability_code'])) {
+                $abilityScore = AbilityScore::where('code', strtoupper($traitModifier['ability_code']))->first();
+                if ($abilityScore) {
+                    $modifier['ability_score_id'] = $abilityScore->id;
+                }
+            }
+
+            $modifiersData[] = $modifier;
         }
 
         // Use trait to import all modifiers at once

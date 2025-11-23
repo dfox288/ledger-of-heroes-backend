@@ -3,6 +3,7 @@
 namespace App\Services\Parsers;
 
 use App\Services\Parsers\Concerns\ConvertsWordNumbers;
+use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\MatchesLanguages;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
@@ -11,7 +12,7 @@ use SimpleXMLElement;
 
 class RaceXmlParser
 {
-    use ConvertsWordNumbers, MatchesLanguages, MatchesProficiencyTypes, ParsesSourceCitations, ParsesTraits;
+    use ConvertsWordNumbers, MapsAbilityCodes, MatchesLanguages, MatchesProficiencyTypes, ParsesSourceCitations, ParsesTraits;
 
     public function parse(string $xmlContent): array
     {
@@ -88,6 +89,9 @@ class RaceXmlParser
         // Parse resistances
         $resistances = $this->parseResistances($element);
 
+        // Parse modifiers
+        $modifiers = $this->parseModifiers($element);
+
         return [
             'name' => $raceName,
             'base_race_name' => $baseRaceName,
@@ -102,6 +106,7 @@ class RaceXmlParser
             'ability_choices' => $abilityChoices,
             'spellcasting' => $spellcasting,
             'resistances' => $resistances,
+            'modifiers' => $modifiers,
         ];
     }
 
@@ -441,5 +446,85 @@ class RaceXmlParser
         }
 
         return $choices;
+    }
+
+    /**
+     * Parse modifiers from trait <modifier> elements.
+     * Example: <modifier category="bonus">HP +1</modifier>
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function parseModifiers(SimpleXMLElement $element): array
+    {
+        $modifiers = [];
+
+        // Iterate through all traits to find modifier elements
+        foreach ($element->trait as $traitElement) {
+            foreach ($traitElement->modifier as $modifierElement) {
+                $category = (string) $modifierElement['category'] ?? 'bonus';
+                $text = trim((string) $modifierElement);
+
+                $parsed = $this->parseModifierText($text, $category);
+
+                if ($parsed !== null) {
+                    $modifiers[] = $parsed;
+                }
+            }
+        }
+
+        return $modifiers;
+    }
+
+    /**
+     * Parse modifier text to extract structured data.
+     * Pattern: "HP +1", "Speed +10", etc.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function parseModifierText(string $text, string $xmlCategory): ?array
+    {
+        $text = strtolower($text);
+
+        // Pattern: "target +/-value"
+        if (! preg_match('/([\w\s]+)\s*([+\-]\d+)/', $text, $matches)) {
+            return null;
+        }
+
+        $target = trim($matches[1]);
+        $value = (int) $matches[2];
+
+        // Determine category based on XML category and target
+        $category = match ($xmlCategory) {
+            'ability score' => 'ability_score',
+            'skill' => 'skill',
+            'bonus' => $this->determineBonusCategory($target),
+            default => 'bonus',
+        };
+
+        $result = [
+            'modifier_category' => $category,
+            'value' => (string) $value,
+        ];
+
+        // For ability score modifiers, extract the ability code
+        if ($category === 'ability_score') {
+            $result['ability_code'] = $this->mapAbilityNameToCode($target);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Determine the specific category for bonus modifiers.
+     */
+    private function determineBonusCategory(string $target): string
+    {
+        return match (true) {
+            str_contains($target, 'hp') || str_contains($target, 'hit point') => 'hp',
+            str_contains($target, 'speed') => 'speed',
+            str_contains($target, 'initiative') => 'initiative',
+            str_contains($target, 'ac') || str_contains($target, 'armor class') => 'ac',
+            default => 'bonus',
+        };
     }
 }

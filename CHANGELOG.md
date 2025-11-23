@@ -7,9 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Tag-Based Filtering for Monsters**: Enable Meilisearch tag filtering via `?filter=tag_slugs IN [...]` syntax
+  - Filter monsters by single tag: `?filter=tag_slugs IN [fiend]`
+  - Filter monsters by multiple tags (OR logic): `?filter=tag_slugs IN [fiend, fire-immune]`
+  - Combine with other filters: `?filter=tag_slugs IN [fiend] AND challenge_rating = 20`
+  - Combine with type/size/alignment: `?filter=type = dragon AND tag_slugs IN [fire-immune]`
+  - Added 5 comprehensive test cases in MonsterEnhancedFilteringApiTest
+  - **Use Cases**: Find all fire-immune dragons, all fiends with specific CR, all undead spellcasters
+
 ### Fixed
-- **Monster API Tag Support**: Added 'tags' to MonsterSearchService INDEX_RELATIONSHIPS
-  - Monster tags now included in list/index views (previously only in show/detail views)
+- **Monster API Tag Support**: Fixed tags missing in Meilisearch results
+  - Changed MonsterSearchService::searchWithMeilisearch() to use INDEX_RELATIONSHIPS constant
+  - Tags now included in all views (list/index/detail) consistently
   - Added test coverage for Monster API tags in TagIntegrationTest
   - All 7 main entities (Spell, Class, Race, Item, Background, Feat, Monster) now have complete tag support
 

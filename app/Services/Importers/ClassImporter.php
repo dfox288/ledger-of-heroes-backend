@@ -5,6 +5,7 @@ namespace App\Services\Importers;
 use App\Models\CharacterClass;
 use App\Models\ClassCounter;
 use App\Models\ClassFeature;
+use App\Models\ClassFeatureSpecialTag;
 use App\Models\ClassLevelProgression;
 use App\Models\Modifier;
 use App\Models\Proficiency;
@@ -175,8 +176,24 @@ class ClassImporter extends BaseImporter
                 'sort_order' => $featureData['sort_order'],
             ]);
 
-            // Detect Ability Score Improvement and create entity_modifiers
-            if (stripos($featureData['name'], 'Ability Score Improvement') !== false) {
+            // Import special tags (fighting styles, unarmored defense, etc.)
+            if (! empty($featureData['special_tags'])) {
+                foreach ($featureData['special_tags'] as $tag) {
+                    ClassFeatureSpecialTag::create([
+                        'class_feature_id' => $feature->id,
+                        'tag' => $tag,
+                    ]);
+                }
+            }
+
+            // Import feature modifiers (speed bonuses, AC bonuses, ability score bonuses, etc.)
+            if (! empty($featureData['modifiers'])) {
+                $this->importFeatureModifiers($class, $featureData['modifiers'], $featureData['level']);
+            }
+
+            // Create Ability Score Improvement modifier if this level grants ASI
+            // Use XML attribute instead of name parsing for more reliable detection
+            if (! empty($featureData['grants_asi'])) {
                 // Create modifier directly without clearing existing ones
                 Modifier::create([
                     'reference_type' => get_class($class),
@@ -204,6 +221,33 @@ class ClassImporter extends BaseImporter
             // Import random tables from pipe-delimited tables in description text
             // This handles BOTH dice-based random tables AND reference tables (dice_type = null)
             $this->importRandomTablesFromText($feature, $featureData['description'], clearExisting: false);
+        }
+    }
+
+    /**
+     * Import feature modifiers (speed, AC, ability score bonuses, etc.).
+     * Saves modifiers to entity_modifiers table linked to the character class.
+     */
+    private function importFeatureModifiers(CharacterClass $class, array $modifiers, int $level): void
+    {
+        foreach ($modifiers as $modifierData) {
+            $modifier = [
+                'reference_type' => get_class($class),
+                'reference_id' => $class->id,
+                'modifier_category' => $modifierData['modifier_category'],
+                'value' => $modifierData['value'],
+                'level' => $level,
+            ];
+
+            // Add ability_code if present (for ability_score category)
+            if (isset($modifierData['ability_code'])) {
+                $abilityScore = \App\Models\AbilityScore::where('code', strtoupper($modifierData['ability_code']))->first();
+                if ($abilityScore) {
+                    $modifier['ability_score_id'] = $abilityScore->id;
+                }
+            }
+
+            Modifier::create($modifier);
         }
     }
 

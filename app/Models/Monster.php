@@ -16,6 +16,7 @@ class Monster extends BaseModel
     protected $fillable = [
         'name',
         'slug',
+        'sort_name',
         'size_id',
         'type',
         'alignment',
@@ -37,11 +38,14 @@ class Monster extends BaseModel
         'charisma',
         'challenge_rating',
         'experience_points',
+        'passive_perception',
         'description',
+        'is_npc',
     ];
 
     protected $casts = [
         'can_hover' => 'boolean',
+        'is_npc' => 'boolean',
     ];
 
     public function size(): BelongsTo

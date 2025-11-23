@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Refactored - Phase 1: Model Layer Cleanup (2025-11-23)
+- **BaseModel Abstract Class** - Centralized common model patterns
+  - All 38 models now extend BaseModel instead of Model
+  - Automatically provides HasFactory trait and disables timestamps
+  - Enforces architectural standards across codebase
+  - Eliminates 76 lines of duplicate boilerplate (2 lines × 38 models)
+- **HasProficiencyScopes Trait** - Extracted duplicate query scopes
+  - 3 scopes: grantsProficiency(), grantsSkill(), grantsProficiencyType()
+  - Used by: CharacterClass, Race, Background, Feat
+  - Eliminates 360 lines of duplicates (90 lines × 4 models → 77 lines)
+- **HasLanguageScopes Trait** - Extracted language query scopes
+  - 3 scopes: speaksLanguage(), languageChoiceCount(), grantsLanguages()
+  - Used by: Race, Background
+  - Eliminates 60 lines of duplicates (30 lines × 2 models → 67 lines)
+- **Impact:** 480 lines eliminated, 38 models improved, 0 test regressions
+- **Metrics:** 484 lines removed, 220 lines added (net -264 lines, 64% duplicate reduction)
+
 ### Fixed - API Resource Completeness (2025-11-23)
 - **MonsterResource** - Added missing `tags` and `spells` relationships
   - Now exposes 102 beast tags and 1,098 spell relationships for 129 spellcasters

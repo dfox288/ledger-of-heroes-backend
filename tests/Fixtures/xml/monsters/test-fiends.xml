@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <monster>
+    <name>Balor</name>
+    <size>L</size>
+    <type>fiend (demon)</type>
+    <alignment>Chaotic Evil</alignment>
+    <ac>19 (natural armor)</ac>
+    <hp>262 (21d10+147)</hp>
+    <speed>40 ft., fly 80 ft.</speed>
+    <str>26</str>
+    <dex>15</dex>
+    <con>22</con>
+    <int>20</int>
+    <wis>16</wis>
+    <cha>22</cha>
+    <save>Str +14, Con +12, Wis +9, Cha +12</save>
+    <resist>cold; bludgeoning, piercing, and slashing from nonmagical attacks</resist>
+    <immune>fire, poison</immune>
+    <conditionImmune>poisoned</conditionImmune>
+    <senses>truesight 120 ft.</senses>
+    <passive>13</passive>
+    <languages>Abyssal, telepathy 120 ft.</languages>
+    <cr>19</cr>
+    <trait>
+      <name>Death Throes</name>
+      <text>When the balor dies, it explodes, and each creature within 30 feet of it must make a DC 20 Dexterity saving throw, taking 70 (20d6) fire damage on a failed save, or half as much damage on a successful one. The explosion ignites flammable objects in that area that aren't being worn or carried, and it destroys the balor's weapons.</text>
+    </trait>
+    <trait>
+      <name>Fire Aura</name>
+      <text>At the start of each of the balor's turns, each creature within 5 feet of it takes 10 (3d6) fire damage, and flammable objects in the aura that aren't being worn or carried ignite. A creature that touches the balor or hits it with a melee attack while within 5 feet of it takes 10 (3d6) fire damage.</text>
+    </trait>
+    <trait>
+      <name>Magic Resistance</name>
+      <text>The balor has advantage on saving throws against spells and other magical effects.</text>
+    </trait>
+    <trait>
+      <name>Magic Weapons</name>
+      <text>The balor's weapon attacks are magical.</text>
+    </trait>
+  </monster>
+  <monster>
+    <name>Pit Fiend</name>
+    <size>L</size>
+    <type>fiend (devil)</type>
+    <alignment>Lawful Evil</alignment>
+    <ac>19 (natural armor)</ac>
+    <hp>300 (24d10+168)</hp>
+    <speed>30 ft., fly 60 ft.</speed>
+    <str>26</str>
+    <dex>14</dex>
+    <con>24</con>
+    <int>22</int>
+    <wis>18</wis>
+    <cha>24</cha>
+    <save>Dex +8, Con +13, Wis +10</save>
+    <resist>cold; bludgeoning, piercing, and slashing from nonmagical attacks that aren't silvered</resist>
+    <immune>fire, poison</immune>
+    <conditionImmune>poisoned</conditionImmune>
+    <senses>truesight 120 ft.</senses>
+    <passive>14</passive>
+    <languages>Infernal, telepathy 120 ft.</languages>
+    <cr>20</cr>
+    <trait>
+      <name>Fear Aura</name>
+      <text>Any creature hostile to the pit fiend that starts its turn within 20 feet of the pit fiend must make a DC 21 Wisdom saving throw, unless the pit fiend is incapacitated. On a failed save, the creature is frightened until the start of its next turn. If a creature's saving throw is successful, the creature is immune to the pit fiend's Fear Aura for the next 24 hours.</text>
+    </trait>
+    <trait>
+      <name>Magic Resistance</name>
+      <text>The pit fiend has advantage on saving throws against spells and other magical effects.</text>
+    </trait>
+  </monster>
+  <monster>
+    <name>Arcanaloth</name>
+    <size>M</size>
+    <type>fiend (yugoloth)</type>
+    <alignment>Neutral Evil</alignment>
+    <ac>17 (natural armor)</ac>
+    <hp>104 (16d8+32)</hp>
+    <speed>30 ft.</speed>
+    <str>17</str>
+    <dex>12</dex>
+    <con>14</con>
+    <int>20</int>
+    <wis>16</wis>
+    <cha>17</cha>
+    <save>Dex +5, Int +9, Wis +7, Cha +7</save>
+    <resist>cold, fire, lightning; bludgeoning, piercing, and slashing from nonmagical attacks</resist>
+    <immune>acid, poison</immune>
+    <conditionImmune>poisoned</conditionImmune>
+    <senses>truesight 120 ft.</senses>
+    <passive>13</passive>
+    <languages>all, telepathy 120 ft.</languages>
+    <cr>12</cr>
+    <trait>
+      <name>Magic Resistance</name>
+      <text>The arcanaloth has advantage on saving throws against spells and other magical effects.</text>
+    </trait>
+  </monster>
+</compendium>

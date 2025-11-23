@@ -11,6 +11,7 @@ class RandomTableEntry extends BaseModel
         'roll_min',
         'roll_max',
         'result_text',
+        'level',
         'sort_order',
     ];
 
@@ -18,6 +19,7 @@ class RandomTableEntry extends BaseModel
         'random_table_id' => 'integer',
         'roll_min' => 'integer',
         'roll_max' => 'integer',
+        'level' => 'integer',
         'sort_order' => 'integer',
     ];
 

@@ -21,6 +21,7 @@ class Modifier extends BaseModel
         'is_choice',
         'choice_count',
         'choice_constraint',
+        'level',
     ];
 
     protected $casts = [
@@ -30,6 +31,7 @@ class Modifier extends BaseModel
         'damage_type_id' => 'integer',
         'is_choice' => 'boolean',
         'choice_count' => 'integer',
+        'level' => 'integer',
     ];
 
     // Polymorphic relationship

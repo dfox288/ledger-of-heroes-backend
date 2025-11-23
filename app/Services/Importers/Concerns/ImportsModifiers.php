@@ -70,6 +70,7 @@ trait ImportsModifiers
                 'choice_count' => $modData['choice_count'] ?? null,
                 'choice_constraint' => $modData['choice_constraint'] ?? null,
                 'condition' => $modData['condition'] ?? null,
+                'level' => $modData['level'] ?? null,
             ];
 
             Modifier::create($modifier);

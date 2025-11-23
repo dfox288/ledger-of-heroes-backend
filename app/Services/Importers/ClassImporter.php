@@ -6,9 +6,11 @@ use App\Models\CharacterClass;
 use App\Models\ClassCounter;
 use App\Models\ClassFeature;
 use App\Models\ClassLevelProgression;
+use App\Models\Modifier;
 use App\Models\RandomTable;
 use App\Models\RandomTableEntry;
 use App\Services\Importers\Concerns\ImportsEntityItems;
+use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Importers\Concerns\ImportsRandomTablesFromText;
 use App\Services\Importers\Strategies\CharacterClass\BaseClassStrategy;
 use App\Services\Importers\Strategies\CharacterClass\SubclassStrategy;
@@ -18,6 +20,7 @@ use Illuminate\Support\Facades\Log;
 class ClassImporter extends BaseImporter
 {
     use ImportsEntityItems;
+    use ImportsModifiers;
     use ImportsRandomTablesFromText;
 
     private array $strategies = [];
@@ -170,6 +173,22 @@ class ClassImporter extends BaseImporter
                 'description' => $featureData['description'],
                 'sort_order' => $featureData['sort_order'],
             ]);
+
+            // Detect Ability Score Improvement and create entity_modifiers
+            if (stripos($featureData['name'], 'Ability Score Improvement') !== false) {
+                // Create modifier directly without clearing existing ones
+                Modifier::create([
+                    'reference_type' => get_class($class),
+                    'reference_id' => $class->id,
+                    'modifier_category' => 'ability_score',
+                    'value' => '+2',
+                    'ability_score_id' => null, // Player chooses
+                    'is_choice' => true,
+                    'choice_count' => 2, // Standard ASI allows 2 increases
+                    'level' => $featureData['level'],
+                    'condition' => 'Choose one ability score to increase by 2, or two ability scores to increase by 1 each',
+                ]);
+            }
 
             // Import random tables from <roll> XML elements
             if (! empty($featureData['rolls'])) {
@@ -455,6 +474,7 @@ class ClassImporter extends BaseImporter
                     'roll_min' => $roll['level'] ?? 1, // Use level as roll value, or 1 if no level
                     'roll_max' => $roll['level'] ?? 1,
                     'result_text' => $roll['formula'], // "1d6", "2d6", etc.
+                    'level' => $roll['level'] ?? null, // Character level when this roll becomes available
                     'sort_order' => $index,
                 ]);
             }

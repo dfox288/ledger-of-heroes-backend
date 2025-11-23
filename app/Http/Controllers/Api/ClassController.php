@@ -78,7 +78,8 @@ class ClassController extends Controller
         $dto = ClassSearchDTO::fromRequest($request);
 
         if ($dto->searchQuery !== null) {
-            // Scout search - paginate first, then eager-load relationships
+            // Scout search - paginate fi
+            // rst, then eager-load relationships
             $classes = $service->buildScoutQuery($dto->searchQuery)->paginate($dto->perPage);
             $classes->load($service->getDefaultRelationships());
         } else {

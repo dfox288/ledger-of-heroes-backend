@@ -123,4 +123,48 @@ abstract class AbstractMonsterStrategy
         $this->warnings = [];
         $this->metrics = [];
     }
+
+    /**
+     * Check if monster data contains specific damage resistance.
+     */
+    protected function hasDamageResistance(array $monsterData, string $damageType): bool
+    {
+        return str_contains(strtolower($monsterData['damage_resistances'] ?? ''), strtolower($damageType));
+    }
+
+    /**
+     * Check if monster data contains specific damage immunity.
+     */
+    protected function hasDamageImmunity(array $monsterData, string $damageType): bool
+    {
+        return str_contains(strtolower($monsterData['damage_immunities'] ?? ''), strtolower($damageType));
+    }
+
+    /**
+     * Check if monster data contains specific condition immunity.
+     */
+    protected function hasConditionImmunity(array $monsterData, string $condition): bool
+    {
+        $immunities = strtolower($monsterData['condition_immunities'] ?? '');
+
+        return str_contains($immunities, strtolower($condition));
+    }
+
+    /**
+     * Check if any trait contains a specific keyword (case-insensitive).
+     */
+    protected function hasTraitContaining(array $traits, string $keyword): bool
+    {
+        foreach ($traits as $trait) {
+            $name = strtolower($trait['name'] ?? '');
+            $description = strtolower($trait['description'] ?? '');
+            $keyword = strtolower($keyword);
+
+            if (str_contains($name, $keyword) || str_contains($description, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

@@ -51,4 +51,68 @@ class AbstractMonsterStrategyTest extends TestCase
         $this->assertEquals(1, $enhanced[1]['action_cost']);
         $this->assertTrue($enhanced[1]['is_lair_action']);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_detects_damage_immunity(): void
+    {
+        $strategy = new \App\Services\Importers\Strategies\Monster\DefaultStrategy;
+        $monsterData = [
+            'damage_immunities' => 'fire, cold',
+        ];
+
+        $this->assertTrue($this->callProtectedMethod($strategy, 'hasDamageImmunity', [$monsterData, 'fire']));
+        $this->assertTrue($this->callProtectedMethod($strategy, 'hasDamageImmunity', [$monsterData, 'cold']));
+        $this->assertFalse($this->callProtectedMethod($strategy, 'hasDamageImmunity', [$monsterData, 'poison']));
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_detects_damage_resistance(): void
+    {
+        $strategy = new \App\Services\Importers\Strategies\Monster\DefaultStrategy;
+        $monsterData = [
+            'damage_resistances' => 'bludgeoning, piercing',
+        ];
+
+        $this->assertTrue($this->callProtectedMethod($strategy, 'hasDamageResistance', [$monsterData, 'bludgeoning']));
+        $this->assertFalse($this->callProtectedMethod($strategy, 'hasDamageResistance', [$monsterData, 'fire']));
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_detects_condition_immunity(): void
+    {
+        $strategy = new \App\Services\Importers\Strategies\Monster\DefaultStrategy;
+        $monsterData = [
+            'condition_immunities' => 'charmed, frightened, poisoned',
+        ];
+
+        $this->assertTrue($this->callProtectedMethod($strategy, 'hasConditionImmunity', [$monsterData, 'charmed']));
+        $this->assertTrue($this->callProtectedMethod($strategy, 'hasConditionImmunity', [$monsterData, 'frightened']));
+        $this->assertFalse($this->callProtectedMethod($strategy, 'hasConditionImmunity', [$monsterData, 'paralyzed']));
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_finds_trait_containing_keyword(): void
+    {
+        $strategy = new \App\Services\Importers\Strategies\Monster\DefaultStrategy;
+        $traits = [
+            ['name' => 'Magic Resistance', 'description' => 'The creature has advantage on saving throws against spells'],
+            ['name' => 'Pack Tactics', 'description' => 'The creature has advantage on attacks'],
+        ];
+
+        $this->assertTrue($this->callProtectedMethod($strategy, 'hasTraitContaining', [$traits, 'magic resistance']));
+        $this->assertTrue($this->callProtectedMethod($strategy, 'hasTraitContaining', [$traits, 'MAGIC RESISTANCE']));
+        $this->assertFalse($this->callProtectedMethod($strategy, 'hasTraitContaining', [$traits, 'regeneration']));
+    }
+
+    /**
+     * Helper to call protected methods via reflection.
+     */
+    private function callProtectedMethod(object $object, string $method, array $args): mixed
+    {
+        $reflection = new \ReflectionClass($object);
+        $method = $reflection->getMethod($method);
+        $method->setAccessible(true);
+
+        return $method->invokeArgs($object, $args);
+    }
 }

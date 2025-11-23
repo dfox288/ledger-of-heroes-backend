@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <monster>
+    <name>Deva</name>
+    <size>M</size>
+    <type>celestial</type>
+    <alignment>Lawful Good</alignment>
+    <ac>17 (natural armor)</ac>
+    <hp>136 (16d8+64)</hp>
+    <speed>30 ft., fly 90 ft.</speed>
+    <str>18</str>
+    <dex>18</dex>
+    <con>18</con>
+    <int>17</int>
+    <wis>20</wis>
+    <cha>20</cha>
+    <save>Wis +9, Cha +9</save>
+    <skill>Insight +9, Perception +9</skill>
+    <resist>radiant; bludgeoning, piercing, and slashing from nonmagical attacks</resist>
+    <conditionImmune>charmed, exhaustion, frightened</conditionImmune>
+    <senses>darkvision 120 ft.</senses>
+    <passive>19</passive>
+    <languages>all, telepathy 120 ft.</languages>
+    <cr>10</cr>
+    <trait>
+      <name>Angelic Weapons</name>
+      <text>The deva's weapon attacks are magical. When the deva hits with any weapon, the weapon deals an extra 4d8 radiant damage (included in the attack).</text>
+    </trait>
+    <trait>
+      <name>Magic Resistance</name>
+      <text>The deva has advantage on saving throws against spells and other magical effects.</text>
+    </trait>
+    <action>
+      <name>Multiattack</name>
+      <text>The deva makes two melee attacks.</text>
+    </action>
+    <action>
+      <name>Mace</name>
+      <text>Melee Weapon Attack: +8 to hit, reach 5 ft., one target. Hit: 7 (1d6 + 4) bludgeoning damage plus 18 (4d8) radiant damage.</text>
+      <attack>Bludgeoning|+8|1d6+4</attack>
+      <attack>Radiant||4d8</attack>
+    </action>
+    <action>
+      <name>Healing Touch (3/Day)</name>
+      <text>The deva touches another creature. The target magically regains 20 (4d8 + 2) hit points and is freed from any curse, disease, poison, blindness, or deafness.</text>
+    </action>
+  </monster>
+  <monster>
+    <name>Solar</name>
+    <size>L</size>
+    <type>celestial</type>
+    <alignment>Lawful Good</alignment>
+    <ac>21 (natural armor)</ac>
+    <hp>243 (18d10+144)</hp>
+    <speed>50 ft., fly 150 ft.</speed>
+    <str>26</str>
+    <dex>22</dex>
+    <con>26</con>
+    <int>25</int>
+    <wis>25</wis>
+    <cha>30</cha>
+    <save>Int +14, Wis +14, Cha +17</save>
+    <skill>Perception +14</skill>
+    <resist>radiant; bludgeoning, piercing, and slashing from nonmagical attacks</resist>
+    <immune>necrotic, poison</immune>
+    <conditionImmune>charmed, exhaustion, frightened, poisoned</conditionImmune>
+    <senses>truesight 120 ft.</senses>
+    <passive>24</passive>
+    <languages>all, telepathy 120 ft.</languages>
+    <cr>21</cr>
+    <trait>
+      <name>Angelic Weapons</name>
+      <text>The solar's weapon attacks are magical. When the solar hits with any weapon, the weapon deals an extra 6d8 radiant damage (included in the attack).</text>
+    </trait>
+    <action>
+      <name>Greatsword</name>
+      <text>Melee Weapon Attack: +15 to hit, reach 5 ft., one target. Hit: 22 (4d6 + 8) slashing damage plus 27 (6d8) radiant damage.</text>
+      <attack>Slashing|+15|4d6+8</attack>
+      <attack>Radiant||6d8</attack>
+    </action>
+  </monster>
+</compendium>

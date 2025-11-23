@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <monster>
+    <name>Werewolf</name>
+    <size>M</size>
+    <type>humanoid (human, shapechanger)</type>
+    <alignment>Chaotic Evil</alignment>
+    <ac>11 (in humanoid form, 12 (natural armor) in wolf or hybrid form)</ac>
+    <hp>58 (9d8+18)</hp>
+    <speed>walk 30 ft. (40 ft. in wolf form)</speed>
+    <str>15</str>
+    <dex>13</dex>
+    <con>14</con>
+    <int>10</int>
+    <wis>11</wis>
+    <cha>10</cha>
+    <skill>Perception +4, Stealth +3</skill>
+    <passive>14</passive>
+    <languages>Common (can't speak in wolf form)</languages>
+    <cr>3</cr>
+    <immune>bludgeoning, piercing, slashing from nonmagical attacks that aren't silvered</immune>
+    <senses>passive Perception 14</senses>
+    <trait>
+      <name>Shapechanger</name>
+      <text>The werewolf can use its action to polymorph into a wolf-humanoid hybrid or into a wolf, or back into its true form, which is humanoid. Its statistics, other than its AC, are the same in each form. Any equipment it is wearing or carrying isn't transformed. It reverts to its true form if it dies.</text>
+    </trait>
+    <trait>
+      <name>Keen Hearing and Smell</name>
+      <text>The werewolf has advantage on Wisdom (Perception) checks that rely on hearing or smell.</text>
+    </trait>
+  </monster>
+  <monster>
+    <name>Doppelganger</name>
+    <size>M</size>
+    <type>monstrosity (shapechanger)</type>
+    <alignment>Neutral</alignment>
+    <ac>14</ac>
+    <hp>52 (8d8+16)</hp>
+    <speed>walk 30 ft.</speed>
+    <str>11</str>
+    <dex>18</dex>
+    <con>14</con>
+    <int>11</int>
+    <wis>12</wis>
+    <cha>14</cha>
+    <skill>Deception +6, Insight +3</skill>
+    <passive>11</passive>
+    <languages>Common</languages>
+    <cr>3</cr>
+    <conditionImmune>charmed</conditionImmune>
+    <senses>darkvision 60 ft.</senses>
+    <trait>
+      <name>Shapechanger</name>
+      <text>The doppelganger can use its action to polymorph into a Small or Medium humanoid it has seen, or back into its true form. Its statistics, other than its size, are the same in each form. Any equipment it is wearing or carrying isn't transformed. It reverts to its true form if it dies.</text>
+    </trait>
+    <trait>
+      <name>Ambusher</name>
+      <text>The doppelganger has advantage on attack rolls against any creature it has surprised.</text>
+    </trait>
+    <trait>
+      <name>Surprise Attack</name>
+      <text>If the doppelganger surprises a creature and hits it with an attack during the first round of combat, the target takes an extra 10 (3d6) damage from the attack.</text>
+    </trait>
+    <action>
+      <name>Read Thoughts</name>
+      <text>The doppelganger magically reads the surface thoughts of one creature within 60 feet of it. The effect can penetrate barriers, but 3 feet of wood or dirt, 2 feet of stone, 2 inches of metal, or a thin sheet of lead blocks it. While the target is in range, the doppelganger can continue reading its thoughts, as long as the doppelganger's concentration isn't broken (as if concentrating on a spell). While reading the target's mind, the doppelganger has advantage on Wisdom (Insight) and Charisma (Deception, Intimidation, and Persuasion) checks against the target.</text>
+    </action>
+  </monster>
+  <monster>
+    <name>Mimic</name>
+    <size>M</size>
+    <type>monstrosity (shapechanger)</type>
+    <alignment>Neutral</alignment>
+    <ac>12 (natural armor)</ac>
+    <hp>58 (9d8+18)</hp>
+    <speed>walk 15 ft.</speed>
+    <str>17</str>
+    <dex>12</dex>
+    <con>15</con>
+    <int>5</int>
+    <wis>13</wis>
+    <cha>8</cha>
+    <skill>Stealth +5</skill>
+    <passive>11</passive>
+    <languages/>
+    <cr>2</cr>
+    <immune>acid</immune>
+    <conditionImmune>prone</conditionImmune>
+    <senses>darkvision 60 ft.</senses>
+    <trait>
+      <name>Shapechanger</name>
+      <text>The mimic can use its action to polymorph into an object or back into its true, amorphous form. Its statistics are the same in each form. Any equipment it is wearing or carrying isn't transformed. It reverts to its true form if it dies.</text>
+    </trait>
+    <trait>
+      <name>Adhesive (Object Form Only)</name>
+      <text>The mimic adheres to anything that touches it. A Huge or smaller creature adhered to the mimic is also grappled by it (escape DC 13). Ability checks made to escape this grapple have disadvantage.</text>
+    </trait>
+    <trait>
+      <name>False Appearance (Object Form Only)</name>
+      <text>While the mimic remains motionless, it is indistinguishable from an ordinary object.</text>
+    </trait>
+    <trait>
+      <name>Grappler</name>
+      <text>The mimic has advantage on attack rolls against any creature grappled by it.</text>
+    </trait>
+  </monster>
+</compendium>

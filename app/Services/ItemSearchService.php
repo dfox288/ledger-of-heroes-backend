@@ -190,7 +190,7 @@ final class ItemSearchService
         }
 
         // Get item IDs from results
-        $itemIds = collect($results['hits'])->pluck('id')->all();
+        $itemIds = collect($results->getHits())->pluck('id')->all();
 
         // Fetch full items from database in correct order
         $items = Item::with([
@@ -210,7 +210,7 @@ final class ItemSearchService
         // Create paginator
         return new LengthAwarePaginator(
             $items,
-            $results['estimatedTotalHits'],
+            $results->getEstimatedTotalHits(),
             $dto->perPage,
             $dto->page,
             ['path' => request()->url(), 'query' => request()->query()]

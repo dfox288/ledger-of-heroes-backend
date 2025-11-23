@@ -189,7 +189,7 @@ final class MonsterSearchService
         }
 
         // Get monster IDs from results
-        $monsterIds = collect($results['hits'])->pluck('id')->all();
+        $monsterIds = collect($results->getHits())->pluck('id')->all();
 
         // Fetch full monsters from database in correct order
         $monsters = Monster::with([
@@ -210,7 +210,7 @@ final class MonsterSearchService
         // Create paginator
         return new LengthAwarePaginator(
             $monsters,
-            $results['estimatedTotalHits'],
+            $results->getEstimatedTotalHits(),
             $dto->perPage,
             $dto->page,
             ['path' => request()->url(), 'query' => request()->query()]

@@ -86,6 +86,11 @@ class CharacterClass extends Model
         return $this->morphMany(EntitySource::class, 'reference', 'reference_type', 'reference_id');
     }
 
+    public function equipment(): MorphMany
+    {
+        return $this->morphMany(EntityItem::class, 'reference');
+    }
+
     // Computed property
     public function getIsBaseClassAttribute(): bool
     {

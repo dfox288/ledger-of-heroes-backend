@@ -85,6 +85,47 @@ class ClassXmlParserTest extends TestCase
     }
 
     #[Test]
+    public function it_parses_skill_proficiencies_with_global_choice_quantity()
+    {
+        $xml = <<<'XML'
+        <compendium>
+            <class>
+                <name>Barbarian</name>
+                <hd>12</hd>
+                <proficiency>Strength, Constitution, Athletics, Animal Handling, Intimidation, Nature, Perception, Survival</proficiency>
+                <numSkills>2</numSkills>
+            </class>
+        </compendium>
+        XML;
+
+        $classes = $this->parser->parse($xml);
+        $proficiencies = $classes[0]['proficiencies'];
+
+        // Find skill proficiencies
+        $skillProfs = array_filter($proficiencies, fn ($p) => $p['type'] === 'skill');
+
+        // All should have same quantity (2)
+        foreach ($skillProfs as $prof) {
+            $this->assertTrue($prof['is_choice'], "Skill {$prof['name']} should be a choice");
+            $this->assertEquals(2, $prof['quantity'], "All skills should have quantity=2 (choose 2 from list)");
+        }
+
+        // Should have 6 skill options (Athletics, Animal Handling, etc.)
+        $this->assertCount(6, $skillProfs);
+
+        // Saving throws should NOT be choices
+        $savingThrows = array_filter($proficiencies, fn ($p) => $p['type'] === 'saving_throw');
+        foreach ($savingThrows as $prof) {
+            $this->assertFalse($prof['is_choice'], "Saving throw {$prof['name']} should not be a choice");
+        }
+
+        // Verify saving throws are correct (Strength, Constitution)
+        $savingThrowNames = array_column($savingThrows, 'name');
+        $this->assertContains('Strength', $savingThrowNames);
+        $this->assertContains('Constitution', $savingThrowNames);
+    }
+
+    #[Test]
     public function it_parses_fighter_traits()
     {
         // Load real Fighter XML from file

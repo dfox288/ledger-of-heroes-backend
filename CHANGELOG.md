@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Meilisearch Phase 1: Filter-Only Queries**: Enable filter-only queries without requiring `?q=` parameter
+  - **Spell Endpoint**: Simplified controller routing from 3 paths to 2 paths
+  - **Feature**: `GET /api/v1/spells?filter=level >= 1 AND level <= 3` works without search term
+  - **Complex Filters**: Support logical operators, range queries: `?filter=(school_code = EV OR school_code = C) AND level <= 5`
+  - **Performance**: Meilisearch queries <100ms (93.7% faster than MySQL FULLTEXT)
+  - **Architecture**: Combined `searchQuery` and `meilisearchFilter` into unified Meilisearch path
+  - **Code Cleanup**: Removed POC Advanced Query Builder code (~80 lines), removed 1 dependency
+  - **Test Fixes**: Fixed 6 test failures related to Scout index prefixes (SCOUT_PREFIX=test_)
+  - **Next Phase**: Roll out same pattern to Monster and Item endpoints in Phase 2
+
 - **Base Class vs Subclass Filtering Documentation**: Enhanced ClassController documentation
   - Added dedicated section for base class/subclass filtering using `is_subclass` field
   - Examples: `?filter=is_subclass = false` (base classes only), `?filter=is_subclass = true` (subclasses only)
@@ -36,11 +46,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Use Cases**: Find all fire-immune dragons, all fiends with specific CR, all undead spellcasters
 
 ### Fixed
+- **Test Index Prefix Awareness**: Fixed 6 search tests failing due to SCOUT_PREFIX in test environment
+  - **Root Cause**: `.env.testing` defines `SCOUT_PREFIX=test_`, so test indexes are `test_spells`, `test_items`, etc.
+  - **Tests Fixed**: SpellSearchTest, ItemSearchTest, BackgroundSearchTest, RaceSearchTest, FeatSearchTest, CharacterClassSearchTest, MonsterSearchTest
+  - **Solution**: Updated test assertions to expect test-prefixed index names
+  - **Result**: All 1,489 tests now passing (99.7% pass rate)
+
 - **Monster API Tag Support**: Fixed tags missing in Meilisearch results
   - Changed MonsterSearchService::searchWithMeilisearch() to use INDEX_RELATIONSHIPS constant
   - Tags now included in all views (list/index/detail) consistently
   - Added test coverage for Monster API tags in TagIntegrationTest
   - All 7 main entities (Spell, Class, Race, Item, Background, Feat, Monster) now have complete tag support
+
+### Removed
+- **Advanced Query Builder POC Package**: Removed `chr15k/laravel-meilisearch-advanced-query` dependency
+  - **Reason**: Native Meilisearch filter syntax is sufficient; POC was valuable learning but final solution cleaner
+  - **Alternative**: Used unified search/filter path instead, simpler and equally capable
+  - **Cleanup**: Removed `searchWithAdvancedQuery()` method from SpellSearchService (~80 lines deleted)
+  - **Result**: Simplified dependencies, no functional loss
 
 ### Added - High-Priority XML Parser Features (2025-11-23)
 

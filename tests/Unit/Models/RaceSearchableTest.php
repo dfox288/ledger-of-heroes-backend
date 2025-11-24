@@ -59,6 +59,6 @@ class RaceSearchableTest extends TestCase
     public function it_uses_correct_search_index_name(): void
     {
         $race = new Race;
-        $this->assertEquals('races', $race->searchableAs());
+        $this->assertEquals('test_races', $race->searchableAs());
     }
 }

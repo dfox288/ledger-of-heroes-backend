@@ -53,6 +53,6 @@ class CharacterClassSearchableTest extends TestCase
     public function it_uses_correct_search_index_name(): void
     {
         $class = new CharacterClass;
-        $this->assertEquals('classes', $class->searchableAs());
+        $this->assertEquals('test_classes', $class->searchableAs());
     }
 }

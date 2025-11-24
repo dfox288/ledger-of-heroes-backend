@@ -135,15 +135,12 @@ class SpellController extends Controller
     {
         $dto = SpellSearchDTO::fromRequest($request);
 
-        // Use new Meilisearch filter syntax if provided
-        if ($dto->meilisearchFilter !== null) {
+        // Use Meilisearch for ANY search query or filter expression
+        // This enables filter-only queries without requiring ?q= parameter
+        if ($dto->searchQuery !== null || $dto->meilisearchFilter !== null) {
             $spells = $service->searchWithMeilisearch($dto, $meilisearch);
-        } elseif ($dto->searchQuery !== null) {
-            // Scout search - paginate first, then eager-load relationships
-            $spells = $service->buildScoutQuery($dto)->paginate($dto->perPage);
-            $spells->load($service->getDefaultRelationships());
         } else {
-            // Database query - relationships already eager-loaded via with()
+            // Database query for pure pagination (no search/filter)
             $spells = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 

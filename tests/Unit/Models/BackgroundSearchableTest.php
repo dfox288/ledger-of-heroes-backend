@@ -51,6 +51,6 @@ class BackgroundSearchableTest extends TestCase
     public function it_uses_correct_search_index_name(): void
     {
         $background = new Background;
-        $this->assertEquals('backgrounds', $background->searchableAs());
+        $this->assertEquals('test_backgrounds', $background->searchableAs());
     }
 }

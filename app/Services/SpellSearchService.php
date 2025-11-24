@@ -270,4 +270,5 @@ final class SpellSearchService
             ['path' => request()->url(), 'query' => request()->query()]
         );
     }
+
 }

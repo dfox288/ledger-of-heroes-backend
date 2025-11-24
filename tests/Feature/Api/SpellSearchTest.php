@@ -50,7 +50,7 @@ class SpellSearchTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_scout_results_by_level(): void
+    public function it_filters_meilisearch_results_by_level_with_search(): void
     {
         $evocation = SpellSchool::factory()->create(['code' => 'EVO']);
 
@@ -61,7 +61,8 @@ class SpellSearchTest extends TestCase
         $this->artisan('scout:import', ['model' => Spell::class]);
         sleep(1);
 
-        $response = $this->getJson('/api/v1/spells?q=fire&level=3');
+        // Phase 1: With search query, now uses Meilisearch with filter syntax
+        $response = $this->getJson('/api/v1/spells?q=fire&filter=level = 3');
 
         $response->assertOk()
             ->assertJsonCount(1, 'data')

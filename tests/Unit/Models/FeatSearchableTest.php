@@ -53,6 +53,6 @@ class FeatSearchableTest extends TestCase
     public function it_uses_correct_search_index_name(): void
     {
         $feat = new Feat;
-        $this->assertEquals('feats', $feat->searchableAs());
+        $this->assertEquals('test_feats', $feat->searchableAs());
     }
 }

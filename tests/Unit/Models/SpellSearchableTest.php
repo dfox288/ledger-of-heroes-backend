@@ -77,6 +77,7 @@ class SpellSearchableTest extends TestCase
     {
         $spell = new Spell;
 
-        $this->assertEquals('spells', $spell->searchableAs());
+        // In testing environment, Scout adds 'test_' prefix (see .env.testing SCOUT_PREFIX)
+        $this->assertEquals('test_spells', $spell->searchableAs());
     }
 }

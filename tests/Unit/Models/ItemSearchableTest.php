@@ -79,6 +79,6 @@ class ItemSearchableTest extends TestCase
     {
         $item = new Item;
 
-        $this->assertEquals('items', $item->searchableAs());
+        $this->assertEquals('test_items', $item->searchableAs());
     }
 }

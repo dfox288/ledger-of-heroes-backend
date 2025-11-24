@@ -157,6 +157,8 @@ class Feat extends BaseModel
 
     public function searchableAs(): string
     {
-        return 'feats';
+        $prefix = config('scout.prefix');
+
+        return $prefix.'feats';
     }
 }

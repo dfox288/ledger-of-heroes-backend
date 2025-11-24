@@ -167,6 +167,8 @@ class CharacterClass extends BaseModel
 
     public function searchableAs(): string
     {
-        return 'classes';
+        $prefix = config('scout.prefix');
+
+        return $prefix.'classes';
     }
 }

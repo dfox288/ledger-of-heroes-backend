@@ -137,6 +137,8 @@ class Race extends BaseModel
 
     public function searchableAs(): string
     {
-        return 'races';
+        $prefix = config('scout.prefix');
+
+        return $prefix.'races';
     }
 }

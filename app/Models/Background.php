@@ -74,6 +74,8 @@ class Background extends BaseModel
 
     public function searchableAs(): string
     {
-        return 'backgrounds';
+        $prefix = config('scout.prefix');
+
+        return $prefix.'backgrounds';
     }
 }

@@ -212,6 +212,8 @@ class Item extends BaseModel
      */
     public function searchableAs(): string
     {
-        return 'items';
+        $prefix = config('scout.prefix');
+
+        return $prefix.'items';
     }
 }

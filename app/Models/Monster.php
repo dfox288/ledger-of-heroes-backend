@@ -138,6 +138,8 @@ class Monster extends BaseModel
      */
     public function searchableAs(): string
     {
-        return 'monsters_index';
+        $prefix = config('scout.prefix');
+
+        return $prefix.'monsters';
     }
 }

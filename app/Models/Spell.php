@@ -205,6 +205,8 @@ class Spell extends BaseModel
      */
     public function searchableAs(): string
     {
-        return 'spells';
+        $prefix = config('scout.prefix');
+
+        return $prefix.'spells';
     }
 }

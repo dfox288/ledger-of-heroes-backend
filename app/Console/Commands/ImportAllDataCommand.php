@@ -43,6 +43,10 @@ class ImportAllDataCommand extends Command
         $this->newLine();
 
         // Detect environment for Scout operations
+        // NOTE: Environment is set at bootstrap time (via CLI --env or APP_ENV).
+        // All nested $this->call() commands automatically inherit this environment.
+        // We cannot pass --env to $this->call() - it only works from CLI before boot.
+        // This display is purely informational to show which indexes will be used.
         $environment = config('app.env');
         $scoutPrefix = config('scout.prefix');
 
@@ -114,6 +118,9 @@ class ImportAllDataCommand extends Command
             $this->step('Configuring and indexing search data');
 
             // Configure indexes (uses current environment's config automatically)
+            // NOTE: Scout commands inherit the environment from this parent command.
+            // The models' searchableAs() methods will automatically apply the correct
+            // prefix (e.g., 'test_spells' for testing, 'spells' for production).
             $this->call('search:configure-indexes');
 
             // Re-index all searchable entities with fresh data

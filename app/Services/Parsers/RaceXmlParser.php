@@ -33,14 +33,14 @@ class RaceXmlParser
         $baseRaceName = null;
         $raceName = $fullName;
 
-        // Check if name contains parentheses (indicates subrace: "Dwarf (Hill)")
-        if (preg_match('/^(.+?)\s*\((.+)\)$/', $fullName, $matches)) {
+        // Check for comma format first (handles "Dwarf, Mark of Warding (WGtE)")
+        if (str_contains($fullName, ',')) {
+            [$baseRaceName, $raceName] = array_map('trim', explode(',', $fullName, 2));
+        }
+        // Then check if name contains parentheses (indicates subrace: "Dwarf (Hill)")
+        elseif (preg_match('/^(.+?)\s*\((.+)\)$/', $fullName, $matches)) {
             $baseRaceName = trim($matches[1]);
             $raceName = $fullName; // Keep full name as-is
-        }
-        // Also check for comma format (alternative subrace notation)
-        elseif (str_contains($fullName, ',')) {
-            [$baseRaceName, $raceName] = array_map('trim', explode(',', $fullName, 2));
         }
 
         // Parse traits

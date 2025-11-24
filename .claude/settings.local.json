@@ -12,7 +12,11 @@
       "Bash(docker compose logs:*)",
       "Bash(git push:*)",
       "Bash(tee:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Skill(superpowers-laravel:brainstorm)",
+      "Bash(for model in Spell Monster Item Race CharacterClass Background Feat)",
+      "Bash(do grep -l \"public function searchableOptions\" app/Models/$model.php)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

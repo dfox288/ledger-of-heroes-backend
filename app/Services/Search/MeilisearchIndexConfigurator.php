@@ -17,258 +17,81 @@ class MeilisearchIndexConfigurator
         private Client $client
     ) {}
 
-    public function configureSpellsIndex(): void
+    /**
+     * Configure a Meilisearch index using the model's searchableOptions()
+     *
+     * This eliminates duplication by reading configuration directly from the model,
+     * making the model's searchableOptions() the single source of truth.
+     *
+     * @param  class-string  $modelClass  Fully qualified model class name (e.g., Spell::class)
+     *
+     * @throws \Exception If model doesn't have searchableOptions() method
+     */
+    private function configureIndexFromModel(string $modelClass): void
     {
-        // Use model's searchableAs() to respect Scout prefix (test_ for testing, none for production)
-        $indexName = (new Spell)->searchableAs();
+        // Instantiate model
+        $model = new $modelClass;
+
+        // Verify model has searchableOptions() method
+        if (! method_exists($model, 'searchableOptions')) {
+            throw new \Exception("Model {$modelClass} must have searchableOptions() method");
+        }
+
+        // Get index name (respects Scout prefix for testing)
+        $indexName = $model->searchableAs();
         $index = $this->client->index($indexName);
 
-        // Configure searchable attributes (fields that will be searched)
-        $index->updateSearchableAttributes([
-            'name',
-            'description',
-            'at_higher_levels',
-            'school_name',
-            'sources',
-            'classes',
-        ]);
+        // Get configuration from model
+        $options = $model->searchableOptions();
 
-        // Configure filterable attributes (fields that can be used in filters)
-        $index->updateFilterableAttributes([
-            'id',
-            'level',
-            'school_code',
-            'school_name',
-            'concentration',
-            'ritual',
-            'source_codes',
-            'class_slugs',
-            'tag_slugs',
-        ]);
+        // Apply searchable attributes (fields to search in)
+        if (isset($options['searchableAttributes']) && is_array($options['searchableAttributes'])) {
+            $index->updateSearchableAttributes($options['searchableAttributes']);
+        }
 
-        // Configure sortable attributes (fields that can be used for sorting)
-        $index->updateSortableAttributes([
-            'name',
-            'level',
-        ]);
+        // Apply filterable attributes (fields that can be filtered)
+        if (isset($options['filterableAttributes']) && is_array($options['filterableAttributes'])) {
+            $index->updateFilterableAttributes($options['filterableAttributes']);
+        }
+
+        // Apply sortable attributes (fields that can be sorted)
+        if (isset($options['sortableAttributes']) && is_array($options['sortableAttributes'])) {
+            $index->updateSortableAttributes($options['sortableAttributes']);
+        }
+    }
+
+    public function configureSpellsIndex(): void
+    {
+        $this->configureIndexFromModel(Spell::class);
     }
 
     public function configureItemsIndex(): void
     {
-        $indexName = (new Item)->searchableAs();
-        $index = $this->client->index($indexName);
-
-        // Searchable attributes
-        $index->updateSearchableAttributes([
-            'name',
-            'description',
-            'type_name',
-            'sources',
-            'damage_type',
-        ]);
-
-        // Filterable attributes
-        $index->updateFilterableAttributes([
-            'id',
-            'slug',
-            'type_name',
-            'type_code',
-            'rarity',
-            'requires_attunement',
-            'is_magic',
-            'weight',
-            'cost_cp',
-            'source_codes',
-            'damage_dice',
-            'damage_type',
-            'versatile_damage',
-            'range_normal',
-            'range_long',
-            'armor_class',
-            'strength_requirement',
-            'stealth_disadvantage',
-            'charges_max',
-            'has_charges',
-            'spell_slugs',
-            'tag_slugs',
-        ]);
-
-        // Sortable attributes
-        $index->updateSortableAttributes([
-            'name',
-            'rarity',
-            'cost_cp',
-            'weight',
-        ]);
+        $this->configureIndexFromModel(Item::class);
     }
 
     public function configureRacesIndex(): void
     {
-        $indexName = (new Race)->searchableAs();
-        $index = $this->client->index($indexName);
-
-        // Searchable attributes
-        $index->updateSearchableAttributes([
-            'name',
-            'size_name',
-            'sources',
-            'parent_race_name',
-        ]);
-
-        // Filterable attributes
-        $index->updateFilterableAttributes([
-            'size_code',
-            'speed',
-            'source_codes',
-            'is_subrace',
-            'tag_slugs',
-        ]);
-
-        // Sortable attributes
-        $index->updateSortableAttributes([
-            'name',
-            'speed',
-        ]);
+        $this->configureIndexFromModel(Race::class);
     }
 
     public function configureClassesIndex(): void
     {
-        $indexName = (new CharacterClass)->searchableAs();
-        $index = $this->client->index($indexName);
-
-        // Searchable attributes
-        $index->updateSearchableAttributes([
-            'name',
-            'description',
-            'primary_ability',
-            'sources',
-            'parent_class_name',
-        ]);
-
-        // Filterable attributes
-        $index->updateFilterableAttributes([
-            'hit_die',
-            'spellcasting_ability',
-            'source_codes',
-            'is_subclass',
-            'tag_slugs',
-        ]);
-
-        // Sortable attributes
-        $index->updateSortableAttributes([
-            'name',
-            'hit_die',
-        ]);
+        $this->configureIndexFromModel(CharacterClass::class);
     }
 
     public function configureBackgroundsIndex(): void
     {
-        $indexName = (new Background)->searchableAs();
-        $index = $this->client->index($indexName);
-
-        // Searchable attributes
-        $index->updateSearchableAttributes([
-            'name',
-            'sources',
-        ]);
-
-        // Filterable attributes
-        $index->updateFilterableAttributes([
-            'source_codes',
-            'tag_slugs',
-        ]);
-
-        // Sortable attributes
-        $index->updateSortableAttributes([
-            'name',
-        ]);
+        $this->configureIndexFromModel(Background::class);
     }
 
     public function configureFeatsIndex(): void
     {
-        $indexName = (new Feat)->searchableAs();
-        $index = $this->client->index($indexName);
-
-        // Searchable attributes
-        $index->updateSearchableAttributes([
-            'name',
-            'description',
-            'prerequisites_text',
-            'sources',
-        ]);
-
-        // Filterable attributes
-        $index->updateFilterableAttributes([
-            'source_codes',
-            'tag_slugs',
-        ]);
-
-        // Sortable attributes
-        $index->updateSortableAttributes([
-            'name',
-        ]);
+        $this->configureIndexFromModel(Feat::class);
     }
 
     public function configureMonstersIndex(): void
     {
-        $indexName = (new Monster)->searchableAs();
-        $index = $this->client->index($indexName);
-
-        // Searchable attributes
-        $index->updateSearchableAttributes([
-            'name',
-            'description',
-            'type',
-            'size_name',
-            'sources',
-        ]);
-
-        // Filterable attributes
-        $index->updateFilterableAttributes([
-            'id',
-            'slug',
-            'type',
-            'size_code',
-            'size_name',
-            'alignment',
-            'armor_class',
-            'armor_type',
-            'hit_points_average',
-            'challenge_rating',
-            'experience_points',
-            'source_codes',
-            'spell_slugs', // For fast spell filtering (1,098 relationships for 129 spellcasters)
-            'tag_slugs', // For filtering by tags (e.g., fire_immune, undead, construct)
-            // Speed attributes (for mobility filtering)
-            'speed_walk',
-            'speed_fly',
-            'speed_swim',
-            'speed_burrow',
-            'speed_climb',
-            'can_hover',
-            // Ability scores (for stat-based filtering)
-            'strength',
-            'dexterity',
-            'constitution',
-            'intelligence',
-            'wisdom',
-            'charisma',
-            // Perception and NPC status
-            'passive_perception',
-            'is_npc',
-        ]);
-
-        // Sortable attributes
-        $index->updateSortableAttributes([
-            'name',
-            'challenge_rating',
-            'armor_class',
-            'hit_points_average',
-            'experience_points',
-            'speed_walk',
-            'strength',
-            'dexterity',
-            'passive_perception',
-        ]);
+        $this->configureIndexFromModel(Monster::class);
     }
 }

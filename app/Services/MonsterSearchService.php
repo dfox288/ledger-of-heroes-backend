@@ -227,7 +227,9 @@ final class MonsterSearchService
 
         // Execute search
         try {
-            $index = $client->index('monsters_index');
+            // Use model's searchableAs() to respect Scout prefix (test_ for testing, none for production)
+            $indexName = (new Monster)->searchableAs();
+            $index = $client->index($indexName);
             $results = $index->search($dto->searchQuery ?? '', $searchParams);
         } catch (\MeiliSearch\Exceptions\ApiException $e) {
             throw new InvalidFilterSyntaxException(

@@ -233,7 +233,9 @@ final class SpellSearchService
 
         // Execute search
         try {
-            $results = $client->index('spells')->search($dto->searchQuery ?? '', $searchParams);
+            // Use model's searchableAs() to respect Scout prefix (test_ for testing, none for production)
+            $indexName = (new Spell)->searchableAs();
+            $results = $client->index($indexName)->search($dto->searchQuery ?? '', $searchParams);
         } catch (\MeiliSearch\Exceptions\ApiException $e) {
             throw new InvalidFilterSyntaxException(
                 filter: $dto->meilisearchFilter ?? 'unknown',

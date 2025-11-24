@@ -117,12 +117,33 @@ class ImportAllDataCommand extends Command
         if (! $this->option('skip-search')) {
             $this->step('Configuring and indexing search data');
 
+            // Define searchable models upfront (used for both deletion and import)
+            $searchableModels = [
+                'Spell' => 'App\\Models\\Spell',
+                'Item' => 'App\\Models\\Item',
+                'Monster' => 'App\\Models\\Monster',
+                'Race' => 'App\\Models\\Race',
+                'CharacterClass' => 'App\\Models\\CharacterClass',
+                'Background' => 'App\\Models\\Background',
+                'Feat' => 'App\\Models\\Feat',
+            ];
+
             // Only delete indexes when doing a fresh migration (not in production updates)
-            // This prevents accidentally wiping production indexes during incremental imports
+            // IMPORTANT: Delete indexes individually to respect Scout prefix (test_ vs production)
+            // scout:delete-all-indexes would delete ALL indexes including production!
             if (! $this->option('skip-migrate')) {
                 $this->info('  Deleting existing search indexes (fresh migration mode)...');
-                $this->call('scout:delete-all-indexes');
-                $this->info('  ✓ All indexes deleted');
+                if ($scoutPrefix) {
+                    $this->info("  (Prefix: {$scoutPrefix})");
+                }
+
+                foreach ($searchableModels as $name => $class) {
+                    $indexName = (new $class)->searchableAs();
+                    $this->line("    → Deleting '{$indexName}'...");
+                    $this->call('scout:delete-index', ['name' => $indexName]);
+                }
+
+                $this->info('  ✓ All environment-specific indexes deleted');
                 $this->newLine();
             }
 
@@ -138,16 +159,6 @@ class ImportAllDataCommand extends Command
                 $this->info("  (Using prefix: {$scoutPrefix})");
             }
             $this->newLine();
-
-            $searchableModels = [
-                'Spell' => 'App\\Models\\Spell',
-                'Item' => 'App\\Models\\Item',
-                'Monster' => 'App\\Models\\Monster',
-                'Race' => 'App\\Models\\Race',
-                'CharacterClass' => 'App\\Models\\CharacterClass',
-                'Background' => 'App\\Models\\Background',
-                'Feat' => 'App\\Models\\Feat',
-            ];
 
             foreach ($searchableModels as $name => $class) {
                 $indexName = (new $class)->searchableAs();

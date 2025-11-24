@@ -124,30 +124,32 @@ docker compose exec php php artisan import:all
 # 1. Fresh database
 docker compose exec php php artisan migrate:fresh --seed
 
-# 2. Import classes FIRST (required by spells)
+# 2. Import items FIRST (required by classes/backgrounds for equipment matching)
+docker compose exec php bash -c 'for file in import-files/item-*.xml; do php artisan import:items "$file" || true; done'
+
+# 3. Import classes (required by spells)
 docker compose exec php bash -c 'for file in import-files/class-*.xml; do php artisan import:classes "$file" || true; done'
 
-# 3. Import spells (main files)
+# 4. Import spells (main files)
 docker compose exec php bash -c 'for file in import-files/spell-*.xml; do [[ ! "$file" =~ \+.*\.xml$ ]] && php artisan import:spells "$file" || true; done'
 
-# 4. Import additive spell class mappings
+# 5. Import additive spell class mappings
 docker compose exec php bash -c 'for file in import-files/spells-*+*.xml; do php artisan import:spell-class-mappings "$file" || true; done'
 
-# 5. Import other entities
+# 6. Import other entities
 docker compose exec php bash -c 'for file in import-files/race-*.xml; do php artisan import:races "$file" || true; done'
-docker compose exec php bash -c 'for file in import-files/item-*.xml; do php artisan import:items "$file" || true; done'
 docker compose exec php bash -c 'for file in import-files/background-*.xml; do php artisan import:backgrounds "$file" || true; done'
 docker compose exec php bash -c 'for file in import-files/feat-*.xml; do php artisan import:feats "$file" || true; done'
 docker compose exec php bash -c 'for file in import-files/bestiary-*.xml; do php artisan import:monsters "$file" || true; done'
 
-# 6. Configure search
+# 7. Configure search
 docker compose exec php php artisan search:configure-indexes
 
-# 7. Run tests
+# 8. Run tests
 docker compose exec php php artisan test
 ```
 
-**⚠️ CRITICAL ORDER:** Classes → Spells → Spell Class Mappings → Other entities
+**⚠️ CRITICAL ORDER:** Items → Classes → Spells → Spell Class Mappings → Other entities
 
 ### Development Workflow
 
@@ -262,7 +264,11 @@ php artisan import:feats <file>
 php artisan import:monsters <file>
 ```
 
-**⚠️ Import Order:** Classes → Spells → Spell Class Mappings → Others
+**⚠️ Import Order:** Items → Classes → Spells → Spell Class Mappings → Others
+
+**Why this order?**
+- **Items first:** Classes and Backgrounds reference items for equipment. Items must exist before class/background import so `matchItemByDescription()` can link equipment to actual Item records.
+- **Classes before Spells:** Spells reference classes for spell lists. Classes must exist before spell import.
 
 **Additive Spell Files:** Files like `spells-phb+dmg.xml` contain ONLY `<name>` and `<classes>` - they add subclass associations to existing spells.
 

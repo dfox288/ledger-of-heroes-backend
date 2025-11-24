@@ -134,11 +134,17 @@ final class SpellSearchService
         }
 
         if (isset($dto->filters['concentration'])) {
-            $query->concentration($dto->filters['concentration']);
+            $value = filter_var($dto->filters['concentration'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($value !== null) {
+                $query->concentration($value);
+            }
         }
 
         if (isset($dto->filters['ritual'])) {
-            $query->ritual($dto->filters['ritual']);
+            $value = filter_var($dto->filters['ritual'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($value !== null) {
+                $query->ritual($value);
+            }
         }
 
         // Damage type filter (via effects relationship)

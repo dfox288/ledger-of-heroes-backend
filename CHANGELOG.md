@@ -46,6 +46,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Use Cases**: Find all fire-immune dragons, all fiends with specific CR, all undead spellcasters
 
 ### Fixed
+- **Spells API: Concentration and Ritual Filters**: Fixed MySQL boolean coercion bug causing inverted filter results
+  - **Root Cause**: Query parameters `concentration=true` and `ritual=true` were passed as strings to Eloquent scopes, MySQL coerced string 'true' to integer 0, inverting the filter logic
+  - **Impact**: `?concentration=true` returned 259 NON-concentration spells instead of 218 concentration spells (opposite of expected)
+  - **Solution**: Added `filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)` conversion in SpellSearchService before passing to scopes
+  - **Files**: app/Services/SpellSearchService.php (lines 136-148)
+  - **Result**: Concentration filter now returns 218 correct spells, ritual filter returns 70 correct spells
+
+- **API Validation Errors**: Fixed validation errors returning HTTP 302 HTML redirects instead of HTTP 422 JSON responses
+  - **Root Cause**: Laravel's default ValidationException handler returns HTTP 302 redirects for web requests, no custom handler configured for API routes
+  - **Impact**: Frontend API clients received HTML redirect pages instead of structured JSON error messages
+  - **Solution**: Added ValidationException handler in bootstrap/app.php that detects API routes (`$request->is('api/*')`) and returns HTTP 422 JSON responses
+  - **Files**: bootstrap/app.php (lines 20-28)
+  - **Result**: All API validation errors now return proper HTTP 422 with structured JSON (`{message, errors}` format)
+
 - **Test Index Prefix Awareness**: Fixed 6 search tests failing due to SCOUT_PREFIX in test environment
   - **Root Cause**: `.env.testing` defines `SCOUT_PREFIX=test_`, so test indexes are `test_spells`, `test_items`, etc.
   - **Tests Fixed**: SpellSearchTest, ItemSearchTest, BackgroundSearchTest, RaceSearchTest, FeatSearchTest, CharacterClassSearchTest, MonsterSearchTest

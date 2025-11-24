@@ -17,6 +17,17 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Handle validation exceptions for API routes
+        $exceptions->renderable(function (\Illuminate\Validation\ValidationException $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => $e->getMessage(),
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+        });
+
+        // Handle custom API exceptions
         $exceptions->renderable(function (\App\Exceptions\ApiException $e, $request) {
             return $e->render($request);
         });

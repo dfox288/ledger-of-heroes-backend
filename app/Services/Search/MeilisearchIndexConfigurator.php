@@ -2,6 +2,13 @@
 
 namespace App\Services\Search;
 
+use App\Models\Background;
+use App\Models\CharacterClass;
+use App\Models\Feat;
+use App\Models\Item;
+use App\Models\Monster;
+use App\Models\Race;
+use App\Models\Spell;
 use MeiliSearch\Client;
 
 class MeilisearchIndexConfigurator
@@ -12,7 +19,9 @@ class MeilisearchIndexConfigurator
 
     public function configureSpellsIndex(): void
     {
-        $index = $this->client->index('spells');
+        // Use model's searchableAs() to respect Scout prefix (test_ for testing, none for production)
+        $indexName = (new Spell)->searchableAs();
+        $index = $this->client->index($indexName);
 
         // Configure searchable attributes (fields that will be searched)
         $index->updateSearchableAttributes([
@@ -46,7 +55,8 @@ class MeilisearchIndexConfigurator
 
     public function configureItemsIndex(): void
     {
-        $index = $this->client->index('items');
+        $indexName = (new Item)->searchableAs();
+        $index = $this->client->index($indexName);
 
         // Searchable attributes
         $index->updateSearchableAttributes([
@@ -78,7 +88,8 @@ class MeilisearchIndexConfigurator
 
     public function configureRacesIndex(): void
     {
-        $index = $this->client->index('races');
+        $indexName = (new Race)->searchableAs();
+        $index = $this->client->index($indexName);
 
         // Searchable attributes
         $index->updateSearchableAttributes([
@@ -106,7 +117,8 @@ class MeilisearchIndexConfigurator
 
     public function configureClassesIndex(): void
     {
-        $index = $this->client->index('classes');
+        $indexName = (new CharacterClass)->searchableAs();
+        $index = $this->client->index($indexName);
 
         // Searchable attributes
         $index->updateSearchableAttributes([
@@ -135,7 +147,8 @@ class MeilisearchIndexConfigurator
 
     public function configureBackgroundsIndex(): void
     {
-        $index = $this->client->index('backgrounds');
+        $indexName = (new Background)->searchableAs();
+        $index = $this->client->index($indexName);
 
         // Searchable attributes
         $index->updateSearchableAttributes([
@@ -157,7 +170,8 @@ class MeilisearchIndexConfigurator
 
     public function configureFeatsIndex(): void
     {
-        $index = $this->client->index('feats');
+        $indexName = (new Feat)->searchableAs();
+        $index = $this->client->index($indexName);
 
         // Searchable attributes
         $index->updateSearchableAttributes([
@@ -181,7 +195,8 @@ class MeilisearchIndexConfigurator
 
     public function configureMonstersIndex(): void
     {
-        $index = $this->client->index('monsters_index');
+        $indexName = (new Monster)->searchableAs();
+        $index = $this->client->index($indexName);
 
         // Searchable attributes
         $index->updateSearchableAttributes([

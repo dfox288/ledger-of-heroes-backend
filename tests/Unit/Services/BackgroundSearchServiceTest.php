@@ -56,7 +56,7 @@ class BackgroundSearchServiceTest extends TestCase
         $this->assertContains('proficiencies.skill.abilityScore', $relationships);
         $this->assertContains('proficiencies.proficiencyType', $relationships);
         $this->assertContains('languages.language', $relationships);
-        $this->assertContains('equipment', $relationships);
+        $this->assertContains('equipment.item', $relationships);
         $this->assertContains('tags', $relationships);
     }
 

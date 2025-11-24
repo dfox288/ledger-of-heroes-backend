@@ -30,8 +30,9 @@ final class BackgroundSearchService
         'traits.randomTables.entries',
         'proficiencies.skill.abilityScore',
         'proficiencies.proficiencyType',
+        'proficiencies.item',
         'languages.language',
-        'equipment',
+        'equipment.item',
         'tags',
     ];
 

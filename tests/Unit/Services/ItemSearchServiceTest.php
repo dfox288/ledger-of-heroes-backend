@@ -64,8 +64,9 @@ class ItemSearchServiceTest extends TestCase
         $this->assertContains('abilities', $relationships);
         $this->assertContains('randomTables.entries', $relationships);
         $this->assertContains('proficiencies.proficiencyType', $relationships);
+        $this->assertContains('proficiencies.item', $relationships);
         $this->assertContains('modifiers.abilityScore', $relationships);
-        $this->assertContains('spells', $relationships);
+        $this->assertContains('spells.spellSchool', $relationships);
         $this->assertContains('savingThrows', $relationships);
         $this->assertContains('tags', $relationships);
     }

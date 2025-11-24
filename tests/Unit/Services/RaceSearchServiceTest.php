@@ -44,11 +44,12 @@ class RaceSearchServiceTest extends TestCase
         $relationships = $this->service->getIndexRelationships();
 
         $this->assertIsArray($relationships);
-        $this->assertCount(9, $relationships);
+        $this->assertCount(10, $relationships);
         $this->assertEquals([
             'size',
             'sources.source',
             'proficiencies.skill',
+            'proficiencies.item',
             'traits.randomTables.entries',
             'modifiers.abilityScore',
             'conditions.condition',

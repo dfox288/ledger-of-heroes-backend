@@ -42,13 +42,14 @@ class FeatSearchServiceTest extends TestCase
         $relationships = $this->service->getIndexRelationships();
 
         $this->assertIsArray($relationships);
-        $this->assertCount(7, $relationships);
+        $this->assertCount(8, $relationships);
         $this->assertEquals([
             'sources.source',
             'modifiers.abilityScore',
             'modifiers.skill',
             'proficiencies.skill.abilityScore',
             'proficiencies.proficiencyType',
+            'proficiencies.item',
             'conditions.condition',
             'prerequisites.prerequisite',
         ], $relationships);
@@ -69,7 +70,7 @@ class FeatSearchServiceTest extends TestCase
         $this->assertContains('modifiers.damageType', $relationships);
         $this->assertContains('proficiencies.skill.abilityScore', $relationships);
         $this->assertContains('proficiencies.proficiencyType', $relationships);
-        $this->assertContains('conditions', $relationships);
+        $this->assertContains('conditions.condition', $relationships);
         $this->assertContains('prerequisites.prerequisite', $relationships);
         $this->assertContains('tags', $relationships);
     }

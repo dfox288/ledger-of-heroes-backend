@@ -45,10 +45,11 @@ class ClassSearchServiceTest extends TestCase
         $relationships = $this->service->getIndexRelationships();
 
         $this->assertIsArray($relationships);
-        $this->assertCount(11, $relationships);
+        $this->assertCount(12, $relationships);
         $this->assertEquals([
             'spellcastingAbility',
             'proficiencies.proficiencyType',
+            'proficiencies.item',
             'traits',
             'sources.source',
             'features',
@@ -76,7 +77,7 @@ class ClassSearchServiceTest extends TestCase
         $this->assertContains('parentClass.traits.randomTables.entries', $relationships);
         $this->assertContains('features.randomTables.entries', $relationships);
         $this->assertContains('subclasses', $relationships);
-        $this->assertContains('equipment', $relationships);
+        $this->assertContains('equipment.item', $relationships);
         $this->assertContains('spells', $relationships);
         $this->assertContains('tags', $relationships);
     }

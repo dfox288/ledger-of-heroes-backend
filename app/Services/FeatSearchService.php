@@ -17,6 +17,7 @@ final class FeatSearchService
         'modifiers.skill',
         'proficiencies.skill.abilityScore',
         'proficiencies.proficiencyType',
+        'proficiencies.item',
         'conditions.condition',
         'prerequisites.prerequisite',
     ];
@@ -31,7 +32,8 @@ final class FeatSearchService
         'modifiers.damageType',
         'proficiencies.skill.abilityScore',
         'proficiencies.proficiencyType',
-        'conditions',
+        'proficiencies.item',
+        'conditions.condition',
         'prerequisites.prerequisite',
         'tags',
     ];

@@ -23,7 +23,7 @@ final class MonsterSearchService
         'modifiers.abilityScore',
         'modifiers.skill',
         'modifiers.damageType',
-        'conditions',
+        'conditions.condition',
         'tags',
     ];
 
@@ -35,12 +35,12 @@ final class MonsterSearchService
         'traits',
         'actions',
         'legendaryActions',
-        'entitySpells',
+        'entitySpells.spell',
         'sources.source',
         'modifiers.abilityScore',
         'modifiers.skill',
         'modifiers.damageType',
-        'conditions',
+        'conditions.condition',
         'tags',
     ];
 

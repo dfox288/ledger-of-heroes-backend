@@ -33,11 +33,12 @@ final class ItemSearchService
         'randomTables.entries',
         'sources.source',
         'proficiencies.proficiencyType',
+        'proficiencies.item',
         'modifiers.abilityScore',
         'modifiers.skill',
         'modifiers.damageType',
         'prerequisites.prerequisite',
-        'spells',
+        'spells.spellSchool',
         'savingThrows',
         'tags',
     ];

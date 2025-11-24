@@ -32,7 +32,7 @@ class MonsterSearchServiceTest extends TestCase
         $this->assertContains('modifiers.abilityScore', $relationships);
         $this->assertContains('modifiers.skill', $relationships);
         $this->assertContains('modifiers.damageType', $relationships);
-        $this->assertContains('conditions', $relationships);
+        $this->assertContains('conditions.condition', $relationships);
     }
 
     #[Test]
@@ -48,7 +48,7 @@ class MonsterSearchServiceTest extends TestCase
             'modifiers.abilityScore',
             'modifiers.skill',
             'modifiers.damageType',
-            'conditions',
+            'conditions.condition',
             'tags',
         ], $relationships);
     }
@@ -67,7 +67,7 @@ class MonsterSearchServiceTest extends TestCase
         $this->assertContains('traits', $relationships);
         $this->assertContains('actions', $relationships);
         $this->assertContains('legendaryActions', $relationships);
-        $this->assertContains('entitySpells', $relationships);
+        $this->assertContains('entitySpells.spell', $relationships);
         $this->assertContains('tags', $relationships);
     }
 

@@ -69,11 +69,27 @@ class MeilisearchIndexConfigurator
 
         // Filterable attributes
         $index->updateFilterableAttributes([
+            'id',
+            'slug',
+            'type_name',
             'type_code',
             'rarity',
-            'is_magic',
             'requires_attunement',
+            'is_magic',
+            'weight',
+            'cost_cp',
             'source_codes',
+            'damage_dice',
+            'damage_type',
+            'versatile_damage',
+            'range_normal',
+            'range_long',
+            'armor_class',
+            'strength_requirement',
+            'stealth_disadvantage',
+            'charges_max',
+            'has_charges',
+            'spell_slugs',
             'tag_slugs',
         ]);
 
@@ -210,16 +226,36 @@ class MeilisearchIndexConfigurator
         // Filterable attributes
         $index->updateFilterableAttributes([
             'id',
+            'slug',
             'type',
             'size_code',
+            'size_name',
             'alignment',
-            'challenge_rating',
             'armor_class',
+            'armor_type',
             'hit_points_average',
+            'challenge_rating',
             'experience_points',
             'source_codes',
             'spell_slugs', // For fast spell filtering (1,098 relationships for 129 spellcasters)
             'tag_slugs', // For filtering by tags (e.g., fire_immune, undead, construct)
+            // Speed attributes (for mobility filtering)
+            'speed_walk',
+            'speed_fly',
+            'speed_swim',
+            'speed_burrow',
+            'speed_climb',
+            'can_hover',
+            // Ability scores (for stat-based filtering)
+            'strength',
+            'dexterity',
+            'constitution',
+            'intelligence',
+            'wisdom',
+            'charisma',
+            // Perception and NPC status
+            'passive_perception',
+            'is_npc',
         ]);
 
         // Sortable attributes
@@ -229,6 +265,10 @@ class MeilisearchIndexConfigurator
             'armor_class',
             'hit_points_average',
             'experience_points',
+            'speed_walk',
+            'strength',
+            'dexterity',
+            'passive_perception',
         ]);
     }
 }

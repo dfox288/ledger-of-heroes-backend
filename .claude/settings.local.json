@@ -9,7 +9,10 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(curl:*)",
-      "Bash(docker compose logs:*)"
+      "Bash(docker compose logs:*)",
+      "Bash(git push:*)",
+      "Bash(tee:*)",
+      "Bash(echo:*)"
     ],
     "deny": [],
     "ask": []

@@ -185,6 +185,7 @@ class Item extends BaseModel
             'source_codes' => $this->sources->pluck('source.code')->all(),
             // Weapon-specific
             'damage_dice' => $this->damage_dice,
+            'versatile_damage' => $this->versatile_damage,
             'damage_type' => $this->damageType?->name,
             'range_normal' => $this->range_normal,
             'range_long' => $this->range_long,
@@ -192,6 +193,9 @@ class Item extends BaseModel
             'armor_class' => $this->armor_class,
             'strength_requirement' => $this->strength_requirement,
             'stealth_disadvantage' => $this->stealth_disadvantage,
+            // Charge mechanics (magic items)
+            'charges_max' => $this->charges_max,
+            'has_charges' => $this->charges_max !== null,
             // Spell filtering (similar to Monster)
             'spell_slugs' => $this->spells->pluck('slug')->all(),
             // Tag filtering
@@ -237,12 +241,15 @@ class Item extends BaseModel
                 'cost_cp',
                 'source_codes',
                 'damage_dice',
+                'versatile_damage',
                 'damage_type',
                 'range_normal',
                 'range_long',
                 'armor_class',
                 'strength_requirement',
                 'stealth_disadvantage',
+                'charges_max',
+                'has_charges',
                 'spell_slugs',
                 'tag_slugs',
             ],

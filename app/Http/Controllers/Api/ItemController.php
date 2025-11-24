@@ -74,12 +74,12 @@ class ItemController extends Controller
     {
         $dto = ItemSearchDTO::fromRequest($request);
 
-        if ($dto->searchQuery !== null) {
-            // Scout search - paginate first, then eager-load relationships
-            $items = $service->buildScoutQuery($dto)->paginate($dto->perPage);
-            $items->load($service->getDefaultRelationships());
+        // Use Meilisearch for ANY search query or filter expression
+        // This enables filter-only queries without requiring ?q= parameter
+        if ($dto->searchQuery !== null || $dto->meilisearchFilter !== null) {
+            $items = $service->searchWithMeilisearch($dto, $meilisearch);
         } else {
-            // Database query - relationships already eager-loaded via with()
+            // Database query for pure pagination (no search/filter)
             $items = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 

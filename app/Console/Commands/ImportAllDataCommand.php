@@ -42,6 +42,16 @@ class ImportAllDataCommand extends Command
         $this->info('🚀 Starting complete data import...');
         $this->newLine();
 
+        // Detect environment for Scout operations
+        $environment = config('app.env');
+        $scoutPrefix = config('scout.prefix');
+
+        if ($environment !== 'production' || $scoutPrefix) {
+            $this->info("Environment: {$environment}");
+            $this->info('Scout Prefix: '.($scoutPrefix ?: '(none)'));
+            $this->newLine();
+        }
+
         // Parse --only filter if provided
         $onlyTypes = $this->option('only') ? explode(',', $this->option('only')) : null;
 
@@ -102,10 +112,15 @@ class ImportAllDataCommand extends Command
         // Step 10: Configure and populate search indexes
         if (! $this->option('skip-search')) {
             $this->step('Configuring and indexing search data');
+
+            // Configure indexes (uses current environment's config automatically)
             $this->call('search:configure-indexes');
 
             // Re-index all searchable entities with fresh data
             $this->info('  Importing entities to Scout...');
+            if ($scoutPrefix) {
+                $this->info("  (Using prefix: {$scoutPrefix})");
+            }
             $this->newLine();
 
             $searchableModels = [
@@ -119,7 +134,8 @@ class ImportAllDataCommand extends Command
             ];
 
             foreach ($searchableModels as $name => $class) {
-                $this->line("  → Indexing {$name}...");
+                $indexName = (new $class)->searchableAs();
+                $this->line("  → Indexing {$name} to '{$indexName}'...");
                 $this->call('scout:import', ['model' => $class]);
             }
 

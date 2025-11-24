@@ -1,8 +1,11 @@
 # TODO: Convert Challenge Rating to Numeric
 
-**Priority:** Medium
-**Estimated Effort:** 2-3 hours
-**Impact:** High - Enables numeric filtering/sorting on CR in Meilisearch
+**Priority:** URGENT (upgraded from Medium after audit)
+**Estimated Effort:** 2-3 hours (4 hours with comprehensive testing)
+**Impact:** HIGH - Enables numeric filtering/sorting on CR in Meilisearch
+**Status:** VERIFIED - Confirmed in Meilisearch Filter Audit 2025-11-24
+
+> **See Also:** `docs/MEILISEARCH-FILTER-AUDIT-2025-11-24.md` for full audit report
 
 ---
 

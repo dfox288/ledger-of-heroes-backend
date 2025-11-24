@@ -117,6 +117,12 @@ class ImportAllDataCommand extends Command
         if (! $this->option('skip-search')) {
             $this->step('Configuring and indexing search data');
 
+            // Delete all existing indexes first to ensure clean slate
+            $this->info('  Deleting existing search indexes...');
+            $this->call('scout:delete-all-indexes');
+            $this->info('  ✓ All indexes deleted');
+            $this->newLine();
+
             // Configure indexes (uses current environment's config automatically)
             // NOTE: Scout commands inherit the environment from this parent command.
             // The models' searchableAs() methods will automatically apply the correct

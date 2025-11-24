@@ -216,4 +216,51 @@ class Item extends BaseModel
 
         return $prefix.'items';
     }
+
+    /**
+     * Get the Meilisearch settings for this model's index.
+     *
+     * Used by `php artisan scout:sync-index-settings`.
+     */
+    public function searchableOptions(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'id',
+                'slug',
+                'type_name',
+                'type_code',
+                'rarity',
+                'requires_attunement',
+                'is_magic',
+                'weight',
+                'cost_cp',
+                'source_codes',
+                'damage_dice',
+                'damage_type',
+                'range_normal',
+                'range_long',
+                'armor_class',
+                'strength_requirement',
+                'stealth_disadvantage',
+                'spell_slugs',
+                'tag_slugs',
+            ],
+            'sortableAttributes' => [
+                'name',
+                'weight',
+                'cost_cp',
+                'armor_class',
+                'range_normal',
+            ],
+            'searchableAttributes' => [
+                'name',
+                'description',
+                'type_name',
+                'rarity',
+                'damage_type',
+                'sources',
+            ],
+        ];
+    }
 }

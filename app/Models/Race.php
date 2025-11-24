@@ -141,4 +141,36 @@ class Race extends BaseModel
 
         return $prefix.'races';
     }
+
+    /**
+     * Get the Meilisearch settings for this model's index.
+     *
+     * Used by `php artisan scout:sync-index-settings`.
+     */
+    public function searchableOptions(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'id',
+                'slug',
+                'size_name',
+                'size_code',
+                'speed',
+                'source_codes',
+                'is_subrace',
+                'parent_race_name',
+                'tag_slugs',
+            ],
+            'sortableAttributes' => [
+                'name',
+                'speed',
+            ],
+            'searchableAttributes' => [
+                'name',
+                'size_name',
+                'parent_race_name',
+                'sources',
+            ],
+        ];
+    }
 }

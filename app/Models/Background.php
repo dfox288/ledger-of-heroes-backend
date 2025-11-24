@@ -78,4 +78,28 @@ class Background extends BaseModel
 
         return $prefix.'backgrounds';
     }
+
+    /**
+     * Get the Meilisearch settings for this model's index.
+     *
+     * Used by `php artisan scout:sync-index-settings`.
+     */
+    public function searchableOptions(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'id',
+                'slug',
+                'source_codes',
+                'tag_slugs',
+            ],
+            'sortableAttributes' => [
+                'name',
+            ],
+            'searchableAttributes' => [
+                'name',
+                'sources',
+            ],
+        ];
+    }
 }

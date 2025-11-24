@@ -142,4 +142,45 @@ class Monster extends BaseModel
 
         return $prefix.'monsters';
     }
+
+    /**
+     * Get the Meilisearch settings for this model's index.
+     *
+     * Used by `php artisan scout:sync-index-settings`.
+     */
+    public function searchableOptions(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'id',
+                'slug',
+                'size_code',
+                'size_name',
+                'type',
+                'alignment',
+                'armor_class',
+                'armor_type',
+                'hit_points_average',
+                'challenge_rating',
+                'experience_points',
+                'source_codes',
+                'spell_slugs',
+                'tag_slugs',
+            ],
+            'sortableAttributes' => [
+                'name',
+                'armor_class',
+                'hit_points_average',
+                'challenge_rating',
+                'experience_points',
+            ],
+            'searchableAttributes' => [
+                'name',
+                'description',
+                'type',
+                'alignment',
+                'sources',
+            ],
+        ];
+    }
 }

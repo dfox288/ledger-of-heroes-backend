@@ -209,4 +209,38 @@ class Spell extends BaseModel
 
         return $prefix.'spells';
     }
+
+    /**
+     * Get the Meilisearch settings for this model's index.
+     *
+     * Used by `php artisan scout:sync-index-settings`.
+     */
+    public function searchableOptions(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'id',
+                'level',
+                'school_name',
+                'school_code',
+                'concentration',
+                'ritual',
+                'source_codes',
+                'class_slugs',
+                'tag_slugs',
+            ],
+            'sortableAttributes' => [
+                'name',
+                'level',
+            ],
+            'searchableAttributes' => [
+                'name',
+                'description',
+                'at_higher_levels',
+                'school_name',
+                'sources',
+                'classes',
+            ],
+        ];
+    }
 }

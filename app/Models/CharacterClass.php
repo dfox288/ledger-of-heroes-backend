@@ -171,4 +171,38 @@ class CharacterClass extends BaseModel
 
         return $prefix.'classes';
     }
+
+    /**
+     * Get the Meilisearch settings for this model's index.
+     *
+     * Used by `php artisan scout:sync-index-settings`.
+     */
+    public function searchableOptions(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'id',
+                'slug',
+                'hit_die',
+                'primary_ability',
+                'spellcasting_ability',
+                'source_codes',
+                'is_subclass',
+                'parent_class_name',
+                'tag_slugs',
+            ],
+            'sortableAttributes' => [
+                'name',
+                'hit_die',
+            ],
+            'searchableAttributes' => [
+                'name',
+                'description',
+                'primary_ability',
+                'spellcasting_ability',
+                'parent_class_name',
+                'sources',
+            ],
+        ];
+    }
 }

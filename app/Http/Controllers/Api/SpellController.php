@@ -82,7 +82,7 @@ class SpellController extends Controller
      * @param  Client  $meilisearch  Meilisearch client for advanced filtering
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: level (int), school_code (string), concentration (bool), ritual (bool), class_slugs (array), tag_slugs (array).', example: 'class_slugs IN [bard] AND level <= 3')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN, IS EMPTY. Available fields: level (int), school_code/school_name (string), concentration/ritual (bool), class_slugs/tag_slugs/source_codes (array), damage_types (array: F, C, O, etc.), saving_throws (array: STR, DEX, CON, INT, WIS, CHA), requires_verbal/requires_somatic/requires_material (bool).', example: 'damage_types IN [F] AND level <= 3')]
     public function index(SpellIndexRequest $request, SpellSearchService $service, Client $meilisearch)
     {
         $dto = SpellSearchDTO::fromRequest($request);

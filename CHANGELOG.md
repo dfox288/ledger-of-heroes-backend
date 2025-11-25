@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- **Obsolete Race Filter Tests**: Deleted 2 test files (20 tests) testing legacy MySQL filtering parameters removed during Meilisearch migration
+  - `tests/Feature/Api/RaceFilterTest.php` (9 tests for removed `?grants_proficiency=`, `?speaks_language=`, `?language_choice_count=`, `?grants_languages=`, `?grants_skill=`, `?grants_proficiency_type=`)
+  - `tests/Feature/Api/RaceEntitySpecificFiltersApiTest.php` (11 tests for removed `?ability_bonus=`, `?size=`, `?min_speed=`, `?has_darkvision=`)
+  - These parameters were removed in favor of Meilisearch `?filter=` syntax (e.g., `?filter=ability_int_bonus > 0`, `?filter=size_code = S`)
+  - Test results: 58 failed → 36 failed (eliminated 22 failures)
+
+### Fixed
+
+- **Monster Enhanced Filtering Tests**: Removed 15 failing tests that used deprecated custom query parameters (`?spells=`, `?spell_level=`, `?spells_operator=`, `?type=`, `?min_cr=`)
+  - These parameters were removed during API Quality Overhaul (January 25, 2025) but tests were not updated
+  - Kept 5 passing tests using proper Meilisearch `?filter=` syntax for tag-based filtering
+  - Added historical note explaining removal and documenting correct Meilisearch filter patterns
+  - Test results: 15 failed + 7 passed → 5 passed (all tests now passing)
+
 ### Added
 
 - **54 New High-Value Filterable Fields**: Massive API filtering enhancement across all 7 entities

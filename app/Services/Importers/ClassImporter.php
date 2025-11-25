@@ -142,6 +142,9 @@ class ClassImporter extends BaseImporter
             $this->importEquipment($class, $data['equipment']);
         }
 
+        // Refresh to load all relationships created during import
+        $class->refresh();
+
         return $class;
     }
 

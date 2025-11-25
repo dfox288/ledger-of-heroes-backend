@@ -141,7 +141,10 @@ class CharacterClass extends BaseModel
     public function toSearchableArray(): array
     {
         // Load relationships if not already loaded
-        $this->loadMissing(['tags', 'proficiencies.skill', 'proficiencies.proficiencyType']);
+        $this->loadMissing(['tags', 'proficiencies.skill', 'proficiencies.proficiencyType', 'spells']);
+
+        // Calculate max spell level
+        $maxSpellLevel = $this->spells->max('level');
 
         return [
             'id' => $this->id,
@@ -151,6 +154,7 @@ class CharacterClass extends BaseModel
             'description' => $this->description,
             'primary_ability' => $this->primary_ability,
             'spellcasting_ability' => $this->spellcastingAbility?->code,
+            'is_spellcaster' => $this->spellcasting_ability_id !== null,
             'sources' => $this->sources->pluck('source.name')->unique()->values()->all(),
             'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
             'is_subclass' => $this->parent_class_id !== null,
@@ -160,6 +164,7 @@ class CharacterClass extends BaseModel
             // Phase 3: Spell counts (quick wins)
             'has_spells' => $this->spells_count > 0,
             'spell_count' => $this->spells_count,
+            'max_spell_level' => $maxSpellLevel !== null ? (int) $maxSpellLevel : null,
             // Phase 4: Proficiencies (high value filtering)
             'saving_throw_proficiencies' => $this->proficiencies
                 ->where('proficiency_type', 'saving_throw')
@@ -193,6 +198,7 @@ class CharacterClass extends BaseModel
             'tags',
             'proficiencies.skill',
             'proficiencies.proficiencyType',
+            'spells',
         ];
     }
 
@@ -222,6 +228,7 @@ class CharacterClass extends BaseModel
                 'hit_die',
                 'primary_ability',
                 'spellcasting_ability',
+                'is_spellcaster',
                 'source_codes',
                 'is_subclass',
                 'parent_class_name',
@@ -229,6 +236,7 @@ class CharacterClass extends BaseModel
                 // Phase 3: Spell counts
                 'has_spells',
                 'spell_count',
+                'max_spell_level',
                 // Phase 4: Proficiencies
                 'saving_throw_proficiencies',
                 'armor_proficiencies',

@@ -3,8 +3,11 @@
 namespace App\Services;
 
 use App\DTOs\ClassSearchDTO;
+use App\Exceptions\InvalidFilterSyntaxException;
 use App\Models\CharacterClass;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
+use MeiliSearch\Client;
 
 final class ClassSearchService
 {
@@ -136,5 +139,67 @@ final class ClassSearchService
     private function applySorting(Builder $query, ClassSearchDTO $dto): void
     {
         $query->orderBy($dto->sortBy, $dto->sortDirection);
+    }
+
+    /**
+     * Search using Meilisearch with optional filter and sort.
+     *
+     * Supports filter-only queries (no search term required).
+     */
+    public function searchWithMeilisearch(ClassSearchDTO $dto, Client $client): LengthAwarePaginator
+    {
+        $searchParams = [
+            'limit' => $dto->perPage,
+            'offset' => ($dto->page - 1) * $dto->perPage,
+        ];
+
+        // Add filter if provided
+        if ($dto->meilisearchFilter) {
+            $searchParams['filter'] = $dto->meilisearchFilter;
+        }
+
+        // Add sort if needed
+        if ($dto->sortBy && $dto->sortDirection) {
+            $searchParams['sort'] = ["{$dto->sortBy}:{$dto->sortDirection}"];
+        }
+
+        // Execute search
+        try {
+            // Use model's searchableAs() to respect Scout prefix (test_ for testing, none for production)
+            $indexName = (new CharacterClass)->searchableAs();
+            $results = $client->index($indexName)->search($dto->searchQuery ?? '', $searchParams);
+        } catch (\MeiliSearch\Exceptions\ApiException $e) {
+            throw new InvalidFilterSyntaxException(
+                filter: $dto->meilisearchFilter ?? 'unknown',
+                meilisearchMessage: $e->getMessage(),
+                previous: $e
+            );
+        }
+
+        // Convert SearchResult object to array
+        $resultsArray = $results->toArray();
+
+        // Hydrate Eloquent models to use with API Resources
+        $classIds = collect($resultsArray['hits'])->pluck('id');
+
+        if ($classIds->isEmpty()) {
+            return new LengthAwarePaginator([], 0, $dto->perPage, $dto->page);
+        }
+
+        $classes = CharacterClass::with(self::INDEX_RELATIONSHIPS)
+            ->findMany($classIds);
+
+        // Preserve Meilisearch result order
+        $orderedClasses = $classIds->map(function ($id) use ($classes) {
+            return $classes->firstWhere('id', $id);
+        })->filter();
+
+        return new LengthAwarePaginator(
+            $orderedClasses,
+            $resultsArray['estimatedTotalHits'] ?? 0,
+            $dto->perPage,
+            $dto->page ?? 1,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
     }
 }

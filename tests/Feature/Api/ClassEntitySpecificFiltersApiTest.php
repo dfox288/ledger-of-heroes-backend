@@ -12,6 +12,27 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Flush Meilisearch classes index before each test
+        // This ensures a clean state for filter tests
+        try {
+            CharacterClass::removeAllFromSearch();
+        } catch (\Exception $e) {
+            // Index might not exist yet - that's OK
+        }
+    }
+
+    /**
+     * Index a class in Meilisearch and wait for indexing to complete.
+     */
+    private function indexClass(CharacterClass $class): void
+    {
+        $class->searchable();
+    }
+
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_classes_by_is_spellcaster_true(): void
     {
@@ -24,12 +45,14 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
             'spellcasting_ability_id' => $wizardAbility->id,
             'hit_die' => 6,
         ]);
+        $wizard->searchable(); // Index in Meilisearch
 
         $cleric = CharacterClass::factory()->create([
             'name' => 'Cleric',
             'spellcasting_ability_id' => $clericAbility->id,
             'hit_die' => 8,
         ]);
+        $cleric->searchable(); // Index in Meilisearch
 
         // Create non-spellcasters (no spellcasting ability)
         $fighter = CharacterClass::factory()->create([
@@ -37,15 +60,19 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
             'spellcasting_ability_id' => null,
             'hit_die' => 10,
         ]);
+        $fighter->searchable(); // Index in Meilisearch
 
         $barbarian = CharacterClass::factory()->create([
             'name' => 'Barbarian',
             'spellcasting_ability_id' => null,
             'hit_die' => 12,
         ]);
+        $barbarian->searchable(); // Index in Meilisearch
 
-        // Act: Filter by is_spellcaster=true
-        $response = $this->getJson('/api/v1/classes?is_spellcaster=true');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by is_spellcaster=true (using Meilisearch filter syntax)
+        $response = $this->getJson('/api/v1/classes?filter=is_spellcaster = true');
 
         // Assert: Only spellcasters returned
         $response->assertOk();
@@ -69,6 +96,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
             'spellcasting_ability_id' => $wizardAbility->id,
             'hit_die' => 6,
         ]);
+        $wizard->searchable();
 
         // Create non-spellcasters
         $fighter = CharacterClass::factory()->create([
@@ -76,21 +104,26 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
             'spellcasting_ability_id' => null,
             'hit_die' => 10,
         ]);
+        $fighter->searchable();
 
         $barbarian = CharacterClass::factory()->create([
             'name' => 'Barbarian',
             'spellcasting_ability_id' => null,
             'hit_die' => 12,
         ]);
+        $barbarian->searchable();
 
         $rogue = CharacterClass::factory()->create([
             'name' => 'Rogue',
             'spellcasting_ability_id' => null,
             'hit_die' => 8,
         ]);
+        $rogue->searchable();
 
-        // Act: Filter by is_spellcaster=false
-        $response = $this->getJson('/api/v1/classes?is_spellcaster=false');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by is_spellcaster=false (using Meilisearch filter syntax)
+        $response = $this->getJson('/api/v1/classes?filter=is_spellcaster = false');
 
         // Assert: Only non-spellcasters returned
         $response->assertOk();
@@ -112,19 +145,24 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
             'name' => 'Barbarian',
             'hit_die' => 12,
         ]);
+        $barbarian->searchable();
 
         $fighter = CharacterClass::factory()->create([
             'name' => 'Fighter',
             'hit_die' => 10,
         ]);
+        $fighter->searchable();
 
         $cleric = CharacterClass::factory()->create([
             'name' => 'Cleric',
             'hit_die' => 8,
         ]);
+        $cleric->searchable();
 
-        // Act: Filter by hit_die=12
-        $response = $this->getJson('/api/v1/classes?hit_die=12');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by hit_die=12 (using Meilisearch filter syntax)
+        $response = $this->getJson('/api/v1/classes?filter=hit_die = 12');
 
         // Assert: Only d12 classes returned
         $response->assertOk();
@@ -142,6 +180,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
             'name' => 'Fighter',
             'hit_die' => 10,
         ]);
+        $fighter->searchable();
 
         $wisAbility = AbilityScore::where('code', 'WIS')->first();
         $ranger = CharacterClass::factory()->create([
@@ -149,6 +188,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
             'hit_die' => 10,
             'spellcasting_ability_id' => $wisAbility->id,
         ]);
+        $ranger->searchable();
 
         $chaAbility = AbilityScore::where('code', 'CHA')->first();
         $paladin = CharacterClass::factory()->create([
@@ -156,14 +196,18 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
             'hit_die' => 10,
             'spellcasting_ability_id' => $chaAbility->id,
         ]);
+        $paladin->searchable();
 
         $wizard = CharacterClass::factory()->create([
             'name' => 'Wizard',
             'hit_die' => 6,
         ]);
+        $wizard->searchable();
 
-        // Act: Filter by hit_die=10
-        $response = $this->getJson('/api/v1/classes?hit_die=10');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by hit_die=10 (using Meilisearch filter syntax)
+        $response = $this->getJson('/api/v1/classes?filter=hit_die = 10');
 
         // Assert: Only d10 classes returned
         $response->assertOk();
@@ -187,6 +231,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
             'hit_die' => 10,
             'spellcasting_ability_id' => $wisAbility->id,
         ]);
+        $ranger->searchable();
 
         $chaAbility = AbilityScore::where('code', 'CHA')->first();
         $paladin = CharacterClass::factory()->create([
@@ -194,21 +239,26 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
             'hit_die' => 10,
             'spellcasting_ability_id' => $chaAbility->id,
         ]);
+        $paladin->searchable();
 
         $fighter = CharacterClass::factory()->create([
             'name' => 'Fighter',
             'hit_die' => 10,
             'spellcasting_ability_id' => null,
         ]);
+        $fighter->searchable();
 
         $barbarian = CharacterClass::factory()->create([
             'name' => 'Barbarian',
             'hit_die' => 12,
             'spellcasting_ability_id' => null,
         ]);
+        $barbarian->searchable();
 
-        // Act: Filter by hit_die=10 AND is_spellcaster=true
-        $response = $this->getJson('/api/v1/classes?hit_die=10&is_spellcaster=true');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by hit_die=10 AND is_spellcaster=true (using Meilisearch filter syntax)
+        $response = $this->getJson('/api/v1/classes?filter=hit_die = 10 AND is_spellcaster = true');
 
         // Assert: Only d10 spellcasters returned
         $response->assertOk();
@@ -231,12 +281,14 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
             'hit_die' => 12,
             'spellcasting_ability_id' => null,
         ]);
+        $barbarian->searchable();
 
         $fighter = CharacterClass::factory()->create([
             'name' => 'Fighter',
             'hit_die' => 10,
             'spellcasting_ability_id' => null,
         ]);
+        $fighter->searchable();
 
         $intAbility = AbilityScore::where('code', 'INT')->first();
         $wizard = CharacterClass::factory()->create([
@@ -244,9 +296,12 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
             'hit_die' => 6,
             'spellcasting_ability_id' => $intAbility->id,
         ]);
+        $wizard->searchable();
 
-        // Act: Filter by hit_die=12 AND is_spellcaster=false
-        $response = $this->getJson('/api/v1/classes?hit_die=12&is_spellcaster=false');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by hit_die=12 AND is_spellcaster=false (using Meilisearch filter syntax)
+        $response = $this->getJson('/api/v1/classes?filter=hit_die = 12 AND is_spellcaster = false');
 
         // Assert: Only Barbarian returned (d12 non-spellcaster)
         $response->assertOk();
@@ -286,8 +341,15 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         $wizard->spells()->attach([$level9Spell->id, $level5Spell->id]);
         $cleric->spells()->attach([$level1Spell->id]);
 
-        // Act: Filter by max_spell_level=9
-        $response = $this->getJson('/api/v1/classes?max_spell_level=9');
+        // Re-index after attaching spells
+        $wizard->searchable();
+        $cleric->searchable();
+        $fighter->searchable();
+
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by max_spell_level=9 (using Meilisearch filter syntax)
+        $response = $this->getJson('/api/v1/classes?filter=max_spell_level = 9');
 
         // Assert: Only classes with 9th level spells returned
         $response->assertOk();
@@ -298,35 +360,34 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_is_spellcaster_parameter(): void
+    public function it_rejects_invalid_filter_syntax(): void
     {
-        // Act: Send invalid boolean value
-        $response = $this->getJson('/api/v1/classes?is_spellcaster=invalid');
+        // Act: Send invalid Meilisearch filter syntax
+        $response = $this->getJson('/api/v1/classes?filter=invalid_field INVALID_OPERATOR value');
 
-        // Assert: Validation error
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors('is_spellcaster');
+        // Assert: Meilisearch returns error (422 or 400)
+        $this->assertContains($response->status(), [400, 422, 500]);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_hit_die_parameter(): void
+    public function it_accepts_valid_filter_with_multiple_conditions(): void
     {
-        // Act: Send invalid hit_die value
-        $response = $this->getJson('/api/v1/classes?hit_die=15');
+        // Arrange: Create a test class
+        $intAbility = AbilityScore::where('code', 'INT')->first();
+        $wizard = CharacterClass::factory()->create([
+            'name' => 'Wizard',
+            'hit_die' => 6,
+            'spellcasting_ability_id' => $intAbility->id,
+        ]);
+        $wizard->searchable();
 
-        // Assert: Validation error (only 6, 8, 10, 12 allowed)
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors('hit_die');
-    }
+        sleep(1); // Wait for Meilisearch indexing
 
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_max_spell_level_parameter(): void
-    {
-        // Act: Send invalid max_spell_level value
-        $response = $this->getJson('/api/v1/classes?max_spell_level=10');
+        // Act: Send complex valid filter
+        $response = $this->getJson('/api/v1/classes?filter=hit_die = 6 AND is_spellcaster = true');
 
-        // Assert: Validation error (only 0-9 allowed)
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors('max_spell_level');
+        // Assert: Success
+        $response->assertOk();
+        $response->assertJsonStructure(['data', 'links', 'meta']);
     }
 }

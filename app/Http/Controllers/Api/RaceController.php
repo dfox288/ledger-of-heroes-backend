@@ -12,6 +12,7 @@ use App\Models\Race;
 use App\Services\Cache\EntityCacheService;
 use App\Services\RaceSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use MeiliSearch\Client as MeilisearchClient;
 
 class RaceController extends Controller
 {
@@ -71,14 +72,13 @@ class RaceController extends Controller
      * - `GET /api/v1/spells/{id}/races` - Get all races that know a specific spell
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: size_code (string: T, S, M, L, H, G), size_name (string), speed (int), is_subrace (bool), parent_race_name (string), tag_slugs (array), source_codes (array).', example: 'speed >= 30 AND tag_slugs IN [darkvision]')]
-    public function index(RaceIndexRequest $request, RaceSearchService $service)
+    public function index(RaceIndexRequest $request, RaceSearchService $service, MeilisearchClient $meilisearch)
     {
         $dto = RaceSearchDTO::fromRequest($request);
 
-        if ($dto->searchQuery !== null) {
-            // Scout search - paginate first, then eager-load relationships
-            $races = $service->buildScoutQuery($dto)->paginate($dto->perPage);
-            $races->load($service->getDefaultRelationships());
+        // Always use Meilisearch when filter or search query is present
+        if ($dto->meilisearchFilter !== null || $dto->searchQuery !== null) {
+            $races = $service->searchWithMeilisearch($dto, $meilisearch);
         } else {
             // Database query - relationships already eager-loaded via with()
             $races = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);

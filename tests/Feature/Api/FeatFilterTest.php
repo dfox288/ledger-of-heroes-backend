@@ -4,9 +4,7 @@ namespace Tests\Feature\Api;
 
 use App\Models\AbilityScore;
 use App\Models\Feat;
-use App\Models\ProficiencyType;
 use App\Models\Race;
-use App\Models\Skill;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -15,154 +13,178 @@ class FeatFilterTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seed = true;
-
-    #[Test]
-    public function it_filters_feats_by_prerequisite_race()
+    protected function setUp(): void
     {
-        // Create Dwarf race
-        $dwarf = Race::factory()->create(['name' => 'Dwarf', 'slug' => 'dwarf']);
+        parent::setUp();
 
-        // Create feat requiring Dwarf
-        $featWithPrereq = Feat::factory()->create(['name' => 'Dwarven Fortitude']);
-        $featWithPrereq->prerequisites()->create([
-            'prerequisite_type' => Race::class,
-            'prerequisite_id' => $dwarf->id,
-            'group_id' => 1,
-        ]);
-
-        // Create feat without prerequisites
-        $featWithout = Feat::factory()->create(['name' => 'Alert']);
-
-        // Test filter
-        $response = $this->getJson('/api/v1/feats?prerequisite_race=dwarf');
-
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Dwarven Fortitude');
+        // Flush Meilisearch feats index before each test
+        // This ensures a clean state for filter tests
+        try {
+            Feat::removeAllFromSearch();
+        } catch (\Exception $e) {
+            // Ignore errors if index doesn't exist
+        }
     }
 
     #[Test]
-    public function it_filters_feats_by_prerequisite_ability_score()
+    public function it_filters_feats_by_has_prerequisites()
     {
         $strength = AbilityScore::where('code', 'STR')->first();
 
-        $featWithStrPrereq = Feat::factory()->create(['name' => 'Grappler']);
-        $featWithStrPrereq->prerequisites()->create([
+        // Create feat WITH prerequisites
+        $featWithPrereq = Feat::factory()->create(['name' => 'Grappler']);
+        $featWithPrereq->prerequisites()->create([
             'prerequisite_type' => AbilityScore::class,
             'prerequisite_id' => $strength->id,
             'minimum_value' => 13,
             'group_id' => 1,
         ]);
+        $featWithPrereq->fresh()->searchable(); // Re-index for Meilisearch
 
+        // Create feat WITHOUT prerequisites
         $featWithout = Feat::factory()->create(['name' => 'Alert']);
+        $featWithout->searchable(); // Re-index for Meilisearch
 
-        // Test filter by ability
-        $response = $this->getJson('/api/v1/feats?prerequisite_ability=strength');
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-
-        // Test filter by ability + minimum value
-        $response = $this->getJson('/api/v1/feats?prerequisite_ability=strength&min_value=13');
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-
-        // Test with too high minimum
-        $response = $this->getJson('/api/v1/feats?prerequisite_ability=strength&min_value=15');
-        $response->assertOk();
-        $response->assertJsonCount(0, 'data');
-    }
-
-    #[Test]
-    public function it_filters_feats_without_prerequisites()
-    {
-        $featWithPrereq = Feat::factory()->create(['name' => 'Grappler', 'prerequisites_text' => 'Strength 13 or higher']);
-        $featWithPrereq->prerequisites()->create([
-            'prerequisite_type' => AbilityScore::class,
-            'prerequisite_id' => AbilityScore::where('code', 'STR')->first()->id,
-            'minimum_value' => 13,
-            'group_id' => 1,
-        ]);
-
-        $featWithout = Feat::factory()->create(['name' => 'Alert', 'prerequisites_text' => null]);
+        sleep(1); // Wait for Meilisearch indexing
 
         // Filter for feats WITHOUT prerequisites
-        $response = $this->getJson('/api/v1/feats?has_prerequisites=false');
+        $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = false');
         $response->assertOk();
         $response->assertJsonCount(1, 'data');
         $response->assertJsonPath('data.0.name', 'Alert');
 
         // Filter for feats WITH prerequisites
-        $response = $this->getJson('/api/v1/feats?has_prerequisites=true');
+        $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true');
         $response->assertOk();
         $response->assertJsonCount(1, 'data');
         $response->assertJsonPath('data.0.name', 'Grappler');
     }
 
     #[Test]
-    public function it_filters_feats_by_granted_proficiency()
+    public function it_filters_feats_by_prerequisite_type()
     {
+        $dwarf = Race::factory()->create(['name' => 'Dwarf', 'slug' => 'dwarf']);
+        $strength = AbilityScore::where('code', 'STR')->first();
+
+        // Create feat requiring Race
+        $featWithRacePrereq = Feat::factory()->create(['name' => 'Dwarven Fortitude']);
+        $featWithRacePrereq->prerequisites()->create([
+            'prerequisite_type' => Race::class,
+            'prerequisite_id' => $dwarf->id,
+            'group_id' => 1,
+        ]);
+        $featWithRacePrereq->fresh()->searchable();
+
+        // Create feat requiring AbilityScore
+        $featWithAbilityPrereq = Feat::factory()->create(['name' => 'Grappler']);
+        $featWithAbilityPrereq->prerequisites()->create([
+            'prerequisite_type' => AbilityScore::class,
+            'prerequisite_id' => $strength->id,
+            'minimum_value' => 13,
+            'group_id' => 1,
+        ]);
+        $featWithAbilityPrereq->fresh()->searchable();
+
+        // Create feat without prerequisites
+        $featWithout = Feat::factory()->create(['name' => 'Alert']);
+        $featWithout->searchable();
+
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Test filter by Race prerequisite
+        $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [Race]');
+        $response->assertOk();
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonPath('data.0.name', 'Dwarven Fortitude');
+
+        // Test filter by AbilityScore prerequisite
+        $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [AbilityScore]');
+        $response->assertOk();
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonPath('data.0.name', 'Grappler');
+
+        // Test filter by either Race OR AbilityScore
+        $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [Race, AbilityScore]');
+        $response->assertOk();
+        $response->assertJsonCount(2, 'data');
+    }
+
+    #[Test]
+    public function it_filters_feats_by_grants_proficiencies()
+    {
+        // Create feat granting proficiency
         $featGrantingProf = Feat::factory()->create(['name' => 'Weapon Master']);
         $featGrantingProf->proficiencies()->create([
             'proficiency_name' => 'Longsword',
             'proficiency_type' => 'weapon',
         ]);
+        $featGrantingProf->fresh()->searchable();
 
+        // Create feat without proficiencies
         $featWithout = Feat::factory()->create(['name' => 'Alert']);
+        $featWithout->searchable();
 
-        $response = $this->getJson('/api/v1/feats?grants_proficiency=longsword');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Test filter for feats that grant proficiencies
+        $response = $this->getJson('/api/v1/feats?filter=grants_proficiencies = true');
         $response->assertOk();
         $response->assertJsonCount(1, 'data');
         $response->assertJsonPath('data.0.name', 'Weapon Master');
+
+        // Test filter for feats that DON'T grant proficiencies
+        $response = $this->getJson('/api/v1/feats?filter=grants_proficiencies = false');
+        $response->assertOk();
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonPath('data.0.name', 'Alert');
     }
 
     #[Test]
-    public function it_filters_feats_by_prerequisite_proficiency()
+    public function it_filters_feats_by_improved_abilities()
     {
-        // Use seeded proficiency type
-        $mediumArmor = ProficiencyType::where('name', 'LIKE', '%Medium Armor%')->first();
+        $strength = AbilityScore::where('code', 'STR')->first();
+        $dexterity = AbilityScore::where('code', 'DEX')->first();
 
-        // If not found, create one manually
-        if (! $mediumArmor) {
-            $mediumArmor = ProficiencyType::create([
-                'name' => 'Medium Armor',
-                'category' => 'armor',
-            ]);
-        }
-
-        $featWithPrereq = Feat::factory()->create(['name' => 'Medium Armor Master']);
-        $featWithPrereq->prerequisites()->create([
-            'prerequisite_type' => ProficiencyType::class,
-            'prerequisite_id' => $mediumArmor->id,
-            'group_id' => 1,
+        // Create feat improving STR
+        $featImprovingStr = Feat::factory()->create(['name' => 'Athlete (STR)']);
+        $featImprovingStr->modifiers()->create([
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $strength->id,
+            'value' => 1,
         ]);
+        $featImprovingStr->searchable();
 
+        // Create feat improving DEX
+        $featImprovingDex = Feat::factory()->create(['name' => 'Athlete (DEX)']);
+        $featImprovingDex->modifiers()->create([
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $dexterity->id,
+            'value' => 1,
+        ]);
+        $featImprovingDex->searchable();
+
+        // Create feat without ASI
         $featWithout = Feat::factory()->create(['name' => 'Alert']);
+        $featWithout->searchable();
 
-        $response = $this->getJson('/api/v1/feats?prerequisite_proficiency=medium armor');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Test filter for STR improvement
+        $response = $this->getJson('/api/v1/feats?filter=improved_abilities IN [STR]');
         $response->assertOk();
         $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Medium Armor Master');
-    }
+        $response->assertJsonPath('data.0.name', 'Athlete (STR)');
 
-    #[Test]
-    public function it_filters_feats_by_granted_skill()
-    {
-        $insight = Skill::where('name', 'Insight')->first();
-
-        $featGrantingSkill = Feat::factory()->create(['name' => 'Skilled']);
-        $featGrantingSkill->proficiencies()->create([
-            'proficiency_name' => 'Insight',
-            'proficiency_type' => 'skill',
-            'skill_id' => $insight?->id,
-        ]);
-
-        $featWithout = Feat::factory()->create(['name' => 'Alert']);
-
-        $response = $this->getJson('/api/v1/feats?grants_skill=insight');
+        // Test filter for DEX improvement
+        $response = $this->getJson('/api/v1/feats?filter=improved_abilities IN [DEX]');
         $response->assertOk();
         $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Skilled');
+        $response->assertJsonPath('data.0.name', 'Athlete (DEX)');
+
+        // Test filter for STR OR DEX improvement
+        $response = $this->getJson('/api/v1/feats?filter=improved_abilities IN [STR, DEX]');
+        $response->assertOk();
+        $response->assertJsonCount(2, 'data');
     }
 
     #[Test]
@@ -178,12 +200,11 @@ class FeatFilterTest extends TestCase
             'minimum_value' => 13,
             'group_id' => 1,
         ]);
-        $athletics = Skill::where('name', 'Athletics')->first();
         $grappler->proficiencies()->create([
             'proficiency_name' => 'Athletics',
             'proficiency_type' => 'skill',
-            'skill_id' => $athletics?->id,
         ]);
+        $grappler->fresh()->searchable(); // Refresh to load new relationships
 
         // Feat with only STR prerequisite
         $heavyArmor = Feat::factory()->create(['name' => 'Heavy Armor Master']);
@@ -193,55 +214,41 @@ class FeatFilterTest extends TestCase
             'minimum_value' => 13,
             'group_id' => 1,
         ]);
+        $heavyArmor->fresh()->searchable(); // Refresh to load new relationships
 
         // Feat without prerequisites
         $alert = Feat::factory()->create(['name' => 'Alert']);
+        $alert->searchable();
+
+        sleep(1); // Wait for Meilisearch indexing
 
         // Test combining prerequisite + proficiency filters
-        $response = $this->getJson('/api/v1/feats?prerequisite_ability=strength&grants_skill=athletics');
+        $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true AND grants_proficiencies = true');
         $response->assertOk();
         $response->assertJsonCount(1, 'data');
         $response->assertJsonPath('data.0.name', 'Grappler');
-    }
 
-    #[Test]
-    public function it_handles_case_insensitive_searches()
-    {
-        $dwarf = Race::factory()->create(['name' => 'Dwarf', 'slug' => 'dwarf']);
-
-        $feat = Feat::factory()->create(['name' => 'Dwarven Fortitude']);
-        $feat->prerequisites()->create([
-            'prerequisite_type' => Race::class,
-            'prerequisite_id' => $dwarf->id,
-            'group_id' => 1,
-        ]);
-
-        // Test with lowercase
-        $response = $this->getJson('/api/v1/feats?prerequisite_race=dwarf');
+        // Test combining prerequisite type + has prerequisites
+        $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [AbilityScore] AND has_prerequisites = true');
         $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-
-        // Test with uppercase
-        $response = $this->getJson('/api/v1/feats?prerequisite_race=DWARF');
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-
-        // Test with mixed case
-        $response = $this->getJson('/api/v1/feats?prerequisite_race=DwArF');
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
+        $response->assertJsonCount(2, 'data');
     }
 
     #[Test]
     public function it_returns_empty_results_when_no_matches()
     {
         $feat = Feat::factory()->create(['name' => 'Alert']);
+        $feat->searchable();
 
-        $response = $this->getJson('/api/v1/feats?prerequisite_race=elf');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Test filter that shouldn't match anything
+        $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [Spell]');
         $response->assertOk();
         $response->assertJsonCount(0, 'data');
 
-        $response = $this->getJson('/api/v1/feats?prerequisite_ability=intelligence');
+        // Test filter for improved abilities that don't exist
+        $response = $this->getJson('/api/v1/feats?filter=improved_abilities IN [CHA]');
         $response->assertOk();
         $response->assertJsonCount(0, 'data');
     }
@@ -260,9 +267,12 @@ class FeatFilterTest extends TestCase
                 'minimum_value' => 13,
                 'group_id' => 1,
             ]);
+            $feat->fresh()->searchable();
         }
 
-        $response = $this->getJson('/api/v1/feats?prerequisite_ability=strength&per_page=10');
+        sleep(2); // Wait for Meilisearch indexing
+
+        $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true&per_page=10');
         $response->assertOk();
         $response->assertJsonCount(10, 'data');
         $response->assertJsonPath('meta.total', 25);

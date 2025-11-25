@@ -99,6 +99,9 @@ class RaceImporter extends BaseImporter
         // Import random tables from trait rolls (also links traits to tables)
         $this->importRandomTablesFromRolls($createdTraits, $raceData['traits'] ?? []);
 
+        // Refresh to load all relationships created during import
+        $race->refresh();
+
         return $race;
     }
 

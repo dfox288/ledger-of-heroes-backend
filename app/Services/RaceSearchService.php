@@ -3,8 +3,11 @@
 namespace App\Services;
 
 use App\DTOs\RaceSearchDTO;
+use App\Exceptions\Search\InvalidFilterSyntaxException;
 use App\Models\Race;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
+use MeiliSearch\Client;
 
 final class RaceSearchService
 {
@@ -134,5 +137,74 @@ final class RaceSearchService
     private function applySorting(Builder $query, RaceSearchDTO $dto): void
     {
         $query->orderBy($dto->sortBy, $dto->sortDirection);
+    }
+
+    /**
+     * Search using Meilisearch with custom filter expressions
+     */
+    public function searchWithMeilisearch(RaceSearchDTO $dto, Client $client): LengthAwarePaginator
+    {
+        $searchParams = [
+            'limit' => $dto->perPage,
+            'offset' => ($dto->page - 1) * $dto->perPage,
+        ];
+
+        // Add filter if provided
+        if ($dto->meilisearchFilter) {
+            $searchParams['filter'] = $dto->meilisearchFilter;
+        }
+
+        // Add sort if needed
+        if ($dto->sortBy && $dto->sortDirection) {
+            $searchParams['sort'] = ["{$dto->sortBy}:{$dto->sortDirection}"];
+        }
+
+        // Execute search
+        try {
+            // Use model's searchableAs() to respect Scout prefix (test_ for testing, none for production)
+            $indexName = (new Race)->searchableAs();
+            $results = $client->index($indexName)->search($dto->searchQuery ?? '', $searchParams);
+        } catch (\MeiliSearch\Exceptions\ApiException $e) {
+            throw new InvalidFilterSyntaxException(
+                filter: $dto->meilisearchFilter ?? 'unknown',
+                meilisearchMessage: $e->getMessage(),
+                previous: $e
+            );
+        }
+
+        // Convert SearchResult object to array
+        $resultsArray = $results->toArray();
+
+        // Hydrate Eloquent models to use with API Resources
+        $raceIds = collect($resultsArray['hits'])->pluck('id');
+
+        if ($raceIds->isEmpty()) {
+            // Return empty paginator with correct metadata
+            return new LengthAwarePaginator(
+                collect([]),
+                $resultsArray['estimatedTotalHits'] ?? 0,
+                $dto->perPage,
+                $dto->page,
+                ['path' => request()->url()]
+            );
+        }
+
+        // Fetch races with relationships, preserving Meilisearch order
+        $races = Race::with(self::INDEX_RELATIONSHIPS)
+            ->whereIn('id', $raceIds)
+            ->get()
+            ->sortBy(function ($race) use ($raceIds) {
+                return $raceIds->search($race->id);
+            })
+            ->values();
+
+        // Build paginator manually to match Meilisearch results
+        return new LengthAwarePaginator(
+            $races,
+            $resultsArray['estimatedTotalHits'] ?? 0,
+            $dto->perPage,
+            $dto->page,
+            ['path' => request()->url()]
+        );
     }
 }

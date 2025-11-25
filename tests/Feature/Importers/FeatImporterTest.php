@@ -15,6 +15,8 @@ class FeatImporterTest extends TestCase
 
     private FeatImporter $importer;
 
+    protected $seed = true; // Seed ability_scores for modifiers tests
+
     protected function setUp(): void
     {
         parent::setUp();

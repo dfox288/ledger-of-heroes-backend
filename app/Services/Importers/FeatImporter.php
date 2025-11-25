@@ -53,6 +53,9 @@ class FeatImporter extends BaseImporter
         // 7. Import sources using trait
         $this->importEntitySources($feat, $data['sources'] ?? []);
 
+        // 8. Refresh to load all relationships created during import
+        $feat->refresh();
+
         return $feat;
     }
 

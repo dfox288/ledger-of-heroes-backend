@@ -13,6 +13,7 @@ use App\Models\CharacterClass;
 use App\Services\Cache\EntityCacheService;
 use App\Services\ClassSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use MeiliSearch\Client;
 
 class ClassController extends Controller
 {
@@ -54,18 +55,17 @@ class ClassController extends Controller
      *
      * See `docs/API-EXAMPLES.md` for comprehensive usage examples.
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: id, slug, hit_die, primary_ability, spellcasting_ability, source_codes, is_subclass, parent_class_name, tag_slugs.', example: 'is_subclass = false AND tag_slugs IN [spellcaster]')]
-    public function index(ClassIndexRequest $request, ClassSearchService $service)
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: id, slug, hit_die, primary_ability, spellcasting_ability, is_spellcaster, source_codes, is_subclass, parent_class_name, tag_slugs, has_spells, spell_count, max_spell_level, saving_throw_proficiencies, armor_proficiencies, weapon_proficiencies, tool_proficiencies, skill_proficiencies.', example: 'is_spellcaster = true AND hit_die >= 8')]
+    public function index(ClassIndexRequest $request, ClassSearchService $service, Client $meilisearch)
     {
         $dto = ClassSearchDTO::fromRequest($request);
 
-        if ($dto->searchQuery !== null) {
-            // Scout search - paginate fi
-            // rst, then eager-load relationships
-            $classes = $service->buildScoutQuery($dto->searchQuery)->paginate($dto->perPage);
-            $classes->load($service->getDefaultRelationships());
+        // Use Meilisearch for ANY search query or filter expression
+        // This enables filter-only queries without requiring ?q= parameter
+        if ($dto->searchQuery !== null || $dto->meilisearchFilter !== null) {
+            $classes = $service->searchWithMeilisearch($dto, $meilisearch);
         } else {
-            // Database query - relationships already eager-loaded via with()
+            // Database query for pure pagination (no search/filter)
             $classes = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 

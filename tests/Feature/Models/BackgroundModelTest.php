@@ -42,8 +42,9 @@ class BackgroundModelTest extends TestCase
             'proficiency_name' => 'Insight',
         ]);
 
-        $this->assertCount(1, $background->fresh()->proficiencies);
-        $this->assertEquals('Insight', $background->proficiencies->first()->proficiency_name);
+        $freshBackground = $background->fresh();
+        $this->assertCount(1, $freshBackground->proficiencies);
+        $this->assertEquals('Insight', $freshBackground->proficiencies->first()->proficiency_name);
     }
 
     #[Test]

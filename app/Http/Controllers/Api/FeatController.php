@@ -11,6 +11,7 @@ use App\Models\Feat;
 use App\Services\Cache\EntityCacheService;
 use App\Services\FeatSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use MeiliSearch\Client;
 
 class FeatController extends Controller
 {
@@ -81,17 +82,17 @@ class FeatController extends Controller
      * @param  FeatSearchService  $service  Service layer for feat queries
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: tag_slugs (array), source_codes (array), id (int), slug (string). Legacy MySQL parameters (prerequisite_race, prerequisite_ability, etc.) are deprecated.', example: 'tag_slugs IN [combat, magic]')]
-    public function index(FeatIndexRequest $request, FeatSearchService $service)
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: has_prerequisites (bool), grants_proficiencies (bool), improved_abilities (array: STR, DEX, CON, INT, WIS, CHA), prerequisite_types (array: Race, AbilityScore, ProficiencyType), tag_slugs (array), source_codes (array), id (int), slug (string).', example: 'has_prerequisites = true AND improved_abilities IN [STR, DEX]')]
+    public function index(FeatIndexRequest $request, FeatSearchService $service, Client $meilisearch)
     {
         $dto = FeatSearchDTO::fromRequest($request);
 
-        if ($dto->searchQuery !== null) {
-            // Scout search - paginate first, then eager-load relationships
-            $feats = $service->buildScoutQuery($dto->searchQuery)->paginate($dto->perPage);
-            $feats->load($service->getDefaultRelationships());
+        // Use Meilisearch for ANY search query or filter expression
+        // This enables filter-only queries without requiring ?q= parameter
+        if ($dto->searchQuery !== null || $dto->meilisearchFilter !== null) {
+            $feats = $service->searchWithMeilisearch($dto, $meilisearch);
         } else {
-            // Database query - relationships already eager-loaded via with()
+            // Database query for pure pagination (no search/filter)
             $feats = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 

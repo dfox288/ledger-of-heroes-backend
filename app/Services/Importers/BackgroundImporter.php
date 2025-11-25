@@ -139,6 +139,9 @@ class BackgroundImporter extends BaseImporter
             $trait->update(['random_table_id' => $table->id]);
         }
 
+        // Refresh to load all relationships created during import
+        $background->refresh();
+
         return $background;
     }
 

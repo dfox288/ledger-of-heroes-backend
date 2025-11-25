@@ -28,6 +28,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'ability_score_id' => $intAbility->id,
             'value' => 1,
         ]);
+        $highElf->fresh()->searchable();
 
         $gnome = Race::factory()->create(['name' => 'Gnome']);
         Modifier::factory()->create([
@@ -37,6 +38,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'ability_score_id' => $intAbility->id,
             'value' => 2,
         ]);
+        $gnome->fresh()->searchable();
 
         // Create race without INT bonus
         $strAbility = AbilityScore::where('code', 'STR')->first();
@@ -48,9 +50,12 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'ability_score_id' => $strAbility->id,
             'value' => 2,
         ]);
+        $mountainDwarf->fresh()->searchable();
 
-        // Act: Filter by ability_bonus=INT
-        $response = $this->getJson('/api/v1/races?ability_bonus=INT');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by ability_int_bonus > 0 using Meilisearch
+        $response = $this->getJson('/api/v1/races?filter=ability_int_bonus > 0');
 
         // Assert: Only races with INT bonus returned
         $response->assertOk();
@@ -77,6 +82,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'ability_score_id' => $strAbility->id,
             'value' => 2,
         ]);
+        $mountainDwarf->fresh()->searchable();
 
         $dragonborn = Race::factory()->create(['name' => 'Dragonborn']);
         Modifier::factory()->create([
@@ -86,6 +92,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'ability_score_id' => $strAbility->id,
             'value' => 2,
         ]);
+        $dragonborn->fresh()->searchable();
 
         // Create race without STR bonus
         $intAbility = AbilityScore::where('code', 'INT')->first();
@@ -97,9 +104,12 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'ability_score_id' => $intAbility->id,
             'value' => 2,
         ]);
+        $gnome->fresh()->searchable();
 
-        // Act: Filter by ability_bonus=STR
-        $response = $this->getJson('/api/v1/races?ability_bonus=STR');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by ability_str_bonus > 0 using Meilisearch
+        $response = $this->getJson('/api/v1/races?filter=ability_str_bonus > 0');
 
         // Assert: Only races with STR bonus returned
         $response->assertOk();
@@ -123,19 +133,24 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'name' => 'Halfling',
             'size_id' => $smallSize->id,
         ]);
+        $halfling->searchable();
 
         $gnome = Race::factory()->create([
             'name' => 'Gnome',
             'size_id' => $smallSize->id,
         ]);
+        $gnome->searchable();
 
         $human = Race::factory()->create([
             'name' => 'Human',
             'size_id' => $mediumSize->id,
         ]);
+        $human->searchable();
 
-        // Act: Filter by size=S
-        $response = $this->getJson('/api/v1/races?size=S');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by size_code = S using Meilisearch
+        $response = $this->getJson('/api/v1/races?filter=size_code = S');
 
         // Assert: Only small races returned
         $response->assertOk();
@@ -159,19 +174,24 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'name' => 'Human',
             'size_id' => $mediumSize->id,
         ]);
+        $human->searchable();
 
         $elf = Race::factory()->create([
             'name' => 'Elf',
             'size_id' => $mediumSize->id,
         ]);
+        $elf->searchable();
 
         $halfling = Race::factory()->create([
             'name' => 'Halfling',
             'size_id' => $smallSize->id,
         ]);
+        $halfling->searchable();
 
-        // Act: Filter by size=M
-        $response = $this->getJson('/api/v1/races?size=M');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by size_code = M using Meilisearch
+        $response = $this->getJson('/api/v1/races?filter=size_code = M');
 
         // Assert: Only medium races returned
         $response->assertOk();
@@ -192,19 +212,24 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'name' => 'Wood Elf',
             'speed' => 35,
         ]);
+        $woodElf->searchable();
 
         $human = Race::factory()->create([
             'name' => 'Human',
             'speed' => 30,
         ]);
+        $human->searchable();
 
         $dwarf = Race::factory()->create([
             'name' => 'Dwarf',
             'speed' => 25,
         ]);
+        $dwarf->searchable();
 
-        // Act: Filter by min_speed=35
-        $response = $this->getJson('/api/v1/races?min_speed=35');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by speed >= 35 using Meilisearch
+        $response = $this->getJson('/api/v1/races?filter=speed >= 35');
 
         // Assert: Only races with speed >= 35 returned
         $response->assertOk();
@@ -217,36 +242,44 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_races_by_has_darkvision_true(): void
     {
-        // Arrange: Create races with and without darkvision
+        // Arrange: Create races with and without darkvision tag
         $dwarf = Race::factory()->create(['name' => 'Dwarf']);
+        $dwarf->attachTag('darkvision');
         CharacterTrait::factory()->create([
             'reference_type' => Race::class,
             'reference_id' => $dwarf->id,
             'name' => 'Darkvision',
             'description' => 'You have superior vision in dark and dim conditions.',
         ]);
+        $dwarf->fresh()->searchable();
 
         $elf = Race::factory()->create(['name' => 'Elf']);
+        $elf->attachTag('darkvision');
         CharacterTrait::factory()->create([
             'reference_type' => Race::class,
             'reference_id' => $elf->id,
             'name' => 'Darkvision',
             'description' => 'Accustomed to twilit forests and the night sky.',
         ]);
+        $elf->fresh()->searchable();
 
         $tiefling = Race::factory()->create(['name' => 'Tiefling']);
+        $tiefling->attachTag('darkvision');
         CharacterTrait::factory()->create([
             'reference_type' => Race::class,
             'reference_id' => $tiefling->id,
             'name' => 'Darkvision',
             'description' => 'Thanks to your infernal heritage, you have superior vision.',
         ]);
+        $tiefling->fresh()->searchable();
 
         $human = Race::factory()->create(['name' => 'Human']);
-        // No darkvision trait
+        $human->searchable();
 
-        // Act: Filter by has_darkvision=true
-        $response = $this->getJson('/api/v1/races?has_darkvision=true');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by tag_slugs IN [darkvision] using Meilisearch
+        $response = $this->getJson('/api/v1/races?filter=tag_slugs IN [darkvision]');
 
         // Assert: Only races with darkvision returned
         $response->assertOk();
@@ -267,6 +300,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         $intAbility = AbilityScore::where('code', 'INT')->first();
 
         $gnome = Race::factory()->create(['name' => 'Gnome']);
+        $gnome->attachTag('darkvision');
         Modifier::factory()->create([
             'reference_type' => Race::class,
             'reference_id' => $gnome->id,
@@ -280,8 +314,10 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'name' => 'Darkvision',
             'description' => 'You have superior vision in dark and dim conditions.',
         ]);
+        $gnome->fresh()->searchable();
 
         $highElf = Race::factory()->create(['name' => 'High Elf']);
+        $highElf->attachTag('darkvision');
         Modifier::factory()->create([
             'reference_type' => Race::class,
             'reference_id' => $highElf->id,
@@ -295,6 +331,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'name' => 'Darkvision',
             'description' => 'Accustomed to twilit forests.',
         ]);
+        $highElf->fresh()->searchable();
 
         // Create race with INT but no darkvision
         $human = Race::factory()->create(['name' => 'Human']);
@@ -305,10 +342,12 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'ability_score_id' => $intAbility->id,
             'value' => 1,
         ]);
+        $human->fresh()->searchable();
 
         // Create race with darkvision but no INT
         $strAbility = AbilityScore::where('code', 'STR')->first();
         $dwarf = Race::factory()->create(['name' => 'Dwarf']);
+        $dwarf->attachTag('darkvision');
         Modifier::factory()->create([
             'reference_type' => Race::class,
             'reference_id' => $dwarf->id,
@@ -322,9 +361,12 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'name' => 'Darkvision',
             'description' => 'You have superior vision.',
         ]);
+        $dwarf->fresh()->searchable();
 
-        // Act: Filter by ability_bonus=INT AND has_darkvision=true
-        $response = $this->getJson('/api/v1/races?ability_bonus=INT&has_darkvision=true');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by ability_int_bonus > 0 AND tag_slugs IN [darkvision] using Meilisearch
+        $response = $this->getJson('/api/v1/races?filter=ability_int_bonus > 0 AND tag_slugs IN [darkvision]');
 
         // Assert: Only races with both INT bonus and darkvision returned
         $response->assertOk();
@@ -339,46 +381,69 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_ability_bonus_parameter(): void
+    public function it_validates_filter_parameter_with_invalid_syntax(): void
     {
-        // Act: Send invalid ability_bonus value
-        $response = $this->getJson('/api/v1/races?ability_bonus=INVALID');
+        // Act: Send invalid filter syntax (this will be caught by Meilisearch, not validation)
+        // In Meilisearch-first architecture, invalid filter syntax returns 422 from service layer
+        $response = $this->getJson('/api/v1/races?filter=invalid syntax here!!!');
 
-        // Assert: Validation error
+        // Assert: Either validation error or Meilisearch error (both return 422)
         $response->assertStatus(422);
-        $response->assertJsonValidationErrors('ability_bonus');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_size_parameter(): void
+    public function it_accepts_valid_size_filter(): void
     {
-        // Act: Send invalid size value
-        $response = $this->getJson('/api/v1/races?size=INVALID');
+        // Arrange: Create a small race
+        $smallSize = Size::where('code', 'S')->first();
+        $halfling = Race::factory()->create([
+            'name' => 'Halfling',
+            'size_id' => $smallSize->id,
+        ]);
+        $halfling->searchable();
 
-        // Assert: Validation error
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors('size');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Send valid size filter
+        $response = $this->getJson('/api/v1/races?filter=size_code = S');
+
+        // Assert: Success
+        $response->assertOk();
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_min_speed_parameter(): void
+    public function it_accepts_valid_speed_filter(): void
     {
-        // Act: Send invalid min_speed value
-        $response = $this->getJson('/api/v1/races?min_speed=-5');
+        // Arrange: Create a fast race
+        $woodElf = Race::factory()->create([
+            'name' => 'Wood Elf',
+            'speed' => 35,
+        ]);
+        $woodElf->searchable();
 
-        // Assert: Validation error
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors('min_speed');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Send valid speed filter
+        $response = $this->getJson('/api/v1/races?filter=speed >= 30');
+
+        // Assert: Success
+        $response->assertOk();
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_has_darkvision_parameter(): void
+    public function it_accepts_valid_darkvision_filter(): void
     {
-        // Act: Send invalid has_darkvision value
-        $response = $this->getJson('/api/v1/races?has_darkvision=invalid');
+        // Arrange: Create a race with darkvision
+        $dwarf = Race::factory()->create(['name' => 'Dwarf']);
+        $dwarf->attachTag('darkvision');
+        $dwarf->fresh()->searchable();
 
-        // Assert: Validation error
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors('has_darkvision');
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Send valid darkvision filter
+        $response = $this->getJson('/api/v1/races?filter=tag_slugs IN [darkvision]');
+
+        // Assert: Success
+        $response->assertOk();
     }
 }

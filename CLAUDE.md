@@ -106,11 +106,19 @@ public function index(Request $request, Service $service) {
 
 ## 🚀 Quick Start
 
+### ⚠️ CRITICAL: Test vs Production Database Isolation
+
+**Two Separate Databases:**
+- **Production:** `dnd_compendium` (uses Meilisearch indexes: `spells`, `items`, etc.)
+- **Test:** `dnd_compendium_test` (uses Meilisearch indexes: `test_spells`, `test_items`, etc.)
+
+**BOTH databases must be imported separately to ensure Meilisearch indexes match database counts!**
+
 ### Database Initialization
 
-**One-Command Import (Recommended):**
+**Production Database (One-Command):**
 ```bash
-# Import EVERYTHING (takes ~2-5 minutes)
+# Import EVERYTHING to production DB (takes ~2-5 minutes)
 docker compose exec php php artisan import:all
 
 # Options:
@@ -118,6 +126,23 @@ docker compose exec php php artisan import:all
 --only=spells   # Import specific entities
 --skip-search   # Skip search config
 ```
+
+**Test Database (REQUIRED for tests to pass):**
+```bash
+# Import EVERYTHING to test DB with test_ Meilisearch prefix
+# CRITICAL: Must use -e SCOUT_PREFIX=test_ for proper index isolation
+docker compose exec -e SCOUT_PREFIX=test_ php php artisan import:all --env=testing
+
+# Verify test indexes populated:
+# test_spells: 477, test_items: 2232, test_monsters: 598, test_races: 89
+# test_classes: 131, test_backgrounds: 34, test_feats: 138
+```
+
+**Why Both?**
+- Tests use `RefreshDatabase` which migrates/seeds `dnd_compendium_test`
+- `.env.testing` configures MySQL test DB (NOT SQLite) for database compatibility
+- `SCOUT_PREFIX=test_` ensures tests use isolated Meilisearch indexes
+- Without proper test DB import, search/filter tests will fail
 
 **Manual Import:**
 ```bash

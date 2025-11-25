@@ -217,6 +217,8 @@ class Item extends BaseModel
             'modifier_categories' => $this->modifiers->pluck('modifier_category')->unique()->values()->all(),
             'proficiency_names' => $this->proficiencies->pluck('proficiencyType.name')->filter()->unique()->values()->all(),
             'saving_throw_abilities' => $this->savingThrows->pluck('code')->unique()->all(),
+            // Prerequisites (boolean for filtering)
+            'has_prerequisites' => $this->prerequisites->isNotEmpty() || $this->strength_requirement !== null,
         ];
     }
 
@@ -234,6 +236,7 @@ class Item extends BaseModel
             'modifiers',
             'proficiencies.proficiencyType',
             'savingThrows',
+            'prerequisites',
         ];
     }
 
@@ -284,6 +287,7 @@ class Item extends BaseModel
                 'modifier_categories',
                 'proficiency_names',
                 'saving_throw_abilities',
+                'has_prerequisites',
             ],
             'sortableAttributes' => [
                 'name',

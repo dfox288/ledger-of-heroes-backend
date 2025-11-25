@@ -103,6 +103,7 @@ class Background extends BaseModel
             'filterableAttributes' => [
                 'id',
                 'slug',
+                'name',
                 'source_codes',
                 'tag_slugs',
                 'grants_language_choice',

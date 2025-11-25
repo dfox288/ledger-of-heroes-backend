@@ -19,59 +19,90 @@ class RaceController extends Controller
     /**
      * List all races and subraces
      *
-     * Returns a paginated list of D&D 5e races and subraces. Use `?filter=` for filtering and `?q=` for full-text search.
+     * Returns a paginated list of 115 D&D 5e races and subraces. Use `?filter=` for filtering and `?q=` for full-text search.
      *
      * **Common Examples:**
      * ```
-     * GET /api/v1/races                                      # All races
-     * GET /api/v1/races?filter=size_code = M                 # Medium races
-     * GET /api/v1/races?filter=speed >= 35                   # Fast races (Wood Elf, etc.)
-     * GET /api/v1/races?q=elf                                # Full-text search for "elf"
-     * GET /api/v1/races?q=elf&filter=speed >= 35             # Search + filter combined
-     * GET /api/v1/races?filter=tag_slugs IN [darkvision] AND speed >= 35  # Fast races with darkvision
+     * GET /api/v1/races                                              # All races
+     * GET /api/v1/races?filter=ability_int_bonus >= 2                # Wizard races (High Elf, Gnome)
+     * GET /api/v1/races?filter=ability_dex_bonus >= 2                # Rogue races (Wood Elf, Lightfoot Halfling)
+     * GET /api/v1/races?filter=ability_str_bonus >= 1 AND ability_con_bonus >= 1  # Barbarian races
+     * GET /api/v1/races?filter=speed >= 35                           # Fast races (35 ft)
+     * GET /api/v1/races?filter=tag_slugs IN [darkvision]             # Races with darkvision
+     * GET /api/v1/races?q=elf&filter=ability_dex_bonus >= 1          # Search + filter combined
      * ```
      *
-     * **Tag Filtering:**
-     * - Darkvision: `GET /api/v1/races?filter=tag_slugs IN [darkvision]`
-     * - Fey ancestry: `GET /api/v1/races?filter=tag_slugs IN [fey-ancestry]`
-     * - Innate spells: `GET /api/v1/races?filter=tag_slugs IN [innate-spellcasting]`
+     * **Filterable Fields by Data Type:**
      *
-     * **Filterable Fields:**
-     * - `size_code` (string: T, S, M, L, H, G)
-     * - `size_name` (string: Tiny, Small, Medium, Large, Huge, Gargantuan)
-     * - `speed` (int: movement speed in feet)
-     * - `is_subrace` (bool: true for subraces, false for base races)
-     * - `parent_race_name` (string: parent race name for subraces)
-     * - `tag_slugs` (array: darkvision, fey-ancestry, innate-spellcasting, etc.)
-     * - `source_codes` (array: PHB, XGE, TCoE, etc.)
+     * **Integer Fields** (Operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `TO`):
+     * - `id` (int): Race ID
+     * - `speed` (int): Base walking speed in feet (typically 25-35)
+     *   - Examples: `speed = 30`, `speed >= 35`, `speed 25 TO 35`
+     * - **`ability_str_bonus` (0-2)**: Strength bonus for martial characters
+     *   - Examples: `ability_str_bonus >= 2` (Mountain Dwarf, Dragonborn), `ability_str_bonus >= 1` (Half-Orc)
+     * - **`ability_dex_bonus` (0-2)**: Dexterity bonus for rogues, rangers, monks
+     *   - Examples: `ability_dex_bonus >= 2` (Wood Elf, Lightfoot Halfling, Goblin), `ability_dex_bonus = 1`
+     * - **`ability_con_bonus` (0-2)**: Constitution bonus for durability
+     *   - Examples: `ability_con_bonus >= 2` (Hill Dwarf, Stout Halfling), `ability_con_bonus >= 1`
+     * - **`ability_int_bonus` (0-2)**: Intelligence bonus for wizards, artificers
+     *   - Examples: `ability_int_bonus >= 2` (High Elf, Gnome), `ability_int_bonus >= 1` (Tiefling)
+     * - **`ability_wis_bonus` (0-2)**: Wisdom bonus for clerics, druids, rangers
+     *   - Examples: `ability_wis_bonus >= 2` (Firbolg, Kalashtar), `ability_wis_bonus >= 1` (Wood Elf, Hill Dwarf)
+     * - **`ability_cha_bonus` (0-2)**: Charisma bonus for bards, sorcerers, warlocks, paladins
+     *   - Examples: `ability_cha_bonus >= 2` (Half-Elf, Tiefling, Dragonborn), `ability_cha_bonus >= 1` (Drow, Changeling)
      *
-     * **Operators:**
-     * - Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`
-     * - Logic: `AND`, `OR`
-     * - Membership: `IN [value1, value2, ...]`
+     * **String Fields** (Operators: `=`, `!=`):
+     * - `slug` (string): URL-friendly identifier
+     *   - Examples: `slug = high-elf`, `slug != human`
+     * - `size_code` (string): Size code (T, S, M, L, H, G)
+     *   - Examples: `size_code = M`, `size_code = S`
+     * - `size_name` (string): Size name (Tiny, Small, Medium, Large, Huge, Gargantuan)
+     *   - Examples: `size_name = Medium`, `size_name = Small`
+     * - `parent_race_name` (string): Parent race name for subraces
+     *   - Examples: `parent_race_name = Elf`, `parent_race_name = Dwarf`
+     *
+     * **Boolean Fields** (Operators: `=`, `!=`, `IS NULL`, `EXISTS`):
+     * - `is_subrace` (bool): Whether this is a subrace
+     *   - Examples: `is_subrace = true`, `is_subrace = false`
+     * - `has_innate_spells` (bool): Whether race grants innate spellcasting
+     *   - Examples: `has_innate_spells = true`, `has_innate_spells = false`
+     *
+     * **Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):
+     * - `source_codes` (array): Source book codes (PHB, XGE, TCoE, etc.)
+     *   - Examples: `source_codes IN [PHB, XGE]`, `source_codes NOT IN [UA]`
+     * - `tag_slugs` (array): Trait tags (darkvision, fey-ancestry, innate-spellcasting, etc.)
+     *   - Examples: `tag_slugs IN [darkvision]`, `tag_slugs IN [fey-ancestry, innate-spellcasting]`
+     * - `spell_slugs` (array): Innate spell slugs (13 races have innate spells)
+     *   - Examples: `spell_slugs IN [misty-step]`, `spell_slugs IN [dancing-lights, faerie-fire, darkness]`
+     *
+     * **Complex Filter Examples:**
+     * - Wizard races: `?filter=ability_int_bonus >= 2`
+     * - Barbarian races: `?filter=ability_str_bonus >= 1 AND ability_con_bonus >= 1`
+     * - Rogue/Dex races: `?filter=ability_dex_bonus >= 2`
+     * - Charisma casters: `?filter=ability_cha_bonus >= 2`
+     * - Fast darkvision races: `?filter=speed >= 35 AND tag_slugs IN [darkvision]`
+     * - Races with teleportation: `?filter=spell_slugs IN [misty-step]`
+     * - Medium-sized races with +2 Dex: `?filter=size_code = M AND ability_dex_bonus >= 2`
+     * - Base races only: `?filter=is_subrace = false`
+     * - Subraces of Elf: `?filter=parent_race_name = Elf`
+     *
+     * **Operator Reference:**
+     * See `docs/MEILISEARCH-FILTER-OPERATORS.md` for comprehensive operator documentation.
      *
      * **Query Parameters:**
-     * - `q` (string): Full-text search (searches name, size name, parent race name, sources)
+     * - `q` (string): Full-text search (searches name, size name, parent race name)
      * - `filter` (string): Meilisearch filter expression
-     * - `sort_by` (string): name, speed (default: name)
+     * - `sort_by` (string): name, speed, created_at, updated_at (default: name)
      * - `sort_direction` (string): asc, desc (default: asc)
      * - `per_page` (int): 1-100 (default: 15)
      * - `page` (int): Page number (default: 1)
      *
-     * **Use Cases:**
-     * - Character creation: Find races with specific traits (`?filter=tag_slugs IN [innate-spellcasting]`)
-     * - Build optimization: Fast races (`?filter=speed >= 35`)
-     * - Source filtering: Races from specific books (`?filter=source_codes IN [XGE]`)
-     *
-     * **Data Source:**
-     * - 21 racial spell relationships across 13 races with innate spellcasting
-     * - Examples: Drow (Dancing Lights, Faerie Fire, Darkness), Tiefling (Thaumaturgy, Hellish Rebuke), Eladrin (Misty Step)
-     *
-     * **Related Endpoints:**
-     * - `GET /api/v1/races/{id}/spells` - Get all innate spells for a specific race
-     * - `GET /api/v1/spells/{id}/races` - Get all races that know a specific spell
+     * @param  RaceIndexRequest  $request  Validated request with filtering parameters
+     * @param  RaceSearchService  $service  Service layer for race queries
+     * @param  MeilisearchClient  $meilisearch  Meilisearch client for advanced filtering
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: size_code (string: T, S, M, L, H, G), size_name (string), speed (int), is_subrace (bool), parent_race_name (string), tag_slugs (array), source_codes (array).', example: 'speed >= 30 AND tag_slugs IN [darkvision]')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'ability_int_bonus >= 2 AND speed >= 30')]
     public function index(RaceIndexRequest $request, RaceSearchService $service, MeilisearchClient $meilisearch)
     {
         $dto = RaceSearchDTO::fromRequest($request);

@@ -11,6 +11,7 @@ use App\Models\Background;
 use App\Services\BackgroundSearchService;
 use App\Services\Cache\EntityCacheService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use MeiliSearch\Client;
 
 class BackgroundController extends Controller
 {
@@ -68,17 +69,16 @@ class BackgroundController extends Controller
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, AND, OR, IN. Available fields: id (int), slug (string), source_codes (array), tag_slugs (array).', example: 'tag_slugs IN [criminal, noble]')]
-    public function index(BackgroundIndexRequest $request, BackgroundSearchService $service)
+    public function index(BackgroundIndexRequest $request, BackgroundSearchService $service, Client $meilisearch)
     {
         $dto = BackgroundSearchDTO::fromRequest($request);
 
-        // Use Scout for full-text search, otherwise use database query
-        if ($dto->searchQuery !== null) {
-            // Scout search - paginate first, then eager-load relationships
-            $backgrounds = $service->buildScoutQuery($dto->searchQuery)->paginate($dto->perPage);
-            $backgrounds->load($service->getDefaultRelationships());
+        // Use Meilisearch for ANY search query or filter expression
+        // This enables filter-only queries without requiring ?q= parameter
+        if ($dto->searchQuery !== null || $dto->meilisearchFilter !== null) {
+            $backgrounds = $service->searchWithMeilisearch($dto, $meilisearch);
         } else {
-            // Database query - relationships already eager-loaded via with()
+            // Database query for pure pagination (no search/filter)
             $backgrounds = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 

@@ -8,6 +8,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+- **Comprehensive Filter Operator Testing Infrastructure**: Created 118 test stubs across 7 entities for systematic Meilisearch operator testing
+  - Test files: `SpellFilterOperatorTest`, `ClassFilterOperatorTest`, `MonsterFilterOperatorTest`, `RaceFilterOperatorTest`, `ItemFilterOperatorTest`, `BackgroundFilterOperatorTest`, `FeatFilterOperatorTest`
+  - Completed: 56 tests (47% coverage) including all Spell operators (19/19 tests), most integer operators (37/49 tests)
+  - Pattern established: TDD approach with real imported data, comprehensive assertions, operator coverage by data type
+  - Foundation ready for completing remaining 62 tests
+
+- **Spell Entity: 100% Operator Test Coverage**: Fully implemented and verified all 19 filter operator tests
+  - Integer operators (7): level field with `=`, `!=`, `>`, `>=`, `<`, `<=`, `TO`
+  - String operators (2): school_code field with `=`, `!=`
+  - Boolean operators (7): concentration and ritual fields with `=`, `!=`, `IS NULL`
+  - Array operators (3): class_slugs field with `IN`, `NOT IN`, `IS EMPTY`
+  - Result: 561 assertions validating Meilisearch filtering behavior across all operator types
+
+- **Centralized Filter Operator Documentation**: Created `docs/MEILISEARCH-FILTER-OPERATORS.md` (1,277 lines)
+  - Operator compatibility matrix by data type (Integer, String, Boolean, Array)
+  - 187 API endpoint examples with real-world use cases
+  - Entity-specific filtering patterns for all 7 entities
+  - Common pitfalls and troubleshooting guide
+  - Cross-references to controller PHPDoc and model searchableOptions()
+
+- **Filter Field Type Mapping**: Created `docs/FILTER-FIELD-TYPE-MAPPING.md`
+  - Complete inventory of 130 filterable fields across 7 entities
+  - Data type classification for each field (Integer: 41, String: 31, Boolean: 27, Array: 32)
+  - Field-level documentation with example filter syntax
+  - Summary statistics showing entity complexity ranges
+
+- **Operator Test Matrix**: Created `docs/OPERATOR-TEST-MATRIX.md`
+  - Strategic test planning: 118 representative tests vs 500+ exhaustive tests
+  - Test breakdown by entity and data type
+  - Rationale for field selection (1 per data type per entity)
+  - Clear implementation roadmap with test counts
+
+- **Background/Feat Meilisearch Integration**: Added filter-only query support
+  - Implemented `searchWithMeilisearch()` method in BackgroundSearchService and FeatSearchService
+  - Updated controllers to route filter-only queries through Meilisearch
+  - Now matches pattern used by Spell/Monster/Class/Race/Item services
+  - Enables: `GET /api/v1/backgrounds?filter=id > 5` (no search term required)
+
+### Changed
+
+- **SpellController PHPDoc**: Standardized filter documentation format organized by data type
+  - Fields grouped by Integer/String/Boolean/Array with operators clearly listed
+  - Inline examples for each operator type
+  - Consolidated redundant sections (damage types, saving throws, components)
+  - Added reference to comprehensive operator documentation
+  - Updated `#[QueryParameter]` attribute with operator summary
+
+### Fixed
+
+- **Monster Challenge Rating**: Numeric conversion for Meilisearch filtering
+  - Added `getChallengeRatingNumeric()` helper method to convert fractional strings ("1/8", "1/4") to float
+  - Updated `toSearchableArray()` to index CR as numeric value
+  - Enables proper numeric comparisons: `challenge_rating > 5`, `challenge_rating 1 TO 10`
+
+### Added
 - **Spell Component Breakdown API Fields**: Added `requires_verbal`, `requires_somatic`, `requires_material` boolean fields to SpellResource
   - Computed from existing `components` string (e.g., "V, S, M" → `requires_verbal: true, requires_somatic: true, requires_material: true`)
   - Enables frontend filtering by component requirements (e.g., spells castable in Silence, while grappled, or with Subtle Spell metamagic)

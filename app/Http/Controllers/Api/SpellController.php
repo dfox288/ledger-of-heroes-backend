@@ -34,40 +34,51 @@ class SpellController extends Controller
      * GET /api/v1/spells?filter=concentration = true        # Concentration spells
      * GET /api/v1/spells?q=fire                             # Full-text search for "fire"
      * GET /api/v1/spells?q=fire&filter=level <= 3           # Search + filter combined
-     * GET /api/v1/spells?filter=class_slugs IN [bard] AND level <= 3   # Low-level bard spells
      * ```
      *
-     * **Damage Type Filtering:**
-     * - Fire damage: `GET /api/v1/spells?filter=damage_types IN [F]`
-     * - Force or radiant: `GET /api/v1/spells?filter=damage_types IN [O, R]`
-     * - Fire cantrips: `GET /api/v1/spells?filter=damage_types IN [F] AND level = 0`
-     * - Utility spells (no damage): `GET /api/v1/spells?filter=damage_types IS EMPTY`
+     * **Filterable Fields by Data Type:**
      *
-     * **Saving Throw Filtering:**
-     * - DEX saves: `GET /api/v1/spells?filter=saving_throws IN [DEX]`
-     * - WIS or CHA saves: `GET /api/v1/spells?filter=saving_throws IN [WIS, CHA]`
-     * - Auto-hit spells (no saves): `GET /api/v1/spells?filter=saving_throws IS EMPTY`
+     * **Integer Fields** (Operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `TO`):
+     * - `id` (int): Spell ID
+     * - `level` (0-9): Spell level (0 = cantrip)
+     *   - Examples: `level = 3`, `level >= 5`, `level 1 TO 5`
      *
-     * **Component Filtering:**
-     * - Castable in Silence (no verbal): `GET /api/v1/spells?filter=requires_verbal = false`
-     * - Castable while grappled (no somatic): `GET /api/v1/spells?filter=requires_somatic = false`
-     * - Subtle Spell candidates: `GET /api/v1/spells?filter=requires_verbal = false AND requires_somatic = false`
-     * - No components needed: `GET /api/v1/spells?filter=requires_verbal = false AND requires_somatic = false AND requires_material = false`
+     * **String Fields** (Operators: `=`, `!=`):
+     * - `school_code` (string): Two-letter spell school code (EV, EN, AB, C, D, I, N, T)
+     *   - Examples: `school_code = EV`, `school_code != EV`
+     * - `school_name` (string): Full spell school name (Evocation, Enchantment, etc.)
+     * - `casting_time`, `range`, `duration` (string): Descriptive text fields
      *
-     * **Filterable Fields:**
-     * - `level` (0-9), `school_code` (EV, EN, AB, C, D, I, N, T), `school_name`
-     * - `concentration` (bool), `ritual` (bool)
-     * - `class_slugs` (array: wizard, cleric, bard, druid, etc.)
-     * - `tag_slugs` (array: ritual-caster, touch-spells, etc.) - Only 22% of spells have tags
-     * - `source_codes` (array: PHB, XGE, TCoE, etc.)
-     * - `damage_types` (array: F, C, O, etc.)
-     * - `saving_throws` (array: STR, DEX, CON, INT, WIS, CHA)
-     * - `requires_verbal`, `requires_somatic`, `requires_material` (bool)
+     * **Boolean Fields** (Operators: `=`, `!=`, `IS NULL`, `EXISTS`):
+     * - `concentration` (bool): Requires concentration
+     *   - Examples: `concentration = true`, `concentration = false`
+     * - `ritual` (bool): Can be cast as ritual
+     * - `requires_verbal` (bool): Requires verbal component (castable in Silence when false)
+     * - `requires_somatic` (bool): Requires somatic component (castable while grappled when false)
+     * - `requires_material` (bool): Requires material component
      *
-     * **Operators:**
-     * - Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`
-     * - Logic: `AND`, `OR`
-     * - Membership: `IN [value1, value2, ...]`
+     * **Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):
+     * - `class_slugs` (array): Class slugs that can learn this spell
+     *   - Examples: `class_slugs IN [wizard, sorcerer]`, `class_slugs NOT IN [wizard]`
+     * - `tag_slugs` (array): Tag slugs (Note: Only 22% of spells have tags)
+     *   - Examples: `tag_slugs IN [fire]`, `tag_slugs IS EMPTY`
+     * - `source_codes` (array): Source book codes (PHB, XGE, TCoE, etc.)
+     *   - Examples: `source_codes IN [PHB, XGE]`, `source_codes NOT IN [UA]`
+     * - `damage_types` (array): Damage type codes (F=Fire, C=Cold, O=Force, etc.)
+     *   - Examples: `damage_types IN [F]`, `damage_types IS EMPTY` (utility spells)
+     * - `saving_throws` (array): Ability codes (STR, DEX, CON, INT, WIS, CHA)
+     *   - Examples: `saving_throws IN [DEX]`, `saving_throws IS EMPTY` (auto-hit spells)
+     * - `effect_types` (array): Effect type strings
+     *
+     * **Complex Filter Examples:**
+     * - Range query: `?filter=level >= 3 AND level <= 5` OR `?filter=level 3 TO 5`
+     * - Multiple conditions: `?filter=class_slugs IN [wizard] AND level <= 3 AND concentration = true`
+     * - Array membership: `?filter=damage_types IN [F, C] AND level > 0`
+     * - Empty arrays: `?filter=damage_types IS EMPTY` (utility spells with no damage)
+     * - Subtle Spell candidates: `?filter=requires_verbal = false AND requires_somatic = false`
+     *
+     * **Operator Reference:**
+     * See `docs/MEILISEARCH-FILTER-OPERATORS.md` for comprehensive operator documentation.
      *
      * **Query Parameters:**
      * - `q` (string): Full-text search (searches name, description)
@@ -82,7 +93,7 @@ class SpellController extends Controller
      * @param  Client  $meilisearch  Meilisearch client for advanced filtering
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN, IS EMPTY. Available fields: level (int), school_code/school_name (string), concentration/ritual (bool), class_slugs/tag_slugs/source_codes (array), damage_types (array: F, C, O, etc.), saving_throws (array: STR, DEX, CON, INT, WIS, CHA), requires_verbal/requires_somatic/requires_material (bool).', example: 'damage_types IN [F] AND level <= 3')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'level >= 3 AND class_slugs IN [wizard]')]
     public function index(SpellIndexRequest $request, SpellSearchService $service, Client $meilisearch)
     {
         $dto = SpellSearchDTO::fromRequest($request);

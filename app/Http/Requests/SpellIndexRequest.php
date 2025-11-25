@@ -2,36 +2,22 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
-
 class SpellIndexRequest extends BaseIndexRequest
 {
     /**
      * Entity-specific validation rules.
+     *
+     * NOTE: All filtering uses Meilisearch ?filter= parameter.
+     * Legacy MySQL params (level, school, concentration, ritual, damage_type, etc.) have been removed.
      */
     protected function entityRules(): array
     {
         return [
-            // Search query (Scout/Meilisearch)
+            // Full-text search query
             'q' => ['sometimes', 'string', 'min:2', 'max:255'],
 
-            // Meilisearch filter expression (NEW)
+            // Meilisearch filter expression
             'filter' => ['sometimes', 'string', 'max:1000'],
-
-            // Spell-specific filters (backwards compatibility)
-            'level' => ['sometimes', 'integer', 'min:0', 'max:9'],
-            'school' => ['sometimes', 'string', 'max:20'],  // Accepts ID, code (EV, EN), or name (evocation)
-            'concentration' => ['sometimes', Rule::in([true, false, 1, 0, '1', '0', 'true', 'false'])],
-            'ritual' => ['sometimes', Rule::in([true, false, 1, 0, '1', '0', 'true', 'false'])],
-
-            // Damage/Effect filtering (NEW)
-            'damage_type' => ['sometimes', 'string', 'max:255'],
-            'saving_throw' => ['sometimes', 'string', 'max:255'],
-
-            // Component filtering (NEW)
-            'requires_verbal' => ['sometimes', Rule::in([0, 1, '0', '1', true, false, 'true', 'false'])],
-            'requires_somatic' => ['sometimes', Rule::in([0, 1, '0', '1', true, false, 'true', 'false'])],
-            'requires_material' => ['sometimes', Rule::in([0, 1, '0', '1', true, false, 'true', 'false'])],
         ];
     }
 

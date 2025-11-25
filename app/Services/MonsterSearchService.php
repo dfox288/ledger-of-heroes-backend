@@ -169,35 +169,9 @@ final class MonsterSearchService
             $query->where('alignment', 'like', '%'.$dto->filters['alignment'].'%');
         }
 
-        // Spell filter (AND/OR logic)
-        if (isset($dto->filters['spells'])) {
-            $spellSlugs = array_map('trim', explode(',', $dto->filters['spells']));
-            $operator = $dto->filters['spells_operator'] ?? 'AND';
-
-            if ($operator === 'AND') {
-                // Must have ALL spells (nested whereHas)
-                foreach ($spellSlugs as $slug) {
-                    $query->whereHas('entitySpells', function ($q) use ($slug) {
-                        $q->where('slug', $slug);
-                    });
-                }
-            } else {
-                // Must have AT LEAST ONE spell (single whereHas with whereIn)
-                $query->whereHas('entitySpells', function ($q) use ($spellSlugs) {
-                    $q->whereIn('slug', $spellSlugs);
-                });
-            }
-        }
-
-        // Spell level filter (monsters that know spells of specific level)
-        if (isset($dto->filters['spell_level'])) {
-            $query->whereHas('entitySpells', function ($q) use ($dto) {
-                $q->where('level', $dto->filters['spell_level']);
-            });
-        }
-
-        // REMOVED: spellcasting_ability filter - monster_spellcasting table deleted
-        // Feature was never implemented (0 rows). Spells are now in entity_spells polymorphic table
+        // MySQL spell filtering has been removed - use Meilisearch ?filter= parameter instead
+        // For spell-based filtering, use: ?filter=spell_slugs IN [fireball, lightning-bolt]
+        // This is faster and works with full-text search (?q= parameter)
     }
 
     private function applySorting(Builder $query, MonsterSearchDTO $dto): void

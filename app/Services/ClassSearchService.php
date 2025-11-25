@@ -134,35 +134,13 @@ final class ClassSearchService
             });
         }
 
-        // Spell filter (AND/OR logic)
-        if (isset($dto->filters['spells'])) {
-            $spellSlugs = array_map('trim', explode(',', $dto->filters['spells']));
-            $operator = $dto->filters['spells_operator'] ?? 'AND';
+        // MySQL spell filtering has been removed - use Meilisearch ?filter= parameter instead
+        // Examples:
+        // - Spellcasters: ?filter=spellcasting_ability != null
+        // - Hit die: ?filter=hit_die = 10
+        // - Tag-based: ?filter=tag_slugs IN [spellcaster]
 
-            if ($operator === 'AND') {
-                // Must have ALL spells (nested whereHas)
-                foreach ($spellSlugs as $slug) {
-                    $query->whereHas('spells', function ($q) use ($slug) {
-                        $q->where('slug', strtolower($slug));
-                    });
-                }
-            } else {
-                // Must have AT LEAST ONE spell (single whereHas with whereIn)
-                $spellSlugs = array_map('strtolower', $spellSlugs);
-                $query->whereHas('spells', function ($q) use ($spellSlugs) {
-                    $q->whereIn('slug', $spellSlugs);
-                });
-            }
-        }
-
-        // Spell level filter (classes that have spells of specific level)
-        if (isset($dto->filters['spell_level'])) {
-            $query->whereHas('spells', function ($q) use ($dto) {
-                $q->where('level', $dto->filters['spell_level']);
-            });
-        }
-
-        // Is spellcaster filter
+        // Keep MySQL-only filters that don't have Meilisearch equivalents
         if (isset($dto->filters['is_spellcaster'])) {
             $value = filter_var($dto->filters['is_spellcaster'], FILTER_VALIDATE_BOOLEAN);
 
@@ -178,14 +156,6 @@ final class ClassSearchService
         // Hit die filter
         if (isset($dto->filters['hit_die'])) {
             $query->where('hit_die', $dto->filters['hit_die']);
-        }
-
-        // Max spell level filter (classes that have spells of this level)
-        if (isset($dto->filters['max_spell_level'])) {
-            $level = (int) $dto->filters['max_spell_level'];
-            $query->whereHas('spells', function ($q) use ($level) {
-                $q->where('level', $level);
-            });
         }
     }
 

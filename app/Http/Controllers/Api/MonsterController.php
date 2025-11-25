@@ -28,17 +28,15 @@ class MonsterController extends Controller
      * - By CR range: `GET /api/v1/monsters?min_cr=5&max_cr=10`
      * - By type: `GET /api/v1/monsters?type=dragon`
      *
-     * **Spell Filtering Examples:**
-     * - Single spell: `GET /api/v1/monsters?spells=fireball` (11 monsters)
-     * - Multiple spells (AND): `GET /api/v1/monsters?spells=fireball,lightning-bolt` (3 monsters with BOTH)
-     * - Multiple spells (OR): `GET /api/v1/monsters?spells=fireball,lightning-bolt&spells_operator=OR` (17 monsters with EITHER)
-     * - Spell level: `GET /api/v1/monsters?spell_level=9` (legendary spellcasters with 9th level slots)
-     * - Spellcasting ability: `GET /api/v1/monsters?spellcasting_ability=INT` (wizards, liches, archmages)
+     * **Spell Filtering Examples (Meilisearch):**
+     * - Single spell: `GET /api/v1/monsters?filter=spell_slugs IN [fireball]` (11 monsters)
+     * - Multiple spells (ANY): `GET /api/v1/monsters?filter=spell_slugs IN [fireball, lightning-bolt]` (17 monsters with EITHER)
+     * - High-level casters: `GET /api/v1/monsters?filter=spell_slugs IN [wish, meteor-swarm]` (legendary spellcasters)
      *
      * **Combined Filter Examples:**
-     * - CR + Spell: `GET /api/v1/monsters?min_cr=10&spells=fireball,teleport&spells_operator=AND` (mobile damage dealers)
-     * - Type + Spell Level: `GET /api/v1/monsters?type=undead&spell_level=6` (undead necromancers)
-     * - Search + Spells: `GET /api/v1/monsters?q=dragon&spells=fireball` (spellcasting dragons)
+     * - CR + Spell: `GET /api/v1/monsters?filter=challenge_rating >= 10 AND spell_slugs IN [fireball]` (high-CR casters)
+     * - Type + Spell: `GET /api/v1/monsters?filter=type = undead AND spell_slugs IN [animate-dead]` (undead necromancers)
+     * - Search + Spells: `GET /api/v1/monsters?q=dragon&filter=spell_slugs IN [fireball]` (spellcasting dragons)
      *
      * **Use Cases:**
      * - Encounter Building: Find balanced enemies for party level
@@ -46,18 +44,10 @@ class MonsterController extends Controller
      * - Themed Campaigns: All fiends with fire spells, all undead spellcasters, etc.
      * - Boss Rush: Progressive difficulty with varied spell mechanics
      *
-     * **Spells Operator:**
-     * - `AND` (default): Monster must know ALL specified spells
-     * - `OR`: Monster must know AT LEAST ONE of the specified spells
-     *
-     * **Spell Level (0-9):**
-     * - `0` = Cantrips (unlimited use)
-     * - `1-9` = Spell slot levels (higher = more powerful)
-     *
-     * **Spellcasting Ability:**
-     * - `INT` = Arcane casters (Wizards, Archmages, Liches, Mind Flayers)
-     * - `WIS` = Divine casters (Clerics, Druids, Monks)
-     * - `CHA` = Charisma casters (Sorcerers, Warlocks, Bards)
+     * **Note on Spell Filtering:**
+     * Spell filtering now uses Meilisearch `?filter=` syntax exclusively.
+     * Legacy parameters like `?spells=`, `?spell_level=`, `?spellcasting_ability=` have been removed.
+     * Use `?filter=spell_slugs IN [spell1, spell2]` instead.
      *
      * **Advanced Meilisearch Filter Examples:**
      * - CR range: `GET /api/v1/monsters?filter=challenge_rating >= 10 AND challenge_rating <= 15`

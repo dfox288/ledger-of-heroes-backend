@@ -167,7 +167,7 @@ class Spell extends BaseModel
     public function toSearchableArray(): array
     {
         // Load relationships to avoid N+1 queries
-        $this->loadMissing(['spellSchool', 'sources.source', 'classes', 'tags']);
+        $this->loadMissing(['spellSchool', 'sources.source', 'classes', 'tags', 'effects.damageType', 'savingThrows']);
 
         return [
             'id' => $this->id,
@@ -189,6 +189,14 @@ class Spell extends BaseModel
             'classes' => $this->classes->pluck('name')->all(),
             'class_slugs' => $this->classes->pluck('slug')->all(),
             'tag_slugs' => $this->tags->pluck('slug')->all(),
+            // Damage types from spell effects (array of damage type codes)
+            'damage_types' => $this->effects->filter(fn ($e) => $e->damageType)->pluck('damageType.code')->unique()->values()->all(),
+            // Saving throws (array of ability codes like 'DEX', 'WIS')
+            'saving_throws' => $this->savingThrows->pluck('code')->unique()->values()->all(),
+            // Component breakdown (booleans parsed from components string)
+            'requires_verbal' => str_contains($this->components ?? '', 'V'),
+            'requires_somatic' => str_contains($this->components ?? '', 'S'),
+            'requires_material' => str_contains($this->components ?? '', 'M'),
         ];
     }
 
@@ -197,7 +205,7 @@ class Spell extends BaseModel
      */
     public function searchableWith(): array
     {
-        return ['spellSchool', 'sources', 'classes'];
+        return ['spellSchool', 'sources', 'classes', 'effects.damageType', 'savingThrows'];
     }
 
     /**
@@ -228,6 +236,11 @@ class Spell extends BaseModel
                 'source_codes',
                 'class_slugs',
                 'tag_slugs',
+                'damage_types',
+                'saving_throws',
+                'requires_verbal',
+                'requires_somatic',
+                'requires_material',
             ],
             'sortableAttributes' => [
                 'name',

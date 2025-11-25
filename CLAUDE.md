@@ -216,6 +216,43 @@ tests/
 
 ---
 
+## ⚡ Search & Filtering Architecture
+
+**⚠️ CRITICAL: Use Meilisearch for ALL Filtering**
+
+This API uses **Meilisearch** exclusively for search and filtering. Do NOT add Eloquent/Scout filtering logic to Service classes.
+
+**✅ Correct Approach:**
+- All filtering happens via the `?filter=` parameter using Meilisearch syntax
+- Filterable fields are defined in each model's `searchableOptions()` method
+- Data is indexed via `toSearchableArray()` method
+
+**❌ Wrong Approach:**
+- Adding custom query parameters like `?classes=bard`
+- Writing Eloquent `whereHas()` logic in Service classes
+- Creating Form Request validation for filter-specific parameters
+
+**Examples:**
+```bash
+# ✅ CORRECT - Use Meilisearch filter syntax
+GET /api/v1/spells?filter=class_slugs IN [bard]
+GET /api/v1/spells?filter=class_slugs IN [bard] AND level <= 3
+GET /api/v1/spells?filter=tag_slugs IN [fire] AND concentration = true
+
+# ❌ WRONG - Don't add custom parameters
+GET /api/v1/spells?classes=bard  # This does NOT work
+```
+
+**Adding New Filterable Fields:**
+1. Add field to model's `toSearchableArray()` method
+2. Add field to model's `searchableOptions()` → `filterableAttributes` array
+3. Re-index with `php artisan scout:import "App\Models\ModelName"`
+4. Document the field in the Controller PHPDoc
+
+**No Service/DTO/Request changes needed!**
+
+---
+
 ## 🧪 Testing
 
 **1,489 tests** (7,704 assertions) - ~68s duration

@@ -22,115 +22,67 @@ class SpellController extends Controller
     /**
      * List all spells
      *
-     * Returns a paginated list of D&D 5e spells with comprehensive filtering capabilities.
-     * Supports spell level, school of magic, concentration/ritual status, damage types,
-     * saving throws, component requirements, Meilisearch filters, and full-text search.
+     * Returns a paginated list of 477 D&D 5e spells. Use `?filter=` for filtering and `?q=` for full-text search.
      *
-     * **Basic Examples:**
-     * - All spells: `GET /api/v1/spells`
-     * - Cantrips (level 0): `GET /api/v1/spells?level=0` (67 cantrips)
-     * - Low-level spells: `GET /api/v1/spells?level=1` (93 1st level spells)
-     * - High-level spells: `GET /api/v1/spells?level=9` (17 legendary 9th level spells)
-     * - Evocation school: `GET /api/v1/spells?school=EV` (all evocation spells)
-     * - Enchantment school: `GET /api/v1/spells?school=EN` (all enchantment spells)
-     * - Concentration spells: `GET /api/v1/spells?concentration=true` (buffing, control)
-     * - Ritual spells: `GET /api/v1/spells?ritual=true` (non-combat utility spells)
-     * - Pagination: `GET /api/v1/spells?per_page=50&page=2`
+     * **Common Examples:**
+     * ```
+     * GET /api/v1/spells                                    # All spells
+     * GET /api/v1/spells?filter=level = 0                   # Cantrips (44 spells)
+     * GET /api/v1/spells?filter=level <= 3                  # Low-level spells
+     * GET /api/v1/spells?filter=school_code = EV            # Evocation spells
+     * GET /api/v1/spells?filter=class_slugs IN [bard]       # Bard spells (147 spells)
+     * GET /api/v1/spells?filter=concentration = true        # Concentration spells
+     * GET /api/v1/spells?q=fire                             # Full-text search for "fire"
+     * GET /api/v1/spells?q=fire&filter=level <= 3           # Search + filter combined
+     * GET /api/v1/spells?filter=class_slugs IN [bard] AND level <= 3   # Low-level bard spells
+     * ```
      *
-     * **Damage Type Filtering Examples:**
-     * - Fire spells: `GET /api/v1/spells?damage_type=fire` (Fireball, Burning Hands, Scorching Ray)
-     * - Fire or cold: `GET /api/v1/spells?damage_type=fire,cold` (elemental versatility)
-     * - Low-level fire: `GET /api/v1/spells?damage_type=fire&level=2` (early-game fire builds)
-     * - Psychic damage: `GET /api/v1/spells?damage_type=psychic` (Mind Spike, Synaptic Static)
-     * - Necrotic damage: `GET /api/v1/spells?damage_type=necrotic` (Blight, Vampiric Touch)
-     * - Radiant damage: `GET /api/v1/spells?damage_type=radiant` (Guiding Bolt, Sunbeam)
+     * **Damage Type Filtering:**
+     * - Fire damage: `GET /api/v1/spells?filter=damage_types IN [F]`
+     * - Force or radiant: `GET /api/v1/spells?filter=damage_types IN [O, R]`
+     * - Fire cantrips: `GET /api/v1/spells?filter=damage_types IN [F] AND level = 0`
+     * - Utility spells (no damage): `GET /api/v1/spells?filter=damage_types IS EMPTY`
      *
-     * **Saving Throw Filtering Examples:**
-     * - DEX saves: `GET /api/v1/spells?saving_throw=DEX` (Fireball, Lightning Bolt, Grease)
-     * - DEX or CON: `GET /api/v1/spells?saving_throw=DEX,CON` (physical resistance tests)
-     * - Mental saves (INT/WIS/CHA): `GET /api/v1/spells?saving_throw=INT,WIS,CHA` (mind-affecting)
-     * - Enchantment WIS saves: `GET /api/v1/spells?saving_throw=WIS&school=EN` (Charm Person, Dominate)
-     * - STR saves: `GET /api/v1/spells?saving_throw=STR` (forced movement, restraints)
-     * - CON saves: `GET /api/v1/spells?saving_throw=CON` (poison, disease, exhaustion)
+     * **Saving Throw Filtering:**
+     * - DEX saves: `GET /api/v1/spells?filter=saving_throws IN [DEX]`
+     * - WIS or CHA saves: `GET /api/v1/spells?filter=saving_throws IN [WIS, CHA]`
+     * - Auto-hit spells (no saves): `GET /api/v1/spells?filter=saving_throws IS EMPTY`
      *
-     * **Component Filtering Examples:**
-     * - Silent casting (no verbal): `GET /api/v1/spells?requires_verbal=false` (Subtle Spell candidates)
-     * - Subtle spell (no somatic): `GET /api/v1/spells?requires_somatic=false` (restrained casting)
-     * - No material components: `GET /api/v1/spells?requires_material=false` (imprisoned casters)
-     * - Verbal only: `GET /api/v1/spells?requires_verbal=true&requires_somatic=false&requires_material=false`
-     * - Verbal + Somatic: `GET /api/v1/spells?requires_verbal=true&requires_somatic=true&requires_material=false`
+     * **Component Filtering:**
+     * - Castable in Silence (no verbal): `GET /api/v1/spells?filter=requires_verbal = false`
+     * - Castable while grappled (no somatic): `GET /api/v1/spells?filter=requires_somatic = false`
+     * - Subtle Spell candidates: `GET /api/v1/spells?filter=requires_verbal = false AND requires_somatic = false`
+     * - No components needed: `GET /api/v1/spells?filter=requires_verbal = false AND requires_somatic = false AND requires_material = false`
      *
-     * **Advanced Meilisearch Filtering:**
-     * - Level range: `GET /api/v1/spells?filter=level >= 1 AND level <= 3` (low-tier spells)
-     * - Low-level spells: `GET /api/v1/spells?filter=level IN [0, 1, 2, 3]` (early-game options)
-     * - High-level spells: `GET /api/v1/spells?filter=level >= 7` (legendary magic)
-     * - Multiple schools: `GET /api/v1/spells?filter=school_code = EV OR school_code = C` (damage or buffs)
-     * - Concentration + level: `GET /api/v1/spells?filter=concentration = true AND level <= 2` (early buffs)
-     * - Non-concentration damage: `GET /api/v1/spells?filter=concentration = false AND school_code = EV` (burst damage)
+     * **Filterable Fields:**
+     * - `level` (0-9), `school_code` (EV, EN, AB, C, D, I, N, T), `school_name`
+     * - `concentration` (bool), `ritual` (bool)
+     * - `class_slugs` (array: wizard, cleric, bard, druid, etc.)
+     * - `tag_slugs` (array: ritual-caster, touch-spells, etc.) - Only 22% of spells have tags
+     * - `source_codes` (array: PHB, XGE, TCoE, etc.)
+     * - `damage_types` (array: F, C, O, etc.)
+     * - `saving_throws` (array: STR, DEX, CON, INT, WIS, CHA)
+     * - `requires_verbal`, `requires_somatic`, `requires_material` (bool)
      *
-     * **Meilisearch Operators:**
+     * **Operators:**
      * - Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`
      * - Logic: `AND`, `OR`
-     * - Membership: `IN [value1, value2]`
-     *
-     * **Combined Filtering Examples:**
-     * - Low-level fire DEX saves: `GET /api/v1/spells?damage_type=fire&saving_throw=DEX&level=1` (Burning Hands)
-     * - Silent enchantment spells: `GET /api/v1/spells?school=EN&requires_verbal=false` (sneaky mind control)
-     * - Material-free evocation: `GET /api/v1/spells?school=EV&requires_material=false` (pure arcane damage)
-     * - Low-level AOE ritual: `GET /api/v1/spells?level=2&ritual=true` (utility without slots)
-     * - Search + filter: `GET /api/v1/spells?q=fire&level=3` (3rd level fire-themed spells)
-     *
-     * **Use Cases:**
-     * - Character Building: Find spells for specific builds (fire mage, enchanter, healer)
-     * - Combat Tactics: Identify spells targeting specific saves to exploit enemy weaknesses
-     * - Stealth Gameplay: Silent spells for sneaky casters (Subtle Spell metamagic planning)
-     * - Resource Management: Material-free spells for imprisoned or resource-limited casters
-     * - Spell Comparison: Compare schools, levels, and damage types for optimization
-     * - Metamagic Planning: Identify Subtle Spell, Twinned Spell, or Quicken Spell candidates
-     * - DM Encounter Design: Find spells by CR-appropriate level and damage type
-     * - Build Optimization: Filter by damage type + save to create synergistic spell lists
+     * - Membership: `IN [value1, value2, ...]`
      *
      * **Query Parameters:**
-     * - `q` (string): Full-text search term (searches name, description, higher_level_text)
-     * - `filter` (string): Meilisearch filter expression (supports =, !=, >, >=, <, <=, AND, OR)
-     * - `level` (int 0-9): Spell level (0 = cantrip, 1-9 = spell slots)
-     * - `school` (int): Spell school ID (1=Abjuration, 2=Conjuration, 3=Evocation, 4=Enchantment, etc.)
-     * - `concentration` (bool): Requires concentration (true = buffs/control, false = instant effects)
-     * - `ritual` (bool): Can be cast as ritual (true = utility without spell slots)
-     * - `damage_type` (string): Comma-separated damage types (fire, cold, lightning, necrotic, etc.)
-     * - `saving_throw` (string): Comma-separated ability codes (STR, DEX, CON, INT, WIS, CHA)
-     * - `requires_verbal` (bool): Requires verbal component (false = silent casting)
-     * - `requires_somatic` (bool): Requires somatic component (false = hands-free casting)
-     * - `requires_material` (bool): Requires material component (false = no components needed)
-     * - `sort_by` (string): Column to sort by (name, level, created_at, updated_at)
-     * - `sort_direction` (string): Sort direction (asc, desc)
-     * - `per_page` (int): Results per page (default 15, max 100)
-     * - `page` (int): Page number (default 1)
-     *
-     * **Available Damage Types:**
-     * Fire, Cold, Lightning, Thunder, Acid, Poison, Necrotic, Radiant, Psychic, Force, Bludgeoning, Piercing, Slashing
-     *
-     * **Available Saving Throws:**
-     * STR (Strength), DEX (Dexterity), CON (Constitution), INT (Intelligence), WIS (Wisdom), CHA (Charisma)
-     *
-     * **Spell School IDs:**
-     * 1=Abjuration, 2=Conjuration, 3=Evocation, 4=Enchantment, 5=Illusion, 6=Divination, 7=Necromancy, 8=Transmutation
-     *
-     * **Data Source:**
-     * - 477 spells across all D&D 5e sources (PHB, XGE, TCoE, etc.)
-     * - Damage/effect filtering via spell_effects table
-     * - Saving throw filtering via entity_saving_throws table
-     * - Component filtering via components column
-     * - 8 schools of magic with 1,917 class-spell relationships
-     *
-     * See `docs/API-EXAMPLES.md` for comprehensive usage examples.
+     * - `q` (string): Full-text search (searches name, description)
+     * - `filter` (string): Meilisearch filter expression
+     * - `sort_by` (string): name, level, created_at, updated_at (default: name)
+     * - `sort_direction` (string): asc, desc (default: asc)
+     * - `per_page` (int): 1-100 (default: 15)
+     * - `page` (int): Page number (default: 1)
      *
      * @param  SpellIndexRequest  $request  Validated request with filtering parameters
      * @param  SpellSearchService  $service  Service layer for spell queries
      * @param  Client  $meilisearch  Meilisearch client for advanced filtering
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: level (int), school_code (string), concentration (bool), ritual (bool), tag_slugs (array).', example: 'level >= 1 AND level <= 3 AND school_code = EV')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: level (int), school_code (string), concentration (bool), ritual (bool), class_slugs (array), tag_slugs (array).', example: 'class_slugs IN [bard] AND level <= 3')]
     public function index(SpellIndexRequest $request, SpellSearchService $service, Client $meilisearch)
     {
         $dto = SpellSearchDTO::fromRequest($request);

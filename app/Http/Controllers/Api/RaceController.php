@@ -33,24 +33,15 @@ class RaceController extends Controller
      * - By skill proficiency: `GET /api/v1/races?grants_skill=Perception`
      * - Combined filters: `GET /api/v1/races?ability_bonus=INT&has_darkvision=true` (smart races with darkvision)
      *
-     * **Spell Filtering Examples:**
-     * - Single spell: `GET /api/v1/races?spells=misty-step`
-     *   (Returns: Eladrin - races that grant Misty Step)
+     * **Spell Filtering Examples (Meilisearch):**
+     * - Single spell: `GET /api/v1/races?filter=spell_slugs IN [misty-step]` (Eladrin)
+     * - Drow spells: `GET /api/v1/races?filter=spell_slugs IN [dancing-lights, faerie-fire]` (ANY of these spells)
+     * - Cantrip races: `GET /api/v1/races?filter=tag_slugs IN [innate-spellcasting]`
      *
-     * - Multiple spells (AND logic - must have ALL): `GET /api/v1/races?spells=dancing-lights,faerie-fire`
-     *   (Returns: Drow - races that grant both Dancing Lights AND Faerie Fire)
-     *
-     * - Multiple spells (OR logic - must have AT LEAST ONE): `GET /api/v1/races?spells=thaumaturgy,hellish-rebuke&spells_operator=OR`
-     *   (Returns: Any race that grants Thaumaturgy OR Hellish Rebuke)
-     *
-     * - Cantrips only: `GET /api/v1/races?spell_level=0`
-     *   (Returns: Races that grant cantrips like Minor Illusion, Dancing Lights)
-     *
-     * - All spellcasting races: `GET /api/v1/races?has_innate_spells=true`
-     *   (Returns: Drow, Tiefling, High Elf, Forest Gnome, etc.)
-     *
-     * - Combined filters: `GET /api/v1/races?spells=darkness&spell_level=1`
-     *   (Returns: Races with Darkness AND at least one level 1 spell)
+     * **Note on Spell Filtering:**
+     * Spell filtering now uses Meilisearch `?filter=` syntax exclusively.
+     * Legacy parameters like `?spells=`, `?spell_level=`, `?has_innate_spells=` have been removed.
+     * Use `?filter=spell_slugs IN [spell1, spell2]` instead.
      *
      * **Tag-Based Filtering Examples (Meilisearch):**
      * - Darkvision races: `GET /api/v1/races?filter=tag_slugs IN [darkvision]`
@@ -59,10 +50,10 @@ class RaceController extends Controller
      * - Combined filters: `GET /api/v1/races?filter=tag_slugs IN [darkvision] AND speed >= 35`
      *
      * **Use Cases:**
-     * - Character optimization: Which races get free teleportation? (`?spells=misty-step`)
-     * - Spell synergy: Races with innate invisibility (`?spells=invisibility`)
-     * - Cantrip access: Races that grant free damage cantrips (`?spell_level=0`)
-     * - Build planning: Races with specific spell access for multiclass builds
+     * - Character optimization: Which races get free teleportation? (`?filter=spell_slugs IN [misty-step]`)
+     * - Spell synergy: Races with innate spells (`?filter=tag_slugs IN [innate-spellcasting]`)
+     * - Darkvision races: Races with darkvision (`?filter=tag_slugs IN [darkvision]`)
+     * - Build planning: Races with specific traits for multiclass builds
      * - Rules lookup: Quick reference for racial spellcasting features
      *
      * **Query Parameters:**
@@ -70,10 +61,6 @@ class RaceController extends Controller
      * - `size` (string): Filter by creature size (T, S, M, L, H, G)
      * - `min_speed` (int): Filter by minimum walking speed (0-100)
      * - `has_darkvision` (bool): Filter races with darkvision trait
-     * - `spells` (string): Comma-separated spell slugs to filter by
-     * - `spells_operator` (string): 'AND' (default) or 'OR' for multi-spell filtering
-     * - `spell_level` (integer): Filter races by spell level (0-9, where 0 = cantrips)
-     * - `has_innate_spells` (boolean): Filter races that grant any innate spells
      * - `speaks_language` (string): Filter by spoken language
      * - `grants_skill` (string): Filter by skill proficiency granted
      * - `grants_proficiency` (string): Filter by general proficiency

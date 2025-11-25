@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+- **Enhanced Spell Filtering: Damage Types, Saving Throws & Components**: Unlock tactical D&D spell selection
+  - **Damage Type Filtering**: Filter spells by damage type codes (F=fire, C=cold, O=force, etc.)
+    - Examples: `?filter=damage_types IN [F]` (fire damage), `?filter=damage_types IS EMPTY` (utility spells)
+    - Use Cases: Pyromancer builds, exploiting vulnerabilities, finding force damage spells (bypass resistance)
+  - **Saving Throw Filtering**: Filter by required saving throw (STR, DEX, CON, INT, WIS, CHA)
+    - Examples: `?filter=saving_throws IN [DEX]` (DEX saves), `?filter=saving_throws IS EMPTY` (auto-hit spells like Magic Missile)
+    - Use Cases: Target enemy weaknesses, build spell lists around specific saves
+  - **Component Breakdown**: Filter by verbal/somatic/material component requirements
+    - Examples: `?filter=requires_verbal = false` (castable in Silence), `?filter=requires_somatic = false` (castable while grappled)
+    - Use Cases: Subtle Spell metamagic candidates, situational spellcasting (Silence zones, restraints, imprisonment)
+  - **Model Changes**: Added 5 new indexed fields to Spell model: `damage_types` (array), `saving_throws` (array), `requires_verbal` (bool), `requires_somatic` (bool), `requires_material` (bool)
+  - **Data Sources**: Damage types from `spell_effects` table, saving throws from `entity_saving_throws` table, components parsed from components string
+  - **Tests**: 21 new comprehensive tests covering all three features and complex combinations
+  - **API Value**: Transforms API from "good" to "essential for D&D players" - enables tactical spell optimization
 - **Meilisearch Phase 1: Filter-Only Queries**: Enable filter-only queries without requiring `?q=` parameter
   - **Spell Endpoint**: Simplified controller routing from 3 paths to 2 paths
   - **Feature**: `GET /api/v1/spells?filter=level >= 1 AND level <= 3` works without search term

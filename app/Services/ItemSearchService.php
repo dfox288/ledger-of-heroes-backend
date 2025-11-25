@@ -181,32 +181,9 @@ final class ItemSearchService
             }
         }
 
-        // Spell filter (AND/OR logic)
-        if (isset($dto->filters['spells'])) {
-            $spellSlugs = array_map('trim', explode(',', $dto->filters['spells']));
-            $operator = $dto->filters['spells_operator'] ?? 'AND';
-
-            if ($operator === 'AND') {
-                // Must have ALL spells (nested whereHas)
-                foreach ($spellSlugs as $slug) {
-                    $query->whereHas('spells', function ($q) use ($slug) {
-                        $q->where('slug', $slug);
-                    });
-                }
-            } else {
-                // Must have AT LEAST ONE spell (single whereHas with whereIn)
-                $query->whereHas('spells', function ($q) use ($spellSlugs) {
-                    $q->whereIn('slug', $spellSlugs);
-                });
-            }
-        }
-
-        // Spell level filter (items that grant spells of specific level)
-        if (isset($dto->filters['spell_level'])) {
-            $query->whereHas('spells', function ($q) use ($dto) {
-                $q->where('level', $dto->filters['spell_level']);
-            });
-        }
+        // MySQL spell filtering has been removed - use Meilisearch ?filter= parameter instead
+        // For spell-based filtering, use: ?filter=spell_slugs IN [fireball]
+        // This is faster and works with full-text search (?q= parameter)
     }
 
     private function applySorting(Builder $query, ItemSearchDTO $dto): void

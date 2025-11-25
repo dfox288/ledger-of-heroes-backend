@@ -47,39 +47,18 @@ final class SpellSearchService
 
     /**
      * Build Scout search query for full-text search
+     *
+     * NOTE: MySQL filtering has been removed. Use Meilisearch ?filter= parameter instead.
+     *
+     * Examples:
+     * - ?filter=level = 0
+     * - ?filter=school = EV
+     * - ?filter=concentration = true
+     * - ?filter=level <= 3 AND school = EV
      */
     public function buildScoutQuery(SpellSearchDTO $dto): \Laravel\Scout\Builder
     {
-        $search = Spell::search($dto->searchQuery);
-
-        // Apply Scout-compatible filters
-        if (isset($dto->filters['level'])) {
-            $search->where('level', $dto->filters['level']);
-        }
-
-        if (isset($dto->filters['school'])) {
-            $schoolIdentifier = $dto->filters['school'];
-            // Resolve school (accepts ID, code like "EV", or name like "evocation")
-            $school = is_numeric($schoolIdentifier)
-                ? \App\Models\SpellSchool::find($schoolIdentifier)
-                : \App\Models\SpellSchool::where('code', strtoupper($schoolIdentifier))
-                    ->orWhere('name', 'LIKE', $schoolIdentifier)
-                    ->first();
-
-            if ($school) {
-                $search->where('school_name', $school->name);
-            }
-        }
-
-        if (isset($dto->filters['concentration'])) {
-            $search->where('concentration', (bool) $dto->filters['concentration']);
-        }
-
-        if (isset($dto->filters['ritual'])) {
-            $search->where('ritual', (bool) $dto->filters['ritual']);
-        }
-
-        return $search;
+        return Spell::search($dto->searchQuery);
     }
 
     /**
@@ -121,95 +100,17 @@ final class SpellSearchService
 
     private function applyFilters(Builder $query, SpellSearchDTO $dto): void
     {
-        if (isset($dto->filters['search'])) {
-            $query->search($dto->filters['search']);
-        }
-
-        if (isset($dto->filters['level'])) {
-            $query->level($dto->filters['level']);
-        }
-
-        if (isset($dto->filters['school'])) {
-            $query->school($dto->filters['school']);
-        }
-
-        if (isset($dto->filters['concentration'])) {
-            $value = filter_var($dto->filters['concentration'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            if ($value !== null) {
-                $query->concentration($value);
-            }
-        }
-
-        if (isset($dto->filters['ritual'])) {
-            $value = filter_var($dto->filters['ritual'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            if ($value !== null) {
-                $query->ritual($value);
-            }
-        }
-
-        // Damage type filter (via effects relationship)
-        if (isset($dto->filters['damage_type'])) {
-            $damageTypes = array_map('trim', explode(',', $dto->filters['damage_type']));
-
-            $query->whereHas('effects', function ($q) use ($damageTypes) {
-                $q->whereHas('damageType', function ($dq) use ($damageTypes) {
-                    // Try code first (exact match), fallback to name (case-insensitive)
-                    $dq->where(function ($sq) use ($damageTypes) {
-                        foreach ($damageTypes as $type) {
-                            $sq->orWhere('code', strtoupper($type))
-                                ->orWhereRaw('LOWER(name) = ?', [strtolower($type)]);
-                        }
-                    });
-                });
-            });
-        }
-
-        // Saving throw filter (via savingThrows relationship)
-        if (isset($dto->filters['saving_throw'])) {
-            $abilities = array_map('trim', explode(',', $dto->filters['saving_throw']));
-
-            // Get ability score IDs for the requested abilities
-            $abilityIds = \App\Models\AbilityScore::where(function ($q) use ($abilities) {
-                foreach ($abilities as $ability) {
-                    $q->orWhere('ability_scores.code', strtoupper($ability))
-                        ->orWhereRaw('LOWER(ability_scores.name) = ?', [strtolower($ability)]);
-                }
-            })->pluck('id')->toArray();
-
-            if (! empty($abilityIds)) {
-                $query->whereHas('savingThrows', function ($q) use ($abilityIds) {
-                    $q->whereIn('ability_scores.id', $abilityIds);
-                });
-            }
-        }
-
-        // Component filters (direct column checks using LIKE for string matching)
-        if (isset($dto->filters['requires_verbal'])) {
-            $value = filter_var($dto->filters['requires_verbal'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            if ($value === true) {
-                $query->where('components', 'LIKE', '%V%');
-            } elseif ($value === false) {
-                $query->where('components', 'NOT LIKE', '%V%');
-            }
-        }
-
-        if (isset($dto->filters['requires_somatic'])) {
-            $value = filter_var($dto->filters['requires_somatic'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            if ($value === true) {
-                $query->where('components', 'LIKE', '%S%');
-            } elseif ($value === false) {
-                $query->where('components', 'NOT LIKE', '%S%');
-            }
-        }
-
-        if (isset($dto->filters['requires_material'])) {
-            $value = filter_var($dto->filters['requires_material'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            if ($value === true) {
-                $query->where('components', 'LIKE', '%M%');
-            } elseif ($value === false) {
-                $query->where('components', 'NOT LIKE', '%M%');
-            }
-        }
+        // MySQL filtering has been removed - use Meilisearch ?filter= parameter instead
+        //
+        // Examples:
+        // - ?filter=level = 0
+        // - ?filter=school = EV
+        // - ?filter=concentration = true AND ritual = false
+        // - ?filter=tag_slugs IN [fire, aoe]
+        // - ?filter=class_slugs IN [wizard, sorcerer]
+        // - ?filter=class_slugs IN [bard] AND level <= 3
+        //
+        // All filtering should happen via Meilisearch for consistency and performance.
     }
 
     private function applySorting(Builder $query, SpellSearchDTO $dto): void

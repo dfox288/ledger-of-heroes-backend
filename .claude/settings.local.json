@@ -16,7 +16,11 @@
       "Skill(superpowers-laravel:brainstorm)",
       "Bash(for model in Spell Monster Item Race CharacterClass Background Feat)",
       "Bash(do grep -l \"public function searchableOptions\" app/Models/$model.php)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(git checkout:*)",
+      "Bash(python3 -c \"import sys, json; data = json.load(sys.stdin); print(f\"\"Total: {data[''''meta''''][''''total'''']}\"\"); print(f\"\"First spell: {data[''''data''''][0][''''name'''']}\"\"); print(f\"\"Classes: {[c[''''slug''''] for c in data[''''data''''][0][''''classes'''']]}\"\")\")",
+      "Bash(python3:*)",
+      "Bash(docker compose:*)"
     ],
     "deny": [],
     "ask": []

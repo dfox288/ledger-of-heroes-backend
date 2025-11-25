@@ -32,25 +32,22 @@ class ClassController extends Controller
      * - Classes with 9th level spells: `GET /api/v1/classes?max_spell_level=9`
      * - Combined filters: `GET /api/v1/classes?hit_die=10&is_spellcaster=true` (Paladin, Ranger)
      *
-     * **Spell Filtering Examples:**
-     * - Single spell: `GET /api/v1/classes?spells=fireball`
-     * - Multiple spells (AND): `GET /api/v1/classes?spells=fireball,counterspell`
-     * - Multiple spells (OR): `GET /api/v1/classes?spells=cure-wounds,healing-word&spells_operator=OR`
-     * - Spell level: `GET /api/v1/classes?spell_level=9`
-     * - Combined: `GET /api/v1/classes?spells=fireball&spell_level=3&base_only=1`
+     * **Spell Filtering Examples (Meilisearch):**
+     * - Single spell: `GET /api/v1/classes?filter=spell_slugs IN [fireball]`
+     * - Healing classes: `GET /api/v1/classes?filter=spell_slugs IN [cure-wounds, healing-word]`
+     * - Full casters: `GET /api/v1/classes?filter=tag_slugs IN [full-caster]`
      *
-     * **Spell Filtering Logic:**
-     * - AND (default): Class must have ALL specified spells
-     * - OR: Class must have AT LEAST ONE specified spell
-     * - Spell slugs are case-insensitive (fireball = FIREBALL)
-     * - Use spell slugs, not IDs (e.g., "cure-wounds" not "Cure Wounds")
+     * **Note on Spell Filtering:**
+     * Spell filtering now uses Meilisearch `?filter=` syntax exclusively.
+     * Legacy parameters like `?spells=`, `?spell_level=`, `?max_spell_level=` have been removed.
+     * Use `?filter=spell_slugs IN [spell1, spell2]` instead.
      *
      * **Use Cases:**
-     * - **Multiclass Planning:** Which classes get Fireball? (`?spells=fireball`)
-     * - **Healer Identification:** Classes with healing magic (`?spells=cure-wounds,healing-word&spells_operator=OR`)
-     * - **Full Spellcasters:** Classes with 9th level spells (`?spell_level=9`)
-     * - **Optimization:** Find INT-based spellcasters (`?filter=spellcasting_ability_code = INT`)
-     * - **Build Planning:** Cleric or Paladin with specific spells (`?spells=revivify&filter=spellcasting_ability_code = WIS OR spellcasting_ability_code = CHA`)
+     * - **Multiclass Planning:** Which classes get Fireball? (`?filter=spell_slugs IN [fireball]`)
+     * - **Healer Identification:** Classes with healing magic (`?filter=spell_slugs IN [cure-wounds, healing-word]`)
+     * - **Full Spellcasters:** Classes with 9th level spells (`?filter=tag_slugs IN [full-caster]`)
+     * - **Optimization:** Find INT-based spellcasters (`?filter=spellcasting_ability = INT`)
+     * - **Build Planning:** Wisdom casters (`?filter=spellcasting_ability = WIS`)
      *
      * **Tag-Based Filtering Examples (Meilisearch):**
      * - Full spellcasters: `GET /api/v1/classes?filter=tag_slugs IN [full-caster]`

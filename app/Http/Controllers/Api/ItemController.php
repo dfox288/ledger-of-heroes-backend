@@ -28,22 +28,20 @@ class ItemController extends Controller
      * - By type: `GET /api/v1/items?type=WD` (wands)
      * - Magic items only: `GET /api/v1/items?is_magic=true`
      *
-     * **Spell Filtering Examples:**
-     * - Single spell: `GET /api/v1/items?spells=fireball` (Wand of Fireballs, Staff of Power, etc.)
-     * - Multiple spells (AND): `GET /api/v1/items?spells=fireball,lightning-bolt` (items with BOTH spells)
-     * - Multiple spells (OR): `GET /api/v1/items?spells=fireball,lightning-bolt&spells_operator=OR` (items with EITHER spell)
-     * - Spell level: `GET /api/v1/items?spell_level=3` (items granting 3rd level spells)
-     * - Spell scrolls: `GET /api/v1/items?type=SCR&spell_level=5` (5th level scrolls)
+     * **Spell Filtering Examples (Meilisearch):**
+     * - Single spell: `GET /api/v1/items?filter=spell_slugs IN [fireball]` (Wand of Fireballs, Staff of Power, etc.)
+     * - Multiple spells (ANY): `GET /api/v1/items?filter=spell_slugs IN [fireball, lightning-bolt]` (items with EITHER spell)
+     * - Spell scrolls: `GET /api/v1/items?filter=type_code = SCR AND spell_slugs IN [wish]` (high-level scrolls)
      *
      * **Item-Specific Filters:**
      * - Charged items: `GET /api/v1/items?has_charges=true` (wands, staves, rods)
-     * - Wands with fire spells: `GET /api/v1/items?type=WD&spells=fireball,burning-hands&spells_operator=OR`
      * - Rare scrolls: `GET /api/v1/items?type=SCR&rarity=rare`
+     * - Magic items: `GET /api/v1/items?is_magic=true&rarity=legendary`
      *
      * **Combined Filter Examples:**
-     * - Rare wands with Fireball: `GET /api/v1/items?spells=fireball&type=WD&rarity=rare`
-     * - High-level spell items: `GET /api/v1/items?spell_level=7&has_charges=true`
-     * - Search + filter: `GET /api/v1/items?q=staff&spells=teleport`
+     * - Rare wands with Fireball: `GET /api/v1/items?filter=spell_slugs IN [fireball] AND type_code = WD AND rarity = rare`
+     * - Charged spell items: `GET /api/v1/items?filter=spell_slugs IN [teleport] AND has_charges = true`
+     * - Search + filter: `GET /api/v1/items?q=staff&filter=spell_slugs IN [teleport]`
      *
      * **Use Cases:**
      * - Magic Item Shop: Filter by rarity and type for balanced loot
@@ -51,13 +49,10 @@ class ItemController extends Controller
      * - Charged Item Inventory: Track wands/staves with specific spells
      * - Loot Tables: Generate themed magic items (fire-based, teleportation, healing)
      *
-     * **Spells Operator:**
-     * - `AND` (default): Item must grant ALL specified spells
-     * - `OR`: Item must grant AT LEAST ONE of the specified spells
-     *
-     * **Spell Level (0-9):**
-     * - `0` = Cantrips (unlimited use)
-     * - `1-9` = Spell slot levels (higher = more powerful)
+     * **Note on Spell Filtering:**
+     * Spell filtering now uses Meilisearch `?filter=` syntax exclusively.
+     * Legacy parameters like `?spells=`, `?spell_level=` have been removed.
+     * Use `?filter=spell_slugs IN [spell1, spell2]` instead.
      *
      * **Item Type Codes:**
      * - `WD` = Wand, `ST` = Staff, `RD` = Rod, `SCR` = Scroll, `P` = Potion

@@ -51,47 +51,18 @@ final class MonsterSearchService
 
     /**
      * Build Scout search query for full-text search
+     *
+     * NOTE: MySQL filtering has been removed. Use Meilisearch ?filter= parameter instead.
+     *
+     * Examples:
+     * - ?filter=spell_slugs IN [fireball]
+     * - ?filter=challenge_rating >= 5
+     * - ?filter=type = dragon AND challenge_rating >= 10
+     * - ?filter=tag_slugs IN [undead] AND hit_points_average > 100
      */
     public function buildScoutQuery(MonsterSearchDTO $dto): \Laravel\Scout\Builder
     {
-        $search = Monster::search($dto->searchQuery);
-
-        // Apply Scout-compatible filters
-        if (isset($dto->filters['challenge_rating'])) {
-            $search->where('challenge_rating', $dto->filters['challenge_rating']);
-        }
-
-        if (isset($dto->filters['type'])) {
-            $search->where('type', $dto->filters['type']);
-        }
-
-        if (isset($dto->filters['size'])) {
-            $search->where('size_code', $dto->filters['size']);
-        }
-
-        if (isset($dto->filters['alignment'])) {
-            $search->where('alignment', $dto->filters['alignment']);
-        }
-
-        // Spell filter (Meilisearch-optimized with AND/OR logic)
-        // Uses spell_slugs array field for fast filtering
-        if (isset($dto->filters['spells'])) {
-            $spellSlugs = array_map('trim', explode(',', $dto->filters['spells']));
-            $operator = $dto->filters['spells_operator'] ?? 'AND';
-
-            if ($operator === 'AND') {
-                // Must have ALL spells: spell_slugs = 'fireball' AND spell_slugs = 'lightning-bolt'
-                foreach ($spellSlugs as $slug) {
-                    $search->where('spell_slugs', $slug);
-                }
-            } else {
-                // Must have AT LEAST ONE spell: spell_slugs IN ['fireball', 'lightning-bolt']
-                // Note: Meilisearch uses = for IN operator with arrays
-                $search->whereIn('spell_slugs', $spellSlugs);
-            }
-        }
-
-        return $search;
+        return Monster::search($dto->searchQuery);
     }
 
     /**
@@ -133,45 +104,20 @@ final class MonsterSearchService
 
     private function applyFilters(Builder $query, MonsterSearchDTO $dto): void
     {
-        // Name search
-        if (isset($dto->searchQuery)) {
-            $query->where('name', 'like', '%'.$dto->searchQuery.'%');
-        }
-
-        // Exact challenge rating
-        if (isset($dto->filters['challenge_rating'])) {
-            $query->where('challenge_rating', $dto->filters['challenge_rating']);
-        }
-
-        // CR range filters
-        if (isset($dto->filters['min_cr'])) {
-            $query->whereRaw('CAST(challenge_rating AS DECIMAL(5,2)) >= ?', [$dto->filters['min_cr']]);
-        }
-
-        if (isset($dto->filters['max_cr'])) {
-            $query->whereRaw('CAST(challenge_rating AS DECIMAL(5,2)) <= ?', [$dto->filters['max_cr']]);
-        }
-
-        // Type filter
-        if (isset($dto->filters['type'])) {
-            $query->where('type', $dto->filters['type']);
-        }
-
-        // Size filter
-        if (isset($dto->filters['size'])) {
-            $query->whereHas('size', function ($q) use ($dto) {
-                $q->where('code', $dto->filters['size']);
-            });
-        }
-
-        // Alignment filter
-        if (isset($dto->filters['alignment'])) {
-            $query->where('alignment', 'like', '%'.$dto->filters['alignment'].'%');
-        }
-
-        // MySQL spell filtering has been removed - use Meilisearch ?filter= parameter instead
-        // For spell-based filtering, use: ?filter=spell_slugs IN [fireball, lightning-bolt]
-        // This is faster and works with full-text search (?q= parameter)
+        // MySQL filtering has been removed - use Meilisearch ?filter= parameter instead
+        //
+        // Examples:
+        // - ?filter=spell_slugs IN [fireball]
+        // - ?filter=spell_slugs IN [fireball, lightning-bolt]
+        // - ?filter=challenge_rating >= 5
+        // - ?filter=challenge_rating >= 10 AND challenge_rating <= 20
+        // - ?filter=type = dragon
+        // - ?filter=type = dragon AND spell_slugs IN [fireball]
+        // - ?filter=tag_slugs IN [undead] AND hit_points_average > 100
+        // - ?filter=armor_class >= 18 AND hit_points_average >= 100
+        // - ?filter=size_code = L AND strength >= 20
+        //
+        // All filtering should happen via Meilisearch for consistency and performance.
     }
 
     private function applySorting(Builder $query, MonsterSearchDTO $dto): void

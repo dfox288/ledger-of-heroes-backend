@@ -17,87 +17,57 @@ class BackgroundController extends Controller
     /**
      * List all backgrounds
      *
-     * Returns a paginated list of D&D 5e character backgrounds with comprehensive filtering
-     * capabilities. Supports proficiency filtering, skill/tool grants, language choices,
-     * and full-text search. Each background includes personality traits, ideals, bonds,
-     * flaws (via random tables), starting equipment, and feature descriptions.
+     * Returns a paginated list of D&D 5e character backgrounds. Use `?filter=` for filtering and `?q=` for full-text search.
      *
-     * **Basic Examples:**
-     * - All backgrounds: `GET /api/v1/backgrounds`
-     * - By skill proficiency: `GET /api/v1/backgrounds?grants_skill=stealth` (Urchin, Criminal)
-     * - By tool proficiency: `GET /api/v1/backgrounds?grants_proficiency=thieves-tools` (Criminal, Urchin)
-     * - By language: `GET /api/v1/backgrounds?speaks_language=dwarvish` (Guild Artisan)
-     * - Pagination: `GET /api/v1/backgrounds?per_page=20&page=1`
+     * **Common Examples:**
+     * ```
+     * GET /api/v1/backgrounds                                # All backgrounds
+     * GET /api/v1/backgrounds?filter=tag_slugs IN [criminal] # Criminal backgrounds
+     * GET /api/v1/backgrounds?filter=source_codes IN [PHB]   # PHB backgrounds only
+     * GET /api/v1/backgrounds?q=noble                        # Search for "noble"
+     * GET /api/v1/backgrounds?filter=tag_slugs IN [criminal, noble] # Multiple tags
+     * ```
      *
-     * **Proficiency Filtering Examples:**
-     * - Skill proficiencies: `GET /api/v1/backgrounds?grants_skill=insight` (Acolyte, Sage)
-     * - Tool proficiencies: `GET /api/v1/backgrounds?grants_proficiency=gaming-set` (Folk Hero)
-     * - Music proficiencies: `GET /api/v1/backgrounds?grants_proficiency=lute` (Entertainer)
-     * - Artisan tools: `GET /api/v1/backgrounds?grants_proficiency=smiths-tools` (Guild Artisan)
-     *
-     * **Language Filtering Examples:**
-     * - Specific language: `GET /api/v1/backgrounds?speaks_language=elvish` (Sage, Outlander)
-     * - Language choices: `GET /api/v1/backgrounds?language_choice_count=2` (2+ language choices)
-     * - Any languages: `GET /api/v1/backgrounds?grants_languages=true` (backgrounds granting languages)
-     * - No languages: `GET /api/v1/backgrounds?grants_languages=false` (no language grants)
-     *
-     * **Search Examples:**
-     * - Search by name: `GET /api/v1/backgrounds?q=noble` (Noble, Knight)
-     * - Search by description: `GET /api/v1/backgrounds?q=temple` (Acolyte)
-     * - Search by feature: `GET /api/v1/backgrounds?q=shelter` (Folk Hero feature)
-     *
-     * **Combined Filtering Examples:**
-     * - Skill + tool: `GET /api/v1/backgrounds?grants_skill=deception&grants_proficiency=disguise-kit` (Charlatan)
-     * - Language + skill: `GET /api/v1/backgrounds?speaks_language=dwarvish&grants_skill=history` (Guild Artisan)
-     * - Search + filter: `GET /api/v1/backgrounds?q=criminal&grants_skill=stealth` (Criminal, Urchin)
-     *
-     * **Use Cases:**
-     * - Character Creation: Find backgrounds matching desired skill proficiencies
-     * - Proficiency Planning: Optimize proficiency spread across race/class/background
-     * - Roleplaying: Browse personality traits, ideals, bonds, and flaws for inspiration
-     * - Language Optimization: Find backgrounds granting extra language choices
-     * - Equipment Planning: Compare starting equipment for early-game optimization
-     * - Build Synergy: Match background skills with class features (Rogue + Criminal)
-     *
-     * **Tag-Based Filtering Examples (Meilisearch):**
+     * **Tag Filtering:**
      * - Criminal backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [criminal]`
      * - Noble backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [noble]`
-     * - Guild member backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [guild-member]`
+     * - Outlander backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [outlander]`
      * - Multiple tags (OR): `GET /api/v1/backgrounds?filter=tag_slugs IN [criminal, outlander]`
      *
+     * **Source Filtering:**
+     * - PHB only: `GET /api/v1/backgrounds?filter=source_codes IN [PHB]`
+     * - SCAG only: `GET /api/v1/backgrounds?filter=source_codes IN [SCAG]`
+     * - Multiple sources: `GET /api/v1/backgrounds?filter=source_codes IN [PHB, XGE]`
+     *
+     * **Filterable Fields:**
+     * - `id` (int), `slug` (string)
+     * - `source_codes` (array: PHB, SCAG, XGE, TCoE, etc.)
+     * - `tag_slugs` (array: criminal, noble, outlander, etc.)
+     *
+     * **Operators:**
+     * - Comparison: `=`, `!=`
+     * - Logic: `AND`, `OR`
+     * - Membership: `IN [value1, value2, ...]`
+     *
      * **Query Parameters:**
-     * - `q` (string): Full-text search term (searches name, description, feature text)
-     * - `filter` (string): Meilisearch filter expression (limited fields for backgrounds)
-     * - `grants_proficiency` (string): Filter by granted proficiency (tool, instrument, gaming set)
-     * - `grants_skill` (string): Filter by granted skill proficiency (stealth, insight, etc.)
-     * - `speaks_language` (string): Filter by granted language (elvish, dwarvish, etc.)
-     * - `language_choice_count` (int): Minimum number of language choices granted
-     * - `grants_languages` (bool): Has any language grants (true/false)
-     * - `sort_by` (string): Column to sort by (name, created_at, updated_at)
-     * - `sort_direction` (string): Sort direction (asc, desc)
-     * - `per_page` (int): Results per page (default 15, max 100)
-     * - `page` (int): Page number (default 1)
+     * - `q` (string): Full-text search (searches name, description, traits)
+     * - `filter` (string): Meilisearch filter expression
+     * - `sort_by` (string): name, created_at, updated_at (default: name)
+     * - `sort_direction` (string): asc, desc (default: asc)
+     * - `per_page` (int): 1-100 (default: 15)
+     * - `page` (int): Page number (default: 1)
      *
-     * **Data Source:**
-     * - D&D 5e backgrounds from PHB, SCAG, XGE, TCoE, and other sourcebooks
-     * - Includes personality traits, ideals, bonds, flaws via random tables
-     * - Proficiency and language data via polymorphic relationships
-     * - Starting equipment variants and feature descriptions
-     *
-     * **Unique Features:**
-     * - Random personality tables for roleplaying (d8, d6, d10, d12 tables)
-     * - Starting equipment variants (choose between options)
-     * - Feature descriptions (special abilities unique to each background)
-     * - Proficiency grants (skills, tools, instruments, gaming sets)
-     * - Language choices (fixed languages + choice slots)
-     *
-     * See `docs/API-EXAMPLES.md` for comprehensive usage examples.
+     * **Background Features:**
+     * - Personality traits, ideals, bonds, flaws (via random tables)
+     * - Starting equipment and feature descriptions
+     * - Skill, tool, and language proficiencies
+     * - Source attribution (PHB, SCAG, XGE, TCoE, etc.)
      *
      * @param  BackgroundIndexRequest  $request  Validated request with filtering parameters
      * @param  BackgroundSearchService  $service  Service layer for background queries
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Available fields: source_codes (array), tag_slugs (array). Use search (q parameter) for text queries.', example: 'tag_slugs IN [criminal, noble]')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, AND, OR, IN. Available fields: id (int), slug (string), source_codes (array), tag_slugs (array).', example: 'tag_slugs IN [criminal, noble]')]
     public function index(BackgroundIndexRequest $request, BackgroundSearchService $service)
     {
         $dto = BackgroundSearchDTO::fromRequest($request);

@@ -19,52 +19,32 @@ class ItemController extends Controller
      * List all items
      *
      * Returns a paginated list of D&D 5e items including weapons, armor, and magic items.
-     * Supports advanced filtering including spell-based queries (AND/OR logic), spell level,
-     * item type, rarity, charges, and full-text search.
+     * Uses Meilisearch for full-text search and advanced filtering.
      *
-     * **Basic Examples:**
-     * - All items: `GET /api/v1/items`
-     * - By rarity: `GET /api/v1/items?rarity=rare`
-     * - By type: `GET /api/v1/items?type=WD` (wands)
-     * - Magic items only: `GET /api/v1/items?is_magic=true`
+     * **Search Examples:**
+     * - Text search: `GET /api/v1/items?q=staff`
+     * - Search + filter: `GET /api/v1/items?q=sword&filter=rarity = legendary`
      *
-     * **Spell Filtering Examples (Meilisearch):**
-     * - Single spell: `GET /api/v1/items?filter=spell_slugs IN [fireball]` (Wand of Fireballs, Staff of Power, etc.)
-     * - Multiple spells (ANY): `GET /api/v1/items?filter=spell_slugs IN [fireball, lightning-bolt]` (items with EITHER spell)
-     * - Spell scrolls: `GET /api/v1/items?filter=type_code = SCR AND spell_slugs IN [wish]` (high-level scrolls)
+     * **Filter Examples:**
+     * - By rarity: `GET /api/v1/items?filter=rarity IN [rare, legendary]`
+     * - By type: `GET /api/v1/items?filter=type_code = WD` (wands)
+     * - Magic items: `GET /api/v1/items?filter=is_magic = true`
+     * - Requires attunement: `GET /api/v1/items?filter=requires_attunement = true`
+     * - Has charges: `GET /api/v1/items?filter=has_charges = true`
+     * - By spell: `GET /api/v1/items?filter=spell_slugs IN [fireball]`
+     * - By cost: `GET /api/v1/items?filter=cost_cp >= 5000` (50+ gold)
+     * - By weight: `GET /api/v1/items?filter=weight <= 1.0`
      *
-     * **Item-Specific Filters:**
-     * - Charged items: `GET /api/v1/items?has_charges=true` (wands, staves, rods)
-     * - Rare scrolls: `GET /api/v1/items?type=SCR&rarity=rare`
-     * - Magic items: `GET /api/v1/items?is_magic=true&rarity=legendary`
-     *
-     * **Combined Filter Examples:**
+     * **Combined Filters:**
      * - Rare wands with Fireball: `GET /api/v1/items?filter=spell_slugs IN [fireball] AND type_code = WD AND rarity = rare`
-     * - Charged spell items: `GET /api/v1/items?filter=spell_slugs IN [teleport] AND has_charges = true`
-     * - Search + filter: `GET /api/v1/items?q=staff&filter=spell_slugs IN [teleport]`
+     * - Legendary magic items: `GET /api/v1/items?filter=is_magic = true AND rarity = legendary`
+     * - Lightweight scrolls: `GET /api/v1/items?filter=type_code = SCR AND weight <= 0.1`
      *
-     * **Use Cases:**
-     * - Magic Item Shop: Filter by rarity and type for balanced loot
-     * - Scroll Discovery: Find spell scrolls by level for character progression
-     * - Charged Item Inventory: Track wands/staves with specific spells
-     * - Loot Tables: Generate themed magic items (fire-based, teleportation, healing)
-     *
-     * **Note on Spell Filtering:**
-     * Spell filtering now uses Meilisearch `?filter=` syntax exclusively.
-     * Legacy parameters like `?spells=`, `?spell_level=` have been removed.
-     * Use `?filter=spell_slugs IN [spell1, spell2]` instead.
-     *
-     * **Item Type Codes:**
+     * **Common Item Type Codes:**
      * - `WD` = Wand, `ST` = Staff, `RD` = Rod, `SCR` = Scroll, `P` = Potion
      * - See `/api/v1/item-types` for complete list
-     *
-     * **Data Source:**
-     * Powered by ChargedItemStrategy and ScrollStrategy which track 107 spell relationships
-     * across 84 items (wands, staves, scrolls, rods).
-     *
-     * See `docs/API-EXAMPLES.md` for comprehensive usage examples.
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: is_magic (bool), requires_attunement (bool), rarity (string), type_code (string), weight (float), cost_cp (int), spell_slugs (array), tag_slugs (array).', example: 'is_magic = true AND rarity IN [rare, very_rare, legendary]')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression. Available fields: is_magic (bool), requires_attunement (bool), has_charges (bool), rarity (string: common, uncommon, rare, very_rare, legendary, artifact), type_code (string: WD, ST, RD, SCR, P, etc.), weight (float), cost_cp (int), spell_slugs (array), tag_slugs (array). Operators: =, !=, >, >=, <, <=, AND, OR, IN.', example: 'spell_slugs IN [fireball] AND rarity = rare')]
     public function index(ItemIndexRequest $request, ItemSearchService $service, Client $meilisearch)
     {
         $dto = ItemSearchDTO::fromRequest($request);

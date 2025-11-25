@@ -43,6 +43,13 @@ final class BackgroundSearchService
 
     /**
      * Build Scout search query for full-text search
+     *
+     * NOTE: MySQL filtering has been removed. Use Meilisearch ?filter= parameter instead.
+     *
+     * Examples:
+     * - ?filter=tag_slugs IN [criminal]
+     * - ?filter=tag_slugs IN [noble, outlander]
+     * - ?filter=source_codes IN [PHB]
      */
     public function buildScoutQuery(string $searchQuery): \Laravel\Scout\Builder
     {
@@ -99,35 +106,15 @@ final class BackgroundSearchService
      */
     private function applyFilters(Builder $query, BackgroundSearchDTO $dto): void
     {
-        // Legacy search filter (using model scope)
-        if (isset($dto->filters['search']) && $dto->filters['search'] !== null) {
-            $query->search($dto->filters['search']);
-        }
-
-        // Filter by granted proficiency
-        if (isset($dto->filters['grants_proficiency']) && $dto->filters['grants_proficiency'] !== null) {
-            $query->grantsProficiency($dto->filters['grants_proficiency']);
-        }
-
-        // Filter by granted skill
-        if (isset($dto->filters['grants_skill']) && $dto->filters['grants_skill'] !== null) {
-            $query->grantsSkill($dto->filters['grants_skill']);
-        }
-
-        // Filter by spoken language
-        if (isset($dto->filters['speaks_language']) && $dto->filters['speaks_language'] !== null) {
-            $query->speaksLanguage($dto->filters['speaks_language']);
-        }
-
-        // Filter by language choice count
-        if (isset($dto->filters['language_choice_count']) && $dto->filters['language_choice_count'] !== null) {
-            $query->languageChoiceCount((int) $dto->filters['language_choice_count']);
-        }
-
-        // Filter entities granting any languages
-        if (isset($dto->filters['grants_languages']) && $dto->filters['grants_languages']) {
-            $query->grantsLanguages();
-        }
+        // MySQL filtering has been removed - use Meilisearch ?filter= parameter instead
+        //
+        // Examples:
+        // - ?filter=tag_slugs IN [criminal]
+        // - ?filter=tag_slugs IN [noble, outlander]
+        // - ?filter=source_codes IN [PHB]
+        // - ?filter=slug = acolyte
+        //
+        // All filtering should happen via Meilisearch for consistency and performance.
     }
 
     /**

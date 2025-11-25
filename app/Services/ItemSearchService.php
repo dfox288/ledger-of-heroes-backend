@@ -50,44 +50,20 @@ final class ItemSearchService
 
     /**
      * Build Scout search query for full-text search
+     *
+     * NOTE: MySQL filtering has been removed. Use Meilisearch ?filter= parameter instead.
+     *
+     * Examples:
+     * - ?filter=rarity IN [rare, legendary]
+     * - ?filter=type_code = WD
+     * - ?filter=requires_attunement = true
+     * - ?filter=spell_slugs IN [fireball]
+     * - ?filter=spell_slugs IN [fireball] AND rarity = rare
+     * - ?filter=has_charges = true AND type_code IN [WD, ST]
      */
     public function buildScoutQuery(ItemSearchDTO $dto): \Laravel\Scout\Builder
     {
-        $search = Item::search($dto->searchQuery);
-
-        if (isset($dto->filters['item_type_id'])) {
-            $search->where('item_type_id', $dto->filters['item_type_id']);
-        }
-
-        if (isset($dto->filters['rarity'])) {
-            $search->where('rarity', $dto->filters['rarity']);
-        }
-
-        if (isset($dto->filters['is_magic'])) {
-            $search->where('is_magic', (bool) $dto->filters['is_magic']);
-        }
-
-        if (isset($dto->filters['requires_attunement'])) {
-            $search->where('requires_attunement', (bool) $dto->filters['requires_attunement']);
-        }
-
-        // Spell filter (Meilisearch-optimized with AND/OR logic)
-        if (isset($dto->filters['spells'])) {
-            $spellSlugs = array_map('trim', explode(',', $dto->filters['spells']));
-            $operator = $dto->filters['spells_operator'] ?? 'AND';
-
-            if ($operator === 'AND') {
-                // Must have ALL spells
-                foreach ($spellSlugs as $slug) {
-                    $search->where('spell_slugs', $slug);
-                }
-            } else {
-                // Must have AT LEAST ONE spell
-                $search->whereIn('spell_slugs', $spellSlugs);
-            }
-        }
-
-        return $search;
+        return Item::search($dto->searchQuery);
     }
 
     /**
@@ -129,61 +105,27 @@ final class ItemSearchService
 
     private function applyFilters(Builder $query, ItemSearchDTO $dto): void
     {
-        // Name search
-        if (isset($dto->searchQuery)) {
-            $query->where('name', 'like', '%'.$dto->searchQuery.'%');
-        }
-
-        if (isset($dto->filters['search'])) {
-            $query->where(function ($q) use ($dto) {
-                $q->where('name', 'like', "%{$dto->filters['search']}%")
-                    ->orWhere('description', 'like', "%{$dto->filters['search']}%");
-            });
-        }
-
-        if (isset($dto->filters['item_type_id'])) {
-            $query->where('item_type_id', $dto->filters['item_type_id']);
-        }
-
-        // Type filter (by item type code)
-        if (isset($dto->filters['type'])) {
-            $query->whereHas('itemType', function ($q) use ($dto) {
-                $q->where('code', $dto->filters['type']);
-            });
-        }
-
-        if (isset($dto->filters['rarity'])) {
-            $query->where('rarity', $dto->filters['rarity']);
-        }
-
-        if (isset($dto->filters['is_magic'])) {
-            $query->where('is_magic', (bool) $dto->filters['is_magic']);
-        }
-
-        if (isset($dto->filters['requires_attunement'])) {
-            $query->where('requires_attunement', (bool) $dto->filters['requires_attunement']);
-        }
-
-        if (isset($dto->filters['min_strength'])) {
-            $query->whereMinStrength((int) $dto->filters['min_strength']);
-        }
-
-        if (isset($dto->filters['has_prerequisites']) && (bool) $dto->filters['has_prerequisites']) {
-            $query->hasPrerequisites();
-        }
-
-        // Has charges filter
-        if (isset($dto->filters['has_charges'])) {
-            if ((bool) $dto->filters['has_charges']) {
-                $query->whereNotNull('charges_max');
-            } else {
-                $query->whereNull('charges_max');
-            }
-        }
-
-        // MySQL spell filtering has been removed - use Meilisearch ?filter= parameter instead
-        // For spell-based filtering, use: ?filter=spell_slugs IN [fireball]
-        // This is faster and works with full-text search (?q= parameter)
+        // MySQL filtering has been removed - use Meilisearch ?filter= parameter instead
+        //
+        // Examples:
+        // - ?filter=rarity IN [rare, very_rare, legendary]
+        // - ?filter=type_code = WD (wands)
+        // - ?filter=type_code = SCR (scrolls)
+        // - ?filter=requires_attunement = true
+        // - ?filter=is_magic = true
+        // - ?filter=has_charges = true
+        // - ?filter=spell_slugs IN [fireball] (items containing Fireball)
+        // - ?filter=spell_slugs IN [fireball, lightning-bolt] (items with either spell)
+        // - ?filter=tag_slugs IN [fire, damage]
+        // - ?filter=cost_cp >= 5000 (items worth 50+ gold)
+        // - ?filter=weight <= 1.0 (lightweight items)
+        //
+        // Combined filters:
+        // - ?filter=spell_slugs IN [fireball] AND type_code = WD AND rarity = rare
+        // - ?filter=has_charges = true AND spell_slugs IN [teleport]
+        // - ?filter=is_magic = true AND rarity IN [legendary, artifact]
+        //
+        // All filtering should happen via Meilisearch for consistency and performance.
     }
 
     private function applySorting(Builder $query, ItemSearchDTO $dto): void

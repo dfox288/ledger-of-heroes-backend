@@ -64,15 +64,21 @@ final class RaceSearchService
      */
     private const DEFAULT_RELATIONSHIPS = self::INDEX_RELATIONSHIPS;
 
+    /**
+     * Build Scout search query for full-text search
+     *
+     * NOTE: MySQL filtering has been removed. Use Meilisearch ?filter= parameter instead.
+     *
+     * Examples:
+     * - ?filter=size_code = M
+     * - ?filter=speed >= 30
+     * - ?filter=has_darkvision = true
+     * - ?filter=spell_slugs IN [misty-step, faerie-fire]
+     * - ?filter=tag_slugs IN [darkvision, fey-ancestry]
+     */
     public function buildScoutQuery(RaceSearchDTO $dto): \Laravel\Scout\Builder
     {
-        $search = Race::search($dto->searchQuery);
-
-        if (isset($dto->filters['size'])) {
-            $search->where('size_id', $dto->filters['size']);
-        }
-
-        return $search;
+        return Race::search($dto->searchQuery);
     }
 
     public function buildDatabaseQuery(RaceSearchDTO $dto): Builder
@@ -111,73 +117,18 @@ final class RaceSearchService
 
     private function applyFilters(Builder $query, RaceSearchDTO $dto): void
     {
-        if (isset($dto->filters['search'])) {
-            $query->search($dto->filters['search']);
-        }
-
-        if (isset($dto->filters['size'])) {
-            $sizeCode = strtoupper($dto->filters['size']);
-            $query->whereHas('size', function ($q) use ($sizeCode) {
-                $q->where('code', $sizeCode);
-            });
-        }
-
-        if (isset($dto->filters['grants_proficiency'])) {
-            $query->grantsProficiency($dto->filters['grants_proficiency']);
-        }
-
-        if (isset($dto->filters['grants_skill'])) {
-            $query->grantsSkill($dto->filters['grants_skill']);
-        }
-
-        if (isset($dto->filters['grants_proficiency_type'])) {
-            $query->grantsProficiencyType($dto->filters['grants_proficiency_type']);
-        }
-
-        if (isset($dto->filters['speaks_language'])) {
-            $query->speaksLanguage($dto->filters['speaks_language']);
-        }
-
-        if (isset($dto->filters['language_choice_count'])) {
-            $query->languageChoiceCount((int) $dto->filters['language_choice_count']);
-        }
-
-        if (isset($dto->filters['grants_languages']) && $dto->filters['grants_languages']) {
-            $query->grantsLanguages();
-        }
-
-        // MySQL spell filtering has been removed - use Meilisearch ?filter= parameter instead
-        // For spell-based filtering, use: ?filter=spell_slugs IN [misty-step, faerie-fire]
-        // This is faster and works with full-text search (?q= parameter)
-
-        // Ability bonus filter (via modifiers relationship)
-        if (isset($dto->filters['ability_bonus'])) {
-            $abilityCode = strtoupper($dto->filters['ability_bonus']);
-
-            $query->whereHas('modifiers', function ($q) use ($abilityCode) {
-                $q->where('modifier_category', 'ability_score')
-                    ->whereHas('abilityScore', function ($aq) use ($abilityCode) {
-                        $aq->where('code', $abilityCode);
-                    })
-                    ->where('value', '>', 0); // Must be positive bonus
-            });
-        }
-
-        // Min speed filter
-        if (isset($dto->filters['min_speed'])) {
-            $query->where('speed', '>=', (int) $dto->filters['min_speed']);
-        }
-
-        // Has darkvision filter (via traits)
-        if (isset($dto->filters['has_darkvision'])) {
-            $value = filter_var($dto->filters['has_darkvision'], FILTER_VALIDATE_BOOLEAN);
-
-            if ($value) {
-                $query->whereHas('traits', function ($q) {
-                    $q->whereRaw('LOWER(name) LIKE ?', ['%darkvision%']);
-                });
-            }
-        }
+        // MySQL filtering has been removed - use Meilisearch ?filter= parameter instead
+        //
+        // Examples:
+        // - ?filter=size_code = M
+        // - ?filter=speed >= 30
+        // - ?filter=has_darkvision = true
+        // - ?filter=spell_slugs IN [misty-step, faerie-fire]
+        // - ?filter=tag_slugs IN [darkvision, fey-ancestry]
+        // - ?filter=tag_slugs IN [darkvision] AND speed >= 35
+        // - ?filter=spell_slugs IN [dancing-lights] AND size_code = M
+        //
+        // All filtering should happen via Meilisearch for consistency and performance.
     }
 
     private function applySorting(Builder $query, RaceSearchDTO $dto): void

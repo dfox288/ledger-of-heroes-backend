@@ -66,6 +66,18 @@ final class ClassSearchService
      */
     private const DEFAULT_RELATIONSHIPS = self::INDEX_RELATIONSHIPS;
 
+    /**
+     * Build Scout search query for full-text search
+     *
+     * NOTE: MySQL filtering has been removed. Use Meilisearch ?filter= parameter instead.
+     *
+     * Examples:
+     * - ?filter=is_subclass = false
+     * - ?filter=hit_die = 12
+     * - ?filter=spellcasting_ability = INT
+     * - ?filter=tag_slugs IN [spellcaster]
+     * - ?filter=is_subclass = false AND hit_die >= 10
+     */
     public function buildScoutQuery(string $searchQuery): \Laravel\Scout\Builder
     {
         return CharacterClass::search($searchQuery);
@@ -107,56 +119,18 @@ final class ClassSearchService
 
     private function applyFilters(Builder $query, ClassSearchDTO $dto): void
     {
-        if (isset($dto->filters['search'])) {
-            $query->where('name', 'LIKE', '%'.$dto->filters['search'].'%');
-        }
-
-        if (isset($dto->filters['base_only']) && $dto->filters['base_only']) {
-            $query->whereNull('parent_class_id');
-        }
-
-        if (isset($dto->filters['grants_proficiency'])) {
-            $query->grantsProficiency($dto->filters['grants_proficiency']);
-        }
-
-        if (isset($dto->filters['grants_skill'])) {
-            $query->grantsSkill($dto->filters['grants_skill']);
-        }
-
-        if (isset($dto->filters['grants_saving_throw'])) {
-            $abilityName = $dto->filters['grants_saving_throw'];
-            $query->whereHas('proficiencies', function ($q) use ($abilityName) {
-                $q->where('proficiency_type', 'saving_throw')
-                    ->whereHas('abilityScore', function ($abilityQuery) use ($abilityName) {
-                        $abilityQuery->where('code', strtoupper($abilityName))
-                            ->orWhere('name', 'LIKE', "%{$abilityName}%");
-                    });
-            });
-        }
-
-        // MySQL spell filtering has been removed - use Meilisearch ?filter= parameter instead
+        // MySQL filtering has been removed - use Meilisearch ?filter= parameter instead
+        //
         // Examples:
+        // - Base classes only: ?filter=is_subclass = false
+        // - Subclasses only: ?filter=is_subclass = true
+        // - High HP classes: ?filter=hit_die >= 10
         // - Spellcasters: ?filter=spellcasting_ability != null
-        // - Hit die: ?filter=hit_die = 10
-        // - Tag-based: ?filter=tag_slugs IN [spellcaster]
-
-        // Keep MySQL-only filters that don't have Meilisearch equivalents
-        if (isset($dto->filters['is_spellcaster'])) {
-            $value = filter_var($dto->filters['is_spellcaster'], FILTER_VALIDATE_BOOLEAN);
-
-            if ($value) {
-                // Has spellcasting ability
-                $query->whereNotNull('spellcasting_ability_id');
-            } else {
-                // No spellcasting ability
-                $query->whereNull('spellcasting_ability_id');
-            }
-        }
-
-        // Hit die filter
-        if (isset($dto->filters['hit_die'])) {
-            $query->where('hit_die', $dto->filters['hit_die']);
-        }
+        // - INT casters: ?filter=spellcasting_ability = INT
+        // - Tag-based: ?filter=tag_slugs IN [spellcaster, martial]
+        // - Combined: ?filter=is_subclass = false AND tag_slugs IN [full-caster]
+        //
+        // All filtering should happen via Meilisearch for consistency and performance.
     }
 
     private function applySorting(Builder $query, ClassSearchDTO $dto): void

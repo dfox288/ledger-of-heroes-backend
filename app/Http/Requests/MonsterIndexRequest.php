@@ -10,36 +10,14 @@ class MonsterIndexRequest extends BaseIndexRequest
     protected function entityRules(): array
     {
         return [
-            // Search query
+            // Full-text search query
             'q' => ['sometimes', 'string', 'min:2', 'max:255'],
 
-            // Challenge rating filters
-            'challenge_rating' => ['sometimes', 'numeric', 'min:0'],
-            'min_cr' => ['sometimes', 'numeric', 'min:0'],
-            'max_cr' => ['sometimes', 'numeric', 'min:0'],
-
-            // Type filter (dragon, humanoid, undead, etc.)
-            'type' => ['sometimes', 'string', 'max:50'],
-
-            // Size filter (T, S, M, L, H, G)
-            'size' => ['sometimes', 'string', 'max:2'],
-
-            // Alignment filter
-            'alignment' => ['sometimes', 'string', 'max:50'],
-
-            // Spell filter (comma-separated spell slugs)
-            'spells' => ['sometimes', 'string', 'max:500'],
-
-            // Spell filter operator (AND = must have all spells, OR = must have at least one)
-            'spells_operator' => ['sometimes', 'string', 'in:AND,OR'],
-
-            // Spell level filter (0-9, where 0 = cantrips)
-            'spell_level' => ['sometimes', 'integer', 'min:0', 'max:9'],
-
-            // Spellcasting ability filter (INT, WIS, CHA)
-            'spellcasting_ability' => ['sometimes', 'string', 'in:INT,WIS,CHA'],
-
-            // Meilisearch filter expression (for future use)
+            // Meilisearch filter expression
+            // Examples:
+            // - ?filter=challenge_rating >= 10
+            // - ?filter=spell_slugs IN [fireball]
+            // - ?filter=type = dragon AND armor_class >= 18
             'filter' => ['sometimes', 'string', 'max:1000'],
         ];
     }

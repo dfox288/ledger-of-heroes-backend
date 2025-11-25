@@ -19,64 +19,58 @@ class MonsterController extends Controller
     /**
      * List all monsters
      *
-     * Returns a paginated list of D&D 5e monsters with advanced filtering capabilities.
-     * Supports spell filtering (AND/OR logic), spell level, spellcasting ability, challenge rating,
-     * type, size, alignment, and full-text search.
+     * Returns a paginated list of D&D 5e monsters with advanced filtering via Meilisearch.
+     * All filtering uses the `?filter=` parameter with Meilisearch syntax.
      *
-     * **Basic Examples:**
+     * **Basic Search:**
+     * - Full-text search: `GET /api/v1/monsters?q=dragon`
      * - All monsters: `GET /api/v1/monsters`
-     * - By CR range: `GET /api/v1/monsters?min_cr=5&max_cr=10`
-     * - By type: `GET /api/v1/monsters?type=dragon`
      *
-     * **Spell Filtering Examples (Meilisearch):**
-     * - Single spell: `GET /api/v1/monsters?filter=spell_slugs IN [fireball]` (11 monsters)
-     * - Multiple spells (ANY): `GET /api/v1/monsters?filter=spell_slugs IN [fireball, lightning-bolt]` (17 monsters with EITHER)
-     * - High-level casters: `GET /api/v1/monsters?filter=spell_slugs IN [wish, meteor-swarm]` (legendary spellcasters)
+     * **Challenge Rating Filters:**
+     * - Exact CR: `?filter=challenge_rating = 5`
+     * - CR range: `?filter=challenge_rating >= 10 AND challenge_rating <= 20`
+     * - Boss fights: `?filter=challenge_rating >= 20`
      *
-     * **Combined Filter Examples:**
-     * - CR + Spell: `GET /api/v1/monsters?filter=challenge_rating >= 10 AND spell_slugs IN [fireball]` (high-CR casters)
-     * - Type + Spell: `GET /api/v1/monsters?filter=type = undead AND spell_slugs IN [animate-dead]` (undead necromancers)
-     * - Search + Spells: `GET /api/v1/monsters?q=dragon&filter=spell_slugs IN [fireball]` (spellcasting dragons)
+     * **Type & Size Filters:**
+     * - Dragons: `?filter=type = dragon`
+     * - Large creatures: `?filter=size_code = L`
+     * - Large dragons: `?filter=type = dragon AND size_code = L`
      *
-     * **Use Cases:**
-     * - Encounter Building: Find balanced enemies for party level
-     * - Spell Tracking: Identify which monsters can counterspell, teleport, or summon
-     * - Themed Campaigns: All fiends with fire spells, all undead spellcasters, etc.
-     * - Boss Rush: Progressive difficulty with varied spell mechanics
+     * **Combat Stats Filters:**
+     * - High AC: `?filter=armor_class >= 18`
+     * - High HP: `?filter=hit_points_average > 100`
+     * - Tank enemies: `?filter=armor_class >= 18 AND hit_points_average >= 100`
      *
-     * **Note on Spell Filtering:**
-     * Spell filtering now uses Meilisearch `?filter=` syntax exclusively.
-     * Legacy parameters like `?spells=`, `?spell_level=`, `?spellcasting_ability=` have been removed.
-     * Use `?filter=spell_slugs IN [spell1, spell2]` instead.
+     * **Spell-Based Filters:**
+     * - Fireball casters: `?filter=spell_slugs IN [fireball]`
+     * - Multiple spells: `?filter=spell_slugs IN [fireball, lightning-bolt]`
+     * - High-CR casters: `?filter=challenge_rating >= 10 AND spell_slugs IN [fireball]`
+     * - Spellcasting dragons: `?filter=type = dragon AND spell_slugs IN [polymorph]`
      *
-     * **Advanced Meilisearch Filter Examples:**
-     * - CR range: `GET /api/v1/monsters?filter=challenge_rating >= 10 AND challenge_rating <= 15`
-     * - High HP: `GET /api/v1/monsters?filter=hit_points_average > 100`
-     * - Multiple ranges: `GET /api/v1/monsters?filter=challenge_rating >= 5 AND hit_points_average > 50 AND armor_class >= 15`
-     * - Boss fights: `GET /api/v1/monsters?filter=challenge_rating >= 20 AND experience_points >= 25000`
-     * - Weak monsters: `GET /api/v1/monsters?filter=challenge_rating <= 1 AND hit_points_average < 20`
-     * - Tank enemies: `GET /api/v1/monsters?filter=armor_class >= 18 AND hit_points_average >= 100`
+     * **Tag-Based Filters:**
+     * - All undead: `?filter=tag_slugs IN [undead]`
+     * - Fire-immune: `?filter=tag_slugs IN [fire-immune]`
+     * - Undead OR fiend: `?filter=tag_slugs IN [undead, fiend]`
      *
-     * **Tag-Based Filtering Examples:**
-     * - All fiends: `GET /api/v1/monsters?filter=tag_slugs IN [fiend]`
-     * - Fire-immune creatures: `GET /api/v1/monsters?filter=tag_slugs IN [fire-immune]`
-     * - Fiends OR undead: `GET /api/v1/monsters?filter=tag_slugs IN [fiend, undead]`
-     * - Fire-immune dragons: `GET /api/v1/monsters?filter=tag_slugs IN [fire-immune] AND type = dragon`
-     * - High CR fiends: `GET /api/v1/monsters?filter=tag_slugs IN [fiend] AND challenge_rating IN [15, 16, 17, 18, 19, 20]`
+     * **Combined Examples:**
+     * - Powerful undead: `?filter=tag_slugs IN [undead] AND challenge_rating >= 10`
+     * - Search + filter: `?q=dragon&filter=challenge_rating >= 15`
+     * - Multi-condition: `?filter=type = fiend AND armor_class >= 15 AND hit_points_average > 100`
      *
-     * **Spell-Based Filtering Examples:**
-     * - Fireball casters: `GET /api/v1/monsters?filter=spell_slugs IN [fireball]`
-     * - Fireball OR Lightning Bolt: `GET /api/v1/monsters?filter=spell_slugs IN [fireball, lightning-bolt]`
-     * - Spellcasting dragons: `GET /api/v1/monsters?filter=type = dragon AND spell_slugs IN [fireball, polymorph]`
+     * **Available Filterable Fields:**
+     * - Stats: `challenge_rating`, `armor_class`, `hit_points_average`, `experience_points`
+     * - Type: `type`, `size_code`, `alignment`
+     * - Abilities: `strength`, `dexterity`, `constitution`, `intelligence`, `wisdom`, `charisma`
+     * - Speed: `speed_walk`, `speed_fly`, `speed_swim`, `speed_burrow`, `speed_climb`
+     * - Arrays: `spell_slugs`, `tag_slugs`, `source_codes`
+     * - Other: `passive_perception`, `can_hover`, `is_npc`
      *
-     * **Meilisearch Operators:**
+     * **Operators:**
      * - Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`
      * - Logic: `AND`, `OR`
-     * - Membership: `IN [value1, value2]`
-     *
-     * See `docs/API-EXAMPLES.md` and `docs/MEILISEARCH-FILTERS.md` for comprehensive examples.
+     * - Arrays: `IN [value1, value2]`
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: challenge_rating (string), type (string), size_code (string), alignment (string), armor_class (int), hit_points_average (int), experience_points (int), spell_slugs (array), tag_slugs (array).', example: 'challenge_rating >= 5 AND challenge_rating <= 10 AND type = dragon')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression. Operators: =, !=, >, >=, <, <=, AND, OR, IN. Fields: challenge_rating, type, size_code, alignment, armor_class, hit_points_average, experience_points, strength, dexterity, constitution, intelligence, wisdom, charisma, speed_walk, speed_fly, passive_perception, spell_slugs, tag_slugs, source_codes, can_hover, is_npc.', example: 'challenge_rating >= 10 AND spell_slugs IN [fireball]')]
     public function index(MonsterIndexRequest $request, MonsterSearchService $service, Client $meilisearch)
     {
         $dto = MonsterSearchDTO::fromRequest($request);

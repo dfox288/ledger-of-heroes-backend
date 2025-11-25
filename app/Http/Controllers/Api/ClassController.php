@@ -21,67 +21,40 @@ class ClassController extends Controller
      *
      * Returns a paginated list of D&D 5e character classes and subclasses. Includes hit dice,
      * spellcasting abilities, proficiencies, class features, level progression tables, and
-     * subclass options. Supports filtering by proficiencies, skills, saving throws, and spells.
+     * subclass options. Uses Meilisearch for filtering and search.
      *
-     * **Basic Examples:**
-     * - All classes: `GET /api/v1/classes`
-     * - Base classes only: `GET /api/v1/classes?base_only=1`
-     * - By hit die: `GET /api/v1/classes?hit_die=12`
-     * - Spellcasters only: `GET /api/v1/classes?is_spellcaster=true`
-     * - Non-spellcasters: `GET /api/v1/classes?is_spellcaster=false`
-     * - Classes with 9th level spells: `GET /api/v1/classes?max_spell_level=9`
-     * - Combined filters: `GET /api/v1/classes?hit_die=10&is_spellcaster=true` (Paladin, Ranger)
-     *
-     * **Spell Filtering Examples (Meilisearch):**
-     * - Single spell: `GET /api/v1/classes?filter=spell_slugs IN [fireball]`
-     * - Healing classes: `GET /api/v1/classes?filter=spell_slugs IN [cure-wounds, healing-word]`
-     * - Full casters: `GET /api/v1/classes?filter=tag_slugs IN [full-caster]`
-     *
-     * **Note on Spell Filtering:**
-     * Spell filtering now uses Meilisearch `?filter=` syntax exclusively.
-     * Legacy parameters like `?spells=`, `?spell_level=`, `?max_spell_level=` have been removed.
-     * Use `?filter=spell_slugs IN [spell1, spell2]` instead.
-     *
-     * **Use Cases:**
-     * - **Multiclass Planning:** Which classes get Fireball? (`?filter=spell_slugs IN [fireball]`)
-     * - **Healer Identification:** Classes with healing magic (`?filter=spell_slugs IN [cure-wounds, healing-word]`)
-     * - **Full Spellcasters:** Classes with 9th level spells (`?filter=tag_slugs IN [full-caster]`)
-     * - **Optimization:** Find INT-based spellcasters (`?filter=spellcasting_ability = INT`)
-     * - **Build Planning:** Wisdom casters (`?filter=spellcasting_ability = WIS`)
-     *
-     * **Tag-Based Filtering Examples (Meilisearch):**
-     * - Full spellcasters: `GET /api/v1/classes?filter=tag_slugs IN [full-caster]`
-     * - Martial classes: `GET /api/v1/classes?filter=tag_slugs IN [martial]`
-     * - Half casters: `GET /api/v1/classes?filter=tag_slugs IN [half-caster]`
-     * - Combined filters: `GET /api/v1/classes?filter=tag_slugs IN [spellcaster] AND hit_die >= 8`
-     *
-     * **Base Class vs Subclass Filtering (Meilisearch):**
+     * **Filtering Examples:**
      * - Base classes only: `GET /api/v1/classes?filter=is_subclass = false`
      * - Subclasses only: `GET /api/v1/classes?filter=is_subclass = true`
-     * - Base spellcasters: `GET /api/v1/classes?filter=is_subclass = false AND tag_slugs IN [spellcaster]`
-     * - High HP subclasses: `GET /api/v1/classes?filter=is_subclass = true AND hit_die >= 10`
+     * - High HP classes: `GET /api/v1/classes?filter=hit_die >= 10`
+     * - Barbarian and Fighter: `GET /api/v1/classes?filter=hit_die = 12`
+     * - Spellcasters: `GET /api/v1/classes?filter=spellcasting_ability != null`
+     * - INT-based casters: `GET /api/v1/classes?filter=spellcasting_ability = INT`
+     * - WIS-based casters: `GET /api/v1/classes?filter=spellcasting_ability = WIS`
+     * - Full casters: `GET /api/v1/classes?filter=tag_slugs IN [full-caster]`
+     * - Martial classes: `GET /api/v1/classes?filter=tag_slugs IN [martial]`
+     * - Combined: `GET /api/v1/classes?filter=is_subclass = false AND tag_slugs IN [spellcaster]`
      *
-     * **Parameter Reference:**
-     * - `is_spellcaster` (bool): Filter by spellcasting ability (true=has spellcasting, false=no spellcasting)
-     * - `hit_die` (int): Filter by hit die size (6, 8, 10, or 12)
-     * - `max_spell_level` (int): Filter classes that have spells of this level (0-9)
-     * - `spells` (string): Comma-separated spell slugs (max 500 chars)
-     * - `spells_operator` (string): "AND" or "OR" (default: AND)
-     * - `spell_level` (int): Spell level 0-9 (0=cantrip, 9=9th level)
-     * - `base_only` (bool): Filter to base classes only (exclude subclasses)
-     * - `grants_proficiency` (string): Filter by proficiency type
-     * - `grants_skill` (string): Filter by skill proficiency
-     * - `grants_saving_throw` (string): Filter by saving throw proficiency
-     * - `filter` (string): Meilisearch filter expression (see Scramble docs)
+     * **Use Cases:**
+     * - **Build Planning:** Find INT-based spellcasters for Wizard multiclass synergy
+     * - **Optimization:** Identify high HP classes for tanking (hit_die >= 10)
+     * - **Spellcasting:** Filter by spellcasting ability for multiclass requirements
+     * - **Class Archetype:** Find all martial, spellcaster, or hybrid classes via tags
      *
-     * **Data Source:**
-     * - 1,917 class-spell relationships across 63 classes/subclasses
-     * - Spell filtering powered by `class_spells` pivot table
-     * - Results include subclasses in nested `subclasses` array
+     * **Available Filterable Fields:**
+     * - `id` (int): Class ID
+     * - `slug` (string): Class slug (e.g., "wizard", "fighter-champion")
+     * - `hit_die` (int): Hit die size (6, 8, 10, or 12)
+     * - `primary_ability` (string): Primary ability (e.g., "STR", "INT")
+     * - `spellcasting_ability` (string): Spellcasting ability code (e.g., "INT", "WIS", "CHA", null for non-casters)
+     * - `source_codes` (array): Source book codes (e.g., ["PHB"], ["XGTE"])
+     * - `is_subclass` (bool): Whether this is a subclass (true) or base class (false)
+     * - `parent_class_name` (string): Parent class name for subclasses
+     * - `tag_slugs` (array): Tag slugs (e.g., ["spellcaster"], ["martial"], ["full-caster"])
      *
      * See `docs/API-EXAMPLES.md` for comprehensive usage examples.
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: hit_die (int), is_spellcaster (bool), spellcasting_ability_code (string), is_subclass (bool), tag_slugs (array).', example: 'is_subclass = false AND tag_slugs IN [spellcaster]')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: id, slug, hit_die, primary_ability, spellcasting_ability, source_codes, is_subclass, parent_class_name, tag_slugs.', example: 'is_subclass = false AND tag_slugs IN [spellcaster]')]
     public function index(ClassIndexRequest $request, ClassSearchService $service)
     {
         $dto = ClassSearchDTO::fromRequest($request);

@@ -43,6 +43,17 @@ final class FeatSearchService
      */
     private const DEFAULT_RELATIONSHIPS = self::INDEX_RELATIONSHIPS;
 
+    /**
+     * Build Scout search query for full-text search
+     *
+     * NOTE: MySQL filtering has been removed. Use Meilisearch ?filter= parameter instead.
+     *
+     * Examples:
+     * - ?filter=tag_slugs IN [combat]
+     * - ?filter=tag_slugs IN [magic, skill-improvement]
+     * - ?filter=source_codes IN [PHB, XGE]
+     * - ?filter=tag_slugs IN [combat] AND source_codes IN [PHB]
+     */
     public function buildScoutQuery(string $searchQuery): \Laravel\Scout\Builder
     {
         return Feat::search($searchQuery);
@@ -84,35 +95,20 @@ final class FeatSearchService
 
     private function applyFilters(Builder $query, FeatSearchDTO $dto): void
     {
-        if (isset($dto->filters['search'])) {
-            $query->search($dto->filters['search']);
-        }
-
-        if (isset($dto->filters['prerequisite_race'])) {
-            $query->wherePrerequisiteRace($dto->filters['prerequisite_race']);
-        }
-
-        if (isset($dto->filters['prerequisite_ability'])) {
-            $minValue = $dto->filters['min_value'] ?? null;
-            $query->wherePrerequisiteAbility($dto->filters['prerequisite_ability'], $minValue);
-        }
-
-        if (isset($dto->filters['has_prerequisites'])) {
-            $hasPrerequisites = filter_var($dto->filters['has_prerequisites'], FILTER_VALIDATE_BOOLEAN);
-            $query->withOrWithoutPrerequisites($hasPrerequisites);
-        }
-
-        if (isset($dto->filters['grants_proficiency'])) {
-            $query->grantsProficiency($dto->filters['grants_proficiency']);
-        }
-
-        if (isset($dto->filters['prerequisite_proficiency'])) {
-            $query->wherePrerequisiteProficiency($dto->filters['prerequisite_proficiency']);
-        }
-
-        if (isset($dto->filters['grants_skill'])) {
-            $query->grantsSkill($dto->filters['grants_skill']);
-        }
+        // MySQL filtering has been removed - use Meilisearch ?filter= parameter instead
+        //
+        // Examples:
+        // - ?filter=tag_slugs IN [combat]
+        // - ?filter=tag_slugs IN [magic, skill-improvement]
+        // - ?filter=source_codes IN [PHB, XGE]
+        // - ?filter=tag_slugs IN [combat] AND source_codes IN [PHB]
+        //
+        // All filtering should happen via Meilisearch for consistency and performance.
+        //
+        // NOTE: Legacy MySQL filters (prerequisite_race, prerequisite_ability, has_prerequisites,
+        // grants_proficiency, prerequisite_proficiency, grants_skill) are deprecated.
+        // These complex relational filters should be migrated to Meilisearch by indexing
+        // the prerequisite/proficiency data in toSearchableArray() method.
     }
 
     private function applySorting(Builder $query, FeatSearchDTO $dto): void

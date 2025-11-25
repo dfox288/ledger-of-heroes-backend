@@ -7092,7 +7092,7 @@
         "/v1/spells": {
             "get": {
                 "operationId": "spells.index",
-                "description": "Returns a paginated list of D&D 5e spells with comprehensive filtering capabilities.\nSupports spell level, school of magic, concentration/ritual status, damage types,\nsaving throws, component requirements, Meilisearch filters, and full-text search.\n\n**Basic Examples (MySQL - simple column filters):**\n- All spells: `GET /api/v1/spells`\n- Cantrips (level 0): `GET /api/v1/spells?level=0` (67 cantrips)\n- Low-level spells: `GET /api/v1/spells?level=1` (93 1st level spells)\n- High-level spells: `GET /api/v1/spells?level=9` (17 legendary 9th level spells)\n- Evocation school: `GET /api/v1/spells?school=EV` (all evocation spells)\n- Enchantment school: `GET /api/v1/spells?school=EN` (all enchantment spells)\n- Concentration spells: `GET /api/v1/spells?concentration=true` (buffing, control)\n- Ritual spells: `GET /api/v1/spells?ritual=true` (non-combat utility spells)\n- Pagination: `GET /api/v1/spells?per_page=50&page=2`\n\n**\u26a0\ufe0f IMPORTANT: Advanced Filtering Requires Meilisearch**\nFor damage types, saving throws, components, tags, and class filtering,\nyou MUST use the `?filter=` parameter with Meilisearch syntax.\nThese features are NOT available via simple query parameters.\n\n**Advanced Meilisearch Filtering:**\n- Level range: `GET /api/v1/spells?filter=level >= 1 AND level <= 3` (low-tier spells)\n- Low-level spells: `GET /api/v1/spells?filter=level IN [0, 1, 2, 3]` (early-game options)\n- High-level spells: `GET /api/v1/spells?filter=level >= 7` (legendary magic)\n- Multiple schools: `GET /api/v1/spells?filter=school_code = EV OR school_code = C` (damage or buffs)\n- Concentration + level: `GET /api/v1/spells?filter=concentration = true AND level <= 2` (early buffs)\n- Non-concentration damage: `GET /api/v1/spells?filter=concentration = false AND school_code = EV` (burst damage)\n\n**Class Filtering (Meilisearch):**\n- Bard spells: `GET /api/v1/spells?filter=class_slugs IN [bard]` (147 bard spells)\n- Wizard spells: `GET /api/v1/spells?filter=class_slugs IN [wizard]` (all wizard spells)\n- Multiple classes: `GET /api/v1/spells?filter=class_slugs IN [bard, wizard]` (spells available to ANY of these classes)\n- Class + level: `GET /api/v1/spells?filter=class_slugs IN [bard] AND level <= 3` (low-level bard spells)\n- Class + school: `GET /api/v1/spells?filter=class_slugs IN [wizard] AND school_code = EV` (wizard evocation spells)\n\n**Meilisearch Operators:**\n- Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`\n- Logic: `AND`, `OR`\n- Membership: `IN [value1, value2]`\n\n**Tag-Based Filtering (Meilisearch):**\n- Fire spells: `GET /api/v1/spells?filter=tag_slugs IN [fire]`\n- AOE spells: `GET /api/v1/spells?filter=tag_slugs IN [aoe]`\n- Fire + AOE: `GET /api/v1/spells?filter=tag_slugs IN [fire, aoe]`\n- Healing spells: `GET /api/v1/spells?filter=tag_slugs IN [healing]`\n- Damage spells: `GET /api/v1/spells?filter=tag_slugs IN [damage]`\n\n**Combined Filtering Examples:**\n- Search + filter: `GET /api/v1/spells?q=fire&filter=level <= 3` (low-level fire-themed spells)\n- Class + level: `GET /api/v1/spells?filter=class_slugs IN [wizard] AND level >= 7` (high-level wizard spells)\n- Tags + class: `GET /api/v1/spells?filter=tag_slugs IN [healing] AND class_slugs IN [cleric]` (cleric healing)\n\n**Use Cases:**\n- Character Building: Find spells for specific builds (fire mage, enchanter, healer)\n- Combat Tactics: Identify spells targeting specific saves to exploit enemy weaknesses\n- Stealth Gameplay: Silent spells for sneaky casters (Subtle Spell metamagic planning)\n- Resource Management: Material-free spells for imprisoned or resource-limited casters\n- Spell Comparison: Compare schools, levels, and damage types for optimization\n- Metamagic Planning: Identify Subtle Spell, Twinned Spell, or Quicken Spell candidates\n- DM Encounter Design: Find spells by CR-appropriate level and damage type\n- Build Optimization: Filter by damage type + save to create synergistic spell lists\n\n**Query Parameters:**\n- `q` (string): Full-text search term (searches name, description, higher_level_text)\n- `filter` (string): Meilisearch filter expression (supports =, !=, >, >=, <, <=, AND, OR, IN)\n- `level` (int 0-9): Spell level (0 = cantrip, 1-9 = spell slots) - MySQL fallback\n- `school` (string): Spell school code (EV, EN, AB, etc.) - MySQL fallback\n- `concentration` (bool): Requires concentration - MySQL fallback\n- `ritual` (bool): Can be cast as ritual - MySQL fallback\n- `sort_by` (string): Column to sort by (name, level, created_at, updated_at)\n- `sort_direction` (string): Sort direction (asc, desc)\n- `per_page` (int): Results per page (default 15, max 100)\n- `page` (int): Page number (default 1)\n\n**Meilisearch Filterable Fields:**\n- `level` (int): 0-9\n- `school_code` (string): EV, EN, AB, C, D, I, N, T\n- `concentration` (bool): true/false\n- `ritual` (bool): true/false\n- `class_slugs` (array): wizard, cleric, bard, etc.\n- `tag_slugs` (array): fire, healing, damage, aoe, etc.\n- `source_codes` (array): PHB, XGE, TCoE, etc.\n\n**Spell School IDs:**\n1=Abjuration, 2=Conjuration, 3=Evocation, 4=Enchantment, 5=Illusion, 6=Divination, 7=Necromancy, 8=Transmutation\n\n**Data Source:**\n- 477 spells across all D&D 5e sources (PHB, XGE, TCoE, etc.)\n- Damage/effect filtering via spell_effects table\n- Saving throw filtering via entity_saving_throws table\n- Component filtering via components column\n- 8 schools of magic with 1,917 class-spell relationships\n\nSee `docs/API-EXAMPLES.md` for comprehensive usage examples.",
+                "description": "Returns a paginated list of 477 D&D 5e spells. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/spells                                    # All spells\nGET /api/v1/spells?filter=level = 0                   # Cantrips (44 spells)\nGET /api/v1/spells?filter=level <= 3                  # Low-level spells\nGET /api/v1/spells?filter=school_code = EV            # Evocation spells\nGET /api/v1/spells?filter=class_slugs IN [bard]       # Bard spells (147 spells)\nGET /api/v1/spells?filter=concentration = true        # Concentration spells\nGET /api/v1/spells?q=fire                             # Full-text search for \"fire\"\nGET /api/v1/spells?q=fire&filter=level <= 3           # Search + filter combined\nGET /api/v1/spells?filter=class_slugs IN [bard] AND level <= 3   # Low-level bard spells\n```\n\n**Damage Type Filtering:**\n- Fire damage: `GET /api/v1/spells?filter=damage_types IN [F]`\n- Force or radiant: `GET /api/v1/spells?filter=damage_types IN [O, R]`\n- Fire cantrips: `GET /api/v1/spells?filter=damage_types IN [F] AND level = 0`\n- Utility spells (no damage): `GET /api/v1/spells?filter=damage_types IS EMPTY`\n\n**Saving Throw Filtering:**\n- DEX saves: `GET /api/v1/spells?filter=saving_throws IN [DEX]`\n- WIS or CHA saves: `GET /api/v1/spells?filter=saving_throws IN [WIS, CHA]`\n- Auto-hit spells (no saves): `GET /api/v1/spells?filter=saving_throws IS EMPTY`\n\n**Component Filtering:**\n- Castable in Silence (no verbal): `GET /api/v1/spells?filter=requires_verbal = false`\n- Castable while grappled (no somatic): `GET /api/v1/spells?filter=requires_somatic = false`\n- Subtle Spell candidates: `GET /api/v1/spells?filter=requires_verbal = false AND requires_somatic = false`\n- No components needed: `GET /api/v1/spells?filter=requires_verbal = false AND requires_somatic = false AND requires_material = false`\n\n**Filterable Fields:**\n- `level` (0-9), `school_code` (EV, EN, AB, C, D, I, N, T), `school_name`\n- `concentration` (bool), `ritual` (bool)\n- `class_slugs` (array: wizard, cleric, bard, druid, etc.)\n- `tag_slugs` (array: ritual-caster, touch-spells, etc.) - Only 22% of spells have tags\n- `source_codes` (array: PHB, XGE, TCoE, etc.)\n- `damage_types` (array: F, C, O, etc.)\n- `saving_throws` (array: STR, DEX, CON, INT, WIS, CHA)\n- `requires_verbal`, `requires_somatic`, `requires_material` (bool)\n\n**Operators:**\n- Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`\n- Logic: `AND`, `OR`\n- Membership: `IN [value1, value2, ...]`\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, level, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)",
                 "summary": "List all spells",
                 "tags": [
                     "Spell"
@@ -7153,7 +7153,7 @@
                     {
                         "name": "q",
                         "in": "query",
-                        "description": "Search query (Scout/Meilisearch)",
+                        "description": "Full-text search query",
                         "schema": {
                             "type": "string",
                             "minLength": 2,
@@ -7161,136 +7161,14 @@
                         }
                     },
                     {
-                        "name": "level",
-                        "in": "query",
-                        "description": "Spell-specific filters (backwards compatibility)",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 9
-                        }
-                    },
-                    {
-                        "name": "school",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 20
-                        }
-                    },
-                    {
-                        "name": "concentration",
-                        "in": "query",
-                        "description": "Accepts ID, code (EV, EN), or name (evocation)",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "1",
-                                "",
-                                "1",
-                                "0",
-                                "1",
-                                "0",
-                                "true",
-                                "false"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "ritual",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "1",
-                                "",
-                                "1",
-                                "0",
-                                "1",
-                                "0",
-                                "true",
-                                "false"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "damage_type",
-                        "in": "query",
-                        "description": "Damage/Effect filtering (NEW)",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "saving_throw",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "requires_verbal",
-                        "in": "query",
-                        "description": "Component filtering (NEW)",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "0",
-                                "1",
-                                "0",
-                                "1",
-                                "1",
-                                "",
-                                "true",
-                                "false"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "requires_somatic",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "0",
-                                "1",
-                                "0",
-                                "1",
-                                "1",
-                                "",
-                                "true",
-                                "false"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "requires_material",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "0",
-                                "1",
-                                "0",
-                                "1",
-                                "1",
-                                "",
-                                "true",
-                                "false"
-                            ]
-                        }
-                    },
-                    {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: level (int), school_code (string), concentration (bool), ritual (bool), class_slugs (array), tag_slugs (array).",
+                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN, IS EMPTY. Available fields: level (int), school_code/school_name (string), concentration/ritual (bool), class_slugs/tag_slugs/source_codes (array), damage_types (array: F, C, O, etc.), saving_throws (array: STR, DEX, CON, INT, WIS, CHA), requires_verbal/requires_somatic/requires_material (bool).",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
                         },
-                        "example": "class_slugs IN [bard] AND level <= 3"
+                        "example": "damage_types IN [F] AND level <= 3"
                     }
                 ],
                 "responses": {

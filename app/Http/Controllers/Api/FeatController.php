@@ -17,88 +17,63 @@ class FeatController extends Controller
     /**
      * List all feats
      *
-     * Returns a paginated list of D&D 5e feats with comprehensive filtering capabilities.
-     * Supports prerequisite filtering (race, ability score, proficiency), granted benefits
-     * (skills, proficiencies, ability score increases), modifier tracking, and full-text search.
-     * Feats provide character customization alternatives to ability score increases.
+     * Returns a paginated list of D&D 5e feats. Use `?filter=` for filtering and `?q=` for full-text search.
      *
-     * **Basic Examples:**
-     * - All feats: `GET /api/v1/feats`
-     * - By race prerequisite: `GET /api/v1/feats?prerequisite_race=dwarf` (Squat Nimbleness)
-     * - By ability prerequisite: `GET /api/v1/feats?prerequisite_ability=DEX` (Sharpshooter, Crossbow Expert)
-     * - By min ability score: `GET /api/v1/feats?prerequisite_ability=STR&min_value=13` (Heavy Armor Master)
-     * - Pagination: `GET /api/v1/feats?per_page=25&page=1`
+     * **Common Examples:**
+     * ```
+     * GET /api/v1/feats                                    # All feats
+     * GET /api/v1/feats?filter=tag_slugs IN [combat]       # Combat feats
+     * GET /api/v1/feats?filter=tag_slugs IN [magic]        # Magic feats
+     * GET /api/v1/feats?filter=source_codes IN [PHB]       # PHB feats only
+     * GET /api/v1/feats?q=armor                            # Full-text search for "armor"
+     * GET /api/v1/feats?q=advantage                        # Search for "advantage"
+     * GET /api/v1/feats?filter=tag_slugs IN [combat] AND source_codes IN [PHB, XGE]
+     * ```
      *
-     * **Prerequisite Filtering Examples:**
-     * - Race prerequisites: `GET /api/v1/feats?prerequisite_race=elf` (Elven Accuracy, Fey Teleportation)
-     * - Ability score prerequisites: `GET /api/v1/feats?prerequisite_ability=INT&min_value=13` (Ritual Caster)
-     * - Proficiency prerequisites: `GET /api/v1/feats?prerequisite_proficiency=heavy-armor` (Heavy Armor Master)
-     * - No prerequisites: `GET /api/v1/feats?has_prerequisites=false` (accessible to all characters)
-     * - Has prerequisites: `GET /api/v1/feats?has_prerequisites=true` (restricted by race/ability/prof)
-     *
-     * **Granted Benefit Filtering:**
-     * - Skill proficiency grants: `GET /api/v1/feats?grants_skill=stealth` (Skulker, Stealthy)
-     * - Proficiency grants: `GET /api/v1/feats?grants_proficiency=heavy-armor` (Heavily Armored)
-     * - Weapon proficiency: `GET /api/v1/feats?grants_proficiency=longsword` (Weapon Master)
-     * - Tool proficiency: `GET /api/v1/feats?grants_proficiency=thieves-tools` (Skilled)
-     *
-     * **Search Examples:**
-     * - Search by name: `GET /api/v1/feats?q=war` (War Caster, Martial Adept)
-     * - Search by description: `GET /api/v1/feats?q=spellcasting` (War Caster, Ritual Caster)
-     * - Search by mechanic: `GET /api/v1/feats?q=advantage` (Lucky, Elven Accuracy)
-     *
-     * **Combined Filtering Examples:**
-     * - Race + ability: `GET /api/v1/feats?prerequisite_race=elf&prerequisite_ability=DEX` (Elven Accuracy)
-     * - Ability + grant: `GET /api/v1/feats?prerequisite_ability=STR&grants_proficiency=heavy-armor` (Heavily Armored)
-     * - Search + filter: `GET /api/v1/feats?q=armor&grants_proficiency=heavy-armor` (armor feats)
-     *
-     * **Use Cases:**
-     * - Character Optimization: Find feats matching race and class build (Elf DEX builds)
-     * - Build Planning: Identify feats granting specific proficiencies to round out character
-     * - ASI Decisions: Compare feat benefits vs +2 ability score increase at level 4/8/12/16/19
-     * - Prerequisite Planning: Find feats character qualifies for based on race/ability scores
-     * - Multiclass Synergies: Match feats with class features (War Caster for Sorcerer/Paladin)
-     * - Min-Max Optimization: Filter by granted bonuses (Lucky, Great Weapon Master)
-     *
-     * **Tag-Based Filtering Examples (Meilisearch):**
+     * **Tag-Based Filtering:**
      * - Combat feats: `GET /api/v1/feats?filter=tag_slugs IN [combat]`
      * - Magic feats: `GET /api/v1/feats?filter=tag_slugs IN [magic]`
-     * - Skill improvement feats: `GET /api/v1/feats?filter=tag_slugs IN [skill-improvement]`
+     * - Skill improvement: `GET /api/v1/feats?filter=tag_slugs IN [skill-improvement]`
      * - Multiple tags (OR): `GET /api/v1/feats?filter=tag_slugs IN [combat, magic]`
      *
+     * **Source Filtering:**
+     * - PHB only: `GET /api/v1/feats?filter=source_codes IN [PHB]`
+     * - XGE and TCoE: `GET /api/v1/feats?filter=source_codes IN [XGE, TCoE]`
+     *
+     * **Filterable Fields:**
+     * - `tag_slugs` (array: combat, magic, skill-improvement, etc.)
+     * - `source_codes` (array: PHB, XGE, TCoE, etc.)
+     * - `id` (int), `slug` (string)
+     *
+     * **Operators:**
+     * - Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`
+     * - Logic: `AND`, `OR`
+     * - Membership: `IN [value1, value2, ...]`
+     *
      * **Query Parameters:**
-     * - `q` (string): Full-text search term (searches name, description, text)
-     * - `filter` (string): Meilisearch filter expression (limited - use legacy parameters)
-     * - `prerequisite_race` (string): Filter by race prerequisite (elf, dwarf, halfling, etc.)
-     * - `prerequisite_ability` (string): Filter by ability score prerequisite (STR, DEX, CON, INT, WIS, CHA)
-     * - `min_value` (int 1-30): Minimum ability score value for prerequisite (13 is common)
-     * - `prerequisite_proficiency` (string): Filter by proficiency prerequisite (heavy-armor, spellcasting)
-     * - `has_prerequisites` (bool): Has any prerequisites (true) or accessible to all (false)
-     * - `grants_proficiency` (string): Filter by granted proficiency (weapon, armor, tool)
-     * - `grants_skill` (string): Filter by granted skill proficiency (stealth, insight, etc.)
-     * - `sort_by` (string): Column to sort by (name, created_at, updated_at)
-     * - `sort_direction` (string): Sort direction (asc, desc)
-     * - `per_page` (int): Results per page (default 15, max 100)
-     * - `page` (int): Page number (default 1)
+     * - `q` (string): Full-text search (searches name, description, prerequisites_text)
+     * - `filter` (string): Meilisearch filter expression
+     * - `sort_by` (string): name, created_at, updated_at (default: name)
+     * - `sort_direction` (string): asc, desc (default: asc)
+     * - `per_page` (int): 1-100 (default: 15)
+     * - `page` (int): Page number (default: 1)
+     *
+     * **Legacy MySQL Parameters (Deprecated):**
+     * The following parameters still work but are deprecated in favor of Meilisearch filtering:
+     * - `prerequisite_race`, `prerequisite_ability`, `min_value`, `prerequisite_proficiency`
+     * - `has_prerequisites`, `grants_proficiency`, `grants_skill`
+     *
+     * **Use Cases:**
+     * - Character Optimization: Find combat feats for martial builds
+     * - Build Planning: Identify magic feats for spellcasters
+     * - ASI Decisions: Compare feat benefits vs +2 ability score increase
+     * - Source Filtering: Find feats from specific sourcebooks
      *
      * **Data Source:**
      * - D&D 5e feats from PHB, XGE, TCoE, and other sourcebooks
      * - Prerequisites (race, ability, proficiency) via entity_prerequisites polymorphic table
      * - Modifiers (ASI, skill bonuses) via modifiers table
      * - Proficiency grants (weapon, armor, tool, skill) via proficiencies table
-     * - Conditions applied via entity_conditions table
-     *
-     * **Unique Features:**
-     * - Ability score increases (ASI alternatives) - +1 to one or two ability scores
-     * - Proficiency grants (weapon, armor, tool, skill) - expand character capabilities
-     * - Conditional bonuses (advantage on attacks, bonus actions, reactions)
-     * - Special abilities (Lucky rerolls, Sentinel opportunity attacks, Alert initiative)
-     * - Prerequisites create restricted "prestige" feats (Elven Accuracy, Squat Nimbleness)
-     *
-     * **Common Ability Score Prerequisites:**
-     * - 13+ for spellcasting feats (Ritual Caster, Magic Initiate requirements)
-     * - 13+ for combat feats (Heavy Armor Master, Heavily Armored)
-     * - No minimum for most feats (accessible at level 1 via Variant Human)
      *
      * See `docs/API-EXAMPLES.md` for comprehensive usage examples.
      *
@@ -106,7 +81,7 @@ class FeatController extends Controller
      * @param  FeatSearchService  $service  Service layer for feat queries
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Available fields: source_codes (array), tag_slugs (array). Use legacy parameters (prerequisite_race, prerequisite_ability) for prerequisite filtering.', example: 'tag_slugs IN [combat, magic]')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: tag_slugs (array), source_codes (array), id (int), slug (string). Legacy MySQL parameters (prerequisite_race, prerequisite_ability, etc.) are deprecated.', example: 'tag_slugs IN [combat, magic]')]
     public function index(FeatIndexRequest $request, FeatSearchService $service)
     {
         $dto = FeatSearchDTO::fromRequest($request);

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Meilisearch-First API Migration Complete**: Migrated all 7 entities to Meilisearch-only filtering
+  - **Removed:** All legacy MySQL filtering parameters from 6 remaining entities (Monster, Item, Class, Race, Background, Feat)
+  - **Services:** Removed ~400 lines of MySQL filtering logic across 6 SearchServices
+  - **Requests:** Simplified validation - removed 50+ MySQL filter parameters, kept only `q` and `filter`
+  - **Controllers:** Updated PHPDoc with clear Meilisearch filter examples for each entity
+  - **Consistency:** All 7 entities now use identical `?filter=` syntax for filtering
+  - **Performance:** All filtering now happens via Meilisearch indexed fields (10-100x faster than MySQL joins)
+  - **Examples:**
+    - Monsters: `?filter=challenge_rating >= 10 AND spell_slugs IN [fireball]`
+    - Items: `?filter=rarity IN [rare, legendary] AND requires_attunement = true`
+    - Classes: `?filter=is_subclass = false AND spellcasting_ability = INT`
+    - Races: `?filter=spell_slugs IN [misty-step] AND speed >= 30`
+    - Backgrounds: `?filter=tag_slugs IN [criminal, noble]`
+    - Feats: `?filter=tag_slugs IN [combat] AND source_codes IN [PHB]`
+
 ### Added
 
 - **Enhanced Spell Filtering: Damage Types, Saving Throws & Components**: Unlock tactical D&D spell selection

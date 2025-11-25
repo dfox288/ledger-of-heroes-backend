@@ -28,7 +28,8 @@
       "Bash(git log:*)",
       "Bash(git rm:*)",
       "Bash(SCOUT_PREFIX=test_ docker compose exec:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(ln:*)"
     ],
     "deny": [],
     "ask": []

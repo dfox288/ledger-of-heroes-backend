@@ -220,7 +220,12 @@ class ClassApiTest extends TestCase
             'pages' => '73',
         ]);
 
-        $response = $this->getJson('/api/v1/classes?base_only=1');
+        // Index classes for Meilisearch filtering
+        $fighter->searchable();
+        $battleMaster->searchable();
+        sleep(1); // Give Meilisearch time to index
+
+        $response = $this->getJson('/api/v1/classes?filter=is_subclass = false');
 
         $response->assertStatus(200)
             ->assertJsonCount(1, 'data')
@@ -256,14 +261,19 @@ class ClassApiTest extends TestCase
             'pages' => '112',
         ]);
 
-        $response = $this->getJson('/api/v1/classes?search=Fighter');
+        // Index classes for Meilisearch search
+        $fighter->searchable();
+        $wizard->searchable();
+        sleep(1); // Give Meilisearch time to index
+
+        $response = $this->getJson('/api/v1/classes?q=Fighter');
 
         $response->assertStatus(200)
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.name', 'Fighter');
 
         // Test case-insensitive search
-        $response = $this->getJson('/api/v1/classes?search=fighter');
+        $response = $this->getJson('/api/v1/classes?q=fighter');
 
         $response->assertStatus(200)
             ->assertJsonCount(1, 'data')

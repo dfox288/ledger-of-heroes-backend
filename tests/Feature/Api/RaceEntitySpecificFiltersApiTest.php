@@ -14,6 +14,22 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Flush Meilisearch races index before each test
+        // This ensures a clean state for filter tests
+        try {
+            Race::removeAllFromSearch();
+        } catch (\Exception $e) {
+            // Index might not exist yet - that's OK
+        }
+
+        // Configure Meilisearch indexes to ensure filterable attributes are set
+        $this->artisan('search:configure-indexes');
+    }
+
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_races_by_ability_bonus_int(): void
     {
@@ -133,19 +149,19 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'name' => 'Halfling',
             'size_id' => $smallSize->id,
         ]);
-        $halfling->searchable();
+        $halfling->load('size')->searchable();
 
         $gnome = Race::factory()->create([
             'name' => 'Gnome',
             'size_id' => $smallSize->id,
         ]);
-        $gnome->searchable();
+        $gnome->load('size')->searchable();
 
         $human = Race::factory()->create([
             'name' => 'Human',
             'size_id' => $mediumSize->id,
         ]);
-        $human->searchable();
+        $human->load('size')->searchable();
 
         sleep(1); // Wait for Meilisearch indexing
 
@@ -174,19 +190,19 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'name' => 'Human',
             'size_id' => $mediumSize->id,
         ]);
-        $human->searchable();
+        $human->load('size')->searchable();
 
         $elf = Race::factory()->create([
             'name' => 'Elf',
             'size_id' => $mediumSize->id,
         ]);
-        $elf->searchable();
+        $elf->load('size')->searchable();
 
         $halfling = Race::factory()->create([
             'name' => 'Halfling',
             'size_id' => $smallSize->id,
         ]);
-        $halfling->searchable();
+        $halfling->load('size')->searchable();
 
         sleep(1); // Wait for Meilisearch indexing
 
@@ -400,7 +416,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
             'name' => 'Halfling',
             'size_id' => $smallSize->id,
         ]);
-        $halfling->searchable();
+        $halfling->load('size')->searchable();
 
         sleep(1); // Wait for Meilisearch indexing
 

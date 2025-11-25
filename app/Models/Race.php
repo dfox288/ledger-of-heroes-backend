@@ -133,13 +133,13 @@ class Race extends BaseModel
             // Phase 3: Spell filtering
             'spell_slugs' => $this->spells->pluck('spell.slug')->filter()->values()->all(),
             'has_innate_spells' => $this->spells->isNotEmpty(),
-            // Phase 4: Ability score bonuses
-            'ability_str_bonus' => $abilityBonuses->firstWhere('abilityScore.code', 'STR')?->value ?? 0,
-            'ability_dex_bonus' => $abilityBonuses->firstWhere('abilityScore.code', 'DEX')?->value ?? 0,
-            'ability_con_bonus' => $abilityBonuses->firstWhere('abilityScore.code', 'CON')?->value ?? 0,
-            'ability_int_bonus' => $abilityBonuses->firstWhere('abilityScore.code', 'INT')?->value ?? 0,
-            'ability_wis_bonus' => $abilityBonuses->firstWhere('abilityScore.code', 'WIS')?->value ?? 0,
-            'ability_cha_bonus' => $abilityBonuses->firstWhere('abilityScore.code', 'CHA')?->value ?? 0,
+            // Phase 4: Ability score bonuses (cast to int for Meilisearch filtering)
+            'ability_str_bonus' => (int) ($abilityBonuses->firstWhere('abilityScore.code', 'STR')?->value ?? 0),
+            'ability_dex_bonus' => (int) ($abilityBonuses->firstWhere('abilityScore.code', 'DEX')?->value ?? 0),
+            'ability_con_bonus' => (int) ($abilityBonuses->firstWhere('abilityScore.code', 'CON')?->value ?? 0),
+            'ability_int_bonus' => (int) ($abilityBonuses->firstWhere('abilityScore.code', 'INT')?->value ?? 0),
+            'ability_wis_bonus' => (int) ($abilityBonuses->firstWhere('abilityScore.code', 'WIS')?->value ?? 0),
+            'ability_cha_bonus' => (int) ($abilityBonuses->firstWhere('abilityScore.code', 'CHA')?->value ?? 0),
         ];
     }
 

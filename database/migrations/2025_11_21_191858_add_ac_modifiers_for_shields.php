@@ -29,8 +29,7 @@ return new class extends Migration
         $shieldType = ItemType::where('code', 'S')->first();
 
         if (! $shieldType) {
-            echo "Shield item type not found (code: S). Skipping migration.\n";
-
+            // Silent skip - expected during test setup before seeders run
             return;
         }
 

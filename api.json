@@ -406,7 +406,7 @@
         "/v1/backgrounds": {
             "get": {
                 "operationId": "backgrounds.index",
-                "description": "Returns a paginated list of D&D 5e character backgrounds with comprehensive filtering\ncapabilities. Supports proficiency filtering, skill/tool grants, language choices,\nand full-text search. Each background includes personality traits, ideals, bonds,\nflaws (via random tables), starting equipment, and feature descriptions.\n\n**Basic Examples:**\n- All backgrounds: `GET /api/v1/backgrounds`\n- By skill proficiency: `GET /api/v1/backgrounds?grants_skill=stealth` (Urchin, Criminal)\n- By tool proficiency: `GET /api/v1/backgrounds?grants_proficiency=thieves-tools` (Criminal, Urchin)\n- By language: `GET /api/v1/backgrounds?speaks_language=dwarvish` (Guild Artisan)\n- Pagination: `GET /api/v1/backgrounds?per_page=20&page=1`\n\n**Proficiency Filtering Examples:**\n- Skill proficiencies: `GET /api/v1/backgrounds?grants_skill=insight` (Acolyte, Sage)\n- Tool proficiencies: `GET /api/v1/backgrounds?grants_proficiency=gaming-set` (Folk Hero)\n- Music proficiencies: `GET /api/v1/backgrounds?grants_proficiency=lute` (Entertainer)\n- Artisan tools: `GET /api/v1/backgrounds?grants_proficiency=smiths-tools` (Guild Artisan)\n\n**Language Filtering Examples:**\n- Specific language: `GET /api/v1/backgrounds?speaks_language=elvish` (Sage, Outlander)\n- Language choices: `GET /api/v1/backgrounds?language_choice_count=2` (2+ language choices)\n- Any languages: `GET /api/v1/backgrounds?grants_languages=true` (backgrounds granting languages)\n- No languages: `GET /api/v1/backgrounds?grants_languages=false` (no language grants)\n\n**Search Examples:**\n- Search by name: `GET /api/v1/backgrounds?q=noble` (Noble, Knight)\n- Search by description: `GET /api/v1/backgrounds?q=temple` (Acolyte)\n- Search by feature: `GET /api/v1/backgrounds?q=shelter` (Folk Hero feature)\n\n**Combined Filtering Examples:**\n- Skill + tool: `GET /api/v1/backgrounds?grants_skill=deception&grants_proficiency=disguise-kit` (Charlatan)\n- Language + skill: `GET /api/v1/backgrounds?speaks_language=dwarvish&grants_skill=history` (Guild Artisan)\n- Search + filter: `GET /api/v1/backgrounds?q=criminal&grants_skill=stealth` (Criminal, Urchin)\n\n**Use Cases:**\n- Character Creation: Find backgrounds matching desired skill proficiencies\n- Proficiency Planning: Optimize proficiency spread across race/class/background\n- Roleplaying: Browse personality traits, ideals, bonds, and flaws for inspiration\n- Language Optimization: Find backgrounds granting extra language choices\n- Equipment Planning: Compare starting equipment for early-game optimization\n- Build Synergy: Match background skills with class features (Rogue + Criminal)\n\n**Tag-Based Filtering Examples (Meilisearch):**\n- Criminal backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [criminal]`\n- Noble backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [noble]`\n- Guild member backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [guild-member]`\n- Multiple tags (OR): `GET /api/v1/backgrounds?filter=tag_slugs IN [criminal, outlander]`\n\n**Query Parameters:**\n- `q` (string): Full-text search term (searches name, description, feature text)\n- `filter` (string): Meilisearch filter expression (limited fields for backgrounds)\n- `grants_proficiency` (string): Filter by granted proficiency (tool, instrument, gaming set)\n- `grants_skill` (string): Filter by granted skill proficiency (stealth, insight, etc.)\n- `speaks_language` (string): Filter by granted language (elvish, dwarvish, etc.)\n- `language_choice_count` (int): Minimum number of language choices granted\n- `grants_languages` (bool): Has any language grants (true/false)\n- `sort_by` (string): Column to sort by (name, created_at, updated_at)\n- `sort_direction` (string): Sort direction (asc, desc)\n- `per_page` (int): Results per page (default 15, max 100)\n- `page` (int): Page number (default 1)\n\n**Data Source:**\n- D&D 5e backgrounds from PHB, SCAG, XGE, TCoE, and other sourcebooks\n- Includes personality traits, ideals, bonds, flaws via random tables\n- Proficiency and language data via polymorphic relationships\n- Starting equipment variants and feature descriptions\n\n**Unique Features:**\n- Random personality tables for roleplaying (d8, d6, d10, d12 tables)\n- Starting equipment variants (choose between options)\n- Feature descriptions (special abilities unique to each background)\n- Proficiency grants (skills, tools, instruments, gaming sets)\n- Language choices (fixed languages + choice slots)\n\nSee `docs/API-EXAMPLES.md` for comprehensive usage examples.",
+                "description": "Returns a paginated list of D&D 5e character backgrounds. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/backgrounds                                # All backgrounds\nGET /api/v1/backgrounds?filter=tag_slugs IN [criminal] # Criminal backgrounds\nGET /api/v1/backgrounds?filter=source_codes IN [PHB]   # PHB backgrounds only\nGET /api/v1/backgrounds?q=noble                        # Search for \"noble\"\nGET /api/v1/backgrounds?filter=tag_slugs IN [criminal, noble] # Multiple tags\n```\n\n**Tag Filtering:**\n- Criminal backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [criminal]`\n- Noble backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [noble]`\n- Outlander backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [outlander]`\n- Multiple tags (OR): `GET /api/v1/backgrounds?filter=tag_slugs IN [criminal, outlander]`\n\n**Source Filtering:**\n- PHB only: `GET /api/v1/backgrounds?filter=source_codes IN [PHB]`\n- SCAG only: `GET /api/v1/backgrounds?filter=source_codes IN [SCAG]`\n- Multiple sources: `GET /api/v1/backgrounds?filter=source_codes IN [PHB, XGE]`\n\n**Filterable Fields:**\n- `id` (int), `slug` (string)\n- `source_codes` (array: PHB, SCAG, XGE, TCoE, etc.)\n- `tag_slugs` (array: criminal, noble, outlander, etc.)\n\n**Operators:**\n- Comparison: `=`, `!=`\n- Logic: `AND`, `OR`\n- Membership: `IN [value1, value2, ...]`\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description, traits)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)\n\n**Background Features:**\n- Personality traits, ideals, bonds, flaws (via random tables)\n- Starting equipment and feature descriptions\n- Skill, tool, and language proficiencies\n- Source attribution (PHB, SCAG, XGE, TCoE, etc.)",
                 "summary": "List all backgrounds",
                 "tags": [
                     "Background"
@@ -428,15 +428,6 @@
                         "schema": {
                             "type": "integer",
                             "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "description": "Search",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
                         }
                     },
                     {
@@ -466,7 +457,7 @@
                     {
                         "name": "q",
                         "in": "query",
-                        "description": "Search query (Scout/Meilisearch)",
+                        "description": "Full-text search query",
                         "schema": {
                             "type": "string",
                             "minLength": 2,
@@ -474,64 +465,9 @@
                         }
                     },
                     {
-                        "name": "grants_proficiency",
-                        "in": "query",
-                        "description": "Background-specific filters (backwards compatibility)",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "grants_skill",
-                        "in": "query",
-                        "description": "Filter by granted skill",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "speaks_language",
-                        "in": "query",
-                        "description": "Filter by spoken language",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "language_choice_count",
-                        "in": "query",
-                        "description": "Filter by language choice count",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 10
-                        }
-                    },
-                    {
-                        "name": "grants_languages",
-                        "in": "query",
-                        "description": "Filter entities granting any languages",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "0",
-                                "1",
-                                "0",
-                                "1",
-                                "1",
-                                "",
-                                "true",
-                                "false"
-                            ]
-                        }
-                    },
-                    {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression for advanced filtering. Available fields: source_codes (array), tag_slugs (array). Use search (q parameter) for text queries.",
+                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, AND, OR, IN. Available fields: id (int), slug (string), source_codes (array), tag_slugs (array).",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
@@ -795,7 +731,7 @@
         "/v1/classes": {
             "get": {
                 "operationId": "classes.index",
-                "description": "Returns a paginated list of D&D 5e character classes and subclasses. Includes hit dice,\nspellcasting abilities, proficiencies, class features, level progression tables, and\nsubclass options. Supports filtering by proficiencies, skills, saving throws, and spells.\n\n**Basic Examples:**\n- All classes: `GET /api/v1/classes`\n- Base classes only: `GET /api/v1/classes?base_only=1`\n- By hit die: `GET /api/v1/classes?hit_die=12`\n- Spellcasters only: `GET /api/v1/classes?is_spellcaster=true`\n- Non-spellcasters: `GET /api/v1/classes?is_spellcaster=false`\n- Classes with 9th level spells: `GET /api/v1/classes?max_spell_level=9`\n- Combined filters: `GET /api/v1/classes?hit_die=10&is_spellcaster=true` (Paladin, Ranger)\n\n**Spell Filtering Examples (Meilisearch):**\n- Single spell: `GET /api/v1/classes?filter=spell_slugs IN [fireball]`\n- Healing classes: `GET /api/v1/classes?filter=spell_slugs IN [cure-wounds, healing-word]`\n- Full casters: `GET /api/v1/classes?filter=tag_slugs IN [full-caster]`\n\n**Note on Spell Filtering:**\nSpell filtering now uses Meilisearch `?filter=` syntax exclusively.\nLegacy parameters like `?spells=`, `?spell_level=`, `?max_spell_level=` have been removed.\nUse `?filter=spell_slugs IN [spell1, spell2]` instead.\n\n**Use Cases:**\n- **Multiclass Planning:** Which classes get Fireball? (`?filter=spell_slugs IN [fireball]`)\n- **Healer Identification:** Classes with healing magic (`?filter=spell_slugs IN [cure-wounds, healing-word]`)\n- **Full Spellcasters:** Classes with 9th level spells (`?filter=tag_slugs IN [full-caster]`)\n- **Optimization:** Find INT-based spellcasters (`?filter=spellcasting_ability = INT`)\n- **Build Planning:** Wisdom casters (`?filter=spellcasting_ability = WIS`)\n\n**Tag-Based Filtering Examples (Meilisearch):**\n- Full spellcasters: `GET /api/v1/classes?filter=tag_slugs IN [full-caster]`\n- Martial classes: `GET /api/v1/classes?filter=tag_slugs IN [martial]`\n- Half casters: `GET /api/v1/classes?filter=tag_slugs IN [half-caster]`\n- Combined filters: `GET /api/v1/classes?filter=tag_slugs IN [spellcaster] AND hit_die >= 8`\n\n**Base Class vs Subclass Filtering (Meilisearch):**\n- Base classes only: `GET /api/v1/classes?filter=is_subclass = false`\n- Subclasses only: `GET /api/v1/classes?filter=is_subclass = true`\n- Base spellcasters: `GET /api/v1/classes?filter=is_subclass = false AND tag_slugs IN [spellcaster]`\n- High HP subclasses: `GET /api/v1/classes?filter=is_subclass = true AND hit_die >= 10`\n\n**Parameter Reference:**\n- `is_spellcaster` (bool): Filter by spellcasting ability (true=has spellcasting, false=no spellcasting)\n- `hit_die` (int): Filter by hit die size (6, 8, 10, or 12)\n- `max_spell_level` (int): Filter classes that have spells of this level (0-9)\n- `spells` (string): Comma-separated spell slugs (max 500 chars)\n- `spells_operator` (string): \"AND\" or \"OR\" (default: AND)\n- `spell_level` (int): Spell level 0-9 (0=cantrip, 9=9th level)\n- `base_only` (bool): Filter to base classes only (exclude subclasses)\n- `grants_proficiency` (string): Filter by proficiency type\n- `grants_skill` (string): Filter by skill proficiency\n- `grants_saving_throw` (string): Filter by saving throw proficiency\n- `filter` (string): Meilisearch filter expression (see Scramble docs)\n\n**Data Source:**\n- 1,917 class-spell relationships across 63 classes/subclasses\n- Spell filtering powered by `class_spells` pivot table\n- Results include subclasses in nested `subclasses` array\n\nSee `docs/API-EXAMPLES.md` for comprehensive usage examples.",
+                "description": "Returns a paginated list of D&D 5e character classes and subclasses. Includes hit dice,\nspellcasting abilities, proficiencies, class features, level progression tables, and\nsubclass options. Uses Meilisearch for filtering and search.\n\n**Filtering Examples:**\n- Base classes only: `GET /api/v1/classes?filter=is_subclass = false`\n- Subclasses only: `GET /api/v1/classes?filter=is_subclass = true`\n- High HP classes: `GET /api/v1/classes?filter=hit_die >= 10`\n- Barbarian and Fighter: `GET /api/v1/classes?filter=hit_die = 12`\n- Spellcasters: `GET /api/v1/classes?filter=spellcasting_ability != null`\n- INT-based casters: `GET /api/v1/classes?filter=spellcasting_ability = INT`\n- WIS-based casters: `GET /api/v1/classes?filter=spellcasting_ability = WIS`\n- Full casters: `GET /api/v1/classes?filter=tag_slugs IN [full-caster]`\n- Martial classes: `GET /api/v1/classes?filter=tag_slugs IN [martial]`\n- Combined: `GET /api/v1/classes?filter=is_subclass = false AND tag_slugs IN [spellcaster]`\n\n**Use Cases:**\n- **Build Planning:** Find INT-based spellcasters for Wizard multiclass synergy\n- **Optimization:** Identify high HP classes for tanking (hit_die >= 10)\n- **Spellcasting:** Filter by spellcasting ability for multiclass requirements\n- **Class Archetype:** Find all martial, spellcaster, or hybrid classes via tags\n\n**Available Filterable Fields:**\n- `id` (int): Class ID\n- `slug` (string): Class slug (e.g., \"wizard\", \"fighter-champion\")\n- `hit_die` (int): Hit die size (6, 8, 10, or 12)\n- `primary_ability` (string): Primary ability (e.g., \"STR\", \"INT\")\n- `spellcasting_ability` (string): Spellcasting ability code (e.g., \"INT\", \"WIS\", \"CHA\", null for non-casters)\n- `source_codes` (array): Source book codes (e.g., [\"PHB\"], [\"XGTE\"])\n- `is_subclass` (bool): Whether this is a subclass (true) or base class (false)\n- `parent_class_name` (string): Parent class name for subclasses\n- `tag_slugs` (array): Tag slugs (e.g., [\"spellcaster\"], [\"martial\"], [\"full-caster\"])\n\nSee `docs/API-EXAMPLES.md` for comprehensive usage examples.",
                 "summary": "List all classes and subclasses",
                 "tags": [
                     "Class"
@@ -817,15 +753,6 @@
                         "schema": {
                             "type": "integer",
                             "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "description": "Search",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
                         }
                     },
                     {
@@ -864,110 +791,9 @@
                         }
                     },
                     {
-                        "name": "base_only",
-                        "in": "query",
-                        "description": "Class-specific filters (backwards compatibility)",
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    },
-                    {
-                        "name": "grants_proficiency",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "grants_skill",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "grants_saving_throw",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "spells",
-                        "in": "query",
-                        "description": "Spell filtering",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 500
-                        }
-                    },
-                    {
-                        "name": "spells_operator",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "AND",
-                                "OR"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "spell_level",
-                        "in": "query",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 9
-                        }
-                    },
-                    {
-                        "name": "is_spellcaster",
-                        "in": "query",
-                        "description": "Entity-specific filters",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "0",
-                                "1",
-                                "0",
-                                "1",
-                                "1",
-                                "",
-                                "true",
-                                "false"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "hit_die",
-                        "in": "query",
-                        "schema": {
-                            "type": "integer",
-                            "enum": [
-                                "6",
-                                "8",
-                                "10",
-                                "12"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "max_spell_level",
-                        "in": "query",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 9
-                        }
-                    },
-                    {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: hit_die (int), is_spellcaster (bool), spellcasting_ability_code (string), is_subclass (bool), tag_slugs (array).",
+                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: id, slug, hit_die, primary_ability, spellcasting_ability, source_codes, is_subclass, parent_class_name, tag_slugs.",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
@@ -2605,7 +2431,7 @@
         "/v1/feats": {
             "get": {
                 "operationId": "feats.index",
-                "description": "Returns a paginated list of D&D 5e feats with comprehensive filtering capabilities.\nSupports prerequisite filtering (race, ability score, proficiency), granted benefits\n(skills, proficiencies, ability score increases), modifier tracking, and full-text search.\nFeats provide character customization alternatives to ability score increases.\n\n**Basic Examples:**\n- All feats: `GET /api/v1/feats`\n- By race prerequisite: `GET /api/v1/feats?prerequisite_race=dwarf` (Squat Nimbleness)\n- By ability prerequisite: `GET /api/v1/feats?prerequisite_ability=DEX` (Sharpshooter, Crossbow Expert)\n- By min ability score: `GET /api/v1/feats?prerequisite_ability=STR&min_value=13` (Heavy Armor Master)\n- Pagination: `GET /api/v1/feats?per_page=25&page=1`\n\n**Prerequisite Filtering Examples:**\n- Race prerequisites: `GET /api/v1/feats?prerequisite_race=elf` (Elven Accuracy, Fey Teleportation)\n- Ability score prerequisites: `GET /api/v1/feats?prerequisite_ability=INT&min_value=13` (Ritual Caster)\n- Proficiency prerequisites: `GET /api/v1/feats?prerequisite_proficiency=heavy-armor` (Heavy Armor Master)\n- No prerequisites: `GET /api/v1/feats?has_prerequisites=false` (accessible to all characters)\n- Has prerequisites: `GET /api/v1/feats?has_prerequisites=true` (restricted by race/ability/prof)\n\n**Granted Benefit Filtering:**\n- Skill proficiency grants: `GET /api/v1/feats?grants_skill=stealth` (Skulker, Stealthy)\n- Proficiency grants: `GET /api/v1/feats?grants_proficiency=heavy-armor` (Heavily Armored)\n- Weapon proficiency: `GET /api/v1/feats?grants_proficiency=longsword` (Weapon Master)\n- Tool proficiency: `GET /api/v1/feats?grants_proficiency=thieves-tools` (Skilled)\n\n**Search Examples:**\n- Search by name: `GET /api/v1/feats?q=war` (War Caster, Martial Adept)\n- Search by description: `GET /api/v1/feats?q=spellcasting` (War Caster, Ritual Caster)\n- Search by mechanic: `GET /api/v1/feats?q=advantage` (Lucky, Elven Accuracy)\n\n**Combined Filtering Examples:**\n- Race + ability: `GET /api/v1/feats?prerequisite_race=elf&prerequisite_ability=DEX` (Elven Accuracy)\n- Ability + grant: `GET /api/v1/feats?prerequisite_ability=STR&grants_proficiency=heavy-armor` (Heavily Armored)\n- Search + filter: `GET /api/v1/feats?q=armor&grants_proficiency=heavy-armor` (armor feats)\n\n**Use Cases:**\n- Character Optimization: Find feats matching race and class build (Elf DEX builds)\n- Build Planning: Identify feats granting specific proficiencies to round out character\n- ASI Decisions: Compare feat benefits vs +2 ability score increase at level 4/8/12/16/19\n- Prerequisite Planning: Find feats character qualifies for based on race/ability scores\n- Multiclass Synergies: Match feats with class features (War Caster for Sorcerer/Paladin)\n- Min-Max Optimization: Filter by granted bonuses (Lucky, Great Weapon Master)\n\n**Tag-Based Filtering Examples (Meilisearch):**\n- Combat feats: `GET /api/v1/feats?filter=tag_slugs IN [combat]`\n- Magic feats: `GET /api/v1/feats?filter=tag_slugs IN [magic]`\n- Skill improvement feats: `GET /api/v1/feats?filter=tag_slugs IN [skill-improvement]`\n- Multiple tags (OR): `GET /api/v1/feats?filter=tag_slugs IN [combat, magic]`\n\n**Query Parameters:**\n- `q` (string): Full-text search term (searches name, description, text)\n- `filter` (string): Meilisearch filter expression (limited - use legacy parameters)\n- `prerequisite_race` (string): Filter by race prerequisite (elf, dwarf, halfling, etc.)\n- `prerequisite_ability` (string): Filter by ability score prerequisite (STR, DEX, CON, INT, WIS, CHA)\n- `min_value` (int 1-30): Minimum ability score value for prerequisite (13 is common)\n- `prerequisite_proficiency` (string): Filter by proficiency prerequisite (heavy-armor, spellcasting)\n- `has_prerequisites` (bool): Has any prerequisites (true) or accessible to all (false)\n- `grants_proficiency` (string): Filter by granted proficiency (weapon, armor, tool)\n- `grants_skill` (string): Filter by granted skill proficiency (stealth, insight, etc.)\n- `sort_by` (string): Column to sort by (name, created_at, updated_at)\n- `sort_direction` (string): Sort direction (asc, desc)\n- `per_page` (int): Results per page (default 15, max 100)\n- `page` (int): Page number (default 1)\n\n**Data Source:**\n- D&D 5e feats from PHB, XGE, TCoE, and other sourcebooks\n- Prerequisites (race, ability, proficiency) via entity_prerequisites polymorphic table\n- Modifiers (ASI, skill bonuses) via modifiers table\n- Proficiency grants (weapon, armor, tool, skill) via proficiencies table\n- Conditions applied via entity_conditions table\n\n**Unique Features:**\n- Ability score increases (ASI alternatives) - +1 to one or two ability scores\n- Proficiency grants (weapon, armor, tool, skill) - expand character capabilities\n- Conditional bonuses (advantage on attacks, bonus actions, reactions)\n- Special abilities (Lucky rerolls, Sentinel opportunity attacks, Alert initiative)\n- Prerequisites create restricted \"prestige\" feats (Elven Accuracy, Squat Nimbleness)\n\n**Common Ability Score Prerequisites:**\n- 13+ for spellcasting feats (Ritual Caster, Magic Initiate requirements)\n- 13+ for combat feats (Heavy Armor Master, Heavily Armored)\n- No minimum for most feats (accessible at level 1 via Variant Human)\n\nSee `docs/API-EXAMPLES.md` for comprehensive usage examples.",
+                "description": "Returns a paginated list of D&D 5e feats. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/feats                                    # All feats\nGET /api/v1/feats?filter=tag_slugs IN [combat]       # Combat feats\nGET /api/v1/feats?filter=tag_slugs IN [magic]        # Magic feats\nGET /api/v1/feats?filter=source_codes IN [PHB]       # PHB feats only\nGET /api/v1/feats?q=armor                            # Full-text search for \"armor\"\nGET /api/v1/feats?q=advantage                        # Search for \"advantage\"\nGET /api/v1/feats?filter=tag_slugs IN [combat] AND source_codes IN [PHB, XGE]\n```\n\n**Tag-Based Filtering:**\n- Combat feats: `GET /api/v1/feats?filter=tag_slugs IN [combat]`\n- Magic feats: `GET /api/v1/feats?filter=tag_slugs IN [magic]`\n- Skill improvement: `GET /api/v1/feats?filter=tag_slugs IN [skill-improvement]`\n- Multiple tags (OR): `GET /api/v1/feats?filter=tag_slugs IN [combat, magic]`\n\n**Source Filtering:**\n- PHB only: `GET /api/v1/feats?filter=source_codes IN [PHB]`\n- XGE and TCoE: `GET /api/v1/feats?filter=source_codes IN [XGE, TCoE]`\n\n**Filterable Fields:**\n- `tag_slugs` (array: combat, magic, skill-improvement, etc.)\n- `source_codes` (array: PHB, XGE, TCoE, etc.)\n- `id` (int), `slug` (string)\n\n**Operators:**\n- Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`\n- Logic: `AND`, `OR`\n- Membership: `IN [value1, value2, ...]`\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description, prerequisites_text)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)\n\n**Legacy MySQL Parameters (Deprecated):**\nThe following parameters still work but are deprecated in favor of Meilisearch filtering:\n- `prerequisite_race`, `prerequisite_ability`, `min_value`, `prerequisite_proficiency`\n- `has_prerequisites`, `grants_proficiency`, `grants_skill`\n\n**Use Cases:**\n- Character Optimization: Find combat feats for martial builds\n- Build Planning: Identify magic feats for spellcasters\n- ASI Decisions: Compare feat benefits vs +2 ability score increase\n- Source Filtering: Find feats from specific sourcebooks\n\n**Data Source:**\n- D&D 5e feats from PHB, XGE, TCoE, and other sourcebooks\n- Prerequisites (race, ability, proficiency) via entity_prerequisites polymorphic table\n- Modifiers (ASI, skill bonuses) via modifiers table\n- Proficiency grants (weapon, armor, tool, skill) via proficiencies table\n\nSee `docs/API-EXAMPLES.md` for comprehensive usage examples.",
                 "summary": "List all feats",
                 "tags": [
                     "Feat"
@@ -2627,15 +2453,6 @@
                         "schema": {
                             "type": "integer",
                             "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "description": "Search",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
                         }
                     },
                     {
@@ -2665,7 +2482,7 @@
                     {
                         "name": "q",
                         "in": "query",
-                        "description": "Search query (Scout/Meilisearch)",
+                        "description": "Full-text search query",
                         "schema": {
                             "type": "string",
                             "minLength": 2,
@@ -2673,82 +2490,9 @@
                         }
                     },
                     {
-                        "name": "prerequisite_race",
-                        "in": "query",
-                        "description": "Feat-specific filters (backwards compatibility)",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "prerequisite_ability",
-                        "in": "query",
-                        "description": "Filter by prerequisite ability score",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "min_value",
-                        "in": "query",
-                        "description": "Minimum ability score value",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "maximum": 30
-                        }
-                    },
-                    {
-                        "name": "prerequisite_proficiency",
-                        "in": "query",
-                        "description": "Filter by prerequisite proficiency",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "has_prerequisites",
-                        "in": "query",
-                        "description": "Filter by presence of prerequisites",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "0",
-                                "1",
-                                "0",
-                                "1",
-                                "1",
-                                "",
-                                "true",
-                                "false"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "grants_proficiency",
-                        "in": "query",
-                        "description": "Filter by granted proficiency",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "grants_skill",
-                        "in": "query",
-                        "description": "Filter by granted skill",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression for advanced filtering. Available fields: source_codes (array), tag_slugs (array). Use legacy parameters (prerequisite_race, prerequisite_ability) for prerequisite filtering.",
+                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: tag_slugs (array), source_codes (array), id (int), slug (string). Legacy MySQL parameters (prerequisite_race, prerequisite_ability, etc.) are deprecated.",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
@@ -2926,6 +2670,7 @@
                         "schema": {
                             "type": "array",
                             "enum": [
+                                "tags",
                                 "sources",
                                 "sources.source",
                                 "modifiers",
@@ -2941,6 +2686,7 @@
                             "items": {
                                 "type": "string",
                                 "enum": [
+                                    "tags",
                                     "sources",
                                     "sources.source",
                                     "modifiers",
@@ -3016,7 +2762,7 @@
         "/v1/items": {
             "get": {
                 "operationId": "items.index",
-                "description": "Returns a paginated list of D&D 5e items including weapons, armor, and magic items.\nSupports advanced filtering including spell-based queries (AND/OR logic), spell level,\nitem type, rarity, charges, and full-text search.\n\n**Basic Examples:**\n- All items: `GET /api/v1/items`\n- By rarity: `GET /api/v1/items?rarity=rare`\n- By type: `GET /api/v1/items?type=WD` (wands)\n- Magic items only: `GET /api/v1/items?is_magic=true`\n\n**Spell Filtering Examples (Meilisearch):**\n- Single spell: `GET /api/v1/items?filter=spell_slugs IN [fireball]` (Wand of Fireballs, Staff of Power, etc.)\n- Multiple spells (ANY): `GET /api/v1/items?filter=spell_slugs IN [fireball, lightning-bolt]` (items with EITHER spell)\n- Spell scrolls: `GET /api/v1/items?filter=type_code = SCR AND spell_slugs IN [wish]` (high-level scrolls)\n\n**Item-Specific Filters:**\n- Charged items: `GET /api/v1/items?has_charges=true` (wands, staves, rods)\n- Rare scrolls: `GET /api/v1/items?type=SCR&rarity=rare`\n- Magic items: `GET /api/v1/items?is_magic=true&rarity=legendary`\n\n**Combined Filter Examples:**\n- Rare wands with Fireball: `GET /api/v1/items?filter=spell_slugs IN [fireball] AND type_code = WD AND rarity = rare`\n- Charged spell items: `GET /api/v1/items?filter=spell_slugs IN [teleport] AND has_charges = true`\n- Search + filter: `GET /api/v1/items?q=staff&filter=spell_slugs IN [teleport]`\n\n**Use Cases:**\n- Magic Item Shop: Filter by rarity and type for balanced loot\n- Scroll Discovery: Find spell scrolls by level for character progression\n- Charged Item Inventory: Track wands/staves with specific spells\n- Loot Tables: Generate themed magic items (fire-based, teleportation, healing)\n\n**Note on Spell Filtering:**\nSpell filtering now uses Meilisearch `?filter=` syntax exclusively.\nLegacy parameters like `?spells=`, `?spell_level=` have been removed.\nUse `?filter=spell_slugs IN [spell1, spell2]` instead.\n\n**Item Type Codes:**\n- `WD` = Wand, `ST` = Staff, `RD` = Rod, `SCR` = Scroll, `P` = Potion\n- See `/api/v1/item-types` for complete list\n\n**Data Source:**\nPowered by ChargedItemStrategy and ScrollStrategy which track 107 spell relationships\nacross 84 items (wands, staves, scrolls, rods).\n\nSee `docs/API-EXAMPLES.md` for comprehensive usage examples.",
+                "description": "Returns a paginated list of D&D 5e items including weapons, armor, and magic items.\nUses Meilisearch for full-text search and advanced filtering.\n\n**Search Examples:**\n- Text search: `GET /api/v1/items?q=staff`\n- Search + filter: `GET /api/v1/items?q=sword&filter=rarity = legendary`\n\n**Filter Examples:**\n- By rarity: `GET /api/v1/items?filter=rarity IN [rare, legendary]`\n- By type: `GET /api/v1/items?filter=type_code = WD` (wands)\n- Magic items: `GET /api/v1/items?filter=is_magic = true`\n- Requires attunement: `GET /api/v1/items?filter=requires_attunement = true`\n- Has charges: `GET /api/v1/items?filter=has_charges = true`\n- By spell: `GET /api/v1/items?filter=spell_slugs IN [fireball]`\n- By cost: `GET /api/v1/items?filter=cost_cp >= 5000` (50+ gold)\n- By weight: `GET /api/v1/items?filter=weight <= 1.0`\n\n**Combined Filters:**\n- Rare wands with Fireball: `GET /api/v1/items?filter=spell_slugs IN [fireball] AND type_code = WD AND rarity = rare`\n- Legendary magic items: `GET /api/v1/items?filter=is_magic = true AND rarity = legendary`\n- Lightweight scrolls: `GET /api/v1/items?filter=type_code = SCR AND weight <= 0.1`\n\n**Common Item Type Codes:**\n- `WD` = Wand, `ST` = Staff, `RD` = Rod, `SCR` = Scroll, `P` = Potion\n- See `/api/v1/item-types` for complete list",
                 "summary": "List all items",
                 "tags": [
                     "Item"
@@ -3038,15 +2784,6 @@
                         "schema": {
                             "type": "integer",
                             "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "description": "Search",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
                         }
                     },
                     {
@@ -3086,106 +2823,14 @@
                         }
                     },
                     {
-                        "name": "min_strength",
-                        "in": "query",
-                        "description": "Item-specific filters (backwards compatibility)",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "maximum": 30
-                        }
-                    },
-                    {
-                        "name": "has_prerequisites",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "0",
-                                "1",
-                                "0",
-                                "1",
-                                "1",
-                                "",
-                                "true",
-                                "false"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "spells",
-                        "in": "query",
-                        "description": "Spell filtering (similar to Monster)",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 500
-                        }
-                    },
-                    {
-                        "name": "spells_operator",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "AND",
-                                "OR"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "spell_level",
-                        "in": "query",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 9
-                        }
-                    },
-                    {
-                        "name": "type",
-                        "in": "query",
-                        "description": "Item type filter",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 10
-                        }
-                    },
-                    {
-                        "name": "has_charges",
-                        "in": "query",
-                        "description": "Has charges filter",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "0",
-                                "1",
-                                "0",
-                                "1",
-                                "1",
-                                "",
-                                "true",
-                                "false"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "rarity",
-                        "in": "query",
-                        "description": "Rarity filter",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 20
-                        }
-                    },
-                    {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: is_magic (bool), requires_attunement (bool), rarity (string), type_code (string), weight (float), cost_cp (int), spell_slugs (array), tag_slugs (array).",
+                        "description": "Meilisearch filter expression. Available fields: is_magic (bool), requires_attunement (bool), has_charges (bool), rarity (string: common, uncommon, rare, very_rare, legendary, artifact), type_code (string: WD, ST, RD, SCR, P, etc.), weight (float), cost_cp (int), spell_slugs (array), tag_slugs (array). Operators: =, !=, >, >=, <, <=, AND, OR, IN.",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
                         },
-                        "example": "is_magic = true AND rarity IN [rare, very_rare, legendary]"
+                        "example": "spell_slugs IN [fireball] AND rarity = rare"
                     }
                 ],
                 "responses": {
@@ -3365,7 +3010,9 @@
                                 "prerequisites",
                                 "prerequisites.prerequisite",
                                 "spells",
-                                "spells.spellSchool"
+                                "spells.spellSchool",
+                                "tags",
+                                "savingThrows"
                             ],
                             "items": {
                                 "type": "string",
@@ -3377,7 +3024,9 @@
                                     "prerequisites",
                                     "prerequisites.prerequisite",
                                     "spells",
-                                    "spells.spellSchool"
+                                    "spells.spellSchool",
+                                    "tags",
+                                    "savingThrows"
                                 ]
                             }
                         }
@@ -3398,7 +3047,21 @@
                                 "attunement",
                                 "strength_requirement",
                                 "created_at",
-                                "updated_at"
+                                "updated_at",
+                                "item_type_id",
+                                "detail",
+                                "cost_cp",
+                                "weight",
+                                "damage_dice",
+                                "versatile_damage",
+                                "damage_type_id",
+                                "range_normal",
+                                "range_long",
+                                "armor_class",
+                                "stealth_disadvantage",
+                                "charges_max",
+                                "recharge_formula",
+                                "recharge_timing"
                             ],
                             "items": {
                                 "type": "string",
@@ -3413,7 +3076,21 @@
                                     "attunement",
                                     "strength_requirement",
                                     "created_at",
-                                    "updated_at"
+                                    "updated_at",
+                                    "item_type_id",
+                                    "detail",
+                                    "cost_cp",
+                                    "weight",
+                                    "damage_dice",
+                                    "versatile_damage",
+                                    "damage_type_id",
+                                    "range_normal",
+                                    "range_long",
+                                    "armor_class",
+                                    "stealth_disadvantage",
+                                    "charges_max",
+                                    "recharge_formula",
+                                    "recharge_timing"
                                 ]
                             }
                         }
@@ -4485,7 +4162,7 @@
         "/v1/monsters": {
             "get": {
                 "operationId": "monsters.index",
-                "description": "Returns a paginated list of D&D 5e monsters with advanced filtering capabilities.\nSupports spell filtering (AND/OR logic), spell level, spellcasting ability, challenge rating,\ntype, size, alignment, and full-text search.\n\n**Basic Examples:**\n- All monsters: `GET /api/v1/monsters`\n- By CR range: `GET /api/v1/monsters?min_cr=5&max_cr=10`\n- By type: `GET /api/v1/monsters?type=dragon`\n\n**Spell Filtering Examples (Meilisearch):**\n- Single spell: `GET /api/v1/monsters?filter=spell_slugs IN [fireball]` (11 monsters)\n- Multiple spells (ANY): `GET /api/v1/monsters?filter=spell_slugs IN [fireball, lightning-bolt]` (17 monsters with EITHER)\n- High-level casters: `GET /api/v1/monsters?filter=spell_slugs IN [wish, meteor-swarm]` (legendary spellcasters)\n\n**Combined Filter Examples:**\n- CR + Spell: `GET /api/v1/monsters?filter=challenge_rating >= 10 AND spell_slugs IN [fireball]` (high-CR casters)\n- Type + Spell: `GET /api/v1/monsters?filter=type = undead AND spell_slugs IN [animate-dead]` (undead necromancers)\n- Search + Spells: `GET /api/v1/monsters?q=dragon&filter=spell_slugs IN [fireball]` (spellcasting dragons)\n\n**Use Cases:**\n- Encounter Building: Find balanced enemies for party level\n- Spell Tracking: Identify which monsters can counterspell, teleport, or summon\n- Themed Campaigns: All fiends with fire spells, all undead spellcasters, etc.\n- Boss Rush: Progressive difficulty with varied spell mechanics\n\n**Note on Spell Filtering:**\nSpell filtering now uses Meilisearch `?filter=` syntax exclusively.\nLegacy parameters like `?spells=`, `?spell_level=`, `?spellcasting_ability=` have been removed.\nUse `?filter=spell_slugs IN [spell1, spell2]` instead.\n\n**Advanced Meilisearch Filter Examples:**\n- CR range: `GET /api/v1/monsters?filter=challenge_rating >= 10 AND challenge_rating <= 15`\n- High HP: `GET /api/v1/monsters?filter=hit_points_average > 100`\n- Multiple ranges: `GET /api/v1/monsters?filter=challenge_rating >= 5 AND hit_points_average > 50 AND armor_class >= 15`\n- Boss fights: `GET /api/v1/monsters?filter=challenge_rating >= 20 AND experience_points >= 25000`\n- Weak monsters: `GET /api/v1/monsters?filter=challenge_rating <= 1 AND hit_points_average < 20`\n- Tank enemies: `GET /api/v1/monsters?filter=armor_class >= 18 AND hit_points_average >= 100`\n\n**Tag-Based Filtering Examples:**\n- All fiends: `GET /api/v1/monsters?filter=tag_slugs IN [fiend]`\n- Fire-immune creatures: `GET /api/v1/monsters?filter=tag_slugs IN [fire-immune]`\n- Fiends OR undead: `GET /api/v1/monsters?filter=tag_slugs IN [fiend, undead]`\n- Fire-immune dragons: `GET /api/v1/monsters?filter=tag_slugs IN [fire-immune] AND type = dragon`\n- High CR fiends: `GET /api/v1/monsters?filter=tag_slugs IN [fiend] AND challenge_rating IN [15, 16, 17, 18, 19, 20]`\n\n**Spell-Based Filtering Examples:**\n- Fireball casters: `GET /api/v1/monsters?filter=spell_slugs IN [fireball]`\n- Fireball OR Lightning Bolt: `GET /api/v1/monsters?filter=spell_slugs IN [fireball, lightning-bolt]`\n- Spellcasting dragons: `GET /api/v1/monsters?filter=type = dragon AND spell_slugs IN [fireball, polymorph]`\n\n**Meilisearch Operators:**\n- Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`\n- Logic: `AND`, `OR`\n- Membership: `IN [value1, value2]`\n\nSee `docs/API-EXAMPLES.md` and `docs/MEILISEARCH-FILTERS.md` for comprehensive examples.",
+                "description": "Returns a paginated list of D&D 5e monsters with advanced filtering via Meilisearch.\nAll filtering uses the `?filter=` parameter with Meilisearch syntax.\n\n**Basic Search:**\n- Full-text search: `GET /api/v1/monsters?q=dragon`\n- All monsters: `GET /api/v1/monsters`\n\n**Challenge Rating Filters:**\n- Exact CR: `?filter=challenge_rating = 5`\n- CR range: `?filter=challenge_rating >= 10 AND challenge_rating <= 20`\n- Boss fights: `?filter=challenge_rating >= 20`\n\n**Type & Size Filters:**\n- Dragons: `?filter=type = dragon`\n- Large creatures: `?filter=size_code = L`\n- Large dragons: `?filter=type = dragon AND size_code = L`\n\n**Combat Stats Filters:**\n- High AC: `?filter=armor_class >= 18`\n- High HP: `?filter=hit_points_average > 100`\n- Tank enemies: `?filter=armor_class >= 18 AND hit_points_average >= 100`\n\n**Spell-Based Filters:**\n- Fireball casters: `?filter=spell_slugs IN [fireball]`\n- Multiple spells: `?filter=spell_slugs IN [fireball, lightning-bolt]`\n- High-CR casters: `?filter=challenge_rating >= 10 AND spell_slugs IN [fireball]`\n- Spellcasting dragons: `?filter=type = dragon AND spell_slugs IN [polymorph]`\n\n**Tag-Based Filters:**\n- All undead: `?filter=tag_slugs IN [undead]`\n- Fire-immune: `?filter=tag_slugs IN [fire-immune]`\n- Undead OR fiend: `?filter=tag_slugs IN [undead, fiend]`\n\n**Combined Examples:**\n- Powerful undead: `?filter=tag_slugs IN [undead] AND challenge_rating >= 10`\n- Search + filter: `?q=dragon&filter=challenge_rating >= 15`\n- Multi-condition: `?filter=type = fiend AND armor_class >= 15 AND hit_points_average > 100`\n\n**Available Filterable Fields:**\n- Stats: `challenge_rating`, `armor_class`, `hit_points_average`, `experience_points`\n- Type: `type`, `size_code`, `alignment`\n- Abilities: `strength`, `dexterity`, `constitution`, `intelligence`, `wisdom`, `charisma`\n- Speed: `speed_walk`, `speed_fly`, `speed_swim`, `speed_burrow`, `speed_climb`\n- Arrays: `spell_slugs`, `tag_slugs`, `source_codes`\n- Other: `passive_perception`, `can_hover`, `is_npc`\n\n**Operators:**\n- Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`\n- Logic: `AND`, `OR`\n- Arrays: `IN [value1, value2]`",
                 "summary": "List all monsters",
                 "tags": [
                     "Monster"
@@ -4507,15 +4184,6 @@
                         "schema": {
                             "type": "integer",
                             "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "description": "Search",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
                         }
                     },
                     {
@@ -4547,7 +4215,7 @@
                     {
                         "name": "q",
                         "in": "query",
-                        "description": "Search query",
+                        "description": "Full-text search query",
                         "schema": {
                             "type": "string",
                             "minLength": 2,
@@ -4555,110 +4223,14 @@
                         }
                     },
                     {
-                        "name": "challenge_rating",
-                        "in": "query",
-                        "description": "Challenge rating filters",
-                        "schema": {
-                            "type": "number",
-                            "minimum": 0
-                        }
-                    },
-                    {
-                        "name": "min_cr",
-                        "in": "query",
-                        "schema": {
-                            "type": "number",
-                            "minimum": 0
-                        }
-                    },
-                    {
-                        "name": "max_cr",
-                        "in": "query",
-                        "schema": {
-                            "type": "number",
-                            "minimum": 0
-                        }
-                    },
-                    {
-                        "name": "type",
-                        "in": "query",
-                        "description": "Type filter (dragon, humanoid, undead, etc.)",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 50
-                        }
-                    },
-                    {
-                        "name": "size",
-                        "in": "query",
-                        "description": "Size filter (T, S, M, L, H, G)",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 2
-                        }
-                    },
-                    {
-                        "name": "alignment",
-                        "in": "query",
-                        "description": "Alignment filter",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 50
-                        }
-                    },
-                    {
-                        "name": "spells",
-                        "in": "query",
-                        "description": "Spell filter (comma-separated spell slugs)",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 500
-                        }
-                    },
-                    {
-                        "name": "spells_operator",
-                        "in": "query",
-                        "description": "Spell filter operator (AND = must have all spells, OR = must have at least one)",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "AND",
-                                "OR"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "spell_level",
-                        "in": "query",
-                        "description": "Spell level filter (0-9, where 0 = cantrips)",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 9
-                        }
-                    },
-                    {
-                        "name": "spellcasting_ability",
-                        "in": "query",
-                        "description": "Spellcasting ability filter (INT, WIS, CHA)",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "INT",
-                                "WIS",
-                                "CHA"
-                            ]
-                        }
-                    },
-                    {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: challenge_rating (string), type (string), size_code (string), alignment (string), armor_class (int), hit_points_average (int), experience_points (int), spell_slugs (array), tag_slugs (array).",
+                        "description": "Meilisearch filter expression. Operators: =, !=, >, >=, <, <=, AND, OR, IN. Fields: challenge_rating, type, size_code, alignment, armor_class, hit_points_average, experience_points, strength, dexterity, constitution, intelligence, wisdom, charisma, speed_walk, speed_fly, passive_perception, spell_slugs, tag_slugs, source_codes, can_hover, is_npc.",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
                         },
-                        "example": "challenge_rating >= 5 AND challenge_rating <= 10 AND type = dragon"
+                        "example": "challenge_rating >= 10 AND spell_slugs IN [fireball]"
                     }
                 ],
                 "responses": {
@@ -5426,7 +4998,7 @@
         "/v1/races": {
             "get": {
                 "operationId": "races.index",
-                "description": "Returns a paginated list of D&D 5e races and subraces. Supports filtering by\nproficiencies, skills, languages, size, speed, and innate spells. Includes ability\nscore modifiers, racial traits, language options, and spellcasting abilities.\nAll query parameters are validated automatically.\n\n**Basic Filtering Examples:**\n- All races: `GET /api/v1/races`\n- By size: `GET /api/v1/races?size=S` (Small races like Halfling, Gnome)\n- By ability bonus: `GET /api/v1/races?ability_bonus=INT` (races with INT bonus)\n- By speed: `GET /api/v1/races?min_speed=35` (fast races like Wood Elf)\n- With darkvision: `GET /api/v1/races?has_darkvision=true`\n- By language: `GET /api/v1/races?speaks_language=Elvish`\n- By skill proficiency: `GET /api/v1/races?grants_skill=Perception`\n- Combined filters: `GET /api/v1/races?ability_bonus=INT&has_darkvision=true` (smart races with darkvision)\n\n**Spell Filtering Examples (Meilisearch):**\n- Single spell: `GET /api/v1/races?filter=spell_slugs IN [misty-step]` (Eladrin)\n- Drow spells: `GET /api/v1/races?filter=spell_slugs IN [dancing-lights, faerie-fire]` (ANY of these spells)\n- Cantrip races: `GET /api/v1/races?filter=tag_slugs IN [innate-spellcasting]`\n\n**Note on Spell Filtering:**\nSpell filtering now uses Meilisearch `?filter=` syntax exclusively.\nLegacy parameters like `?spells=`, `?spell_level=`, `?has_innate_spells=` have been removed.\nUse `?filter=spell_slugs IN [spell1, spell2]` instead.\n\n**Tag-Based Filtering Examples (Meilisearch):**\n- Darkvision races: `GET /api/v1/races?filter=tag_slugs IN [darkvision]`\n- Fey ancestry: `GET /api/v1/races?filter=tag_slugs IN [fey-ancestry]`\n- Multiple tags (OR): `GET /api/v1/races?filter=tag_slugs IN [darkvision, fey-ancestry]`\n- Combined filters: `GET /api/v1/races?filter=tag_slugs IN [darkvision] AND speed >= 35`\n\n**Use Cases:**\n- Character optimization: Which races get free teleportation? (`?filter=spell_slugs IN [misty-step]`)\n- Spell synergy: Races with innate spells (`?filter=tag_slugs IN [innate-spellcasting]`)\n- Darkvision races: Races with darkvision (`?filter=tag_slugs IN [darkvision]`)\n- Build planning: Races with specific traits for multiclass builds\n- Rules lookup: Quick reference for racial spellcasting features\n\n**Query Parameters:**\n- `ability_bonus` (string): Filter by ability score bonus (STR, DEX, CON, INT, WIS, CHA)\n- `size` (string): Filter by creature size (T, S, M, L, H, G)\n- `min_speed` (int): Filter by minimum walking speed (0-100)\n- `has_darkvision` (bool): Filter races with darkvision trait\n- `speaks_language` (string): Filter by spoken language\n- `grants_skill` (string): Filter by skill proficiency granted\n- `grants_proficiency` (string): Filter by general proficiency\n- `grants_proficiency_type` (string): Filter by proficiency type/category\n- `language_choice_count` (integer): Filter by number of language choices\n- `grants_languages` (boolean): Filter races that grant any languages\n\n**Data Source:**\n- 21 racial spell relationships across 13 races with innate spellcasting\n- Spell filtering powered by `entity_spells` polymorphic table\n- Case-insensitive spell slug matching for user-friendly queries\n\n**Examples of Racial Innate Spells:**\n- Drow (Dark Elf): Dancing Lights (cantrip), Faerie Fire (1st level), Darkness (2nd level)\n- Tiefling: Thaumaturgy (cantrip), Hellish Rebuke (1st level), Darkness (2nd level)\n- High Elf: 1 wizard cantrip (player's choice from any wizard cantrip)\n- Forest Gnome: Minor Illusion (cantrip)\n- Eladrin: Misty Step (2nd level, usable once per short rest)\n\n**Related Endpoints:**\n- `GET /api/v1/races/{id}/spells` - Get all innate spells for a specific race\n- `GET /api/v1/spells/{id}/races` - Get all races that know a specific spell\n\nSee `docs/API-EXAMPLES.md` for comprehensive usage examples and best practices.",
+                "description": "Returns a paginated list of D&D 5e races and subraces. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/races                                      # All races\nGET /api/v1/races?filter=size_code = M                 # Medium races\nGET /api/v1/races?filter=speed >= 35                   # Fast races (Wood Elf, etc.)\nGET /api/v1/races?q=elf                                # Full-text search for \"elf\"\nGET /api/v1/races?q=elf&filter=speed >= 35             # Search + filter combined\nGET /api/v1/races?filter=tag_slugs IN [darkvision] AND speed >= 35  # Fast races with darkvision\n```\n\n**Tag Filtering:**\n- Darkvision: `GET /api/v1/races?filter=tag_slugs IN [darkvision]`\n- Fey ancestry: `GET /api/v1/races?filter=tag_slugs IN [fey-ancestry]`\n- Innate spells: `GET /api/v1/races?filter=tag_slugs IN [innate-spellcasting]`\n\n**Filterable Fields:**\n- `size_code` (string: T, S, M, L, H, G)\n- `size_name` (string: Tiny, Small, Medium, Large, Huge, Gargantuan)\n- `speed` (int: movement speed in feet)\n- `is_subrace` (bool: true for subraces, false for base races)\n- `parent_race_name` (string: parent race name for subraces)\n- `tag_slugs` (array: darkvision, fey-ancestry, innate-spellcasting, etc.)\n- `source_codes` (array: PHB, XGE, TCoE, etc.)\n\n**Operators:**\n- Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`\n- Logic: `AND`, `OR`\n- Membership: `IN [value1, value2, ...]`\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, size name, parent race name, sources)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, speed (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)\n\n**Use Cases:**\n- Character creation: Find races with specific traits (`?filter=tag_slugs IN [innate-spellcasting]`)\n- Build optimization: Fast races (`?filter=speed >= 35`)\n- Source filtering: Races from specific books (`?filter=source_codes IN [XGE]`)\n\n**Data Source:**\n- 21 racial spell relationships across 13 races with innate spellcasting\n- Examples: Drow (Dancing Lights, Faerie Fire, Darkness), Tiefling (Thaumaturgy, Hellish Rebuke), Eladrin (Misty Step)\n\n**Related Endpoints:**\n- `GET /api/v1/races/{id}/spells` - Get all innate spells for a specific race\n- `GET /api/v1/spells/{id}/races` - Get all races that know a specific spell",
                 "summary": "List all races and subraces",
                 "tags": [
                     "Race"
@@ -5448,15 +5020,6 @@
                         "schema": {
                             "type": "integer",
                             "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "description": "Search",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
                         }
                     },
                     {
@@ -5488,7 +5051,7 @@
                     {
                         "name": "q",
                         "in": "query",
-                        "description": "Search query (Scout/Meilisearch)",
+                        "description": "Full-text search query",
                         "schema": {
                             "type": "string",
                             "minLength": 2,
@@ -5496,176 +5059,9 @@
                         }
                     },
                     {
-                        "name": "grants_proficiency",
-                        "in": "query",
-                        "description": "Race-specific filters (backwards compatibility)",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "grants_skill",
-                        "in": "query",
-                        "description": "Filter by granted skill",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "grants_proficiency_type",
-                        "in": "query",
-                        "description": "Filter by proficiency type/category",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "speaks_language",
-                        "in": "query",
-                        "description": "Filter by spoken language",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "language_choice_count",
-                        "in": "query",
-                        "description": "Filter by language choice count",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 10
-                        }
-                    },
-                    {
-                        "name": "grants_languages",
-                        "in": "query",
-                        "description": "Filter entities granting any languages",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "0",
-                                "1",
-                                "0",
-                                "1",
-                                "1",
-                                "",
-                                "true",
-                                "false"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "spells",
-                        "in": "query",
-                        "description": "Spell filtering",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 500
-                        }
-                    },
-                    {
-                        "name": "spells_operator",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "AND",
-                                "OR"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "spell_level",
-                        "in": "query",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 9
-                        }
-                    },
-                    {
-                        "name": "has_innate_spells",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "0",
-                                "1",
-                                "0",
-                                "1",
-                                "1",
-                                "",
-                                "true",
-                                "false"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "ability_bonus",
-                        "in": "query",
-                        "description": "Entity-specific filters",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "STR",
-                                "DEX",
-                                "CON",
-                                "INT",
-                                "WIS",
-                                "CHA"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "size",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "T",
-                                "S",
-                                "M",
-                                "L",
-                                "H",
-                                "G"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "min_speed",
-                        "in": "query",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 100
-                        }
-                    },
-                    {
-                        "name": "has_darkvision",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "0",
-                                "1",
-                                "0",
-                                "1",
-                                "1",
-                                "",
-                                "true",
-                                "false"
-                            ]
-                        }
-                    },
-                    {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: size_code (string), speed (int), has_darkvision (bool), darkvision_range (int), spell_slugs (array), tag_slugs (array).",
+                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: size_code (string: T, S, M, L, H, G), size_name (string), speed (int), is_subrace (bool), parent_race_name (string), tag_slugs (array), source_codes (array).",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
@@ -7117,15 +6513,6 @@
                         }
                     },
                     {
-                        "name": "search",
-                        "in": "query",
-                        "description": "Search",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 255
-                        }
-                    },
-                    {
                         "name": "sort_by",
                         "in": "query",
                         "description": "Sorting",
@@ -7347,6 +6734,8 @@
                                 "effects",
                                 "effects.damageType",
                                 "classes",
+                                "tags",
+                                "savingThrows",
                                 "randomTables",
                                 "randomTables.entries"
                             ],
@@ -7359,6 +6748,8 @@
                                     "effects",
                                     "effects.damageType",
                                     "classes",
+                                    "tags",
+                                    "savingThrows",
                                     "randomTables",
                                     "randomTables.entries"
                                 ]
@@ -7379,9 +6770,11 @@
                                 "casting_time",
                                 "range",
                                 "components",
+                                "material_components",
                                 "duration",
-                                "concentration",
-                                "ritual",
+                                "needs_concentration",
+                                "is_ritual",
+                                "higher_levels",
                                 "created_at",
                                 "updated_at"
                             ],
@@ -7396,9 +6789,11 @@
                                     "casting_time",
                                     "range",
                                     "components",
+                                    "material_components",
                                     "duration",
-                                    "concentration",
-                                    "ritual",
+                                    "needs_concentration",
+                                    "is_ritual",
+                                    "higher_levels",
                                     "created_at",
                                     "updated_at"
                                 ]

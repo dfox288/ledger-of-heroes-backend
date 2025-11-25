@@ -30,45 +30,6 @@ class ClassIndexRequestTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_grants_proficiency_as_string(): void
-    {
-        CharacterClass::factory()->create(['name' => 'Fighter']);
-
-        $response = $this->getJson('/api/v1/classes?grants_proficiency=longsword');
-        $response->assertStatus(200);
-
-        $response = $this->getJson('/api/v1/classes?grants_proficiency='.str_repeat('a', 256));
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors('grants_proficiency');
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_grants_skill_as_string(): void
-    {
-        CharacterClass::factory()->create(['name' => 'Rogue']);
-
-        $response = $this->getJson('/api/v1/classes?grants_skill=stealth');
-        $response->assertStatus(200);
-
-        $response = $this->getJson('/api/v1/classes?grants_skill='.str_repeat('a', 256));
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors('grants_skill');
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_grants_saving_throw_as_string(): void
-    {
-        CharacterClass::factory()->create(['name' => 'Wizard']);
-
-        $response = $this->getJson('/api/v1/classes?grants_saving_throw=str');
-        $response->assertStatus(200);
-
-        $response = $this->getJson('/api/v1/classes?grants_saving_throw='.str_repeat('a', 256));
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors('grants_saving_throw');
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
     public function it_whitelists_sortable_columns(): void
     {
         CharacterClass::factory()->create(['name' => 'Barbarian']);
@@ -110,31 +71,15 @@ class ClassIndexRequestTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_base_only_is_boolean(): void
-    {
-        CharacterClass::factory()->create(['name' => 'Monk']);
-
-        $response = $this->getJson('/api/v1/classes?base_only=1');
-        $response->assertStatus(200);
-
-        $response = $this->getJson('/api/v1/classes?base_only=0');
-        $response->assertStatus(200);
-
-        $response = $this->getJson('/api/v1/classes?base_only=invalid');
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors('base_only');
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_search_max_length(): void
+    public function it_validates_q_max_length(): void
     {
         CharacterClass::factory()->create(['name' => 'Druid']);
 
-        $response = $this->getJson('/api/v1/classes?search='.str_repeat('a', 255));
+        $response = $this->getJson('/api/v1/classes?q='.str_repeat('a', 255));
         $response->assertStatus(200);
 
-        $response = $this->getJson('/api/v1/classes?search='.str_repeat('a', 256));
+        $response = $this->getJson('/api/v1/classes?q='.str_repeat('a', 256));
         $response->assertStatus(422);
-        $response->assertJsonValidationErrors('search');
+        $response->assertJsonValidationErrors('q');
     }
 }

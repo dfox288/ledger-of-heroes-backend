@@ -108,7 +108,7 @@ class Monster extends BaseModel
     public function toSearchableArray(): array
     {
         // Load relationships to avoid N+1 queries
-        $this->loadMissing(['size', 'sources.source', 'entitySpells', 'tags']);
+        $this->loadMissing(['size', 'sources.source', 'entitySpells', 'tags', 'legendaryActions', 'actions', 'traits']);
 
         return [
             'id' => $this->id,
@@ -147,6 +147,14 @@ class Monster extends BaseModel
             'spell_slugs' => $this->entitySpells->pluck('slug')->all(),
             // Tag slugs for filtering (e.g., fire_immune, undead, construct)
             'tag_slugs' => $this->tags->pluck('slug')->all(),
+            // Phase 3: Boolean capability flags
+            'has_legendary_actions' => $this->legendaryActions->where('is_lair_action', 0)->isNotEmpty(),
+            'has_lair_actions' => $this->legendaryActions->where('is_lair_action', 1)->isNotEmpty(),
+            'is_spellcaster' => $this->entitySpells->isNotEmpty(),
+            'has_reactions' => $this->actions->where('action_type', 'reaction')->isNotEmpty(),
+            // Phase 4: Trait-based capability flags
+            'has_legendary_resistance' => $this->traits->contains(fn ($t) => str_contains($t->name, 'Legendary Resistance')),
+            'has_magic_resistance' => $this->traits->contains('name', 'Magic Resistance'),
         ];
     }
 
@@ -197,6 +205,12 @@ class Monster extends BaseModel
                 'charisma',
                 'passive_perception',
                 'is_npc',
+                'has_legendary_actions',
+                'has_lair_actions',
+                'is_spellcaster',
+                'has_reactions',
+                'has_legendary_resistance',
+                'has_magic_resistance',
             ],
             'sortableAttributes' => [
                 'name',

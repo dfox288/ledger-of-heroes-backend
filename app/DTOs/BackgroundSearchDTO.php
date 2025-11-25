@@ -13,16 +13,18 @@ use App\Http\Requests\BackgroundIndexRequest;
 final readonly class BackgroundSearchDTO
 {
     /**
-     * @param  string|null  $searchQuery  Full-text search query (Scout or MySQL LIKE)
+     * @param  string|null  $searchQuery  Full-text search query (Meilisearch)
+     * @param  string|null  $meilisearchFilter  Meilisearch filter expression
+     * @param  int  $page  Page number for pagination (1-based)
      * @param  int  $perPage  Number of results per page (1-100)
-     * @param  array<string, mixed>  $filters  Additional filters (grants_proficiency, grants_skill, etc.)
      * @param  string  $sortBy  Column to sort by
      * @param  string  $sortDirection  Sort direction (asc/desc)
      */
     public function __construct(
         public ?string $searchQuery,
+        public ?string $meilisearchFilter,
+        public int $page,
         public int $perPage,
-        public array $filters,
         public string $sortBy,
         public string $sortDirection,
     ) {}
@@ -36,15 +38,9 @@ final readonly class BackgroundSearchDTO
 
         return new self(
             searchQuery: $validated['q'] ?? null,
+            meilisearchFilter: $validated['filter'] ?? null,
+            page: $validated['page'] ?? 1,
             perPage: $validated['per_page'] ?? 15,
-            filters: [
-                'search' => $validated['search'] ?? null,
-                'grants_proficiency' => $validated['grants_proficiency'] ?? null,
-                'grants_skill' => $validated['grants_skill'] ?? null,
-                'speaks_language' => $validated['speaks_language'] ?? null,
-                'language_choice_count' => $validated['language_choice_count'] ?? null,
-                'grants_languages' => $validated['grants_languages'] ?? null,
-            ],
             sortBy: $validated['sort_by'] ?? 'name',
             sortDirection: $validated['sort_direction'] ?? 'asc',
         );

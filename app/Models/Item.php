@@ -167,7 +167,17 @@ class Item extends BaseModel
     public function toSearchableArray(): array
     {
         // Load relationships to avoid N+1 queries
-        $this->loadMissing(['itemType', 'sources.source', 'damageType', 'spells', 'tags']);
+        $this->loadMissing([
+            'itemType',
+            'sources.source',
+            'damageType',
+            'spells',
+            'tags',
+            'properties',
+            'modifiers',
+            'proficiencies.proficiencyType',
+            'savingThrows',
+        ]);
 
         return [
             'id' => $this->id,
@@ -196,10 +206,17 @@ class Item extends BaseModel
             // Charge mechanics (magic items)
             'charges_max' => $this->charges_max,
             'has_charges' => $this->charges_max !== null,
+            'recharge_timing' => $this->recharge_timing,
+            'recharge_formula' => $this->recharge_formula,
             // Spell filtering (similar to Monster)
             'spell_slugs' => $this->spells->pluck('slug')->all(),
             // Tag filtering
             'tag_slugs' => $this->tags->pluck('slug')->all(),
+            // Array fields (Phase 4)
+            'property_codes' => $this->properties->pluck('code')->all(),
+            'modifier_categories' => $this->modifiers->pluck('modifier_category')->unique()->values()->all(),
+            'proficiency_names' => $this->proficiencies->pluck('proficiencyType.name')->filter()->unique()->values()->all(),
+            'saving_throw_abilities' => $this->savingThrows->pluck('code')->unique()->all(),
         ];
     }
 
@@ -208,7 +225,16 @@ class Item extends BaseModel
      */
     public function searchableWith(): array
     {
-        return ['itemType', 'sources.source', 'damageType', 'spells'];
+        return [
+            'itemType',
+            'sources.source',
+            'damageType',
+            'spells',
+            'properties',
+            'modifiers',
+            'proficiencies.proficiencyType',
+            'savingThrows',
+        ];
     }
 
     /**
@@ -250,8 +276,14 @@ class Item extends BaseModel
                 'stealth_disadvantage',
                 'charges_max',
                 'has_charges',
+                'recharge_timing',
+                'recharge_formula',
                 'spell_slugs',
                 'tag_slugs',
+                'property_codes',
+                'modifier_categories',
+                'proficiency_names',
+                'saving_throw_abilities',
             ],
             'sortableAttributes' => [
                 'name',

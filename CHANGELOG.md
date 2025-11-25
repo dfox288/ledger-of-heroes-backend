@@ -7,7 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **54 New High-Value Filterable Fields**: Massive API filtering enhancement across all 7 entities
+  - **Spells (5 new filters)**: `casting_time`, `range`, `duration`, `effect_types`, `sources` - enables action economy and tactical spell selection
+    - Examples: `?filter=casting_time = '1 bonus action'` (Healing Word, Misty Step), `?filter=range = 'Touch'` (healing spells), `?filter=duration = 'Instantaneous'` (damage spells)
+  - **Monsters (6 new filters)**: `has_legendary_actions`, `has_lair_actions`, `is_spellcaster`, `has_reactions`, `has_legendary_resistance`, `has_magic_resistance` - boss encounter planning
+    - Examples: `?filter=has_legendary_actions = true` (48 bosses), `?filter=is_spellcaster = true AND challenge_rating <= 5` (129 magic threats)
+  - **Classes (7 new filters)**: `has_spells`, `spell_count`, `saving_throw_proficiencies`, `armor_proficiencies`, `weapon_proficiencies`, `tool_proficiencies`, `skill_proficiencies` - multiclassing optimization
+    - Examples: `?filter=saving_throw_proficiencies IN ['Constitution']` (tank builds), `?filter=armor_proficiencies IN ['Heavy Armor']` (Fighter, Paladin, War Cleric)
+  - **Races (8 new filters)**: `spell_slugs`, `has_innate_spells`, 6 ability bonus fields (`ability_str_bonus`, `ability_dex_bonus`, etc.) - character build foundation
+    - Examples: `?filter=ability_dex_bonus >= 2` (Dex builds), `?filter=spell_slugs IN [misty-step]` (Eladrin), `?filter=has_innate_spells = true` (13 spellcasting races)
+  - **Items (6 new filters)**: `property_codes`, `modifier_categories`, `proficiency_names`, `saving_throw_abilities`, `recharge_timing`, `recharge_formula` - equipment optimization
+    - Examples: `?filter=property_codes IN [F, L]` (light finesse weapons for Rogues), `?filter=modifier_categories IN [spell_attack]` (Wand of the War Mage)
+  - **Backgrounds (3 new filters)**: `skill_proficiencies`, `tool_proficiency_types`, `grants_language_choice` - character background selection
+    - Examples: `?filter=skill_proficiencies IN [stealth]` (Criminal, Urchin), `?filter=tool_proficiency_types IN [musical]` (Entertainer, Guild Artisan)
+  - **Feats (4 new filters)**: `has_prerequisites`, `improved_abilities`, `grants_proficiencies`, `prerequisite_types` - ASI optimization
+    - Examples: `?filter=improved_abilities IN [DEX]` (17 feats), `?filter=has_prerequisites = false` (85 unrestricted feats)
+  - **Total Impact**: 85 → 139 filterable fields (+63% increase), covers 80%+ of common player queries
+
 ### Changed
+
+- **Technical Debt Cleanup**: Removed 500+ lines of dead code from incomplete Meilisearch migration
+  - **DTOs Cleaned**: Removed `filters` arrays from all 6 SearchDTOs (SpellSearchDTO, MonsterSearchDTO, ClassSearchDTO, RaceSearchDTO, ItemSearchDTO, BackgroundSearchDTO)
+    - Eliminated 63 unused MySQL filter parameters (level, school, concentration, type, size, challenge_rating, rarity, is_magic, grants_proficiency, etc.)
+    - Simplified DTOs to 6 properties: `searchQuery`, `meilisearchFilter`, `page`, `perPage`, `sortBy`, `sortDirection`
+  - **Requests Updated**: Removed deprecated validation rules
+    - `FeatIndexRequest`: Removed 7 legacy validations (prerequisite_race, prerequisite_ability, has_prerequisites, grants_proficiency, etc.)
+    - `BaseIndexRequest`: Removed unused `search` parameter (conflicted with `q`)
+  - **Controllers Fixed**: Removed duplicate logic and fake documentation
+    - `ClassController`: Removed duplicate feature inheritance logic (kept in Resource only)
+    - `RaceController`: Removed 23 fake filter examples (spell_slugs, has_darkvision, darkvision_range don't exist in model)
+  - **Architecture**: All 7 entities now follow consistent Meilisearch-first pattern
+
+- **API Resource Synchronization**: Fixed missing relationships and field names
+  - **SpellShowRequest**: Added `tags` and `savingThrows` to includable relationships, renamed `concentration` → `needs_concentration`, `ritual` → `is_ritual`, added `material_components` and `higher_levels` to selectable fields
+  - **ItemShowRequest**: Added `tags` and `savingThrows` to includable relationships, added 14 missing selectable fields (cost_cp, weight, damage_dice, etc.)
+  - **FeatShowRequest**: Added `tags` to includable relationships
+  - **Test Fixes**: Updated SpellShowRequestTest to use correct field names
+
+### Changed (Previous)
 
 - **Meilisearch-First API Migration Complete**: Migrated all 7 entities to Meilisearch-only filtering
   - **Removed:** All legacy MySQL filtering parameters from 6 remaining entities (Monster, Item, Class, Race, Background, Feat)

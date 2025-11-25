@@ -54,7 +54,7 @@ class Background extends BaseModel
     public function toSearchableArray(): array
     {
         // Load tags relationship if not already loaded
-        $this->loadMissing(['tags']);
+        $this->loadMissing(['tags', 'proficiencies.skill', 'languages']);
 
         return [
             'id' => $this->id,
@@ -64,12 +64,25 @@ class Background extends BaseModel
             'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
             // Tag slugs for filtering (e.g., criminal, noble, guild_member)
             'tag_slugs' => $this->tags->pluck('slug')->all(),
+            // Phase 3: Language choice
+            'grants_language_choice' => $this->languages->count() > 0,
+            // Phase 4: Proficiencies (HIGH VALUE)
+            'skill_proficiencies' => $this->proficiencies
+                ->where('proficiency_type', 'skill')
+                ->filter(fn ($p) => $p->skill)
+                ->pluck('skill.slug')
+                ->unique()->values()->all(),
+            'tool_proficiency_types' => $this->proficiencies
+                ->where('proficiency_type', 'tool')
+                ->pluck('proficiency_subcategory')
+                ->filter()
+                ->unique()->values()->all(),
         ];
     }
 
     public function searchableWith(): array
     {
-        return ['sources.source', 'tags'];
+        return ['sources.source', 'tags', 'proficiencies.skill', 'languages'];
     }
 
     public function searchableAs(): string
@@ -92,6 +105,9 @@ class Background extends BaseModel
                 'slug',
                 'source_codes',
                 'tag_slugs',
+                'grants_language_choice',
+                'skill_proficiencies',
+                'tool_proficiency_types',
             ],
             'sortableAttributes' => [
                 'name',

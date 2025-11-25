@@ -4,12 +4,18 @@ namespace App\DTOs;
 
 use App\Http\Requests\RaceIndexRequest;
 
+/**
+ * Data transfer object for race search requests.
+ *
+ * Encapsulates search parameters for Meilisearch-based filtering.
+ */
 final readonly class RaceSearchDTO
 {
     public function __construct(
         public ?string $searchQuery,
+        public int $page,
         public int $perPage,
-        public array $filters,
+        public ?string $meilisearchFilter,
         public string $sortBy,
         public string $sortDirection,
     ) {}
@@ -20,24 +26,9 @@ final readonly class RaceSearchDTO
 
         return new self(
             searchQuery: $validated['q'] ?? null,
+            page: $validated['page'] ?? 1,
             perPage: $validated['per_page'] ?? 15,
-            filters: [
-                'search' => $validated['search'] ?? null,
-                'size' => $validated['size'] ?? null,
-                'grants_proficiency' => $validated['grants_proficiency'] ?? null,
-                'grants_skill' => $validated['grants_skill'] ?? null,
-                'grants_proficiency_type' => $validated['grants_proficiency_type'] ?? null,
-                'speaks_language' => $validated['speaks_language'] ?? null,
-                'language_choice_count' => $validated['language_choice_count'] ?? null,
-                'grants_languages' => $validated['grants_languages'] ?? null,
-                'spells' => $validated['spells'] ?? null,
-                'spells_operator' => $validated['spells_operator'] ?? null,
-                'spell_level' => $validated['spell_level'] ?? null,
-                'has_innate_spells' => $validated['has_innate_spells'] ?? null,
-                'ability_bonus' => $validated['ability_bonus'] ?? null,
-                'min_speed' => $validated['min_speed'] ?? null,
-                'has_darkvision' => $validated['has_darkvision'] ?? null,
-            ],
+            meilisearchFilter: $validated['filter'] ?? null,
             sortBy: $validated['sort_by'] ?? 'name',
             sortDirection: $validated['sort_direction'] ?? 'asc',
         );

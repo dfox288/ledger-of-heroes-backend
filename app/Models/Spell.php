@@ -197,6 +197,8 @@ class Spell extends BaseModel
             'requires_verbal' => str_contains($this->components ?? '', 'V'),
             'requires_somatic' => str_contains($this->components ?? '', 'S'),
             'requires_material' => str_contains($this->components ?? '', 'M'),
+            // Effect types (array of effect type strings)
+            'effect_types' => $this->effects->pluck('effect_type')->unique()->values()->all(),
         ];
     }
 
@@ -231,8 +233,12 @@ class Spell extends BaseModel
                 'level',
                 'school_name',
                 'school_code',
+                'casting_time',
+                'range',
+                'duration',
                 'concentration',
                 'ritual',
+                'sources',
                 'source_codes',
                 'class_slugs',
                 'tag_slugs',
@@ -241,6 +247,7 @@ class Spell extends BaseModel
                 'requires_verbal',
                 'requires_somatic',
                 'requires_material',
+                'effect_types',
             ],
             'sortableAttributes' => [
                 'name',

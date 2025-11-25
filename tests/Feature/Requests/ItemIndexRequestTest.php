@@ -9,81 +9,6 @@ use Tests\TestCase;
 class ItemIndexRequestTest extends TestCase
 {
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_min_strength_range()
-    {
-        $request = new ItemIndexRequest;
-
-        // Valid strength (within 1-30 range)
-        $validator = Validator::make(
-            ['min_strength' => 15],
-            $request->rules()
-        );
-        $this->assertFalse($validator->fails());
-
-        // Invalid strength (above range)
-        $validator = Validator::make(
-            ['min_strength' => 50],
-            $request->rules()
-        );
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('min_strength', $validator->errors()->toArray());
-
-        // Invalid strength (below range)
-        $validator = Validator::make(
-            ['min_strength' => 0],
-            $request->rules()
-        );
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('min_strength', $validator->errors()->toArray());
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_has_prerequisites_boolean()
-    {
-        $request = new ItemIndexRequest;
-
-        // Valid boolean values
-        $validator = Validator::make(
-            ['has_prerequisites' => true],
-            $request->rules()
-        );
-        $this->assertFalse($validator->fails());
-
-        $validator = Validator::make(
-            ['has_prerequisites' => false],
-            $request->rules()
-        );
-        $this->assertFalse($validator->fails());
-
-        $validator = Validator::make(
-            ['has_prerequisites' => 1],
-            $request->rules()
-        );
-        $this->assertFalse($validator->fails());
-
-        $validator = Validator::make(
-            ['has_prerequisites' => 0],
-            $request->rules()
-        );
-        $this->assertFalse($validator->fails());
-
-        // Invalid boolean values
-        $validator = Validator::make(
-            ['has_prerequisites' => 'invalid'],
-            $request->rules()
-        );
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('has_prerequisites', $validator->errors()->toArray());
-
-        $validator = Validator::make(
-            ['has_prerequisites' => 2],
-            $request->rules()
-        );
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('has_prerequisites', $validator->errors()->toArray());
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_per_page_limit()
     {
         $request = new ItemIndexRequest;
@@ -165,44 +90,52 @@ class ItemIndexRequestTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_accepts_valid_search_parameter()
+    public function it_accepts_valid_q_parameter()
     {
         $request = new ItemIndexRequest;
 
-        // Valid search string
+        // Valid search query
         $validator = Validator::make(
-            ['search' => 'Longsword'],
+            ['q' => 'Longsword'],
             $request->rules()
         );
         $this->assertFalse($validator->fails());
 
-        // Search string too long
+        // Query string too short
         $validator = Validator::make(
-            ['search' => str_repeat('a', 256)],
+            ['q' => 'a'],
             $request->rules()
         );
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('search', $validator->errors()->toArray());
+        $this->assertArrayHasKey('q', $validator->errors()->toArray());
+
+        // Query string too long
+        $validator = Validator::make(
+            ['q' => str_repeat('a', 256)],
+            $request->rules()
+        );
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey('q', $validator->errors()->toArray());
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_validates_min_strength_must_be_integer()
+    public function it_accepts_valid_filter_parameter()
     {
         $request = new ItemIndexRequest;
 
-        // Valid integer
+        // Valid filter expression
         $validator = Validator::make(
-            ['min_strength' => 15],
+            ['filter' => 'rarity = "legendary"'],
             $request->rules()
         );
         $this->assertFalse($validator->fails());
 
-        // Invalid string
+        // Filter string too long
         $validator = Validator::make(
-            ['min_strength' => 'fifteen'],
+            ['filter' => str_repeat('a', 1001)],
             $request->rules()
         );
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('min_strength', $validator->errors()->toArray());
+        $this->assertArrayHasKey('filter', $validator->errors()->toArray());
     }
 }

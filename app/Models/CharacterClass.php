@@ -140,8 +140,8 @@ class CharacterClass extends BaseModel
     // Scout Searchable Methods
     public function toSearchableArray(): array
     {
-        // Load tags relationship if not already loaded
-        $this->loadMissing(['tags']);
+        // Load relationships if not already loaded
+        $this->loadMissing(['tags', 'proficiencies.skill', 'proficiencies.proficiencyType']);
 
         return [
             'id' => $this->id,
@@ -157,12 +157,48 @@ class CharacterClass extends BaseModel
             'parent_class_name' => $this->parentClass?->name,
             // Tag slugs for filtering (e.g., spellcaster, martial, half_caster)
             'tag_slugs' => $this->tags->pluck('slug')->all(),
+            // Phase 3: Spell counts (quick wins)
+            'has_spells' => $this->spells_count > 0,
+            'spell_count' => $this->spells_count,
+            // Phase 4: Proficiencies (high value filtering)
+            'saving_throw_proficiencies' => $this->proficiencies
+                ->where('proficiency_type', 'saving_throw')
+                ->pluck('proficiency_name')
+                ->values()->all(),
+            'armor_proficiencies' => $this->proficiencies
+                ->where('proficiency_type', 'armor')
+                ->pluck('proficiency_name')
+                ->values()->all(),
+            'weapon_proficiencies' => $this->proficiencies
+                ->where('proficiency_type', 'weapon')
+                ->pluck('proficiency_name')
+                ->values()->all(),
+            'tool_proficiencies' => $this->proficiencies
+                ->where('proficiency_type', 'tool')
+                ->pluck('proficiency_name')
+                ->values()->all(),
+            'skill_proficiencies' => $this->proficiencies
+                ->where('proficiency_type', 'skill')
+                ->pluck('proficiency_name')
+                ->values()->all(),
         ];
     }
 
     public function searchableWith(): array
     {
-        return ['sources.source', 'parentClass', 'spellcastingAbility', 'tags'];
+        return [
+            'sources.source',
+            'parentClass',
+            'spellcastingAbility',
+            'tags',
+            'proficiencies.skill',
+            'proficiencies.proficiencyType',
+        ];
+    }
+
+    public function searchableWithCount(): array
+    {
+        return ['spells'];
     }
 
     public function searchableAs(): string
@@ -190,10 +226,20 @@ class CharacterClass extends BaseModel
                 'is_subclass',
                 'parent_class_name',
                 'tag_slugs',
+                // Phase 3: Spell counts
+                'has_spells',
+                'spell_count',
+                // Phase 4: Proficiencies
+                'saving_throw_proficiencies',
+                'armor_proficiencies',
+                'weapon_proficiencies',
+                'tool_proficiencies',
+                'skill_proficiencies',
             ],
             'sortableAttributes' => [
                 'name',
                 'hit_die',
+                'spell_count',
             ],
             'searchableAttributes' => [
                 'name',
@@ -202,6 +248,11 @@ class CharacterClass extends BaseModel
                 'spellcasting_ability',
                 'parent_class_name',
                 'sources',
+                'saving_throw_proficiencies',
+                'armor_proficiencies',
+                'weapon_proficiencies',
+                'tool_proficiencies',
+                'skill_proficiencies',
             ],
         ];
     }

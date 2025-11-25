@@ -103,10 +103,10 @@ class ClassController extends Controller
             // If include parameter provided, use it; otherwise load defaults
             $includes = $validated['include'] ?? $defaultRelationships;
 
-            // If this is a subclass and we're including base features, eager-load parent features
-            $includeBaseFeatures = $request->boolean('include_base_features', true);
-            if ($includeBaseFeatures && $cachedClass->parent_class_id !== null && in_array('features', $includes)) {
-                $includes[] = 'parentClass.features';
+            // Ensure parentClass relationship is loaded if features are requested
+            // (Resource will use getAllFeatures() to handle inheritance)
+            if (in_array('features', $includes) && ! in_array('parentClass', $includes)) {
+                $includes[] = 'parentClass';
             }
 
             $cachedClass->load($includes);
@@ -117,10 +117,10 @@ class ClassController extends Controller
         // Fallback to route model binding result (should rarely happen)
         $includes = $validated['include'] ?? $defaultRelationships;
 
-        // If this is a subclass and we're including base features, eager-load parent features
-        $includeBaseFeatures = $request->boolean('include_base_features', true);
-        if ($includeBaseFeatures && $class->parent_class_id !== null && in_array('features', $includes)) {
-            $includes[] = 'parentClass.features';
+        // Ensure parentClass relationship is loaded if features are requested
+        // (Resource will use getAllFeatures() to handle inheritance)
+        if (in_array('features', $includes) && ! in_array('parentClass', $includes)) {
+            $includes[] = 'parentClass';
         }
 
         $class->load($includes);

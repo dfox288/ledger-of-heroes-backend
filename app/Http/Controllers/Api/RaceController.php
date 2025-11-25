@@ -25,17 +25,10 @@ class RaceController extends Controller
      * GET /api/v1/races                                      # All races
      * GET /api/v1/races?filter=size_code = M                 # Medium races
      * GET /api/v1/races?filter=speed >= 35                   # Fast races (Wood Elf, etc.)
-     * GET /api/v1/races?filter=has_darkvision = true         # Races with darkvision
-     * GET /api/v1/races?filter=spell_slugs IN [misty-step]   # Races with Misty Step (Eladrin)
      * GET /api/v1/races?q=elf                                # Full-text search for "elf"
      * GET /api/v1/races?q=elf&filter=speed >= 35             # Search + filter combined
      * GET /api/v1/races?filter=tag_slugs IN [darkvision] AND speed >= 35  # Fast races with darkvision
      * ```
-     *
-     * **Spell Filtering:**
-     * - Single spell: `GET /api/v1/races?filter=spell_slugs IN [misty-step]` (Eladrin)
-     * - Multiple spells: `GET /api/v1/races?filter=spell_slugs IN [dancing-lights, faerie-fire]` (Drow)
-     * - With search: `GET /api/v1/races?q=elf&filter=spell_slugs IN [dancing-lights]` (Drow)
      *
      * **Tag Filtering:**
      * - Darkvision: `GET /api/v1/races?filter=tag_slugs IN [darkvision]`
@@ -44,9 +37,10 @@ class RaceController extends Controller
      *
      * **Filterable Fields:**
      * - `size_code` (string: T, S, M, L, H, G)
-     * - `speed` (int: 0-100)
-     * - `has_darkvision` (bool), `darkvision_range` (int)
-     * - `spell_slugs` (array: misty-step, dancing-lights, etc.)
+     * - `size_name` (string: Tiny, Small, Medium, Large, Huge, Gargantuan)
+     * - `speed` (int: movement speed in feet)
+     * - `is_subrace` (bool: true for subraces, false for base races)
+     * - `parent_race_name` (string: parent race name for subraces)
      * - `tag_slugs` (array: darkvision, fey-ancestry, innate-spellcasting, etc.)
      * - `source_codes` (array: PHB, XGE, TCoE, etc.)
      *
@@ -56,17 +50,17 @@ class RaceController extends Controller
      * - Membership: `IN [value1, value2, ...]`
      *
      * **Query Parameters:**
-     * - `q` (string): Full-text search (searches name, description)
+     * - `q` (string): Full-text search (searches name, size name, parent race name, sources)
      * - `filter` (string): Meilisearch filter expression
-     * - `sort_by` (string): name, size, speed, created_at, updated_at (default: name)
+     * - `sort_by` (string): name, speed (default: name)
      * - `sort_direction` (string): asc, desc (default: asc)
      * - `per_page` (int): 1-100 (default: 15)
      * - `page` (int): Page number (default: 1)
      *
      * **Use Cases:**
-     * - Character creation: Which races get free teleportation? (`?filter=spell_slugs IN [misty-step]`)
-     * - Build optimization: Fast races with darkvision (`?filter=speed >= 35 AND has_darkvision = true`)
-     * - Spell synergy: Races with innate cantrips (`?filter=tag_slugs IN [innate-spellcasting]`)
+     * - Character creation: Find races with specific traits (`?filter=tag_slugs IN [innate-spellcasting]`)
+     * - Build optimization: Fast races (`?filter=speed >= 35`)
+     * - Source filtering: Races from specific books (`?filter=source_codes IN [XGE]`)
      *
      * **Data Source:**
      * - 21 racial spell relationships across 13 races with innate spellcasting
@@ -76,7 +70,7 @@ class RaceController extends Controller
      * - `GET /api/v1/races/{id}/spells` - Get all innate spells for a specific race
      * - `GET /api/v1/spells/{id}/races` - Get all races that know a specific spell
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: size_code (string: T, S, M, L, H, G), speed (int), has_darkvision (bool), darkvision_range (int), spell_slugs (array), tag_slugs (array), source_codes (array).', example: 'spell_slugs IN [misty-step] AND speed >= 30')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: size_code (string: T, S, M, L, H, G), size_name (string), speed (int), is_subrace (bool), parent_race_name (string), tag_slugs (array), source_codes (array).', example: 'speed >= 30 AND tag_slugs IN [darkvision]')]
     public function index(RaceIndexRequest $request, RaceSearchService $service)
     {
         $dto = RaceSearchDTO::fromRequest($request);

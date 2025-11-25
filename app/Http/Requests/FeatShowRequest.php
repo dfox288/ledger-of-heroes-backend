@@ -10,6 +10,7 @@ class FeatShowRequest extends BaseShowRequest
     protected function getIncludableRelationships(): array
     {
         return [
+            'tags',
             'sources',
             'sources.source',
             'modifiers',

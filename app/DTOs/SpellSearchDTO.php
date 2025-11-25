@@ -6,6 +6,14 @@ use App\Http\Requests\SpellIndexRequest;
 
 /**
  * Data Transfer Object for Spell search parameters
+ *
+ * Properties:
+ * - searchQuery: Full-text search query
+ * - meilisearchFilter: Meilisearch filter syntax
+ * - page: Pagination page number
+ * - perPage: Results per page
+ * - sortBy: Sort field
+ * - sortDirection: Sort order (asc/desc)
  */
 final readonly class SpellSearchDTO
 {
@@ -14,7 +22,6 @@ final readonly class SpellSearchDTO
         public ?string $meilisearchFilter,
         public int $page,
         public int $perPage,
-        public array $filters,
         public string $sortBy,
         public string $sortDirection,
     ) {}
@@ -28,18 +35,6 @@ final readonly class SpellSearchDTO
             meilisearchFilter: $validated['filter'] ?? null,
             page: $validated['page'] ?? 1,
             perPage: $validated['per_page'] ?? 15,
-            filters: [
-                'search' => $validated['search'] ?? null,
-                'level' => $validated['level'] ?? null,
-                'school' => $validated['school'] ?? null,
-                'concentration' => $validated['concentration'] ?? null,
-                'ritual' => $validated['ritual'] ?? null,
-                'damage_type' => $validated['damage_type'] ?? null,
-                'saving_throw' => $validated['saving_throw'] ?? null,
-                'requires_verbal' => $validated['requires_verbal'] ?? null,
-                'requires_somatic' => $validated['requires_somatic'] ?? null,
-                'requires_material' => $validated['requires_material'] ?? null,
-            ],
             sortBy: $validated['sort_by'] ?? 'name',
             sortDirection: $validated['sort_direction'] ?? 'asc',
         );

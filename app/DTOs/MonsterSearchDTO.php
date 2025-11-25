@@ -4,13 +4,19 @@ namespace App\DTOs;
 
 use App\Http\Requests\MonsterIndexRequest;
 
+/**
+ * Data Transfer Object for monster search operations.
+ *
+ * Encapsulates search parameters for Meilisearch-based filtering and pagination.
+ * Legacy MySQL filter parameters have been removed in favor of the unified
+ * Meilisearch filter syntax via the `meilisearchFilter` parameter.
+ */
 final readonly class MonsterSearchDTO
 {
     public function __construct(
         public ?string $searchQuery,
         public int $perPage,
         public int $page,
-        public array $filters,
         public string $sortBy,
         public string $sortDirection,
         public ?string $meilisearchFilter = null,
@@ -24,18 +30,6 @@ final readonly class MonsterSearchDTO
             searchQuery: $validated['q'] ?? null,
             perPage: $validated['per_page'] ?? 15,
             page: $validated['page'] ?? 1,
-            filters: [
-                'challenge_rating' => $validated['challenge_rating'] ?? null,
-                'min_cr' => $validated['min_cr'] ?? null,
-                'max_cr' => $validated['max_cr'] ?? null,
-                'type' => $validated['type'] ?? null,
-                'size' => $validated['size'] ?? null,
-                'alignment' => $validated['alignment'] ?? null,
-                'spells' => $validated['spells'] ?? null,
-                'spells_operator' => $validated['spells_operator'] ?? 'AND',
-                'spell_level' => $validated['spell_level'] ?? null,
-                'spellcasting_ability' => $validated['spellcasting_ability'] ?? null,
-            ],
             sortBy: $validated['sort_by'] ?? 'name',
             sortDirection: $validated['sort_direction'] ?? 'asc',
             meilisearchFilter: $validated['filter'] ?? null,

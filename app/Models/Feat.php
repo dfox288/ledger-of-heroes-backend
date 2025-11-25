@@ -135,7 +135,7 @@ class Feat extends BaseModel
     public function toSearchableArray(): array
     {
         // Load tags relationship if not already loaded
-        $this->loadMissing(['tags']);
+        $this->loadMissing(['tags', 'prerequisites.prerequisite', 'modifiers.abilityScore', 'proficiencies']);
 
         return [
             'id' => $this->id,
@@ -147,12 +147,26 @@ class Feat extends BaseModel
             'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
             // Tag slugs for filtering (e.g., combat, magic, skill_improvement)
             'tag_slugs' => $this->tags->pluck('slug')->all(),
+            // Phase 3: Boolean filters
+            'has_prerequisites' => $this->prerequisites->isNotEmpty(),
+            'grants_proficiencies' => $this->proficiencies->isNotEmpty(),
+            // Phase 4: Array filters
+            'improved_abilities' => $this->modifiers
+                ->where('modifier_category', 'ability_score')
+                ->whereNotNull('ability_score_id')
+                ->pluck('abilityScore.code')
+                ->unique()->values()->all(),
+            'prerequisite_types' => $this->prerequisites
+                ->whereNotNull('prerequisite_type')
+                ->pluck('prerequisite_type')
+                ->map(fn ($type) => class_basename($type))
+                ->unique()->values()->all(),
         ];
     }
 
     public function searchableWith(): array
     {
-        return ['sources.source', 'tags'];
+        return ['sources.source', 'tags', 'prerequisites.prerequisite', 'modifiers.abilityScore', 'proficiencies'];
     }
 
     public function searchableAs(): string
@@ -175,6 +189,12 @@ class Feat extends BaseModel
                 'slug',
                 'source_codes',
                 'tag_slugs',
+                // Phase 3: Boolean filters
+                'has_prerequisites',
+                'grants_proficiencies',
+                // Phase 4: Array filters
+                'improved_abilities',
+                'prerequisite_types',
             ],
             'sortableAttributes' => [
                 'name',

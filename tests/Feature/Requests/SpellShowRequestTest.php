@@ -83,12 +83,12 @@ class SpellShowRequestTest extends TestCase
         $response = $this->getJson("/api/v1/spells/{$spell->id}?fields[]=duration");
         $response->assertStatus(200);
 
-        // Valid: concentration
-        $response = $this->getJson("/api/v1/spells/{$spell->id}?fields[]=concentration");
+        // Valid: needs_concentration
+        $response = $this->getJson("/api/v1/spells/{$spell->id}?fields[]=needs_concentration");
         $response->assertStatus(200);
 
-        // Valid: ritual
-        $response = $this->getJson("/api/v1/spells/{$spell->id}?fields[]=ritual");
+        // Valid: is_ritual
+        $response = $this->getJson("/api/v1/spells/{$spell->id}?fields[]=is_ritual");
         $response->assertStatus(200);
 
         // Valid: created_at

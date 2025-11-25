@@ -111,8 +111,11 @@ class Race extends BaseModel
     // Scout Searchable Methods
     public function toSearchableArray(): array
     {
-        // Load tags relationship if not already loaded
-        $this->loadMissing(['tags']);
+        // Load relationships if not already loaded
+        $this->loadMissing(['tags', 'spells.spell', 'modifiers.abilityScore']);
+
+        // Extract ability score bonuses from modifiers
+        $abilityBonuses = $this->modifiers->where('modifier_category', 'ability_score');
 
         return [
             'id' => $this->id,
@@ -127,12 +130,22 @@ class Race extends BaseModel
             'parent_race_name' => $this->parent?->name,
             // Tag slugs for filtering (e.g., darkvision, fey_ancestry)
             'tag_slugs' => $this->tags->pluck('slug')->all(),
+            // Phase 3: Spell filtering
+            'spell_slugs' => $this->spells->pluck('spell.slug')->filter()->values()->all(),
+            'has_innate_spells' => $this->spells->isNotEmpty(),
+            // Phase 4: Ability score bonuses
+            'ability_str_bonus' => $abilityBonuses->firstWhere('abilityScore.code', 'STR')?->value ?? 0,
+            'ability_dex_bonus' => $abilityBonuses->firstWhere('abilityScore.code', 'DEX')?->value ?? 0,
+            'ability_con_bonus' => $abilityBonuses->firstWhere('abilityScore.code', 'CON')?->value ?? 0,
+            'ability_int_bonus' => $abilityBonuses->firstWhere('abilityScore.code', 'INT')?->value ?? 0,
+            'ability_wis_bonus' => $abilityBonuses->firstWhere('abilityScore.code', 'WIS')?->value ?? 0,
+            'ability_cha_bonus' => $abilityBonuses->firstWhere('abilityScore.code', 'CHA')?->value ?? 0,
         ];
     }
 
     public function searchableWith(): array
     {
-        return ['size', 'sources.source', 'parent', 'tags'];
+        return ['size', 'sources.source', 'parent', 'tags', 'spells.spell', 'modifiers.abilityScore'];
     }
 
     public function searchableAs(): string
@@ -160,6 +173,16 @@ class Race extends BaseModel
                 'is_subrace',
                 'parent_race_name',
                 'tag_slugs',
+                // Phase 3: Spell filtering
+                'spell_slugs',
+                'has_innate_spells',
+                // Phase 4: Ability score bonuses
+                'ability_str_bonus',
+                'ability_dex_bonus',
+                'ability_con_bonus',
+                'ability_int_bonus',
+                'ability_wis_bonus',
+                'ability_cha_bonus',
             ],
             'sortableAttributes' => [
                 'name',

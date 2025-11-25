@@ -3,7 +3,6 @@
 namespace Tests\Feature\Requests;
 
 use App\Models\Spell;
-use App\Models\SpellSchool;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -11,89 +10,6 @@ use Tests\TestCase;
 class SpellIndexRequestTest extends TestCase
 {
     use RefreshDatabase;
-
-    #[Test]
-    public function it_validates_level_filter()
-    {
-        // Valid level (0-9)
-        $response = $this->getJson('/api/v1/spells?level=3');
-        $response->assertStatus(200);
-
-        // Invalid level (> 9)
-        $response = $this->getJson('/api/v1/spells?level=10');
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['level']);
-    }
-
-    #[Test]
-    public function it_validates_school_format()
-    {
-        $school = SpellSchool::first(); // Use seeded data instead of factory
-
-        // Valid school ID (numeric)
-        $response = $this->getJson("/api/v1/spells?school={$school->id}");
-        $response->assertStatus(200);
-
-        // Valid school code (e.g., "EV" for Evocation)
-        $response = $this->getJson('/api/v1/spells?school=EV');
-        $response->assertStatus(200);
-
-        // Invalid school ID returns 200 with 0 results (graceful handling, not validation error)
-        // Controller uses Spell::scopeSchool() which returns empty result set for unknown schools
-        $response = $this->getJson('/api/v1/spells?school=999');
-        $response->assertStatus(200)
-            ->assertJsonCount(0, 'data');  // No spells match invalid school
-    }
-
-    #[Test]
-    public function it_validates_concentration_boolean()
-    {
-        // Valid: true
-        $response = $this->getJson('/api/v1/spells?concentration=true');
-        $response->assertStatus(200);
-
-        // Valid: false
-        $response = $this->getJson('/api/v1/spells?concentration=false');
-        $response->assertStatus(200);
-
-        // Valid: 1
-        $response = $this->getJson('/api/v1/spells?concentration=1');
-        $response->assertStatus(200);
-
-        // Valid: 0
-        $response = $this->getJson('/api/v1/spells?concentration=0');
-        $response->assertStatus(200);
-
-        // Invalid: 'yes'
-        $response = $this->getJson('/api/v1/spells?concentration=yes');
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['concentration']);
-    }
-
-    #[Test]
-    public function it_validates_ritual_boolean()
-    {
-        // Valid: true
-        $response = $this->getJson('/api/v1/spells?ritual=true');
-        $response->assertStatus(200);
-
-        // Valid: false
-        $response = $this->getJson('/api/v1/spells?ritual=false');
-        $response->assertStatus(200);
-
-        // Valid: 1
-        $response = $this->getJson('/api/v1/spells?ritual=1');
-        $response->assertStatus(200);
-
-        // Valid: 0
-        $response = $this->getJson('/api/v1/spells?ritual=0');
-        $response->assertStatus(200);
-
-        // Invalid: 'yes'
-        $response = $this->getJson('/api/v1/spells?ritual=yes');
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['ritual']);
-    }
 
     #[Test]
     public function it_whitelists_sortable_columns()
@@ -155,18 +71,31 @@ class SpellIndexRequestTest extends TestCase
     }
 
     #[Test]
-    public function it_validates_search_max_length()
+    public function it_validates_search_query_max_length()
     {
         // Valid: 255 characters
         $search = str_repeat('a', 255);
-        $response = $this->getJson("/api/v1/spells?search={$search}");
+        $response = $this->getJson("/api/v1/spells?q={$search}");
         $response->assertStatus(200);
 
         // Invalid: 256 characters
         $search = str_repeat('a', 256);
-        $response = $this->getJson("/api/v1/spells?search={$search}");
+        $response = $this->getJson("/api/v1/spells?q={$search}");
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['search']);
+            ->assertJsonValidationErrors(['q']);
+    }
+
+    #[Test]
+    public function it_validates_search_query_min_length()
+    {
+        // Valid: 2 characters
+        $response = $this->getJson('/api/v1/spells?q=ab');
+        $response->assertStatus(200);
+
+        // Invalid: 1 character
+        $response = $this->getJson('/api/v1/spells?q=a');
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['q']);
     }
 
     #[Test]
@@ -185,5 +114,15 @@ class SpellIndexRequestTest extends TestCase
         $response = $this->getJson('/api/v1/spells?page=-1');
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['page']);
+    }
+
+    #[Test]
+    public function it_validates_filter_max_length()
+    {
+        // Invalid: 1001 characters (exceeds max of 1000)
+        $filter = str_repeat('a', 1001);
+        $response = $this->getJson("/api/v1/spells?filter={$filter}");
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['filter']);
     }
 }

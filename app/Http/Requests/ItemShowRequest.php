@@ -18,6 +18,8 @@ class ItemShowRequest extends BaseShowRequest
             'prerequisites.prerequisite',
             'spells',
             'spells.spellSchool',
+            'tags',
+            'savingThrows',
         ];
     }
 
@@ -38,6 +40,20 @@ class ItemShowRequest extends BaseShowRequest
             'strength_requirement',
             'created_at',
             'updated_at',
+            'item_type_id',
+            'detail',
+            'cost_cp',
+            'weight',
+            'damage_dice',
+            'versatile_damage',
+            'damage_type_id',
+            'range_normal',
+            'range_long',
+            'armor_class',
+            'stealth_disadvantage',
+            'charges_max',
+            'recharge_formula',
+            'recharge_timing',
         ];
     }
 }

@@ -16,6 +16,8 @@ class SpellShowRequest extends BaseShowRequest
             'effects',
             'effects.damageType',
             'classes',
+            'tags',
+            'savingThrows',
             'randomTables',
             'randomTables.entries',
         ];
@@ -35,9 +37,11 @@ class SpellShowRequest extends BaseShowRequest
             'casting_time',
             'range',
             'components',
+            'material_components',
             'duration',
-            'concentration',
-            'ritual',
+            'needs_concentration',
+            'is_ritual',
+            'higher_levels',
             'created_at',
             'updated_at',
         ];

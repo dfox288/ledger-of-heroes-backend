@@ -26,9 +26,6 @@ abstract class BaseIndexRequest extends FormRequest
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
             'page' => ['sometimes', 'integer', 'min:1'],
 
-            // Search
-            'search' => ['sometimes', 'string', 'max:255'],
-
             // Sorting
             'sort_by' => ['sometimes', Rule::in($this->getSortableColumns())],
             'sort_direction' => ['sometimes', Rule::in(['asc', 'desc'])],

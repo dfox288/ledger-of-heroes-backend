@@ -38,8 +38,6 @@ class AlignmentController extends Controller
      * - Detect Evil and Good spell targeting
      * - Paladin Divine Sense
      * - Character/NPC roleplay guidance
-     *
-     * @return JsonResponse
      */
     public function index(): JsonResponse
     {

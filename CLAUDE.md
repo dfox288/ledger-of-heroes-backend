@@ -198,7 +198,7 @@ git push
 ```
 app/
   ├── Http/
-  │   ├── Controllers/Api/     # 18 controllers (7 entity + 11 lookup)
+  │   ├── Controllers/Api/     # 23 controllers (7 entity + 16 lookup)
   │   ├── Resources/           # 29 API Resources
   │   └── Requests/            # 26 Form Requests
   ├── Models/                  # 32 models
@@ -233,8 +233,10 @@ tests/
 - `GET /feats`, `GET /feats/{id|slug}` - Character feats
 - `GET /search?q=term&types=spells,monsters` - Global search
 
-**Lookup Endpoints:**
-- `GET /sources`, `/spell-schools`, `/damage-types`, `/conditions`, `/proficiency-types`, `/languages`
+**Lookup Endpoints:** (all under `/api/v1/lookups/`)
+- Core: `/sources`, `/spell-schools`, `/damage-types`, `/conditions`, `/proficiency-types`, `/languages`
+- Additional: `/sizes`, `/ability-scores`, `/skills`, `/item-types`, `/item-properties`
+- Derived: `/tags`, `/monster-types`, `/alignments`, `/armor-types`, `/rarities`
 
 **Features:** Pagination, search, filtering, sorting, CORS, Redis caching (93.7% faster), OpenAPI docs
 

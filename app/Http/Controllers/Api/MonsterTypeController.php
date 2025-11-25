@@ -34,8 +34,6 @@ class MonsterTypeController extends Controller
      * - Ranger favored enemy selection
      * - Cleric/Paladin spell targeting (Turn Undead, etc.)
      * - Monster encounter filtering
-     *
-     * @return JsonResponse
      */
     public function index(): JsonResponse
     {

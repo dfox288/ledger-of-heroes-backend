@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Lookup API Restructure**: Moved all lookup/reference endpoints under `/api/v1/lookups/` prefix
+  - All 11 existing lookup endpoints moved (sources, spell-schools, damage-types, etc.)
+  - Relationship routes also moved (e.g., `/lookups/conditions/{id}/spells`)
+  - **Breaking Change**: Old URLs like `/api/v1/sources` no longer work
+  - **New URLs**: `/api/v1/lookups/sources`, `/api/v1/lookups/spell-schools`, etc.
+
+### Added
+
+- **5 New Derived Lookup Endpoints**: Created frontend-requested endpoints for filter dropdowns
+  - `GET /api/v1/lookups/tags` - All Spatie tags across entities (31 tags)
+  - `GET /api/v1/lookups/monster-types` - Distinct creature types from monsters table
+  - `GET /api/v1/lookups/alignments` - Distinct alignments from monsters table
+  - `GET /api/v1/lookups/armor-types` - Distinct armor types from monsters table
+  - `GET /api/v1/lookups/rarities` - Distinct item rarities (canonical D&D order)
+  - **Implementation**: No new tables - derived from existing data via DISTINCT queries
+  - **Tests**: 31 new tests with 139 assertions covering all 5 endpoints
+
 ### Fixed
 
 - **ClassXmlParser: False Positive Subclass Detection**: Prevent parenthetical usage qualifiers from being treated as subclass names

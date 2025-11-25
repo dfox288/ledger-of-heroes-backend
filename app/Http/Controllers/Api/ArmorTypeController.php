@@ -34,8 +34,6 @@ class ArmorTypeController extends Controller
      * - Monster filtering by defense type
      * - Understanding AC calculations
      * - Equipment planning for encounters
-     *
-     * @return JsonResponse
      */
     public function index(): JsonResponse
     {

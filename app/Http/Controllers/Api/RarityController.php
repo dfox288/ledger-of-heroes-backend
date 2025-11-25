@@ -36,8 +36,6 @@ class RarityController extends Controller
      * - Magic item shop filtering
      * - Treasure hoard generation
      * - Character progression planning
-     *
-     * @return JsonResponse
      */
     public function index(): JsonResponse
     {

@@ -2,7 +2,7 @@
 
 **Date:** 2025-11-26
 **Branch:** `feature/sushi-lookups-restructure`
-**Status:** ~75% Complete
+**Status:** ✅ Complete - Ready for PR
 
 ## Summary
 
@@ -59,37 +59,38 @@ Updated 19 test files with new `/lookups/` URL prefix:
 - `tests/Feature/Api/*ReverseRelationshipsApiTest.php` (6 files)
 - `tests/Feature/Requests/*RequestTest.php` (3 files)
 
-## Remaining Work
+## Completed Work (Continued)
 
-### 1. Run Tests (~5 min)
+### 5. Tests for New Endpoints (Complete)
+Created 31 new tests with 139 assertions:
+- `tests/Feature/Api/TagApiTest.php` (5 tests)
+- `tests/Feature/Api/MonsterTypeApiTest.php` (6 tests)
+- `tests/Feature/Api/AlignmentApiTest.php` (7 tests)
+- `tests/Feature/Api/ArmorTypeApiTest.php` (6 tests)
+- `tests/Feature/Api/RarityApiTest.php` (7 tests)
+
+### 6. Documentation Updates (Complete)
+- Updated `CLAUDE.md` API endpoints section with new `/lookups/` prefix
+- Updated `CHANGELOG.md` with restructure changes under [Unreleased]
+- Controllers formatted with Pint (removed superfluous PHPDoc tags)
+
+### 7. Commits & Push (Complete)
+- `934686b` - feat: restructure lookup endpoints under /api/v1/lookups/
+- `6c74b89` - test: add API tests for new derived lookup endpoints
+
+## Next Steps
+
+### Ready to Merge
+This branch is ready to be merged to main:
 ```bash
-docker compose exec php php artisan test
-```
-Expect ~1,419 tests. Some filter tests may fail due to Meilisearch index timing (not related to this work).
-
-### 2. Create Tests for New Endpoints (~30 min)
-Need tests for the 5 new controllers:
-- `tests/Feature/Api/TagApiTest.php`
-- `tests/Feature/Api/MonsterTypeApiTest.php`
-- `tests/Feature/Api/AlignmentApiTest.php`
-- `tests/Feature/Api/ArmorTypeApiTest.php`
-- `tests/Feature/Api/RarityApiTest.php`
-
-### 3. Run Pint (~1 min)
-```bash
-docker compose exec php ./vendor/bin/pint
-```
-
-### 4. Update Documentation (~15 min)
-- Update `CLAUDE.md` API endpoints section
-- Update `CHANGELOG.md` with changes
-- Update `PROJECT-STATUS.md` if needed
-
-### 5. Commit & Push
-```bash
-git add .
-git commit -m "feat: restructure lookup endpoints under /api/v1/lookups/"
+git checkout main
+git merge feature/sushi-lookups-restructure
 git push
+```
+
+Or create a PR:
+```bash
+gh pr create --title "Restructure lookup endpoints under /api/v1/lookups/" --body "..."
 ```
 
 ## Files Changed

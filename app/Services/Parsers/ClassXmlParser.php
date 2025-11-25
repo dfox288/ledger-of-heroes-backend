@@ -621,12 +621,36 @@ class ClassXmlParser
             // Pattern 2: "Feature Name (Subclass Name)"
             if (preg_match('/\(([^)]+)\)$/', $name, $matches)) {
                 $possibleSubclass = trim($matches[1]);
+
+                // Define false positive patterns that should NOT be treated as subclasses
+                $falsePositivePatterns = [
+                    '/^CR\s+\d+/',                   // CR 1, CR 2, CR 3, CR 4
+                    '/^CR\s+\d+\/\d+/',              // CR 1/2, CR 3/4
+                    '/^\d+\s*\/\s*(rest|day)/i',    // 2/rest, 3/day
+                    '/^\d+(st|nd|rd|th)\b/i',        // 2nd, 3rd, 4th
+                    '/\buses?\b/i',                  // one use, two uses
+                    '/^\d+\s+slots?/i',              // 2 slots
+                    '/^level\s+\d+/i',               // level 5
+                    '/^\d+\s+times?/i',              // 2 times
+                ];
+
+                // Check if this matches any false positive pattern
+                $isFalsePositive = false;
+                foreach ($falsePositivePatterns as $pattern) {
+                    if (preg_match($pattern, $possibleSubclass)) {
+                        $isFalsePositive = true;
+                        break;
+                    }
+                }
+
                 // Only consider it a subclass if it:
-                // 1. Not a common qualifier like "Revised" or "Alternative"
-                // 2. Not a number (like "Action Surge (2)")
-                // 3. Not a lowercase phrase (like "two uses")
-                // 4. Starts with a capital letter (subclass names are proper nouns)
-                if (! in_array(strtolower($possibleSubclass), ['revised', 'alternative', 'optional', 'variant'])
+                // 1. Not a false positive pattern (CR, uses, etc.)
+                // 2. Not a common qualifier like "Revised" or "Alternative"
+                // 3. Not a number (like "Action Surge (2)")
+                // 4. Not a lowercase phrase (like "two uses")
+                // 5. Starts with a capital letter (subclass names are proper nouns)
+                if (! $isFalsePositive
+                    && ! in_array(strtolower($possibleSubclass), ['revised', 'alternative', 'optional', 'variant'])
                     && ! is_numeric($possibleSubclass)
                     && preg_match('/^[A-Z]/', $possibleSubclass)
                     && ! preg_match('/^\d+/', $possibleSubclass)) {

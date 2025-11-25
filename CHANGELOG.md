@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **ClassXmlParser: False Positive Subclass Detection**: Prevent parenthetical usage qualifiers from being treated as subclass names
+  - Added 8 explicit false positive regex patterns to filter out non-subclass parenthetical content
+  - Patterns: CR notation (CR 1, CR 1/2), usage limits (2/rest, 3/day), ordinal numbers (2nd, 3rd), usage counts (one use, two uses), spell slots (2 slots), level requirements (level 18), frequency limits (2 times)
+  - **Impact**: Features like "Wild Shape (CR 1)", "Channel Divinity (2/rest)", "Extra Attack (3rd)" no longer create fake subclasses
+  - **Root Cause**: Original heuristic only checked for numbers and lowercase, missing structured qualifiers like "CR 1" or "2/rest"
+  - **Solution**: Explicit pattern matching with clear documentation for each false positive type
+  - **Files Changed**: `app/Services/Parsers/ClassXmlParser.php` (+24 lines in `detectSubclasses()` method)
+
 ### Added
 
 - **ImportsModifiers Trait Enhancement**: Added helper methods for deduplication-safe modifier imports

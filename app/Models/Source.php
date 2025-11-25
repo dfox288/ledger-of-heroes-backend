@@ -11,7 +11,12 @@ class Source extends BaseModel
         'name',
         'publisher',
         'publication_year',
-        'edition',
+        'url',
+        'author',
+        'artist',
+        'website',
+        'category',
+        'description',
     ];
 
     protected $casts = [

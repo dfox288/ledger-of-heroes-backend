@@ -150,32 +150,35 @@ docker compose exec -e SCOUT_PREFIX=test_ php php artisan import:all --env=testi
 # 1. Fresh database
 docker compose exec php php artisan migrate:fresh --seed
 
-# 2. Import items FIRST (required by classes/backgrounds for equipment matching)
+# 2. Import sources FIRST (required by ALL other entities)
+docker compose exec php bash -c 'for file in import-files/source-*.xml; do php artisan import:sources "$file" || true; done'
+
+# 3. Import items (required by classes/backgrounds for equipment matching)
 docker compose exec php bash -c 'for file in import-files/item-*.xml; do php artisan import:items "$file" || true; done'
 
-# 3. Import classes (required by spells)
+# 4. Import classes (required by spells)
 docker compose exec php bash -c 'for file in import-files/class-*.xml; do php artisan import:classes "$file" || true; done'
 
-# 4. Import spells (main files)
+# 5. Import spells (main files)
 docker compose exec php bash -c 'for file in import-files/spell-*.xml; do [[ ! "$file" =~ \+.*\.xml$ ]] && php artisan import:spells "$file" || true; done'
 
-# 5. Import additive spell class mappings
+# 6. Import additive spell class mappings
 docker compose exec php bash -c 'for file in import-files/spells-*+*.xml; do php artisan import:spell-class-mappings "$file" || true; done'
 
-# 6. Import other entities
+# 7. Import other entities
 docker compose exec php bash -c 'for file in import-files/race-*.xml; do php artisan import:races "$file" || true; done'
 docker compose exec php bash -c 'for file in import-files/background-*.xml; do php artisan import:backgrounds "$file" || true; done'
 docker compose exec php bash -c 'for file in import-files/feat-*.xml; do php artisan import:feats "$file" || true; done'
 docker compose exec php bash -c 'for file in import-files/bestiary-*.xml; do php artisan import:monsters "$file" || true; done'
 
-# 7. Configure search
+# 8. Configure search
 docker compose exec php php artisan search:configure-indexes
 
-# 8. Run tests
+# 9. Run tests
 docker compose exec php php artisan test
 ```
 
-**⚠️ CRITICAL ORDER:** Items → Classes → Spells → Spell Class Mappings → Other entities
+**⚠️ CRITICAL ORDER:** Sources → Items → Classes → Spells → Spell Class Mappings → Other entities
 
 ### Development Workflow
 

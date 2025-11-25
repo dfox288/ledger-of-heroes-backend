@@ -17,6 +17,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Source XML Importer**: Sources are now imported from XML files instead of being seeded
+  - New `import:sources` command to import individual source XML files
+  - New `SourceXmlParser` to parse source-*.xml files
+  - New `SourceImporter` service for idempotent source imports
+  - Sources imported FIRST in `import:all` (before all other entities)
+  - **New API Fields**: url, author, artist, website, category, description
+  - **Removed Field**: edition (unused)
+  - **Breaking Change**: SourceSeeder no longer runs; sources must be imported
+  - **Files Added**: 9 source XML files (PHB, DMG, MM, XGE, TCE, VGM, ERLW, SCAG, TWBTW)
+  - **Tests**: 12 new tests (7 parser, 5 importer) with 57 assertions
+
 - **5 New Derived Lookup Endpoints**: Created frontend-requested endpoints for filter dropdowns
   - `GET /api/v1/lookups/tags` - All Spatie tags across entities (31 tags)
   - `GET /api/v1/lookups/monster-types` - Distinct creature types from monsters table

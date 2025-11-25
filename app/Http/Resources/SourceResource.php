@@ -20,7 +20,12 @@ class SourceResource extends JsonResource
             'name' => $this->name,
             'publisher' => $this->publisher,
             'publication_year' => $this->publication_year,
-            'edition' => $this->edition,
+            'url' => $this->url,
+            'author' => $this->author,
+            'artist' => $this->artist,
+            'website' => $this->website,
+            'category' => $this->category,
+            'description' => $this->description,
         ];
     }
 }

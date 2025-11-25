@@ -12,8 +12,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Order matters: dependencies first
+        // Note: SourceSeeder removed - sources are imported from XML files (import:sources)
         $this->call([
-            SourceSeeder::class,
             SpellSchoolSeeder::class,
             DamageTypeSeeder::class,
             SizeSeeder::class,

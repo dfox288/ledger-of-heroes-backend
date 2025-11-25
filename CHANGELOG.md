@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **ImportsModifiers Trait Enhancement**: Added helper methods for deduplication-safe modifier imports
+  - Added `importModifier()` method for single modifier import with automatic deduplication
+  - Added `importAsiModifier()` convenience method for ASI-specific imports
+  - Updated `importEntityModifiers()` to use `updateOrCreate()` instead of `create()` for preventing duplicates
+  - **Files Changed**: `app/Services/Importers/Concerns/ImportsModifiers.php` (+49 lines)
+
+### Fixed
+
+- **Class Importer: Comprehensive Deduplication (Phases 1-3 Complete)**: Eliminated all duplicate data on re-import across all importer methods
+  - **Phase 1 (Feature Modifiers)**: Changed `importFeatureModifiers()` from `create()` to `updateOrCreate()` with unique keys (reference_type, reference_id, modifier_category, level, ability_score_id)
+  - **Phase 2 (Bonus Proficiencies)**: Changed `importBonusProficiencies()` from `create()` to `updateOrCreate()` for both choice-based and fixed proficiencies
+  - **Phase 3 (Subclass Counters)**: Changed subclass counter imports from `create()` to `updateOrCreate()` with unique keys (class_id, level, counter_name)
+  - **Impact**: Re-running `import:all` multiple times now produces identical data with zero duplicates across all tables
+  - **Verification**: Full re-import completed successfully (78 seconds), no fake CR subclasses created, ASI data verified
+  - **Files Changed**: `app/Services/Importers/ClassImporter.php` (~75 lines modified across 3 methods), `app/Services/Importers/Concerns/ImportsModifiers.php` (+49 lines)
+
+- **Class Importer: Idempotent Re-Import Support (Phase 3)**: Fixed class importer to properly refresh all related data on re-import
+  - **Problem**: After Phases 1 & 2 fixes, `updateOrCreate()` prevented duplicates but skipped re-importing features/modifiers for existing classes
+  - **Root Cause**: When a base class already existed, the importer would update the class record but not clear and re-import related data (features, modifiers, progression, etc.)
+  - **Solution**: Added `clearClassRelatedData()` method that clears all related data before re-importing for base classes
+  - **Impact**: Re-running `import:all` or re-importing individual class files now properly refreshes ALL data (features, ASIs, progression, counters, etc.)
+  - **Verification**: All 16 base classes now have correct ASI counts with zero duplicates after multiple imports
+  - **Files Changed**: `app/Services/Importers/ClassImporter.php` (added 35 lines - new method + integration)
+
+### Added
+
 - **Complete Filter Operator Testing (Phase 2)**: Implemented all remaining filter operator tests across all 7 entities
   - **Total Coverage**: 124/124 tests passing (2,462 assertions) - 100% complete
   - **Entities**: Spell (19), Class (19), Monster (22), Race (19), Item (19), Background (11), Feat (15)

@@ -12,9 +12,11 @@ use Illuminate\Database\Eloquent\Model;
  * Trait for importing modifiers (ability scores, skills, damage resistances, etc.).
  *
  * Handles the common pattern of:
- * 1. Clear existing modifiers
- * 2. Create new modifiers with polymorphic reference
+ * 1. Clear existing modifiers (via clearClassRelatedData in ClassImporter)
+ * 2. Create/update modifiers with polymorphic reference using updateOrCreate
  * 3. Link to ability scores, skills, or damage types as needed
+ *
+ * Uses updateOrCreate to prevent duplicates on re-import.
  */
 trait ImportsModifiers
 {
@@ -58,22 +60,69 @@ trait ImportsModifiers
                 $damageTypeId = $damageType?->id;
             }
 
-            $modifier = [
+            // Build unique keys for updateOrCreate
+            $uniqueKeys = [
                 'reference_type' => get_class($entity),
                 'reference_id' => $entity->id,
                 'modifier_category' => $modData['modifier_category'] ?? $modData['category'],
-                'value' => $modData['value'],
+                'level' => $modData['level'] ?? null,
                 'ability_score_id' => $abilityScoreId,
                 'skill_id' => $skillId,
                 'damage_type_id' => $damageTypeId,
+            ];
+
+            // Build values to set/update
+            $values = [
+                'value' => $modData['value'],
                 'is_choice' => $modData['is_choice'] ?? false,
                 'choice_count' => $modData['choice_count'] ?? null,
                 'choice_constraint' => $modData['choice_constraint'] ?? null,
                 'condition' => $modData['condition'] ?? null,
-                'level' => $modData['level'] ?? null,
             ];
 
-            Modifier::create($modifier);
+            // Use updateOrCreate to prevent duplicates on re-import
+            Modifier::updateOrCreate($uniqueKeys, array_merge($uniqueKeys, $values));
         }
+    }
+
+    /**
+     * Import a single modifier with deduplication.
+     *
+     * Convenience method for importing individual modifiers.
+     *
+     * @param  Model  $entity  The entity (Class, Race, etc.)
+     * @param  string  $category  Modifier category (ability_score, skill, speed, etc.)
+     * @param  array  $data  Modifier data (value, condition, level, etc.)
+     */
+    protected function importModifier(Model $entity, string $category, array $data): Modifier
+    {
+        $uniqueKeys = [
+            'reference_type' => get_class($entity),
+            'reference_id' => $entity->id,
+            'modifier_category' => $category,
+            'level' => $data['level'] ?? null,
+            'ability_score_id' => $data['ability_score_id'] ?? null,
+            'skill_id' => $data['skill_id'] ?? null,
+            'damage_type_id' => $data['damage_type_id'] ?? null,
+        ];
+
+        return Modifier::updateOrCreate($uniqueKeys, array_merge($uniqueKeys, $data));
+    }
+
+    /**
+     * Import ASI modifier specifically (common case).
+     *
+     * @param  string  $value  Default '+2'
+     */
+    protected function importAsiModifier(Model $entity, int $level, string $value = '+2'): Modifier
+    {
+        return $this->importModifier($entity, 'ability_score', [
+            'level' => $level,
+            'value' => $value,
+            'ability_score_id' => null,
+            'is_choice' => true,
+            'choice_count' => 2,
+            'condition' => 'Choose one ability score to increase by 2, or two ability scores to increase by 1 each',
+        ]);
     }
 }

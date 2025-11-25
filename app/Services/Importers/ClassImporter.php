@@ -79,6 +79,13 @@ class ClassImporter extends BaseImporter
             ]
         );
 
+        // For base classes (not subclasses), clear existing related data before re-importing
+        // This ensures updateOrCreate doesn't skip features/modifiers/progression
+        // Subclasses are handled separately in importSubclass() method
+        if (empty($data['parent_class_id'])) {
+            $this->clearClassRelatedData($class);
+        }
+
         // Import relationships
         if (! empty($data['traits'])) {
             $createdTraits = $this->importEntityTraits($class, $data['traits']);
@@ -149,6 +156,42 @@ class ClassImporter extends BaseImporter
     }
 
     /**
+     * Clear all related data for a class before re-importing.
+     *
+     * This ensures that updateOrCreate properly refreshes all relationships
+     * instead of leaving stale data from previous imports.
+     *
+     * Called for base classes only - subclasses handled in importSubclass().
+     */
+    private function clearClassRelatedData(CharacterClass $class): void
+    {
+        // Clear features (and their special tags cascade via foreign key)
+        $class->features()->delete();
+
+        // Clear counters (Ki, Rage, Second Wind, etc.)
+        $class->counters()->delete();
+
+        // Clear spell progression
+        $class->levelProgression()->delete();
+
+        // Clear modifiers (ASIs, speed bonuses, AC bonuses, etc.)
+        $class->modifiers()->delete();
+
+        // Clear proficiencies
+        $class->proficiencies()->delete();
+
+        // Clear equipment (starting equipment choices)
+        $class->equipment()->delete();
+
+        // Clear traits (sources are preserved via entity_sources polymorphic table)
+        $class->traits()->delete();
+
+        // Note: We do NOT clear sources or subclasses:
+        // - Sources are cumulative across files (PHB + XGE + TCE)
+        // - Subclasses are handled separately in importSubclass()
+    }
+
+    /**
      * Log strategy application to import-strategy channel.
      */
     private function logStrategyApplication($strategy, array $data): void
@@ -170,14 +213,20 @@ class ClassImporter extends BaseImporter
     private function importFeatures(CharacterClass $class, array $features): void
     {
         foreach ($features as $featureData) {
-            $feature = ClassFeature::create([
-                'class_id' => $class->id,
-                'level' => $featureData['level'],
-                'feature_name' => $featureData['name'],
-                'is_optional' => $featureData['is_optional'],
-                'description' => $featureData['description'],
-                'sort_order' => $featureData['sort_order'],
-            ]);
+            // Use updateOrCreate to prevent duplicates on re-import
+            // Unique key: class_id + level + feature_name + sort_order
+            $feature = ClassFeature::updateOrCreate(
+                [
+                    'class_id' => $class->id,
+                    'level' => $featureData['level'],
+                    'feature_name' => $featureData['name'],
+                    'sort_order' => $featureData['sort_order'],
+                ],
+                [
+                    'is_optional' => $featureData['is_optional'],
+                    'description' => $featureData['description'],
+                ]
+            );
 
             // Import special tags (fighting styles, unarmored defense, etc.)
             if (! empty($featureData['special_tags'])) {
@@ -197,18 +246,23 @@ class ClassImporter extends BaseImporter
             // Create Ability Score Improvement modifier if this level grants ASI
             // Use XML attribute instead of name parsing for more reliable detection
             if (! empty($featureData['grants_asi'])) {
-                // Create modifier directly without clearing existing ones
-                Modifier::create([
-                    'reference_type' => get_class($class),
-                    'reference_id' => $class->id,
-                    'modifier_category' => 'ability_score',
-                    'value' => '+2',
-                    'ability_score_id' => null, // Player chooses
-                    'is_choice' => true,
-                    'choice_count' => 2, // Standard ASI allows 2 increases
-                    'level' => $featureData['level'],
-                    'condition' => 'Choose one ability score to increase by 2, or two ability scores to increase by 1 each',
-                ]);
+                // Use updateOrCreate to prevent duplicates on re-import
+                // Unique key: reference_type + reference_id + modifier_category + level
+                Modifier::updateOrCreate(
+                    [
+                        'reference_type' => get_class($class),
+                        'reference_id' => $class->id,
+                        'modifier_category' => 'ability_score',
+                        'level' => $featureData['level'],
+                    ],
+                    [
+                        'value' => '+2',
+                        'ability_score_id' => null, // Player chooses
+                        'is_choice' => true,
+                        'choice_count' => 2, // Standard ASI allows 2 increases
+                        'condition' => 'Choose one ability score to increase by 2, or two ability scores to increase by 1 each',
+                    ]
+                );
             }
 
             // Detect Bonus Proficiencies and create proficiency records
@@ -234,23 +288,36 @@ class ClassImporter extends BaseImporter
     private function importFeatureModifiers(CharacterClass $class, array $modifiers, int $level): void
     {
         foreach ($modifiers as $modifierData) {
-            $modifier = [
+            // Build unique keys for updateOrCreate
+            $uniqueKeys = [
                 'reference_type' => get_class($class),
                 'reference_id' => $class->id,
                 'modifier_category' => $modifierData['modifier_category'],
-                'value' => $modifierData['value'],
                 'level' => $level,
+            ];
+
+            // Build values to set/update
+            $values = [
+                'value' => $modifierData['value'],
             ];
 
             // Add ability_code if present (for ability_score category)
             if (isset($modifierData['ability_code'])) {
                 $abilityScore = \App\Models\AbilityScore::where('code', strtoupper($modifierData['ability_code']))->first();
                 if ($abilityScore) {
-                    $modifier['ability_score_id'] = $abilityScore->id;
+                    $uniqueKeys['ability_score_id'] = $abilityScore->id;
+                    $values['ability_score_id'] = $abilityScore->id;
+                } else {
+                    $uniqueKeys['ability_score_id'] = null;
+                    $values['ability_score_id'] = null;
                 }
+            } else {
+                $uniqueKeys['ability_score_id'] = null;
+                $values['ability_score_id'] = null;
             }
 
-            Modifier::create($modifier);
+            // Use updateOrCreate to prevent duplicates on re-import
+            Modifier::updateOrCreate($uniqueKeys, $values);
         }
     }
 
@@ -269,17 +336,22 @@ class ClassImporter extends BaseImporter
             $quantityWord = strtolower($matches[1]);
             $quantity = $quantityWords[$quantityWord] ?? 1;
 
-            // Create a single choice record - player chooses X skills from all available
-            Proficiency::create([
-                'reference_type' => get_class($class),
-                'reference_id' => $class->id,
-                'proficiency_type' => 'skill',
-                'proficiency_name' => null, // Player chooses
-                'grants' => true,
-                'is_choice' => true,
-                'quantity' => $quantity,
-                'level' => $level,
-            ]);
+            // Use updateOrCreate to prevent duplicates on re-import
+            // Unique key: reference_type + reference_id + proficiency_type + level + is_choice
+            Proficiency::updateOrCreate(
+                [
+                    'reference_type' => get_class($class),
+                    'reference_id' => $class->id,
+                    'proficiency_type' => 'skill',
+                    'proficiency_name' => null, // Player chooses
+                    'level' => $level,
+                    'is_choice' => true,
+                ],
+                [
+                    'grants' => true,
+                    'quantity' => $quantity,
+                ]
+            );
 
             return;
         }
@@ -301,15 +373,21 @@ class ClassImporter extends BaseImporter
                 // Determine proficiency type based on keywords
                 $profType = $this->determineProficiencyType($profName);
 
-                Proficiency::create([
-                    'reference_type' => get_class($class),
-                    'reference_id' => $class->id,
-                    'proficiency_type' => $profType,
-                    'proficiency_name' => $profName,
-                    'grants' => true,
-                    'is_choice' => false,
-                    'level' => $level,
-                ]);
+                // Use updateOrCreate to prevent duplicates on re-import
+                // Unique key: reference_type + reference_id + proficiency_type + proficiency_name + level
+                Proficiency::updateOrCreate(
+                    [
+                        'reference_type' => get_class($class),
+                        'reference_id' => $class->id,
+                        'proficiency_type' => $profType,
+                        'proficiency_name' => $profName,
+                        'level' => $level,
+                    ],
+                    [
+                        'grants' => true,
+                        'is_choice' => false,
+                    ]
+                );
             }
         }
     }
@@ -344,21 +422,27 @@ class ClassImporter extends BaseImporter
     private function importSpellProgression(CharacterClass $class, array $progression): void
     {
         foreach ($progression as $levelData) {
-            ClassLevelProgression::create([
-                'class_id' => $class->id,
-                'level' => $levelData['level'],
-                'cantrips_known' => $levelData['cantrips_known'],
-                'spell_slots_1st' => $levelData['spell_slots_1st'],
-                'spell_slots_2nd' => $levelData['spell_slots_2nd'],
-                'spell_slots_3rd' => $levelData['spell_slots_3rd'],
-                'spell_slots_4th' => $levelData['spell_slots_4th'],
-                'spell_slots_5th' => $levelData['spell_slots_5th'],
-                'spell_slots_6th' => $levelData['spell_slots_6th'],
-                'spell_slots_7th' => $levelData['spell_slots_7th'],
-                'spell_slots_8th' => $levelData['spell_slots_8th'],
-                'spell_slots_9th' => $levelData['spell_slots_9th'],
-                'spells_known' => $levelData['spells_known'] ?? null,
-            ]);
+            // Use updateOrCreate to prevent duplicates on re-import
+            // Unique key: class_id + level
+            ClassLevelProgression::updateOrCreate(
+                [
+                    'class_id' => $class->id,
+                    'level' => $levelData['level'],
+                ],
+                [
+                    'cantrips_known' => $levelData['cantrips_known'],
+                    'spell_slots_1st' => $levelData['spell_slots_1st'],
+                    'spell_slots_2nd' => $levelData['spell_slots_2nd'],
+                    'spell_slots_3rd' => $levelData['spell_slots_3rd'],
+                    'spell_slots_4th' => $levelData['spell_slots_4th'],
+                    'spell_slots_5th' => $levelData['spell_slots_5th'],
+                    'spell_slots_6th' => $levelData['spell_slots_6th'],
+                    'spell_slots_7th' => $levelData['spell_slots_7th'],
+                    'spell_slots_8th' => $levelData['spell_slots_8th'],
+                    'spell_slots_9th' => $levelData['spell_slots_9th'],
+                    'spells_known' => $levelData['spells_known'] ?? null,
+                ]
+            );
         }
     }
 
@@ -380,13 +464,19 @@ class ClassImporter extends BaseImporter
                 default => null,
             };
 
-            ClassCounter::create([
-                'class_id' => $class->id,
-                'level' => $counterData['level'],
-                'counter_name' => $counterData['name'],
-                'counter_value' => $counterData['value'],
-                'reset_timing' => $resetTiming,
-            ]);
+            // Use updateOrCreate to prevent duplicates on re-import
+            // Unique key: class_id + level + counter_name
+            ClassCounter::updateOrCreate(
+                [
+                    'class_id' => $class->id,
+                    'level' => $counterData['level'],
+                    'counter_name' => $counterData['name'],
+                ],
+                [
+                    'counter_value' => $counterData['value'],
+                    'reset_timing' => $resetTiming,
+                ]
+            );
         }
     }
 
@@ -439,13 +529,19 @@ class ClassImporter extends BaseImporter
                     default => null,
                 };
 
-                ClassCounter::create([
-                    'class_id' => $subclass->id,
-                    'level' => $counterData['level'],
-                    'counter_name' => $counterData['name'],
-                    'counter_value' => $counterData['value'],
-                    'reset_timing' => $resetTiming,
-                ]);
+                // Use updateOrCreate to prevent duplicates on re-import
+                // Unique key: class_id + level + counter_name
+                ClassCounter::updateOrCreate(
+                    [
+                        'class_id' => $subclass->id,
+                        'level' => $counterData['level'],
+                        'counter_name' => $counterData['name'],
+                    ],
+                    [
+                        'counter_value' => $counterData['value'],
+                        'reset_timing' => $resetTiming,
+                    ]
+                );
             }
         }
 

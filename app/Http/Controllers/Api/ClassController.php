@@ -25,8 +25,8 @@ class ClassController extends Controller
      * subclass options. Uses Meilisearch for filtering and search.
      *
      * **Filtering Examples:**
-     * - Base classes only: `GET /api/v1/classes?filter=is_subclass = false`
-     * - Subclasses only: `GET /api/v1/classes?filter=is_subclass = true`
+     * - Base classes only: `GET /api/v1/classes?filter=is_base_class = true` OR `?filter=is_subclass = false`
+     * - Subclasses only: `GET /api/v1/classes?filter=is_base_class = false` OR `?filter=is_subclass = true`
      * - High HP classes: `GET /api/v1/classes?filter=hit_die >= 10`
      * - Barbarian and Fighter: `GET /api/v1/classes?filter=hit_die = 12`
      * - Spellcasters: `GET /api/v1/classes?filter=spellcasting_ability != null`
@@ -49,13 +49,14 @@ class ClassController extends Controller
      * - `primary_ability` (string): Primary ability (e.g., "STR", "INT")
      * - `spellcasting_ability` (string): Spellcasting ability code (e.g., "INT", "WIS", "CHA", null for non-casters)
      * - `source_codes` (array): Source book codes (e.g., ["PHB"], ["XGTE"])
+     * - `is_base_class` (bool): Whether this is a base class (true) or subclass (false)
      * - `is_subclass` (bool): Whether this is a subclass (true) or base class (false)
      * - `parent_class_name` (string): Parent class name for subclasses
      * - `tag_slugs` (array): Tag slugs (e.g., ["spellcaster"], ["martial"], ["full-caster"])
      *
      * See `docs/API-EXAMPLES.md` for comprehensive usage examples.
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: id, slug, hit_die, primary_ability, spellcasting_ability, is_spellcaster, source_codes, is_subclass, parent_class_name, tag_slugs, has_spells, spell_count, max_spell_level, saving_throw_proficiencies, armor_proficiencies, weapon_proficiencies, tool_proficiencies, skill_proficiencies.', example: 'is_spellcaster = true AND hit_die >= 8')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: id, slug, hit_die, primary_ability, spellcasting_ability, is_spellcaster, source_codes, is_base_class, is_subclass, parent_class_name, tag_slugs, has_spells, spell_count, max_spell_level, saving_throw_proficiencies, armor_proficiencies, weapon_proficiencies, tool_proficiencies, skill_proficiencies.', example: 'is_base_class = true AND hit_die >= 10')]
     public function index(ClassIndexRequest $request, ClassSearchService $service, Client $meilisearch)
     {
         $dto = ClassSearchDTO::fromRequest($request);

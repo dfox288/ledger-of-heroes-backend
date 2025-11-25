@@ -390,4 +390,100 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         $response->assertOk();
         $response->assertJsonStructure(['data', 'links', 'meta']);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_filters_classes_by_is_base_class_true(): void
+    {
+        // Arrange: Create base classes and subclasses
+        $wizard = CharacterClass::factory()->create([
+            'name' => 'Wizard',
+            'parent_class_id' => null, // Base class
+        ]);
+        $wizard->searchable();
+
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'parent_class_id' => null, // Base class
+        ]);
+        $fighter->searchable();
+
+        $champion = CharacterClass::factory()->create([
+            'name' => 'Champion',
+            'parent_class_id' => $fighter->id, // Subclass
+        ]);
+        $champion->searchable();
+
+        $battlemaster = CharacterClass::factory()->create([
+            'name' => 'Battle Master',
+            'parent_class_id' => $fighter->id, // Subclass
+        ]);
+        $battlemaster->searchable();
+
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by is_base_class=true (using Meilisearch filter syntax)
+        $response = $this->getJson('/api/v1/classes?filter=is_base_class = true');
+
+        // Assert: Only base classes returned
+        $response->assertOk();
+        $data = $response->json('data');
+
+        $this->assertCount(2, $data);
+        $names = collect($data)->pluck('name')->toArray();
+        $this->assertContains('Wizard', $names);
+        $this->assertContains('Fighter', $names);
+        $this->assertNotContains('Champion', $names);
+        $this->assertNotContains('Battle Master', $names);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_filters_classes_by_is_base_class_false(): void
+    {
+        // Arrange: Create base classes and subclasses
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'parent_class_id' => null, // Base class
+        ]);
+        $fighter->searchable();
+
+        $champion = CharacterClass::factory()->create([
+            'name' => 'Champion',
+            'parent_class_id' => $fighter->id, // Subclass
+        ]);
+        $champion->searchable();
+
+        $battlemaster = CharacterClass::factory()->create([
+            'name' => 'Battle Master',
+            'parent_class_id' => $fighter->id, // Subclass
+        ]);
+        $battlemaster->searchable();
+
+        $rogue = CharacterClass::factory()->create([
+            'name' => 'Rogue',
+            'parent_class_id' => null,
+        ]);
+        $rogue->searchable();
+
+        $arcaneTrickster = CharacterClass::factory()->create([
+            'name' => 'Arcane Trickster',
+            'parent_class_id' => $rogue->id, // Subclass
+        ]);
+        $arcaneTrickster->searchable();
+
+        sleep(1); // Wait for Meilisearch indexing
+
+        // Act: Filter by is_base_class=false (using Meilisearch filter syntax)
+        $response = $this->getJson('/api/v1/classes?filter=is_base_class = false');
+
+        // Assert: Only subclasses returned
+        $response->assertOk();
+        $data = $response->json('data');
+
+        $this->assertCount(3, $data);
+        $names = collect($data)->pluck('name')->toArray();
+        $this->assertContains('Champion', $names);
+        $this->assertContains('Battle Master', $names);
+        $this->assertContains('Arcane Trickster', $names);
+        $this->assertNotContains('Fighter', $names);
+    }
 }

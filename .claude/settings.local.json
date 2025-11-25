@@ -29,7 +29,9 @@
       "Bash(git rm:*)",
       "Bash(SCOUT_PREFIX=test_ docker compose exec:*)",
       "Bash(cat:*)",
-      "Bash(ln:*)"
+      "Bash(ln:*)",
+      "Bash(APP_ENV=testing docker compose exec:*)",
+      "Bash(paste:*)"
     ],
     "deny": [],
     "ask": []

@@ -393,4 +393,35 @@ class SpellApiTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('data.random_tables', []);
     }
+
+    #[Test]
+    public function test_spell_exposes_component_breakdown_fields()
+    {
+        // Test all component combinations
+        $spells = [
+            'Verbal Only' => ['components' => 'V', 'expected' => ['verbal' => true, 'somatic' => false, 'material' => false]],
+            'Somatic Only' => ['components' => 'S', 'expected' => ['verbal' => false, 'somatic' => true, 'material' => false]],
+            'Material Only' => ['components' => 'M', 'expected' => ['verbal' => false, 'somatic' => false, 'material' => true]],
+            'Verbal Somatic' => ['components' => 'V, S', 'expected' => ['verbal' => true, 'somatic' => true, 'material' => false]],
+            'Verbal Material' => ['components' => 'V, M', 'expected' => ['verbal' => true, 'somatic' => false, 'material' => true]],
+            'Somatic Material' => ['components' => 'S, M', 'expected' => ['verbal' => false, 'somatic' => true, 'material' => true]],
+            'All Components' => ['components' => 'V, S, M', 'expected' => ['verbal' => true, 'somatic' => true, 'material' => true]],
+            'No Components' => ['components' => '', 'expected' => ['verbal' => false, 'somatic' => false, 'material' => false]],
+        ];
+
+        foreach ($spells as $name => $config) {
+            $spell = Spell::factory()->create([
+                'name' => $name,
+                'level' => 1,
+                'components' => $config['components'],
+            ]);
+
+            $response = $this->getJson("/api/v1/spells/{$spell->id}");
+
+            $response->assertStatus(200)
+                ->assertJsonPath('data.requires_verbal', $config['expected']['verbal'])
+                ->assertJsonPath('data.requires_somatic', $config['expected']['somatic'])
+                ->assertJsonPath('data.requires_material', $config['expected']['material']);
+        }
+    }
 }

@@ -158,6 +158,7 @@ class CharacterClass extends BaseModel
             'sources' => $this->sources->pluck('source.name')->unique()->values()->all(),
             'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
             'is_subclass' => $this->parent_class_id !== null,
+            'is_base_class' => $this->parent_class_id === null,
             'parent_class_name' => $this->parentClass?->name,
             // Tag slugs for filtering (e.g., spellcaster, martial, half_caster)
             'tag_slugs' => $this->tags->pluck('slug')->all(),
@@ -231,6 +232,7 @@ class CharacterClass extends BaseModel
                 'is_spellcaster',
                 'source_codes',
                 'is_subclass',
+                'is_base_class',
                 'parent_class_name',
                 'tag_slugs',
                 // Phase 3: Spell counts

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Spell Component Breakdown API Fields**: Added `requires_verbal`, `requires_somatic`, `requires_material` boolean fields to SpellResource
+  - Computed from existing `components` string (e.g., "V, S, M" → `requires_verbal: true, requires_somatic: true, requires_material: true`)
+  - Enables frontend filtering by component requirements (e.g., spells castable in Silence, while grappled, or with Subtle Spell metamagic)
+  - Already filterable in Meilisearch (`?filter=requires_verbal = false`), now properly exposed in API response
+  - Fixes: Frontend can now display which components are required after filtering
+- **Class `is_base_class` Filter**: Added `is_base_class` boolean field to Class Meilisearch index and API
+  - Enables filtering base classes (`?filter=is_base_class = true`) vs subclasses (`?filter=is_base_class = false`)
+  - Complements existing `is_subclass` field for better DX (both approaches now work)
+  - Updated ClassController documentation with new filter examples
+  - Fixes: HTML error when filtering by `is_base_class` (field didn't exist in Meilisearch index)
+
 ### Removed
 - **Obsolete Race Filter Tests**: Deleted 2 test files (20 tests) testing legacy MySQL filtering parameters removed during Meilisearch migration
   - `tests/Feature/Api/RaceFilterTest.php` (9 tests for removed `?grants_proficiency=`, `?speaks_language=`, `?language_choice_count=`, `?grants_languages=`, `?grants_skill=`, `?grants_proficiency_type=`)

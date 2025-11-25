@@ -31,7 +31,19 @@
       "Bash(cat:*)",
       "Bash(ln:*)",
       "Bash(APP_ENV=testing docker compose exec:*)",
-      "Bash(paste:*)"
+      "Bash(paste:*)",
+      "Bash(git mv:*)",
+      "WebSearch",
+      "Bash(php -l:*)",
+      "Bash(chmod:*)",
+      "Bash(./scripts/verify-docs-structure.sh:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(xargs -I {} sh -c 'echo \"\"\"\"{}:\"\"\"\" && ls -1 {} | wc -l')",
+      "Bash(xargs:*)",
+      "SlashCommand(/superpowers-laravel:write-plan)",
+      "Skill(superpowers-laravel:writing-plans)",
+      "Skill(superpowers-laravel:executing-plans)"
     ],
     "deny": [],
     "ask": []

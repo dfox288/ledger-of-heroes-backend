@@ -38,7 +38,7 @@ class ConditionReverseRelationshipsApiTest extends TestCase
             'description' => 'Creatures in area become poisoned',
         ]);
 
-        $response = $this->getJson('/api/v1/conditions/poisoned/spells');
+        $response = $this->getJson('/api/v1/lookups/conditions/poisoned/spells');
 
         $response->assertOk()
             ->assertJsonCount(2, 'data')
@@ -51,7 +51,7 @@ class ConditionReverseRelationshipsApiTest extends TestCase
     {
         $custom = Condition::factory()->create(['slug' => 'custom-condition']);
 
-        $response = $this->getJson('/api/v1/conditions/custom-condition/spells');
+        $response = $this->getJson('/api/v1/lookups/conditions/custom-condition/spells');
 
         $response->assertOk()
             ->assertJsonCount(0, 'data');
@@ -64,7 +64,7 @@ class ConditionReverseRelationshipsApiTest extends TestCase
         $spell = Spell::factory()->create();
         $condition->spells()->attach($spell, ['effect_type' => 'inflicts']);
 
-        $response = $this->getJson("/api/v1/conditions/{$condition->id}/spells");
+        $response = $this->getJson("/api/v1/lookups/conditions/{$condition->id}/spells");
 
         $response->assertOk()
             ->assertJsonCount(1, 'data');
@@ -81,7 +81,7 @@ class ConditionReverseRelationshipsApiTest extends TestCase
             $stunned->spells()->attach($spell, ['effect_type' => 'inflicts']);
         }
 
-        $response = $this->getJson('/api/v1/conditions/stunned/spells?per_page=25');
+        $response = $this->getJson('/api/v1/lookups/conditions/stunned/spells?per_page=25');
 
         $response->assertOk()
             ->assertJsonCount(25, 'data')
@@ -113,7 +113,7 @@ class ConditionReverseRelationshipsApiTest extends TestCase
             'description' => 'Fear Ray',
         ]);
 
-        $response = $this->getJson('/api/v1/conditions/frightened/monsters');
+        $response = $this->getJson('/api/v1/lookups/conditions/frightened/monsters');
 
         $response->assertOk()
             ->assertJsonCount(2, 'data')
@@ -126,7 +126,7 @@ class ConditionReverseRelationshipsApiTest extends TestCase
     {
         $custom = Condition::factory()->create(['slug' => 'custom-condition']);
 
-        $response = $this->getJson('/api/v1/conditions/custom-condition/monsters');
+        $response = $this->getJson('/api/v1/lookups/conditions/custom-condition/monsters');
 
         $response->assertOk()
             ->assertJsonCount(0, 'data');
@@ -139,7 +139,7 @@ class ConditionReverseRelationshipsApiTest extends TestCase
         $monster = Monster::factory()->create();
         $condition->monsters()->attach($monster, ['effect_type' => 'inflicts']);
 
-        $response = $this->getJson("/api/v1/conditions/{$condition->id}/monsters");
+        $response = $this->getJson("/api/v1/lookups/conditions/{$condition->id}/monsters");
 
         $response->assertOk()
             ->assertJsonCount(1, 'data');
@@ -155,7 +155,7 @@ class ConditionReverseRelationshipsApiTest extends TestCase
             $paralyzed->monsters()->attach($monster, ['effect_type' => 'inflicts']);
         }
 
-        $response = $this->getJson('/api/v1/conditions/paralyzed/monsters?per_page=25');
+        $response = $this->getJson('/api/v1/lookups/conditions/paralyzed/monsters?per_page=25');
 
         $response->assertOk()
             ->assertJsonCount(25, 'data')

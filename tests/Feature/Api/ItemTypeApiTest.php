@@ -19,7 +19,7 @@ class ItemTypeApiTest extends TestCase
     #[Test]
     public function it_can_list_all_item_types(): void
     {
-        $response = $this->getJson('/api/v1/item-types');
+        $response = $this->getJson('/api/v1/lookups/item-types');
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -32,7 +32,7 @@ class ItemTypeApiTest extends TestCase
     #[Test]
     public function it_can_search_item_types_using_q_parameter(): void
     {
-        $response = $this->getJson('/api/v1/item-types?q=weapon');
+        $response = $this->getJson('/api/v1/lookups/item-types?q=weapon');
 
         $response->assertOk();
 
@@ -47,7 +47,7 @@ class ItemTypeApiTest extends TestCase
     #[Test]
     public function it_returns_empty_results_when_no_item_types_match_search(): void
     {
-        $response = $this->getJson('/api/v1/item-types?q=nonexistent123');
+        $response = $this->getJson('/api/v1/lookups/item-types?q=nonexistent123');
 
         $response->assertOk()
             ->assertJsonPath('data', []);
@@ -56,7 +56,7 @@ class ItemTypeApiTest extends TestCase
     #[Test]
     public function search_is_case_insensitive(): void
     {
-        $response = $this->getJson('/api/v1/item-types?q=AMMUNITION');
+        $response = $this->getJson('/api/v1/lookups/item-types?q=AMMUNITION');
 
         $response->assertOk();
 

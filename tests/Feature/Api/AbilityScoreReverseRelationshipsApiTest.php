@@ -48,7 +48,7 @@ class AbilityScoreReverseRelationshipsApiTest extends TestCase
             'is_initial_save' => true,
         ]);
 
-        $response = $this->getJson("/api/v1/ability-scores/{$dexterity->id}/spells");
+        $response = $this->getJson("/api/v1/lookups/ability-scores/{$dexterity->id}/spells");
 
         $response->assertOk()
             ->assertJsonCount(2, 'data')
@@ -61,7 +61,7 @@ class AbilityScoreReverseRelationshipsApiTest extends TestCase
     {
         $charisma = AbilityScore::where('code', 'CHA')->first();
 
-        $response = $this->getJson("/api/v1/ability-scores/{$charisma->id}/spells");
+        $response = $this->getJson("/api/v1/lookups/ability-scores/{$charisma->id}/spells");
 
         $response->assertOk()
             ->assertJsonCount(0, 'data');
@@ -78,7 +78,7 @@ class AbilityScoreReverseRelationshipsApiTest extends TestCase
             'is_initial_save' => true,
         ]);
 
-        $response = $this->getJson('/api/v1/ability-scores/DEX/spells');
+        $response = $this->getJson('/api/v1/lookups/ability-scores/DEX/spells');
 
         $response->assertOk()
             ->assertJsonCount(1, 'data');
@@ -97,7 +97,7 @@ class AbilityScoreReverseRelationshipsApiTest extends TestCase
             ]);
         });
 
-        $response = $this->getJson("/api/v1/ability-scores/{$con->id}/spells?per_page=25");
+        $response = $this->getJson("/api/v1/lookups/ability-scores/{$con->id}/spells?per_page=25");
 
         $response->assertOk()
             ->assertJsonCount(25, 'data')

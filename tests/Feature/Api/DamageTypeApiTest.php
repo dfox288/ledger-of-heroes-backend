@@ -23,7 +23,7 @@ class DamageTypeApiTest extends TestCase
     #[Test]
     public function it_can_list_all_damage_types(): void
     {
-        $response = $this->getJson('/api/v1/damage-types');
+        $response = $this->getJson('/api/v1/lookups/damage-types');
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -36,7 +36,7 @@ class DamageTypeApiTest extends TestCase
     #[Test]
     public function it_can_search_damage_types_using_q_parameter(): void
     {
-        $response = $this->getJson('/api/v1/damage-types?q=fire');
+        $response = $this->getJson('/api/v1/lookups/damage-types?q=fire');
 
         $response->assertOk();
 
@@ -51,7 +51,7 @@ class DamageTypeApiTest extends TestCase
     #[Test]
     public function it_returns_empty_results_when_no_damage_types_match_search(): void
     {
-        $response = $this->getJson('/api/v1/damage-types?q=nonexistent123');
+        $response = $this->getJson('/api/v1/lookups/damage-types?q=nonexistent123');
 
         $response->assertOk()
             ->assertJsonPath('data', []);
@@ -60,7 +60,7 @@ class DamageTypeApiTest extends TestCase
     #[Test]
     public function search_is_case_insensitive(): void
     {
-        $response = $this->getJson('/api/v1/damage-types?q=POISON');
+        $response = $this->getJson('/api/v1/lookups/damage-types?q=POISON');
 
         $response->assertOk();
 

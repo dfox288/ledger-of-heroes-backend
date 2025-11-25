@@ -45,7 +45,7 @@ class DamageTypeReverseRelationshipsApiTest extends TestCase
             'damage_type_id' => $cold->id,
         ]);
 
-        $response = $this->getJson("/api/v1/damage-types/{$fire->id}/spells");
+        $response = $this->getJson("/api/v1/lookups/damage-types/{$fire->id}/spells");
 
         $response->assertOk()
             ->assertJsonCount(2, 'data')
@@ -58,7 +58,7 @@ class DamageTypeReverseRelationshipsApiTest extends TestCase
     {
         $radiant = $this->getDamageType('Radiant');
 
-        $response = $this->getJson("/api/v1/damage-types/{$radiant->id}/spells");
+        $response = $this->getJson("/api/v1/lookups/damage-types/{$radiant->id}/spells");
 
         $response->assertOk()
             ->assertJsonCount(0, 'data');
@@ -74,7 +74,7 @@ class DamageTypeReverseRelationshipsApiTest extends TestCase
             'damage_type_id' => $fire->id,
         ]);
 
-        $response = $this->getJson("/api/v1/damage-types/{$fire->id}/spells");
+        $response = $this->getJson("/api/v1/lookups/damage-types/{$fire->id}/spells");
 
         $response->assertOk()
             ->assertJsonCount(1, 'data');
@@ -93,7 +93,7 @@ class DamageTypeReverseRelationshipsApiTest extends TestCase
             ]);
         }
 
-        $response = $this->getJson("/api/v1/damage-types/{$fire->id}/spells?per_page=25");
+        $response = $this->getJson("/api/v1/lookups/damage-types/{$fire->id}/spells?per_page=25");
 
         $response->assertOk()
             ->assertJsonCount(25, 'data')
@@ -129,7 +129,7 @@ class DamageTypeReverseRelationshipsApiTest extends TestCase
             'damage_type_id' => $bludgeoning->id,
         ]);
 
-        $response = $this->getJson("/api/v1/damage-types/{$slashing->id}/items");
+        $response = $this->getJson("/api/v1/lookups/damage-types/{$slashing->id}/items");
 
         $response->assertOk()
             ->assertJsonCount(2, 'data')
@@ -142,7 +142,7 @@ class DamageTypeReverseRelationshipsApiTest extends TestCase
     {
         $psychic = $this->getDamageType('Psychic');
 
-        $response = $this->getJson("/api/v1/damage-types/{$psychic->id}/items");
+        $response = $this->getJson("/api/v1/lookups/damage-types/{$psychic->id}/items");
 
         $response->assertOk()
             ->assertJsonCount(0, 'data');
@@ -154,7 +154,7 @@ class DamageTypeReverseRelationshipsApiTest extends TestCase
         $fire = $this->getDamageType('Fire');
         $item = Item::factory()->create(['damage_type_id' => $fire->id]);
 
-        $response = $this->getJson("/api/v1/damage-types/{$fire->id}/items");
+        $response = $this->getJson("/api/v1/lookups/damage-types/{$fire->id}/items");
 
         $response->assertOk()
             ->assertJsonCount(1, 'data');
@@ -166,7 +166,7 @@ class DamageTypeReverseRelationshipsApiTest extends TestCase
         $slashing = DamageType::firstOrCreate(['code' => 'S'], ['name' => 'Slashing']);
         Item::factory()->count(75)->create(['damage_type_id' => $slashing->id]);
 
-        $response = $this->getJson("/api/v1/damage-types/{$slashing->id}/items?per_page=25");
+        $response = $this->getJson("/api/v1/lookups/damage-types/{$slashing->id}/items?per_page=25");
 
         $response->assertOk()
             ->assertJsonCount(25, 'data')

@@ -20,7 +20,7 @@ class ProficiencyTypeIndexRequestTest extends TestCase
     #[Test]
     public function it_returns_paginated_proficiency_types()
     {
-        $response = $this->getJson('/api/v1/proficiency-types?per_page=5');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types?per_page=5');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -37,11 +37,11 @@ class ProficiencyTypeIndexRequestTest extends TestCase
     public function it_validates_per_page_limit()
     {
         // Valid: 50
-        $response = $this->getJson('/api/v1/proficiency-types?per_page=50');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types?per_page=50');
         $response->assertStatus(200);
 
         // Invalid: 101 (exceeds max of 100)
-        $response = $this->getJson('/api/v1/proficiency-types?per_page=101');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types?per_page=101');
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['per_page']);
     }
@@ -49,7 +49,7 @@ class ProficiencyTypeIndexRequestTest extends TestCase
     #[Test]
     public function it_searches_by_name()
     {
-        $response = $this->getJson('/api/v1/proficiency-types?q=long');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types?q=long');
 
         $response->assertStatus(200);
 
@@ -63,7 +63,7 @@ class ProficiencyTypeIndexRequestTest extends TestCase
     #[Test]
     public function it_filters_by_category()
     {
-        $response = $this->getJson('/api/v1/proficiency-types?category=weapon');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types?category=weapon');
 
         $response->assertStatus(200);
 
@@ -79,12 +79,12 @@ class ProficiencyTypeIndexRequestTest extends TestCase
     {
         // Valid: 255 characters
         $search = str_repeat('a', 255);
-        $response = $this->getJson("/api/v1/proficiency-types?q={$search}");
+        $response = $this->getJson("/api/v1/lookups/proficiency-types?q={$search}");
         $response->assertStatus(200);
 
         // Invalid: 256 characters
         $search = str_repeat('a', 256);
-        $response = $this->getJson("/api/v1/proficiency-types?q={$search}");
+        $response = $this->getJson("/api/v1/lookups/proficiency-types?q={$search}");
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['q']);
     }
@@ -93,16 +93,16 @@ class ProficiencyTypeIndexRequestTest extends TestCase
     public function it_validates_page_is_positive_integer()
     {
         // Valid: 1
-        $response = $this->getJson('/api/v1/proficiency-types?page=1');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types?page=1');
         $response->assertStatus(200);
 
         // Invalid: 0
-        $response = $this->getJson('/api/v1/proficiency-types?page=0');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types?page=0');
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['page']);
 
         // Invalid: -1
-        $response = $this->getJson('/api/v1/proficiency-types?page=-1');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types?page=-1');
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['page']);
     }
@@ -112,12 +112,12 @@ class ProficiencyTypeIndexRequestTest extends TestCase
     {
         // Valid: 255 characters
         $category = str_repeat('a', 255);
-        $response = $this->getJson("/api/v1/proficiency-types?category={$category}");
+        $response = $this->getJson("/api/v1/lookups/proficiency-types?category={$category}");
         $response->assertStatus(200);
 
         // Invalid: 256 characters
         $category = str_repeat('a', 256);
-        $response = $this->getJson("/api/v1/proficiency-types?category={$category}");
+        $response = $this->getJson("/api/v1/lookups/proficiency-types?category={$category}");
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['category']);
     }

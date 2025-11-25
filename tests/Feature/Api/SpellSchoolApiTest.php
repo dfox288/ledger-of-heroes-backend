@@ -24,7 +24,7 @@ class SpellSchoolApiTest extends TestCase
     #[Test]
     public function it_can_list_all_spell_schools(): void
     {
-        $response = $this->getJson('/api/v1/spell-schools');
+        $response = $this->getJson('/api/v1/lookups/spell-schools');
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -39,7 +39,7 @@ class SpellSchoolApiTest extends TestCase
     #[Test]
     public function it_can_search_spell_schools_using_q_parameter(): void
     {
-        $response = $this->getJson('/api/v1/spell-schools?q=evocation');
+        $response = $this->getJson('/api/v1/lookups/spell-schools?q=evocation');
 
         $response->assertOk();
 
@@ -54,7 +54,7 @@ class SpellSchoolApiTest extends TestCase
     #[Test]
     public function it_returns_empty_results_when_no_spell_schools_match_search(): void
     {
-        $response = $this->getJson('/api/v1/spell-schools?q=nonexistent123');
+        $response = $this->getJson('/api/v1/lookups/spell-schools?q=nonexistent123');
 
         $response->assertOk();
 
@@ -65,7 +65,7 @@ class SpellSchoolApiTest extends TestCase
     #[Test]
     public function it_returns_all_spell_schools_when_no_search_query_provided(): void
     {
-        $response = $this->getJson('/api/v1/spell-schools');
+        $response = $this->getJson('/api/v1/lookups/spell-schools');
 
         $response->assertOk();
 
@@ -78,7 +78,7 @@ class SpellSchoolApiTest extends TestCase
     {
         $school = SpellSchool::first();
 
-        $response = $this->getJson("/api/v1/spell-schools/{$school->id}");
+        $response = $this->getJson("/api/v1/lookups/spell-schools/{$school->id}");
 
         $response->assertOk()
             ->assertJsonPath('data.id', $school->id)
@@ -89,7 +89,7 @@ class SpellSchoolApiTest extends TestCase
     #[Test]
     public function search_is_case_insensitive(): void
     {
-        $response = $this->getJson('/api/v1/spell-schools?q=ABJURATION');
+        $response = $this->getJson('/api/v1/lookups/spell-schools?q=ABJURATION');
 
         $response->assertOk();
 
@@ -100,7 +100,7 @@ class SpellSchoolApiTest extends TestCase
     #[Test]
     public function it_supports_pagination(): void
     {
-        $response = $this->getJson('/api/v1/spell-schools?per_page=5');
+        $response = $this->getJson('/api/v1/lookups/spell-schools?per_page=5');
 
         $response->assertOk()
             ->assertJsonStructure([

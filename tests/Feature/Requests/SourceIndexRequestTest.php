@@ -15,7 +15,7 @@ class SourceIndexRequestTest extends TestCase
     #[Test]
     public function it_paginates_sources()
     {
-        $response = $this->getJson('/api/v1/sources?per_page=5');
+        $response = $this->getJson('/api/v1/lookups/sources?per_page=5');
         $response->assertOk();
         $response->assertJsonStructure([
             'data',
@@ -27,7 +27,7 @@ class SourceIndexRequestTest extends TestCase
     #[Test]
     public function it_searches_sources_by_name()
     {
-        $response = $this->getJson('/api/v1/sources?q=Player');
+        $response = $this->getJson('/api/v1/lookups/sources?q=Player');
         $response->assertOk();
         $response->assertJsonFragment(['name' => "Player's Handbook"]);
     }
@@ -35,7 +35,7 @@ class SourceIndexRequestTest extends TestCase
     #[Test]
     public function it_searches_sources_by_code()
     {
-        $response = $this->getJson('/api/v1/sources?q=PHB');
+        $response = $this->getJson('/api/v1/lookups/sources?q=PHB');
         $response->assertOk();
         $response->assertJsonFragment(['code' => 'PHB']);
     }
@@ -43,7 +43,7 @@ class SourceIndexRequestTest extends TestCase
     #[Test]
     public function it_validates_per_page_limit()
     {
-        $response = $this->getJson('/api/v1/sources?per_page=101');
+        $response = $this->getJson('/api/v1/lookups/sources?per_page=101');
         $response->assertUnprocessable();
         $response->assertJsonValidationErrors(['per_page']);
     }
@@ -52,16 +52,16 @@ class SourceIndexRequestTest extends TestCase
     public function it_validates_page_is_positive_integer()
     {
         // Valid: 1
-        $response = $this->getJson('/api/v1/sources?page=1');
+        $response = $this->getJson('/api/v1/lookups/sources?page=1');
         $response->assertStatus(200);
 
         // Invalid: 0
-        $response = $this->getJson('/api/v1/sources?page=0');
+        $response = $this->getJson('/api/v1/lookups/sources?page=0');
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['page']);
 
         // Invalid: -1
-        $response = $this->getJson('/api/v1/sources?page=-1');
+        $response = $this->getJson('/api/v1/lookups/sources?page=-1');
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['page']);
     }
@@ -71,12 +71,12 @@ class SourceIndexRequestTest extends TestCase
     {
         // Valid: 255 characters
         $search = str_repeat('a', 255);
-        $response = $this->getJson("/api/v1/sources?q={$search}");
+        $response = $this->getJson("/api/v1/lookups/sources?q={$search}");
         $response->assertStatus(200);
 
         // Invalid: 256 characters
         $search = str_repeat('a', 256);
-        $response = $this->getJson("/api/v1/sources?q={$search}");
+        $response = $this->getJson("/api/v1/lookups/sources?q={$search}");
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['q']);
     }

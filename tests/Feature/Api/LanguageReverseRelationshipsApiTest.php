@@ -45,7 +45,7 @@ class LanguageReverseRelationshipsApiTest extends TestCase
         $dragonborn = Race::factory()->create(['name' => 'Dragonborn']);
         $draconic->races()->attach($dragonborn, ['is_choice' => false]);
 
-        $response = $this->getJson("/api/v1/languages/{$elvish->id}/races");
+        $response = $this->getJson("/api/v1/lookups/languages/{$elvish->id}/races");
 
         $response->assertOk()
             ->assertJsonCount(2, 'data')
@@ -61,7 +61,7 @@ class LanguageReverseRelationshipsApiTest extends TestCase
             'slug' => 'abyssal-test',
         ]);
 
-        $response = $this->getJson("/api/v1/languages/{$abyssal->id}/races");
+        $response = $this->getJson("/api/v1/lookups/languages/{$abyssal->id}/races");
 
         $response->assertOk()
             ->assertJsonCount(0, 'data');
@@ -78,7 +78,7 @@ class LanguageReverseRelationshipsApiTest extends TestCase
         $human = Race::factory()->create(['name' => 'Human']);
         $common->races()->attach($human, ['is_choice' => false]);
 
-        $response = $this->getJson("/api/v1/languages/{$common->slug}/races");
+        $response = $this->getJson("/api/v1/lookups/languages/{$common->slug}/races");
 
         $response->assertOk()
             ->assertJsonCount(1, 'data');
@@ -97,7 +97,7 @@ class LanguageReverseRelationshipsApiTest extends TestCase
             $undercommon->races()->attach($race, ['is_choice' => false]);
         });
 
-        $response = $this->getJson("/api/v1/languages/{$undercommon->id}/races?per_page=25");
+        $response = $this->getJson("/api/v1/lookups/languages/{$undercommon->id}/races?per_page=25");
 
         $response->assertOk()
             ->assertJsonCount(25, 'data')
@@ -136,7 +136,7 @@ class LanguageReverseRelationshipsApiTest extends TestCase
         $guildArtisan = Background::factory()->create(['name' => 'Guild Artisan']);
         $dwarvish->backgrounds()->attach($guildArtisan, ['is_choice' => false]);
 
-        $response = $this->getJson("/api/v1/languages/{$thieves->id}/backgrounds");
+        $response = $this->getJson("/api/v1/lookups/languages/{$thieves->id}/backgrounds");
 
         $response->assertOk()
             ->assertJsonCount(2, 'data')
@@ -152,7 +152,7 @@ class LanguageReverseRelationshipsApiTest extends TestCase
             'slug' => 'celestial-test',
         ]);
 
-        $response = $this->getJson("/api/v1/languages/{$celestial->id}/backgrounds");
+        $response = $this->getJson("/api/v1/lookups/languages/{$celestial->id}/backgrounds");
 
         $response->assertOk()
             ->assertJsonCount(0, 'data');
@@ -169,7 +169,7 @@ class LanguageReverseRelationshipsApiTest extends TestCase
         $outlander = Background::factory()->create(['name' => 'Outlander']);
         $primordial->backgrounds()->attach($outlander, ['is_choice' => false]);
 
-        $response = $this->getJson("/api/v1/languages/{$primordial->slug}/backgrounds");
+        $response = $this->getJson("/api/v1/lookups/languages/{$primordial->slug}/backgrounds");
 
         $response->assertOk()
             ->assertJsonCount(1, 'data');
@@ -188,7 +188,7 @@ class LanguageReverseRelationshipsApiTest extends TestCase
             $giant->backgrounds()->attach($background, ['is_choice' => false]);
         });
 
-        $response = $this->getJson("/api/v1/languages/{$giant->id}/backgrounds?per_page=20");
+        $response = $this->getJson("/api/v1/lookups/languages/{$giant->id}/backgrounds?per_page=20");
 
         $response->assertOk()
             ->assertJsonCount(20, 'data')

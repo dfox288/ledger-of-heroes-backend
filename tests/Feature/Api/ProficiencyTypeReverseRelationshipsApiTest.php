@@ -48,7 +48,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
         ]);
 
         // Act
-        $response = $this->getJson("/api/v1/proficiency-types/{$longsword->id}/classes");
+        $response = $this->getJson("/api/v1/lookups/proficiency-types/{$longsword->id}/classes");
 
         // Assert
         $response->assertOk()
@@ -66,7 +66,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
             'category' => 'tool',
         ]);
 
-        $response = $this->getJson("/api/v1/proficiency-types/{$thiefTools->id}/classes");
+        $response = $this->getJson("/api/v1/lookups/proficiency-types/{$thiefTools->id}/classes");
 
         $response->assertOk()
             ->assertJsonCount(0, 'data');
@@ -88,7 +88,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
             'proficiency_type_id' => $stealth->id,
         ]);
 
-        $response = $this->getJson('/api/v1/proficiency-types/Stealth/classes');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types/Stealth/classes');
 
         $response->assertOk()
             ->assertJsonFragment(['name' => 'Rogue']);
@@ -113,7 +113,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
         ]);
 
         // Use name-based routing which still works
-        $response = $this->getJson('/api/v1/proficiency-types/Combat Axe/classes');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types/Combat Axe/classes');
 
         $response->assertOk()
             ->assertJsonFragment(['name' => 'Fighter']);
@@ -137,7 +137,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
             ]);
         }
 
-        $response = $this->getJson("/api/v1/proficiency-types/{$heavyArmor->id}/classes?per_page=10");
+        $response = $this->getJson("/api/v1/lookups/proficiency-types/{$heavyArmor->id}/classes?per_page=10");
 
         $response->assertOk()
             ->assertJsonCount(10, 'data')
@@ -174,7 +174,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
             'proficiency_type_id' => $elvish->id,
         ]);
 
-        $response = $this->getJson("/api/v1/proficiency-types/{$elvish->id}/races");
+        $response = $this->getJson("/api/v1/lookups/proficiency-types/{$elvish->id}/races");
 
         $response->assertOk()
             ->assertJsonCount(2, 'data')
@@ -191,7 +191,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
             'category' => 'weapon',
         ]);
 
-        $response = $this->getJson("/api/v1/proficiency-types/{$greatsword->id}/races");
+        $response = $this->getJson("/api/v1/lookups/proficiency-types/{$greatsword->id}/races");
 
         $response->assertOk()
             ->assertJsonCount(0, 'data');
@@ -213,7 +213,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
             'proficiency_type_id' => $dwarven->id,
         ]);
 
-        $response = $this->getJson('/api/v1/proficiency-types/Dwarvish/races');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types/Dwarvish/races');
 
         $response->assertOk()
             ->assertJsonFragment(['name' => 'Dwarf']);
@@ -235,7 +235,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
             'proficiency_type_id' => $elvish->id,
         ]);
 
-        $response = $this->getJson('/api/v1/proficiency-types/elvish/races');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types/elvish/races');
 
         $response->assertOk()
             ->assertJsonFragment(['name' => 'Elf']);
@@ -259,7 +259,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
             ]);
         }
 
-        $response = $this->getJson("/api/v1/proficiency-types/{$darkvision->id}/races?per_page=5");
+        $response = $this->getJson("/api/v1/lookups/proficiency-types/{$darkvision->id}/races?per_page=5");
 
         $response->assertOk()
             ->assertJsonCount(5, 'data')
@@ -296,7 +296,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
             'proficiency_type_id' => $stealth->id,
         ]);
 
-        $response = $this->getJson("/api/v1/proficiency-types/{$stealth->id}/backgrounds");
+        $response = $this->getJson("/api/v1/lookups/proficiency-types/{$stealth->id}/backgrounds");
 
         $response->assertOk()
             ->assertJsonCount(2, 'data')
@@ -313,7 +313,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
             'category' => 'weapon',
         ]);
 
-        $response = $this->getJson("/api/v1/proficiency-types/{$battleaxe->id}/backgrounds");
+        $response = $this->getJson("/api/v1/lookups/proficiency-types/{$battleaxe->id}/backgrounds");
 
         $response->assertOk()
             ->assertJsonCount(0, 'data');
@@ -335,7 +335,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
             'proficiency_type_id' => $deception->id,
         ]);
 
-        $response = $this->getJson('/api/v1/proficiency-types/Deception/backgrounds');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types/Deception/backgrounds');
 
         $response->assertOk()
             ->assertJsonFragment(['name' => 'Charlatan']);
@@ -357,7 +357,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
             'proficiency_type_id' => $stealth->id,
         ]);
 
-        $response = $this->getJson('/api/v1/proficiency-types/stealth/backgrounds');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types/stealth/backgrounds');
 
         $response->assertOk()
             ->assertJsonFragment(['name' => 'Criminal']);
@@ -381,7 +381,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
             ]);
         }
 
-        $response = $this->getJson("/api/v1/proficiency-types/{$insight->id}/backgrounds?per_page=3");
+        $response = $this->getJson("/api/v1/lookups/proficiency-types/{$insight->id}/backgrounds?per_page=3");
 
         $response->assertOk()
             ->assertJsonCount(3, 'data')

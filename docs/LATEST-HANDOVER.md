@@ -1,1 +1,1 @@
-SESSION-HANDOVER-2025-11-25-CHARACTER-BUILDER-AUDIT.md
+handovers/2025-11-26-lookups-api-restructure.md

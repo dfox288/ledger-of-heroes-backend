@@ -20,7 +20,7 @@ class LanguageApiTest extends TestCase
     #[Test]
     public function it_can_list_all_languages(): void
     {
-        $response = $this->getJson('/api/v1/languages');
+        $response = $this->getJson('/api/v1/lookups/languages');
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -33,7 +33,7 @@ class LanguageApiTest extends TestCase
     #[Test]
     public function it_can_search_languages_using_q_parameter(): void
     {
-        $response = $this->getJson('/api/v1/languages?q=elvish');
+        $response = $this->getJson('/api/v1/lookups/languages?q=elvish');
 
         $response->assertOk();
 
@@ -48,7 +48,7 @@ class LanguageApiTest extends TestCase
     #[Test]
     public function it_returns_empty_results_when_no_languages_match_search(): void
     {
-        $response = $this->getJson('/api/v1/languages?q=nonexistent123');
+        $response = $this->getJson('/api/v1/lookups/languages?q=nonexistent123');
 
         $response->assertOk();
 
@@ -61,7 +61,7 @@ class LanguageApiTest extends TestCase
     {
         $totalLanguages = Language::count();
 
-        $response = $this->getJson('/api/v1/languages');
+        $response = $this->getJson('/api/v1/lookups/languages');
 
         $response->assertOk();
 
@@ -74,7 +74,7 @@ class LanguageApiTest extends TestCase
     {
         $language = Language::first();
 
-        $response = $this->getJson("/api/v1/languages/{$language->id}");
+        $response = $this->getJson("/api/v1/lookups/languages/{$language->id}");
 
         $response->assertOk()
             ->assertJsonPath('data.id', $language->id)
@@ -85,7 +85,7 @@ class LanguageApiTest extends TestCase
     #[Test]
     public function search_is_case_insensitive(): void
     {
-        $response = $this->getJson('/api/v1/languages?q=COMMON');
+        $response = $this->getJson('/api/v1/lookups/languages?q=COMMON');
 
         $response->assertOk();
 
@@ -96,7 +96,7 @@ class LanguageApiTest extends TestCase
     #[Test]
     public function it_supports_pagination(): void
     {
-        $response = $this->getJson('/api/v1/languages?per_page=5');
+        $response = $this->getJson('/api/v1/lookups/languages?per_page=5');
 
         $response->assertOk()
             ->assertJsonStructure([

@@ -19,7 +19,7 @@ class ConditionApiTest extends TestCase
     #[Test]
     public function it_can_list_all_conditions(): void
     {
-        $response = $this->getJson('/api/v1/conditions');
+        $response = $this->getJson('/api/v1/lookups/conditions');
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -32,7 +32,7 @@ class ConditionApiTest extends TestCase
     #[Test]
     public function it_can_search_conditions_using_q_parameter(): void
     {
-        $response = $this->getJson('/api/v1/conditions?q=charmed');
+        $response = $this->getJson('/api/v1/lookups/conditions?q=charmed');
 
         $response->assertOk();
 
@@ -47,7 +47,7 @@ class ConditionApiTest extends TestCase
     #[Test]
     public function it_returns_empty_results_when_no_conditions_match_search(): void
     {
-        $response = $this->getJson('/api/v1/conditions?q=nonexistent123');
+        $response = $this->getJson('/api/v1/lookups/conditions?q=nonexistent123');
 
         $response->assertOk()
             ->assertJsonPath('data', []);
@@ -56,7 +56,7 @@ class ConditionApiTest extends TestCase
     #[Test]
     public function search_is_case_insensitive(): void
     {
-        $response = $this->getJson('/api/v1/conditions?q=BLINDED');
+        $response = $this->getJson('/api/v1/lookups/conditions?q=BLINDED');
 
         $response->assertOk();
 

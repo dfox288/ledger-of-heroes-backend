@@ -14,7 +14,7 @@ class SkillApiTest extends TestCase
     #[Test]
     public function it_can_list_all_skills(): void
     {
-        $response = $this->getJson('/api/v1/skills');
+        $response = $this->getJson('/api/v1/lookups/skills');
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -29,7 +29,7 @@ class SkillApiTest extends TestCase
     {
         $skill = Skill::first();
 
-        $response = $this->getJson("/api/v1/skills/{$skill->id}");
+        $response = $this->getJson("/api/v1/lookups/skills/{$skill->id}");
 
         $response->assertOk()
             ->assertJsonPath('data.id', $skill->id)
@@ -42,7 +42,7 @@ class SkillApiTest extends TestCase
     {
         $skill = Skill::where('name', 'Animal Handling')->first();
 
-        $response = $this->getJson('/api/v1/skills/animal-handling');
+        $response = $this->getJson('/api/v1/lookups/skills/animal-handling');
 
         $response->assertOk()
             ->assertJsonPath('data.id', $skill->id)
@@ -55,7 +55,7 @@ class SkillApiTest extends TestCase
     {
         $skill = Skill::where('name', 'Sleight of Hand')->first();
 
-        $response = $this->getJson('/api/v1/skills/sleight-of-hand');
+        $response = $this->getJson('/api/v1/lookups/skills/sleight-of-hand');
 
         $response->assertOk()
             ->assertJsonPath('data.id', $skill->id)
@@ -66,7 +66,7 @@ class SkillApiTest extends TestCase
     #[Test]
     public function it_returns_404_for_nonexistent_skill_slug(): void
     {
-        $response = $this->getJson('/api/v1/skills/nonexistent-skill');
+        $response = $this->getJson('/api/v1/lookups/skills/nonexistent-skill');
 
         $response->assertNotFound();
     }
@@ -74,7 +74,7 @@ class SkillApiTest extends TestCase
     #[Test]
     public function it_can_search_skills_using_q_parameter(): void
     {
-        $response = $this->getJson('/api/v1/skills?q=perception');
+        $response = $this->getJson('/api/v1/lookups/skills?q=perception');
 
         $response->assertOk();
 
@@ -89,7 +89,7 @@ class SkillApiTest extends TestCase
     #[Test]
     public function it_returns_empty_results_when_no_skills_match_search(): void
     {
-        $response = $this->getJson('/api/v1/skills?q=nonexistent123');
+        $response = $this->getJson('/api/v1/lookups/skills?q=nonexistent123');
 
         $response->assertOk();
 
@@ -102,7 +102,7 @@ class SkillApiTest extends TestCase
     {
         $totalSkills = Skill::count();
 
-        $response = $this->getJson('/api/v1/skills');
+        $response = $this->getJson('/api/v1/lookups/skills');
 
         $response->assertOk();
 
@@ -113,7 +113,7 @@ class SkillApiTest extends TestCase
     #[Test]
     public function search_is_case_insensitive(): void
     {
-        $response = $this->getJson('/api/v1/skills?q=STEALTH');
+        $response = $this->getJson('/api/v1/lookups/skills?q=STEALTH');
 
         $response->assertOk();
 
@@ -124,7 +124,7 @@ class SkillApiTest extends TestCase
     #[Test]
     public function it_can_filter_by_ability_score(): void
     {
-        $response = $this->getJson('/api/v1/skills?ability=DEX');
+        $response = $this->getJson('/api/v1/lookups/skills?ability=DEX');
 
         $response->assertOk();
 
@@ -140,7 +140,7 @@ class SkillApiTest extends TestCase
     #[Test]
     public function it_supports_pagination(): void
     {
-        $response = $this->getJson('/api/v1/skills?per_page=5');
+        $response = $this->getJson('/api/v1/lookups/skills?per_page=5');
 
         $response->assertOk()
             ->assertJsonStructure([

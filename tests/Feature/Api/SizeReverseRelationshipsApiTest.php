@@ -26,7 +26,7 @@ class SizeReverseRelationshipsApiTest extends TestCase
         ]);
 
         // Small races should exist from import
-        $response = $this->getJson("/api/v1/sizes/{$small->id}/races");
+        $response = $this->getJson("/api/v1/lookups/sizes/{$small->id}/races");
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -53,7 +53,7 @@ class SizeReverseRelationshipsApiTest extends TestCase
         // Get Gargantuan size (ID: 6) - no playable races
         $gargantuan = Size::where('code', 'G')->firstOrFail();
 
-        $response = $this->getJson("/api/v1/sizes/{$gargantuan->id}/races");
+        $response = $this->getJson("/api/v1/lookups/sizes/{$gargantuan->id}/races");
 
         $response->assertOk()
             ->assertJson([
@@ -74,7 +74,7 @@ class SizeReverseRelationshipsApiTest extends TestCase
         ]);
 
         // Test numeric ID routing (sizes only use numeric IDs)
-        $response = $this->getJson('/api/v1/sizes/2/races');
+        $response = $this->getJson('/api/v1/lookups/sizes/2/races');
 
         $response->assertOk();
         $this->assertGreaterThan(0, $response->json('meta.total'));
@@ -91,7 +91,7 @@ class SizeReverseRelationshipsApiTest extends TestCase
             'size_id' => $medium->id,
         ]);
 
-        $response = $this->getJson("/api/v1/sizes/{$medium->id}/races?per_page=10");
+        $response = $this->getJson("/api/v1/lookups/sizes/{$medium->id}/races?per_page=10");
 
         $response->assertOk()
             ->assertJsonPath('meta.per_page', 10);
@@ -117,7 +117,7 @@ class SizeReverseRelationshipsApiTest extends TestCase
         ]);
 
         // Large monsters should exist from import
-        $response = $this->getJson("/api/v1/sizes/{$large->id}/monsters");
+        $response = $this->getJson("/api/v1/lookups/sizes/{$large->id}/monsters");
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -143,7 +143,7 @@ class SizeReverseRelationshipsApiTest extends TestCase
         // Create a test size with no monsters
         $testSize = Size::factory()->create(['code' => 'TEST', 'name' => 'Test Size']);
 
-        $response = $this->getJson("/api/v1/sizes/{$testSize->id}/monsters");
+        $response = $this->getJson("/api/v1/lookups/sizes/{$testSize->id}/monsters");
 
         $response->assertOk()
             ->assertJson([
@@ -164,7 +164,7 @@ class SizeReverseRelationshipsApiTest extends TestCase
         ]);
 
         // Test numeric ID routing for monsters (sizes only use numeric IDs)
-        $response = $this->getJson('/api/v1/sizes/3/monsters');
+        $response = $this->getJson('/api/v1/lookups/sizes/3/monsters');
 
         $response->assertOk();
         $this->assertGreaterThan(0, $response->json('meta.total'));
@@ -181,7 +181,7 @@ class SizeReverseRelationshipsApiTest extends TestCase
             'size_id' => $medium->id,
         ]);
 
-        $response = $this->getJson("/api/v1/sizes/{$medium->id}/monsters?per_page=25");
+        $response = $this->getJson("/api/v1/lookups/sizes/{$medium->id}/monsters?per_page=25");
 
         $response->assertOk()
             ->assertJsonPath('meta.per_page', 25);

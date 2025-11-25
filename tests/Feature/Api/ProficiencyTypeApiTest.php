@@ -20,7 +20,7 @@ class ProficiencyTypeApiTest extends TestCase
     #[Test]
     public function it_can_get_all_proficiency_types(): void
     {
-        $response = $this->getJson('/api/v1/proficiency-types');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types');
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -35,7 +35,7 @@ class ProficiencyTypeApiTest extends TestCase
     {
         $type = ProficiencyType::where('name', "Alchemist's Supplies")->first();
 
-        $response = $this->getJson('/api/v1/proficiency-types/alchemists-supplies');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types/alchemists-supplies');
 
         $response->assertOk()
             ->assertJsonFragment([
@@ -49,7 +49,7 @@ class ProficiencyTypeApiTest extends TestCase
     {
         $type = ProficiencyType::where('name', "Cook's Utensils")->first();
 
-        $response = $this->getJson('/api/v1/proficiency-types/cooks-utensils');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types/cooks-utensils');
 
         $response->assertOk()
             ->assertJsonFragment([
@@ -61,7 +61,7 @@ class ProficiencyTypeApiTest extends TestCase
     #[Test]
     public function it_retrieves_proficiency_type_by_slug_with_spaces(): void
     {
-        $response = $this->getJson('/api/v1/proficiency-types/light-armor');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types/light-armor');
 
         $response->assertOk()
             ->assertJsonFragment([
@@ -73,7 +73,7 @@ class ProficiencyTypeApiTest extends TestCase
     #[Test]
     public function it_can_filter_by_category(): void
     {
-        $response = $this->getJson('/api/v1/proficiency-types?category=weapon');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types?category=weapon');
 
         $response->assertOk();
 
@@ -87,7 +87,7 @@ class ProficiencyTypeApiTest extends TestCase
     #[Test]
     public function it_can_filter_by_subcategory(): void
     {
-        $response = $this->getJson('/api/v1/proficiency-types?subcategory=artisan');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types?subcategory=artisan');
 
         $response->assertOk();
 
@@ -101,7 +101,7 @@ class ProficiencyTypeApiTest extends TestCase
     #[Test]
     public function it_can_filter_by_category_and_subcategory(): void
     {
-        $response = $this->getJson('/api/v1/proficiency-types?category=tool&subcategory=artisan');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types?category=tool&subcategory=artisan');
 
         $response->assertOk();
 
@@ -116,7 +116,7 @@ class ProficiencyTypeApiTest extends TestCase
     #[Test]
     public function it_can_get_misc_tools(): void
     {
-        $response = $this->getJson('/api/v1/proficiency-types?category=tool&subcategory=misc');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types?category=tool&subcategory=misc');
 
         $response->assertOk();
 
@@ -133,7 +133,7 @@ class ProficiencyTypeApiTest extends TestCase
     {
         $proficiencyType = ProficiencyType::where('name', "Alchemist's Supplies")->first();
 
-        $response = $this->getJson("/api/v1/proficiency-types/{$proficiencyType->slug}");
+        $response = $this->getJson("/api/v1/lookups/proficiency-types/{$proficiencyType->slug}");
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -145,7 +145,7 @@ class ProficiencyTypeApiTest extends TestCase
     #[Test]
     public function it_can_search_proficiency_types_using_q_parameter(): void
     {
-        $response = $this->getJson('/api/v1/proficiency-types?q=sword');
+        $response = $this->getJson('/api/v1/lookups/proficiency-types?q=sword');
 
         $response->assertOk();
 

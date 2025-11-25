@@ -36,7 +36,7 @@ class SpellSchoolReverseRelationshipsApiTest extends TestCase
             'name' => 'Shield',
         ]);
 
-        $response = $this->getJson("/api/v1/spell-schools/{$evocation->id}/spells");
+        $response = $this->getJson("/api/v1/lookups/spell-schools/{$evocation->id}/spells");
 
         $response->assertOk()
             ->assertJsonCount(2, 'data')
@@ -49,7 +49,7 @@ class SpellSchoolReverseRelationshipsApiTest extends TestCase
     {
         $school = SpellSchool::where('code', 'D')->first();
 
-        $response = $this->getJson("/api/v1/spell-schools/{$school->id}/spells");
+        $response = $this->getJson("/api/v1/lookups/spell-schools/{$school->id}/spells");
 
         $response->assertOk()
             ->assertJsonCount(0, 'data');
@@ -61,7 +61,7 @@ class SpellSchoolReverseRelationshipsApiTest extends TestCase
         $school = SpellSchool::where('code', 'EV')->first();
         $spell = Spell::factory()->create(['spell_school_id' => $school->id]);
 
-        $response = $this->getJson("/api/v1/spell-schools/{$school->id}/spells");
+        $response = $this->getJson("/api/v1/lookups/spell-schools/{$school->id}/spells");
 
         $response->assertOk()
             ->assertJsonCount(1, 'data');
@@ -73,7 +73,7 @@ class SpellSchoolReverseRelationshipsApiTest extends TestCase
         $school = SpellSchool::where('code', 'EV')->first();
         Spell::factory()->count(75)->create(['spell_school_id' => $school->id]);
 
-        $response = $this->getJson("/api/v1/spell-schools/{$school->id}/spells?per_page=25");
+        $response = $this->getJson("/api/v1/lookups/spell-schools/{$school->id}/spells?per_page=25");
 
         $response->assertOk()
             ->assertJsonCount(25, 'data')

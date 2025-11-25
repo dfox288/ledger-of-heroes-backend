@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\AbilityScoreController;
+use App\Http\Controllers\Api\AlignmentController;
+use App\Http\Controllers\Api\ArmorTypeController;
 use App\Http\Controllers\Api\BackgroundController;
 use App\Http\Controllers\Api\ClassController;
 use App\Http\Controllers\Api\ConditionController;
@@ -11,87 +13,126 @@ use App\Http\Controllers\Api\ItemPropertyController;
 use App\Http\Controllers\Api\ItemTypeController;
 use App\Http\Controllers\Api\LanguageController;
 use App\Http\Controllers\Api\MonsterController;
+use App\Http\Controllers\Api\MonsterTypeController;
 use App\Http\Controllers\Api\ProficiencyTypeController;
 use App\Http\Controllers\Api\RaceController;
+use App\Http\Controllers\Api\RarityController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\SizeController;
 use App\Http\Controllers\Api\SkillController;
 use App\Http\Controllers\Api\SourceController;
 use App\Http\Controllers\Api\SpellController;
 use App\Http\Controllers\Api\SpellSchoolController;
+use App\Http\Controllers\Api\TagController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     // Global search
     Route::get('/search', SearchController::class)->name('search');
 
-    // Lookup tables
-    Route::apiResource('sources', SourceController::class)->only(['index', 'show']);
-    Route::apiResource('spell-schools', SpellSchoolController::class)->only(['index', 'show']);
+    /*
+    |--------------------------------------------------------------------------
+    | Lookup Endpoints (Reference Data)
+    |--------------------------------------------------------------------------
+    |
+    | Small, static reference data for populating dropdowns and filters.
+    | All endpoints moved under /lookups/ prefix for clear separation from
+    | main entity endpoints.
+    |
+    */
+    Route::prefix('lookups')->name('lookups.')->group(function () {
+        // Sources (books)
+        Route::apiResource('sources', SourceController::class)->only(['index', 'show']);
 
-    // Spell school spell list endpoint
-    Route::get('spell-schools/{spellSchool}/spells', [SpellSchoolController::class, 'spells'])
-        ->name('spell-schools.spells');
+        // Spell Schools
+        Route::apiResource('spell-schools', SpellSchoolController::class)->only(['index', 'show']);
+        Route::get('spell-schools/{spellSchool}/spells', [SpellSchoolController::class, 'spells'])
+            ->name('spell-schools.spells');
 
-    // Damage type spell list endpoint (must be before apiResource)
-    Route::get('damage-types/{damageType}/spells', [DamageTypeController::class, 'spells'])
-        ->name('damage-types.spells');
+        // Damage Types
+        Route::get('damage-types/{damageType}/spells', [DamageTypeController::class, 'spells'])
+            ->name('damage-types.spells');
+        Route::get('damage-types/{damageType}/items', [DamageTypeController::class, 'items'])
+            ->name('damage-types.items');
+        Route::apiResource('damage-types', DamageTypeController::class)->only(['index', 'show']);
 
-    // Damage type item list endpoint
-    Route::get('damage-types/{damageType}/items', [DamageTypeController::class, 'items'])
-        ->name('damage-types.items');
+        // Sizes
+        Route::apiResource('sizes', SizeController::class)->only(['index', 'show']);
+        Route::get('sizes/{size}/races', [SizeController::class, 'races'])
+            ->name('sizes.races');
+        Route::get('sizes/{size}/monsters', [SizeController::class, 'monsters'])
+            ->name('sizes.monsters');
 
-    Route::apiResource('damage-types', DamageTypeController::class)->only(['index', 'show']);
+        // Ability Scores
+        Route::apiResource('ability-scores', AbilityScoreController::class)->only(['index', 'show']);
+        Route::get('ability-scores/{abilityScore}/spells', [AbilityScoreController::class, 'spells'])
+            ->name('ability-scores.spells');
 
-    Route::apiResource('sizes', SizeController::class)->only(['index', 'show']);
+        // Skills
+        Route::apiResource('skills', SkillController::class)->only(['index', 'show']);
 
-    // Size reverse relationship endpoints
-    Route::get('sizes/{size}/races', [SizeController::class, 'races'])
-        ->name('sizes.races');
-    Route::get('sizes/{size}/monsters', [SizeController::class, 'monsters'])
-        ->name('sizes.monsters');
+        // Item Types
+        Route::apiResource('item-types', ItemTypeController::class)->only(['index', 'show']);
 
-    Route::apiResource('ability-scores', AbilityScoreController::class)->only(['index', 'show']);
+        // Item Properties
+        Route::apiResource('item-properties', ItemPropertyController::class)->only(['index', 'show']);
 
-    // Ability score spell list endpoint
-    Route::get('ability-scores/{abilityScore}/spells', [AbilityScoreController::class, 'spells'])
-        ->name('ability-scores.spells');
+        // Conditions
+        Route::apiResource('conditions', ConditionController::class)->only(['index', 'show']);
+        Route::get('conditions/{condition}/spells', [ConditionController::class, 'spells'])
+            ->name('conditions.spells');
+        Route::get('conditions/{condition}/monsters', [ConditionController::class, 'monsters'])
+            ->name('conditions.monsters');
 
-    Route::apiResource('skills', SkillController::class)->only(['index', 'show']);
-    Route::apiResource('item-types', ItemTypeController::class)->only(['index', 'show']);
-    Route::apiResource('item-properties', ItemPropertyController::class)->only(['index', 'show']);
-    Route::apiResource('conditions', ConditionController::class)->only(['index', 'show']);
+        // Proficiency Types
+        Route::apiResource('proficiency-types', ProficiencyTypeController::class)->only(['index', 'show']);
+        Route::get('proficiency-types/{proficiencyType}/classes', [ProficiencyTypeController::class, 'classes'])
+            ->name('proficiency-types.classes');
+        Route::get('proficiency-types/{proficiencyType}/races', [ProficiencyTypeController::class, 'races'])
+            ->name('proficiency-types.races');
+        Route::get('proficiency-types/{proficiencyType}/backgrounds', [ProficiencyTypeController::class, 'backgrounds'])
+            ->name('proficiency-types.backgrounds');
 
-    // Condition spell list endpoint
-    Route::get('conditions/{condition}/spells', [ConditionController::class, 'spells'])
-        ->name('conditions.spells');
+        // Languages
+        Route::apiResource('languages', LanguageController::class)->only(['index', 'show']);
+        Route::get('languages/{language}/races', [LanguageController::class, 'races'])
+            ->name('languages.races');
+        Route::get('languages/{language}/backgrounds', [LanguageController::class, 'backgrounds'])
+            ->name('languages.backgrounds');
 
-    // Condition monster list endpoint
-    Route::get('conditions/{condition}/monsters', [ConditionController::class, 'monsters'])
-        ->name('conditions.monsters');
+        // ========================================
+        // Derived Lookups (no database tables)
+        // ========================================
 
-    Route::apiResource('proficiency-types', ProficiencyTypeController::class)->only(['index', 'show']);
+        // Tags (from Spatie tags table)
+        Route::get('tags', [TagController::class, 'index'])->name('tags.index');
 
-    // Proficiency type reverse relationship endpoints
-    Route::get('proficiency-types/{proficiencyType}/classes', [ProficiencyTypeController::class, 'classes'])
-        ->name('proficiency-types.classes');
-    Route::get('proficiency-types/{proficiencyType}/races', [ProficiencyTypeController::class, 'races'])
-        ->name('proficiency-types.races');
-    Route::get('proficiency-types/{proficiencyType}/backgrounds', [ProficiencyTypeController::class, 'backgrounds'])
-        ->name('proficiency-types.backgrounds');
+        // Monster Types (derived from monsters.type)
+        Route::get('monster-types', [MonsterTypeController::class, 'index'])->name('monster-types.index');
 
-    Route::apiResource('languages', LanguageController::class)->only(['index', 'show']);
+        // Alignments (derived from monsters.alignment)
+        Route::get('alignments', [AlignmentController::class, 'index'])->name('alignments.index');
 
-    // Language reverse relationship endpoints
-    Route::get('languages/{language}/races', [LanguageController::class, 'races'])
-        ->name('languages.races');
-    Route::get('languages/{language}/backgrounds', [LanguageController::class, 'backgrounds'])
-        ->name('languages.backgrounds');
+        // Armor Types (derived from monsters.armor_type)
+        Route::get('armor-types', [ArmorTypeController::class, 'index'])->name('armor-types.index');
+
+        // Rarities (derived from items.rarity)
+        Route::get('rarities', [RarityController::class, 'index'])->name('rarities.index');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Entity Endpoints (Main Data)
+    |--------------------------------------------------------------------------
+    |
+    | Large, searchable entity data (spells, monsters, items, etc.)
+    | These remain at the root level for backward compatibility and
+    | cleaner URLs for the main API resources.
+    |
+    */
 
     // Spells
     Route::apiResource('spells', SpellController::class)->only(['index', 'show']);
-
-    // Spell reverse relationship endpoints
     Route::get('spells/{spell}/classes', [SpellController::class, 'classes'])
         ->name('spells.classes');
     Route::get('spells/{spell}/monsters', [SpellController::class, 'monsters'])
@@ -103,8 +144,6 @@ Route::prefix('v1')->group(function () {
 
     // Races
     Route::apiResource('races', RaceController::class)->only(['index', 'show']);
-
-    // Race spell list endpoint
     Route::get('races/{race}/spells', [RaceController::class, 'spells'])
         ->name('races.spells');
 
@@ -119,15 +158,11 @@ Route::prefix('v1')->group(function () {
 
     // Classes
     Route::apiResource('classes', ClassController::class)->only(['index', 'show']);
-
-    // Class spell list endpoint
     Route::get('classes/{class}/spells', [ClassController::class, 'spells'])
         ->name('classes.spells');
 
     // Monsters
     Route::apiResource('monsters', MonsterController::class)->only(['index', 'show']);
-
-    // Monster spell list endpoint
     Route::get('monsters/{monster}/spells', [MonsterController::class, 'spells'])
         ->name('monsters.spells');
 });

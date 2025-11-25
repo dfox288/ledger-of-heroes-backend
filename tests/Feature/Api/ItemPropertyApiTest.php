@@ -19,7 +19,7 @@ class ItemPropertyApiTest extends TestCase
     #[Test]
     public function it_can_list_all_item_properties(): void
     {
-        $response = $this->getJson('/api/v1/item-properties');
+        $response = $this->getJson('/api/v1/lookups/item-properties');
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -32,7 +32,7 @@ class ItemPropertyApiTest extends TestCase
     #[Test]
     public function it_can_search_item_properties_using_q_parameter(): void
     {
-        $response = $this->getJson('/api/v1/item-properties?q=finesse');
+        $response = $this->getJson('/api/v1/lookups/item-properties?q=finesse');
 
         $response->assertOk();
 
@@ -47,7 +47,7 @@ class ItemPropertyApiTest extends TestCase
     #[Test]
     public function it_returns_empty_results_when_no_item_properties_match_search(): void
     {
-        $response = $this->getJson('/api/v1/item-properties?q=nonexistent123');
+        $response = $this->getJson('/api/v1/lookups/item-properties?q=nonexistent123');
 
         $response->assertOk()
             ->assertJsonPath('data', []);
@@ -56,7 +56,7 @@ class ItemPropertyApiTest extends TestCase
     #[Test]
     public function search_is_case_insensitive(): void
     {
-        $response = $this->getJson('/api/v1/item-properties?q=HEAVY');
+        $response = $this->getJson('/api/v1/lookups/item-properties?q=HEAVY');
 
         $response->assertOk();
 

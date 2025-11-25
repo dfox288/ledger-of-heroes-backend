@@ -24,7 +24,7 @@ class SourceApiTest extends TestCase
     #[Test]
     public function it_can_list_all_sources(): void
     {
-        $response = $this->getJson('/api/v1/sources');
+        $response = $this->getJson('/api/v1/lookups/sources');
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -37,7 +37,7 @@ class SourceApiTest extends TestCase
     #[Test]
     public function it_can_search_sources_by_name_using_q_parameter(): void
     {
-        $response = $this->getJson('/api/v1/sources?q=xanathar');
+        $response = $this->getJson('/api/v1/lookups/sources?q=xanathar');
 
         $response->assertOk();
 
@@ -52,7 +52,7 @@ class SourceApiTest extends TestCase
     #[Test]
     public function it_can_search_sources_by_code_using_q_parameter(): void
     {
-        $response = $this->getJson('/api/v1/sources?q=XGE');
+        $response = $this->getJson('/api/v1/lookups/sources?q=XGE');
 
         $response->assertOk();
 
@@ -66,7 +66,7 @@ class SourceApiTest extends TestCase
     #[Test]
     public function it_returns_empty_results_when_no_sources_match_search(): void
     {
-        $response = $this->getJson('/api/v1/sources?q=nonexistent123');
+        $response = $this->getJson('/api/v1/lookups/sources?q=nonexistent123');
 
         $response->assertOk();
 
@@ -79,7 +79,7 @@ class SourceApiTest extends TestCase
     {
         $totalSources = Source::count();
 
-        $response = $this->getJson('/api/v1/sources');
+        $response = $this->getJson('/api/v1/lookups/sources');
 
         $response->assertOk();
 
@@ -92,7 +92,7 @@ class SourceApiTest extends TestCase
     {
         $source = Source::first();
 
-        $response = $this->getJson("/api/v1/sources/{$source->id}");
+        $response = $this->getJson("/api/v1/lookups/sources/{$source->id}");
 
         $response->assertOk()
             ->assertJsonPath('data.id', $source->id)
@@ -103,7 +103,7 @@ class SourceApiTest extends TestCase
     #[Test]
     public function search_is_case_insensitive(): void
     {
-        $response = $this->getJson('/api/v1/sources?q=XANATHAR');
+        $response = $this->getJson('/api/v1/lookups/sources?q=XANATHAR');
 
         $response->assertOk();
 
@@ -114,7 +114,7 @@ class SourceApiTest extends TestCase
     #[Test]
     public function it_supports_pagination(): void
     {
-        $response = $this->getJson('/api/v1/sources?per_page=2');
+        $response = $this->getJson('/api/v1/lookups/sources?per_page=2');
 
         $response->assertOk()
             ->assertJsonStructure([

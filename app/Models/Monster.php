@@ -100,6 +100,27 @@ class Monster extends BaseModel
         return $this->morphMany(EntitySource::class, 'reference');
     }
 
+    /**
+     * Convert challenge rating string to numeric value for Meilisearch filtering.
+     *
+     * Converts fractional strings like "1/8", "1/4", "1/2" to float values (0.125, 0.25, 0.5).
+     * Integer strings like "1", "10" are converted to float (1.0, 10.0).
+     *
+     * @return float The numeric challenge rating value
+     */
+    public function getChallengeRatingNumeric(): float
+    {
+        // Handle fractional challenge ratings (e.g., "1/8", "1/4", "1/2")
+        if (str_contains($this->challenge_rating, '/')) {
+            [$numerator, $denominator] = explode('/', $this->challenge_rating);
+
+            return (float) $numerator / (float) $denominator;
+        }
+
+        // Handle integer challenge ratings (e.g., "1", "10", "20")
+        return (float) $this->challenge_rating;
+    }
+
     // Scout Search Configuration
 
     /**
@@ -121,7 +142,7 @@ class Monster extends BaseModel
             'armor_class' => $this->armor_class,
             'armor_type' => $this->armor_type,
             'hit_points_average' => $this->hit_points_average,
-            'challenge_rating' => $this->challenge_rating,
+            'challenge_rating' => $this->getChallengeRatingNumeric(),
             'experience_points' => $this->experience_points,
             'description' => $this->description,
             // Speed attributes (for mobility filtering)

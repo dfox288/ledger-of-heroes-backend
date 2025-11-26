@@ -1,1 +1,1 @@
-handovers/2025-11-26-importer-architecture-refactoring.md
+handovers/2025-11-26-parser-refactoring.md

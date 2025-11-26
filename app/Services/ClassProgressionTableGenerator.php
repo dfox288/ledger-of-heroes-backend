@@ -137,12 +137,13 @@ final class ClassProgressionTableGenerator
 
     /**
      * Get features for a specific level as comma-separated string.
-     * Excludes multiclass-only features from the progression table display.
+     * Excludes multiclass-only features and choice options from the progression table display.
      */
     private function getFeaturesForLevel(Collection $features, int $level): string
     {
         $levelFeatures = $features->get($level, collect())
-            ->reject(fn ($feature) => $feature->is_multiclass_only);
+            ->reject(fn ($feature) => $feature->is_multiclass_only)
+            ->reject(fn ($feature) => $feature->parent_feature_id !== null);
 
         return $levelFeatures->pluck('feature_name')->join(', ') ?: '—';
     }

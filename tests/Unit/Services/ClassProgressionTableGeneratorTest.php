@@ -426,6 +426,56 @@ class ClassProgressionTableGeneratorTest extends TestCase
     }
 
     #[Test]
+    public function it_excludes_choice_options_from_progression(): void
+    {
+        $class = CharacterClass::factory()->create(['name' => 'Fighter']);
+
+        // Parent feature - should be included
+        $fightingStyle = ClassFeature::factory()->create([
+            'class_id' => $class->id,
+            'level' => 1,
+            'feature_name' => 'Fighting Style',
+            'is_optional' => false,
+        ]);
+
+        // Choice options - should be excluded
+        ClassFeature::factory()->create([
+            'class_id' => $class->id,
+            'level' => 1,
+            'feature_name' => 'Fighting Style: Archery',
+            'is_optional' => true,
+            'parent_feature_id' => $fightingStyle->id,
+        ]);
+        ClassFeature::factory()->create([
+            'class_id' => $class->id,
+            'level' => 1,
+            'feature_name' => 'Fighting Style: Defense',
+            'is_optional' => true,
+            'parent_feature_id' => $fightingStyle->id,
+        ]);
+
+        // Regular feature - should be included
+        ClassFeature::factory()->create([
+            'class_id' => $class->id,
+            'level' => 1,
+            'feature_name' => 'Second Wind',
+            'is_optional' => false,
+        ]);
+
+        $result = $this->generator->generate($class);
+
+        $row1 = $result['rows'][0];
+
+        // Parent feature should be included
+        $this->assertStringContainsString('Fighting Style', $row1['features']);
+        $this->assertStringContainsString('Second Wind', $row1['features']);
+
+        // Choice options should NOT be included
+        $this->assertStringNotContainsString('Archery', $row1['features']);
+        $this->assertStringNotContainsString('Defense', $row1['features']);
+    }
+
+    #[Test]
     public function it_excludes_redundant_counters_from_columns(): void
     {
         $class = CharacterClass::factory()->create(['name' => 'TestClass']);

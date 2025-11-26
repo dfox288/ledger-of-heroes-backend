@@ -6,6 +6,7 @@ use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-db')]
 class MapsAbilityCodesTest extends TestCase
 {
     use MapsAbilityCodes;

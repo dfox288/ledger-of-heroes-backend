@@ -4,11 +4,15 @@ namespace Tests\Feature\Api;
 
 use App\Models\Feat;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class FeatFilterOperatorTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected $seed = true;
 
@@ -43,7 +47,7 @@ class FeatFilterOperatorTest extends TestCase
         $feat3 = Feat::factory()->create(['name' => 'Feat 3']);
 
         collect([$feat1, $feat2, $feat3])->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
 
         // Act & Assert
         $response = $this->getJson("/api/v1/feats?filter=id = {$feat2->id}");
@@ -61,7 +65,7 @@ class FeatFilterOperatorTest extends TestCase
         $feat3 = Feat::factory()->create(['name' => 'Feat 3']);
 
         collect([$feat1, $feat2, $feat3])->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
 
         // Act & Assert
         $response = $this->getJson("/api/v1/feats?filter=id != {$feat2->id}");
@@ -82,7 +86,7 @@ class FeatFilterOperatorTest extends TestCase
         $feat4 = Feat::factory()->create(['name' => 'Feat 4']);
 
         collect([$feat1, $feat2, $feat3, $feat4])->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3, $feat4]);
 
         // Act & Assert
         $response = $this->getJson("/api/v1/feats?filter=id > {$feat2->id}");
@@ -102,7 +106,7 @@ class FeatFilterOperatorTest extends TestCase
         $feat3 = Feat::factory()->create(['name' => 'Feat 3']);
 
         collect([$feat1, $feat2, $feat3])->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
 
         // Act & Assert
         $response = $this->getJson("/api/v1/feats?filter=id >= {$feat2->id}");
@@ -123,7 +127,7 @@ class FeatFilterOperatorTest extends TestCase
         $feat4 = Feat::factory()->create(['name' => 'Feat 4']);
 
         collect([$feat1, $feat2, $feat3, $feat4])->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3, $feat4]);
 
         // Act & Assert
         $response = $this->getJson("/api/v1/feats?filter=id < {$feat3->id}");
@@ -143,7 +147,7 @@ class FeatFilterOperatorTest extends TestCase
         $feat3 = Feat::factory()->create(['name' => 'Feat 3']);
 
         collect([$feat1, $feat2, $feat3])->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
 
         // Act & Assert
         $response = $this->getJson("/api/v1/feats?filter=id <= {$feat2->id}");
@@ -165,7 +169,7 @@ class FeatFilterOperatorTest extends TestCase
         $feat5 = Feat::factory()->create(['name' => 'Feat 5']);
 
         collect([$feat1, $feat2, $feat3, $feat4, $feat5])->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3, $feat4, $feat5]);
 
         // Act & Assert
         $response = $this->getJson("/api/v1/feats?filter=id {$feat2->id} TO {$feat4->id}");
@@ -190,7 +194,7 @@ class FeatFilterOperatorTest extends TestCase
         $feat3 = Feat::factory()->create(['name' => 'Test Feat Gamma', 'slug' => 'test-feat-gamma']);
 
         collect([$feat1, $feat2, $feat3])->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
 
         // Act & Assert
         $response = $this->getJson('/api/v1/feats?filter=slug = test-feat-beta');
@@ -209,7 +213,7 @@ class FeatFilterOperatorTest extends TestCase
         $feat3 = Feat::factory()->create(['name' => 'Test Feat Gamma', 'slug' => 'test-feat-gamma']);
 
         collect([$feat1, $feat2, $feat3])->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
 
         // Act & Assert
         $response = $this->getJson('/api/v1/feats?filter=slug != test-feat-beta');
@@ -242,7 +246,7 @@ class FeatFilterOperatorTest extends TestCase
         ]);
 
         collect([$featWithPrereq, $featWithoutPrereq])->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$featWithPrereq, $featWithoutPrereq]);
 
         // Act & Assert
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true');
@@ -274,7 +278,7 @@ class FeatFilterOperatorTest extends TestCase
         ]);
 
         collect([$featWithPrereq, $featWithoutPrereq])->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$featWithPrereq, $featWithoutPrereq]);
 
         // Act & Assert
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = false');
@@ -306,7 +310,7 @@ class FeatFilterOperatorTest extends TestCase
         ]);
 
         collect([$featWithPrereq, $featWithoutPrereq])->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$featWithPrereq, $featWithoutPrereq]);
 
         // Act & Assert: != true should return false or null (feats without prerequisites)
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites != true');
@@ -337,7 +341,7 @@ class FeatFilterOperatorTest extends TestCase
         ]);
 
         collect([$featWithPrereq, $featWithoutPrereq])->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$featWithPrereq, $featWithoutPrereq]);
 
         // Act & Assert: != false should return true or null (feats with prerequisites)
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites != false');
@@ -369,7 +373,7 @@ class FeatFilterOperatorTest extends TestCase
         $feat3->attachTag('skill-improvement');
 
         collect([$feat1, $feat2, $feat3])->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
 
         // Act & Assert: Filter by tag_slugs IN [combat, magic]
         $response = $this->getJson('/api/v1/feats?filter=tag_slugs IN [combat, magic]');
@@ -400,7 +404,7 @@ class FeatFilterOperatorTest extends TestCase
         $feat3->attachTag('skill-improvement');
 
         collect([$feat1, $feat2, $feat3])->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
 
         // Act & Assert: Filter by tag_slugs NOT IN [combat]
         $response = $this->getJson('/api/v1/feats?filter=tag_slugs NOT IN [combat]');

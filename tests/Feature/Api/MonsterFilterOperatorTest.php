@@ -4,11 +4,15 @@ namespace Tests\Feature\Api;
 
 use App\Models\Monster;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class MonsterFilterOperatorTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected function setUp(): void
     {
@@ -55,7 +59,7 @@ class MonsterFilterOperatorTest extends TestCase
         $cr1->searchable();
         $cr5->searchable();
         $cr10->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$cr1, $cr5, $cr10]);
 
         // Filter by CR = 5
         $response = $this->getJson('/api/v1/monsters?filter=challenge_rating = 5');
@@ -85,7 +89,7 @@ class MonsterFilterOperatorTest extends TestCase
         $cr1->searchable();
         $cr5a->searchable();
         $cr5b->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$cr1, $cr5a, $cr5b]);
 
         // Filter by CR != 5 (should only get CR 1)
         $response = $this->getJson('/api/v1/monsters?filter=challenge_rating != 5');
@@ -119,7 +123,7 @@ class MonsterFilterOperatorTest extends TestCase
         $cr1->searchable();
         $cr10->searchable();
         $cr20->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$cr0_125, $cr1, $cr10, $cr20]);
 
         // Filter by CR > 5 (should get CR 10 and CR 20)
         $response = $this->getJson('/api/v1/monsters?filter=challenge_rating > 5');
@@ -151,7 +155,7 @@ class MonsterFilterOperatorTest extends TestCase
         $cr1->searchable();
         $cr5->searchable();
         $cr10->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$cr1, $cr5, $cr10]);
 
         // Filter by CR >= 5 (should get CR 5 and CR 10)
         $response = $this->getJson('/api/v1/monsters?filter=challenge_rating >= 5');
@@ -187,7 +191,7 @@ class MonsterFilterOperatorTest extends TestCase
         $cr0_5->searchable();
         $cr1->searchable();
         $cr10->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$cr0_25, $cr0_5, $cr1, $cr10]);
 
         // Filter by CR < 1 (should get CR 0.25 and CR 0.5)
         $response = $this->getJson('/api/v1/monsters?filter=challenge_rating < 1');
@@ -219,7 +223,7 @@ class MonsterFilterOperatorTest extends TestCase
         $cr0_5->searchable();
         $cr1->searchable();
         $cr5->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$cr0_5, $cr1, $cr5]);
 
         // Filter by CR <= 1 (should get CR 0.5 and CR 1)
         $response = $this->getJson('/api/v1/monsters?filter=challenge_rating <= 1');
@@ -259,7 +263,7 @@ class MonsterFilterOperatorTest extends TestCase
         $cr5->searchable();
         $cr10->searchable();
         $cr20->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$cr0_125, $cr1, $cr5, $cr10, $cr20]);
 
         // Filter by CR 1 TO 10 (should get CR 1, 5, and 10)
         $response = $this->getJson('/api/v1/monsters?filter=challenge_rating 1 TO 10');
@@ -296,7 +300,7 @@ class MonsterFilterOperatorTest extends TestCase
         $dragon->searchable();
         $beast->searchable();
         $undead->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$dragon, $beast, $undead]);
 
         // Filter by type = dragon
         $response = $this->getJson('/api/v1/monsters?filter=type = dragon');
@@ -326,7 +330,7 @@ class MonsterFilterOperatorTest extends TestCase
         $dragon->searchable();
         $beast1->searchable();
         $beast2->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$dragon, $beast1, $beast2]);
 
         // Filter by type != dragon (should get beasts only)
         $response = $this->getJson('/api/v1/monsters?filter=type != dragon');
@@ -379,7 +383,7 @@ class MonsterFilterOperatorTest extends TestCase
         $hovering->searchable();
         $flying->searchable();
         $grounded->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$hovering, $flying, $grounded]);
 
         // Filter by can_hover = true
         $response = $this->getJson('/api/v1/monsters?filter=can_hover = true');
@@ -421,7 +425,7 @@ class MonsterFilterOperatorTest extends TestCase
         $hovering->searchable();
         $flying->searchable();
         $grounded->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$hovering, $flying, $grounded]);
 
         // Filter by can_hover = false
         $response = $this->getJson('/api/v1/monsters?filter=can_hover = false');
@@ -470,7 +474,7 @@ class MonsterFilterOperatorTest extends TestCase
         $hovering->searchable();
         $flying->searchable();
         $grounded->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$hovering, $flying, $grounded]);
 
         // Filter by can_hover != true (should get false values)
         $response = $this->getJson('/api/v1/monsters?filter=can_hover != true');
@@ -519,7 +523,7 @@ class MonsterFilterOperatorTest extends TestCase
         $hovering->searchable();
         $flying->searchable();
         $grounded->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$hovering, $flying, $grounded]);
 
         // Filter by can_hover != false (should get true values)
         $response = $this->getJson('/api/v1/monsters?filter=can_hover != false');
@@ -553,7 +557,7 @@ class MonsterFilterOperatorTest extends TestCase
         // Index for Meilisearch
         $hovering->searchable();
         $grounded->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$hovering, $grounded]);
 
         // Filter by can_hover IS NULL
         // Note: can_hover has a default value of false in the database, so it can never be null
@@ -591,7 +595,7 @@ class MonsterFilterOperatorTest extends TestCase
         // Index for Meilisearch
         $hovering->searchable();
         $grounded->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$hovering, $grounded]);
 
         // Filter by can_hover IS NOT NULL
         // Note: can_hover has a default value of false in the database, so all records have non-null values
@@ -633,7 +637,7 @@ class MonsterFilterOperatorTest extends TestCase
         // Index for Meilisearch
         $hovering->searchable();
         $grounded->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$hovering, $grounded]);
 
         // Filter by can_hover != false (test != operator directly)
         $response = $this->getJson('/api/v1/monsters?filter=can_hover != false');
@@ -676,7 +680,7 @@ class MonsterFilterOperatorTest extends TestCase
         $wizardMonster->searchable();
         $sorcererMonster->searchable();
         $nonCaster->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$wizardMonster, $sorcererMonster, $nonCaster]);
 
         // Filter by spell_slugs IN [fireball, lightning-bolt] (monsters with fireball OR lightning-bolt)
         $response = $this->getJson('/api/v1/monsters?filter=spell_slugs IN [fireball, lightning-bolt]');
@@ -718,7 +722,7 @@ class MonsterFilterOperatorTest extends TestCase
         $fireballCaster->searchable();
         $iceCaster->searchable();
         $nonCaster->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$fireballCaster, $iceCaster, $nonCaster]);
 
         // Filter by spell_slugs NOT IN [fireball] (exclude monsters with fireball)
         $response = $this->getJson('/api/v1/monsters?filter=spell_slugs NOT IN [fireball]');
@@ -756,7 +760,7 @@ class MonsterFilterOperatorTest extends TestCase
         $caster->searchable();
         $nonCaster1->searchable();
         $nonCaster2->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$caster, $nonCaster1, $nonCaster2]);
 
         // Filter by spell_slugs IS EMPTY (monsters with no spells)
         $response = $this->getJson('/api/v1/monsters?filter=spell_slugs IS EMPTY');
@@ -808,7 +812,7 @@ class MonsterFilterOperatorTest extends TestCase
         $legendary->searchable();
         $normalMonster->searchable();
         $withLairOnly->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$legendary, $normalMonster, $withLairOnly]);
 
         // Filter by has_legendary_actions = true
         $response = $this->getJson('/api/v1/monsters?filter=has_legendary_actions = true');
@@ -843,7 +847,7 @@ class MonsterFilterOperatorTest extends TestCase
         // Index for Meilisearch
         $legendary->searchable();
         $normalMonster->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$legendary, $normalMonster]);
 
         // Filter by has_legendary_actions != false (should get true values)
         $response = $this->getJson('/api/v1/monsters?filter=has_legendary_actions != false');
@@ -878,7 +882,7 @@ class MonsterFilterOperatorTest extends TestCase
         // Index for Meilisearch
         $legendary->searchable();
         $normalMonster->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$legendary, $normalMonster]);
 
         // Filter by has_legendary_actions IS NULL
         // Note: This is a computed field, so it will be false, not null for monsters without legendary actions

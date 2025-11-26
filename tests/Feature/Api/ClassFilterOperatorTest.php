@@ -4,11 +4,15 @@ namespace Tests\Feature\Api;
 
 use App\Models\CharacterClass;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-imported')]
 class ClassFilterOperatorTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected $seed = true;
 
@@ -91,8 +95,7 @@ class ClassFilterOperatorTest extends TestCase
         // Force immediate indexing
         $classes->searchable();
 
-        // Give Meilisearch a moment to index
-        sleep(1);
+        $this->waitForMeilisearchModels($classes->all());
 
         $response = $this->getJson('/api/v1/classes?filter=hit_die > 8');
 

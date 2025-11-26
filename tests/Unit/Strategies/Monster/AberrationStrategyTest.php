@@ -6,6 +6,8 @@ use App\Services\Importers\Strategies\Monster\AberrationStrategy;
 use App\Services\Parsers\MonsterXmlParser;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class AberrationStrategyTest extends TestCase
 {
     private AberrationStrategy $strategy;

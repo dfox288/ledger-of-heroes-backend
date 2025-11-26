@@ -7,11 +7,15 @@ use App\Models\Feat;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class FeatFilterTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected function setUp(): void
     {
@@ -45,7 +49,7 @@ class FeatFilterTest extends TestCase
         $featWithout = Feat::factory()->create(['name' => 'Alert']);
         $featWithout->searchable(); // Re-index for Meilisearch
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$featWithPrereq, $featWithout]);
 
         // Filter for feats WITHOUT prerequisites
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = false');
@@ -89,7 +93,7 @@ class FeatFilterTest extends TestCase
         $featWithout = Feat::factory()->create(['name' => 'Alert']);
         $featWithout->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$featWithRacePrereq, $featWithAbilityPrereq, $featWithout]);
 
         // Test filter by Race prerequisite
         $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [Race]');
@@ -124,7 +128,7 @@ class FeatFilterTest extends TestCase
         $featWithout = Feat::factory()->create(['name' => 'Alert']);
         $featWithout->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$featGrantingProf, $featWithout]);
 
         // Test filter for feats that grant proficiencies
         $response = $this->getJson('/api/v1/feats?filter=grants_proficiencies = true');
@@ -167,7 +171,7 @@ class FeatFilterTest extends TestCase
         $featWithout = Feat::factory()->create(['name' => 'Alert']);
         $featWithout->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$featImprovingStr, $featImprovingDex, $featWithout]);
 
         // Test filter for STR improvement
         $response = $this->getJson('/api/v1/feats?filter=improved_abilities IN [STR]');
@@ -220,7 +224,7 @@ class FeatFilterTest extends TestCase
         $alert = Feat::factory()->create(['name' => 'Alert']);
         $alert->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$grappler, $heavyArmor, $alert]);
 
         // Test combining prerequisite + proficiency filters
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true AND grants_proficiencies = true');
@@ -240,7 +244,7 @@ class FeatFilterTest extends TestCase
         $feat = Feat::factory()->create(['name' => 'Alert']);
         $feat->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearch($feat);
 
         // Test filter that shouldn't match anything
         $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [Spell]');
@@ -270,7 +274,7 @@ class FeatFilterTest extends TestCase
             $feat->fresh()->searchable();
         }
 
-        sleep(2); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels(Feat::all()->all());
 
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true&per_page=10');
         $response->assertOk();

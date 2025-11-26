@@ -6,6 +6,8 @@ use App\Http\Resources\TagResource;
 use Spatie\Tags\Tag;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class TagResourceTest extends TestCase
 {
     #[\PHPUnit\Framework\Attributes\Test]

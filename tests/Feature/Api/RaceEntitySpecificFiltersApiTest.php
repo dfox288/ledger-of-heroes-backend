@@ -8,11 +8,15 @@ use App\Models\Modifier;
 use App\Models\Race;
 use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class RaceEntitySpecificFiltersApiTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected function setUp(): void
     {
@@ -68,7 +72,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         ]);
         $mountainDwarf->fresh()->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$highElf, $gnome, $mountainDwarf]);
 
         // Act: Filter by ability_int_bonus > 0 using Meilisearch
         $response = $this->getJson('/api/v1/races?filter=ability_int_bonus > 0');
@@ -122,7 +126,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         ]);
         $gnome->fresh()->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$mountainDwarf, $dragonborn, $gnome]);
 
         // Act: Filter by ability_str_bonus > 0 using Meilisearch
         $response = $this->getJson('/api/v1/races?filter=ability_str_bonus > 0');
@@ -163,7 +167,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         ]);
         $human->load('size')->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$halfling, $gnome, $human]);
 
         // Act: Filter by size_code = S using Meilisearch
         $response = $this->getJson('/api/v1/races?filter=size_code = S');
@@ -204,7 +208,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         ]);
         $halfling->load('size')->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$human, $elf, $halfling]);
 
         // Act: Filter by size_code = M using Meilisearch
         $response = $this->getJson('/api/v1/races?filter=size_code = M');
@@ -242,7 +246,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         ]);
         $dwarf->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$woodElf, $human, $dwarf]);
 
         // Act: Filter by speed >= 35 using Meilisearch
         $response = $this->getJson('/api/v1/races?filter=speed >= 35');
@@ -292,7 +296,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         $human = Race::factory()->create(['name' => 'Human']);
         $human->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$dwarf, $elf, $tiefling, $human]);
 
         // Act: Filter by tag_slugs IN [darkvision] using Meilisearch
         $response = $this->getJson('/api/v1/races?filter=tag_slugs IN [darkvision]');
@@ -379,7 +383,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         ]);
         $dwarf->fresh()->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$gnome, $highElf, $human, $dwarf]);
 
         // Act: Filter by ability_int_bonus > 0 AND tag_slugs IN [darkvision] using Meilisearch
         $response = $this->getJson('/api/v1/races?filter=ability_int_bonus > 0 AND tag_slugs IN [darkvision]');
@@ -418,7 +422,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         ]);
         $halfling->load('size')->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearch($halfling);
 
         // Act: Send valid size filter
         $response = $this->getJson('/api/v1/races?filter=size_code = S');
@@ -437,7 +441,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         ]);
         $woodElf->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearch($woodElf);
 
         // Act: Send valid speed filter
         $response = $this->getJson('/api/v1/races?filter=speed >= 30');
@@ -454,7 +458,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         $dwarf->attachTag('darkvision');
         $dwarf->fresh()->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearch($dwarf);
 
         // Act: Send valid darkvision filter
         $response = $this->getJson('/api/v1/races?filter=tag_slugs IN [darkvision]');

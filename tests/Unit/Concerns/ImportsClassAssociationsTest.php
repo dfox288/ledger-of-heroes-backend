@@ -8,6 +8,7 @@ use App\Services\Importers\Concerns\ImportsClassAssociations;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-db')]
 class ImportsClassAssociationsTest extends TestCase
 {
     use RefreshDatabase;

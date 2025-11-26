@@ -6,11 +6,15 @@ use App\Models\Monster;
 use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class MonsterApiTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected function setUp(): void
     {
@@ -87,7 +91,7 @@ class MonsterApiTest extends TestCase
         Monster::factory()->create(['challenge_rating' => '10']);
 
         $this->artisan('scout:import', ['model' => Monster::class]);
-        sleep(1);
+        $this->waitForMeilisearchModels(Monster::all()->all());
 
         $response = $this->getJson('/api/v1/monsters?filter=challenge_rating = 5');
 
@@ -108,7 +112,7 @@ class MonsterApiTest extends TestCase
         Monster::factory()->create(['challenge_rating' => '15']);
 
         $this->artisan('scout:import', ['model' => Monster::class]);
-        sleep(1);
+        $this->waitForMeilisearchModels(Monster::all()->all());
 
         // Use OR with multiple exact values instead of numeric range
         $response = $this->getJson('/api/v1/monsters?filter=challenge_rating = 5 OR challenge_rating = 10');
@@ -125,7 +129,7 @@ class MonsterApiTest extends TestCase
         Monster::factory()->create(['type' => 'undead']);
 
         $this->artisan('scout:import', ['model' => Monster::class]);
-        sleep(1);
+        $this->waitForMeilisearchModels(Monster::all()->all());
 
         $response = $this->getJson('/api/v1/monsters?filter=type = dragon');
 
@@ -146,7 +150,7 @@ class MonsterApiTest extends TestCase
         Monster::factory()->create(['size_id' => $large->id]);
 
         $this->artisan('scout:import', ['model' => Monster::class]);
-        sleep(1);
+        $this->waitForMeilisearchModels(Monster::all()->all());
 
         $response = $this->getJson('/api/v1/monsters?filter=size_code = L');
 
@@ -162,7 +166,7 @@ class MonsterApiTest extends TestCase
         Monster::factory()->create(['alignment' => 'neutral']);
 
         $this->artisan('scout:import', ['model' => Monster::class]);
-        sleep(1);
+        $this->waitForMeilisearchModels(Monster::all()->all());
 
         $response = $this->getJson('/api/v1/monsters?filter=alignment = "chaotic evil"');
 
@@ -364,7 +368,7 @@ class MonsterApiTest extends TestCase
         // Goblin has no spells
 
         $this->artisan('scout:import', ['model' => Monster::class]);
-        sleep(1);
+        $this->waitForMeilisearchModels(Monster::all()->all());
 
         // Filter by Fireball - should return Lich and Archmage
         $response = $this->getJson('/api/v1/monsters?filter=spell_slugs IN [fireball]');
@@ -417,7 +421,7 @@ class MonsterApiTest extends TestCase
         $archmage->entitySpells()->attach([$fireball->id]); // Only Fireball
 
         $this->artisan('scout:import', ['model' => Monster::class]);
-        sleep(1);
+        $this->waitForMeilisearchModels(Monster::all()->all());
 
         // Filter by both spells - should only return Lich
         // Use AND to require both spells (not OR which IN provides)

@@ -5,6 +5,8 @@ namespace Tests\Unit\Strategies\Monster;
 use App\Services\Importers\Strategies\Monster\DefaultStrategy;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class DefaultStrategyTest extends TestCase
 {
     protected DefaultStrategy $strategy;

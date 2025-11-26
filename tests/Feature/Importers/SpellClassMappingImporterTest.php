@@ -9,6 +9,7 @@ use App\Services\Parsers\SpellClassMappingParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('importers')]
 class SpellClassMappingImporterTest extends TestCase
 {
     use RefreshDatabase;

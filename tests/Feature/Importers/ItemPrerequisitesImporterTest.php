@@ -9,6 +9,7 @@ use App\Services\Importers\ItemImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('importers')]
 class ItemPrerequisitesImporterTest extends TestCase
 {
     use RefreshDatabase;

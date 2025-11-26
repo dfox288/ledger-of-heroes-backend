@@ -6,6 +6,8 @@ use App\Services\Parsers\SourceXmlParser;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class SourceXmlParserTest extends TestCase
 {
     private SourceXmlParser $parser;

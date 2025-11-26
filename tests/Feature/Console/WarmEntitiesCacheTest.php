@@ -13,6 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('importers')]
 class WarmEntitiesCacheTest extends TestCase
 {
     use RefreshDatabase;

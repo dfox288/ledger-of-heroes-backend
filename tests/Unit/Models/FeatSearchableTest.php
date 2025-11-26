@@ -8,6 +8,7 @@ use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-db')]
 class FeatSearchableTest extends TestCase
 {
     use RefreshDatabase;

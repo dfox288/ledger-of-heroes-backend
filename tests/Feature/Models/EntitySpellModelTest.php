@@ -9,6 +9,7 @@ use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-db')]
 class EntitySpellModelTest extends TestCase
 {
     use RefreshDatabase;

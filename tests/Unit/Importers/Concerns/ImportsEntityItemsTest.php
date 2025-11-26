@@ -7,6 +7,7 @@ use App\Services\Importers\Concerns\ImportsEntityItems;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-db')]
 class ImportsEntityItemsTest extends TestCase
 {
     use RefreshDatabase;

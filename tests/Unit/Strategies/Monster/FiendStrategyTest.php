@@ -6,6 +6,8 @@ use App\Services\Importers\Strategies\Monster\FiendStrategy;
 use App\Services\Parsers\MonsterXmlParser;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class FiendStrategyTest extends TestCase
 {
     private FiendStrategy $strategy;

@@ -6,6 +6,8 @@ use App\Models\Item;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class ItemFilterOperatorTest extends TestCase
 {
     use RefreshDatabase;

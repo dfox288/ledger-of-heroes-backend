@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
 class FileNotFoundExceptionTest extends TestCase
 {
     #[Test]

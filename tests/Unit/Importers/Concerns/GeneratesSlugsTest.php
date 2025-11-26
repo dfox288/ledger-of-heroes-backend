@@ -6,6 +6,8 @@ use App\Services\Importers\Concerns\GeneratesSlugs;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class GeneratesSlugsTest extends TestCase
 {
     use GeneratesSlugs;

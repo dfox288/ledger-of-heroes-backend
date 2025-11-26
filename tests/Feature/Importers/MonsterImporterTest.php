@@ -7,6 +7,7 @@ use App\Services\Importers\MonsterImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('importers')]
 class MonsterImporterTest extends TestCase
 {
     use RefreshDatabase;

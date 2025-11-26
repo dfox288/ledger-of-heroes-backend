@@ -6,6 +6,8 @@ use App\Services\Importers\Strategies\Monster\ElementalStrategy;
 use App\Services\Parsers\MonsterXmlParser;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class ElementalStrategyTest extends TestCase
 {
     private ElementalStrategy $strategy;

@@ -9,11 +9,15 @@ use App\Models\ClassLevelProgression;
 use App\Models\Proficiency;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class ClassApiTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     #[Test]
     public function test_class_resource_includes_all_fields()
@@ -223,7 +227,7 @@ class ClassApiTest extends TestCase
         // Index classes for Meilisearch filtering
         $fighter->searchable();
         $battleMaster->searchable();
-        sleep(1); // Give Meilisearch time to index
+        $this->waitForMeilisearchModels([$fighter, $battleMaster]);
 
         $response = $this->getJson('/api/v1/classes?filter=is_subclass = false');
 
@@ -264,7 +268,7 @@ class ClassApiTest extends TestCase
         // Index classes for Meilisearch search
         $fighter->searchable();
         $wizard->searchable();
-        sleep(1); // Give Meilisearch time to index
+        $this->waitForMeilisearchModels([$fighter, $wizard]);
 
         $response = $this->getJson('/api/v1/classes?q=Fighter');
 

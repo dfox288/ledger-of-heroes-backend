@@ -5,11 +5,15 @@ namespace Tests\Feature\Api;
 use App\Models\Item;
 use App\Models\ItemType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-imported')]
 class ItemSearchTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected function setUp(): void
     {
@@ -26,7 +30,7 @@ class ItemSearchTest extends TestCase
         Item::factory()->create(['name' => 'Shortsword', 'item_type_id' => $type->id]);
 
         $this->artisan('scout:import', ['model' => Item::class]);
-        sleep(1);
+        $this->waitForMeilisearchIndex('test_items');
 
         $response = $this->getJson('/api/v1/items?q=long');
 

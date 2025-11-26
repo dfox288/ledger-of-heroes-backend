@@ -6,11 +6,15 @@ use App\Models\AbilityScore;
 use App\Models\CharacterClass;
 use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class ClassEntitySpecificFiltersApiTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected function setUp(): void
     {
@@ -69,7 +73,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         ]);
         $barbarian->searchable(); // Index in Meilisearch
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$wizard, $cleric, $fighter, $barbarian]);
 
         // Act: Filter by is_spellcaster=true (using Meilisearch filter syntax)
         $response = $this->getJson('/api/v1/classes?filter=is_spellcaster = true');
@@ -120,7 +124,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         ]);
         $rogue->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$wizard, $fighter, $barbarian, $rogue]);
 
         // Act: Filter by is_spellcaster=false (using Meilisearch filter syntax)
         $response = $this->getJson('/api/v1/classes?filter=is_spellcaster = false');
@@ -159,7 +163,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         ]);
         $cleric->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$barbarian, $fighter, $cleric]);
 
         // Act: Filter by hit_die=12 (using Meilisearch filter syntax)
         $response = $this->getJson('/api/v1/classes?filter=hit_die = 12');
@@ -204,7 +208,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         ]);
         $wizard->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$fighter, $ranger, $paladin, $wizard]);
 
         // Act: Filter by hit_die=10 (using Meilisearch filter syntax)
         $response = $this->getJson('/api/v1/classes?filter=hit_die = 10');
@@ -255,7 +259,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         ]);
         $barbarian->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$ranger, $paladin, $fighter, $barbarian]);
 
         // Act: Filter by hit_die=10 AND is_spellcaster=true (using Meilisearch filter syntax)
         $response = $this->getJson('/api/v1/classes?filter=hit_die = 10 AND is_spellcaster = true');
@@ -298,7 +302,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         ]);
         $wizard->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$barbarian, $fighter, $wizard]);
 
         // Act: Filter by hit_die=12 AND is_spellcaster=false (using Meilisearch filter syntax)
         $response = $this->getJson('/api/v1/classes?filter=hit_die = 12 AND is_spellcaster = false');
@@ -346,7 +350,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         $cleric->searchable();
         $fighter->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$wizard, $cleric, $fighter]);
 
         // Act: Filter by max_spell_level=9 (using Meilisearch filter syntax)
         $response = $this->getJson('/api/v1/classes?filter=max_spell_level = 9');
@@ -381,7 +385,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         ]);
         $wizard->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearch($wizard);
 
         // Act: Send complex valid filter
         $response = $this->getJson('/api/v1/classes?filter=hit_die = 6 AND is_spellcaster = true');
@@ -419,7 +423,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         ]);
         $battlemaster->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$wizard, $fighter, $champion, $battlemaster]);
 
         // Act: Filter by is_base_class=true (using Meilisearch filter syntax)
         $response = $this->getJson('/api/v1/classes?filter=is_base_class = true');
@@ -470,7 +474,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         ]);
         $arcaneTrickster->searchable();
 
-        sleep(1); // Wait for Meilisearch indexing
+        $this->waitForMeilisearchModels([$fighter, $champion, $battlemaster, $rogue, $arcaneTrickster]);
 
         // Act: Filter by is_base_class=false (using Meilisearch filter syntax)
         $response = $this->getJson('/api/v1/classes?filter=is_base_class = false');

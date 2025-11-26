@@ -5,6 +5,7 @@ namespace Tests\Unit\Models;
 use App\Models\Source;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-db')]
 class SourceTest extends TestCase
 {
     public function test_source_model_exists(): void

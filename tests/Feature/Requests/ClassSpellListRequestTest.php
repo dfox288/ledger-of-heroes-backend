@@ -8,6 +8,7 @@ use App\Models\SpellSchool;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-db')]
 class ClassSpellListRequestTest extends TestCase
 {
     use RefreshDatabase;

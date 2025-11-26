@@ -7,6 +7,7 @@ use PHPUnit\Framework\Attributes\Test;
 use SimpleXMLElement;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
 class ParsesRollsTest extends TestCase
 {
     use ParsesRolls;

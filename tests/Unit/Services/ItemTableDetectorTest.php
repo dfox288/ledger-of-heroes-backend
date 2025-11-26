@@ -6,6 +6,8 @@ use App\Services\Parsers\ItemTableDetector;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class ItemTableDetectorTest extends TestCase
 {
     private ItemTableDetector $detector;

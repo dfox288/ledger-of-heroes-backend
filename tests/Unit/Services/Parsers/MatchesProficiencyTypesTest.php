@@ -6,6 +6,8 @@ use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class MatchesProficiencyTypesTest extends TestCase
 {
     private $matcher;

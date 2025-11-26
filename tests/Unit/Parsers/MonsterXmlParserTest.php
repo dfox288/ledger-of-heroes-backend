@@ -6,6 +6,8 @@ use App\Services\Parsers\MonsterXmlParser;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class MonsterXmlParserTest extends TestCase
 {
     protected MonsterXmlParser $parser;

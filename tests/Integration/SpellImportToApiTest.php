@@ -6,6 +6,8 @@ use App\Services\Importers\SpellImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-imported')]
 class SpellImportToApiTest extends TestCase
 {
     use RefreshDatabase;

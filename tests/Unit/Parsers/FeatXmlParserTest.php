@@ -6,6 +6,7 @@ use App\Services\Parsers\FeatXmlParser;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
 class FeatXmlParserTest extends TestCase
 {
     private FeatXmlParser $parser;

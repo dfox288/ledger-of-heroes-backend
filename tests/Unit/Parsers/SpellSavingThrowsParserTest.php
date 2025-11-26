@@ -6,6 +6,8 @@ use App\Services\Parsers\SpellXmlParser;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class SpellSavingThrowsParserTest extends TestCase
 {
     private SpellXmlParser $parser;

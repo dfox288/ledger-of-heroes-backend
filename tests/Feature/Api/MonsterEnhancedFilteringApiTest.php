@@ -5,8 +5,11 @@ namespace Tests\Feature\Api;
 use App\Models\Monster;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 /**
  * Tests for Monster Meilisearch filtering features.
  *
@@ -32,6 +35,7 @@ use Tests\TestCase;
 class MonsterEnhancedFilteringApiTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     // ========================================
     // Tag-Based Filtering Tests
@@ -56,10 +60,13 @@ class MonsterEnhancedFilteringApiTest extends TestCase
         Monster::factory()->create(['name' => 'Goblin']);
 
         // Index monsters for search
-        Monster::where('name', 'Balor')->first()->searchable();
-        Monster::where('name', 'Devil')->first()->searchable();
-        Monster::where('name', 'Goblin')->first()->searchable();
-        sleep(1); // Give Meilisearch time to index
+        $balor = Monster::where('name', 'Balor')->first();
+        $devil = Monster::where('name', 'Devil')->first();
+        $goblin = Monster::where('name', 'Goblin')->first();
+        $balor->searchable();
+        $devil->searchable();
+        $goblin->searchable();
+        $this->waitForMeilisearchModels([$balor, $devil, $goblin]);
 
         // Filter by fire-immune tag
         $response = $this->getJson('/api/v1/monsters?filter=tag_slugs IN [fire-immune]');
@@ -101,7 +108,7 @@ class MonsterEnhancedFilteringApiTest extends TestCase
         $balor->searchable();
         $devil->searchable();
         $salamander->searchable();
-        sleep(1); // Give Meilisearch time to index
+        $this->waitForMeilisearchModels([$balor, $devil, $salamander]);
 
         // Filter: fiend OR fire-immune (should get all 3)
         $response = $this->getJson('/api/v1/monsters?filter=tag_slugs IN [fiend, fire-immune]');
@@ -139,7 +146,7 @@ class MonsterEnhancedFilteringApiTest extends TestCase
         $highCrFiend->searchable();
         $lowCrFiend->searchable();
         $dragon->searchable();
-        sleep(1); // Give Meilisearch time to index
+        $this->waitForMeilisearchModels([$highCrFiend, $lowCrFiend, $dragon]);
 
         // Filter: fiend AND exact CR
         $response = $this->getJson('/api/v1/monsters?filter=tag_slugs IN [fiend] AND challenge_rating = 20');
@@ -161,7 +168,7 @@ class MonsterEnhancedFilteringApiTest extends TestCase
 
         // Index monster for search
         $goblin->searchable();
-        sleep(1); // Give Meilisearch time to index
+        $this->waitForMeilisearch($goblin);
 
         // Search for non-existent tag (using unique tag that won't exist in real data)
         $response = $this->getJson('/api/v1/monsters?filter=tag_slugs IN [test-nonexistent-tag-xyz]');
@@ -194,7 +201,7 @@ class MonsterEnhancedFilteringApiTest extends TestCase
         $redDragon->searchable();
         $balor->searchable();
         $blueDragon->searchable();
-        sleep(1); // Give Meilisearch time to index
+        $this->waitForMeilisearchModels([$redDragon, $balor, $blueDragon]);
 
         // Filter: type=dragon AND fire-immune
         $response = $this->getJson('/api/v1/monsters?filter=type = dragon AND tag_slugs IN [fire-immune]');

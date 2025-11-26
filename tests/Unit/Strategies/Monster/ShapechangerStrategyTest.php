@@ -6,6 +6,8 @@ use App\Services\Importers\Strategies\Monster\ShapechangerStrategy;
 use App\Services\Parsers\MonsterXmlParser;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class ShapechangerStrategyTest extends TestCase
 {
     private ShapechangerStrategy $strategy;

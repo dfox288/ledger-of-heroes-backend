@@ -4,11 +4,15 @@ namespace Tests\Feature\Api;
 
 use App\Models\Background;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-imported')]
 class BackgroundSearchTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected function setUp(): void
     {
@@ -23,7 +27,7 @@ class BackgroundSearchTest extends TestCase
         Background::factory()->create(['name' => 'Soldier']);
 
         $this->artisan('scout:import', ['model' => Background::class]);
-        sleep(1);
+        $this->waitForMeilisearchIndex('test_backgrounds');
 
         $response = $this->getJson('/api/v1/backgrounds?q=acolyte');
 

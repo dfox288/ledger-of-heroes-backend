@@ -5,6 +5,7 @@ namespace Tests\Feature\Requests;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-db')]
 class FeatIndexRequestTest extends TestCase
 {
     use RefreshDatabase;

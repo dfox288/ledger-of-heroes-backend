@@ -5,6 +5,7 @@ namespace Tests\Unit\Strategies\Monster;
 use App\Services\Importers\Strategies\Monster\UndeadStrategy;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-db')]
 class UndeadStrategyTest extends TestCase
 {
     protected UndeadStrategy $strategy;

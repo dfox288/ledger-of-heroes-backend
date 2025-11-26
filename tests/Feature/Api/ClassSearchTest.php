@@ -4,11 +4,15 @@ namespace Tests\Feature\Api;
 
 use App\Models\CharacterClass;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-imported')]
 class ClassSearchTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected function setUp(): void
     {
@@ -30,7 +34,7 @@ class ClassSearchTest extends TestCase
         ]);
 
         $this->artisan('scout:import', ['model' => CharacterClass::class]);
-        sleep(1);
+        $this->waitForMeilisearchIndex('test_classes');
 
         $response = $this->getJson('/api/v1/classes?q=fighter');
 

@@ -6,6 +6,8 @@ use App\Services\Importers\Strategies\Monster\CelestialStrategy;
 use App\Services\Parsers\MonsterXmlParser;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class CelestialStrategyTest extends TestCase
 {
     private CelestialStrategy $strategy;

@@ -5,26 +5,153 @@
          colors="true"
 >
     <testsuites>
+        <!-- Original suites (kept for backwards compatibility) -->
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
+
+        <!-- === NEW: Granular Test Suites for Targeted Testing === -->
+
+        <!-- Unit-Pure: No database, no external services (approx 5s) -->
+        <testsuite name="Unit-Pure">
+            <directory>tests/Unit/Exceptions</directory>
+            <directory>tests/Unit/Resources</directory>
+            <directory>tests/Unit/Parsers</directory>
+            <directory>tests/Unit/Services/Parsers</directory>
+            <exclude>tests/Unit/Parsers/ClassXmlParserTest.php</exclude>
+            <exclude>tests/Unit/Parsers/ClassXmlParserEquipmentTest.php</exclude>
+            <exclude>tests/Unit/Parsers/FeatXmlParserPrerequisitesTest.php</exclude>
+            <exclude>tests/Unit/Parsers/ItemXmlParserTest.php</exclude>
+            <exclude>tests/Unit/Parsers/ItemSpellsParserTest.php</exclude>
+            <exclude>tests/Unit/Parsers/ItemProficiencyParserTest.php</exclude>
+            <exclude>tests/Unit/Parsers/Concerns/LookupsGameEntitiesTest.php</exclude>
+            <exclude>tests/Unit/Parsers/Concerns/MapsAbilityCodesTest.php</exclude>
+            <exclude>tests/Unit/Parsers/Concerns/MatchesProficiencyTypesTest.php</exclude>
+        </testsuite>
+
+        <!-- Unit-DB: Database required, no Meilisearch (approx 20s) -->
+        <testsuite name="Unit-DB">
+            <directory>tests/Unit/Factories</directory>
+            <directory>tests/Unit/Models</directory>
+            <directory>tests/Unit/Concerns</directory>
+            <directory>tests/Unit/Importers</directory>
+            <directory>tests/Unit/Strategies</directory>
+            <directory>tests/Unit/Services/Cache</directory>
+            <directory>tests/Unit/Services/Importers</directory>
+            <file>tests/Unit/Parsers/ClassXmlParserTest.php</file>
+            <file>tests/Unit/Parsers/ClassXmlParserEquipmentTest.php</file>
+            <file>tests/Unit/Parsers/FeatXmlParserPrerequisitesTest.php</file>
+            <file>tests/Unit/Parsers/ItemXmlParserTest.php</file>
+            <file>tests/Unit/Parsers/ItemSpellsParserTest.php</file>
+            <file>tests/Unit/Parsers/ItemProficiencyParserTest.php</file>
+            <file>tests/Unit/Parsers/Concerns/LookupsGameEntitiesTest.php</file>
+            <file>tests/Unit/Parsers/Concerns/MapsAbilityCodesTest.php</file>
+            <file>tests/Unit/Parsers/Concerns/MatchesProficiencyTypesTest.php</file>
+            <file>tests/Unit/Services/GlobalSearchServiceTest.php</file>
+            <file>tests/Unit/Services/ItemTableDetectorTest.php</file>
+            <file>tests/Unit/Services/ItemTableParserTest.php</file>
+        </testsuite>
+
+        <!-- Feature-DB: API/Model tests without Meilisearch (approx 30s) -->
+        <testsuite name="Feature-DB">
+            <directory>tests/Feature/Models</directory>
+            <directory>tests/Feature/Requests</directory>
+            <directory>tests/Feature/Seeders</directory>
+            <directory>tests/Feature/Migrations</directory>
+            <file>tests/Feature/Api/AbilityScoreReverseRelationshipsApiTest.php</file>
+            <file>tests/Feature/Api/AlignmentApiTest.php</file>
+            <file>tests/Feature/Api/ArmorTypeApiTest.php</file>
+            <file>tests/Feature/Api/ConditionApiTest.php</file>
+            <file>tests/Feature/Api/ConditionReverseRelationshipsApiTest.php</file>
+            <file>tests/Feature/Api/CorsTest.php</file>
+            <file>tests/Feature/Api/DamageTypeApiTest.php</file>
+            <file>tests/Feature/Api/DamageTypeReverseRelationshipsApiTest.php</file>
+            <file>tests/Feature/Api/ItemPropertyApiTest.php</file>
+            <file>tests/Feature/Api/ItemTypeApiTest.php</file>
+            <file>tests/Feature/Api/LanguageApiTest.php</file>
+            <file>tests/Feature/Api/LanguageReverseRelationshipsApiTest.php</file>
+            <file>tests/Feature/Api/MonsterTypeApiTest.php</file>
+            <file>tests/Feature/Api/ProficiencyTypeApiTest.php</file>
+            <file>tests/Feature/Api/ProficiencyTypeReverseRelationshipsApiTest.php</file>
+            <file>tests/Feature/Api/RarityApiTest.php</file>
+            <file>tests/Feature/Api/SizeReverseRelationshipsApiTest.php</file>
+            <file>tests/Feature/Api/SkillApiTest.php</file>
+            <file>tests/Feature/Api/SourceApiTest.php</file>
+            <file>tests/Feature/Api/SpellSchoolApiTest.php</file>
+            <file>tests/Feature/Api/SpellSchoolReverseRelationshipsApiTest.php</file>
+            <file>tests/Feature/Api/TagApiTest.php</file>
+            <file>tests/Feature/Api/ClassResourceCompleteTest.php</file>
+            <file>tests/Feature/Api/ClassSpellListTest.php</file>
+            <file>tests/Feature/Api/FeatPrerequisitesApiTest.php</file>
+            <file>tests/Feature/Api/ItemPrerequisitesApiTest.php</file>
+            <file>tests/Feature/Api/ItemSpellsApiTest.php</file>
+            <file>tests/Feature/Api/TagIntegrationTest.php</file>
+        </testsuite>
+
+        <!-- Feature-Search-Isolated: Factory-based Meilisearch tests (approx 60s), self-contained -->
+        <testsuite name="Feature-Search-Isolated">
+            <file>tests/Feature/Api/MonsterFilterOperatorTest.php</file>
+            <file>tests/Feature/Api/FeatFilterOperatorTest.php</file>
+            <file>tests/Feature/Api/BackgroundFilterOperatorTest.php</file>
+            <file>tests/Feature/Api/ItemFilterOperatorTest.php</file>
+            <file>tests/Feature/Api/ClassEntitySpecificFiltersApiTest.php</file>
+            <file>tests/Feature/Api/RaceEntitySpecificFiltersApiTest.php</file>
+            <file>tests/Feature/Api/MonsterEnhancedFilteringApiTest.php</file>
+            <file>tests/Feature/Api/ParentRelationshipTest.php</file>
+            <file>tests/Feature/Api/ItemFilterTest.php</file>
+            <file>tests/Feature/Api/FeatFilterTest.php</file>
+            <file>tests/Feature/Api/MonsterApiTest.php</file>
+            <file>tests/Feature/Api/ClassApiTest.php</file>
+            <file>tests/Feature/Api/BackgroundApiTest.php</file>
+            <file>tests/Feature/Api/FeatApiTest.php</file>
+            <file>tests/Feature/Api/RaceApiTest.php</file>
+            <file>tests/Feature/Api/SpellApiTest.php</file>
+        </testsuite>
+
+        <!-- Feature-Search-Imported: Requires pre-populated Meilisearch indexes (approx 180s) -->
+        <testsuite name="Feature-Search-Imported">
+            <file>tests/Feature/Api/SpellFilterOperatorTest.php</file>
+            <file>tests/Feature/Api/ClassFilterOperatorTest.php</file>
+            <file>tests/Feature/Api/RaceFilterOperatorTest.php</file>
+            <file>tests/Feature/Api/SpellMeilisearchFilterTest.php</file>
+            <file>tests/Feature/Api/SpellEnhancedFilteringTest.php</file>
+            <file>tests/Feature/Api/SpellSearchTest.php</file>
+            <file>tests/Feature/Api/SpellFilterExceptionTest.php</file>
+            <file>tests/Feature/Api/ClassSearchTest.php</file>
+            <file>tests/Feature/Api/RaceSearchTest.php</file>
+            <file>tests/Feature/Api/MonsterSearchTest.php</file>
+            <file>tests/Feature/Api/FeatSearchTest.php</file>
+            <file>tests/Feature/Api/BackgroundSearchTest.php</file>
+            <file>tests/Feature/Api/ItemSearchTest.php</file>
+            <file>tests/Feature/Api/GlobalSearchTest.php</file>
+            <file>tests/Integration/SpellImportToApiTest.php</file>
+        </testsuite>
+
+        <!-- Importers: XML import command tests (approx 90s) -->
+        <testsuite name="Importers">
+            <directory>tests/Feature/Importers</directory>
+            <directory>tests/Feature/Console</directory>
+        </testsuite>
     </testsuites>
+
+
     <source>
         <include>
             <directory>app</directory>
         </include>
     </source>
+
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
+        <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_DATABASE" value="dnd_compendium_test"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

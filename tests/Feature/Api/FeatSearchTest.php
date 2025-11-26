@@ -4,11 +4,15 @@ namespace Tests\Feature\Api;
 
 use App\Models\Feat;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-imported')]
 class FeatSearchTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected function setUp(): void
     {
@@ -30,7 +34,7 @@ class FeatSearchTest extends TestCase
         ]);
 
         $this->artisan('scout:import', ['model' => Feat::class]);
-        sleep(1);
+        $this->waitForMeilisearchIndex('test_feats');
 
         $response = $this->getJson('/api/v1/feats?q=acrobatics');
 

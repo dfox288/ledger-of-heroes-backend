@@ -5,6 +5,8 @@ namespace Tests\Unit\Parsers;
 use App\Services\Parsers\SpellXmlParser;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class SpellXmlParserTest extends TestCase
 {
     public function test_parses_basic_spell_data(): void

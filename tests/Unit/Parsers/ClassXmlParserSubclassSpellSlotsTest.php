@@ -6,6 +6,7 @@ use App\Services\Parsers\ClassXmlParser;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
 class ClassXmlParserSubclassSpellSlotsTest extends TestCase
 {
     private ClassXmlParser $parser;

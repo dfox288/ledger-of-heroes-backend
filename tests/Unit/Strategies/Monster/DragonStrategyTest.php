@@ -5,6 +5,8 @@ namespace Tests\Unit\Strategies\Monster;
 use App\Services\Importers\Strategies\Monster\DragonStrategy;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class DragonStrategyTest extends TestCase
 {
     protected DragonStrategy $strategy;

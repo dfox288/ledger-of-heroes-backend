@@ -4,11 +4,15 @@ namespace Tests\Feature\Api;
 
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-imported')]
 class RaceSearchTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected function setUp(): void
     {
@@ -23,7 +27,7 @@ class RaceSearchTest extends TestCase
         Race::factory()->create(['name' => 'Elf']);
 
         $this->artisan('scout:import', ['model' => Race::class]);
-        sleep(1);
+        $this->waitForMeilisearchIndex('test_races');
 
         $response = $this->getJson('/api/v1/races?q=dwarf');
 

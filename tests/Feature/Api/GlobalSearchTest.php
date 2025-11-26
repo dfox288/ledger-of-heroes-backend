@@ -5,11 +5,15 @@ namespace Tests\Feature\Api;
 use App\Models\Item;
 use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-imported')]
 class GlobalSearchTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected function setUp(): void
     {
@@ -25,7 +29,8 @@ class GlobalSearchTest extends TestCase
 
         $this->artisan('scout:import', ['model' => Spell::class]);
         $this->artisan('scout:import', ['model' => Item::class]);
-        sleep(1);
+        $this->waitForMeilisearchIndex('test_spells');
+        $this->waitForMeilisearchIndex('test_items');
 
         $response = $this->getJson('/api/v1/search?q=fire');
 
@@ -47,7 +52,8 @@ class GlobalSearchTest extends TestCase
 
         $this->artisan('scout:import', ['model' => Spell::class]);
         $this->artisan('scout:import', ['model' => Item::class]);
-        sleep(1);
+        $this->waitForMeilisearchIndex('test_spells');
+        $this->waitForMeilisearchIndex('test_items');
 
         $response = $this->getJson('/api/v1/search?q=fire&types[]=spell');
 
@@ -68,9 +74,9 @@ class GlobalSearchTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_supports_debug_mode(): void
     {
-        Spell::factory()->create(['name' => 'Fireball']);
+        $spell = Spell::factory()->create(['name' => 'Fireball']);
         $this->artisan('scout:import', ['model' => Spell::class]);
-        sleep(1);
+        $this->waitForMeilisearch($spell);
 
         $response = $this->getJson('/api/v1/search?q=fire&debug=1');
 

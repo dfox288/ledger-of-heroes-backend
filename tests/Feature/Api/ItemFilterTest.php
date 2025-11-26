@@ -6,11 +6,15 @@ use App\Models\AbilityScore;
 use App\Models\Item;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class ItemFilterTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected $seed = true;
 
@@ -55,8 +59,9 @@ class ItemFilterTest extends TestCase
         ]);
 
         // Re-index items for Meilisearch
-        Item::latest()->take(3)->get()->searchable();
-        sleep(1); // Wait for Meilisearch to index
+        $items = Item::latest()->take(3)->get();
+        $items->searchable();
+        $this->waitForMeilisearchModels($items->all());
 
         // Test strength_requirement >= 15 (should get plate armor only)
         $response = $this->getJson('/api/v1/items?filter=strength_requirement >= 15');
@@ -84,8 +89,9 @@ class ItemFilterTest extends TestCase
         ]);
 
         // Re-index items for Meilisearch
-        Item::latest()->take(2)->get()->searchable();
-        sleep(1); // Wait for Meilisearch to index
+        $items = Item::latest()->take(2)->get();
+        $items->searchable();
+        $this->waitForMeilisearchModels($items->all());
 
         // Filter items with strength_requirement (items with prerequisites)
         // Meilisearch: use >= 0 to filter for items with numeric strength_requirement
@@ -111,8 +117,9 @@ class ItemFilterTest extends TestCase
         ]);
 
         // Re-index items for Meilisearch
-        Item::latest()->take(2)->get()->searchable();
-        sleep(1); // Wait for Meilisearch to index
+        $items = Item::latest()->take(2)->get();
+        $items->searchable();
+        $this->waitForMeilisearchModels($items->all());
 
         // Filter items with strength_requirement (items with prerequisites)
         // Meilisearch: use >= 0 to filter for items with numeric strength_requirement
@@ -141,8 +148,9 @@ class ItemFilterTest extends TestCase
         ]);
 
         // Re-index items for Meilisearch
-        Item::latest()->take(2)->get()->searchable();
-        sleep(1); // Wait for Meilisearch to index
+        $items = Item::latest()->take(2)->get();
+        $items->searchable();
+        $this->waitForMeilisearchModels($items->all());
 
         // Both should be returned when filtering by strength_requirement >= 15
         $response = $this->getJson('/api/v1/items?filter=strength_requirement >= 15');
@@ -166,8 +174,9 @@ class ItemFilterTest extends TestCase
         }
 
         // Re-index items for Meilisearch
-        Item::latest()->take(25)->get()->searchable();
-        sleep(1); // Wait for Meilisearch to index
+        $items = Item::latest()->take(25)->get();
+        $items->searchable();
+        $this->waitForMeilisearchModels($items->all());
 
         // Filter by strength_requirement with pagination
         $response = $this->getJson('/api/v1/items?filter=strength_requirement >= 15&per_page=10');
@@ -191,8 +200,9 @@ class ItemFilterTest extends TestCase
         ]);
 
         // Re-index items for Meilisearch
-        Item::latest()->take(2)->get()->searchable();
-        sleep(1); // Wait for Meilisearch to index
+        $items = Item::latest()->take(2)->get();
+        $items->searchable();
+        $this->waitForMeilisearchModels($items->all());
 
         // Filter by strength_requirement >= 20 (no items match)
         $response = $this->getJson('/api/v1/items?filter=strength_requirement >= 20');

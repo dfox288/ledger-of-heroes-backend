@@ -9,6 +9,7 @@ use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-db')]
 class RaceSearchableTest extends TestCase
 {
     use RefreshDatabase;

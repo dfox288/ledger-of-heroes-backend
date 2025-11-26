@@ -10,6 +10,7 @@ use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-db')]
 class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
 {
     use RefreshDatabase;

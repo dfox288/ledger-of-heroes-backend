@@ -7,6 +7,8 @@ use PHPUnit\Framework\Attributes\Test;
 use SimpleXMLElement;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class TattooStrategyTest extends TestCase
 {
     private TattooStrategy $strategy;

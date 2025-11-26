@@ -5,6 +5,8 @@ namespace Tests\Unit\Services;
 use App\Services\Search\GlobalSearchService;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class GlobalSearchServiceTest extends TestCase
 {
     #[\PHPUnit\Framework\Attributes\Test]

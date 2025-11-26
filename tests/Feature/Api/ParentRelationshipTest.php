@@ -6,11 +6,15 @@ use App\Models\CharacterClass;
 use App\Models\Race;
 use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class ParentRelationshipTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected $seed = true;
 
@@ -118,7 +122,7 @@ class ParentRelationshipTest extends TestCase
 
         // Index to Meilisearch
         $subrace->searchable();
-        sleep(1); // Give Meilisearch time to index
+        $this->waitForMeilisearch($subrace);
 
         $response = $this->getJson('/api/v1/races?q=high');
 
@@ -264,7 +268,7 @@ class ParentRelationshipTest extends TestCase
 
         // Index to Meilisearch
         $subclass->searchable();
-        sleep(1); // Give Meilisearch time to index
+        $this->waitForMeilisearch($subclass);
 
         $response = $this->getJson('/api/v1/classes?q=evocation');
 

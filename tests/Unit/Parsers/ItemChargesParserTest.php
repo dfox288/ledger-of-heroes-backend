@@ -6,6 +6,7 @@ use App\Services\Parsers\Concerns\ParsesCharges;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
 class ItemChargesParserTest extends TestCase
 {
     use ParsesCharges;

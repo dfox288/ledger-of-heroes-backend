@@ -5,11 +5,15 @@ namespace Tests\Feature\Api;
 use App\Models\Monster;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-imported')]
 class MonsterSearchTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected function setUp(): void
     {
@@ -39,7 +43,7 @@ class MonsterSearchTest extends TestCase
         ]);
 
         $this->artisan('scout:import', ['model' => Monster::class]);
-        sleep(1);
+        $this->waitForMeilisearchModels(Monster::all()->all());
 
         $response = $this->getJson('/api/v1/monsters?q=dragon');
 
@@ -84,7 +88,7 @@ class MonsterSearchTest extends TestCase
         Monster::factory()->create(['name' => 'Goblin', 'type' => 'humanoid']);
 
         $this->artisan('scout:import', ['model' => Monster::class]);
-        sleep(1);
+        $this->waitForMeilisearchModels(Monster::all()->all());
 
         $response = $this->getJson('/api/v1/monsters?q=dragon&type=dragon');
 
@@ -138,7 +142,7 @@ class MonsterSearchTest extends TestCase
         ]);
 
         $this->artisan('scout:import', ['model' => Monster::class]);
-        sleep(1);
+        $this->waitForMeilisearchModels(Monster::all()->all());
 
         $response = $this->getJson('/api/v1/search?q=dragon&types[]=monster');
 
@@ -171,7 +175,7 @@ class MonsterSearchTest extends TestCase
         ]);
 
         $this->artisan('scout:import', ['model' => Monster::class]);
-        sleep(1);
+        $this->waitForMeilisearchModels(Monster::all()->all());
 
         $response = $this->getJson('/api/v1/monsters?q=dragon');
 
@@ -190,7 +194,7 @@ class MonsterSearchTest extends TestCase
         ]);
 
         $this->artisan('scout:import', ['model' => Monster::class]);
-        sleep(1);
+        $this->waitForMeilisearchModels(Monster::all()->all());
 
         // Meilisearch handles typos automatically
         $response = $this->getJson('/api/v1/monsters?q=gobln');
@@ -228,7 +232,7 @@ class MonsterSearchTest extends TestCase
 
         // Re-index
         $this->artisan('scout:import', ['model' => Monster::class]);
-        sleep(1); // Allow Meilisearch to index
+        $this->waitForMeilisearchModels(Monster::all()->all());
 
         // Search with spell filter using Meilisearch
         $results = Monster::search('')->where('spell_slugs', 'fireball')->get();

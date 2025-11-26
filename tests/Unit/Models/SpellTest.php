@@ -5,6 +5,7 @@ namespace Tests\Unit\Models;
 use App\Models\Spell;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-db')]
 class SpellTest extends TestCase
 {
     public function test_spell_belongs_to_spell_school(): void

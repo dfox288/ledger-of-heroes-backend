@@ -5,11 +5,15 @@ namespace Tests\Feature\Api;
 use App\Models\Spell;
 use App\Models\SpellSchool;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[\PHPUnit\Framework\Attributes\Group('search-imported')]
 class SpellSearchTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected function setUp(): void
     {
@@ -37,7 +41,7 @@ class SpellSearchTest extends TestCase
         ]);
 
         $this->artisan('scout:import', ['model' => Spell::class]);
-        sleep(1);
+        $this->waitForMeilisearchModels(Spell::all()->all());
 
         $response = $this->getJson('/api/v1/spells?q=fire');
 
@@ -59,7 +63,7 @@ class SpellSearchTest extends TestCase
         Spell::factory()->create(['name' => 'Fire Storm', 'level' => 7, 'spell_school_id' => $evocation->id]);
 
         $this->artisan('scout:import', ['model' => Spell::class]);
-        sleep(1);
+        $this->waitForMeilisearchModels(Spell::all()->all());
 
         // Phase 1: With search query, now uses Meilisearch with filter syntax
         $response = $this->getJson('/api/v1/spells?q=fire&filter=level = 3');
@@ -92,7 +96,7 @@ class SpellSearchTest extends TestCase
         ]);
 
         $this->artisan('scout:import', ['model' => Spell::class]);
-        sleep(1);
+        $this->waitForMeilisearchModels(Spell::all()->all());
 
         $response = $this->getJson('/api/v1/spells?q='.urlencode("Tasha's"));
 

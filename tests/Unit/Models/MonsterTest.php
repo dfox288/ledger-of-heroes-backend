@@ -11,6 +11,7 @@ use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-db')]
 class MonsterTest extends TestCase
 {
     use RefreshDatabase;

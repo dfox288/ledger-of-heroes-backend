@@ -6,6 +6,8 @@ use App\Services\Importers\Strategies\Race\AbstractRaceStrategy;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class AbstractRaceStrategyTest extends TestCase
 {
     private ConcreteTestStrategy $strategy;

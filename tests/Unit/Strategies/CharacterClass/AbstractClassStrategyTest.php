@@ -6,6 +6,7 @@ use App\Services\Importers\Strategies\CharacterClass\AbstractClassStrategy;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-db')]
 class AbstractClassStrategyTest extends TestCase
 {
     private ConcreteTestStrategy $strategy;

@@ -5,6 +5,8 @@ namespace Tests\Unit\Strategies\Monster;
 use App\Services\Importers\Strategies\Monster\SwarmStrategy;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class SwarmStrategyTest extends TestCase
 {
     protected SwarmStrategy $strategy;

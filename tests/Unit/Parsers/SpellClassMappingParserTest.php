@@ -5,6 +5,8 @@ namespace Tests\Unit\Parsers;
 use App\Services\Parsers\SpellClassMappingParser;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class SpellClassMappingParserTest extends TestCase
 {
     private SpellClassMappingParser $parser;

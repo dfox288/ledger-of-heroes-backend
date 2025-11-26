@@ -11,6 +11,7 @@ use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-db')]
 class EntityPrerequisiteFactoryTest extends TestCase
 {
     use RefreshDatabase;

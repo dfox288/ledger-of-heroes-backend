@@ -6,6 +6,7 @@ use App\Models\Monster;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('importers')]
 class ImportMonstersCommandTest extends TestCase
 {
     use RefreshDatabase;

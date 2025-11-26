@@ -5,6 +5,7 @@ namespace Tests\Unit\Parsers;
 use App\Services\Parsers\Concerns\ParsesItemSavingThrows;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
 class ItemSavingThrowsParserTest extends TestCase
 {
     use ParsesItemSavingThrows;

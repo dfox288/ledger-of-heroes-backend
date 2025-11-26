@@ -286,12 +286,107 @@ GET /api/v1/spells?classes=bard  # This does NOT work
 
 ## 🧪 Testing
 
-**1,489 tests** (7,704 assertions) - ~68s duration
+**1,489 tests** (7,704 assertions) - Full suite ~400s, targeted suites 5-90s
+
+### ⚡ Test Suites - Run Only What You Need
+
+The test suite is split into 6 independent suites. **Always run the smallest relevant suite** to save time.
+
+| Suite | Time | Dependencies | When to Use |
+|-------|------|--------------|-------------|
+| `Unit-Pure` | ~5s | None | Parser changes, exceptions, pure logic |
+| `Unit-DB` | ~20s | MySQL | Factories, models, strategies, caching |
+| `Feature-DB` | ~30s | MySQL + Seeders | API endpoints (no search), requests, models |
+| `Feature-Search-Isolated` | ~60s | MySQL + Meilisearch | Filter tests with factory data |
+| `Feature-Search-Imported` | ~180s | MySQL + Meilisearch + Imports | Search tests needing real XML data |
+| `Importers` | ~90s | MySQL + XML files | XML import command tests |
+
+**Quick Reference:**
 
 ```bash
-docker compose exec php php artisan test                    # All tests
-docker compose exec php php artisan test --filter=Api       # API tests
-docker compose exec php php artisan test --filter=Importer  # Importers
+# 🚀 FAST: Working on parsers, exceptions, or pure logic (~5s)
+docker compose exec php php artisan test --testsuite=Unit-Pure
+
+# 🔧 MEDIUM: Working on models, factories, or services (~20s)
+docker compose exec php php artisan test --testsuite=Unit-DB
+
+# 🌐 API: Working on API endpoints without search (~30s)
+docker compose exec php php artisan test --testsuite=Feature-DB
+
+# 🔍 SEARCH: Working on filter operators with factory data (~60s)
+docker compose exec php php artisan test --testsuite=Feature-Search-Isolated
+
+# 📚 SEARCH+DATA: Tests needing imported XML data (~180s)
+# FIRST: docker compose exec -e SCOUT_PREFIX=test_ php php artisan import:all --env=testing
+docker compose exec php php artisan test --testsuite=Feature-Search-Imported
+
+# 📥 IMPORTERS: XML import command tests (~90s)
+docker compose exec php php artisan test --testsuite=Importers
+
+# 🎯 FULL: All tests (pre-commit validation)
+docker compose exec php php artisan test
+```
+
+### Group-Based Filtering (Alternative)
+
+All tests have PHPUnit Group attributes for fine-grained control:
+
+```bash
+# Run by group
+docker compose exec php php artisan test --group=unit-pure
+docker compose exec php php artisan test --group=unit-db
+docker compose exec php php artisan test --group=feature-db
+docker compose exec php php artisan test --group=feature-search
+docker compose exec php php artisan test --group=search-isolated
+docker compose exec php php artisan test --group=search-imported
+docker compose exec php php artisan test --group=importers
+
+# Exclude groups (fast pre-commit without slow search tests)
+docker compose exec php php artisan test --exclude-group=feature-search,importers
+```
+
+### Which Suite Should Agents Run?
+
+| Working On | Recommended Suite | Command |
+|------------|-------------------|---------|
+| XML Parser | `Unit-Pure` | `--testsuite=Unit-Pure` |
+| Model changes | `Unit-DB` | `--testsuite=Unit-DB` |
+| New API endpoint | `Feature-DB` | `--testsuite=Feature-DB` |
+| Filter operators | `Feature-Search-Isolated` | `--testsuite=Feature-Search-Isolated` |
+| Search behavior | `Feature-Search-Imported` | `--testsuite=Feature-Search-Imported` |
+| Import command | `Importers` | `--testsuite=Importers` |
+| Pre-commit | All (or exclude slow) | `--exclude-group=search-imported` |
+| Release validation | Full suite | `php artisan test` |
+
+### Test Helpers for Meilisearch
+
+Two traits are available for Meilisearch tests:
+
+```php
+use Tests\Concerns\WaitsForMeilisearch;   // Intelligent polling (replaces sleep)
+use Tests\Concerns\ClearsMeilisearchIndex; // Index cleanup for isolation
+
+class MyTest extends TestCase
+{
+    use RefreshDatabase;
+    use WaitsForMeilisearch;
+    use ClearsMeilisearchIndex;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->clearMeilisearchIndex(Spell::class);  // Clean slate
+    }
+
+    public function test_search(): void
+    {
+        $spell = Spell::factory()->create();
+        $spell->searchable();
+        $this->waitForMeilisearch($spell);  // Wait for indexing (50-200ms vs 1000ms)
+
+        // Now test...
+    }
+}
 ```
 
 ### Test Output Logging

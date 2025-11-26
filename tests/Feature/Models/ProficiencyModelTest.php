@@ -8,6 +8,7 @@ use App\Models\Skill;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-db')]
 class ProficiencyModelTest extends TestCase
 {
     use RefreshDatabase;

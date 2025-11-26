@@ -5,6 +5,7 @@ namespace Tests\Unit\Parsers;
 use App\Services\Parsers\ClassXmlParser;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
 class ClassXmlParserSpellsKnownTest extends TestCase
 {
     #[\PHPUnit\Framework\Attributes\Test]

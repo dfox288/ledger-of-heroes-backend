@@ -6,6 +6,8 @@ use App\Services\Importers\Strategies\Monster\ConstructStrategy;
 use App\Services\Parsers\MonsterXmlParser;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+
 class ConstructStrategyTest extends TestCase
 {
     private ConstructStrategy $strategy;

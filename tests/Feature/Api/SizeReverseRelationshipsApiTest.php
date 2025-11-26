@@ -8,6 +8,7 @@ use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-db')]
 class SizeReverseRelationshipsApiTest extends TestCase
 {
     use RefreshDatabase;

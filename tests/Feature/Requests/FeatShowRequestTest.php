@@ -6,6 +6,7 @@ use App\Models\Feat;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-db')]
 class FeatShowRequestTest extends TestCase
 {
     use RefreshDatabase;

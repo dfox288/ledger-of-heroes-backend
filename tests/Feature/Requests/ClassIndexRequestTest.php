@@ -9,6 +9,7 @@ use App\Models\Skill;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-db')]
 class ClassIndexRequestTest extends TestCase
 {
     use RefreshDatabase;

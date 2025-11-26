@@ -13,6 +13,7 @@ use App\Services\Parsers\SpellXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('importers')]
 class SpellImporterTest extends TestCase
 {
     use RefreshDatabase;

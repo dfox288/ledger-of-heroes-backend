@@ -351,9 +351,20 @@ class ClassController extends Controller
      * ## Response Structure
      *
      * The response separates data into three categories for API clarity:
-     * - **Base fields** - Core entity data directly from database
+     * - **Base fields** - Core entity data (with inheritance resolved for subclasses)
      * - **inherited_data** - Pre-resolved parent class data (subclasses only)
      * - **computed** - Aggregated/calculated data for display optimization
+     *
+     * ## Field Inheritance (Automatic)
+     *
+     * D&D 5e subclasses inherit certain properties from their parent class. The API
+     * automatically resolves this inheritance in base fields:
+     *
+     * - **hit_die**: Subclasses show inherited value (Death Domain → 8 from Cleric)
+     * - **spellcasting_ability**: Subclasses show inherited value (Death Domain → Wisdom from Cleric)
+     *
+     * You never see raw database values (hit_die: 0 or spellcasting_ability: null) for subclasses.
+     * The effective values are always returned.
      *
      * ## Computed Object (Display-Ready Data)
      *

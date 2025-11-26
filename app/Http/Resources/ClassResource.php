@@ -10,6 +10,19 @@ class ClassResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
+     * ## Field Inheritance (Subclasses)
+     *
+     * D&D 5e subclasses inherit certain properties from their parent class.
+     * This resource automatically resolves inheritance so the API returns
+     * the effective values:
+     *
+     * - **hit_die**: Subclasses inherit from parent class (Death Domain → 8 from Cleric)
+     * - **spellcasting_ability**: Subclasses inherit from parent class (Death Domain → Wisdom from Cleric)
+     *
+     * The raw database values (0 for hit_die, null for spellcasting_ability_id) are
+     * never exposed. Instead, the model's `effective_hit_die` and `effective_spellcasting_ability`
+     * accessors resolve inheritance automatically.
+     *
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
@@ -19,11 +32,11 @@ class ClassResource extends JsonResource
 
         return [
             // === BASE FIELDS ===
+            // Note: hit_die and spellcasting_ability use effective values that
+            // inherit from parent class for subclasses (see class docblock)
             'id' => $this->id,
             'slug' => $this->slug,
             'name' => $this->name,
-            // Use effective_hit_die to inherit from parent class for subclasses
-            // (matches spellcasting_ability pattern which also uses effective value)
             'hit_die' => $this->effective_hit_die,
             'description' => $this->description,
             'primary_ability' => $this->primary_ability,

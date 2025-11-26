@@ -223,29 +223,38 @@ class ClassImporter extends BaseImporter
             $spellcastingAbilityId = $ability?->id;
         }
 
-        // 3. Create or update subclass
+        // 3. Extract description from first feature (intro feature has the subclass lore)
+        $description = "Subclass of {$parentClass->name}";
+        if (! empty($subclassData['features'])) {
+            $firstFeature = $subclassData['features'][0];
+            if (! empty($firstFeature['description'])) {
+                $description = $firstFeature['description'];
+            }
+        }
+
+        // 4. Create or update subclass
         $subclass = CharacterClass::updateOrCreate(
             ['slug' => $fullSlug],
             [
                 'name' => $subclassData['name'],
                 'parent_class_id' => $parentClass->id,
                 'hit_die' => $parentClass->hit_die, // Inherit from parent
-                'description' => "Subclass of {$parentClass->name}",
+                'description' => $description,
                 'spellcasting_ability_id' => $spellcastingAbilityId,
             ]
         );
 
-        // 4. Clear existing relationships
+        // 5. Clear existing relationships
         $subclass->features()->delete();
         $subclass->counters()->delete();
         $subclass->levelProgression()->delete();
 
-        // 4. Import subclass-specific features
+        // 6. Import subclass-specific features
         if (! empty($subclassData['features'])) {
             $this->importFeatures($subclass, $subclassData['features']);
         }
 
-        // 5. Import subclass-specific counters
+        // 7. Import subclass-specific counters
         if (! empty($subclassData['counters'])) {
             foreach ($subclassData['counters'] as $counterData) {
                 // Convert reset_timing back to single character for database
@@ -271,7 +280,7 @@ class ClassImporter extends BaseImporter
             }
         }
 
-        // 6. Import subclass-specific spell progression (e.g., Arcane Trickster, Eldritch Knight)
+        // 8. Import subclass-specific spell progression (e.g., Arcane Trickster, Eldritch Knight)
         if (! empty($subclassData['spell_progression'])) {
             $this->importSpellProgression($subclass, $subclassData['spell_progression']);
         }
@@ -339,30 +348,51 @@ class ClassImporter extends BaseImporter
         $mergedSubclasses = 0;
         $skippedSubclasses = 0;
         $baseClassUpdated = false;
+        $baseClassRelationshipsImported = false;
 
         // Merge base class attributes if incoming data has valid values
         // This fixes the issue where supplement files (DMG) are imported before PHB
         // due to alphabetical ordering, leaving hit_die=0 and spellcasting_ability=null
-        if ($this->shouldUpdateBaseClassAttributes($existingClass, $supplementData)) {
-            $updates = [];
+        $updates = [];
 
-            if (($supplementData['hit_die'] ?? 0) > 0 && $existingClass->hit_die === 0) {
-                $updates['hit_die'] = $supplementData['hit_die'];
-            }
+        if (($supplementData['hit_die'] ?? 0) > 0 && $existingClass->hit_die === 0) {
+            $updates['hit_die'] = $supplementData['hit_die'];
+        }
 
-            if (! empty($supplementData['spellcasting_ability_id']) && $existingClass->spellcasting_ability_id === null) {
-                $updates['spellcasting_ability_id'] = $supplementData['spellcasting_ability_id'];
-            }
+        if (! empty($supplementData['spellcasting_ability_id']) && $existingClass->spellcasting_ability_id === null) {
+            $updates['spellcasting_ability_id'] = $supplementData['spellcasting_ability_id'];
+        }
 
-            if (! empty($updates)) {
-                $existingClass->update($updates);
-                $baseClassUpdated = true;
+        // Update description if existing is a stub ("No description available")
+        // Build description from traits if not directly provided (same logic as importEntity)
+        $existingDescription = $existingClass->description ?? '';
+        $incomingDescription = $supplementData['description'] ?? null;
+        if (empty($incomingDescription) && ! empty($supplementData['traits'])) {
+            $incomingDescription = $supplementData['traits'][0]['description'] ?? '';
+        }
 
-                Log::channel('import-strategy')->info('Updated base class attributes', [
-                    'class' => $existingClass->name,
-                    'updates' => $updates,
-                ]);
-            }
+        if (
+            ! empty($incomingDescription)
+            && ($existingDescription === 'No description available' || str_starts_with($existingDescription, 'Subclass of '))
+        ) {
+            $updates['description'] = $incomingDescription;
+        }
+
+        if (! empty($updates)) {
+            $existingClass->update($updates);
+            $baseClassUpdated = true;
+
+            Log::channel('import-strategy')->info('Updated base class attributes', [
+                'class' => $existingClass->name,
+                'updates' => array_keys($updates),
+            ]);
+        }
+
+        // Import base class relationships if existing class is missing them
+        // This handles the case where DMG (with only subclass data) is imported
+        // before PHB (with full base class data) due to alphabetical ordering
+        if ($this->existingClassMissingBaseData($existingClass)) {
+            $baseClassRelationshipsImported = $this->importBaseClassRelationships($existingClass, $supplementData);
         }
 
         // Get existing subclass names to prevent duplicates
@@ -395,6 +425,7 @@ class ClassImporter extends BaseImporter
         Log::channel('import-strategy')->info('Merged supplement data', [
             'class' => $existingClass->name,
             'base_class_updated' => $baseClassUpdated,
+            'base_relationships_imported' => $baseClassRelationshipsImported,
             'subclasses_merged' => $mergedSubclasses,
             'subclasses_skipped' => $skippedSubclasses,
         ]);
@@ -403,22 +434,124 @@ class ClassImporter extends BaseImporter
     }
 
     /**
-     * Determine if base class attributes should be updated from incoming data.
+     * Check if existing class is missing base class relationship data.
      *
-     * Returns true if:
-     * - Existing class has hit_die=0 (invalid) and incoming has hit_die>0
-     * - Existing class has null spellcasting_ability and incoming has one
+     * A class is considered "missing base data" if it has no features, proficiencies,
+     * traits, or level progression. This happens when a supplement file (like DMG)
+     * that only contains subclass data is imported before the PHB file with full data.
      */
-    private function shouldUpdateBaseClassAttributes(CharacterClass $existingClass, array $data): bool
+    private function existingClassMissingBaseData(CharacterClass $existingClass): bool
     {
-        // Check if existing class is missing critical data
-        $existingMissingData = $existingClass->hit_die === 0
-            || ($existingClass->spellcasting_ability_id === null && ! empty($data['spellcasting_ability_id']));
+        return $existingClass->features()->count() === 0
+            && $existingClass->proficiencies()->count() === 0
+            && $existingClass->traits()->count() === 0
+            && $existingClass->levelProgression()->count() === 0;
+    }
 
-        // Check if incoming data has valid values
-        $incomingHasValidData = ($data['hit_die'] ?? 0) > 0;
+    /**
+     * Import base class relationship data from supplement data.
+     *
+     * This imports proficiencies, traits, features, spell progression, counters,
+     * and equipment for a base class that was previously created as a stub.
+     *
+     * @return bool True if any relationships were imported
+     */
+    private function importBaseClassRelationships(CharacterClass $existingClass, array $supplementData): bool
+    {
+        $imported = false;
 
-        return $existingMissingData && $incomingHasValidData;
+        // Import traits (class lore/description)
+        if (! empty($supplementData['traits'])) {
+            $createdTraits = $this->importEntityTraits($existingClass, $supplementData['traits']);
+            $imported = true;
+
+            // Import random tables from traits
+            foreach ($createdTraits as $index => $trait) {
+                if (isset($supplementData['traits'][$index]['description'])) {
+                    $this->importRandomTablesFromText($trait, $supplementData['traits'][$index]['description']);
+                }
+            }
+
+            // Extract and import sources from traits
+            $sources = [];
+            foreach ($supplementData['traits'] as $trait) {
+                if (! empty($trait['sources'])) {
+                    $sources = array_merge($sources, $trait['sources']);
+                }
+            }
+
+            // Remove duplicates based on code
+            $uniqueSources = [];
+            foreach ($sources as $source) {
+                $uniqueSources[$source['code']] = $source;
+            }
+            $sources = array_values($uniqueSources);
+
+            if (! empty($sources)) {
+                $this->importEntitySources($existingClass, $sources);
+            }
+
+            Log::channel('import-strategy')->debug('Imported traits for existing class', [
+                'class' => $existingClass->name,
+                'count' => count($createdTraits),
+            ]);
+        }
+
+        // Import proficiencies
+        if (! empty($supplementData['proficiencies'])) {
+            $this->importEntityProficiencies($existingClass, $supplementData['proficiencies']);
+            $imported = true;
+
+            Log::channel('import-strategy')->debug('Imported proficiencies for existing class', [
+                'class' => $existingClass->name,
+                'count' => count($supplementData['proficiencies']),
+            ]);
+        }
+
+        // Import level progression (spell slots)
+        if (! empty($supplementData['spell_progression'])) {
+            $this->importSpellProgression($existingClass, $supplementData['spell_progression']);
+            $imported = true;
+
+            Log::channel('import-strategy')->debug('Imported spell progression for existing class', [
+                'class' => $existingClass->name,
+                'count' => count($supplementData['spell_progression']),
+            ]);
+        }
+
+        // Import features
+        if (! empty($supplementData['features'])) {
+            $this->importFeatures($existingClass, $supplementData['features']);
+            $imported = true;
+
+            Log::channel('import-strategy')->debug('Imported features for existing class', [
+                'class' => $existingClass->name,
+                'count' => count($supplementData['features']),
+            ]);
+        }
+
+        // Import counters (Channel Divinity, etc.)
+        if (! empty($supplementData['counters'])) {
+            $this->importCounters($existingClass, $supplementData['counters']);
+            $imported = true;
+
+            Log::channel('import-strategy')->debug('Imported counters for existing class', [
+                'class' => $existingClass->name,
+                'count' => count($supplementData['counters']),
+            ]);
+        }
+
+        // Import starting equipment
+        if (! empty($supplementData['equipment'])) {
+            $this->importEquipment($existingClass, $supplementData['equipment']);
+            $imported = true;
+
+            Log::channel('import-strategy')->debug('Imported equipment for existing class', [
+                'class' => $existingClass->name,
+            ]);
+        }
+
+        return $imported;
     }
 
     /**

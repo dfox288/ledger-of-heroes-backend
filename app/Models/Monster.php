@@ -48,6 +48,44 @@ class Monster extends BaseModel
         'is_npc' => 'boolean',
     ];
 
+    protected $appends = [
+        'is_legendary',
+        'proficiency_bonus',
+    ];
+
+    /**
+     * Determine if this monster is legendary (has non-lair legendary actions).
+     */
+    public function getIsLegendaryAttribute(): bool
+    {
+        return $this->legendaryActions()
+            ->where('is_lair_action', false)
+            ->exists();
+    }
+
+    /**
+     * Calculate proficiency bonus from challenge rating.
+     *
+     * Per D&D 5e rules (DMG p.274):
+     * CR 0-4: +2, CR 5-8: +3, CR 9-12: +4, CR 13-16: +5,
+     * CR 17-20: +6, CR 21-24: +7, CR 25-28: +8, CR 29+: +9
+     */
+    public function getProficiencyBonusAttribute(): int
+    {
+        $cr = $this->getChallengeRatingNumeric();
+
+        return match (true) {
+            $cr <= 4 => 2,
+            $cr <= 8 => 3,
+            $cr <= 12 => 4,
+            $cr <= 16 => 5,
+            $cr <= 20 => 6,
+            $cr <= 24 => 7,
+            $cr <= 28 => 8,
+            default => 9,
+        };
+    }
+
     public function size(): BelongsTo
     {
         return $this->belongsTo(Size::class);

@@ -16,6 +16,7 @@ class SpellResource extends JsonResource
             'level' => $this->level,
             'school' => new SpellSchoolResource($this->whenLoaded('spellSchool')),
             'casting_time' => $this->casting_time,
+            'casting_time_type' => $this->casting_time_type,
             'range' => $this->range,
             'components' => $this->components,
             'material_components' => $this->material_components,

@@ -36,6 +36,34 @@ class Spell extends BaseModel
         'is_ritual' => 'boolean',
     ];
 
+    protected $appends = [
+        'casting_time_type',
+    ];
+
+    /**
+     * Parse casting time into a normalized type.
+     *
+     * Returns: action, bonus_action, reaction, minute, hour, special, unknown
+     */
+    public function getCastingTimeTypeAttribute(): string
+    {
+        $castingTime = strtolower($this->casting_time ?? '');
+
+        if (empty($castingTime)) {
+            return 'unknown';
+        }
+
+        return match (true) {
+            str_contains($castingTime, 'bonus action') => 'bonus_action',
+            str_contains($castingTime, 'reaction') => 'reaction',
+            str_contains($castingTime, 'action') => 'action',
+            str_contains($castingTime, 'minute') => 'minute',
+            str_contains($castingTime, 'hour') => 'hour',
+            str_contains($castingTime, 'special') => 'special',
+            default => 'unknown',
+        };
+    }
+
     // Relationships
     public function spellSchool(): BelongsTo
     {

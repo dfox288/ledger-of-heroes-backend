@@ -29,6 +29,18 @@ class Race extends BaseModel
         'parent_race_id' => 'integer',
     ];
 
+    protected $appends = [
+        'is_subrace',
+    ];
+
+    /**
+     * Determine if this race is a subrace (has a parent race).
+     */
+    public function getIsSubraceAttribute(): bool
+    {
+        return $this->parent_race_id !== null;
+    }
+
     // Relationships
     public function size(): BelongsTo
     {

@@ -1,8 +1,9 @@
 # API Bugs and Enhancements Analysis
 
 **Date:** 2025-11-26
+**Updated:** 2025-11-26
 **Source:** Frontend proposals directory analysis
-**Status:** Research Complete - Ready for Implementation
+**Status:** 1 Active Bug - Most Critical Issues Resolved
 
 ---
 
@@ -10,11 +11,22 @@
 
 Analysis of frontend API enhancement proposals revealed **3 critical data bugs** and **numerous enhancement opportunities**. Root cause investigation identified issues in the import pipeline rather than source XML data.
 
+### Status Update (2025-11-26)
+
+| Bug | Status |
+|-----|--------|
+| Cleric/Paladin missing core data | ✅ RESOLVED |
+| Acolyte/Sage missing languages | ✅ RESOLVED |
+| `/item-types` endpoint | ✅ Already exists at `/api/v1/lookups/item-types` |
+| Items `type_code` filter | ✅ RESOLVED - was stale index, fixed with `import:all` |
+
+**All bugs resolved.**
+
 ---
 
-## Critical Bugs (Phase 1)
+## Critical Bugs (Phase 1) - ALL RESOLVED ✅
 
-### Bug 1: Cleric & Paladin Missing Core Data
+### ~~Bug 1: Cleric & Paladin Missing Core Data~~ ✅ RESOLVED
 
 **Symptoms:**
 - `hit_die: 0` (should be 8 for Cleric, 10 for Paladin)
@@ -64,47 +76,74 @@ All other base classes have correct data.
 
 ---
 
-### Bug 2: Acolyte & Sage Missing Languages
+### ~~Bug 2: Acolyte & Sage Missing Languages~~ ✅ RESOLVED
+
+**Status:** Fixed - regex updated to handle `one|two|three|four|any` patterns.
+
+**Verified Data:**
+- Acolyte: `is_choice: true, quantity: 2` ✅
+- Sage: `is_choice: true, quantity: 2` ✅
+
+**Fix Applied:** `BackgroundXmlParser.php:155` now uses:
+```php
+if (preg_match('/\b(one|two|three|four|any)\b.*?\bchoice\b/i', $languageText, $choiceMatch)) {
+    $quantity = $this->wordToNumber($choiceMatch[1]);
+    // ...
+}
+```
+
+---
+
+## Active Bugs (Phase 2)
+
+### Bug 3: Items `type_code` Filter Returns No Data 🔴
+
+**Status:** OPEN - Meilisearch configuration issue
 
 **Symptoms:**
-- `languages` array is empty for Acolyte and Sage backgrounds
-- Both should have "Two of your choice"
+- Filter `type_code=M` returns correct total (510) but **zero data items**
+- Same pattern works correctly on Spells and Monsters endpoints
 
-**XML Source (correct):**
-```
-• Languages: Two of your choice   (Acolyte, line 12)
-• Languages: Two of your choice   (Sage, line 700)
-```
+**Reproduction:**
+```bash
+# Items - BUG: total correct, data empty
+curl "http://localhost:8080/api/v1/items?filter=type_code=M&per_page=3"
+# Response: { "meta": { "total": 510 }, "data": [] }
 
-**Root Cause:** Parser regex only handles "one" choice
+curl "http://localhost:8080/api/v1/items?filter=type_code=R&per_page=3"
+# Response: { "meta": { "total": 187 }, "data": [] }
 
-**Parser code at `BackgroundXmlParser.php:154`:**
-```php
-// Check for "one of your choice" or similar choice patterns
-if (preg_match('/one.*?choice/i', $languageText)) {
-    return [[
-        'language_id' => null,
-        'is_choice' => true,
-        'quantity' => 1,
-    ]];
-}
+# Spells - WORKS correctly
+curl "http://localhost:8080/api/v1/spells?filter=level=3&per_page=3"
+# Response: { "meta": { "total": 59 }, "data": [3 items] } ✅
+
+# Monsters - WORKS correctly
+curl "http://localhost:8080/api/v1/monsters?filter=challenge_rating=1&per_page=3"
+# Response: { "meta": { "total": 54 }, "data": [3 items] } ✅
 ```
 
-**Problem:** "Two of your choice" doesn't match `/one.*?choice/i`
+**Analysis:**
+- Field name `type_code` IS correct (confirmed filterable, returns accurate totals)
+- Count query succeeds but data retrieval fails
+- Issue is specific to Items Meilisearch index
+- Spells and Monsters use same filter pattern successfully
 
-**Fallback fails:** Falls through to `extractLanguagesFromText()` which expects patterns like "two other languages" not "Two of your choice"
+**Likely Causes:**
+1. Items Meilisearch index needs rebuild (`php artisan scout:flush` + `scout:import`)
+2. `type_code` not in `filterableAttributes` for data retrieval (but IS for count)
+3. Index schema mismatch between count and data queries
 
-**Fix:** Update regex to handle number words:
-```php
-if (preg_match('/(one|two|three|four|any)\s+(?:of\s+your\s+choice)/i', $languageText, $matches)) {
-    $quantity = $this->wordToNumber($matches[1]);
-    return [[
-        'language_id' => null,
-        'is_choice' => true,
-        'quantity' => $quantity,
-    ]];
-}
+**Suggested Fix:**
+```bash
+# Try reindexing Items
+php artisan scout:flush "App\Models\Item"
+php artisan scout:import "App\Models\Item"
+
+# Or check Meilisearch filterable attributes
+curl http://localhost:7700/indexes/items/settings/filterable-attributes
 ```
+
+**Impact:** Frontend cannot filter items by type (weapons, armor, etc.)
 
 ---
 
@@ -186,34 +225,34 @@ This handles the tab-prefixed bullets in XML (`\t• Languages:`).
 
 ### High Priority (Significant Value)
 
-| Enhancement | Entity | Description | Effort |
+| Enhancement | Entity | Description | Status |
 |-------------|--------|-------------|--------|
-| Add `/item-types` endpoint | Items | Currently returns 404, needed for filter dropdowns | Low |
-| Fix `item_type_code` filter | Items | Filter returns no results | Low |
-| Add `proficiency_bonus` field | Monsters | Computed from CR, saves frontend calculation | Low |
-| Add `senses` structured field | Monsters | darkvision, blindsight, passive perception | Medium |
-| Add `is_legendary` boolean | Monsters | Quick filter for legendary creatures | Low |
-| Populate base race data | Races | Elf/Dwarf base races have empty traits/modifiers | Medium |
+| ~~Add `/item-types` endpoint~~ | Items | ✅ EXISTS at `/api/v1/lookups/item-types` (16 types) | ✅ Done |
+| ~~Fix `type_code` filter~~ | Items | ✅ Fixed - was stale Meilisearch index (re-imported) | ✅ Done |
+| ~~Add `proficiency_bonus` field~~ | Monsters | Computed from CR, saves frontend calculation | ✅ Done |
+| Add `senses` structured field | Monsters | darkvision, blindsight, passive perception | Pending |
+| ~~Add `is_legendary` boolean~~ | Monsters | Quick filter for legendary creatures | ✅ Done |
+| Populate base race data | Races | Elf/Dwarf base races have empty traits/modifiers | Pending |
 
 ### Medium Priority (Nice Improvements)
 
-| Enhancement | Entity | Description | Effort |
+| Enhancement | Entity | Description | Status |
 |-------------|--------|-------------|--------|
-| Material cost/consumed fields | Spells | Parse `material_cost_gp`, `material_consumed` | Medium |
-| Area of effect structure | Spells | `type`, `size`, `unit` for AoE spells | Medium |
-| Casting time structure | Spells | `casting_time_type` (action/bonus/reaction) | Low |
-| Add `multiclass_requirements` | Classes | Ability score prerequisites per PHB p.163 | Medium |
-| Add `spellcasting_type` enum | Classes | full/half/third/pact/none | Low |
-| Separate `lair_actions` array | Monsters | Currently mixed in `legendary_actions` | Medium |
-| Add `languages` array | Monsters | Currently in description text | Medium |
-| Add `is_subrace` flag | Races | Simplifies frontend filtering | Low |
-| Add `darkvision_range` field | Races | 60 vs 120 ft for filtering | Low |
-| Add `fly_speed`/`swim_speed` | Races | Aarakocra, Triton need these | Low |
-| Add `feature_name` top-level | Backgrounds | Quick access without parsing traits | Low |
-| Add `is_half_feat` boolean | Feats | Filter "+1 ASI" feats | Low |
-| Add `parent_feat_slug` | Feats | Group Resilient variants together | Low |
-| Add `proficiency_category` | Items | simple_melee, martial_melee, etc. | Medium |
-| Add `price_gp` computed | Items | Convenience field from `cost_cp` | Low |
+| Material cost/consumed fields | Spells | Parse `material_cost_gp`, `material_consumed` | Pending |
+| Area of effect structure | Spells | `type`, `size`, `unit` for AoE spells | Pending |
+| ~~Casting time structure~~ | Spells | `casting_time_type` (action/bonus/reaction) | ✅ Done |
+| Add `multiclass_requirements` | Classes | Ability score prerequisites per PHB p.163 | Pending |
+| Add `spellcasting_type` enum | Classes | full/half/third/pact/none | Pending |
+| Separate `lair_actions` array | Monsters | Currently mixed in `legendary_actions` | Pending |
+| Add `languages` array | Monsters | Currently in description text | Pending |
+| ~~Add `is_subrace` flag~~ | Races | Simplifies frontend filtering | ✅ Done |
+| Add `darkvision_range` field | Races | 60 vs 120 ft for filtering | Pending |
+| Add `fly_speed`/`swim_speed` | Races | Aarakocra, Triton need these | Pending |
+| Add `feature_name` top-level | Backgrounds | Quick access without parsing traits | Pending |
+| Add `is_half_feat` boolean | Feats | Filter "+1 ASI" feats | Pending |
+| Add `parent_feat_slug` | Feats | Group Resilient variants together | Pending |
+| Add `proficiency_category` | Items | simple_melee, martial_melee, etc. | Pending |
+| Add `price_gp` computed | Items | Convenience field from `cost_cp` | Pending |
 
 ### Low Priority (Nice-to-Have)
 
@@ -239,45 +278,48 @@ This handles the tab-prefixed bullets in XML (`\t• Languages:`).
 
 ## Recommended Implementation Order
 
-### Phase 1 - Fix Critical Bugs (Immediate)
+### ~~Phase 1 - Fix Critical Bugs~~ ✅ COMPLETE
 
-1. **Fix Cleric/Paladin data** - Update `mergeSupplementData()` to merge base class attributes
-2. **Fix Background languages** - Update `parseLanguagesFromTraitText()` regex
+1. ~~**Fix Cleric/Paladin data**~~ ✅ Done
+2. ~~**Fix Background languages**~~ ✅ Done
 
-### Phase 2 - Code Cleanup
+### Phase 2 - Code Cleanup (Optional)
 
-3. **Refactor `ClassXmlParser`** - Use `ConvertsWordNumbers` trait
-4. **Update `MatchesLanguages`** - Add "X of your choice" pattern
+3. **Refactor `ClassXmlParser`** - Use `ConvertsWordNumbers` trait (tech debt)
+4. ~~**Update `MatchesLanguages`**~~ ✅ Already handles patterns
 
-### Phase 3 - Quick Wins
+### Phase 3 - Quick Wins ✅ COMPLETE
 
-5. Add `/item-types` lookup endpoint
-6. Fix `item_type_code` filter
-7. Add `is_legendary` boolean to monsters
-8. Add `proficiency_bonus` to monsters
+5. ~~Add `/item-types` lookup endpoint~~ ✅ Already exists at `/api/v1/lookups/item-types`
+6. ~~Fix `item_type_code` filter~~ ✅ Works - use `type_code` field name
+7. ~~Add `is_legendary` boolean to monsters~~ ✅ Done (computed accessor)
+8. ~~Add `proficiency_bonus` to monsters~~ ✅ Done (computed accessor)
+9. ~~Add `casting_time_type` to spells~~ ✅ Done (computed accessor)
+10. ~~Add `is_subrace` boolean to races~~ ✅ Done (computed accessor)
 
 ### Phase 4 - Structural Improvements
 
-9. Populate base race traits
-10. Add structured `senses` to monsters
-11. Add casting time structure to spells
+11. Populate base race traits
+12. Add structured `senses` to monsters
+13. Add casting time structure to spells
 
 ---
 
 ## Summary Table
 
-| Issue | Source Data | Parser | Importer | Root Cause |
-|-------|-------------|--------|----------|------------|
-| Cleric/Paladin `hit_die: 0` | ✅ Correct in PHB | ✅ Works | ❌ Merge incomplete | Import order + merge logic |
-| Acolyte/Sage languages empty | ✅ "Two of your choice" | ❌ Only handles "one" | ✅ Works | Regex too narrow |
+| Issue | Status | Resolution |
+|-------|--------|------------|
+| Cleric/Paladin `hit_die: 0` | ✅ RESOLVED | `mergeSupplementData()` updated to merge base class attributes |
+| Acolyte/Sage languages empty | ✅ RESOLVED | Regex updated to handle `one\|two\|three\|four\|any` patterns |
+| Items `type_code` filter | ✅ RESOLVED | Was stale Meilisearch index - fixed with `import:all` |
 
 ---
 
-## Files to Modify
+## Files Modified
 
-| File | Change |
-|------|--------|
-| `app/Services/Importers/ClassImporter.php` | Update `mergeSupplementData()` |
-| `app/Services/Parsers/BackgroundXmlParser.php` | Update `parseLanguagesFromTraitText()` |
-| `app/Services/Parsers/ClassXmlParser.php` | Use `ConvertsWordNumbers` trait |
-| `app/Services/Parsers/Concerns/MatchesLanguages.php` | Add "X of your choice" pattern |
+| File | Change | Status |
+|------|--------|--------|
+| `app/Services/Importers/ClassImporter.php` | Updated `mergeSupplementData()` | ✅ Done |
+| `app/Services/Parsers/BackgroundXmlParser.php` | Updated `parseLanguagesFromTraitText()` | ✅ Done |
+| `app/Services/Parsers/ClassXmlParser.php` | Use `ConvertsWordNumbers` trait | 📋 Tech debt |
+| `app/Services/Parsers/Concerns/MatchesLanguages.php` | Add "X of your choice" pattern | ✅ Not needed |

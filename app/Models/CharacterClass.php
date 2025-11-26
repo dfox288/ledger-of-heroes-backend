@@ -32,6 +32,36 @@ class CharacterClass extends BaseModel
         'spellcasting_ability_id' => 'integer',
     ];
 
+    protected $appends = [
+        'effective_hit_die',
+    ];
+
+    /**
+     * Get the effective hit die, inheriting from parent class if needed.
+     *
+     * D&D Context: Subclasses inherit hit dice from their base class.
+     * A Death Domain Cleric uses d8 (from Cleric), not d0.
+     */
+    public function getEffectiveHitDieAttribute(): int
+    {
+        // If this class has a valid hit_die, use it
+        if ($this->hit_die > 0) {
+            return $this->hit_die;
+        }
+
+        // Subclass with hit_die = 0: inherit from parent
+        if ($this->parent_class_id !== null) {
+            // Use the relationship if loaded, otherwise query
+            $parent = $this->relationLoaded('parentClass')
+                ? $this->parentClass
+                : $this->parentClass()->first();
+
+            return $parent?->hit_die ?? 0;
+        }
+
+        return 0;
+    }
+
     // Relationships
     public function spellcastingAbility(): BelongsTo
     {
@@ -111,6 +141,103 @@ class CharacterClass extends BaseModel
     }
 
     /**
+     * Get pre-computed hit points data for display.
+     *
+     * Calculates D&D 5e hit point formulas:
+     * - First level: max hit die + CON modifier
+     * - Higher levels: roll or average + CON modifier
+     *
+     * @return array{
+     *   hit_die: string,
+     *   hit_die_numeric: int,
+     *   first_level: array{value: int, description: string},
+     *   higher_levels: array{roll: string, average: int, description: string}
+     * }|null
+     */
+    public function getHitPointsAttribute(): ?array
+    {
+        $hitDie = $this->effective_hit_die;
+
+        if (! $hitDie) {
+            return null;
+        }
+
+        $average = (int) floor($hitDie / 2) + 1;
+        // For subclasses, use parent class name for the description
+        $className = $this->parent_class_id !== null && $this->parentClass
+            ? strtolower($this->parentClass->name)
+            : strtolower($this->name);
+
+        return [
+            'hit_die' => "d{$hitDie}",
+            'hit_die_numeric' => $hitDie,
+            'first_level' => [
+                'value' => $hitDie,
+                'description' => "{$hitDie} + your Constitution modifier",
+            ],
+            'higher_levels' => [
+                'roll' => "1d{$hitDie}",
+                'average' => $average,
+                'description' => "1d{$hitDie} (or {$average}) + your Constitution modifier per {$className} level after 1st",
+            ],
+        ];
+    }
+
+    /**
+     * Get spell slot summary for display optimization.
+     *
+     * Tells frontend which spell slot columns to render without scanning all rows.
+     * Returns null if levelProgression relationship is not loaded.
+     *
+     * @return array{
+     *   has_spell_slots: bool,
+     *   max_spell_level: int|null,
+     *   available_levels: array<int>,
+     *   has_cantrips: bool,
+     *   caster_type: string|null
+     * }|null
+     */
+    public function getSpellSlotSummaryAttribute(): ?array
+    {
+        // Must have level progression loaded
+        if (! $this->relationLoaded('levelProgression')) {
+            return null;
+        }
+
+        $progression = $this->levelProgression;
+        if ($progression->isEmpty()) {
+            return null;
+        }
+
+        // Determine max spell level with slots
+        $maxLevel = 0;
+        $ordinals = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
+        for ($i = 1; $i <= 9; $i++) {
+            $column = "spell_slots_{$ordinals[$i - 1]}";
+            if ($progression->max($column) > 0) {
+                $maxLevel = $i;
+            }
+        }
+
+        // Determine caster type based on max spell level
+        $casterType = match ($maxLevel) {
+            9 => 'full',      // Wizard, Cleric, etc.
+            5 => 'half',      // Paladin, Ranger
+            4 => 'third',     // Eldritch Knight, Arcane Trickster
+            0 => null,        // Non-caster
+            default => 'other',
+        };
+
+        return [
+            'has_spell_slots' => $maxLevel > 0,
+            'max_spell_level' => $maxLevel > 0 ? $maxLevel : null,
+            'available_levels' => $maxLevel > 0 ? range(1, $maxLevel) : [],
+            'has_cantrips' => ($progression->max('cantrips_known') ?? 0) > 0,
+            'caster_type' => $casterType,
+        ];
+    }
+
+    /**
      * Get all features including inherited base class features.
      *
      * For subclasses, merges parent class features with subclass-specific features.
@@ -146,6 +273,25 @@ class CharacterClass extends BaseModel
             ['level', 'asc'],
             ['sort_order', 'asc'],
         ])->values();
+    }
+
+    /**
+     * Calculate proficiency bonus for a given level.
+     *
+     * D&D 5e formula: floor((level - 1) / 4) + 2
+     * Level 1-4: +2, Level 5-8: +3, Level 9-12: +4, Level 13-16: +5, Level 17-20: +6
+     */
+    public static function proficiencyBonusForLevel(int $level): int
+    {
+        return (int) floor(($level - 1) / 4) + 2;
+    }
+
+    /**
+     * Get formatted proficiency bonus string with plus sign.
+     */
+    public static function formattedProficiencyBonus(int $level): string
+    {
+        return '+'.self::proficiencyBonusForLevel($level);
     }
 
     // Scout Searchable Methods

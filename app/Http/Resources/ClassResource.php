@@ -23,6 +23,7 @@ class ClassResource extends JsonResource
             'slug' => $this->slug,
             'name' => $this->name,
             'hit_die' => $this->hit_die,
+            'effective_hit_die' => $this->effective_hit_die,
             'description' => $this->description,
             'primary_ability' => $this->primary_ability,
             'spellcasting_ability' => $this->when($this->spellcasting_ability_id, function () {

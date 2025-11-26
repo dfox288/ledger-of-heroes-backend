@@ -36,6 +36,8 @@ class MonsterResource extends JsonResource
             'charisma' => $this->charisma,
             'challenge_rating' => $this->challenge_rating,
             'experience_points' => $this->experience_points,
+            'proficiency_bonus' => $this->proficiency_bonus,
+            'is_legendary' => $this->is_legendary,
             'passive_perception' => $this->passive_perception,
             'description' => $this->description,
             'traits' => MonsterTraitResource::collection($this->whenLoaded('traits')),

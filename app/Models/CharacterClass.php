@@ -78,6 +78,17 @@ class CharacterClass extends BaseModel
         return $this->belongsToMany(Spell::class, 'class_spells', 'class_id', 'spell_id');
     }
 
+    /**
+     * Get optional features available to this class.
+     * Uses Laravel's alphabetical pivot table naming: class_optional_feature
+     */
+    public function optionalFeatures(): BelongsToMany
+    {
+        return $this->belongsToMany(OptionalFeature::class, 'class_optional_feature', 'class_id', 'optional_feature_id')
+            ->withPivot('subclass_name')
+            ->withTimestamps();
+    }
+
     public function sources(): MorphMany
     {
         return $this->morphMany(EntitySource::class, 'reference', 'reference_type', 'reference_id');
@@ -141,7 +152,7 @@ class CharacterClass extends BaseModel
     public function toSearchableArray(): array
     {
         // Load relationships if not already loaded
-        $this->loadMissing(['tags', 'proficiencies.skill', 'proficiencies.proficiencyType', 'spells']);
+        $this->loadMissing(['tags', 'proficiencies.skill', 'proficiencies.proficiencyType', 'spells', 'optionalFeatures']);
 
         // Calculate max spell level
         $maxSpellLevel = $this->spells->max('level');
@@ -187,6 +198,16 @@ class CharacterClass extends BaseModel
                 ->where('proficiency_type', 'skill')
                 ->pluck('proficiency_name')
                 ->values()->all(),
+            // Optional features (invocations, maneuvers, etc.)
+            'has_optional_features' => $this->optionalFeatures->isNotEmpty(),
+            'optional_feature_count' => $this->optionalFeatures->count(),
+            'optional_feature_types' => $this->optionalFeatures
+                ->pluck('feature_type')
+                ->map(fn ($type) => $type?->value)
+                ->filter()
+                ->unique()
+                ->values()
+                ->all(),
         ];
     }
 
@@ -200,6 +221,7 @@ class CharacterClass extends BaseModel
             'proficiencies.skill',
             'proficiencies.proficiencyType',
             'spells',
+            'optionalFeatures',
         ];
     }
 
@@ -245,6 +267,10 @@ class CharacterClass extends BaseModel
                 'weapon_proficiencies',
                 'tool_proficiencies',
                 'skill_proficiencies',
+                // Optional features
+                'has_optional_features',
+                'optional_feature_count',
+                'optional_feature_types',
             ],
             'sortableAttributes' => [
                 'name',

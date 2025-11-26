@@ -7,6 +7,7 @@ use App\Models\CharacterClass;
 use App\Models\Feat;
 use App\Models\Item;
 use App\Models\Monster;
+use App\Models\OptionalFeature;
 use App\Models\Race;
 use App\Models\Spell;
 use MeiliSearch\Client;
@@ -93,5 +94,10 @@ class MeilisearchIndexConfigurator
     public function configureMonstersIndex(): void
     {
         $this->configureIndexFromModel(Monster::class);
+    }
+
+    public function configureOptionalFeaturesIndex(): void
+    {
+        $this->configureIndexFromModel(OptionalFeature::class);
     }
 }

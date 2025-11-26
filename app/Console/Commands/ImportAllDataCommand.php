@@ -15,7 +15,7 @@ class ImportAllDataCommand extends Command
     protected $signature = 'import:all
                             {--skip-migrate : Skip database migration and seeding}
                             {--skip-search : Skip search index configuration}
-                            {--only= : Only import specific entity types (comma-separated: sources,classes,spells,races,items,backgrounds,feats,monsters)}';
+                            {--only= : Only import specific entity types (comma-separated: sources,classes,spells,races,items,backgrounds,feats,monsters,optionalfeatures)}';
 
     /**
      * The console command description.
@@ -67,56 +67,62 @@ class ImportAllDataCommand extends Command
 
         // Step 2: Import sources FIRST (required by ALL other entities)
         if (! $onlyTypes || in_array('sources', $onlyTypes)) {
-            $this->step('Importing sources (STEP 1/9)');
+            $this->step('Importing sources (STEP 1/10)');
             $this->importEntityType('source', 'import:sources');
         }
 
         // Step 3: Import items (required by classes/backgrounds for equipment)
         if (! $onlyTypes || in_array('items', $onlyTypes)) {
-            $this->step('Importing items (STEP 2/9)');
+            $this->step('Importing items (STEP 2/10)');
             $this->importEntityType('items', 'import:items');
         }
 
         // Step 4: Import classes (required by spells) - using batch merge strategy
         if (! $onlyTypes || in_array('classes', $onlyTypes)) {
-            $this->step('Importing classes (STEP 3/9) - with multi-file merge');
+            $this->step('Importing classes (STEP 3/10) - with multi-file merge');
             $this->importClassesBatch();
         }
 
         // Step 5: Import main spell files
         if (! $onlyTypes || in_array('spells', $onlyTypes)) {
-            $this->step('Importing spells (STEP 4/9)');
+            $this->step('Importing spells (STEP 4/10)');
             $this->importEntityType('spells', 'import:spells', exclude: ['*+*']);
         }
 
         // Step 6: Import additive spell class mappings
         if (! $onlyTypes || in_array('spells', $onlyTypes)) {
-            $this->step('Importing spell class mappings (STEP 5/9)');
+            $this->step('Importing spell class mappings (STEP 5/10)');
             $this->importAdditiveSpellFiles();
         }
 
         // Step 7: Import races
         if (! $onlyTypes || in_array('races', $onlyTypes)) {
-            $this->step('Importing races (STEP 6/9)');
+            $this->step('Importing races (STEP 6/10)');
             $this->importEntityType('races', 'import:races');
         }
 
         // Step 8: Import backgrounds
         if (! $onlyTypes || in_array('backgrounds', $onlyTypes)) {
-            $this->step('Importing backgrounds (STEP 7/9)');
+            $this->step('Importing backgrounds (STEP 7/10)');
             $this->importEntityType('backgrounds', 'import:backgrounds');
         }
 
         // Step 9: Import feats
         if (! $onlyTypes || in_array('feats', $onlyTypes)) {
-            $this->step('Importing feats (STEP 8/9)');
+            $this->step('Importing feats (STEP 8/10)');
             $this->importEntityType('feats', 'import:feats');
         }
 
         // Step 10: Import monsters
         if (! $onlyTypes || in_array('monsters', $onlyTypes)) {
-            $this->step('Importing monsters (STEP 9/9)');
+            $this->step('Importing monsters (STEP 9/10)');
             $this->importEntityType('bestiary', 'import:monsters');
+        }
+
+        // Step 11: Import optional features (invocations, maneuvers, metamagic, etc.)
+        if (! $onlyTypes || in_array('optionalfeatures', $onlyTypes)) {
+            $this->step('Importing optional features (STEP 10/10)');
+            $this->importEntityType('optionalfeatures', 'import:optional-features');
         }
 
         // Step 10: Configure and populate search indexes
@@ -132,6 +138,7 @@ class ImportAllDataCommand extends Command
                 'CharacterClass' => 'App\\Models\\CharacterClass',
                 'Background' => 'App\\Models\\Background',
                 'Feat' => 'App\\Models\\Feat',
+                'OptionalFeature' => 'App\\Models\\OptionalFeature',
             ];
 
             // Only delete indexes when doing a fresh migration (not in production updates)

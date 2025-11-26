@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ASI Data Verification Script
  *
@@ -8,20 +9,20 @@
  * in the entity_modifiers table and is correctly structured for character builder.
  */
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__.'/../vendor/autoload.php';
 
-$app = require_once __DIR__ . '/../bootstrap/app.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
 $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
 use App\Models\CharacterClass;
 use Illuminate\Support\Facades\DB;
 
 echo "\n=== ASI DATA VERIFICATION REPORT ===\n";
-echo "Date: " . date('Y-m-d H:i:s') . "\n\n";
+echo 'Date: '.date('Y-m-d H:i:s')."\n\n";
 
 // 1. Verify entity_modifiers table exists
 echo "1. CHECKING TABLE STRUCTURE\n";
-echo str_repeat("-", 60) . "\n";
+echo str_repeat('-', 60)."\n";
 
 try {
     $tableExists = DB::select("SHOW TABLES LIKE 'entity_modifiers'");
@@ -32,23 +33,23 @@ try {
     echo "✅ Table 'entity_modifiers' exists\n";
 
     // Check for level column
-    $columns = DB::select("SHOW COLUMNS FROM entity_modifiers");
+    $columns = DB::select('SHOW COLUMNS FROM entity_modifiers');
     $hasLevelColumn = collect($columns)->pluck('Field')->contains('level');
 
-    if (!$hasLevelColumn) {
+    if (! $hasLevelColumn) {
         echo "❌ CRITICAL: 'level' column missing from entity_modifiers table!\n";
         exit(1);
     }
     echo "✅ Column 'level' exists\n\n";
 
 } catch (\Exception $e) {
-    echo "❌ ERROR: " . $e->getMessage() . "\n";
+    echo '❌ ERROR: '.$e->getMessage()."\n";
     exit(1);
 }
 
 // 2. Check ASI data for base classes
 echo "2. BASE CLASS ASI LEVELS\n";
-echo str_repeat("-", 60) . "\n";
+echo str_repeat('-', 60)."\n";
 
 $baseClasses = CharacterClass::whereNull('parent_class_id')
     ->orderBy('name')
@@ -91,7 +92,7 @@ foreach ($asiReport as $report) {
     }
 }
 
-if (!$hasData) {
+if (! $hasData) {
     echo "\n❌ CRITICAL: No ASI data found for any class!\n";
     echo "   This data must be imported before building character system.\n\n";
 } else {
@@ -100,11 +101,11 @@ if (!$hasData) {
 
 // 3. Verify Fighter specifically (should have 7 ASIs)
 echo "3. FIGHTER ASI VERIFICATION (Expected: 7 ASIs)\n";
-echo str_repeat("-", 60) . "\n";
+echo str_repeat('-', 60)."\n";
 
 $fighter = CharacterClass::where('slug', 'fighter')->first();
 
-if (!$fighter) {
+if (! $fighter) {
     echo "❌ ERROR: Fighter class not found in database\n\n";
 } else {
     $fighterAsis = $fighter->modifiers()
@@ -135,22 +136,22 @@ if (!$fighter) {
             echo "\n✅ Fighter has correct 7 ASI levels: [4, 6, 8, 12, 14, 16, 19]\n\n";
         } else {
             echo "\n⚠️  Fighter ASI levels don't match expected:\n";
-            echo "   Expected: [" . implode(', ', $expectedLevels) . "]\n";
-            echo "   Actual:   [" . implode(', ', $actualLevels) . "]\n\n";
+            echo '   Expected: ['.implode(', ', $expectedLevels)."]\n";
+            echo '   Actual:   ['.implode(', ', $actualLevels)."]\n\n";
         }
     }
 }
 
 // 4. Check modifier structure for ASIs
 echo "4. ASI MODIFIER STRUCTURE VALIDATION\n";
-echo str_repeat("-", 60) . "\n";
+echo str_repeat('-', 60)."\n";
 
 $sampleAsi = DB::table('entity_modifiers')
     ->where('modifier_category', 'ability_score')
     ->whereNotNull('level')
     ->first();
 
-if (!$sampleAsi) {
+if (! $sampleAsi) {
     echo "❌ No ASI modifiers found in database\n\n";
 } else {
     echo "Sample ASI modifier structure:\n";
@@ -159,8 +160,8 @@ if (!$sampleAsi) {
     echo "  modifier_category: {$sampleAsi->modifier_category}\n";
     echo "  level: {$sampleAsi->level}\n";
     echo "  value: {$sampleAsi->value}\n";
-    echo "  ability_score_id: " . ($sampleAsi->ability_score_id ?? 'NULL') . "\n";
-    echo "  is_choice: " . ($sampleAsi->is_choice ?? 'NULL') . "\n";
+    echo '  ability_score_id: '.($sampleAsi->ability_score_id ?? 'NULL')."\n";
+    echo '  is_choice: '.($sampleAsi->is_choice ?? 'NULL')."\n";
 
     // Validate structure
     $issues = [];
@@ -173,8 +174,8 @@ if (!$sampleAsi) {
         $issues[] = "modifier_category should be 'ability_score'";
     }
 
-    if (!is_null($sampleAsi->ability_score_id)) {
-        $issues[] = "ability_score_id should be NULL (player chooses)";
+    if (! is_null($sampleAsi->ability_score_id)) {
+        $issues[] = 'ability_score_id should be NULL (player chooses)';
     }
 
     if (empty($issues)) {
@@ -190,7 +191,7 @@ if (!$sampleAsi) {
 
 // 5. Summary and recommendations
 echo "5. SUMMARY & RECOMMENDATIONS\n";
-echo str_repeat("-", 60) . "\n";
+echo str_repeat('-', 60)."\n";
 
 $totalClasses = $baseClasses->count();
 $classesWithAsi = collect($asiReport)->where('count', '>', 0)->count();

@@ -98,7 +98,7 @@ trait ImportsSources
     {
         // Use cached lookup if trait is available
         if (method_exists($this, 'cachedFind')) {
-            return $this->cachedFind(Source::class, 'code', $code);
+            return $this->cachedFind(Source::class, 'code', $code, false);
         }
 
         // Fallback to direct query

@@ -7,6 +7,7 @@ use App\Models\CharacterClass;
 use App\Models\Feat;
 use App\Models\Item;
 use App\Models\Monster;
+use App\Models\OptionalFeature;
 use App\Models\Race;
 use App\Models\Spell;
 use Illuminate\Database\Eloquent\Model;
@@ -157,6 +158,26 @@ class EntityCacheService
     }
 
     /**
+     * Get an optional feature by ID or slug
+     */
+    public function getOptionalFeature(int|string $id): ?OptionalFeature
+    {
+        $numericId = is_int($id) ? $id : $this->resolveId(OptionalFeature::class, $id);
+
+        if (! $numericId) {
+            return null;
+        }
+
+        $this->trackEntityId('optional_feature', $numericId);
+        $cacheKey = $this->cacheKey('optional_feature', $numericId);
+
+        return Cache::remember($cacheKey, self::TTL, function () use ($numericId) {
+            return OptionalFeature::with($this->getRelationships('optional_feature'))
+                ->find($numericId);
+        });
+    }
+
+    /**
      * Invalidate a specific spell from cache
      */
     public function invalidateSpell(int $id): void
@@ -210,6 +231,14 @@ class EntityCacheService
     public function invalidateFeat(int $id): void
     {
         Cache::forget($this->cacheKey('feat', $id));
+    }
+
+    /**
+     * Invalidate a specific optional feature from cache
+     */
+    public function invalidateOptionalFeature(int $id): void
+    {
+        Cache::forget($this->cacheKey('optional_feature', $id));
     }
 
     /**
@@ -288,6 +317,7 @@ class EntityCacheService
             'race' => ['size', 'sources.source', 'parent', 'subraces', 'traits', 'tags'],
             'background' => ['sources.source', 'traits', 'proficiencies', 'languages', 'tags'],
             'feat' => ['sources.source', 'prerequisites', 'modifiers', 'tags'],
+            'optional_feature' => ['classes', 'sources.source', 'tags', 'prerequisites', 'rolls'],
             default => [],
         };
     }

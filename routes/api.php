@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\ItemTypeController;
 use App\Http\Controllers\Api\LanguageController;
 use App\Http\Controllers\Api\MonsterController;
 use App\Http\Controllers\Api\MonsterTypeController;
+use App\Http\Controllers\Api\OptionalFeatureController;
+use App\Http\Controllers\Api\OptionalFeatureTypeController;
 use App\Http\Controllers\Api\ProficiencyTypeController;
 use App\Http\Controllers\Api\RaceController;
 use App\Http\Controllers\Api\RarityController;
@@ -118,6 +120,9 @@ Route::prefix('v1')->group(function () {
 
         // Rarities (derived from items.rarity)
         Route::get('rarities', [RarityController::class, 'index'])->name('rarities.index');
+
+        // Optional Feature Types (from OptionalFeatureType enum)
+        Route::get('optional-feature-types', [OptionalFeatureTypeController::class, 'index'])->name('optional-feature-types.index');
     });
 
     /*
@@ -165,4 +170,8 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('monsters', MonsterController::class)->only(['index', 'show']);
     Route::get('monsters/{monster}/spells', [MonsterController::class, 'spells'])
         ->name('monsters.spells');
+
+    // Optional Features
+    Route::get('optional-features', [OptionalFeatureController::class, 'index'])->name('optional-features.index');
+    Route::get('optional-features/{optionalFeature:slug}', [OptionalFeatureController::class, 'show'])->name('optional-features.show');
 });

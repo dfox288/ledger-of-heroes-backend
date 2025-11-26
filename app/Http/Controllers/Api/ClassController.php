@@ -153,6 +153,24 @@ class ClassController extends Controller
      *   - `filter=is_spellcaster = false` (pure martial classes)
      * - Use case: Distinguishing classes with Spellcasting feature vs spell-like abilities
      *
+     * **has_optional_features** (`boolean`)
+     * - Value range: `true` (class has invocations, maneuvers, etc.), `false` (no optional features)
+     * - Operators: `=`, `!=`
+     * - Examples:
+     *   - `filter=has_optional_features = true` (Warlock, Fighter, Sorcerer, Monk)
+     *   - `filter=has_optional_features = false` (classes without customization options)
+     * - Use case: Finding classes with additional character customization choices
+     *
+     * ### Integer Fields (Optional Features)
+     *
+     * **optional_feature_count** (`integer`)
+     * - Value range: 0 to 54 (number of optional features available)
+     * - Operators: `=`, `!=`, `<`, `<=`, `>`, `>=`, `IN`, `NOT IN`
+     * - Examples:
+     *   - `filter=optional_feature_count > 0` (classes with optional features)
+     *   - `filter=optional_feature_count >= 10` (classes with many customization options)
+     * - Use case: Finding classes with extensive customization options
+     *
      * ### Array Fields
      *
      * **source_codes** (`array of strings`)
@@ -214,6 +232,15 @@ class ClassController extends Controller
      * - Note: This field contains **available** skill choices, not guaranteed proficiencies
      * - Use case: Finding classes with access to specific skills
      *
+     * **optional_feature_types** (`array of strings`)
+     * - Value examples: ["eldritch_invocation"], ["maneuver"], ["metamagic"], ["elemental_discipline"]
+     * - Operators: `IN`, `NOT IN`
+     * - Examples:
+     *   - `filter=optional_feature_types IN ["eldritch_invocation"]` (Warlock)
+     *   - `filter=optional_feature_types IN ["maneuver"]` (Fighter Battle Master)
+     *   - `filter=optional_feature_types IN ["metamagic"]` (Sorcerer)
+     * - Use case: Finding classes with specific customization mechanics
+     *
      * ## Complex Filter Examples
      *
      * ```bash
@@ -246,6 +273,15 @@ class ClassController extends Controller
      *
      * # Tasha's Cauldron subclasses that are spellcasters
      * GET /api/v1/classes?filter=source_codes IN ["TCOE"] AND is_subclass = true AND is_spellcaster = true
+     *
+     * # Classes with Eldritch Invocations (Warlock customization)
+     * GET /api/v1/classes?filter=optional_feature_types IN ["eldritch_invocation"]
+     *
+     * # Classes with many optional feature choices
+     * GET /api/v1/classes?filter=optional_feature_count >= 10
+     *
+     * # Martial classes with combat maneuvers
+     * GET /api/v1/classes?filter=optional_feature_types IN ["maneuver"] AND is_spellcaster = false
      * ```
      *
      * ## Use Cases
@@ -276,12 +312,18 @@ class ClassController extends Controller
      * - Find classes with specific tags: `filter=tag_slugs IN ["healing", "support"]`
      * - Stealth-capable classes: `filter=skill_proficiencies IN ["Stealth"]`
      *
+     * **Optional Features / Customization**
+     * - Find classes with invocations: `filter=optional_feature_types IN ["eldritch_invocation"]`
+     * - Martial classes with maneuvers: `filter=optional_feature_types IN ["maneuver"]`
+     * - Classes with high customization: `filter=optional_feature_count >= 10`
+     * - Sorcerer metamagic: `filter=optional_feature_types IN ["metamagic"]`
+     *
      * ## Filter Operators
      *
      * For complete operator documentation and syntax, see:
      * https://www.meilisearch.com/docs/reference/api/search#filter
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Fields: id, slug, hit_die, spell_count, max_spell_level, primary_ability, spellcasting_ability, parent_class_name, is_base_class, is_subclass, has_spells, is_spellcaster, source_codes, tag_slugs, saving_throw_proficiencies, armor_proficiencies, weapon_proficiencies, tool_proficiencies, skill_proficiencies. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'is_base_class = true AND armor_proficiencies IN ["Heavy Armor"]')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Fields: id, slug, hit_die, spell_count, max_spell_level, optional_feature_count, primary_ability, spellcasting_ability, parent_class_name, is_base_class, is_subclass, has_spells, is_spellcaster, has_optional_features, source_codes, tag_slugs, saving_throw_proficiencies, armor_proficiencies, weapon_proficiencies, tool_proficiencies, skill_proficiencies, optional_feature_types. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'is_base_class = true AND armor_proficiencies IN ["Heavy Armor"]')]
     public function index(ClassIndexRequest $request, ClassSearchService $service, Client $meilisearch)
     {
         $dto = ClassSearchDTO::fromRequest($request);

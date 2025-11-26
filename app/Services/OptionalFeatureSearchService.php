@@ -2,68 +2,37 @@
 
 namespace App\Services;
 
-use App\DTOs\ClassSearchDTO;
-use App\Exceptions\InvalidFilterSyntaxException;
-use App\Models\CharacterClass;
+use App\DTOs\OptionalFeatureSearchDTO;
+use App\Exceptions\Search\InvalidFilterSyntaxException;
+use App\Models\OptionalFeature;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use MeiliSearch\Client;
 
-final class ClassSearchService
+/**
+ * Service for searching and filtering D&D optional features
+ */
+final class OptionalFeatureSearchService
 {
     /**
      * Relationships for index/list endpoints (lightweight)
      */
     private const INDEX_RELATIONSHIPS = [
-        'spellcastingAbility',
-        'proficiencies.proficiencyType',
-        'proficiencies.item',
-        'traits',
+        'classes',
         'sources.source',
-        'features',
-        'levelProgression',
-        'counters',
-        'subclasses.features',
-        'subclasses.counters',
-        'tags',
-        'parentClass',
+        'spellSchool',
     ];
 
     /**
      * Relationships for show/detail endpoints (comprehensive)
      */
     private const SHOW_RELATIONSHIPS = [
-        'spellcastingAbility',
-        'parentClass.spellcastingAbility',
-        'parentClass.proficiencies.proficiencyType',
-        'parentClass.proficiencies.item',
-        'parentClass.proficiencies.skill.abilityScore',
-        'parentClass.proficiencies.abilityScore',
-        'parentClass.traits.randomTables.entries',
-        'parentClass.sources.source',
-        'parentClass.features.randomTables.entries',
-        'parentClass.levelProgression',
-        'parentClass.counters',
-        'parentClass.equipment.item',
-        'parentClass.spells',
-        'parentClass.optionalFeatures',
-        'parentClass.tags',
-        'subclasses',
-        'proficiencies.proficiencyType',
-        'proficiencies.item',
-        'proficiencies.skill.abilityScore',
-        'proficiencies.abilityScore',
-        'traits.randomTables.entries',
+        'classes',
         'sources.source',
-        'features.randomTables.entries',
-        'levelProgression',
-        'counters',
-        'equipment.item',
-        'spells',
-        'optionalFeatures.sources.source',
-        'subclasses.features.randomTables.entries',
-        'subclasses.counters',
+        'spellSchool',
         'tags',
+        'prerequisites',
+        'rolls',
     ];
 
     /**
@@ -77,20 +46,22 @@ final class ClassSearchService
      * NOTE: MySQL filtering has been removed. Use Meilisearch ?filter= parameter instead.
      *
      * Examples:
-     * - ?filter=is_subclass = false
-     * - ?filter=hit_die = 12
-     * - ?filter=spellcasting_ability = INT
-     * - ?filter=tag_slugs IN [spellcaster]
-     * - ?filter=is_subclass = false AND hit_die >= 10
+     * - ?filter=feature_type = eldritch_invocation
+     * - ?filter=level_requirement <= 5
+     * - ?filter=class_slugs IN [warlock]
+     * - ?filter=has_spell_mechanics = true
      */
-    public function buildScoutQuery(string $searchQuery): \Laravel\Scout\Builder
+    public function buildScoutQuery(OptionalFeatureSearchDTO $dto): \Laravel\Scout\Builder
     {
-        return CharacterClass::search($searchQuery);
+        return OptionalFeature::search($dto->searchQuery);
     }
 
-    public function buildDatabaseQuery(ClassSearchDTO $dto): Builder
+    /**
+     * Build Eloquent database query with filters
+     */
+    public function buildDatabaseQuery(OptionalFeatureSearchDTO $dto): Builder
     {
-        $query = CharacterClass::with(self::INDEX_RELATIONSHIPS);
+        $query = OptionalFeature::with(self::INDEX_RELATIONSHIPS);
 
         $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
@@ -122,33 +93,29 @@ final class ClassSearchService
         return self::SHOW_RELATIONSHIPS;
     }
 
-    private function applyFilters(Builder $query, ClassSearchDTO $dto): void
+    private function applyFilters(Builder $query, OptionalFeatureSearchDTO $dto): void
     {
         // MySQL filtering has been removed - use Meilisearch ?filter= parameter instead
         //
         // Examples:
-        // - Base classes only: ?filter=is_subclass = false
-        // - Subclasses only: ?filter=is_subclass = true
-        // - High HP classes: ?filter=hit_die >= 10
-        // - Spellcasters: ?filter=spellcasting_ability != null
-        // - INT casters: ?filter=spellcasting_ability = INT
-        // - Tag-based: ?filter=tag_slugs IN [spellcaster, martial]
-        // - Combined: ?filter=is_subclass = false AND tag_slugs IN [full-caster]
+        // - ?filter=feature_type = eldritch_invocation
+        // - ?filter=level_requirement <= 5
+        // - ?filter=class_slugs IN [warlock] AND level_requirement <= 5
+        // - ?filter=has_spell_mechanics = true
+        // - ?filter=resource_type = ki_points
         //
         // All filtering should happen via Meilisearch for consistency and performance.
     }
 
-    private function applySorting(Builder $query, ClassSearchDTO $dto): void
+    private function applySorting(Builder $query, OptionalFeatureSearchDTO $dto): void
     {
         $query->orderBy($dto->sortBy, $dto->sortDirection);
     }
 
     /**
-     * Search using Meilisearch with optional filter and sort.
-     *
-     * Supports filter-only queries (no search term required).
+     * Search using Meilisearch with custom filter expressions
      */
-    public function searchWithMeilisearch(ClassSearchDTO $dto, Client $client): LengthAwarePaginator
+    public function searchWithMeilisearch(OptionalFeatureSearchDTO $dto, Client $client): LengthAwarePaginator
     {
         $searchParams = [
             'limit' => $dto->perPage,
@@ -168,7 +135,7 @@ final class ClassSearchService
         // Execute search
         try {
             // Use model's searchableAs() to respect Scout prefix (test_ for testing, none for production)
-            $indexName = (new CharacterClass)->searchableAs();
+            $indexName = (new OptionalFeature)->searchableAs();
             $results = $client->index($indexName)->search($dto->searchQuery ?? '', $searchParams);
         } catch (\MeiliSearch\Exceptions\ApiException $e) {
             throw new InvalidFilterSyntaxException(
@@ -182,22 +149,22 @@ final class ClassSearchService
         $resultsArray = $results->toArray();
 
         // Hydrate Eloquent models to use with API Resources
-        $classIds = collect($resultsArray['hits'])->pluck('id');
+        $featureIds = collect($resultsArray['hits'])->pluck('id');
 
-        if ($classIds->isEmpty()) {
+        if ($featureIds->isEmpty()) {
             return new LengthAwarePaginator([], 0, $dto->perPage, $dto->page);
         }
 
-        $classes = CharacterClass::with(self::INDEX_RELATIONSHIPS)
-            ->findMany($classIds);
+        $features = OptionalFeature::with(self::INDEX_RELATIONSHIPS)
+            ->findMany($featureIds);
 
         // Preserve Meilisearch result order
-        $orderedClasses = $classIds->map(function ($id) use ($classes) {
-            return $classes->firstWhere('id', $id);
+        $orderedFeatures = $featureIds->map(function ($id) use ($features) {
+            return $features->firstWhere('id', $id);
         })->filter();
 
         return new LengthAwarePaginator(
-            $orderedClasses,
+            $orderedFeatures,
             $resultsArray['estimatedTotalHits'] ?? 0,
             $dto->perPage,
             $dto->page ?? 1,

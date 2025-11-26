@@ -11,9 +11,9 @@
         }
     ],
     "paths": {
-        "/v1/ability-scores": {
+        "/v1/lookups/ability-scores": {
             "get": {
-                "operationId": "ability-scores.index",
+                "operationId": "lookups.ability-scores.index",
                 "description": "Returns a paginated list of the 6 core ability scores in D&D 5e (Strength, Dexterity,\nConstitution, Intelligence, Wisdom, Charisma). Supports searching by name or code (e.g., \"STR\", \"DEX\").",
                 "summary": "List all ability scores",
                 "tags": [
@@ -194,9 +194,9 @@
                 }
             }
         },
-        "/v1/ability-scores/{abilityScore}": {
+        "/v1/lookups/ability-scores/{abilityScore}": {
             "get": {
-                "operationId": "ability-scores.show",
+                "operationId": "lookups.ability-scores.show",
                 "description": "Returns detailed information about a specific ability score including its full name,\ncode abbreviation, and associated skills.",
                 "summary": "Get a single ability score",
                 "tags": [
@@ -238,9 +238,9 @@
                 }
             }
         },
-        "/v1/ability-scores/{abilityScore}/spells": {
+        "/v1/lookups/ability-scores/{abilityScore}/spells": {
             "get": {
-                "operationId": "ability-scores.spells",
+                "operationId": "lookups.ability-scores.spells",
                 "description": "Returns a paginated list of spells that require saving throws using this ability score.\nSpells are ordered alphabetically by name and include relationships (spell school,\nsources, tags). Useful for building spell repertoires, targeting enemy weaknesses,\nand understanding spell distribution across saving throw types.\n\n**Basic Examples:**\n- Dexterity saves: `GET /api/v1/ability-scores/DEX/spells` (Fireball, Lightning Bolt)\n- Wisdom saves: `GET /api/v1/ability-scores/WIS/spells` (Charm Person, Hold Person)\n- Constitution saves: `GET /api/v1/ability-scores/CON/spells` (Cloudkill, Stinking Cloud)\n- By name (lowercase): `GET /api/v1/ability-scores/dexterity/spells`\n- Pagination: `GET /api/v1/ability-scores/STR/spells?per_page=25`\n\n**Common Save Distribution (Approximate):**\n- Dexterity (DEX): ~80 spells - Area damage (Fireball, Lightning Bolt), traps, explosions\n- Wisdom (WIS): ~60 spells - Mental effects (Charm Person, Fear, Hold Person), illusions\n- Constitution (CON): ~50 spells - Poison (Cloudkill), disease, exhaustion, concentration breaks\n- Intelligence (INT): ~15 spells - Psychic damage (Phantasmal Force), mental traps, mind control\n- Charisma (CHA): ~20 spells - Banishment, extraplanar effects (Banishment, Dispel Evil)\n- Strength (STR): ~25 spells - Physical restraint (Entangle, Web), grappling, forced movement\n\n**Targeting Enemy Weaknesses:**\n- **Wizards/Sorcerers**: Low STR/CON - Use Entangle, Web, poison spells\n- **Fighters/Barbarians**: Low INT/WIS/CHA - Use charm, fear, banishment spells\n- **Rogues**: Low STR/WIS - Use grappling, charm, or fear effects\n- **Clerics/Druids**: Low DEX/INT - Use area damage (Fireball), psychic attacks\n- **Beasts/Constructs**: Low INT/CHA - Use mind-affecting spells (often immune, check first!)\n- **Undead**: Low CHA (usually) - Varies widely, check individual monster stats\n\n**Save Effect Types:**\n- **Negates**: Save completely negates spell effect (Charm Person, Hold Person)\n- **Half Damage**: Save reduces damage by half (Fireball, Lightning Bolt, most evocation)\n- **Ends Effect**: Save ends ongoing effect (Fear - save at end of each turn)\n- **Reduced Duration**: Save shortens spell duration\n\n**Building Save-Focused Characters:**\n- **Evocation Wizard**: Focus on DEX saves (Sculpt Spells lets allies auto-succeed)\n- **Enchantment Wizard**: Focus on WIS/CHA saves, boost DC with features\n- **Control Wizard**: Mix STR/DEX/WIS saves to target multiple weaknesses\n- **Debuff Cleric**: CON/WIS saves for poison, disease, mental effects\n- **Spell Selection**: Cover 3+ save types to handle different enemy stat arrays\n\n**Spell DC Optimization:**\n- Base DC = 8 + proficiency bonus + spellcasting ability modifier\n- Boost DC: +1 items (Rod of the Pact Keeper), class features, spells (Bestow Curse)\n- Average DC by level: 13 (level 1), 15 (level 5), 17 (level 11), 19 (level 17)\n- Enemy saves scale slower than DC - advantage grows at higher levels\n\n**Tactical Considerations:**\n- **Action Economy**: Save-or-suck spells (Hold Person) can eliminate threats instantly\n- **Concentration**: Many save spells require concentration - protect it!\n- **Legendary Resistance**: High-CR enemies can auto-succeed 3 times - burn through them\n- **Magic Resistance**: Some enemies have advantage on saves vs spells - still worth targeting weak saves\n- **Repeated Saves**: Some spells allow saves each round (Fear) - less reliable but safer\n\n**Reference Data:**\n- 6 ability scores in D&D 5e (STR, DEX, CON, INT, WIS, CHA)\n- ~250+ total spells require saving throws (~50% of all spells)\n- Most common: DEX (~80 spells), WIS (~60 spells), CON (~50 spells)\n- Least common: INT (~15 spells) - exploit this vs low-INT enemies!\n- Save DCs range from 13 (level 1) to 19+ (level 17+)",
                 "summary": "List all spells that require this ability score for saving throws",
                 "tags": [
@@ -403,10 +403,96 @@
                 }
             }
         },
+        "/v1/lookups/alignments": {
+            "get": {
+                "operationId": "lookups.alignments.index",
+                "description": "Returns distinct alignments from the monsters table. These represent the moral\nand ethical outlook of creatures in D&D 5e.\n\n**Examples:**\n- `GET /api/v1/lookups/alignments` - All alignments\n\n**Standard D&D 5e Alignments (9-axis):**\n- Lawful Good, Neutral Good, Chaotic Good\n- Lawful Neutral, True Neutral, Chaotic Neutral\n- Lawful Evil, Neutral Evil, Chaotic Evil\n\n**Special Alignments:**\n- Unaligned (beasts, constructs, oozes)\n- Any alignment (humanoids, shapechangers)\n- Varies (creatures with individual choice)\n\n**Use Cases:**\n- Detect Evil and Good spell targeting\n- Paladin Divine Sense\n- Character/NPC roleplay guidance",
+                "summary": "List all alignments",
+                "tags": [
+                    "Alignment"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "slug": {
+                                                        "type": "string"
+                                                    },
+                                                    "name": {}
+                                                },
+                                                "required": [
+                                                    "slug",
+                                                    "name"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/lookups/armor-types": {
+            "get": {
+                "operationId": "lookups.armor-types.index",
+                "description": "Returns distinct armor types from the monsters table. These describe what type\nof armor or natural protection a creature has.\n\n**Examples:**\n- `GET /api/v1/lookups/armor-types` - All armor types\n\n**Common Armor Types:**\n- Natural armor (dragons, beasts)\n- Plate armor, Chain mail, Leather armor (humanoids)\n- Scale mail, Ring mail, Studded leather\n- Shield (often combined with armor)\n\n**Use Cases:**\n- Monster filtering by defense type\n- Understanding AC calculations\n- Equipment planning for encounters",
+                "summary": "List all armor types",
+                "tags": [
+                    "ArmorType"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "slug": {
+                                                        "type": "string"
+                                                    },
+                                                    "name": {}
+                                                },
+                                                "required": [
+                                                    "slug",
+                                                    "name"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/backgrounds": {
             "get": {
                 "operationId": "backgrounds.index",
-                "description": "Returns a paginated list of D&D 5e character backgrounds. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/backgrounds                                # All backgrounds\nGET /api/v1/backgrounds?filter=tag_slugs IN [criminal] # Criminal backgrounds\nGET /api/v1/backgrounds?filter=source_codes IN [PHB]   # PHB backgrounds only\nGET /api/v1/backgrounds?q=noble                        # Search for \"noble\"\nGET /api/v1/backgrounds?filter=tag_slugs IN [criminal, noble] # Multiple tags\n```\n\n**Tag Filtering:**\n- Criminal backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [criminal]`\n- Noble backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [noble]`\n- Outlander backgrounds: `GET /api/v1/backgrounds?filter=tag_slugs IN [outlander]`\n- Multiple tags (OR): `GET /api/v1/backgrounds?filter=tag_slugs IN [criminal, outlander]`\n\n**Source Filtering:**\n- PHB only: `GET /api/v1/backgrounds?filter=source_codes IN [PHB]`\n- SCAG only: `GET /api/v1/backgrounds?filter=source_codes IN [SCAG]`\n- Multiple sources: `GET /api/v1/backgrounds?filter=source_codes IN [PHB, XGE]`\n\n**Filterable Fields:**\n- `id` (int), `slug` (string)\n- `source_codes` (array: PHB, SCAG, XGE, TCoE, etc.)\n- `tag_slugs` (array: criminal, noble, outlander, etc.)\n\n**Operators:**\n- Comparison: `=`, `!=`\n- Logic: `AND`, `OR`\n- Membership: `IN [value1, value2, ...]`\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description, traits)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)\n\n**Background Features:**\n- Personality traits, ideals, bonds, flaws (via random tables)\n- Starting equipment and feature descriptions\n- Skill, tool, and language proficiencies\n- Source attribution (PHB, SCAG, XGE, TCoE, etc.)",
+                "description": "Returns a paginated list of D&D 5e character backgrounds. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/backgrounds                                    # All backgrounds (34 total)\nGET /api/v1/backgrounds?filter=name = \"Acolyte\"            # Exact name match\nGET /api/v1/backgrounds?filter=tag_slugs IN [criminal]     # Criminal backgrounds\nGET /api/v1/backgrounds?filter=source_codes IN [PHB]       # PHB backgrounds only\nGET /api/v1/backgrounds?q=noble                            # Full-text search\nGET /api/v1/backgrounds?q=noble&filter=source_codes IN [PHB]  # Search + filter combined\nGET /api/v1/backgrounds?filter=skill_proficiencies IN [Insight, Religion]  # Specific skills\nGET /api/v1/backgrounds?filter=grants_language_choice = true  # Language choices\n```\n\n**Filterable Fields by Data Type:**\n\n**Integer Fields** (Operators: `=`, `!=`, `>`, `>=`, `<`, `<=`):\n- `id` (int): Background ID\n  - Examples: `id = 5`, `id >= 10`\n\n**String Fields** (Operators: `=`, `!=`):\n- `name` (string): Background name (e.g., \"Acolyte\", \"Criminal\", \"Noble\", \"Soldier\")\n  - Examples: `name = \"Acolyte\"`, `name != \"Soldier\"`\n  - Use Case: Direct filtering by background name\n- `slug` (string): URL-friendly identifier (e.g., \"acolyte\", \"criminal\", \"noble\")\n  - Examples: `slug = \"acolyte\"`, `slug != \"criminal\"`\n\n**Boolean Fields** (Operators: `=`, `!=`, `IS NULL`, `EXISTS`):\n- `grants_language_choice` (bool): Whether this background grants player-choice languages\n  - Examples: `grants_language_choice = true`, `grants_language_choice = false`\n  - Use Case: Find backgrounds that offer language flexibility\n\n**Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):\n- `source_codes` (array): Source book codes (PHB, SCAG, XGE, TCoE, etc.)\n  - Examples: `source_codes IN [PHB]`, `source_codes IN [PHB, XGE]`, `source_codes NOT IN [UA]`\n  - Use Case: Filter by campaign-allowed sourcebooks\n- `tag_slugs` (array): Descriptive tag slugs (criminal, noble, outlander, sage, soldier, etc.)\n  - Examples: `tag_slugs IN [criminal]`, `tag_slugs IN [criminal, noble]`\n  - Use Case: Find backgrounds by archetype\n- `skill_proficiencies` (array): Skill names granted by this background\n  - Examples: `skill_proficiencies IN [Insight]`, `skill_proficiencies IN [Insight, Religion]`\n  - Use Case: Fill skill gaps in party composition (e.g., \"Need someone with Insight\")\n- `tool_proficiency_types` (array): Tool proficiency type names\n  - Examples: `tool_proficiency_types IN [Thieves' Tools]`\n  - Use Case: Find backgrounds for rogues/thieves\n\n**Complex Filter Examples:**\n- Criminal backgrounds with Insight: `?filter=tag_slugs IN [criminal] AND skill_proficiencies IN [Insight]`\n- Backgrounds with language choices from PHB: `?filter=grants_language_choice = true AND source_codes IN [PHB]`\n- Non-PHB backgrounds: `?filter=source_codes NOT IN [PHB]`\n- Multiple skill requirements: `?filter=skill_proficiencies IN [Insight, Religion] AND source_codes IN [PHB]`\n- Search + filter: `?q=noble&filter=grants_language_choice = true`\n\n**Use Cases:**\n- **Character Creation:** Find backgrounds that grant specific skill proficiencies needed for your build\n- **Party Optimization:** Identify backgrounds that fill skill gaps (e.g., party needs Insight & Religion)\n- **Roleplay Choices:** Filter by tags to find backgrounds matching character concept (criminal, noble, etc.)\n- **Source Restrictions:** Limit to PHB-only for Adventurers League or homebrew campaigns\n- **Language Flexibility:** Find backgrounds granting language choices for multilingual characters\n\n**Operator Reference:**\nSee `docs/MEILISEARCH-FILTER-OPERATORS.md` for comprehensive operator documentation.\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description, traits)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)",
                 "summary": "List all backgrounds",
                 "tags": [
                     "Background"
@@ -467,12 +553,12 @@
                     {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, AND, OR, IN. Available fields: id (int), slug (string), source_codes (array), tag_slugs (array).",
+                        "description": "Meilisearch filter expression. Integer fields (=,!=,>,>=,<,<=): id. String fields (=,!=): name, slug. Boolean fields (=,!=,IS NULL): grants_language_choice. Array fields (IN,NOT IN,IS EMPTY): source_codes, tag_slugs, skill_proficiencies, tool_proficiency_types. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
                         },
-                        "example": "tag_slugs IN [criminal, noble]"
+                        "example": "skill_proficiencies IN [Insight, Religion] AND source_codes IN [PHB]"
                     }
                 ],
                 "responses": {
@@ -731,8 +817,8 @@
         "/v1/classes": {
             "get": {
                 "operationId": "classes.index",
-                "description": "Returns a paginated list of D&D 5e character classes and subclasses. Includes hit dice,\nspellcasting abilities, proficiencies, class features, level progression tables, and\nsubclass options. Uses Meilisearch for filtering and search.\n\n**Filtering Examples:**\n- Base classes only: `GET /api/v1/classes?filter=is_subclass = false`\n- Subclasses only: `GET /api/v1/classes?filter=is_subclass = true`\n- High HP classes: `GET /api/v1/classes?filter=hit_die >= 10`\n- Barbarian and Fighter: `GET /api/v1/classes?filter=hit_die = 12`\n- Spellcasters: `GET /api/v1/classes?filter=spellcasting_ability != null`\n- INT-based casters: `GET /api/v1/classes?filter=spellcasting_ability = INT`\n- WIS-based casters: `GET /api/v1/classes?filter=spellcasting_ability = WIS`\n- Full casters: `GET /api/v1/classes?filter=tag_slugs IN [full-caster]`\n- Martial classes: `GET /api/v1/classes?filter=tag_slugs IN [martial]`\n- Combined: `GET /api/v1/classes?filter=is_subclass = false AND tag_slugs IN [spellcaster]`\n\n**Use Cases:**\n- **Build Planning:** Find INT-based spellcasters for Wizard multiclass synergy\n- **Optimization:** Identify high HP classes for tanking (hit_die >= 10)\n- **Spellcasting:** Filter by spellcasting ability for multiclass requirements\n- **Class Archetype:** Find all martial, spellcaster, or hybrid classes via tags\n\n**Available Filterable Fields:**\n- `id` (int): Class ID\n- `slug` (string): Class slug (e.g., \"wizard\", \"fighter-champion\")\n- `hit_die` (int): Hit die size (6, 8, 10, or 12)\n- `primary_ability` (string): Primary ability (e.g., \"STR\", \"INT\")\n- `spellcasting_ability` (string): Spellcasting ability code (e.g., \"INT\", \"WIS\", \"CHA\", null for non-casters)\n- `source_codes` (array): Source book codes (e.g., [\"PHB\"], [\"XGTE\"])\n- `is_subclass` (bool): Whether this is a subclass (true) or base class (false)\n- `parent_class_name` (string): Parent class name for subclasses\n- `tag_slugs` (array): Tag slugs (e.g., [\"spellcaster\"], [\"martial\"], [\"full-caster\"])\n\nSee `docs/API-EXAMPLES.md` for comprehensive usage examples.",
-                "summary": "List all classes and subclasses",
+                "description": "## Common Examples\n\n```bash\n# All base classes (no subclasses)\nGET /api/v1/classes?filter=is_base_class = true\n\n# Full spellcasters (9th level spells)\nGET /api/v1/classes?filter=max_spell_level = 9\n\n# Classes with heavy armor proficiency (tanky classes)\nGET /api/v1/classes?filter=armor_proficiencies IN [\"Heavy Armor\"]\n\n# Wisdom-based spellcasters (Cleric, Druid, Ranger)\nGET /api/v1/classes?filter=spellcasting_ability = \"WIS\"\n\n# Classes with Dexterity save proficiency (evasion)\nGET /api/v1/classes?filter=saving_throw_proficiencies IN [\"DEX\"]\n\n# Tanky spellcasters (heavy armor + spellcasting)\nGET /api/v1/classes?filter=is_spellcaster = true AND armor_proficiencies IN [\"Heavy Armor\"]\n\n# High hit die classes (d10 or d12) for durability\nGET /api/v1/classes?filter=hit_die >= 10\n```\n\n## Filterable Fields by Data Type\n\n### Integer Fields\n\n**id** (`integer`)\n- Value range: 1 to 131\n- Operators: `=`, `!=`, `<`, `<=`, `>`, `>=`, `IN`, `NOT IN`\n- Examples:\n  - `filter=id = 1` (Fighter base class)\n  - `filter=id IN [1, 2, 3]` (Fighter, Wizard, Cleric)\n- Use case: Direct lookups when ID is known\n\n**hit_die** (`integer`)\n- Value range: 6, 8, 10, 12 (d6, d8, d10, d12)\n- Operators: `=`, `!=`, `<`, `<=`, `>`, `>=`, `IN`, `NOT IN`\n- Examples:\n  - `filter=hit_die = 12` (Barbarian - highest HP)\n  - `filter=hit_die >= 10` (d10/d12 classes for durability)\n  - `filter=hit_die = 6` (Wizard, Sorcerer - low HP)\n- Use case: Character optimization for survivability\n\n**spell_count** (`integer`)\n- Value range: 0 to 477 (number of spells available to this class)\n- Operators: `=`, `!=`, `<`, `<=`, `>`, `>=`, `IN`, `NOT IN`\n- Examples:\n  - `filter=spell_count > 100` (classes with large spell lists)\n  - `filter=spell_count = 0` (non-spellcasting classes)\n- Use case: Finding classes with extensive spell options\n\n**max_spell_level** (`integer`)\n- Value range: 0 to 9 (highest spell level available)\n- Operators: `=`, `!=`, `<`, `<=`, `>`, `>=`, `IN`, `NOT IN`\n- Examples:\n  - `filter=max_spell_level = 9` (full casters: Wizard, Cleric, Bard, Druid, Sorcerer, Warlock)\n  - `filter=max_spell_level = 5` (half casters: Paladin, Ranger)\n  - `filter=max_spell_level IN [0, 1, 2, 3, 4]` (non-casters and third casters)\n- Use case: Distinguishing full/half/third casters for multiclass planning\n\n### String Fields\n\n**slug** (`string`)\n- Value examples: \"fighter\", \"champion\", \"eldritch-knight\", \"wizard\"\n- Operators: `=`, `!=`, `IN`, `NOT IN`\n- Examples:\n  - `filter=slug = \"fighter\"` (Fighter base class)\n  - `filter=slug IN [\"champion\", \"battle-master\", \"eldritch-knight\"]` (Fighter subclasses)\n- Use case: Human-readable queries and URL-friendly lookups\n\n**primary_ability** (`string`)\n- Value range: \"STR\", \"DEX\", \"CON\", \"INT\", \"WIS\", \"CHA\"\n- Operators: `=`, `!=`, `IN`, `NOT IN`\n- Examples:\n  - `filter=primary_ability = \"STR\"` (Barbarian, Fighter, Paladin)\n  - `filter=primary_ability IN [\"INT\", \"WIS\", \"CHA\"]` (mental ability classes)\n- Use case: Finding classes that benefit from specific ability scores\n\n**spellcasting_ability** (`string`)\n- Value range: \"INT\", \"WIS\", \"CHA\", null (for non-spellcasters)\n- Operators: `=`, `!=`, `IN`, `NOT IN`, `IS NULL`, `IS NOT NULL`\n- Examples:\n  - `filter=spellcasting_ability = \"INT\"` (Wizard, Artificer)\n  - `filter=spellcasting_ability = \"WIS\"` (Cleric, Druid, Ranger)\n  - `filter=spellcasting_ability = \"CHA\"` (Bard, Sorcerer, Warlock, Paladin)\n  - `filter=spellcasting_ability IS NULL` (non-spellcasters)\n- Use case: Multiclass optimization - matching spellcasting abilities to avoid MAD (Multiple Ability Dependency)\n\n**parent_class_name** (`string`)\n- Value examples: \"Fighter\", \"Wizard\", \"Cleric\", null (for base classes)\n- Operators: `=`, `!=`, `IN`, `NOT IN`, `IS NULL`, `IS NOT NULL`\n- Examples:\n  - `filter=parent_class_name = \"Fighter\"` (all Fighter subclasses)\n  - `filter=parent_class_name IS NULL` (base classes only)\n- Use case: Finding subclasses for a specific base class\n\n### Boolean Fields\n\n**is_base_class** (`boolean`)\n- Value range: `true` (12 base classes), `false` (119 subclasses)\n- Operators: `=`, `!=`\n- Examples:\n  - `filter=is_base_class = true` (Barbarian, Bard, Cleric, Druid, Fighter, Monk, Paladin, Ranger, Rogue, Sorcerer, Warlock, Wizard)\n  - `filter=is_base_class = false` (all subclasses)\n- Use case: Character creation - choose base class first, then filter subclasses\n\n**is_subclass** (`boolean`)\n- Value range: `true` (119 subclasses), `false` (12 base classes)\n- Operators: `=`, `!=`\n- Examples:\n  - `filter=is_subclass = true` (all subclasses)\n  - `filter=is_subclass = false` (base classes)\n- Use case: Inverse of `is_base_class` - useful for API consistency\n\n**has_spells** (`boolean`)\n- Value range: `true` (class has spell list), `false` (no spell list)\n- Operators: `=`, `!=`\n- Examples:\n  - `filter=has_spells = true` (spellcasting classes and subclasses)\n  - `filter=has_spells = false` (martial classes without spells)\n- Use case: Quick filter for classes with magical abilities\n\n**is_spellcaster** (`boolean`)\n- Value range: `true` (class/subclass gains spellcasting feature), `false` (no spellcasting)\n- Operators: `=`, `!=`\n- Examples:\n  - `filter=is_spellcaster = true` (full/half/third casters)\n  - `filter=is_spellcaster = false` (pure martial classes)\n- Use case: Distinguishing classes with Spellcasting feature vs spell-like abilities\n\n### Array Fields\n\n**source_codes** (`array of strings`)\n- Value examples: [\"PHB\"], [\"XGTE\"], [\"TCOE\"], [\"PHB\", \"XGTE\"]\n- Operators: `IN`, `NOT IN` (checks if ANY value in field matches ANY value in filter)\n- Examples:\n  - `filter=source_codes IN [\"PHB\"]` (Player's Handbook classes)\n  - `filter=source_codes IN [\"XGTE\", \"TCOE\"]` (Xanathar's or Tasha's content)\n- Use case: Filtering by allowed sourcebooks for campaigns\n\n**tag_slugs** (`array of strings`)\n- Value examples: [\"spellcasting\"], [\"martial\"], [\"stealth\"], [\"healing\"]\n- Operators: `IN`, `NOT IN`\n- Examples:\n  - `filter=tag_slugs IN [\"spellcasting\"]` (classes with spellcasting tag)\n  - `filter=tag_slugs IN [\"martial\"]` (weapon-focused classes)\n- Use case: Thematic filtering for character concepts\n\n**saving_throw_proficiencies** (`array of strings`)\n- Value range: [\"STR\"], [\"DEX\"], [\"CON\"], [\"INT\"], [\"WIS\"], [\"CHA\"] (always 2 per class)\n- Operators: `IN`, `NOT IN`\n- Examples:\n  - `filter=saving_throw_proficiencies IN [\"DEX\"]` (Rogue, Monk, Ranger - evasion synergy)\n  - `filter=saving_throw_proficiencies IN [\"WIS\"]` (Cleric, Druid, Paladin, Ranger, Monk - mind control resistance)\n  - `filter=saving_throw_proficiencies IN [\"CON\"]` (Fighter, Barbarian, Sorcerer - concentration checks)\n- Use case: **Critical for multiclass planning** - you gain new saving throw proficiencies ONLY from your first class\n\n**armor_proficiencies** (`array of strings`)\n- Value examples: [\"Light Armor\"], [\"Medium Armor\"], [\"Heavy Armor\"], [\"Shields\"], specific armor types\n- Operators: `IN`, `NOT IN`\n- Examples:\n  - `filter=armor_proficiencies IN [\"Heavy Armor\"]` (Cleric, Fighter, Paladin - AC optimization)\n  - `filter=armor_proficiencies IN [\"Shields\"]` (classes that can use shields)\n  - `filter=armor_proficiencies IN [\"Light Armor\"]` (Rogue, Ranger, Bard - DEX-based AC)\n- Use case: **Multiclass AC planning** - determines maximum AC without multiclassing\n\n**weapon_proficiencies** (`array of strings`)\n- Value examples: [\"Simple Weapons\"], [\"Martial Weapons\"], specific weapon names\n- Operators: `IN`, `NOT IN`\n- Examples:\n  - `filter=weapon_proficiencies IN [\"Martial Weapons\"]` (Fighter, Paladin, Ranger, Barbarian)\n  - `filter=weapon_proficiencies IN [\"Simple Weapons\"]` (most classes)\n- Use case: **Weapon optimization** - finding classes that can use specific weapons\n\n**tool_proficiencies** (`array of strings`)\n- Value examples: [\"Thieves' Tools\"], [\"Smith's Tools\"], [\"Alchemist's Supplies\"]\n- Operators: `IN`, `NOT IN`\n- Examples:\n  - `filter=tool_proficiencies IN [\"Thieves' Tools\"]` (Rogue, some Artificer subclasses)\n  - `filter=tool_proficiencies IN [\"Alchemist's Supplies\"]` (Artificer)\n- Use case: Finding classes with specific tool proficiencies for crafting/utility\n\n**skill_proficiencies** (`array of strings`)\n- Value examples: [\"Stealth\"], [\"Perception\"], [\"Insight\"], [\"Athletics\"]\n- Operators: `IN`, `NOT IN`\n- Examples:\n  - `filter=skill_proficiencies IN [\"Stealth\"]` (Rogue, Ranger - sneaky classes)\n  - `filter=skill_proficiencies IN [\"Perception\"]` (Ranger, Druid - wilderness awareness)\n- Note: This field contains **available** skill choices, not guaranteed proficiencies\n- Use case: Finding classes with access to specific skills\n\n## Complex Filter Examples\n\n```bash\n# Tanky spellcasters (heavy armor + full casting)\nGET /api/v1/classes?filter=armor_proficiencies IN [\"Heavy Armor\"] AND max_spell_level = 9\n\n# Wisdom-based full casters with Wisdom save proficiency\nGET /api/v1/classes?filter=spellcasting_ability = \"WIS\" AND max_spell_level = 9 AND saving_throw_proficiencies IN [\"WIS\"]\n\n# Durable half-casters (d10 hit die + 5th level spells)\nGET /api/v1/classes?filter=hit_die = 10 AND max_spell_level = 5\n\n# PHB base classes with heavy armor proficiency\nGET /api/v1/classes?filter=source_codes IN [\"PHB\"] AND is_base_class = true AND armor_proficiencies IN [\"Heavy Armor\"]\n\n# Charisma-based spellcasters (multiclass synergy)\nGET /api/v1/classes?filter=spellcasting_ability = \"CHA\" AND max_spell_level >= 5\n\n# Non-spellcasters with Dexterity save proficiency (pure martials with evasion)\nGET /api/v1/classes?filter=is_spellcaster = false AND saving_throw_proficiencies IN [\"DEX\"]\n\n# Classes with martial weapons and spellcasting (gish classes)\nGET /api/v1/classes?filter=weapon_proficiencies IN [\"Martial Weapons\"] AND is_spellcaster = true\n\n# Low-HP full casters (d6 hit die, 9th level spells)\nGET /api/v1/classes?filter=hit_die = 6 AND max_spell_level = 9\n\n# Base classes with Constitution save proficiency (concentration casters)\nGET /api/v1/classes?filter=is_base_class = true AND saving_throw_proficiencies IN [\"CON\"]\n\n# Tasha's Cauldron subclasses that are spellcasters\nGET /api/v1/classes?filter=source_codes IN [\"TCOE\"] AND is_subclass = true AND is_spellcaster = true\n```\n\n## Use Cases\n\n**Character Creation**\n- Find base classes by primary ability: `filter=is_base_class = true AND primary_ability = \"CHA\"`\n- Compare hit dice for survivability: `filter=hit_die >= 10`\n\n**Multiclass Planning**\n- Find compatible spellcasting abilities: `filter=spellcasting_ability = \"CHA\" AND max_spell_level >= 5`\n- Identify armor proficiency gaps: `filter=armor_proficiencies IN [\"Heavy Armor\"] AND is_base_class = true`\n- Save proficiency optimization: `filter=saving_throw_proficiencies IN [\"WIS\", \"DEX\"]` (best saves)\n\n**Campaign Restrictions**\n- Filter by allowed sourcebooks: `filter=source_codes IN [\"PHB\", \"XGTE\"]`\n- Exclude subclasses: `filter=is_base_class = true`\n\n**Build Optimization**\n- Find tanky spellcasters: `filter=armor_proficiencies IN [\"Heavy Armor\"] AND is_spellcaster = true`\n- Identify gish classes (melee + magic): `filter=weapon_proficiencies IN [\"Martial Weapons\"] AND is_spellcaster = true`\n- High-HP casters: `filter=hit_die >= 8 AND max_spell_level = 9`\n\n**Spell List Analysis**\n- Classes with large spell pools: `filter=spell_count > 100`\n- Full casters only: `filter=max_spell_level = 9`\n\n**Thematic Search**\n- Find classes with specific tags: `filter=tag_slugs IN [\"healing\", \"support\"]`\n- Stealth-capable classes: `filter=skill_proficiencies IN [\"Stealth\"]`\n\n## Filter Operators\n\nFor complete operator documentation and syntax, see:\nhttps://www.meilisearch.com/docs/reference/api/search#filter",
+                "summary": "Display a paginated, searchable, and filterable list of character classes",
                 "tags": [
                     "Class"
                 ],
@@ -793,12 +879,12 @@
                     {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: id, slug, hit_die, primary_ability, spellcasting_ability, source_codes, is_subclass, parent_class_name, tag_slugs.",
+                        "description": "Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Fields: id, slug, hit_die, spell_count, max_spell_level, primary_ability, spellcasting_ability, parent_class_name, is_base_class, is_subclass, has_spells, is_spellcaster, source_codes, tag_slugs, saving_throw_proficiencies, armor_proficiencies, weapon_proficiencies, tool_proficiencies, skill_proficiencies. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
                         },
-                        "example": "is_subclass = false AND tag_slugs IN [spellcaster]"
+                        "example": "is_base_class = true AND armor_proficiencies IN [\"Heavy Armor\"]"
                     }
                 ],
                 "responses": {
@@ -1314,9 +1400,9 @@
                 }
             }
         },
-        "/v1/conditions": {
+        "/v1/lookups/conditions": {
             "get": {
-                "operationId": "conditions.index",
+                "operationId": "lookups.conditions.index",
                 "description": "Returns a paginated list of D&D 5e conditions (Blinded, Charmed, Frightened, etc.).\nThese are status effects that can be applied to creatures during combat.",
                 "summary": "List all D&D conditions",
                 "tags": [
@@ -1497,9 +1583,9 @@
                 }
             }
         },
-        "/v1/conditions/{condition}": {
+        "/v1/lookups/conditions/{condition}": {
             "get": {
-                "operationId": "conditions.show",
+                "operationId": "lookups.conditions.show",
                 "description": "Returns detailed information about a specific D&D condition including its rules\nand effects on gameplay.",
                 "summary": "Get a single condition",
                 "tags": [
@@ -1541,9 +1627,9 @@
                 }
             }
         },
-        "/v1/conditions/{condition}/spells": {
+        "/v1/lookups/conditions/{condition}/spells": {
             "get": {
-                "operationId": "conditions.spells",
+                "operationId": "lookups.conditions.spells",
                 "description": "Returns a paginated list of spells that can inflict this condition on targets\nthrough saving throw failures. Useful for building control-focused characters\nand identifying debuff options.\n\n**Basic Examples:**\n- Poison spells: `GET /api/v1/conditions/poisoned/spells`\n- Stun spells: `GET /api/v1/conditions/stunned/spells`\n- By slug: `GET /api/v1/conditions/grappled/spells`\n- Pagination: `GET /api/v1/conditions/paralyzed/spells?per_page=25`\n\n**Common Condition Use Cases:**\n- Poisoned: Poison Spray, Cloudkill, Contagion (~8 spells, CON save)\n- Stunned: Power Word Stun, Shocking Grasp (high levels) (~4 spells, CON save)\n- Paralyzed: Hold Person, Hold Monster (~6 spells, WIS save, auto-crit)\n- Charmed: Charm Person, Dominate Monster, Suggestion (~12 spells, WIS save)\n- Frightened: Cause Fear, Fear, Phantasmal Killer (~8 spells, WIS save)\n- Restrained: Entangle, Web, Evard's Black Tentacles (~10 spells, STR/DEX save)\n- Blinded: Blindness/Deafness, Sunburst (~6 spells, CON save)\n- Deafened: Deafness, Thunder Step (~4 spells, CON save)\n- Prone: Grease, Thunderwave (~8 spells, STR/DEX save)\n- Invisible: Invisibility, Greater Invisibility (~6 spells, no save)\n\n**Control Wizard Builds:**\n- Crowd control: Paralyzed (auto-crits), Stunned (no actions), Restrained (reduced movement)\n- Debuffs: Poisoned (disadvantage on attacks), Frightened (can't approach)\n- Social manipulation: Charmed (friendly, can't attack), Suggestion (follow command)\n\n**Combat Tactics:**\n- High-value targets: Paralyze enemy spellcasters (no verbal components)\n- Melee threats: Restrain or frighten to reduce effectiveness\n- Action denial: Stunned removes actions, reactions, and movement\n- Save optimization: Target low saves (STR for wizards, INT for beasts)\n\n**Condition Synergies:**\n- Paralyzed: Attack rolls auto-crit within 5 feet (massive damage)\n- Restrained: Advantage on attacks against target, disadvantage on DEX saves\n- Prone: Advantage on melee attacks, disadvantage on ranged attacks\n- Invisible: Advantage on attacks, disadvantage on attacks against you\n\n**Reference Data:**\n- 15 conditions in D&D 5e\n- Most common: Poisoned (~8 spells), Charmed (~12 spells), Frightened (~8 spells)\n- Most powerful: Paralyzed (auto-crits), Stunned (no actions), Incapacitated\n- Duration: Varies from 1 round to 1 minute (concentration) to permanent",
                 "summary": "List all spells that inflict this condition",
                 "tags": [
@@ -1706,9 +1792,9 @@
                 }
             }
         },
-        "/v1/conditions/{condition}/monsters": {
+        "/v1/lookups/conditions/{condition}/monsters": {
             "get": {
-                "operationId": "conditions.monsters",
+                "operationId": "lookups.conditions.monsters",
                 "description": "Returns a paginated list of monsters that can inflict this condition through\ntheir attacks, traits, special abilities, or innate spellcasting. Useful for\nDMs designing encounters and players understanding enemy threats.\n\n**Basic Examples:**\n- Poisoning monsters: `GET /api/v1/conditions/poisoned/monsters`\n- Paralyzing monsters: `GET /api/v1/conditions/paralyzed/monsters`\n- By slug: `GET /api/v1/conditions/frightened/monsters`\n- Pagination: `GET /api/v1/conditions/frightened/monsters?per_page=25`\n\n**Common Condition Monsters:**\n- Poisoned: Yuan-ti, Giant Spiders, Carrion Crawlers (~40 monsters)\n- Paralyzed: Ghouls, Gelatinous Cubes, Beholders (paralysis ray) (~25 monsters)\n- Frightened: Dragons (frightful presence), Banshees, Death Knights (~30 monsters)\n- Charmed: Succubus/Incubus, Vampires, Sirens (~15 monsters)\n- Stunned: Mind Flayers (mind blast), Monks (stunning strike) (~10 monsters)\n- Restrained: Giant Spiders (webs), Ropers, Vine Blights (~20 monsters)\n- Blinded: Umber Hulks (confusing gaze), Basilisks (~8 monsters)\n- Petrified: Basilisks, Medusas, Cockatrices (~6 monsters)\n- Grappled: Giant Octopuses, Mimics, Ropers (~35 monsters)\n\n**DM Encounter Design:**\n- Threat assessment: Identify monsters with debilitating conditions\n- Tactical variety: Mix damage dealers with control monsters\n- Save targeting: Combine STR/DEX conditions with INT/WIS/CHA conditions\n- Difficulty scaling: Paralysis/Stun can swing encounters dramatically\n\n**Player Preparation:**\n- Condition immunity: Paladins (Aura of Protection), Monks (Diamond Soul)\n- Lesser Restoration: Cures poisoned, paralyzed, blinded, deafened\n- Greater Restoration: Cures charmed, petrified, stunned, exhaustion\n- Protection spells: Protection from Poison, Heroes' Feast (poison immunity)\n\n**Dangerous Monster Conditions:**\n- Paralyzed: Auto-crits from melee attacks (ghouls, gelatinous cubes)\n- Petrified: Permanent until Greater Restoration (medusas, basilisks)\n- Stunned: No actions, failed STR/DEX saves (mind flayers)\n- Frightened: Cannot move closer (ancient dragons, death knights)\n\n**Condition Delivery Mechanisms:**\n- Saving throws: Most common (CON for poison, WIS for charm/fear)\n- Attack hits: Ghoul claws (paralysis), spider bites (poison)\n- Failed ability checks: Gelatinous cube engulf (paralysis)\n- Aura effects: Dragon frightful presence (WIS save), banshee wail\n\n**Reference Data:**\n- 15 conditions total\n- Most common monster conditions: Poisoned (~40), Frightened (~30), Grappled (~35)\n- Most dangerous: Paralyzed (auto-crits), Petrified (permanent), Stunned (helpless)\n- CR correlation: Higher CR monsters inflict more conditions simultaneously",
                 "summary": "List all monsters that inflict this condition",
                 "tags": [
@@ -1871,9 +1957,9 @@
                 }
             }
         },
-        "/v1/damage-types/{damageType}/spells": {
+        "/v1/lookups/damage-types/{damageType}/spells": {
             "get": {
-                "operationId": "damage-types.spells",
+                "operationId": "lookups.damage-types.spells",
                 "description": "Returns a paginated list of spells that deal this type of damage through their\nprimary or secondary effects. Useful for building themed characters (fire mage,\nfrost wizard) or finding spells to exploit enemy vulnerabilities.\n\n**Basic Examples:**\n- Fire spells: `GET /api/v1/damage-types/fire/spells`\n- Fire by code: `GET /api/v1/damage-types/F/spells`\n- Pagination: `GET /api/v1/damage-types/fire/spells?per_page=25&page=2`\n\n**Damage Type Use Cases:**\n- Fire: Fireball, Burning Hands, Scorching Ray, Flame Strike (~24 spells)\n- Cold: Ice Storm, Cone of Cold, Ray of Frost (~18 spells)\n- Lightning: Lightning Bolt, Call Lightning, Chain Lightning (~12 spells)\n- Psychic: Mind Spike, Synaptic Static, Psychic Scream (~15 spells)\n- Necrotic: Blight, Vampiric Touch, Circle of Death (~20 spells)\n- Radiant: Guiding Bolt, Sunbeam, Dawn, Sacred Flame (~16 spells)\n- Thunder: Thunderwave, Shatter, Booming Blade (~10 spells)\n- Poison: Poison Spray, Cloudkill, Stinking Cloud (~8 spells)\n- Acid: Acid Splash, Vitriolic Sphere, Acid Arrow (~7 spells)\n- Force: Magic Missile, Eldritch Blast, Disintegrate (~12 spells)\n\n**Character Building:**\n- Elemental specialist builds (fire/cold/lightning mages)\n- Exploit enemy vulnerabilities (undead vulnerable to radiant)\n- Avoid resistances (many devils resist fire, use cold/lightning instead)\n- Thematic spell selection (necromancer uses necrotic, cleric uses radiant)\n\n**Combat Tactics:**\n- Identify damage type distribution in your spell list\n- Prepare diverse damage types to handle resistances\n- Focus on force/psychic for guaranteed damage (few resistances)\n\n**Reference Data:**\n- 13 damage types in D&D 5e\n- Most common: Fire (~24 spells), Necrotic (~20 spells), Cold (~18 spells)\n- Least resisted: Force, Psychic, Radiant (best for reliable damage)\n- Most resisted: Fire, Poison (many creatures have resistance/immunity)",
                 "summary": "List all spells that deal this damage type",
                 "tags": [
@@ -2036,9 +2122,9 @@
                 }
             }
         },
-        "/v1/damage-types/{damageType}/items": {
+        "/v1/lookups/damage-types/{damageType}/items": {
             "get": {
-                "operationId": "damage-types.items",
+                "operationId": "lookups.damage-types.items",
                 "description": "Returns a paginated list of weapons, ammunition, and magic items that deal\nthis type of damage. Useful for optimizing weapon selection and finding items\nthat exploit enemy vulnerabilities.\n\n**Basic Examples:**\n- Slashing weapons: `GET /api/v1/damage-types/slashing/items`\n- Fire items: `GET /api/v1/damage-types/fire/items`\n- Slashing by code: `GET /api/v1/damage-types/S/items`\n- Pagination: `GET /api/v1/damage-types/slashing/items?per_page=50`\n\n**Physical Damage Types (Weapons):**\n- Slashing: Longsword, Greatsword, Scimitar, Battleaxe (~80 items)\n- Piercing: Rapier, Longbow, Shortbow, Dagger, Pike (~70 items)\n- Bludgeoning: Mace, Warhammer, Club, Quarterstaff, Maul (~60 items)\n\n**Elemental Damage Types (Magic Items):**\n- Fire: Flame Tongue, Fire Arrow, Javelin of Lightning (~12 items)\n- Cold: Frost Brand, Arrows of Ice Slaying (~5 items)\n- Lightning: Javelin of Lightning, Lightning Arrow (~4 items)\n- Poison: Serpent Venom (poison), Poison Dagger (~6 items)\n- Acid: Acid Vial, Acid Arrow (~3 items)\n\n**Character Building:**\n- Martial characters: Identify all weapons matching your proficiencies\n- Damage optimization: Find magic weapons with bonus elemental damage\n- Versatility: Carry multiple damage types to bypass resistances\n- Exploit vulnerabilities: Trolls regenerate except for fire/acid damage\n\n**Combat Tactics:**\n- Physical damage: Most common, many creatures resist\n- Magical slashing/piercing/bludgeoning: Bypass non-magical resistance\n- Elemental damage: Exploit specific vulnerabilities (fire vs. ice creatures)\n\n**Reference Data:**\n- 13 damage types total\n- Physical types: Slashing (~80), Piercing (~70), Bludgeoning (~60)\n- Elemental types: Fire (~12), Poison (~6), Cold (~5), Lightning (~4)\n- Magic weapons override resistances to non-magical damage",
                 "summary": "List all items that deal this damage type",
                 "tags": [
@@ -2201,9 +2287,9 @@
                 }
             }
         },
-        "/v1/damage-types": {
+        "/v1/lookups/damage-types": {
             "get": {
-                "operationId": "damage-types.index",
+                "operationId": "lookups.damage-types.index",
                 "description": "Returns a paginated list of D&D 5e damage types (Fire, Cold, Poison, Slashing, etc.).\nUsed for spell effects, weapon damage, and resistances/immunities.",
                 "summary": "List all damage types",
                 "tags": [
@@ -2384,9 +2470,9 @@
                 }
             }
         },
-        "/v1/damage-types/{damageType}": {
+        "/v1/lookups/damage-types/{damageType}": {
             "get": {
-                "operationId": "damage-types.show",
+                "operationId": "lookups.damage-types.show",
                 "description": "Returns detailed information about a specific D&D damage type including its name\nand associated spells, weapons, or effects.",
                 "summary": "Get a single damage type",
                 "tags": [
@@ -2431,7 +2517,7 @@
         "/v1/feats": {
             "get": {
                 "operationId": "feats.index",
-                "description": "Returns a paginated list of D&D 5e feats. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/feats                                    # All feats\nGET /api/v1/feats?filter=tag_slugs IN [combat]       # Combat feats\nGET /api/v1/feats?filter=tag_slugs IN [magic]        # Magic feats\nGET /api/v1/feats?filter=source_codes IN [PHB]       # PHB feats only\nGET /api/v1/feats?q=armor                            # Full-text search for \"armor\"\nGET /api/v1/feats?q=advantage                        # Search for \"advantage\"\nGET /api/v1/feats?filter=tag_slugs IN [combat] AND source_codes IN [PHB, XGE]\n```\n\n**Tag-Based Filtering:**\n- Combat feats: `GET /api/v1/feats?filter=tag_slugs IN [combat]`\n- Magic feats: `GET /api/v1/feats?filter=tag_slugs IN [magic]`\n- Skill improvement: `GET /api/v1/feats?filter=tag_slugs IN [skill-improvement]`\n- Multiple tags (OR): `GET /api/v1/feats?filter=tag_slugs IN [combat, magic]`\n\n**Source Filtering:**\n- PHB only: `GET /api/v1/feats?filter=source_codes IN [PHB]`\n- XGE and TCoE: `GET /api/v1/feats?filter=source_codes IN [XGE, TCoE]`\n\n**Filterable Fields:**\n- `tag_slugs` (array: combat, magic, skill-improvement, etc.)\n- `source_codes` (array: PHB, XGE, TCoE, etc.)\n- `id` (int), `slug` (string)\n\n**Operators:**\n- Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`\n- Logic: `AND`, `OR`\n- Membership: `IN [value1, value2, ...]`\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description, prerequisites_text)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)\n\n**Legacy MySQL Parameters (Deprecated):**\nThe following parameters still work but are deprecated in favor of Meilisearch filtering:\n- `prerequisite_race`, `prerequisite_ability`, `min_value`, `prerequisite_proficiency`\n- `has_prerequisites`, `grants_proficiency`, `grants_skill`\n\n**Use Cases:**\n- Character Optimization: Find combat feats for martial builds\n- Build Planning: Identify magic feats for spellcasters\n- ASI Decisions: Compare feat benefits vs +2 ability score increase\n- Source Filtering: Find feats from specific sourcebooks\n\n**Data Source:**\n- D&D 5e feats from PHB, XGE, TCoE, and other sourcebooks\n- Prerequisites (race, ability, proficiency) via entity_prerequisites polymorphic table\n- Modifiers (ASI, skill bonuses) via modifiers table\n- Proficiency grants (weapon, armor, tool, skill) via proficiencies table\n\nSee `docs/API-EXAMPLES.md` for comprehensive usage examples.",
+                "description": "Returns a paginated list of 138 D&D 5e feats. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/feats                                              # All feats\nGET /api/v1/feats?filter=has_prerequisites = false             # Feats without prerequisites (18 feats)\nGET /api/v1/feats?filter=improved_abilities IN [STR]           # STR-boosting feats (Heavy Armor Master, Athlete)\nGET /api/v1/feats?filter=prerequisite_types IN [Race]          # Race-specific feats (Elven Accuracy, Dwarven Fortitude)\nGET /api/v1/feats?filter=grants_proficiencies = true           # Feats that grant proficiencies (Weapon Master, Skill Expert)\nGET /api/v1/feats?filter=tag_slugs IN [combat]                 # Combat feats\nGET /api/v1/feats?q=advantage                                  # Full-text search for \"advantage\"\nGET /api/v1/feats?q=spell&filter=improved_abilities IN [INT, WIS, CHA]  # Magic feats with ASI\n```\n\n**Filterable Fields by Data Type:**\n\n**Integer Fields** (Operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `TO`):\n- `id` (int): Feat ID\n  - Examples: `id = 42`, `id >= 10`, `id 1 TO 50`\n  - Use case: Direct reference or batch processing ranges\n\n**String Fields** (Operators: `=`, `!=`):\n- `slug` (string): URL-friendly feat identifier\n  - Examples: `slug = heavy-armor-master`, `slug != alert`\n  - Use case: Direct lookup by slug for permalinks\n\n**Boolean Fields** (Operators: `=`, `!=`, `IS NULL`, `EXISTS`):\n- `has_prerequisites` (bool): Feat has prerequisites (race, ability, or proficiency)\n  - Examples: `has_prerequisites = false`, `has_prerequisites = true`\n  - Use case: Find feats accessible at level 1 without requirements\n- `grants_proficiencies` (bool): Feat grants weapon, armor, tool, or skill proficiencies\n  - Examples: `grants_proficiencies = true`, `grants_proficiencies = false`\n  - Use case: Find proficiency-granting feats for skill/equipment access\n\n**Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):\n- `improved_abilities` (array): Ability codes improved by this feat (STR, DEX, CON, INT, WIS, CHA)\n  - Examples: `improved_abilities IN [STR]`, `improved_abilities IN [INT, WIS, CHA]`, `improved_abilities IS EMPTY`\n  - Use case: ASI decisions - find feats that boost specific abilities (Half-Feats)\n  - Critical for: Heavy Armor Master (+1 STR), Resilient (+1 any), Fey Touched (+1 INT/WIS/CHA)\n- `prerequisite_types` (array): Type of prerequisites required (Race, AbilityScore, ProficiencyType)\n  - Examples: `prerequisite_types IN [Race]`, `prerequisite_types IN [AbilityScore]`, `prerequisite_types IS EMPTY`\n  - Use case: Find race-locked feats (Elven Accuracy) or ability-gated feats (Heavy Armor Master requires STR 13)\n- `tag_slugs` (array): Tag slugs categorizing feat purpose (combat, magic, skill-improvement, etc.)\n  - Examples: `tag_slugs IN [combat]`, `tag_slugs IN [magic]`, `tag_slugs IS EMPTY`\n  - Use case: Browse feats by theme or build archetype\n- `source_codes` (array): Source book codes (PHB, XGE, TCoE, etc.)\n  - Examples: `source_codes IN [PHB]`, `source_codes IN [XGE, TCoE]`, `source_codes NOT IN [UA]`\n  - Use case: Filter by allowed sourcebooks for campaign restrictions\n\n**Complex Filter Examples:**\n- STR combat feats: `?filter=improved_abilities IN [STR] AND tag_slugs IN [combat]`\n- Feats without prerequisites: `?filter=has_prerequisites = false`\n- Race-specific feats with ASI: `?filter=prerequisite_types IN [Race] AND improved_abilities IS NOT EMPTY`\n- Magic feats with ability boosts: `?filter=tag_slugs IN [magic] AND improved_abilities IN [INT, WIS, CHA]`\n- Proficiency-granting feats: `?filter=grants_proficiencies = true AND has_prerequisites = false`\n- PHB-only feats without prerequisites: `?filter=source_codes IN [PHB] AND has_prerequisites = false`\n- Combat feats with DEX or STR boost: `?filter=tag_slugs IN [combat] AND improved_abilities IN [STR, DEX]`\n- Level 1 accessible ASI feats: `?filter=has_prerequisites = false AND improved_abilities IS NOT EMPTY`\n\n**Use Cases:**\n- **Character Building:** \"Which feats boost STR and help in combat?\" (`improved_abilities IN [STR] AND tag_slugs IN [combat]`)\n- **ASI Decisions:** \"Should I take +2 ASI or a half-feat?\" (`improved_abilities IS NOT EMPTY`)\n- **Race Synergy:** \"What feats are exclusive to Elves?\" (`prerequisite_types IN [Race]` + full-text search)\n- **Level 1 Variant Human:** \"Which feats can I take at level 1?\" (`has_prerequisites = false`)\n- **Build Planning:** \"Find magic feats with INT boost\" (`tag_slugs IN [magic] AND improved_abilities IN [INT]`)\n- **Equipment Access:** \"Which feats grant armor proficiencies?\" (`grants_proficiencies = true` + search \"armor\")\n\n**Operator Reference:**\nSee `docs/MEILISEARCH-FILTER-OPERATORS.md` for comprehensive operator documentation.\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description, prerequisites_text)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)",
                 "summary": "List all feats",
                 "tags": [
                     "Feat"
@@ -2492,12 +2578,12 @@
                     {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: tag_slugs (array), source_codes (array), id (int), slug (string). Legacy MySQL parameters (prerequisite_race, prerequisite_ability, etc.) are deprecated.",
+                        "description": "Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). See docs/MEILISEARCH-FILTER-OPERATORS.md for details.",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
                         },
-                        "example": "tag_slugs IN [combat, magic]"
+                        "example": "improved_abilities IN [STR] AND has_prerequisites = false"
                     }
                 ],
                 "responses": {
@@ -2762,7 +2848,7 @@
         "/v1/items": {
             "get": {
                 "operationId": "items.index",
-                "description": "Returns a paginated list of D&D 5e items including weapons, armor, and magic items.\nUses Meilisearch for full-text search and advanced filtering.\n\n**Search Examples:**\n- Text search: `GET /api/v1/items?q=staff`\n- Search + filter: `GET /api/v1/items?q=sword&filter=rarity = legendary`\n\n**Filter Examples:**\n- By rarity: `GET /api/v1/items?filter=rarity IN [rare, legendary]`\n- By type: `GET /api/v1/items?filter=type_code = WD` (wands)\n- Magic items: `GET /api/v1/items?filter=is_magic = true`\n- Requires attunement: `GET /api/v1/items?filter=requires_attunement = true`\n- Has charges: `GET /api/v1/items?filter=has_charges = true`\n- By spell: `GET /api/v1/items?filter=spell_slugs IN [fireball]`\n- By cost: `GET /api/v1/items?filter=cost_cp >= 5000` (50+ gold)\n- By weight: `GET /api/v1/items?filter=weight <= 1.0`\n\n**Combined Filters:**\n- Rare wands with Fireball: `GET /api/v1/items?filter=spell_slugs IN [fireball] AND type_code = WD AND rarity = rare`\n- Legendary magic items: `GET /api/v1/items?filter=is_magic = true AND rarity = legendary`\n- Lightweight scrolls: `GET /api/v1/items?filter=type_code = SCR AND weight <= 0.1`\n\n**Common Item Type Codes:**\n- `WD` = Wand, `ST` = Staff, `RD` = Rod, `SCR` = Scroll, `P` = Potion\n- See `/api/v1/item-types` for complete list",
+                "description": "Returns a paginated list of 2,232 D&D 5e items including weapons, armor, and magic items. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/items                                          # All items\nGET /api/v1/items?filter=is_magic = true                   # Magic items only\nGET /api/v1/items?filter=type_code = HA                    # Heavy armor\nGET /api/v1/items?filter=rarity = legendary                # Legendary items\nGET /api/v1/items?filter=requires_attunement = true        # Attunement items\nGET /api/v1/items?filter=spell_slugs IN [fireball]         # Items with Fireball\nGET /api/v1/items?q=staff                                  # Full-text search for \"staff\"\nGET /api/v1/items?q=sword&filter=is_magic = true           # Search + filter combined\n```\n\n**Filterable Fields by Data Type:**\n\n**Integer Fields** (Operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `TO`):\n- `id` (int): Item ID\n- `weight` (float): Weight in pounds\n  - Examples: `weight <= 1.0`, `weight >= 5`, `weight 1 TO 10`\n- `cost_cp` (int): Cost in copper pieces (100cp = 1gp)\n  - Examples: `cost_cp >= 5000` (50+ gold), `cost_cp 100 TO 1000` (1-10gp)\n- `range_normal` (int): Normal range in feet (ranged weapons)\n  - Examples: `range_normal >= 80`, `range_normal > 0` (has range)\n- `range_long` (int): Long range in feet (ranged weapons)\n- `armor_class` (int): Base armor class (armor only)\n  - Examples: `armor_class >= 16`, `armor_class 14 TO 18`\n- `strength_requirement` (int): Minimum strength to wear (heavy armor)\n  - Examples: `strength_requirement > 0` (has requirement)\n- `charges_max` (int): Maximum charges (magic items)\n  - Examples: `charges_max >= 10`, `charges_max 5 TO 20`\n\n**String Fields** (Operators: `=`, `!=`):\n- `slug` (string): URL-friendly identifier\n- `type_name` (string): Full type name (Heavy Armor, Wand, Staff, etc.)\n- `type_code` (string): Two-letter type code (HA, WD, ST, RD, SCR, P, etc.)\n  - Examples: `type_code = HA` (heavy armor), `type_code = WD` (wands)\n- `rarity` (string): common, uncommon, rare, very_rare, legendary, artifact\n  - Examples: `rarity = legendary`, `rarity != common`\n- `damage_dice` (string): Damage dice (1d8, 2d6, etc.)\n- `versatile_damage` (string): Versatile damage dice\n- `damage_type` (string): Damage type (Slashing, Piercing, Bludgeoning, Fire, etc.)\n- `recharge_timing` (string): When charges recharge (dawn, dusk, etc.)\n- `recharge_formula` (string): Recharge dice formula (1d6+4, etc.)\n\n**Boolean Fields** (Operators: `=`, `!=`, `IS NULL`, `EXISTS`):\n- `requires_attunement` (bool): Requires attunement\n  - Examples: `requires_attunement = true`, `requires_attunement = false`\n- `is_magic` (bool): Magic item\n  - Examples: `is_magic = true`\n- `stealth_disadvantage` (bool): Imposes disadvantage on Stealth (heavy armor)\n  - Examples: `stealth_disadvantage = false` (silent armor)\n- `has_charges` (bool): Item has charges\n  - Examples: `has_charges = true`\n- `has_prerequisites` (bool): Has class/race/level prerequisites\n  - Examples: `has_prerequisites = true`\n\n**Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):\n- `source_codes` (array): Source book codes (PHB, DMG, XGE, TCoE, etc.)\n  - Examples: `source_codes IN [PHB, DMG]`, `source_codes NOT IN [UA]`\n- `spell_slugs` (array): Spell slugs associated with item\n  - Examples: `spell_slugs IN [fireball]`, `spell_slugs IS EMPTY`\n- `tag_slugs` (array): Tag slugs\n  - Examples: `tag_slugs IN [fire]`, `tag_slugs IS EMPTY`\n- `property_codes` (array): Weapon/armor property codes (F=Finesse, V=Versatile, etc.)\n  - Examples: `property_codes IN [F]` (finesse weapons)\n- `modifier_categories` (array): Stat modifier categories\n  - Examples: `modifier_categories IN [ability_score]`\n- `proficiency_names` (array): Required proficiency names\n  - Examples: `proficiency_names IN [martial weapons]`\n- `saving_throw_abilities` (array): Saving throw ability codes (STR, DEX, CON, INT, WIS, CHA)\n  - Examples: `saving_throw_abilities IN [DEX]`, `saving_throw_abilities IS EMPTY`\n\n**Complex Filter Examples:**\n- Heavy armor with high AC: `?filter=type_code = HA AND armor_class >= 16`\n- Ranged weapons: `?filter=range_normal >= 80`\n- Magic items with charges: `?filter=is_magic = true AND has_charges = true`\n- Finesse weapons: `?filter=property_codes IN [F] AND type_code = W`\n- Silent heavy armor: `?filter=type_code = HA AND stealth_disadvantage = false`\n- Affordable magic items: `?filter=is_magic = true AND cost_cp <= 10000` (100gp or less)\n- Legendary items requiring attunement: `?filter=rarity = legendary AND requires_attunement = true`\n- Items with prerequisites: `?filter=has_prerequisites = true`\n\n**Use Cases:**\n- Shopping lists: Filter by cost range and item type\n- Loot tables: Filter by rarity and magic status\n- Equipment planning: Filter by weight for encumbrance\n- Class builds: Filter by weapon properties and proficiencies\n- Magic item search: Filter by spell effects and attunement\n- Armor optimization: Filter by AC, stealth, and strength requirement\n\n**Operator Reference:**\nSee `docs/MEILISEARCH-FILTER-OPERATORS.md` for comprehensive operator documentation.\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, weight, cost_cp, armor_class, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)",
                 "summary": "List all items",
                 "tags": [
                     "Item"
@@ -2825,12 +2911,12 @@
                     {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression. Available fields: is_magic (bool), requires_attunement (bool), has_charges (bool), rarity (string: common, uncommon, rare, very_rare, legendary, artifact), type_code (string: WD, ST, RD, SCR, P, etc.), weight (float), cost_cp (int), spell_slugs (array), tag_slugs (array). Operators: =, !=, >, >=, <, <=, AND, OR, IN.",
+                        "description": "Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Filterable fields: id, slug, type_name, type_code, rarity, requires_attunement, is_magic, weight, cost_cp, source_codes, damage_dice, versatile_damage, damage_type, range_normal, range_long, armor_class, strength_requirement, stealth_disadvantage, charges_max, has_charges, recharge_timing, recharge_formula, spell_slugs, tag_slugs, property_codes, modifier_categories, proficiency_names, saving_throw_abilities, has_prerequisites. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
                         },
-                        "example": "spell_slugs IN [fireball] AND rarity = rare"
+                        "example": "type_code = HA AND armor_class >= 16"
                     }
                 ],
                 "responses": {
@@ -3124,9 +3210,9 @@
                 }
             }
         },
-        "/v1/item-properties": {
+        "/v1/lookups/item-properties": {
             "get": {
-                "operationId": "item-properties.index",
+                "operationId": "lookups.item-properties.index",
                 "description": "Returns a paginated list of D&D 5e item properties (Versatile, Finesse, Two-Handed, etc.).\nThese special properties modify how weapons and equipment function.",
                 "summary": "List all item properties",
                 "tags": [
@@ -3307,9 +3393,9 @@
                 }
             }
         },
-        "/v1/item-properties/{itemProperty}": {
+        "/v1/lookups/item-properties/{itemProperty}": {
             "get": {
-                "operationId": "item-properties.show",
+                "operationId": "lookups.item-properties.show",
                 "description": "Returns detailed information about a specific item property including its name\nand rules text describing how it affects gameplay.",
                 "summary": "Get a single item property",
                 "tags": [
@@ -3351,9 +3437,9 @@
                 }
             }
         },
-        "/v1/item-types": {
+        "/v1/lookups/item-types": {
             "get": {
-                "operationId": "item-types.index",
+                "operationId": "lookups.item-types.index",
                 "description": "Returns a paginated list of D&D 5e item types (Weapon, Armor, Potion, Wondrous Item, etc.).\nUsed to categorize equipment and magical items.",
                 "summary": "List all item types",
                 "tags": [
@@ -3534,9 +3620,9 @@
                 }
             }
         },
-        "/v1/item-types/{itemType}": {
+        "/v1/lookups/item-types/{itemType}": {
             "get": {
-                "operationId": "item-types.show",
+                "operationId": "lookups.item-types.show",
                 "description": "Returns detailed information about a specific item type category including all items\nthat belong to this type.",
                 "summary": "Get a single item type",
                 "tags": [
@@ -3578,9 +3664,9 @@
                 }
             }
         },
-        "/v1/languages": {
+        "/v1/lookups/languages": {
             "get": {
-                "operationId": "languages.index",
+                "operationId": "lookups.languages.index",
                 "description": "Returns a paginated list of languages in D&D 5e including Common, Elvish, Dwarvish,\nand exotic languages. Includes script information, language type, and rarity.",
                 "summary": "List all D&D languages",
                 "tags": [
@@ -3761,9 +3847,9 @@
                 }
             }
         },
-        "/v1/languages/{language}": {
+        "/v1/lookups/languages/{language}": {
             "get": {
-                "operationId": "languages.show",
+                "operationId": "lookups.languages.show",
                 "description": "Returns detailed information about a specific D&D language including its script,\ntype (standard/exotic), and rarity.",
                 "summary": "Get a single language",
                 "tags": [
@@ -3805,9 +3891,9 @@
                 }
             }
         },
-        "/v1/languages/{language}/races": {
+        "/v1/lookups/languages/{language}/races": {
             "get": {
-                "operationId": "languages.races",
+                "operationId": "lookups.languages.races",
                 "description": "Returns races that either automatically know this language or can choose it as a racial\nlanguage option. Use this to find which races provide access to specific languages for\ncharacter building or to understand language distribution across the world.\n\n**Examples:**\n```bash\n# By slug (most common)\nGET /api/v1/languages/elvish/races\nGET /api/v1/languages/draconic/races\nGET /api/v1/languages/common/races\n\n# By numeric ID\nGET /api/v1/languages/gnomish/races?per_page=25\n```\n\n**Common Language \u2192 Race Queries:**\n- **Common:** Human, Half-Elf, Half-Orc, most other races (universal language)\n- **Elvish:** Elf, Half-Elf, Eladrin\n- **Dwarvish:** Dwarf, Duergar\n- **Draconic:** Dragonborn, Kobold, Half-Dragon\n- **Undercommon:** Drow, Deep Gnome, Svirfneblin (Underdark languages)\n- **Infernal:** Tiefling (heritage language)\n- **Primordial:** Genasi (elemental languages)\n- **Sylvan:** Wood Elf, Forest Gnome (fey languages)\n\n**Use Cases:**\n- **Race selection:** \"I want to speak Elvish - which races work?\" \u2192 Query `/languages/elvish/races`\n- **Campaign planning:** \"Which races speak Infernal for my Avernus campaign?\" \u2192 Check Tiefling variants\n- **Lore building:** \"Which races communicate with dragons?\" \u2192 Query Draconic speakers\n- **Party composition:** \"We need someone who speaks Undercommon for Underdark exploration\"\n- **Multilingual characters:** Combine race language with background language for 3+ languages\n\n**Language Distribution (Approximate):**\n- **Standard Languages** (all races): Common (30 races), Elvish (8 races), Dwarvish (4 races), Draconic (5 races)\n- **Exotic Languages** (rare): Abyssal (1 race), Infernal (2 races), Celestial (1 race), Deep Speech (0 races)\n- **Regional Languages:** Primordial (4 dialects), Sylvan (3 races), Undercommon (5 Underdark races)\n\n**Character Building Tips:**\n- Most campaigns need Common + 1-2 specialized languages (dungeon exploration, diplomacy)\n- Choose languages based on campaign setting (Underdark \u2192 Undercommon, Planar \u2192 Infernal/Celestial)\n- Thieves' Cant is only available via Criminal/Urchin backgrounds (not racial)\n- Druids automatically learn Druidic (not queryable via this endpoint - class feature)\n\n**Response Format:**\nReturns paginated race data with size, speed, sources, and traits. Default 50 results per page.\nUse `per_page` parameter to adjust pagination (max 100).",
                 "summary": "List all races that speak this language natively or as a choice",
                 "tags": [
@@ -3982,9 +4068,9 @@
                 }
             }
         },
-        "/v1/languages/{language}/backgrounds": {
+        "/v1/lookups/languages/{language}/backgrounds": {
             "get": {
-                "operationId": "languages.backgrounds",
+                "operationId": "lookups.languages.backgrounds",
                 "description": "Returns backgrounds that provide access to this language, either as a fixed language grant\nor as a language choice. Use this to plan character backgrounds that grant specific languages\nor to understand which backgrounds provide linguistic diversity.\n\n**Examples:**\n```bash\n# By slug (most common)\nGET /api/v1/languages/thieves-cant/backgrounds\nGET /api/v1/languages/elvish/backgrounds\nGET /api/v1/languages/common/backgrounds\n\n# By numeric ID\nGET /api/v1/languages/orc/backgrounds?per_page=20\n```\n\n**Common Language \u2192 Background Queries:**\n- **Thieves' Cant:** Criminal, Urchin (only these backgrounds teach this secret language!)\n- **Common:** Most backgrounds grant Common or assume it (universal language)\n- **Dwarvish:** Guild Artisan (if Dwarf-focused), Folk Hero (mountainous regions)\n- **Elvish:** Sage (elven libraries), Outlander (elven forests)\n- **Exotic Languages:** Acolyte (Celestial, Infernal), Sage (any language), Hermit (choice)\n\n**Use Cases:**\n- **Background selection:** \"I want Thieves' Cant - which backgrounds work?\" \u2192 Only Criminal/Urchin\n- **Language optimization:** \"I need 3+ languages - which backgrounds help?\" \u2192 Sage (2 choices), Acolyte (2 languages)\n- **Campaign alignment:** \"Urban campaign needs urban languages\" \u2192 Criminal, Charlatan, Urchin\n- **Rare language access:** \"How do I get Deep Speech without being Far Realm-touched?\" \u2192 Sage background\n- **Multilingual builds:** Combine race languages + background languages + class features\n\n**Background Language Patterns:**\n- **Standard Backgrounds:** Grant 1-2 common languages (Common, regional language)\n- **Criminal/Urchin:** Only backgrounds that grant Thieves' Cant\n- **Sage:** Most flexible - can choose 2 languages from any list\n- **Acolyte:** Grants 2 languages (often Celestial or Infernal based on deity)\n- **Outlander:** Grants 1 language (often regional or tribal)\n\n**Language Acquisition Priority:**\n1. **Race languages** (automatic, usually 2-3 languages including Common)\n2. **Background languages** (1-2 additional languages, often campaign-specific)\n3. **Class features** (Druid \u2192 Druidic, Ranger \u2192 one favored enemy language)\n4. **Feats** (Linguist feat \u2192 3 additional languages + ciphers)\n\n**Character Building Tips:**\n- Most characters start with 2-4 languages (race + background)\n- Choose background languages based on campaign (dungeon \u2192 Undercommon, planar \u2192 Infernal/Celestial)\n- Thieves' Cant is secret and not counted against language limits\n- Consider taking Sage background if you need rare languages (Deep Speech, Primordial)\n- Language proficiency can enable social encounters, lore discovery, and avoid combat\n\n**Response Format:**\nReturns paginated background data with traits, proficiencies, and sources. Default 50 results per page.\nUse `per_page` parameter to adjust pagination (max 100).",
                 "summary": "List all backgrounds that teach or grant this language",
                 "tags": [
@@ -4162,7 +4248,7 @@
         "/v1/monsters": {
             "get": {
                 "operationId": "monsters.index",
-                "description": "Returns a paginated list of D&D 5e monsters with advanced filtering via Meilisearch.\nAll filtering uses the `?filter=` parameter with Meilisearch syntax.\n\n**Basic Search:**\n- Full-text search: `GET /api/v1/monsters?q=dragon`\n- All monsters: `GET /api/v1/monsters`\n\n**Challenge Rating Filters:**\n- Exact CR: `?filter=challenge_rating = 5`\n- CR range: `?filter=challenge_rating >= 10 AND challenge_rating <= 20`\n- Boss fights: `?filter=challenge_rating >= 20`\n\n**Type & Size Filters:**\n- Dragons: `?filter=type = dragon`\n- Large creatures: `?filter=size_code = L`\n- Large dragons: `?filter=type = dragon AND size_code = L`\n\n**Combat Stats Filters:**\n- High AC: `?filter=armor_class >= 18`\n- High HP: `?filter=hit_points_average > 100`\n- Tank enemies: `?filter=armor_class >= 18 AND hit_points_average >= 100`\n\n**Spell-Based Filters:**\n- Fireball casters: `?filter=spell_slugs IN [fireball]`\n- Multiple spells: `?filter=spell_slugs IN [fireball, lightning-bolt]`\n- High-CR casters: `?filter=challenge_rating >= 10 AND spell_slugs IN [fireball]`\n- Spellcasting dragons: `?filter=type = dragon AND spell_slugs IN [polymorph]`\n\n**Tag-Based Filters:**\n- All undead: `?filter=tag_slugs IN [undead]`\n- Fire-immune: `?filter=tag_slugs IN [fire-immune]`\n- Undead OR fiend: `?filter=tag_slugs IN [undead, fiend]`\n\n**Combined Examples:**\n- Powerful undead: `?filter=tag_slugs IN [undead] AND challenge_rating >= 10`\n- Search + filter: `?q=dragon&filter=challenge_rating >= 15`\n- Multi-condition: `?filter=type = fiend AND armor_class >= 15 AND hit_points_average > 100`\n\n**Available Filterable Fields:**\n- Stats: `challenge_rating`, `armor_class`, `hit_points_average`, `experience_points`\n- Type: `type`, `size_code`, `alignment`\n- Abilities: `strength`, `dexterity`, `constitution`, `intelligence`, `wisdom`, `charisma`\n- Speed: `speed_walk`, `speed_fly`, `speed_swim`, `speed_burrow`, `speed_climb`\n- Arrays: `spell_slugs`, `tag_slugs`, `source_codes`\n- Other: `passive_perception`, `can_hover`, `is_npc`\n\n**Operators:**\n- Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`\n- Logic: `AND`, `OR`\n- Arrays: `IN [value1, value2]`",
+                "description": "Returns a paginated list of 598 D&D 5e monsters. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/monsters                                       # All monsters\nGET /api/v1/monsters?filter=challenge_rating >= 20         # Boss fights (CR 20+)\nGET /api/v1/monsters?filter=type = dragon                  # Dragons only\nGET /api/v1/monsters?filter=is_spellcaster = true          # Spellcasting monsters\nGET /api/v1/monsters?filter=has_legendary_actions = true   # Legendary creatures\nGET /api/v1/monsters?filter=armor_class >= 18              # High AC tanks\nGET /api/v1/monsters?filter=speed_fly > 0                  # Flying creatures\nGET /api/v1/monsters?q=dragon&filter=challenge_rating >= 15 # Search + filter combined\n```\n\n**Filterable Fields by Data Type:**\n\n**Integer Fields** (Operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `TO`):\n- `id` (int): Monster ID\n- `challenge_rating` (float): Challenge rating as numeric value (0.125 = 1/8, 0.25 = 1/4, 0.5 = 1/2, 1.0-30.0)\n  - Examples: `challenge_rating = 5`, `challenge_rating >= 10`, `challenge_rating 5 TO 15`\n  - Use case: Balance encounters by party level\n- `armor_class` (int): Natural or worn armor value (10-25 typical range)\n  - Examples: `armor_class >= 18`, `armor_class < 15`\n  - Use case: Tank enemies for melee-focused parties\n- `hit_points_average` (int): Average hit points (1-676 range, Ancient Red Dragon = 546)\n  - Examples: `hit_points_average > 100`, `hit_points_average >= 200`\n  - Use case: High-HP enemies for endurance encounters\n- `experience_points` (int): XP awarded on defeat (10-155000 range)\n  - Examples: `experience_points >= 10000`, `experience_points < 1000`\n  - Use case: Calculate encounter difficulty\n- `strength` (int): Strength ability score (1-30 range)\n  - Examples: `strength >= 20`, `strength < 10`\n  - Use case: Grappling/shoving challenges\n- `dexterity` (int): Dexterity ability score (1-30 range)\n  - Examples: `dexterity >= 18`, `dexterity <= 8`\n  - Use case: Initiative order and AC calculations\n- `constitution` (int): Constitution ability score (1-30 range)\n  - Examples: `constitution >= 18`\n  - Use case: Concentration save bonuses for spellcasters\n- `intelligence` (int): Intelligence ability score (1-30 range)\n  - Examples: `intelligence >= 16`, `intelligence <= 3`\n  - Use case: Investigation checks and INT saves\n- `wisdom` (int): Wisdom ability score (1-30 range)\n  - Examples: `wisdom >= 18`, `wisdom < 10`\n  - Use case: Perception checks and WIS saves\n- `charisma` (int): Charisma ability score (1-30 range)\n  - Examples: `charisma >= 16`\n  - Use case: Social encounters and CHA saves\n- `speed_walk` (int): Walking speed in feet (0-120 typical range)\n  - Examples: `speed_walk >= 40`, `speed_walk = 0`\n  - Use case: Chase scenes and tactical positioning\n- `speed_fly` (int): Flying speed in feet (0-120 typical range)\n  - Examples: `speed_fly > 0`, `speed_fly >= 60`\n  - Use case: Aerial combat encounters\n- `speed_swim` (int): Swimming speed in feet (0-90 typical range)\n  - Examples: `speed_swim > 0`, `speed_swim >= 40`\n  - Use case: Underwater encounters\n- `speed_burrow` (int): Burrowing speed in feet (0-40 typical range)\n  - Examples: `speed_burrow > 0`\n  - Use case: Underground or ambush encounters\n- `speed_climb` (int): Climbing speed in feet (0-40 typical range)\n  - Examples: `speed_climb > 0`\n  - Use case: Vertical terrain encounters\n- `passive_perception` (int): Passive Perception score (6-30 typical range)\n  - Examples: `passive_perception >= 20`, `passive_perception < 12`\n  - Use case: Stealth challenges and surprise rounds\n- `legendary_resistance_uses` (int): Number of legendary resistance uses per day (0-3)\n  - Examples: `legendary_resistance_uses >= 1`\n  - Use case: Boss fights requiring save-or-suck counters\n\n**String Fields** (Operators: `=`, `!=`):\n- `slug` (string): URL-friendly monster identifier\n  - Examples: `slug = ancient-red-dragon`, `slug != goblin`\n- `type` (string): Creature type (aberration, beast, celestial, construct, dragon, elemental, fey, fiend, giant, humanoid, monstrosity, ooze, plant, undead)\n  - Examples: `type = dragon`, `type = undead`, `type != humanoid`\n  - Use case: Ranger favored enemy, spell targeting\n- `size_code` (string): Size abbreviation (T=Tiny, S=Small, M=Medium, L=Large, H=Huge, G=Gargantuan)\n  - Examples: `size_code = L`, `size_code = G`\n  - Use case: Grapple size limits, space requirements\n- `size_name` (string): Full size name (Tiny, Small, Medium, Large, Huge, Gargantuan)\n  - Examples: `size_name = Large`, `size_name = Gargantuan`\n- `alignment` (string): Alignment descriptor (lawful good, neutral evil, unaligned, etc.)\n  - Examples: `alignment = lawful evil`, `alignment = unaligned`\n  - Use case: Paladin/cleric detection spells\n- `armor_type` (string): Armor description (natural armor, plate armor, etc.)\n  - Examples: `armor_type = natural armor`, `armor_type = plate armor`\n\n**Boolean Fields** (Operators: `=`, `!=`, `IS NULL`, `EXISTS`):\n- `has_legendary_actions` (bool): Has legendary actions (not lair actions)\n  - Examples: `has_legendary_actions = true`, `has_legendary_actions = false`\n  - Use case: Epic boss fights requiring action economy\n- `has_lair_actions` (bool): Has lair actions (location-specific)\n  - Examples: `has_lair_actions = true`\n  - Use case: Home-field advantage encounters\n- `is_spellcaster` (bool): Can cast spells (129 monsters total)\n  - Examples: `is_spellcaster = true`, `is_spellcaster = false`\n  - Use case: Counterspell-ready encounters\n- `has_reactions` (bool): Has reaction abilities beyond opportunity attacks\n  - Examples: `has_reactions = true`\n  - Use case: Tactical combat with interrupt abilities\n- `has_legendary_resistance` (bool): Has Legendary Resistance trait (ignore failed saves)\n  - Examples: `has_legendary_resistance = true`\n  - Use case: Boss fights requiring sustained pressure\n- `has_magic_resistance` (bool): Has Magic Resistance trait (advantage on saves vs spells)\n  - Examples: `has_magic_resistance = true`\n  - Use case: Anti-caster encounters\n- `can_hover` (bool): Can hover while flying (immune to prone while flying)\n  - Examples: `can_hover = true`\n  - Use case: Aerial combat without fall risk\n- `is_npc` (bool): Named NPC rather than generic monster\n  - Examples: `is_npc = true`, `is_npc = false`\n  - Use case: Story characters vs random encounters\n\n**Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):\n- `source_codes` (array): Source book codes (MM, VGM, MTF, etc.)\n  - Examples: `source_codes IN [MM, VGM]`, `source_codes NOT IN [UA]`\n  - Use case: Campaign-specific monster selection\n- `tag_slugs` (array): Tag slugs for categorization (undead, fire-immune, shapechanger, etc.)\n  - Examples: `tag_slugs IN [undead]`, `tag_slugs IN [fire-immune, cold-immune]`\n  - Use case: Thematic encounters and elemental resistance\n- `spell_slugs` (array): Spell slugs this monster can cast (1,098 relationships for 129 spellcasters)\n  - Examples: `spell_slugs IN [fireball]`, `spell_slugs IN [counterspell, dispel-magic]`\n  - Use case: Counter-ready encounters and spell diversity\n\n**Complex Filter Examples:**\n```\n# Boss fights: CR 20+, legendary actions, legendary resistance\n?filter=challenge_rating >= 20 AND has_legendary_actions = true AND has_legendary_resistance = true\n\n# Tank enemies: High AC + High HP for melee-focused parties\n?filter=armor_class >= 18 AND hit_points_average >= 150\n\n# Flying spellcasters: Aerial combat with magic\n?filter=speed_fly > 0 AND is_spellcaster = true\n\n# Speed demons: Fast movement for chase scenes (CR 5-15)\n?filter=speed_walk >= 50 AND challenge_rating >= 5 AND challenge_rating <= 15\n\n# Legendary dragons: Epic dragon encounters\n?filter=type = dragon AND has_legendary_actions = true\n\n# Underwater bosses: High CR + swim speed\n?filter=speed_swim > 0 AND challenge_rating >= 10\n\n# Anti-magic tanks: Magic resistance + high saves\n?filter=has_magic_resistance = true AND wisdom >= 16\n\n# Fireball casters: Specific spell filtering\n?filter=spell_slugs IN [fireball] AND challenge_rating >= 5\n\n# Low-CR undead horde: Zombie/skeleton encounters\n?filter=tag_slugs IN [undead] AND challenge_rating <= 1\n\n# Elite guards: High stats across the board (CR 10+)\n?filter=strength >= 18 AND dexterity >= 16 AND challenge_rating >= 10\n```\n\n**Use Cases:**\n- **Boss Fight Design**: Find legendary creatures with resistance mechanics\n- **CR Balancing**: Filter by challenge rating for party-appropriate encounters\n- **Thematic Encounters**: Use type/tag filters for campaign themes (undead, dragons, devils)\n- **Tactical Variety**: Combine ability scores and special traits for diverse combat\n- **Environmental Encounters**: Match monsters to terrain (swim/fly/burrow speeds)\n- **Spell Countermeasures**: Identify spellcasters with specific spells for strategic prep\n\n**Operator Reference:**\nSee `docs/MEILISEARCH-FILTER-OPERATORS.md` for comprehensive operator documentation.\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description, type, alignment)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, armor_class, hit_points_average, challenge_rating, experience_points, speed_walk, strength, dexterity, passive_perception (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)",
                 "summary": "List all monsters",
                 "tags": [
                     "Monster"
@@ -4225,12 +4311,12 @@
                     {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression. Operators: =, !=, >, >=, <, <=, AND, OR, IN. Fields: challenge_rating, type, size_code, alignment, armor_class, hit_points_average, experience_points, strength, dexterity, constitution, intelligence, wisdom, charisma, speed_walk, speed_fly, passive_perception, spell_slugs, tag_slugs, source_codes, can_hover, is_npc.",
+                        "description": "Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Fields: challenge_rating, armor_class, hit_points_average, experience_points, strength, dexterity, constitution, intelligence, wisdom, charisma, speed_walk, speed_fly, speed_swim, speed_burrow, speed_climb, passive_perception, legendary_resistance_uses, type, size_code, size_name, alignment, armor_type, slug, has_legendary_actions, has_lair_actions, is_spellcaster, has_reactions, has_legendary_resistance, has_magic_resistance, can_hover, is_npc, source_codes, tag_slugs, spell_slugs. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
                         },
-                        "example": "challenge_rating >= 10 AND spell_slugs IN [fireball]"
+                        "example": "challenge_rating >= 10 AND has_legendary_actions = true"
                     }
                 ],
                 "responses": {
@@ -4575,9 +4661,52 @@
                 }
             }
         },
-        "/v1/proficiency-types": {
+        "/v1/lookups/monster-types": {
             "get": {
-                "operationId": "proficiency-types.index",
+                "operationId": "lookups.monster-types.index",
+                "description": "Returns distinct creature types from the monsters table. These are the 15 standard\nD&D 5e creature types used for classification, spells like \"Protection from Evil\",\nand ranger favored enemies.\n\n**Examples:**\n- `GET /api/v1/lookups/monster-types` - All creature types\n\n**Standard D&D 5e Creature Types:**\n- Aberration, Beast, Celestial, Construct, Dragon\n- Elemental, Fey, Fiend, Giant, Humanoid\n- Monstrosity, Ooze, Plant, Undead\n\n**Use Cases:**\n- Ranger favored enemy selection\n- Cleric/Paladin spell targeting (Turn Undead, etc.)\n- Monster encounter filtering",
+                "summary": "List all monster types",
+                "tags": [
+                    "MonsterType"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "slug": {
+                                                        "type": "string"
+                                                    },
+                                                    "name": {}
+                                                },
+                                                "required": [
+                                                    "slug",
+                                                    "name"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/lookups/proficiency-types": {
+            "get": {
+                "operationId": "lookups.proficiency-types.index",
                 "description": "Returns a paginated list of D&D 5e proficiency types including weapons, armor, tools,\nlanguages, and skills. Supports filtering by category and subcategory (e.g., \"weapon/martial\").",
                 "summary": "List all proficiency types",
                 "tags": [
@@ -4774,9 +4903,9 @@
                 }
             }
         },
-        "/v1/proficiency-types/{proficiencyType}": {
+        "/v1/lookups/proficiency-types/{proficiencyType}": {
             "get": {
-                "operationId": "proficiency-types.show",
+                "operationId": "lookups.proficiency-types.show",
                 "description": "Returns detailed information about a specific proficiency type including category,\nsubcategory, and optional associated item.",
                 "summary": "Get a single proficiency type",
                 "tags": [
@@ -4818,9 +4947,9 @@
                 }
             }
         },
-        "/v1/proficiency-types/{proficiencyType}/classes": {
+        "/v1/lookups/proficiency-types/{proficiencyType}/classes": {
             "get": {
-                "operationId": "proficiency-types.classes",
+                "operationId": "lookups.proficiency-types.classes",
                 "description": "**Examples:**\n```bash\n# By numeric ID\nGET /api/v1/proficiency-types/flail/classes\n\n# By name (most common for proficiencies)\nGET /api/v1/proficiency-types/Longsword/classes\nGET /api/v1/proficiency-types/Stealth/classes\nGET /api/v1/proficiency-types/Heavy%20Armor/classes\n\n# With pagination\nGET /api/v1/proficiency-types/longsword/classes?per_page=25\n```\n\n**Common Proficiency Queries:**\n- **Martial Weapons:** Longsword, Greatsword, Longbow \u2192 Fighter, Paladin, Ranger, Barbarian\n- **Heavy Armor:** Plate, Chain Mail \u2192 Fighter, Paladin, Cleric (War/Forge domains)\n- **Skills:** Stealth \u2192 Rogue, Monk, Ranger | Perception \u2192 Ranger, Druid, Barbarian\n- **Tools:** Thieves' Tools \u2192 Rogue | Smith's Tools \u2192 Fighter (specific backgrounds)\n- **Languages:** Draconic \u2192 Sorcerer (Draconic Bloodline), Wizard\n\n**Use Cases:**\n- **Multiclass Planning:** \"Which classes are proficient with longswords?\" (Fighter, Paladin, etc.)\n- **Build Optimization:** \"I want heavy armor - which classes work?\" (Fighter, Paladin)\n- **Skill Coverage:** \"Which classes are proficient in Perception?\" (Rangers, Druids, Barbarians)\n- **Tool Requirements:** \"Which classes can use Thieves' Tools?\" (Rogue + specific subclasses)\n- **Character Concept:** \"I want a Draconic speaker - which classes learn Draconic?\" (Sorcerer, Wizard)\n\n**Proficiency Distribution (Typical):**\n- **Martial Weapons:** ~8-12 classes (primarily martial classes + some subclasses)\n- **Heavy Armor:** ~6-8 classes (Fighter, Paladin, Cleric domains)\n- **Skills (Stealth):** ~4-6 classes (Rogue, Monk, Ranger, Bard)\n- **Skills (Perception):** ~8-10 classes (most common skill proficiency)\n- **Tools:** ~1-3 classes (highly specialized, often background-dependent)\n- **Languages:** Varies widely (Common: all classes, Exotic: 1-2 classes)\n\n**Character Building Advice:**\n- **Weapon Proficiency Gaps:** If your class lacks martial weapon proficiency, consider:\n  - Feat: Weapon Master (gain 4 weapon proficiencies + +1 STR/DEX)\n  - Multiclass: 1 level Fighter (all weapons + armor + Fighting Style)\n  - Race: Elf/Dwarf variants grant specific weapon proficiencies\n- **Armor Proficiency Progression:** Light \u2192 Medium \u2192 Heavy (each tier requires feat/multiclass)\n- **Skill Proficiency Limits:** Classes get 2-4 skills at creation, backgrounds add 2 more\n- **Tool Proficiency Value:** Often background-dependent, but Thieves' Tools universally useful\n\n**Query Tips:**\n- Use name routing for readability: `/proficiency-types/Longsword/classes` vs `/proficiency-types/42/classes`\n- Results are alphabetically sorted for consistent browsing\n- Includes base classes AND subclasses (e.g., Eldritch Knight Fighter counts separately)\n- Check `parent_class_id` in response to distinguish base vs subclass",
                 "summary": "List all classes proficient with this proficiency type (weapon/armor/tool/skill/language)",
                 "tags": [
@@ -4877,9 +5006,9 @@
                 }
             }
         },
-        "/v1/proficiency-types/{proficiencyType}/races": {
+        "/v1/lookups/proficiency-types/{proficiencyType}/races": {
             "get": {
-                "operationId": "proficiency-types.races",
+                "operationId": "lookups.proficiency-types.races",
                 "description": "**Examples:**\n```bash\n# By numeric ID\nGET /api/v1/proficiency-types/quarterstaff/races\n\n# By name (recommended for readability)\nGET /api/v1/proficiency-types/Elvish/races\nGET /api/v1/proficiency-types/Longsword/races\nGET /api/v1/proficiency-types/Darkvision/races\n\n# With pagination\nGET /api/v1/proficiency-types/dwarven-resilience/races?per_page=10\n```\n\n**Common Racial Proficiency Queries:**\n- **Languages:** Elvish \u2192 Elf, Half-Elf | Dwarvish \u2192 Dwarf, Duergar | Draconic \u2192 Dragonborn\n- **Weapons:** Longsword, Shortsword \u2192 Elf variants | Battleaxe, Warhammer \u2192 Dwarf variants\n- **Tools:** Smith's Tools \u2192 Mountain Dwarf | Tinker's Tools \u2192 Rock Gnome\n- **Traits:** Darkvision \u2192 Dwarf, Elf, Tiefling, Half-Orc (~60% of races)\n- **Armor:** Light/Medium Armor \u2192 Specific racial variants (rare, usually Mountain Dwarf)\n\n**Use Cases:**\n- **Language Planning:** \"Which races speak Elvish?\" (Elf, Half-Elf, High Elf)\n- **Weapon Synergies:** \"I want longsword proficiency from race - which races work?\" (Elves)\n- **Tool Proficiencies:** \"Which races get Smith's Tools?\" (Mountain Dwarf)\n- **Trait Coverage:** \"Which races have Darkvision?\" (Dwarf, Elf, Tiefling, Gnome, etc.)\n- **Build Optimization:** \"I want a Fighter with elven weapon training - which elf subrace?\"\n\n**Proficiency Distribution (Typical):**\n- **Languages:** Common (all races), Elvish (~4 races), Dwarvish (~3 races), Draconic (~2 races)\n- **Weapons:** Elf variants (~3-4 races for longsword/bow), Dwarf variants (~2-3 for axes/hammers)\n- **Tools:** ~1-2 races per tool type (highly specialized)\n- **Darkvision:** ~12-15 races out of ~30 total (very common trait)\n- **Skills:** Rare as racial proficiencies (usually background-dependent)\n\n**Character Building Advice:**\n- **Stacking Proficiencies:** Elf Fighter = Longsword prof from race + all martial weapons from class\n- **Unique Combinations:** Mountain Dwarf Wizard = Medium armor prof (normally Wizard has none!)\n- **Language Optimization:** Pick race based on campaign setting (Elvish for Faerun, Draconic for dragonlands)\n- **Darkvision Value:** Critical in dungeon-heavy campaigns, less useful in urban/outdoor settings\n\n**Query Tips:**\n- Use name routing: `/proficiency-types/Elvish/races` vs `/proficiency-types/7/races`\n- Results include base races AND subraces (e.g., High Elf, Wood Elf count separately)\n- Check `parent_race_id` in response to distinguish base race vs subrace\n- Results alphabetically sorted for consistent browsing",
                 "summary": "List all races that have this proficiency type (weapon/armor/tool/skill/language/trait)",
                 "tags": [
@@ -4936,9 +5065,9 @@
                 }
             }
         },
-        "/v1/proficiency-types/{proficiencyType}/backgrounds": {
+        "/v1/lookups/proficiency-types/{proficiencyType}/backgrounds": {
             "get": {
-                "operationId": "proficiency-types.backgrounds",
+                "operationId": "lookups.proficiency-types.backgrounds",
                 "description": "**Examples:**\n```bash\n# By numeric ID\nGET /api/v1/proficiency-types/dagger/backgrounds\n\n# By name (recommended for clarity)\nGET /api/v1/proficiency-types/Stealth/backgrounds\nGET /api/v1/proficiency-types/Thieves%27%20Tools/backgrounds\nGET /api/v1/proficiency-types/Deception/backgrounds\n\n# With pagination\nGET /api/v1/proficiency-types/insight/backgrounds?per_page=15\n```\n\n**Common Background Proficiency Queries:**\n- **Skills (Social):** Deception \u2192 Charlatan, Criminal | Persuasion \u2192 Noble, Guild Artisan\n- **Skills (Stealth):** Stealth \u2192 Criminal, Urchin, Spy | Sleight of Hand \u2192 Criminal, Entertainer\n- **Skills (Knowledge):** Insight \u2192 Acolyte, Sage, Hermit | Investigation \u2192 Sage, City Watch\n- **Tools:** Thieves' Tools \u2192 Criminal, Urchin | Gaming Set \u2192 Gambler, Sailor\n- **Languages:** Most backgrounds grant 1-2 language choices (player picks from standard list)\n\n**Use Cases:**\n- **Skill Coverage:** \"I need Stealth but my class doesn't have it - which backgrounds work?\" (Criminal, Urchin)\n- **Tool Requirements:** \"Which backgrounds grant Thieves' Tools?\" (Criminal, Urchin)\n- **Role-Playing Synergy:** \"I'm playing a con artist - which backgrounds fit?\" (Charlatan, Criminal)\n- **Multiclass Optimization:** \"I need Investigation for my Detective build\" (Sage, City Watch)\n- **Campaign Fit:** \"We need a diplomat - which backgrounds grant Persuasion?\" (Noble, Guild Artisan)\n\n**Proficiency Distribution (Typical):**\n- **Skills (Stealth):** ~3-4 backgrounds (Criminal, Urchin, Spy, Urban Bounty Hunter)\n- **Skills (Persuasion):** ~4-5 backgrounds (Noble, Guild Artisan, Courtier, Entertainer)\n- **Skills (Insight):** ~5-6 backgrounds (Acolyte, Sage, Hermit, Folk Hero)\n- **Tools (Thieves' Tools):** ~2 backgrounds (Criminal, Urchin)\n- **Tools (Artisan's Tools):** ~8-10 backgrounds (Guild Artisan variants for each tool type)\n- **Languages:** Nearly all backgrounds grant 1-2 language choices\n\n**Character Building Advice:**\n- **Skill Proficiency Overlap:** If background + class both grant same skill, you can swap ONE background skill\n- **Tool Proficiency Value:** Thieves' Tools (lockpicking) > other tools for dungeon delving\n- **Language Strategy:** Pick languages based on campaign (Undercommon for Underdark, Celestial for holy campaigns)\n- **Background Variants:** Many backgrounds have official variants (e.g., Criminal \u2192 Spy, same proficiencies)\n\n**Typical Background Combinations:**\n- **Rogue + Criminal:** Double Stealth prof \u2192 swap to Perception or Insight\n- **Fighter + Soldier:** Double Athletics prof \u2192 swap to Intimidation or Survival\n- **Wizard + Sage:** Triple Intelligence skill coverage (Investigation, Arcana, History)\n- **Cleric + Acolyte:** Perfect thematic fit (Insight, Religion, holy proficiencies)\n\n**Query Tips:**\n- Use name routing for readability: `/proficiency-types/Stealth/backgrounds` vs `/proficiency-types/12/backgrounds`\n- Results alphabetically sorted for consistent navigation\n- All backgrounds are base-level (no \"sub-backgrounds\" like races/classes have)\n- Check background description for thematic fit beyond mechanical proficiencies",
                 "summary": "List all backgrounds that grant this proficiency type (skill/tool/language/equipment)",
                 "tags": [
@@ -4998,7 +5127,7 @@
         "/v1/races": {
             "get": {
                 "operationId": "races.index",
-                "description": "Returns a paginated list of D&D 5e races and subraces. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/races                                      # All races\nGET /api/v1/races?filter=size_code = M                 # Medium races\nGET /api/v1/races?filter=speed >= 35                   # Fast races (Wood Elf, etc.)\nGET /api/v1/races?q=elf                                # Full-text search for \"elf\"\nGET /api/v1/races?q=elf&filter=speed >= 35             # Search + filter combined\nGET /api/v1/races?filter=tag_slugs IN [darkvision] AND speed >= 35  # Fast races with darkvision\n```\n\n**Tag Filtering:**\n- Darkvision: `GET /api/v1/races?filter=tag_slugs IN [darkvision]`\n- Fey ancestry: `GET /api/v1/races?filter=tag_slugs IN [fey-ancestry]`\n- Innate spells: `GET /api/v1/races?filter=tag_slugs IN [innate-spellcasting]`\n\n**Filterable Fields:**\n- `size_code` (string: T, S, M, L, H, G)\n- `size_name` (string: Tiny, Small, Medium, Large, Huge, Gargantuan)\n- `speed` (int: movement speed in feet)\n- `is_subrace` (bool: true for subraces, false for base races)\n- `parent_race_name` (string: parent race name for subraces)\n- `tag_slugs` (array: darkvision, fey-ancestry, innate-spellcasting, etc.)\n- `source_codes` (array: PHB, XGE, TCoE, etc.)\n\n**Operators:**\n- Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`\n- Logic: `AND`, `OR`\n- Membership: `IN [value1, value2, ...]`\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, size name, parent race name, sources)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, speed (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)\n\n**Use Cases:**\n- Character creation: Find races with specific traits (`?filter=tag_slugs IN [innate-spellcasting]`)\n- Build optimization: Fast races (`?filter=speed >= 35`)\n- Source filtering: Races from specific books (`?filter=source_codes IN [XGE]`)\n\n**Data Source:**\n- 21 racial spell relationships across 13 races with innate spellcasting\n- Examples: Drow (Dancing Lights, Faerie Fire, Darkness), Tiefling (Thaumaturgy, Hellish Rebuke), Eladrin (Misty Step)\n\n**Related Endpoints:**\n- `GET /api/v1/races/{id}/spells` - Get all innate spells for a specific race\n- `GET /api/v1/spells/{id}/races` - Get all races that know a specific spell",
+                "description": "Returns a paginated list of 115 D&D 5e races and subraces. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/races                                              # All races\nGET /api/v1/races?filter=ability_int_bonus >= 2                # Wizard races (High Elf, Gnome)\nGET /api/v1/races?filter=ability_dex_bonus >= 2                # Rogue races (Wood Elf, Lightfoot Halfling)\nGET /api/v1/races?filter=ability_str_bonus >= 1 AND ability_con_bonus >= 1  # Barbarian races\nGET /api/v1/races?filter=speed >= 35                           # Fast races (35 ft)\nGET /api/v1/races?filter=tag_slugs IN [darkvision]             # Races with darkvision\nGET /api/v1/races?q=elf&filter=ability_dex_bonus >= 1          # Search + filter combined\n```\n\n**Filterable Fields by Data Type:**\n\n**Integer Fields** (Operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `TO`):\n- `id` (int): Race ID\n- `speed` (int): Base walking speed in feet (typically 25-35)\n  - Examples: `speed = 30`, `speed >= 35`, `speed 25 TO 35`\n- **`ability_str_bonus` (0-2)**: Strength bonus for martial characters\n  - Examples: `ability_str_bonus >= 2` (Mountain Dwarf, Dragonborn), `ability_str_bonus >= 1` (Half-Orc)\n- **`ability_dex_bonus` (0-2)**: Dexterity bonus for rogues, rangers, monks\n  - Examples: `ability_dex_bonus >= 2` (Wood Elf, Lightfoot Halfling, Goblin), `ability_dex_bonus = 1`\n- **`ability_con_bonus` (0-2)**: Constitution bonus for durability\n  - Examples: `ability_con_bonus >= 2` (Hill Dwarf, Stout Halfling), `ability_con_bonus >= 1`\n- **`ability_int_bonus` (0-2)**: Intelligence bonus for wizards, artificers\n  - Examples: `ability_int_bonus >= 2` (High Elf, Gnome), `ability_int_bonus >= 1` (Tiefling)\n- **`ability_wis_bonus` (0-2)**: Wisdom bonus for clerics, druids, rangers\n  - Examples: `ability_wis_bonus >= 2` (Firbolg, Kalashtar), `ability_wis_bonus >= 1` (Wood Elf, Hill Dwarf)\n- **`ability_cha_bonus` (0-2)**: Charisma bonus for bards, sorcerers, warlocks, paladins\n  - Examples: `ability_cha_bonus >= 2` (Half-Elf, Tiefling, Dragonborn), `ability_cha_bonus >= 1` (Drow, Changeling)\n\n**String Fields** (Operators: `=`, `!=`):\n- `slug` (string): URL-friendly identifier\n  - Examples: `slug = high-elf`, `slug != human`\n- `size_code` (string): Size code (T, S, M, L, H, G)\n  - Examples: `size_code = M`, `size_code = S`\n- `size_name` (string): Size name (Tiny, Small, Medium, Large, Huge, Gargantuan)\n  - Examples: `size_name = Medium`, `size_name = Small`\n- `parent_race_name` (string): Parent race name for subraces\n  - Examples: `parent_race_name = Elf`, `parent_race_name = Dwarf`\n\n**Boolean Fields** (Operators: `=`, `!=`, `IS NULL`, `EXISTS`):\n- `is_subrace` (bool): Whether this is a subrace\n  - Examples: `is_subrace = true`, `is_subrace = false`\n- `has_innate_spells` (bool): Whether race grants innate spellcasting\n  - Examples: `has_innate_spells = true`, `has_innate_spells = false`\n\n**Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):\n- `source_codes` (array): Source book codes (PHB, XGE, TCoE, etc.)\n  - Examples: `source_codes IN [PHB, XGE]`, `source_codes NOT IN [UA]`\n- `tag_slugs` (array): Trait tags (darkvision, fey-ancestry, innate-spellcasting, etc.)\n  - Examples: `tag_slugs IN [darkvision]`, `tag_slugs IN [fey-ancestry, innate-spellcasting]`\n- `spell_slugs` (array): Innate spell slugs (13 races have innate spells)\n  - Examples: `spell_slugs IN [misty-step]`, `spell_slugs IN [dancing-lights, faerie-fire, darkness]`\n\n**Complex Filter Examples:**\n- Wizard races: `?filter=ability_int_bonus >= 2`\n- Barbarian races: `?filter=ability_str_bonus >= 1 AND ability_con_bonus >= 1`\n- Rogue/Dex races: `?filter=ability_dex_bonus >= 2`\n- Charisma casters: `?filter=ability_cha_bonus >= 2`\n- Fast darkvision races: `?filter=speed >= 35 AND tag_slugs IN [darkvision]`\n- Races with teleportation: `?filter=spell_slugs IN [misty-step]`\n- Medium-sized races with +2 Dex: `?filter=size_code = M AND ability_dex_bonus >= 2`\n- Base races only: `?filter=is_subrace = false`\n- Subraces of Elf: `?filter=parent_race_name = Elf`\n\n**Operator Reference:**\nSee `docs/MEILISEARCH-FILTER-OPERATORS.md` for comprehensive operator documentation.\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, size name, parent race name)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, speed, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)",
                 "summary": "List all races and subraces",
                 "tags": [
                     "Race"
@@ -5061,12 +5190,12 @@
                     {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN. Available fields: size_code (string: T, S, M, L, H, G), size_name (string), speed (int), is_subrace (bool), parent_race_name (string), tag_slugs (array), source_codes (array).",
+                        "description": "Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). See docs/MEILISEARCH-FILTER-OPERATORS.md for details.",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
                         },
-                        "example": "speed >= 30 AND tag_slugs IN [darkvision]"
+                        "example": "ability_int_bonus >= 2 AND speed >= 30"
                     }
                 ],
                 "responses": {
@@ -5369,6 +5498,49 @@
                 }
             }
         },
+        "/v1/lookups/rarities": {
+            "get": {
+                "operationId": "lookups.rarities.index",
+                "description": "Returns distinct rarities from the items table. These represent the relative\npower and availability of magic items in D&D 5e.\n\n**Examples:**\n- `GET /api/v1/lookups/rarities` - All rarities\n\n**Standard D&D 5e Rarities (in order):**\n- Common (minor magic items, readily available)\n- Uncommon (low-level adventurer items)\n- Rare (mid-level items, require attunement often)\n- Very Rare (powerful items, limited availability)\n- Legendary (extremely powerful, unique items)\n- Artifact (world-changing items, plot devices)\n\n**Use Cases:**\n- Magic item shop filtering\n- Treasure hoard generation\n- Character progression planning",
+                "summary": "List all item rarities",
+                "tags": [
+                    "Rarity"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "slug": {
+                                                        "type": "string"
+                                                    },
+                                                    "name": {}
+                                                },
+                                                "required": [
+                                                    "slug",
+                                                    "name"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/search": {
             "get": {
                 "operationId": "search",
@@ -5450,9 +5622,9 @@
                 }
             }
         },
-        "/v1/sizes": {
+        "/v1/lookups/sizes": {
             "get": {
-                "operationId": "sizes.index",
+                "operationId": "lookups.sizes.index",
                 "description": "Returns a paginated list of D&D 5e creature sizes (Tiny, Small, Medium, Large, Huge, Gargantuan).\nUsed to categorize creatures, races, and determine space occupied in combat.",
                 "summary": "List all creature sizes",
                 "tags": [
@@ -5633,9 +5805,9 @@
                 }
             }
         },
-        "/v1/sizes/{size}": {
+        "/v1/lookups/sizes/{size}": {
             "get": {
-                "operationId": "sizes.show",
+                "operationId": "lookups.sizes.show",
                 "description": "Returns detailed information about a specific creature size including its space\nrequirements and rules implications.",
                 "summary": "Get a single size category",
                 "tags": [
@@ -5677,9 +5849,9 @@
                 }
             }
         },
-        "/v1/sizes/{size}/races": {
+        "/v1/lookups/sizes/{size}/races": {
             "get": {
-                "operationId": "sizes.races",
+                "operationId": "lookups.sizes.races",
                 "description": "Returns a paginated list of playable and monster races that are of the specified size.\nSize affects combat mechanics, grappling rules, mounted combat, and dungeon navigation.\n\n**Examples:**\n```bash\n# By code (T=Tiny, S=Small, M=Medium, L=Large, H=Huge, G=Gargantuan)\nGET /api/v1/sizes/S/races      # Small races\nGET /api/v1/sizes/M/races      # Medium races\nGET /api/v1/sizes/T/races?per_page=25\n```\n\n**Size Categories & Common Races:**\n- **Tiny (1):** No playable races, some monster templates\n- **Small (2):** Halfling, Gnome, Kobold, Goblin (~22 races total)\n  - Popular for Rogue/Ranger builds (stealth bonus)\n  - Can ride Medium creatures as mounts\n  - Disadvantage with Heavy weapons\n- **Medium (3):** Human, Elf, Dwarf, Half-Elf, Tiefling, most races (~93 races total)\n  - Standard size for most player characters\n  - No size-based combat restrictions\n  - Can be mounts for Small creatures\n- **Large (4):** Centaur, Minotaur (rare playable races)\n  - Powerful melee builds\n  - Cannot fit through standard doors (5ft width)\n  - Can grapple Huge creatures\n- **Huge (5) & Gargantuan (6):** Monster-only sizes (no playable races)\n\n**Use Cases:**\n- **Race selection:** \"I want to play a Small character for stealth and mounted combat builds\"\n- **Mechanical planning:** Small races can ride Medium creatures (find a wolf companion!)\n- **Grappling optimization:** Can only grapple targets within one size category of you\n- **Dungeon design awareness:** Small races fit through 2.5ft spaces, Large+ struggle with doors\n- **Party composition:** Ensure size diversity for tactical advantages\n\n**Combat Mechanics by Size:**\n- **Small creatures:**\n  - Disadvantage on attack rolls with Heavy weapons (greatsword, maul)\n  - Can move through spaces of Medium or larger creatures (squeeze rules)\n  - Can ride Medium creatures as mounts (mounted combat synergy)\n  - Take up 5ft \u00d7 5ft space (same as Medium)\n  - Can fit through 2.5ft wide spaces without squeezing\n- **Medium creatures:**\n  - No size-based restrictions (standard baseline)\n  - Can grapple Small to Large creatures\n  - Can serve as mounts for Small creatures\n  - Take up 5ft \u00d7 5ft space\n- **Large+ creatures:**\n  - Take up 10ft \u00d7 10ft space (Large), 15ft \u00d7 15ft (Huge), 20ft \u00d7 20ft (Gargantuan)\n  - Reach weapons extend control zones\n  - Cannot fit through standard 5ft doorways\n  - Powerful grappling potential (can grapple Huge creatures as Large)\n\n**Grappling Rules by Size:**\n- Can only grapple creatures within **one size category** of you\n- Small creature can grapple: Tiny or Small\n- Medium creature can grapple: Small, Medium, or Large\n- Large creature can grapple: Medium, Large, or Huge\n- **Use case:** \"Which Small races can I play if I want to grapple Small enemies?\"\n\n**Mounted Combat Rules:**\n- Mount must be **one size category larger** than rider\n- Small creatures can ride Medium mounts (ponies, wolves, mastiffs)\n- Medium creatures can ride Large mounts (horses, camels, elk)\n- **Use case:** \"Which Small races can I play for a mounted Rogue build?\"\n\n**Space & Movement:**\n- Small/Medium: 5ft \u00d7 5ft space (1 square)\n- Large: 10ft \u00d7 10ft space (4 squares)\n- Huge: 15ft \u00d7 15ft space (9 squares)\n- Gargantuan: 20ft \u00d7 20ft space (16 squares)\n- **Squeezing:** Can squeeze through spaces half your width at half speed (Small through 1.25ft)",
                 "summary": "List all races of this size category",
                 "tags": [
@@ -5850,9 +6022,9 @@
                 }
             }
         },
-        "/v1/sizes/{size}/monsters": {
+        "/v1/lookups/sizes/{size}/monsters": {
             "get": {
-                "operationId": "sizes.monsters",
+                "operationId": "lookups.sizes.monsters",
                 "description": "Returns a paginated list of monsters that are of the specified size.\nSize affects encounter balance, tactics, space control, and environmental challenges.\n\n**Examples:**\n```bash\n# By code (T=Tiny, S=Small, M=Medium, L=Large, H=Huge, G=Gargantuan)\nGET /api/v1/sizes/T/monsters     # Tiny monsters\nGET /api/v1/sizes/L/monsters     # Large monsters\nGET /api/v1/sizes/H/monsters?per_page=25  # Huge monsters\n```\n\n**Size Categories & Common Monsters:**\n- **Tiny (1):** Sprites, Imps, Flying Snakes, Cranium Rats (~55 monsters)\n  - Often swarms or scouts\n  - High stealth potential\n  - Low HP, used in large groups\n  - CR range: 0-4 (some exceptions)\n- **Small (2):** Goblins, Kobolds, Pixies, Stirges (~49 monsters)\n  - Common low-level threats\n  - Pack tactics frequent\n  - CR range: 0-8\n- **Medium (3):** Humans, Orcs, Zombies, Bugbears, most humanoids (~280 monsters)\n  - Largest category (47% of all monsters)\n  - CR range: 0-30 (Ancient Vampire)\n  - Includes iconic threats like Beholders, Mind Flayers\n- **Large (4):** Ogres, Ettins, Young Dragons, Owlbears (~151 monsters)\n  - Serious combat threats\n  - 10ft reach common\n  - CR range: 1-22 (Adult Dragons)\n- **Huge (5):** Giants, Adult Dragons, Purple Worms (~47 monsters)\n  - Boss-tier enemies\n  - Space control dominance\n  - CR range: 4-24 (Ancient Dragons)\n- **Gargantuan (6):** Ancient Dragons, Krakens, Tarrasque (~16 monsters)\n  - Legendary encounters\n  - World-ending threats\n  - CR range: 10-30 (Tarrasque)\n\n**Use Cases:**\n- **Encounter building:** \"I need Large creatures for a CR 5 encounter in a 30ft \u00d7 30ft room\"\n- **Tactical planning:** \"Which Huge monsters can't fit through this 10ft tunnel?\" (All of them!)\n- **Boss selection:** \"Give me all Gargantuan monsters for a campaign finale\" (16 options)\n- **Environmental challenges:** \"Which monsters can squeeze through tight spaces?\" (Tiny/Small)\n- **Space control:** \"Which Large monsters have 10ft reach?\" (filter by size, check actions)\n\n**Combat Tactics by Monster Size:**\n- **Tiny/Small monsters:**\n  - Use in swarms (5-10 creatures)\n  - Focus on mobility and stealth\n  - Gang up for Pack Tactics advantage\n  - Easy to hit (low AC typical) but numerous\n- **Medium monsters:**\n  - Standard 5ft reach, 5ft \u00d7 5ft space\n  - Most versatile size for varied tactics\n  - Can navigate any terrain\n- **Large monsters:**\n  - Often 10ft reach (control 24 squares!)\n  - Block doorways and corridors\n  - 4\u00d7 space of Medium (tactical positioning critical)\n  - Grapple up to Huge creatures\n- **Huge monsters:**\n  - 15ft reach possible (control 48 squares!)\n  - Dominate battlefield positioning\n  - Cannot fit through 10ft doors\n  - Legendary boss-tier threats\n- **Gargantuan monsters:**\n  - 20ft reach typical (control 80+ squares!)\n  - Outdoor-only encounters (can't fit in dungeons)\n  - Siege-scale threats\n  - Legendary Actions almost guaranteed\n\n**Encounter Design Considerations:**\n- **Space required:** Large needs 10ft \u00d7 10ft, Huge needs 15ft \u00d7 15ft, Gargantuan needs 20ft \u00d7 20ft\n- **Reach zones:** Large creatures with 10ft reach control massive areas (don't bunch up!)\n- **Terrain challenges:** Huge+ creatures can't fit through standard dungeon corridors (10ft wide)\n- **Grappling threat:** Large+ monsters can grapple and restrain Medium PCs easily\n- **Action economy:** Use multiple Small/Medium monsters vs single Large+ for balance\n\n**CR Distribution by Size:**\n- Tiny: Mostly CR 0-4 (swarm fodder, scouts)\n- Small: CR 0-8 (goblinoids, common threats)\n- Medium: CR 0-30 (full range, most versatile)\n- Large: CR 1-22 (mid-tier bosses, dragons)\n- Huge: CR 4-24 (high-tier bosses, ancient dragons)\n- Gargantuan: CR 10-30 (legendary encounters only)\n\n**Environmental Constraints:**\n- **Standard door:** 5ft wide (Large+ squeeze, Huge+ cannot fit)\n- **Wide corridor:** 10ft wide (Huge+ squeeze, Gargantuan cannot fit)\n- **Cavern/outdoor:** Only limitation is Gargantuan (20ft \u00d7 20ft minimum)\n- **Flying creatures:** Size matters less (can maneuver in 3D space)",
                 "summary": "List all monsters of this size category",
                 "tags": [
@@ -6023,9 +6195,9 @@
                 }
             }
         },
-        "/v1/skills": {
+        "/v1/lookups/skills": {
             "get": {
-                "operationId": "skills.index",
+                "operationId": "lookups.skills.index",
                 "description": "Returns a paginated list of D&D 5e skills (Acrobatics, Stealth, Perception, etc.).\nSupports filtering by associated ability score (e.g., \"dex\", \"wis\").",
                 "summary": "List all D&D skills",
                 "tags": [
@@ -6214,9 +6386,9 @@
                 }
             }
         },
-        "/v1/skills/{skill}": {
+        "/v1/lookups/skills/{skill}": {
             "get": {
-                "operationId": "skills.show",
+                "operationId": "lookups.skills.show",
                 "description": "Returns detailed information about a specific D&D skill including its associated\nability score (Strength, Dexterity, etc.).",
                 "summary": "Get a single skill",
                 "tags": [
@@ -6258,9 +6430,9 @@
                 }
             }
         },
-        "/v1/sources": {
+        "/v1/lookups/sources": {
             "get": {
-                "operationId": "sources.index",
+                "operationId": "lookups.sources.index",
                 "description": "Returns a paginated list of D&D 5e sourcebooks (PHB, Xanathar's, Tasha's, etc.).\nSupports searching by name or code (e.g., \"PHB\", \"XGE\").",
                 "summary": "List all D&D sourcebooks",
                 "tags": [
@@ -6441,9 +6613,9 @@
                 }
             }
         },
-        "/v1/sources/{source}": {
+        "/v1/lookups/sources/{source}": {
             "get": {
-                "operationId": "sources.show",
+                "operationId": "lookups.sources.show",
                 "description": "Returns detailed information about a specific D&D sourcebook including its full name,\ncode abbreviation, and publication date.",
                 "summary": "Get a single sourcebook",
                 "tags": [
@@ -6488,7 +6660,7 @@
         "/v1/spells": {
             "get": {
                 "operationId": "spells.index",
-                "description": "Returns a paginated list of 477 D&D 5e spells. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/spells                                    # All spells\nGET /api/v1/spells?filter=level = 0                   # Cantrips (44 spells)\nGET /api/v1/spells?filter=level <= 3                  # Low-level spells\nGET /api/v1/spells?filter=school_code = EV            # Evocation spells\nGET /api/v1/spells?filter=class_slugs IN [bard]       # Bard spells (147 spells)\nGET /api/v1/spells?filter=concentration = true        # Concentration spells\nGET /api/v1/spells?q=fire                             # Full-text search for \"fire\"\nGET /api/v1/spells?q=fire&filter=level <= 3           # Search + filter combined\nGET /api/v1/spells?filter=class_slugs IN [bard] AND level <= 3   # Low-level bard spells\n```\n\n**Damage Type Filtering:**\n- Fire damage: `GET /api/v1/spells?filter=damage_types IN [F]`\n- Force or radiant: `GET /api/v1/spells?filter=damage_types IN [O, R]`\n- Fire cantrips: `GET /api/v1/spells?filter=damage_types IN [F] AND level = 0`\n- Utility spells (no damage): `GET /api/v1/spells?filter=damage_types IS EMPTY`\n\n**Saving Throw Filtering:**\n- DEX saves: `GET /api/v1/spells?filter=saving_throws IN [DEX]`\n- WIS or CHA saves: `GET /api/v1/spells?filter=saving_throws IN [WIS, CHA]`\n- Auto-hit spells (no saves): `GET /api/v1/spells?filter=saving_throws IS EMPTY`\n\n**Component Filtering:**\n- Castable in Silence (no verbal): `GET /api/v1/spells?filter=requires_verbal = false`\n- Castable while grappled (no somatic): `GET /api/v1/spells?filter=requires_somatic = false`\n- Subtle Spell candidates: `GET /api/v1/spells?filter=requires_verbal = false AND requires_somatic = false`\n- No components needed: `GET /api/v1/spells?filter=requires_verbal = false AND requires_somatic = false AND requires_material = false`\n\n**Filterable Fields:**\n- `level` (0-9), `school_code` (EV, EN, AB, C, D, I, N, T), `school_name`\n- `concentration` (bool), `ritual` (bool)\n- `class_slugs` (array: wizard, cleric, bard, druid, etc.)\n- `tag_slugs` (array: ritual-caster, touch-spells, etc.) - Only 22% of spells have tags\n- `source_codes` (array: PHB, XGE, TCoE, etc.)\n- `damage_types` (array: F, C, O, etc.)\n- `saving_throws` (array: STR, DEX, CON, INT, WIS, CHA)\n- `requires_verbal`, `requires_somatic`, `requires_material` (bool)\n\n**Operators:**\n- Comparison: `=`, `!=`, `>`, `>=`, `<`, `<=`\n- Logic: `AND`, `OR`\n- Membership: `IN [value1, value2, ...]`\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, level, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)",
+                "description": "Returns a paginated list of 477 D&D 5e spells. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/spells                                    # All spells\nGET /api/v1/spells?filter=level = 0                   # Cantrips (44 spells)\nGET /api/v1/spells?filter=level <= 3                  # Low-level spells\nGET /api/v1/spells?filter=school_code = EV            # Evocation spells\nGET /api/v1/spells?filter=class_slugs IN [bard]       # Bard spells (147 spells)\nGET /api/v1/spells?filter=concentration = true        # Concentration spells\nGET /api/v1/spells?q=fire                             # Full-text search for \"fire\"\nGET /api/v1/spells?q=fire&filter=level <= 3           # Search + filter combined\n```\n\n**Filterable Fields by Data Type:**\n\n**Integer Fields** (Operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `TO`):\n- `id` (int): Spell ID\n- `level` (0-9): Spell level (0 = cantrip)\n  - Examples: `level = 3`, `level >= 5`, `level 1 TO 5`\n\n**String Fields** (Operators: `=`, `!=`):\n- `school_code` (string): Two-letter spell school code (EV, EN, AB, C, D, I, N, T)\n  - Examples: `school_code = EV`, `school_code != EV`\n- `school_name` (string): Full spell school name (Evocation, Enchantment, etc.)\n- `casting_time`, `range`, `duration` (string): Descriptive text fields\n\n**Boolean Fields** (Operators: `=`, `!=`, `IS NULL`, `EXISTS`):\n- `concentration` (bool): Requires concentration\n  - Examples: `concentration = true`, `concentration = false`\n- `ritual` (bool): Can be cast as ritual\n- `requires_verbal` (bool): Requires verbal component (castable in Silence when false)\n- `requires_somatic` (bool): Requires somatic component (castable while grappled when false)\n- `requires_material` (bool): Requires material component\n\n**Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):\n- `class_slugs` (array): Class slugs that can learn this spell\n  - Examples: `class_slugs IN [wizard, sorcerer]`, `class_slugs NOT IN [wizard]`\n- `tag_slugs` (array): Tag slugs (Note: Only 22% of spells have tags)\n  - Examples: `tag_slugs IN [fire]`, `tag_slugs IS EMPTY`\n- `source_codes` (array): Source book codes (PHB, XGE, TCoE, etc.)\n  - Examples: `source_codes IN [PHB, XGE]`, `source_codes NOT IN [UA]`\n- `damage_types` (array): Damage type codes (F=Fire, C=Cold, O=Force, etc.)\n  - Examples: `damage_types IN [F]`, `damage_types IS EMPTY` (utility spells)\n- `saving_throws` (array): Ability codes (STR, DEX, CON, INT, WIS, CHA)\n  - Examples: `saving_throws IN [DEX]`, `saving_throws IS EMPTY` (auto-hit spells)\n- `effect_types` (array): Effect type strings\n\n**Complex Filter Examples:**\n- Range query: `?filter=level >= 3 AND level <= 5` OR `?filter=level 3 TO 5`\n- Multiple conditions: `?filter=class_slugs IN [wizard] AND level <= 3 AND concentration = true`\n- Array membership: `?filter=damage_types IN [F, C] AND level > 0`\n- Empty arrays: `?filter=damage_types IS EMPTY` (utility spells with no damage)\n- Subtle Spell candidates: `?filter=requires_verbal = false AND requires_somatic = false`\n\n**Operator Reference:**\nSee `docs/MEILISEARCH-FILTER-OPERATORS.md` for comprehensive operator documentation.\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, level, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)",
                 "summary": "List all spells",
                 "tags": [
                     "Spell"
@@ -6550,12 +6722,12 @@
                     {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression for advanced filtering. Supports operators: =, !=, >, >=, <, <=, AND, OR, IN, IS EMPTY. Available fields: level (int), school_code/school_name (string), concentration/ritual (bool), class_slugs/tag_slugs/source_codes (array), damage_types (array: F, C, O, etc.), saving_throws (array: STR, DEX, CON, INT, WIS, CHA), requires_verbal/requires_somatic/requires_material (bool).",
+                        "description": "Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). See docs/MEILISEARCH-FILTER-OPERATORS.md for details.",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
                         },
-                        "example": "damage_types IN [F] AND level <= 3"
+                        "example": "level >= 3 AND class_slugs IN [wizard]"
                     }
                 ],
                 "responses": {
@@ -7017,9 +7189,9 @@
                 }
             }
         },
-        "/v1/spell-schools": {
+        "/v1/lookups/spell-schools": {
             "get": {
-                "operationId": "spell-schools.index",
+                "operationId": "lookups.spell-schools.index",
                 "description": "Returns a paginated list of the 8 schools of magic in D&D 5e (Abjuration, Conjuration,\nDivination, Enchantment, Evocation, Illusion, Necromancy, Transmutation).",
                 "summary": "List all schools of magic",
                 "tags": [
@@ -7200,9 +7372,9 @@
                 }
             }
         },
-        "/v1/spell-schools/{spellSchool}": {
+        "/v1/lookups/spell-schools/{spellSchool}": {
             "get": {
-                "operationId": "spell-schools.show",
+                "operationId": "lookups.spell-schools.show",
                 "description": "Returns detailed information about a specific school of magic including its name\nand associated spells.",
                 "summary": "Get a single school of magic",
                 "tags": [
@@ -7244,9 +7416,9 @@
                 }
             }
         },
-        "/v1/spell-schools/{spellSchool}/spells": {
+        "/v1/lookups/spell-schools/{spellSchool}/spells": {
             "get": {
-                "operationId": "spell-schools.spells",
+                "operationId": "lookups.spell-schools.spells",
                 "description": "Returns a paginated list of spells belonging to a specific school of magic.\nSupports all spell fields including level, concentration, ritual, damage types,\nsaving throws, and component requirements.\n\n**Basic Examples:**\n- Evocation spells: `GET /api/v1/spell-schools/evocation/spells`\n- Evocation by ID: `GET /api/v1/spell-schools/3/spells`\n- Evocation by code: `GET /api/v1/spell-schools/EV/spells`\n- Pagination: `GET /api/v1/spell-schools/evocation/spells?per_page=25&page=2`\n\n**School-Specific Use Cases:**\n- Damage dealers (Evocation): Direct damage spells (Fireball, Magic Missile, Lightning Bolt)\n- Mind control (Enchantment): Charm Person, Dominate Monster, Suggestion\n- Buffs & debuffs (Transmutation): Haste, Slow, Polymorph, Enlarge/Reduce\n- Information gathering (Divination): Detect Magic, Scrying, Identify\n- Defense (Abjuration): Shield, Counterspell, Dispel Magic, Protection spells\n- Summoning (Conjuration): Summon spells, Create Food and Water, Teleport\n- Trickery (Illusion): Invisibility, Mirror Image, Silent Image, Disguise Self\n- Undead & life force (Necromancy): Animate Dead, Vampiric Touch, Speak with Dead\n\n**Character Building:**\n- Wizard school specialization (pick one school to focus on)\n- Spell selection optimization (identify your school's best spells)\n- Thematic spellcasting (pure Evocation blaster, pure Enchantment controller)\n\n**Reference Data:**\n- 8 schools of magic in D&D 5e\n- Total: 477 spells across all schools\n- Evocation: ~60 spells (largest school, damage-focused)\n- Enchantment: ~40 spells (mind-affecting)\n- Transmutation: ~55 spells (versatile utility)\n- Conjuration: ~45 spells (summoning & teleportation)",
                 "summary": "List all spells in this school of magic",
                 "tags": [
@@ -7413,6 +7585,39 @@
                     },
                     "404": {
                         "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/v1/lookups/tags": {
+            "get": {
+                "operationId": "lookups.tags.index",
+                "description": "Returns all tags used in the system, ordered by name. Tags are used to categorize\nspells (e.g., \"Ritual\", \"Concentration\"), items, monsters, and other entities.\n\n**Examples:**\n- `GET /api/v1/lookups/tags` - All tags\n- `GET /api/v1/lookups/tags?type=spell` - Tags of a specific type\n\n**Common Tag Types:**\n- Spell tags: \"Ritual\", \"Concentration\", \"Healing\", \"Damage\"\n- Item tags: \"Magic\", \"Consumable\", \"Weapon\", \"Armor\"\n- Monster tags: \"Legendary\", \"Lair Actions\", \"Shapechanger\"",
+                "summary": "List all tags",
+                "tags": [
+                    "Tag"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `TagResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/TagResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -9596,6 +9801,16 @@
                             "null"
                         ]
                     },
+                    "requires_verbal": {
+                        "type": "boolean",
+                        "description": "Component breakdown (computed from components string)"
+                    },
+                    "requires_somatic": {
+                        "type": "boolean"
+                    },
+                    "requires_material": {
+                        "type": "boolean"
+                    },
                     "sources": {
                         "type": "array",
                         "items": {
@@ -9646,7 +9861,10 @@
                     "needs_concentration",
                     "is_ritual",
                     "description",
-                    "higher_levels"
+                    "higher_levels",
+                    "requires_verbal",
+                    "requires_somatic",
+                    "requires_material"
                 ],
                 "title": "SpellResource"
             },

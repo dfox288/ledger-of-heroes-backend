@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Optional Features Entity**: Complete new entity for D&D 5e optional features (invocations, maneuvers, metamagic, etc.)
+  - **147 optional features** across 8 types: Eldritch Invocations (54), Elemental Disciplines (17), Maneuvers (23), Metamagic (10), Fighting Styles (13), Artificer Infusions (16), Runes (6), Arcane Shots (8)
+  - **New Commands**: `import:optional-features` for single file, integrated into `import:all`
+  - **New Endpoints**:
+    - `GET /api/v1/optional-features` - List with full Meilisearch filtering
+    - `GET /api/v1/optional-features/{slug}` - Single feature details
+    - `GET /api/v1/lookups/optional-feature-types` - Enum values for dropdown
+  - **Filterable Fields**: feature_type, level_requirement, resource_cost, has_spell_mechanics, class_slugs, subclass_names, source_codes, tag_slugs
+  - **New Models**: `OptionalFeature`, `ClassOptionalFeature` (pivot)
+  - **New Enums**: `OptionalFeatureType`, `ResourceType`
+  - **CharacterClass Integration**:
+    - New `optionalFeatures` relationship on CharacterClass
+    - ClassResource now includes optional_features when loaded
+    - Meilisearch index includes has_optional_features, optional_feature_count, optional_feature_types
+  - **Tests**: 36 new tests (18 model, 18 factory) with 127 assertions
+  - **Parser Features**:
+    - Parses both `<spell>` and `<feat>` XML formats
+    - Detects feature type from name prefix (e.g., "Invocation:", "Maneuver:")
+    - Extracts prerequisite text and level requirements
+    - Parses resource costs from `<components>` tag (ki points, sorcery points, etc.)
+    - Extracts spell-like properties (casting time, range, duration, school)
+  - **Files**: 3 XML source files (optionalfeatures-phb.xml, -xge.xml, -tce.xml)
+
 ### Changed
 
 - **Lookup API Restructure**: Moved all lookup/reference endpoints under `/api/v1/lookups/` prefix

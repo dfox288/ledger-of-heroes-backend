@@ -3,23 +3,17 @@
 namespace App\Services\Importers\Strategies\Monster;
 
 use App\Models\Monster;
+use App\Services\Importers\Strategies\AbstractImportStrategy;
 
-abstract class AbstractMonsterStrategy
+abstract class AbstractMonsterStrategy extends AbstractImportStrategy
 {
     /**
-     * Warnings generated during strategy application.
+     * Not used by MonsterImporter - uses enhanceTraits/enhanceActions instead.
      */
-    protected array $warnings = [];
-
-    /**
-     * Metrics tracked during strategy application.
-     */
-    protected array $metrics = [];
-
-    /**
-     * Determine if this strategy applies to the given monster data.
-     */
-    abstract public function appliesTo(array $monsterData): bool;
+    public function enhance(array $data): array
+    {
+        return $data;
+    }
 
     /**
      * Apply type-specific enhancements to parsed traits.
@@ -56,21 +50,12 @@ abstract class AbstractMonsterStrategy
     /**
      * Post-creation hook for additional relationship syncing
      * (e.g., SpellcasterStrategy syncs spells).
+     *
+     * @param  Monster  $entity
      */
-    public function afterCreate(Monster $monster, array $monsterData): void
+    public function afterCreate(\Illuminate\Database\Eloquent\Model $entity, array $data): void
     {
         // Override in strategies that need post-creation work
-    }
-
-    /**
-     * Extract metadata for logging and statistics.
-     */
-    public function extractMetadata(array $monsterData): array
-    {
-        return [
-            'warnings' => $this->warnings,
-            'metrics' => $this->metrics,
-        ];
     }
 
     /**
@@ -85,43 +70,6 @@ abstract class AbstractMonsterStrategy
         }
 
         return 1; // Default cost
-    }
-
-    /**
-     * Add a warning message.
-     */
-    protected function addWarning(string $message): void
-    {
-        $this->warnings[] = $message;
-    }
-
-    /**
-     * Increment a metric counter.
-     */
-    protected function incrementMetric(string $key, int $amount = 1): void
-    {
-        if (! isset($this->metrics[$key])) {
-            $this->metrics[$key] = 0;
-        }
-
-        $this->metrics[$key] += $amount;
-    }
-
-    /**
-     * Set a metric value.
-     */
-    protected function setMetric(string $key, mixed $value): void
-    {
-        $this->metrics[$key] = $value;
-    }
-
-    /**
-     * Reset warnings and metrics (called before processing each monster).
-     */
-    public function reset(): void
-    {
-        $this->warnings = [];
-        $this->metrics = [];
     }
 
     /**

@@ -15,13 +15,16 @@ class SpellcasterStrategy extends AbstractMonsterStrategy
         return isset($monsterData['spells']) && ! empty($monsterData['spells']);
     }
 
-    public function afterCreate(Monster $monster, array $monsterData): void
+    /**
+     * @param  Monster  $entity
+     */
+    public function afterCreate(\Illuminate\Database\Eloquent\Model $entity, array $data): void
     {
-        if (empty($monsterData['spells'])) {
+        if (empty($data['spells'])) {
             return;
         }
 
-        $this->syncSpells($monster, $monsterData['spells']);
+        $this->syncSpells($entity, $data['spells']);
     }
 
     public function extractMetadata(array $monsterData): array

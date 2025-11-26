@@ -24,7 +24,7 @@ class ImportMonsters extends Command
         $this->info("Importing monsters from: {$filePath}");
 
         try {
-            $result = $importer->import($filePath);
+            $result = $importer->importWithStats($filePath);
             $this->info("✓ Successfully imported {$result['total']} monsters");
 
             // Display strategy statistics

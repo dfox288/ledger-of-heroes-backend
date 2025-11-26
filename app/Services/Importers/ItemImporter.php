@@ -28,6 +28,10 @@ class ItemImporter extends BaseImporter
     use ImportsModifiers;
     use ImportsPrerequisites;
     use ImportsRandomTablesFromText;
+
+    // Note: These parser traits parse description TEXT (not XML) after item creation.
+    // They extract spell references and saving throw requirements from the item's
+    // description field. This is distinct from XML parsing (handled by ItemXmlParser).
     use ParsesItemSavingThrows;
     use ParsesItemSpells;
 
@@ -211,9 +215,16 @@ class ItemImporter extends BaseImporter
         $this->importEntitySpells($item, $spellsData);
     }
 
+    /**
+     * Import spells by parsing them from item description text.
+     *
+     * Note: This is a FALLBACK method used when the strategy doesn't provide
+     * pre-parsed spell references. It parses spell names and charge costs from
+     * the description text (not XML).
+     */
     private function importSpells(Item $item, string $description): void
     {
-        // Parse spells from description
+        // Parse spells from description text using ParsesItemSpells trait
         $parsedSpells = $this->parseItemSpells($description);
 
         if (empty($parsedSpells)) {
@@ -237,9 +248,15 @@ class ItemImporter extends BaseImporter
         $this->importEntitySpells($item, $spellsData);
     }
 
+    /**
+     * Import saving throws by parsing them from item description text.
+     *
+     * Note: This parses DC, ability score, and save effect from the description
+     * text (not XML). Uses ParsesItemSavingThrows trait.
+     */
     private function importSavingThrows(Item $item, string $description): void
     {
-        // Parse saving throw from description
+        // Parse saving throw from description text using ParsesItemSavingThrows trait
         $saveData = $this->parseItemSavingThrow($description);
 
         if (! $saveData) {

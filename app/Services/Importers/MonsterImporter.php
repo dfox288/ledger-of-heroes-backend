@@ -7,10 +7,8 @@ use App\Models\MonsterAction;
 use App\Models\MonsterLegendaryAction;
 use App\Models\MonsterTrait;
 use App\Services\Importers\Concerns\CachesLookupTables;
-use App\Services\Importers\Concerns\GeneratesSlugs;
 use App\Services\Importers\Concerns\ImportsConditions;
 use App\Services\Importers\Concerns\ImportsModifiers;
-use App\Services\Importers\Concerns\ImportsSources;
 use App\Services\Importers\Strategies\Monster\AberrationStrategy;
 use App\Services\Importers\Strategies\Monster\BeastStrategy;
 use App\Services\Importers\Strategies\Monster\CelestialStrategy;
@@ -26,13 +24,11 @@ use App\Services\Importers\Strategies\Monster\UndeadStrategy;
 use App\Services\Parsers\MonsterXmlParser;
 use Illuminate\Support\Facades\Log;
 
-class MonsterImporter
+class MonsterImporter extends BaseImporter
 {
     use CachesLookupTables;
-    use GeneratesSlugs;
     use ImportsConditions;
     use ImportsModifiers;
-    use ImportsSources;
 
     protected array $strategies = [];
 
@@ -73,67 +69,30 @@ class MonsterImporter
         return new DefaultStrategy;
     }
 
-    public function import(string $xmlPath): array
+    /**
+     * Get the parser instance for this importer.
+     */
+    protected function getParser(): object
     {
-        $parser = new MonsterXmlParser;
-        $monsters = $parser->parse($xmlPath);
+        return new MonsterXmlParser;
+    }
+
+    /**
+     * Import monsters from an XML file with statistics tracking.
+     *
+     * @param  string  $filePath  Path to XML file
+     * @return array Returns statistics including created, updated, total, and strategy_stats
+     */
+    public function importWithStats(string $filePath): array
+    {
+        $parser = $this->getParser();
+        $monsters = $parser->parse($filePath);
 
         $created = 0;
         $updated = 0;
 
         foreach ($monsters as $monsterData) {
-            $strategy = $this->selectStrategy($monsterData);
-            $strategyName = class_basename($strategy);
-
-            // Reset strategy state
-            $strategy->reset();
-
-            // Track strategy usage
-            if (! isset($this->strategyStats[$strategyName])) {
-                $this->strategyStats[$strategyName] = [
-                    'count' => 0,
-                    'warnings' => 0,
-                ];
-            }
-            $this->strategyStats[$strategyName]['count']++;
-
-            // Apply strategy enhancements
-            $monsterData['traits'] = $strategy->enhanceTraits(
-                $monsterData['traits'],
-                $monsterData
-            );
-
-            $monsterData['actions'] = $strategy->enhanceActions(
-                array_merge($monsterData['actions'], $monsterData['reactions']),
-                $monsterData
-            );
-
-            $monsterData['legendary'] = $strategy->enhanceLegendaryActions(
-                $monsterData['legendary'],
-                $monsterData
-            );
-
-            // Import monster
-            $monster = $this->importEntity($monsterData);
-
-            // Strategy post-creation hook (for spellcasters, etc.)
-            $strategy->afterCreate($monster, $monsterData);
-
-            // Sync tags from strategy
-            $metadata = $strategy->extractMetadata($monsterData);
-            if (! empty($metadata['metrics']['tags_applied'])) {
-                $monster->syncTags($metadata['metrics']['tags_applied']);
-            }
-
-            // Log strategy metadata
-            if (! empty($metadata['warnings'])) {
-                $this->strategyStats[$strategyName]['warnings'] += count($metadata['warnings']);
-            }
-
-            Log::channel('import-strategy')->info($strategyName, array_merge(
-                ['monster' => $monsterData['name']],
-                $metadata
-            ));
+            $monster = $this->import($monsterData);
 
             if ($monster->wasRecentlyCreated) {
                 $created++;
@@ -150,7 +109,78 @@ class MonsterImporter
         ];
     }
 
-    protected function importEntity(array $monsterData): Monster
+    /**
+     * Import a monster entity with strategy pattern support.
+     *
+     * This method is called by parent's import() which wraps it in a transaction.
+     *
+     * @param  array  $data  Parsed monster data
+     * @return Monster The imported monster
+     */
+    protected function importEntity(array $data): Monster
+    {
+        $strategy = $this->selectStrategy($data);
+        $strategyName = class_basename($strategy);
+
+        // Reset strategy state
+        $strategy->reset();
+
+        // Track strategy usage
+        if (! isset($this->strategyStats[$strategyName])) {
+            $this->strategyStats[$strategyName] = [
+                'count' => 0,
+                'warnings' => 0,
+            ];
+        }
+        $this->strategyStats[$strategyName]['count']++;
+
+        // Apply strategy enhancements
+        $data['traits'] = $strategy->enhanceTraits(
+            $data['traits'],
+            $data
+        );
+
+        $data['actions'] = $strategy->enhanceActions(
+            array_merge($data['actions'], $data['reactions']),
+            $data
+        );
+
+        $data['legendary'] = $strategy->enhanceLegendaryActions(
+            $data['legendary'],
+            $data
+        );
+
+        // Create/update monster
+        $monster = $this->createOrUpdateMonster($data);
+
+        // Strategy post-creation hook (for spellcasters, etc.)
+        $strategy->afterCreate($monster, $data);
+
+        // Sync tags from strategy
+        $metadata = $strategy->extractMetadata($data);
+        if (! empty($metadata['metrics']['tags_applied'])) {
+            $monster->syncTags($metadata['metrics']['tags_applied']);
+        }
+
+        // Log strategy metadata
+        if (! empty($metadata['warnings'])) {
+            $this->strategyStats[$strategyName]['warnings'] += count($metadata['warnings']);
+        }
+
+        Log::channel('import-strategy')->info($strategyName, array_merge(
+            ['monster' => $data['name']],
+            $metadata
+        ));
+
+        return $monster;
+    }
+
+    /**
+     * Create or update the Monster model.
+     *
+     * @param  array  $monsterData  Parsed monster data
+     */
+    protected function createOrUpdateMonster(array $monsterData): Monster
     {
         // Lookup size
         $size = $this->cachedFind(\App\Models\Size::class, 'code', strtoupper($monsterData['size']));
@@ -186,15 +216,18 @@ class MonsterImporter
         );
 
         // Import related data
-        $this->importTraits($monster, $monsterData['traits']);
-        $this->importActions($monster, $monsterData['actions']);
-        $this->importLegendaryActions($monster, $monsterData['legendary']);
+        $this->importMonsterTraits($monster, $monsterData['traits']);
+        $this->importMonsterActions($monster, $monsterData['actions']);
+        $this->importMonsterLegendaryActions($monster, $monsterData['legendary']);
         $this->importMonsterModifiers($monster, $monsterData);
 
         return $monster;
     }
 
-    protected function importTraits(Monster $monster, array $traits): void
+    /**
+     * Import monster-specific traits (not to be confused with BaseImporter's importTraits for character traits).
+     */
+    protected function importMonsterTraits(Monster $monster, array $traits): void
     {
         // Clear existing
         $monster->traits()->delete();
@@ -210,7 +243,10 @@ class MonsterImporter
         }
     }
 
-    protected function importActions(Monster $monster, array $actions): void
+    /**
+     * Import monster actions and reactions.
+     */
+    protected function importMonsterActions(Monster $monster, array $actions): void
     {
         // Clear existing
         $monster->actions()->delete();
@@ -228,7 +264,10 @@ class MonsterImporter
         }
     }
 
-    protected function importLegendaryActions(Monster $monster, array $legendary): void
+    /**
+     * Import legendary actions.
+     */
+    protected function importMonsterLegendaryActions(Monster $monster, array $legendary): void
     {
         // Clear existing
         $monster->legendaryActions()->delete();

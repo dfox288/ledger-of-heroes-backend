@@ -30,7 +30,7 @@ class MonsterImporterTest extends TestCase
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
-        $result = $this->importer->import($xmlPath);
+        $result = $this->importer->importWithStats($xmlPath);
 
         $this->assertArrayHasKey('created', $result);
         $this->assertArrayHasKey('updated', $result);
@@ -44,7 +44,7 @@ class MonsterImporterTest extends TestCase
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
-        $this->importer->import($xmlPath);
+        $this->importer->importWithStats($xmlPath);
 
         $dragon = Monster::where('slug', 'young-red-dragon')->first();
 
@@ -74,7 +74,7 @@ class MonsterImporterTest extends TestCase
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
-        $this->importer->import($xmlPath);
+        $this->importer->importWithStats($xmlPath);
 
         $acolyte = Monster::where('slug', 'acolyte')->first();
 
@@ -93,7 +93,7 @@ class MonsterImporterTest extends TestCase
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
-        $this->importer->import($xmlPath);
+        $this->importer->importWithStats($xmlPath);
 
         $dragon = Monster::where('slug', 'young-red-dragon')->first();
         $traits = $dragon->traits;
@@ -108,7 +108,7 @@ class MonsterImporterTest extends TestCase
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
-        $this->importer->import($xmlPath);
+        $this->importer->importWithStats($xmlPath);
 
         $dragon = Monster::where('slug', 'young-red-dragon')->first();
         $actions = $dragon->actions()->where('action_type', 'action')->get();
@@ -125,7 +125,7 @@ class MonsterImporterTest extends TestCase
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
-        $this->importer->import($xmlPath);
+        $this->importer->importWithStats($xmlPath);
 
         $goblin = Monster::where('slug', 'goblin')->first();
         $reactions = $goblin->actions()->where('action_type', 'reaction')->get();
@@ -139,7 +139,7 @@ class MonsterImporterTest extends TestCase
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
-        $this->importer->import($xmlPath);
+        $this->importer->importWithStats($xmlPath);
 
         $dragon = Monster::where('slug', 'young-red-dragon')->first();
         $legendary = $dragon->legendaryActions;
@@ -158,7 +158,7 @@ class MonsterImporterTest extends TestCase
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
-        $this->importer->import($xmlPath);
+        $this->importer->importWithStats($xmlPath);
 
         $dragon = Monster::where('slug', 'young-red-dragon')->first();
         $modifiers = $dragon->modifiers;
@@ -182,7 +182,7 @@ class MonsterImporterTest extends TestCase
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
-        $this->importer->import($xmlPath);
+        $this->importer->importWithStats($xmlPath);
 
         $dragon = Monster::where('slug', 'young-red-dragon')->first();
         $immunities = $dragon->modifiers()
@@ -198,7 +198,7 @@ class MonsterImporterTest extends TestCase
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
-        $result = $this->importer->import($xmlPath);
+        $result = $this->importer->importWithStats($xmlPath);
 
         $this->assertArrayHasKey('DragonStrategy', $result['strategy_stats']);
         $this->assertEquals(1, $result['strategy_stats']['DragonStrategy']['count']);
@@ -209,7 +209,7 @@ class MonsterImporterTest extends TestCase
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
-        $result = $this->importer->import($xmlPath);
+        $result = $this->importer->importWithStats($xmlPath);
 
         $this->assertArrayHasKey('SpellcasterStrategy', $result['strategy_stats']);
         $this->assertEquals(1, $result['strategy_stats']['SpellcasterStrategy']['count']);
@@ -220,7 +220,7 @@ class MonsterImporterTest extends TestCase
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
-        $result = $this->importer->import($xmlPath);
+        $result = $this->importer->importWithStats($xmlPath);
 
         $this->assertArrayHasKey('DefaultStrategy', $result['strategy_stats']);
         $this->assertEquals(1, $result['strategy_stats']['DefaultStrategy']['count']);
@@ -231,10 +231,10 @@ class MonsterImporterTest extends TestCase
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
-        $this->importer->import($xmlPath);
+        $this->importer->importWithStats($xmlPath);
         $firstCount = Monster::count();
 
-        $this->importer->import($xmlPath);
+        $this->importer->importWithStats($xmlPath);
         $secondCount = Monster::count();
 
         $this->assertEquals($firstCount, $secondCount);

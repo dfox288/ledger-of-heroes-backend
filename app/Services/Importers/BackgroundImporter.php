@@ -7,7 +7,6 @@ use App\Models\CharacterTrait;
 use App\Models\EntityItem;
 use App\Models\RandomTable;
 use App\Models\RandomTableEntry;
-use App\Models\Source;
 use App\Services\Importers\Concerns\ImportsLanguages;
 use App\Services\Matching\ItemMatchingService;
 use App\Services\Parsers\BackgroundXmlParser;
@@ -26,9 +25,9 @@ class BackgroundImporter extends BaseImporter
 
         // 2. Clear existing polymorphic relationships
         // Note: Deleting traits will cascade delete their random tables
+        // Sources are cleared by ImportsSources trait
         $background->traits()->delete();
         $background->proficiencies()->delete();
-        $background->sources()->delete();
         $background->languages()->delete();
         $background->equipment()->delete();
 
@@ -57,17 +56,8 @@ class BackgroundImporter extends BaseImporter
             ]);
         }
 
-        // 6. Import sources
-        foreach ($data['sources'] as $sourceData) {
-            $source = Source::where('code', $sourceData['code'])->first();
-
-            if ($source) {
-                $background->sources()->create([
-                    'source_id' => $source->id,
-                    'pages' => $sourceData['pages'],
-                ]);
-            }
-        }
+        // 6. Import sources using trait
+        $this->importEntitySources($background, $data['sources']);
 
         // 7. Import languages
         $this->importEntityLanguages($background, $data['languages'] ?? []);

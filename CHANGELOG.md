@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **XML Importer Architecture Refactoring**: Major cleanup and modernization of the importer system
+  - **Unified Strategy Base Class**: Created `AbstractImportStrategy` to eliminate duplicate code in 3 abstract strategy classes
+    - `AbstractRaceStrategy`: 61 → 10 lines (83.6% reduction)
+    - `AbstractClassStrategy`: 61 → 10 lines (83.6% reduction)
+    - `AbstractMonsterStrategy`: 170 → 118 lines (30.6% reduction)
+    - **Net reduction**: 73 lines of duplicate code eliminated
+  - **MonsterImporter extends BaseImporter**: Now properly inherits transaction wrapping, event dispatch, and base traits
+    - Removed redundant `GeneratesSlugs` and `ImportsSources` trait usage
+    - Added `importWithStats()` method for CLI usage with statistics
+    - Strategy pattern preserved with proper lifecycle hooks
+  - **ClassImporter Trait Extraction**: Reduced from 737 → 404 lines (45% reduction)
+    - New `ImportsClassFeatures` trait (285 lines): features, modifiers, proficiencies, rolls
+    - New `ImportsSpellProgression` trait (42 lines): spell slot progression
+    - New `ImportsClassCounters` trait (46 lines): Ki, Rage, Second Wind, etc.
+  - **BackgroundImporter Uses Traits**: Replaced inline source import logic with `importEntitySources()` trait method
+  - **ItemImporter Documentation**: Added clarifying comments explaining why parser traits (ParsesItemSavingThrows, ParsesItemSpells) correctly belong in importer (parse description TEXT, not XML)
+
 ### Added
 
 - **Optional Features Entity**: Complete new entity for D&D 5e optional features (invocations, maneuvers, metamagic, etc.)

@@ -7,15 +7,15 @@ use App\Services\Parsers\Concerns\LookupsGameEntities;
 use App\Services\Parsers\Concerns\MatchesLanguages;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
-use SimpleXMLElement;
+use App\Services\Parsers\Concerns\StripsSourceCitations;
 
 class BackgroundXmlParser
 {
-    use LookupsGameEntities, MatchesLanguages, MatchesProficiencyTypes, ParsesSourceCitations;
+    use LookupsGameEntities, MatchesLanguages, MatchesProficiencyTypes, ParsesSourceCitations, StripsSourceCitations;
 
     public function parse(string $xmlContent): array
     {
-        $xml = new SimpleXMLElement($xmlContent);
+        $xml = XmlLoader::fromString($xmlContent);
         $backgrounds = [];
 
         foreach ($xml->background as $bg) {
@@ -93,11 +93,8 @@ class BackgroundXmlParser
 
     private function cleanTraitText(string $text): string
     {
-        // Remove source citation (will be stored separately)
-        $text = preg_replace('/\n\nSource:.*$/s', '', $text);
-
-        // Trim whitespace
-        return trim($text);
+        // Use the shared StripsSourceCitations trait
+        return $this->stripSourceCitations($text);
     }
 
     private function inferCategory(string $name): ?string

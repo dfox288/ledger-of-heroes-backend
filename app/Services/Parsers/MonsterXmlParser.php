@@ -27,7 +27,7 @@ class MonsterXmlParser
      */
     public function parse(string $xmlPath): array
     {
-        $xml = simplexml_load_file($xmlPath);
+        $xml = XmlLoader::fromFile($xmlPath);
         $monsters = [];
 
         foreach ($xml->monster as $monsterElement) {

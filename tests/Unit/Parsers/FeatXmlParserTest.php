@@ -174,7 +174,7 @@ XML;
         $this->assertCount(1, $feats[0]['modifiers']);
 
         $modifier = $feats[0]['modifiers'][0];
-        $this->assertEquals('ability_score', $modifier['category']);
+        $this->assertEquals('ability_score', $modifier['modifier_category']);
         $this->assertEquals(1, $modifier['value']);
         $this->assertEquals('CHA', $modifier['ability_code']);
     }
@@ -204,7 +204,7 @@ XML;
         $this->assertCount(1, $feats[0]['modifiers']);
 
         $modifier = $feats[0]['modifiers'][0];
-        $this->assertEquals('initiative', $modifier['category']);
+        $this->assertEquals('initiative', $modifier['modifier_category']);
         $this->assertEquals(5, $modifier['value']);
     }
 
@@ -475,7 +475,7 @@ XML;
         $this->assertCount(1, $feats[0]['modifiers']);
 
         $modifier = $feats[0]['modifiers'][0];
-        $this->assertEquals('speed', $modifier['category']);
+        $this->assertEquals('speed', $modifier['modifier_category']);
         $this->assertEquals(5, $modifier['value']);
     }
 

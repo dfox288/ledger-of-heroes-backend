@@ -15,7 +15,7 @@ class SpellXmlParser
 
     public function parse(string $xmlContent): array
     {
-        $xml = new SimpleXMLElement($xmlContent);
+        $xml = XmlLoader::fromString($xmlContent);
         $spells = [];
 
         foreach ($xml->spell as $spellElement) {

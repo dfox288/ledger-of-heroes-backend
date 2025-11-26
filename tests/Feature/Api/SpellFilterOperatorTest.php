@@ -259,9 +259,10 @@ class SpellFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_concentration_with_equals_false(): void
     {
-        // Act: Filter by concentration = false (spells not requiring concentration) - use per_page to get more results
+        // Act: Filter by concentration = false (spells not requiring concentration)
+        // Use per_page=100 and sort_by=name to get deterministic results including Acid Splash
         // Note: Filtering uses Meilisearch field name (concentration)
-        $response = $this->getJson('/api/v1/spells?filter=concentration = false&per_page=100');
+        $response = $this->getJson('/api/v1/spells?filter=concentration = false&per_page=100&sort_by=name');
 
         // Assert
         $response->assertOk();

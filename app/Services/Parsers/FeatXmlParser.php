@@ -4,12 +4,14 @@ namespace App\Services\Parsers;
 
 use App\Services\Parsers\Concerns\ConvertsWordNumbers;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
+use App\Services\Parsers\Concerns\ParsesModifiers;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
+use App\Services\Parsers\Concerns\StripsSourceCitations;
 use SimpleXMLElement;
 
 class FeatXmlParser
 {
-    use ConvertsWordNumbers, MapsAbilityCodes, ParsesSourceCitations;
+    use ConvertsWordNumbers, MapsAbilityCodes, ParsesModifiers, ParsesSourceCitations, StripsSourceCitations;
 
     /**
      * Parse feats from XML string.
@@ -18,9 +20,9 @@ class FeatXmlParser
      */
     public function parse(string $xml): array
     {
-        $compendium = simplexml_load_string($xml);
+        $compendium = XmlLoader::tryFromString($xml);
 
-        if ($compendium === false || ! isset($compendium->feat)) {
+        if ($compendium === null || ! isset($compendium->feat)) {
             return [];
         }
 
@@ -112,56 +114,7 @@ class FeatXmlParser
         return $modifiers;
     }
 
-    /**
-     * Parse modifier text to extract structured data.
-     *
-     * @return array<string, mixed>|null
-     */
-    private function parseModifierText(string $text, string $xmlCategory): ?array
-    {
-        $text = strtolower($text);
-
-        // Pattern: "target +/-value"
-        if (! preg_match('/([\w\s]+)\s*([+\-]\d+)/', $text, $matches)) {
-            return null;
-        }
-
-        $target = trim($matches[1]);
-        $value = (int) $matches[2];
-
-        // Determine category based on XML category and target
-        $category = match ($xmlCategory) {
-            'ability score' => 'ability_score',
-            'skill' => 'skill',
-            'bonus' => $this->determineBonusCategory($target),
-            default => 'bonus',
-        };
-
-        $result = [
-            'category' => $category,
-            'value' => $value,
-        ];
-
-        // For ability score modifiers, extract the ability code
-        if ($category === 'ability_score') {
-            $result['ability_code'] = $this->mapAbilityNameToCode($target);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Determine the specific category for bonus modifiers.
-     */
-    private function determineBonusCategory(string $target): string
-    {
-        return match (true) {
-            str_contains($target, 'speed') => 'speed',
-            str_contains($target, 'initiative') => 'initiative',
-            str_contains($target, 'ac') || str_contains($target, 'armor class') => 'ac',
-            default => 'bonus',
-        };
-    }
+    // parseModifierText() and determineBonusCategory() provided by ParsesModifiers trait
 
     /**
      * Parse proficiencies from feat description text.
@@ -253,17 +206,6 @@ class FeatXmlParser
         }
 
         return $conditions;
-    }
-
-    /**
-     * Remove source citations from text.
-     */
-    private function stripSourceCitations(string $text): string
-    {
-        // Remove everything after "Source:" (including the Source: line)
-        $cleaned = preg_replace('/\n*Source:\s*.+$/ims', '', $text);
-
-        return trim($cleaned ?? $text);
     }
 
     /**

@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "SlashCommand(/update-docs:*)"
+      "SlashCommand(/update-docs:*)",
+      "Bash(find:*)",
+      "Bash(sort:*)",
+      "Bash(docker compose exec:*)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []

@@ -84,6 +84,9 @@ class SourceImporterTest extends TestCase
     #[Test]
     public function it_updates_existing_source_on_reimport(): void
     {
+        // Ensure clean state - delete any existing PHB source from prior tests
+        Source::where('code', 'PHB')->delete();
+
         // Create initial source
         Source::create([
             'code' => 'PHB',
@@ -108,8 +111,8 @@ class SourceImporterTest extends TestCase
 
         $source = $this->importer->import($data);
 
-        // Should update, not create
-        $this->assertCount(1, Source::all());
+        // Should update, not create a second PHB
+        $this->assertCount(1, Source::where('code', 'PHB')->get());
         $this->assertEquals("Player's Handbook (2014)", $source->name);
         $this->assertEquals('Wizards of the Coast', $source->publisher);
         $this->assertEquals(2014, $source->publication_year);
@@ -140,6 +143,9 @@ class SourceImporterTest extends TestCase
     #[Test]
     public function it_is_idempotent_across_multiple_imports(): void
     {
+        // Ensure clean state - delete any existing sources from prior tests
+        Source::query()->delete();
+
         $data = [
             'name' => 'Test Source',
             'code' => 'TST',
@@ -158,7 +164,7 @@ class SourceImporterTest extends TestCase
         $this->importer->import($data);
         $this->importer->import($data);
 
-        // Should only have one record
+        // Should only have one record (the one we just imported)
         $this->assertCount(1, Source::all());
     }
 }

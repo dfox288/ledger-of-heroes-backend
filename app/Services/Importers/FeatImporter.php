@@ -65,8 +65,11 @@ class FeatImporter extends BaseImporter
     private function prepareModifiersData(array $modifiers): array
     {
         return array_map(function ($modifierData) {
+            // Support both 'category' and 'modifier_category' keys
+            $category = $modifierData['modifier_category'] ?? $modifierData['category'];
+
             $prepared = [
-                'category' => $modifierData['category'],
+                'category' => $category,
                 'value' => $modifierData['value'],
                 'ability_score_id' => null,
                 'skill_id' => null,
@@ -74,7 +77,7 @@ class FeatImporter extends BaseImporter
             ];
 
             // For ability score modifiers, convert ability_code to ability_score_id
-            if ($modifierData['category'] === 'ability_score' && isset($modifierData['ability_code'])) {
+            if ($category === 'ability_score' && isset($modifierData['ability_code'])) {
                 $abilityScore = AbilityScore::where('code', $modifierData['ability_code'])->first();
                 if ($abilityScore) {
                     $prepared['ability_score_id'] = $abilityScore->id;

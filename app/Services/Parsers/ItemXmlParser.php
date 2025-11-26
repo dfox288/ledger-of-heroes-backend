@@ -7,6 +7,7 @@ use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesCharges;
 use App\Services\Parsers\Concerns\ParsesItemProficiencies;
+use App\Services\Parsers\Concerns\ParsesModifiers;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use App\Services\Parsers\Strategies\ChargedItemStrategy;
 use App\Services\Parsers\Strategies\ItemTypeStrategy;
@@ -23,6 +24,7 @@ class ItemXmlParser
     use MatchesProficiencyTypes;
     use ParsesCharges;
     use ParsesItemProficiencies;
+    use ParsesModifiers;
     use ParsesSourceCitations;
 
     /**
@@ -52,7 +54,7 @@ class ItemXmlParser
 
     public function parse(string $xmlContent): array
     {
-        $xml = new SimpleXMLElement($xmlContent);
+        $xml = XmlLoader::fromString($xmlContent);
         $items = [];
 
         foreach ($xml->item as $itemElement) {
@@ -252,8 +254,8 @@ class ItemXmlParser
             $category = (string) $modifierElement['category'];
             $text = trim((string) $modifierElement);
 
-            // Parse structured data from text
-            $parsed = $this->parseModifierText($text, $category);
+            // Parse structured data from text (Item-specific method with ID lookups)
+            $parsed = $this->parseItemModifierText($text, $category);
 
             if ($parsed !== null) {
                 $modifiers[] = $parsed;
@@ -398,39 +400,26 @@ class ItemXmlParser
         return $modifiers;
     }
 
-    private function parseModifierText(string $text, string $xmlCategory): ?array
+    /**
+     * Parse modifier text with ID lookups for Items.
+     *
+     * Extends the base parseModifierText from ParsesModifiers trait
+     * to also resolve ability_score_id and skill_id from the database.
+     */
+    private function parseItemModifierText(string $text, string $xmlCategory): ?array
     {
-        $text = strtolower($text);
+        $textLower = strtolower($text);
 
         // Pattern: "category +/-value"
-        if (! preg_match('/([\w\s]+)\s*([+\-]\d+)/', $text, $matches)) {
-            return null; // Skip unparseable modifiers
+        if (! preg_match('/([\w\s]+)\s*([+\-]\d+)/', $textLower, $matches)) {
+            return null;
         }
 
         $target = trim($matches[1]);
         $value = (int) $matches[2];
 
-        // Map text to structured categories (order matters - check specific before general)
-        $category = match (true) {
-            str_contains($target, 'saving throw') => 'saving_throw',
-            str_contains($target, 'spell attack') => 'spell_attack',
-            str_contains($target, 'spell dc') => 'spell_dc',
-            // AC modifiers: distinguish between magic enchantments and generic bonuses
-            ($target === 'ac' || $target === 'armor class') && $xmlCategory === 'bonus' => 'ac_magic', // Magic item AC bonuses
-            $target === 'ac' || $target === 'armor class' => 'ac', // Generic AC (exact match to avoid matching "acrobatics")
-            str_contains($target, 'initiative') => 'initiative',
-            str_contains($target, 'melee attack') => 'melee_attack',
-            str_contains($target, 'melee damage') => 'melee_damage',
-            str_contains($target, 'ranged attack') => 'ranged_attack',
-            str_contains($target, 'ranged damage') => 'ranged_damage',
-            str_contains($target, 'weapon attack') => 'weapon_attack',
-            str_contains($target, 'weapon damage') => 'weapon_damage',
-            str_contains($target, 'attack') => 'attack_bonus', // Generic attack (after specific checks)
-            str_contains($target, 'damage') => 'damage_bonus', // Generic damage (after specific checks)
-            $xmlCategory === 'ability score' => 'ability_score',
-            $xmlCategory === 'skill' => 'skill',
-            default => 'bonus', // Generic fallback
-        };
+        // Use shared trait method for category determination
+        $category = $this->determineModifierCategory($target, $xmlCategory);
 
         $result = [
             'category' => $category,

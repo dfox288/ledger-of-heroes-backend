@@ -5,11 +5,12 @@ namespace App\Services\Parsers;
 use App\Enums\OptionalFeatureType;
 use App\Enums\ResourceType;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
+use App\Services\Parsers\Concerns\StripsSourceCitations;
 use SimpleXMLElement;
 
 class OptionalFeatureXmlParser
 {
-    use ParsesSourceCitations;
+    use ParsesSourceCitations, StripsSourceCitations;
 
     /**
      * Parse optional features from XML string.
@@ -21,9 +22,9 @@ class OptionalFeatureXmlParser
      */
     public function parse(string $xml): array
     {
-        $compendium = simplexml_load_string($xml);
+        $compendium = XmlLoader::tryFromString($xml);
 
-        if ($compendium === false) {
+        if ($compendium === null) {
             return [];
         }
 
@@ -282,16 +283,5 @@ class OptionalFeatureXmlParser
             ],
             default => [],
         };
-    }
-
-    /**
-     * Remove source citations from text.
-     */
-    private function stripSourceCitations(string $text): string
-    {
-        // Remove everything after "Source:" (including the Source: line)
-        $cleaned = preg_replace('/\n*Source:\s*.+$/ims', '', $text);
-
-        return trim($cleaned ?? $text);
     }
 }

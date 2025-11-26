@@ -111,8 +111,8 @@ class BackgroundFilterOperatorTest extends TestCase
         $midIndex = (int) floor($backgrounds->count() / 2);
         $midBackground = $backgrounds[$midIndex];
 
-        // Act: Filter by id >= mid-range
-        $response = $this->getJson("/api/v1/backgrounds?filter=id >= {$midBackground->id}");
+        // Act: Filter by id >= mid-range (include per_page=100 to get all results on one page)
+        $response = $this->getJson("/api/v1/backgrounds?filter=id >= {$midBackground->id}&per_page=100");
 
         // Assert: Should include midBackground and all higher IDs
         $response->assertOk();
@@ -161,8 +161,8 @@ class BackgroundFilterOperatorTest extends TestCase
         $midIndex = (int) floor($backgrounds->count() / 2);
         $midBackground = $backgrounds[$midIndex];
 
-        // Act: Filter by id <= mid-range
-        $response = $this->getJson("/api/v1/backgrounds?filter=id <= {$midBackground->id}");
+        // Act: Filter by id <= mid-range (include per_page=100 to get all results on one page)
+        $response = $this->getJson("/api/v1/backgrounds?filter=id <= {$midBackground->id}&per_page=100");
 
         // Assert: Should include midBackground and all lower IDs
         $response->assertOk();
@@ -190,8 +190,8 @@ class BackgroundFilterOperatorTest extends TestCase
         $firstBg = $backgrounds[0];
         $lastBg = $backgrounds[2];
 
-        // Act: Filter by id range (TO operator is inclusive)
-        $response = $this->getJson("/api/v1/backgrounds?filter=id {$firstBg->id} TO {$lastBg->id}");
+        // Act: Filter by id range (TO operator is inclusive) - add per_page to get all on one page
+        $response = $this->getJson("/api/v1/backgrounds?filter=id {$firstBg->id} TO {$lastBg->id}&per_page=100");
 
         // Assert: Should include all backgrounds in range
         $response->assertOk();
@@ -264,71 +264,91 @@ class BackgroundFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_skill_proficiencies_with_in(): void
     {
-        // Arrange: Verify database has backgrounds
-        $this->assertGreaterThan(0, Background::count(), 'Database must be seeded with backgrounds');
+        // Arrange: Create backgrounds with known skill proficiencies using factories
+        // This avoids relying on stale Meilisearch test index data
+        $insightSkill = \App\Models\Skill::where('slug', 'insight')->first();
+        $religionSkill = \App\Models\Skill::where('slug', 'religion')->first();
+        $athleticsSkill = \App\Models\Skill::where('slug', 'athletics')->first();
+
+        $this->assertNotNull($insightSkill, 'Insight skill must exist');
+        $this->assertNotNull($religionSkill, 'Religion skill must exist');
+        $this->assertNotNull($athleticsSkill, 'Athletics skill must exist');
+
+        // Create a background with insight proficiency
+        $bgWithInsight = Background::factory()->create(['name' => 'Scholar', 'slug' => 'scholar']);
+        \App\Models\Proficiency::factory()
+            ->forEntity(Background::class, $bgWithInsight->id)
+            ->create(['proficiency_type' => 'skill', 'skill_id' => $insightSkill->id]);
+
+        // Create a background with religion proficiency
+        $bgWithReligion = Background::factory()->create(['name' => 'Priest', 'slug' => 'priest']);
+        \App\Models\Proficiency::factory()
+            ->forEntity(Background::class, $bgWithReligion->id)
+            ->create(['proficiency_type' => 'skill', 'skill_id' => $religionSkill->id]);
+
+        // Create a background without insight or religion (only athletics)
+        $bgWithAthletics = Background::factory()->create(['name' => 'Athlete', 'slug' => 'athlete']);
+        \App\Models\Proficiency::factory()
+            ->forEntity(Background::class, $bgWithAthletics->id)
+            ->create(['proficiency_type' => 'skill', 'skill_id' => $athleticsSkill->id]);
+
+        // Re-index these specific backgrounds
+        $bgWithInsight->searchable();
+        $bgWithReligion->searchable();
+        $bgWithAthletics->searchable();
+        sleep(1);
 
         // Act: Filter by skill_proficiencies IN [insight, religion]
-        // Many PHB backgrounds grant these skill proficiencies
         $response = $this->getJson('/api/v1/backgrounds?filter=skill_proficiencies IN [insight, religion]&per_page=100');
 
         // Assert: Should return backgrounds that grant insight OR religion proficiency
         $response->assertOk();
         $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find backgrounds with insight or religion proficiency');
 
-        // Verify Acolyte is included (grants insight and religion)
+        // Verify Scholar and Priest are included
         $names = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertContains('Acolyte', $names, 'Acolyte grants insight and religion proficiencies');
-
-        // Verify all returned backgrounds actually have the skill in Meilisearch index
-        // (We trust Meilisearch filter accuracy - API doesn't eager-load proficiencies by default)
-        foreach ($response->json('data') as $background) {
-            // Query the database to verify each background has insight OR religion
-            $bg = Background::with('proficiencies.skill')->find($background['id']);
-            $this->assertNotNull($bg, "Background {$background['id']} should exist");
-
-            $skillSlugs = $bg->proficiencies
-                ->where('proficiency_type', 'skill')
-                ->filter(fn ($p) => $p->skill)
-                ->pluck('skill.slug')
-                ->toArray();
-
-            $hasInsightOrReligion = in_array('insight', $skillSlugs) || in_array('religion', $skillSlugs);
-            $this->assertTrue($hasInsightOrReligion, "Background {$bg->name} should grant insight or religion proficiency");
-        }
+        $this->assertContains('Scholar', $names, 'Scholar grants insight proficiency');
+        $this->assertContains('Priest', $names, 'Priest grants religion proficiency');
+        $this->assertNotContains('Athlete', $names, 'Athlete does not grant insight or religion');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_skill_proficiencies_with_not_in(): void
     {
-        // Arrange: Verify database has backgrounds
-        $this->assertGreaterThan(0, Background::count(), 'Database must be seeded with backgrounds');
+        // Arrange: Create backgrounds with known skill proficiencies using factories
+        $insightSkill = \App\Models\Skill::where('slug', 'insight')->first();
+        $athleticsSkill = \App\Models\Skill::where('slug', 'athletics')->first();
+
+        $this->assertNotNull($insightSkill, 'Insight skill must exist');
+        $this->assertNotNull($athleticsSkill, 'Athletics skill must exist');
+
+        // Create a background with insight proficiency
+        $bgWithInsight = Background::factory()->create(['name' => 'Mystic', 'slug' => 'mystic']);
+        \App\Models\Proficiency::factory()
+            ->forEntity(Background::class, $bgWithInsight->id)
+            ->create(['proficiency_type' => 'skill', 'skill_id' => $insightSkill->id]);
+
+        // Create a background without insight (only athletics)
+        $bgWithoutInsight = Background::factory()->create(['name' => 'Warrior', 'slug' => 'warrior']);
+        \App\Models\Proficiency::factory()
+            ->forEntity(Background::class, $bgWithoutInsight->id)
+            ->create(['proficiency_type' => 'skill', 'skill_id' => $athleticsSkill->id]);
+
+        // Re-index these specific backgrounds
+        $bgWithInsight->searchable();
+        $bgWithoutInsight->searchable();
+        sleep(1);
 
         // Act: Filter by skill_proficiencies NOT IN [insight]
-        // Should exclude backgrounds that grant insight proficiency
-        $response = $this->getJson('/api/v1/backgrounds?filter=skill_proficiencies NOT IN [insight]');
+        $response = $this->getJson('/api/v1/backgrounds?filter=skill_proficiencies NOT IN [insight]&per_page=100');
 
         // Assert: Should return backgrounds that do NOT grant insight proficiency
         $response->assertOk();
         $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find backgrounds without insight proficiency');
 
-        // Verify Acolyte is excluded (grants insight)
+        // Verify Mystic is excluded (grants insight)
         $names = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertNotContains('Acolyte', $names, 'Acolyte grants insight proficiency (should be excluded)');
-
-        // Verify all returned backgrounds actually DON'T have insight in database
-        // (We trust Meilisearch filter accuracy - API doesn't eager-load proficiencies by default)
-        foreach ($response->json('data') as $background) {
-            // Query the database to verify each background doesn't have insight
-            $bg = Background::with('proficiencies.skill')->find($background['id']);
-            $this->assertNotNull($bg, "Background {$background['id']} should exist");
-
-            $skillSlugs = $bg->proficiencies
-                ->where('proficiency_type', 'skill')
-                ->filter(fn ($p) => $p->skill)
-                ->pluck('skill.slug')
-                ->toArray();
-
-            $this->assertNotContains('insight', $skillSlugs, "Background {$bg->name} should not grant insight proficiency");
-        }
+        $this->assertNotContains('Mystic', $names, 'Mystic grants insight proficiency (should be excluded)');
+        $this->assertContains('Warrior', $names, 'Warrior does not grant insight (should be included)');
     }
 }

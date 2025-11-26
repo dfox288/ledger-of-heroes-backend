@@ -6,17 +6,18 @@ use App\Services\Parsers\Concerns\ConvertsWordNumbers;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\MatchesLanguages;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
+use App\Services\Parsers\Concerns\ParsesModifiers;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use App\Services\Parsers\Concerns\ParsesTraits;
 use SimpleXMLElement;
 
 class RaceXmlParser
 {
-    use ConvertsWordNumbers, MapsAbilityCodes, MatchesLanguages, MatchesProficiencyTypes, ParsesSourceCitations, ParsesTraits;
+    use ConvertsWordNumbers, MapsAbilityCodes, MatchesLanguages, MatchesProficiencyTypes, ParsesModifiers, ParsesSourceCitations, ParsesTraits;
 
     public function parse(string $xmlContent): array
     {
-        $xml = new SimpleXMLElement($xmlContent);
+        $xml = XmlLoader::fromString($xmlContent);
         $races = [];
 
         foreach ($xml->race as $raceElement) {
@@ -475,56 +476,5 @@ class RaceXmlParser
         return $modifiers;
     }
 
-    /**
-     * Parse modifier text to extract structured data.
-     * Pattern: "HP +1", "Speed +10", etc.
-     *
-     * @return array<string, mixed>|null
-     */
-    private function parseModifierText(string $text, string $xmlCategory): ?array
-    {
-        $text = strtolower($text);
-
-        // Pattern: "target +/-value"
-        if (! preg_match('/([\w\s]+)\s*([+\-]\d+)/', $text, $matches)) {
-            return null;
-        }
-
-        $target = trim($matches[1]);
-        $value = (int) $matches[2];
-
-        // Determine category based on XML category and target
-        $category = match ($xmlCategory) {
-            'ability score' => 'ability_score',
-            'skill' => 'skill',
-            'bonus' => $this->determineBonusCategory($target),
-            default => 'bonus',
-        };
-
-        $result = [
-            'modifier_category' => $category,
-            'value' => (string) $value,
-        ];
-
-        // For ability score modifiers, extract the ability code
-        if ($category === 'ability_score') {
-            $result['ability_code'] = $this->mapAbilityNameToCode($target);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Determine the specific category for bonus modifiers.
-     */
-    private function determineBonusCategory(string $target): string
-    {
-        return match (true) {
-            str_contains($target, 'hp') || str_contains($target, 'hit point') => 'hp',
-            str_contains($target, 'speed') => 'speed',
-            str_contains($target, 'initiative') => 'initiative',
-            str_contains($target, 'ac') || str_contains($target, 'armor class') => 'ac',
-            default => 'bonus',
-        };
-    }
+    // parseModifierText() and determineBonusCategory() provided by ParsesModifiers trait
 }

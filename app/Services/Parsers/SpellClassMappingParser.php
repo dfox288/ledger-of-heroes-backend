@@ -22,29 +22,12 @@ class SpellClassMappingParser
      * @param  string  $xmlFilePath  Path to the XML file
      * @return array Array keyed by spell name, values are arrays of class names
      *
-     * @throws \Exception If file cannot be read or parsed
+     * @throws \RuntimeException If file cannot be read or parsed
      */
     public function parse(string $xmlFilePath): array
     {
-        if (! file_exists($xmlFilePath)) {
-            throw new \Exception("XML file not found: {$xmlFilePath}");
-        }
-
-        $xmlContent = file_get_contents($xmlFilePath);
-        if ($xmlContent === false) {
-            throw new \Exception("Failed to read XML file: {$xmlFilePath}");
-        }
-
-        // Suppress XML parsing errors and handle them manually
-        libxml_use_internal_errors(true);
-        $xml = simplexml_load_string($xmlContent);
-
-        if ($xml === false) {
-            $errors = libxml_get_errors();
-            libxml_clear_errors();
-            $errorMessage = $errors[0]->message ?? 'Unknown XML parsing error';
-            throw new \Exception("Failed to parse XML: {$errorMessage}");
-        }
+        // XmlLoader handles file existence, reading, and parsing errors
+        $xml = XmlLoader::fromFile($xmlFilePath);
 
         $mappings = [];
 

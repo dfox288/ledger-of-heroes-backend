@@ -25,10 +25,10 @@ class SourceXmlParser
      */
     public function parse(string $xml): array
     {
-        // Suppress warnings for invalid XML
-        $element = @simplexml_load_string($xml);
+        // Use tryFromString to gracefully handle invalid XML
+        $element = XmlLoader::tryFromString($xml);
 
-        if ($element === false || $element->getName() !== 'source') {
+        if ($element === null || $element->getName() !== 'source') {
             return [];
         }
 

@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **BREAKING: ClassResource API Response Restructuring**: Separated computed/aggregated data from base entity fields for API clarity
+  - **New `computed` object**: Contains `hit_points`, `spell_slot_summary`, `section_counts`, `progression_table` (only on show endpoint)
+  - **Renamed `effective_data` → `inherited_data`**: Clearer naming for pre-resolved parent class data (subclasses only)
+  - **New `ClassComputedResource`**: Dedicated resource for computed/aggregated fields with full PHPDoc typing
+  - **Index endpoint unchanged**: `computed` object only included on detail (show) endpoint for performance
+  - **OpenAPI documentation updated**: Nested object types now properly typed instead of generic `string`
+
+### Added
+
+- **Scramble OpenAPI Type Annotations**: Added PHPStan-style PHPDoc type annotations to API Resources for accurate OpenAPI spec generation
+  - `ClassResource`: `hit_points`, `spell_slot_summary`, `section_counts`, `effective_data`, `progression_table` now properly typed as nested objects
+  - `ProficiencyResource`: `item` field typed as `array{id: int, name: string}`
+  - `SavingThrowResource`: `ability_score` field typed as `array{id: int, code: string, name: string}`
+  - `SearchResource`: Full response structure documented with nested types
+
+- **Classes Detail Page Optimization**: Pre-computed, display-ready data for frontend consumption
+  - **`hit_points` accessor**: Pre-calculated D&D 5e hit point formulas with `hit_die`, `first_level`, `higher_levels` structures
+  - **`spell_slot_summary` accessor**: Returns `has_spell_slots`, `max_spell_level`, `available_levels[]`, `has_cantrips`, `caster_type` (full/half/third/null)
+  - **`proficiencyBonusForLevel()` static method**: D&D 5e proficiency bonus calculation (+2 at 1-4, +3 at 5-8, etc.)
+  - **`section_counts` field**: Relationship counts for lazy-loading accordion labels (features, proficiencies, traits, subclasses, spells, counters, optional_features)
+  - **`inherited_data` field** (subclasses only): Pre-resolved parent class inheritance data including hit_die, hit_points, counters, traits, level_progression, equipment, proficiencies, spell_slot_summary
+  - **`progression_table` field**: Complete 20-level progression table with dynamic columns based on class data
+  - **`GET /api/v1/classes/{slug}/progression` endpoint**: Dedicated endpoint for lazy-loading progression tables
+  - **`ClassProgressionTableGenerator` service**: Generates progression tables with counter interpolation (sparse data filled), dice formatting (Sneak Attack → "Xd6"), and proficiency bonus calculation
+  - **25 new tests**: 11 feature tests (ClassDetailOptimizationTest), 14 unit tests (ClassProgressionTableGeneratorTest) with 103 assertions
+
+### Changed
+
 - **XML Importer Architecture Refactoring**: Major cleanup and modernization of the importer system
   - **Unified Strategy Base Class**: Created `AbstractImportStrategy` to eliminate duplicate code in 3 abstract strategy classes
     - `AbstractRaceStrategy`: 61 → 10 lines (83.6% reduction)

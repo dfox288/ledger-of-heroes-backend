@@ -11,6 +11,7 @@ use App\Http\Resources\ClassResource;
 use App\Http\Resources\SpellResource;
 use App\Models\CharacterClass;
 use App\Services\Cache\EntityCacheService;
+use App\Services\ClassProgressionTableGenerator;
 use App\Services\ClassSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use MeiliSearch\Client;
@@ -347,15 +348,114 @@ class ClassController extends Controller
      * subclasses, proficiencies, traits, features, level progression, spell slot tables,
      * and counters. Supports selective relationship loading via the 'include' parameter.
      *
-     * **Feature Inheritance for Subclasses:**
+     * ## Response Structure
+     *
+     * The response separates data into three categories for API clarity:
+     * - **Base fields** - Core entity data directly from database
+     * - **inherited_data** - Pre-resolved parent class data (subclasses only)
+     * - **computed** - Aggregated/calculated data for display optimization
+     *
+     * ## Computed Object (Display-Ready Data)
+     *
+     * The `computed` object contains pre-computed fields to reduce frontend logic.
+     * Only included on show endpoint responses.
+     *
+     * **computed.hit_points** - Pre-calculated D&D 5e hit point formulas:
+     * ```json
+     * {
+     *   "hit_die": "d10",
+     *   "hit_die_numeric": 10,
+     *   "first_level": {"value": 10, "description": "10 + your Constitution modifier"},
+     *   "higher_levels": {"roll": "1d10", "average": 6, "description": "1d10 (or 6) + your Constitution modifier per fighter level after 1st"}
+     * }
+     * ```
+     *
+     * **computed.spell_slot_summary** - Spellcasting overview for UI column visibility:
+     * ```json
+     * {
+     *   "has_spell_slots": true,
+     *   "max_spell_level": 9,
+     *   "available_levels": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+     *   "has_cantrips": true,
+     *   "caster_type": "full"
+     * }
+     * ```
+     * - `caster_type`: "full" (9th level), "half" (5th level), "third" (4th level), or null (non-caster)
+     *
+     * **computed.section_counts** - Relationship counts for lazy-loading accordion labels:
+     * ```json
+     * {
+     *   "features": 34,
+     *   "proficiencies": 12,
+     *   "traits": 8,
+     *   "subclasses": 7,
+     *   "spells": 89,
+     *   "counters": 3,
+     *   "optional_features": 0
+     * }
+     * ```
+     *
+     * **computed.progression_table** - Complete 20-level progression table:
+     * ```json
+     * {
+     *   "columns": [
+     *     {"key": "level", "label": "Level", "type": "integer"},
+     *     {"key": "proficiency_bonus", "label": "Proficiency Bonus", "type": "bonus"},
+     *     {"key": "features", "label": "Features", "type": "string"},
+     *     {"key": "sneak_attack", "label": "Sneak Attack", "type": "dice"}
+     *   ],
+     *   "rows": [
+     *     {"level": 1, "proficiency_bonus": "+2", "features": "Expertise, Sneak Attack", "sneak_attack": "1d6"},
+     *     {"level": 2, "proficiency_bonus": "+2", "features": "Cunning Action", "sneak_attack": "1d6"}
+     *   ]
+     * }
+     * ```
+     * - Dynamic columns based on class data (counters, spell slots)
+     * - Counter values interpolated (sparse data filled in)
+     * - Also available via dedicated endpoint: `GET /classes/{slug}/progression`
+     *
+     * ## Inherited Data (Subclasses Only)
+     *
+     * **inherited_data** - Pre-resolved parent class data for subclasses:
+     * ```json
+     * {
+     *   "hit_die": 10,
+     *   "hit_points": {...},
+     *   "counters": [...],
+     *   "traits": [...],
+     *   "level_progression": [...],
+     *   "equipment": [...],
+     *   "proficiencies": [...],
+     *   "spell_slot_summary": {...}
+     * }
+     * ```
+     * - Eliminates frontend inheritance resolution logic
+     * - Only present for subclasses (is_base_class = false)
+     * - Contains essential data from parent class that subclasses need
+     *
+     * ## Feature Inheritance for Subclasses
+     *
      * - By default, subclasses return ALL features (inherited base class features + subclass-specific features)
      * - Use `?include_base_features=false` to return only subclass-specific features
      * - Base classes are unaffected by this parameter
      *
-     * **Examples:**
-     * - Get Arcane Trickster with all 40 features: `GET /classes/rogue-arcane-trickster`
-     * - Get only Arcane Trickster's 6 unique features: `GET /classes/rogue-arcane-trickster?include_base_features=false`
-     * - Get base Rogue (always 34 features): `GET /classes/rogue`
+     * ## Examples
+     *
+     * ```bash
+     * # Get Fighter with computed object
+     * GET /api/v1/classes/fighter
+     *
+     * # Get Arcane Trickster (subclass) with inherited_data from Rogue parent
+     * GET /api/v1/classes/rogue-arcane-trickster
+     *
+     * # Get only subclass-specific features (not inherited)
+     * GET /api/v1/classes/rogue-arcane-trickster?include_base_features=false
+     * ```
+     *
+     * ## Note on Index vs Show
+     *
+     * The `computed` object is **only included on show endpoint** for performance.
+     * Index endpoint returns base fields and relationships without computed data.
      */
     public function show(ClassShowRequest $request, CharacterClass $class, EntityCacheService $cache, ClassSearchService $service)
     {
@@ -379,6 +479,17 @@ class ClassController extends Controller
 
             $cachedClass->load($includes);
 
+            // Load counts for section_counts field
+            $cachedClass->loadCount([
+                'features',
+                'proficiencies',
+                'traits',
+                'subclasses',
+                'spells',
+                'counters',
+                'optionalFeatures',
+            ]);
+
             return new ClassResource($cachedClass);
         }
 
@@ -392,6 +503,17 @@ class ClassController extends Controller
         }
 
         $class->load($includes);
+
+        // Load counts for section_counts field
+        $class->loadCount([
+            'features',
+            'proficiencies',
+            'traits',
+            'subclasses',
+            'spells',
+            'counters',
+            'optionalFeatures',
+        ]);
 
         return new ClassResource($class);
     }
@@ -450,5 +572,68 @@ class ClassController extends Controller
         $spells = $query->paginate($perPage);
 
         return SpellResource::collection($spells);
+    }
+
+    /**
+     * Get the progression table for a class
+     *
+     * Returns a pre-computed progression table showing level-by-level advancement
+     * including proficiency bonus, features gained, class-specific counters (like
+     * Sneak Attack dice, Ki Points, Rage uses), and spell slots if applicable.
+     *
+     * This endpoint is useful for lazy-loading the progression table separately
+     * from the main class detail response.
+     *
+     * ## Response Structure
+     *
+     * **columns** - Dynamic column definitions based on class features:
+     * - Always includes: level, proficiency_bonus, features
+     * - Counter columns: sneak_attack, ki_points, rage_damage, etc. (varies by class)
+     * - Spell slot columns: cantrips_known, spell_slots_1st through spell_slots_9th (for casters)
+     *
+     * **rows** - 20 rows, one per level, with all column values pre-computed:
+     * - Counter values are interpolated (sparse data filled in)
+     * - Sneak Attack formatted as "Xd6"
+     * - Proficiency bonus formatted as "+X"
+     * - Features joined with commas
+     *
+     * ## Example Response
+     *
+     * ```json
+     * {
+     *   "data": {
+     *     "columns": [
+     *       {"key": "level", "label": "Level", "type": "integer"},
+     *       {"key": "proficiency_bonus", "label": "Proficiency Bonus", "type": "bonus"},
+     *       {"key": "features", "label": "Features", "type": "string"},
+     *       {"key": "ki_points", "label": "Ki Points", "type": "integer"}
+     *     ],
+     *     "rows": [
+     *       {"level": 1, "proficiency_bonus": "+2", "features": "Unarmored Defense, Martial Arts", "ki_points": "—"},
+     *       {"level": 2, "proficiency_bonus": "+2", "features": "Ki, Unarmored Movement", "ki_points": "2"}
+     *     ]
+     *   }
+     * }
+     * ```
+     *
+     * ## For Subclasses
+     *
+     * When called on a subclass, returns the parent class's progression table
+     * since subclasses inherit the base class progression mechanics.
+     */
+    public function progression(CharacterClass $class, ClassProgressionTableGenerator $generator)
+    {
+        // Load required relationships for progression table
+        $progressionClass = $class->is_base_class ? $class : $class->parentClass;
+
+        if (! $progressionClass) {
+            return response()->json(['data' => ['columns' => [], 'rows' => []]], 200);
+        }
+
+        $progressionClass->load(['levelProgression', 'counters', 'features']);
+
+        $table = $generator->generate($class);
+
+        return response()->json(['data' => $table]);
     }
 }

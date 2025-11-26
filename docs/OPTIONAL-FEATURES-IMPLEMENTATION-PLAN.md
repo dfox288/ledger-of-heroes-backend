@@ -46,6 +46,35 @@ Add `resource_cost` column to `random_table_entries` instead of creating new tab
 - `entity_sources` - for source citations
 - `entity_prerequisites` - for level/feature/spell prerequisites
 
+### 5. Laravel Naming Conventions
+Following Laravel's pivot table naming conventions:
+- **Table name:** Alphabetical order of singular model names → `class_optional_feature`
+- **Column order:** Follows table name → `class_id` before `optional_feature_id`
+- **Pivot Model:** Named after table → `ClassOptionalFeature extends Pivot`
+
+Existing project examples:
+- `class_spells` (class < spell, singular)
+- `item_property` (item < property, singular)
+
+### 6. Reusable Concerns & Traits
+
+**Importer Concerns (reuse directly):**
+| Concern | Purpose | Usage |
+|---------|---------|-------|
+| `GeneratesSlugs` | Generate URL-friendly slugs | ✅ Use as-is |
+| `CachesLookupTables` | Cache lookup queries (Source, CharacterClass) | ✅ Use as-is |
+| `ImportsSources` | Import EntitySource records | ✅ Use as-is |
+| `ImportsPrerequisites` | Import EntityPrerequisite records | ✅ Use as-is |
+| `ImportsRandomTablesFromText` | Import RandomTable from text | ⚠️ Adapt for roll elements |
+
+**Parser Concerns (reuse directly):**
+| Concern | Purpose | Usage |
+|---------|---------|-------|
+| `ParsesSourceCitations` | Parse "Source: Book p. XX" text | ✅ Use as-is |
+| `ParsesRolls` | Parse `<roll>` XML elements | ✅ Use as-is |
+
+**Note:** We'll need to extend `ParsesRolls` or create a new method to handle resource_cost in roll descriptions.
+
 ---
 
 ## Database Schema
@@ -85,24 +114,26 @@ Schema::create('optional_features', function (Blueprint $table) {
 });
 ```
 
-### Migration 2: `create_optional_feature_classes_table`
+### Migration 2: `create_class_optional_feature_table`
 
 ```php
-Schema::create('optional_feature_classes', function (Blueprint $table) {
+// Laravel convention: alphabetical order, singular (class < optional_feature)
+Schema::create('class_optional_feature', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('optional_feature_id')->constrained()->cascadeOnDelete();
     $table->foreignId('class_id')->constrained('classes')->cascadeOnDelete();
+    $table->foreignId('optional_feature_id')->constrained()->cascadeOnDelete();
     $table->string('subclass_name')->nullable();  // "Way of the Four Elements", "Battle Master"
     $table->timestamps();
 
     // Prevent duplicates
     $table->unique(
-        ['optional_feature_id', 'class_id', 'subclass_name'],
-        'opt_feat_class_subclass_unique'
+        ['class_id', 'optional_feature_id', 'subclass_name'],
+        'class_opt_feat_subclass_unique'
     );
 
     // Indexes for lookups
     $table->index('class_id');
+    $table->index('optional_feature_id');
     $table->index('subclass_name');
 });
 ```
@@ -256,14 +287,16 @@ class OptionalFeature extends BaseModel
     // Relationships
     public function classes(): BelongsToMany
     {
-        return $this->belongsToMany(CharacterClass::class, 'optional_feature_classes', 'optional_feature_id', 'class_id')
+        // Laravel convention: alphabetical table name (class_optional_feature)
+        // Column order follows table name: class_id first, optional_feature_id second
+        return $this->belongsToMany(CharacterClass::class, 'class_optional_feature')
             ->withPivot('subclass_name')
             ->withTimestamps();
     }
 
     public function classPivots(): HasMany
     {
-        return $this->hasMany(OptionalFeatureClass::class);
+        return $this->hasMany(ClassOptionalFeature::class);
     }
 
     public function rolls(): MorphMany
@@ -362,7 +395,7 @@ class OptionalFeature extends BaseModel
 }
 ```
 
-### `App\Models\OptionalFeatureClass`
+### `App\Models\ClassOptionalFeature` (Pivot Model)
 
 ```php
 <?php
@@ -370,23 +403,34 @@ class OptionalFeature extends BaseModel
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class OptionalFeatureClass extends BaseModel
+/**
+ * Pivot model for class_optional_feature table.
+ *
+ * Laravel convention: table name is alphabetical (class < optional_feature)
+ * Model name follows table: ClassOptionalFeature
+ */
+class ClassOptionalFeature extends Pivot
 {
+    protected $table = 'class_optional_feature';
+
+    public $incrementing = true;  // We have an id column
+
     protected $fillable = [
-        'optional_feature_id',
         'class_id',
+        'optional_feature_id',
         'subclass_name',
     ];
-
-    public function optionalFeature(): BelongsTo
-    {
-        return $this->belongsTo(OptionalFeature::class);
-    }
 
     public function characterClass(): BelongsTo
     {
         return $this->belongsTo(CharacterClass::class, 'class_id');
+    }
+
+    public function optionalFeature(): BelongsTo
+    {
+        return $this->belongsTo(OptionalFeature::class);
     }
 }
 ```
@@ -397,14 +441,28 @@ class OptionalFeatureClass extends BaseModel
 
 ### `App\Services\Parsers\OptionalFeatureXmlParser`
 
-Key responsibilities:
+**Reuses existing parser concerns:**
+```php
+use App\Services\Parsers\Concerns\ParsesSourceCitations;  // parseSourceCitations()
+use App\Services\Parsers\Concerns\ParsesRolls;            // parseRollElements()
+
+class OptionalFeatureXmlParser
+{
+    use ParsesSourceCitations;  // Reuse source citation parsing
+    use ParsesRolls;            // Reuse <roll> element parsing
+    // ...
+}
+```
+
+**Key responsibilities:**
 1. Parse both `<spell>` and `<feat>` XML formats
 2. Merge duplicate entries (same name appears in both formats)
 3. Extract feature type from name prefix (`Invocation:`, `Maneuver:`, etc.)
 4. Parse resource cost from `<components>` tag
 5. Parse level requirement from prerequisite text
 6. Parse class/subclass from `<classes>` tag
-7. Extract `<roll>` elements for damage scaling
+7. Use `ParsesRolls` trait for `<roll>` elements
+8. Use `ParsesSourceCitations` trait for source parsing
 
 **Feature Type Detection:**
 ```php
@@ -438,6 +496,31 @@ private function parseResourceCost(string $components): array
         return ['type' => $type, 'cost' => (int) $matches[1]];
     }
     return ['type' => null, 'cost' => null];
+}
+```
+
+**Roll Parsing (extends ParsesRolls trait):**
+```php
+/**
+ * Parse roll elements with resource cost extraction.
+ * Extends ParsesRolls::parseRollElements() to add resource_cost.
+ */
+private function parseRollsWithResourceCost(SimpleXMLElement $element): array
+{
+    // Use trait method for base parsing
+    $rolls = $this->parseRollElements($element);
+
+    // Enhance with resource_cost from description
+    return array_map(function ($roll) {
+        $resourceCost = null;
+        if ($roll['description'] && preg_match('/(\d+)\s+Ki Points?/i', $roll['description'], $m)) {
+            $resourceCost = (int) $m[1];
+        }
+        return array_merge($roll, [
+            'dice' => $roll['formula'],
+            'resource_cost' => $resourceCost,
+        ]);
+    }, $rolls);
 }
 ```
 
@@ -483,20 +566,23 @@ namespace App\Services\Importers;
 use App\Enums\OptionalFeatureType;
 use App\Models\CharacterClass;
 use App\Models\OptionalFeature;
+use App\Services\Importers\Concerns\CachesLookupTables;
+use App\Services\Importers\Concerns\GeneratesSlugs;
 use App\Services\Importers\Concerns\ImportsPrerequisites;
-use App\Services\Importers\Concerns\ImportsRandomTables;
+use App\Services\Importers\Concerns\ImportsSources;
 use App\Services\Parsers\OptionalFeatureXmlParser;
 
 class OptionalFeatureImporter extends BaseImporter
 {
-    use ImportsPrerequisites;
-    use ImportsRandomTables;
-
-    private array $classCache = [];
+    // Reuse existing concerns - no custom code needed for these!
+    use CachesLookupTables;      // cachedFind() for CharacterClass lookup
+    use GeneratesSlugs;           // generateSlug() - inherited from BaseImporter but explicit is clearer
+    use ImportsPrerequisites;     // importEntityPrerequisites()
+    use ImportsSources;           // importEntitySources()
 
     protected function importEntity(array $data): OptionalFeature
     {
-        // 1. Upsert optional feature
+        // 1. Upsert optional feature using inherited generateSlug()
         $feature = OptionalFeature::updateOrCreate(
             ['slug' => $this->generateSlug($data['name'])],
             [
@@ -517,29 +603,37 @@ class OptionalFeatureImporter extends BaseImporter
         // 2. Clear existing relationships
         $feature->classes()->detach();
         $feature->rolls()->delete();
-        $feature->sources()->delete();
-        $feature->prerequisites()->delete();
+        // sources and prerequisites cleared by their respective trait methods
 
-        // 3. Attach class associations
+        // 3. Attach class associations using cached lookup
         $this->attachClasses($feature, $data['class_associations']);
 
-        // 4. Import rolls (damage scaling)
+        // 4. Import rolls (damage scaling) - custom for OptionalFeature
         $this->importRolls($feature, $data['rolls']);
 
-        // 5. Import sources
+        // 5. Import sources using ImportsSources trait
         $this->importEntitySources($feature, $data['sources']);
 
-        // 6. Import structured prerequisites
+        // 6. Import structured prerequisites using ImportsPrerequisites trait
         $this->importEntityPrerequisites($feature, $data['prerequisites']);
 
         $feature->refresh();
         return $feature;
     }
 
+    /**
+     * Attach class associations to an optional feature.
+     * Uses CachesLookupTables for efficient CharacterClass lookup.
+     */
     private function attachClasses(OptionalFeature $feature, array $associations): void
     {
         foreach ($associations as $assoc) {
-            $class = $this->resolveClass($assoc['class']);
+            // Use cachedFind from CachesLookupTables trait
+            // Note: cachedFind normalizes to uppercase, so we query by name directly
+            $class = CharacterClass::where('name', $assoc['class'])
+                ->whereNull('parent_class_id')  // Base class only
+                ->first();
+
             if ($class) {
                 $feature->classes()->attach($class->id, [
                     'subclass_name' => $assoc['subclass'],
@@ -548,16 +642,10 @@ class OptionalFeatureImporter extends BaseImporter
         }
     }
 
-    private function resolveClass(string $className): ?CharacterClass
-    {
-        if (!isset($this->classCache[$className])) {
-            $this->classCache[$className] = CharacterClass::where('name', $className)
-                ->whereNull('parent_class_id')  // Base class only
-                ->first();
-        }
-        return $this->classCache[$className];
-    }
-
+    /**
+     * Import roll/damage scaling data for an optional feature.
+     * Creates RandomTable + RandomTableEntry records with resource_cost.
+     */
     private function importRolls(OptionalFeature $feature, array $rolls): void
     {
         foreach ($rolls as $rollData) {
@@ -569,16 +657,18 @@ class OptionalFeatureImporter extends BaseImporter
 
             $table->entries()->create([
                 'result_text' => $rollData['dice'],
-                'level' => $rollData['level'],
-                'resource_cost' => $rollData['resource_cost'],
+                'level' => $rollData['level'] ?? null,
+                'resource_cost' => $rollData['resource_cost'] ?? null,
                 'sort_order' => 0,
             ]);
         }
     }
 
+    /**
+     * Extract dice type from formula (e.g., "8d8" -> "d8").
+     */
     private function extractDiceType(string $dice): string
     {
-        // "8d8" -> "d8", "3d10" -> "d10"
         if (preg_match('/d(\d+)/', $dice, $matches)) {
             return 'd' . $matches[1];
         }
@@ -706,12 +796,12 @@ Using `EntityPrerequisite` polymorphic table:
 
 ### Phase 1: Database & Models (~2 hours)
 - [ ] Create migration: `optional_features` table
-- [ ] Create migration: `optional_feature_classes` pivot table
+- [ ] Create migration: `class_optional_feature` pivot table (Laravel convention: alphabetical)
 - [ ] Create migration: Add `resource_cost` to `random_table_entries`
 - [ ] Create `OptionalFeatureType` enum
 - [ ] Create `ResourceType` enum
 - [ ] Create `OptionalFeature` model
-- [ ] Create `OptionalFeatureClass` model
+- [ ] Create `ClassOptionalFeature` pivot model (extends Pivot)
 - [ ] Run migrations
 
 ### Phase 2: Parser & Importer (~3 hours)

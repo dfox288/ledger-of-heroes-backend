@@ -4,11 +4,13 @@ namespace Tests\Feature\Api;
 
 use App\Models\Background;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
 class BackgroundFilterOperatorTest extends TestCase
 {
     use RefreshDatabase;
+    use WaitsForMeilisearch;
 
     protected $seed = true;
 
@@ -22,10 +24,8 @@ class BackgroundFilterOperatorTest extends TestCase
         // Configure Meilisearch indexes for testing
         $this->artisan('search:configure-indexes');
 
-        // Force re-index backgrounds to ensure skill_proficiencies are populated
-        // (backgrounds are indexed during import, but proficiencies are added after)
-        $this->artisan('scout:import', ['model' => 'App\\Models\\Background']);
-        sleep(1); // Wait for Meilisearch to process the indexing
+        // Wait for initial import to be indexed
+        $this->waitForMeilisearchIndex('test_backgrounds');
     }
 
     // ============================================================
@@ -292,11 +292,16 @@ class BackgroundFilterOperatorTest extends TestCase
             ->forEntity(Background::class, $bgWithAthletics->id)
             ->create(['proficiency_type' => 'skill', 'skill_id' => $athleticsSkill->id]);
 
-        // Re-index these specific backgrounds
+        // Reload models to include proficiency relationships for toSearchableArray()
+        $bgWithInsight->refresh()->load('proficiencies.skill');
+        $bgWithReligion->refresh()->load('proficiencies.skill');
+        $bgWithAthletics->refresh()->load('proficiencies.skill');
+
+        // Re-index these specific backgrounds and wait for Meilisearch
         $bgWithInsight->searchable();
         $bgWithReligion->searchable();
         $bgWithAthletics->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$bgWithInsight, $bgWithReligion, $bgWithAthletics]);
 
         // Act: Filter by skill_proficiencies IN [insight, religion]
         $response = $this->getJson('/api/v1/backgrounds?filter=skill_proficiencies IN [insight, religion]&per_page=100');
@@ -334,10 +339,14 @@ class BackgroundFilterOperatorTest extends TestCase
             ->forEntity(Background::class, $bgWithoutInsight->id)
             ->create(['proficiency_type' => 'skill', 'skill_id' => $athleticsSkill->id]);
 
-        // Re-index these specific backgrounds
+        // Reload models to include proficiency relationships for toSearchableArray()
+        $bgWithInsight->refresh()->load('proficiencies.skill');
+        $bgWithoutInsight->refresh()->load('proficiencies.skill');
+
+        // Re-index these specific backgrounds and wait for Meilisearch
         $bgWithInsight->searchable();
         $bgWithoutInsight->searchable();
-        sleep(1);
+        $this->waitForMeilisearchModels([$bgWithInsight, $bgWithoutInsight]);
 
         // Act: Filter by skill_proficiencies NOT IN [insight]
         $response = $this->getJson('/api/v1/backgrounds?filter=skill_proficiencies NOT IN [insight]&per_page=100');

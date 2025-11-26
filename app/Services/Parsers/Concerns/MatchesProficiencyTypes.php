@@ -5,23 +5,30 @@ namespace App\Services\Parsers\Concerns;
 use App\Models\ProficiencyType;
 use Illuminate\Support\Collection;
 
+/**
+ * Trait MatchesProficiencyTypes
+ *
+ * Provides proficiency type matching with static caching.
+ * Uses the same pattern as LookupsGameEntities for consistency.
+ *
+ * Used by: ItemXmlParser, ClassXmlParser, RaceXmlParser, BackgroundXmlParser
+ */
 trait MatchesProficiencyTypes
 {
-    private Collection $proficiencyTypesCache;
+    private static ?Collection $proficiencyTypesCache = null;
 
     /**
-     * Initialize the proficiency types cache.
-     * Call this in the parser's constructor.
+     * Initialize the proficiency types cache (lazy initialization).
      */
-    protected function initializeProficiencyTypes(): void
+    private function initializeProficiencyTypesCache(): void
     {
-        if (! isset($this->proficiencyTypesCache)) {
+        if (self::$proficiencyTypesCache === null) {
             try {
-                $this->proficiencyTypesCache = ProficiencyType::all()
+                self::$proficiencyTypesCache = ProficiencyType::all()
                     ->keyBy(fn ($type) => $this->normalizeName($type->name));
             } catch (\Exception $e) {
                 // Graceful fallback for unit tests without database
-                $this->proficiencyTypesCache = collect();
+                self::$proficiencyTypesCache = collect();
             }
         }
     }
@@ -34,15 +41,12 @@ trait MatchesProficiencyTypes
      */
     protected function matchProficiencyType(string $name): ?ProficiencyType
     {
-        // Lazy initialization for backward compatibility with unit tests
-        if (! isset($this->proficiencyTypesCache)) {
-            $this->initializeProficiencyTypes();
-        }
+        $this->initializeProficiencyTypesCache();
 
         $normalized = $this->normalizeName($name);
 
         // Exact match first
-        $match = $this->proficiencyTypesCache->get($normalized);
+        $match = self::$proficiencyTypesCache->get($normalized);
         if ($match) {
             return $match;
         }
@@ -59,7 +63,7 @@ trait MatchesProficiencyTypes
         ];
 
         if (isset($fuzzyMatches[$normalized])) {
-            $match = $this->proficiencyTypesCache->get($fuzzyMatches[$normalized]);
+            $match = self::$proficiencyTypesCache->get($fuzzyMatches[$normalized]);
             if ($match) {
                 return $match;
             }
@@ -67,7 +71,7 @@ trait MatchesProficiencyTypes
 
         // Partial string matching - find proficiency type that contains the search term
         // e.g., "staff" should match "Quarterstaff"
-        $match = $this->proficiencyTypesCache->first(function ($type, $key) use ($normalized) {
+        $match = self::$proficiencyTypesCache->first(function ($type, $key) use ($normalized) {
             return str_contains($key, $normalized) || str_contains($normalized, $key);
         });
 
@@ -129,5 +133,15 @@ trait MatchesProficiencyTypes
 
         // Default to skill
         return 'skill';
+    }
+
+    /**
+     * Initialize proficiency types (legacy method for backward compatibility).
+     *
+     * @deprecated Use initializeProficiencyTypesCache() instead (called automatically)
+     */
+    protected function initializeProficiencyTypes(): void
+    {
+        $this->initializeProficiencyTypesCache();
     }
 }

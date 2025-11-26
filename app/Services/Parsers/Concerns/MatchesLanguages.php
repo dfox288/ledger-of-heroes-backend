@@ -5,25 +5,32 @@ namespace App\Services\Parsers\Concerns;
 use App\Models\Language;
 use Illuminate\Support\Collection;
 
+/**
+ * Trait MatchesLanguages
+ *
+ * Provides language matching with static caching.
+ * Uses the same pattern as LookupsGameEntities for consistency.
+ *
+ * Used by: RaceXmlParser, BackgroundXmlParser
+ */
 trait MatchesLanguages
 {
     use ConvertsWordNumbers;
 
-    private Collection $languagesCache;
+    private static ?Collection $languagesCache = null;
 
     /**
-     * Initialize the languages cache.
-     * Call this in the parser's constructor.
+     * Initialize the languages cache (lazy initialization).
      */
-    protected function initializeLanguages(): void
+    private function initializeLanguagesCache(): void
     {
-        if (! isset($this->languagesCache)) {
+        if (self::$languagesCache === null) {
             try {
-                $this->languagesCache = Language::all()
+                self::$languagesCache = Language::all()
                     ->keyBy(fn ($language) => $language->slug);
             } catch (\Exception $e) {
                 // Graceful fallback for unit tests without database
-                $this->languagesCache = collect();
+                self::$languagesCache = collect();
             }
         }
     }
@@ -43,10 +50,7 @@ trait MatchesLanguages
      */
     protected function extractLanguagesFromText(string $text): array
     {
-        // Lazy initialization for backward compatibility with unit tests
-        if (! isset($this->languagesCache)) {
-            $this->initializeLanguages();
-        }
+        $this->initializeLanguagesCache();
 
         $results = [];
 
@@ -78,7 +82,7 @@ trait MatchesLanguages
 
         // Pattern 2: Extract specific language names
         // Try to match each known language in the cache
-        foreach ($this->languagesCache as $slug => $language) {
+        foreach (self::$languagesCache as $slug => $language) {
             // Match the language name (case-insensitive, word boundary)
             $pattern = '/\b'.preg_quote($language->name, '/').'\b/i';
             if (preg_match($pattern, $remainingText)) {
@@ -115,21 +119,18 @@ trait MatchesLanguages
      */
     protected function matchLanguage(string $name): ?Language
     {
-        // Lazy initialization
-        if (! isset($this->languagesCache)) {
-            $this->initializeLanguages();
-        }
+        $this->initializeLanguagesCache();
 
         $normalized = $this->normalizeLanguageName($name);
 
         // Exact slug match first
-        $match = $this->languagesCache->get($normalized);
+        $match = self::$languagesCache->get($normalized);
         if ($match) {
             return $match;
         }
 
         // Try partial matching (e.g., "thieves cant" → "thieves' cant")
-        $match = $this->languagesCache->first(function ($language) use ($normalized) {
+        $match = self::$languagesCache->first(function ($language) use ($normalized) {
             $langSlug = $this->normalizeLanguageName($language->name);
 
             return $langSlug === $normalized || str_contains($langSlug, $normalized) || str_contains($normalized, $langSlug);
@@ -158,5 +159,15 @@ trait MatchesLanguages
         $name = trim($name, '-');
 
         return $name;
+    }
+
+    /**
+     * Initialize languages (legacy method for backward compatibility).
+     *
+     * @deprecated Use initializeLanguagesCache() instead (called automatically)
+     */
+    protected function initializeLanguages(): void
+    {
+        $this->initializeLanguagesCache();
     }
 }

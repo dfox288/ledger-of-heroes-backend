@@ -16,10 +16,9 @@ class SpellMeilisearchFilterTest extends TestCase
     {
         parent::setUp();
 
-        // Import test spells
-        $this->artisan('import:spells', ['file' => 'import-files/spells-phb.xml']);
-
-        // Ensure Meilisearch indexes are configured
+        // Tests use the pre-populated test Meilisearch index (test_spells)
+        // which is populated via: docker compose exec -e SCOUT_PREFIX=test_ php php artisan import:all --env=testing
+        // No need to import spells on every test - just ensure indexes are configured
         $this->artisan('search:configure-indexes');
     }
 

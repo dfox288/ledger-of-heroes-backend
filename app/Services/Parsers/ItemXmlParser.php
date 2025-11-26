@@ -34,7 +34,7 @@ class ItemXmlParser
 
     public function __construct()
     {
-        $this->initializeProficiencyTypes();
+        // Note: proficiencyTypesCache uses lazy initialization via trait
         $this->initializeStrategies();
     }
 

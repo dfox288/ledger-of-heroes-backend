@@ -161,9 +161,7 @@ class BackgroundXmlParser
 
         // Try to match specific language by name directly
         try {
-            // Initialize languages cache if not already done
-            $this->initializeLanguages();
-
+            // Note: languagesCache uses lazy initialization via trait
             $language = $this->matchLanguage($languageText);
             if ($language) {
                 return [[

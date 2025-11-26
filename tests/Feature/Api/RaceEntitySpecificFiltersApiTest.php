@@ -2,399 +2,224 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\AbilityScore;
-use App\Models\CharacterTrait;
-use App\Models\Modifier;
 use App\Models\Race;
-use App\Models\Size;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\Concerns\ClearsMeilisearchIndex;
-use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+/**
+ * Tests for Race-specific filter operators using Meilisearch.
+ *
+ * These tests use pre-imported data from SearchTestExtension.
+ * No RefreshDatabase needed - all tests are read-only against shared data.
+ */
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class RaceEntitySpecificFiltersApiTest extends TestCase
 {
-    use ClearsMeilisearchIndex;
-    use RefreshDatabase;
-    use WaitsForMeilisearch;
+    protected $seed = false;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        // Clear Meilisearch index for test isolation
-        $this->clearMeilisearchIndex(Race::class);
-
-        // Configure Meilisearch indexes to ensure filterable attributes are set
-        $this->artisan('search:configure-indexes');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_races_by_ability_bonus_int(): void
     {
-        // Arrange: Create races with INT bonuses
-        $intAbility = AbilityScore::where('code', 'INT')->first();
+        // Get count of races with INT bonuses from pre-imported data
+        $intBonusCount = Race::whereHas('modifiers', function ($query) {
+            $query->where('modifier_category', 'ability_score')
+                ->whereHas('abilityScore', function ($q) {
+                    $q->where('code', 'INT');
+                })
+                ->where('value', '>', 0);
+        })->count();
 
-        $highElf = Race::factory()->create(['name' => 'High Elf']);
-        Modifier::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $highElf->id,
-            'modifier_category' => 'ability_score',
-            'ability_score_id' => $intAbility->id,
-            'value' => 1,
-        ]);
-        $highElf->fresh()->searchable();
-
-        $gnome = Race::factory()->create(['name' => 'Gnome']);
-        Modifier::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $gnome->id,
-            'modifier_category' => 'ability_score',
-            'ability_score_id' => $intAbility->id,
-            'value' => 2,
-        ]);
-        $gnome->fresh()->searchable();
-
-        // Create race without INT bonus
-        $strAbility = AbilityScore::where('code', 'STR')->first();
-        $mountainDwarf = Race::factory()->create(['name' => 'Mountain Dwarf']);
-        Modifier::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $mountainDwarf->id,
-            'modifier_category' => 'ability_score',
-            'ability_score_id' => $strAbility->id,
-            'value' => 2,
-        ]);
-        $mountainDwarf->fresh()->searchable();
-
-        $this->waitForMeilisearchModels([$highElf, $gnome, $mountainDwarf]);
+        $this->assertGreaterThan(0, $intBonusCount, 'Should have races with INT bonus (e.g., High Elf, Gnome)');
 
         // Act: Filter by ability_int_bonus > 0 using Meilisearch
         $response = $this->getJson('/api/v1/races?filter=ability_int_bonus > 0');
 
         // Assert: Only races with INT bonus returned
         $response->assertOk();
-        $data = $response->json('data');
+        $this->assertEquals($intBonusCount, $response->json('meta.total'));
 
-        $this->assertCount(2, $data);
-        $names = collect($data)->pluck('name')->toArray();
-        $this->assertContains('High Elf', $names);
-        $this->assertContains('Gnome', $names);
-        $this->assertNotContains('Mountain Dwarf', $names);
+        // Verify all returned races have INT bonuses
+        foreach ($response->json('data') as $race) {
+            $raceModel = Race::find($race['id']);
+            $hasIntBonus = $raceModel->modifiers()
+                ->where('modifier_category', 'ability_score')
+                ->whereHas('abilityScore', function ($q) {
+                    $q->where('code', 'INT');
+                })
+                ->where('value', '>', 0)
+                ->exists();
+            $this->assertTrue($hasIntBonus, "{$race['name']} should have INT bonus");
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_races_by_ability_bonus_str(): void
     {
-        // Arrange: Create races with STR bonuses
-        $strAbility = AbilityScore::where('code', 'STR')->first();
+        // Get count of races with STR bonuses from pre-imported data
+        $strBonusCount = Race::whereHas('modifiers', function ($query) {
+            $query->where('modifier_category', 'ability_score')
+                ->whereHas('abilityScore', function ($q) {
+                    $q->where('code', 'STR');
+                })
+                ->where('value', '>', 0);
+        })->count();
 
-        $mountainDwarf = Race::factory()->create(['name' => 'Mountain Dwarf']);
-        Modifier::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $mountainDwarf->id,
-            'modifier_category' => 'ability_score',
-            'ability_score_id' => $strAbility->id,
-            'value' => 2,
-        ]);
-        $mountainDwarf->fresh()->searchable();
-
-        $dragonborn = Race::factory()->create(['name' => 'Dragonborn']);
-        Modifier::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $dragonborn->id,
-            'modifier_category' => 'ability_score',
-            'ability_score_id' => $strAbility->id,
-            'value' => 2,
-        ]);
-        $dragonborn->fresh()->searchable();
-
-        // Create race without STR bonus
-        $intAbility = AbilityScore::where('code', 'INT')->first();
-        $gnome = Race::factory()->create(['name' => 'Gnome']);
-        Modifier::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $gnome->id,
-            'modifier_category' => 'ability_score',
-            'ability_score_id' => $intAbility->id,
-            'value' => 2,
-        ]);
-        $gnome->fresh()->searchable();
-
-        $this->waitForMeilisearchModels([$mountainDwarf, $dragonborn, $gnome]);
+        $this->assertGreaterThan(0, $strBonusCount, 'Should have races with STR bonus (e.g., Mountain Dwarf, Dragonborn)');
 
         // Act: Filter by ability_str_bonus > 0 using Meilisearch
         $response = $this->getJson('/api/v1/races?filter=ability_str_bonus > 0');
 
         // Assert: Only races with STR bonus returned
         $response->assertOk();
-        $data = $response->json('data');
+        $this->assertEquals($strBonusCount, $response->json('meta.total'));
 
-        $this->assertCount(2, $data);
-        $names = collect($data)->pluck('name')->toArray();
-        $this->assertContains('Mountain Dwarf', $names);
-        $this->assertContains('Dragonborn', $names);
-        $this->assertNotContains('Gnome', $names);
+        // Verify all returned races have STR bonuses
+        foreach ($response->json('data') as $race) {
+            $raceModel = Race::find($race['id']);
+            $hasStrBonus = $raceModel->modifiers()
+                ->where('modifier_category', 'ability_score')
+                ->whereHas('abilityScore', function ($q) {
+                    $q->where('code', 'STR');
+                })
+                ->where('value', '>', 0)
+                ->exists();
+            $this->assertTrue($hasStrBonus, "{$race['name']} should have STR bonus");
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_races_by_size_small(): void
     {
-        // Arrange: Create races with different sizes
-        $smallSize = Size::where('code', 'S')->first();
-        $mediumSize = Size::where('code', 'M')->first();
+        // Get count of small races from pre-imported data
+        $smallRaceCount = Race::whereHas('size', function ($query) {
+            $query->where('code', 'S');
+        })->count();
 
-        $halfling = Race::factory()->create([
-            'name' => 'Halfling',
-            'size_id' => $smallSize->id,
-        ]);
-        $halfling->load('size')->searchable();
-
-        $gnome = Race::factory()->create([
-            'name' => 'Gnome',
-            'size_id' => $smallSize->id,
-        ]);
-        $gnome->load('size')->searchable();
-
-        $human = Race::factory()->create([
-            'name' => 'Human',
-            'size_id' => $mediumSize->id,
-        ]);
-        $human->load('size')->searchable();
-
-        $this->waitForMeilisearchModels([$halfling, $gnome, $human]);
+        $this->assertGreaterThan(0, $smallRaceCount, 'Should have small races (e.g., Halfling, Gnome)');
 
         // Act: Filter by size_code = S using Meilisearch
         $response = $this->getJson('/api/v1/races?filter=size_code = S');
 
         // Assert: Only small races returned
         $response->assertOk();
-        $data = $response->json('data');
+        $this->assertEquals($smallRaceCount, $response->json('meta.total'));
 
-        $this->assertCount(2, $data);
-        $names = collect($data)->pluck('name')->toArray();
-        $this->assertContains('Halfling', $names);
-        $this->assertContains('Gnome', $names);
-        $this->assertNotContains('Human', $names);
+        // Verify all returned races are small
+        foreach ($response->json('data') as $race) {
+            $this->assertEquals('S', $race['size']['code'], "{$race['name']} should be size S");
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_races_by_size_medium(): void
     {
-        // Arrange: Create races with different sizes
-        $smallSize = Size::where('code', 'S')->first();
-        $mediumSize = Size::where('code', 'M')->first();
+        // Get count of medium races from pre-imported data
+        $mediumRaceCount = Race::whereHas('size', function ($query) {
+            $query->where('code', 'M');
+        })->count();
 
-        $human = Race::factory()->create([
-            'name' => 'Human',
-            'size_id' => $mediumSize->id,
-        ]);
-        $human->load('size')->searchable();
-
-        $elf = Race::factory()->create([
-            'name' => 'Elf',
-            'size_id' => $mediumSize->id,
-        ]);
-        $elf->load('size')->searchable();
-
-        $halfling = Race::factory()->create([
-            'name' => 'Halfling',
-            'size_id' => $smallSize->id,
-        ]);
-        $halfling->load('size')->searchable();
-
-        $this->waitForMeilisearchModels([$human, $elf, $halfling]);
+        $this->assertGreaterThan(0, $mediumRaceCount, 'Should have medium races (e.g., Human, Elf)');
 
         // Act: Filter by size_code = M using Meilisearch
         $response = $this->getJson('/api/v1/races?filter=size_code = M');
 
         // Assert: Only medium races returned
         $response->assertOk();
-        $data = $response->json('data');
+        $this->assertEquals($mediumRaceCount, $response->json('meta.total'));
 
-        $this->assertCount(2, $data);
-        $names = collect($data)->pluck('name')->toArray();
-        $this->assertContains('Human', $names);
-        $this->assertContains('Elf', $names);
-        $this->assertNotContains('Halfling', $names);
+        // Verify all returned races are medium
+        foreach ($response->json('data') as $race) {
+            $this->assertEquals('M', $race['size']['code'], "{$race['name']} should be size M");
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_races_by_min_speed_35(): void
     {
-        // Arrange: Create races with different speeds
-        $woodElf = Race::factory()->create([
-            'name' => 'Wood Elf',
-            'speed' => 35,
-        ]);
-        $woodElf->searchable();
+        // Get count of races with speed >= 35 from pre-imported data
+        $fastRaceCount = Race::where('speed', '>=', 35)->count();
 
-        $human = Race::factory()->create([
-            'name' => 'Human',
-            'speed' => 30,
-        ]);
-        $human->searchable();
-
-        $dwarf = Race::factory()->create([
-            'name' => 'Dwarf',
-            'speed' => 25,
-        ]);
-        $dwarf->searchable();
-
-        $this->waitForMeilisearchModels([$woodElf, $human, $dwarf]);
+        $this->assertGreaterThan(0, $fastRaceCount, 'Should have races with speed >= 35 (e.g., Wood Elf)');
 
         // Act: Filter by speed >= 35 using Meilisearch
         $response = $this->getJson('/api/v1/races?filter=speed >= 35');
 
         // Assert: Only races with speed >= 35 returned
         $response->assertOk();
-        $data = $response->json('data');
+        $this->assertEquals($fastRaceCount, $response->json('meta.total'));
 
-        $this->assertCount(1, $data);
-        $this->assertEquals('Wood Elf', $data[0]['name']);
+        // Verify all returned races have speed >= 35
+        foreach ($response->json('data') as $race) {
+            $this->assertGreaterThanOrEqual(35, $race['speed'], "{$race['name']} should have speed >= 35");
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_races_by_has_darkvision_true(): void
     {
-        // Arrange: Create races with and without darkvision tag
-        $dwarf = Race::factory()->create(['name' => 'Dwarf']);
-        $dwarf->attachTag('darkvision');
-        CharacterTrait::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $dwarf->id,
-            'name' => 'Darkvision',
-            'description' => 'You have superior vision in dark and dim conditions.',
-        ]);
-        $dwarf->fresh()->searchable();
+        // Get count of races with darkvision tag from pre-imported data
+        $darkvisionRaceCount = Race::withAnyTags(['darkvision'])->count();
 
-        $elf = Race::factory()->create(['name' => 'Elf']);
-        $elf->attachTag('darkvision');
-        CharacterTrait::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $elf->id,
-            'name' => 'Darkvision',
-            'description' => 'Accustomed to twilit forests and the night sky.',
-        ]);
-        $elf->fresh()->searchable();
-
-        $tiefling = Race::factory()->create(['name' => 'Tiefling']);
-        $tiefling->attachTag('darkvision');
-        CharacterTrait::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $tiefling->id,
-            'name' => 'Darkvision',
-            'description' => 'Thanks to your infernal heritage, you have superior vision.',
-        ]);
-        $tiefling->fresh()->searchable();
-
-        $human = Race::factory()->create(['name' => 'Human']);
-        $human->searchable();
-
-        $this->waitForMeilisearchModels([$dwarf, $elf, $tiefling, $human]);
+        $this->assertGreaterThan(0, $darkvisionRaceCount, 'Should have races with darkvision (e.g., Dwarf, Elf, Tiefling)');
 
         // Act: Filter by tag_slugs IN [darkvision] using Meilisearch
         $response = $this->getJson('/api/v1/races?filter=tag_slugs IN [darkvision]');
 
         // Assert: Only races with darkvision returned
         $response->assertOk();
-        $data = $response->json('data');
+        $this->assertEquals($darkvisionRaceCount, $response->json('meta.total'));
 
-        $this->assertCount(3, $data);
-        $names = collect($data)->pluck('name')->toArray();
-        $this->assertContains('Dwarf', $names);
-        $this->assertContains('Elf', $names);
-        $this->assertContains('Tiefling', $names);
-        $this->assertNotContains('Human', $names);
+        // Verify all returned races have darkvision tag
+        foreach ($response->json('data') as $race) {
+            $tagSlugs = collect($race['tags'])->pluck('slug')->toArray();
+            $this->assertContains('darkvision', $tagSlugs, "{$race['name']} should have darkvision tag");
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_races_by_combined_ability_bonus_and_has_darkvision(): void
     {
-        // Arrange: Create races with INT bonus and darkvision
-        $intAbility = AbilityScore::where('code', 'INT')->first();
+        // Get count of races with both INT bonus and darkvision from pre-imported data
+        $combinedCount = Race::whereHas('modifiers', function ($query) {
+            $query->where('modifier_category', 'ability_score')
+                ->whereHas('abilityScore', function ($q) {
+                    $q->where('code', 'INT');
+                })
+                ->where('value', '>', 0);
+        })->withAnyTags(['darkvision'])->count();
 
-        $gnome = Race::factory()->create(['name' => 'Gnome']);
-        $gnome->attachTag('darkvision');
-        Modifier::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $gnome->id,
-            'modifier_category' => 'ability_score',
-            'ability_score_id' => $intAbility->id,
-            'value' => 2,
-        ]);
-        CharacterTrait::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $gnome->id,
-            'name' => 'Darkvision',
-            'description' => 'You have superior vision in dark and dim conditions.',
-        ]);
-        $gnome->fresh()->searchable();
-
-        $highElf = Race::factory()->create(['name' => 'High Elf']);
-        $highElf->attachTag('darkvision');
-        Modifier::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $highElf->id,
-            'modifier_category' => 'ability_score',
-            'ability_score_id' => $intAbility->id,
-            'value' => 1,
-        ]);
-        CharacterTrait::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $highElf->id,
-            'name' => 'Darkvision',
-            'description' => 'Accustomed to twilit forests.',
-        ]);
-        $highElf->fresh()->searchable();
-
-        // Create race with INT but no darkvision
-        $human = Race::factory()->create(['name' => 'Human']);
-        Modifier::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $human->id,
-            'modifier_category' => 'ability_score',
-            'ability_score_id' => $intAbility->id,
-            'value' => 1,
-        ]);
-        $human->fresh()->searchable();
-
-        // Create race with darkvision but no INT
-        $strAbility = AbilityScore::where('code', 'STR')->first();
-        $dwarf = Race::factory()->create(['name' => 'Dwarf']);
-        $dwarf->attachTag('darkvision');
-        Modifier::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $dwarf->id,
-            'modifier_category' => 'ability_score',
-            'ability_score_id' => $strAbility->id,
-            'value' => 2,
-        ]);
-        CharacterTrait::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $dwarf->id,
-            'name' => 'Darkvision',
-            'description' => 'You have superior vision.',
-        ]);
-        $dwarf->fresh()->searchable();
-
-        $this->waitForMeilisearchModels([$gnome, $highElf, $human, $dwarf]);
+        $this->assertGreaterThan(0, $combinedCount, 'Should have races with INT bonus AND darkvision (e.g., Gnome, High Elf)');
 
         // Act: Filter by ability_int_bonus > 0 AND tag_slugs IN [darkvision] using Meilisearch
         $response = $this->getJson('/api/v1/races?filter=ability_int_bonus > 0 AND tag_slugs IN [darkvision]');
 
         // Assert: Only races with both INT bonus and darkvision returned
         $response->assertOk();
-        $data = $response->json('data');
+        $this->assertEquals($combinedCount, $response->json('meta.total'));
 
-        $this->assertCount(2, $data);
-        $names = collect($data)->pluck('name')->toArray();
-        $this->assertContains('Gnome', $names);
-        $this->assertContains('High Elf', $names);
-        $this->assertNotContains('Human', $names);
-        $this->assertNotContains('Dwarf', $names);
+        // Verify all returned races have both INT bonus and darkvision
+        foreach ($response->json('data') as $race) {
+            $raceModel = Race::find($race['id']);
+
+            // Check INT bonus
+            $hasIntBonus = $raceModel->modifiers()
+                ->where('modifier_category', 'ability_score')
+                ->whereHas('abilityScore', function ($q) {
+                    $q->where('code', 'INT');
+                })
+                ->where('value', '>', 0)
+                ->exists();
+            $this->assertTrue($hasIntBonus, "{$race['name']} should have INT bonus");
+
+            // Check darkvision tag
+            $tagSlugs = collect($race['tags'])->pluck('slug')->toArray();
+            $this->assertContains('darkvision', $tagSlugs, "{$race['name']} should have darkvision tag");
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -411,17 +236,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_accepts_valid_size_filter(): void
     {
-        // Arrange: Create a small race
-        $smallSize = Size::where('code', 'S')->first();
-        $halfling = Race::factory()->create([
-            'name' => 'Halfling',
-            'size_id' => $smallSize->id,
-        ]);
-        $halfling->load('size')->searchable();
-
-        $this->waitForMeilisearch($halfling);
-
-        // Act: Send valid size filter
+        // Act: Send valid size filter (uses pre-imported data)
         $response = $this->getJson('/api/v1/races?filter=size_code = S');
 
         // Assert: Success
@@ -431,16 +246,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_accepts_valid_speed_filter(): void
     {
-        // Arrange: Create a fast race
-        $woodElf = Race::factory()->create([
-            'name' => 'Wood Elf',
-            'speed' => 35,
-        ]);
-        $woodElf->searchable();
-
-        $this->waitForMeilisearch($woodElf);
-
-        // Act: Send valid speed filter
+        // Act: Send valid speed filter (uses pre-imported data)
         $response = $this->getJson('/api/v1/races?filter=speed >= 30');
 
         // Assert: Success
@@ -450,14 +256,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_accepts_valid_darkvision_filter(): void
     {
-        // Arrange: Create a race with darkvision
-        $dwarf = Race::factory()->create(['name' => 'Dwarf']);
-        $dwarf->attachTag('darkvision');
-        $dwarf->fresh()->searchable();
-
-        $this->waitForMeilisearch($dwarf);
-
-        // Act: Send valid darkvision filter
+        // Act: Send valid darkvision filter (uses pre-imported data)
         $response = $this->getJson('/api/v1/races?filter=tag_slugs IN [darkvision]');
 
         // Assert: Success

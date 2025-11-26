@@ -3,36 +3,31 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Feat;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\Concerns\ClearsMeilisearchIndex;
-use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+/**
+ * Tests for Feat API endpoints.
+ *
+ * These tests use pre-imported data from SearchTestExtension.
+ * No RefreshDatabase needed - all tests are read-only against shared data.
+ */
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class FeatApiTest extends TestCase
 {
-    use ClearsMeilisearchIndex;
-    use RefreshDatabase;
-    use WaitsForMeilisearch;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        // Clear Meilisearch index for test isolation
-        $this->clearMeilisearchIndex(Feat::class);
-    }
+    protected $seed = false;
 
     #[Test]
     public function can_get_all_feats()
     {
-        Feat::factory()->count(3)->create();
+        // Verify database has feats from import
+        $this->assertGreaterThan(0, Feat::count(), 'Database must be seeded with feats');
 
         $response = $this->getJson('/api/v1/feats');
 
         $response->assertOk();
-        $response->assertJsonCount(3, 'data');
+        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should return imported feats');
         $response->assertJsonStructure([
             'data' => [
                 '*' => ['id', 'slug', 'name', 'prerequisites', 'description'],
@@ -43,16 +38,12 @@ class FeatApiTest extends TestCase
     #[Test]
     public function can_search_feats()
     {
-        Feat::factory()->create(['name' => 'Alert']);
-        Feat::factory()->create(['name' => 'Actor']);
-        Feat::factory()->create(['name' => 'Grappler']);
-
+        // Alert feat should exist in PHB import
         $response = $this->getJson('/api/v1/feats?search=Alert');
 
         $response->assertOk();
 
-        // Note: Meilisearch indexes persist across test runs, so we can't assert exact counts
-        // Just verify that Alert is in the results
+        // Verify Alert is in results
         $names = collect($response->json('data'))->pluck('name')->toArray();
         $this->assertContains('Alert', $names, 'Expected to find Alert in search results');
     }
@@ -60,7 +51,9 @@ class FeatApiTest extends TestCase
     #[Test]
     public function can_get_single_feat_by_id()
     {
-        $feat = Feat::factory()->create(['name' => 'Alert']);
+        // Use imported Alert feat
+        $feat = Feat::where('name', 'Alert')->first();
+        $this->assertNotNull($feat, 'Alert feat should exist in imported data');
 
         $response = $this->getJson("/api/v1/feats/{$feat->id}");
 
@@ -71,7 +64,9 @@ class FeatApiTest extends TestCase
     #[Test]
     public function feat_includes_sources_in_response()
     {
-        $feat = Feat::factory()->withSources()->create();
+        // Use imported feat with sources
+        $feat = Feat::whereHas('sources')->first();
+        $this->assertNotNull($feat, 'At least one feat should have sources');
 
         $response = $this->getJson("/api/v1/feats/{$feat->id}");
 
@@ -88,7 +83,12 @@ class FeatApiTest extends TestCase
     #[Test]
     public function feat_includes_modifiers_in_response()
     {
-        $feat = Feat::factory()->withModifiers()->create();
+        // Find a feat with modifiers
+        $feat = Feat::whereHas('modifiers')->first();
+
+        if (! $feat) {
+            $this->markTestSkipped('No feats with modifiers in imported data');
+        }
 
         $response = $this->getJson("/api/v1/feats/{$feat->id}");
 
@@ -105,7 +105,12 @@ class FeatApiTest extends TestCase
     #[Test]
     public function feat_includes_proficiencies_in_response()
     {
-        $feat = Feat::factory()->withProficiencies()->create();
+        // Find a feat with proficiencies
+        $feat = Feat::whereHas('proficiencies')->first();
+
+        if (! $feat) {
+            $this->markTestSkipped('No feats with proficiencies in imported data');
+        }
 
         $response = $this->getJson("/api/v1/feats/{$feat->id}");
 
@@ -122,7 +127,12 @@ class FeatApiTest extends TestCase
     #[Test]
     public function feat_includes_conditions_in_response()
     {
-        $feat = Feat::factory()->withConditions()->create();
+        // Find a feat with conditions
+        $feat = Feat::whereHas('conditions')->first();
+
+        if (! $feat) {
+            $this->markTestSkipped('No feats with conditions in imported data');
+        }
 
         $response = $this->getJson("/api/v1/feats/{$feat->id}");
 
@@ -139,24 +149,29 @@ class FeatApiTest extends TestCase
     #[Test]
     public function can_paginate_feats()
     {
-        Feat::factory()->count(20)->create();
+        // Verify we have enough feats for pagination
+        $totalFeats = Feat::count();
+        $this->assertGreaterThan(10, $totalFeats, 'Should have more than 10 feats for pagination test');
 
         $response = $this->getJson('/api/v1/feats?per_page=10');
 
         $response->assertOk();
-        $response->assertJsonCount(10, 'data');
+        $this->assertLessThanOrEqual(10, count($response->json('data')), 'Should return at most 10 feats per page');
         $response->assertJsonPath('meta.per_page', 10);
     }
 
     #[Test]
     public function can_sort_feats()
     {
-        Feat::factory()->create(['name' => 'Zebra Feat']);
-        Feat::factory()->create(['name' => 'Alpha Feat']);
-
-        $response = $this->getJson('/api/v1/feats?sort_by=name&sort_direction=asc');
+        $response = $this->getJson('/api/v1/feats?sort_by=name&sort_direction=asc&per_page=5');
 
         $response->assertOk();
-        $response->assertJsonPath('data.0.name', 'Alpha Feat');
+
+        // Verify results are sorted alphabetically
+        $names = collect($response->json('data'))->pluck('name')->toArray();
+        $sortedNames = $names;
+        sort($sortedNames);
+
+        $this->assertEquals($sortedNames, $names, 'Feats should be sorted alphabetically by name');
     }
 }

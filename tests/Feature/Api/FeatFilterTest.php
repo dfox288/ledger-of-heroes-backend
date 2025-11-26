@@ -5,26 +5,25 @@ namespace Tests\Feature\Api;
 use App\Models\AbilityScore;
 use App\Models\Feat;
 use App\Models\Race;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+/**
+ * These tests use pre-imported data from SearchTestExtension.
+ * No RefreshDatabase needed - all tests are read-only against shared data.
+ */
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class FeatFilterTest extends TestCase
 {
-    use ClearsMeilisearchIndex;
-    use RefreshDatabase;
     use WaitsForMeilisearch;
+
+    protected $seed = false;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        // Clear Meilisearch index for test isolation
-        $this->clearMeilisearchIndex(Feat::class);
     }
 
     #[Test]

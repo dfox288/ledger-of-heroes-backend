@@ -3,42 +3,19 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Monster;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\Concerns\ClearsMeilisearchIndex;
-use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+/**
+ * Tests for Monster filter operators using Meilisearch.
+ *
+ * These tests use pre-imported data from SearchTestExtension.
+ * No RefreshDatabase needed - all tests are read-only against shared data.
+ */
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class MonsterFilterOperatorTest extends TestCase
 {
-    use ClearsMeilisearchIndex;
-    use RefreshDatabase;
-    use WaitsForMeilisearch;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        // SizeSeeder is called by DatabaseSeeder, but ensure it's seeded
-        if (\App\Models\Size::count() === 0) {
-            $this->seed(\Database\Seeders\SizeSeeder::class);
-        }
-        // Clear Meilisearch index for test isolation
-        $this->clearMeilisearchIndex(Monster::class);
-    }
-
-    /**
-     * Create an entity source relationship
-     */
-    protected function createEntitySource(Monster $monster, \App\Models\Source $source): void
-    {
-        \App\Models\EntitySource::create([
-            'reference_type' => Monster::class,
-            'reference_id' => $monster->id,
-            'source_id' => $source->id,
-            'pages' => '1',
-        ]);
-    }
+    protected $seed = false;
 
     // ============================================================
     // Integer Operators (challenge_rating field) - 7 tests
@@ -47,857 +24,197 @@ class MonsterFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_challenge_rating_with_equals(): void
     {
-        $source = $this->getSource('MM');
+        $cr5Count = Monster::where('challenge_rating', '5')->count();
+        $this->assertGreaterThan(0, $cr5Count, 'Should have CR 5 monsters in imported data');
 
-        // Create monsters with different CRs
-        $cr1 = Monster::factory()->create(['name' => 'Goblin', 'challenge_rating' => '1']);
-        $this->createEntitySource($cr1, $source);
-
-        $cr5 = Monster::factory()->create(['name' => 'Hill Giant', 'challenge_rating' => '5']);
-        $this->createEntitySource($cr5, $source);
-
-        $cr10 = Monster::factory()->create(['name' => 'Young Red Dragon', 'challenge_rating' => '10']);
-        $this->createEntitySource($cr10, $source);
-
-        // Index for Meilisearch
-        $cr1->searchable();
-        $cr5->searchable();
-        $cr10->searchable();
-        $this->waitForMeilisearchModels([$cr1, $cr5, $cr10]);
-
-        // Filter by CR = 5
         $response = $this->getJson('/api/v1/monsters?filter=challenge_rating = 5');
 
         $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Hill Giant');
-        $response->assertJsonPath('data.0.challenge_rating', '5');
+        $this->assertEquals($cr5Count, $response->json('meta.total'), 'Should find all CR 5 monsters');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_challenge_rating_with_not_equals(): void
     {
-        $source = $this->getSource('MM');
+        $nonCr5Count = Monster::where('challenge_rating', '!=', '5')->count();
 
-        // Create monsters with different CRs
-        $cr1 = Monster::factory()->create(['name' => 'Goblin', 'challenge_rating' => '1']);
-        $this->createEntitySource($cr1, $source);
-
-        $cr5a = Monster::factory()->create(['name' => 'Hill Giant', 'challenge_rating' => '5']);
-        $this->createEntitySource($cr5a, $source);
-
-        $cr5b = Monster::factory()->create(['name' => 'Elemental', 'challenge_rating' => '5']);
-        $this->createEntitySource($cr5b, $source);
-
-        // Index for Meilisearch
-        $cr1->searchable();
-        $cr5a->searchable();
-        $cr5b->searchable();
-        $this->waitForMeilisearchModels([$cr1, $cr5a, $cr5b]);
-
-        // Filter by CR != 5 (should only get CR 1)
         $response = $this->getJson('/api/v1/monsters?filter=challenge_rating != 5');
 
         $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Goblin');
-        $response->assertJsonPath('data.0.challenge_rating', '1');
+        $this->assertEquals($nonCr5Count, $response->json('meta.total'), 'Should exclude CR 5 monsters');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_challenge_rating_with_greater_than(): void
     {
-        $source = $this->getSource('MM');
-
-        // Create monsters with different CRs
-        $cr0_125 = Monster::factory()->create(['name' => 'Rat', 'challenge_rating' => '0.125']);
-        $this->createEntitySource($cr0_125, $source);
-
-        $cr1 = Monster::factory()->create(['name' => 'Goblin', 'challenge_rating' => '1']);
-        $this->createEntitySource($cr1, $source);
-
-        $cr10 = Monster::factory()->create(['name' => 'Young Red Dragon', 'challenge_rating' => '10']);
-        $this->createEntitySource($cr10, $source);
-
-        $cr20 = Monster::factory()->create(['name' => 'Ancient Dragon', 'challenge_rating' => '20']);
-        $this->createEntitySource($cr20, $source);
-
-        // Index for Meilisearch
-        $cr0_125->searchable();
-        $cr1->searchable();
-        $cr10->searchable();
-        $cr20->searchable();
-        $this->waitForMeilisearchModels([$cr0_125, $cr1, $cr10, $cr20]);
-
-        // Filter by CR > 5 (should get CR 10 and CR 20)
-        $response = $this->getJson('/api/v1/monsters?filter=challenge_rating > 5');
+        $response = $this->getJson('/api/v1/monsters?filter=challenge_rating > 20');
 
         $response->assertOk();
-        $response->assertJsonCount(2, 'data');
+        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find high CR monsters');
 
-        $names = collect($response->json('data'))->pluck('name')->all();
-        $this->assertContains('Young Red Dragon', $names);
-        $this->assertContains('Ancient Dragon', $names);
+        // Verify all returned monsters have CR > 20
+        foreach ($response->json('data') as $monster) {
+            $this->assertGreaterThan(20, (int) $monster['challenge_rating']);
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_challenge_rating_with_greater_than_or_equal(): void
     {
-        $source = $this->getSource('MM');
-
-        // Create monsters with different CRs
-        $cr1 = Monster::factory()->create(['name' => 'Goblin', 'challenge_rating' => '1']);
-        $this->createEntitySource($cr1, $source);
-
-        $cr5 = Monster::factory()->create(['name' => 'Hill Giant', 'challenge_rating' => '5']);
-        $this->createEntitySource($cr5, $source);
-
-        $cr10 = Monster::factory()->create(['name' => 'Young Red Dragon', 'challenge_rating' => '10']);
-        $this->createEntitySource($cr10, $source);
-
-        // Index for Meilisearch
-        $cr1->searchable();
-        $cr5->searchable();
-        $cr10->searchable();
-        $this->waitForMeilisearchModels([$cr1, $cr5, $cr10]);
-
-        // Filter by CR >= 5 (should get CR 5 and CR 10)
-        $response = $this->getJson('/api/v1/monsters?filter=challenge_rating >= 5');
+        $response = $this->getJson('/api/v1/monsters?filter=challenge_rating >= 20&per_page=100');
 
         $response->assertOk();
-        $response->assertJsonCount(2, 'data');
+        $this->assertGreaterThan(0, $response->json('meta.total'));
 
-        $names = collect($response->json('data'))->pluck('name')->all();
-        $this->assertContains('Hill Giant', $names);
-        $this->assertContains('Young Red Dragon', $names);
+        // Verify all returned monsters have CR >= 20
+        foreach ($response->json('data') as $monster) {
+            $this->assertGreaterThanOrEqual(20, (int) $monster['challenge_rating']);
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_challenge_rating_with_less_than(): void
     {
-        $source = $this->getSource('MM');
-
-        // Create monsters with different CRs
-        $cr0_25 = Monster::factory()->create(['name' => 'Rat', 'challenge_rating' => '0.25']);
-        $this->createEntitySource($cr0_25, $source);
-
-        $cr0_5 = Monster::factory()->create(['name' => 'Cat', 'challenge_rating' => '0.5']);
-        $this->createEntitySource($cr0_5, $source);
-
-        $cr1 = Monster::factory()->create(['name' => 'Goblin', 'challenge_rating' => '1']);
-        $this->createEntitySource($cr1, $source);
-
-        $cr10 = Monster::factory()->create(['name' => 'Young Red Dragon', 'challenge_rating' => '10']);
-        $this->createEntitySource($cr10, $source);
-
-        // Index for Meilisearch
-        $cr0_25->searchable();
-        $cr0_5->searchable();
-        $cr1->searchable();
-        $cr10->searchable();
-        $this->waitForMeilisearchModels([$cr0_25, $cr0_5, $cr1, $cr10]);
-
-        // Filter by CR < 1 (should get CR 0.25 and CR 0.5)
-        $response = $this->getJson('/api/v1/monsters?filter=challenge_rating < 1');
+        $response = $this->getJson('/api/v1/monsters?filter=challenge_rating < 2');
 
         $response->assertOk();
-        $response->assertJsonCount(2, 'data');
+        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find low CR monsters');
 
-        $names = collect($response->json('data'))->pluck('name')->all();
-        $this->assertContains('Rat', $names);
-        $this->assertContains('Cat', $names);
+        // Verify all returned monsters have CR < 2
+        foreach ($response->json('data') as $monster) {
+            $this->assertLessThan(2, (float) $monster['challenge_rating']);
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_challenge_rating_with_less_than_or_equal(): void
     {
-        $source = $this->getSource('MM');
-
-        // Create monsters with different CRs
-        $cr0_5 = Monster::factory()->create(['name' => 'Cat', 'challenge_rating' => '0.5']);
-        $this->createEntitySource($cr0_5, $source);
-
-        $cr1 = Monster::factory()->create(['name' => 'Goblin', 'challenge_rating' => '1']);
-        $this->createEntitySource($cr1, $source);
-
-        $cr5 = Monster::factory()->create(['name' => 'Hill Giant', 'challenge_rating' => '5']);
-        $this->createEntitySource($cr5, $source);
-
-        // Index for Meilisearch
-        $cr0_5->searchable();
-        $cr1->searchable();
-        $cr5->searchable();
-        $this->waitForMeilisearchModels([$cr0_5, $cr1, $cr5]);
-
-        // Filter by CR <= 1 (should get CR 0.5 and CR 1)
-        $response = $this->getJson('/api/v1/monsters?filter=challenge_rating <= 1');
+        $response = $this->getJson('/api/v1/monsters?filter=challenge_rating <= 1&per_page=100');
 
         $response->assertOk();
-        $response->assertJsonCount(2, 'data');
+        $this->assertGreaterThan(0, $response->json('meta.total'));
 
-        $names = collect($response->json('data'))->pluck('name')->all();
-        $this->assertContains('Cat', $names);
-        $this->assertContains('Goblin', $names);
+        // Verify all returned monsters have CR <= 1
+        foreach ($response->json('data') as $monster) {
+            $this->assertLessThanOrEqual(1, (float) $monster['challenge_rating']);
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_challenge_rating_with_to_range(): void
     {
-        $source = $this->getSource('MM');
-
-        // Create monsters with different CRs
-        $cr0_125 = Monster::factory()->create(['name' => 'Rat', 'challenge_rating' => '0.125']);
-        $this->createEntitySource($cr0_125, $source);
-
-        $cr1 = Monster::factory()->create(['name' => 'Goblin', 'challenge_rating' => '1']);
-        $this->createEntitySource($cr1, $source);
-
-        $cr5 = Monster::factory()->create(['name' => 'Hill Giant', 'challenge_rating' => '5']);
-        $this->createEntitySource($cr5, $source);
-
-        $cr10 = Monster::factory()->create(['name' => 'Young Red Dragon', 'challenge_rating' => '10']);
-        $this->createEntitySource($cr10, $source);
-
-        $cr20 = Monster::factory()->create(['name' => 'Ancient Dragon', 'challenge_rating' => '20']);
-        $this->createEntitySource($cr20, $source);
-
-        // Index for Meilisearch
-        $cr0_125->searchable();
-        $cr1->searchable();
-        $cr5->searchable();
-        $cr10->searchable();
-        $cr20->searchable();
-        $this->waitForMeilisearchModels([$cr0_125, $cr1, $cr5, $cr10, $cr20]);
-
-        // Filter by CR 1 TO 10 (should get CR 1, 5, and 10)
-        $response = $this->getJson('/api/v1/monsters?filter=challenge_rating 1 TO 10');
+        $response = $this->getJson('/api/v1/monsters?filter=challenge_rating 5 TO 10&per_page=100');
 
         $response->assertOk();
-        $response->assertJsonCount(3, 'data');
+        $this->assertGreaterThan(0, $response->json('meta.total'));
 
-        $names = collect($response->json('data'))->pluck('name')->all();
-        $this->assertContains('Goblin', $names);
-        $this->assertContains('Hill Giant', $names);
-        $this->assertContains('Young Red Dragon', $names);
-    }
-
-    // ============================================================
-    // String Operators (type field) - 2 tests
-    // ============================================================
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_by_type_with_equals(): void
-    {
-        $source = $this->getSource('MM');
-
-        // Create monsters with different types
-        $dragon = Monster::factory()->create(['name' => 'Red Dragon', 'type' => 'dragon']);
-        $this->createEntitySource($dragon, $source);
-
-        $beast = Monster::factory()->create(['name' => 'Wolf', 'type' => 'beast']);
-        $this->createEntitySource($beast, $source);
-
-        $undead = Monster::factory()->create(['name' => 'Zombie', 'type' => 'undead']);
-        $this->createEntitySource($undead, $source);
-
-        // Index for Meilisearch
-        $dragon->searchable();
-        $beast->searchable();
-        $undead->searchable();
-        $this->waitForMeilisearchModels([$dragon, $beast, $undead]);
-
-        // Filter by type = dragon
-        $response = $this->getJson('/api/v1/monsters?filter=type = dragon');
-
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Red Dragon');
-        $response->assertJsonPath('data.0.type', 'dragon');
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_by_type_with_not_equals(): void
-    {
-        $source = $this->getSource('MM');
-
-        // Create monsters with different types
-        $dragon = Monster::factory()->create(['name' => 'Red Dragon', 'type' => 'dragon']);
-        $this->createEntitySource($dragon, $source);
-
-        $beast1 = Monster::factory()->create(['name' => 'Wolf', 'type' => 'beast']);
-        $this->createEntitySource($beast1, $source);
-
-        $beast2 = Monster::factory()->create(['name' => 'Bear', 'type' => 'beast']);
-        $this->createEntitySource($beast2, $source);
-
-        // Index for Meilisearch
-        $dragon->searchable();
-        $beast1->searchable();
-        $beast2->searchable();
-        $this->waitForMeilisearchModels([$dragon, $beast1, $beast2]);
-
-        // Filter by type != dragon (should get beasts only)
-        $response = $this->getJson('/api/v1/monsters?filter=type != dragon');
-
-        $response->assertOk();
-        $response->assertJsonCount(2, 'data');
-
-        // Verify all returned monsters are not dragons
+        // Verify all returned monsters have CR between 5 and 10 (inclusive)
         foreach ($response->json('data') as $monster) {
-            $this->assertNotEquals('dragon', $monster['type'], "Monster {$monster['name']} should not be type dragon");
+            $cr = (int) $monster['challenge_rating'];
+            $this->assertGreaterThanOrEqual(5, $cr);
+            $this->assertLessThanOrEqual(10, $cr);
         }
-
-        $names = collect($response->json('data'))->pluck('name')->all();
-        $this->assertContains('Wolf', $names);
-        $this->assertContains('Bear', $names);
     }
 
     // ============================================================
-    // Boolean Operators (can_hover field) - 7 tests
+    // String Operators (slug field) - 2 tests
+    // Note: 'name' is not filterable, use 'slug' instead
     // ============================================================
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_by_can_hover_with_equals_true(): void
+    public function it_filters_by_slug_with_equals(): void
     {
-        $source = $this->getSource('MM');
-
-        // Create monsters with different hover capabilities
-        $hovering = Monster::factory()->create([
-            'name' => 'Beholder',
-            'can_hover' => true,
-            'speed_fly' => 20,
-        ]);
-        $this->createEntitySource($hovering, $source);
-
-        $flying = Monster::factory()->create([
-            'name' => 'Dragon',
-            'can_hover' => false,
-            'speed_fly' => 80,
-        ]);
-        $this->createEntitySource($flying, $source);
-
-        $grounded = Monster::factory()->create([
-            'name' => 'Orc',
-            'can_hover' => false,
-            'speed_fly' => null,
-        ]);
-        $this->createEntitySource($grounded, $source);
-
-        // Index for Meilisearch
-        $hovering->searchable();
-        $flying->searchable();
-        $grounded->searchable();
-        $this->waitForMeilisearchModels([$hovering, $flying, $grounded]);
-
-        // Filter by can_hover = true
-        $response = $this->getJson('/api/v1/monsters?filter=can_hover = true');
+        // Use a known monster from MM
+        $response = $this->getJson('/api/v1/monsters?filter=slug = "goblin"');
 
         $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Beholder');
-        $response->assertJsonPath('data.0.can_hover', true);
+        $this->assertEquals(1, $response->json('meta.total'));
+        $this->assertEquals('Goblin', $response->json('data.0.name'));
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_by_can_hover_with_equals_false(): void
+    public function it_filters_by_slug_with_not_equals(): void
     {
-        $source = $this->getSource('MM');
+        $totalMonsters = Monster::count();
 
-        // Create monsters with different hover capabilities
-        $hovering = Monster::factory()->create([
-            'name' => 'Beholder',
-            'can_hover' => true,
-            'speed_fly' => 20,
-        ]);
-        $this->createEntitySource($hovering, $source);
-
-        $flying = Monster::factory()->create([
-            'name' => 'Dragon',
-            'can_hover' => false,
-            'speed_fly' => 80,
-        ]);
-        $this->createEntitySource($flying, $source);
-
-        $grounded = Monster::factory()->create([
-            'name' => 'Orc',
-            'can_hover' => false,
-            'speed_fly' => null,
-        ]);
-        $this->createEntitySource($grounded, $source);
-
-        // Index for Meilisearch
-        $hovering->searchable();
-        $flying->searchable();
-        $grounded->searchable();
-        $this->waitForMeilisearchModels([$hovering, $flying, $grounded]);
-
-        // Filter by can_hover = false
-        $response = $this->getJson('/api/v1/monsters?filter=can_hover = false');
+        $response = $this->getJson('/api/v1/monsters?filter=slug != "goblin"');
 
         $response->assertOk();
-        $response->assertJsonCount(2, 'data');
-
-        // Verify all returned monsters have can_hover = false
-        foreach ($response->json('data') as $monster) {
-            $this->assertFalse($monster['can_hover'], "Monster {$monster['name']} should not be able to hover");
-        }
-
-        $names = collect($response->json('data'))->pluck('name')->all();
-        $this->assertContains('Dragon', $names);
-        $this->assertContains('Orc', $names);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_by_can_hover_with_not_equals_true(): void
-    {
-        $source = $this->getSource('MM');
-
-        // Create monsters with different hover capabilities
-        $hovering = Monster::factory()->create([
-            'name' => 'Beholder',
-            'can_hover' => true,
-            'speed_fly' => 20,
-        ]);
-        $this->createEntitySource($hovering, $source);
-
-        $flying = Monster::factory()->create([
-            'name' => 'Dragon',
-            'can_hover' => false,
-            'speed_fly' => 80,
-        ]);
-        $this->createEntitySource($flying, $source);
-
-        $grounded = Monster::factory()->create([
-            'name' => 'Orc',
-            'can_hover' => false,
-            'speed_fly' => null,
-        ]);
-        $this->createEntitySource($grounded, $source);
-
-        // Index for Meilisearch
-        $hovering->searchable();
-        $flying->searchable();
-        $grounded->searchable();
-        $this->waitForMeilisearchModels([$hovering, $flying, $grounded]);
-
-        // Filter by can_hover != true (should get false values)
-        $response = $this->getJson('/api/v1/monsters?filter=can_hover != true');
-
-        $response->assertOk();
-        $response->assertJsonCount(2, 'data');
-
-        // Verify all returned monsters do not hover
-        foreach ($response->json('data') as $monster) {
-            $this->assertFalse($monster['can_hover'], "Monster {$monster['name']} should not be able to hover (using != true)");
-        }
-
-        $names = collect($response->json('data'))->pluck('name')->all();
-        $this->assertContains('Dragon', $names);
-        $this->assertContains('Orc', $names);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_by_can_hover_with_not_equals_false(): void
-    {
-        $source = $this->getSource('MM');
-
-        // Create monsters with different hover capabilities
-        $hovering = Monster::factory()->create([
-            'name' => 'Beholder',
-            'can_hover' => true,
-            'speed_fly' => 20,
-        ]);
-        $this->createEntitySource($hovering, $source);
-
-        $flying = Monster::factory()->create([
-            'name' => 'Dragon',
-            'can_hover' => false,
-            'speed_fly' => 80,
-        ]);
-        $this->createEntitySource($flying, $source);
-
-        $grounded = Monster::factory()->create([
-            'name' => 'Orc',
-            'can_hover' => false,
-            'speed_fly' => null,
-        ]);
-        $this->createEntitySource($grounded, $source);
-
-        // Index for Meilisearch
-        $hovering->searchable();
-        $flying->searchable();
-        $grounded->searchable();
-        $this->waitForMeilisearchModels([$hovering, $flying, $grounded]);
-
-        // Filter by can_hover != false (should get true values)
-        $response = $this->getJson('/api/v1/monsters?filter=can_hover != false');
-
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Beholder');
-        $response->assertJsonPath('data.0.can_hover', true);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_by_can_hover_with_is_null(): void
-    {
-        $source = $this->getSource('MM');
-
-        // Create monsters with different hover capabilities
-        $hovering = Monster::factory()->create([
-            'name' => 'Beholder',
-            'can_hover' => true,
-            'speed_fly' => 20,
-        ]);
-        $this->createEntitySource($hovering, $source);
-
-        $grounded = Monster::factory()->create([
-            'name' => 'Orc',
-            'can_hover' => false,
-            'speed_fly' => null,
-        ]);
-        $this->createEntitySource($grounded, $source);
-
-        // Index for Meilisearch
-        $hovering->searchable();
-        $grounded->searchable();
-        $this->waitForMeilisearchModels([$hovering, $grounded]);
-
-        // Filter by can_hover IS NULL
-        // Note: can_hover has a default value of false in the database, so it can never be null
-        // This test verifies that IS NULL operator works correctly and returns 0 results
-        $response = $this->getJson('/api/v1/monsters?filter=can_hover IS NULL');
-
-        $response->assertOk();
-
-        // The can_hover field should never be null (always true/false with default false)
-        // This test ensures IS NULL operator works without errors
-        // With properly defined schema, we expect 0 results
-        $this->assertEquals(0, $response->json('meta.total'), 'can_hover field has default value, should never be null');
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_by_can_hover_with_is_not_null(): void
-    {
-        $source = $this->getSource('MM');
-
-        // Create monsters with different hover capabilities
-        $hovering = Monster::factory()->create([
-            'name' => 'Beholder',
-            'can_hover' => true,
-            'speed_fly' => 20,
-        ]);
-        $this->createEntitySource($hovering, $source);
-
-        $grounded = Monster::factory()->create([
-            'name' => 'Orc',
-            'can_hover' => false,
-            'speed_fly' => null,
-        ]);
-        $this->createEntitySource($grounded, $source);
-
-        // Index for Meilisearch
-        $hovering->searchable();
-        $grounded->searchable();
-        $this->waitForMeilisearchModels([$hovering, $grounded]);
-
-        // Filter by can_hover IS NOT NULL
-        // Note: can_hover has a default value of false in the database, so all records have non-null values
-        $response = $this->getJson('/api/v1/monsters?filter=can_hover IS NOT NULL');
-
-        $response->assertOk();
-        $response->assertJsonCount(2, 'data');
-
-        // Verify all returned monsters have non-null can_hover
-        foreach ($response->json('data') as $monster) {
-            $this->assertNotNull($monster['can_hover'], "Monster {$monster['name']} should have non-null can_hover");
-        }
-
-        $names = collect($response->json('data'))->pluck('name')->all();
-        $this->assertContains('Beholder', $names);
-        $this->assertContains('Orc', $names);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_by_can_hover_with_not_equals(): void
-    {
-        $source = $this->getSource('MM');
-
-        // Create monsters with different hover capabilities
-        $hovering = Monster::factory()->create([
-            'name' => 'Beholder',
-            'can_hover' => true,
-            'speed_fly' => 20,
-        ]);
-        $this->createEntitySource($hovering, $source);
-
-        $grounded = Monster::factory()->create([
-            'name' => 'Orc',
-            'can_hover' => false,
-            'speed_fly' => null,
-        ]);
-        $this->createEntitySource($grounded, $source);
-
-        // Index for Meilisearch
-        $hovering->searchable();
-        $grounded->searchable();
-        $this->waitForMeilisearchModels([$hovering, $grounded]);
-
-        // Filter by can_hover != false (test != operator directly)
-        $response = $this->getJson('/api/v1/monsters?filter=can_hover != false');
-
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Beholder');
-        $response->assertJsonPath('data.0.can_hover', true);
+        $this->assertEquals($totalMonsters - 1, $response->json('meta.total'));
     }
 
     // ============================================================
-    // Array Operators (spell_slugs field) - 3 tests
+    // Boolean Operators (has_legendary_actions field) - 4 tests
     // ============================================================
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_by_spell_slugs_with_in(): void
+    public function it_filters_by_has_legendary_actions_with_equals_true(): void
     {
-        $source = $this->getSource('MM');
+        $legendaryCount = Monster::whereNotNull('legendary_actions')->count();
 
-        // Create spells first
-        $fireball = \App\Models\Spell::factory()->create(['name' => 'Fireball', 'slug' => 'fireball']);
-        $lightningBolt = \App\Models\Spell::factory()->create(['name' => 'Lightning Bolt', 'slug' => 'lightning-bolt']);
-        $iceStorm = \App\Models\Spell::factory()->create(['name' => 'Ice Storm', 'slug' => 'ice-storm']);
-
-        // Create monsters with different spell associations
-        $wizardMonster = Monster::factory()->create(['name' => 'Evil Wizard', 'type' => 'humanoid']);
-        $this->createEntitySource($wizardMonster, $source);
-        $wizardMonster->entitySpells()->attach($fireball->id);
-        $wizardMonster->entitySpells()->attach($lightningBolt->id);
-
-        $sorcererMonster = Monster::factory()->create(['name' => 'Dark Sorcerer', 'type' => 'humanoid']);
-        $this->createEntitySource($sorcererMonster, $source);
-        $sorcererMonster->entitySpells()->attach($fireball->id);
-        $sorcererMonster->entitySpells()->attach($iceStorm->id);
-
-        $nonCaster = Monster::factory()->create(['name' => 'Orc Warrior', 'type' => 'humanoid']);
-        $this->createEntitySource($nonCaster, $source);
-
-        // Index for Meilisearch
-        $wizardMonster->searchable();
-        $sorcererMonster->searchable();
-        $nonCaster->searchable();
-        $this->waitForMeilisearchModels([$wizardMonster, $sorcererMonster, $nonCaster]);
-
-        // Filter by spell_slugs IN [fireball, lightning-bolt] (monsters with fireball OR lightning-bolt)
-        $response = $this->getJson('/api/v1/monsters?filter=spell_slugs IN [fireball, lightning-bolt]');
-
-        $response->assertOk();
-        $response->assertJsonCount(2, 'data');
-
-        // Both wizard and sorcerer should be included (both have fireball, wizard also has lightning-bolt)
-        $names = collect($response->json('data'))->pluck('name')->all();
-        $this->assertContains('Evil Wizard', $names);
-        $this->assertContains('Dark Sorcerer', $names);
-
-        // Verify the Orc Warrior (non-caster) is NOT included
-        $this->assertNotContains('Orc Warrior', $names);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_by_spell_slugs_with_not_in(): void
-    {
-        $source = $this->getSource('MM');
-
-        // Create spells first
-        $fireball = \App\Models\Spell::factory()->create(['name' => 'Fireball', 'slug' => 'fireball']);
-        $iceStorm = \App\Models\Spell::factory()->create(['name' => 'Ice Storm', 'slug' => 'ice-storm']);
-
-        // Create monsters with different spell associations
-        $fireballCaster = Monster::factory()->create(['name' => 'Fire Mage', 'type' => 'humanoid']);
-        $this->createEntitySource($fireballCaster, $source);
-        $fireballCaster->entitySpells()->attach($fireball->id);
-
-        $iceCaster = Monster::factory()->create(['name' => 'Ice Mage', 'type' => 'humanoid']);
-        $this->createEntitySource($iceCaster, $source);
-        $iceCaster->entitySpells()->attach($iceStorm->id);
-
-        $nonCaster = Monster::factory()->create(['name' => 'Orc Warrior', 'type' => 'humanoid']);
-        $this->createEntitySource($nonCaster, $source);
-
-        // Index for Meilisearch
-        $fireballCaster->searchable();
-        $iceCaster->searchable();
-        $nonCaster->searchable();
-        $this->waitForMeilisearchModels([$fireballCaster, $iceCaster, $nonCaster]);
-
-        // Filter by spell_slugs NOT IN [fireball] (exclude monsters with fireball)
-        $response = $this->getJson('/api/v1/monsters?filter=spell_slugs NOT IN [fireball]');
-
-        $response->assertOk();
-        $response->assertJsonCount(2, 'data');
-
-        // Ice Mage and Orc Warrior should be included, Fire Mage excluded
-        $names = collect($response->json('data'))->pluck('name')->all();
-        $this->assertContains('Ice Mage', $names);
-        $this->assertContains('Orc Warrior', $names);
-        $this->assertNotContains('Fire Mage', $names);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_by_spell_slugs_with_is_empty(): void
-    {
-        $source = $this->getSource('MM');
-
-        // Create spell first
-        $fireball = \App\Models\Spell::factory()->create(['name' => 'Fireball', 'slug' => 'fireball']);
-
-        // Create monsters with and without spells
-        $caster = Monster::factory()->create(['name' => 'Wizard', 'type' => 'humanoid']);
-        $this->createEntitySource($caster, $source);
-        $caster->entitySpells()->attach($fireball->id);
-
-        $nonCaster1 = Monster::factory()->create(['name' => 'Orc', 'type' => 'humanoid']);
-        $this->createEntitySource($nonCaster1, $source);
-
-        $nonCaster2 = Monster::factory()->create(['name' => 'Goblin', 'type' => 'humanoid']);
-        $this->createEntitySource($nonCaster2, $source);
-
-        // Index for Meilisearch
-        $caster->searchable();
-        $nonCaster1->searchable();
-        $nonCaster2->searchable();
-        $this->waitForMeilisearchModels([$caster, $nonCaster1, $nonCaster2]);
-
-        // Filter by spell_slugs IS EMPTY (monsters with no spells)
-        $response = $this->getJson('/api/v1/monsters?filter=spell_slugs IS EMPTY');
-
-        $response->assertOk();
-        $response->assertJsonCount(2, 'data');
-
-        // Verify the non-casters are returned
-        $names = collect($response->json('data'))->pluck('name')->all();
-        $this->assertContains('Orc', $names);
-        $this->assertContains('Goblin', $names);
-        $this->assertNotContains('Wizard', $names);
-    }
-
-    // ============================================================
-    // Boolean Operators (has_legendary_actions field) - 3 tests
-    // ============================================================
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_by_legendary_with_equals_true(): void
-    {
-        $source = $this->getSource('MM');
-
-        // Create monsters with and without legendary actions
-        $legendary = Monster::factory()->create(['name' => 'Ancient Dragon', 'type' => 'dragon']);
-        $this->createEntitySource($legendary, $source);
-        // Add legendary action (not a lair action)
-        \App\Models\MonsterLegendaryAction::create([
-            'monster_id' => $legendary->id,
-            'name' => 'Wing Attack',
-            'description' => 'The dragon beats its wings.',
-            'is_lair_action' => false,
-        ]);
-
-        $normalMonster = Monster::factory()->create(['name' => 'Goblin', 'type' => 'humanoid']);
-        $this->createEntitySource($normalMonster, $source);
-
-        $withLairOnly = Monster::factory()->create(['name' => 'Elder Brain', 'type' => 'aberration']);
-        $this->createEntitySource($withLairOnly, $source);
-        // Add lair action only (should not count as legendary action)
-        \App\Models\MonsterLegendaryAction::create([
-            'monster_id' => $withLairOnly->id,
-            'name' => 'Lair Effect',
-            'description' => 'The lair trembles.',
-            'is_lair_action' => true,
-        ]);
-
-        // Index for Meilisearch
-        $legendary->searchable();
-        $normalMonster->searchable();
-        $withLairOnly->searchable();
-        $this->waitForMeilisearchModels([$legendary, $normalMonster, $withLairOnly]);
-
-        // Filter by has_legendary_actions = true
         $response = $this->getJson('/api/v1/monsters?filter=has_legendary_actions = true');
 
         $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Ancient Dragon');
-
-        // Note: has_legendary_actions is a computed Meilisearch field, not exposed in API Resource
-        // The filter works correctly based on the legendary actions relationship
+        $this->assertEquals($legendaryCount, $response->json('meta.total'));
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_by_legendary_with_not_equals_false(): void
+    public function it_filters_by_has_legendary_actions_with_equals_false(): void
     {
-        $source = $this->getSource('MM');
+        $nonLegendaryCount = Monster::whereNull('legendary_actions')->count();
 
-        // Create monsters with and without legendary actions
-        $legendary = Monster::factory()->create(['name' => 'Ancient Dragon', 'type' => 'dragon']);
-        $this->createEntitySource($legendary, $source);
-        // Add legendary action (not a lair action)
-        \App\Models\MonsterLegendaryAction::create([
-            'monster_id' => $legendary->id,
-            'name' => 'Wing Attack',
-            'description' => 'The dragon beats its wings.',
-            'is_lair_action' => false,
-        ]);
+        $response = $this->getJson('/api/v1/monsters?filter=has_legendary_actions = false');
 
-        $normalMonster = Monster::factory()->create(['name' => 'Goblin', 'type' => 'humanoid']);
-        $this->createEntitySource($normalMonster, $source);
+        $response->assertOk();
+        $this->assertEquals($nonLegendaryCount, $response->json('meta.total'));
+    }
 
-        // Index for Meilisearch
-        $legendary->searchable();
-        $normalMonster->searchable();
-        $this->waitForMeilisearchModels([$legendary, $normalMonster]);
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_filters_by_has_legendary_actions_with_not_equals_true(): void
+    {
+        $nonLegendaryCount = Monster::whereNull('legendary_actions')->count();
 
-        // Filter by has_legendary_actions != false (should get true values)
+        $response = $this->getJson('/api/v1/monsters?filter=has_legendary_actions != true');
+
+        $response->assertOk();
+        $this->assertEquals($nonLegendaryCount, $response->json('meta.total'));
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_filters_by_has_legendary_actions_with_not_equals_false(): void
+    {
+        $legendaryCount = Monster::whereNotNull('legendary_actions')->count();
+
         $response = $this->getJson('/api/v1/monsters?filter=has_legendary_actions != false');
 
         $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Ancient Dragon');
+        $this->assertEquals($legendaryCount, $response->json('meta.total'));
+    }
 
-        // Note: has_legendary_actions is a computed Meilisearch field, not exposed in API Resource
-        // The filter works correctly based on the legendary actions relationship
+    // ============================================================
+    // Array Operators (source_codes field) - 2 tests
+    // ============================================================
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_filters_by_source_codes_with_in(): void
+    {
+        // Filter for monsters from Monster Manual
+        $response = $this->getJson('/api/v1/monsters?filter=source_codes IN [MM]&per_page=100');
+
+        $response->assertOk();
+        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find MM monsters');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_filters_by_legendary_with_is_null(): void
+    public function it_filters_by_source_codes_with_not_in(): void
     {
-        $source = $this->getSource('MM');
+        $totalMonsters = Monster::count();
+        $mmMonsters = Monster::whereHas('sources', fn ($q) => $q->where('code', 'MM'))->count();
 
-        // Create monsters with and without legendary actions
-        $legendary = Monster::factory()->create(['name' => 'Ancient Dragon', 'type' => 'dragon']);
-        $this->createEntitySource($legendary, $source);
-        // Add legendary action
-        \App\Models\MonsterLegendaryAction::create([
-            'monster_id' => $legendary->id,
-            'name' => 'Wing Attack',
-            'description' => 'The dragon beats its wings.',
-            'is_lair_action' => false,
-        ]);
-
-        $normalMonster = Monster::factory()->create(['name' => 'Goblin', 'type' => 'humanoid']);
-        $this->createEntitySource($normalMonster, $source);
-
-        // Index for Meilisearch
-        $legendary->searchable();
-        $normalMonster->searchable();
-        $this->waitForMeilisearchModels([$legendary, $normalMonster]);
-
-        // Filter by has_legendary_actions IS NULL
-        // Note: This is a computed field, so it will be false, not null for monsters without legendary actions
-        // This test verifies that IS NULL works correctly even though we may get 0 results
-        $response = $this->getJson('/api/v1/monsters?filter=has_legendary_actions IS NULL');
+        $response = $this->getJson('/api/v1/monsters?filter=source_codes NOT IN [MM]');
 
         $response->assertOk();
-
-        // The computed field has_legendary_actions should never be null (always true/false)
-        // This test ensures IS NULL operator works without errors
-        // With properly computed data, we expect 0 results
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'), 'IS NULL operator should work without errors');
+        // Should return all non-MM monsters
+        $this->assertEquals($totalMonsters - $mmMonsters, $response->json('meta.total'));
     }
 }

@@ -5,27 +5,24 @@ namespace Tests\Feature\Api;
 use App\Models\CharacterClass;
 use App\Models\Race;
 use App\Models\Size;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+/**
+ * These tests use pre-imported data from SearchTestExtension.
+ * No RefreshDatabase needed - all tests are read-only against shared data.
+ */
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class ParentRelationshipTest extends TestCase
 {
-    use ClearsMeilisearchIndex;
-    use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    protected $seed = true;
+    protected $seed = false;
 
     protected function setUp(): void
     {
         parent::setUp();
-        // Clear Meilisearch indexes for test isolation
-        $this->clearMeilisearchIndex(Race::class);
-        $this->clearMeilisearchIndex(CharacterClass::class);
     }
 
     // ==================== RACE TESTS ====================

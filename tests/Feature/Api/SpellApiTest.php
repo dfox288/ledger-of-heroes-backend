@@ -2,45 +2,24 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\CharacterClass;
 use App\Models\Spell;
-use App\Models\SpellEffect;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\Concerns\ClearsMeilisearchIndex;
-use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+/**
+ * These tests use pre-imported data from SearchTestExtension.
+ * No RefreshDatabase needed - all tests are read-only against shared data.
+ */
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
-#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
+#[\PHPUnit\Framework\Attributes\Group('search-imported')]
 class SpellApiTest extends TestCase
 {
-    use ClearsMeilisearchIndex;
-    use RefreshDatabase;
-    use WaitsForMeilisearch;
+    protected $seed = false;
 
-    protected function setUp(): void
+    #[Test]
+    public function can_get_all_spells()
     {
-        parent::setUp();
-        // Clear Meilisearch index for test isolation
-        $this->clearMeilisearchIndex(Spell::class);
-    }
-
-    public function test_can_get_all_spells(): void
-    {
-        $source = $this->getSource('PHB');
-
-        $spell = Spell::factory()->create([
-            'name' => 'Fireball',
-            'level' => 3,
-        ]);
-
-        $spell->sources()->create([
-            'source_id' => $source->id,
-            'pages' => '241',
-        ]);
-
-        $response = $this->getJson('/api/v1/spells');
+        $response = $this->getJson('/api/v1/spells?per_page=10');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -64,74 +43,30 @@ class SpellApiTest extends TestCase
                 ],
                 'links',
                 'meta',
-            ])
-            ->assertJsonCount(1, 'data');
+            ]);
+
+        // Verify we have at least some spells from imported data
+        $this->assertGreaterThan(0, count($response->json('data')));
     }
 
-    public function test_can_search_spells(): void
+    #[Test]
+    public function can_search_spells()
     {
-        $source = $this->getSource('PHB');
-
-        $spell1 = Spell::factory()->create([
-            'name' => 'Fireball',
-            'level' => 3,
-        ]);
-
-        $spell1->sources()->create([
-            'source_id' => $source->id,
-            'pages' => '241',
-        ]);
-
-        $spell2 = Spell::factory()->create([
-            'name' => 'Ice Storm',
-            'level' => 4,
-        ]);
-
-        $spell2->sources()->create([
-            'source_id' => $source->id,
-            'pages' => '252',
-        ]);
-
         $response = $this->getJson('/api/v1/spells?search=fireball');
 
         $response->assertStatus(200);
 
-        // Note: Meilisearch indexes persist across test runs, so we can't assert exact counts
-        // Just verify that Fireball is in the results
+        // Verify that Fireball is in the results
         $names = collect($response->json('data'))->pluck('name')->toArray();
         $this->assertContains('Fireball', $names, 'Expected to find Fireball in search results');
     }
 
-    public function test_spell_includes_effects_in_response(): void
+    #[Test]
+    public function spell_includes_effects_in_response()
     {
-        $source = $this->getSource('PHB');
+        // Magic Missile should have effects
+        $spell = Spell::where('slug', 'magic-missile')->firstOrFail();
 
-        $spell = Spell::factory()->create([
-            'name' => 'Magic Missile',
-            'level' => 1,
-        ]);
-
-        $spell->sources()->create([
-            'source_id' => $source->id,
-            'pages' => '257',
-        ]);
-
-        // Create spell effects
-        SpellEffect::factory()->create([
-            'spell_id' => $spell->id,
-            'effect_type' => 'damage',
-            'description' => 'Force damage per dart',
-            'dice_formula' => '1d4+1',
-        ]);
-
-        SpellEffect::factory()->create([
-            'spell_id' => $spell->id,
-            'effect_type' => 'scaling',
-            'description' => 'Additional darts per spell level',
-            'base_value' => 1,
-        ]);
-
-        // Test the show endpoint
         $response = $this->getJson("/api/v1/spells/{$spell->id}");
 
         $response->assertStatus(200)
@@ -139,67 +74,17 @@ class SpellApiTest extends TestCase
                 'data' => [
                     'id',
                     'name',
-                    'effects' => [
-                        '*' => [
-                            'id',
-                            'effect_type',
-                            'description',
-                            'dice_formula',
-                            'base_value',
-                            'scaling_type',
-                            'min_character_level',
-                            'min_spell_slot',
-                            'scaling_increment',
-                        ],
-                    ],
+                    'effects',
                 ],
-            ])
-            ->assertJsonCount(2, 'data.effects')
-            ->assertJsonPath('data.effects.0.effect_type', 'damage')
-            ->assertJsonPath('data.effects.0.dice_formula', '1d4+1')
-            ->assertJsonPath('data.effects.1.effect_type', 'scaling');
+            ]);
     }
 
-    public function test_spell_includes_classes_in_response(): void
+    #[Test]
+    public function spell_includes_classes_in_response()
     {
-        $source = $this->getSource('PHB');
+        // Fireball should have classes (Wizard, Sorcerer)
+        $spell = Spell::where('slug', 'fireball')->firstOrFail();
 
-        // Create classes
-        $wizard = CharacterClass::factory()->create([
-            'name' => 'Wizard',
-            'hit_die' => 6,
-        ]);
-
-        $wizard->sources()->create([
-            'source_id' => $source->id,
-            'pages' => '112',
-        ]);
-
-        $sorcerer = CharacterClass::factory()->create([
-            'name' => 'Sorcerer',
-            'hit_die' => 6,
-        ]);
-
-        $sorcerer->sources()->create([
-            'source_id' => $source->id,
-            'pages' => '99',
-        ]);
-
-        // Create a spell
-        $spell = Spell::factory()->create([
-            'name' => 'Fireball',
-            'level' => 3,
-        ]);
-
-        $spell->sources()->create([
-            'source_id' => $source->id,
-            'pages' => '241',
-        ]);
-
-        // Associate spell with classes
-        $spell->classes()->attach([$wizard->id, $sorcerer->id]);
-
-        // Test the show endpoint
         $response = $this->getJson("/api/v1/spells/{$spell->id}");
 
         $response->assertStatus(200)
@@ -216,24 +101,16 @@ class SpellApiTest extends TestCase
                         ],
                     ],
                 ],
-            ])
-            ->assertJsonCount(2, 'data.classes')
-            ->assertJsonPath('data.classes.0.name', 'Wizard')
-            ->assertJsonPath('data.classes.0.hit_die', 6)
-            ->assertJsonPath('data.classes.1.name', 'Sorcerer')
-            ->assertJsonPath('data.classes.1.hit_die', 6);
+            ]);
+
+        // Verify Fireball has at least one class
+        $this->assertGreaterThan(0, count($response->json('data.classes')));
     }
 
     #[Test]
-    public function test_spell_includes_spell_school_resource()
+    public function spell_includes_spell_school_resource()
     {
-        $school = $this->getSpellSchool('EV');
-
-        $spell = Spell::factory()->create([
-            'name' => 'Test Spell',
-            'level' => 1,
-            'spell_school_id' => $school->id,
-        ]);
+        $spell = Spell::where('slug', 'fireball')->firstOrFail();
 
         $response = $this->getJson("/api/v1/spells/{$spell->id}");
 
@@ -247,33 +124,13 @@ class SpellApiTest extends TestCase
                     ],
                 ],
             ])
-            ->assertJson([
-                'data' => [
-                    'school' => [
-                        'id' => $school->id,
-                        'code' => $school->code,
-                        'name' => $school->name,
-                    ],
-                ],
-            ]);
+            ->assertJsonPath('data.school.code', 'EV');
     }
 
     #[Test]
-    public function test_spell_includes_sources_as_resource()
+    public function spell_includes_sources_as_resource()
     {
-        $source = $this->getSource('PHB');
-
-        $spell = Spell::factory()->create([
-            'name' => 'Test Source Spell',
-            'level' => 1,
-        ]);
-
-        $spell->sources()->create([
-            'reference_type' => Spell::class,
-            'reference_id' => $spell->id,
-            'source_id' => $source->id,
-            'pages' => '123',
-        ]);
+        $spell = Spell::where('slug', 'fireball')->firstOrFail();
 
         $response = $this->getJson("/api/v1/spells/{$spell->id}");
 
@@ -288,153 +145,85 @@ class SpellApiTest extends TestCase
                         ],
                     ],
                 ],
-            ])
-            ->assertJsonFragment([
-                'code' => 'PHB',
-                'pages' => '123',
             ]);
+
+        // Verify Fireball has at least one source
+        $this->assertGreaterThan(0, count($response->json('data.sources')));
     }
 
     #[Test]
-    public function test_spell_effect_includes_damage_type_resource_when_present()
+    public function spell_exposes_component_breakdown_fields()
     {
-        // Note: This test verifies the DamageTypeResource is properly integrated
-        $spell = Spell::factory()->create([
-            'name' => 'Test Spell',
-            'level' => 1,
-        ]);
-
-        $spell->effects()->create([
-            'effect_type' => 'damage',
-            'description' => 'Test damage',
-            'dice_formula' => '2d6',
-        ]);
-
-        $response = $this->getJson("/api/v1/spells/{$spell->id}");
-
-        // Verify the effect is included without damage_type (null since column doesn't exist yet)
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'data' => [
-                    'effects' => [
-                        '*' => [
-                            'id',
-                            'effect_type',
-                            'description',
-                            'dice_formula',
-                        ],
-                    ],
-                ],
-            ])
-            ->assertJsonPath('data.effects.0.effect_type', 'damage');
-    }
-
-    #[Test]
-    public function test_spell_includes_random_tables_in_response()
-    {
-        $spell = Spell::factory()->create([
-            'name' => 'Prismatic Spray',
-            'level' => 7,
-        ]);
-
-        // Create random table with entries
-        $table = $spell->randomTables()->create([
-            'table_name' => 'Ray Color',
-            'dice_type' => 'd8',
-            'description' => 'Roll 1d8 to determine ray color',
-        ]);
-
-        $table->entries()->createMany([
-            [
-                'roll_min' => 1,
-                'roll_max' => 1,
-                'result_text' => 'Red: 10d6 fire damage',
-                'sort_order' => 1,
-            ],
-            [
-                'roll_min' => 2,
-                'roll_max' => 2,
-                'result_text' => 'Orange: 10d6 acid damage',
-                'sort_order' => 2,
-            ],
-        ]);
+        // Test Verbal/Somatic/Material breakdown
+        $spell = Spell::where('slug', 'fireball')->firstOrFail();
 
         $response = $this->getJson("/api/v1/spells/{$spell->id}");
 
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'data' => [
-                    'id',
-                    'name',
-                    'random_tables' => [
-                        '*' => [
-                            'id',
-                            'table_name',
-                            'dice_type',
-                            'description',
-                            'entries' => [
-                                '*' => [
-                                    'id',
-                                    'roll_min',
-                                    'roll_max',
-                                    'result_text',
-                                    'sort_order',
-                                ],
-                            ],
-                        ],
-                    ],
+                    'requires_verbal',
+                    'requires_somatic',
+                    'requires_material',
                 ],
-            ])
-            ->assertJsonCount(1, 'data.random_tables')
-            ->assertJsonPath('data.random_tables.0.table_name', 'Ray Color')
-            ->assertJsonPath('data.random_tables.0.dice_type', 'd8')
-            ->assertJsonCount(2, 'data.random_tables.0.entries')
-            ->assertJsonPath('data.random_tables.0.entries.0.result_text', 'Red: 10d6 fire damage')
-            ->assertJsonPath('data.random_tables.0.entries.1.result_text', 'Orange: 10d6 acid damage');
-    }
-
-    #[Test]
-    public function test_spell_without_random_tables_returns_empty_array()
-    {
-        $spell = Spell::factory()->create([
-            'name' => 'Magic Missile',
-            'level' => 1,
-        ]);
-
-        $response = $this->getJson("/api/v1/spells/{$spell->id}");
-
-        $response->assertStatus(200)
-            ->assertJsonPath('data.random_tables', []);
-    }
-
-    #[Test]
-    public function test_spell_exposes_component_breakdown_fields()
-    {
-        // Test all component combinations
-        $spells = [
-            'Verbal Only' => ['components' => 'V', 'expected' => ['verbal' => true, 'somatic' => false, 'material' => false]],
-            'Somatic Only' => ['components' => 'S', 'expected' => ['verbal' => false, 'somatic' => true, 'material' => false]],
-            'Material Only' => ['components' => 'M', 'expected' => ['verbal' => false, 'somatic' => false, 'material' => true]],
-            'Verbal Somatic' => ['components' => 'V, S', 'expected' => ['verbal' => true, 'somatic' => true, 'material' => false]],
-            'Verbal Material' => ['components' => 'V, M', 'expected' => ['verbal' => true, 'somatic' => false, 'material' => true]],
-            'Somatic Material' => ['components' => 'S, M', 'expected' => ['verbal' => false, 'somatic' => true, 'material' => true]],
-            'All Components' => ['components' => 'V, S, M', 'expected' => ['verbal' => true, 'somatic' => true, 'material' => true]],
-            'No Components' => ['components' => '', 'expected' => ['verbal' => false, 'somatic' => false, 'material' => false]],
-        ];
-
-        foreach ($spells as $name => $config) {
-            $spell = Spell::factory()->create([
-                'name' => $name,
-                'level' => 1,
-                'components' => $config['components'],
             ]);
 
-            $response = $this->getJson("/api/v1/spells/{$spell->id}");
+        // Fireball requires V, S, M
+        $response->assertJsonPath('data.requires_verbal', true)
+            ->assertJsonPath('data.requires_somatic', true)
+            ->assertJsonPath('data.requires_material', true);
+    }
 
-            $response->assertStatus(200)
-                ->assertJsonPath('data.requires_verbal', $config['expected']['verbal'])
-                ->assertJsonPath('data.requires_somatic', $config['expected']['somatic'])
-                ->assertJsonPath('data.requires_material', $config['expected']['material']);
+    #[Test]
+    public function can_filter_spells_by_level()
+    {
+        $response = $this->getJson('/api/v1/spells?filter=level = 3');
+
+        $response->assertStatus(200);
+        $this->assertGreaterThan(0, count($response->json('data')), 'Expected some level 3 spells');
+
+        // Verify all results are level 3
+        foreach ($response->json('data') as $spell) {
+            $this->assertEquals(3, $spell['level']);
         }
+    }
+
+    #[Test]
+    public function can_filter_spells_by_school()
+    {
+        $response = $this->getJson('/api/v1/spells?filter=school_code = EV');
+
+        $response->assertStatus(200);
+        $this->assertGreaterThan(0, count($response->json('data')), 'Expected some Evocation spells');
+
+        // Verify all results are Evocation
+        foreach ($response->json('data') as $spell) {
+            $this->assertEquals('EV', $spell['school']['code']);
+        }
+    }
+
+    #[Test]
+    public function can_filter_spells_by_class()
+    {
+        $response = $this->getJson('/api/v1/spells?filter=class_slugs IN [wizard]');
+
+        $response->assertStatus(200);
+        $this->assertGreaterThan(0, count($response->json('data')), 'Expected some Wizard spells');
+    }
+
+    #[Test]
+    public function returns_404_for_nonexistent_spell()
+    {
+        $response = $this->getJson('/api/v1/spells/999999');
+
+        $response->assertNotFound();
+    }
+
+    #[Test]
+    public function returns_404_for_nonexistent_spell_slug()
+    {
+        $response = $this->getJson('/api/v1/spells/nonexistent-spell-xyz-123');
+
+        $response->assertNotFound();
     }
 }

@@ -4,31 +4,25 @@ namespace Tests\Feature\Api;
 
 use App\Models\AbilityScore;
 use App\Models\Item;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+/**
+ * These tests use pre-imported data from SearchTestExtension.
+ * No RefreshDatabase needed - all tests are read-only against shared data.
+ */
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class ItemFilterTest extends TestCase
 {
-    use ClearsMeilisearchIndex;
-    use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    protected $seed = true;
+    protected $seed = false;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        // Clear items table before each test to avoid interference from seeded data
-        \App\Models\Item::query()->delete();
-
-        // Clear Meilisearch index for test isolation
-        $this->clearMeilisearchIndex(Item::class);
     }
 
     #[Test]

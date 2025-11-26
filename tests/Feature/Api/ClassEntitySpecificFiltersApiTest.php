@@ -3,49 +3,23 @@
 namespace Tests\Feature\Api;
 
 use App\Models\CharacterClass;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\Concerns\ClearsMeilisearchIndex;
-use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
 /**
  * Tests for CharacterClass-specific filter operators using Meilisearch.
  *
- * Uses real imported class data from PHB for realistic testing.
- * All tests share the same indexed data for efficiency.
+ * These tests use pre-imported data from SearchTestExtension.
+ * No RefreshDatabase needed - all tests are read-only against shared data.
  */
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class ClassEntitySpecificFiltersApiTest extends TestCase
 {
-    use ClearsMeilisearchIndex;
-    use RefreshDatabase;
-    use WaitsForMeilisearch;
-
-    protected $seed = true;
+    protected $seed = false;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        // Clear Meilisearch index for test isolation
-        $this->clearMeilisearchIndex(CharacterClass::class);
-
-        // Import real classes from PHB (provides spellcasters, various hit dice, subclasses)
-        $this->artisan('import:classes', ['file' => 'import-files/class-wizard-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-fighter-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-barbarian-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-cleric-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-bard-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-ranger-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-paladin-phb.xml']);
-
-        // Configure Meilisearch indexes (filterable attributes)
-        $this->artisan('search:configure-indexes');
-
-        // Re-index all classes and wait for completion
-        CharacterClass::all()->searchable();
-        $this->waitForMeilisearchIndex('test_classes');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

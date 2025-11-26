@@ -34,6 +34,8 @@ final class SearchTestSubscriber implements PreparationStartedSubscriber
         $reflection = new \ReflectionClass($className);
         $attributes = $reflection->getAttributes(\PHPUnit\Framework\Attributes\Group::class);
 
+        // Trigger for any search test (feature-search, search-isolated, search-imported)
+        // All search tests share the same pre-imported data - no RefreshDatabase needed
         $isSearchTest = false;
         foreach ($attributes as $attribute) {
             $group = $attribute->newInstance();
@@ -48,6 +50,11 @@ final class SearchTestSubscriber implements PreparationStartedSubscriber
         }
 
         self::$checked = true;
+
+        // Ensure we're using the testing environment
+        putenv('APP_ENV=testing');
+        $_ENV['APP_ENV'] = 'testing';
+        $_SERVER['APP_ENV'] = 'testing';
 
         // Bootstrap Laravel to check database
         $app = require __DIR__.'/../../bootstrap/app.php';

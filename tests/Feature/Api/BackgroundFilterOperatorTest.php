@@ -265,7 +265,7 @@ class BackgroundFilterOperatorTest extends TestCase
     public function it_filters_by_skill_proficiencies_with_in(): void
     {
         // Arrange: Create backgrounds with known skill proficiencies using factories
-        // This avoids relying on stale Meilisearch test index data
+        // Use unique names with timestamps to avoid Meilisearch index collisions between tests
         $insightSkill = \App\Models\Skill::where('slug', 'insight')->first();
         $religionSkill = \App\Models\Skill::where('slug', 'religion')->first();
         $athleticsSkill = \App\Models\Skill::where('slug', 'athletics')->first();
@@ -274,20 +274,31 @@ class BackgroundFilterOperatorTest extends TestCase
         $this->assertNotNull($religionSkill, 'Religion skill must exist');
         $this->assertNotNull($athleticsSkill, 'Athletics skill must exist');
 
+        $uniqueSuffix = uniqid();
+
         // Create a background with insight proficiency
-        $bgWithInsight = Background::factory()->create(['name' => 'Scholar', 'slug' => 'scholar']);
+        $bgWithInsight = Background::factory()->create([
+            'name' => "TestScholar_{$uniqueSuffix}",
+            'slug' => "test-scholar-{$uniqueSuffix}",
+        ]);
         \App\Models\Proficiency::factory()
             ->forEntity(Background::class, $bgWithInsight->id)
             ->create(['proficiency_type' => 'skill', 'skill_id' => $insightSkill->id]);
 
         // Create a background with religion proficiency
-        $bgWithReligion = Background::factory()->create(['name' => 'Priest', 'slug' => 'priest']);
+        $bgWithReligion = Background::factory()->create([
+            'name' => "TestPriest_{$uniqueSuffix}",
+            'slug' => "test-priest-{$uniqueSuffix}",
+        ]);
         \App\Models\Proficiency::factory()
             ->forEntity(Background::class, $bgWithReligion->id)
             ->create(['proficiency_type' => 'skill', 'skill_id' => $religionSkill->id]);
 
         // Create a background without insight or religion (only athletics)
-        $bgWithAthletics = Background::factory()->create(['name' => 'Athlete', 'slug' => 'athlete']);
+        $bgWithAthletics = Background::factory()->create([
+            'name' => "TestAthlete_{$uniqueSuffix}",
+            'slug' => "test-athlete-{$uniqueSuffix}",
+        ]);
         \App\Models\Proficiency::factory()
             ->forEntity(Background::class, $bgWithAthletics->id)
             ->create(['proficiency_type' => 'skill', 'skill_id' => $athleticsSkill->id]);
@@ -298,10 +309,11 @@ class BackgroundFilterOperatorTest extends TestCase
         $bgWithAthletics->refresh()->load('proficiencies.skill');
 
         // Re-index these specific backgrounds and wait for Meilisearch
+        // Use sleep for reliability with skill_proficiencies array filter edge case
         $bgWithInsight->searchable();
         $bgWithReligion->searchable();
         $bgWithAthletics->searchable();
-        $this->waitForMeilisearchModels([$bgWithInsight, $bgWithReligion, $bgWithAthletics]);
+        sleep(1); // Meilisearch needs time to update documents with skill_proficiencies
 
         // Act: Filter by skill_proficiencies IN [insight, religion]
         $response = $this->getJson('/api/v1/backgrounds?filter=skill_proficiencies IN [insight, religion]&per_page=100');
@@ -310,31 +322,40 @@ class BackgroundFilterOperatorTest extends TestCase
         $response->assertOk();
         $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find backgrounds with insight or religion proficiency');
 
-        // Verify Scholar and Priest are included
+        // Verify TestScholar and TestPriest are included
         $names = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertContains('Scholar', $names, 'Scholar grants insight proficiency');
-        $this->assertContains('Priest', $names, 'Priest grants religion proficiency');
-        $this->assertNotContains('Athlete', $names, 'Athlete does not grant insight or religion');
+        $this->assertContains("TestScholar_{$uniqueSuffix}", $names, 'TestScholar grants insight proficiency');
+        $this->assertContains("TestPriest_{$uniqueSuffix}", $names, 'TestPriest grants religion proficiency');
+        $this->assertNotContains("TestAthlete_{$uniqueSuffix}", $names, 'TestAthlete does not grant insight or religion');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_skill_proficiencies_with_not_in(): void
     {
         // Arrange: Create backgrounds with known skill proficiencies using factories
+        // Use unique names with timestamps to avoid Meilisearch index collisions between tests
         $insightSkill = \App\Models\Skill::where('slug', 'insight')->first();
         $athleticsSkill = \App\Models\Skill::where('slug', 'athletics')->first();
 
         $this->assertNotNull($insightSkill, 'Insight skill must exist');
         $this->assertNotNull($athleticsSkill, 'Athletics skill must exist');
 
+        $uniqueSuffix = uniqid();
+
         // Create a background with insight proficiency
-        $bgWithInsight = Background::factory()->create(['name' => 'Mystic', 'slug' => 'mystic']);
+        $bgWithInsight = Background::factory()->create([
+            'name' => "TestMystic_{$uniqueSuffix}",
+            'slug' => "test-mystic-{$uniqueSuffix}",
+        ]);
         \App\Models\Proficiency::factory()
             ->forEntity(Background::class, $bgWithInsight->id)
             ->create(['proficiency_type' => 'skill', 'skill_id' => $insightSkill->id]);
 
         // Create a background without insight (only athletics)
-        $bgWithoutInsight = Background::factory()->create(['name' => 'Warrior', 'slug' => 'warrior']);
+        $bgWithoutInsight = Background::factory()->create([
+            'name' => "TestWarrior_{$uniqueSuffix}",
+            'slug' => "test-warrior-{$uniqueSuffix}",
+        ]);
         \App\Models\Proficiency::factory()
             ->forEntity(Background::class, $bgWithoutInsight->id)
             ->create(['proficiency_type' => 'skill', 'skill_id' => $athleticsSkill->id]);
@@ -344,9 +365,10 @@ class BackgroundFilterOperatorTest extends TestCase
         $bgWithoutInsight->refresh()->load('proficiencies.skill');
 
         // Re-index these specific backgrounds and wait for Meilisearch
+        // Use sleep for reliability with skill_proficiencies array filter edge case
         $bgWithInsight->searchable();
         $bgWithoutInsight->searchable();
-        $this->waitForMeilisearchModels([$bgWithInsight, $bgWithoutInsight]);
+        sleep(1); // Meilisearch needs time to update document with skill_proficiencies
 
         // Act: Filter by skill_proficiencies NOT IN [insight]
         $response = $this->getJson('/api/v1/backgrounds?filter=skill_proficiencies NOT IN [insight]&per_page=100');
@@ -355,9 +377,9 @@ class BackgroundFilterOperatorTest extends TestCase
         $response->assertOk();
         $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find backgrounds without insight proficiency');
 
-        // Verify Mystic is excluded (grants insight)
+        // Verify TestMystic is excluded (grants insight)
         $names = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertNotContains('Mystic', $names, 'Mystic grants insight proficiency (should be excluded)');
-        $this->assertContains('Warrior', $names, 'Warrior does not grant insight (should be included)');
+        $this->assertNotContains("TestMystic_{$uniqueSuffix}", $names, 'TestMystic grants insight proficiency (should be excluded)');
+        $this->assertContains("TestWarrior_{$uniqueSuffix}", $names, 'TestWarrior does not grant insight (should be included)');
     }
 }

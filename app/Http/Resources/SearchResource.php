@@ -10,11 +10,16 @@ class SearchResource extends JsonResource
     /**
      * Transform the global search results into an array.
      *
-     * @return array<string, mixed>
+     * @return array{data: array{spells: array<SpellResource>, items: array<ItemResource>, races: array<RaceResource>, classes: array<ClassResource>, backgrounds: array<BackgroundResource>, feats: array<FeatResource>, monsters: array<MonsterResource>}, meta: array{query: string, types_searched: array<string>, limit_per_type: int, total_results: int}}
      */
     public function toArray(Request $request): array
     {
         return [
+            /**
+             * Search results grouped by entity type.
+             *
+             * @var array{spells: array<SpellResource>, items: array<ItemResource>, races: array<RaceResource>, classes: array<ClassResource>, backgrounds: array<BackgroundResource>, feats: array<FeatResource>, monsters: array<MonsterResource>}
+             */
             'data' => [
                 'spells' => SpellResource::collection($this->resource['spells'] ?? collect()),
                 'items' => ItemResource::collection($this->resource['items'] ?? collect()),
@@ -24,6 +29,11 @@ class SearchResource extends JsonResource
                 'feats' => FeatResource::collection($this->resource['feats'] ?? collect()),
                 'monsters' => MonsterResource::collection($this->resource['monsters'] ?? collect()),
             ],
+            /**
+             * Search metadata.
+             *
+             * @var array{query: string, types_searched: array<string>, limit_per_type: int, total_results: int}
+             */
             'meta' => [
                 'query' => $this->resource['query'],
                 'types_searched' => $this->resource['types_searched'],

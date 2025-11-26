@@ -18,6 +18,11 @@ class SavingThrowResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            /**
+             * The ability score for this saving throw.
+             *
+             * @var array{id: int, code: string, name: string}
+             */
             'ability_score' => [
                 'id' => $this->id,
                 'code' => $this->code,
@@ -26,7 +31,8 @@ class SavingThrowResource extends JsonResource
             'dc' => $this->pivot?->dc,
             'save_effect' => $this->pivot?->save_effect,
             'is_initial_save' => (bool) ($this->pivot?->is_initial_save ?? true),
-            'save_modifier' => $this->pivot?->save_modifier, // 'advantage', 'disadvantage', or null
+            /** @var string|null 'advantage', 'disadvantage', or null */
+            'save_modifier' => $this->pivot?->save_modifier,
         ];
     }
 }

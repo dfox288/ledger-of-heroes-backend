@@ -24,7 +24,7 @@ class SpellSearchTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_searches_spells_using_scout_when_available(): void
     {
-        $evocation = SpellSchool::factory()->create(['name' => 'Evocation', 'code' => 'EVO']);
+        $evocation = SpellSchool::firstOrCreate(['code' => 'EV'], ['name' => 'Evocation']);
 
         $fireball = Spell::factory()->create([
             'name' => 'Fireball',
@@ -56,7 +56,7 @@ class SpellSearchTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_meilisearch_results_by_level_with_search(): void
     {
-        $evocation = SpellSchool::factory()->create(['code' => 'EVO']);
+        $evocation = SpellSchool::firstOrCreate(['code' => 'EV'], ['name' => 'Evocation']);
 
         Spell::factory()->create(['name' => 'Fire Bolt', 'level' => 0, 'spell_school_id' => $evocation->id]);
         Spell::factory()->create(['name' => 'Fireball', 'level' => 3, 'spell_school_id' => $evocation->id]);

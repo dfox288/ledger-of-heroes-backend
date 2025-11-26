@@ -17,7 +17,7 @@ class SpellSearchableTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_returns_searchable_array_with_denormalized_data(): void
     {
-        $school = SpellSchool::factory()->create(['name' => 'Evocation', 'code' => 'EVO']);
+        $school = SpellSchool::firstOrCreate(['code' => 'EV'], ['name' => 'Evocation']);
         $source = Source::firstOrCreate(
             ['code' => 'PHB'],
             [
@@ -54,7 +54,7 @@ class SpellSearchableTest extends TestCase
         $this->assertEquals('Fireball', $searchable['name']);
         $this->assertEquals(3, $searchable['level']);
         $this->assertEquals('Evocation', $searchable['school_name']);
-        $this->assertEquals('EVO', $searchable['school_code']);
+        $this->assertEquals('EV', $searchable['school_code']);
         $this->assertArrayHasKey('description', $searchable);
         $this->assertEquals(['Player\'s Handbook'], $searchable['sources']);
         $this->assertEquals(['PHB'], $searchable['source_codes']);

@@ -25,6 +25,11 @@ class ProficiencyResource extends JsonResource
             'skill' => $this->when($this->skill_id, function () {
                 return new SkillResource($this->whenLoaded('skill'));
             }),
+            /**
+             * Linked item reference (for weapon/armor proficiencies).
+             *
+             * @var array{id: int, name: string}|null
+             */
             'item' => $this->when($this->item_id, function () {
                 return [
                     'id' => $this->item->id,

@@ -27,7 +27,7 @@ class SpellcasterStrategyEnhancementTest extends TestCase
     public function it_syncs_single_spell_to_entity_spells(): void
     {
         // Arrange: Create spell in database
-        $school = SpellSchool::factory()->create(['code' => 'EVO']);
+        $school = SpellSchool::firstOrCreate(['code' => 'EV'], ['name' => 'Evocation']);
         $fireball = Spell::factory()->create([
             'name' => 'Fireball',
             'slug' => 'fireball',
@@ -57,7 +57,7 @@ class SpellcasterStrategyEnhancementTest extends TestCase
     public function it_syncs_multiple_spells_to_entity_spells(): void
     {
         // Arrange: Create spells in database
-        $school = SpellSchool::factory()->create(['code' => 'EVO']);
+        $school = SpellSchool::firstOrCreate(['code' => 'EV'], ['name' => 'Evocation']);
         $fireball = Spell::factory()->create([
             'name' => 'Fireball',
             'slug' => 'fireball',
@@ -100,7 +100,7 @@ class SpellcasterStrategyEnhancementTest extends TestCase
     public function it_handles_case_insensitive_spell_matching(): void
     {
         // Arrange: Create spell with proper title case
-        $school = SpellSchool::factory()->create(['code' => 'EVO']);
+        $school = SpellSchool::firstOrCreate(['code' => 'EV'], ['name' => 'Evocation']);
         $fireball = Spell::factory()->create([
             'name' => 'Fireball',
             'slug' => 'fireball',
@@ -151,7 +151,7 @@ class SpellcasterStrategyEnhancementTest extends TestCase
     public function it_handles_mixed_found_and_not_found_spells(): void
     {
         // Arrange: Create some spells (not all)
-        $school = SpellSchool::factory()->create(['code' => 'EVO']);
+        $school = SpellSchool::firstOrCreate(['code' => 'EV'], ['name' => 'Evocation']);
         $fireball = Spell::factory()->create([
             'name' => 'Fireball',
             'slug' => 'fireball',
@@ -188,7 +188,7 @@ class SpellcasterStrategyEnhancementTest extends TestCase
     public function it_trims_whitespace_from_spell_names(): void
     {
         // Arrange: Create spells
-        $school = SpellSchool::factory()->create(['code' => 'EVO']);
+        $school = SpellSchool::firstOrCreate(['code' => 'EV'], ['name' => 'Evocation']);
         $fireball = Spell::factory()->create([
             'name' => 'Fireball',
             'slug' => 'fireball',
@@ -242,7 +242,7 @@ class SpellcasterStrategyEnhancementTest extends TestCase
     public function it_uses_existing_spell_cache_for_performance(): void
     {
         // Arrange: Create spell
-        $school = SpellSchool::factory()->create(['code' => 'EVO']);
+        $school = SpellSchool::firstOrCreate(['code' => 'EV'], ['name' => 'Evocation']);
         $fireball = Spell::factory()->create([
             'name' => 'Fireball',
             'slug' => 'fireball',

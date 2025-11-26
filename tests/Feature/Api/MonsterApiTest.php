@@ -324,7 +324,7 @@ class MonsterApiTest extends TestCase
     public function can_filter_monsters_by_spell()
     {
         $source = $this->getSource('PHB');
-        $school = \App\Models\SpellSchool::factory()->create(['code' => 'EVO']);
+        $school = \App\Models\SpellSchool::firstOrCreate(['code' => 'EV'], ['name' => 'Evocation']);
 
         // Create spells
         $fireball = \App\Models\Spell::factory()->create([
@@ -386,7 +386,7 @@ class MonsterApiTest extends TestCase
     public function can_filter_monsters_by_multiple_spells()
     {
         $source = $this->getSource('PHB');
-        $school = \App\Models\SpellSchool::factory()->create(['code' => 'EVO']);
+        $school = \App\Models\SpellSchool::firstOrCreate(['code' => 'EV'], ['name' => 'Evocation']);
 
         // Create spells
         $fireball = \App\Models\Spell::factory()->create([
@@ -436,7 +436,7 @@ class MonsterApiTest extends TestCase
     public function can_get_monster_spell_list()
     {
         $source = $this->getSource('PHB');
-        $school = \App\Models\SpellSchool::factory()->create(['code' => 'EVO']);
+        $school = \App\Models\SpellSchool::firstOrCreate(['code' => 'EV'], ['name' => 'Evocation']);
 
         // Create spells
         $fireball = \App\Models\Spell::factory()->create([

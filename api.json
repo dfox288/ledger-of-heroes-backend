@@ -8426,6 +8426,9 @@
                     "is_optional": {
                         "type": "boolean"
                     },
+                    "is_multiclass_only": {
+                        "type": "boolean"
+                    },
                     "sort_order": {
                         "type": "integer"
                     },
@@ -8443,6 +8446,7 @@
                     "feature_name",
                     "description",
                     "is_optional",
+                    "is_multiclass_only",
                     "sort_order"
                 ],
                 "title": "ClassFeatureResource"
@@ -8554,6 +8558,9 @@
                         "type": "string"
                     },
                     "hit_die": {
+                        "type": "string"
+                    },
+                    "effective_hit_die": {
                         "type": "string"
                     },
                     "description": {
@@ -8709,6 +8716,28 @@
                                     "higher_levels"
                                 ]
                             },
+                            "spellcasting_ability": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "code": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "id",
+                                    "code",
+                                    "name"
+                                ]
+                            },
                             "counters": {
                                 "type": [
                                     "array",
@@ -8797,6 +8826,7 @@
                         "required": [
                             "hit_die",
                             "hit_points",
+                            "spellcasting_ability",
                             "counters",
                             "traits",
                             "level_progression",
@@ -8822,6 +8852,7 @@
                     "slug",
                     "name",
                     "hit_die",
+                    "effective_hit_die",
                     "description",
                     "primary_ability",
                     "parent_class_id",
@@ -9915,6 +9946,12 @@
                     "experience_points": {
                         "type": "integer"
                     },
+                    "proficiency_bonus": {
+                        "type": "string"
+                    },
+                    "is_legendary": {
+                        "type": "string"
+                    },
                     "passive_perception": {
                         "type": [
                             "integer",
@@ -10002,6 +10039,8 @@
                     "charisma",
                     "challenge_rating",
                     "experience_points",
+                    "proficiency_bonus",
+                    "is_legendary",
                     "passive_perception",
                     "description"
                 ],
@@ -10298,6 +10337,9 @@
                     "speed": {
                         "type": "integer"
                     },
+                    "is_subrace": {
+                        "type": "string"
+                    },
                     "traits": {
                         "type": "array",
                         "items": {
@@ -10360,7 +10402,8 @@
                     "id",
                     "slug",
                     "name",
-                    "speed"
+                    "speed",
+                    "is_subrace"
                 ],
                 "title": "RaceResource"
             },
@@ -10792,6 +10835,9 @@
                     "casting_time": {
                         "type": "string"
                     },
+                    "casting_time_type": {
+                        "type": "string"
+                    },
                     "range": {
                         "type": "string"
                     },
@@ -10875,6 +10921,7 @@
                     "name",
                     "level",
                     "casting_time",
+                    "casting_time_type",
                     "range",
                     "components",
                     "material_components",

@@ -3,7 +3,6 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Item;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
@@ -11,35 +10,39 @@ use Tests\TestCase;
 /**
  * Tests for Item filter operators using Meilisearch.
  *
- * Uses real imported item data from DMG for realistic testing.
- * All tests share the same indexed data for efficiency.
+ * This test does NOT use RefreshDatabase - it relies on pre-imported data.
+ * The SearchTestExtension will auto-import if needed on first run.
+ *
+ * Run: docker compose exec php php artisan test --testsuite=Feature-Search-Isolated
  */
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class ItemFilterOperatorTest extends TestCase
 {
     use ClearsMeilisearchIndex;
-    use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    protected $seed = true;
+    // Note: No RefreshDatabase trait - we use pre-imported data
+    protected $seed = false; // Don't run seeders
+
+    private static bool $indexed = false;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        // Clear Meilisearch index for test isolation
-        $this->clearMeilisearchIndex(Item::class);
+        // Skip if no imported data
+        if (Item::count() === 0) {
+            $this->markTestSkipped('No items in database. Run: php artisan import:all --env=testing');
+        }
 
-        // Import items from DMG (has magic items with charges, rarities, properties)
-        $this->artisan('import:items', ['file' => 'import-files/items-dmg.xml']);
-
-        // Configure Meilisearch indexes (filterable attributes)
-        $this->artisan('search:configure-indexes');
-
-        // Re-index all items and wait for completion
-        Item::all()->searchable();
-        $this->waitForMeilisearchIndex('test_items');
+        // Index all items ONCE per test class run (not per test)
+        if (! self::$indexed) {
+            $this->clearMeilisearchIndex(Item::class);
+            Item::all()->searchable();
+            $this->waitForMeilisearchIndex('test_items');
+            self::$indexed = true;
+        }
     }
 
     // ============================================================

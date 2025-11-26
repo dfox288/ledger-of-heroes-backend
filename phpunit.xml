@@ -4,6 +4,9 @@
          bootstrap="vendor/autoload.php"
          colors="true"
 >
+    <extensions>
+        <bootstrap class="Tests\Support\SearchTestExtension"/>
+    </extensions>
     <testsuites>
         <!-- Original suites (kept for backwards compatibility) -->
         <testsuite name="Unit">

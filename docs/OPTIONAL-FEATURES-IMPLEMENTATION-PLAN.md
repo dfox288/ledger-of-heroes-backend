@@ -813,9 +813,11 @@ Using `EntityPrerequisite` polymorphic table:
 - [ ] Test import with XGE file
 
 ### Phase 3: API Layer (~2 hours)
-- [ ] Create `OptionalFeatureResource`
-- [ ] Create `OptionalFeatureIndexRequest`
-- [ ] Create `OptionalFeatureShowRequest`
+- [ ] Create `OptionalFeatureResource` (follow existing resource patterns)
+- [ ] Create `OptionalFeatureRollResource` (for nested roll data)
+- [ ] Create `ClassOptionalFeatureResource` (for pivot data with subclass_name)
+- [ ] Create `OptionalFeatureIndexRequest` (follow `{Entity}IndexRequest` naming)
+- [ ] Create `OptionalFeatureShowRequest` (follow `{Entity}ShowRequest` naming)
 - [ ] Create `OptionalFeatureSearchDTO`
 - [ ] Create `OptionalFeatureSearchService`
 - [ ] Create `OptionalFeatureController`
@@ -834,7 +836,8 @@ Using `EntityPrerequisite` polymorphic table:
 - [ ] `OptionalFeatureSearchTest` - Meilisearch filtering
 
 ### Phase 6: Documentation (~1 hour)
-- [ ] Add PHPDoc to controller
+- [ ] Add PHPDoc to controller (Scramble-compatible, with examples)
+- [ ] Run `/update-docs` slash command for OpenAPI documentation
 - [ ] Update API-EXAMPLES.md
 - [ ] Update PROJECT-STATUS.md
 - [ ] Create session handover
@@ -845,15 +848,52 @@ Using `EntityPrerequisite` polymorphic table:
 
 ---
 
+## Important Reminders
+
+### Follow Project Conventions
+
+**Form Request Naming:** `{Entity}{Action}Request`
+```php
+// ✅ CORRECT
+OptionalFeatureIndexRequest      // GET /api/v1/optional-features
+OptionalFeatureShowRequest       // GET /api/v1/optional-features/{id}
+
+// ❌ WRONG
+IndexOptionalFeatureRequest      // No - verb first
+```
+
+**API Resources:** Follow existing patterns for:
+- Nested relationships (`whenLoaded()`)
+- Conditional fields
+- Consistent JSON structure
+
+**After completing major features:**
+1. Run full test suite: `docker compose exec php php artisan test`
+2. Format with Pint: `docker compose exec php ./vendor/bin/pint`
+3. Update CHANGELOG.md under `[Unreleased]`
+4. Use `/update-docs` slash command for OpenAPI documentation
+5. Commit and push
+
+### Slash Commands Available
+
+| Command | Purpose |
+|---------|---------|
+| `/update-docs` | Update API documentation for entity (Scramble/OpenAPI) |
+| `/organize-docs` | Clean up and archive documentation |
+
+---
+
 ## Success Criteria
 
 1. All 3 XML files import successfully
 2. ~130 optional features created
-3. Fighting Styles linked to multiple classes
+3. Fighting Styles linked to multiple classes (Fighter, Paladin, Ranger)
 4. API returns proper filtering by type, class, level
 5. Meilisearch indexes and filters work
-6. All tests pass
-7. Documentation updated
+6. All tests pass (existing + new)
+7. Documentation updated via `/update-docs`
+8. CHANGELOG.md updated
+9. Code formatted with Pint
 
 ---
 

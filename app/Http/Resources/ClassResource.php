@@ -22,8 +22,9 @@ class ClassResource extends JsonResource
             'id' => $this->id,
             'slug' => $this->slug,
             'name' => $this->name,
-            'hit_die' => $this->hit_die,
-            'effective_hit_die' => $this->effective_hit_die,
+            // Use effective_hit_die to inherit from parent class for subclasses
+            // (matches spellcasting_ability pattern which also uses effective value)
+            'hit_die' => $this->effective_hit_die,
             'description' => $this->description,
             'primary_ability' => $this->primary_ability,
             'spellcasting_ability' => $this->when($this->effective_spellcasting_ability, function () {

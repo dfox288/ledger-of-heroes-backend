@@ -33,7 +33,8 @@ class CharacterClass extends BaseModel
     ];
 
     protected $appends = [
-        'effective_hit_die',
+        // Note: effective_hit_die accessor exists but is not auto-appended
+        // ClassResource explicitly calls $this->effective_hit_die for the hit_die field
         'effective_spellcasting_ability',
     ];
 

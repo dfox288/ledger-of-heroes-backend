@@ -12,6 +12,11 @@ class SourceImporterTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Disable seeding - this test creates its own source data.
+     */
+    protected $seed = false;
+
     private SourceImporter $importer;
 
     protected function setUp(): void

@@ -21,9 +21,10 @@ class EntitySourceFactory extends Factory
      */
     public function definition(): array
     {
-        $sourceCodes = ['PHB', 'DMG', 'MM', 'XGE', 'TCE', 'VGTM'];
+        $sourceCodes = ['PHB', 'DMG', 'MM', 'XGE', 'TCE', 'VGM'];
         $sourceCode = fake()->randomElement($sourceCodes);
-        $source = Source::where('code', $sourceCode)->first();
+        $source = Source::where('code', $sourceCode)->first()
+            ?? Source::factory()->create(['code' => $sourceCode, 'name' => "Test Source {$sourceCode}"]);
 
         // Default to Spell as reference type
         $spell = Spell::factory()->create();
@@ -53,7 +54,8 @@ class EntitySourceFactory extends Factory
     public function fromSource(string $sourceCode): static
     {
         return $this->state(function (array $attributes) use ($sourceCode) {
-            $source = Source::where('code', $sourceCode)->first();
+            $source = Source::where('code', $sourceCode)->first()
+                ?? Source::factory()->create(['code' => $sourceCode, 'name' => "Test Source {$sourceCode}"]);
 
             return [
                 'source_id' => $source->id,

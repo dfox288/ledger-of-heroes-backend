@@ -66,6 +66,7 @@ abstract class TestCase extends BaseTestCase
 
     protected function getSource(string $code): Source
     {
-        return Source::where('code', $code)->firstOrFail();
+        return Source::where('code', $code)->first()
+            ?? Source::factory()->create(['code' => $code, 'name' => "Test Source {$code}"]);
     }
 }

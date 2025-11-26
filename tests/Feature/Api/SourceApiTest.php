@@ -15,9 +15,11 @@ class SourceApiTest extends TestCase
     {
         parent::setUp();
 
-        // Only seed if not already seeded (prevents duplicate key errors)
-        if (\App\Models\Source::count() === 0) {
-            $this->seed(\Database\Seeders\SourceSeeder::class);
+        // Create test sources via factory
+        if (Source::count() === 0) {
+            Source::factory()->create(['code' => 'PHB', 'name' => 'Player\'s Handbook']);
+            Source::factory()->create(['code' => 'DMG', 'name' => 'Dungeon Master\'s Guide']);
+            Source::factory()->create(['code' => 'XGE', 'name' => 'Xanathar\'s Guide to Everything']);
         }
     }
 
@@ -29,7 +31,7 @@ class SourceApiTest extends TestCase
         $response->assertOk()
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'code', 'name', 'publisher', 'publication_year', 'edition'],
+                    '*' => ['id', 'code', 'name', 'publisher', 'publication_year'],
                 ],
             ]);
     }

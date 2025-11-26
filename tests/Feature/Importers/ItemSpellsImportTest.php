@@ -17,9 +17,7 @@ class ItemSpellsImportTest extends TestCase
         parent::setUp();
 
         // Seed required lookup data (only if not already seeded)
-        if (\App\Models\Source::count() === 0) {
-            $this->seed(\Database\Seeders\SourceSeeder::class);
-        }
+        // Sources are created via factory when needed by getSource()
         if (\App\Models\SpellSchool::count() === 0) {
             $this->seed(\Database\Seeders\SpellSchoolSeeder::class);
         }

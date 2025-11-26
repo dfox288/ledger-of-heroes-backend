@@ -13,10 +13,7 @@ class MonsterFilterOperatorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        // Only seed once per test run by checking if sources exist
-        if (\App\Models\Source::count() === 0) {
-            $this->seed(\Database\Seeders\SourceSeeder::class);
-        }
+        // SizeSeeder is called by DatabaseSeeder, but ensure it's seeded
         if (\App\Models\Size::count() === 0) {
             $this->seed(\Database\Seeders\SizeSeeder::class);
         }

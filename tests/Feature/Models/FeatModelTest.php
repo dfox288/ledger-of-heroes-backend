@@ -37,17 +37,15 @@ class FeatModelTest extends TestCase
     #[Test]
     public function feat_has_sources_relationship()
     {
-        // Seed sources if not already seeded
-        if (Source::count() === 0) {
-            $this->seed(\Database\Seeders\SourceSeeder::class);
-        }
+        // Create source if not exists
+        $source = Source::where('code', 'PHB')->first()
+            ?? Source::factory()->create(['code' => 'PHB', 'name' => 'Player\'s Handbook']);
 
         $feat = Feat::factory()->create();
 
         EntitySource::factory()
             ->forEntity(Feat::class, $feat->id)
-            ->fromSource('PHB')
-            ->create();
+            ->create(['source_id' => $source->id]);
 
         $this->assertCount(1, $feat->sources);
         $this->assertInstanceOf(EntitySource::class, $feat->sources->first());

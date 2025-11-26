@@ -22,7 +22,18 @@ class SourceTest extends TestCase
     public function test_source_has_fillable_attributes(): void
     {
         $source = new Source;
-        $fillable = ['code', 'name', 'publisher', 'publication_year', 'edition'];
+        $fillable = [
+            'code',
+            'name',
+            'publisher',
+            'publication_year',
+            'url',
+            'author',
+            'artist',
+            'website',
+            'category',
+            'description',
+        ];
         $this->assertEquals($fillable, $source->getFillable());
     }
 }

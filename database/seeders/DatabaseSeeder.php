@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\App;
 
 class DatabaseSeeder extends Seeder
 {
@@ -12,8 +13,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Order matters: dependencies first
-        // Note: SourceSeeder removed - sources are imported from XML files (import:sources)
-        $this->call([
+        $seeders = [
             SpellSchoolSeeder::class,
             DamageTypeSeeder::class,
             SizeSeeder::class,
@@ -25,6 +25,13 @@ class DatabaseSeeder extends Seeder
             ProficiencyTypeSeeder::class,    // No dependencies
             LanguageSeeder::class,           // No dependencies
             // Note: CharacterClassSeeder removed - classes are imported from XML files
-        ]);
+        ];
+
+        // SourceSeeder only runs in testing; production uses import:sources for full XML data
+        if (App::environment('testing')) {
+            array_unshift($seeders, SourceSeeder::class);
+        }
+
+        $this->call($seeders);
     }
 }

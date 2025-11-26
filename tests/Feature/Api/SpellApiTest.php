@@ -7,13 +7,24 @@ use App\Models\Spell;
 use App\Models\SpellEffect;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\ClearsMeilisearchIndex;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class SpellApiTest extends TestCase
 {
+    use ClearsMeilisearchIndex;
     use RefreshDatabase;
+    use WaitsForMeilisearch;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Clear Meilisearch index for test isolation
+        $this->clearMeilisearchIndex(Spell::class);
+    }
 
     public function test_can_get_all_spells(): void
     {

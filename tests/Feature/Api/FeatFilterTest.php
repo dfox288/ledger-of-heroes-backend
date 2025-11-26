@@ -7,6 +7,7 @@ use App\Models\Feat;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
@@ -14,6 +15,7 @@ use Tests\TestCase;
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class FeatFilterTest extends TestCase
 {
+    use ClearsMeilisearchIndex;
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
@@ -21,13 +23,8 @@ class FeatFilterTest extends TestCase
     {
         parent::setUp();
 
-        // Flush Meilisearch feats index before each test
-        // This ensures a clean state for filter tests
-        try {
-            Feat::removeAllFromSearch();
-        } catch (\Exception $e) {
-            // Ignore errors if index doesn't exist
-        }
+        // Clear Meilisearch index for test isolation
+        $this->clearMeilisearchIndex(Feat::class);
     }
 
     #[Test]

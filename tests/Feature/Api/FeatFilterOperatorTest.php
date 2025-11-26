@@ -4,34 +4,59 @@ namespace Tests\Feature\Api;
 
 use App\Models\Feat;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+/**
+ * Tests for Feat filter operators using Meilisearch.
+ *
+ * This test imports real feat data from PHB and adds test-specific
+ * data for tags and prerequisites, then indexes everything once.
+ * All tests share this indexed data for efficiency.
+ */
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class FeatFilterOperatorTest extends TestCase
 {
+    use ClearsMeilisearchIndex;
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
     protected $seed = true;
 
+    /**
+     * Test feats created specifically for tag testing.
+     */
+    private static array $taggedFeats = [];
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        // Clear Feat table to avoid interference from seeded data
-        \App\Models\Feat::query()->delete();
+        // Clear Meilisearch index for test isolation
+        $this->clearMeilisearchIndex(Feat::class);
 
-        // Clear Meilisearch index
-        try {
-            $client = app(\MeiliSearch\Client::class);
-            $indexName = (new \App\Models\Feat)->searchableAs();
-            $client->index($indexName)->deleteAllDocuments();
-            sleep(1); // Wait for Meilisearch to process deletion
-        } catch (\Exception $e) {
-            // Ignore if index doesn't exist yet
-        }
+        // Import real feats from PHB (provides realistic data with prerequisites)
+        $this->artisan('import:feats', ['file' => 'import-files/feats-phb.xml']);
+
+        // Create feats with tags for tag filter testing
+        // (Real PHB feats don't have tags)
+        $combatFeat = Feat::factory()->create(['name' => 'Test Combat Feat', 'slug' => 'test-combat-feat']);
+        $combatFeat->attachTag('combat');
+
+        $magicFeat = Feat::factory()->create(['name' => 'Test Magic Feat', 'slug' => 'test-magic-feat']);
+        $magicFeat->attachTag('magic');
+
+        $skillFeat = Feat::factory()->create(['name' => 'Test Skill Feat', 'slug' => 'test-skill-feat']);
+        $skillFeat->attachTag('skill-improvement');
+
+        // Configure Meilisearch indexes (filterable attributes)
+        $this->artisan('search:configure-indexes');
+
+        // Re-index all feats and wait for completion
+        Feat::all()->searchable();
+        $this->waitForMeilisearchIndex('test_feats');
     }
 
     // ============================================================
@@ -41,144 +66,94 @@ class FeatFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_id_with_equals(): void
     {
-        // Arrange: Create feats with known IDs
-        $feat1 = Feat::factory()->create(['name' => 'Feat 1']);
-        $feat2 = Feat::factory()->create(['name' => 'Feat 2']);
-        $feat3 = Feat::factory()->create(['name' => 'Feat 3']);
+        $feat = Feat::where('name', 'Alert')->first();
+        $this->assertNotNull($feat, 'Alert feat should exist from PHB import');
 
-        collect([$feat1, $feat2, $feat3])->searchable();
-        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
+        $response = $this->getJson("/api/v1/feats?filter=id = {$feat->id}");
 
-        // Act & Assert
-        $response = $this->getJson("/api/v1/feats?filter=id = {$feat2->id}");
         $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Feat 2');
+        $this->assertEquals(1, $response->json('meta.total'));
+        $response->assertJsonPath('data.0.name', 'Alert');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_id_with_not_equals(): void
     {
-        // Arrange
-        $feat1 = Feat::factory()->create(['name' => 'Feat 1']);
-        $feat2 = Feat::factory()->create(['name' => 'Feat 2']);
-        $feat3 = Feat::factory()->create(['name' => 'Feat 3']);
+        $feat = Feat::where('name', 'Alert')->first();
+        $this->assertNotNull($feat);
+        $totalFeats = Feat::count();
 
-        collect([$feat1, $feat2, $feat3])->searchable();
-        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
+        $response = $this->getJson("/api/v1/feats?filter=id != {$feat->id}");
 
-        // Act & Assert
-        $response = $this->getJson("/api/v1/feats?filter=id != {$feat2->id}");
         $response->assertOk();
-        $response->assertJsonCount(2, 'data');
-        $names = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertContains('Feat 1', $names);
-        $this->assertContains('Feat 3', $names);
+        $this->assertEquals($totalFeats - 1, $response->json('meta.total'));
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_id_with_greater_than(): void
     {
-        // Arrange
-        $feat1 = Feat::factory()->create(['name' => 'Feat 1']);
-        $feat2 = Feat::factory()->create(['name' => 'Feat 2']);
-        $feat3 = Feat::factory()->create(['name' => 'Feat 3']);
-        $feat4 = Feat::factory()->create(['name' => 'Feat 4']);
+        // Get a feat ID in the middle range
+        $feats = Feat::orderBy('id')->get();
+        $middleFeat = $feats->get((int) ($feats->count() / 2));
+        $expectedCount = $feats->where('id', '>', $middleFeat->id)->count();
 
-        collect([$feat1, $feat2, $feat3, $feat4])->searchable();
-        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3, $feat4]);
+        $response = $this->getJson("/api/v1/feats?filter=id > {$middleFeat->id}");
 
-        // Act & Assert
-        $response = $this->getJson("/api/v1/feats?filter=id > {$feat2->id}");
         $response->assertOk();
-        $response->assertJsonCount(2, 'data');
-        $names = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertContains('Feat 3', $names);
-        $this->assertContains('Feat 4', $names);
+        $this->assertEquals($expectedCount, $response->json('meta.total'));
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_id_with_greater_than_or_equal(): void
     {
-        // Arrange
-        $feat1 = Feat::factory()->create(['name' => 'Feat 1']);
-        $feat2 = Feat::factory()->create(['name' => 'Feat 2']);
-        $feat3 = Feat::factory()->create(['name' => 'Feat 3']);
+        $feats = Feat::orderBy('id')->get();
+        $middleFeat = $feats->get((int) ($feats->count() / 2));
+        $expectedCount = $feats->where('id', '>=', $middleFeat->id)->count();
 
-        collect([$feat1, $feat2, $feat3])->searchable();
-        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
+        $response = $this->getJson("/api/v1/feats?filter=id >= {$middleFeat->id}");
 
-        // Act & Assert
-        $response = $this->getJson("/api/v1/feats?filter=id >= {$feat2->id}");
         $response->assertOk();
-        $response->assertJsonCount(2, 'data');
-        $names = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertContains('Feat 2', $names);
-        $this->assertContains('Feat 3', $names);
+        $this->assertEquals($expectedCount, $response->json('meta.total'));
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_id_with_less_than(): void
     {
-        // Arrange
-        $feat1 = Feat::factory()->create(['name' => 'Feat 1']);
-        $feat2 = Feat::factory()->create(['name' => 'Feat 2']);
-        $feat3 = Feat::factory()->create(['name' => 'Feat 3']);
-        $feat4 = Feat::factory()->create(['name' => 'Feat 4']);
+        $feats = Feat::orderBy('id')->get();
+        $middleFeat = $feats->get((int) ($feats->count() / 2));
+        $expectedCount = $feats->where('id', '<', $middleFeat->id)->count();
 
-        collect([$feat1, $feat2, $feat3, $feat4])->searchable();
-        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3, $feat4]);
+        $response = $this->getJson("/api/v1/feats?filter=id < {$middleFeat->id}");
 
-        // Act & Assert
-        $response = $this->getJson("/api/v1/feats?filter=id < {$feat3->id}");
         $response->assertOk();
-        $response->assertJsonCount(2, 'data');
-        $names = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertContains('Feat 1', $names);
-        $this->assertContains('Feat 2', $names);
+        $this->assertEquals($expectedCount, $response->json('meta.total'));
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_id_with_less_than_or_equal(): void
     {
-        // Arrange
-        $feat1 = Feat::factory()->create(['name' => 'Feat 1']);
-        $feat2 = Feat::factory()->create(['name' => 'Feat 2']);
-        $feat3 = Feat::factory()->create(['name' => 'Feat 3']);
+        $feats = Feat::orderBy('id')->get();
+        $middleFeat = $feats->get((int) ($feats->count() / 2));
+        $expectedCount = $feats->where('id', '<=', $middleFeat->id)->count();
 
-        collect([$feat1, $feat2, $feat3])->searchable();
-        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
+        $response = $this->getJson("/api/v1/feats?filter=id <= {$middleFeat->id}");
 
-        // Act & Assert
-        $response = $this->getJson("/api/v1/feats?filter=id <= {$feat2->id}");
         $response->assertOk();
-        $response->assertJsonCount(2, 'data');
-        $names = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertContains('Feat 1', $names);
-        $this->assertContains('Feat 2', $names);
+        $this->assertEquals($expectedCount, $response->json('meta.total'));
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_id_with_to_range(): void
     {
-        // Arrange
-        $feat1 = Feat::factory()->create(['name' => 'Feat 1']);
-        $feat2 = Feat::factory()->create(['name' => 'Feat 2']);
-        $feat3 = Feat::factory()->create(['name' => 'Feat 3']);
-        $feat4 = Feat::factory()->create(['name' => 'Feat 4']);
-        $feat5 = Feat::factory()->create(['name' => 'Feat 5']);
+        $feats = Feat::orderBy('id')->get();
+        $startFeat = $feats->get(2);
+        $endFeat = $feats->get(5);
+        $expectedCount = $feats->whereBetween('id', [$startFeat->id, $endFeat->id])->count();
 
-        collect([$feat1, $feat2, $feat3, $feat4, $feat5])->searchable();
-        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3, $feat4, $feat5]);
+        $response = $this->getJson("/api/v1/feats?filter=id {$startFeat->id} TO {$endFeat->id}");
 
-        // Act & Assert
-        $response = $this->getJson("/api/v1/feats?filter=id {$feat2->id} TO {$feat4->id}");
         $response->assertOk();
-        $response->assertJsonCount(3, 'data');
-        $names = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertContains('Feat 2', $names);
-        $this->assertContains('Feat 3', $names);
-        $this->assertContains('Feat 4', $names);
+        $this->assertEquals($expectedCount, $response->json('meta.total'));
     }
 
     // ============================================================
@@ -188,41 +163,22 @@ class FeatFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_slug_with_equals(): void
     {
-        // Arrange
-        $feat1 = Feat::factory()->create(['name' => 'Test Feat Alpha', 'slug' => 'test-feat-alpha']);
-        $feat2 = Feat::factory()->create(['name' => 'Test Feat Beta', 'slug' => 'test-feat-beta']);
-        $feat3 = Feat::factory()->create(['name' => 'Test Feat Gamma', 'slug' => 'test-feat-gamma']);
+        $response = $this->getJson('/api/v1/feats?filter=slug = alert');
 
-        collect([$feat1, $feat2, $feat3])->searchable();
-        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
-
-        // Act & Assert
-        $response = $this->getJson('/api/v1/feats?filter=slug = test-feat-beta');
         $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.slug', 'test-feat-beta');
-        $response->assertJsonPath('data.0.name', 'Test Feat Beta');
+        $this->assertEquals(1, $response->json('meta.total'));
+        $response->assertJsonPath('data.0.name', 'Alert');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_slug_with_not_equals(): void
     {
-        // Arrange
-        $feat1 = Feat::factory()->create(['name' => 'Test Feat Alpha', 'slug' => 'test-feat-alpha']);
-        $feat2 = Feat::factory()->create(['name' => 'Test Feat Beta', 'slug' => 'test-feat-beta']);
-        $feat3 = Feat::factory()->create(['name' => 'Test Feat Gamma', 'slug' => 'test-feat-gamma']);
+        $totalFeats = Feat::count();
 
-        collect([$feat1, $feat2, $feat3])->searchable();
-        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
+        $response = $this->getJson('/api/v1/feats?filter=slug != alert');
 
-        // Act & Assert
-        $response = $this->getJson('/api/v1/feats?filter=slug != test-feat-beta');
         $response->assertOk();
-        $response->assertJsonCount(2, 'data');
-        $slugs = collect($response->json('data'))->pluck('slug')->toArray();
-        $this->assertContains('test-feat-alpha', $slugs);
-        $this->assertContains('test-feat-gamma', $slugs);
-        $this->assertNotContains('test-feat-beta', $slugs);
+        $this->assertEquals($totalFeats - 1, $response->json('meta.total'));
     }
 
     // ============================================================
@@ -232,30 +188,17 @@ class FeatFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_has_prerequisites_with_equals_true(): void
     {
-        // Arrange: Create feats with and without prerequisites
-        $featWithPrereq = Feat::factory()->create(['name' => 'Advanced Feat']);
-        $featWithoutPrereq = Feat::factory()->create(['name' => 'Basic Feat']);
+        // PHB feats include feats with prerequisites (e.g., Defensive Duelist requires Dex 13+)
+        $featsWithPrereqs = Feat::whereHas('prerequisites')->count();
+        $this->assertGreaterThan(0, $featsWithPrereqs, 'PHB should have feats with prerequisites');
 
-        // Add a prerequisite to the first feat
-        $race = \App\Models\Race::factory()->create(['name' => 'Elf']);
-        \App\Models\EntityPrerequisite::create([
-            'reference_type' => Feat::class,
-            'reference_id' => $featWithPrereq->id,
-            'prerequisite_type' => \App\Models\Race::class,
-            'prerequisite_id' => $race->id,
-        ]);
-
-        collect([$featWithPrereq, $featWithoutPrereq])->searchable();
-        $this->waitForMeilisearchModels([$featWithPrereq, $featWithoutPrereq]);
-
-        // Act & Assert
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true');
+
         $response->assertOk();
-        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find feats with prerequisites');
+        $this->assertEquals($featsWithPrereqs, $response->json('meta.total'));
 
         // Verify all returned feats have prerequisites
         foreach ($response->json('data') as $feat) {
-            // Check the feat in database to verify has_prerequisites
             $featModel = Feat::find($feat['id']);
             $this->assertTrue($featModel->prerequisites()->exists(), "Feat {$feat['name']} should have prerequisites");
         }
@@ -264,30 +207,15 @@ class FeatFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_has_prerequisites_with_equals_false(): void
     {
-        // Arrange: Create feats with and without prerequisites
-        $featWithPrereq = Feat::factory()->create(['name' => 'Advanced Feat']);
-        $featWithoutPrereq = Feat::factory()->create(['name' => 'Basic Feat']);
+        $featsWithoutPrereqs = Feat::whereDoesntHave('prerequisites')->count();
 
-        // Add a prerequisite to the first feat
-        $race = \App\Models\Race::factory()->create(['name' => 'Elf']);
-        \App\Models\EntityPrerequisite::create([
-            'reference_type' => Feat::class,
-            'reference_id' => $featWithPrereq->id,
-            'prerequisite_type' => \App\Models\Race::class,
-            'prerequisite_id' => $race->id,
-        ]);
-
-        collect([$featWithPrereq, $featWithoutPrereq])->searchable();
-        $this->waitForMeilisearchModels([$featWithPrereq, $featWithoutPrereq]);
-
-        // Act & Assert
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = false');
+
         $response->assertOk();
-        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find feats without prerequisites');
+        $this->assertEquals($featsWithoutPrereqs, $response->json('meta.total'));
 
         // Verify all returned feats do NOT have prerequisites
         foreach ($response->json('data') as $feat) {
-            // Check the feat in database to verify no prerequisites
             $featModel = Feat::find($feat['id']);
             $this->assertFalse($featModel->prerequisites()->exists(), "Feat {$feat['name']} should not have prerequisites");
         }
@@ -296,63 +224,25 @@ class FeatFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_has_prerequisites_with_not_equals_true(): void
     {
-        // Arrange: Create feats with and without prerequisites
-        $featWithPrereq = Feat::factory()->create(['name' => 'Advanced Feat']);
-        $featWithoutPrereq = Feat::factory()->create(['name' => 'Basic Feat']);
+        $featsWithoutPrereqs = Feat::whereDoesntHave('prerequisites')->count();
 
-        // Add a prerequisite to the first feat
-        $race = \App\Models\Race::factory()->create(['name' => 'Elf']);
-        \App\Models\EntityPrerequisite::create([
-            'reference_type' => Feat::class,
-            'reference_id' => $featWithPrereq->id,
-            'prerequisite_type' => \App\Models\Race::class,
-            'prerequisite_id' => $race->id,
-        ]);
-
-        collect([$featWithPrereq, $featWithoutPrereq])->searchable();
-        $this->waitForMeilisearchModels([$featWithPrereq, $featWithoutPrereq]);
-
-        // Act & Assert: != true should return false or null (feats without prerequisites)
+        // != true should return feats without prerequisites
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites != true');
-        $response->assertOk();
-        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find feats without prerequisites');
 
-        // Verify all returned feats do NOT have prerequisites
-        foreach ($response->json('data') as $feat) {
-            $featModel = Feat::find($feat['id']);
-            $this->assertFalse($featModel->prerequisites()->exists(), "Feat {$feat['name']} should not have prerequisites (using != true)");
-        }
+        $response->assertOk();
+        $this->assertEquals($featsWithoutPrereqs, $response->json('meta.total'));
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_has_prerequisites_with_not_equals_false(): void
     {
-        // Arrange: Create feats with and without prerequisites
-        $featWithPrereq = Feat::factory()->create(['name' => 'Advanced Feat']);
-        $featWithoutPrereq = Feat::factory()->create(['name' => 'Basic Feat']);
+        $featsWithPrereqs = Feat::whereHas('prerequisites')->count();
 
-        // Add a prerequisite to the first feat
-        $race = \App\Models\Race::factory()->create(['name' => 'Elf']);
-        \App\Models\EntityPrerequisite::create([
-            'reference_type' => Feat::class,
-            'reference_id' => $featWithPrereq->id,
-            'prerequisite_type' => \App\Models\Race::class,
-            'prerequisite_id' => $race->id,
-        ]);
-
-        collect([$featWithPrereq, $featWithoutPrereq])->searchable();
-        $this->waitForMeilisearchModels([$featWithPrereq, $featWithoutPrereq]);
-
-        // Act & Assert: != false should return true or null (feats with prerequisites)
+        // != false should return feats with prerequisites
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites != false');
-        $response->assertOk();
-        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find feats with prerequisites');
 
-        // Verify all returned feats DO have prerequisites
-        foreach ($response->json('data') as $feat) {
-            $featModel = Feat::find($feat['id']);
-            $this->assertTrue($featModel->prerequisites()->exists(), "Feat {$feat['name']} should have prerequisites (using != false)");
-        }
+        $response->assertOk();
+        $this->assertEquals($featsWithPrereqs, $response->json('meta.total'));
     }
 
     // ============================================================
@@ -362,60 +252,36 @@ class FeatFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_tag_slugs_with_in(): void
     {
-        // Arrange: Create feats with different tags
-        $feat1 = Feat::factory()->create(['name' => 'Combat Feat']);
-        $feat2 = Feat::factory()->create(['name' => 'Magic Feat']);
-        $feat3 = Feat::factory()->create(['name' => 'Skill Feat']);
-
-        // Attach tags
-        $feat1->attachTag('combat');
-        $feat2->attachTag('magic');
-        $feat3->attachTag('skill-improvement');
-
-        collect([$feat1, $feat2, $feat3])->searchable();
-        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
-
-        // Act & Assert: Filter by tag_slugs IN [combat, magic]
+        // We created test feats with combat and magic tags
         $response = $this->getJson('/api/v1/feats?filter=tag_slugs IN [combat, magic]');
+
         $response->assertOk();
-        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find feats with combat or magic tags');
+        $this->assertEquals(2, $response->json('meta.total'), 'Should find 2 feats with combat or magic tags');
 
-        // Verify all returned feats have combat OR magic tag
-        foreach ($response->json('data') as $feat) {
-            $featModel = Feat::find($feat['id']);
-            $tagSlugs = $featModel->tags->pluck('slug')->toArray();
-
-            $hasCombatOrMagic = in_array('combat', $tagSlugs) || in_array('magic', $tagSlugs);
-            $this->assertTrue($hasCombatOrMagic, "Feat {$feat['name']} should have combat or magic tag");
-        }
+        // Verify returned feats have the expected tags
+        $names = collect($response->json('data'))->pluck('name')->toArray();
+        $this->assertContains('Test Combat Feat', $names);
+        $this->assertContains('Test Magic Feat', $names);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_tag_slugs_with_not_in(): void
     {
-        // Arrange: Create feats with different tags
-        $feat1 = Feat::factory()->create(['name' => 'Combat Feat']);
-        $feat2 = Feat::factory()->create(['name' => 'Magic Feat']);
-        $feat3 = Feat::factory()->create(['name' => 'Skill Feat']);
-
-        // Attach tags
-        $feat1->attachTag('combat');
-        $feat2->attachTag('magic');
-        $feat3->attachTag('skill-improvement');
-
-        collect([$feat1, $feat2, $feat3])->searchable();
-        $this->waitForMeilisearchModels([$feat1, $feat2, $feat3]);
-
-        // Act & Assert: Filter by tag_slugs NOT IN [combat]
+        // Get feats that don't have the combat tag
+        // This should include Magic Feat, Skill Feat, and all PHB feats (which have no tags)
         $response = $this->getJson('/api/v1/feats?filter=tag_slugs NOT IN [combat]');
-        $response->assertOk();
-        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find feats without combat tag');
 
-        // Verify NO returned feats have combat tag
+        $response->assertOk();
+        $total = $response->json('meta.total');
+        $totalFeats = Feat::count();
+
+        // Should be all feats minus the one with combat tag
+        $this->assertEquals($totalFeats - 1, $total);
+
+        // Verify no returned feats have combat tag
         foreach ($response->json('data') as $feat) {
             $featModel = Feat::find($feat['id']);
             $tagSlugs = $featModel->tags->pluck('slug')->toArray();
-
             $this->assertNotContains('combat', $tagSlugs, "Feat {$feat['name']} should not have combat tag");
         }
     }

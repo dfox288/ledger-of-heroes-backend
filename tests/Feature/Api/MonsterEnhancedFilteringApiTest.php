@@ -5,6 +5,7 @@ namespace Tests\Feature\Api;
 use App\Models\Monster;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
@@ -34,8 +35,16 @@ use Tests\TestCase;
  */
 class MonsterEnhancedFilteringApiTest extends TestCase
 {
+    use ClearsMeilisearchIndex;
     use RefreshDatabase;
     use WaitsForMeilisearch;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Clear Meilisearch index for test isolation
+        $this->clearMeilisearchIndex(Monster::class);
+    }
 
     // ========================================
     // Tag-Based Filtering Tests

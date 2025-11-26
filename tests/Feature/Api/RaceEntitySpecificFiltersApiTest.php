@@ -8,6 +8,7 @@ use App\Models\Modifier;
 use App\Models\Race;
 use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
@@ -15,6 +16,7 @@ use Tests\TestCase;
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class RaceEntitySpecificFiltersApiTest extends TestCase
 {
+    use ClearsMeilisearchIndex;
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
@@ -22,13 +24,8 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
     {
         parent::setUp();
 
-        // Flush Meilisearch races index before each test
-        // This ensures a clean state for filter tests
-        try {
-            Race::removeAllFromSearch();
-        } catch (\Exception $e) {
-            // Index might not exist yet - that's OK
-        }
+        // Clear Meilisearch index for test isolation
+        $this->clearMeilisearchIndex(Race::class);
 
         // Configure Meilisearch indexes to ensure filterable attributes are set
         $this->artisan('search:configure-indexes');

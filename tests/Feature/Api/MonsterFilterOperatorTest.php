@@ -4,6 +4,7 @@ namespace Tests\Feature\Api;
 
 use App\Models\Monster;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
@@ -11,6 +12,7 @@ use Tests\TestCase;
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class MonsterFilterOperatorTest extends TestCase
 {
+    use ClearsMeilisearchIndex;
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
@@ -21,6 +23,8 @@ class MonsterFilterOperatorTest extends TestCase
         if (\App\Models\Size::count() === 0) {
             $this->seed(\Database\Seeders\SizeSeeder::class);
         }
+        // Clear Meilisearch index for test isolation
+        $this->clearMeilisearchIndex(Monster::class);
     }
 
     /**

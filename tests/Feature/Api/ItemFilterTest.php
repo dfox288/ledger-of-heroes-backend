@@ -6,6 +6,7 @@ use App\Models\AbilityScore;
 use App\Models\Item;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
@@ -13,6 +14,7 @@ use Tests\TestCase;
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class ItemFilterTest extends TestCase
 {
+    use ClearsMeilisearchIndex;
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
@@ -25,14 +27,8 @@ class ItemFilterTest extends TestCase
         // Clear items table before each test to avoid interference from seeded data
         \App\Models\Item::query()->delete();
 
-        // Clear Meilisearch index
-        try {
-            $client = app(\MeiliSearch\Client::class);
-            $indexName = (new \App\Models\Item)->searchableAs();
-            $client->index($indexName)->deleteAllDocuments();
-        } catch (\Exception $e) {
-            // Ignore if index doesn't exist yet
-        }
+        // Clear Meilisearch index for test isolation
+        $this->clearMeilisearchIndex(Item::class);
     }
 
     #[Test]

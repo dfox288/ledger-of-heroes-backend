@@ -4,6 +4,7 @@ namespace Tests\Feature\Api;
 
 use App\Models\Background;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
@@ -11,6 +12,7 @@ use Tests\TestCase;
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class BackgroundFilterOperatorTest extends TestCase
 {
+    use ClearsMeilisearchIndex;
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
@@ -20,11 +22,17 @@ class BackgroundFilterOperatorTest extends TestCase
     {
         parent::setUp();
 
+        // Clear Meilisearch index for test isolation
+        $this->clearMeilisearchIndex(Background::class);
+
         // Import real backgrounds from PHB for testing (provides realistic data)
         $this->artisan('import:backgrounds', ['file' => 'import-files/backgrounds-phb.xml']);
 
         // Configure Meilisearch indexes for testing
         $this->artisan('search:configure-indexes');
+
+        // Re-index all backgrounds after import and wait
+        Background::all()->searchable();
 
         // Wait for initial import to be indexed
         $this->waitForMeilisearchIndex('test_backgrounds');

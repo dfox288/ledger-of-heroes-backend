@@ -6,6 +6,7 @@ use App\Models\Monster;
 use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
@@ -13,21 +14,16 @@ use Tests\TestCase;
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class MonsterApiTest extends TestCase
 {
+    use ClearsMeilisearchIndex;
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
     protected function setUp(): void
     {
         parent::setUp();
+        // Clear Meilisearch index for test isolation
+        $this->clearMeilisearchIndex(Monster::class);
         $this->artisan('search:configure-indexes');
-
-        // Flush Meilisearch monsters index before each test
-        // This ensures a clean state for filter tests
-        try {
-            Monster::removeAllFromSearch();
-        } catch (\Exception $e) {
-            // Ignore errors if index doesn't exist
-        }
     }
 
     #[Test]

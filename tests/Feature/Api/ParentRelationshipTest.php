@@ -6,6 +6,7 @@ use App\Models\CharacterClass;
 use App\Models\Race;
 use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
@@ -13,10 +14,19 @@ use Tests\TestCase;
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class ParentRelationshipTest extends TestCase
 {
+    use ClearsMeilisearchIndex;
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
     protected $seed = true;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Clear Meilisearch indexes for test isolation
+        $this->clearMeilisearchIndex(Race::class);
+        $this->clearMeilisearchIndex(CharacterClass::class);
+    }
 
     // ==================== RACE TESTS ====================
 

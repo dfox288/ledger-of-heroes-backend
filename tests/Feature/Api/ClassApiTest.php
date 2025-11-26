@@ -9,6 +9,7 @@ use App\Models\ClassLevelProgression;
 use App\Models\Proficiency;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
@@ -16,8 +17,16 @@ use Tests\TestCase;
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class ClassApiTest extends TestCase
 {
+    use ClearsMeilisearchIndex;
     use RefreshDatabase;
     use WaitsForMeilisearch;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Clear Meilisearch index for test isolation
+        $this->clearMeilisearchIndex(CharacterClass::class);
+    }
 
     #[Test]
     public function test_class_resource_includes_all_fields()

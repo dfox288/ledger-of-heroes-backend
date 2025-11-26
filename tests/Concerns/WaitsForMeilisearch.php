@@ -126,7 +126,7 @@ trait WaitsForMeilisearch
 
             try {
                 // Get pending/processing tasks for this index using TasksQuery
-                $tasksQuery = new \Meilisearch\Contracts\TasksQuery();
+                $tasksQuery = new \Meilisearch\Contracts\TasksQuery;
                 $tasksQuery->setIndexUids([$indexName]);
                 $tasksQuery->setStatuses(['enqueued', 'processing']);
 

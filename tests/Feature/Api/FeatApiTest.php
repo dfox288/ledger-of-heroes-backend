@@ -5,13 +5,24 @@ namespace Tests\Feature\Api;
 use App\Models\Feat;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\ClearsMeilisearchIndex;
+use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class FeatApiTest extends TestCase
 {
+    use ClearsMeilisearchIndex;
     use RefreshDatabase;
+    use WaitsForMeilisearch;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Clear Meilisearch index for test isolation
+        $this->clearMeilisearchIndex(Feat::class);
+    }
 
     #[Test]
     public function can_get_all_feats()

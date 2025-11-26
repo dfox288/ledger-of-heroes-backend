@@ -165,6 +165,8 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('classes', ClassController::class)->only(['index', 'show']);
     Route::get('classes/{class}/spells', [ClassController::class, 'spells'])
         ->name('classes.spells');
+    Route::get('classes/{class}/progression', [ClassController::class, 'progression'])
+        ->name('classes.progression');
 
     // Monsters
     Route::apiResource('monsters', MonsterController::class)->only(['index', 'show']);

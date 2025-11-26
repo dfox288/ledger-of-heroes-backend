@@ -385,4 +385,91 @@ class ClassProgressionTableGeneratorTest extends TestCase
         $row1 = $result['rows'][0];
         $this->assertEquals('3', $row1['bardic_inspiration']);
     }
+
+    #[Test]
+    public function it_excludes_multiclass_only_features_from_progression(): void
+    {
+        $class = CharacterClass::factory()->create(['name' => 'Wizard']);
+
+        // Regular features - should be included
+        ClassFeature::factory()->create([
+            'class_id' => $class->id,
+            'level' => 1,
+            'feature_name' => 'Spellcasting',
+            'is_multiclass_only' => false,
+        ]);
+
+        // Multiclass features - should be excluded
+        ClassFeature::factory()->create([
+            'class_id' => $class->id,
+            'level' => 1,
+            'feature_name' => 'Multiclass Wizard',
+            'is_multiclass_only' => true,
+        ]);
+        ClassFeature::factory()->create([
+            'class_id' => $class->id,
+            'level' => 1,
+            'feature_name' => 'Multiclass Features',
+            'is_multiclass_only' => true,
+        ]);
+
+        $result = $this->generator->generate($class);
+
+        $row1 = $result['rows'][0];
+
+        // Spellcasting should be included
+        $this->assertStringContainsString('Spellcasting', $row1['features']);
+
+        // Multiclass features should NOT be included
+        $this->assertStringNotContainsString('Multiclass Wizard', $row1['features']);
+        $this->assertStringNotContainsString('Multiclass Features', $row1['features']);
+    }
+
+    #[Test]
+    public function it_excludes_redundant_counters_from_columns(): void
+    {
+        $class = CharacterClass::factory()->create(['name' => 'TestClass']);
+
+        // Counters that should be EXCLUDED (formula-based or in Features column)
+        $excludedCounters = [
+            'Arcane Recovery',      // Wizard - formula-based
+            'Action Surge',         // Fighter - in Features column
+            'Indomitable',          // Fighter - in Features column
+            'Second Wind',          // Fighter - in Features column
+            'Lay on Hands',         // Paladin - formula-based
+            'Channel Divinity',     // Paladin/Cleric - in Features column
+        ];
+
+        foreach ($excludedCounters as $counterName) {
+            ClassCounter::factory()->create([
+                'class_id' => $class->id,
+                'counter_name' => $counterName,
+                'level' => 1,
+                'counter_value' => 1,
+            ]);
+        }
+
+        // Counter that should be INCLUDED
+        ClassCounter::factory()->create([
+            'class_id' => $class->id,
+            'counter_name' => 'Ki Points',
+            'level' => 2,
+            'counter_value' => 2,
+        ]);
+
+        $result = $this->generator->generate($class);
+
+        $columnKeys = array_column($result['columns'], 'key');
+
+        // All excluded counters should NOT be in columns
+        $this->assertNotContains('arcane_recovery', $columnKeys);
+        $this->assertNotContains('action_surge', $columnKeys);
+        $this->assertNotContains('indomitable', $columnKeys);
+        $this->assertNotContains('second_wind', $columnKeys);
+        $this->assertNotContains('lay_on_hands', $columnKeys);
+        $this->assertNotContains('channel_divinity', $columnKeys);
+
+        // Ki Points should still be included
+        $this->assertContains('ki_points', $columnKeys);
+    }
 }

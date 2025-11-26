@@ -21,9 +21,10 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 
 **Fetch these before starting work:**
 
-- **Laravel:** `https://laravel.com/docs/12.x` (no llms.txt yet)
-- **Scramble (OpenAPI):** `https://scramble.dedoc.co/usage/getting-started`
-- **Meilisearch:** `https://www.meilisearch.com/docs`
+- **Laravel 12:** `https://docfork.com/laravel/docs/llms.txt`
+- **Meilisearch:** `https://meilisearch.com/llms.txt` (or `llms-full.txt` for complete docs)
+- **Scramble:** No llms.txt — use `https://scramble.dedoc.co/`
+- **Spatie Tags:** No llms.txt — use `https://spatie.be/docs/laravel-tags/v4`
 
 ---
 
@@ -80,6 +81,14 @@ Your work will be **REJECTED** if:
 #[\PHPUnit\Framework\Attributes\Test]
 public function it_creates_a_record() { }
 ```
+
+### PHPUnit 11 "Risky" Warnings
+
+PHPUnit 11 tracks error/exception handler changes and marks tests "risky" if handlers aren't properly restored. The Guzzle HTTP client (used by Meilisearch) temporarily modifies these handlers during requests.
+
+**Solution:** `tests/TestCase.php` captures handlers in `setUp()` and restores them in `tearDown()`. This handles ~99% of cases. One or two tests may still show risky warnings due to timing edge cases with Meilisearch - this is acceptable.
+
+**If you see many risky warnings:** Ensure your test extends `Tests\TestCase`, not `PHPUnit\Framework\TestCase`.
 
 ---
 

@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Models;
 
+use App\Models\AbilityScore;
 use App\Models\CharacterClass;
 use App\Models\EntitySource;
 use App\Models\Source;
@@ -110,5 +111,79 @@ class CharacterClassSearchableTest extends TestCase
         $this->assertEquals('d8', $hitPoints['hit_die']);
         $this->assertEquals(8, $hitPoints['hit_die_numeric']);
         $this->assertEquals(8, $hitPoints['first_level']['value']);
+    }
+
+    // Computed Accessor Tests - Spellcasting Ability Inheritance
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function effective_spellcasting_ability_returns_own_ability_for_base_class(): void
+    {
+        $wisdom = AbilityScore::firstOrCreate(
+            ['code' => 'WIS'],
+            ['name' => 'Wisdom', 'slug' => 'wisdom']
+        );
+
+        $baseClass = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'spellcasting_ability_id' => $wisdom->id,
+            'parent_class_id' => null,
+        ]);
+
+        $this->assertNotNull($baseClass->effective_spellcasting_ability);
+        $this->assertEquals('WIS', $baseClass->effective_spellcasting_ability->code);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function effective_spellcasting_ability_inherits_from_parent_when_null(): void
+    {
+        $wisdom = AbilityScore::firstOrCreate(
+            ['code' => 'WIS'],
+            ['name' => 'Wisdom', 'slug' => 'wisdom']
+        );
+
+        $baseClass = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'spellcasting_ability_id' => $wisdom->id,
+            'parent_class_id' => null,
+        ]);
+
+        $subclass = CharacterClass::factory()->create([
+            'name' => 'Death Domain',
+            'spellcasting_ability_id' => null,
+            'parent_class_id' => $baseClass->id,
+        ]);
+
+        $this->assertNotNull($subclass->effective_spellcasting_ability);
+        $this->assertEquals('WIS', $subclass->effective_spellcasting_ability->code);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function effective_spellcasting_ability_returns_null_for_non_caster(): void
+    {
+        $baseClass = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'spellcasting_ability_id' => null,
+            'parent_class_id' => null,
+        ]);
+
+        $this->assertNull($baseClass->effective_spellcasting_ability);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function effective_spellcasting_ability_returns_null_for_subclass_of_non_caster(): void
+    {
+        $baseClass = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'spellcasting_ability_id' => null,
+            'parent_class_id' => null,
+        ]);
+
+        $subclass = CharacterClass::factory()->create([
+            'name' => 'Champion',
+            'spellcasting_ability_id' => null,
+            'parent_class_id' => $baseClass->id,
+        ]);
+
+        $this->assertNull($subclass->effective_spellcasting_ability);
     }
 }

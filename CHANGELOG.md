@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Subclass spellcasting_ability inheritance**: Added `effective_spellcasting_ability` accessor to `CharacterClass` model
+  - Subclasses now properly inherit spellcasting ability from parent class (e.g., Death Domain → Wisdom from Cleric)
+  - `ClassResource` updated to use effective value instead of direct relationship
+  - New unit tests for inheritance behavior
+
+- **Multiclass feature filtering**: Added `is_multiclass_only` column to `class_features` table
+  - Features like "Multiclass Wizard" and "Multiclass Features" now excluded from progression tables
+  - `ClassFeatureResource` exposes new field for frontend filtering
+  - `ImportsClassFeatures` trait auto-detects multiclass features during import
+  - Migration: `2025_11_26_200845_add_is_multiclass_only_to_class_features_table`
+
 ### Changed
+
+- **Progression table cleanup**: Removed redundant counter columns that don't provide useful information
+  - Excluded counters: Arcane Recovery (formula-based), Action Surge, Indomitable, Second Wind (in Features), Lay on Hands (formula-based), Channel Divinity (in Features)
+  - `ClassProgressionTableGenerator` now filters both columns and row data
 
 - **BREAKING: ClassResource API Response Restructuring**: Separated computed/aggregated data from base entity fields for API clarity
   - **New `computed` object**: Contains `hit_points`, `spell_slot_summary`, `section_counts`, `progression_table` (only on show endpoint)

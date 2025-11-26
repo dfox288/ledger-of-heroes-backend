@@ -25,6 +25,7 @@ class ClassFeatureFactory extends Factory
             'level' => fake()->numberBetween(1, 20),
             'feature_name' => ucwords(fake()->words(fake()->numberBetween(2, 3), true)),
             'is_optional' => false,
+            'is_multiclass_only' => false,
             'description' => fake()->paragraph(),
             'sort_order' => 0,
         ];
@@ -57,6 +58,16 @@ class ClassFeatureFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'level' => $level,
+        ]);
+    }
+
+    /**
+     * Mark the feature as multiclass-only.
+     */
+    public function multiclassOnly(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_multiclass_only' => true,
         ]);
     }
 }

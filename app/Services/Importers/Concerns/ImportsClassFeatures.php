@@ -21,6 +21,9 @@ trait ImportsClassFeatures
     protected function importFeatures(CharacterClass $class, array $features): void
     {
         foreach ($features as $featureData) {
+            // Detect multiclass-only features by name pattern
+            $isMulticlassOnly = $this->isMulticlassOnlyFeature($featureData['name']);
+
             // Use updateOrCreate to prevent duplicates on re-import
             // Unique key: class_id + level + feature_name + sort_order
             $feature = ClassFeature::updateOrCreate(
@@ -32,6 +35,7 @@ trait ImportsClassFeatures
                 ],
                 [
                     'is_optional' => $featureData['is_optional'],
+                    'is_multiclass_only' => $isMulticlassOnly,
                     'description' => $featureData['description'],
                 ]
             );
@@ -281,5 +285,17 @@ trait ImportsClassFeatures
         }
 
         return null;
+    }
+
+    /**
+     * Determine if a feature is only relevant when multiclassing into this class.
+     *
+     * Matches patterns:
+     * - "Multiclass {ClassName}" (e.g., "Multiclass Wizard", "Multiclass Cleric")
+     * - "Multiclass Features" (generic multiclass requirements)
+     */
+    protected function isMulticlassOnlyFeature(string $featureName): bool
+    {
+        return str_starts_with($featureName, 'Multiclass ');
     }
 }

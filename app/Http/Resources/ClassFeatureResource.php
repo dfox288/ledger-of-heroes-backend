@@ -20,6 +20,7 @@ class ClassFeatureResource extends JsonResource
             'feature_name' => $this->feature_name,
             'description' => $this->description,
             'is_optional' => $this->is_optional,
+            'is_multiclass_only' => $this->is_multiclass_only,
             'sort_order' => $this->sort_order,
 
             // Relationships

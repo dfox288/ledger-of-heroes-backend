@@ -524,8 +524,7 @@
                             "type": "string",
                             "enum": [
                                 "name",
-                                "created_at",
-                                "updated_at"
+                                "slug"
                             ]
                         }
                     },
@@ -850,8 +849,7 @@
                             "enum": [
                                 "name",
                                 "hit_die",
-                                "created_at",
-                                "updated_at"
+                                "slug"
                             ]
                         }
                     },
@@ -2667,8 +2665,7 @@
                             "type": "string",
                             "enum": [
                                 "name",
-                                "created_at",
-                                "updated_at"
+                                "slug"
                             ]
                         }
                     },
@@ -3000,8 +2997,7 @@
                                 "name",
                                 "type",
                                 "rarity",
-                                "created_at",
-                                "updated_at"
+                                "slug"
                             ]
                         }
                     },
@@ -4859,8 +4855,7 @@
                                 "name",
                                 "level_requirement",
                                 "resource_cost",
-                                "created_at",
-                                "updated_at"
+                                "slug"
                             ]
                         }
                     },
@@ -5636,8 +5631,7 @@
                                 "name",
                                 "size",
                                 "speed",
-                                "created_at",
-                                "updated_at"
+                                "slug"
                             ]
                         }
                     },
@@ -7168,8 +7162,7 @@
                             "enum": [
                                 "name",
                                 "level",
-                                "created_at",
-                                "updated_at"
+                                "slug"
                             ]
                         }
                     },
@@ -8986,6 +8979,9 @@
                     },
                     "is_choice": {
                         "type": "boolean"
+                    },
+                    "quantity": {
+                        "type": "integer"
                     }
                 },
                 "required": [

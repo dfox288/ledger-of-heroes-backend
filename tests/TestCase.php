@@ -49,10 +49,30 @@ abstract class TestCase extends BaseTestCase
 
         // Restore handlers to state captured in setUp
         // This prevents PHPUnit 11 risky test warnings from Guzzle/Meilisearch
-        if ($this->savedErrorHandler !== null) {
+        //
+        // PHPUnit 11 tracks error/exception handler changes and marks tests "risky"
+        // if they're not restored. The issue: Guzzle (used by Meilisearch) calls
+        // restore_error_handler() during HTTP requests, which can pop PHPUnit's
+        // handler off the stack. PHPUnit then complains about missing handlers.
+        //
+        // Solution: If there's no error handler after the test (because Guzzle
+        // popped it), reinstall the original one we captured in setUp.
+
+        // Check current error handler state
+        $currentError = set_error_handler(fn () => false);
+        restore_error_handler();
+
+        // If handler was popped (now null) but we had one before, reinstall it
+        if ($currentError === null && $this->savedErrorHandler !== null) {
             set_error_handler($this->savedErrorHandler);
         }
-        if ($this->savedExceptionHandlerForRestore !== null) {
+
+        // Check current exception handler state
+        $currentException = set_exception_handler(fn () => null);
+        restore_exception_handler();
+
+        // If handler was popped (now null) but we had one before, reinstall it
+        if ($currentException === null && $this->savedExceptionHandlerForRestore !== null) {
             set_exception_handler($this->savedExceptionHandlerForRestore);
         }
     }

@@ -34,6 +34,7 @@ class CharacterClass extends BaseModel
 
     protected $appends = [
         'effective_hit_die',
+        'effective_spellcasting_ability',
     ];
 
     /**
@@ -60,6 +61,37 @@ class CharacterClass extends BaseModel
         }
 
         return 0;
+    }
+
+    /**
+     * Get the effective spellcasting ability, inheriting from parent class if needed.
+     *
+     * D&D Context: Subclasses inherit spellcasting ability from their base class.
+     * A Death Domain Cleric uses Wisdom (from Cleric), not null.
+     */
+    public function getEffectiveSpellcastingAbilityAttribute(): ?AbilityScore
+    {
+        // If this class has a spellcasting ability, use it
+        if ($this->spellcasting_ability_id !== null) {
+            return $this->relationLoaded('spellcastingAbility')
+                ? $this->spellcastingAbility
+                : $this->spellcastingAbility()->first();
+        }
+
+        // Subclass with null spellcasting_ability_id: inherit from parent
+        if ($this->parent_class_id !== null) {
+            $parent = $this->relationLoaded('parentClass')
+                ? $this->parentClass
+                : $this->parentClass()->first();
+
+            if ($parent?->spellcasting_ability_id !== null) {
+                return $parent->relationLoaded('spellcastingAbility')
+                    ? $parent->spellcastingAbility
+                    : $parent->spellcastingAbility()->first();
+            }
+        }
+
+        return null;
     }
 
     // Relationships

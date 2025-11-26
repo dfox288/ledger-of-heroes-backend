@@ -15,6 +15,7 @@ class ClassFeature extends BaseModel
         'level',
         'feature_name',
         'is_optional',
+        'is_multiclass_only',
         'description',
         'sort_order',
     ];
@@ -23,6 +24,7 @@ class ClassFeature extends BaseModel
         'class_id' => 'integer',
         'level' => 'integer',
         'is_optional' => 'boolean',
+        'is_multiclass_only' => 'boolean',
         'sort_order' => 'integer',
     ];
 

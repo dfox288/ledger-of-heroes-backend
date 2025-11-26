@@ -1,1 +1,1 @@
-handovers/SESSION-HANDOVER-2025-11-26-2038-frontend-api-enhancements.md
+handovers/SESSION-HANDOVER-2025-11-26-1940-search-isolated-tests-complete.md

@@ -335,4 +335,75 @@ class ClassDetailOptimizationTest extends TestCase
         $firstClass = $response->json('data.0');
         $this->assertArrayNotHasKey('computed', $firstClass);
     }
+
+    #[Test]
+    public function counters_are_grouped_by_name_with_progression(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'fighter',
+        ]);
+
+        // Create Action Surge counter with 2 progression points
+        ClassCounter::factory()->create([
+            'class_id' => $class->id,
+            'counter_name' => 'Action Surge',
+            'level' => 2,
+            'counter_value' => 1,
+            'reset_timing' => 'S',
+        ]);
+        ClassCounter::factory()->create([
+            'class_id' => $class->id,
+            'counter_name' => 'Action Surge',
+            'level' => 17,
+            'counter_value' => 2,
+            'reset_timing' => 'S',
+        ]);
+
+        // Create Indomitable counter with 3 progression points
+        ClassCounter::factory()->create([
+            'class_id' => $class->id,
+            'counter_name' => 'Indomitable',
+            'level' => 9,
+            'counter_value' => 1,
+            'reset_timing' => 'L',
+        ]);
+        ClassCounter::factory()->create([
+            'class_id' => $class->id,
+            'counter_name' => 'Indomitable',
+            'level' => 13,
+            'counter_value' => 2,
+            'reset_timing' => 'L',
+        ]);
+        ClassCounter::factory()->create([
+            'class_id' => $class->id,
+            'counter_name' => 'Indomitable',
+            'level' => 17,
+            'counter_value' => 3,
+            'reset_timing' => 'L',
+        ]);
+
+        $response = $this->getJson("/api/v1/classes/{$class->slug}");
+
+        $response->assertOk();
+
+        $counters = $response->json('data.counters');
+
+        // Should have 2 grouped counters, not 5 flat entries
+        $this->assertCount(2, $counters);
+
+        // Find Action Surge
+        $actionSurge = collect($counters)->firstWhere('name', 'Action Surge');
+        $this->assertNotNull($actionSurge);
+        $this->assertEquals('Short Rest', $actionSurge['reset_timing']);
+        $this->assertCount(2, $actionSurge['progression']);
+        $this->assertEquals(['level' => 2, 'value' => 1], $actionSurge['progression'][0]);
+        $this->assertEquals(['level' => 17, 'value' => 2], $actionSurge['progression'][1]);
+
+        // Find Indomitable
+        $indomitable = collect($counters)->firstWhere('name', 'Indomitable');
+        $this->assertNotNull($indomitable);
+        $this->assertEquals('Long Rest', $indomitable['reset_timing']);
+        $this->assertCount(3, $indomitable['progression']);
+    }
 }

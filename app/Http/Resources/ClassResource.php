@@ -61,7 +61,7 @@ class ClassResource extends JsonResource
             }),
 
             'level_progression' => ClassLevelProgressionResource::collection($this->whenLoaded('levelProgression')),
-            'counters' => ClassCounterResource::collection($this->whenLoaded('counters')),
+            'counters' => $this->when($this->relationLoaded('counters'), fn () => $this->groupCounters($this->counters)),
             'spells' => SpellResource::collection($this->whenLoaded('spells')),
             'optional_features' => OptionalFeatureResource::collection($this->whenLoaded('optionalFeatures')),
             'equipment' => EntityItemResource::collection($this->whenLoaded('equipment')),
@@ -87,7 +87,7 @@ class ClassResource extends JsonResource
                             ? new AbilityScoreResource($parent->spellcastingAbility)
                             : null,
                         'counters' => $parent->relationLoaded('counters')
-                            ? ClassCounterResource::collection($parent->counters)
+                            ? $this->groupCounters($parent->counters)
                             : null,
                         'traits' => $parent->relationLoaded('traits')
                             ? TraitResource::collection($parent->traits)
@@ -120,5 +120,32 @@ class ClassResource extends JsonResource
                 fn () => new ClassComputedResource($this->resource)
             ),
         ];
+    }
+
+    /**
+     * Group counters by name with progression arrays.
+     *
+     * Transforms flat counter rows into grouped format:
+     * Before: [{name: "Action Surge", level: 2, value: 1}, {name: "Action Surge", level: 17, value: 2}]
+     * After: [{name: "Action Surge", reset_timing: "Short Rest", progression: [{level: 2, value: 1}, {level: 17, value: 2}]}]
+     */
+    private function groupCounters($counters): array
+    {
+        return $counters->groupBy('counter_name')->map(function ($group) {
+            $first = $group->first();
+
+            return [
+                'name' => $first->counter_name,
+                'reset_timing' => match ($first->reset_timing) {
+                    'S' => 'Short Rest',
+                    'L' => 'Long Rest',
+                    default => 'Does Not Reset',
+                },
+                'progression' => $group->sortBy('level')->map(fn ($counter) => [
+                    'level' => $counter->level,
+                    'value' => $counter->counter_value,
+                ])->values()->all(),
+            ];
+        })->values()->all();
     }
 }

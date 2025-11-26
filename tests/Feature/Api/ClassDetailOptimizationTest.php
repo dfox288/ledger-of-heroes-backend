@@ -129,6 +129,46 @@ class ClassDetailOptimizationTest extends TestCase
     }
 
     #[Test]
+    public function feature_count_excludes_choice_options(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'fighter',
+        ]);
+
+        // Create parent feature (Fighting Style)
+        $parentFeature = ClassFeature::factory()->create([
+            'class_id' => $class->id,
+            'level' => 1,
+            'feature_name' => 'Fighting Style',
+            'is_optional' => false,
+        ]);
+
+        // Create 3 choice options under the parent
+        ClassFeature::factory()->count(3)->create([
+            'class_id' => $class->id,
+            'level' => 1,
+            'is_optional' => true,
+            'parent_feature_id' => $parentFeature->id,
+        ]);
+
+        // Create 2 regular features
+        ClassFeature::factory()->count(2)->create([
+            'class_id' => $class->id,
+            'level' => 2,
+            'is_optional' => false,
+        ]);
+
+        // Total: 6 features in DB (1 parent + 3 options + 2 regular)
+        // Expected count: 3 (1 parent + 2 regular, excluding choice options)
+
+        $response = $this->getJson("/api/v1/classes/{$class->slug}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.computed.section_counts.features', 3);
+    }
+
+    #[Test]
     public function show_endpoint_returns_computed_progression_table(): void
     {
         $class = CharacterClass::factory()->create([

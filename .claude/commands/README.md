@@ -4,65 +4,6 @@ Custom slash commands for this project.
 
 ## Available Commands
 
-### `/organize-docs`
-
-**Purpose:** Autonomously archive, clean up, and organize the `docs/` folder structure.
-
-**What it does:**
-- Analyzes CHANGELOG.md to identify completed work
-- Archives old handovers, completed plans, and backup files
-- Organizes recent handovers into `docs/handovers/YYYY-MM/`
-- Moves active plans to `docs/plans/`
-- Updates references in TODO.md and PROJECT-STATUS.md
-- Creates archive README documenting what was moved
-- Generates comprehensive organization report
-
-**Usage:**
-```bash
-/organize-docs
-```
-
-**Target Structure:**
-```
-docs/
-├── PROJECT-STATUS.md         # Project health metrics
-├── LATEST-HANDOVER.md        # Symlink to most recent handover
-├── HANDOVER.md               # Current handover document
-├── TODO.md                   # Active task list
-├── DND-FEATURES.md           # Reference docs
-├── README.md                 # Repository documentation
-├── plans/                    # Active implementation plans
-│   └── 2025-11-24-*.md
-├── handovers/                # Recent handovers (last 30 days)
-│   └── 2025-11/
-│       └── SESSION-HANDOVER-*.md
-└── archive/                  # Completed/outdated docs
-    └── 2025-11-25/
-        ├── README.md         # Explains what was archived
-        └── *.md              # Archived files
-```
-
-**Classification Rules:**
-
-**Archived:**
-- Handovers older than 7 days
-- Completed plans (mentioned in CHANGELOG.md)
-- Analysis/audit files older than 14 days
-- All `.backup` files
-- Temporary scripts (`*.py`, `*.sql`, `*.php`) older than 7 days
-
-**Kept in Root:**
-- Core docs (PROJECT-STATUS.md, README.md, DND-FEATURES.md)
-- Current HANDOVER.md
-- Active TODO.md
-- Files modified within last 7 days
-
-**Moved to Subdirectories:**
-- Recent handovers (7-30 days) → `handovers/YYYY-MM/`
-- Active plans → `plans/`
-
----
-
 ### `/update-docs`
 
 **Purpose:** Update API documentation for a specific entity following the SpellController gold standard.
@@ -78,11 +19,46 @@ docs/
 - Analyzes model's `searchableOptions()` for filterable fields
 - Verifies API Resource exposes all searchable data
 - Updates Controller PHPDoc with comprehensive filter documentation
-- Validates alignment between Model → Resource → Controller
+- Validates alignment between Model -> Resource -> Controller
 - Compares against SpellController gold standard
 
 **Available Entities:**
 - Spell, Monster, CharacterClass, Race, Item, Background, Feat
+
+---
+
+## Global Commands
+
+The following commands are available globally (defined in `~/.claude/commands/`):
+
+### `/organize-docs`
+
+**Purpose:** Autonomously archive, clean up, and organize the `docs/` folder structure.
+
+**What it does:**
+- Moves old handovers to `docs/archive/handovers/YYYY-MM/`
+- Moves stable reference docs to `docs/reference/`
+- Organizes active plans in `docs/plans/`
+- Updates `LATEST-HANDOVER.md` symlink
+- Simplifies `docs/README.md` (removes metrics)
+- Ensures handovers have HHMM timestamps
+
+**Target Structure:**
+```
+docs/
+├── PROJECT-STATUS.md         # Metrics (single source of truth)
+├── LATEST-HANDOVER.md        # Symlink to most recent handover
+├── TECH-DEBT.md              # Technical debt tracking
+├── README.md                 # Simple index
+├── reference/                # Stable reference docs
+├── plans/                    # Active plans only
+├── proposals/                # Feature proposals
+├── handovers/                # Recent handovers (last 7 days)
+└── archive/                  # Historical docs by type/month
+    ├── handovers/YYYY-MM/
+    ├── plans/YYYY-MM/
+    └── analysis/YYYY-MM/
+```
 
 ---
 
@@ -133,7 +109,4 @@ Run PHPUnit tests for: **$1**
 - Commands maintain context between sessions
 - Commands can reference project-specific patterns (like "SpellController gold standard")
 - Commands can orchestrate complex workflows autonomously
-
----
-
-**Last Updated:** 2025-11-25
+- Global commands in `~/.claude/commands/` work across all projects

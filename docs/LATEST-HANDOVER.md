@@ -1,1 +1,1 @@
-handovers/2025-11-26-test-suite-audit.md
+handovers/SESSION-HANDOVER-2025-11-26-1246-classes-detail-optimization.md

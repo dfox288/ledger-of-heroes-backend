@@ -2,7 +2,7 @@
 
 **Date:** 2025-11-25
 **Updated:** 2025-11-26
-**Status:** ⚠️ **BLOCKED** - Backend denormalization needed (data EXISTS, just not indexed)
+**Status:** ✅ **COMPLETED** - Already implemented in CharacterClass model (discovered 2025-11-26)
 **Priority:** TIER 6 MEDIUM
 **Task:** Add 5 proficiency filters to Classes page for multiclass planning
 **Estimated Backend Effort:** ~4 hours (revised down from 9-14 hours)

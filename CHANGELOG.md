@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **PHPUnit 11 risky test warnings**: Fixed 1,031 risky warnings caused by Guzzle/Meilisearch error handler manipulation
+  - `tests/TestCase.php` now captures handlers in `setUp()` and restores them in `tearDown()`
+  - Only 1 remaining risky warning due to timing edge case (acceptable)
+  - Added documentation in `CLAUDE.md` explaining the issue and solution
+
 ### Added
 
 - **Subclass spellcasting_ability inheritance**: Added `effective_spellcasting_ability` accessor to `CharacterClass` model

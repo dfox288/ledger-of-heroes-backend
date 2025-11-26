@@ -17,6 +17,16 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 
 ---
 
+## AI Context (llms.txt)
+
+**Fetch these before starting work:**
+
+- **Laravel:** `https://laravel.com/docs/12.x` (no llms.txt yet)
+- **Scramble (OpenAPI):** `https://scramble.dedoc.co/usage/getting-started`
+- **Meilisearch:** `https://www.meilisearch.com/docs`
+
+---
+
 ## Development Cycle
 
 ### Every Feature/Fix
@@ -50,55 +60,69 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 
 ---
 
-## Quick Reference
+## TDD Mandate
 
-```bash
-# Tests (choose smallest relevant suite)
-docker compose exec php php artisan test --testsuite=Unit-Pure      # ~5s
-docker compose exec php php artisan test --testsuite=Unit-DB        # ~20s
-docker compose exec php php artisan test --testsuite=Feature-DB     # ~30s
-docker compose exec php php artisan test                            # Full
+**THIS IS NON-NEGOTIABLE.**
 
-# Import & Format
-docker compose exec php php artisan import:all
-docker compose exec php ./vendor/bin/pint
-```
+### Rejection Criteria
 
-| Working On | Test Suite |
-|------------|------------|
-| Parsers, pure logic | `Unit-Pure` |
-| Models, factories | `Unit-DB` |
-| API endpoints | `Feature-DB` |
-| Filter operators | `Feature-Search-Isolated` |
-| Search with real data | `Feature-Search-Imported` |
-| Import commands | `Importers` |
+Your work will be **REJECTED** if:
+- Implementation code written before tests
+- Tests skipped ("it's simple")
+- Tests promised "later"
+- Tests written after implementation
+- "Manual testing is enough"
 
----
-
-## Development Standards
-
-### TDD is Mandatory
-
-**If tests aren't written, the feature ISN'T done.**
+### PHPUnit 11 Syntax
 
 ```php
-// PHPUnit 11 - Use attributes (doc-comments deprecated)
+// Use attributes (doc-comments deprecated)
 #[\PHPUnit\Framework\Attributes\Test]
 public function it_creates_a_record() { }
 ```
 
-### Form Request Naming: `{Entity}{Action}Request`
+---
 
-```php
-SpellIndexRequest      // GET /api/v1/spells
-SpellShowRequest       // GET /api/v1/spells/{id}
+## Test Suites
+
+**Always run the smallest relevant suite.**
+
+| Suite | Time | Tests | When to Use |
+|-------|------|-------|-------------|
+| `Unit-Pure` | ~5s | Parsers | Parser changes, exceptions, pure logic |
+| `Unit-DB` | ~20s | Models | Factories, models, strategies, caching |
+| `Feature-DB` | ~30s | API | API endpoints (no search), requests |
+| `Feature-Search-Isolated` | ~60s | Filters | Filter operators with factory data |
+| `Feature-Search-Imported` | ~180s | Search | Search tests needing real XML data |
+| `Importers` | ~90s | Import | XML import command tests |
+| **Full** | ~400s | All | Pre-commit, release validation |
+
+```bash
+# Quick feedback during development
+docker compose exec php php artisan test --testsuite=Unit-Pure
+
+# Before commit
+docker compose exec php php artisan test --exclude-group=search-imported
+
+# Full validation
+docker compose exec php php artisan test
 ```
 
-Update Request validation whenever Models/Controllers change.
+---
 
-### Other Standards
-- **Backwards compatibility:** NOT important - don't waste time on it
-- **Laravel skills:** ALWAYS check for available Superpower skills before starting
+## Gold Standards
+
+**Use these as reference implementations:**
+
+| Pattern | Reference |
+|---------|-----------|
+| Controller + PHPDoc | `SpellController` |
+| API Resource | `SpellResource` |
+| Form Request | `SpellIndexRequest`, `SpellShowRequest` |
+| Search Service | `SpellSearchService` |
+| Model searchable | `Spell::searchableOptions()` |
+| Importer | `SpellImporter` |
+| Parser | `SpellXmlParser` |
 
 ---
 
@@ -132,25 +156,28 @@ docker compose exec -e SCOUT_PREFIX=test_ php php artisan import:all --env=testi
 
 **Import order matters:** Sources → Items → Classes → Spells → Others
 
-See `docs/reference/` for manual import steps if needed.
-
 ---
 
-## Repository Structure
+## Code Patterns
 
+```php
+// Form Request - every action has dedicated Request
+public function index(SpellIndexRequest $request) { }
+
+// Service Layer - controllers delegate to services
+$results = $service->searchWithMeilisearch($dto);
+return SpellResource::collection($results);
+
+// Custom Exceptions - service throws, controller returns single Resource
+throw new InvalidFilterSyntaxException($filter, $message);  // 422
+throw new EntityNotFoundException($type, $id);              // 404
 ```
-app/
-  ├── Http/Controllers/Api/    # Entity + lookup controllers
-  ├── Http/Resources/          # API Resources
-  ├── Http/Requests/           # Form Requests
-  ├── Models/
-  └── Services/
-      ├── Importers/           # 19 traits, strategy pattern
-      └── Parsers/             # 16 traits
 
-tests/
-  ├── Feature/                 # API, importers, models
-  └── Unit/                    # Parsers, services
+### Form Request Naming: `{Entity}{Action}Request`
+
+```php
+SpellIndexRequest      // GET /api/v1/spells
+SpellShowRequest       // GET /api/v1/spells/{id}
 ```
 
 ---
@@ -169,19 +196,21 @@ tests/
 
 ---
 
-## Code Patterns
+## Repository Structure
 
-```php
-// Form Request - every action has dedicated Request
-public function index(SpellIndexRequest $request) { }
+```
+app/
+  ├── Http/Controllers/Api/    # Entity + lookup controllers
+  ├── Http/Resources/          # API Resources
+  ├── Http/Requests/           # Form Requests
+  ├── Models/
+  └── Services/
+      ├── Importers/           # 19 traits, strategy pattern
+      └── Parsers/             # 16 traits
 
-// Service Layer - controllers delegate to services
-$results = $service->searchWithMeilisearch($dto);
-return SpellResource::collection($results);
-
-// Custom Exceptions - service throws, controller returns single Resource
-throw new InvalidFilterSyntaxException($filter, $message);  // 422
-throw new EntityNotFoundException($type, $id);              // 404
+tests/
+  ├── Feature/                 # API, importers, models
+  └── Unit/                    # Parsers, services
 ```
 
 ---
@@ -215,11 +244,30 @@ docs/
 └── archive/               # Historical by month
 ```
 
-### Session Handovers
-
 **Naming:** `SESSION-HANDOVER-YYYY-MM-DD-HHMM-topic.md`
 
-Create when completing major features. Run `/organize-docs` to archive old ones.
+Run `/organize-docs` to archive old handovers.
+
+---
+
+## Success Checklist
+
+Before marking ANY work complete:
+
+- [ ] Tests written FIRST (TDD mandate)
+- [ ] All tests pass (relevant suite)
+- [ ] Full suite passes (pre-commit)
+- [ ] Code formatted with Pint
+- [ ] CHANGELOG.md updated
+- [ ] Work committed and pushed
+- [ ] TODO.md updated
+
+**For API changes:**
+- [ ] Form Requests validate new parameters
+- [ ] API Resources expose new data
+- [ ] Controller PHPDoc documents filters
+
+**If ANY checkbox is unchecked, work is NOT done.**
 
 ---
 
@@ -231,6 +279,7 @@ Create when completing major features. Run `/organize-docs` to archive old ones.
 - **Tasks:** Track in `docs/TODO.md`
 - **Tech debt:** Add to `docs/TECH-DEBT.md`
 - **Docs cleanup:** Run `/organize-docs` periodically
+- **Gold standards:** Reference `Spell*` classes for patterns
 
 ---
 

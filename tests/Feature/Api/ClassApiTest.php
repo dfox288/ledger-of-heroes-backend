@@ -244,4 +244,44 @@ class ClassApiTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    #[Test]
+    public function base_class_includes_subclass_level()
+    {
+        // Fighter gets subclass at level 3 (Martial Archetype)
+        $response = $this->getJson('/api/v1/classes/fighter');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.subclass_level', 3);
+    }
+
+    #[Test]
+    public function cleric_has_subclass_level_1()
+    {
+        // Cleric gets subclass at level 1 (Divine Domain)
+        $response = $this->getJson('/api/v1/classes/cleric');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.subclass_level', 1);
+    }
+
+    #[Test]
+    public function wizard_has_subclass_level_2()
+    {
+        // Wizard gets subclass at level 2 (Arcane Tradition)
+        $response = $this->getJson('/api/v1/classes/wizard');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.subclass_level', 2);
+    }
+
+    #[Test]
+    public function subclass_has_null_subclass_level()
+    {
+        // Subclasses should return null for subclass_level
+        $response = $this->getJson('/api/v1/classes/fighter-champion');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.subclass_level', null);
+    }
 }

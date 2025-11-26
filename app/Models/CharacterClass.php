@@ -174,6 +174,32 @@ class CharacterClass extends BaseModel
     }
 
     /**
+     * Get the level at which this class gains its subclass.
+     *
+     * D&D Context: Different classes get subclasses at different levels:
+     * - Level 1: Cleric (Divine Domain), Sorcerer, Warlock
+     * - Level 2: Druid, Wizard
+     * - Level 3: All others (Barbarian, Bard, Fighter, Monk, Paladin, Ranger, Rogue)
+     *
+     * This is derived from the minimum level of any subclass's first feature.
+     * Only meaningful for base classes - subclasses return null.
+     */
+    public function getSubclassLevelAttribute(): ?int
+    {
+        // Only meaningful for base classes
+        if (! $this->is_base_class) {
+            return null;
+        }
+
+        // Get minimum level from any subclass's features
+        $minLevel = $this->subclasses()
+            ->join('class_features', 'classes.id', '=', 'class_features.class_id')
+            ->min('class_features.level');
+
+        return $minLevel ? (int) $minLevel : null;
+    }
+
+    /**
      * Get pre-computed hit points data for display.
      *
      * Calculates D&D 5e hit point formulas:

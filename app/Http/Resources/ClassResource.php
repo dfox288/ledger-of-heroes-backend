@@ -45,6 +45,7 @@ class ClassResource extends JsonResource
             }),
             'parent_class_id' => $this->parent_class_id,
             'is_base_class' => $this->is_base_class,
+            'subclass_level' => $this->subclass_level,
 
             // === RELATIONSHIPS ===
             'parent_class' => $this->when($this->parent_class_id, function () {

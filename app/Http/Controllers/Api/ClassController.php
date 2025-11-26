@@ -450,6 +450,31 @@ class ClassController extends Controller
      * - Use `?include_base_features=false` to return only subclass-specific features
      * - Base classes are unaffected by this parameter
      *
+     * ## Feature Choice Options (Nested Features)
+     *
+     * Features that offer choices (like Fighting Style) have their options nested:
+     *
+     * ```json
+     * {
+     *   "feature_name": "Fighting Style",
+     *   "is_choice_option": false,
+     *   "parent_feature_id": null,
+     *   "choice_options": [
+     *     {"feature_name": "Fighting Style: Archery", "is_choice_option": true, "parent_feature_id": 397},
+     *     {"feature_name": "Fighting Style: Defense", "is_choice_option": true, "parent_feature_id": 397}
+     *   ]
+     * }
+     * ```
+     *
+     * - **is_choice_option**: `true` if this feature is a choice under a parent (player picks one)
+     * - **parent_feature_id**: ID of the parent feature (null for top-level features)
+     * - **choice_options**: Nested array of child features (only present when loaded)
+     *
+     * This allows frontends to:
+     * - Display choice options in a collapsible/grouped UI
+     * - Filter out choice options from main feature lists (check `is_choice_option`)
+     * - Show accurate feature counts (exclude choice options)
+     *
      * ## Examples
      *
      * ```bash

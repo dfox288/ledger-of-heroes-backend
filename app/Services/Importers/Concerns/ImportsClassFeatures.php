@@ -20,6 +20,8 @@ trait ImportsClassFeatures
      */
     protected function importFeatures(CharacterClass $class, array $features): void
     {
+        // First pass: Create/update all features without parent links
+        $createdFeatures = [];
         foreach ($features as $featureData) {
             // Detect multiclass-only features by name pattern
             $isMulticlassOnly = $this->isMulticlassOnlyFeature($featureData['name']);
@@ -39,6 +41,8 @@ trait ImportsClassFeatures
                     'description' => $featureData['description'],
                 ]
             );
+
+            $createdFeatures[$featureData['name']] = $feature;
 
             // Import special tags (fighting styles, unarmored defense, etc.)
             if (! empty($featureData['special_tags'])) {
@@ -90,6 +94,39 @@ trait ImportsClassFeatures
             // Import random tables from pipe-delimited tables in description text
             // This handles BOTH dice-based random tables AND reference tables (dice_type = null)
             $this->importRandomTablesFromText($feature, $featureData['description'], clearExisting: false);
+        }
+
+        // Second pass: Link child features to their parents
+        // Features with "Parent: Option" naming pattern link to their parent
+        $this->linkParentFeatures($class, $createdFeatures);
+    }
+
+    /**
+     * Link child features to their parent features based on naming convention.
+     *
+     * Features like "Fighting Style: Archery" are linked to "Fighting Style".
+     * Only links optional features to prevent false positives.
+     */
+    protected function linkParentFeatures(CharacterClass $class, array $createdFeatures): void
+    {
+        foreach ($createdFeatures as $name => $feature) {
+            // Skip non-optional features and features without colon
+            if (! $feature->is_optional || ! str_contains($name, ':')) {
+                continue;
+            }
+
+            // Extract potential parent name (everything before the colon)
+            $parentName = trim(explode(':', $name)[0]);
+
+            // Look for parent in same class at same level
+            $parent = ClassFeature::where('class_id', $class->id)
+                ->where('level', $feature->level)
+                ->where('feature_name', $parentName)
+                ->first();
+
+            if ($parent && $parent->id !== $feature->id) {
+                $feature->update(['parent_feature_id' => $parent->id]);
+            }
         }
     }
 

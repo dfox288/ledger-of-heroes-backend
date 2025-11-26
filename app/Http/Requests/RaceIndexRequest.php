@@ -26,6 +26,6 @@ class RaceIndexRequest extends BaseIndexRequest
      */
     protected function getSortableColumns(): array
     {
-        return ['name', 'size', 'speed', 'created_at', 'updated_at'];
+        return ['name', 'size', 'speed', 'slug'];
     }
 }

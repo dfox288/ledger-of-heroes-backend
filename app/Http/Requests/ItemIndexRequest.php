@@ -23,6 +23,6 @@ class ItemIndexRequest extends BaseIndexRequest
      */
     protected function getSortableColumns(): array
     {
-        return ['name', 'type', 'rarity', 'created_at', 'updated_at'];
+        return ['name', 'type', 'rarity', 'slug'];
     }
 }

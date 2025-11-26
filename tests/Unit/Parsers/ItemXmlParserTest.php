@@ -6,6 +6,7 @@ use App\Services\Parsers\ItemXmlParser;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-db')]
 class ItemXmlParserTest extends TestCase
 {
     private ItemXmlParser $parser;

@@ -59,7 +59,7 @@ class ItemFilterTest extends TestCase
         ]);
 
         // Re-index items for Meilisearch
-        $items = Item::latest()->take(3)->get();
+        $items = Item::orderBy('id', 'desc')->take(3)->get();
         $items->searchable();
         $this->waitForMeilisearchModels($items->all());
 
@@ -89,7 +89,7 @@ class ItemFilterTest extends TestCase
         ]);
 
         // Re-index items for Meilisearch
-        $items = Item::latest()->take(2)->get();
+        $items = Item::orderBy('id', 'desc')->take(2)->get();
         $items->searchable();
         $this->waitForMeilisearchModels($items->all());
 
@@ -117,7 +117,7 @@ class ItemFilterTest extends TestCase
         ]);
 
         // Re-index items for Meilisearch
-        $items = Item::latest()->take(2)->get();
+        $items = Item::orderBy('id', 'desc')->take(2)->get();
         $items->searchable();
         $this->waitForMeilisearchModels($items->all());
 
@@ -148,7 +148,7 @@ class ItemFilterTest extends TestCase
         ]);
 
         // Re-index items for Meilisearch
-        $items = Item::latest()->take(2)->get();
+        $items = Item::orderBy('id', 'desc')->take(2)->get();
         $items->searchable();
         $this->waitForMeilisearchModels($items->all());
 
@@ -174,7 +174,7 @@ class ItemFilterTest extends TestCase
         }
 
         // Re-index items for Meilisearch
-        $items = Item::latest()->take(25)->get();
+        $items = Item::orderBy('id', 'desc')->take(25)->get();
         $items->searchable();
         $this->waitForMeilisearchModels($items->all());
 
@@ -200,7 +200,7 @@ class ItemFilterTest extends TestCase
         ]);
 
         // Re-index items for Meilisearch
-        $items = Item::latest()->take(2)->get();
+        $items = Item::orderBy('id', 'desc')->take(2)->get();
         $items->searchable();
         $this->waitForMeilisearchModels($items->all());
 

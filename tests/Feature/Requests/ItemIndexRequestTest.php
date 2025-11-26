@@ -6,6 +6,7 @@ use App\Http\Requests\ItemIndexRequest;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-db')]
 class ItemIndexRequestTest extends TestCase
 {
     #[\PHPUnit\Framework\Attributes\Test]
@@ -42,8 +43,8 @@ class ItemIndexRequestTest extends TestCase
     {
         $request = new ItemIndexRequest;
 
-        // Valid sortable columns
-        $validColumns = ['name', 'type', 'rarity', 'created_at', 'updated_at'];
+        // Valid sortable columns (no timestamps - models use BaseModel with $timestamps = false)
+        $validColumns = ['name', 'type', 'rarity', 'slug'];
 
         foreach ($validColumns as $column) {
             $validator = Validator::make(

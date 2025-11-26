@@ -13,14 +13,11 @@ class FeatIndexRequestTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_whitelists_sortable_columns()
     {
-        // Valid sortable columns
+        // Valid sortable columns (no timestamps - models use BaseModel with $timestamps = false)
         $response = $this->getJson('/api/v1/feats?sort_by=name');
         $response->assertStatus(200);
 
-        $response = $this->getJson('/api/v1/feats?sort_by=created_at');
-        $response->assertStatus(200);
-
-        $response = $this->getJson('/api/v1/feats?sort_by=updated_at');
+        $response = $this->getJson('/api/v1/feats?sort_by=slug');
         $response->assertStatus(200);
 
         // Invalid column

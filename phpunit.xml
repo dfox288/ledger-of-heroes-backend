@@ -53,6 +53,7 @@
             <file>tests/Unit/Services/GlobalSearchServiceTest.php</file>
             <file>tests/Unit/Services/ItemTableDetectorTest.php</file>
             <file>tests/Unit/Services/ItemTableParserTest.php</file>
+            <file>tests/Unit/Services/ClassProgressionTableGeneratorTest.php</file>
         </testsuite>
 
         <!-- Feature-DB: API/Model tests without Meilisearch (approx 30s) -->
@@ -89,6 +90,8 @@
             <file>tests/Feature/Api/ItemPrerequisitesApiTest.php</file>
             <file>tests/Feature/Api/ItemSpellsApiTest.php</file>
             <file>tests/Feature/Api/TagIntegrationTest.php</file>
+            <file>tests/Feature/Api/SpellReverseRelationshipsApiTest.php</file>
+            <file>tests/Feature/Api/ClassDetailOptimizationTest.php</file>
         </testsuite>
 
         <!-- Feature-Search-Isolated: Factory-based Meilisearch tests (approx 60s), self-contained -->

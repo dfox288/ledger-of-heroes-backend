@@ -5,6 +5,7 @@ namespace Tests\Unit\Parsers;
 use App\Services\Parsers\Concerns\ParsesItemSpells;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('unit-db')]
 class ItemSpellsParserTest extends TestCase
 {
     use ParsesItemSpells;

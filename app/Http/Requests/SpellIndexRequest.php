@@ -26,6 +26,6 @@ class SpellIndexRequest extends BaseIndexRequest
      */
     protected function getSortableColumns(): array
     {
-        return ['name', 'level', 'created_at', 'updated_at'];
+        return ['name', 'level', 'slug'];
     }
 }

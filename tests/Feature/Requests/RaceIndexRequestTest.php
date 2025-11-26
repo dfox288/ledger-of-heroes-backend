@@ -16,8 +16,8 @@ class RaceIndexRequestTest extends TestCase
     #[Test]
     public function it_whitelists_sortable_columns()
     {
-        // Valid sortable columns
-        $validColumns = ['name', 'size', 'speed', 'created_at', 'updated_at'];
+        // Valid sortable columns (no timestamps - models use BaseModel with $timestamps = false)
+        $validColumns = ['name', 'size', 'speed', 'slug'];
 
         foreach ($validColumns as $column) {
             $response = $this->getJson("/api/v1/races?sort_by={$column}");

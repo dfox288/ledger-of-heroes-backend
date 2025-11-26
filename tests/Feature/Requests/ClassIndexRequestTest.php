@@ -35,8 +35,8 @@ class ClassIndexRequestTest extends TestCase
     {
         CharacterClass::factory()->create(['name' => 'Barbarian']);
 
-        // Valid sortable columns
-        $validColumns = ['name', 'hit_die', 'created_at', 'updated_at'];
+        // Valid sortable columns (no timestamps - models use BaseModel with $timestamps = false)
+        $validColumns = ['name', 'hit_die', 'slug'];
         foreach ($validColumns as $column) {
             $response = $this->getJson("/api/v1/classes?sort_by={$column}");
             $response->assertStatus(200);

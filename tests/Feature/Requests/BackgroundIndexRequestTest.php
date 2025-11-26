@@ -25,14 +25,11 @@ class BackgroundIndexRequestTest extends TestCase
         $bg2 = Background::factory()->create(['name' => 'Charlatan']);
         $bg2->sources()->create(['source_id' => $source->id, 'pages' => '128']);
 
-        // Valid sortable columns
+        // Valid sortable columns (no timestamps - models use BaseModel with $timestamps = false)
         $response = $this->getJson('/api/v1/backgrounds?sort_by=name');
         $response->assertStatus(200);
 
-        $response = $this->getJson('/api/v1/backgrounds?sort_by=created_at');
-        $response->assertStatus(200);
-
-        $response = $this->getJson('/api/v1/backgrounds?sort_by=updated_at');
+        $response = $this->getJson('/api/v1/backgrounds?sort_by=slug');
         $response->assertStatus(200);
 
         // Invalid column should fail validation

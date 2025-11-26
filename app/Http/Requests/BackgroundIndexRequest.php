@@ -26,6 +26,6 @@ class BackgroundIndexRequest extends BaseIndexRequest
      */
     protected function getSortableColumns(): array
     {
-        return ['name', 'created_at', 'updated_at'];
+        return ['name', 'slug'];
     }
 }

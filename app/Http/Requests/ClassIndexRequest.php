@@ -23,6 +23,6 @@ class ClassIndexRequest extends BaseIndexRequest
      */
     protected function getSortableColumns(): array
     {
-        return ['name', 'hit_die', 'created_at', 'updated_at'];
+        return ['name', 'hit_die', 'slug'];
     }
 }

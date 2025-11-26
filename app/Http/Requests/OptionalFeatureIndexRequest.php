@@ -26,6 +26,6 @@ class OptionalFeatureIndexRequest extends BaseIndexRequest
      */
     protected function getSortableColumns(): array
     {
-        return ['name', 'level_requirement', 'resource_cost', 'created_at', 'updated_at'];
+        return ['name', 'level_requirement', 'resource_cost', 'slug'];
     }
 }

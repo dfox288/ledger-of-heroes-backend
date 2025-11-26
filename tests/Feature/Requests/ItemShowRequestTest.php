@@ -6,6 +6,7 @@ use App\Http\Requests\ItemShowRequest;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
+#[\PHPUnit\Framework\Attributes\Group('feature-db')]
 class ItemShowRequestTest extends TestCase
 {
     #[\PHPUnit\Framework\Attributes\Test]

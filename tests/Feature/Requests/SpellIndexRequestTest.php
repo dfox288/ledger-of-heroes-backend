@@ -25,12 +25,8 @@ class SpellIndexRequestTest extends TestCase
         $response = $this->getJson('/api/v1/spells?sort_by=level');
         $response->assertStatus(200);
 
-        // Valid: created_at
-        $response = $this->getJson('/api/v1/spells?sort_by=created_at');
-        $response->assertStatus(200);
-
-        // Valid: updated_at
-        $response = $this->getJson('/api/v1/spells?sort_by=updated_at');
+        // Valid: slug
+        $response = $this->getJson('/api/v1/spells?sort_by=slug');
         $response->assertStatus(200);
 
         // Invalid: password

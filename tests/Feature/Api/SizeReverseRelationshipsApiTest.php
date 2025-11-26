@@ -141,8 +141,8 @@ class SizeReverseRelationshipsApiTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_returns_empty_when_size_has_no_monsters(): void
     {
-        // Create a test size with no monsters
-        $testSize = Size::factory()->create(['code' => 'TEST', 'name' => 'Test Size']);
+        // Create a test size with no monsters (code max 2 chars)
+        $testSize = Size::factory()->create(['code' => 'X', 'name' => 'Test Size']);
 
         $response = $this->getJson("/api/v1/lookups/sizes/{$testSize->id}/monsters");
 

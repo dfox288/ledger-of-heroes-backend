@@ -319,11 +319,8 @@ class BackgroundFilterOperatorTest extends TestCase
         $bgWithAthletics->refresh()->load('proficiencies.skill');
 
         // Re-index these specific backgrounds and wait for Meilisearch
-        // Use sleep for reliability with skill_proficiencies array filter edge case
-        $bgWithInsight->searchable();
-        $bgWithReligion->searchable();
-        $bgWithAthletics->searchable();
-        sleep(1); // Meilisearch needs time to update documents with skill_proficiencies
+        collect([$bgWithInsight, $bgWithReligion, $bgWithAthletics])->searchable();
+        $this->waitForMeilisearchModels([$bgWithInsight, $bgWithReligion, $bgWithAthletics]);
 
         // Act: Filter by skill_proficiencies IN [insight, religion]
         $response = $this->getJson('/api/v1/backgrounds?filter=skill_proficiencies IN [insight, religion]&per_page=100');
@@ -375,10 +372,8 @@ class BackgroundFilterOperatorTest extends TestCase
         $bgWithoutInsight->refresh()->load('proficiencies.skill');
 
         // Re-index these specific backgrounds and wait for Meilisearch
-        // Use sleep for reliability with skill_proficiencies array filter edge case
-        $bgWithInsight->searchable();
-        $bgWithoutInsight->searchable();
-        sleep(1); // Meilisearch needs time to update document with skill_proficiencies
+        collect([$bgWithInsight, $bgWithoutInsight])->searchable();
+        $this->waitForMeilisearchModels([$bgWithInsight, $bgWithoutInsight]);
 
         // Act: Filter by skill_proficiencies NOT IN [insight]
         $response = $this->getJson('/api/v1/backgrounds?filter=skill_proficiencies NOT IN [insight]&per_page=100');

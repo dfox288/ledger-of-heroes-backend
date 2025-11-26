@@ -4,13 +4,21 @@ namespace Tests\Feature\Api;
 
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
+/**
+ * Tests for Race filter operators using Meilisearch.
+ *
+ * Uses real imported race data from PHB for realistic testing.
+ * All tests share the same indexed data for efficiency.
+ */
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
 #[\PHPUnit\Framework\Attributes\Group('search-imported')]
 class RaceFilterOperatorTest extends TestCase
 {
+    use ClearsMeilisearchIndex;
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
@@ -20,18 +28,18 @@ class RaceFilterOperatorTest extends TestCase
     {
         parent::setUp();
 
-        // Import real races from PHB for testing (provides realistic data)
+        // Clear Meilisearch index for test isolation
+        $this->clearMeilisearchIndex(Race::class);
+
+        // Import real races from PHB (provides realistic data)
         $this->artisan('import:races', ['file' => 'import-files/races-phb.xml']);
 
-        // Configure Meilisearch indexes for testing
+        // Configure Meilisearch indexes (filterable attributes)
         $this->artisan('search:configure-indexes');
 
-        // Force reindex to ensure all race data is in Meilisearch
-        $this->artisan('scout:flush', ['model' => 'App\\Models\\Race']);
-        $this->artisan('scout:import', ['model' => 'App\\Models\\Race']);
-
-        // Wait for Meilisearch to finish indexing
-        sleep(1);
+        // Re-index all races and wait for completion
+        Race::all()->searchable();
+        $this->waitForMeilisearchIndex('test_races');
     }
 
     /**

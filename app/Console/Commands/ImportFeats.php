@@ -3,37 +3,43 @@
 namespace App\Console\Commands;
 
 use App\Services\Importers\FeatImporter;
-use Illuminate\Console\Command;
 
-class ImportFeats extends Command
+class ImportFeats extends BaseImportCommand
 {
-    protected $signature = 'import:feats {file}';
+    protected $signature = 'import:feats {file : Path to XML file}';
 
     protected $description = 'Import feats from XML file';
 
+    private FeatImporter $importer;
+
+    protected function getEntityName(): string
+    {
+        return 'feats';
+    }
+
     public function handle(FeatImporter $importer): int
     {
-        $file = $this->argument('file');
+        $this->importer = $importer;
 
-        if (! file_exists($file)) {
-            $this->error("File not found: {$file}");
+        return $this->executeImport();
+    }
 
-            return self::FAILURE;
+    protected function performImport(string $filePath): ImportResult
+    {
+        $xmlContent = file_get_contents($filePath);
+        $entities = $this->importer->getParser()->parse($xmlContent);
+
+        $count = 0;
+        $progressBar = $this->createProgressBar(count($entities));
+
+        foreach ($entities as $data) {
+            $this->importer->import($data);
+            $count++;
+            $progressBar->advance();
         }
 
-        $this->info("Importing feats from {$file}...");
+        $this->finishProgressBar($progressBar);
 
-        try {
-            $count = $importer->importFromFile($file);
-            $this->info("Successfully imported {$count} feats.");
-            $this->info('View via API: http://localhost/api/v1/feats');
-
-            return self::SUCCESS;
-        } catch (\Exception $e) {
-            $this->error('Import failed: '.$e->getMessage());
-            $this->error($e->getTraceAsString());
-
-            return self::FAILURE;
-        }
+        return ImportResult::simple($count);
     }
 }

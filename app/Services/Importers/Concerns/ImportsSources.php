@@ -36,17 +36,21 @@ trait ImportsSources
             $sources = $this->deduplicateSources($sources);
         }
 
-        // Create new source associations
+        // Create or update source associations (idempotent)
         foreach ($sources as $sourceData) {
             $source = $this->lookupSource($sourceData['code']);
 
             if ($source) {
-                EntitySource::create([
-                    'reference_type' => get_class($entity),
-                    'reference_id' => $entity->id,
-                    'source_id' => $source->id,
-                    'pages' => $sourceData['pages'] ?? null,
-                ]);
+                EntitySource::updateOrCreate(
+                    [
+                        'reference_type' => get_class($entity),
+                        'reference_id' => $entity->id,
+                        'source_id' => $source->id,
+                    ],
+                    [
+                        'pages' => $sourceData['pages'] ?? null,
+                    ]
+                );
             }
         }
     }

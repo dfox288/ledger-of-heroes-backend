@@ -589,7 +589,7 @@ class ClassImporter extends BaseImporter
         }
     }
 
-    protected function getParser(): object
+    public function getParser(): object
     {
         return new ClassXmlParser;
     }

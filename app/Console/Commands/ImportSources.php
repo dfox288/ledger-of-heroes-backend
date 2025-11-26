@@ -2,83 +2,52 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Source;
 use App\Services\Importers\SourceImporter;
-use App\Services\Parsers\SourceXmlParser;
-use Illuminate\Console\Command;
 
-class ImportSources extends Command
+class ImportSources extends BaseImportCommand
 {
     protected $signature = 'import:sources {file : Path to XML file}';
 
     protected $description = 'Import D&D sourcebook from XML file';
 
-    public function handle(): int
+    private SourceImporter $importer;
+
+    protected function getEntityName(): string
     {
-        $filePath = $this->argument('file');
+        return 'sources';
+    }
 
-        // Validate file exists
-        if (! file_exists($filePath)) {
-            $this->error("File not found: {$filePath}");
+    public function handle(SourceImporter $importer): int
+    {
+        $this->importer = $importer;
 
-            return self::FAILURE;
-        }
+        return $this->executeImport();
+    }
 
-        // Read XML content
-        $this->info("Reading XML file: {$filePath}");
+    protected function performImport(string $filePath): ImportResult
+    {
         $xmlContent = file_get_contents($filePath);
+        $entities = $this->importer->getParser()->parse($xmlContent);
 
-        try {
-            // Parse XML (returns single-element array)
-            $parser = new SourceXmlParser;
-            $sources = $parser->parse($xmlContent);
+        $created = 0;
+        $updated = 0;
 
-            if (empty($sources)) {
-                $this->warn('No source found in XML file');
+        $progressBar = $this->createProgressBar(count($entities));
 
-                return self::FAILURE;
+        foreach ($entities as $data) {
+            $model = $this->importer->import($data);
+
+            if ($model->wasRecentlyCreated) {
+                $created++;
+            } else {
+                $updated++;
             }
 
-            $this->info('Parsed '.count($sources).' source(s) from XML');
-
-            // Import each source
-            $importer = new SourceImporter;
-            $importedCount = 0;
-            $updatedCount = 0;
-
-            foreach ($sources as $sourceData) {
-                $existing = Source::where('code', $sourceData['code'])->first();
-
-                $source = $importer->import($sourceData);
-
-                if ($existing) {
-                    $updatedCount++;
-                    $this->line("  Updated: {$source->name} ({$source->code})");
-                } else {
-                    $importedCount++;
-                    $this->line("  Created: {$source->name} ({$source->code})");
-                }
-            }
-
-            $this->newLine();
-
-            // Report results
-            $this->info('✓ Import complete!');
-            $this->table(
-                ['Status', 'Count'],
-                [
-                    ['Created', $importedCount],
-                    ['Updated', $updatedCount],
-                    ['Total', $importedCount + $updatedCount],
-                ]
-            );
-
-            return self::SUCCESS;
-        } catch (\Exception $e) {
-            $this->error('Import failed: '.$e->getMessage());
-            $this->error($e->getTraceAsString());
-
-            return self::FAILURE;
+            $progressBar->advance();
         }
+
+        $this->finishProgressBar($progressBar);
+
+        return ImportResult::withBreakdown($created, $updated);
     }
 }

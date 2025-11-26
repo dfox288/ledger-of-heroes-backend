@@ -202,7 +202,7 @@ class RaceImporter extends BaseImporter
         $this->importEntityModifiers($race, $modifiersData);
     }
 
-    protected function getParser(): object
+    public function getParser(): object
     {
         return new RaceXmlParser;
     }

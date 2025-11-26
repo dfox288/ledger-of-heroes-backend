@@ -3,36 +3,43 @@
 namespace App\Console\Commands;
 
 use App\Services\Importers\RaceImporter;
-use Illuminate\Console\Command;
 
-class ImportRaces extends Command
+class ImportRaces extends BaseImportCommand
 {
-    protected $signature = 'import:races {file}';
+    protected $signature = 'import:races {file : Path to XML file}';
 
     protected $description = 'Import races from XML file';
 
+    private RaceImporter $importer;
+
+    protected function getEntityName(): string
+    {
+        return 'races';
+    }
+
     public function handle(RaceImporter $importer): int
     {
-        $file = $this->argument('file');
+        $this->importer = $importer;
 
-        if (! file_exists($file)) {
-            $this->error("File not found: {$file}");
+        return $this->executeImport();
+    }
 
-            return self::FAILURE;
+    protected function performImport(string $filePath): ImportResult
+    {
+        $xmlContent = file_get_contents($filePath);
+        $entities = $this->importer->getParser()->parse($xmlContent);
+
+        $count = 0;
+        $progressBar = $this->createProgressBar(count($entities));
+
+        foreach ($entities as $data) {
+            $this->importer->import($data);
+            $count++;
+            $progressBar->advance();
         }
 
-        $this->info("Importing races from {$file}...");
+        $this->finishProgressBar($progressBar);
 
-        try {
-            $count = $importer->importFromFile($file);
-            $this->info("Successfully imported {$count} races.");
-            $this->info('View via API: http://localhost/api/races');
-
-            return self::SUCCESS;
-        } catch (\Exception $e) {
-            $this->error('Import failed: '.$e->getMessage());
-
-            return self::FAILURE;
-        }
+        return ImportResult::simple($count);
     }
 }

@@ -131,7 +131,7 @@ class SpellImporter extends BaseImporter
         }
     }
 
-    protected function getParser(): object
+    public function getParser(): object
     {
         return new SpellXmlParser;
     }

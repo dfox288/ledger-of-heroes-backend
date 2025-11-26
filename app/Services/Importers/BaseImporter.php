@@ -67,7 +67,7 @@ abstract class BaseImporter
      *
      * @return object The XML parser instance
      */
-    abstract protected function getParser(): object;
+    abstract public function getParser(): object;
 
     /**
      * Import entities from an XML file.

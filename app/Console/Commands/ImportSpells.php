@@ -3,36 +3,43 @@
 namespace App\Console\Commands;
 
 use App\Services\Importers\SpellImporter;
-use Illuminate\Console\Command;
 
-class ImportSpells extends Command
+class ImportSpells extends BaseImportCommand
 {
-    protected $signature = 'import:spells {file}';
+    protected $signature = 'import:spells {file : Path to XML file}';
 
     protected $description = 'Import spells from XML file';
 
+    private SpellImporter $importer;
+
+    protected function getEntityName(): string
+    {
+        return 'spells';
+    }
+
     public function handle(SpellImporter $importer): int
     {
-        $file = $this->argument('file');
+        $this->importer = $importer;
 
-        if (! file_exists($file)) {
-            $this->error("File not found: {$file}");
+        return $this->executeImport();
+    }
 
-            return self::FAILURE;
+    protected function performImport(string $filePath): ImportResult
+    {
+        $xmlContent = file_get_contents($filePath);
+        $entities = $this->importer->getParser()->parse($xmlContent);
+
+        $count = 0;
+        $progressBar = $this->createProgressBar(count($entities));
+
+        foreach ($entities as $data) {
+            $this->importer->import($data);
+            $count++;
+            $progressBar->advance();
         }
 
-        $this->info("Importing spells from {$file}...");
+        $this->finishProgressBar($progressBar);
 
-        try {
-            $count = $importer->importFromFile($file);
-            $this->info("Successfully imported {$count} spells.");
-            $this->info('View via API: http://localhost/api/spells');
-
-            return self::SUCCESS;
-        } catch (\Exception $e) {
-            $this->error('Import failed: '.$e->getMessage());
-
-            return self::FAILURE;
-        }
+        return ImportResult::simple($count);
     }
 }

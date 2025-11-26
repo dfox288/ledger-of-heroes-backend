@@ -4,74 +4,50 @@ namespace App\Console\Commands;
 
 use App\Services\Importers\ItemImporter;
 use App\Services\Importers\StrategyStatistics;
-use Illuminate\Console\Command;
 
-class ImportItems extends Command
+class ImportItems extends BaseImportCommand
 {
     protected $signature = 'import:items {file : Path to the XML file}';
 
     protected $description = 'Import items from an XML file';
 
-    public function handle(ItemImporter $importer, StrategyStatistics $statistics): int
+    private ItemImporter $importer;
+
+    private StrategyStatistics $statistics;
+
+    protected function getEntityName(): string
     {
-        $filePath = $this->argument('file');
-
-        if (! file_exists($filePath)) {
-            $this->error("File not found: {$filePath}");
-
-            return self::FAILURE;
-        }
-
-        $this->info("Importing items from: {$filePath}");
-
-        // Clear strategy log before import
-        $statistics->clearLog();
-
-        try {
-            $count = $importer->importFromFile($filePath);
-            $this->info("✓ Successfully imported {$count} items");
-
-            // Display strategy statistics
-            $this->displayStrategyStatistics($statistics);
-
-            return self::SUCCESS;
-        } catch (\Exception $e) {
-            $this->error("Import failed: {$e->getMessage()}");
-
-            return self::FAILURE;
-        }
+        return 'items';
     }
 
-    /**
-     * Display strategy statistics table.
-     */
-    private function displayStrategyStatistics(StrategyStatistics $statistics): void
+    public function handle(ItemImporter $importer, StrategyStatistics $statistics): int
     {
-        $stats = $statistics->getStatistics();
+        $this->importer = $importer;
+        $this->statistics = $statistics;
 
-        if (empty($stats)) {
-            return; // No strategies applied
+        return $this->executeImport();
+    }
+
+    protected function performImport(string $filePath): ImportResult
+    {
+        $this->statistics->clearLog();
+
+        $xmlContent = file_get_contents($filePath);
+        $entities = $this->importer->getParser()->parse($xmlContent);
+
+        $count = 0;
+        $progressBar = $this->createProgressBar(count($entities));
+
+        foreach ($entities as $data) {
+            $this->importer->import($data);
+            $count++;
+            $progressBar->advance();
         }
 
-        $this->newLine();
-        $this->info('Strategy Statistics:');
+        $this->finishProgressBar($progressBar);
 
-        $rows = [];
-        foreach ($stats as $strategy => $data) {
-            $rows[] = [
-                $strategy,
-                $data['items_enhanced'],
-                $data['warnings'],
-            ];
-        }
+        $stats = $this->statistics->getStatistics();
 
-        $this->table(
-            ['Strategy', 'Items Enhanced', 'Warnings'],
-            $rows
-        );
-
-        // Show log file location
-        $logPath = 'storage/logs/import-strategy-'.date('Y-m-d').'.log';
-        $this->comment("⚠ Detailed logs: {$logPath}");
+        return ImportResult::withStatistics($count, $stats);
     }
 }

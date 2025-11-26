@@ -149,7 +149,7 @@ class FeatImporter extends BaseImporter
         $this->importEntityPrerequisites($feat, $prerequisites);
     }
 
-    protected function getParser(): object
+    public function getParser(): object
     {
         return new FeatXmlParser;
     }

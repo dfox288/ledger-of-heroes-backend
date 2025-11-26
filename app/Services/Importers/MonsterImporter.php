@@ -72,7 +72,7 @@ class MonsterImporter extends BaseImporter
     /**
      * Get the parser instance for this importer.
      */
-    protected function getParser(): object
+    public function getParser(): object
     {
         return new MonsterXmlParser;
     }
@@ -167,8 +167,8 @@ class MonsterImporter extends BaseImporter
             $this->strategyStats[$strategyName]['warnings'] += count($metadata['warnings']);
         }
 
-        Log::channel('import-strategy')->info($strategyName, array_merge(
-            ['monster' => $data['name']],
+        Log::channel('import-strategy')->info("Strategy applied: {$strategyName}", array_merge(
+            ['strategy' => $strategyName, 'monster' => $data['name']],
             $metadata
         ));
 

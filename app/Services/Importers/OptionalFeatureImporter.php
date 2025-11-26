@@ -182,7 +182,7 @@ class OptionalFeatureImporter extends BaseImporter
         )?->id;
     }
 
-    protected function getParser(): object
+    public function getParser(): object
     {
         return new OptionalFeatureXmlParser;
     }

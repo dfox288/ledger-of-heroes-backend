@@ -3,52 +3,43 @@
 namespace App\Console\Commands;
 
 use App\Services\Importers\OptionalFeatureImporter;
-use Illuminate\Console\Command;
 
-class ImportOptionalFeaturesCommand extends Command
+class ImportOptionalFeaturesCommand extends BaseImportCommand
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'import:optional-features {file : Path to the XML file containing optional features}';
+    protected $signature = 'import:optional-features {file : Path to XML file}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Import D&D 5e optional features (Eldritch Invocations, Elemental Disciplines, Maneuvers, etc.) from XML files';
 
-    /**
-     * Execute the console command.
-     */
+    private OptionalFeatureImporter $importer;
+
+    protected function getEntityName(): string
+    {
+        return 'optional features';
+    }
+
     public function handle(OptionalFeatureImporter $importer): int
     {
-        $filePath = $this->argument('file');
+        $this->importer = $importer;
 
-        // Validate file exists
-        if (! file_exists($filePath)) {
-            $this->error("File not found: {$filePath}");
+        return $this->executeImport();
+    }
 
-            return self::FAILURE;
+    protected function performImport(string $filePath): ImportResult
+    {
+        $xmlContent = file_get_contents($filePath);
+        $entities = $this->importer->getParser()->parse($xmlContent);
+
+        $count = 0;
+        $progressBar = $this->createProgressBar(count($entities));
+
+        foreach ($entities as $data) {
+            $this->importer->import($data);
+            $count++;
+            $progressBar->advance();
         }
 
-        $this->info("Importing optional features from: {$filePath}");
+        $this->finishProgressBar($progressBar);
 
-        try {
-            $count = $importer->importFromFile($filePath);
-
-            $this->newLine();
-            $this->info("Successfully imported {$count} optional features!");
-
-            return self::SUCCESS;
-        } catch (\Exception $e) {
-            $this->error("Import failed: {$e->getMessage()}");
-            $this->error($e->getTraceAsString());
-
-            return self::FAILURE;
-        }
+        return ImportResult::simple($count);
     }
 }

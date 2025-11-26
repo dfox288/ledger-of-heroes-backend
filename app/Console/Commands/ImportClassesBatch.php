@@ -44,7 +44,7 @@ class ImportClassesBatch extends Command
         $totalSubclasses = 0;
 
         foreach ($files as $file) {
-            $this->line('📄 '.basename($file));
+            $this->line('File: '.basename($file));
 
             try {
                 $xml = file_get_contents($file);
@@ -67,13 +67,17 @@ class ImportClassesBatch extends Command
                 }
             } catch (\Exception $e) {
                 $this->error('  ✗ Failed: '.$e->getMessage());
+
+                if ($this->output->isVerbose()) {
+                    $this->error($e->getTraceAsString());
+                }
             }
 
             $this->newLine();
         }
 
         // Summary
-        $this->info('✅ Import complete!');
+        $this->info('✓ Import complete!');
         $this->table(
             ['Type', 'Count'],
             [

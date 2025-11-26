@@ -3,71 +3,59 @@
 namespace App\Console\Commands;
 
 use App\Services\Importers\SpellClassMappingImporter;
-use Illuminate\Console\Command;
 
-class ImportSpellClassMappingsCommand extends Command
+class ImportSpellClassMappingsCommand extends BaseImportCommand
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'import:spell-class-mappings {file : Path to the additive XML file}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Import additional class/subclass associations for existing spells from additive XML files (e.g., spells-phb+dmg.xml)';
 
-    /**
-     * Execute the console command.
-     */
+    private SpellClassMappingImporter $importer;
+
+    private array $stats = [];
+
+    protected function getEntityName(): string
+    {
+        return 'spell-class mappings';
+    }
+
     public function handle(SpellClassMappingImporter $importer): int
     {
-        $filePath = $this->argument('file');
+        $this->importer = $importer;
 
-        // Validate file exists
-        if (! file_exists($filePath)) {
-            $this->error("File not found: {$filePath}");
+        return $this->executeImport();
+    }
 
-            return self::FAILURE;
-        }
+    protected function performImport(string $filePath): ImportResult
+    {
+        $this->stats = $this->importer->import($filePath);
 
-        $this->info("Importing spell class mappings from: {$filePath}");
+        return ImportResult::simple($this->stats['classes_added']);
+    }
 
-        try {
-            $stats = $importer->import($filePath);
+    protected function reportResults(ImportResult $result): void
+    {
+        $this->newLine();
+        $this->info('✓ Import completed successfully!');
 
-            // Display results
+        $this->table(
+            ['Metric', 'Count'],
+            [
+                ['Entries processed', $this->stats['processed']],
+                ['Spells found', $this->stats['spells_found']],
+                ['Class associations added', $this->stats['classes_added']],
+                ['Spells not found', count($this->stats['spells_not_found'])],
+            ]
+        );
+
+        // Show spells that weren't found (might need to be imported first)
+        if (! empty($this->stats['spells_not_found'])) {
             $this->newLine();
-            $this->info('Import completed successfully!');
-            $this->table(
-                ['Metric', 'Count'],
-                [
-                    ['Entries processed', $stats['processed']],
-                    ['Spells found', $stats['spells_found']],
-                    ['Class associations added', $stats['classes_added']],
-                    ['Spells not found', count($stats['spells_not_found'])],
-                ]
-            );
-
-            // Show spells that weren't found (might need to be imported first)
-            if (! empty($stats['spells_not_found'])) {
-                $this->newLine();
-                $this->warn('The following spells were not found in the database:');
-                foreach ($stats['spells_not_found'] as $spellName) {
-                    $this->line("  - {$spellName}");
-                }
-                $this->info('These spells may need to be imported from a main XML file first.');
+            $this->warn('The following spells were not found in the database:');
+            foreach ($this->stats['spells_not_found'] as $spellName) {
+                $this->line("  - {$spellName}");
             }
-
-            return self::SUCCESS;
-        } catch (\Exception $e) {
-            $this->error("Import failed: {$e->getMessage()}");
-
-            return self::FAILURE;
+            $this->info('These spells may need to be imported from a main XML file first.');
         }
     }
 }

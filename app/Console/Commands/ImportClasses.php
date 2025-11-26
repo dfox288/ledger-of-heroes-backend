@@ -2,92 +2,52 @@
 
 namespace App\Console\Commands;
 
-use App\Models\CharacterClass;
 use App\Services\Importers\ClassImporter;
-use App\Services\Parsers\ClassXmlParser;
-use Illuminate\Console\Command;
 
-class ImportClasses extends Command
+class ImportClasses extends BaseImportCommand
 {
     protected $signature = 'import:classes {file : Path to XML file}';
 
     protected $description = 'Import D&D classes from XML file';
 
-    public function handle(): int
+    private ClassImporter $importer;
+
+    protected function getEntityName(): string
     {
-        $filePath = $this->argument('file');
+        return 'classes';
+    }
 
-        // Validate file exists
-        if (! file_exists($filePath)) {
-            $this->error("File not found: {$filePath}");
+    public function handle(ClassImporter $importer): int
+    {
+        $this->importer = $importer;
 
-            return self::FAILURE;
-        }
+        return $this->executeImport();
+    }
 
-        // Read XML content
-        $this->info("Reading XML file: {$filePath}");
+    protected function performImport(string $filePath): ImportResult
+    {
         $xmlContent = file_get_contents($filePath);
+        $entities = $this->importer->getParser()->parse($xmlContent);
 
-        try {
-            // Parse XML
-            $parser = new ClassXmlParser;
-            $classes = $parser->parse($xmlContent);
-            $this->info('Parsed '.count($classes).' class(es) from XML');
+        $created = 0;
+        $updated = 0;
 
-            // Import each class
-            $importer = new ClassImporter;
-            $baseClassCount = 0;
-            $subclassCount = 0;
+        $progressBar = $this->createProgressBar(count($entities));
 
-            foreach ($classes as $classData) {
-                // Check if class already exists
-                $existing = CharacterClass::where('name', $classData['name'])
-                    ->whereNull('parent_class_id')
-                    ->first();
+        foreach ($entities as $data) {
+            $model = $this->importer->import($data);
 
-                // Import the class (and its subclasses)
-                $class = $importer->import($classData);
-
-                // Display imported class
-                $this->line("  → {$class->name} ({$class->slug})");
-
-                // Count base class
-                if (! $existing) {
-                    $baseClassCount++;
-                }
-
-                // Count and display subclasses
-                if (! empty($classData['subclasses'])) {
-                    $subclassesImported = count($classData['subclasses']);
-                    $subclassCount += $subclassesImported;
-
-                    // Display each subclass
-                    $subclasses = CharacterClass::where('parent_class_id', $class->id)->get();
-                    foreach ($subclasses as $subclass) {
-                        $this->line("     ↳ {$subclass->name} ({$subclass->slug})");
-                    }
-                }
+            if ($model->wasRecentlyCreated) {
+                $created++;
+            } else {
+                $updated++;
             }
 
-            $this->newLine();
-
-            // Report results
-            $this->info('✓ Import complete!');
-            $this->table(
-                ['Type', 'Count'],
-                [
-                    ['Base Class(es)', $baseClassCount],
-                    ['Subclass(es)', $subclassCount],
-                    ['Total', $baseClassCount + $subclassCount],
-                ]
-            );
-
-            return self::SUCCESS;
-        } catch (\Exception $e) {
-            $this->error('Import failed: '.$e->getMessage());
-            $this->error($e->getTraceAsString());
-
-            return self::FAILURE;
+            $progressBar->advance();
         }
+
+        $this->finishProgressBar($progressBar);
+
+        return ImportResult::withBreakdown($created, $updated);
     }
 }

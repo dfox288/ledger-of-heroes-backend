@@ -135,7 +135,7 @@ class BackgroundImporter extends BaseImporter
         return $background;
     }
 
-    protected function getParser(): object
+    public function getParser(): object
     {
         return new BackgroundXmlParser;
     }

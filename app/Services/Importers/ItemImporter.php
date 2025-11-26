@@ -289,7 +289,7 @@ class ItemImporter extends BaseImporter
         );
     }
 
-    protected function getParser(): object
+    public function getParser(): object
     {
         return new ItemXmlParser;
     }

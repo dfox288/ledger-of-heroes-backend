@@ -241,7 +241,6 @@ class ImportAllDataCommand extends Command
             } else {
                 $this->failCount++;
                 $entityFail++;
-                $this->error('    ✗ Import failed!');
             }
         }
 
@@ -312,7 +311,6 @@ class ImportAllDataCommand extends Command
                 }
             } else {
                 $this->failCount += count($classFiles);
-                $this->error('    ✗ Import failed!');
             }
         }
 
@@ -359,7 +357,6 @@ class ImportAllDataCommand extends Command
             } else {
                 $this->failCount++;
                 $entityFail++;
-                $this->error('    ✗ Import failed!');
             }
         }
 

@@ -8,7 +8,9 @@ Active tasks and priorities for this project.
 
 _Tasks currently being worked on_
 
-- [ ] Classes detail page optimization (see `plans/CLASSES-DETAIL-OPTIMIZATION-PLAN.md`)
+- [ ] Classes detail page optimization - remaining items:
+  - [ ] Issue #12: Filter irrelevant progression columns (class-specific)
+  - [ ] Issue #13: Handle duplicate description content
 
 ---
 
@@ -36,6 +38,13 @@ _Future tasks, not yet prioritized_
 
 _Recently completed tasks (move to CHANGELOG.md after release)_
 
+- [x] Class API enhancements (2025-11-26)
+  - [x] Subclass level accessor (#7)
+  - [x] Nested feature choice options (#8)
+  - [x] Feature count excludes choices (#9)
+  - [x] Progression table excludes choices (#10)
+  - [x] Counter grouping by name (#11)
+- [x] Import command refactoring (BaseImportCommand)
 - [x] Test suite reorganization (6 independent suites)
 - [x] Parser architecture refactoring
 - [x] Filter operator testing (100% coverage)

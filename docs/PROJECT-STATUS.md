@@ -2,7 +2,7 @@
 
 **Last Updated:** 2025-11-26
 **Branch:** main
-**Status:** ✅ Production-Ready - Parser Architecture Refactoring Complete
+**Status:** ✅ Production-Ready - Class API Enhancements Complete
 
 ---
 
@@ -10,14 +10,16 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 1,489 passing (7,704 assertions) - 99.7% pass rate |
+| **Tests** | ~1,500 passing (~8,000 assertions) - 99.7% pass rate |
+| **Test Files** | 205 |
 | **Filter Tests** | 124 operator tests (2,462 assertions) - 100% coverage |
 | **Duration** | ~240 seconds (includes Meilisearch indexing) |
 | **Models** | 32 (all with HasFactory) |
 | **API** | 29 Resources + 18 Controllers + 26 Form Requests |
 | **Importers** | 9 working (Strategy Pattern) |
+| **Import Commands** | 12 (10 standardized with BaseImportCommand) |
 | **Monster Strategies** | 12 (95%+ coverage) |
-| **Importer Traits** | 23 reusable (~360 lines eliminated) |
+| **Importer Traits** | 19 reusable (~400 lines eliminated) |
 | **Parser Traits** | 16 reusable (~150 lines eliminated) |
 | **Search** | 3,600+ documents indexed (Scout + Meilisearch) |
 | **Code Quality** | Laravel Pint formatted |
@@ -25,6 +27,20 @@
 ---
 
 ## 🚀 Recent Milestones
+
+### Class API Enhancements ✅ COMPLETE (2025-11-26)
+- **Achievement:** Enhanced Class API for frontend consumption
+- **New Features:**
+  - `subclass_level` accessor - returns level when subclass is gained
+  - Parent-child feature relationships - hierarchical feature structures
+  - `choice_options` nested array in ClassFeatureResource
+  - Counter grouping by name with progression arrays
+  - Feature counts exclude choice options
+- **Import Command Refactoring:** Extracted `BaseImportCommand` base class
+  - 10 commands refactored to use shared base
+  - ~200 lines of duplicate code eliminated
+  - Consistent progress bars and error handling
+- **Tests:** 205 test files with ~8,000 assertions
 
 ### Parser Architecture Refactoring ✅ COMPLETE (2025-11-26)
 - **Achievement:** Modernized XML parser architecture with shared traits
@@ -111,8 +127,9 @@
 
 ### Import Layer (100% Complete)
 - **9 Working Importers:** Spells (477), Classes (131), Races (115), Items (516), Backgrounds (34), Feats, Monsters (598), Spell-Class Mappings, Master Import
+- **12 Import Commands:** 10 standardized with `BaseImportCommand` base class
 - **Strategy Pattern:** 4 of 9 importers (Item: 5, Monster: 12, Race: 3, Class: 2)
-- **23 Reusable Traits:** 18 importer + 5 parser
+- **19 Importer Traits + 16 Parser Traits:** ~550 lines eliminated
 
 ### Search Layer (100% Complete)
 - Laravel Scout + Meilisearch
@@ -123,11 +140,13 @@
 - 3,600+ documents indexed
 
 ### Testing Layer (100% Complete)
-- 1,489 tests (7,704 assertions)
+- 205 test files (~1,500 tests, ~8,000 assertions)
 - Feature tests (API, importers, models, migrations, search)
 - Unit tests (parsers, services, strategies)
 - Strategy-specific tests (Item: 44, Monster: 105, Beast: 8)
 - SearchService unit tests (15 tests, 41 assertions)
+- Class feature parent-child tests (7 tests)
+- Subclass level accessor tests (6 tests)
 
 ---
 
@@ -165,6 +184,9 @@
 - AC modifier categories (base, bonus, magic)
 - Saving throw modifiers (advantage/disadvantage)
 - Dual ID/slug routing
+- Class feature hierarchies (parent-child relationships)
+- Subclass level detection
+- Progression table with grouped counters
 
 ---
 
@@ -222,7 +244,8 @@
 
 **Architecture:**
 - Strategy Pattern for Item & Monster parsing (22 strategies)
-- 23 Reusable Traits (~360 lines eliminated)
+- 35 Reusable Traits (19 importer + 16 parser, ~550 lines eliminated)
+- BaseImportCommand for consistent CLI behavior
 - Polymorphic relationships (universal design)
 - Single Responsibility principle
 - Custom exception handling
@@ -259,8 +282,8 @@ docker compose exec php php artisan search:configure-indexes
 
 ---
 
-**Last Updated:** 2025-11-25
-**Next Session:** Optional enhancements (API docs, performance, character builder) or new feature development
+**Last Updated:** 2025-11-26
+**Next Session:** Complete remaining Class detail page fixes (#12, #13) or new feature development
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

@@ -808,6 +808,7 @@ Using `EntityPrerequisite` polymorphic table:
 - [ ] Create `OptionalFeatureXmlParser`
 - [ ] Create `OptionalFeatureImporter`
 - [ ] Create `import:optional-features` Artisan command
+- [ ] **Update `import:all` command** to include optional features in import order
 - [ ] Test import with PHB file
 - [ ] Test import with TCE file
 - [ ] Test import with XGE file
@@ -838,8 +839,12 @@ Using `EntityPrerequisite` polymorphic table:
 ### Phase 6: Documentation (~1 hour)
 - [ ] Add PHPDoc to controller (Scramble-compatible, with examples)
 - [ ] Run `/update-docs` slash command for OpenAPI documentation
+- [ ] **Update CLAUDE.md** with:
+  - New entity in API Endpoints section
+  - Import order for optional features
+  - New artisan command documentation
 - [ ] Update API-EXAMPLES.md
-- [ ] Update PROJECT-STATUS.md
+- [ ] Update PROJECT-STATUS.md (test count, entity count)
 - [ ] Create session handover
 
 ---

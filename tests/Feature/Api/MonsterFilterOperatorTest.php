@@ -150,7 +150,8 @@ class MonsterFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_has_legendary_actions_with_equals_true(): void
     {
-        $legendaryCount = Monster::whereNotNull('legendary_actions')->count();
+        // has_legendary_actions is computed from legendaryActions relationship (non-lair only)
+        $legendaryCount = Monster::whereHas('legendaryActions', fn ($q) => $q->where('is_lair_action', false))->count();
 
         $response = $this->getJson('/api/v1/monsters?filter=has_legendary_actions = true');
 
@@ -161,7 +162,7 @@ class MonsterFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_has_legendary_actions_with_equals_false(): void
     {
-        $nonLegendaryCount = Monster::whereNull('legendary_actions')->count();
+        $nonLegendaryCount = Monster::whereDoesntHave('legendaryActions', fn ($q) => $q->where('is_lair_action', false))->count();
 
         $response = $this->getJson('/api/v1/monsters?filter=has_legendary_actions = false');
 
@@ -172,7 +173,7 @@ class MonsterFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_has_legendary_actions_with_not_equals_true(): void
     {
-        $nonLegendaryCount = Monster::whereNull('legendary_actions')->count();
+        $nonLegendaryCount = Monster::whereDoesntHave('legendaryActions', fn ($q) => $q->where('is_lair_action', false))->count();
 
         $response = $this->getJson('/api/v1/monsters?filter=has_legendary_actions != true');
 
@@ -183,7 +184,7 @@ class MonsterFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_has_legendary_actions_with_not_equals_false(): void
     {
-        $legendaryCount = Monster::whereNotNull('legendary_actions')->count();
+        $legendaryCount = Monster::whereHas('legendaryActions', fn ($q) => $q->where('is_lair_action', false))->count();
 
         $response = $this->getJson('/api/v1/monsters?filter=has_legendary_actions != false');
 
@@ -198,23 +199,48 @@ class MonsterFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_source_codes_with_in(): void
     {
-        // Filter for monsters from Monster Manual
-        $response = $this->getJson('/api/v1/monsters?filter=source_codes IN [MM]&per_page=100');
+        // Count monsters with any sources via relationship
+        $monstersWithSources = Monster::has('sources')->count();
+
+        if ($monstersWithSources === 0) {
+            $this->markTestSkipped('No monsters have source associations in imported data');
+        }
+
+        // Get the first available source code
+        $firstMonsterWithSource = Monster::has('sources')->first();
+        $sourceCode = $firstMonsterWithSource->sources->first()->source->code;
+
+        // Count monsters with that source
+        $sourceCount = Monster::whereHas('sources', fn ($q) => $q->whereHas('source', fn ($sq) => $sq->where('code', $sourceCode)))->count();
+
+        // Filter for monsters from that source
+        $response = $this->getJson("/api/v1/monsters?filter=source_codes IN [{$sourceCode}]&per_page=100");
 
         $response->assertOk();
-        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find MM monsters');
+        $this->assertEquals($sourceCount, $response->json('meta.total'));
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_source_codes_with_not_in(): void
     {
-        $totalMonsters = Monster::count();
-        $mmMonsters = Monster::whereHas('sources', fn ($q) => $q->where('code', 'MM'))->count();
+        $monstersWithSources = Monster::has('sources')->count();
 
-        $response = $this->getJson('/api/v1/monsters?filter=source_codes NOT IN [MM]');
+        if ($monstersWithSources === 0) {
+            $this->markTestSkipped('No monsters have source associations in imported data');
+        }
+
+        $totalMonsters = Monster::count();
+
+        // Get any source that exists
+        $firstMonsterWithSource = Monster::has('sources')->first();
+        $sourceCode = $firstMonsterWithSource->sources->first()->source->code;
+
+        $sourceMonsters = Monster::whereHas('sources', fn ($q) => $q->whereHas('source', fn ($sq) => $sq->where('code', $sourceCode)))->count();
+
+        $response = $this->getJson("/api/v1/monsters?filter=source_codes NOT IN [{$sourceCode}]");
 
         $response->assertOk();
-        // Should return all non-MM monsters
-        $this->assertEquals($totalMonsters - $mmMonsters, $response->json('meta.total'));
+        // Should return all non-source monsters
+        $this->assertEquals($totalMonsters - $sourceMonsters, $response->json('meta.total'));
     }
 }

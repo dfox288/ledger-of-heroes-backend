@@ -20,6 +20,44 @@ abstract class TestCase extends BaseTestCase
     protected $seed = true;
 
     /**
+     * Store original error/exception handlers to restore after test.
+     *
+     * PHPUnit 11 tracks changes to global handlers and marks tests as risky if
+     * they're not restored. Guzzle (used by Meilisearch) temporarily sets handlers
+     * during HTTP requests, which triggers this warning. We save the handlers at
+     * test start and restore them in tearDown to prevent risky test warnings.
+     */
+    private mixed $savedErrorHandler = null;
+
+    private mixed $savedExceptionHandlerForRestore = null;
+
+    protected function setUp(): void
+    {
+        // Capture current handlers before test runs
+        $this->savedErrorHandler = set_error_handler(fn () => false);
+        restore_error_handler();
+
+        $this->savedExceptionHandlerForRestore = set_exception_handler(fn () => null);
+        restore_exception_handler();
+
+        parent::setUp();
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        // Restore handlers to state captured in setUp
+        // This prevents PHPUnit 11 risky test warnings from Guzzle/Meilisearch
+        if ($this->savedErrorHandler !== null) {
+            set_error_handler($this->savedErrorHandler);
+        }
+        if ($this->savedExceptionHandlerForRestore !== null) {
+            set_exception_handler($this->savedExceptionHandlerForRestore);
+        }
+    }
+
+    /**
      * Scout test isolation notes:
      *
      * Tests use SCOUT_PREFIX=test_ (configured in phpunit.xml) which creates separate indexes:

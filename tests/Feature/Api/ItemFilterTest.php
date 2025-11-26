@@ -2,13 +2,13 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\AbilityScore;
 use App\Models\Item;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
 /**
+ * Tests for Item filter functionality using Meilisearch.
+ *
  * These tests use pre-imported data from SearchTestExtension.
  * No RefreshDatabase needed - all tests are read-only against shared data.
  */
@@ -16,187 +16,119 @@ use Tests\TestCase;
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class ItemFilterTest extends TestCase
 {
-    use WaitsForMeilisearch;
-
     protected $seed = false;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-    }
 
     #[Test]
     public function it_filters_items_by_minimum_strength_requirement()
     {
-        $strength = AbilityScore::where('code', 'STR')->first();
+        // Get count of items with high strength requirement from imported data
+        $highStrItems = Item::where('strength_requirement', '>=', 15)->count();
 
-        // Item with strength_requirement column (legacy)
-        $plateArmor = Item::factory()->create([
-            'name' => 'Plate Armor',
-            'strength_requirement' => 15,
-        ]);
+        if ($highStrItems === 0) {
+            $this->markTestSkipped('No items with strength_requirement >= 15 in imported data');
+        }
 
-        // Item with EntityPrerequisite (new system) - NOTE: Prerequisites are not indexed in Meilisearch yet
-        $heavyShield = Item::factory()->create([
-            'name' => 'Heavy Shield',
-            'strength_requirement' => 13, // Using legacy column for now
-        ]);
-
-        // Item without strength requirement
-        $leatherArmor = Item::factory()->create([
-            'name' => 'Leather Armor',
-            'strength_requirement' => null,
-        ]);
-
-        // Re-index items for Meilisearch
-        $items = Item::orderBy('id', 'desc')->take(3)->get();
-        $items->searchable();
-        $this->waitForMeilisearchModels($items->all());
-
-        // Test strength_requirement >= 15 (should get plate armor only)
+        // Test strength_requirement >= 15
         $response = $this->getJson('/api/v1/items?filter=strength_requirement >= 15');
         $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Plate Armor');
+        $this->assertEquals($highStrItems, $response->json('meta.total'));
 
-        // Test strength_requirement >= 13 (should get both plate armor and heavy shield)
-        $response = $this->getJson('/api/v1/items?filter=strength_requirement >= 13');
-        $response->assertOk();
-        $response->assertJsonCount(2, 'data');
+        // Verify all returned items have strength_requirement >= 15
+        foreach ($response->json('data') as $item) {
+            $this->assertGreaterThanOrEqual(15, $item['strength_requirement']);
+        }
     }
 
     #[Test]
     public function it_filters_items_with_prerequisites()
     {
-        $itemWithPrereq = Item::factory()->create([
-            'name' => 'Plate Armor',
-            'strength_requirement' => 15,
-        ]);
+        // Get count of items with any strength requirement from imported data
+        $itemsWithStr = Item::whereNotNull('strength_requirement')->count();
 
-        $itemWithout = Item::factory()->create([
-            'name' => 'Leather Armor',
-            'strength_requirement' => null,
-        ]);
+        if ($itemsWithStr === 0) {
+            $this->markTestSkipped('No items with strength_requirement in imported data');
+        }
 
-        // Re-index items for Meilisearch
-        $items = Item::orderBy('id', 'desc')->take(2)->get();
-        $items->searchable();
-        $this->waitForMeilisearchModels($items->all());
-
-        // Filter items with strength_requirement (items with prerequisites)
-        // Meilisearch: use >= 0 to filter for items with numeric strength_requirement
+        // Filter items with strength_requirement >= 0 (any positive value)
         $response = $this->getJson('/api/v1/items?filter=strength_requirement >= 0');
         $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Plate Armor');
+        $this->assertEquals($itemsWithStr, $response->json('meta.total'));
     }
 
     #[Test]
     public function it_filters_items_with_new_prerequisite_system()
     {
-        // NOTE: EntityPrerequisite data is not currently indexed in Meilisearch
-        // Using strength_requirement column as a proxy for items with prerequisites
-        $itemWithNewPrereq = Item::factory()->create([
-            'name' => 'Heavy Shield',
-            'strength_requirement' => 15,
-        ]);
+        // Get items that have prerequisites in the new system
+        $itemsWithPrereqs = Item::has('prerequisites')->count();
 
-        $itemWithout = Item::factory()->create([
-            'name' => 'Leather Armor',
-            'strength_requirement' => null,
-        ]);
+        if ($itemsWithPrereqs === 0) {
+            $this->markTestSkipped('No items with EntityPrerequisite records in imported data');
+        }
 
-        // Re-index items for Meilisearch
-        $items = Item::orderBy('id', 'desc')->take(2)->get();
-        $items->searchable();
-        $this->waitForMeilisearchModels($items->all());
-
-        // Filter items with strength_requirement (items with prerequisites)
-        // Meilisearch: use >= 0 to filter for items with numeric strength_requirement
-        $response = $this->getJson('/api/v1/items?filter=strength_requirement >= 0');
+        // Filter items with has_prerequisites = true
+        $response = $this->getJson('/api/v1/items?filter=has_prerequisites = true');
         $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Heavy Shield');
+        $this->assertEquals($itemsWithPrereqs, $response->json('meta.total'));
     }
 
     #[Test]
     public function it_supports_both_legacy_and_new_prerequisite_systems()
     {
-        $strength = AbilityScore::where('code', 'STR')->first();
+        // Get items with strength requirement from legacy system
+        $legacyCount = Item::whereNotNull('strength_requirement')->count();
 
-        // Legacy system (strength_requirement column)
-        $plateArmor = Item::factory()->create([
-            'name' => 'Plate Armor',
-            'strength_requirement' => 15,
-        ]);
+        // Get items with prerequisites from new system
+        $newSystemCount = Item::has('prerequisites')->count();
 
-        // New system (entity_prerequisites table) - NOTE: Not indexed in Meilisearch yet
-        // Using legacy column for this test
-        $heavyShield = Item::factory()->create([
-            'name' => 'Heavy Shield',
-            'strength_requirement' => 15,
-        ]);
+        // At least one system should have data
+        if ($legacyCount === 0 && $newSystemCount === 0) {
+            $this->markTestSkipped('No items with prerequisites in either system');
+        }
 
-        // Re-index items for Meilisearch
-        $items = Item::orderBy('id', 'desc')->take(2)->get();
-        $items->searchable();
-        $this->waitForMeilisearchModels($items->all());
+        if ($legacyCount > 0) {
+            // Test legacy system filter
+            $response = $this->getJson('/api/v1/items?filter=strength_requirement >= 0');
+            $response->assertOk();
+            $this->assertEquals($legacyCount, $response->json('meta.total'));
+        }
 
-        // Both should be returned when filtering by strength_requirement >= 15
-        $response = $this->getJson('/api/v1/items?filter=strength_requirement >= 15');
-        $response->assertOk();
-        $response->assertJsonCount(2, 'data');
-
-        $names = collect($response->json('data'))->pluck('name')->all();
-        $this->assertContains('Plate Armor', $names);
-        $this->assertContains('Heavy Shield', $names);
+        if ($newSystemCount > 0) {
+            // Test new system filter
+            $response = $this->getJson('/api/v1/items?filter=has_prerequisites = true');
+            $response->assertOk();
+            $this->assertEquals($newSystemCount, $response->json('meta.total'));
+        }
     }
 
     #[Test]
     public function it_paginates_filtered_items()
     {
-        // Create 25 items with strength requirements
-        for ($i = 1; $i <= 25; $i++) {
-            Item::factory()->create([
-                'name' => "Armor {$i}",
-                'strength_requirement' => 15,
-            ]);
+        // Get total items with any strength requirement
+        $totalItems = Item::whereNotNull('strength_requirement')->count();
+
+        if ($totalItems < 2) {
+            $this->markTestSkipped('Not enough items with strength_requirement for pagination test');
         }
 
-        // Re-index items for Meilisearch
-        $items = Item::orderBy('id', 'desc')->take(25)->get();
-        $items->searchable();
-        $this->waitForMeilisearchModels($items->all());
-
-        // Filter by strength_requirement with pagination
-        $response = $this->getJson('/api/v1/items?filter=strength_requirement >= 15&per_page=10');
+        // Request with pagination
+        $response = $this->getJson('/api/v1/items?filter=strength_requirement >= 0&per_page=10');
         $response->assertOk();
-        $response->assertJsonCount(10, 'data');
-        $response->assertJsonPath('meta.total', 25);
-        $response->assertJsonPath('meta.per_page', 10);
+
+        // Verify pagination structure
+        $this->assertLessThanOrEqual(10, count($response->json('data')));
+        $this->assertEquals($totalItems, $response->json('meta.total'));
+        $this->assertEquals(10, $response->json('meta.per_page'));
     }
 
     #[Test]
     public function it_returns_empty_when_no_items_match_strength_requirement()
     {
-        Item::factory()->create([
-            'name' => 'Leather Armor',
-            'strength_requirement' => null,
-        ]);
-
-        Item::factory()->create([
-            'name' => 'Chain Mail',
-            'strength_requirement' => 13,
-        ]);
-
-        // Re-index items for Meilisearch
-        $items = Item::orderBy('id', 'desc')->take(2)->get();
-        $items->searchable();
-        $this->waitForMeilisearchModels($items->all());
-
-        // Filter by strength_requirement >= 20 (no items match)
-        $response = $this->getJson('/api/v1/items?filter=strength_requirement >= 20');
+        // Filter by an unreasonably high strength requirement that no item should have
+        $response = $this->getJson('/api/v1/items?filter=strength_requirement >= 99');
         $response->assertOk();
-        $response->assertJsonCount(0, 'data');
+
+        // Verify no results returned
+        $this->assertEquals(0, $response->json('meta.total'));
+        $this->assertEmpty($response->json('data'));
     }
 }

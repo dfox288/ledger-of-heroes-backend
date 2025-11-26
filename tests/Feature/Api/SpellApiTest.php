@@ -52,7 +52,7 @@ class SpellApiTest extends TestCase
     #[Test]
     public function can_search_spells()
     {
-        $response = $this->getJson('/api/v1/spells?search=fireball');
+        $response = $this->getJson('/api/v1/spells?q=fireball');
 
         $response->assertStatus(200);
 

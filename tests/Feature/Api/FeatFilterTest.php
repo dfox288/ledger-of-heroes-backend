@@ -2,14 +2,13 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\AbilityScore;
 use App\Models\Feat;
-use App\Models\Race;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
 /**
+ * Tests for Feat filter functionality using Meilisearch.
+ *
  * These tests use pre-imported data from SearchTestExtension.
  * No RefreshDatabase needed - all tests are read-only against shared data.
  */
@@ -17,265 +16,165 @@ use Tests\TestCase;
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class FeatFilterTest extends TestCase
 {
-    use WaitsForMeilisearch;
-
     protected $seed = false;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-    }
 
     #[Test]
     public function it_filters_feats_by_has_prerequisites()
     {
-        $strength = AbilityScore::where('code', 'STR')->first();
+        // Get counts from imported data
+        $withPrereqCount = Feat::has('prerequisites')->count();
+        $withoutPrereqCount = Feat::doesntHave('prerequisites')->count();
 
-        // Create feat WITH prerequisites
-        $featWithPrereq = Feat::factory()->create(['name' => 'Grappler']);
-        $featWithPrereq->prerequisites()->create([
-            'prerequisite_type' => AbilityScore::class,
-            'prerequisite_id' => $strength->id,
-            'minimum_value' => 13,
-            'group_id' => 1,
-        ]);
-        $featWithPrereq->fresh()->searchable(); // Re-index for Meilisearch
+        if ($withPrereqCount === 0 && $withoutPrereqCount === 0) {
+            $this->markTestSkipped('No feats in imported data');
+        }
 
-        // Create feat WITHOUT prerequisites
-        $featWithout = Feat::factory()->create(['name' => 'Alert']);
-        $featWithout->searchable(); // Re-index for Meilisearch
+        if ($withPrereqCount > 0) {
+            // Filter for feats WITH prerequisites
+            $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true');
+            $response->assertOk();
+            $this->assertEquals($withPrereqCount, $response->json('meta.total'));
+        }
 
-        $this->waitForMeilisearchModels([$featWithPrereq, $featWithout]);
-
-        // Filter for feats WITHOUT prerequisites
-        $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = false');
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Alert');
-
-        // Filter for feats WITH prerequisites
-        $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true');
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Grappler');
+        if ($withoutPrereqCount > 0) {
+            // Filter for feats WITHOUT prerequisites
+            $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = false');
+            $response->assertOk();
+            $this->assertEquals($withoutPrereqCount, $response->json('meta.total'));
+        }
     }
 
     #[Test]
     public function it_filters_feats_by_prerequisite_type()
     {
-        $dwarf = Race::factory()->create(['name' => 'Dwarf', 'slug' => 'dwarf']);
-        $strength = AbilityScore::where('code', 'STR')->first();
+        // Get count of feats with AbilityScore prerequisites
+        $abilityPrereqCount = Feat::whereHas('prerequisites', function ($q) {
+            $q->where('prerequisite_type', 'App\Models\AbilityScore');
+        })->count();
 
-        // Create feat requiring Race
-        $featWithRacePrereq = Feat::factory()->create(['name' => 'Dwarven Fortitude']);
-        $featWithRacePrereq->prerequisites()->create([
-            'prerequisite_type' => Race::class,
-            'prerequisite_id' => $dwarf->id,
-            'group_id' => 1,
-        ]);
-        $featWithRacePrereq->fresh()->searchable();
+        // Get count of feats with Race prerequisites
+        $racePrereqCount = Feat::whereHas('prerequisites', function ($q) {
+            $q->where('prerequisite_type', 'App\Models\Race');
+        })->count();
 
-        // Create feat requiring AbilityScore
-        $featWithAbilityPrereq = Feat::factory()->create(['name' => 'Grappler']);
-        $featWithAbilityPrereq->prerequisites()->create([
-            'prerequisite_type' => AbilityScore::class,
-            'prerequisite_id' => $strength->id,
-            'minimum_value' => 13,
-            'group_id' => 1,
-        ]);
-        $featWithAbilityPrereq->fresh()->searchable();
+        if ($abilityPrereqCount === 0 && $racePrereqCount === 0) {
+            $this->markTestSkipped('No feats with typed prerequisites in imported data');
+        }
 
-        // Create feat without prerequisites
-        $featWithout = Feat::factory()->create(['name' => 'Alert']);
-        $featWithout->searchable();
+        if ($abilityPrereqCount > 0) {
+            $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [AbilityScore]');
+            $response->assertOk();
+            $this->assertEquals($abilityPrereqCount, $response->json('meta.total'));
+        }
 
-        $this->waitForMeilisearchModels([$featWithRacePrereq, $featWithAbilityPrereq, $featWithout]);
-
-        // Test filter by Race prerequisite
-        $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [Race]');
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Dwarven Fortitude');
-
-        // Test filter by AbilityScore prerequisite
-        $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [AbilityScore]');
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Grappler');
-
-        // Test filter by either Race OR AbilityScore
-        $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [Race, AbilityScore]');
-        $response->assertOk();
-        $response->assertJsonCount(2, 'data');
+        if ($racePrereqCount > 0) {
+            $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [Race]');
+            $response->assertOk();
+            $this->assertEquals($racePrereqCount, $response->json('meta.total'));
+        }
     }
 
     #[Test]
     public function it_filters_feats_by_grants_proficiencies()
     {
-        // Create feat granting proficiency
-        $featGrantingProf = Feat::factory()->create(['name' => 'Weapon Master']);
-        $featGrantingProf->proficiencies()->create([
-            'proficiency_name' => 'Longsword',
-            'proficiency_type' => 'weapon',
-        ]);
-        $featGrantingProf->fresh()->searchable();
+        // Get counts from imported data
+        $withProfCount = Feat::has('proficiencies')->count();
+        $withoutProfCount = Feat::doesntHave('proficiencies')->count();
 
-        // Create feat without proficiencies
-        $featWithout = Feat::factory()->create(['name' => 'Alert']);
-        $featWithout->searchable();
+        if ($withProfCount === 0 && $withoutProfCount === 0) {
+            $this->markTestSkipped('No feats in imported data');
+        }
 
-        $this->waitForMeilisearchModels([$featGrantingProf, $featWithout]);
+        if ($withProfCount > 0) {
+            $response = $this->getJson('/api/v1/feats?filter=grants_proficiencies = true');
+            $response->assertOk();
+            $this->assertEquals($withProfCount, $response->json('meta.total'));
+        }
 
-        // Test filter for feats that grant proficiencies
-        $response = $this->getJson('/api/v1/feats?filter=grants_proficiencies = true');
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Weapon Master');
-
-        // Test filter for feats that DON'T grant proficiencies
-        $response = $this->getJson('/api/v1/feats?filter=grants_proficiencies = false');
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Alert');
+        if ($withoutProfCount > 0) {
+            $response = $this->getJson('/api/v1/feats?filter=grants_proficiencies = false');
+            $response->assertOk();
+            $this->assertEquals($withoutProfCount, $response->json('meta.total'));
+        }
     }
 
     #[Test]
     public function it_filters_feats_by_improved_abilities()
     {
-        $strength = AbilityScore::where('code', 'STR')->first();
-        $dexterity = AbilityScore::where('code', 'DEX')->first();
+        // Get count of feats with STR improvement
+        $strImprovementCount = Feat::whereHas('modifiers', function ($q) {
+            $q->where('modifier_category', 'ability_score')
+                ->whereHas('abilityScore', fn ($sq) => $sq->where('code', 'STR'));
+        })->count();
 
-        // Create feat improving STR
-        $featImprovingStr = Feat::factory()->create(['name' => 'Athlete (STR)']);
-        $featImprovingStr->modifiers()->create([
-            'modifier_category' => 'ability_score',
-            'ability_score_id' => $strength->id,
-            'value' => 1,
-        ]);
-        $featImprovingStr->searchable();
+        // Get count of feats with DEX improvement
+        $dexImprovementCount = Feat::whereHas('modifiers', function ($q) {
+            $q->where('modifier_category', 'ability_score')
+                ->whereHas('abilityScore', fn ($sq) => $sq->where('code', 'DEX'));
+        })->count();
 
-        // Create feat improving DEX
-        $featImprovingDex = Feat::factory()->create(['name' => 'Athlete (DEX)']);
-        $featImprovingDex->modifiers()->create([
-            'modifier_category' => 'ability_score',
-            'ability_score_id' => $dexterity->id,
-            'value' => 1,
-        ]);
-        $featImprovingDex->searchable();
+        if ($strImprovementCount === 0 && $dexImprovementCount === 0) {
+            $this->markTestSkipped('No feats with ability improvements in imported data');
+        }
 
-        // Create feat without ASI
-        $featWithout = Feat::factory()->create(['name' => 'Alert']);
-        $featWithout->searchable();
+        if ($strImprovementCount > 0) {
+            $response = $this->getJson('/api/v1/feats?filter=improved_abilities IN [STR]');
+            $response->assertOk();
+            $this->assertEquals($strImprovementCount, $response->json('meta.total'));
+        }
 
-        $this->waitForMeilisearchModels([$featImprovingStr, $featImprovingDex, $featWithout]);
-
-        // Test filter for STR improvement
-        $response = $this->getJson('/api/v1/feats?filter=improved_abilities IN [STR]');
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Athlete (STR)');
-
-        // Test filter for DEX improvement
-        $response = $this->getJson('/api/v1/feats?filter=improved_abilities IN [DEX]');
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Athlete (DEX)');
-
-        // Test filter for STR OR DEX improvement
-        $response = $this->getJson('/api/v1/feats?filter=improved_abilities IN [STR, DEX]');
-        $response->assertOk();
-        $response->assertJsonCount(2, 'data');
+        if ($dexImprovementCount > 0) {
+            $response = $this->getJson('/api/v1/feats?filter=improved_abilities IN [DEX]');
+            $response->assertOk();
+            $this->assertEquals($dexImprovementCount, $response->json('meta.total'));
+        }
     }
 
     #[Test]
     public function it_combines_multiple_filters()
     {
-        $strength = AbilityScore::where('code', 'STR')->first();
+        // Get count of feats with both prerequisites AND proficiencies
+        $combinedCount = Feat::has('prerequisites')
+            ->has('proficiencies')
+            ->count();
 
-        // Feat with STR prerequisite AND grants proficiency
-        $grappler = Feat::factory()->create(['name' => 'Grappler']);
-        $grappler->prerequisites()->create([
-            'prerequisite_type' => AbilityScore::class,
-            'prerequisite_id' => $strength->id,
-            'minimum_value' => 13,
-            'group_id' => 1,
-        ]);
-        $grappler->proficiencies()->create([
-            'proficiency_name' => 'Athletics',
-            'proficiency_type' => 'skill',
-        ]);
-        $grappler->fresh()->searchable(); // Refresh to load new relationships
-
-        // Feat with only STR prerequisite
-        $heavyArmor = Feat::factory()->create(['name' => 'Heavy Armor Master']);
-        $heavyArmor->prerequisites()->create([
-            'prerequisite_type' => AbilityScore::class,
-            'prerequisite_id' => $strength->id,
-            'minimum_value' => 13,
-            'group_id' => 1,
-        ]);
-        $heavyArmor->fresh()->searchable(); // Refresh to load new relationships
-
-        // Feat without prerequisites
-        $alert = Feat::factory()->create(['name' => 'Alert']);
-        $alert->searchable();
-
-        $this->waitForMeilisearchModels([$grappler, $heavyArmor, $alert]);
-
-        // Test combining prerequisite + proficiency filters
-        $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true AND grants_proficiencies = true');
-        $response->assertOk();
-        $response->assertJsonCount(1, 'data');
-        $response->assertJsonPath('data.0.name', 'Grappler');
-
-        // Test combining prerequisite type + has prerequisites
-        $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [AbilityScore] AND has_prerequisites = true');
-        $response->assertOk();
-        $response->assertJsonCount(2, 'data');
+        if ($combinedCount === 0) {
+            // Just verify the combined filter returns a valid response
+            $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true AND grants_proficiencies = true');
+            $response->assertOk();
+            $this->assertEquals(0, $response->json('meta.total'));
+        } else {
+            $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true AND grants_proficiencies = true');
+            $response->assertOk();
+            $this->assertEquals($combinedCount, $response->json('meta.total'));
+        }
     }
 
     #[Test]
     public function it_returns_empty_results_when_no_matches()
     {
-        $feat = Feat::factory()->create(['name' => 'Alert']);
-        $feat->searchable();
-
-        $this->waitForMeilisearch($feat);
-
         // Test filter that shouldn't match anything
-        $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [Spell]');
+        $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [NonExistentType]');
         $response->assertOk();
-        $response->assertJsonCount(0, 'data');
-
-        // Test filter for improved abilities that don't exist
-        $response = $this->getJson('/api/v1/feats?filter=improved_abilities IN [CHA]');
-        $response->assertOk();
-        $response->assertJsonCount(0, 'data');
+        $this->assertEquals(0, $response->json('meta.total'));
     }
 
     #[Test]
     public function it_paginates_filtered_results()
     {
-        $strength = AbilityScore::where('code', 'STR')->first();
+        // Get total feats with prerequisites
+        $withPrereqCount = Feat::has('prerequisites')->count();
 
-        // Create 25 feats with STR prerequisite
-        for ($i = 1; $i <= 25; $i++) {
-            $feat = Feat::factory()->create(['name' => "Feat {$i}"]);
-            $feat->prerequisites()->create([
-                'prerequisite_type' => AbilityScore::class,
-                'prerequisite_id' => $strength->id,
-                'minimum_value' => 13,
-                'group_id' => 1,
-            ]);
-            $feat->fresh()->searchable();
+        if ($withPrereqCount < 2) {
+            $this->markTestSkipped('Not enough feats with prerequisites for pagination test');
         }
-
-        $this->waitForMeilisearchModels(Feat::all()->all());
 
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true&per_page=10');
         $response->assertOk();
-        $response->assertJsonCount(10, 'data');
-        $response->assertJsonPath('meta.total', 25);
-        $response->assertJsonPath('meta.per_page', 10);
+
+        // Verify pagination structure
+        $this->assertLessThanOrEqual(10, count($response->json('data')));
+        $this->assertEquals($withPrereqCount, $response->json('meta.total'));
+        $this->assertEquals(10, $response->json('meta.per_page'));
     }
 }

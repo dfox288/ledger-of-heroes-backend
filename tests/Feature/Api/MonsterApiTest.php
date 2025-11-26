@@ -66,15 +66,16 @@ class MonsterApiTest extends TestCase
     #[Test]
     public function can_filter_monsters_by_challenge_rating()
     {
-        // Use pre-imported data - filter by CR 1/4
-        $response = $this->getJson('/api/v1/monsters?filter=challenge_rating = "1/4"');
+        // Use pre-imported data - filter by CR 0.25 (which is 1/4)
+        // Meilisearch stores challenge_rating as numeric, so 1/4 = 0.25
+        $response = $this->getJson('/api/v1/monsters?filter=challenge_rating = 0.25');
 
         $response->assertOk();
         $this->assertGreaterThan(0, count($response->json('data')), 'Expected some CR 1/4 monsters');
 
-        // Verify all results match the filter
+        // Verify all results match the filter (API returns original string format)
         $challengeRatings = collect($response->json('data'))->pluck('challenge_rating')->unique();
-        $this->assertEquals(['1/4'], $challengeRatings->all());
+        $this->assertEquals(['1/4'], $challengeRatings->values()->all());
     }
 
     #[Test]

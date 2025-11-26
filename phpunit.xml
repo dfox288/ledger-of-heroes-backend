@@ -8,15 +8,7 @@
         <bootstrap class="Tests\Support\SearchTestExtension"/>
     </extensions>
     <testsuites>
-        <!-- Original suites (kept for backwards compatibility) -->
-        <testsuite name="Unit">
-            <directory>tests/Unit</directory>
-        </testsuite>
-        <testsuite name="Feature">
-            <directory>tests/Feature</directory>
-        </testsuite>
-
-        <!-- === NEW: Granular Test Suites for Targeted Testing === -->
+        <!-- === Granular Test Suites for Targeted Testing === -->
 
         <!-- Unit-Pure: No database, no external services (approx 5s) -->
         <testsuite name="Unit-Pure">

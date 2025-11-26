@@ -292,6 +292,14 @@ class ClassImporter extends BaseImporter
      */
     public function importWithMerge(array $data, MergeMode $mode = MergeMode::CREATE): CharacterClass
     {
+        // Apply strategies to transform raw data (e.g., resolve spellcasting_ability to ID)
+        // This must happen before merge to ensure spellcasting_ability_id is populated
+        foreach ($this->strategies as $strategy) {
+            if ($strategy->appliesTo($data)) {
+                $data = $strategy->enhance($data);
+            }
+        }
+
         $slug = $this->generateSlug($data['name']);
         $existingClass = CharacterClass::where('slug', $slug)->first();
 
@@ -318,13 +326,44 @@ class ClassImporter extends BaseImporter
     /**
      * Merge supplement data (subclasses, features) into existing class.
      *
+     * Also updates base class attributes (hit_die, spellcasting_ability) if the
+     * incoming data has valid values and existing class has missing/zero values.
+     * This handles cases where supplement files (DMG, XGE) are imported before
+     * the base PHB file due to alphabetical ordering.
+     *
      * @param  CharacterClass  $existingClass  Base class from PHB
-     * @param  array  $supplementData  Data from XGE/TCE/SCAG
+     * @param  array  $supplementData  Data from XGE/TCE/SCAG or PHB
      */
     private function mergeSupplementData(CharacterClass $existingClass, array $supplementData): CharacterClass
     {
         $mergedSubclasses = 0;
         $skippedSubclasses = 0;
+        $baseClassUpdated = false;
+
+        // Merge base class attributes if incoming data has valid values
+        // This fixes the issue where supplement files (DMG) are imported before PHB
+        // due to alphabetical ordering, leaving hit_die=0 and spellcasting_ability=null
+        if ($this->shouldUpdateBaseClassAttributes($existingClass, $supplementData)) {
+            $updates = [];
+
+            if (($supplementData['hit_die'] ?? 0) > 0 && $existingClass->hit_die === 0) {
+                $updates['hit_die'] = $supplementData['hit_die'];
+            }
+
+            if (! empty($supplementData['spellcasting_ability_id']) && $existingClass->spellcasting_ability_id === null) {
+                $updates['spellcasting_ability_id'] = $supplementData['spellcasting_ability_id'];
+            }
+
+            if (! empty($updates)) {
+                $existingClass->update($updates);
+                $baseClassUpdated = true;
+
+                Log::channel('import-strategy')->info('Updated base class attributes', [
+                    'class' => $existingClass->name,
+                    'updates' => $updates,
+                ]);
+            }
+        }
 
         // Get existing subclass names to prevent duplicates
         $existingSubclassNames = $existingClass->subclasses()
@@ -355,11 +394,31 @@ class ClassImporter extends BaseImporter
 
         Log::channel('import-strategy')->info('Merged supplement data', [
             'class' => $existingClass->name,
+            'base_class_updated' => $baseClassUpdated,
             'subclasses_merged' => $mergedSubclasses,
             'subclasses_skipped' => $skippedSubclasses,
         ]);
 
         return $existingClass->fresh(); // Reload to get new subclasses
+    }
+
+    /**
+     * Determine if base class attributes should be updated from incoming data.
+     *
+     * Returns true if:
+     * - Existing class has hit_die=0 (invalid) and incoming has hit_die>0
+     * - Existing class has null spellcasting_ability and incoming has one
+     */
+    private function shouldUpdateBaseClassAttributes(CharacterClass $existingClass, array $data): bool
+    {
+        // Check if existing class is missing critical data
+        $existingMissingData = $existingClass->hit_die === 0
+            || ($existingClass->spellcasting_ability_id === null && ! empty($data['spellcasting_ability_id']));
+
+        // Check if incoming data has valid values
+        $incomingHasValidData = ($data['hit_die'] ?? 0) > 0;
+
+        return $existingMissingData && $incomingHasValidData;
     }
 
     /**

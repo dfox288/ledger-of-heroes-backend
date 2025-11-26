@@ -2,6 +2,7 @@
 
 namespace App\Services\Parsers;
 
+use App\Services\Parsers\Concerns\ConvertsWordNumbers;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesModifiers;
@@ -12,7 +13,7 @@ use SimpleXMLElement;
 
 class ClassXmlParser
 {
-    use MapsAbilityCodes, MatchesProficiencyTypes, ParsesModifiers, ParsesRolls, ParsesSourceCitations, ParsesTraits;
+    use ConvertsWordNumbers, MapsAbilityCodes, MatchesProficiencyTypes, ParsesModifiers, ParsesRolls, ParsesSourceCitations, ParsesTraits;
 
     /**
      * Parse classes from XML string.
@@ -798,7 +799,7 @@ class ClassXmlParser
                         // Extract quantity if present
                         $quantity = 1;
                         if (preg_match('/^(two|three|four|five|six|seven|eight|nine|ten|twenty)\s+/i', $choiceText, $qtyMatch)) {
-                            $quantity = $this->convertWordToNumber(strtolower($qtyMatch[1]));
+                            $quantity = $this->wordToNumber($qtyMatch[1]);
                             $choiceText = preg_replace('/^(two|three|four|five|six|seven|eight|nine|ten|twenty)\s+/i', '', $choiceText);
                         }
 
@@ -829,7 +830,7 @@ class ClassXmlParser
                     // Handle: two, three, four, five, six, seven, eight, nine, ten, twenty
                     $quantity = 1;
                     if (preg_match('/^(two|three|four|five|six|seven|eight|nine|ten|twenty)\s+(.+)/i', $part, $qtyMatch)) {
-                        $quantity = $this->convertWordToNumber(strtolower($qtyMatch[1]));
+                        $quantity = $this->wordToNumber($qtyMatch[1]);
                         $part = $qtyMatch[2]; // Item name after quantity
                     }
 
@@ -851,29 +852,6 @@ class ClassXmlParser
         }
 
         return $items;
-    }
-
-    /**
-     * Convert word numbers to integers.
-     *
-     * @param  string  $word  Number word (e.g., "two")
-     */
-    private function convertWordToNumber(string $word): int
-    {
-        return match (strtolower($word)) {
-            'one' => 1,
-            'two' => 2,
-            'three' => 3,
-            'four' => 4,
-            'five' => 5,
-            'six' => 6,
-            'seven' => 7,
-            'eight' => 8,
-            'nine' => 9,
-            'ten' => 10,
-            'twenty' => 20,
-            default => 1,
-        };
     }
 
     /**

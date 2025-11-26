@@ -59,7 +59,24 @@ trait MatchesLanguages
         $sentences = preg_split('/\.(?:\s|$)/', $text, 2);
         $remainingText = $sentences[0] ?? $text;
 
-        // Pattern 1: Extract choice slots (must be done first to avoid matching language names within)
+        // Pattern 1a: Handle "X of your choice" format (e.g., "Two of your choice")
+        // This is common in backgrounds and must be checked first
+        if (preg_match('/\b(one|two|three|four|any|a|an)\s+(?:of\s+your\s+choice)\b/i', $remainingText, $choiceMatch)) {
+            $quantity = $this->wordToNumber($choiceMatch[1]);
+
+            // Add choice slots
+            for ($i = 0; $i < $quantity; $i++) {
+                $results[] = [
+                    'slug' => null,
+                    'is_choice' => true,
+                ];
+            }
+
+            // Remove this match from remaining text
+            $remainingText = str_replace($choiceMatch[0], '', $remainingText);
+        }
+
+        // Pattern 1b: Extract choice slots with "languages" keyword
         // Matches: "one extra language", "two other languages", "any three languages"
         $choicePattern = '/\b(one|two|three|four|any|a|an)\s+(extra|other|additional)?\s*languages?\b/i';
         if (preg_match_all($choicePattern, $remainingText, $matches, PREG_OFFSET_CAPTURE)) {

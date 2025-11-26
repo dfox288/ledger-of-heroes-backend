@@ -17,6 +17,7 @@ class EntityLanguageResource extends JsonResource
         return [
             'language' => $this->when($this->language_id, new LanguageResource($this->whenLoaded('language'))),
             'is_choice' => $this->is_choice,
+            'quantity' => $this->when($this->is_choice, $this->quantity),
         ];
     }
 }

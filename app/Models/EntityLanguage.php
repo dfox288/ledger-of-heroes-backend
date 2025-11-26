@@ -12,12 +12,14 @@ class EntityLanguage extends BaseModel
         'reference_id',
         'language_id',
         'is_choice',
+        'quantity',
     ];
 
     protected $casts = [
         'reference_id' => 'integer',
         'language_id' => 'integer',
         'is_choice' => 'boolean',
+        'quantity' => 'integer',
     ];
 
     // Polymorphic relationship to parent entity (Race, Background, Class, etc.)

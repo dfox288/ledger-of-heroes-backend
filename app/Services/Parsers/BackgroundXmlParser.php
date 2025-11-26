@@ -140,7 +140,7 @@ class BackgroundXmlParser
 
     /**
      * Parse languages from trait Description text.
-     * Pattern: "• Languages: One of your choice" or "• Languages: Common"
+     * Pattern: "• Languages: Two of your choice" or "• Languages: Common"
      */
     private function parseLanguagesFromTraitText(string $text): array
     {
@@ -150,12 +150,15 @@ class BackgroundXmlParser
 
         $languageText = trim($matches[1]);
 
-        // Check for "one of your choice" or similar choice patterns
-        if (preg_match('/one.*?choice/i', $languageText)) {
+        // Check for "X of your choice" patterns (e.g., "One of your choice", "Two of your choice")
+        // Uses wordToNumber() from ConvertsWordNumbers trait (via MatchesLanguages)
+        if (preg_match('/\b(one|two|three|four|any)\b.*?\bchoice\b/i', $languageText, $choiceMatch)) {
+            $quantity = $this->wordToNumber($choiceMatch[1]);
+
             return [[
                 'language_id' => null,
                 'is_choice' => true,
-                'quantity' => 1,
+                'quantity' => $quantity,
             ]];
         }
 

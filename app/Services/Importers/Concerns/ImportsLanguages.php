@@ -44,6 +44,7 @@ trait ImportsLanguages
                     'reference_id' => $entity->id,
                     'language_id' => null,
                     'is_choice' => true,
+                    'quantity' => $langData['quantity'] ?? 1,
                 ]);
 
                 continue;

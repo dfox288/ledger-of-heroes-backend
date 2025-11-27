@@ -37,18 +37,20 @@ class TestDatabaseSeeder extends Seeder
             LanguageSeeder::class,
         ]);
 
-        // Step 2: Entity fixtures (will be added in Phase 2)
-        // Commented out until fixture seeders exist:
-        // $this->call([
-        //     Testing\ItemFixtureSeeder::class,
-        //     Testing\ClassFixtureSeeder::class,
-        //     Testing\SpellFixtureSeeder::class,
-        //     Testing\RaceFixtureSeeder::class,
-        //     Testing\BackgroundFixtureSeeder::class,
-        //     Testing\FeatFixtureSeeder::class,
-        //     Testing\MonsterFixtureSeeder::class,
-        //     Testing\OptionalFeatureFixtureSeeder::class,
-        // ]);
+        // Step 2: Entity fixtures (order respects dependencies)
+        $this->call([
+            Testing\ItemFixtureSeeder::class,
+            Testing\ClassFixtureSeeder::class,
+            Testing\SpellFixtureSeeder::class,
+            Testing\RaceFixtureSeeder::class,
+            Testing\BackgroundFixtureSeeder::class,
+            Testing\FeatFixtureSeeder::class,
+            Testing\MonsterFixtureSeeder::class,
+            Testing\OptionalFeatureFixtureSeeder::class,
+        ]);
+
+        // Step 3: Index searchable models for Meilisearch
+        $this->indexSearchableModels();
     }
 
     /**

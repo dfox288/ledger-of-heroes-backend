@@ -1,0 +1,178 @@
+[
+    {
+        "name": "Agonizing Blast",
+        "slug": "agonizing-blast",
+        "feature_type": "eldritch_invocation",
+        "level_requirement": null,
+        "prerequisite_text": "eldritch blast cantrip",
+        "prerequisites": [],
+        "description": "Deserunt quis aut totam unde culpa sit saepe. Ullam sunt ipsa id qui vel fuga. Amet et vel magnam nam. Et molestiae odit possimus atque facilis.\n\nQuisquam explicabo eos occaecati ea. Fugiat ex impedit qui consequatur reiciendis. Et omnis facere non ab corrupti nisi.",
+        "casting_time": null,
+        "range": null,
+        "duration": null,
+        "spell_school": null,
+        "resource_type": null,
+        "resource_cost": null,
+        "classes": [
+            "warlock"
+        ],
+        "subclass_names": [],
+        "source": "TEST-XGE",
+        "pages": "110"
+    },
+    {
+        "name": "Fangs of the Fire Snake",
+        "slug": "fangs-of-the-fire-snake",
+        "feature_type": "elemental_discipline",
+        "level_requirement": null,
+        "prerequisite_text": null,
+        "prerequisites": [],
+        "description": "Eos qui provident labore quam aut. Nobis praesentium eum aut nisi voluptatem et rerum. Ut exercitationem nesciunt minima error iure iure et. Perspiciatis sed enim est voluptatem quibusdam.\n\nDolor enim quibusdam sed illum architecto aut. Quia atque voluptate similique odit blanditiis dolores modi. Libero quia adipisci explicabo sapiente eius aut sit. Dolores molestiae tenetur magni sint.",
+        "casting_time": "1 action",
+        "range": "Self",
+        "duration": "Instantaneous",
+        "spell_school": "C",
+        "resource_type": "ki_points",
+        "resource_cost": 6,
+        "classes": [
+            "monk"
+        ],
+        "subclass_names": [
+            "Way of the Four Elements"
+        ],
+        "source": "TEST-XGE",
+        "pages": "80"
+    },
+    {
+        "name": "Riposte",
+        "slug": "riposte",
+        "feature_type": "maneuver",
+        "level_requirement": 14,
+        "prerequisite_text": "Culpa aut et.",
+        "prerequisites": [],
+        "description": "Et voluptates nostrum laudantium placeat. Perferendis dolor aut distinctio velit eos. Deserunt magni praesentium assumenda molestias.\n\nEt et et earum. Ipsum nostrum ut excepturi dolores. Suscipit illo nemo nemo repellat inventore neque. Sint occaecati qui et quo nam accusantium.",
+        "casting_time": null,
+        "range": null,
+        "duration": null,
+        "spell_school": null,
+        "resource_type": "superiority_die",
+        "resource_cost": 1,
+        "classes": [
+            "fighter"
+        ],
+        "subclass_names": [
+            "Battle Master"
+        ],
+        "source": "TEST-XGE",
+        "pages": "74"
+    },
+    {
+        "name": "Quickened Spell",
+        "slug": "quickened-spell",
+        "feature_type": "metamagic",
+        "level_requirement": null,
+        "prerequisite_text": "Nam ipsa non aut assumenda.",
+        "prerequisites": [],
+        "description": "Sint et et soluta architecto rem. Libero modi dolor suscipit veniam voluptas. Fuga quis vitae eum totam quo molestiae tempore. Qui consequuntur quia reiciendis blanditiis.\n\nNisi magni doloribus perspiciatis voluptates amet. Omnis consequatur quia magni in consectetur sint est. Doloribus minima veritatis laboriosam fugiat id aliquam. Id dolorem aut et minima vero.",
+        "casting_time": null,
+        "range": null,
+        "duration": null,
+        "spell_school": null,
+        "resource_type": "sorcery_points",
+        "resource_cost": 2,
+        "classes": [
+            "sorcerer"
+        ],
+        "subclass_names": [],
+        "source": "TEST-XGE",
+        "pages": "102"
+    },
+    {
+        "name": "Archery",
+        "slug": "archery",
+        "feature_type": "fighting_style",
+        "level_requirement": null,
+        "prerequisite_text": "Fighting Style Feature",
+        "prerequisites": [],
+        "description": "Reprehenderit doloribus provident odio eos. Voluptate aut rem reprehenderit enim qui fuga sapiente fugiat. Nisi aut qui architecto dolorum. Autem occaecati sit ut magnam consequatur nobis incidunt.\n\nVeniam eos est repellendus aliquid. Perspiciatis sit dolore occaecati sapiente iure et similique. Adipisci velit doloremque iure et aut consequatur aut. Nam nesciunt itaque aut et aut.",
+        "casting_time": null,
+        "range": null,
+        "duration": null,
+        "spell_school": null,
+        "resource_type": null,
+        "resource_cost": null,
+        "classes": [
+            "fighter"
+        ],
+        "subclass_names": [],
+        "source": "TEST-XGE",
+        "pages": "72"
+    },
+    {
+        "name": "Replicate Magic Item",
+        "slug": "replicate-magic-item",
+        "feature_type": "artificer_infusion",
+        "level_requirement": 2,
+        "prerequisite_text": null,
+        "prerequisites": [],
+        "description": "Soluta voluptates totam earum. Consectetur accusantium cupiditate rerum temporibus nam aliquid. Et distinctio ipsum atque id voluptatem unde. Et beatae ipsum unde minima.\n\nCorporis omnis dignissimos fugit qui velit soluta. Praesentium voluptatem et magnam ad. Quo eos voluptas autem.",
+        "casting_time": null,
+        "range": null,
+        "duration": null,
+        "spell_school": null,
+        "resource_type": null,
+        "resource_cost": null,
+        "classes": [
+            "artificer"
+        ],
+        "subclass_names": [],
+        "source": "TEST-XGE",
+        "pages": "12"
+    },
+    {
+        "name": "Cloud Rune",
+        "slug": "cloud-rune",
+        "feature_type": "rune",
+        "level_requirement": 7,
+        "prerequisite_text": null,
+        "prerequisites": [],
+        "description": "Voluptas est aut id ipsam consequuntur. Iure voluptatum necessitatibus voluptas aut. Vitae at fugit accusamus. Sed pariatur sapiente debitis sit.\n\nCum modi et sapiente consequuntur maxime iure. Molestiae voluptate et consequuntur repudiandae voluptatem hic sit. Et voluptas temporibus vitae fuga debitis. Qui eius inventore molestias nam officia reiciendis.",
+        "casting_time": null,
+        "range": null,
+        "duration": null,
+        "spell_school": null,
+        "resource_type": null,
+        "resource_cost": null,
+        "classes": [
+            "fighter"
+        ],
+        "subclass_names": [
+            "Rune Knight"
+        ],
+        "source": "TEST-XGE",
+        "pages": "44"
+    },
+    {
+        "name": "Bursting Arrow",
+        "slug": "bursting-arrow",
+        "feature_type": "arcane_shot",
+        "level_requirement": 2,
+        "prerequisite_text": null,
+        "prerequisites": [],
+        "description": "Soluta accusantium nostrum quia est consequatur. Non ab nesciunt vel qui fugiat ut. Ut commodi quis fuga rerum a cupiditate et.\n\nVel dolor non dolorum omnis dolor voluptatibus. Ullam dolorem accusamus magni et officiis recusandae aut. Vero et quaerat fuga minima sed accusamus.",
+        "casting_time": null,
+        "range": null,
+        "duration": null,
+        "spell_school": null,
+        "resource_type": null,
+        "resource_cost": null,
+        "classes": [
+            "fighter"
+        ],
+        "subclass_names": [
+            "Arcane Archer"
+        ],
+        "source": "TEST-XGE",
+        "pages": "28"
+    }
+]

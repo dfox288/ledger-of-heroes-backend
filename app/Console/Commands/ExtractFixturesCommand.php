@@ -920,6 +920,138 @@ class ExtractFixturesCommand extends Command
 
     protected function extractOptionalFeatures(): array
     {
-        return [];
+        $limit = (int) $this->option('limit');
+        $featureIds = collect();
+
+        // Coverage-based selection: one per feature type
+        $featureTypes = [
+            'eldritch_invocation',
+            'elemental_discipline',
+            'maneuver',
+            'metamagic',
+            'fighting_style',
+            'artificer_infusion',
+            'rune',
+            'arcane_shot',
+        ];
+
+        foreach ($featureTypes as $type) {
+            $feature = \App\Models\OptionalFeature::where('feature_type', $type)->first();
+            if ($feature) {
+                $featureIds->push($feature->id);
+            }
+        }
+
+        // Features with level requirements
+        $withLevelReq = \App\Models\OptionalFeature::whereNotNull('level_requirement')
+            ->whereNotIn('id', $featureIds->toArray())
+            ->take(5)
+            ->pluck('id');
+        $featureIds = $featureIds->merge($withLevelReq);
+
+        // Features with prerequisites
+        $withPrereqs = \App\Models\OptionalFeature::whereNotNull('prerequisite_text')
+            ->whereNotIn('id', $featureIds->toArray())
+            ->take(5)
+            ->pluck('id');
+        $featureIds = $featureIds->merge($withPrereqs);
+
+        // Features with resource costs
+        $withResources = \App\Models\OptionalFeature::whereNotNull('resource_type')
+            ->whereNotIn('id', $featureIds->toArray())
+            ->take(5)
+            ->pluck('id');
+        $featureIds = $featureIds->merge($withResources);
+
+        // Features with spell mechanics
+        $withSpellMechanics = \App\Models\OptionalFeature::whereNotNull('casting_time')
+            ->whereNotIn('id', $featureIds->toArray())
+            ->take(5)
+            ->pluck('id');
+        $featureIds = $featureIds->merge($withSpellMechanics);
+
+        // Fill remaining with random features
+        $remaining = $limit - $featureIds->count();
+        if ($remaining > 0) {
+            $additional = \App\Models\OptionalFeature::whereNotIn('id', $featureIds->toArray())
+                ->inRandomOrder()
+                ->take($remaining)
+                ->pluck('id');
+            $featureIds = $featureIds->merge($additional);
+        }
+
+        // Load full models with relationships
+        $features = \App\Models\OptionalFeature::whereIn('id', $featureIds->unique())
+            ->with([
+                'classes',
+                'classPivots',
+                'sources.source',
+                'spellSchool',
+                'prerequisites.prerequisite',
+            ])
+            ->get();
+
+        return $features->map(fn ($feature) => $this->formatOptionalFeature($feature))->toArray();
+    }
+
+    protected function formatOptionalFeature(\App\Models\OptionalFeature $feature): array
+    {
+        // Extract prerequisites
+        $prerequisites = $feature->prerequisites->map(function ($prereq) {
+            $prerequisiteData = [
+                'type' => class_basename($prereq->prerequisite_type),
+            ];
+
+            // Add type-specific data
+            if ($prereq->prerequisite) {
+                $prerequisiteData['value'] = match (class_basename($prereq->prerequisite_type)) {
+                    'AbilityScore' => $prereq->prerequisite->code,
+                    'CharacterClass' => $prereq->prerequisite->slug,
+                    'Spell' => $prereq->prerequisite->slug,
+                    default => $prereq->prerequisite->name ?? $prereq->prerequisite->code ?? null,
+                };
+            }
+
+            if ($prereq->minimum_value) {
+                $prerequisiteData['minimum_value'] = $prereq->minimum_value;
+            }
+
+            if ($prereq->description) {
+                $prerequisiteData['description'] = $prereq->description;
+            }
+
+            return $prerequisiteData;
+        })->values()->toArray();
+
+        // Extract class associations
+        $classes = $feature->classes->pluck('slug')->unique()->values()->toArray();
+
+        // Extract subclass names from pivot
+        $subclassNames = $feature->classPivots
+            ->pluck('subclass_name')
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+
+        return [
+            'name' => $feature->name,
+            'slug' => $feature->slug,
+            'feature_type' => $feature->feature_type?->value,
+            'level_requirement' => $feature->level_requirement,
+            'prerequisite_text' => $feature->prerequisite_text,
+            'prerequisites' => $prerequisites,
+            'description' => $feature->description,
+            'casting_time' => $feature->casting_time,
+            'range' => $feature->range,
+            'duration' => $feature->duration,
+            'spell_school' => $feature->spellSchool?->code,
+            'resource_type' => $feature->resource_type?->value,
+            'resource_cost' => $feature->resource_cost,
+            'classes' => $classes,
+            'subclass_names' => $subclassNames,
+            'source' => $feature->sources->first()?->source->code,
+            'pages' => $feature->sources->first()?->pages,
+        ];
     }
 }

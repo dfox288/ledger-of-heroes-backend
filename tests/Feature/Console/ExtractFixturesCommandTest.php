@@ -886,4 +886,217 @@ class ExtractFixturesCommandTest extends TestCase
             $this->assertArrayHasKey('description', $feature);
         }
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_extracts_optional_features_by_type(): void
+    {
+        $source = \App\Models\Source::factory()->create(['code' => 'TEST-XGE']);
+
+        // Get classes for associations
+        $warlock = \App\Models\CharacterClass::factory()->create([
+            'name' => 'Warlock',
+            'slug' => 'warlock',
+            'parent_class_id' => null,
+        ]);
+
+        $monk = \App\Models\CharacterClass::factory()->create([
+            'name' => 'Monk',
+            'slug' => 'monk',
+            'parent_class_id' => null,
+        ]);
+
+        $fighter = \App\Models\CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'fighter',
+            'parent_class_id' => null,
+        ]);
+
+        $sorcerer = \App\Models\CharacterClass::factory()->create([
+            'name' => 'Sorcerer',
+            'slug' => 'sorcerer',
+            'parent_class_id' => null,
+        ]);
+
+        // Create optional features of different types
+
+        // 1. Eldritch Invocation
+        $invocation = \App\Models\OptionalFeature::factory()->invocation()->create([
+            'name' => 'Agonizing Blast',
+            'slug' => 'agonizing-blast',
+            'prerequisite_text' => 'eldritch blast cantrip',
+        ]);
+        $invocation->classes()->attach($warlock->id);
+        \App\Models\EntitySource::create([
+            'reference_type' => 'App\Models\OptionalFeature',
+            'reference_id' => $invocation->id,
+            'source_id' => $source->id,
+            'pages' => '110',
+        ]);
+
+        // 2. Elemental Discipline (spell-like with resource cost)
+        $discipline = \App\Models\OptionalFeature::factory()->elementalDiscipline()->create([
+            'name' => 'Fangs of the Fire Snake',
+            'slug' => 'fangs-of-the-fire-snake',
+        ]);
+        $discipline->classes()->attach($monk->id, ['subclass_name' => 'Way of the Four Elements']);
+        \App\Models\EntitySource::create([
+            'reference_type' => 'App\Models\OptionalFeature',
+            'reference_id' => $discipline->id,
+            'source_id' => $source->id,
+            'pages' => '80',
+        ]);
+
+        // 3. Maneuver
+        $maneuver = \App\Models\OptionalFeature::factory()->maneuver()->create([
+            'name' => 'Riposte',
+            'slug' => 'riposte',
+        ]);
+        $maneuver->classes()->attach($fighter->id, ['subclass_name' => 'Battle Master']);
+        \App\Models\EntitySource::create([
+            'reference_type' => 'App\Models\OptionalFeature',
+            'reference_id' => $maneuver->id,
+            'source_id' => $source->id,
+            'pages' => '74',
+        ]);
+
+        // 4. Metamagic
+        $metamagic = \App\Models\OptionalFeature::factory()->metamagic()->create([
+            'name' => 'Quickened Spell',
+            'slug' => 'quickened-spell',
+        ]);
+        $metamagic->classes()->attach($sorcerer->id);
+        \App\Models\EntitySource::create([
+            'reference_type' => 'App\Models\OptionalFeature',
+            'reference_id' => $metamagic->id,
+            'source_id' => $source->id,
+            'pages' => '102',
+        ]);
+
+        // 5. Fighting Style (available to multiple classes)
+        $fightingStyle = \App\Models\OptionalFeature::factory()->fightingStyle()->create([
+            'name' => 'Archery',
+            'slug' => 'archery',
+        ]);
+        $fightingStyle->classes()->attach($fighter->id);
+        \App\Models\EntitySource::create([
+            'reference_type' => 'App\Models\OptionalFeature',
+            'reference_id' => $fightingStyle->id,
+            'source_id' => $source->id,
+            'pages' => '72',
+        ]);
+
+        // 6. Artificer Infusion
+        $artificer = \App\Models\CharacterClass::factory()->create([
+            'name' => 'Artificer',
+            'slug' => 'artificer',
+            'parent_class_id' => null,
+        ]);
+        $infusion = \App\Models\OptionalFeature::factory()->artificerInfusion()->create([
+            'name' => 'Replicate Magic Item',
+            'slug' => 'replicate-magic-item',
+            'level_requirement' => 2,
+        ]);
+        $infusion->classes()->attach($artificer->id);
+        \App\Models\EntitySource::create([
+            'reference_type' => 'App\Models\OptionalFeature',
+            'reference_id' => $infusion->id,
+            'source_id' => $source->id,
+            'pages' => '12',
+        ]);
+
+        // 7. Rune
+        $rune = \App\Models\OptionalFeature::factory()->rune()->create([
+            'name' => 'Cloud Rune',
+            'slug' => 'cloud-rune',
+            'level_requirement' => 7,
+        ]);
+        $rune->classes()->attach($fighter->id, ['subclass_name' => 'Rune Knight']);
+        \App\Models\EntitySource::create([
+            'reference_type' => 'App\Models\OptionalFeature',
+            'reference_id' => $rune->id,
+            'source_id' => $source->id,
+            'pages' => '44',
+        ]);
+
+        // 8. Arcane Shot
+        $arcaneShot = \App\Models\OptionalFeature::factory()->arcaneShot()->create([
+            'name' => 'Bursting Arrow',
+            'slug' => 'bursting-arrow',
+        ]);
+        $arcaneShot->classes()->attach($fighter->id, ['subclass_name' => 'Arcane Archer']);
+        \App\Models\EntitySource::create([
+            'reference_type' => 'App\Models\OptionalFeature',
+            'reference_id' => $arcaneShot->id,
+            'source_id' => $source->id,
+            'pages' => '28',
+        ]);
+
+        // Extract
+        $this->artisan('fixtures:extract', [
+            'entity' => 'optionalfeatures',
+            '--output' => 'tests/fixtures/test-output',
+        ])->assertSuccessful();
+
+        // Verify JSON created
+        $path = base_path('tests/fixtures/test-output/entities/optionalfeatures.json');
+        $this->assertFileExists($path);
+
+        $data = json_decode(File::get($path), true);
+        $this->assertIsArray($data);
+        $this->assertGreaterThanOrEqual(8, count($data), 'Should extract at least 8 optional features (one per type)');
+
+        // Verify structure
+        $feature = $data[0];
+        $this->assertArrayHasKey('name', $feature);
+        $this->assertArrayHasKey('slug', $feature);
+        $this->assertArrayHasKey('feature_type', $feature);
+        $this->assertArrayHasKey('level_requirement', $feature);
+        $this->assertArrayHasKey('prerequisite_text', $feature);
+        $this->assertArrayHasKey('description', $feature);
+        $this->assertArrayHasKey('classes', $feature);
+        $this->assertArrayHasKey('subclass_names', $feature);
+        $this->assertArrayHasKey('source', $feature);
+
+        // Verify data types
+        $this->assertIsString($feature['name']);
+        $this->assertIsString($feature['slug']);
+        $this->assertIsString($feature['feature_type']);
+        $this->assertIsArray($feature['classes']);
+        $this->assertIsArray($feature['subclass_names']);
+
+        // Verify we have different feature types (one per type at minimum)
+        $featureTypes = collect($data)->pluck('feature_type')->unique();
+        $this->assertGreaterThanOrEqual(8, $featureTypes->count(), 'Should have all 8 feature types');
+
+        // Verify resource costs are included for features that have them
+        $metamagicFeature = collect($data)->firstWhere('feature_type', 'metamagic');
+        if ($metamagicFeature) {
+            $this->assertArrayHasKey('resource_type', $metamagicFeature);
+            $this->assertArrayHasKey('resource_cost', $metamagicFeature);
+        }
+
+        // Verify spell mechanics are included for elemental disciplines
+        $disciplineFeature = collect($data)->firstWhere('feature_type', 'elemental_discipline');
+        if ($disciplineFeature) {
+            $this->assertArrayHasKey('casting_time', $disciplineFeature);
+            $this->assertArrayHasKey('range', $disciplineFeature);
+            $this->assertArrayHasKey('duration', $disciplineFeature);
+        }
+
+        // Verify class associations are slugs, not IDs
+        $featureWithClass = collect($data)->first(fn ($f) => count($f['classes']) > 0);
+        if ($featureWithClass) {
+            foreach ($featureWithClass['classes'] as $classSlug) {
+                $this->assertIsString($classSlug);
+            }
+        }
+
+        // Verify subclass names are strings
+        $featureWithSubclass = collect($data)->first(fn ($f) => count($f['subclass_names']) > 0);
+        if ($featureWithSubclass) {
+            foreach ($featureWithSubclass['subclass_names'] as $subclassName) {
+                $this->assertIsString($subclassName);
+            }
+        }
+    }
 }

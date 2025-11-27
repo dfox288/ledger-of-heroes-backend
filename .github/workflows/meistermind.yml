@@ -15,6 +15,8 @@ on:
     types: [ created ]
   pull_request_review_comment:
     types: [ created ]
+  pull_request:
+    types: [ opened, ready_for_review ]
 
 jobs:
   # ══════════════════════════════════════════════════════════════════════════
@@ -88,7 +90,7 @@ jobs:
     runs-on: [ self-hosted, claude-code ]
     timeout-minutes: 15
     permissions:
-      contents: read
+      contents: write
       issues: write
       pull-requests: write
 
@@ -122,6 +124,7 @@ jobs:
       - name: Respond
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           ISSUE_TITLE=$(jq -r '.title' /tmp/issue.json)
           ISSUE_BODY=$(jq -r '.body // ""' /tmp/issue.json)
@@ -157,11 +160,18 @@ jobs:
           REQUEST: ${REQUEST}
 
           Be helpful and thorough. Don't explain the project or tech stack back to me - just answer the question.
+
+          If creating a branch, use this naming convention:
+          - meistermind/issue-${ISSUE_NUMBER}/short-description
+
+          Example: meistermind/issue-42/add-spell-filters
+
+          Always create a PR after pushing and link it to issue #${ISSUE_NUMBER}.
           EOF
 
           claude -p "$(cat /tmp/prompt.txt)" \
             --max-turns 10 \
-            --allowedTools "Read,Bash(git diff:*),Bash(git log:*),Bash(git show:*)" \
+            --allowedTools "Read,Write,Edit,Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout -b:*),Bash(git add:*),Bash(git commit:*),Bash(git push origin:*),Bash(gh pr create:*)" \
             > /tmp/response.txt 2>&1
 
           gh issue comment ${{ github.event.issue.number }} \
@@ -169,3 +179,162 @@ jobs:
 
           ---
           *🎲 @meistermind*"
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Review PRs when requested
+  # ══════════════════════════════════════════════════════════════════════════
+  review-pr:
+    if: |
+      github.event_name == 'pull_request_review_comment' &&
+      contains(github.event.comment.body, '@meistermind')
+    runs-on: [ self-hosted, claude-code ]
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Get PR context
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+
+          # Get PR details
+          gh pr view "$PR_NUMBER" --json title,body,files,commits > /tmp/pr.json
+
+          # Get the diff
+          gh pr diff "$PR_NUMBER" > /tmp/diff.txt
+
+      - name: Review PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          PR_TITLE=$(jq -r '.title' /tmp/pr.json)
+          PR_BODY=$(jq -r '.body // ""' /tmp/pr.json)
+          CHANGED_FILES=$(jq -r '.files[].path' /tmp/pr.json | head -20)
+
+          # Get the review request from comment
+          COMMENT_BODY=$(gh api /repos/${{ github.repository }}/pulls/comments/${{ github.event.comment.id }} --jq '.body')
+          REQUEST=$(echo "$COMMENT_BODY" | sed 's/@meistermind//gi')
+
+          cat << EOF > /tmp/review-prompt.txt
+          Review this PR.
+
+          TITLE: ${PR_TITLE}
+
+          DESCRIPTION:
+          ${PR_BODY}
+
+          CHANGED FILES:
+          ${CHANGED_FILES}
+
+          DIFF:
+          $(head -500 /tmp/diff.txt)
+
+          SPECIFIC REQUEST: ${REQUEST}
+
+          Provide a code review. Focus on:
+          - Bugs or logic errors
+          - Edge cases
+          - Code style and clarity
+          - Potential improvements
+
+          Be constructive and specific. Reference line numbers or file names when relevant.
+          EOF
+
+          claude -p "$(cat /tmp/review-prompt.txt)" \
+            --max-turns 5 \
+            --allowedTools "Read,Bash(git diff:*),Bash(git show:*)" \
+            > /tmp/review.txt 2>&1
+
+          # Post review as PR comment
+          gh pr comment "$PR_NUMBER" \
+            --body "## 🎲 MeisterMind Review
+
+          $(cat /tmp/review.txt)
+
+          ---
+          *@meistermind*"
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Auto-review new PRs
+  # ══════════════════════════════════════════════════════════════════════════
+  # Skip by adding [skip-review] or [no-review] to PR title
+  auto-review-pr:
+    if: |
+      github.event_name == 'pull_request' &&
+      (github.event.action == 'opened' || github.event.action == 'ready_for_review') &&
+      github.event.pull_request.draft == false &&
+      !contains(github.event.pull_request.title, '[skip-review]') &&
+      !contains(github.event.pull_request.title, '[no-review]')
+    runs-on: [ self-hosted, claude-code ]
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Get PR context
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          gh pr view "$PR_NUMBER" --json title,body,files > /tmp/pr.json
+          gh pr diff "$PR_NUMBER" > /tmp/diff.txt
+
+      - name: Review PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          PR_TITLE=$(jq -r '.title' /tmp/pr.json)
+          PR_BODY=$(jq -r '.body // ""' /tmp/pr.json)
+          CHANGED_FILES=$(jq -r '.files[].path' /tmp/pr.json | head -20)
+
+          cat << EOF > /tmp/review-prompt.txt
+          Review this PR.
+
+          TITLE: ${PR_TITLE}
+
+          DESCRIPTION:
+          ${PR_BODY}
+
+          CHANGED FILES:
+          ${CHANGED_FILES}
+
+          DIFF:
+          $(head -500 /tmp/diff.txt)
+
+          Provide a helpful code review. Focus on:
+          - Bugs or logic errors
+          - Edge cases not handled
+          - Code clarity
+          - Suggestions for improvement
+
+          Be constructive. If it looks good, say so briefly. Reference specific files/lines when noting issues.
+          EOF
+
+          claude -p "$(cat /tmp/review-prompt.txt)" \
+            --max-turns 5 \
+            --allowedTools "Read,Bash(git diff:*),Bash(git show:*)" \
+            > /tmp/review.txt 2>&1
+
+          gh pr comment "$PR_NUMBER" \
+            --body "## 🎲 MeisterMind Review
+
+          $(cat /tmp/review.txt)
+
+          ---
+          *@meistermind*"

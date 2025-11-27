@@ -1,0 +1,182 @@
+# MeisterMind - AI Assistant for D&D Compendium
+#
+# This workflow:
+# 1. Automatically analyzes new issues and provides initial assessment
+# 2. Responds to @meistermind mentions in issues and PRs
+#
+# Place in: .github/workflows/meistermind.yml
+
+name: MeisterMind
+
+on:
+  issues:
+    types: [ opened ]
+  issue_comment:
+    types: [ created ]
+  pull_request_review_comment:
+    types: [ created ]
+
+jobs:
+  # ══════════════════════════════════════════════════════════════════════════
+  # Analyze new issues automatically
+  # ══════════════════════════════════════════════════════════════════════════
+  analyze-issue:
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    runs-on: [ self-hosted, claude-code ]
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Analyze Issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          cat << 'EOF' > /tmp/analyze-prompt.txt
+          You are MeisterMind, the AI assistant for the D&D 5e Compendium API project.
+          This is a Laravel 12.x backend with a Nuxt frontend, using Meilisearch for search.
+
+          A new issue has been created. Analyze it and provide:
+
+          1. **Summary**: Brief understanding of what's being requested/reported
+          2. **Affected Areas**: Which parts of the codebase are likely involved
+             (e.g., API endpoints, models, frontend components, search indexing)
+          3. **Complexity Estimate**: Low / Medium / High
+          4. **Suggested Approach**: Brief technical suggestions if applicable
+          5. **Questions**: Any clarifications needed from the reporter
+
+          Be helpful and friendly. Remember this is a D&D project - feel free to add
+          a touch of flavor but keep it professional.
+
+          Issue Title: $ISSUE_TITLE
+
+          Issue Body:
+          $ISSUE_BODY
+          EOF
+
+          claude -p "$(cat /tmp/analyze-prompt.txt)" \
+            --max-turns 3 \
+            --allowedTools "Read" \
+            > /tmp/analysis.txt 2>&1
+
+          # Post analysis as comment
+          gh issue comment "$ISSUE_NUMBER" \
+            --body "## 🎲 MeisterMind Analysis
+
+          $(cat /tmp/analysis.txt)
+
+          ---
+          *I'm MeisterMind, your AI dungeon companion. Mention @meistermind if you need help!*"
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Respond to @meistermind mentions
+  # ══════════════════════════════════════════════════════════════════════════
+  respond-to-mention:
+    if: |
+      (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') &&
+      contains(github.event.comment.body, '@meistermind')
+    runs-on: [ self-hosted, claude-code ]
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get context
+        id: context
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Determine if this is a PR or issue
+          if [ "${{ github.event.issue.pull_request }}" != "" ]; then
+            echo "type=pr" >> $GITHUB_OUTPUT
+            echo "number=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
+
+            # Get PR diff for context
+            gh pr diff ${{ github.event.issue.number }} > /tmp/pr-diff.txt 2>/dev/null || echo "No diff available" > /tmp/pr-diff.txt
+          else
+            echo "type=issue" >> $GITHUB_OUTPUT
+            echo "number=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
+            echo "" > /tmp/pr-diff.txt
+          fi
+
+      - name: Extract request
+        id: extract
+        run: |
+          # Remove @meistermind from the comment and get the actual request
+          REQUEST=$(echo "${{ github.event.comment.body }}" | sed 's/@meistermind//gi' | xargs)
+          echo "request<<EOF" >> $GITHUB_OUTPUT
+          echo "$REQUEST" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Respond to request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REQUEST: ${{ steps.extract.outputs.request }}
+          CONTEXT_TYPE: ${{ steps.context.outputs.type }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          # Build context-aware prompt
+          cat << 'EOF' > /tmp/request-prompt.txt
+          You are MeisterMind, the AI assistant for the D&D 5e Compendium API project.
+
+          Project context:
+          - Laravel 12.x backend API for D&D 5e rules and content
+          - Nuxt frontend for the compendium interface
+          - Meilisearch for fast search across spells, monsters, items, etc.
+          - BigQuery for analytics
+          - Docker/Kubernetes deployment
+
+          You're responding to a request in a GitHub $CONTEXT_TYPE.
+
+          Issue/PR Title: $ISSUE_TITLE
+
+          Original description:
+          $ISSUE_BODY
+
+          EOF
+
+          # Add PR diff if available
+          if [ -s /tmp/pr-diff.txt ] && [ "$CONTEXT_TYPE" = "pr" ]; then
+            echo "PR Changes (diff):" >> /tmp/request-prompt.txt
+            head -200 /tmp/pr-diff.txt >> /tmp/request-prompt.txt
+            echo "" >> /tmp/request-prompt.txt
+          fi
+
+          cat << EOF >> /tmp/request-prompt.txt
+
+          User request: $REQUEST
+
+          Provide a helpful response. You can:
+          - Explain code or architecture
+          - Suggest implementations
+          - Help debug issues
+          - Answer D&D 5e rules questions related to the API
+          - Review code changes
+
+          Be concise but thorough. Add a bit of D&D flavor when appropriate!
+          EOF
+
+          claude -p "$(cat /tmp/request-prompt.txt)" \
+            --max-turns 10 \
+            --allowedTools "Read,Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(php artisan:*),Bash(npm run:*)" \
+            > /tmp/response.txt 2>&1
+
+          # Post response
+          gh issue comment ${{ github.event.issue.number }} \
+            --body "$(cat /tmp/response.txt)
+
+          ---
+          *🎲 MeisterMind at your service! Need more help? Just mention @meistermind*"

@@ -10,13 +10,13 @@ name: MeisterMind
 
 on:
   issues:
-    types: [ opened ]
+    types: [opened]
   issue_comment:
-    types: [ created ]
+    types: [created]
   pull_request_review_comment:
-    types: [ created ]
+    types: [created]
   pull_request:
-    types: [ opened, ready_for_review ]
+    types: [opened, ready_for_review]
 
 jobs:
   # ══════════════════════════════════════════════════════════════════════════
@@ -24,7 +24,7 @@ jobs:
   # ══════════════════════════════════════════════════════════════════════════
   analyze-issue:
     if: github.event_name == 'issues' && github.event.action == 'opened'
-    runs-on: [ self-hosted, claude-code ]
+    runs-on: [self-hosted, claude-code]
     timeout-minutes: 10
     permissions:
       contents: read
@@ -87,7 +87,7 @@ jobs:
     if: |
       (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') &&
       contains(github.event.comment.body, '@meistermind')
-    runs-on: [ self-hosted, claude-code ]
+    runs-on: [self-hosted, claude-code]
     timeout-minutes: 15
     permissions:
       contents: write
@@ -98,6 +98,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "MeisterMind"
+          git config user.email "meistermind@users.noreply.github.com"
 
       - name: Get full context
         id: context
@@ -187,7 +192,7 @@ jobs:
     if: |
       github.event_name == 'pull_request_review_comment' &&
       contains(github.event.comment.body, '@meistermind')
-    runs-on: [ self-hosted, claude-code ]
+    runs-on: [self-hosted, claude-code]
     timeout-minutes: 15
     permissions:
       contents: read
@@ -274,7 +279,7 @@ jobs:
       github.event.pull_request.draft == false &&
       !contains(github.event.pull_request.title, '[skip-review]') &&
       !contains(github.event.pull_request.title, '[no-review]')
-    runs-on: [ self-hosted, claude-code ]
+    runs-on: [self-hosted, claude-code]
     timeout-minutes: 15
     permissions:
       contents: read

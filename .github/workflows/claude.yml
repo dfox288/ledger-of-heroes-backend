@@ -1,4 +1,83 @@
-name: claude.yml
+name: Claude Code Tasks
+
 on:
+  # Trigger on PR comments mentioning @claude
+  issue_comment:
+    types: [ created ]
+
+  # Or trigger manually
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: 'Prompt for Claude Code'
+        required: true
+        default: 'Analyze this codebase and suggest improvements'
+      max_turns:
+        description: 'Maximum conversation turns'
+        required: false
+        default: '10'
 
 jobs:
+  # Job 1: Handle @claude mentions in PRs/issues
+  claude-mention:
+    if: github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')
+    runs-on: [ self-hosted, claude-code ]
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract prompt from comment
+        id: extract
+        run: |
+          # Remove @claude from the comment and use the rest as prompt
+          PROMPT=$(echo "${{ github.event.comment.body }}" | sed 's/@claude//g' | xargs)
+          echo "prompt=$PROMPT" >> $GITHUB_OUTPUT
+
+      - name: Run Claude Code
+        env:
+          # Only needed if using API key auth (optional for Claude Max)
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Run Claude in headless mode with the extracted prompt
+          claude -p "${{ steps.extract.outputs.prompt }}" \
+            --allowedTools "Read,Bash(git diff:*),Bash(git log:*)" \
+            --output-format text \
+            > response.txt 2>&1 || true
+
+          # Post response as comment
+          gh pr comment ${{ github.event.issue.number }} --body "$(cat response.txt)"
+
+  # Job 2: Manual/workflow_dispatch triggered tasks
+  claude-task:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: [ self-hosted, claude-code ]
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Claude Code
+        env:
+          # Only needed if using API key auth (optional for Claude Max)
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p "${{ github.event.inputs.prompt }}" \
+            --max-turns ${{ github.event.inputs.max_turns }} \
+            --allowedTools "Read,Write,Edit,Bash(npm:*),Bash(git:*)" \
+            --output-format stream-json \
+            | tee claude-output.json
+
+      - name: Upload output
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-output
+          path: claude-output.json

@@ -377,4 +377,176 @@ class ExtractFixturesCommandTest extends TestCase
         $subraces = collect($data)->filter(fn ($r) => $r['parent_race_slug'] !== null);
         $this->assertGreaterThanOrEqual(1, $subraces->count(), 'Should have at least one subrace');
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_extracts_items_with_rarity_and_type_coverage(): void
+    {
+        $source = \App\Models\Source::factory()->create(['code' => 'TEST-DMG']);
+
+        // Get different item types
+        $typeGeneral = \App\Models\ItemType::where('code', 'G')->first();
+        $typeMelee = \App\Models\ItemType::where('code', 'M')->first();
+        $typeRanged = \App\Models\ItemType::where('code', 'R')->first();
+        $typeLightArmor = \App\Models\ItemType::where('code', 'LA')->first();
+        $typePotion = \App\Models\ItemType::where('code', 'P')->first();
+
+        // Create mundane items with different types
+        $rope = \App\Models\Item::factory()->create([
+            'name' => 'Rope, Hempen',
+            'slug' => 'rope-hempen',
+            'item_type_id' => $typeGeneral->id,
+            'rarity' => 'common',
+            'is_magic' => false,
+            'cost_cp' => 100,
+            'weight' => 10.00,
+        ]);
+
+        $longsword = \App\Models\Item::factory()->create([
+            'name' => 'Longsword',
+            'slug' => 'longsword',
+            'item_type_id' => $typeMelee->id,
+            'rarity' => 'common',
+            'is_magic' => false,
+            'damage_dice' => '1d8',
+            'versatile_damage' => '1d10',
+            'cost_cp' => 1500,
+            'weight' => 3.00,
+        ]);
+
+        $longbow = \App\Models\Item::factory()->create([
+            'name' => 'Longbow',
+            'slug' => 'longbow',
+            'item_type_id' => $typeRanged->id,
+            'rarity' => 'common',
+            'is_magic' => false,
+            'damage_dice' => '1d8',
+            'range_normal' => 150,
+            'range_long' => 600,
+            'cost_cp' => 5000,
+            'weight' => 2.00,
+        ]);
+
+        $leatherArmor = \App\Models\Item::factory()->create([
+            'name' => 'Leather Armor',
+            'slug' => 'leather-armor',
+            'item_type_id' => $typeLightArmor->id,
+            'rarity' => 'common',
+            'is_magic' => false,
+            'armor_class' => 11,
+            'cost_cp' => 1000,
+            'weight' => 10.00,
+        ]);
+
+        // Create magical items with different rarities
+        $potionHealing = \App\Models\Item::factory()->create([
+            'name' => 'Potion of Healing',
+            'slug' => 'potion-of-healing',
+            'item_type_id' => $typePotion->id,
+            'rarity' => 'common',
+            'is_magic' => true,
+            'cost_cp' => 5000,
+            'weight' => 0.50,
+        ]);
+
+        $bagOfHolding = \App\Models\Item::factory()->create([
+            'name' => 'Bag of Holding',
+            'slug' => 'bag-of-holding',
+            'item_type_id' => $typeGeneral->id,
+            'rarity' => 'uncommon',
+            'is_magic' => true,
+            'requires_attunement' => false,
+            'cost_cp' => 0,
+            'weight' => 15.00,
+        ]);
+
+        $flametongueSword = \App\Models\Item::factory()->create([
+            'name' => 'Flametongue Sword',
+            'slug' => 'flametongue-sword',
+            'item_type_id' => $typeMelee->id,
+            'rarity' => 'rare',
+            'is_magic' => true,
+            'requires_attunement' => true,
+            'damage_dice' => '1d8',
+            'cost_cp' => 0,
+            'weight' => 3.00,
+        ]);
+
+        $veryRareItem = \App\Models\Item::factory()->create([
+            'name' => 'Cloak of Invisibility',
+            'slug' => 'cloak-of-invisibility',
+            'item_type_id' => $typeGeneral->id,
+            'rarity' => 'very rare',
+            'is_magic' => true,
+            'requires_attunement' => true,
+            'cost_cp' => 0,
+            'weight' => 1.00,
+        ]);
+
+        $legendaryItem = \App\Models\Item::factory()->create([
+            'name' => 'Vorpal Sword',
+            'slug' => 'vorpal-sword',
+            'item_type_id' => $typeMelee->id,
+            'rarity' => 'legendary',
+            'is_magic' => true,
+            'requires_attunement' => true,
+            'damage_dice' => '1d8',
+            'cost_cp' => 0,
+            'weight' => 3.00,
+        ]);
+
+        // Create entity source relationships
+        foreach ([$rope, $longsword, $longbow, $leatherArmor, $potionHealing, $bagOfHolding, $flametongueSword, $veryRareItem, $legendaryItem] as $item) {
+            \App\Models\EntitySource::create([
+                'reference_type' => 'App\Models\Item',
+                'reference_id' => $item->id,
+                'source_id' => $source->id,
+                'pages' => '150',
+            ]);
+        }
+
+        // Extract
+        $this->artisan('fixtures:extract', [
+            'entity' => 'items',
+            '--output' => 'tests/fixtures/test-output',
+        ])->assertSuccessful();
+
+        // Verify JSON created
+        $path = base_path('tests/fixtures/test-output/entities/items.json');
+        $this->assertFileExists($path);
+
+        $data = json_decode(File::get($path), true);
+        $this->assertIsArray($data);
+        $this->assertGreaterThanOrEqual(9, count($data), 'Should extract at least 9 items');
+
+        // Verify structure
+        $item = $data[0];
+        $this->assertArrayHasKey('name', $item);
+        $this->assertArrayHasKey('slug', $item);
+        $this->assertArrayHasKey('item_type', $item);
+        $this->assertArrayHasKey('rarity', $item);
+        $this->assertArrayHasKey('is_magic', $item);
+        $this->assertArrayHasKey('requires_attunement', $item);
+        $this->assertArrayHasKey('cost_cp', $item);
+        $this->assertArrayHasKey('weight', $item);
+        $this->assertArrayHasKey('source', $item);
+
+        // Verify relationships are codes/slugs, not IDs
+        $this->assertIsString($item['item_type']);
+        $this->assertIsString($item['rarity']);
+        $this->assertIsBool($item['is_magic']);
+
+        // Verify we have different rarities
+        $rarities = collect($data)->pluck('rarity')->unique();
+        $this->assertGreaterThanOrEqual(3, $rarities->count(), 'Should have at least 3 different rarities');
+
+        // Verify we have different item types
+        $types = collect($data)->pluck('item_type')->unique();
+        $this->assertGreaterThanOrEqual(3, $types->count(), 'Should have at least 3 different item types');
+
+        // Verify we have both magical and mundane items
+        $magicalItems = collect($data)->where('is_magic', true);
+        $mundaneItems = collect($data)->where('is_magic', false);
+        $this->assertGreaterThanOrEqual(1, $magicalItems->count(), 'Should have at least one magical item');
+        $this->assertGreaterThanOrEqual(1, $mundaneItems->count(), 'Should have at least one mundane item');
+    }
 }

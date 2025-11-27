@@ -490,7 +490,133 @@ class ExtractFixturesCommand extends Command
 
     protected function extractItems(): array
     {
-        return [];
+        $limit = (int) $this->option('limit');
+        $itemIds = collect();
+
+        // Coverage-based selection:
+        // 1. One per rarity (common, uncommon, rare, very rare, legendary, artifact)
+        // 2. One per item type
+        // 3. Magical vs mundane variants
+        // 4. Items with properties, attunement requirements, charges
+        // 5. Fill remaining with random items
+
+        $rarities = ['common', 'uncommon', 'rare', 'very rare', 'legendary', 'artifact'];
+
+        // One per rarity
+        foreach ($rarities as $rarity) {
+            $item = \App\Models\Item::where('rarity', $rarity)->first();
+            if ($item) {
+                $itemIds->push($item->id);
+            }
+        }
+
+        // One per item type
+        \App\Models\ItemType::all()->each(function ($type) use ($itemIds) {
+            $item = \App\Models\Item::where('item_type_id', $type->id)
+                ->whereNotIn('id', $itemIds->toArray())
+                ->first();
+            if ($item) {
+                $itemIds->push($item->id);
+            }
+        });
+
+        // Magical items (not already included)
+        $magicalItems = \App\Models\Item::where('is_magic', true)
+            ->whereNotIn('id', $itemIds->toArray())
+            ->take(5)
+            ->pluck('id');
+        $itemIds = $itemIds->merge($magicalItems);
+
+        // Mundane items (not already included)
+        $mundaneItems = \App\Models\Item::where('is_magic', false)
+            ->whereNotIn('id', $itemIds->toArray())
+            ->take(5)
+            ->pluck('id');
+        $itemIds = $itemIds->merge($mundaneItems);
+
+        // Items requiring attunement
+        $attunementItems = \App\Models\Item::where('requires_attunement', true)
+            ->whereNotIn('id', $itemIds->toArray())
+            ->take(3)
+            ->pluck('id');
+        $itemIds = $itemIds->merge($attunementItems);
+
+        // Items with charges
+        $chargedItems = \App\Models\Item::whereNotNull('charges_max')
+            ->whereNotIn('id', $itemIds->toArray())
+            ->take(3)
+            ->pluck('id');
+        $itemIds = $itemIds->merge($chargedItems);
+
+        // Weapons with damage dice
+        $weapons = \App\Models\Item::whereNotNull('damage_dice')
+            ->whereNotIn('id', $itemIds->toArray())
+            ->take(5)
+            ->pluck('id');
+        $itemIds = $itemIds->merge($weapons);
+
+        // Armor with AC
+        $armor = \App\Models\Item::whereNotNull('armor_class')
+            ->whereNotIn('id', $itemIds->toArray())
+            ->take(3)
+            ->pluck('id');
+        $itemIds = $itemIds->merge($armor);
+
+        // Fill remaining with random items
+        $remaining = $limit - $itemIds->count();
+        if ($remaining > 0) {
+            $additional = \App\Models\Item::whereNotIn('id', $itemIds->toArray())
+                ->inRandomOrder()
+                ->take($remaining)
+                ->pluck('id');
+            $itemIds = $itemIds->merge($additional);
+        }
+
+        // Load full models with relationships
+        $items = \App\Models\Item::whereIn('id', $itemIds->unique())
+            ->with([
+                'itemType',
+                'damageType',
+                'properties',
+                'sources.source',
+            ])
+            ->get();
+
+        return $items->map(fn ($item) => $this->formatItem($item))->toArray();
+    }
+
+    protected function formatItem(\App\Models\Item $item): array
+    {
+        return [
+            'name' => $item->name,
+            'slug' => $item->slug,
+            'item_type' => $item->itemType?->code,
+            'detail' => $item->detail,
+            'rarity' => $item->rarity,
+            'requires_attunement' => $item->requires_attunement,
+            'is_magic' => $item->is_magic,
+            'cost_cp' => $item->cost_cp,
+            'weight' => $item->weight ? (float) $item->weight : null,
+            'description' => $item->description,
+            // Weapon-specific fields
+            'damage_dice' => $item->damage_dice,
+            'versatile_damage' => $item->versatile_damage,
+            'damage_type' => $item->damageType?->code,
+            'range_normal' => $item->range_normal,
+            'range_long' => $item->range_long,
+            // Armor-specific fields
+            'armor_class' => $item->armor_class,
+            'strength_requirement' => $item->strength_requirement,
+            'stealth_disadvantage' => $item->stealth_disadvantage,
+            // Charge mechanics (magic items)
+            'charges_max' => $item->charges_max,
+            'recharge_formula' => $item->recharge_formula,
+            'recharge_timing' => $item->recharge_timing,
+            // Properties and relationships
+            'properties' => $item->properties->pluck('code')->toArray(),
+            'source' => $item->sources->first()?->source->code,
+            'pages' => $item->sources->first()?->pages,
+        ];
     }
 
     protected function extractFeats(): array

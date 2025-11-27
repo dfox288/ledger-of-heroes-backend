@@ -1,0 +1,98 @@
+[
+    {
+        "name": "Human",
+        "slug": "human",
+        "size": "M",
+        "speed": 30,
+        "parent_race_slug": null,
+        "ability_bonuses": [
+            {
+                "ability": "STR",
+                "bonus": 1,
+                "is_choice": false
+            },
+            {
+                "ability": "DEX",
+                "bonus": 1,
+                "is_choice": false
+            }
+        ],
+        "traits": [
+            {
+                "name": "Extra Language",
+                "category": "racial",
+                "description": "You can speak, read, and write one extra language."
+            }
+        ],
+        "source": "TEST-PHB",
+        "pages": "100"
+    },
+    {
+        "name": "Elf",
+        "slug": "elf",
+        "size": "M",
+        "speed": 30,
+        "parent_race_slug": null,
+        "ability_bonuses": [
+            {
+                "ability": "DEX",
+                "bonus": 2,
+                "is_choice": false
+            }
+        ],
+        "traits": [],
+        "source": "TEST-PHB",
+        "pages": "100"
+    },
+    {
+        "name": "High Elf",
+        "slug": "high-elf",
+        "size": "M",
+        "speed": 30,
+        "parent_race_slug": "elf",
+        "ability_bonuses": [
+            {
+                "ability": "STR",
+                "bonus": 1,
+                "is_choice": false
+            }
+        ],
+        "traits": [],
+        "source": "TEST-PHB",
+        "pages": "100"
+    },
+    {
+        "name": "Halfling",
+        "slug": "halfling",
+        "size": "S",
+        "speed": 25,
+        "parent_race_slug": null,
+        "ability_bonuses": [
+            {
+                "ability": "DEX",
+                "bonus": 2,
+                "is_choice": false
+            }
+        ],
+        "traits": [],
+        "source": "TEST-PHB",
+        "pages": "100"
+    },
+    {
+        "name": "Fairy",
+        "slug": "fairy",
+        "size": "T",
+        "speed": 30,
+        "parent_race_slug": null,
+        "ability_bonuses": [
+            {
+                "ability": "CON",
+                "bonus": 1,
+                "is_choice": false
+            }
+        ],
+        "traits": [],
+        "source": "TEST-PHB",
+        "pages": "100"
+    }
+]

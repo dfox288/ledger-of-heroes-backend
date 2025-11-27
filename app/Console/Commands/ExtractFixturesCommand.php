@@ -387,7 +387,105 @@ class ExtractFixturesCommand extends Command
 
     protected function extractRaces(): array
     {
-        return [];
+        $limit = (int) $this->option('limit');
+        $raceIds = collect();
+
+        // Coverage-based selection:
+        // 1. One per size
+        // 2. Races with subraces
+        // 3. Subraces themselves
+        // 4. Fill remaining
+
+        // One per size
+        \App\Models\Size::all()->each(function ($size) use ($raceIds) {
+            $race = \App\Models\Race::where('size_id', $size->id)
+                ->whereNull('parent_race_id')
+                ->first();
+            if ($race) {
+                $raceIds->push($race->id);
+            }
+        });
+
+        // Races with subraces (base races that have children)
+        $racesWithSubraces = \App\Models\Race::whereNull('parent_race_id')
+            ->whereHas('subraces')
+            ->whereNotIn('id', $raceIds->toArray())
+            ->take(3)
+            ->pluck('id');
+        $raceIds = $raceIds->merge($racesWithSubraces);
+
+        // Add at least one subrace for each race with subraces
+        foreach ($racesWithSubraces as $baseRaceId) {
+            $subrace = \App\Models\Race::where('parent_race_id', $baseRaceId)
+                ->whereNotIn('id', $raceIds->toArray())
+                ->first();
+            if ($subrace) {
+                $raceIds->push($subrace->id);
+            }
+        }
+
+        // Fill remaining with random races
+        $remaining = $limit - $raceIds->count();
+        if ($remaining > 0) {
+            $additional = \App\Models\Race::whereNotIn('id', $raceIds->toArray())
+                ->inRandomOrder()
+                ->take($remaining)
+                ->pluck('id');
+            $raceIds = $raceIds->merge($additional);
+        }
+
+        // Load full models with relationships
+        $races = \App\Models\Race::whereIn('id', $raceIds->unique())
+            ->with([
+                'size',
+                'parent',
+                'sources.source',
+                'traits',
+                'modifiers.abilityScore',
+                'modifiers.skill',
+                'languages',
+                'proficiencies',
+            ])
+            ->get();
+
+        return $races->map(fn ($race) => $this->formatRace($race))->toArray();
+    }
+
+    protected function formatRace(\App\Models\Race $race): array
+    {
+        // Extract ability score bonuses
+        $abilityBonuses = $race->modifiers
+            ->where('modifier_category', 'ability_score')
+            ->map(function ($modifier) {
+                return [
+                    'ability' => $modifier->abilityScore?->code,
+                    'bonus' => (int) $modifier->value,
+                    'is_choice' => $modifier->is_choice ?? false,
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        // Extract traits
+        $traits = $race->traits->map(function ($trait) {
+            return [
+                'name' => $trait->name,
+                'category' => $trait->category,
+                'description' => $trait->description,
+            ];
+        })->values()->toArray();
+
+        return [
+            'name' => $race->name,
+            'slug' => $race->slug,
+            'size' => $race->size?->code,
+            'speed' => $race->speed,
+            'parent_race_slug' => $race->parent?->slug,
+            'ability_bonuses' => $abilityBonuses,
+            'traits' => $traits,
+            'source' => $race->sources->first()?->source->code,
+            'pages' => $race->sources->first()?->pages,
+        ];
     }
 
     protected function extractItems(): array

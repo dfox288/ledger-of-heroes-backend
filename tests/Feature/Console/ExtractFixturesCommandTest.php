@@ -210,4 +210,171 @@ class ExtractFixturesCommandTest extends TestCase
         $this->assertIsInt($class['hit_die']);
         $this->assertIsString($class['slug']);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_extracts_races_with_size_coverage(): void
+    {
+        $source = \App\Models\Source::factory()->create(['code' => 'TEST-PHB']);
+
+        // Get different sizes
+        $sizeMedium = \App\Models\Size::where('code', 'M')->first();
+        $sizeSmall = \App\Models\Size::where('code', 'S')->first();
+        $sizeTiny = \App\Models\Size::where('code', 'T')->first();
+
+        // Get ability scores for modifiers
+        $strAbility = \App\Models\AbilityScore::where('code', 'STR')->first();
+        $dexAbility = \App\Models\AbilityScore::where('code', 'DEX')->first();
+        $conAbility = \App\Models\AbilityScore::where('code', 'CON')->first();
+
+        // Create base race with traits and modifiers
+        $human = \App\Models\Race::factory()->create([
+            'name' => 'Human',
+            'slug' => 'human',
+            'size_id' => $sizeMedium->id,
+            'speed' => 30,
+            'parent_race_id' => null,
+        ]);
+
+        // Add ability score modifiers
+        \App\Models\Modifier::create([
+            'reference_type' => 'App\Models\Race',
+            'reference_id' => $human->id,
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $strAbility->id,
+            'value' => 1,
+        ]);
+
+        \App\Models\Modifier::create([
+            'reference_type' => 'App\Models\Race',
+            'reference_id' => $human->id,
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $dexAbility->id,
+            'value' => 1,
+        ]);
+
+        // Add a trait
+        \App\Models\CharacterTrait::create([
+            'reference_type' => 'App\Models\Race',
+            'reference_id' => $human->id,
+            'name' => 'Extra Language',
+            'category' => 'racial',
+            'description' => 'You can speak, read, and write one extra language.',
+        ]);
+
+        // Create race with subraces
+        $elf = \App\Models\Race::factory()->create([
+            'name' => 'Elf',
+            'slug' => 'elf',
+            'size_id' => $sizeMedium->id,
+            'speed' => 30,
+            'parent_race_id' => null,
+        ]);
+
+        \App\Models\Modifier::create([
+            'reference_type' => 'App\Models\Race',
+            'reference_id' => $elf->id,
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $dexAbility->id,
+            'value' => 2,
+        ]);
+
+        // Create subrace
+        $highElf = \App\Models\Race::factory()->create([
+            'name' => 'High Elf',
+            'slug' => 'high-elf',
+            'size_id' => $sizeMedium->id,
+            'speed' => 30,
+            'parent_race_id' => $elf->id,
+        ]);
+
+        \App\Models\Modifier::create([
+            'reference_type' => 'App\Models\Race',
+            'reference_id' => $highElf->id,
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $strAbility->id,
+            'value' => 1,
+        ]);
+
+        // Create small race
+        $halfling = \App\Models\Race::factory()->create([
+            'name' => 'Halfling',
+            'slug' => 'halfling',
+            'size_id' => $sizeSmall->id,
+            'speed' => 25,
+            'parent_race_id' => null,
+        ]);
+
+        \App\Models\Modifier::create([
+            'reference_type' => 'App\Models\Race',
+            'reference_id' => $halfling->id,
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $dexAbility->id,
+            'value' => 2,
+        ]);
+
+        // Create tiny race
+        $fairy = \App\Models\Race::factory()->create([
+            'name' => 'Fairy',
+            'slug' => 'fairy',
+            'size_id' => $sizeTiny->id,
+            'speed' => 30,
+            'parent_race_id' => null,
+        ]);
+
+        \App\Models\Modifier::create([
+            'reference_type' => 'App\Models\Race',
+            'reference_id' => $fairy->id,
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $conAbility->id,
+            'value' => 1,
+        ]);
+
+        // Create entity source relationships
+        foreach ([$human, $elf, $highElf, $halfling, $fairy] as $race) {
+            \App\Models\EntitySource::create([
+                'reference_type' => 'App\Models\Race',
+                'reference_id' => $race->id,
+                'source_id' => $source->id,
+                'pages' => '100',
+            ]);
+        }
+
+        // Extract
+        $this->artisan('fixtures:extract', [
+            'entity' => 'races',
+            '--output' => 'tests/fixtures/test-output',
+        ])->assertSuccessful();
+
+        // Verify JSON created
+        $path = base_path('tests/fixtures/test-output/entities/races.json');
+        $this->assertFileExists($path);
+
+        $data = json_decode(File::get($path), true);
+        $this->assertIsArray($data);
+        $this->assertGreaterThanOrEqual(4, count($data), 'Should extract at least 4 races');
+
+        // Verify structure
+        $race = $data[0];
+        $this->assertArrayHasKey('name', $race);
+        $this->assertArrayHasKey('slug', $race);
+        $this->assertArrayHasKey('size', $race);
+        $this->assertArrayHasKey('speed', $race);
+        $this->assertArrayHasKey('parent_race_slug', $race);
+        $this->assertArrayHasKey('ability_bonuses', $race);
+        $this->assertArrayHasKey('traits', $race);
+        $this->assertArrayHasKey('source', $race);
+
+        // Verify relationships are codes/slugs, not IDs
+        $this->assertIsString($race['size']);
+        $this->assertIsArray($race['ability_bonuses']);
+        $this->assertIsArray($race['traits']);
+
+        // Verify we have races with different sizes
+        $sizes = collect($data)->pluck('size')->unique();
+        $this->assertGreaterThanOrEqual(2, $sizes->count(), 'Should have at least 2 different sizes');
+
+        // Verify we have at least one subrace
+        $subraces = collect($data)->filter(fn ($r) => $r['parent_race_slug'] !== null);
+        $this->assertGreaterThanOrEqual(1, $subraces->count(), 'Should have at least one subrace');
+    }
 }

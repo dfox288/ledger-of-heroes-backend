@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Race fixture extraction**: Implemented `extractRaces()` and `formatRace()` methods in `ExtractFixturesCommand`
+  - Coverage-based selection: one per size category, races with/without subraces
+  - Exports racial traits, speed, ability score bonuses
+  - Relationships exported as slugs/codes (size, parent race, source)
+  - Added test `it_extracts_races_with_size_coverage()`
+
 ### Fixed
 
 - **PHPUnit 11 risky test warnings**: Fixed 1,031 risky warnings caused by Guzzle/Meilisearch error handler manipulation

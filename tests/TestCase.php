@@ -20,6 +20,15 @@ abstract class TestCase extends BaseTestCase
     protected $seed = true;
 
     /**
+     * The seeder class to use for test database setup.
+     *
+     * Uses fixture-based test data instead of full DatabaseSeeder.
+     *
+     * @var string
+     */
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+
+    /**
      * Store original error/exception handlers to restore after test.
      *
      * PHPUnit 11 tracks changes to global handlers and marks tests as risky if

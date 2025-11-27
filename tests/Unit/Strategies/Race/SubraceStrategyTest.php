@@ -62,11 +62,10 @@ class SubraceStrategyTest extends TestCase
     {
         $this->seedSizes();
         $size = Size::where('code', 'M')->first();
-        $baseRace = Race::factory()->create([
-            'name' => 'Elf',
-            'slug' => 'elf',
-            'size_id' => $size->id,
-        ]);
+        $baseRace = Race::firstOrCreate(
+            ['slug' => 'elf'],
+            ['name' => 'Elf', 'size_id' => $size->id]
+        );
 
         $data = [
             'name' => 'High Elf',
@@ -84,11 +83,16 @@ class SubraceStrategyTest extends TestCase
     public function it_creates_stub_base_race_if_missing(): void
     {
         $this->seedSizes();
-        $this->assertDatabaseMissing('races', ['slug' => 'dwarf']);
+
+        // Use a unique race name to avoid fixture conflicts
+        $uniqueRaceName = 'TestRace'.time();
+        $uniqueRaceSlug = \Illuminate\Support\Str::slug($uniqueRaceName);
+
+        $this->assertDatabaseMissing('races', ['slug' => $uniqueRaceSlug]);
 
         $data = [
-            'name' => 'Mountain Dwarf',
-            'base_race_name' => 'Dwarf',
+            'name' => 'Mountain '.$uniqueRaceName,
+            'base_race_name' => $uniqueRaceName,
             'size_code' => 'M',
             'speed' => 25,
         ];
@@ -96,11 +100,11 @@ class SubraceStrategyTest extends TestCase
         $result = $this->strategy->enhance($data);
 
         $this->assertDatabaseHas('races', [
-            'slug' => 'dwarf',
-            'name' => 'Dwarf',
+            'slug' => $uniqueRaceSlug,
+            'name' => $uniqueRaceName,
         ]);
 
-        $baseRace = Race::where('slug', 'dwarf')->first();
+        $baseRace = Race::where('slug', $uniqueRaceSlug)->first();
         $this->assertEquals($baseRace->id, $result['parent_race_id']);
     }
 
@@ -140,9 +144,12 @@ class SubraceStrategyTest extends TestCase
     {
         $this->seedSizes();
 
+        // Use unique race name to avoid fixture conflicts
+        $uniqueRaceName = 'UniqueTestRace'.time();
+
         $data = [
-            'name' => 'Mountain Dwarf',
-            'base_race_name' => 'Dwarf',
+            'name' => 'Mountain '.$uniqueRaceName,
+            'base_race_name' => $uniqueRaceName,
             'size_code' => 'M',
             'speed' => 25,
         ];
@@ -158,7 +165,10 @@ class SubraceStrategyTest extends TestCase
     {
         $this->seedSizes();
         $size = Size::where('code', 'M')->first();
-        Race::factory()->create(['name' => 'Elf', 'slug' => 'elf', 'size_id' => $size->id]);
+        Race::firstOrCreate(
+            ['slug' => 'elf'],
+            ['name' => 'Elf', 'size_id' => $size->id]
+        );
 
         $data = [
             'name' => 'High Elf',
@@ -176,9 +186,12 @@ class SubraceStrategyTest extends TestCase
     #[Test]
     public function it_warns_if_size_missing_for_stub_creation(): void
     {
+        // Use unique race name to ensure stub creation path
+        $uniqueRaceName = 'NoSizeRace'.time();
+
         $data = [
-            'name' => 'Mountain Dwarf',
-            'base_race_name' => 'Dwarf',
+            'name' => 'Mountain '.$uniqueRaceName,
+            'base_race_name' => $uniqueRaceName,
             'size_code' => null,
             'speed' => 25,
         ];
@@ -205,11 +218,10 @@ class SubraceStrategyTest extends TestCase
         $size = Size::where('code', 'M')->first();
 
         // Given: A parent race with a custom slug that doesn't match slugified name
-        $parent = Race::factory()->create([
-            'name' => 'Dwarf, Mark of Warding',
-            'slug' => 'dwarf-mark-warding-custom',  // Custom slug different from Str::slug(name)
-            'size_id' => $size->id,
-        ]);
+        $parent = Race::firstOrCreate(
+            ['slug' => 'dwarf-mark-warding-custom'],
+            ['name' => 'Dwarf, Mark of Warding', 'size_id' => $size->id]
+        );
 
         // When: Importing a child subrace (format: "BaseName, SubraceName")
         $data = [

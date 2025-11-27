@@ -79,8 +79,8 @@ class FeatXmlParserPrerequisitesTest extends TestCase
     #[Test]
     public function it_parses_single_race_prerequisite()
     {
-        // "Elf"
-        Race::factory()->create(['name' => 'Elf', 'slug' => 'elf']);
+        // "Elf" - may exist in fixtures, use firstOrCreate
+        Race::firstOrCreate(['slug' => 'elf'], ['name' => 'Elf']);
 
         $result = $this->parser->parsePrerequisites('Elf');
 
@@ -93,10 +93,10 @@ class FeatXmlParserPrerequisitesTest extends TestCase
     #[Test]
     public function it_parses_multiple_races_prerequisite()
     {
-        // "Dwarf, Gnome, Halfling" (OR between races)
-        Race::factory()->create(['name' => 'Dwarf', 'slug' => 'dwarf']);
-        Race::factory()->create(['name' => 'Gnome', 'slug' => 'gnome']);
-        Race::factory()->create(['name' => 'Halfling', 'slug' => 'halfling']);
+        // "Dwarf, Gnome, Halfling" (OR between races) - may exist in fixtures
+        Race::firstOrCreate(['slug' => 'dwarf'], ['name' => 'Dwarf']);
+        Race::firstOrCreate(['slug' => 'gnome'], ['name' => 'Gnome']);
+        Race::firstOrCreate(['slug' => 'halfling'], ['name' => 'Halfling']);
 
         $result = $this->parser->parsePrerequisites('Dwarf, Gnome, Halfling');
 
@@ -183,9 +183,9 @@ class FeatXmlParserPrerequisitesTest extends TestCase
         // This should be: (Dwarf OR Gnome OR Halfling) AND (Proficiency in Acrobatics)
         // Note: "Small Race" might not exist as entity, treat as free-form or skip
 
-        Race::factory()->create(['name' => 'Dwarf', 'slug' => 'dwarf']);
-        Race::factory()->create(['name' => 'Gnome', 'slug' => 'gnome']);
-        Race::factory()->create(['name' => 'Halfling', 'slug' => 'halfling']);
+        Race::firstOrCreate(['slug' => 'dwarf'], ['name' => 'Dwarf']);
+        Race::firstOrCreate(['slug' => 'gnome'], ['name' => 'Gnome']);
+        Race::firstOrCreate(['slug' => 'halfling'], ['name' => 'Halfling']);
 
         $result = $this->parser->parsePrerequisites('Dwarf, Gnome, Halfling, Small Race, Proficiency in Acrobatics');
 
@@ -252,8 +252,8 @@ class FeatXmlParserPrerequisitesTest extends TestCase
     #[Test]
     public function it_parses_dragonborn_prerequisite()
     {
-        // "Dragonborn"
-        Race::factory()->create(['name' => 'Dragonborn', 'slug' => 'dragonborn']);
+        // "Dragonborn" - may exist in fixtures
+        Race::firstOrCreate(['slug' => 'dragonborn'], ['name' => 'Dragonborn']);
 
         $result = $this->parser->parsePrerequisites('Dragonborn');
 
@@ -270,9 +270,9 @@ class FeatXmlParserPrerequisitesTest extends TestCase
         // "Dwarf, Gnome, Halfling, Small Race, Proficiency in the Acrobatics skill"
         // This is the real-world Squat Nimbleness case
         // "Small Race" should be skipped as redundant (size descriptor)
-        Race::factory()->create(['name' => 'Dwarf', 'slug' => 'dwarf']);
-        Race::factory()->create(['name' => 'Gnome', 'slug' => 'gnome']);
-        Race::factory()->create(['name' => 'Halfling', 'slug' => 'halfling']);
+        Race::firstOrCreate(['slug' => 'dwarf'], ['name' => 'Dwarf']);
+        Race::firstOrCreate(['slug' => 'gnome'], ['name' => 'Gnome']);
+        Race::firstOrCreate(['slug' => 'halfling'], ['name' => 'Halfling']);
 
         $result = $this->parser->parsePrerequisites('Dwarf, Gnome, Halfling, Small Race, Proficiency in the Acrobatics skill');
 

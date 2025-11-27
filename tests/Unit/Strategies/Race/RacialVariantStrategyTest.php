@@ -74,11 +74,10 @@ class RacialVariantStrategyTest extends TestCase
     {
         $this->seedSizes();
         $size = Size::where('code', 'M')->first();
-        $parentRace = Race::factory()->create([
-            'name' => 'Dragonborn',
-            'slug' => 'dragonborn',
-            'size_id' => $size->id,
-        ]);
+        $parentRace = Race::firstOrCreate(
+            ['slug' => 'dragonborn'],
+            ['name' => 'Dragonborn', 'size_id' => $size->id]
+        );
 
         $data = ['name' => 'Dragonborn (Gold)', 'variant_of' => 'Dragonborn'];
 
@@ -101,7 +100,8 @@ class RacialVariantStrategyTest extends TestCase
     #[Test]
     public function it_warns_if_parent_race_missing(): void
     {
-        $data = ['name' => 'Dragonborn (Gold)', 'variant_of' => 'Dragonborn'];
+        // Ensure test runs with empty database by using unique race name
+        $data = ['name' => 'NonexistentRace (Gold)', 'variant_of' => 'NonexistentRace'];
 
         $this->strategy->enhance($data);
 
@@ -128,11 +128,10 @@ class RacialVariantStrategyTest extends TestCase
         $size = Size::where('code', 'M')->first();
 
         // Given: A parent race with a custom slug that doesn't match slugified name
-        $parent = Race::factory()->create([
-            'name' => 'Elf, Eladrin',
-            'slug' => 'elf-eladrin-custom',  // Custom slug different from Str::slug(name)
-            'size_id' => $size->id,
-        ]);
+        $parent = Race::firstOrCreate(
+            ['slug' => 'elf-eladrin-custom'],
+            ['name' => 'Elf, Eladrin', 'size_id' => $size->id]
+        );
 
         // When: Importing a variant (format: "ParentName (VariantType)")
         $data = [

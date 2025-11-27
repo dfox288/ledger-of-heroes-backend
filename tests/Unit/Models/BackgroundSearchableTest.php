@@ -3,8 +3,6 @@
 namespace Tests\Unit\Models;
 
 use App\Models\Background;
-use App\Models\EntitySource;
-use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,20 +14,8 @@ class BackgroundSearchableTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_returns_searchable_array_with_denormalized_data(): void
     {
-        $source = Source::firstOrCreate(['code' => 'PHB'], ['name' => 'Player\'s Handbook']);
-
-        $background = Background::factory()->create([
-            'name' => 'Acolyte',
-        ]);
-
-        EntitySource::factory()->create([
-            'reference_type' => Background::class,
-            'reference_id' => $background->id,
-            'source_id' => $source->id,
-            'pages' => '127',
-        ]);
-
-        $background->refresh();
+        // Use fixture data - Acolyte background is seeded by TestDatabaseSeeder
+        $background = Background::where('slug', 'acolyte')->firstOrFail();
 
         $searchable = $background->toSearchableArray();
 

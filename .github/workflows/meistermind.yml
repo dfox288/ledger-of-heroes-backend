@@ -122,11 +122,15 @@ jobs:
       - name: Respond
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
           ISSUE_TITLE=$(jq -r '.title' /tmp/issue.json)
           ISSUE_BODY=$(jq -r '.body // ""' /tmp/issue.json)
-          REQUEST=$(echo "$COMMENT_BODY" | sed 's/@meistermind//gi' | xargs)
+
+          # Get comment body safely via GitHub API
+          COMMENT_BODY=$(gh api /repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }} --jq '.body')
+
+          # Remove @meistermind mention
+          REQUEST=$(echo "$COMMENT_BODY" | sed 's/@meistermind//gi')
 
           cat << EOF > /tmp/prompt.txt
           You're MeisterMind, helping with this GitHub issue/PR.

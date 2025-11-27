@@ -30,9 +30,6 @@ class SpellEnhancedFilteringTest extends TestCase
     {
         parent::setUp();
 
-        // Import test spells from PHB
-        $this->artisan('import:spells', ['file' => 'import-files/spells-phb.xml']);
-
         // Ensure Meilisearch indexes are configured with enhanced fields
         $this->artisan('search:configure-indexes');
     }

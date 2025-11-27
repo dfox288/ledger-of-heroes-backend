@@ -19,24 +19,6 @@ class ClassFilterOperatorTest extends TestCase
     {
         parent::setUp();
 
-        // Import real classes for testing (provides realistic data with all relationships)
-        // Import items first (required for class equipment references)
-        $this->artisan('import:items', ['file' => 'import-files/item-phb.xml']);
-
-        // Import classes from multiple sources to get variety
-        $this->artisan('import:classes', ['file' => 'import-files/class-barbarian-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-bard-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-cleric-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-druid-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-fighter-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-monk-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-paladin-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-ranger-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-rogue-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-sorcerer-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-warlock-phb.xml']);
-        $this->artisan('import:classes', ['file' => 'import-files/class-wizard-phb.xml']);
-
         // Configure Meilisearch indexes for testing
         $this->artisan('search:configure-indexes');
     }

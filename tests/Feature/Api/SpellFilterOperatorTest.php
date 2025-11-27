@@ -16,9 +16,6 @@ class SpellFilterOperatorTest extends TestCase
     {
         parent::setUp();
 
-        // Import real spells from PHB for testing (provides realistic data)
-        $this->artisan('import:spells', ['file' => 'import-files/spells-phb.xml']);
-
         // Configure Meilisearch indexes for testing
         $this->artisan('search:configure-indexes');
     }

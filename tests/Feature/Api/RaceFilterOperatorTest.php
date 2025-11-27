@@ -30,9 +30,6 @@ class RaceFilterOperatorTest extends TestCase
         // Clear Meilisearch index for test isolation
         $this->clearMeilisearchIndex(Race::class);
 
-        // Import real races from PHB (provides realistic data)
-        $this->artisan('import:races', ['file' => 'import-files/races-phb.xml']);
-
         // Configure Meilisearch indexes (filterable attributes)
         $this->artisan('search:configure-indexes');
 

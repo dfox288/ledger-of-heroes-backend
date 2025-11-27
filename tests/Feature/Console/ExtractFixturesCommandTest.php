@@ -92,4 +92,45 @@ class ExtractFixturesCommandTest extends TestCase
         $this->assertIsArray($spell['classes']);
         $this->assertIsArray($spell['sources']);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_extracts_monsters_with_cr_coverage(): void
+    {
+        $source = \App\Models\Source::factory()->create(['code' => 'TEST-MM']);
+
+        // Create monsters at different CRs
+        foreach ([0, 0.125, 0.25, 0.5, 1, 5, 10, 20] as $cr) {
+            $monster = \App\Models\Monster::factory()->create([
+                'challenge_rating' => $cr,
+            ]);
+
+            // Create entity source relationship
+            \App\Models\EntitySource::create([
+                'reference_type' => 'App\Models\Monster',
+                'reference_id' => $monster->id,
+                'source_id' => $source->id,
+                'pages' => '100',
+            ]);
+        }
+
+        $this->artisan('fixtures:extract', [
+            'entity' => 'monsters',
+            '--output' => 'tests/fixtures/test-output',
+        ])->assertSuccessful();
+
+        $path = base_path('tests/fixtures/test-output/entities/monsters.json');
+        $this->assertFileExists($path);
+
+        $data = json_decode(File::get($path), true);
+        $this->assertGreaterThanOrEqual(8, count($data));
+
+        // Verify structure
+        $monster = $data[0];
+        $this->assertArrayHasKey('name', $monster);
+        $this->assertArrayHasKey('slug', $monster);
+        $this->assertArrayHasKey('challenge_rating', $monster);
+        $this->assertArrayHasKey('size', $monster);
+        $this->assertArrayHasKey('type', $monster);
+        $this->assertArrayHasKey('source', $monster);
+    }
 }

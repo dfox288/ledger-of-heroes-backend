@@ -168,7 +168,121 @@ class ExtractFixturesCommand extends Command
 
     protected function extractMonsters(): array
     {
-        return [];
+        $limit = (int) $this->option('limit');
+        $monsterIds = collect();
+
+        // Coverage-based: one per CR tier
+        $crTiers = [0, 0.125, 0.25, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30];
+
+        foreach ($crTiers as $cr) {
+            $monster = \App\Models\Monster::where('challenge_rating', $cr)->first();
+            if ($monster) {
+                $monsterIds->push($monster->id);
+            }
+        }
+
+        // One per size
+        \App\Models\Size::all()->each(function ($size) use ($monsterIds) {
+            $monster = \App\Models\Monster::where('size_id', $size->id)
+                ->whereNotIn('id', $monsterIds->toArray())
+                ->first();
+            if ($monster) {
+                $monsterIds->push($monster->id);
+            }
+        });
+
+        // One per type
+        \App\Models\Monster::distinct('type')->pluck('type')->each(function ($type) use ($monsterIds) {
+            $monster = \App\Models\Monster::where('type', $type)
+                ->whereNotIn('id', $monsterIds->toArray())
+                ->first();
+            if ($monster) {
+                $monsterIds->push($monster->id);
+            }
+        });
+
+        // Fill remaining
+        $remaining = $limit - $monsterIds->count();
+        if ($remaining > 0) {
+            $additional = \App\Models\Monster::whereNotIn('id', $monsterIds->toArray())
+                ->inRandomOrder()
+                ->take($remaining)
+                ->pluck('id');
+            $monsterIds = $monsterIds->merge($additional);
+        }
+
+        $monsters = \App\Models\Monster::whereIn('id', $monsterIds->unique())
+            ->with(['size', 'sources.source', 'modifiers.damageType'])
+            ->get();
+
+        return $monsters->map(fn ($m) => $this->formatMonster($m))->toArray();
+    }
+
+    protected function formatMonster(\App\Models\Monster $monster): array
+    {
+        // Group modifiers by category
+        $damageVulnerabilities = $monster->modifiers
+            ->where('modifier_category', 'damage_vulnerability')
+            ->pluck('damageType.slug')
+            ->filter()
+            ->values()
+            ->toArray();
+
+        $damageResistances = $monster->modifiers
+            ->where('modifier_category', 'damage_resistance')
+            ->pluck('damageType.slug')
+            ->filter()
+            ->values()
+            ->toArray();
+
+        $damageImmunities = $monster->modifiers
+            ->where('modifier_category', 'damage_immunity')
+            ->pluck('damageType.slug')
+            ->filter()
+            ->values()
+            ->toArray();
+
+        $conditionImmunities = $monster->modifiers
+            ->where('modifier_category', 'condition_immunity')
+            ->pluck('value')
+            ->filter()
+            ->values()
+            ->toArray();
+
+        return [
+            'name' => $monster->name,
+            'slug' => $monster->slug,
+            'size' => $monster->size->code,
+            'type' => $monster->type,
+            'alignment' => $monster->alignment,
+            'armor_class' => $monster->armor_class,
+            'armor_type' => $monster->armor_type,
+            'hit_points' => $monster->hit_points_average,
+            'hit_dice' => $monster->hit_dice,
+            'speed_walk' => $monster->speed_walk,
+            'speed_fly' => $monster->speed_fly,
+            'speed_swim' => $monster->speed_swim,
+            'speed_burrow' => $monster->speed_burrow,
+            'speed_climb' => $monster->speed_climb,
+            'can_hover' => $monster->can_hover,
+            'strength' => $monster->strength,
+            'dexterity' => $monster->dexterity,
+            'constitution' => $monster->constitution,
+            'intelligence' => $monster->intelligence,
+            'wisdom' => $monster->wisdom,
+            'charisma' => $monster->charisma,
+            'challenge_rating' => $monster->challenge_rating,
+            'experience_points' => $monster->experience_points,
+            'passive_perception' => $monster->passive_perception,
+            'damage_vulnerabilities' => $damageVulnerabilities,
+            'damage_resistances' => $damageResistances,
+            'damage_immunities' => $damageImmunities,
+            'condition_immunities' => $conditionImmunities,
+            'description' => $monster->description,
+            'is_npc' => $monster->is_npc,
+            'source' => $monster->sources->first()?->source->code,
+            'pages' => $monster->sources->first()?->pages,
+        ];
     }
 
     protected function extractClasses(): array

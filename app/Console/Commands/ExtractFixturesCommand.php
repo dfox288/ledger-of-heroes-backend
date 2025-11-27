@@ -74,7 +74,96 @@ class ExtractFixturesCommand extends Command
     // Placeholder extractors - will be implemented in subsequent tasks
     protected function extractSpells(): array
     {
-        return [];
+        $limit = (int) $this->option('limit');
+
+        // Get coverage-based selection:
+        // 1. One spell per level (0-9)
+        // 2. One spell per school
+        // 3. Concentration and ritual variants
+        // 4. Additional random spells up to limit
+
+        $spellIds = collect();
+
+        // One per level
+        foreach (range(0, 9) as $level) {
+            $spell = \App\Models\Spell::where('level', $level)->first();
+            if ($spell) {
+                $spellIds->push($spell->id);
+            }
+        }
+
+        // One per school
+        \App\Models\SpellSchool::all()->each(function ($school) use ($spellIds) {
+            $spell = \App\Models\Spell::where('spell_school_id', $school->id)
+                ->whereNotIn('id', $spellIds->toArray())
+                ->first();
+            if ($spell) {
+                $spellIds->push($spell->id);
+            }
+        });
+
+        // Concentration spells
+        $concentration = \App\Models\Spell::where('needs_concentration', true)
+            ->whereNotIn('id', $spellIds->toArray())
+            ->take(3)
+            ->pluck('id');
+        $spellIds = $spellIds->merge($concentration);
+
+        // Ritual spells
+        $ritual = \App\Models\Spell::where('is_ritual', true)
+            ->whereNotIn('id', $spellIds->toArray())
+            ->take(3)
+            ->pluck('id');
+        $spellIds = $spellIds->merge($ritual);
+
+        // Fill remaining with random spells
+        $remaining = $limit - $spellIds->count();
+        if ($remaining > 0) {
+            $additional = \App\Models\Spell::whereNotIn('id', $spellIds->toArray())
+                ->inRandomOrder()
+                ->take($remaining)
+                ->pluck('id');
+            $spellIds = $spellIds->merge($additional);
+        }
+
+        // Load full models with relationships
+        $spells = \App\Models\Spell::whereIn('id', $spellIds->unique())
+            ->with(['spellSchool', 'classes', 'sources.source', 'effects.damageType'])
+            ->get();
+
+        return $spells->map(fn ($spell) => $this->formatSpell($spell))->toArray();
+    }
+
+    protected function formatSpell(\App\Models\Spell $spell): array
+    {
+        return [
+            'name' => $spell->name,
+            'slug' => $spell->slug,
+            'level' => $spell->level,
+            'school' => $spell->spellSchool->code,
+            'casting_time' => $spell->casting_time,
+            'range' => $spell->range,
+            'components' => $spell->components,
+            'material_components' => $spell->material_components,
+            'duration' => $spell->duration,
+            'needs_concentration' => $spell->needs_concentration,
+            'is_ritual' => $spell->is_ritual,
+            'description' => $spell->description,
+            'higher_levels' => $spell->higher_levels,
+            'classes' => $spell->classes->pluck('slug')->toArray(),
+            'damage_types' => $spell->effects
+                ->filter(fn ($e) => $e->damageType)
+                ->pluck('damageType.code')
+                ->unique()
+                ->values()
+                ->toArray(),
+            'sources' => $spell->sources->map(function ($entitySource) {
+                return [
+                    'code' => $entitySource->source->code,
+                    'pages' => $entitySource->pages,
+                ];
+            })->toArray(),
+        ];
     }
 
     protected function extractMonsters(): array

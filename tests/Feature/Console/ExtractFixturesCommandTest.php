@@ -133,4 +133,81 @@ class ExtractFixturesCommandTest extends TestCase
         $this->assertArrayHasKey('type', $monster);
         $this->assertArrayHasKey('source', $monster);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_extracts_classes_with_all_base_classes(): void
+    {
+        $source = \App\Models\Source::factory()->create(['code' => 'TEST-PHB']);
+
+        // Create test classes covering different hit dice and spellcasting
+        $wizInt = \App\Models\AbilityScore::where('code', 'INT')->first();
+        $wisWis = \App\Models\AbilityScore::where('code', 'WIS')->first();
+
+        // Base class with spellcasting
+        $wizard = \App\Models\CharacterClass::factory()->create([
+            'name' => 'Wizard',
+            'slug' => 'wizard',
+            'hit_die' => 6,
+            'primary_ability' => 'Intelligence',
+            'spellcasting_ability_id' => $wizInt?->id,
+            'parent_class_id' => null,
+        ]);
+
+        // Base class without spellcasting
+        $fighter = \App\Models\CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'fighter',
+            'hit_die' => 10,
+            'primary_ability' => 'Strength or Dexterity',
+            'spellcasting_ability_id' => null,
+            'parent_class_id' => null,
+        ]);
+
+        // Base class with different spellcasting
+        $cleric = \App\Models\CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'hit_die' => 8,
+            'primary_ability' => 'Wisdom',
+            'spellcasting_ability_id' => $wisWis?->id,
+            'parent_class_id' => null,
+        ]);
+
+        // Create entity source relationships
+        foreach ([$wizard, $fighter, $cleric] as $class) {
+            \App\Models\EntitySource::create([
+                'reference_type' => 'App\Models\CharacterClass',
+                'reference_id' => $class->id,
+                'source_id' => $source->id,
+                'pages' => '100',
+            ]);
+        }
+
+        // Extract
+        $this->artisan('fixtures:extract', [
+            'entity' => 'classes',
+            '--output' => 'tests/fixtures/test-output',
+        ])->assertSuccessful();
+
+        // Verify JSON created
+        $path = base_path('tests/fixtures/test-output/entities/classes.json');
+        $this->assertFileExists($path);
+
+        $data = json_decode(File::get($path), true);
+        $this->assertIsArray($data);
+        $this->assertGreaterThanOrEqual(3, count($data));
+
+        // Verify structure
+        $class = $data[0];
+        $this->assertArrayHasKey('name', $class);
+        $this->assertArrayHasKey('slug', $class);
+        $this->assertArrayHasKey('hit_die', $class);
+        $this->assertArrayHasKey('primary_ability', $class);
+        $this->assertArrayHasKey('spellcasting_ability', $class);
+        $this->assertArrayHasKey('source', $class);
+
+        // Verify relationships are codes/slugs, not IDs
+        $this->assertIsInt($class['hit_die']);
+        $this->assertIsString($class['slug']);
+    }
 }

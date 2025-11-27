@@ -287,7 +287,102 @@ class ExtractFixturesCommand extends Command
 
     protected function extractClasses(): array
     {
-        return [];
+        $limit = (int) $this->option('limit');
+        $classIds = collect();
+
+        // Coverage-based selection:
+        // 1. All base classes (no parent)
+        // 2. One subclass per base class (if available)
+        // 3. One per hit die value
+        // 4. Spellcasters vs non-spellcasters
+
+        // All base classes
+        $baseClasses = \App\Models\CharacterClass::whereNull('parent_class_id')
+            ->pluck('id');
+        $classIds = $classIds->merge($baseClasses);
+
+        // One subclass per base class
+        foreach ($baseClasses as $baseClassId) {
+            $subclass = \App\Models\CharacterClass::where('parent_class_id', $baseClassId)
+                ->whereNotIn('id', $classIds->toArray())
+                ->first();
+            if ($subclass) {
+                $classIds->push($subclass->id);
+            }
+        }
+
+        // One per hit die value
+        foreach ([6, 8, 10, 12] as $hitDie) {
+            $class = \App\Models\CharacterClass::where('hit_die', $hitDie)
+                ->whereNotIn('id', $classIds->toArray())
+                ->first();
+            if ($class) {
+                $classIds->push($class->id);
+            }
+        }
+
+        // Spellcasters
+        $spellcasters = \App\Models\CharacterClass::whereNotNull('spellcasting_ability_id')
+            ->whereNotIn('id', $classIds->toArray())
+            ->take(3)
+            ->pluck('id');
+        $classIds = $classIds->merge($spellcasters);
+
+        // Fill remaining with random classes
+        $remaining = $limit - $classIds->count();
+        if ($remaining > 0) {
+            $additional = \App\Models\CharacterClass::whereNotIn('id', $classIds->toArray())
+                ->inRandomOrder()
+                ->take($remaining)
+                ->pluck('id');
+            $classIds = $classIds->merge($additional);
+        }
+
+        // Load full models with relationships
+        $classes = \App\Models\CharacterClass::whereIn('id', $classIds->unique())
+            ->with([
+                'spellcastingAbility',
+                'parentClass',
+                'sources.source',
+                'proficiencies.skill',
+                'proficiencies.abilityScore',
+                'proficiencies.proficiencyType',
+                'proficiencies.item',
+            ])
+            ->get();
+
+        return $classes->map(fn ($class) => $this->formatClass($class))->toArray();
+    }
+
+    protected function formatClass(\App\Models\CharacterClass $class): array
+    {
+        return [
+            'name' => $class->name,
+            'slug' => $class->slug,
+            'hit_die' => $class->hit_die,
+            'description' => $class->description,
+            'primary_ability' => $class->primary_ability,
+            'spellcasting_ability' => $class->spellcastingAbility?->code,
+            'parent_class_slug' => $class->parentClass?->slug,
+            'proficiencies' => $class->proficiencies->map(function ($prof) {
+                return [
+                    'proficiency_type' => $prof->proficiency_type,
+                    'proficiency_subcategory' => $prof->proficiency_subcategory,
+                    'proficiency_name' => $prof->proficiency_name,
+                    'skill_code' => $prof->skill?->code,
+                    'ability_code' => $prof->abilityScore?->code,
+                    'item_slug' => $prof->item?->slug,
+                    'grants' => $prof->grants,
+                    'is_choice' => $prof->is_choice,
+                    'choice_group' => $prof->choice_group,
+                    'choice_option' => $prof->choice_option,
+                    'quantity' => $prof->quantity,
+                    'level' => $prof->level,
+                ];
+            })->toArray(),
+            'source' => $class->sources->first()?->source->code,
+            'pages' => $class->sources->first()?->pages,
+        ];
     }
 
     protected function extractRaces(): array

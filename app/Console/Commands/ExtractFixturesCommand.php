@@ -758,7 +758,164 @@ class ExtractFixturesCommand extends Command
 
     protected function extractBackgrounds(): array
     {
-        return [];
+        $limit = (int) $this->option('limit');
+        $backgroundIds = collect();
+
+        // Coverage-based selection:
+        // 1. Backgrounds with different skill proficiency combinations
+        // 2. Backgrounds with tool proficiencies
+        // 3. Backgrounds with language proficiencies
+        // 4. Fill remaining with random backgrounds
+
+        // Get all backgrounds (they're typically few in number)
+        $allBackgrounds = \App\Models\Background::all();
+
+        // Backgrounds with skill proficiencies
+        $backgroundsWithSkills = \App\Models\Background::has('proficiencies')
+            ->take(10)
+            ->pluck('id');
+        $backgroundIds = $backgroundIds->merge($backgroundsWithSkills);
+
+        // Backgrounds with tool proficiencies
+        $backgroundsWithTools = \App\Models\Background::whereHas('proficiencies', function ($q) {
+            $q->where('proficiency_type', 'tool');
+        })
+            ->whereNotIn('id', $backgroundIds->toArray())
+            ->take(5)
+            ->pluck('id');
+        $backgroundIds = $backgroundIds->merge($backgroundsWithTools);
+
+        // Backgrounds with language proficiencies
+        $backgroundsWithLanguages = \App\Models\Background::whereHas('proficiencies', function ($q) {
+            $q->where('proficiency_type', 'language');
+        })
+            ->whereNotIn('id', $backgroundIds->toArray())
+            ->take(5)
+            ->pluck('id');
+        $backgroundIds = $backgroundIds->merge($backgroundsWithLanguages);
+
+        // Backgrounds with features (traits)
+        $backgroundsWithFeatures = \App\Models\Background::has('traits')
+            ->whereNotIn('id', $backgroundIds->toArray())
+            ->take(5)
+            ->pluck('id');
+        $backgroundIds = $backgroundIds->merge($backgroundsWithFeatures);
+
+        // Fill remaining with random backgrounds
+        $remaining = $limit - $backgroundIds->count();
+        if ($remaining > 0) {
+            $additional = \App\Models\Background::whereNotIn('id', $backgroundIds->toArray())
+                ->inRandomOrder()
+                ->take($remaining)
+                ->pluck('id');
+            $backgroundIds = $backgroundIds->merge($additional);
+        }
+
+        // Load full models with relationships
+        $backgrounds = \App\Models\Background::whereIn('id', $backgroundIds->unique())
+            ->with([
+                'sources.source',
+                'proficiencies.skill',
+                'proficiencies.item',
+                'traits',
+                'equipment',
+                'languages',
+            ])
+            ->get();
+
+        return $backgrounds->map(fn ($background) => $this->formatBackground($background))->toArray();
+    }
+
+    protected function formatBackground(\App\Models\Background $background): array
+    {
+        // Extract skill proficiencies
+        $skillProficiencies = $background->proficiencies
+            ->where('proficiency_type', 'skill')
+            ->map(function ($prof) {
+                return [
+                    'skill_slug' => $prof->skill?->slug,
+                    'proficiency_name' => $prof->proficiency_name,
+                    'is_choice' => $prof->is_choice ?? false,
+                    'quantity' => $prof->quantity,
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        // Extract tool proficiencies
+        $toolProficiencies = $background->proficiencies
+            ->where('proficiency_type', 'tool')
+            ->map(function ($prof) {
+                return [
+                    'proficiency_type' => $prof->proficiency_type,
+                    'proficiency_subcategory' => $prof->proficiency_subcategory,
+                    'proficiency_name' => $prof->proficiency_name,
+                    'item_slug' => $prof->item?->slug,
+                    'is_choice' => $prof->is_choice ?? false,
+                    'quantity' => $prof->quantity,
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        // Extract language proficiencies
+        $languageProficiencies = $background->proficiencies
+            ->where('proficiency_type', 'language')
+            ->map(function ($prof) {
+                return [
+                    'proficiency_name' => $prof->proficiency_name,
+                    'is_choice' => $prof->is_choice ?? false,
+                    'quantity' => $prof->quantity,
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        // Extract other proficiencies (armor, weapon, etc.)
+        $otherProficiencies = $background->proficiencies
+            ->whereNotIn('proficiency_type', ['skill', 'tool', 'language'])
+            ->map(function ($prof) {
+                return [
+                    'proficiency_type' => $prof->proficiency_type,
+                    'proficiency_subcategory' => $prof->proficiency_subcategory,
+                    'proficiency_name' => $prof->proficiency_name,
+                    'is_choice' => $prof->is_choice ?? false,
+                    'quantity' => $prof->quantity,
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        // Extract background features (traits)
+        $features = $background->traits->map(function ($trait) {
+            return [
+                'name' => $trait->name,
+                'category' => $trait->category,
+                'description' => $trait->description,
+            ];
+        })->values()->toArray();
+
+        // Extract starting equipment
+        $equipment = $background->equipment->map(function ($item) {
+            return [
+                'item_slug' => $item->item?->slug,
+                'quantity' => $item->quantity,
+                'is_choice' => $item->is_choice ?? false,
+            ];
+        })->values()->toArray();
+
+        return [
+            'name' => $background->name,
+            'slug' => $background->slug,
+            'skill_proficiencies' => $skillProficiencies,
+            'tool_proficiencies' => $toolProficiencies,
+            'language_proficiencies' => $languageProficiencies,
+            'other_proficiencies' => $otherProficiencies,
+            'features' => $features,
+            'equipment' => $equipment,
+            'source' => $background->sources->first()?->source->code,
+            'pages' => $background->sources->first()?->pages,
+        ];
     }
 
     protected function extractOptionalFeatures(): array

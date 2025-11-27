@@ -712,4 +712,178 @@ class ExtractFixturesCommandTest extends TestCase
         $featsWithASI = collect($data)->filter(fn ($f) => count($f['ability_score_improvements']) > 0);
         $this->assertGreaterThanOrEqual(1, $featsWithASI->count(), 'Should have at least one feat with ability score improvements');
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_extracts_backgrounds(): void
+    {
+        $source = \App\Models\Source::factory()->create(['code' => 'TEST-PHB']);
+
+        // Get skills for proficiencies
+        $deception = \App\Models\Skill::where('slug', 'deception')->first();
+        $stealth = \App\Models\Skill::where('slug', 'stealth')->first();
+        $insight = \App\Models\Skill::where('slug', 'insight')->first();
+        $persuasion = \App\Models\Skill::where('slug', 'persuasion')->first();
+
+        // Create background with skill proficiencies
+        $criminal = \App\Models\Background::factory()->create([
+            'name' => 'Criminal',
+            'slug' => 'criminal',
+        ]);
+
+        // Add skill proficiencies
+        \App\Models\Proficiency::create([
+            'reference_type' => 'App\Models\Background',
+            'reference_id' => $criminal->id,
+            'proficiency_type' => 'skill',
+            'skill_id' => $deception->id,
+            'proficiency_name' => null,
+        ]);
+
+        \App\Models\Proficiency::create([
+            'reference_type' => 'App\Models\Background',
+            'reference_id' => $criminal->id,
+            'proficiency_type' => 'skill',
+            'skill_id' => $stealth->id,
+            'proficiency_name' => null,
+        ]);
+
+        // Add tool proficiency
+        \App\Models\Proficiency::create([
+            'reference_type' => 'App\Models\Background',
+            'reference_id' => $criminal->id,
+            'proficiency_type' => 'tool',
+            'proficiency_subcategory' => 'gaming_set',
+            'proficiency_name' => 'One type of gaming set',
+            'is_choice' => true,
+            'quantity' => 1,
+        ]);
+
+        // Add language proficiency
+        \App\Models\Proficiency::create([
+            'reference_type' => 'App\Models\Background',
+            'reference_id' => $criminal->id,
+            'proficiency_type' => 'language',
+            'proficiency_name' => 'Two of your choice',
+            'is_choice' => true,
+            'quantity' => 2,
+        ]);
+
+        // Add background feature
+        \App\Models\CharacterTrait::create([
+            'reference_type' => 'App\Models\Background',
+            'reference_id' => $criminal->id,
+            'name' => 'Criminal Contact',
+            'category' => 'feature',
+            'description' => 'You have a reliable and trustworthy contact.',
+        ]);
+
+        // Create entity source relationship
+        \App\Models\EntitySource::create([
+            'reference_type' => 'App\Models\Background',
+            'reference_id' => $criminal->id,
+            'source_id' => $source->id,
+            'pages' => '129',
+        ]);
+
+        // Create second background with different proficiencies
+        $acolyte = \App\Models\Background::factory()->create([
+            'name' => 'Acolyte',
+            'slug' => 'acolyte',
+        ]);
+
+        // Add different skill proficiencies
+        \App\Models\Proficiency::create([
+            'reference_type' => 'App\Models\Background',
+            'reference_id' => $acolyte->id,
+            'proficiency_type' => 'skill',
+            'skill_id' => $insight->id,
+        ]);
+
+        \App\Models\Proficiency::create([
+            'reference_type' => 'App\Models\Background',
+            'reference_id' => $acolyte->id,
+            'proficiency_type' => 'skill',
+            'skill_id' => $persuasion->id,
+        ]);
+
+        // Add language proficiency
+        \App\Models\Proficiency::create([
+            'reference_type' => 'App\Models\Background',
+            'reference_id' => $acolyte->id,
+            'proficiency_type' => 'language',
+            'proficiency_name' => 'Two of your choice',
+            'is_choice' => true,
+            'quantity' => 2,
+        ]);
+
+        // Add background feature
+        \App\Models\CharacterTrait::create([
+            'reference_type' => 'App\Models\Background',
+            'reference_id' => $acolyte->id,
+            'name' => 'Shelter of the Faithful',
+            'category' => 'feature',
+            'description' => 'You command the respect of those who share your faith.',
+        ]);
+
+        // Create entity source relationship
+        \App\Models\EntitySource::create([
+            'reference_type' => 'App\Models\Background',
+            'reference_id' => $acolyte->id,
+            'source_id' => $source->id,
+            'pages' => '127',
+        ]);
+
+        // Extract
+        $this->artisan('fixtures:extract', [
+            'entity' => 'backgrounds',
+            '--output' => 'tests/fixtures/test-output',
+        ])->assertSuccessful();
+
+        // Verify JSON created
+        $path = base_path('tests/fixtures/test-output/entities/backgrounds.json');
+        $this->assertFileExists($path);
+
+        $data = json_decode(File::get($path), true);
+        $this->assertIsArray($data);
+        $this->assertGreaterThanOrEqual(2, count($data), 'Should extract at least 2 backgrounds');
+
+        // Verify structure
+        $background = $data[0];
+        $this->assertArrayHasKey('name', $background);
+        $this->assertArrayHasKey('slug', $background);
+        $this->assertArrayHasKey('skill_proficiencies', $background);
+        $this->assertArrayHasKey('tool_proficiencies', $background);
+        $this->assertArrayHasKey('language_proficiencies', $background);
+        $this->assertArrayHasKey('features', $background);
+        $this->assertArrayHasKey('source', $background);
+
+        // Verify data types
+        $this->assertIsString($background['name']);
+        $this->assertIsString($background['slug']);
+        $this->assertIsArray($background['skill_proficiencies']);
+        $this->assertIsArray($background['tool_proficiencies']);
+        $this->assertIsArray($background['language_proficiencies']);
+        $this->assertIsArray($background['features']);
+
+        // Verify we have backgrounds with skill proficiencies
+        $backgroundsWithSkills = collect($data)->filter(fn ($b) => count($b['skill_proficiencies']) > 0);
+        $this->assertGreaterThanOrEqual(1, $backgroundsWithSkills->count(), 'Should have at least one background with skill proficiencies');
+
+        // Verify skill proficiencies are slugs, not IDs
+        $backgroundWithSkills = collect($data)->first(fn ($b) => count($b['skill_proficiencies']) > 0);
+        if ($backgroundWithSkills) {
+            foreach ($backgroundWithSkills['skill_proficiencies'] as $skillProf) {
+                $this->assertIsString($skillProf['skill_slug']);
+            }
+        }
+
+        // Verify features structure
+        $backgroundWithFeatures = collect($data)->first(fn ($b) => count($b['features']) > 0);
+        if ($backgroundWithFeatures) {
+            $feature = $backgroundWithFeatures['features'][0];
+            $this->assertArrayHasKey('name', $feature);
+            $this->assertArrayHasKey('category', $feature);
+            $this->assertArrayHasKey('description', $feature);
+        }
+    }
 }

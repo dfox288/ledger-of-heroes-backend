@@ -31,33 +31,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Get issue content
+        id: issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue view ${{ github.event.issue.number }} --json title,body,labels > /tmp/issue.json
+          echo "title=$(jq -r '.title' /tmp/issue.json)" >> $GITHUB_OUTPUT
+
       - name: Analyze Issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-          ISSUE_BODY: ${{ github.event.issue.body }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          cat << 'EOF' > /tmp/analyze-prompt.txt
-          You are MeisterMind, the AI assistant for the D&D 5e Compendium API project.
-          This is a Laravel 12.x backend with a Nuxt frontend, using Meilisearch for search.
+          # Read issue content
+          ISSUE_TITLE=$(jq -r '.title' /tmp/issue.json)
+          ISSUE_BODY=$(jq -r '.body // "No description provided"' /tmp/issue.json)
 
-          A new issue has been created. Analyze it and provide:
+          cat << EOF > /tmp/analyze-prompt.txt
+          Analyze this GitHub issue. Be helpful and thorough, but don't explain the project back to me.
 
-          1. **Summary**: Brief understanding of what's being requested/reported
-          2. **Affected Areas**: Which parts of the codebase are likely involved
-             (e.g., API endpoints, models, frontend components, search indexing)
-          3. **Complexity Estimate**: Low / Medium / High
-          4. **Suggested Approach**: Brief technical suggestions if applicable
-          5. **Questions**: Any clarifications needed from the reporter
+          Title: ${ISSUE_TITLE}
 
-          Be helpful and friendly. Remember this is a D&D project - feel free to add
-          a touch of flavor but keep it professional.
+          Description:
+          ${ISSUE_BODY}
 
-          Issue Title: $ISSUE_TITLE
+          Provide:
+          - What's being requested/reported
+          - Which files/areas likely need changes
+          - Complexity estimate (Low/Medium/High)
+          - Suggested approach
+          - Clarifying questions if needed
 
-          Issue Body:
-          $ISSUE_BODY
+          Skip any preamble. Just analyze.
           EOF
 
           claude -p "$(cat /tmp/analyze-prompt.txt)" \
@@ -65,14 +70,13 @@ jobs:
             --allowedTools "Read" \
             > /tmp/analysis.txt 2>&1
 
-          # Post analysis as comment
-          gh issue comment "$ISSUE_NUMBER" \
-            --body "## 🎲 MeisterMind Analysis
+          gh issue comment "${{ github.event.issue.number }}" \
+            --body "🎲 **MeisterMind Analysis**
 
           $(cat /tmp/analysis.txt)
 
           ---
-          *I'm MeisterMind, your AI dungeon companion. Mention @meistermind if you need help!*"
+          *Need help? Mention @meistermind*"
 
   # ══════════════════════════════════════════════════════════════════════════
   # Respond to @meistermind mentions
@@ -93,90 +97,71 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get context
+      - name: Get full context
         id: context
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Determine if this is a PR or issue
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+
+          # Get issue/PR details
+          gh issue view "$ISSUE_NUMBER" --json title,body,comments > /tmp/issue.json
+
+          # Check if it's a PR
           if [ "${{ github.event.issue.pull_request }}" != "" ]; then
             echo "type=pr" >> $GITHUB_OUTPUT
-            echo "number=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
-
-            # Get PR diff for context
-            gh pr diff ${{ github.event.issue.number }} > /tmp/pr-diff.txt 2>/dev/null || echo "No diff available" > /tmp/pr-diff.txt
+            gh pr diff "$ISSUE_NUMBER" > /tmp/diff.txt 2>/dev/null || echo "" > /tmp/diff.txt
           else
             echo "type=issue" >> $GITHUB_OUTPUT
-            echo "number=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
-            echo "" > /tmp/pr-diff.txt
+            echo "" > /tmp/diff.txt
           fi
 
-      - name: Extract request
-        id: extract
-        run: |
-          # Remove @meistermind from the comment and get the actual request
-          REQUEST=$(echo "${{ github.event.comment.body }}" | sed 's/@meistermind//gi' | xargs)
-          echo "request<<EOF" >> $GITHUB_OUTPUT
-          echo "$REQUEST" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Get recent comments for context (last 5)
+          jq -r '.comments[-5:] | .[] | "[\(.author.login)]: \(.body)"' /tmp/issue.json > /tmp/comments.txt 2>/dev/null || echo "" > /tmp/comments.txt
 
-      - name: Respond to request
+      - name: Respond
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REQUEST: ${{ steps.extract.outputs.request }}
-          CONTEXT_TYPE: ${{ steps.context.outputs.type }}
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-          ISSUE_BODY: ${{ github.event.issue.body }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
-          # Build context-aware prompt
-          cat << 'EOF' > /tmp/request-prompt.txt
-          You are MeisterMind, the AI assistant for the D&D 5e Compendium API project.
+          ISSUE_TITLE=$(jq -r '.title' /tmp/issue.json)
+          ISSUE_BODY=$(jq -r '.body // ""' /tmp/issue.json)
+          REQUEST=$(echo "$COMMENT_BODY" | sed 's/@meistermind//gi' | xargs)
 
-          Project context:
-          - Laravel 12.x backend API for D&D 5e rules and content
-          - Nuxt frontend for the compendium interface
-          - Meilisearch for fast search across spells, monsters, items, etc.
-          - BigQuery for analytics
-          - Docker/Kubernetes deployment
+          cat << EOF > /tmp/prompt.txt
+          You're MeisterMind, helping with this GitHub issue/PR.
 
-          You're responding to a request in a GitHub $CONTEXT_TYPE.
+          ISSUE: ${ISSUE_TITLE}
 
-          Issue/PR Title: $ISSUE_TITLE
+          DESCRIPTION:
+          ${ISSUE_BODY}
 
-          Original description:
-          $ISSUE_BODY
+          RECENT DISCUSSION:
+          $(cat /tmp/comments.txt)
 
           EOF
 
-          # Add PR diff if available
-          if [ -s /tmp/pr-diff.txt ] && [ "$CONTEXT_TYPE" = "pr" ]; then
-            echo "PR Changes (diff):" >> /tmp/request-prompt.txt
-            head -200 /tmp/pr-diff.txt >> /tmp/request-prompt.txt
-            echo "" >> /tmp/request-prompt.txt
+          # Add diff context for PRs
+          if [ -s /tmp/diff.txt ]; then
+            echo "PR DIFF (truncated):" >> /tmp/prompt.txt
+            head -150 /tmp/diff.txt >> /tmp/prompt.txt
+            echo "" >> /tmp/prompt.txt
           fi
 
-          cat << EOF >> /tmp/request-prompt.txt
+          cat << EOF >> /tmp/prompt.txt
 
-          User request: $REQUEST
+          REQUEST: ${REQUEST}
 
-          Provide a helpful response. You can:
-          - Explain code or architecture
-          - Suggest implementations
-          - Help debug issues
-          - Answer D&D 5e rules questions related to the API
-          - Review code changes
-
-          Be concise but thorough. Add a bit of D&D flavor when appropriate!
+          Be helpful and thorough. Don't explain the project or tech stack back to me - just answer the question.
           EOF
 
-          claude -p "$(cat /tmp/request-prompt.txt)" \
+          claude -p "$(cat /tmp/prompt.txt)" \
             --max-turns 10 \
-            --allowedTools "Read,Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(php artisan:*),Bash(npm run:*)" \
+            --allowedTools "Read,Bash(git diff:*),Bash(git log:*),Bash(git show:*)" \
             > /tmp/response.txt 2>&1
 
-          # Post response
           gh issue comment ${{ github.event.issue.number }} \
             --body "$(cat /tmp/response.txt)
 
           ---
-          *🎲 MeisterMind at your service! Need more help? Just mention @meistermind*"
+          *🎲 @meistermind*"

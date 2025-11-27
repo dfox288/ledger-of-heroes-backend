@@ -549,4 +549,167 @@ class ExtractFixturesCommandTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $magicalItems->count(), 'Should have at least one magical item');
         $this->assertGreaterThanOrEqual(1, $mundaneItems->count(), 'Should have at least one mundane item');
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_extracts_feats_with_prerequisite_coverage(): void
+    {
+        $source = \App\Models\Source::factory()->create(['code' => 'TEST-PHB']);
+
+        // Get ability scores for prerequisites and modifiers
+        $strAbility = \App\Models\AbilityScore::where('code', 'STR')->first();
+        $dexAbility = \App\Models\AbilityScore::where('code', 'DEX')->first();
+        $intAbility = \App\Models\AbilityScore::where('code', 'INT')->first();
+
+        // Create feat without prerequisites
+        $grappler = \App\Models\Feat::factory()->create([
+            'name' => 'Grappler',
+            'slug' => 'grappler',
+            'prerequisites_text' => null,
+            'description' => 'You have developed the skills necessary to hold your own in close-quarters grappling.',
+        ]);
+
+        // Create entity source relationship
+        \App\Models\EntitySource::create([
+            'reference_type' => 'App\Models\Feat',
+            'reference_id' => $grappler->id,
+            'source_id' => $source->id,
+            'pages' => '167',
+        ]);
+
+        // Create feat with prerequisites
+        $heavyArmorMaster = \App\Models\Feat::factory()->create([
+            'name' => 'Heavy Armor Master',
+            'slug' => 'heavy-armor-master',
+            'prerequisites_text' => 'Proficiency with heavy armor',
+            'description' => 'You can use your armor to deflect strikes that would kill others.',
+        ]);
+
+        // Add ability score modifier to this feat
+        \App\Models\Modifier::create([
+            'reference_type' => 'App\Models\Feat',
+            'reference_id' => $heavyArmorMaster->id,
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $strAbility->id,
+            'value' => 1,
+        ]);
+
+        // Create entity source relationship
+        \App\Models\EntitySource::create([
+            'reference_type' => 'App\Models\Feat',
+            'reference_id' => $heavyArmorMaster->id,
+            'source_id' => $source->id,
+            'pages' => '167',
+        ]);
+
+        // Create feat with prerequisite entity
+        $athlete = \App\Models\Feat::factory()->create([
+            'name' => 'Athlete',
+            'slug' => 'athlete',
+            'prerequisites_text' => null,
+            'description' => 'You have undergone extensive physical training to gain the following benefits.',
+        ]);
+
+        // Add ability score prerequisite
+        \App\Models\EntityPrerequisite::create([
+            'reference_type' => 'App\Models\Feat',
+            'reference_id' => $athlete->id,
+            'prerequisite_type' => 'App\Models\AbilityScore',
+            'prerequisite_id' => $strAbility->id,
+            'minimum_value' => 13,
+        ]);
+
+        // Add multiple ability score modifiers (choice)
+        \App\Models\Modifier::create([
+            'reference_type' => 'App\Models\Feat',
+            'reference_id' => $athlete->id,
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $strAbility->id,
+            'value' => 1,
+            'is_choice' => true,
+            'choice_count' => 1,
+        ]);
+
+        \App\Models\Modifier::create([
+            'reference_type' => 'App\Models\Feat',
+            'reference_id' => $athlete->id,
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $dexAbility->id,
+            'value' => 1,
+            'is_choice' => true,
+            'choice_count' => 1,
+        ]);
+
+        // Create entity source relationship
+        \App\Models\EntitySource::create([
+            'reference_type' => 'App\Models\Feat',
+            'reference_id' => $athlete->id,
+            'source_id' => $source->id,
+            'pages' => '165',
+        ]);
+
+        // Create feat with ability score improvement only
+        $keenMind = \App\Models\Feat::factory()->create([
+            'name' => 'Keen Mind',
+            'slug' => 'keen-mind',
+            'prerequisites_text' => null,
+            'description' => 'You have a mind that can track time, direction, and detail with uncanny precision.',
+        ]);
+
+        // Add ability score modifier
+        \App\Models\Modifier::create([
+            'reference_type' => 'App\Models\Feat',
+            'reference_id' => $keenMind->id,
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $intAbility->id,
+            'value' => 1,
+        ]);
+
+        // Create entity source relationship
+        \App\Models\EntitySource::create([
+            'reference_type' => 'App\Models\Feat',
+            'reference_id' => $keenMind->id,
+            'source_id' => $source->id,
+            'pages' => '167',
+        ]);
+
+        // Extract
+        $this->artisan('fixtures:extract', [
+            'entity' => 'feats',
+            '--output' => 'tests/fixtures/test-output',
+        ])->assertSuccessful();
+
+        // Verify JSON created
+        $path = base_path('tests/fixtures/test-output/entities/feats.json');
+        $this->assertFileExists($path);
+
+        $data = json_decode(File::get($path), true);
+        $this->assertIsArray($data);
+        $this->assertGreaterThanOrEqual(4, count($data), 'Should extract at least 4 feats');
+
+        // Verify structure
+        $feat = $data[0];
+        $this->assertArrayHasKey('name', $feat);
+        $this->assertArrayHasKey('slug', $feat);
+        $this->assertArrayHasKey('description', $feat);
+        $this->assertArrayHasKey('prerequisites_text', $feat);
+        $this->assertArrayHasKey('prerequisites', $feat);
+        $this->assertArrayHasKey('ability_score_improvements', $feat);
+        $this->assertArrayHasKey('source', $feat);
+
+        // Verify data types
+        $this->assertIsString($feat['name']);
+        $this->assertIsString($feat['slug']);
+        $this->assertIsArray($feat['prerequisites']);
+        $this->assertIsArray($feat['ability_score_improvements']);
+
+        // Verify we have both feats with and without prerequisites
+        $featsWithPrereqs = collect($data)->filter(fn ($f) => count($f['prerequisites']) > 0);
+        $featsWithoutPrereqs = collect($data)->filter(fn ($f) => count($f['prerequisites']) === 0);
+        $this->assertGreaterThanOrEqual(1, $featsWithPrereqs->count(), 'Should have at least one feat with prerequisites');
+        $this->assertGreaterThanOrEqual(1, $featsWithoutPrereqs->count(), 'Should have at least one feat without prerequisites');
+
+        // Verify we have feats with ability score improvements
+        $featsWithASI = collect($data)->filter(fn ($f) => count($f['ability_score_improvements']) > 0);
+        $this->assertGreaterThanOrEqual(1, $featsWithASI->count(), 'Should have at least one feat with ability score improvements');
+    }
 }

@@ -621,7 +621,139 @@ class ExtractFixturesCommand extends Command
 
     protected function extractFeats(): array
     {
-        return [];
+        $limit = (int) $this->option('limit');
+        $featIds = collect();
+
+        // Coverage-based selection:
+        // 1. Feats with prerequisites (via prerequisites_text or prerequisites relationship)
+        // 2. Feats without prerequisites
+        // 3. Feats with ability score improvements
+        // 4. Feats with multiple ability score choices
+        // 5. Fill remaining with random feats
+
+        // Feats with ability score improvements
+        $featsWithASI = \App\Models\Feat::whereHas('modifiers', function ($q) {
+            $q->where('modifier_category', 'ability_score');
+        })
+            ->take(10)
+            ->pluck('id');
+        $featIds = $featIds->merge($featsWithASI);
+
+        // Feats with prerequisites (via text)
+        $featsWithPrereqText = \App\Models\Feat::whereNotNull('prerequisites_text')
+            ->whereNotIn('id', $featIds->toArray())
+            ->take(5)
+            ->pluck('id');
+        $featIds = $featIds->merge($featsWithPrereqText);
+
+        // Feats with prerequisites (via relationships)
+        $featsWithPrereqRelation = \App\Models\Feat::has('prerequisites')
+            ->whereNotIn('id', $featIds->toArray())
+            ->take(5)
+            ->pluck('id');
+        $featIds = $featIds->merge($featsWithPrereqRelation);
+
+        // Feats without prerequisites
+        $featsWithoutPrereqs = \App\Models\Feat::whereNull('prerequisites_text')
+            ->doesntHave('prerequisites')
+            ->whereNotIn('id', $featIds->toArray())
+            ->take(5)
+            ->pluck('id');
+        $featIds = $featIds->merge($featsWithoutPrereqs);
+
+        // Feats with ability score choices (is_choice = true)
+        $featsWithChoices = \App\Models\Feat::whereHas('modifiers', function ($q) {
+            $q->where('modifier_category', 'ability_score')
+                ->where('is_choice', true);
+        })
+            ->whereNotIn('id', $featIds->toArray())
+            ->take(5)
+            ->pluck('id');
+        $featIds = $featIds->merge($featsWithChoices);
+
+        // Feats with proficiencies
+        $featsWithProficiencies = \App\Models\Feat::has('proficiencies')
+            ->whereNotIn('id', $featIds->toArray())
+            ->take(5)
+            ->pluck('id');
+        $featIds = $featIds->merge($featsWithProficiencies);
+
+        // Fill remaining with random feats
+        $remaining = $limit - $featIds->count();
+        if ($remaining > 0) {
+            $additional = \App\Models\Feat::whereNotIn('id', $featIds->toArray())
+                ->inRandomOrder()
+                ->take($remaining)
+                ->pluck('id');
+            $featIds = $featIds->merge($additional);
+        }
+
+        // Load full models with relationships
+        $feats = \App\Models\Feat::whereIn('id', $featIds->unique())
+            ->with([
+                'sources.source',
+                'prerequisites.prerequisite',
+                'modifiers.abilityScore',
+                'proficiencies',
+            ])
+            ->get();
+
+        return $feats->map(fn ($feat) => $this->formatFeat($feat))->toArray();
+    }
+
+    protected function formatFeat(\App\Models\Feat $feat): array
+    {
+        // Extract prerequisites
+        $prerequisites = $feat->prerequisites->map(function ($prereq) {
+            $prerequisiteData = [
+                'type' => class_basename($prereq->prerequisite_type),
+            ];
+
+            // Add type-specific data
+            if ($prereq->prerequisite) {
+                $prerequisiteData['value'] = match (class_basename($prereq->prerequisite_type)) {
+                    'AbilityScore' => $prereq->prerequisite->code,
+                    'Race' => $prereq->prerequisite->slug,
+                    'ProficiencyType' => $prereq->prerequisite->slug,
+                    default => $prereq->prerequisite->name ?? $prereq->prerequisite->code ?? null,
+                };
+            }
+
+            if ($prereq->minimum_value) {
+                $prerequisiteData['minimum_value'] = $prereq->minimum_value;
+            }
+
+            if ($prereq->description) {
+                $prerequisiteData['description'] = $prereq->description;
+            }
+
+            return $prerequisiteData;
+        })->values()->toArray();
+
+        // Extract ability score improvements
+        $abilityScoreImprovements = $feat->modifiers
+            ->where('modifier_category', 'ability_score')
+            ->map(function ($modifier) {
+                return [
+                    'ability' => $modifier->abilityScore?->code,
+                    'value' => (int) $modifier->value,
+                    'is_choice' => $modifier->is_choice ?? false,
+                    'choice_count' => $modifier->choice_count,
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        return [
+            'name' => $feat->name,
+            'slug' => $feat->slug,
+            'description' => $feat->description,
+            'prerequisites_text' => $feat->prerequisites_text,
+            'prerequisites' => $prerequisites,
+            'ability_score_improvements' => $abilityScoreImprovements,
+            'source' => $feat->sources->first()?->source->code,
+            'pages' => $feat->sources->first()?->pages,
+        ];
     }
 
     protected function extractBackgrounds(): array

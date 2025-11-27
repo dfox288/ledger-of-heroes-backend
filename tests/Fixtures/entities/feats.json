@@ -1,0 +1,492 @@
+[
+    {
+        "name": "Aberrant Dragonmark",
+        "slug": "aberrant-dragonmark",
+        "description": "You have manifested an aberrant dragonmark. Determine its appearance and the flaw associated with it. You gain the following benefits:\n\n\t• Increase your Constitution score by 1, to a maximum of 20.\n\n\t• You learn a cantrip of your choice from the sorcerer spell list. In addition, choose a 1st-level spell from the sorcerer spell list. You learn that spell and can cast it through your mark. Once you cast it, you must finish a short or long rest before you can cast it again through the mark. Constitution is your spellcasting ability for these spells.\n\n\t• When you cast the 1st-level spell through your mark, you can expend one of your Hit Dice and roll it. If you roll an even number, you gain a number of temporary hit points equal to the number rolled. If you roll an odd number, one random creature within 30 feet of you (not including you) takes force damage equal to the number rolled. If no other creatures are in range, you take the damage.\n\nYou also develop a random flaw from the Aberrant Dragonmark Flaws table.\n\nAberrant Dragonmark Flaws:\nd8 | Flaw\n1 | Your mark is a source of constant physical pain.\n2 | Your mark whispers to you. Its meaning can be unclear.\n3 | When you're stressed, the mark hisses audibly.\n4 | The skin around the mark is burned, scaly, or withered.\n5 | Animals are uneasy around you.\n6 | You have a mood swing any time you use your mark.\n7 | Your looks change slightly whenever you use the mark.\n8 | You have horrific nightmares after you use your mark.",
+        "prerequisites_text": "No other dragonmark",
+        "prerequisites": [],
+        "ability_score_improvements": [
+            {
+                "ability": "CON",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "ERLW",
+        "pages": "52"
+    },
+    {
+        "name": "Aberrant Dragonmark (WGE)",
+        "slug": "aberrant-dragonmark-wge",
+        "description": "You have manifested an aberrant dragonmark. Determine its appearance and the flaw associated with it. You gain the following benefits:\n\n\t• Increase your Constitution score by 1, to a maximum of 20.\n\n\t• You learn a cantrip from the sorcerer spell list. In addition, choose a 1st-level spell from the sorcerer spell list. You learn that spell and can cast it at its lowest level. Once you cast it, you must finish a long rest before you can cast it again. Constitution is your spellcasting ability for these spells.\n\n\t• You can increase the power of your aberrant spells at the risk of your own vitality. When you cast a spell with your aberrant mark, you can use one of your Hit Dice to increase the spell's level by 1. Immediately after you cast the spell, roll the Hit Die. You take damage equal to the number rolled.\n\nYou also develop a random flaw from the Aberrant Dragonmark Flaws table.\n\nAberrant Dragonmark Flaws:\nd8 | Flaw\n1 | Your mark is a source of constant physical pain.\n2 | Your mark whispers to you, though you may not understand what it says.\n3 | In times of stress, your mark may trigger a cantrip effect involuntarily.\n4 | The skin around your mark has an unusual appearance: burned, scaly, withered, etc.\n5 | Mundane animals become uneasy around you.\n6 | You have dramatic mood swings any time you use your mark.\n7 | Your appearance changes in a minor way every time you use your mark.\n8 | You have horrific nightmares after you use your mark.",
+        "prerequisites_text": "No other dragonmark",
+        "prerequisites": [],
+        "ability_score_improvements": [
+            {
+                "ability": "CON",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "PHB",
+        "pages": "112"
+    },
+    {
+        "name": "Revenant Blade (Strength)",
+        "slug": "revenant-blade-strength",
+        "description": "You are descended from a master of the double-bladed scimitar, and some of that mastery has passed on to you. You gain the following benefits:\n\n\t• Increase your Strength or Dexterity score by 1, to a maximum of 20.\n\n\t• While you are holding a double-bladed scimitar with two hands, you gain a +1 bonus to Armor Class.\n\n\t• A double-bladed scimitar has the finesse property when you wield it.",
+        "prerequisites_text": "Elf",
+        "prerequisites": [
+            {
+                "type": "Race",
+                "value": "elf"
+            }
+        ],
+        "ability_score_improvements": [
+            {
+                "ability": "STR",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "ERLW",
+        "pages": "22"
+    },
+    {
+        "name": "Revenant Blade (Dexterity)",
+        "slug": "revenant-blade-dexterity",
+        "description": "You are descended from a master of the double-bladed scimitar, and some of that mastery has passed on to you. You gain the following benefits:\n\n\t• Increase your Strength or Dexterity score by 1, to a maximum of 20.\n\n\t• While you are holding a double-bladed scimitar with two hands, you gain a +1 bonus to Armor Class.\n\n\t• A double-bladed scimitar has the finesse property when you wield it.",
+        "prerequisites_text": "Elf",
+        "prerequisites": [
+            {
+                "type": "Race",
+                "value": "elf"
+            }
+        ],
+        "ability_score_improvements": [
+            {
+                "ability": "DEX",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "ERLW",
+        "pages": "22"
+    },
+    {
+        "name": "Actor",
+        "slug": "actor",
+        "description": "Skilled at mimicry and dramatics, you gain the following benefits:\n\n\t• Increase your Charisma score by 1, to a maximum of 20.\n\n\t• You have advantage on Charisma (Deception) and Charisma (Performance) checks when trying to pass yourself off as a different person.\n\n\t• You can mimic the speech of another person or the sounds made by other creatures. You must have heard the person speaking, or heard the creature make the sound, for at least 1 minute. A successful Wisdom (Insight) check contested by your Charisma (Deception) check allows a listener to determine that the effect is faked.",
+        "prerequisites_text": null,
+        "prerequisites": [],
+        "ability_score_improvements": [
+            {
+                "ability": "CHA",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "PHB",
+        "pages": "165"
+    },
+    {
+        "name": "Alert",
+        "slug": "alert",
+        "description": "Always on the lookout for danger, you gain the following benefits:\n\n\t• You gain a +5 bonus to initiative.\n\n\t• You can't be surprised while you are conscious.\n\n\t• Other creatures don't gain advantage on attack rolls against you as a result of being unseen by you.",
+        "prerequisites_text": null,
+        "prerequisites": [],
+        "ability_score_improvements": [],
+        "source": "PHB",
+        "pages": "165"
+    },
+    {
+        "name": "Athlete (Dexterity)",
+        "slug": "athlete-dexterity",
+        "description": "You have undergone extensive physical training to gain the following benefits:\n\n\t• Increase your Strength or Dexterity score by 1, to a maximum of 20.\n\n\t• When you are prone, standing up uses only 5 feet of your movement.\n\n\t• Climbing doesn't cost you extra movement.\n\n\t• You can make a running long jump or a running high jump after moving only 5 feet on foot, rather than 10 feet.",
+        "prerequisites_text": null,
+        "prerequisites": [],
+        "ability_score_improvements": [
+            {
+                "ability": "DEX",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "PHB",
+        "pages": "165"
+    },
+    {
+        "name": "Athlete (Strength)",
+        "slug": "athlete-strength",
+        "description": "You have undergone extensive physical training to gain the following benefits:\n\n\t• Increase your Strength or Dexterity score by 1, to a maximum of 20.\n\n\t• When you are prone, standing up uses only 5 feet of your movement.\n\n\t• Climbing doesn't cost you extra movement.\n\n\t• You can make a running long jump or a running high jump after moving only 5 feet on foot, rather than 10 feet.",
+        "prerequisites_text": null,
+        "prerequisites": [],
+        "ability_score_improvements": [
+            {
+                "ability": "STR",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "PHB",
+        "pages": "165"
+    },
+    {
+        "name": "Charger",
+        "slug": "charger",
+        "description": "When you use your action to Dash, you can use a bonus action to make one melee weapon attack or to shove a creature.\n\tIf you move at least 10 feet in a straight line immediately before taking this bonus action, you either gain a +5 bonus to the attack's damage roll (if you chose to make a melee attack and hit) or push the target up to 10 feet away from you (if you chose to shove and you succeed).",
+        "prerequisites_text": null,
+        "prerequisites": [],
+        "ability_score_improvements": [],
+        "source": "PHB",
+        "pages": "165"
+    },
+    {
+        "name": "Crossbow Expert",
+        "slug": "crossbow-expert",
+        "description": "Thanks to extensive practice with the crossbow, you gain the following benefits:\n\n\t• You ignore the loading quality of crossbows with which you are proficient.\n\n\t• Being within 5 feet of a hostile creature doesn't impose disadvantage on your ranged attack rolls.\n\n\t• When you use the Attack action and attack with a one-handed weapon, you can use a bonus action to attack with a hand crossbow you are holding.",
+        "prerequisites_text": null,
+        "prerequisites": [],
+        "ability_score_improvements": [],
+        "source": "PHB",
+        "pages": "165"
+    },
+    {
+        "name": "Defensive Duelist",
+        "slug": "defensive-duelist",
+        "description": "When you are wielding a finesse weapon with which you are proficient and another creature hits you with a melee attack, you can use your reaction to add your proficiency bonus to your AC for that attack, potentially causing the attack to miss you.",
+        "prerequisites_text": "Dexterity 13 or higher",
+        "prerequisites": [
+            {
+                "type": "AbilityScore",
+                "value": "DEX",
+                "minimum_value": 13
+            }
+        ],
+        "ability_score_improvements": [],
+        "source": "PHB",
+        "pages": "165"
+    },
+    {
+        "name": "Dual Wielder",
+        "slug": "dual-wielder",
+        "description": "You master fighting with two weapons, gaining the following benefits:\n\n\t• You gain a +1 bonus to AC while you are wielding a separate melee weapon in each hand.\n\n\t• You can use two-weapon fighting even when the one-handed melee weapons you are wielding aren't light.\n\n\t• You can draw or stow two one-handed weapons when you would normally be able to draw or stow only one.",
+        "prerequisites_text": null,
+        "prerequisites": [],
+        "ability_score_improvements": [],
+        "source": "PHB",
+        "pages": "165"
+    },
+    {
+        "name": "Dungeon Delver",
+        "slug": "dungeon-delver",
+        "description": "Alert to the hidden traps and secret doors found in many dungeons, you gain the following benefits:\n\n\t• You have advantage on Wisdom (Perception) and Intelligence (Investigation) checks made to detect the presence of secret doors.\n\n\t• You have advantage on saving throws made to avoid or resist traps.\n\n\t• You have resistance to the damage dealt by traps.\n\n\t• Traveling at a fast pace doesn't impose the normal -5 penalty on your passive Wisdom (Perception) score.",
+        "prerequisites_text": null,
+        "prerequisites": [],
+        "ability_score_improvements": [],
+        "source": "PHB",
+        "pages": "166"
+    },
+    {
+        "name": "Durable",
+        "slug": "durable",
+        "description": "Hardy and resilient, you gain the following benefits:\n\n\t• Increase your Constitution score by 1, to a maximum of 20.\n\n\t• When you roll a Hit Die to regain hit points, the minimum number of hit points you regain from the roll equals twice your Constitution modifier (minimum of 2).",
+        "prerequisites_text": null,
+        "prerequisites": [],
+        "ability_score_improvements": [
+            {
+                "ability": "CON",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "PHB",
+        "pages": "166"
+    },
+    {
+        "name": "Elemental Adept (Acid)",
+        "slug": "elemental-adept-acid",
+        "description": "When you gain this feat, choose one of the following damage types: acid, cold, fire, lightning, or thunder.\n\tSpells you cast ignore resistance to damage of the chosen type. In addition, when you roll damage for a spell you cast that deals damage of that type, you can treat any 1 on a damage die as a 2.\n\tYou can select this feat multiple times. Each time you do so, you must choose a different damage type.",
+        "prerequisites_text": "The ability to cast at least one spell",
+        "prerequisites": [
+            {
+                "type": "",
+                "description": "The ability to cast at least one spell"
+            }
+        ],
+        "ability_score_improvements": [],
+        "source": "PHB",
+        "pages": "166"
+    },
+    {
+        "name": "Elemental Adept (Cold)",
+        "slug": "elemental-adept-cold",
+        "description": "When you gain this feat, choose one of the following damage types: acid, cold, fire, lightning, or thunder.\n\tSpells you cast ignore resistance to damage of the chosen type. In addition, when you roll damage for a spell you cast that deals damage of that type, you can treat any 1 on a damage die as a 2.\n\tYou can select this feat multiple times. Each time you do so, you must choose a different damage type.",
+        "prerequisites_text": "The ability to cast at least one spell",
+        "prerequisites": [
+            {
+                "type": "",
+                "description": "The ability to cast at least one spell"
+            }
+        ],
+        "ability_score_improvements": [],
+        "source": "PHB",
+        "pages": "166"
+    },
+    {
+        "name": "Elemental Adept (Fire)",
+        "slug": "elemental-adept-fire",
+        "description": "When you gain this feat, choose one of the following damage types: acid, cold, fire, lightning, or thunder.\n\tSpells you cast ignore resistance to damage of the chosen type. In addition, when you roll damage for a spell you cast that deals damage of that type, you can treat any 1 on a damage die as a 2.\n\tYou can select this feat multiple times. Each time you do so, you must choose a different damage type.",
+        "prerequisites_text": "The ability to cast at least one spell",
+        "prerequisites": [
+            {
+                "type": "",
+                "description": "The ability to cast at least one spell"
+            }
+        ],
+        "ability_score_improvements": [],
+        "source": "PHB",
+        "pages": "166"
+    },
+    {
+        "name": "Elemental Adept (Lightning)",
+        "slug": "elemental-adept-lightning",
+        "description": "When you gain this feat, choose one of the following damage types: acid, cold, fire, lightning, or thunder.\n\tSpells you cast ignore resistance to damage of the chosen type. In addition, when you roll damage for a spell you cast that deals damage of that type, you can treat any 1 on a damage die as a 2.\n\tYou can select this feat multiple times. Each time you do so, you must choose a different damage type.",
+        "prerequisites_text": "The ability to cast at least one spell",
+        "prerequisites": [
+            {
+                "type": "",
+                "description": "The ability to cast at least one spell"
+            }
+        ],
+        "ability_score_improvements": [],
+        "source": "PHB",
+        "pages": "166"
+    },
+    {
+        "name": "Elemental Adept (Thunder)",
+        "slug": "elemental-adept-thunder",
+        "description": "When you gain this feat, choose one of the following damage types: acid, cold, fire, lightning, or thunder.\n\tSpells you cast ignore resistance to damage of the chosen type. In addition, when you roll damage for a spell you cast that deals damage of that type, you can treat any 1 on a damage die as a 2.\n\tYou can select this feat multiple times. Each time you do so, you must choose a different damage type.",
+        "prerequisites_text": "The ability to cast at least one spell",
+        "prerequisites": [
+            {
+                "type": "",
+                "description": "The ability to cast at least one spell"
+            }
+        ],
+        "ability_score_improvements": [],
+        "source": "PHB",
+        "pages": "166"
+    },
+    {
+        "name": "Grappler",
+        "slug": "grappler",
+        "description": "You've developed the skills necessary to hold your own in close-quarters grappling. You gain the following benefits:\n\n\t• You have advantage on attack rolls against a creature you are grappling.\n\n\t• You can use your action to try to pin a creature grappled by you. To do so, make another grapple check. If you succeed, you and the creature are both restrained until the grapple ends.",
+        "prerequisites_text": "Strength 13 or higher",
+        "prerequisites": [
+            {
+                "type": "AbilityScore",
+                "value": "STR",
+                "minimum_value": 13
+            }
+        ],
+        "ability_score_improvements": [],
+        "source": "PHB",
+        "pages": "167"
+    },
+    {
+        "name": "Heavily Armored",
+        "slug": "heavily-armored",
+        "description": "You have trained to master the use of heavy armor, gaining the following benefits:\n\n\t• Increase your Strength score by 1, to a maximum of 20.\n\n\t• You gain proficiency with heavy armor.",
+        "prerequisites_text": "Proficiency with medium armor",
+        "prerequisites": [
+            {
+                "type": "ProficiencyType",
+                "value": "medium-armor"
+            }
+        ],
+        "ability_score_improvements": [
+            {
+                "ability": "STR",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "PHB",
+        "pages": "167"
+    },
+    {
+        "name": "Heavy Armor Master",
+        "slug": "heavy-armor-master",
+        "description": "You can use your armor to deflect strikes that would kill others. You gain the following benefits:\n\n\t• Increase your Strength score by 1, to a maximum of 20.\n\n\t• While you are wearing heavy armor, bludgeoning, piercing, and slashing damage that you take from nonmagical weapons is reduced by 3.",
+        "prerequisites_text": "Proficiency with heavy armor",
+        "prerequisites": [
+            {
+                "type": "ProficiencyType",
+                "value": "heavy-armor"
+            }
+        ],
+        "ability_score_improvements": [
+            {
+                "ability": "STR",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "PHB",
+        "pages": "167"
+    },
+    {
+        "name": "Inspiring Leader",
+        "slug": "inspiring-leader",
+        "description": "You can spend 10 minutes inspiring your companions, shoring up their resolve to fight. When you do so, choose up to six friendly creatures (which can include yourself) within 30 feet of you who can see or hear you and who can understand you. Each creature can gain temporary hit points equal to your level + your Charisma modifier. A creature can't gain temporary hit points from this feat again until it has finished a short or long rest.",
+        "prerequisites_text": "Charisma 13 or higher",
+        "prerequisites": [
+            {
+                "type": "AbilityScore",
+                "value": "CHA",
+                "minimum_value": 13
+            }
+        ],
+        "ability_score_improvements": [],
+        "source": "PHB",
+        "pages": "167"
+    },
+    {
+        "name": "Lightly Armored (Dexterity)",
+        "slug": "lightly-armored-dexterity",
+        "description": "You have trained to master the use of light armor, gaining the following benefits:\n\n\t• Increase your Strength or Dexterity score by 1, to a maximum of 20.\n\n\t• You gain proficiency with light armor.",
+        "prerequisites_text": null,
+        "prerequisites": [],
+        "ability_score_improvements": [
+            {
+                "ability": "DEX",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "PHB",
+        "pages": "167"
+    },
+    {
+        "name": "Lightly Armored (Strength)",
+        "slug": "lightly-armored-strength",
+        "description": "You have trained to master the use of light armor, gaining the following benefits:\n\n\t• Increase your Strength or Dexterity score by 1, to a maximum of 20.\n\n\t• You gain proficiency with light armor.",
+        "prerequisites_text": null,
+        "prerequisites": [],
+        "ability_score_improvements": [
+            {
+                "ability": "STR",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "PHB",
+        "pages": "167"
+    },
+    {
+        "name": "Medium Armor Master",
+        "slug": "medium-armor-master",
+        "description": "You have practiced moving in medium armor to gain the following benefits:\n\n\t• Wearing medium armor doesn't impose disadvantage on your Dexterity (Stealth) checks.\n\n\t• When you wear medium armor, you can add 3, rather than 2, to your AC if you have a Dexterity of 16 or higher.",
+        "prerequisites_text": "Proficiency with medium armor",
+        "prerequisites": [
+            {
+                "type": "ProficiencyType",
+                "value": "medium-armor"
+            }
+        ],
+        "ability_score_improvements": [],
+        "source": "PHB",
+        "pages": "168"
+    },
+    {
+        "name": "Moderately Armored (Dexterity)",
+        "slug": "moderately-armored-dexterity",
+        "description": "You have trained to master the use of medium armor and shields, gaining the following benefits:\n\n\t• Increase your Strength or Dexterity score by 1, to a maximum of 20.\n\n\t• You gain proficiency with medium armor and shields.",
+        "prerequisites_text": "Proficiency with light armor",
+        "prerequisites": [
+            {
+                "type": "ProficiencyType",
+                "value": "light-armor"
+            }
+        ],
+        "ability_score_improvements": [
+            {
+                "ability": "DEX",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "PHB",
+        "pages": "168"
+    },
+    {
+        "name": "Moderately Armored (Strength)",
+        "slug": "moderately-armored-strength",
+        "description": "You have trained to master the use of medium armor and shields, gaining the following benefits:\n\n\t• Increase your Strength or Dexterity score by 1, to a maximum of 20.\n\n\t• You gain proficiency with medium armor and shields.",
+        "prerequisites_text": "Proficiency with light armor",
+        "prerequisites": [
+            {
+                "type": "ProficiencyType",
+                "value": "light-armor"
+            }
+        ],
+        "ability_score_improvements": [
+            {
+                "ability": "STR",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "PHB",
+        "pages": "168"
+    },
+    {
+        "name": "Resilient (Charisma)",
+        "slug": "resilient-charisma",
+        "description": "Choose one ability score. You gain the following benefits:\n\n\t• Increase the chosen ability score by 1, to a maximum of 20.\n\n\t• You gain proficiency in saving throws using the chosen ability.",
+        "prerequisites_text": null,
+        "prerequisites": [],
+        "ability_score_improvements": [
+            {
+                "ability": "CHA",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "PHB",
+        "pages": "168"
+    },
+    {
+        "name": "Resilient (Constitution)",
+        "slug": "resilient-constitution",
+        "description": "Choose one ability score. You gain the following benefits:\n\n\t• Increase the chosen ability score by 1, to a maximum of 20.\n\n\t• You gain proficiency in saving throws using the chosen ability.",
+        "prerequisites_text": null,
+        "prerequisites": [],
+        "ability_score_improvements": [
+            {
+                "ability": "CON",
+                "value": 1,
+                "is_choice": false,
+                "choice_count": null
+            }
+        ],
+        "source": "PHB",
+        "pages": "168"
+    }
+]

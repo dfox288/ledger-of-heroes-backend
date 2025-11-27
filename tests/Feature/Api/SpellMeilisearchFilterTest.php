@@ -7,7 +7,6 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
-#[\PHPUnit\Framework\Attributes\Group('search-imported')]
 class SpellMeilisearchFilterTest extends TestCase
 {
     use RefreshDatabase;

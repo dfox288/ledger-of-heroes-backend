@@ -7,14 +7,14 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * These tests use pre-imported data from SearchTestExtension.
- * No RefreshDatabase needed - all tests are read-only against shared data.
+ * These tests use fixture-based test data from TestDatabaseSeeder.
  */
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
-#[\PHPUnit\Framework\Attributes\Group('search-imported')]
 class SpellApiTest extends TestCase
 {
-    protected $seed = false;
+    use \Illuminate\Foundation\Testing\RefreshDatabase;
+
+    protected $seed = true;
 
     #[Test]
     public function can_get_all_spells()

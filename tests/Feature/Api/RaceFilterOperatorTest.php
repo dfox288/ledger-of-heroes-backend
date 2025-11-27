@@ -15,7 +15,6 @@ use Tests\TestCase;
  * All tests share the same indexed data for efficiency.
  */
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
-#[\PHPUnit\Framework\Attributes\Group('search-imported')]
 class RaceFilterOperatorTest extends TestCase
 {
     use ClearsMeilisearchIndex;

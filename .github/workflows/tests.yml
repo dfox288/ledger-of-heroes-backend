@@ -52,6 +52,7 @@ jobs:
         run: |
           cp .env.ci .env
           cp .env.ci .env.testing
+          touch database/database.sqlite
           php artisan key:generate
 
       # Tests without Meilisearch (SCOUT_DRIVER=null disables search syncing)
@@ -75,9 +76,7 @@ jobs:
         run: php artisan search:configure-indexes
 
       - name: Seed test database and index to Meilisearch
-        run: |
-          php artisan migrate --force
-          php artisan db:seed --class=TestDatabaseSeeder
+        run: php artisan migrate --seed --seeder=TestDatabaseSeeder --force
 
       - name: Run Feature-Search tests
         run: php artisan test --testsuite=Feature-Search

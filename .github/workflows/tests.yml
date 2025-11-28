@@ -74,5 +74,10 @@ jobs:
       - name: Configure Meilisearch indexes
         run: php artisan search:configure-indexes
 
+      - name: Seed test database and index to Meilisearch
+        run: |
+          php artisan migrate --force
+          php artisan db:seed --class=TestDatabaseSeeder
+
       - name: Run Feature-Search tests
         run: php artisan test --testsuite=Feature-Search

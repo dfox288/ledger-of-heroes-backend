@@ -1,0 +1,78 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      meilisearch:
+        image: getmeili/meilisearch:v1.10
+        env:
+          MEILI_MASTER_KEY: masterKey
+          MEILI_NO_ANALYTICS: true
+        ports:
+          - 7700:7700
+        options: >-
+          --health-cmd="wget --no-verbose --spider http://localhost:7700/health"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, mbstring, exif, pcntl, bcmath, gd, redis
+          coverage: none
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Configure test environment
+        run: |
+          echo "DB_CONNECTION=sqlite" >> .env
+          echo "DB_DATABASE=:memory:" >> .env
+          echo "SCOUT_DRIVER=meilisearch" >> .env
+          echo "MEILISEARCH_HOST=http://127.0.0.1:7700" >> .env
+          echo "MEILISEARCH_KEY=masterKey" >> .env
+          echo "SCOUT_PREFIX=test_" >> .env
+
+      - name: Configure Meilisearch indexes
+        run: php artisan search:configure-indexes
+
+      - name: Run Unit-Pure tests
+        run: php artisan test --testsuite=Unit-Pure
+
+      - name: Run Unit-DB tests
+        run: php artisan test --testsuite=Unit-DB
+
+      - name: Run Feature-DB tests
+        run: php artisan test --testsuite=Feature-DB
+
+      - name: Run Feature-Search tests
+        run: php artisan test --testsuite=Feature-Search

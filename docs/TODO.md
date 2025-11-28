@@ -38,6 +38,11 @@ _Future tasks, not yet prioritized_
 
 _Recently completed tasks (move to CHANGELOG.md after release)_
 
+- [x] Fixture-based test data migration (2025-11-28)
+  - [x] Created `fixtures:extract` command
+  - [x] Migrated tests from XML imports to JSON fixtures
+  - [x] Improved test performance (~30s for Unit-Pure + Unit-DB)
+  - [x] Fixed ImportsClassAssociationsTest to use correct slugs
 - [x] Class API enhancements (2025-11-26)
   - [x] Subclass level accessor (#7)
   - [x] Nested feature choice options (#8)

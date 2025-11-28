@@ -26,7 +26,7 @@ class ImportsClassAssociationsTest extends TestCase
     {
         $fighter = CharacterClass::firstOrCreate(['slug' => 'fighter'], ['name' => 'Fighter']);
         $eldritchKnight = CharacterClass::firstOrCreate(
-            ['slug' => 'eldritch-knight'],
+            ['slug' => 'fighter-eldritch-knight'],
             ['name' => 'Eldritch Knight', 'parent_class_id' => $fighter->id, 'hit_die' => 0, 'description' => 'Test subclass']
         );
 
@@ -35,7 +35,7 @@ class ImportsClassAssociationsTest extends TestCase
         $this->importer->syncClassAssociations($spell, ['Fighter (Eldritch Knight)']);
 
         $this->assertEquals(1, $spell->classes()->count());
-        $this->assertEquals($eldritchKnight->id, $spell->classes()->first()->id);
+        $this->assertEquals($eldritchKnight->slug, $spell->classes()->first()->slug);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -43,7 +43,7 @@ class ImportsClassAssociationsTest extends TestCase
     {
         $warlock = CharacterClass::firstOrCreate(['slug' => 'warlock'], ['name' => 'Warlock']);
         $archfey = CharacterClass::firstOrCreate(
-            ['slug' => 'the-archfey'],
+            ['slug' => 'warlock-the-archfey'],
             ['name' => 'The Archfey', 'parent_class_id' => $warlock->id, 'hit_die' => 0, 'description' => 'Test subclass']
         );
 
@@ -53,7 +53,7 @@ class ImportsClassAssociationsTest extends TestCase
         $this->importer->syncClassAssociations($spell, ['Warlock (Archfey)']);
 
         $this->assertEquals(1, $spell->classes()->count());
-        $this->assertEquals($archfey->id, $spell->classes()->first()->id);
+        $this->assertEquals($archfey->slug, $spell->classes()->first()->slug);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -61,7 +61,7 @@ class ImportsClassAssociationsTest extends TestCase
     {
         $druid = CharacterClass::firstOrCreate(['slug' => 'druid'], ['name' => 'Druid']);
         $circleOfLand = CharacterClass::firstOrCreate(
-            ['slug' => 'circle-of-the-land'],
+            ['slug' => 'druid-circle-of-the-land'],
             ['name' => 'Circle of the Land', 'parent_class_id' => $druid->id, 'hit_die' => 0, 'description' => 'Test subclass']
         );
 
@@ -71,7 +71,7 @@ class ImportsClassAssociationsTest extends TestCase
         $this->importer->syncClassAssociations($spell, ['Druid (Coast)']);
 
         $this->assertEquals(1, $spell->classes()->count());
-        $this->assertEquals($circleOfLand->id, $spell->classes()->first()->id);
+        $this->assertEquals($circleOfLand->slug, $spell->classes()->first()->slug);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -92,7 +92,7 @@ class ImportsClassAssociationsTest extends TestCase
         $this->importer->syncClassAssociations($spell, ['Wizard']);
 
         $this->assertEquals(1, $spell->classes()->count());
-        $this->assertEquals($wizard->id, $spell->classes()->first()->id);
+        $this->assertEquals($wizard->slug, $spell->classes()->first()->slug);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -106,8 +106,8 @@ class ImportsClassAssociationsTest extends TestCase
         $this->importer->syncClassAssociations($spell, ['Wizard', 'Sorcerer']);
 
         $this->assertEquals(2, $spell->classes()->count());
-        $classIds = $spell->classes()->pluck('id')->sort()->values()->toArray();
-        $this->assertEquals([$wizard->id, $sorcerer->id], $classIds);
+        $classSlugs = $spell->classes()->pluck('slug')->sort()->values()->toArray();
+        $this->assertEquals([$sorcerer->slug, $wizard->slug], $classSlugs);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -127,9 +127,9 @@ class ImportsClassAssociationsTest extends TestCase
         $this->importer->syncClassAssociations($spell, ['Sorcerer', 'Warlock']);
 
         $this->assertEquals(2, $spell->classes()->count());
-        $classIds = $spell->classes()->pluck('id')->sort()->values()->toArray();
-        $this->assertEquals([$sorcerer->id, $warlock->id], $classIds);
-        $this->assertNotContains($wizard->id, $classIds);
+        $classSlugs = $spell->classes()->pluck('slug')->sort()->values()->toArray();
+        $this->assertEquals([$sorcerer->slug, $warlock->slug], $classSlugs);
+        $this->assertNotContains($wizard->slug, $classSlugs);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -150,8 +150,8 @@ class ImportsClassAssociationsTest extends TestCase
 
         $this->assertEquals(2, $count, 'Should return count of new associations');
         $this->assertEquals(3, $spell->classes()->count());
-        $classIds = $spell->classes()->pluck('id')->sort()->values()->toArray();
-        $this->assertEquals([$wizard->id, $sorcerer->id, $warlock->id], $classIds);
+        $classSlugs = $spell->classes()->pluck('slug')->sort()->values()->toArray();
+        $this->assertEquals([$sorcerer->slug, $warlock->slug, $wizard->slug], $classSlugs);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -185,7 +185,7 @@ class ImportsClassAssociationsTest extends TestCase
 
         // Should only associate valid class
         $this->assertEquals(1, $spell->classes()->count());
-        $this->assertEquals($wizard->id, $spell->classes()->first()->id);
+        $this->assertEquals($wizard->slug, $spell->classes()->first()->slug);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -208,7 +208,7 @@ class ImportsClassAssociationsTest extends TestCase
         $wizard = CharacterClass::firstOrCreate(['slug' => 'wizard'], ['name' => 'Wizard']);
         $fighter = CharacterClass::firstOrCreate(['slug' => 'fighter'], ['name' => 'Fighter']);
         $eldritchKnight = CharacterClass::firstOrCreate(
-            ['slug' => 'eldritch-knight'],
+            ['slug' => 'fighter-eldritch-knight'],
             ['name' => 'Eldritch Knight', 'parent_class_id' => $fighter->id, 'hit_die' => 0, 'description' => 'Test subclass']
         );
 
@@ -218,8 +218,8 @@ class ImportsClassAssociationsTest extends TestCase
         $this->importer->syncClassAssociations($spell, ['Wizard', 'Fighter (Eldritch Knight)']);
 
         $this->assertEquals(2, $spell->classes()->count());
-        $classIds = $spell->classes()->pluck('id')->sort()->values()->toArray();
-        $this->assertEquals([$wizard->id, $eldritchKnight->id], $classIds);
+        $classSlugs = $spell->classes()->pluck('slug')->sort()->values()->toArray();
+        $this->assertEquals([$eldritchKnight->slug, $wizard->slug], $classSlugs);
     }
 }
 

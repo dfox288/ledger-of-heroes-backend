@@ -50,17 +50,8 @@ jobs:
 
       - name: Prepare environment
         run: |
-          cp .env.testing .env
+          cp .env.ci .env
           php artisan key:generate
-
-      - name: Configure test environment
-        run: |
-          # Replace Docker hostnames with localhost for GitHub Actions
-          sed -i 's|MEILISEARCH_HOST=.*|MEILISEARCH_HOST=http://127.0.0.1:7700|' .env
-          sed -i 's|REDIS_HOST=.*|REDIS_HOST=127.0.0.1|' .env
-          # SQLite for tests (already set but ensure it)
-          sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=sqlite|' .env
-          echo "DB_DATABASE=:memory:" >> .env
 
       - name: Configure Meilisearch indexes
         run: php artisan search:configure-indexes

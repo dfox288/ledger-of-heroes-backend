@@ -51,8 +51,6 @@
         <testsuite name="Feature-DB">
             <directory>tests/Feature/Models</directory>
             <directory>tests/Feature/Requests</directory>
-            <directory>tests/Feature/Seeders</directory>
-            <directory>tests/Feature/Migrations</directory>
             <file>tests/Feature/Api/AbilityScoreReverseRelationshipsApiTest.php</file>
             <file>tests/Feature/Api/AlignmentApiTest.php</file>
             <file>tests/Feature/Api/ArmorTypeApiTest.php</file>

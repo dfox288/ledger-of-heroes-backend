@@ -8,8 +8,7 @@ use Tests\TestCase;
 /**
  * Tests for CharacterClass-specific filter operators using Meilisearch.
  *
- * These tests use pre-imported data from SearchTestExtension.
- * No RefreshDatabase needed - all tests are read-only against shared data.
+ * These tests use factory-based data and are self-contained.
  */
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]

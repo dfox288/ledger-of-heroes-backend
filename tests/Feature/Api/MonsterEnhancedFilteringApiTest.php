@@ -9,8 +9,7 @@ use Tests\TestCase;
 /**
  * Tests for Monster Meilisearch filtering features.
  *
- * These tests use pre-imported data from SearchTestExtension.
- * No RefreshDatabase needed - all tests are read-only against shared data.
+ * These tests use factory-based data and are self-contained.
  *
  * HISTORICAL NOTE: This file originally contained tests for deprecated custom query
  * parameters (?spells=, ?spell_level=, ?spells_operator=, ?type=, ?min_cr=) that

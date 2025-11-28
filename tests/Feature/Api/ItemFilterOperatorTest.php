@@ -10,8 +10,7 @@ use Tests\TestCase;
 /**
  * Tests for Item filter operators using Meilisearch.
  *
- * This test does NOT use RefreshDatabase - it relies on pre-imported data.
- * The SearchTestExtension will auto-import if needed on first run.
+ * These tests use factory-based data and are self-contained.
  *
  * Run: docker compose exec php php artisan test --testsuite=Feature-Search-Isolated
  */

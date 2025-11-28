@@ -50,7 +50,7 @@ jobs:
 
       - name: Prepare environment
         run: |
-          cp .env.example .env
+          cp .env.testing .env
           php artisan key:generate
 
       - name: Configure test environment

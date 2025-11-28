@@ -170,16 +170,15 @@ jobs:
 
           Be helpful and thorough. Don't explain the project or tech stack back to me - just answer the question.
 
-          If creating a branch, use this naming convention:
-          - meistermind/issue-${ISSUE_NUMBER}/short-description
-
-          Example: meistermind/issue-42/add-spell-filters
-
-          Always create a PR after pushing and link it to issue #${ISSUE_NUMBER}.
+          If creating files/branches:
+          - Branch naming: meistermind/issue-${ISSUE_NUMBER}/short-description
+          - Work efficiently - don't over-explore the codebase
+          - Create the files, commit, push, and create PR in one flow
+          - Link PR to issue #${ISSUE_NUMBER}
           EOF
 
           claude -p "$(cat /tmp/prompt.txt)" \
-            --max-turns 10 \
+            --max-turns 15 \
             --allowedTools "Read,Write,Edit,Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout -b:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(gh pr create:*)" \
             > /tmp/response.txt 2>&1
 

@@ -55,12 +55,12 @@ jobs:
 
       - name: Configure test environment
         run: |
-          echo "DB_CONNECTION=sqlite" >> .env
+          # Replace Docker hostnames with localhost for GitHub Actions
+          sed -i 's|MEILISEARCH_HOST=.*|MEILISEARCH_HOST=http://127.0.0.1:7700|' .env
+          sed -i 's|REDIS_HOST=.*|REDIS_HOST=127.0.0.1|' .env
+          # SQLite for tests (already set but ensure it)
+          sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=sqlite|' .env
           echo "DB_DATABASE=:memory:" >> .env
-          echo "SCOUT_DRIVER=meilisearch" >> .env
-          echo "MEILISEARCH_HOST=http://127.0.0.1:7700" >> .env
-          echo "MEILISEARCH_KEY=masterKey" >> .env
-          echo "SCOUT_PREFIX=test_" >> .env
 
       - name: Configure Meilisearch indexes
         run: php artisan search:configure-indexes

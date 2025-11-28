@@ -53,17 +53,25 @@ jobs:
           cp .env.ci .env
           php artisan key:generate
 
-      - name: Configure Meilisearch indexes
-        run: php artisan search:configure-indexes
-
+      # Tests without Meilisearch (SCOUT_DRIVER=null disables search syncing)
       - name: Run Unit-Pure tests
         run: php artisan test --testsuite=Unit-Pure
+        env:
+          SCOUT_DRIVER: "null"
 
       - name: Run Unit-DB tests
         run: php artisan test --testsuite=Unit-DB
+        env:
+          SCOUT_DRIVER: "null"
 
       - name: Run Feature-DB tests
         run: php artisan test --testsuite=Feature-DB
+        env:
+          SCOUT_DRIVER: "null"
+
+      # Tests with Meilisearch
+      - name: Configure Meilisearch indexes
+        run: php artisan search:configure-indexes
 
       - name: Run Feature-Search tests
         run: php artisan test --testsuite=Feature-Search

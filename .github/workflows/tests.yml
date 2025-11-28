@@ -19,11 +19,11 @@ jobs:
         ports:
           - 7700:7700
         options: >-
-          --health-cmd="wget --no-verbose --spider http://localhost:7700/health"
+          --health-cmd="curl -f http://localhost:7700/health || exit 1"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=3
-
+          --health-retries=5
+          --health-start-period=10s
     steps:
       - uses: actions/checkout@v4
 

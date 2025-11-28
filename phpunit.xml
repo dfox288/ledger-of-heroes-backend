@@ -51,6 +51,13 @@
         <testsuite name="Feature-DB">
             <directory>tests/Feature/Models</directory>
             <directory>tests/Feature/Requests</directory>
+            <!-- Exclude request tests that need Meilisearch (moved to Feature-Search) -->
+            <exclude>tests/Feature/Requests/BackgroundIndexRequestTest.php</exclude>
+            <exclude>tests/Feature/Requests/ClassIndexRequestTest.php</exclude>
+            <exclude>tests/Feature/Requests/SpellIndexRequestTest.php</exclude>
+            <exclude>tests/Feature/Requests/SourceIndexRequestTest.php</exclude>
+            <exclude>tests/Feature/Requests/SpellSchoolIndexRequestTest.php</exclude>
+            <exclude>tests/Feature/Requests/ProficiencyTypeIndexRequestTest.php</exclude>
             <file>tests/Feature/Api/AbilityScoreReverseRelationshipsApiTest.php</file>
             <file>tests/Feature/Api/AlignmentApiTest.php</file>
             <file>tests/Feature/Api/ArmorTypeApiTest.php</file>
@@ -116,6 +123,13 @@
             <file>tests/Feature/Api/ItemSearchTest.php</file>
             <file>tests/Feature/Api/GlobalSearchTest.php</file>
             <file>tests/Integration/SpellImportToApiTest.php</file>
+            <!-- Request validation tests that need Meilisearch -->
+            <file>tests/Feature/Requests/BackgroundIndexRequestTest.php</file>
+            <file>tests/Feature/Requests/ClassIndexRequestTest.php</file>
+            <file>tests/Feature/Requests/SpellIndexRequestTest.php</file>
+            <file>tests/Feature/Requests/SourceIndexRequestTest.php</file>
+            <file>tests/Feature/Requests/SpellSchoolIndexRequestTest.php</file>
+            <file>tests/Feature/Requests/ProficiencyTypeIndexRequestTest.php</file>
         </testsuite>
 
         <!-- Importers: XML import command tests (approx 90s) -->

@@ -130,7 +130,8 @@ class ShapechangerStrategyTest extends TestCase
     public function it_integrates_with_real_xml_fixture(): void
     {
         $parser = new MonsterXmlParser;
-        $monsters = $parser->parse(base_path('tests/Fixtures/xml/monsters/test-shapechangers.xml'));
+        $xmlContent = file_get_contents(base_path('tests/Fixtures/xml/monsters/test-shapechangers.xml'));
+        $monsters = $parser->parse($xmlContent);
 
         $this->assertCount(3, $monsters);
 

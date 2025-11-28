@@ -476,87 +476,81 @@ class MonsterXmlParserTest extends TestCase
 </compendium>
 XML;
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'monster_test_');
-        file_put_contents($tempFile, $xmlContent);
+        // Parser now expects XML content directly (not file path)
+        $result = $this->parser->parse($xmlContent);
 
-        try {
-            $result = $this->parser->parse($tempFile);
+        $this->assertIsArray($result);
+        $this->assertCount(1, $result);
 
-            $this->assertIsArray($result);
-            $this->assertCount(1, $result);
+        $monster = $result[0];
 
-            $monster = $result[0];
+        // Basic info
+        $this->assertEquals('Test Monster', $monster['name']);
+        $this->assertEquals('L', $monster['size']);
+        $this->assertEquals('aberration', $monster['type']);
+        $this->assertEquals('Lawful Evil', $monster['alignment']);
 
-            // Basic info
-            $this->assertEquals('Test Monster', $monster['name']);
-            $this->assertEquals('L', $monster['size']);
-            $this->assertEquals('aberration', $monster['type']);
-            $this->assertEquals('Lawful Evil', $monster['alignment']);
+        // Combat stats
+        $this->assertEquals(17, $monster['armor_class']);
+        $this->assertEquals('natural armor', $monster['armor_type']);
+        $this->assertEquals(135, $monster['hit_points']);
+        $this->assertEquals('18d10+36', $monster['hit_dice']);
 
-            // Combat stats
-            $this->assertEquals(17, $monster['armor_class']);
-            $this->assertEquals('natural armor', $monster['armor_type']);
-            $this->assertEquals(135, $monster['hit_points']);
-            $this->assertEquals('18d10+36', $monster['hit_dice']);
+        // Speeds
+        $this->assertEquals(10, $monster['speed_walk']);
+        $this->assertNull($monster['speed_fly']);
+        $this->assertEquals(40, $monster['speed_swim']);
+        $this->assertNull($monster['speed_burrow']);
+        $this->assertNull($monster['speed_climb']);
+        $this->assertFalse($monster['can_hover']);
 
-            // Speeds
-            $this->assertEquals(10, $monster['speed_walk']);
-            $this->assertNull($monster['speed_fly']);
-            $this->assertEquals(40, $monster['speed_swim']);
-            $this->assertNull($monster['speed_burrow']);
-            $this->assertNull($monster['speed_climb']);
-            $this->assertFalse($monster['can_hover']);
+        // Ability scores
+        $this->assertEquals(21, $monster['strength']);
+        $this->assertEquals(9, $monster['dexterity']);
+        $this->assertEquals(15, $monster['constitution']);
+        $this->assertEquals(18, $monster['intelligence']);
+        $this->assertEquals(15, $monster['wisdom']);
+        $this->assertEquals(18, $monster['charisma']);
 
-            // Ability scores
-            $this->assertEquals(21, $monster['strength']);
-            $this->assertEquals(9, $monster['dexterity']);
-            $this->assertEquals(15, $monster['constitution']);
-            $this->assertEquals(18, $monster['intelligence']);
-            $this->assertEquals(15, $monster['wisdom']);
-            $this->assertEquals(18, $monster['charisma']);
+        // Challenge
+        $this->assertEquals('10', $monster['challenge_rating']);
+        $this->assertEquals(5900, $monster['experience_points']);
 
-            // Challenge
-            $this->assertEquals('10', $monster['challenge_rating']);
-            $this->assertEquals(5900, $monster['experience_points']);
+        // Saving throws
+        $this->assertCount(3, $monster['saving_throws']);
+        $this->assertEquals(['ability' => 'CON', 'bonus' => 6], $monster['saving_throws'][0]);
 
-            // Saving throws
-            $this->assertCount(3, $monster['saving_throws']);
-            $this->assertEquals(['ability' => 'CON', 'bonus' => 6], $monster['saving_throws'][0]);
+        // Skills
+        $this->assertCount(2, $monster['skills']);
+        $this->assertEquals(['skill' => 'History', 'bonus' => 12], $monster['skills'][0]);
 
-            // Skills
-            $this->assertCount(2, $monster['skills']);
-            $this->assertEquals(['skill' => 'History', 'bonus' => 12], $monster['skills'][0]);
+        // Other attributes
+        $this->assertNull($monster['damage_vulnerabilities']);
+        $this->assertNull($monster['damage_resistances']);
+        $this->assertNull($monster['damage_immunities']);
+        $this->assertNull($monster['condition_immunities']);
+        $this->assertEquals('darkvision 120 ft.', $monster['senses']);
+        $this->assertEquals('Deep Speech, telepathy 120 ft.', $monster['languages']);
 
-            // Other attributes
-            $this->assertNull($monster['damage_vulnerabilities']);
-            $this->assertNull($monster['damage_resistances']);
-            $this->assertNull($monster['damage_immunities']);
-            $this->assertNull($monster['condition_immunities']);
-            $this->assertEquals('darkvision 120 ft.', $monster['senses']);
-            $this->assertEquals('Deep Speech, telepathy 120 ft.', $monster['languages']);
+        // Description
+        $this->assertEquals('Test description', $monster['description']);
+        $this->assertEquals('underdark', $monster['environment']);
 
-            // Description
-            $this->assertEquals('Test description', $monster['description']);
-            $this->assertEquals('underdark', $monster['environment']);
+        // Traits
+        $this->assertCount(1, $monster['traits']);
+        $this->assertEquals('Amphibious', $monster['traits'][0]['name']);
 
-            // Traits
-            $this->assertCount(1, $monster['traits']);
-            $this->assertEquals('Amphibious', $monster['traits'][0]['name']);
+        // Actions
+        $this->assertCount(1, $monster['actions']);
+        $this->assertEquals('Tentacle', $monster['actions'][0]['name']);
 
-            // Actions
-            $this->assertCount(1, $monster['actions']);
-            $this->assertEquals('Tentacle', $monster['actions'][0]['name']);
+        // Reactions and legendary should be empty
+        $this->assertEmpty($monster['reactions']);
+        $this->assertEmpty($monster['legendary']);
 
-            // Reactions and legendary should be empty
-            $this->assertEmpty($monster['reactions']);
-            $this->assertEmpty($monster['legendary']);
-
-            // Spellcasting
-            $this->assertNull($monster['slots']);
-            $this->assertNull($monster['spells']);
-        } finally {
-            unlink($tempFile);
-        }
+        // Spellcasting
+        $this->assertNull($monster['slots']);
+        $this->assertNull($monster['spells']);
     }
 
     /**

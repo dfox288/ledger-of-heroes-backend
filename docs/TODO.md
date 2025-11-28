@@ -55,6 +55,8 @@ _Recently completed tasks (move to CHANGELOG.md after release)_
   - Use `computed.hit_points` as single source of truth (resolves inheritance automatically)
   - Reduces API payload size, eliminates data duplication
 - [x] **MonsterXmlParser fix** - Changed parser to use `fromString()` for consistency (2025-11-28)
+  - Updated 8 test files that were passing file paths instead of XML content
+  - Fixed ImportMonstersCommandTest (5 tests) and 7 monster strategy tests
 - [x] **SQLite test migration** - Tests use in-memory SQLite instead of MySQL (2025-11-28)
   - ~10x faster test execution (39s total vs ~400s)
   - Unit-Pure: ~3s, Unit-DB: ~7s, Feature-DB: ~9s, Feature-Search: ~20s

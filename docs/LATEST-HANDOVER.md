@@ -1,1 +1,1 @@
-handovers/SESSION-HANDOVER-2025-11-28-1430-test-fixture-complete.md
+handovers/SESSION-HANDOVER-2025-11-28-2200-optional-features-tests.md

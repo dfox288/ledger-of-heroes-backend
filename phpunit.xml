@@ -122,6 +122,10 @@
             <file>tests/Feature/Api/BackgroundSearchTest.php</file>
             <file>tests/Feature/Api/ItemSearchTest.php</file>
             <file>tests/Feature/Api/GlobalSearchTest.php</file>
+            <!-- Optional Feature tests -->
+            <file>tests/Feature/Api/OptionalFeatureApiTest.php</file>
+            <file>tests/Feature/Api/OptionalFeatureFilterOperatorTest.php</file>
+            <file>tests/Feature/Api/OptionalFeatureSearchTest.php</file>
             <file>tests/Integration/SpellImportToApiTest.php</file>
             <!-- Request validation tests that need Meilisearch -->
             <file>tests/Feature/Requests/BackgroundIndexRequestTest.php</file>

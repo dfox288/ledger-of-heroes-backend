@@ -43,6 +43,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Optional Features API Test Coverage** (48 new tests)
+  - `OptionalFeatureApiTest.php` - 13 tests for basic API endpoints
+  - `OptionalFeatureFilterOperatorTest.php` - 27 tests for all Meilisearch filter operators
+  - `OptionalFeatureSearchTest.php` - 8 tests for full-text search functionality
+  - Added to Feature-Search suite in phpunit.xml
+
 - **Race fixture extraction**: Implemented `extractRaces()` and `formatRace()` methods in `ExtractFixturesCommand`
   - Coverage-based selection: one per size category, races with/without subraces
   - Exports racial traits, speed, ability score bonuses

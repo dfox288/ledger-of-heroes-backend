@@ -25,7 +25,6 @@ _Tasks intentionally postponed_
 
 _Prioritized tasks ready to start_
 
-- [ ] Optional Features import improvements
 - [ ] API documentation standardization (remaining entities)
 
 ---
@@ -45,6 +44,12 @@ _Future tasks, not yet prioritized_
 
 _Recently completed tasks (move to CHANGELOG.md after release)_
 
+- [x] **Optional Features API Test Coverage** (2025-11-28)
+  - Created OptionalFeatureApiTest.php (13 tests) - basic endpoints
+  - Created OptionalFeatureFilterOperatorTest.php (27 tests) - all filter operators
+  - Created OptionalFeatureSearchTest.php (8 tests) - full-text search
+  - Total: 48 new tests, 475+ assertions
+  - Added to Feature-Search suite in phpunit.xml
 - [x] **Issue #13: Remove duplicate hit_points from inherited_data** (2025-11-28)
   - Removed `hit_points` from `inherited_data` section for subclasses
   - Use `computed.hit_points` as single source of truth (resolves inheritance automatically)

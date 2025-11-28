@@ -19,6 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Classes API: Remove duplicate hit_points from inherited_data** (Issue #13)
+  - Subclass responses no longer include `hit_points` in `inherited_data` section
+  - Use `computed.hit_points` as single source of truth (resolves inheritance automatically)
+  - Reduces API payload size and eliminates data duplication
+
+- **MonsterXmlParser consistency fix**
+  - Changed `parse()` method to accept XML content string instead of file path
+  - Now consistent with all other parsers (SpellXmlParser, ItemXmlParser, etc.)
+  - Fixed failing ImportMonstersCommandTest (5 tests)
+
 - **Test fixture migration COMPLETE**: All Feature-Search tests now pass (0 failures)
   - Unit-DB suite: Fixed 13 failures (replaced `firstOrCreate()` with `factory()->create()`)
   - Feature-DB suite: Fixed 1 failure (updated counter assertions for grouped format)

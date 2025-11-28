@@ -86,7 +86,8 @@ class MonsterImporter extends BaseImporter
     public function importWithStats(string $filePath): array
     {
         $parser = $this->getParser();
-        $monsters = $parser->parse($filePath);
+        $xmlContent = file_get_contents($filePath);
+        $monsters = $parser->parse($xmlContent);
 
         $created = 0;
         $updated = 0;

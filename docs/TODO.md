@@ -8,9 +8,16 @@ Active tasks and priorities for this project.
 
 _Tasks currently being worked on_
 
-- [ ] Classes detail page optimization - remaining items:
-  - [ ] Issue #12: Filter irrelevant progression columns (class-specific)
-  - [ ] Issue #13: Handle duplicate description content
+_None_
+
+## Deferred
+
+_Tasks intentionally postponed_
+
+- [ ] Issue #12: Filter irrelevant progression columns (class-specific)
+  - Analysis: Counters starting at level 14+ create mostly-empty columns
+  - Solution: Add `MIN_COUNTER_START_LEVEL = 14` threshold filter
+  - Deferred: Low priority, minimal user impact
 
 ---
 
@@ -38,6 +45,11 @@ _Future tasks, not yet prioritized_
 
 _Recently completed tasks (move to CHANGELOG.md after release)_
 
+- [x] **Issue #13: Remove duplicate hit_points from inherited_data** (2025-11-28)
+  - Removed `hit_points` from `inherited_data` section for subclasses
+  - Use `computed.hit_points` as single source of truth (resolves inheritance automatically)
+  - Reduces API payload size, eliminates data duplication
+- [x] **MonsterXmlParser fix** - Changed parser to use `fromString()` for consistency (2025-11-28)
 - [x] **SQLite test migration** - Tests use in-memory SQLite instead of MySQL (2025-11-28)
   - ~10x faster test execution (39s total vs ~400s)
   - Unit-Pure: ~3s, Unit-DB: ~7s, Feature-DB: ~9s, Feature-Search: ~20s

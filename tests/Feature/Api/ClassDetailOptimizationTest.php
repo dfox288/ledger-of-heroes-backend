@@ -89,10 +89,11 @@ class ClassDetailOptimizationTest extends TestCase
                 'data' => [
                     'inherited_data' => [
                         'hit_die',
-                        'hit_points',
+                        // hit_points removed - use computed.hit_points instead (no duplication)
                     ],
                 ],
-            ]);
+            ])
+            ->assertJsonMissingPath('data.inherited_data.hit_points');
     }
 
     #[Test]

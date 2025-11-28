@@ -20,14 +20,14 @@ class MonsterXmlParser
     use ParsesSourceCitations;
 
     /**
-     * Parse monsters from an XML file.
+     * Parse monsters from XML content.
      *
-     * @param  string  $xmlPath  Path to the XML file
+     * @param  string  $xmlContent  The XML content as a string
      * @return array Array of monster data arrays
      */
-    public function parse(string $xmlPath): array
+    public function parse(string $xmlContent): array
     {
-        $xml = XmlLoader::fromFile($xmlPath);
+        $xml = XmlLoader::fromString($xmlContent);
         $monsters = [];
 
         foreach ($xml->monster as $monsterElement) {

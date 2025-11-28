@@ -72,8 +72,9 @@ class ClassResource extends JsonResource
             /**
              * Pre-resolved inheritance data from parent class.
              * Only present for subclasses - contains data they inherit from their base class.
+             * Note: hit_points is NOT included here - use computed.hit_points instead (resolves inheritance automatically).
              *
-             * @var array{hit_die: int|null, hit_points: array{hit_die: string, hit_die_numeric: int, first_level: array{value: int, description: string}, higher_levels: array{roll: string, average: int, description: string}}|null, spellcasting_ability: array{id: int, code: string, name: string}|null, counters: array<ClassCounterResource>|null, traits: array<TraitResource>|null, level_progression: array<ClassLevelProgressionResource>|null, equipment: array<EntityItemResource>|null, proficiencies: array<ProficiencyResource>|null, spell_slot_summary: array{has_spell_slots: bool, max_spell_level: int|null, available_levels: array<int>, has_cantrips: bool, caster_type: string|null}|null}|null
+             * @var array{hit_die: int|null, spellcasting_ability: array{id: int, code: string, name: string}|null, counters: array<ClassCounterResource>|null, traits: array<TraitResource>|null, level_progression: array<ClassLevelProgressionResource>|null, equipment: array<EntityItemResource>|null, proficiencies: array<ProficiencyResource>|null, spell_slot_summary: array{has_spell_slots: bool, max_spell_level: int|null, available_levels: array<int>, has_cantrips: bool, caster_type: string|null}|null}|null
              */
             'inherited_data' => $this->when(
                 ! $this->is_base_class && $this->relationLoaded('parentClass') && $this->parentClass,
@@ -82,7 +83,7 @@ class ClassResource extends JsonResource
 
                     return [
                         'hit_die' => $parent->hit_die,
-                        'hit_points' => $parent->hit_points,
+                        // hit_points removed - use computed.hit_points instead (resolves inheritance)
                         'spellcasting_ability' => $parent->spellcasting_ability_id
                             ? new AbilityScoreResource($parent->spellcastingAbility)
                             : null,

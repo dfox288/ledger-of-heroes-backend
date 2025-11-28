@@ -51,6 +51,7 @@ jobs:
       - name: Prepare environment
         run: |
           cp .env.ci .env
+          cp .env.ci .env.testing
           php artisan key:generate
 
       # Tests without Meilisearch (SCOUT_DRIVER=null disables search syncing)

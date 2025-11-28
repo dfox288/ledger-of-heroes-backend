@@ -101,8 +101,7 @@ PHPUnit 11 tracks error/exception handler changes and marks tests "risky" if han
 | `Unit-Pure` | ~5s | Parsers | Parser changes, exceptions, pure logic |
 | `Unit-DB` | ~20s | Models | Factories, models, strategies, caching |
 | `Feature-DB` | ~30s | API | API endpoints (no search), requests |
-| `Feature-Search-Isolated` | ~60s | Filters | Filter operators with factory data |
-| `Feature-Search-Imported` | ~180s | Search | Search tests needing real XML data |
+| `Feature-Search` | ~120s | Search | All search/filter tests with fixture data |
 | `Importers` | ~90s | Import | XML import command tests |
 | **Full** | ~400s | All | Pre-commit, release validation |
 
@@ -110,8 +109,8 @@ PHPUnit 11 tracks error/exception handler changes and marks tests "risky" if han
 # Quick feedback during development
 docker compose exec php php artisan test --testsuite=Unit-Pure
 
-# Before commit
-docker compose exec php php artisan test --exclude-group=search-imported
+# Before commit (run most suites)
+docker compose exec php php artisan test --testsuite=Unit-Pure,Unit-DB,Feature-DB
 
 # Full validation
 docker compose exec php php artisan test

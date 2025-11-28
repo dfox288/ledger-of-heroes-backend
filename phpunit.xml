@@ -86,8 +86,8 @@
             <file>tests/Feature/Api/ClassDetailOptimizationTest.php</file>
         </testsuite>
 
-        <!-- Feature-Search-Isolated: Factory-based Meilisearch tests (approx 60s), self-contained -->
-        <testsuite name="Feature-Search-Isolated">
+        <!-- Feature-Search: Unified Meilisearch tests using fixture data (approx 120s) -->
+        <testsuite name="Feature-Search">
             <file>tests/Feature/Api/MonsterFilterOperatorTest.php</file>
             <file>tests/Feature/Api/FeatFilterOperatorTest.php</file>
             <file>tests/Feature/Api/BackgroundFilterOperatorTest.php</file>
@@ -104,10 +104,6 @@
             <file>tests/Feature/Api/FeatApiTest.php</file>
             <file>tests/Feature/Api/RaceApiTest.php</file>
             <file>tests/Feature/Api/SpellApiTest.php</file>
-        </testsuite>
-
-        <!-- Feature-Search-Imported: Requires pre-populated Meilisearch indexes (approx 180s) -->
-        <testsuite name="Feature-Search-Imported">
             <file>tests/Feature/Api/SpellFilterOperatorTest.php</file>
             <file>tests/Feature/Api/ClassFilterOperatorTest.php</file>
             <file>tests/Feature/Api/RaceFilterOperatorTest.php</file>

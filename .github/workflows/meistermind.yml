@@ -10,13 +10,13 @@ name: MeisterMind
 
 on:
   issues:
-    types: [opened]
+    types: [ opened ]
   issue_comment:
-    types: [created]
+    types: [ created ]
   pull_request_review_comment:
-    types: [created]
+    types: [ created ]
   pull_request:
-    types: [opened, ready_for_review]
+    types: [ opened, ready_for_review ]
 
 jobs:
   # ══════════════════════════════════════════════════════════════════════════
@@ -24,7 +24,7 @@ jobs:
   # ══════════════════════════════════════════════════════════════════════════
   analyze-issue:
     if: github.event_name == 'issues' && github.event.action == 'opened'
-    runs-on: [self-hosted, claude-code]
+    runs-on: [ self-hosted, claude-code ]
     timeout-minutes: 10
     permissions:
       contents: read
@@ -87,7 +87,7 @@ jobs:
     if: |
       (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') &&
       contains(github.event.comment.body, '@meistermind')
-    runs-on: [self-hosted, claude-code]
+    runs-on: [ self-hosted, claude-code ]
     timeout-minutes: 15
     permissions:
       contents: write
@@ -175,6 +175,11 @@ jobs:
           - Work efficiently - don't over-explore the codebase
           - Create the files, commit, push, and create PR in one flow
           - Link PR to issue #${ISSUE_NUMBER}
+
+          IMPORTANT: If asked to create GitHub workflow files (.github/workflows/*):
+          - Do NOT try to push them (you don't have permission)
+          - Just create the file locally and explain what it does
+          - The file will be uploaded as a downloadable artifact automatically
           EOF
 
           claude -p "$(cat /tmp/prompt.txt)" \
@@ -182,11 +187,32 @@ jobs:
             --allowedTools "Read,Write,Edit,Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout -b:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(gh pr create:*)" \
             > /tmp/response.txt 2>&1
 
+          # If Claude created files but couldn't push (e.g., workflow files),
+          # save them for artifact upload
+          git diff --name-only HEAD > /tmp/changed-files.txt 2>/dev/null || true
+          mkdir -p /tmp/artifacts
+          if [ -s /tmp/changed-files.txt ]; then
+            while read -r file; do
+              if [ -f "$file" ]; then
+                mkdir -p "/tmp/artifacts/$(dirname "$file")"
+                cp "$file" "/tmp/artifacts/$file"
+              fi
+            done < /tmp/changed-files.txt
+          fi
+
           gh issue comment ${{ github.event.issue.number }} \
             --body "$(cat /tmp/response.txt)
 
           ---
           *🎲 @meistermind*"
+
+      - name: Upload created files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: meistermind-files
+          path: /tmp/artifacts/
+          if-no-files-found: ignore
 
   # ══════════════════════════════════════════════════════════════════════════
   # Review PRs when requested
@@ -195,7 +221,7 @@ jobs:
     if: |
       github.event_name == 'pull_request_review_comment' &&
       contains(github.event.comment.body, '@meistermind')
-    runs-on: [self-hosted, claude-code]
+    runs-on: [ self-hosted, claude-code ]
     timeout-minutes: 15
     permissions:
       contents: read
@@ -282,7 +308,7 @@ jobs:
       github.event.pull_request.draft == false &&
       !contains(github.event.pull_request.title, '[skip-review]') &&
       !contains(github.event.pull_request.title, '[no-review]')
-    runs-on: [self-hosted, claude-code]
+    runs-on: [ self-hosted, claude-code ]
     timeout-minutes: 15
     permissions:
       contents: read

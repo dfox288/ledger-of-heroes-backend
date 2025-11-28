@@ -33,7 +33,6 @@
             <directory>tests/Unit/Strategies</directory>
             <directory>tests/Unit/Services/Cache</directory>
             <directory>tests/Unit/Services/Importers</directory>
-            <file>tests/Unit/Parsers/ClassXmlParserTest.php</file>
             <file>tests/Unit/Parsers/ClassXmlParserEquipmentTest.php</file>
             <file>tests/Unit/Parsers/FeatXmlParserPrerequisitesTest.php</file>
             <file>tests/Unit/Parsers/ItemXmlParserTest.php</file>
@@ -122,9 +121,11 @@
         </testsuite>
 
         <!-- Importers: XML import command tests (approx 90s) -->
+        <!-- Requires import-files/ directory with XML data (gitignored) -->
         <testsuite name="Importers">
             <directory>tests/Feature/Importers</directory>
             <directory>tests/Feature/Console</directory>
+            <file>tests/Unit/Parsers/ClassXmlParserTest.php</file>
         </testsuite>
     </testsuites>
 

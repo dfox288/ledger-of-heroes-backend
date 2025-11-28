@@ -13,6 +13,8 @@ class ClassFeatureParentChildTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
+
     protected CharacterClass $fighter;
 
     protected function setUp(): void

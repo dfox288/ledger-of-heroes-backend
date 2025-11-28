@@ -6,7 +6,7 @@ This file provides guidance to Claude Code when working with this repository.
 
 Laravel 12.x application importing D&D 5th Edition XML content and providing a RESTful API.
 
-**Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 | PHPUnit 11+ | Docker Compose (not Sail) | Meilisearch | Redis
+**Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 (prod) / SQLite (tests) | PHPUnit 11+ | Docker Compose | Meilisearch | Redis
 
 **Commands:** `docker compose exec php php artisan ...` | `docker compose exec php ./vendor/bin/pint`
 
@@ -94,27 +94,29 @@ PHPUnit 11 tracks error/exception handler changes and marks tests "risky" if han
 
 ## Test Suites
 
-**Always run the smallest relevant suite.**
+**Tests use SQLite in-memory for speed.** Always run suites individually (not combined).
 
 | Suite | Time | Tests | When to Use |
 |-------|------|-------|-------------|
-| `Unit-Pure` | ~5s | Parsers | Parser changes, exceptions, pure logic |
-| `Unit-DB` | ~20s | Models | Factories, models, strategies, caching |
-| `Feature-DB` | ~30s | API | API endpoints (no search), requests |
-| `Feature-Search` | ~120s | Search | All search/filter tests with fixture data |
-| `Importers` | ~90s | Import | XML import command tests |
-| **Full** | ~400s | All | Pre-commit, release validation |
+| `Unit-Pure` | ~3s | 273 | Parser changes, exceptions, pure logic |
+| `Unit-DB` | ~7s | 436 | Factories, models, strategies, caching |
+| `Feature-DB` | ~9s | 367 | API endpoints (no search), requests |
+| `Feature-Search` | ~20s | 286 | All search/filter tests with fixture data |
+| `Importers` | ~30s | ~135 | XML import command tests |
 
 ```bash
 # Quick feedback during development
 docker compose exec php php artisan test --testsuite=Unit-Pure
 
-# Before commit (run most suites)
-docker compose exec php php artisan test --testsuite=Unit-Pure,Unit-DB,Feature-DB
+# Standard validation (run each suite)
+docker compose exec php php artisan test --testsuite=Unit-DB
+docker compose exec php php artisan test --testsuite=Feature-DB
 
-# Full validation
-docker compose exec php php artisan test
+# Search tests (requires Meilisearch with fixture data)
+docker compose exec php php artisan test --testsuite=Feature-Search
 ```
+
+**Note:** Run suites individually, not combined. Cross-suite runs may have data isolation issues.
 
 ---
 

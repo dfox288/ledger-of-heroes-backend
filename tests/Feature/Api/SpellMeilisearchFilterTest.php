@@ -11,7 +11,7 @@ class SpellMeilisearchFilterTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seed = true;
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {

@@ -13,7 +13,7 @@ class SizeReverseRelationshipsApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seed = true;
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_returns_races_for_size(): void

@@ -12,6 +12,8 @@ class RarityApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
+
     protected function setUp(): void
     {
         parent::setUp();

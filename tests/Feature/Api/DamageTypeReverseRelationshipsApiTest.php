@@ -15,6 +15,8 @@ class DamageTypeReverseRelationshipsApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
+
     // ========================================
     // Spells Endpoint Tests
     // ========================================

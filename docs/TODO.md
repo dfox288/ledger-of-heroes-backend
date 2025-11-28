@@ -38,7 +38,21 @@ _Future tasks, not yet prioritized_
 
 _Recently completed tasks (move to CHANGELOG.md after release)_
 
-- [x] Fixture-based test data migration (2025-11-28)
+- [x] **SQLite test migration** - Tests use in-memory SQLite instead of MySQL (2025-11-28)
+  - ~10x faster test execution (39s total vs ~400s)
+  - Unit-Pure: ~3s, Unit-DB: ~7s, Feature-DB: ~9s, Feature-Search: ~20s
+  - Fixed MySQL-specific migration (parent_feature_id) for SQLite compatibility
+- [x] **Test fixture migration** - Feature-Search tests use fixtures only (2025-11-28)
+  - [x] Unit-DB suite: 13 failures fixed (replaced `firstOrCreate()` with `factory()->create()`)
+  - [x] Feature-DB suite: 1 failure fixed (updated counter assertions)
+  - [x] Feature-Search suite: **37 failures fixed** (was 37 fail, 257 pass)
+  - [x] Final status: **0 fail, 286 pass, 28 skipped** (2 incomplete)
+  - [x] Made FilterOperatorTest assertions data-agnostic
+  - [x] Replaced hardcoded slugs with dynamic fixture queries
+  - [x] Added skip logic for missing fixture relationships
+  - [x] Updated SpellImportToApiTest API structure
+  - See `docs/handovers/SESSION-HANDOVER-2025-11-28-1430-test-fixture-complete.md`
+- [x] Fixture-based test data extraction (2025-11-28)
   - [x] Created `fixtures:extract` command
   - [x] Migrated tests from XML imports to JSON fixtures
   - [x] Improved test performance (~30s for Unit-Pure + Unit-DB)

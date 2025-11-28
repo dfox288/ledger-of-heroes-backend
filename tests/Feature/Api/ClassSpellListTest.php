@@ -14,7 +14,7 @@ class ClassSpellListTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seed = true;
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
 
     #[Test]
     public function it_returns_spells_for_a_class()

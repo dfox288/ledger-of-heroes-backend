@@ -15,6 +15,8 @@ class BackgroundModelTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
+
     #[Test]
     public function background_has_traits_relationship()
     {

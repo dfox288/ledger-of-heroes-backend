@@ -22,11 +22,15 @@ abstract class TestCase extends BaseTestCase
     /**
      * The seeder class to use for test database setup.
      *
-     * Uses fixture-based test data instead of full DatabaseSeeder.
+     * Default: LookupSeeder - seeds only lookup tables (ability scores, spell schools, etc.)
+     * This allows tests to create their own entity data via factories without conflicts.
+     *
+     * For tests that need full fixture data (search tests), override with:
+     *   protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
      *
      * @var string
      */
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
 
     /**
      * Store original error/exception handlers to restore after test.

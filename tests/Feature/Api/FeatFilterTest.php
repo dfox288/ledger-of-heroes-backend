@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Feat;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -15,31 +16,31 @@ use Tests\TestCase;
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class FeatFilterTest extends TestCase
 {
-    protected $seed = false;
+    use RefreshDatabase;
+
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
 
     #[Test]
     public function it_filters_feats_by_has_prerequisites()
     {
-        // Get counts from imported data
-        $withPrereqCount = Feat::has('prerequisites')->count();
-        $withoutPrereqCount = Feat::doesntHave('prerequisites')->count();
+        // Filter for feats WITH prerequisites
+        $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true');
+        $response->assertOk();
 
-        if ($withPrereqCount === 0 && $withoutPrereqCount === 0) {
-            $this->markTestSkipped('No feats in imported data');
+        // Verify all returned feats have prerequisites
+        foreach ($response->json('data') as $feat) {
+            $featModel = Feat::find($feat['id']);
+            $this->assertTrue($featModel->prerequisites()->exists(), "{$feat['name']} should have prerequisites");
         }
 
-        if ($withPrereqCount > 0) {
-            // Filter for feats WITH prerequisites
-            $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true');
-            $response->assertOk();
-            $this->assertEquals($withPrereqCount, $response->json('meta.total'));
-        }
+        // Filter for feats WITHOUT prerequisites
+        $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = false');
+        $response->assertOk();
 
-        if ($withoutPrereqCount > 0) {
-            // Filter for feats WITHOUT prerequisites
-            $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = false');
-            $response->assertOk();
-            $this->assertEquals($withoutPrereqCount, $response->json('meta.total'));
+        // Verify all returned feats do NOT have prerequisites
+        foreach ($response->json('data') as $feat) {
+            $featModel = Feat::find($feat['id']);
+            $this->assertFalse($featModel->prerequisites()->exists(), "{$feat['name']} should not have prerequisites");
         }
     }
 
@@ -76,24 +77,24 @@ class FeatFilterTest extends TestCase
     #[Test]
     public function it_filters_feats_by_grants_proficiencies()
     {
-        // Get counts from imported data
-        $withProfCount = Feat::has('proficiencies')->count();
-        $withoutProfCount = Feat::doesntHave('proficiencies')->count();
+        // Filter for feats WITH proficiencies
+        $response = $this->getJson('/api/v1/feats?filter=grants_proficiencies = true');
+        $response->assertOk();
 
-        if ($withProfCount === 0 && $withoutProfCount === 0) {
-            $this->markTestSkipped('No feats in imported data');
+        // Verify all returned feats have proficiencies
+        foreach ($response->json('data') as $feat) {
+            $featModel = Feat::find($feat['id']);
+            $this->assertTrue($featModel->proficiencies()->exists(), "{$feat['name']} should grant proficiencies");
         }
 
-        if ($withProfCount > 0) {
-            $response = $this->getJson('/api/v1/feats?filter=grants_proficiencies = true');
-            $response->assertOk();
-            $this->assertEquals($withProfCount, $response->json('meta.total'));
-        }
+        // Filter for feats WITHOUT proficiencies
+        $response = $this->getJson('/api/v1/feats?filter=grants_proficiencies = false');
+        $response->assertOk();
 
-        if ($withoutProfCount > 0) {
-            $response = $this->getJson('/api/v1/feats?filter=grants_proficiencies = false');
-            $response->assertOk();
-            $this->assertEquals($withoutProfCount, $response->json('meta.total'));
+        // Verify all returned feats do NOT have proficiencies
+        foreach ($response->json('data') as $feat) {
+            $featModel = Feat::find($feat['id']);
+            $this->assertFalse($featModel->proficiencies()->exists(), "{$feat['name']} should not grant proficiencies");
         }
     }
 

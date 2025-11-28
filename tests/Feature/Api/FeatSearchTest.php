@@ -13,6 +13,8 @@ class FeatSearchTest extends TestCase
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -22,27 +24,15 @@ class FeatSearchTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_searches_feats_using_scout_when_available(): void
     {
-        Feat::factory()->create([
-            'name' => 'Acrobatics',
-            'description' => 'Master of acrobatic movement',
-        ]);
-
-        Feat::factory()->create([
-            'name' => 'Alert',
-            'description' => 'Always vigilant and ready for danger',
-        ]);
-
-        $this->artisan('scout:import', ['model' => Feat::class]);
-        $this->waitForMeilisearchIndex('test_feats');
-
-        $response = $this->getJson('/api/v1/feats?q=acrobatics');
+        // Use fixture data - Alert exists in TestDatabaseSeeder
+        $response = $this->getJson('/api/v1/feats?q=alert');
 
         $response->assertOk()
             ->assertJsonStructure([
                 'data' => ['*' => ['id', 'name', 'description']],
                 'meta',
             ])
-            ->assertJsonPath('data.0.name', 'Acrobatics');
+            ->assertJsonPath('data.0.name', 'Alert');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -57,12 +47,11 @@ class FeatSearchTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_empty_search_query_gracefully(): void
     {
-        Feat::factory()->count(3)->create();
-
+        // Use fixture data - returns paginated results (default 15 per page)
         $response = $this->getJson('/api/v1/feats');
 
         $response->assertOk()
             ->assertJsonStructure(['data', 'meta'])
-            ->assertJsonCount(3, 'data');
+            ->assertJsonPath('meta.total', Feat::count());
     }
 }

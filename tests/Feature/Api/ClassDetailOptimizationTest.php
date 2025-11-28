@@ -14,6 +14,8 @@ class ClassDetailOptimizationTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
+
     #[Test]
     public function show_endpoint_returns_computed_hit_points_for_base_class(): void
     {

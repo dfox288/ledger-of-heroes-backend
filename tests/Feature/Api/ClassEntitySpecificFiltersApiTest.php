@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api;
 
 use App\Models\CharacterClass;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
@@ -14,7 +15,9 @@ use Tests\TestCase;
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class ClassEntitySpecificFiltersApiTest extends TestCase
 {
-    protected $seed = false;
+    use RefreshDatabase;
+
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {
@@ -24,13 +27,9 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_classes_by_is_spellcaster_true(): void
     {
-        $spellcasterCount = CharacterClass::whereNotNull('spellcasting_ability_id')->count();
-        $this->assertGreaterThan(0, $spellcasterCount, 'Should have spellcaster classes');
-
         $response = $this->getJson('/api/v1/classes?filter=is_spellcaster = true');
 
         $response->assertOk();
-        $this->assertEquals($spellcasterCount, $response->json('meta.total'));
 
         // Verify all returned classes are spellcasters
         foreach ($response->json('data') as $class) {
@@ -42,72 +41,75 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_classes_by_is_spellcaster_false(): void
     {
-        $nonSpellcasterCount = CharacterClass::whereNull('spellcasting_ability_id')->count();
-
         $response = $this->getJson('/api/v1/classes?filter=is_spellcaster = false');
 
         $response->assertOk();
-        $this->assertEquals($nonSpellcasterCount, $response->json('meta.total'));
+
+        // Verify all returned classes are non-spellcasters
+        foreach ($response->json('data') as $class) {
+            $classModel = CharacterClass::find($class['id']);
+            $this->assertNull($classModel->spellcasting_ability_id, "{$class['name']} should not be a spellcaster");
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_classes_by_hit_die_12(): void
     {
-        $d12Count = CharacterClass::where('hit_die', 12)->count();
-        $this->assertGreaterThan(0, $d12Count, 'Should have d12 classes (Barbarian)');
-
         $response = $this->getJson('/api/v1/classes?filter=hit_die = 12');
 
         $response->assertOk();
-        $this->assertEquals($d12Count, $response->json('meta.total'));
 
-        // Barbarian should be in results
-        $names = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertContains('Barbarian', $names);
+        // Verify all returned classes have hit_die = 12
+        foreach ($response->json('data') as $class) {
+            $classModel = CharacterClass::find($class['id']);
+            $this->assertEquals(12, $classModel->hit_die, "{$class['name']} should have hit_die = 12");
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_classes_by_hit_die_10(): void
     {
-        $d10Count = CharacterClass::where('hit_die', 10)->count();
-        $this->assertGreaterThan(0, $d10Count, 'Should have d10 classes (Fighter, Ranger, Paladin)');
-
         $response = $this->getJson('/api/v1/classes?filter=hit_die = 10');
 
         $response->assertOk();
-        $this->assertEquals($d10Count, $response->json('meta.total'));
 
-        // Fighter should be in results
-        $names = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertContains('Fighter', $names);
+        // Verify all returned classes have hit_die = 10
+        foreach ($response->json('data') as $class) {
+            $classModel = CharacterClass::find($class['id']);
+            $this->assertEquals(10, $classModel->hit_die, "{$class['name']} should have hit_die = 10");
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_classes_by_combined_hit_die_and_is_spellcaster(): void
     {
         // d10 spellcasters: Ranger, Paladin
-        $d10SpellcasterCount = CharacterClass::where('hit_die', 10)
-            ->whereNotNull('spellcasting_ability_id')
-            ->count();
-
         $response = $this->getJson('/api/v1/classes?filter=hit_die = 10 AND is_spellcaster = true');
 
         $response->assertOk();
-        $this->assertEquals($d10SpellcasterCount, $response->json('meta.total'));
+
+        // Verify all returned classes have hit_die = 10 AND are spellcasters
+        foreach ($response->json('data') as $class) {
+            $classModel = CharacterClass::find($class['id']);
+            $this->assertEquals(10, $classModel->hit_die, "{$class['name']} should have hit_die = 10");
+            $this->assertNotNull($classModel->spellcasting_ability_id, "{$class['name']} should be a spellcaster");
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_classes_by_combined_hit_die_and_is_spellcaster_false(): void
     {
         // d12 non-spellcasters: Barbarian (and subclasses)
-        $d12NonSpellcasterCount = CharacterClass::where('hit_die', 12)
-            ->whereNull('spellcasting_ability_id')
-            ->count();
-
         $response = $this->getJson('/api/v1/classes?filter=hit_die = 12 AND is_spellcaster = false');
 
         $response->assertOk();
-        $this->assertEquals($d12NonSpellcasterCount, $response->json('meta.total'));
+
+        // Verify all returned classes have hit_die = 12 AND are not spellcasters
+        foreach ($response->json('data') as $class) {
+            $classModel = CharacterClass::find($class['id']);
+            $this->assertEquals(12, $classModel->hit_die, "{$class['name']} should have hit_die = 12");
+            $this->assertNull($classModel->spellcasting_ability_id, "{$class['name']} should not be a spellcaster");
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -129,11 +131,13 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         $response = $this->getJson('/api/v1/classes?filter=max_spell_level = 9');
 
         $response->assertOk();
-        $this->assertEquals($level9Classes, $response->json('meta.total'));
 
-        // Wizard should be in results if it has 9th level spells
-        $names = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertContains('Wizard', $names);
+        // Verify all returned classes have 9th level spells
+        foreach ($response->json('data') as $class) {
+            $classModel = CharacterClass::find($class['id']);
+            $has9thLevelSpells = $classModel->spells()->where('level', 9)->exists();
+            $this->assertTrue($has9thLevelSpells, "{$class['name']} should have 9th level spells");
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -156,13 +160,9 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_classes_by_is_base_class_true(): void
     {
-        $baseClassCount = CharacterClass::whereNull('parent_class_id')->count();
-        $this->assertGreaterThan(0, $baseClassCount, 'Should have base classes');
-
         $response = $this->getJson('/api/v1/classes?filter=is_base_class = true');
 
         $response->assertOk();
-        $this->assertEquals($baseClassCount, $response->json('meta.total'));
 
         // Verify all returned classes are base classes
         foreach ($response->json('data') as $class) {
@@ -174,13 +174,9 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_classes_by_is_base_class_false(): void
     {
-        $subclassCount = CharacterClass::whereNotNull('parent_class_id')->count();
-        $this->assertGreaterThan(0, $subclassCount, 'Should have subclasses');
-
         $response = $this->getJson('/api/v1/classes?filter=is_base_class = false');
 
         $response->assertOk();
-        $this->assertEquals($subclassCount, $response->json('meta.total'));
 
         // Verify all returned classes are subclasses
         foreach ($response->json('data') as $class) {

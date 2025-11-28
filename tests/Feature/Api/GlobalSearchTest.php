@@ -14,6 +14,8 @@ class GlobalSearchTest extends TestCase
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+
     protected function setUp(): void
     {
         parent::setUp();

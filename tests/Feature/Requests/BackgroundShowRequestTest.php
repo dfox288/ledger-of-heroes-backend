@@ -13,6 +13,8 @@ class BackgroundShowRequestTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
+
     #[Test]
     public function it_validates_includable_relationships()
     {

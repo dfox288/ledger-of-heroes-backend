@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Item;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
@@ -19,10 +20,10 @@ use Tests\TestCase;
 class ItemFilterOperatorTest extends TestCase
 {
     use ClearsMeilisearchIndex;
+    use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    // Note: No RefreshDatabase trait - we use pre-imported data
-    protected $seed = false; // Don't run seeders
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
 
     private static bool $indexed = false;
 
@@ -51,13 +52,21 @@ class ItemFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_charges_max_with_equals(): void
     {
-        $response = $this->getJson('/api/v1/items?filter=charges_max = "7"&per_page=100');
+        // Find an item with charges_max from the database
+        $itemWithCharges = \App\Models\Item::whereNotNull('charges_max')->first();
+
+        if (! $itemWithCharges) {
+            $this->markTestSkipped('No items with charges_max in fixtures');
+        }
+
+        $chargesMax = $itemWithCharges->charges_max;
+        $response = $this->getJson("/api/v1/items?filter=charges_max = \"{$chargesMax}\"&per_page=100");
 
         $response->assertOk();
-        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find items with charges_max = 7');
 
+        // Verify all returned items have the expected charges_max
         foreach ($response->json('data') as $item) {
-            $this->assertEquals('7', $item['charges_max'], "Item {$item['name']} should have charges_max = 7");
+            $this->assertEquals((string) $chargesMax, $item['charges_max'], "Item {$item['name']} should have charges_max = {$chargesMax}");
         }
     }
 

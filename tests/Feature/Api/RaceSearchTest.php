@@ -13,6 +13,8 @@ class RaceSearchTest extends TestCase
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -22,12 +24,7 @@ class RaceSearchTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_searches_races_using_scout_when_available(): void
     {
-        Race::factory()->create(['name' => 'Dwarf']);
-        Race::factory()->create(['name' => 'Elf']);
-
-        $this->artisan('scout:import', ['model' => Race::class]);
-        $this->waitForMeilisearchIndex('test_races');
-
+        // Use fixture data - Dwarf and Elf exist in TestDatabaseSeeder
         $response = $this->getJson('/api/v1/races?q=dwarf');
 
         $response->assertOk()
@@ -50,12 +47,11 @@ class RaceSearchTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_empty_search_query_gracefully(): void
     {
-        Race::factory()->count(3)->create();
-
+        // Use fixture data - returns paginated results (default 15 per page)
         $response = $this->getJson('/api/v1/races');
 
         $response->assertOk()
             ->assertJsonStructure(['data', 'meta'])
-            ->assertJsonCount(3, 'data');
+            ->assertJsonPath('meta.total', Race::count());
     }
 }

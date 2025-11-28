@@ -13,6 +13,8 @@ class BackgroundIndexRequestTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
+
     #[Test]
     public function it_whitelists_sortable_columns()
     {

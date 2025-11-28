@@ -13,6 +13,8 @@ class BackgroundSearchTest extends TestCase
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -22,12 +24,7 @@ class BackgroundSearchTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_searches_backgrounds_using_scout_when_available(): void
     {
-        Background::factory()->create(['name' => 'Acolyte']);
-        Background::factory()->create(['name' => 'Soldier']);
-
-        $this->artisan('scout:import', ['model' => Background::class]);
-        $this->waitForMeilisearchIndex('test_backgrounds');
-
+        // Use fixture data - Acolyte and Soldier exist in TestDatabaseSeeder
         $response = $this->getJson('/api/v1/backgrounds?q=acolyte');
 
         $response->assertOk()
@@ -50,12 +47,11 @@ class BackgroundSearchTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_empty_search_query_gracefully(): void
     {
-        Background::factory()->count(3)->create();
-
+        // Use fixture data - returns paginated results (default 15 per page)
         $response = $this->getJson('/api/v1/backgrounds');
 
         $response->assertOk()
             ->assertJsonStructure(['data', 'meta'])
-            ->assertJsonCount(3, 'data');
+            ->assertJsonPath('meta.total', Background::count());
     }
 }

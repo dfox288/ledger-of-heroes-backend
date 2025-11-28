@@ -24,11 +24,12 @@ class ImportsClassAssociationsTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_resolves_subclass_with_exact_match(): void
     {
-        $fighter = CharacterClass::firstOrCreate(['slug' => 'fighter'], ['name' => 'Fighter']);
-        $eldritchKnight = CharacterClass::firstOrCreate(
-            ['slug' => 'fighter-eldritch-knight'],
-            ['name' => 'Eldritch Knight', 'parent_class_id' => $fighter->id, 'hit_die' => 0, 'description' => 'Test subclass']
-        );
+        $fighter = CharacterClass::factory()->create(['slug' => 'fighter', 'name' => 'Fighter']);
+        $eldritchKnight = CharacterClass::factory()->create([
+            'slug' => 'fighter-eldritch-knight',
+            'name' => 'Eldritch Knight',
+            'parent_class_id' => $fighter->id,
+        ]);
 
         $spell = Spell::factory()->create();
 
@@ -41,11 +42,12 @@ class ImportsClassAssociationsTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_resolves_subclass_with_fuzzy_match(): void
     {
-        $warlock = CharacterClass::firstOrCreate(['slug' => 'warlock'], ['name' => 'Warlock']);
-        $archfey = CharacterClass::firstOrCreate(
-            ['slug' => 'warlock-the-archfey'],
-            ['name' => 'The Archfey', 'parent_class_id' => $warlock->id, 'hit_die' => 0, 'description' => 'Test subclass']
-        );
+        $warlock = CharacterClass::factory()->create(['slug' => 'warlock', 'name' => 'Warlock']);
+        $archfey = CharacterClass::factory()->create([
+            'slug' => 'warlock-the-archfey',
+            'name' => 'The Archfey',
+            'parent_class_id' => $warlock->id,
+        ]);
 
         $spell = Spell::factory()->create();
 
@@ -59,11 +61,12 @@ class ImportsClassAssociationsTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_resolves_subclass_with_alias_mapping(): void
     {
-        $druid = CharacterClass::firstOrCreate(['slug' => 'druid'], ['name' => 'Druid']);
-        $circleOfLand = CharacterClass::firstOrCreate(
-            ['slug' => 'druid-circle-of-the-land'],
-            ['name' => 'Circle of the Land', 'parent_class_id' => $druid->id, 'hit_die' => 0, 'description' => 'Test subclass']
-        );
+        $druid = CharacterClass::factory()->create(['slug' => 'druid', 'name' => 'Druid']);
+        $circleOfLand = CharacterClass::factory()->create([
+            'slug' => 'druid-circle-of-the-land',
+            'name' => 'Circle of the Land',
+            'parent_class_id' => $druid->id,
+        ]);
 
         $spell = Spell::factory()->create();
 
@@ -77,14 +80,15 @@ class ImportsClassAssociationsTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_resolves_base_class_only(): void
     {
-        $wizard = CharacterClass::firstOrCreate(['slug' => 'wizard'], ['name' => 'Wizard']);
+        $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
 
         // Create a subclass with same name pattern (should NOT be matched)
-        $fighter = CharacterClass::firstOrCreate(['slug' => 'fighter'], ['name' => 'Fighter']);
-        CharacterClass::firstOrCreate(
-            ['slug' => 'wizard-subclass'],
-            ['name' => 'Wizard Subclass', 'parent_class_id' => $fighter->id, 'hit_die' => 0, 'description' => 'Test subclass']
-        );
+        $fighter = CharacterClass::factory()->create(['slug' => 'fighter', 'name' => 'Fighter']);
+        CharacterClass::factory()->create([
+            'slug' => 'wizard-subclass',
+            'name' => 'Wizard Subclass',
+            'parent_class_id' => $fighter->id,
+        ]);
 
         $spell = Spell::factory()->create();
 
@@ -98,8 +102,8 @@ class ImportsClassAssociationsTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_resolves_multiple_base_classes(): void
     {
-        $wizard = CharacterClass::firstOrCreate(['slug' => 'wizard'], ['name' => 'Wizard']);
-        $sorcerer = CharacterClass::firstOrCreate(['slug' => 'sorcerer'], ['name' => 'Sorcerer']);
+        $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
+        $sorcerer = CharacterClass::factory()->create(['slug' => 'sorcerer', 'name' => 'Sorcerer']);
 
         $spell = Spell::factory()->create();
 
@@ -113,9 +117,9 @@ class ImportsClassAssociationsTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function sync_replaces_existing_associations(): void
     {
-        $wizard = CharacterClass::firstOrCreate(['slug' => 'wizard'], ['name' => 'Wizard']);
-        $sorcerer = CharacterClass::firstOrCreate(['slug' => 'sorcerer'], ['name' => 'Sorcerer']);
-        $warlock = CharacterClass::firstOrCreate(['slug' => 'warlock'], ['name' => 'Warlock']);
+        $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
+        $sorcerer = CharacterClass::factory()->create(['slug' => 'sorcerer', 'name' => 'Sorcerer']);
+        $warlock = CharacterClass::factory()->create(['slug' => 'warlock', 'name' => 'Warlock']);
 
         $spell = Spell::factory()->create();
 
@@ -135,9 +139,9 @@ class ImportsClassAssociationsTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function add_merges_with_existing_associations(): void
     {
-        $wizard = CharacterClass::firstOrCreate(['slug' => 'wizard'], ['name' => 'Wizard']);
-        $sorcerer = CharacterClass::firstOrCreate(['slug' => 'sorcerer'], ['name' => 'Sorcerer']);
-        $warlock = CharacterClass::firstOrCreate(['slug' => 'warlock'], ['name' => 'Warlock']);
+        $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
+        $sorcerer = CharacterClass::factory()->create(['slug' => 'sorcerer', 'name' => 'Sorcerer']);
+        $warlock = CharacterClass::factory()->create(['slug' => 'warlock', 'name' => 'Warlock']);
 
         $spell = Spell::factory()->create();
 
@@ -157,8 +161,8 @@ class ImportsClassAssociationsTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function add_handles_duplicate_classes_correctly(): void
     {
-        $wizard = CharacterClass::firstOrCreate(['slug' => 'wizard'], ['name' => 'Wizard']);
-        $sorcerer = CharacterClass::firstOrCreate(['slug' => 'sorcerer'], ['name' => 'Sorcerer']);
+        $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
+        $sorcerer = CharacterClass::factory()->create(['slug' => 'sorcerer', 'name' => 'Sorcerer']);
 
         $spell = Spell::factory()->create();
 
@@ -176,7 +180,7 @@ class ImportsClassAssociationsTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_skips_unresolved_classes(): void
     {
-        $wizard = CharacterClass::firstOrCreate(['slug' => 'wizard'], ['name' => 'Wizard']);
+        $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
 
         $spell = Spell::factory()->create();
 
@@ -191,7 +195,7 @@ class ImportsClassAssociationsTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_empty_class_array(): void
     {
-        $wizard = CharacterClass::firstOrCreate(['slug' => 'wizard'], ['name' => 'Wizard']);
+        $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
 
         $spell = Spell::factory()->create();
         $spell->classes()->attach($wizard->id);
@@ -205,12 +209,13 @@ class ImportsClassAssociationsTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_mixed_base_and_subclass_names(): void
     {
-        $wizard = CharacterClass::firstOrCreate(['slug' => 'wizard'], ['name' => 'Wizard']);
-        $fighter = CharacterClass::firstOrCreate(['slug' => 'fighter'], ['name' => 'Fighter']);
-        $eldritchKnight = CharacterClass::firstOrCreate(
-            ['slug' => 'fighter-eldritch-knight'],
-            ['name' => 'Eldritch Knight', 'parent_class_id' => $fighter->id, 'hit_die' => 0, 'description' => 'Test subclass']
-        );
+        $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
+        $fighter = CharacterClass::factory()->create(['slug' => 'fighter', 'name' => 'Fighter']);
+        $eldritchKnight = CharacterClass::factory()->create([
+            'slug' => 'fighter-eldritch-knight',
+            'name' => 'Eldritch Knight',
+            'parent_class_id' => $fighter->id,
+        ]);
 
         $spell = Spell::factory()->create();
 

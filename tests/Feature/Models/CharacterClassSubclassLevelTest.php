@@ -13,6 +13,8 @@ class CharacterClassSubclassLevelTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
+
     #[Test]
     public function base_class_returns_subclass_level_from_subclass_features()
     {

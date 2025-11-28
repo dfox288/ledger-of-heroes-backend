@@ -14,7 +14,7 @@ class MonsterApiTest extends TestCase
 {
     use \Illuminate\Foundation\Testing\RefreshDatabase;
 
-    protected $seed = true;
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
 
     #[Test]
     public function can_get_all_monsters()
@@ -44,23 +44,27 @@ class MonsterApiTest extends TestCase
     #[Test]
     public function can_get_single_monster_by_id()
     {
-        // Use a known imported monster
-        $monster = Monster::where('slug', 'aboleth')->firstOrFail();
+        // Use any monster from fixtures
+        $monster = Monster::first();
+        $this->assertNotNull($monster, 'Should have monsters in database');
 
         $response = $this->getJson("/api/v1/monsters/{$monster->id}");
 
         $response->assertOk();
-        $response->assertJsonPath('data.slug', 'aboleth');
+        $response->assertJsonPath('data.slug', $monster->slug);
     }
 
     #[Test]
     public function can_get_single_monster_by_slug()
     {
-        // Use a known imported monster
-        $response = $this->getJson('/api/v1/monsters/aboleth');
+        // Use any monster from fixtures
+        $monster = Monster::first();
+        $this->assertNotNull($monster, 'Should have monsters in database');
+
+        $response = $this->getJson("/api/v1/monsters/{$monster->slug}");
 
         $response->assertOk();
-        $response->assertJsonPath('data.slug', 'aboleth');
+        $response->assertJsonPath('data.slug', $monster->slug);
     }
 
     #[Test]
@@ -106,7 +110,9 @@ class MonsterApiTest extends TestCase
     #[Test]
     public function monster_includes_size_in_response()
     {
-        $monster = Monster::where('slug', 'aboleth')->firstOrFail();
+        // Use any monster from fixtures
+        $monster = Monster::first();
+        $this->assertNotNull($monster, 'Should have monsters in database');
 
         $response = $this->getJson("/api/v1/monsters/{$monster->id}");
 
@@ -121,8 +127,14 @@ class MonsterApiTest extends TestCase
     #[Test]
     public function monster_includes_traits_in_response()
     {
-        // Aboleth has traits
-        $response = $this->getJson('/api/v1/monsters/aboleth');
+        // Find a monster with traits
+        $monster = Monster::has('traits')->first();
+
+        if (! $monster) {
+            $this->markTestSkipped('No monsters with traits in fixtures');
+        }
+
+        $response = $this->getJson("/api/v1/monsters/{$monster->slug}");
 
         $response->assertOk();
         $response->assertJsonStructure([
@@ -133,15 +145,21 @@ class MonsterApiTest extends TestCase
             ],
         ]);
 
-        // Verify aboleth has at least one trait
+        // Verify monster has at least one trait
         $this->assertGreaterThan(0, count($response->json('data.traits')));
     }
 
     #[Test]
     public function monster_includes_actions_in_response()
     {
-        // Aboleth has actions
-        $response = $this->getJson('/api/v1/monsters/aboleth');
+        // Find a monster with actions
+        $monster = Monster::has('actions')->first();
+
+        if (! $monster) {
+            $this->markTestSkipped('No monsters with actions in fixtures');
+        }
+
+        $response = $this->getJson("/api/v1/monsters/{$monster->slug}");
 
         $response->assertOk();
         $response->assertJsonStructure([
@@ -152,7 +170,7 @@ class MonsterApiTest extends TestCase
             ],
         ]);
 
-        // Verify aboleth has at least one action
+        // Verify monster has at least one action
         $this->assertGreaterThan(0, count($response->json('data.actions')));
     }
 

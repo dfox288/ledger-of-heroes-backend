@@ -4,6 +4,7 @@ namespace Tests\Feature\Api;
 
 use App\Models\CharacterClass;
 use App\Models\Race;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
@@ -15,7 +16,9 @@ use Tests\TestCase;
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class ParentRelationshipTest extends TestCase
 {
-    protected $seed = false;
+    use RefreshDatabase;
+
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
 
     // ==================== RACE TESTS ====================
 

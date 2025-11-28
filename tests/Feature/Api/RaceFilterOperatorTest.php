@@ -21,7 +21,7 @@ class RaceFilterOperatorTest extends TestCase
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    protected $seed = true;
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {

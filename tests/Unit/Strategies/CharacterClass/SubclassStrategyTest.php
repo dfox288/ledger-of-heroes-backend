@@ -41,10 +41,10 @@ class SubclassStrategyTest extends TestCase
     #[Test]
     public function it_resolves_parent_from_school_pattern(): void
     {
-        $parent = CharacterClass::firstOrCreate(
-            ['slug' => 'wizard'],
-            ['name' => 'Wizard']
-        );
+        $parent = CharacterClass::factory()->create([
+            'slug' => 'wizard',
+            'name' => 'Wizard',
+        ]);
 
         $data = ['name' => 'School of Evocation', 'hit_die' => 0];
 
@@ -56,10 +56,10 @@ class SubclassStrategyTest extends TestCase
     #[Test]
     public function it_resolves_parent_from_oath_pattern(): void
     {
-        $parent = CharacterClass::firstOrCreate(
-            ['slug' => 'paladin'],
-            ['name' => 'Paladin']
-        );
+        $parent = CharacterClass::factory()->create([
+            'slug' => 'paladin',
+            'name' => 'Paladin',
+        ]);
 
         $data = ['name' => 'Oath of Vengeance', 'hit_die' => 0];
 
@@ -71,10 +71,10 @@ class SubclassStrategyTest extends TestCase
     #[Test]
     public function it_resolves_parent_from_circle_pattern(): void
     {
-        $parent = CharacterClass::firstOrCreate(
-            ['slug' => 'druid'],
-            ['name' => 'Druid']
-        );
+        $parent = CharacterClass::factory()->create([
+            'slug' => 'druid',
+            'name' => 'Druid',
+        ]);
 
         $data = ['name' => 'Circle of the Moon', 'hit_die' => 0];
 
@@ -86,10 +86,11 @@ class SubclassStrategyTest extends TestCase
     #[Test]
     public function it_inherits_hit_die_from_parent(): void
     {
-        CharacterClass::firstOrCreate(
-            ['slug' => 'wizard'],
-            ['name' => 'Wizard', 'hit_die' => 6]
-        );
+        CharacterClass::factory()->create([
+            'slug' => 'wizard',
+            'name' => 'Wizard',
+            'hit_die' => 6,
+        ]);
 
         $data = ['name' => 'School of Evocation', 'hit_die' => 0];
 
@@ -101,10 +102,10 @@ class SubclassStrategyTest extends TestCase
     #[Test]
     public function it_generates_subclass_slug(): void
     {
-        CharacterClass::firstOrCreate(
-            ['slug' => 'wizard'],
-            ['name' => 'Wizard']
-        );
+        CharacterClass::factory()->create([
+            'slug' => 'wizard',
+            'name' => 'Wizard',
+        ]);
 
         $data = ['name' => 'School of Evocation', 'hit_die' => 0];
 
@@ -129,10 +130,10 @@ class SubclassStrategyTest extends TestCase
     #[Test]
     public function it_tracks_subclasses_processed_metric(): void
     {
-        CharacterClass::firstOrCreate(
-            ['slug' => 'wizard'],
-            ['name' => 'Wizard']
-        );
+        CharacterClass::factory()->create([
+            'slug' => 'wizard',
+            'name' => 'Wizard',
+        ]);
 
         $data = ['name' => 'School of Evocation', 'hit_die' => 0];
 
@@ -145,10 +146,10 @@ class SubclassStrategyTest extends TestCase
     #[Test]
     public function it_tracks_parent_classes_resolved_metric(): void
     {
-        CharacterClass::firstOrCreate(
-            ['slug' => 'wizard'],
-            ['name' => 'Wizard']
-        );
+        CharacterClass::factory()->create([
+            'slug' => 'wizard',
+            'name' => 'Wizard',
+        ]);
 
         $data = ['name' => 'School of Evocation', 'hit_die' => 0];
 

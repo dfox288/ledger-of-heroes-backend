@@ -13,6 +13,8 @@ class CharacterClassFeatureMergingTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
+
     protected CharacterClass $baseClass;
 
     protected CharacterClass $subclass;

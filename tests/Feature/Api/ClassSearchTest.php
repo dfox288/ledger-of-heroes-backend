@@ -13,6 +13,8 @@ class ClassSearchTest extends TestCase
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -22,19 +24,7 @@ class ClassSearchTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_searches_classes_using_scout_when_available(): void
     {
-        CharacterClass::factory()->create([
-            'name' => 'Fighter',
-            'description' => 'A master of martial combat, wielding weapons with unparalleled skill',
-        ]);
-
-        CharacterClass::factory()->create([
-            'name' => 'Wizard',
-            'description' => 'An arcane spellcaster harnessing the power of magic',
-        ]);
-
-        $this->artisan('scout:import', ['model' => CharacterClass::class]);
-        $this->waitForMeilisearchIndex('test_classes');
-
+        // Use fixture data - Fighter and Wizard exist in TestDatabaseSeeder
         $response = $this->getJson('/api/v1/classes?q=fighter');
 
         $response->assertOk()
@@ -57,12 +47,11 @@ class ClassSearchTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_empty_search_query_gracefully(): void
     {
-        CharacterClass::factory()->count(3)->create();
-
+        // Use fixture data - returns paginated results (default 15 per page)
         $response = $this->getJson('/api/v1/classes');
 
         $response->assertOk()
             ->assertJsonStructure(['data', 'meta'])
-            ->assertJsonCount(3, 'data');
+            ->assertJsonPath('meta.total', CharacterClass::count());
     }
 }

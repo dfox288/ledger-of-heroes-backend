@@ -12,6 +12,8 @@ class MonsterTypeApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
+
     #[Test]
     public function it_can_list_all_monster_types(): void
     {

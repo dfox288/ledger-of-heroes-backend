@@ -3,7 +3,6 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Spell;
-use App\Models\SpellSchool;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
@@ -14,6 +13,8 @@ class SpellSearchTest extends TestCase
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -23,81 +24,55 @@ class SpellSearchTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_searches_spells_using_scout_when_available(): void
     {
-        $evocation = SpellSchool::firstOrCreate(['code' => 'EV'], ['name' => 'Evocation']);
-
-        $fireball = Spell::factory()->create([
-            'name' => 'Fireball',
-            'spell_school_id' => $evocation->id,
-            'description' => 'A bright streak flashes from your pointing finger',
-            'level' => 3,
-        ]);
-
-        Spell::factory()->create([
-            'name' => 'Ice Storm',
-            'spell_school_id' => $evocation->id,
-            'description' => 'A hail of rock-hard ice pounds',
-            'level' => 4,
-        ]);
-
-        $this->artisan('scout:import', ['model' => Spell::class]);
-        $this->waitForMeilisearchModels(Spell::all()->all());
-
-        $response = $this->getJson('/api/v1/spells?q=fire');
+        // Use fixture data - "Acid Splash" exists in TestDatabaseSeeder
+        $response = $this->getJson('/api/v1/spells?q=acid');
 
         $response->assertOk()
             ->assertJsonStructure([
                 'data' => ['*' => ['id', 'name', 'description']],
                 'meta',
-            ])
-            ->assertJsonPath('data.0.name', 'Fireball');
+            ]);
+
+        // Verify Acid Splash is in the search results
+        $names = collect($response->json('data'))->pluck('name')->all();
+        $this->assertContains('Acid Splash', $names, 'Acid Splash should be in search results');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_meilisearch_results_by_level_with_search(): void
     {
-        $evocation = SpellSchool::firstOrCreate(['code' => 'EV'], ['name' => 'Evocation']);
+        // Use fixture data - search for "animate" with level 3 filter
+        // Animate Dead is a level 3 spell in fixtures
+        $response = $this->getJson('/api/v1/spells?q=animate&filter=level = 3');
 
-        Spell::factory()->create(['name' => 'Fire Bolt', 'level' => 0, 'spell_school_id' => $evocation->id]);
-        Spell::factory()->create(['name' => 'Fireball', 'level' => 3, 'spell_school_id' => $evocation->id]);
-        Spell::factory()->create(['name' => 'Fire Storm', 'level' => 7, 'spell_school_id' => $evocation->id]);
+        $response->assertOk();
 
-        $this->artisan('scout:import', ['model' => Spell::class]);
-        $this->waitForMeilisearchModels(Spell::all()->all());
+        // All results should be level 3
+        foreach ($response->json('data') as $spell) {
+            $this->assertEquals(3, $spell['level']);
+        }
 
-        // Phase 1: With search query, now uses Meilisearch with filter syntax
-        $response = $this->getJson('/api/v1/spells?q=fire&filter=level = 3');
-
-        $response->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.name', 'Fireball');
+        // Animate Dead should be in results
+        $names = collect($response->json('data'))->pluck('name')->all();
+        $this->assertContains('Animate Dead', $names);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_empty_search_query_gracefully(): void
     {
-        Spell::factory()->count(3)->create();
-
-        // Empty q parameter should return validation error OR be ignored
-        // Let's test that omitting 'q' returns all results normally
+        // Use fixture data - returns paginated results (default 15 per page)
         $response = $this->getJson('/api/v1/spells');
 
         $response->assertOk()
             ->assertJsonStructure(['data', 'meta'])
-            ->assertJsonCount(3, 'data');
+            ->assertJsonPath('meta.total', Spell::count());
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_special_characters_in_search(): void
     {
-        $spell = Spell::factory()->create([
-            'name' => 'Tasha\'s Hideous Laughter',
-            'description' => 'A creature falls prone',
-        ]);
-
-        $this->artisan('scout:import', ['model' => Spell::class]);
-        $this->waitForMeilisearchModels(Spell::all()->all());
-
-        $response = $this->getJson('/api/v1/spells?q='.urlencode("Tasha's"));
+        // Use fixture data - Bigby's Hand exists in fixtures
+        $response = $this->getJson('/api/v1/spells?q='.urlencode("Bigby's"));
 
         $response->assertOk();
         $this->assertGreaterThanOrEqual(1, count($response->json('data')));

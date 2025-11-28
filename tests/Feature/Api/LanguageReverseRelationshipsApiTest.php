@@ -14,7 +14,7 @@ class LanguageReverseRelationshipsApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seed = true;
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
 
     #[Test]
     public function it_returns_races_for_language()

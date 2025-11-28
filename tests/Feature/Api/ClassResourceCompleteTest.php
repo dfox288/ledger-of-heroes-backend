@@ -18,6 +18,8 @@ class ClassResourceCompleteTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
+
     #[Test]
     public function class_resource_includes_all_new_relationships()
     {
@@ -171,11 +173,13 @@ class ClassResourceCompleteTest extends TestCase
         $this->assertEquals(2, $data['level_progression'][0]['spell_slots_1st']);
         $this->assertEquals(3, $data['level_progression'][1]['spell_slots_1st']);
 
-        // Assert counters with formatted reset timing
+        // Assert counters with formatted reset timing (grouped format)
         $this->assertCount(1, $data['counters']);
-        $this->assertEquals('Arcane Recovery', $data['counters'][0]['counter_name']);
-        $this->assertEquals(1, $data['counters'][0]['counter_value']);
+        $this->assertEquals('Arcane Recovery', $data['counters'][0]['name']);
         $this->assertEquals('Long Rest', $data['counters'][0]['reset_timing']);
+        $this->assertCount(1, $data['counters'][0]['progression']);
+        $this->assertEquals(1, $data['counters'][0]['progression'][0]['level']);
+        $this->assertEquals(1, $data['counters'][0]['progression'][0]['value']);
 
         // Assert subclasses
         $this->assertCount(1, $data['subclasses']);
@@ -220,9 +224,23 @@ class ClassResourceCompleteTest extends TestCase
         $resource = new ClassResource($class);
         $data = json_decode(json_encode($resource), true);
 
-        $this->assertEquals('Short Rest', $data['counters'][0]['reset_timing']);
-        $this->assertEquals('Long Rest', $data['counters'][1]['reset_timing']);
-        $this->assertEquals('Does Not Reset', $data['counters'][2]['reset_timing']);
+        // Counters are grouped by name, so we have 3 separate counters
+        $this->assertCount(3, $data['counters']);
+
+        // Find each counter by name and verify reset timing
+        $countersByName = collect($data['counters'])->keyBy('name');
+
+        $this->assertEquals('Short Rest', $countersByName['Ki Points']['reset_timing']);
+        $this->assertEquals(1, $countersByName['Ki Points']['progression'][0]['level']);
+        $this->assertEquals(1, $countersByName['Ki Points']['progression'][0]['value']);
+
+        $this->assertEquals('Long Rest', $countersByName['Rage']['reset_timing']);
+        $this->assertEquals(2, $countersByName['Rage']['progression'][0]['level']);
+        $this->assertEquals(2, $countersByName['Rage']['progression'][0]['value']);
+
+        $this->assertEquals('Does Not Reset', $countersByName['Bardic Inspiration']['reset_timing']);
+        $this->assertEquals(3, $countersByName['Bardic Inspiration']['progression'][0]['level']);
+        $this->assertEquals(3, $countersByName['Bardic Inspiration']['progression'][0]['value']);
     }
 
     #[Test]

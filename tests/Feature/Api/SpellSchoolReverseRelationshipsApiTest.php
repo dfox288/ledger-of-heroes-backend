@@ -13,6 +13,8 @@ class SpellSchoolReverseRelationshipsApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
+
     #[Test]
     public function it_returns_spells_for_spell_school()
     {

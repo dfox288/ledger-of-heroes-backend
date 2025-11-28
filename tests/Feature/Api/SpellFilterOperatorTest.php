@@ -10,7 +10,7 @@ class SpellFilterOperatorTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seed = true;
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {
@@ -200,9 +200,9 @@ class SpellFilterOperatorTest extends TestCase
             $this->assertEquals('EV', $spell['school']['code'], "Spell {$spell['name']} should be Evocation");
         }
 
-        // Verify some known Evocation spells are included (with enough per_page, we should see Fireball)
+        // Verify some known Evocation spells are included
         $spellNames = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertContains('Fireball', $spellNames, 'Fireball is a well-known Evocation spell');
+        $this->assertContains('Bigby\'s Hand', $spellNames, 'Bigby\'s Hand is an Evocation spell in fixtures');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -249,9 +249,9 @@ class SpellFilterOperatorTest extends TestCase
             $this->assertTrue($spell['needs_concentration'], "Spell {$spell['name']} should require concentration");
         }
 
-        // Verify some known concentration spells are included (with enough per_page, we should see Bless)
+        // Verify some known concentration spells are included
         $spellNames = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertContains('Bless', $spellNames, 'Bless requires concentration');
+        $this->assertContains('Alter Self', $spellNames, 'Alter Self requires concentration and exists in fixtures');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -296,7 +296,7 @@ class SpellFilterOperatorTest extends TestCase
 
         // Verify concentration spells are excluded
         $spellNames = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertNotContains('Bless', $spellNames, 'Bless requires concentration (should be excluded)');
+        $this->assertNotContains('Alter Self', $spellNames, 'Alter Self requires concentration (should be excluded)');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -318,7 +318,7 @@ class SpellFilterOperatorTest extends TestCase
 
         // Verify non-concentration spells are excluded
         $spellNames = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertNotContains('Magic Missile', $spellNames, 'Magic Missile does not require concentration (should be excluded)');
+        $this->assertNotContains('Acid Splash', $spellNames, 'Acid Splash does not require concentration (should be excluded)');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -439,7 +439,7 @@ class SpellFilterOperatorTest extends TestCase
 
         // Verify some known ritual spells are included
         $spellNames = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertContains('Detect Magic', $spellNames, 'Detect Magic can be cast as a ritual');
+        $this->assertContains('Alarm', $spellNames, 'Alarm can be cast as a ritual and exists in fixtures');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -461,6 +461,6 @@ class SpellFilterOperatorTest extends TestCase
 
         // Verify non-ritual spells are excluded
         $spellNames = collect($response->json('data'))->pluck('name')->toArray();
-        $this->assertNotContains('Fireball', $spellNames, 'Fireball cannot be cast as a ritual (should be excluded)');
+        $this->assertNotContains('Acid Splash', $spellNames, 'Acid Splash cannot be cast as a ritual (should be excluded)');
     }
 }

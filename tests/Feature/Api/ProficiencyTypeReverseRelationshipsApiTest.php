@@ -15,7 +15,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seed = true;
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
 
     // ========================================
     // Classes Endpoint Tests

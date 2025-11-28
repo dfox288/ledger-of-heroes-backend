@@ -19,7 +19,7 @@ class OptionalFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seed = true; // Auto-seed for all tests
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
 
     // Basic Model Tests
 

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Race;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
@@ -14,7 +15,9 @@ use Tests\TestCase;
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class RaceEntitySpecificFiltersApiTest extends TestCase
 {
-    protected $seed = false;
+    use RefreshDatabase;
+
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {

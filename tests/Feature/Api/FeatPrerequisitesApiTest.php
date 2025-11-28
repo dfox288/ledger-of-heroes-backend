@@ -15,7 +15,7 @@ class FeatPrerequisitesApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seed = true;
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
 
     #[Test]
     public function feat_includes_ability_score_prerequisite_in_response()

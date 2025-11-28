@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Background;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -15,7 +16,9 @@ use Tests\TestCase;
 #[\PHPUnit\Framework\Attributes\Group('search-isolated')]
 class BackgroundApiTest extends TestCase
 {
-    protected $seed = false;
+    use RefreshDatabase;
+
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
 
     #[Test]
     public function can_get_all_backgrounds()

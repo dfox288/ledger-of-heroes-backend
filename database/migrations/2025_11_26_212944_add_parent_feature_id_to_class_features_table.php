@@ -53,6 +53,12 @@ return new class extends Migration
      */
     private function populateParentFeatureIds(): void
     {
+        // MySQL-specific syntax (UPDATE ... JOIN, SUBSTRING_INDEX)
+        // Skip for SQLite - tests create their own data via factories
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
         // Find all features with colon pattern that are optional (likely choice options)
         // and link them to their parent feature
         DB::statement("

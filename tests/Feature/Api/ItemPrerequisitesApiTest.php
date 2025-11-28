@@ -14,6 +14,8 @@ class ItemPrerequisitesApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
+
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_includes_prerequisites_in_item_show_response()
     {

@@ -13,7 +13,7 @@ class ClassFilterOperatorTest extends TestCase
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    protected $seed = true;
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {
@@ -414,7 +414,8 @@ class ClassFilterOperatorTest extends TestCase
         if ($response->json('meta.total') > 0) {
             foreach ($response->json('data') as $class) {
                 $sources = $class['sources'] ?? [];
-                $sourceCodes = collect($sources)->pluck('source.code')->toArray();
+                // EntitySourceResource returns {code, name, pages} directly
+                $sourceCodes = collect($sources)->pluck('code')->toArray();
 
                 $hasPHBorXGTE = array_intersect(['PHB', 'XGTE'], $sourceCodes);
                 $this->assertNotEmpty($hasPHBorXGTE, "Class {$class['name']} should have PHB or XGTE source");

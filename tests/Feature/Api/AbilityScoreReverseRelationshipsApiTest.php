@@ -13,7 +13,7 @@ class AbilityScoreReverseRelationshipsApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seed = true;
+    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
 
     #[Test]
     public function it_returns_spells_for_ability_score()

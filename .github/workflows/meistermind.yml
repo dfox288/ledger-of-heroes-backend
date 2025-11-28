@@ -180,7 +180,7 @@ jobs:
 
           claude -p "$(cat /tmp/prompt.txt)" \
             --max-turns 10 \
-            --allowedTools "Read,Write,Edit,Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout -b:*),Bash(git add:*),Bash(git commit:*),Bash(git push origin:*),Bash(gh pr create:*)" \
+            --allowedTools "Read,Write,Edit,Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout -b:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(gh pr create:*)" \
             > /tmp/response.txt 2>&1
 
           gh issue comment ${{ github.event.issue.number }} \

@@ -43,6 +43,12 @@ trait MatchesProficiencyTypes
     {
         $this->initializeProficiencyTypesCache();
 
+        // Skip matching for choice-based proficiencies (e.g., "Any one type of Artisan's Tools")
+        // These should NOT be linked to a specific proficiency type
+        if ($this->isChoiceBasedProficiency($name)) {
+            return null;
+        }
+
         $normalized = $this->normalizeName($name);
 
         // Exact match first
@@ -76,6 +82,39 @@ trait MatchesProficiencyTypes
         });
 
         return $match;
+    }
+
+    /**
+     * Check if a proficiency name represents a choice-based proficiency.
+     *
+     * Choice-based proficiencies like "Any one type of Artisan's Tools" should
+     * not be linked to a specific ProficiencyType since they represent player choices.
+     *
+     * @param  string  $name  The proficiency name
+     * @return bool True if this is a choice-based proficiency
+     */
+    protected function isChoiceBasedProficiency(string $name): bool
+    {
+        $lowerName = strtolower($name);
+
+        // Common patterns for choice-based proficiencies
+        $choicePatterns = [
+            'any one',
+            'one type of',
+            'choose one',
+            'your choice',
+            'of your choice',
+            'any musical instrument',
+            'any artisan',
+        ];
+
+        foreach ($choicePatterns as $pattern) {
+            if (str_contains($lowerName, $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

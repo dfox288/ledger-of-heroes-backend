@@ -43,4 +43,31 @@ class MatchesProficiencyTypesTest extends TestCase
         $this->assertEquals('skill', $this->inferProficiencyTypeFromName('Acrobatics'));
         $this->assertEquals('skill', $this->inferProficiencyTypeFromName('Unknown'));
     }
+
+    #[Test]
+    public function it_returns_null_for_choice_based_tool_proficiencies()
+    {
+        // This is the Monk's tool proficiency - should NOT match "Net" weapon
+        // because "any one" contains "net" as a substring
+        $monkToolProf = "Any one type of Artisan's Tools or any one Musical Instrument of your choice";
+        $this->assertNull($this->matchProficiencyType($monkToolProf));
+
+        // Other choice-based proficiencies should also return null
+        $this->assertNull($this->matchProficiencyType('One type of gaming set'));
+        $this->assertNull($this->matchProficiencyType('Choose one from the following'));
+        $this->assertNull($this->matchProficiencyType('Any musical instrument'));
+    }
+
+    #[Test]
+    public function it_still_matches_specific_tool_proficiencies()
+    {
+        // Specific tools should still match
+        $smithsTools = $this->matchProficiencyType("Smith's Tools");
+        $this->assertNotNull($smithsTools);
+        $this->assertEquals('tool', $smithsTools->category);
+
+        $thievesTools = $this->matchProficiencyType("Thieves' Tools");
+        $this->assertNotNull($thievesTools);
+        $this->assertEquals('tool', $thievesTools->category);
+    }
 }

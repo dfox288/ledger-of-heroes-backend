@@ -42,8 +42,19 @@ trait ImportsSenses
             self::$senseCache = Sense::pluck('id', 'slug')->all();
         }
 
+        // Deduplicate senses by type (keep first occurrence)
+        // This handles XML data quality issues like "darkvision 60 ft., darkvision 60 ft."
+        $seenTypes = [];
+
         foreach ($sensesData as $senseData) {
             $senseType = $senseData['type'];
+
+            // Skip if we've already processed this sense type
+            if (isset($seenTypes[$senseType])) {
+                continue;
+            }
+            $seenTypes[$senseType] = true;
+
             $senseId = self::$senseCache[$senseType] ?? null;
 
             if ($senseId === null) {

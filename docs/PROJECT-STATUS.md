@@ -15,7 +15,7 @@
 | **Filter Tests** | 151 operator tests (2,750+ assertions) - 100% coverage |
 | **Duration** | ~10s (Unit-Pure), ~6s (Unit-DB), ~9s (Feature-DB), ~23s (Feature-Search) |
 | **Models** | 32 (all with HasFactory) |
-| **API** | 43 Resources + 27 Controllers + 36 Form Requests |
+| **API** | 44 Resources + 27 Controllers + 36 Form Requests |
 | **Importers** | 9 working (Strategy Pattern) |
 | **Import Commands** | 12 (10 standardized with BaseImportCommand) |
 | **Monster Strategies** | 12 (95%+ coverage) |
@@ -27,6 +27,14 @@
 ---
 
 ## 🚀 Recent Milestones
+
+### Bug Fixes & API Improvements ✅ COMPLETE (2025-11-29)
+- **Duplicate Senses Import Error:** Fixed `ImportsSenses` trait to deduplicate senses by type
+  - XML files had duplicates like `"darkvision 60 ft., darkvision 60 ft."`
+  - Now prevents `Integrity constraint violation` errors during import
+- **Classes API Counters:** Created `GroupedCounterResource` for proper type documentation
+  - Counters grouped by name with progression arrays
+  - PHPDoc annotations now accurate for OpenAPI/Scramble docs
 
 ### Structured Senses Implementation ✅ COMPLETE (2025-11-29)
 - **Achievement:** Implemented unified `entity_senses` polymorphic system for Monsters and Races

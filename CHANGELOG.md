@@ -45,6 +45,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Duplicate entity_senses import error for monsters**
+  - XML data quality issue: some monsters have duplicate senses (e.g., "darkvision 60 ft., darkvision 60 ft.")
+  - `ImportsSenses` trait now deduplicates senses by type before inserting
+  - Prevents `Integrity constraint violation: 1062 Duplicate entry` errors during import
+  - Affected files: `bestiary-vgm.xml`, `bestiary-tftyp.xml`, `bestiary-scag.xml`
+
+- **Classes API counters type annotation**
+  - Created `GroupedCounterResource` to properly document the grouped counter format
+  - Counters are grouped by name with `progression` array showing level→value pairs
+  - PHPDoc now correctly references the resource instead of generic `array` type
+
 - **Subclass-specific optional features now linked directly to subclass entities**
   - Elemental Disciplines (Monk), Maneuvers (Battle Master), etc. now link directly to subclass ID
   - Previously linked to base class with `subclass_name` pivot column, causing subclass API to show 0 optional features

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+  <!-- Test monster with duplicate senses (real issue from VGM XML) -->
+  <monster>
+    <name>Duplicate Senses Creature</name>
+    <size>M</size>
+    <type>humanoid</type>
+    <alignment>Neutral</alignment>
+    <ac>12</ac>
+    <hp>22 (3d8+9)</hp>
+    <speed>walk 30 ft.</speed>
+    <str>14</str>
+    <dex>14</dex>
+    <con>16</con>
+    <int>10</int>
+    <wis>12</wis>
+    <cha>10</cha>
+    <save></save>
+    <skill></skill>
+    <passive>11</passive>
+    <languages>Common</languages>
+    <cr>1</cr>
+    <vulnerable></vulnerable>
+    <resist></resist>
+    <immune></immune>
+    <conditionImmune></conditionImmune>
+    <!-- This is the bug: duplicate darkvision entries in XML -->
+    <senses>darkvision 60 ft., darkvision 60 ft.</senses>
+    <action>
+      <name>Slam</name>
+      <text>Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6+2) bludgeoning damage.</text>
+      <attack>Bludgeoning Damage|+4|1d6+2</attack>
+    </action>
+    <description>A test creature with duplicate senses in the XML source data.</description>
+  </monster>
+</compendium>

@@ -287,4 +287,28 @@ class MonsterImporterTest extends TestCase
         // Should still have exactly 2, not 4 (duplicated)
         $this->assertCount(2, $senses);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_handles_duplicate_senses_in_xml_gracefully(): void
+    {
+        // Create required sense types
+        \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
+
+        $xmlPath = base_path('tests/Fixtures/xml/monsters/monster-duplicate-senses.xml');
+
+        // This should NOT throw a duplicate key exception
+        $result = $this->importer->importWithStats($xmlPath);
+
+        $this->assertEquals(1, $result['total']);
+
+        $monster = Monster::where('slug', 'duplicate-senses-creature')->first();
+        $senses = $monster->senses()->with('sense')->get();
+
+        // Should have exactly 1 darkvision, not 2
+        $this->assertCount(1, $senses);
+
+        $darkvision = $senses->firstWhere('sense.slug', 'darkvision');
+        $this->assertNotNull($darkvision);
+        $this->assertEquals(60, $darkvision->range_feet);
+    }
 }

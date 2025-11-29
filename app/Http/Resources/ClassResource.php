@@ -62,7 +62,7 @@ class ClassResource extends JsonResource
             }),
 
             'level_progression' => ClassLevelProgressionResource::collection($this->whenLoaded('levelProgression')),
-            'counters' => $this->when($this->relationLoaded('counters'), fn () => $this->groupCounters($this->counters)),
+            'counters' => $this->when($this->relationLoaded('counters'), fn () => GroupedCounterResource::fromCounters($this->counters)),
             'spells' => SpellResource::collection($this->whenLoaded('spells')),
             'optional_features' => OptionalFeatureResource::collection($this->whenLoaded('optionalFeatures')),
             'equipment' => EntityItemResource::collection($this->whenLoaded('equipment')),
@@ -75,7 +75,7 @@ class ClassResource extends JsonResource
              * Only present for subclasses - contains data they inherit from their base class.
              * Note: hit_points is NOT included here - use computed.hit_points instead (resolves inheritance automatically).
              *
-             * @var array{hit_die: int|null, spellcasting_ability: array{id: int, code: string, name: string}|null, counters: array<ClassCounterResource>|null, traits: array<TraitResource>|null, level_progression: array<ClassLevelProgressionResource>|null, equipment: array<EntityItemResource>|null, proficiencies: array<ProficiencyResource>|null, spell_slot_summary: array{has_spell_slots: bool, max_spell_level: int|null, available_levels: array<int>, has_cantrips: bool, caster_type: string|null}|null}|null
+             * @var array{hit_die: int|null, spellcasting_ability: array{id: int, code: string, name: string}|null, counters: array<GroupedCounterResource>|null, traits: array<TraitResource>|null, level_progression: array<ClassLevelProgressionResource>|null, equipment: array<EntityItemResource>|null, proficiencies: array<ProficiencyResource>|null, spell_slot_summary: array{has_spell_slots: bool, max_spell_level: int|null, available_levels: array<int>, has_cantrips: bool, caster_type: string|null}|null}|null
              */
             'inherited_data' => $this->when(
                 ! $this->is_base_class && $this->relationLoaded('parentClass') && $this->parentClass,
@@ -89,7 +89,7 @@ class ClassResource extends JsonResource
                             ? new AbilityScoreResource($parent->spellcastingAbility)
                             : null,
                         'counters' => $parent->relationLoaded('counters')
-                            ? $this->groupCounters($parent->counters)
+                            ? GroupedCounterResource::fromCounters($parent->counters)
                             : null,
                         'traits' => $parent->relationLoaded('traits')
                             ? TraitResource::collection($parent->traits)
@@ -122,32 +122,5 @@ class ClassResource extends JsonResource
                 fn () => new ClassComputedResource($this->resource)
             ),
         ];
-    }
-
-    /**
-     * Group counters by name with progression arrays.
-     *
-     * Transforms flat counter rows into grouped format:
-     * Before: [{name: "Action Surge", level: 2, value: 1}, {name: "Action Surge", level: 17, value: 2}]
-     * After: [{name: "Action Surge", reset_timing: "Short Rest", progression: [{level: 2, value: 1}, {level: 17, value: 2}]}]
-     */
-    private function groupCounters($counters): array
-    {
-        return $counters->groupBy('counter_name')->map(function ($group) {
-            $first = $group->first();
-
-            return [
-                'name' => $first->counter_name,
-                'reset_timing' => match ($first->reset_timing) {
-                    'S' => 'Short Rest',
-                    'L' => 'Long Rest',
-                    default => 'Does Not Reset',
-                },
-                'progression' => $group->sortBy('level')->map(fn ($counter) => [
-                    'level' => $counter->level,
-                    'value' => $counter->counter_value,
-                ])->values()->all(),
-            ];
-        })->values()->all();
     }
 }

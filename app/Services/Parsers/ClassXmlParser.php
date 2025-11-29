@@ -97,6 +97,7 @@ class ClassXmlParser
         );
         $data['subclasses'] = $subclassData['subclasses'];
         $data['features'] = $subclassData['filtered_base_features']; // Use filtered list
+        $data['archetype'] = $subclassData['archetype']; // e.g., "Martial Archetype" for Fighter
 
         // Parse starting equipment
         $data['equipment'] = $this->parseEquipment($element);
@@ -552,12 +553,13 @@ class ClassXmlParser
      *
      * @param  array<int, array<string, mixed>>  $features
      * @param  array<int, array<string, mixed>>  $counters
-     * @return array{subclasses: array, filtered_base_features: array}
+     * @return array{subclasses: array, filtered_base_features: array, archetype: string|null}
      */
     private function detectSubclasses(array $features, array $counters, array $optionalSpellData = []): array
     {
         $subclasses = [];
         $subclassNames = [];
+        $archetype = null;
 
         // Pattern 1: "Martial Archetype: Battle Master" or "Otherworldly Patron: The Fiend"
         // Pattern 2: "Combat Superiority (Battle Master)" - name with parentheses
@@ -565,8 +567,13 @@ class ClassXmlParser
             $name = $feature['name'];
 
             // Pattern 1: "Martial Archetype: Subclass Name" or "Primal Path: Subclass Name"
-            if (preg_match('/^(?:Martial Archetype|Primal Path|Monastic Tradition|Otherworldly Patron|Divine Domain|Arcane Tradition|Sacred Oath|Ranger Archetype|Roguish Archetype|Sorcerous Origin|Bard College|Druid Circle|College of|Artificer Specialist):\s*(.+)$/i', $name, $matches)) {
-                $subclassNames[] = trim($matches[1]);
+            // Capture group 1 = archetype name, group 2 = subclass name
+            if (preg_match('/^(Martial Archetype|Primal Path|Monastic Tradition|Otherworldly Patron|Divine Domain|Arcane Tradition|Sacred Oath|Ranger Archetype|Roguish Archetype|Sorcerous Origin|Bard College|Druid Circle|College of|Artificer Specialist):\s*(.+)$/i', $name, $matches)) {
+                // Extract archetype name (only set once - first match wins)
+                if ($archetype === null) {
+                    $archetype = trim($matches[1]);
+                }
+                $subclassNames[] = trim($matches[2]);
             }
 
             // Pattern 2: "Feature Name (Subclass Name)"
@@ -676,6 +683,7 @@ class ClassXmlParser
         return [
             'subclasses' => $subclasses,
             'filtered_base_features' => $baseFeatures,
+            'archetype' => $archetype,
         ];
     }
 

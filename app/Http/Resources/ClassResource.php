@@ -39,6 +39,7 @@ class ClassResource extends JsonResource
             'name' => $this->name,
             'hit_die' => $this->effective_hit_die,
             'description' => $this->description,
+            'archetype' => $this->archetype,
             'primary_ability' => $this->primary_ability,
             'spellcasting_ability' => $this->when($this->effective_spellcasting_ability, function () {
                 return new AbilityScoreResource($this->effective_spellcasting_ability);

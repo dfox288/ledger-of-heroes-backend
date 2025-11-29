@@ -74,6 +74,7 @@ class ClassImporter extends BaseImporter
                 'parent_class_id' => $data['parent_class_id'] ?? null,
                 'hit_die' => $data['hit_die'],
                 'description' => $description ?: 'No description available',
+                'archetype' => $data['archetype'] ?? null,
                 'spellcasting_ability_id' => $data['spellcasting_ability_id'] ?? null,
             ]
         );

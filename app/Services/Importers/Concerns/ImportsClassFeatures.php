@@ -42,7 +42,10 @@ trait ImportsClassFeatures
                 ]
             );
 
-            $createdFeatures[$featureData['name']] = $feature;
+            // Key by level:name to handle same feature name at different levels
+            // e.g., "Bear (Path of the Totem Warrior)" exists at both L3 and L14
+            $featureKey = $featureData['level'].':'.$featureData['name'];
+            $createdFeatures[$featureKey] = $feature;
 
             // Import special tags (fighting styles, unarmored defense, etc.)
             if (! empty($featureData['special_tags'])) {
@@ -102,32 +105,137 @@ trait ImportsClassFeatures
     }
 
     /**
-     * Link child features to their parent features based on naming convention.
+     * Link child features to their parent features based on naming conventions.
      *
-     * Features like "Fighting Style: Archery" are linked to "Fighting Style".
+     * Handles three patterns:
+     * 1. Colon-based: "Fighting Style: Archery" → parent "Fighting Style"
+     * 2. Champion L10: "Fighting Style: Archery (Champion)" → parent "Additional Fighting Style (Champion)"
+     * 3. Totem options: "Bear (Path of the Totem Warrior)" → parent "Totem Spirit (Path of the Totem Warrior)"
+     *
      * Only links optional features to prevent false positives.
      */
     protected function linkParentFeatures(CharacterClass $class, array $createdFeatures): void
     {
-        foreach ($createdFeatures as $name => $feature) {
-            // Skip non-optional features and features without colon
-            if (! $feature->is_optional || ! str_contains($name, ':')) {
+        foreach ($createdFeatures as $featureKey => $feature) {
+            // Skip non-optional features
+            if (! $feature->is_optional) {
                 continue;
             }
 
-            // Extract potential parent name (everything before the colon)
-            $parentName = trim(explode(':', $name)[0]);
+            // Extract feature name from key (format: "level:name")
+            // e.g., "3:Bear (Path of the Totem Warrior)" → "Bear (Path of the Totem Warrior)"
+            $name = substr($featureKey, strpos($featureKey, ':') + 1);
 
-            // Look for parent in same class at same level
-            $parent = ClassFeature::where('class_id', $class->id)
-                ->where('level', $feature->level)
-                ->where('feature_name', $parentName)
-                ->first();
+            // Pattern 1 & 2: Colon-based features (feature name contains colon)
+            if (str_contains($name, ':')) {
+                $this->linkColonBasedFeature($class, $feature, $name);
 
-            if ($parent && $parent->id !== $feature->id) {
-                $feature->update(['parent_feature_id' => $parent->id]);
+                continue;
             }
+
+            // Pattern 3: Totem Warrior options (no colon, parenthetical subclass marker)
+            $this->linkTotemFeature($class, $feature, $name);
         }
+    }
+
+    /**
+     * Link colon-based features to their parents.
+     *
+     * Handles:
+     * - "Fighting Style: Archery" → parent "Fighting Style"
+     * - "Fighting Style: Archery (Champion)" → parent "Additional Fighting Style (Champion)"
+     */
+    private function linkColonBasedFeature(CharacterClass $class, ClassFeature $feature, string $name): void
+    {
+        // Extract parent name (everything before the colon)
+        $parentName = trim(explode(':', $name)[0]);
+
+        // Check for suffix pattern: "Fighting Style: X (Champion)"
+        $suffix = null;
+        if (preg_match('/\(([^)]+)\)$/', $name, $suffixMatch)) {
+            $suffix = $suffixMatch[1];
+        }
+
+        // Try exact parent first: "Fighting Style"
+        if ($this->tryLinkToParent($class, $feature, $parentName)) {
+            return;
+        }
+
+        // Try "Additional {Parent} ({Suffix})" variant for Champion-style features
+        // e.g., "Additional Fighting Style (Champion)" for Champion L10 fighting styles
+        if ($suffix) {
+            $altParentName = "Additional {$parentName} ({$suffix})";
+            $this->tryLinkToParent($class, $feature, $altParentName);
+        }
+    }
+
+    /**
+     * Link Totem Warrior options to their parent features.
+     *
+     * Handles:
+     * - Level 3: "Bear (Path of the Totem Warrior)" → "Totem Spirit (Path of the Totem Warrior)"
+     * - Level 6: "Aspect of the Bear (Path of the Totem Warrior)" → "Aspect of the Beast (Path of the Totem Warrior)"
+     * - Level 14: "Bear (Path of the Totem Warrior)" → "Totemic Attunement (Path of the Totem Warrior)"
+     */
+    private function linkTotemFeature(CharacterClass $class, ClassFeature $feature, string $name): void
+    {
+        // Pattern: "OptionName (SubclassMarker)"
+        // e.g., "Bear (Path of the Totem Warrior)" or "Aspect of the Bear (Path of the Totem Warrior)"
+        if (! preg_match('/^(.+)\s*\((.+)\)$/', $name, $matches)) {
+            return;
+        }
+
+        $optionName = trim($matches[1]);
+        $subclassMarker = trim($matches[2]);
+
+        // Level 14: Same animal names (Bear, Eagle, Wolf) but parent is "Totemic Attunement"
+        // Check this FIRST because L3 and L14 have same option names
+        if (in_array($optionName, ['Bear', 'Eagle', 'Wolf']) && $feature->level === 14) {
+            $parentName = "Totemic Attunement ({$subclassMarker})";
+            $this->tryLinkToParent($class, $feature, $parentName);
+
+            return;
+        }
+
+        // Define parent mappings for Totem Warrior features (L3 and L6)
+        $totemParentMappings = [
+            // Level 3 options
+            'Bear' => 'Totem Spirit',
+            'Eagle' => 'Totem Spirit',
+            'Wolf' => 'Totem Spirit',
+            // Level 6 options
+            'Aspect of the Bear' => 'Aspect of the Beast',
+            'Aspect of the Eagle' => 'Aspect of the Beast',
+            'Aspect of the Wolf' => 'Aspect of the Beast',
+        ];
+
+        // Check if this is a known totem option (L3 or L6)
+        if (isset($totemParentMappings[$optionName])) {
+            $parentBase = $totemParentMappings[$optionName];
+            $parentName = "{$parentBase} ({$subclassMarker})";
+            $this->tryLinkToParent($class, $feature, $parentName);
+        }
+    }
+
+    /**
+     * Attempt to link a feature to a parent by name.
+     *
+     * @return bool True if parent was found and linked
+     */
+    private function tryLinkToParent(CharacterClass $class, ClassFeature $feature, string $parentName): bool
+    {
+        $parent = ClassFeature::where('class_id', $class->id)
+            ->where('level', $feature->level)
+            ->where('feature_name', $parentName)
+            ->first();
+
+        if ($parent && $parent->id !== $feature->id) {
+            $feature->update(['parent_feature_id' => $parent->id]);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

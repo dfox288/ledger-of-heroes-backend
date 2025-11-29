@@ -22,6 +22,7 @@ class CharacterClass extends BaseModel
         'parent_class_id',
         'hit_die',
         'description',
+        'archetype',
         'primary_ability',
         'spellcasting_ability_id',
     ];
@@ -368,6 +369,7 @@ class CharacterClass extends BaseModel
             'slug' => $this->slug,
             'hit_die' => $this->hit_die,
             'description' => $this->description,
+            'archetype' => $this->archetype,
             'primary_ability' => $this->primary_ability,
             'spellcasting_ability' => $this->spellcastingAbility?->code,
             'is_spellcaster' => $this->spellcasting_ability_id !== null,
@@ -454,6 +456,7 @@ class CharacterClass extends BaseModel
                 'id',
                 'slug',
                 'hit_die',
+                'archetype',
                 'primary_ability',
                 'spellcasting_ability',
                 'is_spellcaster',

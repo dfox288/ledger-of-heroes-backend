@@ -94,6 +94,15 @@ class ClassController extends Controller
      *   - `filter=slug IN ["champion", "battle-master", "eldritch-knight"]` (Fighter subclasses)
      * - Use case: Human-readable queries and URL-friendly lookups
      *
+     * **archetype** (`string`)
+     * - Value examples: "Martial Archetype", "Divine Domain", "Arcane Tradition", null (for subclasses)
+     * - Operators: `=`, `!=`, `IN`, `NOT IN`, `IS NULL`, `IS NOT NULL`
+     * - Examples:
+     *   - `filter=archetype = "Martial Archetype"` (Fighter base class)
+     *   - `filter=archetype IS NOT NULL` (all base classes with archetype names)
+     *   - `filter=archetype IS NULL` (subclasses - they inherit from parent)
+     * - Use case: Display "Choose your Martial Archetype at level 3" in UI
+     *
      * **primary_ability** (`string`)
      * - Value range: "STR", "DEX", "CON", "INT", "WIS", "CHA"
      * - Operators: `=`, `!=`, `IN`, `NOT IN`

@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Classes API: `archetype` field for base classes**
+  - New `archetype` column stores the subclass category name (e.g., "Martial Archetype", "Divine Domain", "Arcane Tradition")
+  - Extracted during XML import from features like `"Martial Archetype: Champion"`
+  - Exposed in ClassResource API response
+  - Added to Meilisearch filterable attributes
+  - Enables frontend to display "Choose your Martial Archetype at level 3" instead of generic "Choose your subclass"
+  - Works with homebrew content (no hardcoded mapping)
+
+### Fixed
+
+- **Classes API: Totem Warrior options now flagged as `is_choice_option: true`**
+  - Level 3 options (Bear, Eagle, Wolf) now linked to parent "Totem Spirit"
+  - Level 6 options (Aspect of the Bear/Eagle/Wolf) now linked to parent "Aspect of the Beast"
+  - Level 14 options (Bear, Eagle, Wolf) now linked to parent "Totemic Attunement"
+  - All 9 Totem Warrior choice options now correctly have `is_choice_option: true`
+
+- **Classes API: Champion L10 Fighting Styles now flagged as `is_choice_option: true`**
+  - Enhanced parent detection to find "Additional Fighting Style (Champion)" as parent
+  - All 6 Champion L10 Fighting Style options now correctly have `is_choice_option: true`
+
+- **Bug fix: Features with same name at different levels were being overwritten**
+  - Changed feature array key from `name` to `level:name` to handle duplicate names across levels
+  - Fixes issue where "Bear (Path of the Totem Warrior)" at L3 and L14 were colliding
+
 - **API Documentation Standardization - Complete** (All 17 Lookup Controllers)
   - Enhanced PHPDoc for all lookup controllers following SpellController gold standard
   - Added Scramble `#[QueryParameter]` annotations for OpenAPI documentation

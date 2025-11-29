@@ -376,4 +376,68 @@ XML;
             $this->assertEquals(4, $javelin['quantity'], 'Four javelins should have quantity=4');
         }
     }
+
+    #[Test]
+    public function it_extracts_archetype_from_fighter()
+    {
+        // Load real Fighter XML from file
+        $xmlPath = base_path('import-files/class-fighter-phb.xml');
+        $xml = file_get_contents($xmlPath);
+
+        // Parse the XML
+        $classes = $this->parser->parse($xml);
+        $fighter = $classes[0];
+
+        // Assert: archetype is extracted
+        $this->assertArrayHasKey('archetype', $fighter);
+        $this->assertEquals('Martial Archetype', $fighter['archetype']);
+    }
+
+    #[Test]
+    public function it_extracts_archetype_from_cleric()
+    {
+        // Load real Cleric XML from file
+        $xmlPath = base_path('import-files/class-cleric-phb.xml');
+        $xml = file_get_contents($xmlPath);
+
+        // Parse the XML
+        $classes = $this->parser->parse($xml);
+        $cleric = $classes[0];
+
+        // Assert: archetype is extracted
+        $this->assertArrayHasKey('archetype', $cleric);
+        $this->assertEquals('Divine Domain', $cleric['archetype']);
+    }
+
+    #[Test]
+    public function it_extracts_archetype_from_wizard()
+    {
+        // Load real Wizard XML from file
+        $xmlPath = base_path('import-files/class-wizard-phb.xml');
+        $xml = file_get_contents($xmlPath);
+
+        // Parse the XML
+        $classes = $this->parser->parse($xml);
+        $wizard = $classes[0];
+
+        // Assert: archetype is extracted
+        $this->assertArrayHasKey('archetype', $wizard);
+        $this->assertEquals('Arcane Tradition', $wizard['archetype']);
+    }
+
+    #[Test]
+    public function it_extracts_archetype_from_barbarian()
+    {
+        // Load real Barbarian XML from file
+        $xmlPath = base_path('import-files/class-barbarian-phb.xml');
+        $xml = file_get_contents($xmlPath);
+
+        // Parse the XML
+        $classes = $this->parser->parse($xml);
+        $barbarian = $classes[0];
+
+        // Assert: archetype is extracted
+        $this->assertArrayHasKey('archetype', $barbarian);
+        $this->assertEquals('Primal Path', $barbarian['archetype']);
+    }
 }

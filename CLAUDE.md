@@ -16,6 +16,42 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 - `docs/LATEST-HANDOVER.md` - Latest session handover
 - `docs/reference/XML-SOURCE-PATHS.md` - XML source path mappings
 
+**Cross-Project Issues:** [dnd-rulebook-project](https://github.com/dfox288/dnd-rulebook-project/issues)
+
+---
+
+## Cross-Project Coordination
+
+Use GitHub Issues in `dfox288/dnd-rulebook-project` for bugs, API issues, and cross-cutting concerns.
+
+### Check Your Inbox (do this at session start)
+
+```bash
+gh issue list --repo dfox288/dnd-rulebook-project --label "backend" --state open
+```
+
+### Create an Issue
+
+```bash
+# When you discover a frontend issue or cross-cutting bug
+gh issue create --repo dfox288/dnd-rulebook-project \
+  --title "Brief description" \
+  --label "frontend,bug,from:backend" \
+  --body "Details here"
+```
+
+### Labels to Use
+
+- **Assignee:** `frontend`, `backend`, `both`
+- **Type:** `bug`, `feature`, `api-contract`, `data-issue`, `performance`
+- **Source:** `from:frontend`, `from:backend`, `from:manual-testing`
+
+### Close When Fixed
+
+```bash
+gh issue close 42 --repo dfox288/dnd-rulebook-project --comment "Fixed in PR #123"
+```
+
 ---
 
 ## AI Context (llms.txt)

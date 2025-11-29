@@ -430,9 +430,16 @@ class ClassController extends Controller
      *   ]
      * }
      * ```
-     * - Dynamic columns based on class data (counters, spell slots)
-     * - Counter values interpolated (sparse data filled in)
-     * - Also available via dedicated endpoint: `GET /classes/{slug}/progression`
+     *
+     * **Column Sources:**
+     * - **Feature data tables**: Parsed from feature descriptions (Monk's Martial Arts: 1d4→1d10)
+     * - **Roll elements**: From XML `<roll>` data (Rogue's Sneak Attack: 1d6→10d6)
+     * - **Synthetic data**: Hardcoded for prose-only progressions (Barbarian's Rage Damage: +2→+4)
+     * - **Counters**: Class counter values (Ki Points, Rage uses)
+     * - **Spell slots**: Cantrips known, 1st-9th level slots for casters
+     *
+     * Values are interpolated (sparse data filled in for all 20 levels).
+     * Also available via dedicated endpoint: `GET /classes/{slug}/progression`
      *
      * ## Inherited Data (Subclasses Only)
      *
@@ -633,12 +640,16 @@ class ClassController extends Controller
      *
      * **columns** - Dynamic column definitions based on class features:
      * - Always includes: level, proficiency_bonus, features
-     * - Counter columns: sneak_attack, ki_points, rage_damage, etc. (varies by class)
+     * - Feature data tables: martial_arts (Monk), etc. - parsed from feature descriptions
+     * - Roll element tables: sneak_attack (Rogue) - from XML `<roll>` data
+     * - Synthetic progressions: rage_damage (Barbarian) - hardcoded from PHB prose
+     * - Counter columns: ki (Monk), rage (Barbarian), etc. - from class counters
      * - Spell slot columns: cantrips_known, spell_slots_1st through spell_slots_9th (for casters)
      *
      * **rows** - 20 rows, one per level, with all column values pre-computed:
-     * - Counter values are interpolated (sparse data filled in)
-     * - Sneak Attack formatted as "Xd6"
+     * - Values interpolated (sparse data filled in for all levels)
+     * - Dice values: "1d4", "1d6", "2d6", etc.
+     * - Bonus values: "+2", "+3", etc.
      * - Proficiency bonus formatted as "+X"
      * - Features joined with commas
      *

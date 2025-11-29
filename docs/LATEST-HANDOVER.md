@@ -1,1 +1,1 @@
-handovers/SESSION-HANDOVER-2025-11-29-1700-entity-data-tables-refactor-complete.md
+handovers/SESSION-HANDOVER-2025-11-29-1830-progression-table-columns.md

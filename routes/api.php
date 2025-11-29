@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AbilityScoreController;
 use App\Http\Controllers\Api\AlignmentController;
 use App\Http\Controllers\Api\ArmorTypeController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BackgroundController;
 use App\Http\Controllers\Api\ClassController;
 use App\Http\Controllers\Api\ConditionController;
@@ -29,6 +30,25 @@ use App\Http\Controllers\Api\TagController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Endpoints
+    |--------------------------------------------------------------------------
+    |
+    | Token-based authentication using Laravel Sanctum.
+    | - POST /auth/login - Authenticate and receive API token
+    | - POST /auth/register - Create new user account
+    | - POST /auth/logout - Revoke current API token (requires auth)
+    |
+    */
+    Route::prefix('auth')->name('auth.')->group(function () {
+        Route::post('/login', [AuthController::class, 'login'])->name('login');
+        Route::post('/register', [AuthController::class, 'register'])->name('register');
+        Route::post('/logout', [AuthController::class, 'logout'])
+            ->middleware('auth:sanctum')
+            ->name('logout');
+    });
+
     // Global search
     Route::get('/search', SearchController::class)->name('search');
 

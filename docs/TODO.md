@@ -44,6 +44,14 @@ _Future tasks, not yet prioritized_
 
 _Recently completed tasks (move to CHANGELOG.md after release)_
 
+- [x] **Laravel Sanctum Authentication** (2025-11-29)
+  - Installed Sanctum v4.2, created `personal_access_tokens` migration
+  - Created User model with `HasApiTokens` trait and UserFactory
+  - Auth endpoints: login, register, logout under `/api/v1/auth/`
+  - 27 comprehensive tests (TDD approach, written first)
+  - Custom `InvalidCredentialsException` following ApiException pattern
+  - Comprehensive PHPDoc for Scramble documentation
+
 - [x] **Optional Features API Test Coverage** (2025-11-28)
   - Created OptionalFeatureApiTest.php (13 tests) - basic endpoints
   - Created OptionalFeatureFilterOperatorTest.php (27 tests) - all filter operators

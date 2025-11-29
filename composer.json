@@ -10,6 +10,7 @@
         "dedoc/scramble": "^0.13.4",
         "http-interop/http-factory-guzzle": "^1.2",
         "laravel/framework": "^12.0",
+        "laravel/sanctum": "^4.2",
         "laravel/scout": "^10.22",
         "laravel/tinker": "^2.10.1",
         "meilisearch/meilisearch-php": "^1.16",

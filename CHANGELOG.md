@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Laravel Sanctum Authentication** (API token-based auth)
+  - Installed Laravel Sanctum v4.2 package
+  - Created User model with `HasApiTokens` trait and UserFactory
+  - Authentication endpoints: `POST /api/v1/auth/login`, `POST /api/v1/auth/register`, `POST /api/v1/auth/logout`
+  - Login/Register return API token and user data
+  - Logout revokes current token only (other tokens remain valid)
+  - Protected routes use `auth:sanctum` middleware
+  - 27 comprehensive auth tests (LoginTest, LogoutTest, RegisterTest, ProtectedRoutesTest)
+  - Comprehensive PHPDoc for Scramble API documentation
+  - Custom `InvalidCredentialsException` following ApiException pattern
+
 ### Changed
 
 - **SQLite for tests**: Tests now use in-memory SQLite instead of MySQL (~10x faster)

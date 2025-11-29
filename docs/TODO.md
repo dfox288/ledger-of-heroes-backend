@@ -57,6 +57,35 @@ _Future tasks, not yet prioritized_
 - [ ] Additional Monster Strategies
 - [ ] Frontend application
 
+### API Enhancements (Frontend Requests - Low Priority)
+_From `docs/proposals/API-BUGS-AND-ENHANCEMENTS-2025-11-26.md`_
+
+**Monsters:**
+- [x] Separate `lair_actions` array (2025-11-29) - Now filtered by `is_lair_action` flag
+- [ ] Add `languages` array (currently in description text)
+- [ ] Add `cr_numeric` field (0.25 instead of "1/4")
+
+**Races:**
+- [ ] Populate base race traits (Elf/Dwarf base races have empty traits)
+- [ ] Add `darkvision_range` field (60 vs 120 ft)
+- [ ] Add `fly_speed`/`swim_speed` fields (Aarakocra, Triton)
+
+**Spells:**
+- [ ] Add `material_cost_gp` field (parse cost from components)
+- [ ] Add area of effect structure (`type`, `size`, `unit`)
+
+**Classes:**
+- [ ] Add `multiclass_requirements` (ability score prerequisites)
+- [ ] Add `spellcasting_type` enum (full/half/third/pact/none)
+
+**Items:**
+- [ ] Add `proficiency_category` (simple_melee, martial_melee, etc.)
+- [ ] Add `magic_bonus` field (+1/+2/+3 for magic weapons)
+
+**Feats:**
+- [ ] Add `is_half_feat` boolean ("+1 ASI" feats)
+- [ ] Add `parent_feat_slug` (group Resilient variants)
+
 ---
 
 ## Completed
@@ -71,7 +100,7 @@ _Recently completed tasks (move to CHANGELOG.md after release)_
   - RaceImporter extracts senses from Darkvision/Superior Darkvision traits
   - API returns structured senses via `EntitySenseResource`
   - Added 6 new Meilisearch filterable fields for senses
-  - 519 monster senses imported
+  - 519 monster senses imported, 45 race senses imported
   - See handover: `SESSION-HANDOVER-2025-11-29-2200-structured-senses.md`
 
 - [x] **Separate multiclass features in section_counts** (2025-11-29)

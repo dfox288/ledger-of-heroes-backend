@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Frontend can display multiclass requirements in a separate section
   - Features array still contains all features with `is_multiclass_only` flag for filtering
 
+- **Separate lair_actions from legendary_actions in Monster API**
+  - `legendary_actions` now only contains actual legendary actions (`is_lair_action: false`)
+  - New `lair_actions` array contains lair descriptions, lair actions, and regional effects (`is_lair_action: true`)
+  - Both arrays use same `MonsterLegendaryActionResource` format
+  - **Breaking change**: `legendary_actions` no longer includes lair-related content
+
 ### Changed
 
 - **XML import now reads directly from fightclub_forked repository**

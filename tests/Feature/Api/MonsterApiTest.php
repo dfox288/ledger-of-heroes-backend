@@ -228,4 +228,65 @@ class MonsterApiTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    #[Test]
+    public function monster_separates_legendary_actions_from_lair_actions()
+    {
+        // Find a legendary monster with lair actions
+        $monster = Monster::whereHas('legendaryActions', function ($query) {
+            $query->where('is_lair_action', true);
+        })->first();
+
+        if (! $monster) {
+            $this->markTestSkipped('No monsters with lair actions in fixtures');
+        }
+
+        $response = $this->getJson("/api/v1/monsters/{$monster->slug}");
+
+        $response->assertOk();
+
+        // Both arrays should exist in response
+        $response->assertJsonStructure([
+            'data' => [
+                'legendary_actions',
+                'lair_actions',
+            ],
+        ]);
+
+        // Verify legendary_actions only contains non-lair actions
+        $legendaryActions = $response->json('data.legendary_actions');
+        foreach ($legendaryActions as $action) {
+            $this->assertFalse(
+                $action['is_lair_action'],
+                "legendary_actions should not contain lair actions: {$action['name']}"
+            );
+        }
+
+        // Verify lair_actions only contains lair actions
+        $lairActions = $response->json('data.lair_actions');
+        $this->assertNotEmpty($lairActions, 'Expected lair_actions to not be empty');
+        foreach ($lairActions as $action) {
+            $this->assertTrue(
+                $action['is_lair_action'],
+                "lair_actions should only contain lair actions: {$action['name']}"
+            );
+        }
+    }
+
+    #[Test]
+    public function monster_without_lair_actions_returns_empty_lair_actions_array()
+    {
+        // Find a monster without any legendary actions (and thus no lair actions)
+        $monster = Monster::doesntHave('legendaryActions')->first();
+
+        if (! $monster) {
+            $this->markTestSkipped('No monsters without legendary actions in fixtures');
+        }
+
+        $response = $this->getJson("/api/v1/monsters/{$monster->slug}");
+
+        $response->assertOk();
+        $response->assertJsonPath('data.legendary_actions', []);
+        $response->assertJsonPath('data.lair_actions', []);
+    }
 }

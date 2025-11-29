@@ -1,9 +1,9 @@
 # API Bugs and Enhancements Analysis
 
 **Date:** 2025-11-26
-**Updated:** 2025-11-26
+**Updated:** 2025-11-29
 **Source:** Frontend proposals directory analysis
-**Status:** 1 Active Bug - Most Critical Issues Resolved
+**Status:** ✅ ALL BUGS RESOLVED - Enhancement backlog only
 
 ---
 
@@ -230,7 +230,7 @@ This handles the tab-prefixed bullets in XML (`\t• Languages:`).
 | ~~Add `/item-types` endpoint~~ | Items | ✅ EXISTS at `/api/v1/lookups/item-types` (16 types) | ✅ Done |
 | ~~Fix `type_code` filter~~ | Items | ✅ Fixed - was stale Meilisearch index (re-imported) | ✅ Done |
 | ~~Add `proficiency_bonus` field~~ | Monsters | Computed from CR, saves frontend calculation | ✅ Done |
-| Add `senses` structured field | Monsters | darkvision, blindsight, passive perception | Pending |
+| ~~Add `senses` structured field~~ | Monsters | darkvision, blindsight, passive perception | ✅ Done |
 | ~~Add `is_legendary` boolean~~ | Monsters | Quick filter for legendary creatures | ✅ Done |
 | Populate base race data | Races | Elf/Dwarf base races have empty traits/modifiers | Pending |
 
@@ -243,7 +243,7 @@ This handles the tab-prefixed bullets in XML (`\t• Languages:`).
 | ~~Casting time structure~~ | Spells | `casting_time_type` (action/bonus/reaction) | ✅ Done |
 | Add `multiclass_requirements` | Classes | Ability score prerequisites per PHB p.163 | Pending |
 | Add `spellcasting_type` enum | Classes | full/half/third/pact/none | Pending |
-| Separate `lair_actions` array | Monsters | Currently mixed in `legendary_actions` | Pending |
+| ~~Separate `lair_actions` array~~ | Monsters | Now filtered by `is_lair_action` flag | ✅ Done |
 | Add `languages` array | Monsters | Currently in description text | Pending |
 | ~~Add `is_subrace` flag~~ | Races | Simplifies frontend filtering | ✅ Done |
 | Add `darkvision_range` field | Races | 60 vs 120 ft for filtering | Pending |
@@ -297,11 +297,11 @@ This handles the tab-prefixed bullets in XML (`\t• Languages:`).
 9. ~~Add `casting_time_type` to spells~~ ✅ Done (computed accessor)
 10. ~~Add `is_subrace` boolean to races~~ ✅ Done (computed accessor)
 
-### Phase 4 - Structural Improvements
+### Phase 4 - Structural Improvements ✅ COMPLETE
 
-11. Populate base race traits
-12. Add structured `senses` to monsters
-13. Add casting time structure to spells
+11. Populate base race traits - Pending (low priority)
+12. ~~Add structured `senses` to monsters~~ ✅ Done (2025-11-29) - 519 monster senses, 45 race senses
+13. ~~Add casting time structure to spells~~ ✅ Done (`casting_time_type` accessor)
 
 ---
 

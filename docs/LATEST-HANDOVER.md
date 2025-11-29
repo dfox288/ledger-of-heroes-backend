@@ -1,1 +1,1 @@
-handovers/SESSION-HANDOVER-2025-11-29-entity-data-tables-planning.md
+handovers/SESSION-HANDOVER-2025-11-29-1700-entity-data-tables-refactor-complete.md

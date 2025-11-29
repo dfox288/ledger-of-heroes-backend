@@ -20,17 +20,8 @@ _Planned tasks with implementation details ready_
   - Rogue: Add `sneak_attack`; remove `stroke_of_luck`
   - **Design:** `docs/plans/2025-11-29-progression-table-columns-design.md`
   - **Plan:** `docs/plans/2025-11-29-progression-table-columns-plan.md`
-  - **Approach:** Parse text tables from descriptions, use existing RandomTable storage
+  - **Approach:** Parse text tables from descriptions, use new `entity_data_tables` with `table_type=progression`
   - **Execute with:** Follow 7-task TDD plan in plan doc
-
-- [ ] **Entity Data Tables Refactor** (4-6 hours)
-  - Rename `random_tables` → `entity_data_tables`
-  - Add `table_type` discriminator column (random, damage, modifier, lookup, progression)
-  - **BREAKING API CHANGE:** JSON key `random_tables` → `data_tables`
-  - **Plan:** `docs/plans/2025-11-29-entity-data-tables-implementation.md`
-  - **Design:** `docs/plans/2025-11-29-entity-data-tables-refactor.md`
-  - **Scope:** ~45 files, ~15 commits
-  - **Execute with:** `/superpowers:execute-plan` or work through manually
 
 ## Deferred
 
@@ -78,6 +69,13 @@ _Future tasks, not yet prioritized_
 ## Completed
 
 _Recently completed tasks (move to CHANGELOG.md after release)_
+
+- [x] **Entity Data Tables Refactor** (2025-11-29)
+  - Renamed `random_tables` → `entity_data_tables`
+  - Added `DataTableType` enum (random, damage, modifier, lookup, progression)
+  - **BREAKING API CHANGE:** JSON key `random_tables` → `data_tables`
+  - 62 files changed, all tests passing
+  - See `docs/handovers/SESSION-HANDOVER-2025-11-29-1700-entity-data-tables-refactor-complete.md`
 
 - [x] **API Documentation Standardization - Complete** (2025-11-29)
   - Enhanced PHPDoc for all 17 lookup controllers following SpellController gold standard

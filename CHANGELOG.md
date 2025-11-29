@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Classes API: Features now nested with choice options**
+  - Top-level `features` array no longer includes choice options (e.g., Fighting Style variants)
+  - Choice options are nested under their parent feature in the `choice_options` array
+  - Improves API readability and makes feature counts accurate
+  - Example: Fighter L1 features reduced from 8 to 5 (Fighting Style options nested under parent)
+
 - **Parser lookups now use database tables instead of hardcoded values**
   - Created `LoadsLookupData` trait for lazy-loading lookup table data with graceful fallback
   - `SpellXmlParser`: Base class names now loaded from `CharacterClass` table

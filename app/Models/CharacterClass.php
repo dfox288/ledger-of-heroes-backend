@@ -298,41 +298,44 @@ class CharacterClass extends BaseModel
     }
 
     /**
-     * Get all features including inherited base class features.
+     * Get all top-level features including inherited base class features.
+     *
+     * Returns only parent features (not choice options). Choice options are
+     * nested under their parent features via the `childFeatures` relationship.
      *
      * For subclasses, merges parent class features with subclass-specific features.
      * Features are sorted by level, then by sort_order to maintain proper ordering.
      *
      * @param  bool  $includeInherited  Whether to include parent class features (default: true)
-     * @return \Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection<ClassFeature> Top-level features only
      */
     public function getAllFeatures(bool $includeInherited = true)
     {
-        // Base classes or when inheritance disabled: return only this class's features
-        if (! $includeInherited || $this->parent_class_id === null) {
-            return $this->features->sortBy([
+        // Filter to top-level features only (exclude choice options)
+        // Choice options are nested under their parent via childFeatures relationship
+        $filterTopLevel = fn ($features) => $features
+            ->whereNull('parent_feature_id')
+            ->sortBy([
                 ['level', 'asc'],
                 ['sort_order', 'asc'],
-            ])->values();
+            ])
+            ->values();
+
+        // Base classes or when inheritance disabled: return only this class's features
+        if (! $includeInherited || $this->parent_class_id === null) {
+            return $filterTopLevel($this->features);
         }
 
         // Subclasses: merge parent + subclass features
         // Only if parent relationship and its features are loaded
         if ($this->relationLoaded('parentClass') && $this->parentClass->relationLoaded('features')) {
-            return $this->parentClass->features
-                ->concat($this->features)
-                ->sortBy([
-                    ['level', 'asc'],
-                    ['sort_order', 'asc'],
-                ])
-                ->values();
+            $merged = $this->parentClass->features->concat($this->features);
+
+            return $filterTopLevel($merged);
         }
 
         // Fallback: If parent features not loaded, return only subclass features
-        return $this->features->sortBy([
-            ['level', 'asc'],
-            ['sort_order', 'asc'],
-        ])->values();
+        return $filterTopLevel($this->features);
     }
 
     /**

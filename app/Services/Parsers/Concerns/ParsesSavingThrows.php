@@ -32,7 +32,10 @@ trait ParsesSavingThrows
     protected function parseSavingThrows(string $description): array
     {
         $savingThrows = [];
-        $abilities = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
+        // Use lookup table if available, otherwise fallback
+        $abilities = method_exists($this, 'getAbilityScoreNames')
+            ? $this->getAbilityScoreNames()
+            : ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
 
         foreach ($abilities as $ability) {
             // Pattern: "{Ability} saving throw" (case-insensitive)

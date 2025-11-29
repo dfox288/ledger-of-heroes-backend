@@ -33,6 +33,19 @@ _None - backlog items available_
 
 _Future tasks, not yet prioritized_
 
+### Parser/Importer Hardcoded Values (Medium Priority)
+- [ ] Config for default source code in `ParsesSourceCitations.php` (lines 85, 143)
+  - Currently falls back to hardcoded 'PHB'
+  - Move to `config('import.default_source_code', 'PHB')`
+- [ ] Config for default publisher in `SourceXmlParser.php` (line 62)
+  - Currently falls back to 'Wizards of the Coast'
+  - Move to `config('import.default_publisher', 'Wizards of the Coast')`
+- [ ] Dynamic condition regex in `ParsesSavingThrows.php` (line 191)
+  - Build regex from `Condition::pluck('slug')` instead of hardcoded list
+- [ ] Dynamic condition regex in `ParsesItemSavingThrows.php` (line 92)
+  - Same fix as ParsesSavingThrows
+
+### Feature Backlog
 - [ ] Character Builder API (see `plans/2025-11-23-character-builder-api-proposal.md`)
 - [ ] Search result caching (Phase 4)
 - [ ] Additional Monster Strategies

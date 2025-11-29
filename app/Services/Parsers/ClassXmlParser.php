@@ -3,6 +3,7 @@
 namespace App\Services\Parsers;
 
 use App\Services\Parsers\Concerns\ConvertsWordNumbers;
+use App\Services\Parsers\Concerns\LoadsLookupData;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesModifiers;
@@ -13,7 +14,7 @@ use SimpleXMLElement;
 
 class ClassXmlParser
 {
-    use ConvertsWordNumbers, MapsAbilityCodes, MatchesProficiencyTypes, ParsesModifiers, ParsesRolls, ParsesSourceCitations, ParsesTraits;
+    use ConvertsWordNumbers, LoadsLookupData, MapsAbilityCodes, MatchesProficiencyTypes, ParsesModifiers, ParsesRolls, ParsesSourceCitations, ParsesTraits;
 
     /**
      * Parse classes from XML string.
@@ -173,8 +174,8 @@ class ClassXmlParser
             $items = array_map('trim', explode(',', (string) $element->proficiency));
 
             // Classes typically list saving throws first (2), then skills
-            // We'll need to detect which are abilities vs skills
-            $abilityScores = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
+            // We'll need to detect which are abilities vs skills (using lookup table)
+            $abilityScores = $this->getAbilityScoreNames();
 
             // Collect skills first to apply choice grouping
             $skills = [];

@@ -65,12 +65,19 @@ trait MapsAbilityCodes
     /**
      * Get the ability score code mapping.
      *
-     * Centralized map for all ability score name variations.
+     * Uses getAbilityScoreMap() from LoadsLookupData trait if available,
+     * otherwise falls back to hardcoded values for unit tests.
      *
      * @return array Map of ability names to codes
      */
     private function getAbilityCodeMap(): array
     {
+        // Use lookup table if available (from LoadsLookupData trait)
+        if (method_exists($this, 'getAbilityScoreMap')) {
+            return $this->getAbilityScoreMap();
+        }
+
+        // Fallback for classes without LoadsLookupData trait
         return [
             'strength' => 'STR',
             'dexterity' => 'DEX',

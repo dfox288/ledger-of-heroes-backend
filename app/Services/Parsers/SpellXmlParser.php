@@ -2,6 +2,7 @@
 
 namespace App\Services\Parsers;
 
+use App\Services\Parsers\Concerns\LoadsLookupData;
 use App\Services\Parsers\Concerns\ParsesRandomTables;
 use App\Services\Parsers\Concerns\ParsesSavingThrows;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
@@ -9,6 +10,7 @@ use SimpleXMLElement;
 
 class SpellXmlParser
 {
+    use LoadsLookupData;
     use ParsesRandomTables;
     use ParsesSavingThrows;
     use ParsesSourceCitations;
@@ -46,10 +48,10 @@ class SpellXmlParser
         $classesString = preg_replace('/^School:\s*[^,]+,\s*/', '', $classesString);
         $parts = array_map('trim', explode(',', $classesString));
 
-        // Separate classes from tags
+        // Separate classes from tags using lookup table
         $classes = [];
         $tags = [];
-        $knownBaseClasses = ['Wizard', 'Sorcerer', 'Warlock', 'Bard', 'Cleric', 'Druid', 'Paladin', 'Ranger', 'Fighter', 'Rogue', 'Barbarian', 'Monk', 'Artificer'];
+        $knownBaseClasses = $this->getBaseClassNames();
 
         foreach ($parts as $part) {
             // If it has parentheses, it's a class/subclass

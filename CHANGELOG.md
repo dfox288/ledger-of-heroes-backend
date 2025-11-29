@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Parser lookups now use database tables instead of hardcoded values**
+  - Created `LoadsLookupData` trait for lazy-loading lookup table data with graceful fallback
+  - `SpellXmlParser`: Base class names now loaded from `CharacterClass` table
+  - `ParsesSavingThrows`: Ability score names now loaded from `AbilityScore` table
+  - `ClassXmlParser`: Ability score names now loaded from `AbilityScore` table
+  - `MapsAbilityCodes`: Ability code mapping now loaded from `AbilityScore` table
+  - Fallback values maintained for unit tests running without database access
+
 ### Added
 
 - **Classes API: `archetype` field for base classes**

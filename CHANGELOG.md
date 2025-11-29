@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **API Documentation Standardization - Phase 1** (Lookup Controllers)
+  - Enhanced PHPDoc for 5 lookup controllers following SpellController gold standard
+  - Added Scramble `#[QueryParameter]` annotations for OpenAPI documentation
+  - Controllers updated: SkillController, SpellSchoolController, ProficiencyTypeController, ItemTypeController, ItemPropertyController
+  - Each controller now includes: examples, query parameters, use cases, and D&D reference data
+
 - **Laravel Sanctum Authentication** (API token-based auth)
   - Installed Laravel Sanctum v4.2 package
   - Created User model with `HasApiTokens` trait and UserFactory

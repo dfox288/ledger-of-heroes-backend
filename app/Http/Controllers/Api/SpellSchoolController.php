@@ -8,6 +8,7 @@ use App\Http\Resources\SpellResource;
 use App\Http\Resources\SpellSchoolResource;
 use App\Models\SpellSchool;
 use App\Services\Cache\LookupCacheService;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Request;
 
 class SpellSchoolController extends Controller
@@ -15,9 +16,37 @@ class SpellSchoolController extends Controller
     /**
      * List all schools of magic
      *
-     * Returns a paginated list of the 8 schools of magic in D&D 5e (Abjuration, Conjuration,
-     * Divination, Enchantment, Evocation, Illusion, Necromancy, Transmutation).
+     * Returns the 8 schools of magic in D&D 5e. Every spell belongs to exactly one school,
+     * which defines its magical nature and affects class features like Wizard school specialization.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/lookups/spell-schools              # All 8 schools
+     * GET /api/v1/lookups/spell-schools?q=evocation  # Search by name
+     * ```
+     *
+     * **The 8 Schools of Magic:**
+     * - **Abjuration (AB):** Protective magic - Shield, Counterspell, Dispel Magic
+     * - **Conjuration (C):** Summoning and teleportation - Misty Step, Conjure Animals
+     * - **Divination (D):** Information gathering - Detect Magic, Identify, Scrying
+     * - **Enchantment (EN):** Mind-affecting - Charm Person, Hold Person, Dominate
+     * - **Evocation (EV):** Damage and energy - Fireball, Lightning Bolt, Magic Missile
+     * - **Illusion (I):** Deception and trickery - Invisibility, Mirror Image, Major Image
+     * - **Necromancy (N):** Life and death - Animate Dead, Vampiric Touch, Raise Dead
+     * - **Transmutation (T):** Transformation - Polymorph, Haste, Enlarge/Reduce
+     *
+     * **Query Parameters:**
+     * - `q` (string): Search schools by name (partial match)
+     * - `per_page` (int): Results per page, 1-100 (default: 50)
+     *
+     * **Use Cases:**
+     * - **Wizard Specialization:** Choose a school to gain bonus features (Evocation for damage, Divination for utility)
+     * - **Spell Selection:** Browse spells by school to build a thematic caster
+     * - **Counterspell Decisions:** Identify spell schools to prioritize countering
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
+    #[QueryParameter('q', description: 'Search schools by name', example: 'evocation')]
     public function index(SpellSchoolIndexRequest $request, LookupCacheService $cache)
     {
         $query = SpellSchool::query();
@@ -55,8 +84,22 @@ class SpellSchoolController extends Controller
     /**
      * Get a single school of magic
      *
-     * Returns detailed information about a specific school of magic including its name
-     * and associated spells.
+     * Returns detailed information about a specific school of magic.
+     * Schools can be retrieved by ID, code, slug, or name.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/lookups/spell-schools/3           # By ID
+     * GET /api/v1/lookups/spell-schools/EV          # By code
+     * GET /api/v1/lookups/spell-schools/evocation   # By slug
+     * GET /api/v1/lookups/spell-schools/Evocation   # By name
+     * ```
+     *
+     * **Response includes:**
+     * - `id`, `code`, `name`, `slug`: School identification
+     * - `description`: What this school of magic represents
+     *
+     * **Related endpoint:** Use `/api/v1/lookups/spell-schools/{id}/spells` to list all spells in this school.
      */
     public function show(SpellSchool $spellSchool)
     {

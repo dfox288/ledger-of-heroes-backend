@@ -11,6 +11,7 @@ use App\Http\Resources\ProficiencyTypeResource;
 use App\Http\Resources\RaceResource;
 use App\Models\ProficiencyType;
 use App\Services\Cache\LookupCacheService;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\JsonResponse;
 
 class ProficiencyTypeController extends Controller
@@ -18,9 +19,44 @@ class ProficiencyTypeController extends Controller
     /**
      * List all proficiency types
      *
-     * Returns a paginated list of D&D 5e proficiency types including weapons, armor, tools,
-     * languages, and skills. Supports filtering by category and subcategory (e.g., "weapon/martial").
+     * Returns D&D 5e proficiency types - the things characters can be trained in.
+     * Includes weapons, armor, tools, languages, skills, and saving throws.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/lookups/proficiency-types                           # All proficiencies
+     * GET /api/v1/lookups/proficiency-types?category=weapon           # All weapons
+     * GET /api/v1/lookups/proficiency-types?category=weapon&subcategory=martial  # Martial weapons only
+     * GET /api/v1/lookups/proficiency-types?category=armor            # All armor types
+     * GET /api/v1/lookups/proficiency-types?category=tool             # All tools
+     * GET /api/v1/lookups/proficiency-types?q=longsword               # Search by name
+     * ```
+     *
+     * **Categories:**
+     * - **weapon:** All weapon proficiencies (subcategories: simple, martial)
+     * - **armor:** Light, Medium, Heavy, Shields
+     * - **tool:** Artisan's tools, gaming sets, musical instruments, thieves' tools
+     * - **language:** Common, Elvish, Dwarvish, exotic languages
+     * - **skill:** The 18 D&D skills (see /lookups/skills for details)
+     * - **saving-throw:** STR, DEX, CON, INT, WIS, CHA saves
+     *
+     * **Query Parameters:**
+     * - `q` (string): Search proficiencies by name (partial match)
+     * - `category` (string): Filter by category (weapon, armor, tool, language, skill, saving-throw)
+     * - `subcategory` (string): Filter by subcategory (e.g., simple, martial for weapons)
+     * - `per_page` (int): Results per page, 1-100 (default: 50)
+     *
+     * **Use Cases:**
+     * - **Class Selection:** "Which classes get heavy armor?" → Filter by category=armor
+     * - **Multiclass Planning:** "What martial weapons can a Rogue use after Fighter dip?"
+     * - **Character Building:** Find which proficiencies your race/class/background grants
+     * - **Equipment Shopping:** Browse weapon proficiencies to know what you can use effectively
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
+    #[QueryParameter('q', description: 'Search proficiencies by name', example: 'longsword')]
+    #[QueryParameter('category', description: 'Filter by category (weapon, armor, tool, language, skill, saving-throw)', example: 'weapon')]
+    #[QueryParameter('subcategory', description: 'Filter by subcategory within category (e.g., simple, martial)', example: 'martial')]
     public function index(ProficiencyTypeIndexRequest $request, LookupCacheService $cache)
     {
         $query = ProficiencyType::query();
@@ -67,8 +103,26 @@ class ProficiencyTypeController extends Controller
     /**
      * Get a single proficiency type
      *
-     * Returns detailed information about a specific proficiency type including category,
-     * subcategory, and optional associated item.
+     * Returns detailed information about a specific proficiency type.
+     * Proficiencies can be retrieved by ID, slug, or name.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/lookups/proficiency-types/42           # By ID
+     * GET /api/v1/lookups/proficiency-types/longsword    # By slug
+     * GET /api/v1/lookups/proficiency-types/Longsword    # By name
+     * ```
+     *
+     * **Response includes:**
+     * - `id`, `name`, `slug`: Proficiency identification
+     * - `category`: Type of proficiency (weapon, armor, tool, language, skill)
+     * - `subcategory`: Sub-type (e.g., simple/martial for weapons)
+     * - `item`: Associated item details (for weapon/armor proficiencies)
+     *
+     * **Related endpoints:**
+     * - `/api/v1/lookups/proficiency-types/{id}/classes` - Classes with this proficiency
+     * - `/api/v1/lookups/proficiency-types/{id}/races` - Races with this proficiency
+     * - `/api/v1/lookups/proficiency-types/{id}/backgrounds` - Backgrounds granting this proficiency
      */
     public function show(ProficiencyType $proficiencyType)
     {

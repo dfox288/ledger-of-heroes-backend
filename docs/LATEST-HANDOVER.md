@@ -1,1 +1,1 @@
-handovers/SESSION-HANDOVER-2025-11-29-1400-classes-api-improvements.md
+handovers/SESSION-HANDOVER-2025-11-29-entity-data-tables-planning.md

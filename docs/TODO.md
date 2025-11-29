@@ -10,6 +10,19 @@ _Tasks currently being worked on_
 
 _None_
 
+## Ready to Execute
+
+_Planned tasks with implementation details ready_
+
+- [ ] **Entity Data Tables Refactor** (4-6 hours)
+  - Rename `random_tables` → `entity_data_tables`
+  - Add `table_type` discriminator column (random, damage, modifier, lookup, progression)
+  - **BREAKING API CHANGE:** JSON key `random_tables` → `data_tables`
+  - **Plan:** `docs/plans/2025-11-29-entity-data-tables-implementation.md`
+  - **Design:** `docs/plans/2025-11-29-entity-data-tables-refactor.md`
+  - **Scope:** ~45 files, ~15 commits
+  - **Execute with:** `/superpowers:execute-plan` or work through manually
+
 ## Deferred
 
 _Tasks intentionally postponed_

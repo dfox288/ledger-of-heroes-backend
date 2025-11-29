@@ -248,19 +248,22 @@
 
 ## 🎯 Next Priorities
 
-### Priority 1: Performance Optimizations (Optional, 2-4 hours)
+### Priority 1: Entity Data Tables Refactor (Ready to Execute, 4-6 hours)
+- **Status:** 📋 PLANNED - Full implementation plan ready
+- Rename `random_tables` → `entity_data_tables`
+- Add `table_type` discriminator (random, damage, modifier, lookup, progression)
+- **BREAKING API CHANGE:** JSON key `random_tables` → `data_tables`
+- **Plans:** `docs/plans/2025-11-29-entity-data-tables-implementation.md`
+- **Execute with:** `/superpowers:execute-plan` or work through 16 tasks manually
+
+### Priority 2: Performance Optimizations (Optional, 2-4 hours)
 - Database indexing: composite indexes, slug indexes
 - Caching: monster spell lists, popular filters
 - Query optimization: reduce N+1 queries
 
-### Priority 2: Character Builder API (Optional, 8-12 hours)
+### Priority 3: Character Builder API (Optional, 8-12 hours)
 - `POST /characters`, `GET /characters/{id}`, `PATCH /characters/{id}/level-up`
 - `POST /characters/{id}/spells`, `GET /characters/{id}/available-spells`
-
-### Priority 3: Advanced Filter Testing (Optional, 4-6 hours)
-- Compound filter tests (multiple AND/OR operators)
-- Performance benchmarks for complex filters
-- Edge case testing (special characters, large arrays)
 
 ### Additional Opportunities
 - Encounter Builder API (6-10 hours)
@@ -343,7 +346,7 @@ docker compose exec php php artisan search:configure-indexes
 ---
 
 **Last Updated:** 2025-11-29
-**Next Session:** Character Builder API, Performance Optimizations, or Frontend Application
+**Next Session:** Entity Data Tables Refactor (plan ready), Character Builder API, or Performance Optimizations
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

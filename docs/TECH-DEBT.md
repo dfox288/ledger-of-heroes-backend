@@ -6,51 +6,39 @@ This document tracks technical debt items and future refactoring opportunities.
 
 ## Database Schema Improvements
 
-### 1. Rename `random_tables` to `dice_progressions` (or `scaling_tables`)
+### 1. Rename `random_tables` to `entity_data_tables`
 
-**Status:** Deferred
-**Priority:** Low
+**Status:** 📋 PLANNED - Ready to Execute
+**Priority:** Medium
 **Added:** 2025-11-26
-**Context:** Optional Features implementation
+**Updated:** 2025-11-29
+**Context:** Optional Features implementation, API clarity
 
 **Current State:**
-The `random_tables` and `random_table_entries` tables serve dual purposes:
-1. **Random roll tables** (d6, d8, d100 with discrete outcomes) - e.g., Background personality traits
-2. **Level/resource scaling data** - e.g., Sneak Attack damage progression, Elemental Discipline ki cost scaling
+The `random_tables` table stores 563 records across 5 distinct use cases:
+- **Random tables** (79%): Rollable with dice (Personality Trait d8, Wild Magic Surge d100)
+- **Damage dice** (~10%): Feature damage expressions (Necrotic Damage d12)
+- **Modifiers** (~7%): Size/weight calculations (Size Modifier 2d4)
+- **Lookup tables** (~21%): Reference data without dice (Musical Instrument, Exhaustion)
+- **Progressions** (~3%): Level-based data (Bard Spells Known)
 
 **Problem:**
-The name "random_tables" is misleading for non-random data like damage scaling.
+The name "random_tables" is misleading for non-random data (21% have no dice at all).
 
-**Proposed Solution:**
-```sql
--- Rename tables
-ALTER TABLE random_tables RENAME TO dice_progressions;
-ALTER TABLE random_table_entries RENAME TO dice_progression_entries;
+**Approved Solution:**
+- Rename tables: `random_tables` → `entity_data_tables`
+- Add `table_type` enum column: `random`, `damage`, `modifier`, `lookup`, `progression`
+- Rename all related classes, traits, resources
+- **BREAKING API CHANGE:** JSON key `random_tables` → `data_tables`
 
--- Add progression_type enum
-ALTER TABLE dice_progressions ADD COLUMN progression_type ENUM('random', 'level_scaling', 'resource_scaling');
-```
+**Implementation Plans:**
+- **Design:** `docs/plans/2025-11-29-entity-data-tables-refactor.md`
+- **Step-by-step:** `docs/plans/2025-11-29-entity-data-tables-implementation.md`
 
-**Files Affected:**
-- `app/Models/RandomTable.php` → `DiceProgression.php`
-- `app/Models/RandomTableEntry.php` → `DiceProgressionEntry.php`
-- `app/Services/Importers/Concerns/ImportsRandomTables.php`
-- `app/Services/Importers/Concerns/ImportsRandomTablesFromText.php`
-- `app/Services/Importers/ClassImporter.php`
-- `app/Services/Importers/BackgroundImporter.php`
-- `app/Services/Importers/RaceImporter.php`
-- `app/Services/Importers/SpellImporter.php`
-- `app/Http/Resources/*Resource.php` (any that include random tables)
-- All related tests
+**Scope:** ~45 files, ~15 commits, 16 tasks
 
 **Estimated Effort:** 4-6 hours
-**Risk:** Medium (touches many files, needs careful testing)
-
-**Why Deferred:**
-- Current naming works and is well-understood
-- No functional issues
-- Refactoring would delay OptionalFeatures implementation
-- Can be done as a standalone cleanup task
+**Risk:** Medium (many files, breaking API change, but comprehensive test coverage)
 
 ---
 
@@ -79,4 +67,4 @@ _(Move items here when resolved)_
 
 ---
 
-**Last Updated:** 2025-11-26
+**Last Updated:** 2025-11-29

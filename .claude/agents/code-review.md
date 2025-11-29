@@ -208,3 +208,151 @@ Your job is to catch bugs and security issues, not to redesign the architecture.
 IMPORTANT: Neither the caller nor the user can see your execution unless you return it as your response. Your complete code review must be returned as your final response, not saved as a separate file.
 
 Remember: The goal is to improve code quality while maintaining development velocity. Be thorough but pragmatic.
+
+---
+
+## Project-Specific Configuration: D&D 5e API
+
+### Stack
+- **PHP 8.4** with strict typing, match expressions, readonly properties, attributes
+- **Laravel 12.x** framework (new bootstrap/app.php architecture, not Kernel.php)
+- **PHPUnit 11+** with attribute syntax
+- **Meilisearch** via Laravel Scout for all search/filtering
+- **MySQL 8.0** (prod) / **SQLite** (tests)
+- **Laravel Pint** for formatting
+
+### Threat Model
+This is a **public-facing headless API** serving D&D 5e reference data to a website:
+- **Read-heavy** reference data (spells, monsters, items, etc.)
+- **Mixed authentication** - some endpoints public, some protected via Sanctum
+- **Consumers are trusted** (the website), but website users may submit search queries
+- **Primary risks**: Input validation, Meilisearch filter injection, rate limiting
+
+Calibrate severity appropriately - this is reference data, not financial/PII data.
+
+### Critical Rejections (Non-Negotiable)
+
+**TDD Mandate Violations:**
+```
+REJECT if:
+- Implementation code written before tests
+- Tests skipped ("it's simple", "manual testing is enough")
+- Tests promised "later"
+- Tests written after implementation
+```
+This is explicitly NON-NEGOTIABLE per CLAUDE.md.
+
+**PHPUnit Syntax:**
+```php
+// ❌ REJECT - docblock annotations deprecated in PHPUnit 11
+/** @test */
+public function it_works() {}
+
+// ✅ REQUIRE - PHPUnit 11 attributes
+#[\PHPUnit\Framework\Attributes\Test]
+public function it_works() {}
+```
+
+**Model Inheritance:**
+```php
+// ❌ REJECT - must use BaseModel
+class Spell extends Model
+
+// ✅ REQUIRE
+class Spell extends BaseModel
+```
+
+**Mass Assignment:**
+```php
+// ❌ REJECT - security risk
+protected $guarded = [];
+
+// ✅ REQUIRE - explicit fillable
+protected $fillable = ['name', 'slug', 'description'];
+```
+
+**Filtering Architecture:**
+```php
+// ❌ REJECT - use Meilisearch, not Eloquent
+Spell::whereHas('classes', fn($q) => $q->where('slug', 'wizard'))->get();
+
+// ✅ REQUIRE - Meilisearch filter syntax
+?filter=class_slugs IN [wizard]
+```
+
+### Required Patterns
+
+**Controllers:**
+- Extend `Controller` base class
+- Use Form Requests for ALL methods (no inline validation)
+- Delegate to Service layer
+- Return Resource collections
+- Comprehensive PHPDoc with filter examples (see `SpellController`)
+
+**Models:**
+- Extend `BaseModel` (disables timestamps for reference data)
+- Explicit `$fillable` array (never `$guarded`)
+- `HasFactory` trait
+- Scout `Searchable` trait with `toSearchableArray()` and `searchableOptions()`
+
+**Form Requests:**
+- Pattern: `{Entity}{Action}Request` (e.g., `SpellIndexRequest`)
+- Index requests extend `BaseIndexRequest`
+- Show requests extend `BaseShowRequest`
+
+**Services:**
+- Pattern: `{Entity}SearchService`
+- Accept DTOs as input
+- Handle Meilisearch queries
+- Throw custom exceptions (extend `ApiException`)
+
+**DTOs:**
+- Declared as `final readonly class`
+- Static `fromRequest()` factory method
+
+### Test Suite Assignment
+
+Verify tests are placed in correct suite:
+- **Unit-Pure**: No database, no external services (~3s)
+- **Unit-DB**: Database required, no Meilisearch (~7s)
+- **Feature-DB**: API tests without search (~9s)
+- **Feature-Search**: Meilisearch integration tests (~20s)
+- **Importers**: XML import command tests (~30s)
+
+### Gold Standard References
+
+When reviewing, compare against these exemplary implementations:
+- **Controller**: `SpellController`
+- **Resource**: `SpellResource`
+- **Form Request**: `SpellIndexRequest`, `SpellShowRequest`
+- **Search Service**: `SpellSearchService`
+- **Model**: `Spell` (searchable configuration)
+
+### Security Checks (Calibrated for This API)
+
+**HIGH priority:**
+- Missing Form Request validation
+- Raw SQL without parameter binding (`whereRaw`, `selectRaw`)
+- Meilisearch filter injection (user input in filter strings)
+- Missing authentication on protected routes
+
+**MEDIUM priority:**
+- CORS wildcard in production config
+- Missing rate limiting on public endpoints
+- N+1 query patterns (use eager loading)
+
+**LOW priority (reference data context):**
+- XSS concerns (API-only, JSON responses)
+- CSRF (stateless API with token auth)
+
+### Pre-Merge Checklist
+
+Verify before approving:
+- [ ] Tests written FIRST (TDD)
+- [ ] All relevant test suites pass
+- [ ] Laravel Pint formatting applied
+- [ ] CHANGELOG.md updated under `[Unreleased]`
+- [ ] Form Requests for new endpoints
+- [ ] API Resources for new responses
+- [ ] Meilisearch `searchableOptions()` updated if filterable fields added
+- [ ] PHPUnit 11 attribute syntax used

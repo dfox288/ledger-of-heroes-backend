@@ -533,7 +533,8 @@ class ClassController extends Controller
 
             // Load counts for section_counts field
             $cachedClass->loadCount([
-                'features' => fn ($query) => $query->topLevel(),
+                'features' => fn ($query) => $query->topLevel()->where('is_multiclass_only', false),
+                'features as multiclass_features_count' => fn ($query) => $query->topLevel()->where('is_multiclass_only', true),
                 'proficiencies',
                 'traits',
                 'subclasses',
@@ -558,7 +559,8 @@ class ClassController extends Controller
 
         // Load counts for section_counts field
         $class->loadCount([
-            'features' => fn ($query) => $query->topLevel(),
+            'features' => fn ($query) => $query->topLevel()->where('is_multiclass_only', false),
+            'features as multiclass_features_count' => fn ($query) => $query->topLevel()->where('is_multiclass_only', true),
             'proficiencies',
             'traits',
             'subclasses',

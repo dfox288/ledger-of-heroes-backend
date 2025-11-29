@@ -1,23 +1,47 @@
 # BLOCKED: Classes Proficiency Filters - Backend Denormalization Needed
 
 **Date:** 2025-11-25
-**Updated:** 2025-11-26
-**Status:** ✅ **COMPLETED** - Already implemented in CharacterClass model (discovered 2025-11-26)
-**Priority:** TIER 6 MEDIUM
+**Updated:** 2025-11-29
+**Status:** ✅ **FULLY WORKING** - Verified 2025-11-29, all filters functional
+**Priority:** COMPLETED
 **Task:** Add 5 proficiency filters to Classes page for multiclass planning
-**Estimated Backend Effort:** ~4 hours (revised down from 9-14 hours)
+**Estimated Backend Effort:** 0 hours - already implemented!
 
 ---
 
 ## Executive Summary
 
-**UPDATE (2025-11-26):** The proficiency data **already exists** in the `proficiencies` relationship! The blocker is now much simpler:
+**UPDATE (2025-11-29):** All filters are **fully implemented and working**!
 
-1. ✅ **Data exists** - Full proficiency data in `classes.proficiencies[]` relationship
-2. ❌ **Not filterable** - Meilisearch can't query nested relationships efficiently
-3. 🔧 **Solution** - Denormalize to flat JSON columns + add to Meilisearch index
+### Verified Working Filters
 
-**Only `max_spell_level` needs manual data entry (13 values).**
+```bash
+# Heavy Armor proficiency
+curl 'http://localhost:8080/api/v1/classes?filter=armor_proficiencies IN ["Heavy Armor"]'
+# Returns: Fighter, Paladin, Order Domain, Tempest Domain, Twilight Domain, War Domain
+
+# Full casters (max_spell_level=9)
+curl 'http://localhost:8080/api/v1/classes?filter=max_spell_level=9 AND is_base_class=true'
+# Returns: Bard, Cleric, Druid, Sorcerer, Warlock, Wizard
+
+# Constitution saving throw
+curl 'http://localhost:8080/api/v1/classes?filter=saving_throw_proficiencies IN ["Constitution"]'
+# Returns: Artificer, Barbarian, Fighter, Sorcerer
+```
+
+### Implementation Details
+
+The `CharacterClass` model computes proficiency arrays from the `proficiencies` relationship in `toSearchableArray()`:
+- `armor_proficiencies` - ["Light Armor", "Medium Armor", "Heavy Armor", "Shields"]
+- `weapon_proficiencies` - ["Simple Weapons", "Martial Weapons", etc.]
+- `tool_proficiencies` - Tool names
+- `skill_proficiencies` - Skill names available to the class
+- `saving_throw_proficiencies` - ["Strength", "Constitution", etc.]
+- `max_spell_level` - Computed from class spell list (0, 4, 5, or 9)
+
+All are configured in `searchableOptions()` as `filterableAttributes`.
+
+**No database changes needed - uses accessors/computed values.**
 
 ---
 

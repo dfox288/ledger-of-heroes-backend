@@ -8,7 +8,7 @@ Active tasks and priorities for this project.
 
 _Tasks currently being worked on_
 
-- [ ] Consider removing `import-files/` directory (now redundant with multi-directory import)
+_None_
 
 ## Ready to Execute
 
@@ -62,6 +62,18 @@ _Future tasks, not yet prioritized_
 ## Completed
 
 _Recently completed tasks (move to CHANGELOG.md after release)_
+
+- [x] **Separate multiclass features in section_counts** (2025-11-29)
+  - Added `computed.section_counts.multiclass_features` count
+  - `section_counts.features` now excludes multiclass-only features
+  - Test added: `section_counts_separates_multiclass_features`
+  - Frontend can display multiclass requirements separately
+
+- [x] **Evaluate import-files/ Directory Removal** (2025-11-29)
+  - Decision: Keep directory (gitignored) - provides fallback for Importers test suite
+  - Production uses `XML_SOURCE_PATH` pointing to fightclub_forked
+  - Legacy fallback in config preserved for local development without fightclub_forked
+  - No action needed - directory already gitignored
 
 - [x] **XML Import Path Refactoring** (2025-11-29)
   - Import now reads directly from fightclub_forked repository

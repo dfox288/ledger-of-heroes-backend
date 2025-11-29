@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Separate multiclass features count in section_counts**
+  - `computed.section_counts.multiclass_features` now counts features like "Multiclass Cleric"
+  - `computed.section_counts.features` now excludes multiclass-only features
+  - Frontend can display multiclass requirements in a separate section
+  - Features array still contains all features with `is_multiclass_only` flag for filtering
+
 ### Changed
 
 - **XML import now reads directly from fightclub_forked repository**

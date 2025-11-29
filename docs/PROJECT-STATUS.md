@@ -28,6 +28,13 @@
 
 ## 🚀 Recent Milestones
 
+### Frontend API Review & Fixes ✅ COMPLETE (2025-11-29)
+- **Achievement:** Reviewed frontend API proposals and verified/fixed issues
+- **Multiclass Features:** Added `section_counts.multiclass_features` count, features count now excludes multiclass-only features
+- **Proficiency Filters:** Verified all working (`armor_proficiencies`, `weapon_proficiencies`, `saving_throw_proficiencies`, `max_spell_level`, etc.)
+- **Spellcasting Inheritance:** Confirmed `effective_spellcasting_ability` accessor working for subclasses
+- **Tests:** Added `section_counts_separates_multiclass_features` test
+
 ### XML Import Path Refactoring ✅ COMPLETE (2025-11-29)
 - **Achievement:** Import now reads directly from fightclub_forked repository
 - **Key Changes:**

@@ -132,6 +132,27 @@ class ClassDetailOptimizationTest extends TestCase
     }
 
     #[Test]
+    public function section_counts_separates_multiclass_features(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+        ]);
+
+        // Create 3 regular features
+        ClassFeature::factory()->count(3)->create(['class_id' => $class->id]);
+
+        // Create 2 multiclass-only features
+        ClassFeature::factory()->count(2)->multiclassOnly()->create(['class_id' => $class->id]);
+
+        $response = $this->getJson("/api/v1/classes/{$class->slug}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.computed.section_counts.features', 3)
+            ->assertJsonPath('data.computed.section_counts.multiclass_features', 2);
+    }
+
+    #[Test]
     public function feature_count_excludes_choice_options(): void
     {
         $class = CharacterClass::factory()->create([

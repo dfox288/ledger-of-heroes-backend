@@ -1,1 +1,1 @@
-handovers/SESSION-HANDOVER-2025-11-29-1920-classes-audit-fixes.md
+SESSION-HANDOVER-2025-11-29-2122-frontend-api-review.md

@@ -42,12 +42,16 @@ class ClassComputedResource extends JsonResource
             /**
              * Section counts for lazy-loading accordions in UI.
              *
-             * @var array{features: int|null, proficiencies: int|null, traits: int|null, subclasses: int|null, spells: int|null, counters: int|null, optional_features: int|null}|null
+             * Features count excludes multiclass-only features (e.g., "Multiclass Cleric").
+             * Multiclass features are counted separately for optional display.
+             *
+             * @var array{features: int|null, multiclass_features: int|null, proficiencies: int|null, traits: int|null, subclasses: int|null, spells: int|null, counters: int|null, optional_features: int|null}|null
              */
             'section_counts' => $this->when(
                 $this->features_count !== null || $this->proficiencies_count !== null,
                 fn () => [
                     'features' => $this->features_count,
+                    'multiclass_features' => $this->multiclass_features_count,
                     'proficiencies' => $this->proficiencies_count,
                     'traits' => $this->traits_count,
                     'subclasses' => $this->subclasses_count,

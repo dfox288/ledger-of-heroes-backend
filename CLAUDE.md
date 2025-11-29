@@ -12,11 +12,10 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 
 **Essential Docs:**
 - `docs/PROJECT-STATUS.md` - Metrics and current status
-- `docs/TODO.md` - Active tasks
 - `docs/LATEST-HANDOVER.md` - Latest session handover
 - `docs/reference/XML-SOURCE-PATHS.md` - XML source path mappings
 
-**Cross-Project Issues:** [dnd-rulebook-project](https://github.com/dfox288/dnd-rulebook-project/issues)
+**Tasks & Issues:** [GitHub Issues](https://github.com/dfox288/dnd-rulebook-project/issues) (shared with frontend)
 
 ---
 
@@ -71,7 +70,7 @@ gh issue close 42 --repo dfox288/dnd-rulebook-project --comment "Fixed in PR #12
 
 ```
 1. Check Laravel skills     → Use Superpower skills if applicable
-2. Update docs/TODO.md      → Mark task "in progress"
+2. Check GitHub Issues      → /issue:inbox for assigned tasks
 3. Write tests FIRST        → Watch them fail (TDD mandatory)
 4. Write minimal code       → Make tests pass
 5. Refactor while green     → Clean up
@@ -79,7 +78,7 @@ gh issue close 42 --repo dfox288/dnd-rulebook-project --comment "Fixed in PR #12
 7. Format with Pint         → docker compose exec php ./vendor/bin/pint
 8. Update CHANGELOG.md      → Under [Unreleased]
 9. Commit + Push            → Clear message, push to remote
-10. Update docs/TODO.md     → Mark complete
+10. Close GitHub Issue      → /issue:close N with resolution comment
 ```
 
 ### For API Changes (Additional)
@@ -304,14 +303,14 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 docs/
 ├── PROJECT-STATUS.md      # Metrics (single source of truth)
-├── TODO.md                # Active tasks
 ├── LATEST-HANDOVER.md     # Symlink to recent handover
-├── TECH-DEBT.md           # Technical debt
 ├── reference/             # Stable docs (search, filters, API)
 ├── plans/                 # Active plans only
 ├── handovers/             # Recent (last 7 days)
 └── archive/               # Historical by month
 ```
+
+**Tasks:** Use [GitHub Issues](https://github.com/dfox288/dnd-rulebook-project/issues) for all task tracking.
 
 **Naming:** `SESSION-HANDOVER-YYYY-MM-DD-HHMM-topic.md`
 
@@ -329,7 +328,7 @@ Before marking ANY work complete:
 - [ ] Code formatted with Pint
 - [ ] CHANGELOG.md updated
 - [ ] Work committed and pushed
-- [ ] TODO.md updated
+- [ ] GitHub Issue closed with resolution comment
 
 **For API changes:**
 - [ ] Form Requests validate new parameters
@@ -345,8 +344,8 @@ Before marking ANY work complete:
 - **Test output:** Reuse `tests/results/test-output.log` if recent
 - **Suite selection:** Always run smallest relevant suite
 - **Metrics:** See `docs/PROJECT-STATUS.md` for counts
-- **Tasks:** Track in `docs/TODO.md`
-- **Tech debt:** Add to `docs/TECH-DEBT.md`
+- **Tasks:** Use `/issue:inbox` to check assigned issues
+- **New issues:** Use `/issue:new` to create issues for bugs/features
 - **Docs cleanup:** Run `/organize-docs` periodically
 - **Gold standards:** Reference `Spell*` classes for patterns
 

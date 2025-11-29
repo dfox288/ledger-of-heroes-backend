@@ -25,9 +25,7 @@ _Tasks intentionally postponed_
 
 _Prioritized tasks ready to start_
 
-- [ ] API documentation standardization - Phase 3 (simple lookup tables)
-  - SourceController, AlignmentController, ArmorTypeController, MonsterTypeController
-  - OptionalFeatureTypeController, RarityController, TagController, AbilityScoreController
+_None - backlog items available_
 
 ---
 
@@ -46,10 +44,11 @@ _Future tasks, not yet prioritized_
 
 _Recently completed tasks (move to CHANGELOG.md after release)_
 
-- [x] **API Documentation Standardization - Phase 1 & 2** (2025-11-29)
-  - Enhanced PHPDoc for 9 lookup controllers following SpellController gold standard
+- [x] **API Documentation Standardization - Complete** (2025-11-29)
+  - Enhanced PHPDoc for all 17 lookup controllers following SpellController gold standard
   - Phase 1: SkillController, SpellSchoolController, ProficiencyTypeController, ItemTypeController, ItemPropertyController
   - Phase 2: ConditionController, LanguageController, DamageTypeController, SizeController
+  - Phase 3: SourceController, AlignmentController, ArmorTypeController, MonsterTypeController, OptionalFeatureTypeController, RarityController, TagController, AbilityScoreController
   - Added Scramble `#[QueryParameter]` annotations for OpenAPI docs
 
 - [x] **Laravel Sanctum Authentication** (2025-11-29)

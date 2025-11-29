@@ -8,15 +8,44 @@ use App\Http\Resources\AbilityScoreResource;
 use App\Http\Resources\SpellResource;
 use App\Models\AbilityScore;
 use App\Services\Cache\LookupCacheService;
+use Dedoc\Scramble\Attributes\QueryParameter;
 
 class AbilityScoreController extends Controller
 {
     /**
      * List all ability scores
      *
-     * Returns a paginated list of the 6 core ability scores in D&D 5e (Strength, Dexterity,
-     * Constitution, Intelligence, Wisdom, Charisma). Supports searching by name or code (e.g., "STR", "DEX").
+     * Returns a paginated list of the 6 core ability scores in D&D 5e. Each ability score represents
+     * a fundamental character attribute that affects saving throws, skills, attack rolls, and damage.
+     *
+     * **The Six Ability Scores:**
+     * - **Strength (STR):** Physical power, melee attacks, climbing, jumping, grappling (Athletics)
+     * - **Dexterity (DEX):** Agility, reflexes, ranged attacks, dodging, balance, stealth (Acrobatics, Sleight of Hand, Stealth)
+     * - **Constitution (CON):** Endurance, health, hit points, concentration saves, resistance to poison/cold
+     * - **Intelligence (INT):** Reasoning, memory, nature, history, investigation (Arcana, History, Investigation, Nature, Religion)
+     * - **Wisdom (WIS):** Awareness, intuition, perception, survival, insight (Animal Handling, Insight, Medicine, Perception, Survival)
+     * - **Charisma (CHA):** Force of personality, persuasion, deception, intimidation (Deception, Intimidation, Performance, Persuasion)
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/lookups/ability-scores              # All 6 ability scores
+     * GET /api/v1/lookups/ability-scores?q=strength   # Search by name
+     * GET /api/v1/lookups/ability-scores?q=str        # Search by code
+     * GET /api/v1/lookups/ability-scores?per_page=10  # Custom page size
+     * ```
+     *
+     * **Query Parameters:**
+     * - `q` (string): Search by name or code (partial match) - e.g., "str", "strength", "dex"
+     * - `per_page` (int): Results per page, 1-100 (default: 50)
+     *
+     * **Use Cases:**
+     * - **Character Building:** Determine which ability scores to prioritize based on class (Wizards need INT, Clerics need WIS, Rogues need DEX)
+     * - **Ability Score Checks:** Understand what modifiers apply to skill checks and saving throws
+     * - **Combat Analysis:** Know which abilities affect attack rolls, damage, and AC (DEX for AC, STR for melee attacks)
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
+    #[QueryParameter('q', description: 'Search ability scores by name or code', example: 'strength')]
     public function index(AbilityScoreIndexRequest $request, LookupCacheService $cache)
     {
         $query = AbilityScore::query();
@@ -57,7 +86,22 @@ class AbilityScoreController extends Controller
      * Get a single ability score
      *
      * Returns detailed information about a specific ability score including its full name,
-     * code abbreviation, and associated skills.
+     * code abbreviation, and associated skills. Ability scores can be retrieved by ID, code, or name.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/lookups/ability-scores/1              # By ID
+     * GET /api/v1/lookups/ability-scores/STR            # By code
+     * GET /api/v1/lookups/ability-scores/strength       # By slug
+     * GET /api/v1/lookups/ability-scores/Strength       # By name
+     * ```
+     *
+     * **Response includes:**
+     * - `id`, `code`, `name`, `slug`: Ability score identification
+     * - `skills`: Associated skills array (e.g., STR has Athletics; DEX has Acrobatics, Sleight of Hand, Stealth)
+     *
+     * @param  AbilityScore  $abilityScore  The ability score (by ID, code, or name)
+     * @return \Illuminate\Http\Resources\Json\AbilityScoreResource
      */
     public function show(AbilityScore $abilityScore)
     {

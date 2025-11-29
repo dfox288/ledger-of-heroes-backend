@@ -19,23 +19,34 @@ class RarityController extends Controller
      * List all item rarities
      *
      * Returns distinct rarities from the items table. These represent the relative
-     * power and availability of magic items in D&D 5e.
+     * power and availability of magic items in D&D 5e, ordered from Common to Artifact.
      *
-     * **Examples:**
-     * - `GET /api/v1/lookups/rarities` - All rarities
+     * **Magic Item Rarity Scale (D&D 5e Official):**
+     * - **Common** - Minor conveniences, cost 50-100 gp, no attunement
+     * - **Uncommon** - Low-level utility, cost 101-500 gp, optional attunement
+     * - **Rare** - Mid-level power, cost 501-5,000 gp, often requires attunement (levels 5-10)
+     * - **Very Rare** - High-level abilities, cost 5,001-50,000 gp, usually requires attunement (levels 11-16)
+     * - **Legendary** - Powerful artifacts, cost 50,001+ gp, requires attunement (levels 17+)
+     * - **Artifact** - World-defining items, priceless, major campaign implications
      *
-     * **Standard D&D 5e Rarities (in order):**
-     * - Common (minor magic items, readily available)
-     * - Uncommon (low-level adventurer items)
-     * - Rare (mid-level items, require attunement often)
-     * - Very Rare (powerful items, limited availability)
-     * - Legendary (extremely powerful, unique items)
-     * - Artifact (world-changing items, plot devices)
+     * **Common Examples:**
+     * ```
+     * GET /api/v1/lookups/rarities              # All rarities (6 standard D&D rarities)
+     * ```
+     *
+     * **Character Level Guidelines:**
+     * - Level 1-4: Common, Uncommon items
+     * - Level 5-10: Uncommon, Rare items
+     * - Level 11-16: Rare, Very Rare items
+     * - Level 17+: Legendary, Artifact items
      *
      * **Use Cases:**
-     * - Magic item shop filtering
-     * - Treasure hoard generation
-     * - Character progression planning
+     * - Magic item shop filtering by character power level
+     * - Treasure hoard generation following DMG guidelines
+     * - Campaign loot planning and balance
+     * - Item rarity-based access control
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(): JsonResponse
     {

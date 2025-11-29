@@ -4,14 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Monster;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
 
 /**
  * Monster type lookup endpoint.
  *
- * Returns distinct creature types derived from the monsters table
- * for populating filter dropdowns in the frontend.
+ * Returns distinct creature types from the monsters table for populating
+ * filter dropdowns in the frontend and supporting character/encounter building.
  */
 class MonsterTypeController extends Controller
 {
@@ -23,18 +24,27 @@ class MonsterTypeController extends Controller
      * and ranger favored enemies.
      *
      * **Examples:**
-     * - `GET /api/v1/lookups/monster-types` - All creature types
+     * ```
+     * GET /api/v1/lookups/monster-types              # All creature types
+     * GET /api/v1/lookups/monster-types?q=fiend      # Search by name
+     * ```
      *
      * **Standard D&D 5e Creature Types:**
-     * - Aberration, Beast, Celestial, Construct, Dragon
-     * - Elemental, Fey, Fiend, Giant, Humanoid
-     * - Monstrosity, Ooze, Plant, Undead
+     * - **Classic:** Aberration, Beast, Celestial, Construct, Dragon
+     * - **Humanoid:** Humanoid, Giant, Fey, Elemental, Fiend
+     * - **Undead & Other:** Monstrosity, Ooze, Plant, Undead
+     *
+     * **Query Parameters:**
+     * - `q` (string): Search by name (partial match)
+     * - `per_page` (int): Results per page, 1-100 (default: 50)
      *
      * **Use Cases:**
-     * - Ranger favored enemy selection
-     * - Cleric/Paladin spell targeting (Turn Undead, etc.)
-     * - Monster encounter filtering
+     * - Ranger favored enemy selection (Favored Enemy class feature)
+     * - Cleric/Paladin spell targeting (Turn Undead, Protection from Evil, etc.)
+     * - Monster encounter filtering and encounter building
+     * - Spell effect verification (many spells target specific creature types)
      */
+    #[QueryParameter('q', description: 'Search creature types by name', example: 'fiend')]
     public function index(): JsonResponse
     {
         $types = Monster::query()

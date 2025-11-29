@@ -128,4 +128,49 @@ TEXT;
 
         $this->assertDatabaseCount('entity_data_tables', 0);
     }
+
+    #[Test]
+    public function it_imports_level_progression_tables()
+    {
+        $race = Race::factory()->create();
+        $description = <<<'TEXT'
+Your martial arts training allows you to use special dice:
+
+Martial Arts:
+Level | Martial Arts
+1st | 1d4
+5th | 1d6
+11th | 1d8
+17th | 1d10
+
+Source: PHB
+TEXT;
+        $trait = CharacterTrait::factory()->forEntity(Race::class, $race->id)->create([
+            'description' => $description,
+        ]);
+
+        $this->importTraitTables($trait, $trait->description);
+
+        // Should create a table
+        $table = EntityDataTable::where('reference_id', $trait->id)->first();
+        $this->assertNotNull($table);
+        $this->assertEquals('Martial Arts', $table->table_name);
+        $this->assertEquals('progression', $table->table_type->value);
+
+        // Should have 4 entries with level values
+        $entries = $table->entries()->orderBy('sort_order')->get();
+        $this->assertCount(4, $entries);
+
+        $this->assertEquals(1, $entries[0]->level);
+        $this->assertEquals('1d4', $entries[0]->result_text);
+
+        $this->assertEquals(5, $entries[1]->level);
+        $this->assertEquals('1d6', $entries[1]->result_text);
+
+        $this->assertEquals(11, $entries[2]->level);
+        $this->assertEquals('1d8', $entries[2]->result_text);
+
+        $this->assertEquals(17, $entries[3]->level);
+        $this->assertEquals('1d10', $entries[3]->result_text);
+    }
 }

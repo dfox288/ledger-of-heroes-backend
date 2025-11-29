@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\DataTableType;
 use App\Models\CharacterClass;
 use Illuminate\Support\Collection;
 
@@ -21,6 +22,22 @@ final class ClassProgressionTableGenerator
         'Second Wind',          // Fighter - listed in Features column
         'Lay on Hands',         // Paladin - formula: level * 5
         'Channel Divinity',     // Paladin/Cleric - listed in Features column
+        'Wholeness of Body',    // Monk L6 - one-time feature, not progression
+        'Stroke of Luck',       // Rogue L20 - capstone feature, not progression
+    ];
+
+    /**
+     * Synthetic progressions for classes where data is only in prose text.
+     * Rage Damage is specified in prose: "+2 at 1st, +3 at 9th, +4 at 16th"
+     */
+    private const SYNTHETIC_PROGRESSIONS = [
+        'barbarian' => [
+            'rage_damage' => [
+                'label' => 'Rage Damage',
+                'type' => 'bonus',
+                'values' => [1 => '+2', 9 => '+3', 16 => '+4'],
+            ],
+        ],
     ];
 
     /**
@@ -40,11 +57,14 @@ final class ClassProgressionTableGenerator
             return ['columns' => [], 'rows' => []];
         }
 
-        // Ensure relationships are loaded
-        $progressionClass->loadMissing(['levelProgression', 'counters', 'features']);
+        // Ensure relationships are loaded, including feature data tables
+        $progressionClass->loadMissing(['levelProgression', 'counters', 'features.dataTables.entries']);
 
-        $columns = $this->buildColumns($progressionClass);
-        $rows = $this->buildRows($progressionClass, $columns);
+        // Get progression tables from feature data tables
+        $featureProgressionTables = $this->getFeatureProgressionTables($progressionClass);
+
+        $columns = $this->buildColumns($progressionClass, $featureProgressionTables);
+        $rows = $this->buildRows($progressionClass, $columns, $featureProgressionTables);
 
         return [
             'columns' => $columns,
@@ -53,9 +73,32 @@ final class ClassProgressionTableGenerator
     }
 
     /**
+     * Get progression-related EntityDataTables from class features.
+     *
+     * Returns tables that have level-based entries (PROGRESSION or DAMAGE type).
+     * DAMAGE tables from <roll> elements also contain level progression data.
+     *
+     * @return Collection<int, array{feature_name: string, table: \App\Models\EntityDataTable}>
+     */
+    private function getFeatureProgressionTables(CharacterClass $class): Collection
+    {
+        return $class->features
+            ->flatMap(fn ($feature) => $feature->dataTables
+                // Include both PROGRESSION (from text parsing) and DAMAGE (from <roll> elements)
+                ->filter(fn ($table) => in_array($table->table_type, [DataTableType::PROGRESSION, DataTableType::DAMAGE]))
+                // Only include if entries have level data
+                ->filter(fn ($table) => $table->entries->contains(fn ($entry) => $entry->level !== null))
+                ->map(fn ($table) => [
+                    'feature_name' => $feature->feature_name,
+                    'table' => $table,
+                ])
+            );
+    }
+
+    /**
      * Build dynamic columns based on class data.
      */
-    private function buildColumns(CharacterClass $class): array
+    private function buildColumns(CharacterClass $class, Collection $featureProgressionTables): array
     {
         $columns = [
             ['key' => 'level', 'label' => 'Level', 'type' => 'integer'],
@@ -63,16 +106,52 @@ final class ClassProgressionTableGenerator
             ['key' => 'features', 'label' => 'Features', 'type' => 'string'],
         ];
 
+        // Track which column keys we've already added (to avoid duplicates)
+        $existingKeys = collect($columns)->pluck('key')->toArray();
+
+        // Add columns from feature progression tables (EntityDataTable)
+        // These take precedence over counters since they have actual level-based data
+        foreach ($featureProgressionTables as $item) {
+            $key = $this->slugify($item['feature_name']);
+
+            if (! in_array($key, $existingKeys)) {
+                $columns[] = [
+                    'key' => $key,
+                    'label' => $item['feature_name'],
+                    'type' => 'dice', // Progression tables typically contain dice values
+                ];
+                $existingKeys[] = $key;
+            }
+        }
+
         // Add counter columns (Sneak Attack, Ki Points, Rage Damage, etc.)
         // Exclude formula-based or redundant counters
+        // Also skip counters that have a corresponding EntityDataTable (prefer the table data)
         $counters = $class->counters->pluck('counter_name')->unique()->sort()
-            ->reject(fn ($name) => in_array($name, self::EXCLUDED_COUNTERS));
+            ->reject(fn ($name) => in_array($name, self::EXCLUDED_COUNTERS))
+            ->reject(fn ($name) => in_array($this->slugify($name), $existingKeys));
+
         foreach ($counters as $counterName) {
+            $key = $this->slugify($counterName);
             $columns[] = [
-                'key' => $this->slugify($counterName),
+                'key' => $key,
                 'label' => $counterName,
                 'type' => $this->getCounterType($counterName),
             ];
+            $existingKeys[] = $key;
+        }
+
+        // Add synthetic progressions (e.g., Rage Damage for Barbarian)
+        $syntheticProgs = self::SYNTHETIC_PROGRESSIONS[$class->slug] ?? [];
+        foreach ($syntheticProgs as $key => $data) {
+            if (! in_array($key, $existingKeys)) {
+                $columns[] = [
+                    'key' => $key,
+                    'label' => $data['label'],
+                    'type' => $data['type'],
+                ];
+                $existingKeys[] = $key;
+            }
         }
 
         // Add spell slot columns if applicable
@@ -102,12 +181,15 @@ final class ClassProgressionTableGenerator
     /**
      * Build rows for levels 1-20.
      */
-    private function buildRows(CharacterClass $class, array $columns): array
+    private function buildRows(CharacterClass $class, array $columns, Collection $featureProgressionTables): array
     {
         $rows = [];
         $features = $class->features->groupBy('level');
         $counters = $this->buildCounterLookup($class->counters);
         $progression = $class->levelProgression->keyBy('level');
+
+        // Build lookup for feature progression table values
+        $tableValues = $this->buildTableValueLookup($featureProgressionTables);
 
         for ($level = 1; $level <= 20; $level++) {
             $row = [
@@ -116,9 +198,22 @@ final class ClassProgressionTableGenerator
                 'features' => $this->getFeaturesForLevel($features, $level),
             ];
 
-            // Add counter values (interpolated)
+            // Add values from feature progression tables (EntityDataTable)
+            foreach ($tableValues as $key => $values) {
+                $row[$key] = $this->getTableValue($values, $level);
+            }
+
+            // Add counter values (interpolated) - only for keys not already set by tables
             foreach ($counters as $counterKey => $counterData) {
-                $row[$counterKey] = $this->getCounterValue($counterData, $level);
+                if (! isset($row[$counterKey])) {
+                    $row[$counterKey] = $this->getCounterValue($counterData, $level);
+                }
+            }
+
+            // Add synthetic progression values (e.g., Rage Damage)
+            $syntheticProgs = self::SYNTHETIC_PROGRESSIONS[$class->slug] ?? [];
+            foreach ($syntheticProgs as $key => $data) {
+                $row[$key] = $this->getSyntheticValue($data['values'], $level);
             }
 
             // Add spell slots from progression
@@ -133,6 +228,70 @@ final class ClassProgressionTableGenerator
         }
 
         return $rows;
+    }
+
+    /**
+     * Build lookup table for feature progression table values by level.
+     *
+     * @return array<string, array<int, string>> Key is column slug, value is level => value map
+     */
+    private function buildTableValueLookup(Collection $featureProgressionTables): array
+    {
+        $lookup = [];
+
+        foreach ($featureProgressionTables as $item) {
+            $key = $this->slugify($item['feature_name']);
+            $table = $item['table'];
+
+            // Build level => value map from table entries
+            $values = [];
+            foreach ($table->entries as $entry) {
+                if ($entry->level !== null) {
+                    $values[$entry->level] = $entry->result_text;
+                }
+            }
+
+            // Only add if we have values
+            if (! empty($values)) {
+                $lookup[$key] = $values;
+            }
+        }
+
+        return $lookup;
+    }
+
+    /**
+     * Get interpolated table value for a level.
+     *
+     * Values are sparse (only defined at certain levels).
+     * We find the most recent defined value at or before the given level.
+     */
+    private function getTableValue(array $values, int $level): string
+    {
+        // Find the most recent value at or before this level
+        for ($l = $level; $l >= 1; $l--) {
+            if (isset($values[$l])) {
+                return $values[$l];
+            }
+        }
+
+        return '—';
+    }
+
+    /**
+     * Get synthetic progression value for a level.
+     *
+     * Like getTableValue, finds the most recent defined value at or before the given level.
+     */
+    private function getSyntheticValue(array $values, int $level): string
+    {
+        for ($l = $level; $l >= 1; $l--) {
+            if (isset($values[$l])) {
+                return $values[$l];
+            }
+        }
+
+        return '—';
     }
 
     /**

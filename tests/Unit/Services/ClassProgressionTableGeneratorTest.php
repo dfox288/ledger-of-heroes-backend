@@ -522,4 +522,209 @@ class ClassProgressionTableGeneratorTest extends TestCase
         // Ki Points should still be included
         $this->assertContains('ki_points', $columnKeys);
     }
+
+    #[Test]
+    public function it_excludes_wholeness_of_body_from_columns(): void
+    {
+        $monk = CharacterClass::factory()->create(['name' => 'Monk']);
+
+        // Wholeness of Body counter - should be EXCLUDED (one-time feature, not progression)
+        ClassCounter::factory()->create([
+            'class_id' => $monk->id,
+            'counter_name' => 'Wholeness of Body',
+            'level' => 6,
+            'counter_value' => 1,
+        ]);
+
+        // Ki Points - should be INCLUDED
+        ClassCounter::factory()->create([
+            'class_id' => $monk->id,
+            'counter_name' => 'Ki',
+            'level' => 2,
+            'counter_value' => 2,
+        ]);
+
+        $result = $this->generator->generate($monk);
+
+        $columnKeys = array_column($result['columns'], 'key');
+
+        $this->assertContains('ki', $columnKeys);
+        $this->assertNotContains('wholeness_of_body', $columnKeys);
+    }
+
+    #[Test]
+    public function it_excludes_stroke_of_luck_from_columns(): void
+    {
+        $rogue = CharacterClass::factory()->create(['name' => 'Rogue']);
+
+        // Stroke of Luck counter - should be EXCLUDED (capstone feature, not progression)
+        ClassCounter::factory()->create([
+            'class_id' => $rogue->id,
+            'counter_name' => 'Stroke of Luck',
+            'level' => 20,
+            'counter_value' => 1,
+        ]);
+
+        // Sneak Attack - should be INCLUDED
+        ClassCounter::factory()->create([
+            'class_id' => $rogue->id,
+            'counter_name' => 'Sneak Attack',
+            'level' => 1,
+            'counter_value' => 1,
+        ]);
+
+        $result = $this->generator->generate($rogue);
+
+        $columnKeys = array_column($result['columns'], 'key');
+
+        $this->assertContains('sneak_attack', $columnKeys);
+        $this->assertNotContains('stroke_of_luck', $columnKeys);
+    }
+
+    #[Test]
+    public function it_includes_columns_from_feature_data_tables(): void
+    {
+        $rogue = CharacterClass::factory()->create(['name' => 'Rogue']);
+
+        $feature = ClassFeature::factory()->create([
+            'class_id' => $rogue->id,
+            'feature_name' => 'Sneak Attack',
+            'level' => 1,
+        ]);
+
+        // Create an EntityDataTable with progression type
+        $table = \App\Models\EntityDataTable::create([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $feature->id,
+            'table_name' => 'Extra Damage',
+            'dice_type' => 'd6',
+            'table_type' => \App\Enums\DataTableType::PROGRESSION,
+        ]);
+
+        // Create entries with level values
+        \App\Models\EntityDataTableEntry::create([
+            'entity_data_table_id' => $table->id,
+            'roll_min' => 1, 'roll_max' => 1,
+            'result_text' => '1d6',
+            'level' => 1,
+            'sort_order' => 0,
+        ]);
+        \App\Models\EntityDataTableEntry::create([
+            'entity_data_table_id' => $table->id,
+            'roll_min' => 3, 'roll_max' => 3,
+            'result_text' => '2d6',
+            'level' => 3,
+            'sort_order' => 1,
+        ]);
+        \App\Models\EntityDataTableEntry::create([
+            'entity_data_table_id' => $table->id,
+            'roll_min' => 5, 'roll_max' => 5,
+            'result_text' => '3d6',
+            'level' => 5,
+            'sort_order' => 2,
+        ]);
+
+        $result = $this->generator->generate($rogue);
+
+        // Check that a sneak_attack column exists
+        $columnKeys = array_column($result['columns'], 'key');
+        $this->assertContains('sneak_attack', $columnKeys);
+
+        // Check row values - level 1 should have 1d6
+        $row1 = $result['rows'][0];
+        $this->assertEquals('1d6', $row1['sneak_attack']);
+
+        // Level 2 should interpolate from level 1 (1d6)
+        $row2 = $result['rows'][1];
+        $this->assertEquals('1d6', $row2['sneak_attack']);
+
+        // Level 3 should have 2d6
+        $row3 = $result['rows'][2];
+        $this->assertEquals('2d6', $row3['sneak_attack']);
+
+        // Level 4 should interpolate from level 3 (2d6)
+        $row4 = $result['rows'][3];
+        $this->assertEquals('2d6', $row4['sneak_attack']);
+
+        // Level 5 should have 3d6
+        $row5 = $result['rows'][4];
+        $this->assertEquals('3d6', $row5['sneak_attack']);
+    }
+
+    #[Test]
+    public function it_uses_feature_name_for_data_table_column_key(): void
+    {
+        $monk = CharacterClass::factory()->create(['name' => 'Monk']);
+
+        $feature = ClassFeature::factory()->create([
+            'class_id' => $monk->id,
+            'feature_name' => 'Martial Arts',
+            'level' => 1,
+        ]);
+
+        // Create progression table
+        $table = \App\Models\EntityDataTable::create([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $feature->id,
+            'table_name' => 'Martial Arts',
+            'dice_type' => 'd4',
+            'table_type' => \App\Enums\DataTableType::PROGRESSION,
+        ]);
+
+        \App\Models\EntityDataTableEntry::create([
+            'entity_data_table_id' => $table->id,
+            'roll_min' => 1, 'roll_max' => 1,
+            'result_text' => '1d4',
+            'level' => 1,
+            'sort_order' => 0,
+        ]);
+
+        $result = $this->generator->generate($monk);
+
+        // Column key should be based on feature name (martial_arts)
+        $columnKeys = array_column($result['columns'], 'key');
+        $this->assertContains('martial_arts', $columnKeys);
+
+        // Check the column has correct label
+        $column = collect($result['columns'])->firstWhere('key', 'martial_arts');
+        $this->assertEquals('Martial Arts', $column['label']);
+    }
+
+    #[Test]
+    public function it_includes_synthetic_rage_damage_for_barbarian(): void
+    {
+        // Create barbarian class
+        $barbarian = CharacterClass::factory()->create(['name' => 'Barbarian', 'slug' => 'barbarian']);
+
+        $result = $this->generator->generate($barbarian);
+
+        // Should have rage_damage column
+        $columnKeys = array_column($result['columns'], 'key');
+        $this->assertContains('rage_damage', $columnKeys);
+
+        // Check the column has correct label
+        $column = collect($result['columns'])->firstWhere('key', 'rage_damage');
+        $this->assertEquals('Rage Damage', $column['label']);
+        $this->assertEquals('bonus', $column['type']);
+
+        // Check row values follow PHB progression: +2 (L1), +3 (L9), +4 (L16)
+        $this->assertEquals('+2', $result['rows'][0]['rage_damage']);   // L1
+        $this->assertEquals('+2', $result['rows'][7]['rage_damage']);   // L8 (still +2)
+        $this->assertEquals('+3', $result['rows'][8]['rage_damage']);   // L9
+        $this->assertEquals('+3', $result['rows'][14]['rage_damage']);  // L15 (still +3)
+        $this->assertEquals('+4', $result['rows'][15]['rage_damage']);  // L16
+        $this->assertEquals('+4', $result['rows'][19]['rage_damage']);  // L20
+    }
+
+    #[Test]
+    public function it_does_not_add_synthetic_columns_to_non_barbarian(): void
+    {
+        // Rogue should not have rage_damage
+        $rogue = CharacterClass::factory()->create(['name' => 'Rogue', 'slug' => 'rogue']);
+
+        $result = $this->generator->generate($rogue);
+
+        $columnKeys = array_column($result['columns'], 'key');
+        $this->assertNotContains('rage_damage', $columnKeys);
+    }
 }

@@ -14,14 +14,7 @@ _None_
 
 _Planned tasks with implementation details ready_
 
-- [ ] **Fix Progression Table Columns** (3-4 hours)
-  - Barbarian: Add `rage_damage`, keep `rage`
-  - Monk: Add `martial_arts`, `unarmored_movement`; remove `wholeness_of_body`
-  - Rogue: Add `sneak_attack`; remove `stroke_of_luck`
-  - **Design:** `docs/plans/2025-11-29-progression-table-columns-design.md`
-  - **Plan:** `docs/plans/2025-11-29-progression-table-columns-plan.md`
-  - **Approach:** Parse text tables from descriptions, use new `entity_data_tables` with `table_type=progression`
-  - **Execute with:** Follow 7-task TDD plan in plan doc
+_None_
 
 ## Deferred
 
@@ -69,6 +62,14 @@ _Future tasks, not yet prioritized_
 ## Completed
 
 _Recently completed tasks (move to CHANGELOG.md after release)_
+
+- [x] **Fix Progression Table Columns** (2025-11-29)
+  - Barbarian: Added `rage_damage` synthetic progression (+2/+3/+4 from PHB prose)
+  - Monk: Added `martial_arts` column from parsed level-ordinal text tables; excluded `wholeness_of_body`
+  - Rogue: Added `sneak_attack` column from `<roll>` element data tables; excluded `stroke_of_luck`
+  - Added Pattern 4 to `ItemTableDetector` for level-ordinal tables
+  - Added `ItemTableParser::parseLevelProgression()` for ordinal parsing
+  - `ClassProgressionTableGenerator` now pulls from `EntityDataTable` PROGRESSION and DAMAGE types
 
 - [x] **Entity Data Tables Refactor** (2025-11-29)
   - Renamed `random_tables` → `entity_data_tables`

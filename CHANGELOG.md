@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Class Progression Tables: Enhanced column generation from feature data**
+  - Level-ordinal progression tables (e.g., "1st | 1d4, 5th | 1d6") now detected and parsed from feature descriptions
+  - `ItemTableDetector` Pattern 4 detects level-ordinal tables (Martial Arts, Unarmored Movement, etc.)
+  - `ItemTableParser::parseLevelProgression()` parses ordinal-based tables into level/value pairs
+  - `ImportsDataTablesFromText` now imports both standard and level progression tables
+  - `ClassProgressionTableGenerator` includes columns from `EntityDataTable` progression data
+  - Monk's Martial Arts column now shows 1d4/1d6/1d8/1d10 progression from parsed text tables
+  - Rogue's Sneak Attack column now populated from `<roll>` element data tables
+  - Barbarian's Rage Damage column added via synthetic progression (prose-only data: +2/+3/+4)
+
+- **Excluded non-progression counters from class progression tables**
+  - `Wholeness of Body` (Monk L6) - one-time feature, not progression
+  - `Stroke of Luck` (Rogue L20) - capstone feature, not progression
+
 ### Changed
 
 - **BREAKING: Renamed `random_tables` to `entity_data_tables`**

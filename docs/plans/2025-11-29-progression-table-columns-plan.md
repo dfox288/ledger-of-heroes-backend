@@ -388,9 +388,9 @@ public function it_imports_progression_table_from_feature_description(): void
 
     $feature = ClassFeature::where('feature_name', 'Martial Arts')->first();
 
-    // Verify RandomTable was created
-    $this->assertCount(1, $feature->randomTables);
-    $table = $feature->randomTables->first();
+    // Verify EntityDataTable was created
+    $this->assertCount(1, $feature->dataTables);
+    $table = $feature->dataTables->first();
     $this->assertEquals('The Monk Table', $table->table_name);
     $this->assertCount(4, $table->entries);
     $this->assertEquals(1, $table->entries[0]->level);
@@ -439,17 +439,18 @@ protected function importProgressionTablesFromDescription(ClassFeature $feature,
         $firstValue = $parsed['rows'][0]['value'] ?? '';
         $diceType = $this->extractDiceType($firstValue);
 
-        $table = RandomTable::create([
+        $table = EntityDataTable::create([
             'reference_type' => ClassFeature::class,
             'reference_id' => $feature->id,
             'table_name' => $parsed['column_name'],  // Use column name as table name
             'dice_type' => $diceType,
+            'table_type' => DataTableType::Progression,
             'description' => null,
         ]);
 
         foreach ($parsed['rows'] as $index => $row) {
-            RandomTableEntry::create([
-                'random_table_id' => $table->id,
+            EntityDataTableEntry::create([
+                'entity_data_table_id' => $table->id,
                 'roll_min' => $row['level'],
                 'roll_max' => $row['level'],
                 'result_text' => $row['value'],
@@ -480,9 +481,9 @@ docker compose exec php php artisan test --filter="it_imports_progression_table"
 
 ---
 
-## Task 5: Update Generator to Use RandomTable Data
+## Task 5: Update Generator to Use EntityDataTable Data
 
-**Goal:** `ClassProgressionTableGenerator` pulls columns from feature RandomTables.
+**Goal:** `ClassProgressionTableGenerator` pulls columns from feature EntityDataTables.
 
 ### 5.1 Write Test (RED)
 
@@ -500,22 +501,23 @@ public function it_includes_columns_from_feature_random_tables(): void
         'level' => 1,
     ]);
 
-    $table = RandomTable::create([
+    $table = EntityDataTable::create([
         'reference_type' => ClassFeature::class,
         'reference_id' => $feature->id,
         'table_name' => 'Extra Damage',
         'dice_type' => 'd6',
+        'table_type' => DataTableType::Progression,
     ]);
 
-    RandomTableEntry::create([
-        'random_table_id' => $table->id,
+    EntityDataTableEntry::create([
+        'entity_data_table_id' => $table->id,
         'roll_min' => 1, 'roll_max' => 1,
         'result_text' => '1d6',
         'level' => 1,
         'sort_order' => 0,
     ]);
-    RandomTableEntry::create([
-        'random_table_id' => $table->id,
+    EntityDataTableEntry::create([
+        'entity_data_table_id' => $table->id,
         'roll_min' => 3, 'roll_max' => 3,
         'result_text' => '2d6',
         'level' => 3,
@@ -544,7 +546,7 @@ Add new method to get progression tables from features:
 
 ```php
 /**
- * Get progression-related RandomTables from class features.
+ * Get progression-related EntityDataTables from class features.
  *
  * Returns tables that have level-based entries (indicating they're
  * progression tables rather than random roll tables).
@@ -552,8 +554,8 @@ Add new method to get progression tables from features:
 private function getFeatureProgressionTables(CharacterClass $class): Collection
 {
     return $class->features
-        ->load('randomTables.entries')
-        ->flatMap(fn ($feature) => $feature->randomTables->map(
+        ->load('dataTables.entries')
+        ->flatMap(fn ($feature) => $feature->dataTables->map(
             fn ($table) => ['feature' => $feature, 'table' => $table]
         ))
         ->filter(fn ($item) => $item['table']->entries->contains(fn ($e) => $e->level !== null));

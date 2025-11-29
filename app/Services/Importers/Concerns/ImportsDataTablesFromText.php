@@ -49,34 +49,92 @@ trait ImportsDataTablesFromText
 
         foreach ($tables as $tableData) {
             $parser = new ItemTableParser;
-            $parsed = $parser->parse($tableData['text'], $tableData['dice_type'] ?? null);
 
-            if (empty($parsed['rows'])) {
-                continue; // Skip tables with no valid rows
+            // Check if this is a level progression table (ordinal-based)
+            $isLevelProgression = $tableData['is_level_progression'] ?? false;
+
+            if ($isLevelProgression) {
+                $this->importLevelProgressionTable($entity, $parser, $tableData);
+            } else {
+                $this->importStandardDataTable($entity, $parser, $tableData);
             }
+        }
+    }
 
-            // Determine table type based on content
-            $tableType = $this->determineTableType($parsed);
+    /**
+     * Import a standard data table (dice-based or lookup).
+     */
+    protected function importStandardDataTable(Model $entity, ItemTableParser $parser, array $tableData): void
+    {
+        $parsed = $parser->parse($tableData['text'], $tableData['dice_type'] ?? null);
 
-            // Create data table linked to entity
-            $table = EntityDataTable::create([
-                'reference_type' => get_class($entity),
-                'reference_id' => $entity->id,
-                'table_name' => $parsed['table_name'],
-                'dice_type' => $parsed['dice_type'],
-                'table_type' => $tableType,
+        if (empty($parsed['rows'])) {
+            return; // Skip tables with no valid rows
+        }
+
+        // Determine table type based on content
+        $tableType = $this->determineTableType($parsed);
+
+        // Create data table linked to entity
+        $table = EntityDataTable::create([
+            'reference_type' => get_class($entity),
+            'reference_id' => $entity->id,
+            'table_name' => $parsed['table_name'],
+            'dice_type' => $parsed['dice_type'],
+            'table_type' => $tableType,
+        ]);
+
+        // Create table entries
+        foreach ($parsed['rows'] as $index => $row) {
+            EntityDataTableEntry::create([
+                'entity_data_table_id' => $table->id,
+                'roll_min' => $row['roll_min'],
+                'roll_max' => $row['roll_max'],
+                'result_text' => $row['result_text'],
+                'sort_order' => $index,
             ]);
+        }
+    }
 
-            // Create table entries
-            foreach ($parsed['rows'] as $index => $row) {
-                EntityDataTableEntry::create([
-                    'entity_data_table_id' => $table->id,
-                    'roll_min' => $row['roll_min'],
-                    'roll_max' => $row['roll_max'],
-                    'result_text' => $row['result_text'],
-                    'sort_order' => $index,
-                ]);
+    /**
+     * Import a level progression table (ordinal-based).
+     */
+    protected function importLevelProgressionTable(Model $entity, ItemTableParser $parser, array $tableData): void
+    {
+        $parsed = $parser->parseLevelProgression($tableData['text']);
+
+        if (empty($parsed['rows'])) {
+            return; // Skip tables with no valid rows
+        }
+
+        // Detect dice type from values if present
+        $diceType = null;
+        if (! empty($parsed['rows'])) {
+            $firstValue = $parsed['rows'][0]['value'];
+            if (preg_match('/\d*d\d+/', $firstValue, $matches)) {
+                $diceType = preg_replace('/^\d+/', '', $matches[0]);
             }
+        }
+
+        // Create data table linked to entity as PROGRESSION type
+        $table = EntityDataTable::create([
+            'reference_type' => get_class($entity),
+            'reference_id' => $entity->id,
+            'table_name' => $parsed['table_name'],
+            'dice_type' => $diceType,
+            'table_type' => DataTableType::PROGRESSION,
+        ]);
+
+        // Create table entries with level values
+        foreach ($parsed['rows'] as $index => $row) {
+            EntityDataTableEntry::create([
+                'entity_data_table_id' => $table->id,
+                'roll_min' => $row['level'],
+                'roll_max' => $row['level'],
+                'result_text' => $row['value'],
+                'level' => $row['level'],
+                'sort_order' => $index,
+            ]);
         }
     }
 

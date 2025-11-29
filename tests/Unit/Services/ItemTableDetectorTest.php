@@ -168,4 +168,89 @@ TEXT;
         $this->assertStringContainsString('Blue | Lightning', $tables[0]['text']);
         $this->assertNull($tables[0]['dice_type']); // No dice type for this table
     }
+
+    #[Test]
+    public function it_detects_level_ordinal_tables(): void
+    {
+        $text = <<<'TEXT'
+Your martial arts training allows...
+
+The Monk Table:
+Level | Martial Arts
+1st | 1d4
+5th | 1d6
+11th | 1d8
+17th | 1d10
+
+Source: PHB
+TEXT;
+
+        $tables = $this->detector->detectTables($text);
+
+        $this->assertCount(1, $tables);
+        $this->assertEquals('The Monk Table', $tables[0]['name']);
+        $this->assertStringContainsString('1st | 1d4', $tables[0]['text']);
+        $this->assertStringContainsString('17th | 1d10', $tables[0]['text']);
+        $this->assertTrue($tables[0]['is_level_progression'] ?? false);
+    }
+
+    #[Test]
+    public function it_detects_speed_bonus_ordinal_tables(): void
+    {
+        $text = <<<'TEXT'
+Unarmored Movement:
+Level | Speed Bonus
+2nd | +10
+6th | +15
+10th | +20
+14th | +25
+18th | +30
+TEXT;
+
+        $tables = $this->detector->detectTables($text);
+
+        $this->assertCount(1, $tables);
+        $this->assertEquals('Unarmored Movement', $tables[0]['name']);
+        $this->assertStringContainsString('2nd | +10', $tables[0]['text']);
+        $this->assertTrue($tables[0]['is_level_progression'] ?? false);
+    }
+
+    #[Test]
+    public function it_handles_2nd_and_3rd_ordinals(): void
+    {
+        $text = <<<'TEXT'
+Test Table:
+Level | Value
+1st | A
+2nd | B
+3rd | C
+4th | D
+TEXT;
+
+        $tables = $this->detector->detectTables($text);
+
+        $this->assertCount(1, $tables);
+        $this->assertStringContainsString('2nd | B', $tables[0]['text']);
+        $this->assertStringContainsString('3rd | C', $tables[0]['text']);
+    }
+
+    #[Test]
+    public function it_does_not_duplicate_ordinal_tables_with_pattern1(): void
+    {
+        // Ensure level-ordinal tables don't get captured by other patterns
+        // This table has ordinals, not plain numbers
+        $text = <<<'TEXT'
+Sneak Attack:
+Level | Extra Damage
+1st | 1d6
+3rd | 2d6
+5th | 3d6
+TEXT;
+
+        $tables = $this->detector->detectTables($text);
+
+        // Should only find one table, not duplicates
+        $this->assertCount(1, $tables);
+        $this->assertEquals('Sneak Attack', $tables[0]['name']);
+    }
 }

@@ -67,9 +67,9 @@ private const EXCLUDED_COUNTERS = [
 
 ### Part 2: Use RandomTable Data for Progression Columns
 
-**Current state:** Sneak Attack's `<roll>` elements are parsed and stored in `RandomTable` + `RandomTableEntry`, linked to the feature via polymorphic relationship.
+**Current state:** Sneak Attack's `<roll>` elements are parsed and stored in `EntityDataTable` + `EntityDataTableEntry`, linked to the feature via polymorphic relationship.
 
-**Change:** Update `ClassProgressionTableGenerator::buildColumns()` to also check for `RandomTable` entries linked to class features that represent progression data.
+**Change:** Update `ClassProgressionTableGenerator::buildColumns()` to also check for `EntityDataTable` entries linked to class features that represent progression data.
 
 **Detection criteria for "progression tables":**
 - Linked to a `ClassFeature` (not a spell or item)
@@ -81,10 +81,10 @@ private const EXCLUDED_COUNTERS = [
 ```php
 private function getProgressionTablesFromFeatures(CharacterClass $class): Collection
 {
-    // Get features with random tables that have level-based entries
+    // Get features with data tables that have level-based entries
     return $class->features
-        ->filter(fn ($f) => $f->randomTables->isNotEmpty())
-        ->flatMap(fn ($f) => $f->randomTables)
+        ->filter(fn ($f) => $f->dataTables->isNotEmpty())
+        ->flatMap(fn ($f) => $f->dataTables)
         ->filter(fn ($t) => $t->entries->contains(fn ($e) => $e->level !== null));
 }
 ```
@@ -123,12 +123,12 @@ Level | Martial Arts
 $pattern4 = '/^(.+?):\s*\n(Level\s*\|[^\n]+)\s*\n((?:^\d+(?:st|nd|rd|th)\s*\|[^\n]+\s*\n?)+)/mi';
 ```
 
-**Storage:** Parse into `RandomTable` + `RandomTableEntry` linked to the feature, with `level` field populated from ordinal (e.g., "5th" → 5).
+**Storage:** Parse into `EntityDataTable` + `EntityDataTableEntry` linked to the feature, with `level` field populated from ordinal (e.g., "5th" → 5). Use `table_type = DataTableType::Progression`.
 
 **Import integration:**
 - In `ImportsClassFeatures::importFeature()`, after creating feature
 - Call new method `parseProgressionTablesFromDescription()`
-- Store as `RandomTable` with entries
+- Store as `EntityDataTable` with entries (table_type = progression)
 
 ---
 
@@ -139,17 +139,17 @@ XML Import
     │
     ├─► <counter> elements ──► class_counters table
     │                              │
-    ├─► <roll> elements ─────► RandomTable (linked to feature)
+    ├─► <roll> elements ─────► EntityDataTable (linked to feature)
     │                              │
-    └─► Text tables in ──────► RandomTable (linked to feature)
+    └─► Text tables in ──────► EntityDataTable (linked to feature, type=progression)
         description                │
                                    ▼
                     ClassProgressionTableGenerator
                                    │
                     ┌──────────────┼──────────────┐
                     ▼              ▼              ▼
-              class_counters  RandomTable   RandomTable
-              (usage-based)   (from rolls)  (from text)
+              class_counters  EntityDataTable  EntityDataTable
+              (usage-based)   (from rolls)     (from text)
                     │              │              │
                     └──────────────┴──────────────┘
                                    │
@@ -163,7 +163,7 @@ XML Import
 
 | File | Change |
 |------|--------|
-| `app/Services/ClassProgressionTableGenerator.php` | Add exclusions, add RandomTable column source |
+| `app/Services/ClassProgressionTableGenerator.php` | Add exclusions, add EntityDataTable column source |
 | `app/Services/Parsers/ItemTableDetector.php` | Add Pattern 4 for level-ordinal tables |
 | `app/Services/Importers/Concerns/ImportsClassFeatures.php` | Parse text tables from descriptions |
 | `tests/Unit/Services/ClassProgressionTableGeneratorTest.php` | Test new column sources |

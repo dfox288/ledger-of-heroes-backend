@@ -150,10 +150,65 @@ class ItemTableDetector
             }
         }
 
+        // Pattern 4: Level-ordinal tables (class progression)
+        // Matches:
+        //   Table Name:
+        //   Level | Column (or Header | Header)
+        //   1st | value
+        //   5th | value
+        //   17th | value
+        $pattern4 = '/^(.+?):\s*\n([^\n]+\|[^\n]+)\s*\n((?:^\d+(?:st|nd|rd|th)\s*\|[^\n]+\s*\n?)+)/mi';
+
+        if (preg_match_all($pattern4, $text, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+            foreach ($matches as $match) {
+                $matchStart = $match[0][1];
+                $matchEnd = $match[0][1] + strlen($match[0][0]);
+
+                // Check for overlap with existing tables
+                $alreadyExists = $this->rangesOverlap($matchStart, $matchEnd, $tables);
+
+                if (! $alreadyExists) {
+                    $tableName = trim($match[1][0], ': ');
+                    $header = trim($match[2][0]);
+                    $rowsText = trim($match[3][0]);
+                    $tableText = $tableName.":\n".$header."\n".$rowsText;
+
+                    $tables[] = [
+                        'name' => $tableName,
+                        'text' => $tableText,
+                        'dice_type' => null,  // Level-ordinal tables don't have dice type
+                        'start_pos' => $matchStart,
+                        'end_pos' => $matchEnd,
+                        'is_level_progression' => true,  // Flag for progression tables
+                    ];
+                }
+            }
+        }
+
         // Sort tables by position to maintain order
         usort($tables, fn ($a, $b) => $a['start_pos'] <=> $b['start_pos']);
 
         return $tables;
+    }
+
+    /**
+     * Check if a range overlaps with any existing table ranges.
+     */
+    private function rangesOverlap(int $start, int $end, array $tables): bool
+    {
+        foreach ($tables as $existing) {
+            $existingStart = $existing['start_pos'];
+            $existingEnd = $existing['end_pos'];
+
+            // Check for overlap
+            if (($start >= $existingStart && $start < $existingEnd) ||
+                ($end > $existingStart && $end <= $existingEnd) ||
+                ($start <= $existingStart && $end >= $existingEnd)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function parseDiceType(string $header): ?string

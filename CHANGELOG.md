@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Subclass-specific optional features now linked directly to subclass entities**
+  - Elemental Disciplines (Monk), Maneuvers (Battle Master), etc. now link directly to subclass ID
+  - Previously linked to base class with `subclass_name` pivot column, causing subclass API to show 0 optional features
+  - Way of Four Elements now correctly shows 17 Elemental Disciplines
+  - Battle Master now correctly shows 16 Maneuvers
+  - Requires re-import: `php artisan import:optional-features import-files/optionalfeatures-phb.xml`
+
+- **Wizard Arcane Recovery now correctly at Level 1 (PHB p.115)**
+  - Source XML data incorrectly placed this feature at Level 6
+  - Added `FEATURE_LEVEL_CORRECTIONS` map to `ClassXmlParser` for parser-level corrections
+  - Pattern allows easy addition of future level corrections for other classes
+  - Requires re-import: `php artisan import:classes import-files/class-wizard-phb.xml`
+
 - **Rogue Sneak Attack progression now correct (PHB p.96)**
   - Source XML data had incorrect level mappings (levels 1-9 instead of 1,3,5,7,9,11,13,15,17,19)
   - Added synthetic progression to `ClassProgressionTableGenerator` that overrides bad data

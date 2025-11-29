@@ -14,17 +14,7 @@ _None_
 
 _Planned tasks with implementation details ready_
 
-### Classes Audit Fixes (from 2025-11-29 Audit)
-
-- [ ] **Fix Wizard Arcane Recovery level** (Priority: High)
-  - Currently at L6, should be L1 (PHB p.115)
-  - Root cause: XML source data has wrong level
-  - Fix: Either correct XML or add data migration
-
-- [ ] **Link Elemental Disciplines to Way of Four Elements** (Priority: High)
-  - 17 disciplines exist in DB but 0 linked to subclass
-  - Need to create `optional_feature_class` associations
-  - Fix: Update OptionalFeature importer to link by class name
+_None_
 
 ## Deferred
 
@@ -72,6 +62,20 @@ _Future tasks, not yet prioritized_
 ## Completed
 
 _Recently completed tasks (move to CHANGELOG.md after release)_
+
+- [x] **Link Elemental Disciplines to Way of Four Elements** (2025-11-29)
+  - Fixed `OptionalFeatureImporter::importClassAssociations()` to link directly to subclass entity
+  - When subclass name is provided, looks up subclass by name first
+  - Falls back to base class with `subclass_name` pivot if subclass entity not found
+  - Way of Four Elements now shows 17 disciplines, Battle Master shows 16 maneuvers
+  - Created `OptionalFeatureSubclassLinkingTest` with 5 tests
+  - Re-imported optional features: `import:optional-features`
+
+- [x] **Fix Wizard Arcane Recovery level** (2025-11-29)
+  - Added `FEATURE_LEVEL_CORRECTIONS` constant to `ClassXmlParser`
+  - Corrects Level 6 → Level 1 per PHB p.115
+  - Created `ClassXmlParserLevelCorrectionsTest` with 3 tests
+  - Re-imported Wizard, verified API shows L1
 
 - [x] **Classes Audit Fixes - Parser** (2025-11-29)
   - Fixed Rogue Sneak Attack progression: Added synthetic progression to `ClassProgressionTableGenerator`

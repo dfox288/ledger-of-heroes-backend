@@ -76,6 +76,10 @@ class OptionalFeatureImporter extends BaseImporter
     /**
      * Import class associations for an optional feature.
      *
+     * When a subclass name is provided, attempts to link directly to the subclass
+     * entity. Falls back to the base class with subclass_name in pivot if the
+     * subclass entity doesn't exist in the database.
+     *
      * @param  OptionalFeature  $feature  The optional feature
      * @param  array  $classesData  Array of ['class' => 'Warlock', 'subclass' => null]
      */
@@ -85,7 +89,23 @@ class OptionalFeatureImporter extends BaseImporter
             $className = $classData['class'];
             $subclassName = $classData['subclass'] ?? null;
 
-            // Find the character class by name
+            // If subclass is specified, try to find the subclass entity first
+            if ($subclassName !== null) {
+                $subclass = CharacterClass::where('name', $subclassName)->first();
+
+                if ($subclass) {
+                    // Link directly to the subclass - no need for subclass_name in pivot
+                    ClassOptionalFeature::create([
+                        'class_id' => $subclass->id,
+                        'optional_feature_id' => $feature->id,
+                        'subclass_name' => null,
+                    ]);
+
+                    continue;
+                }
+            }
+
+            // Find the base character class by name
             $characterClass = CharacterClass::where('name', $className)->first();
 
             if (! $characterClass) {
@@ -98,7 +118,7 @@ class OptionalFeatureImporter extends BaseImporter
                 continue;
             }
 
-            // Create class association with optional subclass name
+            // Create class association - include subclass_name only if subclass entity wasn't found
             ClassOptionalFeature::create([
                 'class_id' => $characterClass->id,
                 'optional_feature_id' => $feature->id,

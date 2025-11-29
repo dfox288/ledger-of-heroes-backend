@@ -38,6 +38,14 @@ class MonsterFactory extends Factory
             'challenge_rating' => fake()->randomElement(['0', '1/8', '1/4', '1/2', '1', '5', '10', '20']),
             'experience_points' => fake()->numberBetween(10, 50000),
             'passive_perception' => fake()->numberBetween(6, 25),
+            'languages' => fake()->optional()->randomElement([
+                'Common',
+                'Common, Elvish',
+                'Deep Speech, telepathy 120 ft.',
+                'understands Common but can\'t speak',
+                'Draconic',
+                null,
+            ]),
             'description' => fake()->optional()->paragraph(),
             'is_npc' => fake()->boolean(10), // 10% chance of being NPC
         ];

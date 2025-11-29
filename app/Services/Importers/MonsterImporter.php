@@ -215,6 +215,7 @@ class MonsterImporter extends BaseImporter
                 'challenge_rating' => $monsterData['challenge_rating'],
                 'experience_points' => $monsterData['experience_points'],
                 'passive_perception' => $monsterData['passive_perception'],
+                'languages' => $monsterData['languages'],
                 'description' => $monsterData['description'],
                 'sort_name' => $monsterData['sort_name'],
                 'is_npc' => $monsterData['is_npc'],

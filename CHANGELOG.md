@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Languages array for Monsters**
+  - New `languages` column in `monsters` table (varchar 255, nullable)
+  - Parser already extracted languages from XML; now stored in database
+  - Exposed in `MonsterResource` API response
+  - Examples: "Common, Elvish", "Deep Speech, telepathy 120 ft.", "understands Common but can't speak"
+  - Null for monsters without language capabilities (e.g., beasts)
+
 - **Structured senses for Monsters and Races**
   - New `senses` lookup table (4 sense types: darkvision, blindsight, tremorsense, truesight)
   - New `entity_senses` polymorphic pivot table linking senses to Monster/Race entities

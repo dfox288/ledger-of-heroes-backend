@@ -39,6 +39,7 @@ class Monster extends BaseModel
         'challenge_rating',
         'experience_points',
         'passive_perception',
+        'languages',
         'description',
         'is_npc',
     ];

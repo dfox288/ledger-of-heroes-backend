@@ -10,7 +10,8 @@ use Illuminate\Console\Command;
 class ImportClassesBatch extends Command
 {
     protected $signature = 'import:classes:batch
-                            {pattern : Glob pattern for XML files (e.g., "import-files/class-barbarian-*.xml")}
+                            {files?* : Array of file paths to import}
+                            {--pattern= : Glob pattern for XML files (e.g., "import-files/class-barbarian-*.xml")}
                             {--merge : Use merge mode to add subclasses to existing classes}
                             {--skip-existing : Skip files if class already exists}';
 
@@ -18,11 +19,16 @@ class ImportClassesBatch extends Command
 
     public function handle(): int
     {
-        $pattern = $this->argument('pattern');
-        $files = glob(base_path($pattern));
+        // Support both direct file array and glob pattern
+        $files = $this->argument('files');
+
+        if (empty($files) && $this->option('pattern')) {
+            $pattern = $this->option('pattern');
+            $files = glob(base_path($pattern));
+        }
 
         if (empty($files)) {
-            $this->error("No files found matching pattern: {$pattern}");
+            $this->error('No files provided. Use either file arguments or --pattern option.');
 
             return self::FAILURE;
         }

@@ -8,6 +8,8 @@ services:
     volumes:
       - ./:/var/www/html
       - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      # Mount fightclub_forked repository for XML imports
+      - ../fightclub_forked:/var/www/fightclub_forked:ro
     networks:
       - dnd_network
     depends_on:

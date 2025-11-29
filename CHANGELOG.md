@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **XML import now reads directly from fightclub_forked repository**
+  - Added `config/import.php` with source directory mappings for 9 D&D sources
+  - `ImportAllDataCommand` now globs across multiple source directories per entity type
+  - `ImportClassesBatch` updated to accept file array input for multi-directory support
+  - `docker-compose.yml` mounts fightclub_forked at `/var/www/fightclub_forked` (read-only)
+  - New env variable `XML_SOURCE_PATH` controls import location
+  - Flat `import-files/` directory still supported (legacy mode when XML_SOURCE_PATH not set)
+  - Documentation: `docs/reference/XML-SOURCE-PATHS.md` maps all sources to paths
+
+### Removed
+
+- **Removed hardcoded data workarounds (upstream XML now fixed)**
+  - Removed `FEATURE_LEVEL_CORRECTIONS` constant from `ClassXmlParser` - Wizard Arcane Recovery now correctly at Level 1 in upstream XML
+  - Removed `SYNTHETIC_PROGRESSIONS['rogue']` from `ClassProgressionTableGenerator` - Rogue Sneak Attack progression now correct in upstream XML
+  - Deleted `ClassXmlParserLevelCorrectionsTest.php` and related synthetic sneak attack tests
+  - Barbarian Rage Damage synthetic progression retained (prose-only data, not in XML)
+
 ### Fixed
 
 - **Subclass-specific optional features now linked directly to subclass entities**
@@ -15,19 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Way of Four Elements now correctly shows 17 Elemental Disciplines
   - Battle Master now correctly shows 16 Maneuvers
   - Requires re-import: `php artisan import:optional-features import-files/optionalfeatures-phb.xml`
-
-- **Wizard Arcane Recovery now correctly at Level 1 (PHB p.115)**
-  - Source XML data incorrectly placed this feature at Level 6
-  - Added `FEATURE_LEVEL_CORRECTIONS` map to `ClassXmlParser` for parser-level corrections
-  - Pattern allows easy addition of future level corrections for other classes
-  - Requires re-import: `php artisan import:classes import-files/class-wizard-phb.xml`
-
-- **Rogue Sneak Attack progression now correct (PHB p.96)**
-  - Source XML data had incorrect level mappings (levels 1-9 instead of 1,3,5,7,9,11,13,15,17,19)
-  - Added synthetic progression to `ClassProgressionTableGenerator` that overrides bad data
-  - Formula: `ceil(level / 2) d6` - increases by 1d6 at each odd level
-  - L1: 1d6, L3: 2d6, L5: 3d6, ... L17: 9d6, L19: 10d6
-  - Previously stuck at 9d6 for levels 10-20, now correctly shows 5d6-10d6
 
 - **Subclass feature assignment no longer matches on substring**
   - Removed overly broad `str_contains()` check in `ClassXmlParser::featureBelongsToSubclass()`

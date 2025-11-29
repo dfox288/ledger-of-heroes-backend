@@ -32,6 +32,10 @@ class ImportAllDataCommand extends Command
 
     private array $stats = [];
 
+    private ?string $xmlSourcePath = null;
+
+    private ?array $sourceDirectories = null;
+
     /**
      * Execute the console command.
      */
@@ -41,6 +45,9 @@ class ImportAllDataCommand extends Command
 
         $this->info('🚀 Starting complete data import...');
         $this->newLine();
+
+        // Initialize XML source configuration
+        $this->initializeSourcePaths();
 
         // Detect environment for Scout operations
         // NOTE: Environment is set at bootstrap time (via CLI --env or APP_ENV).
@@ -195,24 +202,24 @@ class ImportAllDataCommand extends Command
      */
     private function importEntityType(string $prefix, string $command, array $exclude = []): void
     {
-        $importPath = base_path('import-files');
         $pattern = "{$prefix}-*.xml";
 
-        // Get all matching files
-        $files = File::glob("{$importPath}/{$pattern}");
+        // Get all matching files across all source directories
+        $files = $this->getSourceFiles($pattern);
 
         // Apply exclusions (e.g., skip spells-phb+dmg.xml for main spell import)
         if (! empty($exclude)) {
             $files = array_filter($files, function ($file) use ($exclude) {
                 $filename = basename($file);
-                foreach ($exclude as $pattern) {
-                    if (fnmatch($pattern, $filename)) {
+                foreach ($exclude as $excludePattern) {
+                    if (fnmatch($excludePattern, $filename)) {
                         return false;
                     }
                 }
 
                 return true;
             });
+            $files = array_values($files); // Re-index array
         }
 
         if (empty($files)) {
@@ -261,8 +268,8 @@ class ImportAllDataCommand extends Command
      */
     private function importClassesBatch(): void
     {
-        $importPath = base_path('import-files');
-        $files = File::glob("{$importPath}/class-*.xml");
+        // Get all class files across all source directories
+        $files = $this->getSourceFiles('class-*.xml');
 
         if (empty($files)) {
             $this->warn('  ⚠️  No class files found');
@@ -290,9 +297,9 @@ class ImportAllDataCommand extends Command
         foreach ($classByName as $className => $classFiles) {
             $this->line('  → '.ucfirst($className).' ('.count($classFiles).' file(s))');
 
-            // Use batch importer with merge mode
+            // Pass the actual file paths to the batch importer
             $exitCode = $this->call('import:classes:batch', [
-                'pattern' => "import-files/class-{$className}-*.xml",
+                'files' => $classFiles,
                 '--merge' => true,
             ]);
 
@@ -329,8 +336,8 @@ class ImportAllDataCommand extends Command
      */
     private function importAdditiveSpellFiles(): void
     {
-        $importPath = base_path('import-files');
-        $files = File::glob("{$importPath}/spells-*+*.xml");
+        // Get all additive spell files across all source directories
+        $files = $this->getSourceFiles('spells-*+*.xml');
 
         if (empty($files)) {
             $this->warn('  ⚠️  No additive spell files found');
@@ -434,5 +441,58 @@ class ImportAllDataCommand extends Command
         $this->info('Clearing entity caches...');
         app(\App\Services\Cache\EntityCacheService::class)->clearAll();
         $this->info('✓ Entity caches cleared');
+    }
+
+    /**
+     * Initialize XML source path configuration.
+     */
+    private function initializeSourcePaths(): void
+    {
+        $configPath = config('import.xml_source_path', 'import-files');
+
+        // Resolve relative paths from project root
+        if (! str_starts_with($configPath, '/')) {
+            $this->xmlSourcePath = base_path($configPath);
+        } else {
+            $this->xmlSourcePath = $configPath;
+        }
+
+        $this->sourceDirectories = config('import.source_directories');
+
+        // Display source configuration
+        if ($this->sourceDirectories) {
+            $this->info('XML Source: '.$this->xmlSourcePath);
+            $this->info('Source directories: '.count($this->sourceDirectories).' configured');
+            $this->line('  → '.implode(', ', array_keys($this->sourceDirectories)));
+        } else {
+            $this->info('XML Source: '.$this->xmlSourcePath.' (flat directory mode)');
+        }
+        $this->newLine();
+    }
+
+    /**
+     * Get all XML files matching a pattern across all configured source directories.
+     *
+     * @param  string  $pattern  Glob pattern (e.g., "source-*.xml", "class-*.xml")
+     * @return array<string> Array of absolute file paths
+     */
+    private function getSourceFiles(string $pattern): array
+    {
+        // If no source directories configured, use flat directory mode (legacy)
+        if (empty($this->sourceDirectories)) {
+            return File::glob("{$this->xmlSourcePath}/{$pattern}");
+        }
+
+        // Glob across all configured source directories in order
+        $files = [];
+        foreach ($this->sourceDirectories as $abbrev => $subdir) {
+            $dirPath = "{$this->xmlSourcePath}/{$subdir}";
+            if (is_dir($dirPath)) {
+                $found = File::glob("{$dirPath}/{$pattern}");
+                $files = array_merge($files, $found);
+            }
+        }
+
+        return $files;
     }
 }

@@ -28,6 +28,17 @@
 
 ## 🚀 Recent Milestones
 
+### XML Import Path Refactoring ✅ COMPLETE (2025-11-29)
+- **Achievement:** Import now reads directly from fightclub_forked repository
+- **Key Changes:**
+  - Added `config/import.php` with source directory mappings for 9 D&D sources
+  - `ImportAllDataCommand` now globs across multiple source directories per entity type
+  - Docker mount added: `../fightclub_forked:/var/www/fightclub_forked:ro`
+  - New env variable `XML_SOURCE_PATH` controls import location
+  - Legacy flat `import-files/` mode still supported (backward compatible)
+- **Documentation:** `docs/reference/XML-SOURCE-PATHS.md` maps all sources to paths
+- **Impact:** No more manual file copying, always uses latest upstream XML
+
 ### API Documentation Standardization ✅ COMPLETE (2025-11-29)
 - **Achievement:** Standardized all 17 lookup controller PHPDocs following SpellController gold standard
 - **Scope:** 3 phases completed in single session using parallel subagents
@@ -248,13 +259,10 @@
 
 ## 🎯 Next Priorities
 
-### Priority 1: Entity Data Tables Refactor (Ready to Execute, 4-6 hours)
-- **Status:** 📋 PLANNED - Full implementation plan ready
-- Rename `random_tables` → `entity_data_tables`
-- Add `table_type` discriminator (random, damage, modifier, lookup, progression)
-- **BREAKING API CHANGE:** JSON key `random_tables` → `data_tables`
-- **Plans:** `docs/plans/2025-11-29-entity-data-tables-implementation.md`
-- **Execute with:** `/superpowers:execute-plan` or work through 16 tasks manually
+### Priority 1: Cleanup Legacy Import Files (Optional, 1 hour)
+- **Status:** Ready - can remove `import-files/` directory
+- XML import now reads from fightclub_forked repository directly
+- Legacy directory no longer needed
 
 ### Priority 2: Performance Optimizations (Optional, 2-4 hours)
 - Database indexing: composite indexes, slug indexes

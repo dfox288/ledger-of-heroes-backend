@@ -8,52 +8,13 @@ Active tasks and priorities for this project.
 
 _Tasks currently being worked on_
 
-_None_
+- [ ] Consider removing `import-files/` directory (now redundant with multi-directory import)
 
 ## Ready to Execute
 
 _Planned tasks with implementation details ready_
 
-### Remove Hardcoded Data Fixes (PR Accepted Upstream)
-
-Our three data fixes were accepted into the upstream FightClub5eXML repository.
-The base XML data now has the correct values, so our workarounds can be removed.
-
-#### 1. Remove Wizard Arcane Recovery Level Correction (Priority: High)
-- **Location**: `app/Services/Parsers/ClassXmlParser.php:29-35`
-- **What to remove**: `FEATURE_LEVEL_CORRECTIONS` constant and its usage at line 261
-- **Why safe**: Upstream XML now has Arcane Recovery at level 1 (was incorrectly at level 6)
-- **Verification**: After removing, re-import Wizard and verify Arcane Recovery shows at L1
-- **Test to update**: `tests/Unit/Parsers/ClassXmlParserLevelCorrectionsTest.php` - delete entire file
-
-#### 2. Remove Rogue Sneak Attack Synthetic Progression (Priority: High)
-- **Location**: `app/Services/ClassProgressionTableGenerator.php:44-63`
-- **What to remove**: `SYNTHETIC_PROGRESSIONS['rogue']` entry
-- **Why safe**: Upstream XML now has correct level progression (1,3,5,7,9,11,13,15,17,19)
-- **Verification**: After removing, re-import Rogue and verify Sneak Attack progression is correct
-- **Note**: Keep `SYNTHETIC_PROGRESSIONS['barbarian']` - Rage Damage is in prose only, not XML
-
-#### 3. Keep Thief Substring Fix (No Action)
-- **Location**: `app/Services/Parsers/ClassXmlParser.php:749-763`
-- **Why keep**: This is a CODE fix (stricter pattern matching), not a DATA workaround
-- **The fix**: Prevents "Spell Thief (Arcane Trickster)" from matching "Thief" subclass
-- **Upstream status**: XML structure unchanged - our stricter parsing is still correct
-
-#### Execution Steps
-```bash
-# 1. Remove FEATURE_LEVEL_CORRECTIONS from ClassXmlParser
-# 2. Remove rogue entry from SYNTHETIC_PROGRESSIONS
-# 3. Delete ClassXmlParserLevelCorrectionsTest.php
-# 4. Re-import affected classes:
-docker compose exec php php artisan import:classes import-files/class-wizard-phb.xml
-docker compose exec php php artisan import:classes import-files/class-rogue-phb.xml
-# 5. Verify API responses
-curl http://localhost:8080/api/v1/classes/wizard | jq '.data.features[] | select(.name == "Arcane Recovery")'
-curl http://localhost:8080/api/v1/classes/rogue/progression | jq '.data.rows[0].sneak_attack'
-# 6. Run test suites
-docker compose exec php php artisan test --testsuite=Unit-Pure
-docker compose exec php php artisan test --testsuite=Importers
-```
+_None_
 
 ## Deferred
 
@@ -102,6 +63,23 @@ _Future tasks, not yet prioritized_
 
 _Recently completed tasks (move to CHANGELOG.md after release)_
 
+- [x] **XML Import Path Refactoring** (2025-11-29)
+  - Import now reads directly from fightclub_forked repository
+  - Added `config/import.php` with source directory mappings for 9 sources
+  - Updated `ImportAllDataCommand` for multi-directory globbing
+  - Updated `ImportClassesBatch` to accept file array input
+  - Added Docker mount for fightclub_forked repository
+  - New env variable `XML_SOURCE_PATH` controls import location
+  - Legacy `import-files/` mode still supported
+  - Documentation: `docs/reference/XML-SOURCE-PATHS.md`
+
+- [x] **Remove Hardcoded Data Fixes (Upstream Fixed)** (2025-11-29)
+  - Removed `FEATURE_LEVEL_CORRECTIONS` from `ClassXmlParser` - Wizard Arcane Recovery now at L1 in upstream XML
+  - Removed `SYNTHETIC_PROGRESSIONS['rogue']` from `ClassProgressionTableGenerator` - Sneak Attack now correct in upstream
+  - Deleted `ClassXmlParserLevelCorrectionsTest.php` and synthetic sneak attack tests
+  - Re-imported Wizard and Rogue, verified API responses show correct data
+  - Kept Barbarian Rage Damage synthetic (prose-only), kept Thief substring fix (code fix)
+
 - [x] **Link Elemental Disciplines to Way of Four Elements** (2025-11-29)
   - Fixed `OptionalFeatureImporter::importClassAssociations()` to link directly to subclass entity
   - When subclass name is provided, looks up subclass by name first
@@ -110,20 +88,15 @@ _Recently completed tasks (move to CHANGELOG.md after release)_
   - Created `OptionalFeatureSubclassLinkingTest` with 5 tests
   - Re-imported optional features: `import:optional-features`
 
-- [x] **Fix Wizard Arcane Recovery level** (2025-11-29)
-  - Added `FEATURE_LEVEL_CORRECTIONS` constant to `ClassXmlParser`
-  - Corrects Level 6 → Level 1 per PHB p.115
-  - Created `ClassXmlParserLevelCorrectionsTest` with 3 tests
-  - Re-imported Wizard, verified API shows L1
+- [x] **Fix Wizard Arcane Recovery level** (2025-11-29) **[WORKAROUND REMOVED - upstream fixed]**
+  - Originally added `FEATURE_LEVEL_CORRECTIONS` constant to `ClassXmlParser`
+  - Upstream XML now corrected, workaround removed 2025-11-29
 
 - [x] **Classes Audit Fixes - Parser** (2025-11-29)
-  - Fixed Rogue Sneak Attack progression: Added synthetic progression to `ClassProgressionTableGenerator`
-    - Source XML had wrong level mappings (1-9 instead of 1,3,5,7,9,11,13,15,17,19)
-    - Formula: `ceil(level/2)d6` - now shows correct 1d6 to 10d6 progression
-  - Fixed Thief subclass feature contamination: Removed `str_contains()` from `ClassXmlParser::featureBelongsToSubclass()`
+  - Fixed Rogue Sneak Attack progression: Originally added synthetic progression to `ClassProgressionTableGenerator` **[WORKAROUND REMOVED - upstream fixed]**
+  - Fixed Thief subclass feature contamination: Removed `str_contains()` from `ClassXmlParser::featureBelongsToSubclass()` (code fix retained)
     - "Spell Thief (Arcane Trickster)" was incorrectly assigned to Thief because "Thief" is substring
     - Now only matches explicit patterns: "Archetype: Subclass" or "Feature (Subclass)"
-    - Requires re-import to fix existing data
   - Verified Eldritch Invocations: 54 invocations correctly exposed in Warlock `optional_features`
   - Verified Artificer Infusions: 16 infusions correctly exposed in Artificer `optional_features`
 

@@ -1,125 +1,157 @@
-# Session Handover: Classes Audit Fixes
+# Session Handover: XML Import Path Refactoring
 
-**Date:** 2025-11-29 19:20
-**Focus:** Addressing critical issues from D&D 5e Classes API Audit
+**Date:** 2025-11-29 21:00
+**Focus:** Refactoring XML import to read directly from fightclub_forked repository
 
 ---
 
 ## Summary
 
-Investigated and fixed issues from the comprehensive classes audit (`frontend/docs/proposals/CLASSES-COMPREHENSIVE-AUDIT-2025-11-29.md`). Two parser/generator fixes implemented, two issues verified as already working, two remaining for next session.
+Implemented multi-directory XML import support, allowing the importer to read XML files directly from the fightclub_forked repository instead of requiring manual file copies to `import-files/`. This eliminates duplicate files and ensures we always use the latest upstream data.
 
 ---
 
 ## Completed This Session
 
-### 1. Rogue Sneak Attack Progression (Critical Fix)
+### 1. Multi-Directory Import Configuration
 
-**Problem:** Sneak Attack stuck at 9d6 after level 10 (should go to 10d6 at L19)
+**Problem:** XML files were manually copied from fightclub_forked to `import-files/`, creating duplicates and requiring manual sync.
 
-**Root Cause:** Source XML data had incorrect level mappings - stored 9 entries at levels 1-9 (incrementing by 1) instead of levels 1,3,5,7,9,11,13,15,17,19 (incrementing by 2).
+**Solution:** Added configuration to read directly from the fightclub_forked repository, which organizes files into subdirectories by source book.
 
-**Fix:** Added synthetic progression to `ClassProgressionTableGenerator` (like Barbarian's Rage Damage):
-```php
-'rogue' => [
-    'sneak_attack' => [
-        'label' => 'Sneak Attack',
-        'type' => 'dice',
-        'values' => [1 => '1d6', 3 => '2d6', 5 => '3d6', ...19 => '10d6'],
-    ],
-],
-```
+**Files Created:**
+- `config/import.php` - Source directory mappings for 9 D&D sources
+- `docs/reference/XML-SOURCE-PATHS.md` - Documentation of all sources and paths
 
-**Files Changed:**
-- `app/Services/ClassProgressionTableGenerator.php` - Added rogue synthetic progression
-- `tests/Unit/Services/ClassProgressionTableGeneratorTest.php` - 2 new tests
+### 2. ImportAllDataCommand Updates
 
-**Tests:** TDD approach - tests written first, all pass
+**Changes:**
+- Added `initializeSourcePaths()` to configure paths from config
+- Added `getSourceFiles()` helper to glob across all source directories
+- Updated `importEntityType()`, `importClassesBatch()`, and `importAdditiveSpellFiles()` to use multi-directory globbing
+- Handles both absolute paths (Docker) and relative paths (local)
 
-### 2. Thief Subclass Feature Contamination (Critical Fix)
+### 3. ImportClassesBatch Updates
 
-**Problem:** Thief subclass had "Spell Thief (Arcane Trickster)" at L17 - wrong feature from wrong subclass
+**Changes:**
+- Changed from `pattern` argument to `files?*` array argument
+- Added `--pattern` option for backward compatibility
+- Can now accept file paths directly from parent command
 
-**Root Cause:** `ClassXmlParser::featureBelongsToSubclass()` had Pattern 3 using `str_contains()` which matched "Thief" as substring of "Spell Thief".
+### 4. Docker Configuration
 
-**Fix:** Removed Pattern 3 entirely. Now only matches explicit patterns:
-- Pattern 1: "Archetype: Subclass Name" (intro features)
-- Pattern 2: "Feature Name (Subclass Name)" (subsequent features)
+**Changes:**
+- Added read-only mount in `docker-compose.yml`: `../fightclub_forked:/var/www/fightclub_forked:ro`
+- This makes the upstream repository available inside the container
 
-**Files Changed:**
-- `app/Services/Parsers/ClassXmlParser.php` - Removed str_contains() pattern
-- `tests/Unit/Parsers/ClassXmlParserSubclassFilteringTest.php` - 1 new regression test
+### 5. Environment Configuration
 
-**Note:** Requires re-import (`php artisan import:classes`) to fix existing database data.
-
-### 3. Verified: Eldritch Invocations (Already Working)
-
-**Audit Claim:** "Warlock has zero Eldritch Invocations available"
-
-**Finding:** 54 Eldritch Invocations correctly exposed in `/api/v1/classes/warlock` under `optional_features` array. Issue already resolved.
-
-### 4. Verified: Artificer Infusions (Already Working)
-
-**Audit Claim:** "Artificer has no Infusions available"
-
-**Finding:** 16 Artificer Infusions correctly exposed in `/api/v1/classes/artificer` under `optional_features` array. Issue already resolved.
+**Changes:**
+- Added `XML_SOURCE_PATH` to `.env` and `.env.example`
+- Docker path: `/var/www/fightclub_forked/Sources/PHB2014/WizardsOfTheCoast`
+- Local path: `../fightclub_forked/Sources/PHB2014/WizardsOfTheCoast`
 
 ---
 
-## Remaining Issues for Next Session
+## How It Works
 
-### 1. Wizard Arcane Recovery Level (High Priority)
+### Entity-First Multi-Directory Globbing
 
-**Problem:** Arcane Recovery feature at L6 instead of L1 (PHB p.115)
+The import maintains the correct dependency order by processing all directories for each entity type:
 
-**Investigation:** Database shows `class_features` record with `level = 6` for Arcane Recovery.
-
-**Likely Cause:** XML source data has wrong level attribute.
-
-**Fix Options:**
-1. Correct XML source data and re-import
-2. Add data migration to fix level
-3. Add special-case handling in parser
-
-### 2. Way of Four Elements Disciplines (High Priority)
-
-**Problem:** 17 elemental disciplines exist in DB but 0 linked to Way of Four Elements subclass
-
-**Investigation:**
 ```
-Elemental Disciplines in DB: 17
-Linked to Four Elements: 0
+1. Import ALL source-*.xml (from PHB, DMG, MM, XGE, TCE, VGM, SCAG, ERLW, TWBTW)
+2. Import ALL items-*.xml (from all directories)
+3. Import ALL class-*.xml (from all directories, batch merged)
+4. Import ALL spells-*.xml (from all directories)
+... etc
 ```
 
-**Fix:** Update OptionalFeature importer to create `optional_feature_class` associations based on class name matching.
+This preserves dependency order (sources before items, items before classes, etc.) while pulling from multiple source directories.
+
+### Source Directory Order
+
+```php
+// config/import.php
+'source_directories' => [
+    'phb'   => '01_Core/01_Players_Handbook',
+    'dmg'   => '01_Core/02_Dungeon_Masters_Guide',
+    'mm'    => '01_Core/03_Monster_Manual',
+    'xge'   => '02_Supplements/Xanathars_Guide_to_Everything',
+    'tce'   => '02_Supplements/Tashas_Cauldron_of_Everything',
+    'vgm'   => '02_Supplements/Volos_Guide_to_Monsters',
+    'scag'  => '03_Campaign_Settings/Sword_Coast_Adventurers_Guide',
+    'erlw'  => '03_Campaign_Settings/Eberron_Rising_From_the_Last_War',
+    'twbtw' => '05_Adventures/The_Wild_Beyond_the_Witchlight',
+],
+```
+
+### Backward Compatibility
+
+If `XML_SOURCE_PATH` is not set, the system falls back to the flat `import-files/` directory (legacy mode).
 
 ---
 
 ## Test Results
 
-All tests passing:
-- Unit-Pure: 274 tests (includes new regression test)
-- Unit-DB: 438 tests (includes 2 new Sneak Attack tests)
+Full import completed successfully:
+```
++------------------+---------+--------+-------+----------------+
+| Entity Type      | Success | Failed | Total | Extras         |
++------------------+---------+--------+-------+----------------+
+| Source           | 9       | 0      | 9     |                |
+| Items            | 32      | 0      | 32    |                |
+| Classes          | 14      | 0      | 14    | 110 subclasses |
+| Spells           | 4       | 0      | 4     |                |
+| Spell mappings   | 7       | 0      | 7     |                |
+| Races            | 7       | 0      | 7     |                |
+| Backgrounds      | 4       | 0      | 4     |                |
+| Feats            | 4       | 0      | 4     |                |
+| Bestiary         | 9       | 0      | 9     |                |
+| Optionalfeatures | 3       | 0      | 3     |                |
++------------------+---------+--------+-------+----------------+
+
+Total files processed: 130
+Duration: 38.46s
+```
 
 ---
 
 ## Files Changed This Session
 
 ```
+Created:
+- config/import.php
+- docs/reference/XML-SOURCE-PATHS.md
+
 Modified:
-- app/Services/ClassProgressionTableGenerator.php (synthetic Sneak Attack)
-- app/Services/Parsers/ClassXmlParser.php (removed str_contains pattern)
-- tests/Unit/Services/ClassProgressionTableGeneratorTest.php (+2 tests)
-- tests/Unit/Parsers/ClassXmlParserSubclassFilteringTest.php (+1 test)
-- CHANGELOG.md (documented fixes)
-- docs/TODO.md (updated tasks)
+- app/Console/Commands/ImportAllDataCommand.php
+- app/Console/Commands/ImportClassesBatch.php
+- docker-compose.yml
+- .env
+- .env.example
+- CHANGELOG.md
 ```
 
 ---
 
 ## Next Steps
 
-1. Investigate Wizard Arcane Recovery XML source
-2. Fix elemental discipline class associations
-3. Re-import classes to apply Thief fix: `php artisan import:classes`
-4. Continue with remaining audit items (lower priority)
+1. Consider removing `import-files/` directory (now redundant)
+2. Add more sources from fightclub_forked if needed (30+ adventures available)
+3. Consider adding a `--source` filter option to import specific sources only
+
+---
+
+## Quick Reference
+
+```bash
+# Import with new paths (Docker)
+docker compose exec php php artisan import:all
+
+# Import with legacy flat directory (no XML_SOURCE_PATH set)
+# Requires files in import-files/
+
+# Check which sources will be imported
+docker compose exec php php artisan tinker --execute="print_r(config('import.source_directories'))"
+```

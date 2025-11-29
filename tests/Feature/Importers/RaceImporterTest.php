@@ -653,4 +653,70 @@ XML;
         $this->assertEquals($charisma->id, $raceSpell->ability_score_id);
         $this->assertTrue($raceSpell->is_cantrip);
     }
+
+    #[Test]
+    public function it_imports_darkvision_from_traits()
+    {
+        // Create required sense types
+        \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
+
+        $raceData = [
+            'name' => 'Dwarf, Hill',
+            'size_code' => 'M',
+            'speed' => 25,
+            'ability_bonuses' => [],
+            'traits' => [
+                [
+                    'name' => 'Darkvision',
+                    'category' => 'species',
+                    'description' => 'Accustomed to life underground, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light.',
+                    'sort_order' => 0,
+                ],
+            ],
+            'proficiencies' => [],
+            'sources' => [],
+        ];
+
+        $race = $this->importer->import($raceData);
+
+        $senses = $race->fresh()->senses()->with('sense')->get();
+        $this->assertCount(1, $senses);
+
+        $darkvision = $senses->first();
+        $this->assertEquals('darkvision', $darkvision->sense->slug);
+        $this->assertEquals(60, $darkvision->range_feet);
+    }
+
+    #[Test]
+    public function it_imports_superior_darkvision_with_120_ft_range()
+    {
+        // Create required sense types
+        \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
+
+        $raceData = [
+            'name' => 'Elf, Drow',
+            'size_code' => 'M',
+            'speed' => 30,
+            'ability_bonuses' => [],
+            'traits' => [
+                [
+                    'name' => 'Superior Darkvision',
+                    'category' => 'subspecies',
+                    'description' => 'Accustomed to the depths of the Underdark, you have superior vision. You can see in dim light within 120 feet of you as if it were bright light.',
+                    'sort_order' => 0,
+                ],
+            ],
+            'proficiencies' => [],
+            'sources' => [],
+        ];
+
+        $race = $this->importer->import($raceData);
+
+        $senses = $race->fresh()->senses()->with('sense')->get();
+        $this->assertCount(1, $senses);
+
+        $darkvision = $senses->first();
+        $this->assertEquals('darkvision', $darkvision->sense->slug);
+        $this->assertEquals(120, $darkvision->range_feet);
+    }
 }

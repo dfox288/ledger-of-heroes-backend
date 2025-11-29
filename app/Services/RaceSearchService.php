@@ -24,6 +24,7 @@ final class RaceSearchService
         'conditions.condition',
         'spells.spell',
         'spells.abilityScore',
+        'senses.sense',
         'parent',
     ];
 
@@ -59,6 +60,7 @@ final class RaceSearchService
         'conditions.condition',
         'spells.spell',
         'spells.abilityScore',
+        'senses.sense',
         'tags',
     ];
 

@@ -92,6 +92,14 @@ class Race extends BaseModel
         return $this->morphMany(EntitySpell::class, 'reference', 'reference_type', 'reference_id');
     }
 
+    /**
+     * Get the race's senses (darkvision, etc.).
+     */
+    public function senses(): MorphMany
+    {
+        return $this->morphMany(EntitySense::class, 'reference');
+    }
+
     public function entitySpells(): MorphToMany
     {
         return $this->morphToMany(

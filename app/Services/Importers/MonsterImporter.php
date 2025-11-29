@@ -9,6 +9,7 @@ use App\Models\MonsterTrait;
 use App\Services\Importers\Concerns\CachesLookupTables;
 use App\Services\Importers\Concerns\ImportsConditions;
 use App\Services\Importers\Concerns\ImportsModifiers;
+use App\Services\Importers\Concerns\ImportsSenses;
 use App\Services\Importers\Strategies\Monster\AberrationStrategy;
 use App\Services\Importers\Strategies\Monster\BeastStrategy;
 use App\Services\Importers\Strategies\Monster\CelestialStrategy;
@@ -29,6 +30,7 @@ class MonsterImporter extends BaseImporter
     use CachesLookupTables;
     use ImportsConditions;
     use ImportsModifiers;
+    use ImportsSenses;
 
     protected array $strategies = [];
 
@@ -212,7 +214,10 @@ class MonsterImporter extends BaseImporter
                 'charisma' => $monsterData['charisma'],
                 'challenge_rating' => $monsterData['challenge_rating'],
                 'experience_points' => $monsterData['experience_points'],
+                'passive_perception' => $monsterData['passive_perception'],
                 'description' => $monsterData['description'],
+                'sort_name' => $monsterData['sort_name'],
+                'is_npc' => $monsterData['is_npc'],
             ]
         );
 
@@ -221,6 +226,7 @@ class MonsterImporter extends BaseImporter
         $this->importMonsterActions($monster, $monsterData['actions']);
         $this->importMonsterLegendaryActions($monster, $monsterData['legendary']);
         $this->importMonsterModifiers($monster, $monsterData);
+        $this->importEntitySenses($monster, $monsterData['senses']);
 
         return $monster;
     }

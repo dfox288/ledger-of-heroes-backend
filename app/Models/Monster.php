@@ -139,6 +139,14 @@ class Monster extends BaseModel
     }
 
     /**
+     * Get the monster's senses (darkvision, blindsight, etc.).
+     */
+    public function senses(): MorphMany
+    {
+        return $this->morphMany(EntitySense::class, 'reference');
+    }
+
+    /**
      * Convert challenge rating string to numeric value for Meilisearch filtering.
      *
      * Converts fractional strings like "1/8", "1/4", "1/2" to float values (0.125, 0.25, 0.5).
@@ -167,7 +175,7 @@ class Monster extends BaseModel
     public function toSearchableArray(): array
     {
         // Load relationships to avoid N+1 queries
-        $this->loadMissing(['size', 'sources.source', 'entitySpells', 'tags', 'legendaryActions', 'actions', 'traits']);
+        $this->loadMissing(['size', 'sources.source', 'entitySpells', 'tags', 'legendaryActions', 'actions', 'traits', 'senses.sense']);
 
         return [
             'id' => $this->id,
@@ -214,6 +222,13 @@ class Monster extends BaseModel
             // Phase 4: Trait-based capability flags
             'has_legendary_resistance' => $this->traits->contains(fn ($t) => str_contains($t->name, 'Legendary Resistance')),
             'has_magic_resistance' => $this->traits->contains('name', 'Magic Resistance'),
+            // Phase 5: Senses (darkvision, blindsight, tremorsense, truesight)
+            'sense_types' => $this->senses->pluck('sense.slug')->all(),
+            'has_darkvision' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'darkvision'),
+            'darkvision_range' => $this->senses->firstWhere(fn ($s) => $s->sense?->slug === 'darkvision')?->range_feet,
+            'has_blindsight' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'blindsight'),
+            'has_tremorsense' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'tremorsense'),
+            'has_truesight' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'truesight'),
         ];
     }
 
@@ -270,6 +285,12 @@ class Monster extends BaseModel
                 'has_reactions',
                 'has_legendary_resistance',
                 'has_magic_resistance',
+                'sense_types',
+                'has_darkvision',
+                'darkvision_range',
+                'has_blindsight',
+                'has_tremorsense',
+                'has_truesight',
             ],
             'sortableAttributes' => [
                 'name',

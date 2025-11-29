@@ -28,6 +28,26 @@
 
 ## 🚀 Recent Milestones
 
+### Structured Senses Implementation ✅ COMPLETE (2025-11-29)
+- **Achievement:** Implemented unified `entity_senses` polymorphic system for Monsters and Races
+- **Database:**
+  - `senses` lookup table (4 rows: darkvision, blindsight, tremorsense, truesight)
+  - `entity_senses` pivot table with `range_feet`, `is_limited`, `notes` columns
+- **Parser:** `MonsterXmlParser::parseSenses()` handles complex formats including:
+  - Multiple senses: `"darkvision 60 ft., blindsight 30 ft."`
+  - Blind beyond: `"blindsight 30 ft. (blind beyond this radius)"`
+  - Form restrictions: `"darkvision 60 ft. (rat form only)"`
+- **Importers:**
+  - `MonsterImporter` uses new `ImportsSenses` trait
+  - `RaceImporter` extracts senses from Darkvision/Superior Darkvision traits
+- **API:** New `EntitySenseResource` returns structured `{type, name, range, is_limited, notes}`
+- **Meilisearch:** 6 new filterable fields: `sense_types`, `has_darkvision`, `darkvision_range`, `has_blindsight`, `has_tremorsense`, `has_truesight`
+- **Results:** 519 monster senses imported, all tests passing
+- **Example Filters:**
+  - `?filter=has_truesight = true` (15 creatures)
+  - `?filter=darkvision_range >= 120` (15 creatures)
+  - `?filter=sense_types IN [tremorsense]` (12 creatures)
+
 ### Frontend API Review & Fixes ✅ COMPLETE (2025-11-29)
 - **Achievement:** Reviewed frontend API proposals and verified/fixed issues
 - **Multiclass Features:** Added `section_counts.multiclass_features` count, features count now excludes multiclass-only features

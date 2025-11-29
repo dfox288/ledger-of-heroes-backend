@@ -63,6 +63,17 @@ _Future tasks, not yet prioritized_
 
 _Recently completed tasks (move to CHANGELOG.md after release)_
 
+- [x] **Structured senses for Monsters and Races** (2025-11-29)
+  - Created `senses` lookup table (4 sense types: darkvision, blindsight, tremorsense, truesight)
+  - Created `entity_senses` polymorphic pivot table
+  - Implemented `MonsterXmlParser::parseSenses()` with 12 unit tests
+  - Added `ImportsSenses` trait used by MonsterImporter and RaceImporter
+  - RaceImporter extracts senses from Darkvision/Superior Darkvision traits
+  - API returns structured senses via `EntitySenseResource`
+  - Added 6 new Meilisearch filterable fields for senses
+  - 519 monster senses imported
+  - See handover: `SESSION-HANDOVER-2025-11-29-2200-structured-senses.md`
+
 - [x] **Separate multiclass features in section_counts** (2025-11-29)
   - Added `computed.section_counts.multiclass_features` count
   - `section_counts.features` now excludes multiclass-only features

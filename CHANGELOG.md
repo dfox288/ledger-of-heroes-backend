@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Structured senses for Monsters and Races**
+  - New `senses` lookup table (4 sense types: darkvision, blindsight, tremorsense, truesight)
+  - New `entity_senses` polymorphic pivot table linking senses to Monster/Race entities
+  - `MonsterXmlParser::parseSenses()` parses XML strings like `"darkvision 60 ft., blindsight 30 ft. (blind beyond this radius)"`
+  - `RaceImporter` extracts senses from traits named "Darkvision" or "Superior Darkvision"
+  - API returns structured senses: `[{type, name, range, is_limited, notes}]`
+  - New Meilisearch filterable fields: `sense_types`, `has_darkvision`, `darkvision_range`, `has_blindsight`, `has_tremorsense`, `has_truesight`
+  - 519 monster senses imported across all bestiary files
+
 - **Separate multiclass features count in section_counts**
   - `computed.section_counts.multiclass_features` now counts features like "Multiclass Cleric"
   - `computed.section_counts.features` now excludes multiclass-only features

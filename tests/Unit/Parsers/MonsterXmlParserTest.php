@@ -412,6 +412,132 @@ class MonsterXmlParserTest extends TestCase
         $this->assertEquals('lair', $result[0]['category']);
     }
 
+    // ==================== Senses Parsing Tests ====================
+
+    #[Test]
+    public function it_parses_single_darkvision_sense()
+    {
+        $result = $this->invokeMethod($this->parser, 'parseSenses', ['darkvision 60 ft.']);
+
+        $this->assertCount(1, $result);
+        $this->assertEquals('darkvision', $result[0]['type']);
+        $this->assertEquals(60, $result[0]['range']);
+        $this->assertFalse($result[0]['is_limited']);
+        $this->assertNull($result[0]['notes']);
+    }
+
+    #[Test]
+    public function it_parses_superior_darkvision_as_darkvision_with_extended_range()
+    {
+        $result = $this->invokeMethod($this->parser, 'parseSenses', ['darkvision 120 ft.']);
+
+        $this->assertCount(1, $result);
+        $this->assertEquals('darkvision', $result[0]['type']);
+        $this->assertEquals(120, $result[0]['range']);
+    }
+
+    #[Test]
+    public function it_parses_blindsight_sense()
+    {
+        $result = $this->invokeMethod($this->parser, 'parseSenses', ['blindsight 30 ft.']);
+
+        $this->assertCount(1, $result);
+        $this->assertEquals('blindsight', $result[0]['type']);
+        $this->assertEquals(30, $result[0]['range']);
+        $this->assertFalse($result[0]['is_limited']);
+    }
+
+    #[Test]
+    public function it_parses_blindsight_with_blind_beyond_limitation()
+    {
+        $result = $this->invokeMethod($this->parser, 'parseSenses', ['blindsight 30 ft. (blind beyond this radius)']);
+
+        $this->assertCount(1, $result);
+        $this->assertEquals('blindsight', $result[0]['type']);
+        $this->assertEquals(30, $result[0]['range']);
+        $this->assertTrue($result[0]['is_limited']);
+        $this->assertEquals('blind beyond this radius', $result[0]['notes']);
+    }
+
+    #[Test]
+    public function it_parses_tremorsense()
+    {
+        $result = $this->invokeMethod($this->parser, 'parseSenses', ['tremorsense 60 ft.']);
+
+        $this->assertCount(1, $result);
+        $this->assertEquals('tremorsense', $result[0]['type']);
+        $this->assertEquals(60, $result[0]['range']);
+    }
+
+    #[Test]
+    public function it_parses_truesight()
+    {
+        $result = $this->invokeMethod($this->parser, 'parseSenses', ['truesight 120 ft.']);
+
+        $this->assertCount(1, $result);
+        $this->assertEquals('truesight', $result[0]['type']);
+        $this->assertEquals(120, $result[0]['range']);
+    }
+
+    #[Test]
+    public function it_parses_multiple_senses()
+    {
+        $result = $this->invokeMethod($this->parser, 'parseSenses', ['blindsight 10 ft., darkvision 120 ft.']);
+
+        $this->assertCount(2, $result);
+        $this->assertEquals('blindsight', $result[0]['type']);
+        $this->assertEquals(10, $result[0]['range']);
+        $this->assertEquals('darkvision', $result[1]['type']);
+        $this->assertEquals(120, $result[1]['range']);
+    }
+
+    #[Test]
+    public function it_parses_complex_senses_combination()
+    {
+        $result = $this->invokeMethod($this->parser, 'parseSenses', ['blindsight 60 ft., darkvision 120 ft., tremorsense 60 ft.']);
+
+        $this->assertCount(3, $result);
+        $this->assertEquals('blindsight', $result[0]['type']);
+        $this->assertEquals('darkvision', $result[1]['type']);
+        $this->assertEquals('tremorsense', $result[2]['type']);
+    }
+
+    #[Test]
+    public function it_parses_blindsight_with_deafened_condition()
+    {
+        $result = $this->invokeMethod($this->parser, 'parseSenses', ['blindsight 30 ft. or 10 ft. while deafened (blind beyond this radius)']);
+
+        $this->assertCount(1, $result);
+        $this->assertEquals('blindsight', $result[0]['type']);
+        $this->assertEquals(30, $result[0]['range']); // Takes the primary range
+        $this->assertTrue($result[0]['is_limited']);
+        $this->assertStringContainsString('deafened', $result[0]['notes']);
+    }
+
+    #[Test]
+    public function it_parses_darkvision_with_form_restriction()
+    {
+        $result = $this->invokeMethod($this->parser, 'parseSenses', ['darkvision 60 ft. (rat form only)']);
+
+        $this->assertCount(1, $result);
+        $this->assertEquals('darkvision', $result[0]['type']);
+        $this->assertEquals(60, $result[0]['range']);
+        $this->assertFalse($result[0]['is_limited']); // Not "blind beyond", just a form restriction
+        $this->assertEquals('rat form only', $result[0]['notes']);
+    }
+
+    #[Test]
+    public function it_returns_empty_array_for_empty_senses()
+    {
+        $result = $this->invokeMethod($this->parser, 'parseSenses', ['']);
+        $this->assertEquals([], $result);
+
+        $result = $this->invokeMethod($this->parser, 'parseSenses', [null]);
+        $this->assertEquals([], $result);
+    }
+
+    // ==================== Description Parsing Tests ====================
+
     #[Test]
     public function it_parses_description()
     {
@@ -529,7 +655,11 @@ XML;
         $this->assertNull($monster['damage_resistances']);
         $this->assertNull($monster['damage_immunities']);
         $this->assertNull($monster['condition_immunities']);
-        $this->assertEquals('darkvision 120 ft.', $monster['senses']);
+        $this->assertEquals('darkvision 120 ft.', $monster['senses_raw']);
+        $this->assertIsArray($monster['senses']);
+        $this->assertCount(1, $monster['senses']);
+        $this->assertEquals('darkvision', $monster['senses'][0]['type']);
+        $this->assertEquals(120, $monster['senses'][0]['range']);
         $this->assertEquals('Deep Speech, telepathy 120 ft.', $monster['languages']);
 
         // Description

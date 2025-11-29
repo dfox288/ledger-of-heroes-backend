@@ -1,1 +1,1 @@
-SESSION-HANDOVER-2025-11-29-2122-frontend-api-review.md
+handovers/SESSION-HANDOVER-2025-11-29-2200-structured-senses.md

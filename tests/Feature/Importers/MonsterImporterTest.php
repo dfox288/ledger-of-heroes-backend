@@ -241,4 +241,50 @@ class MonsterImporterTest extends TestCase
         $this->assertEquals($firstCount, $secondCount);
         $this->assertEquals(3, Monster::count());
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_imports_monster_senses(): void
+    {
+        // Create required sense types
+        \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
+        \App\Models\Sense::firstOrCreate(['slug' => 'blindsight'], ['name' => 'Blindsight']);
+
+        $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
+
+        $this->importer->importWithStats($xmlPath);
+
+        $dragon = Monster::where('slug', 'young-red-dragon')->first();
+        $senses = $dragon->senses()->with('sense')->get();
+
+        // Dragon has: blindsight 30 ft., darkvision 120 ft.
+        $this->assertCount(2, $senses);
+
+        $blindsight = $senses->firstWhere('sense.slug', 'blindsight');
+        $this->assertNotNull($blindsight);
+        $this->assertEquals(30, $blindsight->range_feet);
+
+        $darkvision = $senses->firstWhere('sense.slug', 'darkvision');
+        $this->assertNotNull($darkvision);
+        $this->assertEquals(120, $darkvision->range_feet);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_clears_existing_senses_on_reimport(): void
+    {
+        // Create required sense types
+        \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
+        \App\Models\Sense::firstOrCreate(['slug' => 'blindsight'], ['name' => 'Blindsight']);
+
+        $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
+
+        // Import twice
+        $this->importer->importWithStats($xmlPath);
+        $this->importer->importWithStats($xmlPath);
+
+        $dragon = Monster::where('slug', 'young-red-dragon')->first();
+        $senses = $dragon->senses;
+
+        // Should still have exactly 2, not 4 (duplicated)
+        $this->assertCount(2, $senses);
+    }
 }

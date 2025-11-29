@@ -24,6 +24,7 @@ final class MonsterSearchService
         'modifiers.skill',
         'modifiers.damageType',
         'conditions.condition',
+        'senses.sense',
         'tags',
     ];
 
@@ -41,6 +42,7 @@ final class MonsterSearchService
         'modifiers.skill',
         'modifiers.damageType',
         'conditions.condition',
+        'senses.sense',
         'tags',
     ];
 

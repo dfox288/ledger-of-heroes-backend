@@ -39,6 +39,7 @@ class MonsterResource extends JsonResource
             'proficiency_bonus' => $this->proficiency_bonus,
             'is_legendary' => $this->is_legendary,
             'passive_perception' => $this->passive_perception,
+            'senses' => EntitySenseResource::collection($this->whenLoaded('senses')),
             'description' => $this->description,
             'traits' => MonsterTraitResource::collection($this->whenLoaded('traits')),
             'actions' => MonsterActionResource::collection($this->whenLoaded('actions')),

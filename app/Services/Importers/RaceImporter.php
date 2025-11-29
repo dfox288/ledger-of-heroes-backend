@@ -10,6 +10,7 @@ use App\Services\Importers\Concerns\ImportsConditions;
 use App\Services\Importers\Concerns\ImportsEntitySpells;
 use App\Services\Importers\Concerns\ImportsLanguages;
 use App\Services\Importers\Concerns\ImportsModifiers;
+use App\Services\Importers\Concerns\ImportsSenses;
 use App\Services\Importers\Strategies\Race\BaseRaceStrategy;
 use App\Services\Importers\Strategies\Race\RacialVariantStrategy;
 use App\Services\Importers\Strategies\Race\SubraceStrategy;
@@ -22,6 +23,7 @@ class RaceImporter extends BaseImporter
     use ImportsEntitySpells;
     use ImportsLanguages;
     use ImportsModifiers;
+    use ImportsSenses;
 
     private array $createdBaseRaces = [];
 
@@ -98,6 +100,10 @@ class RaceImporter extends BaseImporter
 
         // Import data tables from trait rolls (also links traits to tables)
         $this->importDataTablesFromRolls($createdTraits, $raceData['traits'] ?? []);
+
+        // Extract and import senses from traits (Darkvision, Superior Darkvision)
+        $sensesData = $this->extractSensesFromTraits($raceData['traits'] ?? []);
+        $this->importEntitySenses($race, $sensesData);
 
         // Refresh to load all relationships created during import
         $race->refresh();
@@ -317,5 +323,43 @@ class RaceImporter extends BaseImporter
 
         // Delegate to the generalized trait method
         $this->importEntitySpells($race, $spellsData);
+    }
+
+    /**
+     * Extract sense data from race traits.
+     *
+     * Looks for traits named "Darkvision" or "Superior Darkvision" and extracts
+     * the range from the description text (e.g., "within 60 feet" or "within 120 feet").
+     *
+     * @param  array  $traits  Array of trait data from parser
+     * @return array Array of sense data compatible with importEntitySenses()
+     */
+    private function extractSensesFromTraits(array $traits): array
+    {
+        $senses = [];
+
+        foreach ($traits as $trait) {
+            $name = $trait['name'] ?? '';
+            $description = $trait['description'] ?? '';
+
+            // Check for Darkvision or Superior Darkvision
+            if (stripos($name, 'darkvision') !== false) {
+                // Extract range from description: "within 60 feet" or "within 120 feet"
+                $range = 60; // Default to 60 feet
+
+                if (preg_match('/within\s+(\d+)\s+feet/i', $description, $matches)) {
+                    $range = (int) $matches[1];
+                }
+
+                $senses[] = [
+                    'type' => 'darkvision',
+                    'range' => $range,
+                    'is_limited' => false,
+                    'notes' => null,
+                ];
+            }
+        }
+
+        return $senses;
     }
 }

@@ -82,7 +82,8 @@ class MonsterXmlParser
             'damage_resistances' => (string) $xml->resist ?: null,
             'damage_immunities' => (string) $xml->immune ?: null,
             'condition_immunities' => (string) $xml->conditionImmune ?: null,
-            'senses' => (string) $xml->senses ?: null,
+            'senses_raw' => (string) $xml->senses ?: null,
+            'senses' => $this->parseSenses((string) $xml->senses),
             'passive_perception' => isset($xml->passive) ? (int) $xml->passive : null,
             'languages' => (string) $xml->languages ?: null,
 
@@ -358,6 +359,68 @@ class MonsterXmlParser
         }
 
         return (string) $description;
+    }
+
+    /**
+     * Parse senses string into structured array.
+     *
+     * Handles formats like:
+     * - "darkvision 60 ft."
+     * - "blindsight 30 ft. (blind beyond this radius)"
+     * - "blindsight 10 ft., darkvision 120 ft."
+     * - "blindsight 30 ft. or 10 ft. while deafened (blind beyond this radius)"
+     *
+     * @param  string|null  $senses  Senses string from XML
+     * @return array Array of parsed senses with type, range, is_limited, notes
+     */
+    protected function parseSenses(?string $senses): array
+    {
+        if (empty($senses)) {
+            return [];
+        }
+
+        $result = [];
+        $senseTypes = ['darkvision', 'blindsight', 'tremorsense', 'truesight'];
+
+        // Build pattern to match any sense type with its range and optional notes
+        // Pattern captures: (senseType) (range) optionally (condition like "while deafened") optionally (parenthetical notes)
+        $senseTypesPattern = implode('|', $senseTypes);
+        $pattern = "/({$senseTypesPattern})\s+(\d+)\s*ft\.?(?:\s+or\s+\d+\s*ft\.?\s+while\s+(\w+))?\s*(?:\(([^)]+)\))?/i";
+
+        // Use preg_match_all to find all senses in order of appearance
+        if (preg_match_all($pattern, $senses, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $senseType = strtolower($match[1]);
+                $range = (int) $match[2];
+                $deafenedCondition = $match[3] ?? null;
+                $parentheticalNotes = $match[4] ?? null;
+
+                // Determine if this is a "blind beyond" limitation
+                $isLimited = false;
+                $notes = null;
+
+                if ($parentheticalNotes) {
+                    $isLimited = str_contains(strtolower($parentheticalNotes), 'blind beyond');
+
+                    // Build notes string
+                    if ($deafenedCondition) {
+                        // Has both deafened condition and parenthetical
+                        $notes = "or reduced while {$deafenedCondition}, {$parentheticalNotes}";
+                    } else {
+                        $notes = $parentheticalNotes;
+                    }
+                }
+
+                $result[] = [
+                    'type' => $senseType,
+                    'range' => $range,
+                    'is_limited' => $isLimited,
+                    'notes' => $notes,
+                ];
+            }
+        }
+
+        return $result;
     }
 
     /**

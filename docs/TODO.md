@@ -14,7 +14,17 @@ _None_
 
 _Planned tasks with implementation details ready_
 
-_None_
+### Classes Audit Fixes (from 2025-11-29 Audit)
+
+- [ ] **Fix Wizard Arcane Recovery level** (Priority: High)
+  - Currently at L6, should be L1 (PHB p.115)
+  - Root cause: XML source data has wrong level
+  - Fix: Either correct XML or add data migration
+
+- [ ] **Link Elemental Disciplines to Way of Four Elements** (Priority: High)
+  - 17 disciplines exist in DB but 0 linked to subclass
+  - Need to create `optional_feature_class` associations
+  - Fix: Update OptionalFeature importer to link by class name
 
 ## Deferred
 
@@ -62,6 +72,17 @@ _Future tasks, not yet prioritized_
 ## Completed
 
 _Recently completed tasks (move to CHANGELOG.md after release)_
+
+- [x] **Classes Audit Fixes - Parser** (2025-11-29)
+  - Fixed Rogue Sneak Attack progression: Added synthetic progression to `ClassProgressionTableGenerator`
+    - Source XML had wrong level mappings (1-9 instead of 1,3,5,7,9,11,13,15,17,19)
+    - Formula: `ceil(level/2)d6` - now shows correct 1d6 to 10d6 progression
+  - Fixed Thief subclass feature contamination: Removed `str_contains()` from `ClassXmlParser::featureBelongsToSubclass()`
+    - "Spell Thief (Arcane Trickster)" was incorrectly assigned to Thief because "Thief" is substring
+    - Now only matches explicit patterns: "Archetype: Subclass" or "Feature (Subclass)"
+    - Requires re-import to fix existing data
+  - Verified Eldritch Invocations: 54 invocations correctly exposed in Warlock `optional_features`
+  - Verified Artificer Infusions: 16 infusions correctly exposed in Artificer `optional_features`
 
 - [x] **Fix Progression Table Columns** (2025-11-29)
   - Barbarian: Added `rage_damage` synthetic progression (+2/+3/+4 from PHB prose)

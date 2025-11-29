@@ -331,4 +331,73 @@ XML;
         $sortOrders = array_column($result[0]['features'], 'sort_order');
         $this->assertEquals([0, 1, 3], $sortOrders, 'Sort order should preserve original positions (skipping filtered index 2)');
     }
+
+    #[Test]
+    public function it_does_not_assign_features_to_subclass_when_subclass_name_is_substring()
+    {
+        // Regression test: "Spell Thief (Arcane Trickster)" was incorrectly assigned to "Thief"
+        // because "Thief" is a substring of "Spell Thief"
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <class>
+    <name>Rogue</name>
+    <hd>8</hd>
+    <autolevel level="3">
+      <feature optional="YES">
+        <name>Roguish Archetype: Arcane Trickster</name>
+        <text>Arcane Trickster intro.</text>
+      </feature>
+      <feature optional="YES">
+        <name>Roguish Archetype: Thief</name>
+        <text>Thief intro.</text>
+      </feature>
+      <feature optional="YES">
+        <name>Fast Hands (Thief)</name>
+        <text>Thief L3 feature.</text>
+      </feature>
+    </autolevel>
+    <autolevel level="17">
+      <feature optional="YES">
+        <name>Spell Thief (Arcane Trickster)</name>
+        <text>Arcane Trickster L17 feature - steals spells.</text>
+      </feature>
+      <feature optional="YES">
+        <name>Thief's Reflexes (Thief)</name>
+        <text>Thief L17 feature - two turns in first round.</text>
+      </feature>
+    </autolevel>
+  </class>
+</compendium>
+XML;
+
+        $result = $this->parser->parse($xml);
+
+        // Should detect both subclasses
+        $this->assertCount(2, $result[0]['subclasses']);
+
+        // Find each subclass
+        $arcaneTrickster = collect($result[0]['subclasses'])->firstWhere('name', 'Arcane Trickster');
+        $thief = collect($result[0]['subclasses'])->firstWhere('name', 'Thief');
+
+        $this->assertNotNull($arcaneTrickster, 'Arcane Trickster subclass should exist');
+        $this->assertNotNull($thief, 'Thief subclass should exist');
+
+        // Arcane Trickster should have "Spell Thief (Arcane Trickster)"
+        $atFeatureNames = array_column($arcaneTrickster['features'], 'name');
+        $this->assertContains('Spell Thief (Arcane Trickster)', $atFeatureNames,
+            'Arcane Trickster should have Spell Thief feature');
+
+        // Thief should NOT have "Spell Thief (Arcane Trickster)" - it should only have its own features
+        $thiefFeatureNames = array_column($thief['features'], 'name');
+        $this->assertNotContains('Spell Thief (Arcane Trickster)', $thiefFeatureNames,
+            'Thief should NOT have Spell Thief - that belongs to Arcane Trickster only');
+        $this->assertContains('Roguish Archetype: Thief', $thiefFeatureNames);
+        $this->assertContains('Fast Hands (Thief)', $thiefFeatureNames);
+        $this->assertContains("Thief's Reflexes (Thief)", $thiefFeatureNames);
+
+        // Thief should have exactly 3 features (intro + Fast Hands + Thief's Reflexes)
+        $this->assertCount(3, $thief['features'],
+            'Thief should have exactly 3 features, not 4 (Spell Thief should not be included)');
+    }
 }

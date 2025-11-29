@@ -727,4 +727,81 @@ class ClassProgressionTableGeneratorTest extends TestCase
         $columnKeys = array_column($result['columns'], 'key');
         $this->assertNotContains('rage_damage', $columnKeys);
     }
+
+    #[Test]
+    public function it_includes_synthetic_sneak_attack_for_rogue(): void
+    {
+        // Create rogue class
+        $rogue = CharacterClass::factory()->create(['name' => 'Rogue', 'slug' => 'rogue']);
+
+        $result = $this->generator->generate($rogue);
+
+        // Should have sneak_attack column
+        $columnKeys = array_column($result['columns'], 'key');
+        $this->assertContains('sneak_attack', $columnKeys);
+
+        // Check the column has correct label
+        $column = collect($result['columns'])->firstWhere('key', 'sneak_attack');
+        $this->assertEquals('Sneak Attack', $column['label']);
+        $this->assertEquals('dice', $column['type']);
+
+        // Check row values follow PHB p.96 progression: ceil(level / 2) d6
+        // L1: 1d6, L3: 2d6, L5: 3d6, L7: 4d6, L9: 5d6, L11: 6d6, L13: 7d6, L15: 8d6, L17: 9d6, L19: 10d6
+        $this->assertEquals('1d6', $result['rows'][0]['sneak_attack']);   // L1
+        $this->assertEquals('1d6', $result['rows'][1]['sneak_attack']);   // L2 (still 1d6)
+        $this->assertEquals('2d6', $result['rows'][2]['sneak_attack']);   // L3
+        $this->assertEquals('2d6', $result['rows'][3]['sneak_attack']);   // L4 (still 2d6)
+        $this->assertEquals('3d6', $result['rows'][4]['sneak_attack']);   // L5
+        $this->assertEquals('4d6', $result['rows'][6]['sneak_attack']);   // L7
+        $this->assertEquals('5d6', $result['rows'][8]['sneak_attack']);   // L9
+        $this->assertEquals('5d6', $result['rows'][9]['sneak_attack']);   // L10 (still 5d6)
+        $this->assertEquals('6d6', $result['rows'][10]['sneak_attack']);  // L11
+        $this->assertEquals('7d6', $result['rows'][12]['sneak_attack']);  // L13
+        $this->assertEquals('8d6', $result['rows'][14]['sneak_attack']);  // L15
+        $this->assertEquals('9d6', $result['rows'][16]['sneak_attack']);  // L17
+        $this->assertEquals('10d6', $result['rows'][18]['sneak_attack']); // L19
+        $this->assertEquals('10d6', $result['rows'][19]['sneak_attack']); // L20 (still 10d6)
+    }
+
+    #[Test]
+    public function it_synthetic_sneak_attack_overrides_bad_data_table(): void
+    {
+        // Create rogue with incorrect data table (like the current broken state)
+        $rogue = CharacterClass::factory()->create(['name' => 'Rogue', 'slug' => 'rogue']);
+
+        $feature = ClassFeature::factory()->create([
+            'class_id' => $rogue->id,
+            'feature_name' => 'Sneak Attack',
+            'level' => 1,
+        ]);
+
+        // Create an EntityDataTable with WRONG level values (the bug we're fixing)
+        $table = \App\Models\EntityDataTable::create([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $feature->id,
+            'table_name' => 'Extra Damage',
+            'dice_type' => 'd6',
+            'table_type' => \App\Enums\DataTableType::DAMAGE,
+        ]);
+
+        // Wrong data: levels 1-9 instead of 1,3,5,7,9,11,13,15,17,19
+        for ($i = 1; $i <= 9; $i++) {
+            \App\Models\EntityDataTableEntry::create([
+                'entity_data_table_id' => $table->id,
+                'roll_min' => $i,
+                'roll_max' => $i,
+                'result_text' => "{$i}d6",
+                'level' => $i,
+                'sort_order' => $i - 1,
+            ]);
+        }
+
+        $result = $this->generator->generate($rogue);
+
+        // Synthetic progression should override the bad data table
+        // L10 should be 5d6 (not 9d6 from bad data), L11 should be 6d6
+        $this->assertEquals('5d6', $result['rows'][9]['sneak_attack']);   // L10
+        $this->assertEquals('6d6', $result['rows'][10]['sneak_attack']);  // L11
+        $this->assertEquals('10d6', $result['rows'][19]['sneak_attack']); // L20
+    }
 }

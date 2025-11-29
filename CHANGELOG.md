@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Rogue Sneak Attack progression now correct (PHB p.96)**
+  - Source XML data had incorrect level mappings (levels 1-9 instead of 1,3,5,7,9,11,13,15,17,19)
+  - Added synthetic progression to `ClassProgressionTableGenerator` that overrides bad data
+  - Formula: `ceil(level / 2) d6` - increases by 1d6 at each odd level
+  - L1: 1d6, L3: 2d6, L5: 3d6, ... L17: 9d6, L19: 10d6
+  - Previously stuck at 9d6 for levels 10-20, now correctly shows 5d6-10d6
+
+- **Subclass feature assignment no longer matches on substring**
+  - Removed overly broad `str_contains()` check in `ClassXmlParser::featureBelongsToSubclass()`
+  - Previously, "Spell Thief (Arcane Trickster)" was incorrectly assigned to Thief subclass because "Thief" is a substring
+  - Now only matches explicit patterns: "Archetype: Subclass" or "Feature (Subclass)"
+  - Requires re-import to fix existing data: `php artisan import:classes`
+
 ### Added
 
 - **Class Progression Tables: Enhanced column generation from feature data**

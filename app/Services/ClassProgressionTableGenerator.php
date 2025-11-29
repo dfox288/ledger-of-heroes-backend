@@ -27,8 +27,11 @@ final class ClassProgressionTableGenerator
     ];
 
     /**
-     * Synthetic progressions for classes where data is only in prose text.
-     * Rage Damage is specified in prose: "+2 at 1st, +3 at 9th, +4 at 16th"
+     * Synthetic progressions for classes where data is only in prose text
+     * or where imported data is incorrect/incomplete.
+     *
+     * - Barbarian Rage Damage: specified in prose: "+2 at 1st, +3 at 9th, +4 at 16th"
+     * - Rogue Sneak Attack: PHB p.96 formula ceil(level/2)d6, XML data has wrong level mappings
      */
     private const SYNTHETIC_PROGRESSIONS = [
         'barbarian' => [
@@ -36,6 +39,26 @@ final class ClassProgressionTableGenerator
                 'label' => 'Rage Damage',
                 'type' => 'bonus',
                 'values' => [1 => '+2', 9 => '+3', 16 => '+4'],
+            ],
+        ],
+        'rogue' => [
+            'sneak_attack' => [
+                'label' => 'Sneak Attack',
+                'type' => 'dice',
+                // PHB p.96: Sneak Attack = ceil(level / 2) d6
+                // Increases at odd levels: 1, 3, 5, 7, 9, 11, 13, 15, 17, 19
+                'values' => [
+                    1 => '1d6',
+                    3 => '2d6',
+                    5 => '3d6',
+                    7 => '4d6',
+                    9 => '5d6',
+                    11 => '6d6',
+                    13 => '7d6',
+                    15 => '8d6',
+                    17 => '9d6',
+                    19 => '10d6',
+                ],
             ],
         ],
     ];

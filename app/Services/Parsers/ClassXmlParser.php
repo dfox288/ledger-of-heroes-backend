@@ -691,6 +691,15 @@ class ClassXmlParser
     /**
      * Check if a feature belongs to a specific subclass based on naming patterns.
      *
+     * Only uses explicit naming patterns to avoid false positives:
+     * - Pattern 1: "Archetype: Subclass Name" (intro feature)
+     * - Pattern 2: "Feature Name (Subclass Name)" (subsequent features)
+     *
+     * NOTE: We intentionally do NOT use str_contains() because subclass names
+     * can be substrings of other feature names. For example, "Thief" is a substring
+     * of "Spell Thief (Arcane Trickster)", which would incorrectly assign that
+     * Arcane Trickster feature to the Thief subclass.
+     *
      * @param  string  $featureName  The feature name to check
      * @param  string  $subclassName  The subclass name to match against
      */
@@ -702,13 +711,8 @@ class ClassXmlParser
         }
 
         // Pattern 2: "Feature Name (Subclass Name)" (subsequent features)
+        // The subclass name must be at the END of the feature name, in parentheses
         if (preg_match('/\('.preg_quote($subclassName, '/').'\)$/i', $featureName)) {
-            return true;
-        }
-
-        // Pattern 3: Feature name contains subclass name without parentheses
-        // (less common, but some XML files use this)
-        if (str_contains($featureName, $subclassName)) {
             return true;
         }
 

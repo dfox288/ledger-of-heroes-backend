@@ -30,6 +30,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Both arrays use same `MonsterLegendaryActionResource` format
   - **Breaking change**: `legendary_actions` no longer includes lair-related content
 
+- **Multiclass requirements for Classes**
+  - Parsed from "Multiclass {Class}" feature descriptions in XML
+  - Stored in `entity_proficiencies` table with `proficiency_type='multiclass_requirement'`
+  - `is_choice` flag indicates OR (true) vs AND (false) conditions
+  - API returns structured format: `{type: "or"|"and"|"single", requirements: [{ability, minimum_score, is_alternative}]}`
+  - Examples: Fighter (STR 13 OR DEX 13), Monk (DEX 13 AND WIS 13), Bard (CHA 13)
+
+- **Spellcasting type computed accessor for Classes**
+  - New `spellcasting_type` field computed from max spell level
+  - Values: `full` (9th), `half` (5th), `third` (4th), `pact` (Warlock), `none`
+  - Warlock specially detected for unique pact magic system
+
 ### Changed
 
 - **XML import now reads directly from fightclub_forked repository**

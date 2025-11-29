@@ -81,6 +81,10 @@ class ClassXmlParser
         // Parse features from autolevel elements
         $data['features'] = $this->parseFeatures($element);
 
+        // Parse multiclass requirements from the "Multiclass {Class}" feature
+        // Must be done before detectSubclasses() filters the features
+        $data['multiclass_requirements'] = $this->parseMulticlassRequirements($data['features'], $data['name']);
+
         // Parse spell progression from autolevel elements
         $data['spell_progression'] = $this->parseSpellSlots($element);
 
@@ -865,6 +869,71 @@ class ClassXmlParser
         }
 
         return $items;
+    }
+
+    /**
+     * Parse multiclass ability score requirements from the "Multiclass {Class}" feature.
+     *
+     * The requirements are embedded in the feature description text with patterns like:
+     * - Single: "• Charisma 13"
+     * - AND: "• Dexterity 13\n• Wisdom 13" (no "or")
+     * - OR: "• Strength 13, or\n• Dexterity 13"
+     *
+     * @param  array  $features  Parsed features array
+     * @param  string  $className  The class name to find "Multiclass {Class}" feature
+     * @return array<int, array{ability: string, minimum: int, is_alternative: bool}>
+     */
+    private function parseMulticlassRequirements(array $features, string $className): array
+    {
+        $requirements = [];
+
+        // Find the "Multiclass {Class}" feature
+        $multiclassFeatureName = "Multiclass {$className}";
+        $multiclassFeature = null;
+
+        foreach ($features as $feature) {
+            if ($feature['name'] === $multiclassFeatureName) {
+                $multiclassFeature = $feature;
+                break;
+            }
+        }
+
+        if ($multiclassFeature === null) {
+            return [];
+        }
+
+        $description = $multiclassFeature['description'];
+
+        // Extract the ability score requirements section
+        // Look for text between "Ability Score Minimum:" and "Proficiencies Gained:"
+        if (! preg_match('/Ability Score Minimum:(.+?)(?:Proficiencies Gained:|$)/s', $description, $sectionMatch)) {
+            return [];
+        }
+
+        $requirementsText = $sectionMatch[1];
+
+        // Check if this is an OR condition
+        // - "at least 1 of" in the preamble text means OR
+        // - ", or" after an ability score bullet (e.g., "• Strength 13, or") means OR
+        // Be careful: ", or to take a level" is NOT an OR condition for abilities
+        $isOrCondition = preg_match('/at least 1 of/i', $requirementsText)
+            || preg_match('/•\s*(?:Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma)\s+\d+\s*,\s*or\b/i', $requirementsText);
+
+        // Extract ability requirements: "• Ability 13" or "• Ability 13, or"
+        // Abilities: Strength, Dexterity, Constitution, Intelligence, Wisdom, Charisma
+        $abilityPattern = '/•\s*(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma)\s+(\d+)/i';
+
+        if (preg_match_all($abilityPattern, $requirementsText, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $requirements[] = [
+                    'ability' => strtolower($match[1]),
+                    'minimum' => (int) $match[2],
+                    'is_alternative' => $isOrCondition,
+                ];
+            }
+        }
+
+        return $requirements;
     }
 
     /**

@@ -75,8 +75,8 @@ _From `docs/proposals/API-BUGS-AND-ENHANCEMENTS-2025-11-26.md`_
 - [ ] Add area of effect structure (`type`, `size`, `unit`)
 
 **Classes:**
-- [ ] Add `multiclass_requirements` (ability score prerequisites)
-- [ ] Add `spellcasting_type` enum (full/half/third/pact/none)
+- [x] Add `multiclass_requirements` (2025-11-29) - Parsed from XML, stored in entity_proficiencies
+- [x] Add `spellcasting_type` enum (2025-11-29) - Computed accessor (full/half/third/pact/none)
 
 **Items:**
 - [ ] Add `proficiency_category` (simple_melee, martial_melee, etc.)

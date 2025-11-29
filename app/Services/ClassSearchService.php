@@ -67,6 +67,8 @@ final class ClassSearchService
         'subclasses.features.childFeatures',
         'subclasses.counters',
         'tags',
+        'multiclassRequirements.abilityScore',
+        'parentClass.multiclassRequirements.abilityScore',
     ];
 
     /**

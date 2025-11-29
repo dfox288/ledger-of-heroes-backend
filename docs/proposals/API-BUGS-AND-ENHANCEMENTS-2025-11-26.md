@@ -241,8 +241,8 @@ This handles the tab-prefixed bullets in XML (`\t• Languages:`).
 | Material cost/consumed fields | Spells | Parse `material_cost_gp`, `material_consumed` | Pending |
 | Area of effect structure | Spells | `type`, `size`, `unit` for AoE spells | Pending |
 | ~~Casting time structure~~ | Spells | `casting_time_type` (action/bonus/reaction) | ✅ Done |
-| Add `multiclass_requirements` | Classes | Ability score prerequisites per PHB p.163 | Pending |
-| Add `spellcasting_type` enum | Classes | full/half/third/pact/none | Pending |
+| ~~Add `multiclass_requirements`~~ | Classes | Ability score prerequisites per PHB p.163 | ✅ Done |
+| ~~Add `spellcasting_type` enum~~ | Classes | full/half/third/pact/none | ✅ Done |
 | ~~Separate `lair_actions` array~~ | Monsters | Now filtered by `is_lair_action` flag | ✅ Done |
 | Add `languages` array | Monsters | Currently in description text | Pending |
 | ~~Add `is_subrace` flag~~ | Races | Simplifies frontend filtering | ✅ Done |

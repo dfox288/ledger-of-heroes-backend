@@ -4,6 +4,7 @@ namespace App\Services\Importers;
 
 use App\Models\CharacterClass;
 use App\Models\ClassCounter;
+use App\Models\Proficiency;
 use App\Services\Importers\Concerns\ImportsClassCounters;
 use App\Services\Importers\Concerns\ImportsClassFeatures;
 use App\Services\Importers\Concerns\ImportsDataTablesFromText;
@@ -120,6 +121,11 @@ class ClassImporter extends BaseImporter
 
         if (! empty($data['proficiencies'])) {
             $this->importEntityProficiencies($class, $data['proficiencies']);
+        }
+
+        // Import multiclass requirements as proficiencies
+        if (! empty($data['multiclass_requirements'])) {
+            $this->importMulticlassRequirements($class, $data['multiclass_requirements']);
         }
 
         // Import level progression if present
@@ -553,6 +559,54 @@ class ClassImporter extends BaseImporter
         }
 
         return $imported;
+    }
+
+    /**
+     * Import multiclass ability score requirements for a class.
+     *
+     * Stores requirements in entity_proficiencies with type 'multiclass_requirement'.
+     * Uses is_choice to indicate OR conditions (true = any one, false = all required).
+     *
+     * @param  CharacterClass  $class  The class model
+     * @param  array  $requirements  Parsed requirements [{ability, minimum, is_alternative}]
+     */
+    private function importMulticlassRequirements(CharacterClass $class, array $requirements): void
+    {
+        // Map ability names to codes for AbilityScore lookup
+        $abilityCodeMap = [
+            'strength' => 'STR',
+            'dexterity' => 'DEX',
+            'constitution' => 'CON',
+            'intelligence' => 'INT',
+            'wisdom' => 'WIS',
+            'charisma' => 'CHA',
+        ];
+
+        // Clear existing multiclass requirements for this class
+        $class->proficiencies()
+            ->where('proficiency_type', 'multiclass_requirement')
+            ->delete();
+
+        foreach ($requirements as $req) {
+            $abilityCode = $abilityCodeMap[$req['ability']] ?? null;
+            $abilityScore = $abilityCode
+                ? \App\Models\AbilityScore::where('code', $abilityCode)->first()
+                : null;
+
+            // Format display name: "Strength 13" etc.
+            $displayName = ucfirst($req['ability']).' '.$req['minimum'];
+
+            Proficiency::create([
+                'reference_type' => CharacterClass::class,
+                'reference_id' => $class->id,
+                'proficiency_type' => 'multiclass_requirement',
+                'proficiency_name' => $displayName,
+                'ability_score_id' => $abilityScore?->id,
+                'grants' => false, // Not granting proficiency, it's a requirement
+                'is_choice' => $req['is_alternative'], // true = OR, false = AND
+                'quantity' => $req['minimum'], // Store minimum score in quantity field
+            ]);
+        }
     }
 
     /**

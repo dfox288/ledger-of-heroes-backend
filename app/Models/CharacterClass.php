@@ -132,6 +132,18 @@ class CharacterClass extends BaseModel
         return $this->morphMany(Proficiency::class, 'reference');
     }
 
+    /**
+     * Get multiclass ability score requirements.
+     *
+     * Stored in entity_proficiencies with proficiency_type='multiclass_requirement'.
+     * is_choice=true means OR condition (need any one), is_choice=false means AND (need all).
+     */
+    public function multiclassRequirements(): MorphMany
+    {
+        return $this->morphMany(Proficiency::class, 'reference')
+            ->where('proficiency_type', 'multiclass_requirement');
+    }
+
     public function traits(): MorphMany
     {
         return $this->morphMany(CharacterTrait::class, 'reference');
@@ -172,6 +184,59 @@ class CharacterClass extends BaseModel
     public function getIsBaseClassAttribute(): bool
     {
         return is_null($this->parent_class_id);
+    }
+
+    /**
+     * Get the spellcasting type based on max spell level.
+     *
+     * D&D 5e caster classifications:
+     * - 'full': 9th level spells (Bard, Cleric, Druid, Sorcerer, Wizard)
+     * - 'half': 5th level spells (Paladin, Ranger, Artificer)
+     * - 'third': 4th level spells (Eldritch Knight, Arcane Trickster)
+     * - 'pact': Warlock (unique pact magic system, 5th level spells)
+     * - 'none': Non-spellcasters (Barbarian, Fighter, Monk, Rogue base)
+     *
+     * Note: Warlock is detected by name since pact magic differs from slot-based casting.
+     * This accessor requires levelProgression to be loaded for accurate results.
+     */
+    public function getSpellcastingTypeAttribute(): string
+    {
+        // Warlock uses pact magic (unique system)
+        $className = $this->parent_class_id !== null && $this->parentClass
+            ? $this->parentClass->name
+            : $this->name;
+
+        if (strtolower($className) === 'warlock') {
+            return 'pact';
+        }
+
+        // No spellcasting ability means non-caster
+        if ($this->spellcasting_ability_id === null && $this->effective_spellcasting_ability === null) {
+            return 'none';
+        }
+
+        // Determine from max spell level if levelProgression is loaded
+        if ($this->relationLoaded('levelProgression') && $this->levelProgression->isNotEmpty()) {
+            $ordinals = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
+            $maxLevel = 0;
+
+            for ($i = 1; $i <= 9; $i++) {
+                $column = "spell_slots_{$ordinals[$i - 1]}";
+                if ($this->levelProgression->max($column) > 0) {
+                    $maxLevel = $i;
+                }
+            }
+
+            return match ($maxLevel) {
+                9 => 'full',
+                5 => 'half',
+                4 => 'third',
+                default => $maxLevel > 0 ? 'other' : 'none',
+            };
+        }
+
+        // Fallback: has spellcasting ability but no progression loaded
+        return 'unknown';
     }
 
     /**

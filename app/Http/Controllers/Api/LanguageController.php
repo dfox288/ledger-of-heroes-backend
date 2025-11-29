@@ -10,6 +10,7 @@ use App\Http\Resources\LanguageResource;
 use App\Http\Resources\RaceResource;
 use App\Models\Language;
 use App\Services\Cache\LookupCacheService;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class LanguageController extends Controller
@@ -17,9 +18,47 @@ class LanguageController extends Controller
     /**
      * List all D&D languages
      *
-     * Returns a paginated list of languages in D&D 5e including Common, Elvish, Dwarvish,
-     * and exotic languages. Includes script information, language type, and rarity.
+     * Returns all languages available in D&D 5e. Languages represent spoken and written
+     * communication systems used by races, creatures, and cultures across the multiverse.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/lookups/languages              # All languages
+     * GET /api/v1/lookups/languages?q=elvish     # Search by name
+     * ```
+     *
+     * **Standard Languages:**
+     * - **Common:** Universal language spoken by most humanoids
+     * - **Dwarvish:** Language of dwarves, uses Dwarvish script
+     * - **Elvish:** Language of elves, uses Elvish script
+     * - **Giant:** Language of giants and ogres
+     * - **Gnomish:** Language of gnomes, uses Dwarvish script
+     * - **Goblin:** Language of goblinoids, uses Dwarvish script
+     * - **Halfling:** Language of halflings, uses Common script
+     * - **Orc:** Language of orcs, uses Dwarvish script
+     *
+     * **Exotic Languages:**
+     * - **Abyssal:** Language of demons (Chaotic Evil planes)
+     * - **Celestial:** Language of angels (Good-aligned planes)
+     * - **Draconic:** Language of dragons, dragonborn, and kobolds
+     * - **Deep Speech:** Language of aberrations (mind flayers, beholders)
+     * - **Infernal:** Language of devils (Lawful Evil planes)
+     * - **Primordial:** Elemental language with dialects (Aquan, Auran, Ignan, Terran)
+     * - **Sylvan:** Language of fey creatures
+     * - **Undercommon:** Trade language of the Underdark
+     *
+     * **Query Parameters:**
+     * - `q` (string): Search by name (partial match)
+     * - `per_page` (int): Results per page, 1-100 (default: 50)
+     *
+     * **Use Cases:**
+     * - **Character Creation:** Choose languages based on race and background
+     * - **Campaign Planning:** Identify languages needed for specific settings (Underdark, Planes, etc.)
+     * - **Roleplay:** Determine if characters can communicate with NPCs or creatures
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
+    #[QueryParameter('q', description: 'Search by name', example: 'elvish')]
     public function index(LanguageIndexRequest $request, LookupCacheService $cache)
     {
         $query = Language::query();
@@ -57,7 +96,20 @@ class LanguageController extends Controller
      * Get a single language
      *
      * Returns detailed information about a specific D&D language including its script,
-     * type (standard/exotic), and rarity.
+     * typical speakers, and description. Languages can be retrieved by ID, slug, or name.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/lookups/languages/1              # By ID
+     * GET /api/v1/lookups/languages/elvish         # By slug
+     * GET /api/v1/lookups/languages/Elvish         # By name
+     * ```
+     *
+     * **Response includes:**
+     * - `id`, `name`, `slug`: Language identification
+     * - `script`: Writing system (Common, Dwarvish, Elvish, Draconic, Infernal, Celestial)
+     * - `typical_speakers`: Races or creatures that commonly speak this language
+     * - `description`: Lore and usage information
      */
     public function show(Language $language)
     {

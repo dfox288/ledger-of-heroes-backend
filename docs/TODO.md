@@ -25,8 +25,9 @@ _Tasks intentionally postponed_
 
 _Prioritized tasks ready to start_
 
-- [ ] API documentation standardization - Phase 2 (enhance index docs for controllers with good relationship methods)
-  - ConditionController, LanguageController, DamageTypeController, SizeController
+- [ ] API documentation standardization - Phase 3 (simple lookup tables)
+  - SourceController, AlignmentController, ArmorTypeController, MonsterTypeController
+  - OptionalFeatureTypeController, RarityController, TagController, AbilityScoreController
 
 ---
 
@@ -45,10 +46,11 @@ _Future tasks, not yet prioritized_
 
 _Recently completed tasks (move to CHANGELOG.md after release)_
 
-- [x] **API Documentation Standardization - Phase 1** (2025-11-29)
-  - Enhanced PHPDoc for 5 lookup controllers: SkillController, SpellSchoolController, ProficiencyTypeController, ItemTypeController, ItemPropertyController
+- [x] **API Documentation Standardization - Phase 1 & 2** (2025-11-29)
+  - Enhanced PHPDoc for 9 lookup controllers following SpellController gold standard
+  - Phase 1: SkillController, SpellSchoolController, ProficiencyTypeController, ItemTypeController, ItemPropertyController
+  - Phase 2: ConditionController, LanguageController, DamageTypeController, SizeController
   - Added Scramble `#[QueryParameter]` annotations for OpenAPI docs
-  - Each controller includes: examples, query params, use cases, D&D reference data
 
 - [x] **Laravel Sanctum Authentication** (2025-11-29)
   - Installed Sanctum v4.2, created `personal_access_tokens` migration

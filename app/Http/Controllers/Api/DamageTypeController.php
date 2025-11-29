@@ -9,15 +9,40 @@ use App\Http\Resources\ItemResource;
 use App\Http\Resources\SpellResource;
 use App\Models\DamageType;
 use App\Services\Cache\LookupCacheService;
+use Dedoc\Scramble\Attributes\QueryParameter;
 
 class DamageTypeController extends Controller
 {
     /**
      * List all damage types
      *
-     * Returns a paginated list of D&D 5e damage types (Fire, Cold, Poison, Slashing, etc.).
-     * Used for spell effects, weapon damage, and resistances/immunities.
+     * Returns the 13 D&D 5e damage types used for spell effects, weapon damage, and creature resistances/immunities.
+     * Damage types are divided into physical (Slashing, Piercing, Bludgeoning) and elemental/energy types.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/lookups/damage-types              # All 13 damage types
+     * GET /api/v1/lookups/damage-types?q=fire       # Search by name
+     * ```
+     *
+     * **Damage Types Reference:**
+     * - **Physical (3):** Slashing, Piercing, Bludgeoning - from weapons, most common
+     * - **Elemental (4):** Fire, Cold, Lightning, Acid - natural elements
+     * - **Energy (3):** Force, Radiant, Necrotic - magical energy
+     * - **Other (3):** Poison, Psychic, Thunder - special types
+     *
+     * **Query Parameters:**
+     * - `q` (string): Search by name (partial match)
+     * - `per_page` (int): Results per page, 1-100 (default: 50)
+     *
+     * **Use Cases:**
+     * - **Resistance Planning:** Check enemy resistances before combat (many undead resist necrotic)
+     * - **Spell Selection:** Build diverse spell lists with multiple damage types
+     * - **Vulnerability Exploitation:** Target known vulnerabilities (trolls vs. fire/acid)
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
+    #[QueryParameter('q', description: 'Search damage types by name', example: 'fire')]
     public function index(DamageTypeIndexRequest $request, LookupCacheService $cache)
     {
         $query = DamageType::query();
@@ -54,8 +79,20 @@ class DamageTypeController extends Controller
     /**
      * Get a single damage type
      *
-     * Returns detailed information about a specific D&D damage type including its name
-     * and associated spells, weapons, or effects.
+     * Returns detailed information about a specific D&D damage type including its name and code.
+     * Damage types can be retrieved by ID, slug, code, or name.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/lookups/damage-types/1              # By ID
+     * GET /api/v1/lookups/damage-types/fire           # By slug
+     * GET /api/v1/lookups/damage-types/F              # By code
+     * GET /api/v1/lookups/damage-types/Fire           # By name
+     * ```
+     *
+     * **Response includes:**
+     * - `id`, `name`, `slug`: Damage type identification
+     * - `code`: Single-letter abbreviation (F=Fire, C=Cold, L=Lightning, etc.)
      */
     public function show(DamageType $damageType)
     {

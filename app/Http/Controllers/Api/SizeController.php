@@ -9,6 +9,7 @@ use App\Http\Resources\RaceResource;
 use App\Http\Resources\SizeResource;
 use App\Models\Size;
 use App\Services\Cache\LookupCacheService;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Request;
 
 class SizeController extends Controller
@@ -16,9 +17,45 @@ class SizeController extends Controller
     /**
      * List all creature sizes
      *
-     * Returns a paginated list of D&D 5e creature sizes (Tiny, Small, Medium, Large, Huge, Gargantuan).
-     * Used to categorize creatures, races, and determine space occupied in combat.
+     * Returns the 6 D&D 5e creature size categories used to classify all creatures, races, and monsters.
+     * Size determines space occupied, grappling rules, mounted combat eligibility, and movement constraints.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/lookups/sizes              # All 6 size categories
+     * GET /api/v1/lookups/sizes?q=medium     # Search by name
+     * ```
+     *
+     * **Size Categories:**
+     * - **Tiny (T):** Space: 2.5ft × 2.5ft (¼ square) | Examples: Imp, Sprite, Flying Snake
+     * - **Small (S):** Space: 5ft × 5ft (1 square) | Examples: Halfling, Gnome, Goblin, Kobold
+     * - **Medium (M):** Space: 5ft × 5ft (1 square) | Examples: Human, Elf, Dwarf, Orc (most races)
+     * - **Large (L):** Space: 10ft × 10ft (4 squares) | Examples: Ogre, Centaur, Young Dragon
+     * - **Huge (H):** Space: 15ft × 15ft (9 squares) | Examples: Giant, Adult Dragon, Purple Worm
+     * - **Gargantuan (G):** Space: 20ft × 20ft (16 squares) | Examples: Ancient Dragon, Kraken, Tarrasque
+     *
+     * **Combat & Gameplay Implications:**
+     * - **Space Control:** Larger creatures occupy more squares and control more battlefield area
+     * - **Grappling:** Can only grapple creatures within one size category (Medium grapples Small/Medium/Large)
+     * - **Mounted Combat:** Mount must be one size larger than rider (Small rides Medium, Medium rides Large)
+     * - **Heavy Weapons:** Small creatures have disadvantage on attack rolls with Heavy weapons
+     * - **Movement:** Larger creatures struggle with narrow corridors and standard doorways (5ft wide)
+     * - **Squeezing:** Creatures can squeeze through spaces half their width at half speed with disadvantage
+     *
+     * **Query Parameters:**
+     * - `q` (string): Search by name (partial match)
+     * - `per_page` (int): Results per page, 1-100 (default: 50)
+     *
+     * **Use Cases:**
+     * - **Race Selection:** "I want a Small race for mounted combat and stealth builds"
+     * - **Grappling Builds:** "Which size allows grappling the widest range of enemies?" (Medium)
+     * - **Encounter Design:** "What space requirements do I need for a Large boss fight?" (10ft × 10ft minimum)
+     * - **Mount Planning:** "My Small Halfling needs a Medium mount - what are the options?" (Pony, Wolf, Mastiff)
+     * - **Dungeon Navigation:** "Will a Large PC fit through standard 5ft doors?" (Yes, but squeezing)
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
+    #[QueryParameter('q', description: 'Search by name', example: 'medium')]
     public function index(SizeIndexRequest $request, LookupCacheService $cache)
     {
         $query = Size::query();
@@ -55,8 +92,20 @@ class SizeController extends Controller
     /**
      * Get a single size category
      *
-     * Returns detailed information about a specific creature size including its space
-     * requirements and rules implications.
+     * Returns detailed information about a specific D&D 5e size category.
+     * Size categories can be retrieved by ID, code (T/S/M/L/H/G), or name.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/lookups/sizes/1              # By ID
+     * GET /api/v1/lookups/sizes/M              # By code (Medium)
+     * GET /api/v1/lookups/sizes/medium         # By name
+     * GET /api/v1/lookups/sizes/S              # By code (Small)
+     * ```
+     *
+     * **Response includes:**
+     * - `id`, `code`, `name`: Size identification (e.g., 3, "M", "Medium")
+     * - Relationships available: `/sizes/{id}/races`, `/sizes/{id}/monsters`
      */
     public function show(Size $size)
     {

@@ -9,15 +9,52 @@ use App\Http\Resources\MonsterResource;
 use App\Http\Resources\SpellResource;
 use App\Models\Condition;
 use App\Services\Cache\LookupCacheService;
+use Dedoc\Scramble\Attributes\QueryParameter;
 
 class ConditionController extends Controller
 {
     /**
      * List all D&D conditions
      *
-     * Returns a paginated list of D&D 5e conditions (Blinded, Charmed, Frightened, etc.).
-     * These are status effects that can be applied to creatures during combat.
+     * Returns the 15 D&D 5e conditions, which are status effects applied to creatures during combat.
+     * Conditions modify abilities, movement, actions, and saving throws.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/lookups/conditions              # All 15 conditions
+     * GET /api/v1/lookups/conditions?q=blind      # Search by name
+     * ```
+     *
+     * **D&D 5e Conditions:**
+     * - **Blinded:** Cannot see, auto-fails sight checks, attacks have disadvantage, attacks against have advantage
+     * - **Charmed:** Cannot attack charmer, charmer has advantage on social checks
+     * - **Deafened:** Cannot hear, auto-fails hearing checks
+     * - **Exhaustion:** Six levels of fatigue, each progressively worse (disadvantage → speed halved → max HP halved → death)
+     * - **Frightened:** Disadvantage on checks/attacks while source visible, cannot move closer to source
+     * - **Grappled:** Speed becomes 0, cannot benefit from bonuses to speed
+     * - **Incapacitated:** Cannot take actions or reactions
+     * - **Invisible:** Impossible to see without special sense, attack rolls have advantage, attacks against have disadvantage
+     * - **Paralyzed:** Incapacitated, auto-fail STR/DEX saves, attacks have advantage, hits within 5ft are critical hits
+     * - **Petrified:** Transformed to stone, incapacitated, unaware of surroundings, resistance to all damage
+     * - **Poisoned:** Disadvantage on attack rolls and ability checks
+     * - **Prone:** Disadvantage on attacks, attacks against have advantage (melee) or disadvantage (ranged), costs half movement to stand
+     * - **Restrained:** Speed 0, disadvantage on DEX saves, attacks have advantage
+     * - **Stunned:** Incapacitated, auto-fail STR/DEX saves, attacks have advantage
+     * - **Unconscious:** Incapacitated, prone, cannot move/speak, unaware, auto-fail STR/DEX saves, attacks have advantage, hits within 5ft are critical hits
+     *
+     * **Query Parameters:**
+     * - `q` (string): Search by name (partial match)
+     * - `per_page` (int): Results per page, 1-100 (default: 50)
+     *
+     * **Use Cases:**
+     * - **Combat Tactics:** Identify which conditions to inflict for maximum advantage (Paralyzed = auto-crits)
+     * - **Spell Selection:** Choose control spells based on conditions they inflict (Hold Person = Paralyzed)
+     * - **Monster Abilities:** Understand dangerous monster attacks (Ghoul claws = Paralyzed, Medusa gaze = Petrified)
+     * - **Condition Removal:** Prepare Lesser Restoration (removes Blinded, Deafened, Paralyzed, Poisoned)
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
+    #[QueryParameter('q', description: 'Search by name', example: 'frightened')]
     public function index(ConditionIndexRequest $request, LookupCacheService $cache)
     {
         $query = Condition::query();
@@ -54,8 +91,19 @@ class ConditionController extends Controller
     /**
      * Get a single condition
      *
-     * Returns detailed information about a specific D&D condition including its rules
-     * and effects on gameplay.
+     * Returns detailed information about a specific D&D condition including its description
+     * and mechanical effects. Conditions can be retrieved by ID, slug, or name.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/lookups/conditions/1              # By ID
+     * GET /api/v1/lookups/conditions/paralyzed      # By slug
+     * GET /api/v1/lookups/conditions/Paralyzed      # By name
+     * ```
+     *
+     * **Response includes:**
+     * - `id`, `name`, `slug`: Condition identification
+     * - `description`: Full mechanical description of the condition's effects
      */
     public function show(Condition $condition)
     {

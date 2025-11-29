@@ -9,10 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **API Documentation Standardization - Phase 1** (Lookup Controllers)
-  - Enhanced PHPDoc for 5 lookup controllers following SpellController gold standard
+- **API Documentation Standardization - Phase 1 & 2** (Lookup Controllers)
+  - Enhanced PHPDoc for 9 lookup controllers following SpellController gold standard
   - Added Scramble `#[QueryParameter]` annotations for OpenAPI documentation
-  - Controllers updated: SkillController, SpellSchoolController, ProficiencyTypeController, ItemTypeController, ItemPropertyController
+  - Phase 1: SkillController, SpellSchoolController, ProficiencyTypeController, ItemTypeController, ItemPropertyController
+  - Phase 2: ConditionController, LanguageController, DamageTypeController, SizeController
   - Each controller now includes: examples, query parameters, use cases, and D&D reference data
 
 - **Laravel Sanctum Authentication** (API token-based auth)

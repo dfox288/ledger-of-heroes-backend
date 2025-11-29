@@ -26,8 +26,8 @@ class ClassFeatureResource extends JsonResource
             'sort_order' => $this->sort_order,
 
             // Relationships
-            'random_tables' => RandomTableResource::collection(
-                $this->whenLoaded('randomTables')
+            'data_tables' => EntityDataTableResource::collection(
+                $this->whenLoaded('dataTables')
             ),
 
             // Nested child features (choice options)

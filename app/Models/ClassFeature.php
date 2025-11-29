@@ -57,13 +57,13 @@ class ClassFeature extends BaseModel
     }
 
     /**
-     * Random tables and reference tables associated with this feature.
-     * Includes <roll> elements and pipe-delimited tables from feature text.
+     * Data tables associated with this feature.
+     * Includes random rolls, damage tables, and reference tables from feature text.
      */
-    public function randomTables(): MorphMany
+    public function dataTables(): MorphMany
     {
         return $this->morphMany(
-            RandomTable::class,
+            EntityDataTable::class,
             'reference',
             'reference_type',
             'reference_id'

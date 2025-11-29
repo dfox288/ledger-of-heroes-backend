@@ -5,8 +5,8 @@ namespace App\Services\Importers;
 use App\Events\ModelImported;
 use App\Exceptions\Import\FileNotFoundException;
 use App\Services\Importers\Concerns\GeneratesSlugs;
+use App\Services\Importers\Concerns\ImportsDataTables;
 use App\Services\Importers\Concerns\ImportsProficiencies;
-use App\Services\Importers\Concerns\ImportsRandomTables;
 use App\Services\Importers\Concerns\ImportsSources;
 use App\Services\Importers\Concerns\ImportsTraits;
 use Illuminate\Database\Eloquent\Model;
@@ -25,8 +25,8 @@ use Illuminate\Support\Facades\DB;
 abstract class BaseImporter
 {
     use GeneratesSlugs;
+    use ImportsDataTables;
     use ImportsProficiencies;
-    use ImportsRandomTables;
     use ImportsSources;
     use ImportsTraits;
 

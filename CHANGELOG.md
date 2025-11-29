@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **BREAKING: Renamed `random_tables` to `entity_data_tables`**
+  - Database tables renamed: `random_tables` → `entity_data_tables`, `random_table_entries` → `entity_data_table_entries`
+  - Models renamed: `RandomTable` → `EntityDataTable`, `RandomTableEntry` → `EntityDataTableEntry`
+  - API response key changed: `random_tables` → `data_tables`
+  - Foreign key renamed: `random_table_id` → `entity_data_table_id` (in `entity_traits` table)
+  - Added `table_type` column with `DataTableType` enum (random, damage, modifier, lookup, progression)
+  - Migration automatically classifies existing tables based on name patterns
+  - All importer traits renamed: `ImportsRandomTables*` → `ImportsDataTables*`
+  - All parser traits renamed: `ParsesRandomTables` → `ParsesDataTables`
+
 - **Classes API: Features now nested with choice options**
   - Top-level `features` array no longer includes choice options (e.g., Fighting Style variants)
   - Choice options are nested under their parent feature in the `choice_options` array

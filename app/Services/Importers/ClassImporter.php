@@ -6,9 +6,9 @@ use App\Models\CharacterClass;
 use App\Models\ClassCounter;
 use App\Services\Importers\Concerns\ImportsClassCounters;
 use App\Services\Importers\Concerns\ImportsClassFeatures;
+use App\Services\Importers\Concerns\ImportsDataTablesFromText;
 use App\Services\Importers\Concerns\ImportsEntityItems;
 use App\Services\Importers\Concerns\ImportsModifiers;
-use App\Services\Importers\Concerns\ImportsRandomTablesFromText;
 use App\Services\Importers\Concerns\ImportsSpellProgression;
 use App\Services\Importers\Strategies\CharacterClass\BaseClassStrategy;
 use App\Services\Importers\Strategies\CharacterClass\SubclassStrategy;
@@ -19,9 +19,9 @@ class ClassImporter extends BaseImporter
 {
     use ImportsClassCounters;
     use ImportsClassFeatures;
+    use ImportsDataTablesFromText;
     use ImportsEntityItems;
     use ImportsModifiers;
-    use ImportsRandomTablesFromText;
     use ImportsSpellProgression;
 
     private array $strategies = [];
@@ -94,7 +94,7 @@ class ClassImporter extends BaseImporter
             foreach ($createdTraits as $index => $trait) {
                 if (isset($data['traits'][$index]['description'])) {
                     // This handles both pipe-delimited tables AND <roll> XML tags
-                    $this->importRandomTablesFromText($trait, $data['traits'][$index]['description']);
+                    $this->importDataTablesFromText($trait, $data['traits'][$index]['description']);
                 }
             }
 
@@ -469,7 +469,7 @@ class ClassImporter extends BaseImporter
             // Import random tables from traits
             foreach ($createdTraits as $index => $trait) {
                 if (isset($supplementData['traits'][$index]['description'])) {
-                    $this->importRandomTablesFromText($trait, $supplementData['traits'][$index]['description']);
+                    $this->importDataTablesFromText($trait, $supplementData['traits'][$index]['description']);
                 }
             }
 

@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class RandomTableResource extends JsonResource
+class EntityDataTableResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
@@ -13,8 +13,9 @@ class RandomTableResource extends JsonResource
             'id' => $this->id,
             'table_name' => $this->table_name,
             'dice_type' => $this->dice_type,
+            'table_type' => $this->table_type?->value,
             'description' => $this->description,
-            'entries' => RandomTableEntryResource::collection($this->whenLoaded('entries')),
+            'entries' => EntityDataTableEntryResource::collection($this->whenLoaded('entries')),
         ];
     }
 }

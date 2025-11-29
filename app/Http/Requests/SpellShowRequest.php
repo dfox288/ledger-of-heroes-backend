@@ -18,8 +18,8 @@ class SpellShowRequest extends BaseShowRequest
             'classes',
             'tags',
             'savingThrows',
-            'randomTables',
-            'randomTables.entries',
+            'dataTables',
+            'dataTables.entries',
         ];
     }
 

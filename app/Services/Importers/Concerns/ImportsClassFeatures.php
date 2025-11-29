@@ -2,13 +2,14 @@
 
 namespace App\Services\Importers\Concerns;
 
+use App\Enums\DataTableType;
 use App\Models\CharacterClass;
 use App\Models\ClassFeature;
 use App\Models\ClassFeatureSpecialTag;
+use App\Models\EntityDataTable;
+use App\Models\EntityDataTableEntry;
 use App\Models\Modifier;
 use App\Models\Proficiency;
-use App\Models\RandomTable;
-use App\Models\RandomTableEntry;
 
 /**
  * Trait for importing class features, feature modifiers, and related data.
@@ -94,9 +95,9 @@ trait ImportsClassFeatures
                 $this->importFeatureRolls($feature, $featureData['rolls']);
             }
 
-            // Import random tables from pipe-delimited tables in description text
+            // Import data tables from pipe-delimited tables in description text
             // This handles BOTH dice-based random tables AND reference tables (dice_type = null)
-            $this->importRandomTablesFromText($feature, $featureData['description'], clearExisting: false);
+            $this->importDataTablesFromText($feature, $featureData['description'], clearExisting: false);
         }
 
         // Second pass: Link child features to their parents
@@ -395,17 +396,18 @@ trait ImportsClassFeatures
             $firstFormula = $rollGroup->first()['formula'];
             $diceType = $this->extractDiceType($firstFormula);
 
-            $table = RandomTable::create([
+            $table = EntityDataTable::create([
                 'reference_type' => ClassFeature::class,
                 'reference_id' => $feature->id,
                 'table_name' => $tableName,
                 'dice_type' => $diceType,
+                'table_type' => DataTableType::DAMAGE,
                 'description' => null,
             ]);
 
             foreach ($rollGroup as $index => $roll) {
-                RandomTableEntry::create([
-                    'random_table_id' => $table->id,
+                EntityDataTableEntry::create([
+                    'entity_data_table_id' => $table->id,
                     'roll_min' => $roll['level'] ?? 1, // Use level as roll value, or 1 if no level
                     'roll_max' => $roll['level'] ?? 1,
                     'result_text' => $roll['formula'], // "1d6", "2d6", etc.

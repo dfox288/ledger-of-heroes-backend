@@ -88,9 +88,9 @@ class Item extends BaseModel
         return $this->morphMany(Modifier::class, 'reference');
     }
 
-    public function randomTables(): MorphMany
+    public function dataTables(): MorphMany
     {
-        return $this->morphMany(RandomTable::class, 'reference');
+        return $this->morphMany(EntityDataTable::class, 'reference');
     }
 
     public function prerequisites(): MorphMany

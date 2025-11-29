@@ -3,21 +3,21 @@
 namespace Tests\Unit\Importers\Concerns;
 
 use App\Models\CharacterTrait;
+use App\Models\EntityDataTable;
 use App\Models\Race;
-use App\Models\RandomTable;
-use App\Services\Importers\Concerns\ImportsRandomTables;
+use App\Services\Importers\Concerns\ImportsDataTables;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('unit-pure')]
 
-class ImportsRandomTablesTest extends TestCase
+class ImportsDataTablesTest extends TestCase
 {
-    use ImportsRandomTables, RefreshDatabase;
+    use ImportsDataTables, RefreshDatabase;
 
     #[Test]
-    public function it_imports_random_table_from_trait_description()
+    public function it_imports_data_table_from_trait_description()
     {
         $race = Race::factory()->create();
         $description = <<<'TEXT'
@@ -33,7 +33,7 @@ TEXT;
 
         $this->importTraitTables($trait, $trait->description);
 
-        $this->assertDatabaseHas('random_tables', [
+        $this->assertDatabaseHas('entity_data_tables', [
             'reference_type' => CharacterTrait::class,
             'reference_id' => $trait->id,
         ]);
@@ -56,7 +56,7 @@ TEXT;
 
         $this->importTraitTables($trait, $trait->description);
 
-        $table = RandomTable::first();
+        $table = EntityDataTable::first();
         $entries = $table->entries()->orderBy('sort_order')->get();
 
         $this->assertCount(3, $entries);
@@ -86,7 +86,7 @@ TEXT;
 
         $this->importTraitTables($trait, $trait->description);
 
-        $this->assertDatabaseHas('random_tables', [
+        $this->assertDatabaseHas('entity_data_tables', [
             'dice_type' => 'd6',
         ]);
     }
@@ -112,7 +112,7 @@ TEXT;
 
         $this->importTraitTables($trait, $trait->description);
 
-        $tables = RandomTable::where('reference_id', $trait->id)->get();
+        $tables = EntityDataTable::where('reference_id', $trait->id)->get();
         $this->assertCount(2, $tables);
     }
 
@@ -126,6 +126,6 @@ TEXT;
 
         $this->importTraitTables($trait, $trait->description);
 
-        $this->assertDatabaseCount('random_tables', 0);
+        $this->assertDatabaseCount('entity_data_tables', 0);
     }
 }

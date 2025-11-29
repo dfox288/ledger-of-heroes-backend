@@ -110,7 +110,7 @@ XML;
     }
 
     #[Test]
-    public function it_reconstructs_background_with_characteristics_and_random_tables()
+    public function it_reconstructs_background_with_characteristics_and_data_tables()
     {
         $originalXml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -155,16 +155,16 @@ XML;
 
         $backgrounds = $this->parser->parse($originalXml);
         $background = $this->importer->import($backgrounds[0]);
-        $background->load(['traits.randomTables.entries']);
+        $background->load(['traits.dataTables.entries']);
 
         // Assert: Characteristics trait exists
         $charTrait = $background->traits->where('category', 'characteristics')->first();
         $this->assertNotNull($charTrait);
 
-        // Assert: 4 random tables extracted
-        $this->assertCount(4, $charTrait->randomTables);
+        // Assert: 4 data tables extracted
+        $this->assertCount(4, $charTrait->dataTables);
 
-        $tables = $charTrait->randomTables;
+        $tables = $charTrait->dataTables;
         $this->assertTrue($tables->contains('table_name', 'Personality Trait'));
         $this->assertTrue($tables->contains('table_name', 'Ideal'));
         $this->assertTrue($tables->contains('table_name', 'Bond'));

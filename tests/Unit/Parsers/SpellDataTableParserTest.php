@@ -8,7 +8,7 @@ use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('unit-pure')]
 
-class SpellRandomTableParserTest extends TestCase
+class SpellDataTableParserTest extends TestCase
 {
     private SpellXmlParser $parser;
 
@@ -19,7 +19,7 @@ class SpellRandomTableParserTest extends TestCase
     }
 
     #[Test]
-    public function it_detects_random_table_in_spell_description(): void
+    public function it_detects_data_table_in_spell_description(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -53,7 +53,7 @@ XML;
         $this->assertCount(1, $spells);
         $spell = $spells[0];
 
-        // Verify spell has random_tables array
+        // Verify spell has random_tables array (key is still random_tables for backwards compatibility)
         $this->assertArrayHasKey('random_tables', $spell);
         $this->assertCount(1, $spell['random_tables']);
 
@@ -78,7 +78,7 @@ XML;
     }
 
     #[Test]
-    public function it_parses_spell_without_random_tables(): void
+    public function it_parses_spell_without_data_tables(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>

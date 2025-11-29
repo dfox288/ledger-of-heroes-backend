@@ -34,7 +34,7 @@ class SpellResource extends JsonResource
             'classes' => ClassResource::collection($this->whenLoaded('classes')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
             'saving_throws' => SavingThrowResource::collection($this->whenLoaded('savingThrows')),
-            'random_tables' => RandomTableResource::collection($this->whenLoaded('randomTables')),
+            'data_tables' => EntityDataTableResource::collection($this->whenLoaded('dataTables')),
         ];
     }
 }

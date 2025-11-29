@@ -137,13 +137,13 @@ class BackgroundApiTest extends TestCase
     }
 
     #[Test]
-    public function background_traits_include_random_tables()
+    public function background_traits_include_data_tables()
     {
-        // Find a background with traits that have random tables
-        $bg = Background::whereHas('traits.randomTables')->first();
+        // Find a background with traits that have data tables
+        $bg = Background::whereHas('traits.dataTables')->first();
 
         if (! $bg) {
-            $this->markTestSkipped('No backgrounds with random table traits in imported data');
+            $this->markTestSkipped('No backgrounds with data table traits in imported data');
         }
 
         $response = $this->getJson("/api/v1/backgrounds/{$bg->id}");
@@ -151,13 +151,13 @@ class BackgroundApiTest extends TestCase
         $response->assertStatus(200);
 
         $traits = $response->json('data.traits');
-        $traitsWithTables = collect($traits)->filter(fn ($t) => ! empty($t['random_tables']));
+        $traitsWithTables = collect($traits)->filter(fn ($t) => ! empty($t['data_tables']));
 
         if ($traitsWithTables->isNotEmpty()) {
             $traitWithTable = $traitsWithTables->first();
-            $this->assertArrayHasKey('random_tables', $traitWithTable);
-            $this->assertArrayHasKey('table_name', $traitWithTable['random_tables'][0]);
-            $this->assertArrayHasKey('entries', $traitWithTable['random_tables'][0]);
+            $this->assertArrayHasKey('data_tables', $traitWithTable);
+            $this->assertArrayHasKey('table_name', $traitWithTable['data_tables'][0]);
+            $this->assertArrayHasKey('entries', $traitWithTable['data_tables'][0]);
         }
     }
 

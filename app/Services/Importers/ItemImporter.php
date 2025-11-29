@@ -12,10 +12,10 @@ use App\Models\Proficiency;
 use App\Models\Source;
 use App\Services\Importers\Concerns\CachesLookupTables;
 use App\Services\Importers\Concerns\ImportsArmorModifiers;
+use App\Services\Importers\Concerns\ImportsDataTablesFromText;
 use App\Services\Importers\Concerns\ImportsEntitySpells;
 use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Importers\Concerns\ImportsPrerequisites;
-use App\Services\Importers\Concerns\ImportsRandomTablesFromText;
 use App\Services\Parsers\Concerns\ParsesItemSavingThrows;
 use App\Services\Parsers\Concerns\ParsesItemSpells;
 use App\Services\Parsers\ItemXmlParser;
@@ -24,10 +24,10 @@ class ItemImporter extends BaseImporter
 {
     use CachesLookupTables;
     use ImportsArmorModifiers;
+    use ImportsDataTablesFromText;
     use ImportsEntitySpells;
     use ImportsModifiers;
     use ImportsPrerequisites;
-    use ImportsRandomTablesFromText;
 
     // Note: These parser traits parse description TEXT (not XML) after item creation.
     // They extract spell references and saving throw requirements from the item's
@@ -88,8 +88,8 @@ class ItemImporter extends BaseImporter
         // Import abilities
         $this->importAbilities($item, $itemData['abilities']);
 
-        // Import random tables from description text
-        $this->importRandomTables($item, $itemData['description']);
+        // Import data tables from description text
+        $this->importDataTables($item, $itemData['description']);
 
         // Import prerequisites from strength_requirement
         $this->importPrerequisites($item, $itemData['strength_requirement']);
@@ -167,10 +167,10 @@ class ItemImporter extends BaseImporter
         }
     }
 
-    private function importRandomTables(Item $item, string $description): void
+    private function importDataTables(Item $item, string $description): void
     {
         // Delegate to the generalized trait method
-        $this->importRandomTablesFromText($item, $description);
+        $this->importDataTablesFromText($item, $description);
     }
 
     private function importPrerequisites(Item $item, ?int $strengthRequirement): void

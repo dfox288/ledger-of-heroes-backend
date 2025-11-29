@@ -122,7 +122,7 @@ class ClassResourceCompleteTest extends TestCase
             'sources.source',
             'proficiencies.proficiencyType',
             'proficiencies.skill',
-            'traits.randomTables',
+            'traits.dataTables',
             'features',
             'levelProgression',
             'counters',

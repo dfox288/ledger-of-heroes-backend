@@ -255,13 +255,13 @@ class RaceApiTest extends TestCase
     }
 
     #[Test]
-    public function test_race_traits_with_random_tables_include_entry_resource()
+    public function test_race_traits_with_data_tables_include_entry_resource()
     {
-        // Find a race with traits that have random tables
-        $race = Race::whereHas('traits.randomTables')->first();
+        // Find a race with traits that have data tables
+        $race = Race::whereHas('traits.dataTables')->first();
 
         if (! $race) {
-            $this->markTestSkipped('No races with random table traits in imported data');
+            $this->markTestSkipped('No races with data table traits in imported data');
         }
 
         $response = $this->getJson("/api/v1/races/{$race->id}");
@@ -269,12 +269,12 @@ class RaceApiTest extends TestCase
         $response->assertStatus(200);
 
         $traits = $response->json('data.traits');
-        $traitsWithTables = collect($traits)->filter(fn ($t) => ! empty($t['random_tables']));
+        $traitsWithTables = collect($traits)->filter(fn ($t) => ! empty($t['data_tables']));
 
         if ($traitsWithTables->isNotEmpty()) {
             $traitWithTable = $traitsWithTables->first();
-            $this->assertArrayHasKey('random_tables', $traitWithTable);
-            $this->assertArrayHasKey('entries', $traitWithTable['random_tables'][0]);
+            $this->assertArrayHasKey('data_tables', $traitWithTable);
+            $this->assertArrayHasKey('entries', $traitWithTable['data_tables'][0]);
         }
     }
 

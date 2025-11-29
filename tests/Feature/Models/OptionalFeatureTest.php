@@ -6,10 +6,10 @@ use App\Enums\OptionalFeatureType;
 use App\Enums\ResourceType;
 use App\Models\CharacterClass;
 use App\Models\ClassOptionalFeature;
+use App\Models\EntityDataTable;
 use App\Models\EntityPrerequisite;
 use App\Models\EntitySource;
 use App\Models\OptionalFeature;
-use App\Models\RandomTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -182,7 +182,7 @@ class OptionalFeatureTest extends TestCase
     {
         $feature = OptionalFeature::factory()->create();
 
-        RandomTable::create([
+        EntityDataTable::create([
             'reference_type' => OptionalFeature::class,
             'reference_id' => $feature->id,
             'table_name' => 'Damage',
@@ -192,7 +192,7 @@ class OptionalFeatureTest extends TestCase
         $feature->refresh();
 
         $this->assertCount(1, $feature->rolls);
-        $this->assertInstanceOf(RandomTable::class, $feature->rolls->first());
+        $this->assertInstanceOf(EntityDataTable::class, $feature->rolls->first());
         $this->assertEquals('Damage', $feature->rolls->first()->table_name);
     }
 

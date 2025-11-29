@@ -14,6 +14,15 @@ _None_
 
 _Planned tasks with implementation details ready_
 
+- [ ] **Fix Progression Table Columns** (3-4 hours)
+  - Barbarian: Add `rage_damage`, keep `rage`
+  - Monk: Add `martial_arts`, `unarmored_movement`; remove `wholeness_of_body`
+  - Rogue: Add `sneak_attack`; remove `stroke_of_luck`
+  - **Design:** `docs/plans/2025-11-29-progression-table-columns-design.md`
+  - **Plan:** `docs/plans/2025-11-29-progression-table-columns-plan.md`
+  - **Approach:** Parse text tables from descriptions, use existing RandomTable storage
+  - **Execute with:** Follow 7-task TDD plan in plan doc
+
 - [ ] **Entity Data Tables Refactor** (4-6 hours)
   - Rename `random_tables` → `entity_data_tables`
   - Add `table_type` discriminator column (random, damage, modifier, lookup, progression)

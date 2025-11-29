@@ -441,10 +441,10 @@ XML;
         $items = $this->parser->parse($originalXml);
         $item = $this->importer->import($items[0]);
 
-        $item->load('randomTables.entries');
-        $this->assertCount(1, $item->randomTables);
+        $item->load('dataTables.entries');
+        $this->assertCount(1, $item->dataTables);
 
-        $table = $item->randomTables->first();
+        $table = $item->dataTables->first();
         $this->assertEquals('Test Table', $table->table_name);
         $this->assertCount(2, $table->entries);
 
@@ -479,10 +479,10 @@ XML;
         $items = $this->parser->parse($originalXml);
         $item = $this->importer->import($items[0]);
 
-        $item->load('randomTables.entries');
-        $this->assertCount(1, $item->randomTables);
+        $item->load('dataTables.entries');
+        $this->assertCount(1, $item->dataTables);
 
-        $table = $item->randomTables->first();
+        $table = $item->dataTables->first();
         $entries = $table->entries->sortBy('sort_order')->values();
 
         // First entry: 1-2
@@ -525,10 +525,10 @@ XML;
         $items = $this->parser->parse($originalXml);
         $item = $this->importer->import($items[0]);
 
-        $item->load('randomTables.entries');
-        $this->assertCount(1, $item->randomTables);
+        $item->load('dataTables.entries');
+        $this->assertCount(1, $item->dataTables);
 
-        $table = $item->randomTables->first();
+        $table = $item->dataTables->first();
         $this->assertEquals('Lever Controls', $table->table_name);
         $this->assertCount(2, $table->entries);
 
@@ -561,10 +561,10 @@ XML;
         $items = $this->parser->parse($originalXml);
         $item = $this->importer->import($items[0]);
 
-        $item->load('randomTables');
-        $this->assertCount(1, $item->randomTables);
+        $item->load('dataTables');
+        $this->assertCount(1, $item->dataTables);
 
-        $table = $item->randomTables->first();
+        $table = $item->dataTables->first();
         $this->assertEquals('1d22', $table->dice_type);
     }
 

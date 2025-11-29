@@ -2,20 +2,21 @@
 
 namespace App\Services\Importers;
 
+use App\Enums\DataTableType;
 use App\Models\DamageType;
-use App\Models\RandomTable;
-use App\Models\RandomTableEntry;
+use App\Models\EntityDataTable;
+use App\Models\EntityDataTableEntry;
 use App\Models\Spell;
 use App\Models\SpellSchool;
 use App\Services\Importers\Concerns\ImportsClassAssociations;
-use App\Services\Importers\Concerns\ImportsRandomTables;
+use App\Services\Importers\Concerns\ImportsDataTables;
 use App\Services\Importers\Concerns\ImportsSavingThrows;
 use App\Services\Parsers\SpellXmlParser;
 
 class SpellImporter extends BaseImporter
 {
     use ImportsClassAssociations;
-    use ImportsRandomTables;
+    use ImportsDataTables;
     use ImportsSavingThrows;
 
     protected function importEntity(array $spellData): Spell
@@ -81,26 +82,26 @@ class SpellImporter extends BaseImporter
             $this->importSavingThrows($spell, $spellData['saving_throws']);
         }
 
-        // Import random tables
+        // Import data tables
         if (isset($spellData['random_tables']) && is_array($spellData['random_tables'])) {
-            $this->importSpellRandomTables($spell, $spellData['random_tables']);
+            $this->importSpellDataTables($spell, $spellData['random_tables']);
         }
 
         return $spell;
     }
 
     /**
-     * Import random tables embedded in spell description.
+     * Import data tables embedded in spell description.
      *
      * Similar to importTraitTables but for spells (Prismatic Spray, Confusion, etc.)
      *
      * @param  Spell  $spell  The spell entity
      * @param  array  $tablesData  Array of table data from parser
      */
-    private function importSpellRandomTables(Spell $spell, array $tablesData): void
+    private function importSpellDataTables(Spell $spell, array $tablesData): void
     {
-        // Delete existing random tables (for re-imports)
-        $spell->randomTables()->each(function ($table) {
+        // Delete existing data tables (for re-imports)
+        $spell->dataTables()->each(function ($table) {
             $table->entries()->delete();
             $table->delete();
         });
@@ -110,18 +111,19 @@ class SpellImporter extends BaseImporter
                 continue; // Skip tables with no entries
             }
 
-            // Create random table linked to spell
-            $table = RandomTable::create([
+            // Create data table linked to spell
+            $table = EntityDataTable::create([
                 'reference_type' => Spell::class,
                 'reference_id' => $spell->id,
                 'table_name' => $tableData['table_name'],
                 'dice_type' => $tableData['dice_type'],
+                'table_type' => DataTableType::RANDOM,
             ]);
 
             // Create table entries
             foreach ($tableData['entries'] as $index => $entry) {
-                RandomTableEntry::create([
-                    'random_table_id' => $table->id,
+                EntityDataTableEntry::create([
+                    'entity_data_table_id' => $table->id,
                     'roll_min' => $entry['roll_min'],
                     'roll_max' => $entry['roll_max'],
                     'result_text' => $entry['result_text'],

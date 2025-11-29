@@ -20,7 +20,7 @@ class TraitResource extends JsonResource
             'category' => $this->category,
             'description' => $this->description,
             'sort_order' => $this->sort_order,
-            'random_tables' => RandomTableResource::collection($this->whenLoaded('randomTables')),
+            'data_tables' => EntityDataTableResource::collection($this->whenLoaded('dataTables')),
         ];
     }
 }

@@ -30,7 +30,7 @@ final class BackgroundSearchService
      */
     private const SHOW_RELATIONSHIPS = [
         'sources.source',
-        'traits.randomTables.entries',
+        'traits.dataTables.entries',
         'proficiencies.skill.abilityScore',
         'proficiencies.proficiencyType',
         'proficiencies.item',

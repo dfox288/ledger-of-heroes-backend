@@ -2,11 +2,12 @@
 
 namespace App\Services\Importers;
 
+use App\Enums\DataTableType;
 use App\Models\Background;
 use App\Models\CharacterTrait;
+use App\Models\EntityDataTable;
+use App\Models\EntityDataTableEntry;
 use App\Models\EntityItem;
-use App\Models\RandomTable;
-use App\Models\RandomTableEntry;
 use App\Services\Importers\Concerns\ImportsLanguages;
 use App\Services\Matching\ItemMatchingService;
 use App\Services\Parsers\BackgroundXmlParser;
@@ -108,16 +109,17 @@ class BackgroundImporter extends BaseImporter
             $trait = $traits[$tableData['trait_name']];
 
             // Create table linked to the TRAIT (not background)
-            $table = RandomTable::create([
+            $table = EntityDataTable::create([
                 'reference_type' => CharacterTrait::class,
                 'reference_id' => $trait->id,
                 'table_name' => $tableData['name'],
                 'dice_type' => $tableData['dice_type'],
+                'table_type' => DataTableType::RANDOM,
             ]);
 
             foreach ($tableData['entries'] as $index => $entry) {
-                RandomTableEntry::create([
-                    'random_table_id' => $table->id,
+                EntityDataTableEntry::create([
+                    'entity_data_table_id' => $table->id,
                     'roll_min' => $entry['roll_min'],
                     'roll_max' => $entry['roll_max'],
                     'result_text' => $entry['result_text'],
@@ -125,8 +127,8 @@ class BackgroundImporter extends BaseImporter
                 ]);
             }
 
-            // Link table back to trait via random_table_id
-            $trait->update(['random_table_id' => $table->id]);
+            // Link table back to trait via entity_data_table_id
+            $trait->update(['entity_data_table_id' => $table->id]);
         }
 
         // Refresh to load all relationships created during import

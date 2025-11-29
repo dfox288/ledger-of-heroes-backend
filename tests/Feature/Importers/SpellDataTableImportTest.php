@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Importers;
 
-use App\Models\RandomTable;
-use App\Models\RandomTableEntry;
+use App\Models\EntityDataTable;
+use App\Models\EntityDataTableEntry;
 use App\Models\Spell;
 use App\Services\Importers\SpellImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('importers')]
-class SpellRandomTableImportTest extends TestCase
+class SpellDataTableImportTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -26,7 +26,7 @@ class SpellRandomTableImportTest extends TestCase
     }
 
     #[Test]
-    public function it_imports_spell_with_random_table(): void
+    public function it_imports_spell_with_data_table(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -69,8 +69,8 @@ XML;
             $spell = Spell::where('name', 'Prismatic Spray')->first();
             $this->assertNotNull($spell);
 
-            // Verify random table was created
-            $tables = $spell->randomTables;
+            // Verify data table was created
+            $tables = $spell->dataTables;
             $this->assertCount(1, $tables);
 
             $table = $tables->first();
@@ -100,7 +100,7 @@ XML;
     }
 
     #[Test]
-    public function it_handles_spell_without_random_tables(): void
+    public function it_handles_spell_without_data_tables(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -130,15 +130,15 @@ XML;
             $spell = Spell::where('name', 'Fireball')->first();
             $this->assertNotNull($spell);
 
-            // Should have no random tables
-            $this->assertCount(0, $spell->randomTables);
+            // Should have no data tables
+            $this->assertCount(0, $spell->dataTables);
         } finally {
             @unlink($tempFile);
         }
     }
 
     #[Test]
-    public function it_replaces_random_tables_on_reimport(): void
+    public function it_replaces_data_tables_on_reimport(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -172,8 +172,8 @@ XML;
             $importer->importFromFile($tempFile);
 
             $spell = Spell::where('name', 'Confusion')->first();
-            $this->assertCount(1, $spell->randomTables);
-            $table = $spell->randomTables->first();
+            $this->assertCount(1, $spell->dataTables);
+            $table = $spell->dataTables->first();
             $this->assertCount(4, $table->entries);
 
             // Store old IDs
@@ -187,8 +187,8 @@ XML;
             $spell->refresh();
 
             // Should still have 1 table
-            $this->assertCount(1, $spell->randomTables);
-            $newTable = $spell->randomTables->first();
+            $this->assertCount(1, $spell->dataTables);
+            $newTable = $spell->dataTables->first();
             $this->assertCount(4, $newTable->entries);
 
             // But it should be new records (not updated)
@@ -197,9 +197,9 @@ XML;
             $this->assertEmpty(array_intersect($oldEntryIds, $newEntryIds));
 
             // Old table and entries should be deleted
-            $this->assertNull(RandomTable::find($oldTableId));
+            $this->assertNull(EntityDataTable::find($oldTableId));
             foreach ($oldEntryIds as $oldId) {
-                $this->assertNull(RandomTableEntry::find($oldId));
+                $this->assertNull(EntityDataTableEntry::find($oldId));
             }
         } finally {
             @unlink($tempFile);
@@ -243,16 +243,16 @@ XML;
             $importer->importFromFile($tempFile);
 
             $spell = Spell::where('name', 'Wild Magic Surge')->first();
-            $this->assertCount(2, $spell->randomTables);
+            $this->assertCount(2, $spell->dataTables);
 
             // First table
-            $table1 = $spell->randomTables[0];
+            $table1 = $spell->dataTables[0];
             $this->assertEquals('Effect Type', $table1->table_name);
             $this->assertEquals('d20', $table1->dice_type);
             $this->assertCount(2, $table1->entries);
 
             // Second table
-            $table2 = $spell->randomTables[1];
+            $table2 = $spell->dataTables[1];
             $this->assertEquals('Damage Type', $table2->table_name);
             $this->assertEquals('d6', $table2->dice_type);
             $this->assertCount(3, $table2->entries);

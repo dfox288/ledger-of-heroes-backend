@@ -73,7 +73,7 @@ class OptionalFeature extends BaseModel
      */
     public function rolls(): MorphMany
     {
-        return $this->morphMany(RandomTable::class, 'reference');
+        return $this->morphMany(EntityDataTable::class, 'reference');
     }
 
     /**

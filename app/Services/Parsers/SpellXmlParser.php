@@ -3,7 +3,7 @@
 namespace App\Services\Parsers;
 
 use App\Services\Parsers\Concerns\LoadsLookupData;
-use App\Services\Parsers\Concerns\ParsesRandomTables;
+use App\Services\Parsers\Concerns\ParsesDataTables;
 use App\Services\Parsers\Concerns\ParsesSavingThrows;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use SimpleXMLElement;
@@ -11,7 +11,7 @@ use SimpleXMLElement;
 class SpellXmlParser
 {
     use LoadsLookupData;
-    use ParsesRandomTables;
+    use ParsesDataTables;
     use ParsesSavingThrows;
     use ParsesSourceCitations;
 
@@ -106,8 +106,8 @@ class SpellXmlParser
         // Parse saving throws from description
         $savingThrows = $this->parseSavingThrows($description);
 
-        // Parse random tables from description
-        $randomTables = $this->parseRandomTables($description);
+        // Parse data tables from description
+        $randomTables = $this->parseDataTables($description);
 
         return [
             'name' => (string) $element->name,

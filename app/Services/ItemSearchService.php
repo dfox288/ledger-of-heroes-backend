@@ -30,7 +30,7 @@ final class ItemSearchService
         'damageType',
         'properties',
         'abilities',
-        'randomTables.entries',
+        'dataTables.entries',
         'sources.source',
         'proficiencies.proficiencyType',
         'proficiencies.item',

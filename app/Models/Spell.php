@@ -98,9 +98,9 @@ class Spell extends BaseModel
             ->withTimestamps();
     }
 
-    public function randomTables(): MorphMany
+    public function dataTables(): MorphMany
     {
-        return $this->morphMany(RandomTable::class, 'reference');
+        return $this->morphMany(EntityDataTable::class, 'reference');
     }
 
     // Reverse relationships (entities that reference this spell)

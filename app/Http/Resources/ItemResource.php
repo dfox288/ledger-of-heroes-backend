@@ -40,7 +40,7 @@ class ItemResource extends JsonResource
             'damage_type' => DamageTypeResource::make($this->whenLoaded('damageType')),
             'properties' => ItemPropertyResource::collection($this->whenLoaded('properties')),
             'abilities' => ItemAbilityResource::collection($this->whenLoaded('abilities')),
-            'random_tables' => RandomTableResource::collection($this->whenLoaded('randomTables')),
+            'data_tables' => EntityDataTableResource::collection($this->whenLoaded('dataTables')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'proficiencies' => ProficiencyResource::collection($this->whenLoaded('proficiencies')),
             'modifiers' => ModifierResource::collection($this->whenLoaded('modifiers')),

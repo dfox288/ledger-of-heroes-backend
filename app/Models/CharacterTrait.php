@@ -17,13 +17,13 @@ class CharacterTrait extends BaseModel
         'category',
         'description',
         'sort_order',
-        'random_table_id',
+        'entity_data_table_id',
     ];
 
     protected $casts = [
         'reference_id' => 'integer',
         'sort_order' => 'integer',
-        'random_table_id' => 'integer',
+        'entity_data_table_id' => 'integer',
     ];
 
     // Polymorphic relationship to parent entity (Race, Class, etc.)
@@ -32,16 +32,16 @@ class CharacterTrait extends BaseModel
         return $this->morphTo();
     }
 
-    // Bidirectional relationship to random tables
-    // A trait can have many random tables referencing it
-    public function randomTables(): MorphMany
+    // Bidirectional relationship to data tables
+    // A trait can have many data tables referencing it
+    public function dataTables(): MorphMany
     {
-        return $this->morphMany(RandomTable::class, 'reference');
+        return $this->morphMany(EntityDataTable::class, 'reference');
     }
 
-    // A trait can also be linked to a single random table via random_table_id
-    public function randomTable(): BelongsTo
+    // A trait can also be linked to a single data table via entity_data_table_id
+    public function dataTable(): BelongsTo
     {
-        return $this->belongsTo(RandomTable::class);
+        return $this->belongsTo(EntityDataTable::class, 'entity_data_table_id');
     }
 }

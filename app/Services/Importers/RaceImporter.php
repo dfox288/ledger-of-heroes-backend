@@ -96,8 +96,8 @@ class RaceImporter extends BaseImporter
             $this->importSpells($race, $raceData['spellcasting']);
         }
 
-        // Import random tables from trait rolls (also links traits to tables)
-        $this->importRandomTablesFromRolls($createdTraits, $raceData['traits'] ?? []);
+        // Import data tables from trait rolls (also links traits to tables)
+        $this->importDataTablesFromRolls($createdTraits, $raceData['traits'] ?? []);
 
         // Refresh to load all relationships created during import
         $race->refresh();
@@ -245,7 +245,7 @@ class RaceImporter extends BaseImporter
         return $count;
     }
 
-    private function importRandomTablesFromRolls(array $createdTraits, array $traitsData): void
+    private function importDataTablesFromRolls(array $createdTraits, array $traitsData): void
     {
         foreach ($traitsData as $index => $traitData) {
             if (empty($traitData['rolls'])) {
@@ -259,27 +259,28 @@ class RaceImporter extends BaseImporter
                 continue;
             }
 
-            // Clear existing random tables for this trait
-            $trait->randomTables()->delete();
+            // Clear existing data tables for this trait
+            $trait->dataTables()->delete();
 
             foreach ($traitData['rolls'] as $roll) {
                 if (empty($roll['description']) || empty($roll['formula'])) {
                     continue;
                 }
 
-                // Create a random table for this roll, referencing the TRAIT
-                $randomTable = \App\Models\RandomTable::create([
+                // Create a data table for this roll, referencing the TRAIT
+                $dataTable = \App\Models\EntityDataTable::create([
                     'reference_type' => \App\Models\CharacterTrait::class,
                     'reference_id' => $trait->id,
                     'table_name' => $roll['description'],
                     'dice_type' => $roll['formula'],
+                    'table_type' => \App\Enums\DataTableType::RANDOM,
                     'description' => "From trait: {$traitData['name']}",
                 ]);
 
-                // Update the trait to link back to this random table
-                $trait->update(['random_table_id' => $randomTable->id]);
+                // Update the trait to link back to this data table
+                $trait->update(['entity_data_table_id' => $dataTable->id]);
 
-                // Note: Random table entries are embedded in the trait text as formatted tables
+                // Note: Data table entries are embedded in the trait text as formatted tables
                 // and will need to be parsed separately if needed in the future
             }
         }

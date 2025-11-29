@@ -6,7 +6,7 @@ use App\Services\Parsers\ItemTableDetector;
 use App\Services\Parsers\ItemTableParser;
 
 /**
- * Trait for parsing random tables embedded in entity descriptions.
+ * Trait for parsing data tables embedded in entity descriptions.
  *
  * Handles pipe-delimited tables like:
  * - d8 | Effect
@@ -15,10 +15,10 @@ use App\Services\Parsers\ItemTableParser;
  *
  * Used by: Spells (Prismatic Spray, Confusion), Items, Backgrounds, etc.
  */
-trait ParsesRandomTables
+trait ParsesDataTables
 {
     /**
-     * Parse random tables embedded in spell description.
+     * Parse data tables embedded in spell description.
      *
      * Uses ItemTableDetector and ItemTableParser to find pipe-delimited tables
      * like those in Prismatic Spray (d8 roll tables).
@@ -26,7 +26,7 @@ trait ParsesRandomTables
      * @param  string  $description  Spell description text
      * @return array<int, array{table_name: string, dice_type: string|null, entries: array}>
      */
-    protected function parseRandomTables(string $description): array
+    protected function parseDataTables(string $description): array
     {
         $detector = new ItemTableDetector;
         $detectedTables = $detector->detectTables($description);

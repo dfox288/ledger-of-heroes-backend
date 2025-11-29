@@ -2,16 +2,16 @@
 
 namespace Database\Factories;
 
-use App\Models\RandomTable;
-use App\Models\RandomTableEntry;
+use App\Models\EntityDataTable;
+use App\Models\EntityDataTableEntry;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\RandomTableEntry>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\EntityDataTableEntry>
  */
-class RandomTableEntryFactory extends Factory
+class EntityDataTableEntryFactory extends Factory
 {
-    protected $model = RandomTableEntry::class;
+    protected $model = EntityDataTableEntry::class;
 
     /**
      * Define the model's default state.
@@ -23,7 +23,7 @@ class RandomTableEntryFactory extends Factory
         $rollValue = fake()->numberBetween(1, 6);
 
         return [
-            'random_table_id' => RandomTable::factory(),
+            'entity_data_table_id' => EntityDataTable::factory(),
             'roll_min' => $rollValue,
             'roll_max' => $rollValue,
             'result_text' => fake()->sentence(),
@@ -32,12 +32,12 @@ class RandomTableEntryFactory extends Factory
     }
 
     /**
-     * Set the entry to belong to a specific random table.
+     * Set the entry to belong to a specific data table.
      */
-    public function forTable(RandomTable $table): static
+    public function forTable(EntityDataTable $table): static
     {
         return $this->state(fn (array $attributes) => [
-            'random_table_id' => $table->id,
+            'entity_data_table_id' => $table->id,
         ]);
     }
 }

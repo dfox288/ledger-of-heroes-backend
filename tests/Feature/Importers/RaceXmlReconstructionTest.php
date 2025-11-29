@@ -358,7 +358,7 @@ XML;
         $this->importer->importFromFile($this->createTempXmlFile($originalXml));
 
         $race = Race::where('name', 'Test Race')->first();
-        $race->load('traits.randomTables.entries');
+        $race->load('traits.dataTables.entries');
 
         // Verify trait was created
         $this->assertCount(1, $race->traits);
@@ -366,8 +366,8 @@ XML;
         $this->assertEquals('Test Personality', $trait->name);
 
         // Verify table was extracted from trait
-        $this->assertCount(1, $trait->randomTables);
-        $table = $trait->randomTables->first();
+        $this->assertCount(1, $trait->dataTables);
+        $table = $trait->dataTables->first();
         $this->assertEquals('Personality Quirks', $table->table_name);
         $this->assertEquals('d8', $table->dice_type);
         $this->assertCount(3, $table->entries);

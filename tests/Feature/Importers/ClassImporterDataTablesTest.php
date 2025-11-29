@@ -4,7 +4,7 @@ namespace Tests\Feature\Importers;
 
 use App\Models\CharacterClass;
 use App\Models\ClassFeature;
-use App\Models\RandomTable;
+use App\Models\EntityDataTable;
 use App\Services\Importers\ClassImporter;
 use App\Services\Parsers\ClassXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -12,7 +12,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('importers')]
-class ClassImporterRandomTablesTest extends TestCase
+class ClassImporterDataTablesTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -30,7 +30,7 @@ class ClassImporterRandomTablesTest extends TestCase
     }
 
     #[Test]
-    public function it_creates_random_tables_from_roll_elements()
+    public function it_creates_data_tables_from_roll_elements()
     {
         $xml = <<<'XML'
         <?xml version="1.0" encoding="UTF-8"?>
@@ -64,15 +64,15 @@ class ClassImporterRandomTablesTest extends TestCase
             ->first();
         $this->assertNotNull($feature);
 
-        // Verify random table was created
-        $this->assertDatabaseHas('random_tables', [
+        // Verify data table was created
+        $this->assertDatabaseHas('entity_data_tables', [
             'reference_type' => ClassFeature::class,
             'reference_id' => $feature->id,
             'table_name' => 'Extra Damage',
             'dice_type' => 'd6',
         ]);
 
-        $table = RandomTable::where('reference_type', ClassFeature::class)
+        $table = EntityDataTable::where('reference_type', ClassFeature::class)
             ->where('reference_id', $feature->id)
             ->first();
 
@@ -115,8 +115,8 @@ class ClassImporterRandomTablesTest extends TestCase
             ->where('feature_name', "Thieves' Cant")
             ->first();
 
-        // Should have no random tables
-        $this->assertEquals(0, $feature->randomTables()->count());
+        // Should have no data tables
+        $this->assertEquals(0, $feature->dataTables()->count());
     }
 
     #[Test]
@@ -151,9 +151,9 @@ class ClassImporterRandomTablesTest extends TestCase
             ->first();
 
         // Should create 4 separate tables (one per unique description)
-        $this->assertEquals(4, $feature->randomTables()->count());
+        $this->assertEquals(4, $feature->dataTables()->count());
 
-        $necroticTable = $feature->randomTables()
+        $necroticTable = $feature->dataTables()
             ->where('table_name', 'Necrotic Damage')
             ->first();
         $this->assertNotNull($necroticTable);
@@ -189,7 +189,7 @@ class ClassImporterRandomTablesTest extends TestCase
             ->where('feature_name', 'Arcane Recovery')
             ->first();
 
-        $table = $feature->randomTables()->first();
+        $table = $feature->dataTables()->first();
         $this->assertNotNull($table);
 
         $entry = $table->entries()->first();

@@ -440,4 +440,31 @@ XML;
         $this->assertArrayHasKey('archetype', $barbarian);
         $this->assertEquals('Primal Path', $barbarian['archetype']);
     }
+
+    #[Test]
+    public function it_adds_unlimited_rage_at_level_20_for_barbarian()
+    {
+        // Load real Barbarian XML from file
+        $xmlPath = base_path('import-files/class-barbarian-phb.xml');
+        $xml = file_get_contents($xmlPath);
+
+        // Parse the XML
+        $classes = $this->parser->parse($xml);
+        $barbarian = $classes[0];
+
+        // Assert: counters key exists
+        $this->assertArrayHasKey('counters', $barbarian);
+
+        // Get all Rage counters
+        $rageCounters = array_filter($barbarian['counters'], fn ($c) => $c['name'] === 'Rage');
+        $this->assertNotEmpty($rageCounters, 'Should have Rage counters');
+
+        // Find level 20 rage counter
+        $level20Rage = array_filter($rageCounters, fn ($c) => $c['level'] === 20);
+        $this->assertNotEmpty($level20Rage, 'Should have Rage counter at level 20');
+
+        // Assert: level 20 should be "Unlimited" (represented as -1 or special value)
+        $level20 = array_values($level20Rage)[0];
+        $this->assertEquals(-1, $level20['value'], 'Level 20 Rage should be Unlimited (represented as -1)');
+    }
 }

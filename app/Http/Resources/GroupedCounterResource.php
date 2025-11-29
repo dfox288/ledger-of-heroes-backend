@@ -42,7 +42,7 @@ class GroupedCounterResource extends JsonResource
             },
             'progression' => $counters->sortBy('level')->map(fn ($counter) => [
                 'level' => $counter->level,
-                'value' => $counter->counter_value,
+                'value' => $counter->counter_value === -1 ? 'Unlimited' : $counter->counter_value,
             ])->values()->all(),
         ];
     }

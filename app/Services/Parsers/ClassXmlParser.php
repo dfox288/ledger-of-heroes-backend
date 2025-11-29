@@ -504,6 +504,7 @@ class ClassXmlParser
     private function parseCounters(SimpleXMLElement $element): array
     {
         $counters = [];
+        $className = (string) $element->name;
 
         // Iterate through all autolevel elements
         foreach ($element->autolevel as $autolevel) {
@@ -543,6 +544,47 @@ class ClassXmlParser
                     'value' => $value,
                     'reset_timing' => $resetTiming,
                     'subclass' => $subclass,
+                ];
+            }
+        }
+
+        // Add special case counters not in XML source
+        $counters = $this->addSpecialCaseCounters($counters, $className);
+
+        return $counters;
+    }
+
+    /**
+     * Add special case counters that are missing from XML source data.
+     *
+     * Per PHB rules, some counter values at certain levels are well-defined
+     * but not included in the XML source files.
+     *
+     * @param  array<int, array<string, mixed>>  $counters  Existing counters
+     * @param  string  $className  The class name
+     * @return array<int, array<string, mixed>> Counters with special cases added
+     */
+    private function addSpecialCaseCounters(array $counters, string $className): array
+    {
+        // Barbarian: Unlimited Rage at level 20 (PHB p.49)
+        // The XML source stops at level 17 with 6 rages, but per PHB:
+        // "At 20th level, your rage becomes unlimited."
+        // We represent "Unlimited" as -1
+        if ($className === 'Barbarian') {
+            $hasRageCounter = collect($counters)->contains(fn ($c) => $c['name'] === 'Rage');
+            $hasLevel20Rage = collect($counters)->contains(fn ($c) => $c['name'] === 'Rage' && $c['level'] === 20);
+
+            if ($hasRageCounter && ! $hasLevel20Rage) {
+                // Find the reset timing from existing Rage counters
+                $existingRage = collect($counters)->first(fn ($c) => $c['name'] === 'Rage');
+                $resetTiming = $existingRage['reset_timing'] ?? 'long_rest';
+
+                $counters[] = [
+                    'level' => 20,
+                    'name' => 'Rage',
+                    'value' => -1, // -1 represents "Unlimited"
+                    'reset_timing' => $resetTiming,
+                    'subclass' => null,
                 ];
             }
         }

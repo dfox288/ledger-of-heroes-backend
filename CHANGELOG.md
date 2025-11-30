@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Feat spell choices support** (Issue #64)
+  - Extended `entity_spells` table with `is_choice`, `choice_count`, `choice_group`, `max_level`, `school_id`, `class_id`, `is_ritual_only` columns
+  - Parser detects school-constrained choices (Shadow/Fey Touched: "1st-level spell from illusion or necromancy")
+  - Parser detects class-constrained choices (Magic Initiate: "two bard cantrips", "one 1st-level bard spell")
+  - Parser detects ritual constraints (Ritual Caster: "spells must have the ritual tag")
+  - Creates multiple rows per `choice_group` for school-constrained choices
+  - New `SpellChoiceResource` for grouped API output with proper OpenAPI schema
+  - API returns both `spells` array and `spell_choices` grouped array on FeatResource
+
 - **Feat-granted spells relationship** (Issue #61)
   - Added `spells` polymorphic relationship to Feat model via `entity_spells` table
   - FeatXmlParser extracts named spells from description (e.g., "You learn the misty step spell")

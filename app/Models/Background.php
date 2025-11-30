@@ -17,6 +17,43 @@ class Background extends BaseModel
         'name',
     ];
 
+    /**
+     * Get the background's feature name (cleaned of "Feature: " prefix).
+     *
+     * Background features are stored as traits with category='feature'.
+     * The trait name typically has format "Feature: Shelter of the Faithful".
+     * This accessor strips the "Feature: " prefix for cleaner display.
+     */
+    public function getFeatureNameAttribute(): ?string
+    {
+        $featureTrait = $this->traits->firstWhere('category', 'feature');
+
+        if (! $featureTrait) {
+            return null;
+        }
+
+        // Strip "Feature: " prefix if present
+        $name = $featureTrait->name;
+
+        if (str_starts_with($name, 'Feature: ')) {
+            return substr($name, 9); // Length of "Feature: "
+        }
+
+        return $name;
+    }
+
+    /**
+     * Get the background's feature description.
+     *
+     * Returns the description of the trait with category='feature'.
+     */
+    public function getFeatureDescriptionAttribute(): ?string
+    {
+        $featureTrait = $this->traits->firstWhere('category', 'feature');
+
+        return $featureTrait?->description;
+    }
+
     // Polymorphic relationships
     public function traits(): MorphMany
     {
@@ -53,8 +90,8 @@ class Background extends BaseModel
     // Scout Searchable Methods
     public function toSearchableArray(): array
     {
-        // Load tags relationship if not already loaded
-        $this->loadMissing(['tags', 'proficiencies.skill', 'languages']);
+        // Load relationships needed for indexing
+        $this->loadMissing(['tags', 'proficiencies.skill', 'languages', 'traits']);
 
         return [
             'id' => $this->id,
@@ -77,12 +114,14 @@ class Background extends BaseModel
                 ->pluck('proficiency_subcategory')
                 ->filter()
                 ->unique()->values()->all(),
+            // Feature name for searching (e.g., "Shelter of the Faithful")
+            'feature_name' => $this->feature_name,
         ];
     }
 
     public function searchableWith(): array
     {
-        return ['sources.source', 'tags', 'proficiencies.skill', 'languages'];
+        return ['sources.source', 'tags', 'proficiencies.skill', 'languages', 'traits'];
     }
 
     public function searchableAs(): string
@@ -109,13 +148,16 @@ class Background extends BaseModel
                 'grants_language_choice',
                 'skill_proficiencies',
                 'tool_proficiency_types',
+                'feature_name',
             ],
             'sortableAttributes' => [
                 'name',
+                'feature_name',
             ],
             'searchableAttributes' => [
                 'name',
                 'sources',
+                'feature_name',
             ],
         ];
     }

@@ -13,6 +13,12 @@ class BackgroundResource extends JsonResource
             'id' => $this->id,
             'slug' => $this->slug,
             'name' => $this->name,
+
+            // Feature extraction (computed from traits with category='feature')
+            'feature_name' => $this->feature_name,
+            'feature_description' => $this->feature_description,
+
+            // Relationships
             'traits' => TraitResource::collection($this->whenLoaded('traits')),
             'proficiencies' => ProficiencyResource::collection($this->whenLoaded('proficiencies')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),

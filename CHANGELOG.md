@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Background feature extraction** (Issue #59)
+  - New `feature_name` computed accessor: extracts background feature name (e.g., "Shelter of the Faithful")
+  - New `feature_description` computed accessor: returns feature mechanics text
+  - Automatically strips "Feature: " prefix from trait names
+  - Both fields exposed in BackgroundResource API response
+  - `feature_name` added to Meilisearch for searching and filtering
+
 ### Changed
 
 - **Parser defaults moved to configuration** (Issue #20)

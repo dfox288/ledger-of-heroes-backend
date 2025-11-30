@@ -56,6 +56,9 @@ class RaceImporter extends BaseImporter
             $raceData['slug'] = $this->generateSlug($raceData['name']);
         }
 
+        // Extract alternate movement speeds from traits
+        $extractedSpeeds = $this->extractSpeedsFromTraits($raceData['traits'] ?? []);
+
         // Create or update race using slug as unique key
         $race = Race::updateOrCreate(
             ['slug' => $raceData['slug']],
@@ -64,6 +67,8 @@ class RaceImporter extends BaseImporter
                 'parent_race_id' => $raceData['parent_race_id'] ?? null,
                 'size_id' => $size->id,
                 'speed' => $raceData['speed'],
+                'fly_speed' => $extractedSpeeds['fly_speed'],
+                'swim_speed' => $extractedSpeeds['swim_speed'],
                 'description' => $raceData['description'] ?? '',
             ]
         );
@@ -432,5 +437,43 @@ class RaceImporter extends BaseImporter
         }
 
         return $senses;
+    }
+
+    /**
+     * Extract alternate movement speeds from race traits.
+     *
+     * Looks for traits like "Flight" or "Swim Speed" and extracts
+     * the speed value from the description text.
+     *
+     * @param  array  $traits  Array of trait data from parser
+     * @return array Array with 'fly_speed' and 'swim_speed' keys (nullable)
+     */
+    private function extractSpeedsFromTraits(array $traits): array
+    {
+        $speeds = [
+            'fly_speed' => null,
+            'swim_speed' => null,
+        ];
+
+        foreach ($traits as $trait) {
+            $name = $trait['name'] ?? '';
+            $description = $trait['description'] ?? '';
+
+            // Check for Flight trait
+            if (stripos($name, 'flight') !== false || stripos($name, 'flying') !== false) {
+                if (preg_match('/flying speed of (\d+) feet/i', $description, $matches)) {
+                    $speeds['fly_speed'] = (int) $matches[1];
+                }
+            }
+
+            // Check for Swim Speed trait
+            if (stripos($name, 'swim') !== false) {
+                if (preg_match('/swimming speed of (\d+) feet/i', $description, $matches)) {
+                    $speeds['swim_speed'] = (int) $matches[1];
+                }
+            }
+        }
+
+        return $speeds;
     }
 }

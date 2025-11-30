@@ -941,4 +941,66 @@ XML;
 
         $this->assertGreaterThanOrEqual(4, $weaponProfs->count(), 'Base race should have weapon proficiencies');
     }
+
+    #[Test]
+    public function it_extracts_fly_speed_from_flight_trait()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Aarakocra</name>
+        <size>M</size>
+        <speed>25</speed>
+        <trait>
+            <name>Flight</name>
+            <text>You have a flying speed of 50 feet. To use this speed, you can't be wearing medium or heavy armor.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $race = Race::where('name', 'Aarakocra')->first();
+
+        $this->assertNotNull($race);
+        $this->assertEquals(50, $race->fly_speed);
+    }
+
+    #[Test]
+    public function it_extracts_swim_speed_from_swim_speed_trait()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Triton</name>
+        <size>M</size>
+        <speed>30</speed>
+        <trait>
+            <name>Swim Speed</name>
+            <text>You have a swimming speed of 30 feet.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $race = Race::where('name', 'Triton')->first();
+
+        $this->assertNotNull($race);
+        $this->assertEquals(30, $race->swim_speed);
+    }
 }

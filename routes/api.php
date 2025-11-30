@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AlignmentController;
 use App\Http\Controllers\Api\ArmorTypeController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BackgroundController;
+use App\Http\Controllers\Api\CharacterController;
 use App\Http\Controllers\Api\ClassController;
 use App\Http\Controllers\Api\ConditionController;
 use App\Http\Controllers\Api\DamageTypeController;
@@ -196,4 +197,15 @@ Route::prefix('v1')->group(function () {
     // Optional Features
     Route::get('optional-features', [OptionalFeatureController::class, 'index'])->name('optional-features.index');
     Route::get('optional-features/{optionalFeature:slug}', [OptionalFeatureController::class, 'show'])->name('optional-features.show');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Character Builder API
+    |--------------------------------------------------------------------------
+    |
+    | Character creation and management endpoints for the D&D 5e Character Builder.
+    | Supports wizard-style creation where fields can be filled in any order.
+    |
+    */
+    Route::apiResource('characters', CharacterController::class);
 });

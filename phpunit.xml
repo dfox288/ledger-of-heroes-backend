@@ -90,6 +90,7 @@
             <file>tests/Feature/Api/TagIntegrationTest.php</file>
             <file>tests/Feature/Api/SpellReverseRelationshipsApiTest.php</file>
             <file>tests/Feature/Api/ClassDetailOptimizationTest.php</file>
+            <file>tests/Feature/Api/CharacterControllerTest.php</file>
         </testsuite>
 
         <!-- Feature-Search: Unified Meilisearch tests using fixture data (approx 120s) -->

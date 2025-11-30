@@ -162,6 +162,43 @@ class BackgroundApiTest extends TestCase
     }
 
     #[Test]
+    public function background_exposes_top_level_data_tables_for_convenience()
+    {
+        // Find a background with traits that have data tables (e.g., Acolyte has Personality Trait, Ideal, Bond, Flaw)
+        $bg = Background::whereHas('traits.dataTables')->first();
+
+        if (! $bg) {
+            $this->markTestSkipped('No backgrounds with data table traits in imported data');
+        }
+
+        $response = $this->getJson("/api/v1/backgrounds/{$bg->id}");
+
+        $response->assertStatus(200);
+
+        // Verify top-level data_tables field exists and contains flattened tables from all traits
+        $dataTables = $response->json('data.data_tables');
+        $this->assertNotNull($dataTables, 'data_tables should exist at top level');
+        $this->assertIsArray($dataTables);
+        $this->assertNotEmpty($dataTables, 'data_tables should contain flattened tables from traits');
+
+        // Verify expected structure for roll tables
+        $firstTable = $dataTables[0];
+        $this->assertArrayHasKey('table_name', $firstTable);
+        $this->assertArrayHasKey('dice_type', $firstTable);
+        $this->assertArrayHasKey('entries', $firstTable);
+
+        // Acolyte should have 4 tables: Personality Trait, Ideal, Bond, Flaw
+        if ($bg->name === 'Acolyte') {
+            $this->assertCount(4, $dataTables);
+            $tableNames = collect($dataTables)->pluck('table_name')->all();
+            $this->assertContains('Personality Trait', $tableNames);
+            $this->assertContains('Ideal', $tableNames);
+            $this->assertContains('Bond', $tableNames);
+            $this->assertContains('Flaw', $tableNames);
+        }
+    }
+
+    #[Test]
     public function background_proficiencies_include_skill_resource()
     {
         // Find a background with skill proficiencies

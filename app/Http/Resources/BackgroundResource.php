@@ -25,6 +25,34 @@ class BackgroundResource extends JsonResource
             'languages' => EntityLanguageResource::collection($this->whenLoaded('languages')),
             'equipment' => EntityItemResource::collection($this->whenLoaded('equipment')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
+
+            // Convenience field: flattened data tables from all traits
+            // Includes Personality Traits, Ideals, Bonds, Flaws roll tables
+            'data_tables' => $this->when(
+                $this->relationLoaded('traits'),
+                fn () => $this->getFlattenedDataTables()
+            ),
         ];
+    }
+
+    /**
+     * Flatten data tables from all traits into a single array.
+     *
+     * Background data tables (Personality Trait, Ideal, Bond, Flaw) are stored
+     * on CharacterTrait models. This flattens them for easier frontend consumption.
+     *
+     * @return array<int, DataTableResource>|null
+     */
+    private function getFlattenedDataTables(): ?array
+    {
+        $allTables = $this->traits
+            ->filter(fn ($trait) => $trait->relationLoaded('dataTables'))
+            ->flatMap(fn ($trait) => $trait->dataTables);
+
+        if ($allTables->isEmpty()) {
+            return null;
+        }
+
+        return EntityDataTableResource::collection($allTables)->resolve();
     }
 }

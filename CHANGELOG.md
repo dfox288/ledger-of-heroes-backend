@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **ProgressionTableResource schema incorrect** (Issue #80)
+  - Schema showed `rows` as `string` instead of array of objects
+  - Schema showed `columns` with empty `items: {}`
+  - Created `ProgressionRowResource` with typed fields for progression row data
+  - Updated `ProgressionTableResource` to use proper Resource collections
+  - Schema now correctly shows `columns: ProgressionColumnResource[]` and `rows: ProgressionRowResource[]`
+
 - **API docs schema mismatch with actual responses** (Issue #79)
   - Created `AreaOfEffectResource` for Spell `area_of_effect` field (was returning object, schema said string)
   - Created `HitPointsResource` for CharacterClass `hit_points` computed field

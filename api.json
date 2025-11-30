@@ -2823,7 +2823,7 @@
         "/v1/feats": {
             "get": {
                 "operationId": "feats.index",
-                "description": "Returns a paginated list of 138 D&D 5e feats. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/feats                                              # All feats\nGET /api/v1/feats?filter=has_prerequisites = false             # Feats without prerequisites (18 feats)\nGET /api/v1/feats?filter=improved_abilities IN [STR]           # STR-boosting feats (Heavy Armor Master, Athlete)\nGET /api/v1/feats?filter=prerequisite_types IN [Race]          # Race-specific feats (Elven Accuracy, Dwarven Fortitude)\nGET /api/v1/feats?filter=grants_proficiencies = true           # Feats that grant proficiencies (Weapon Master, Skill Expert)\nGET /api/v1/feats?filter=tag_slugs IN [combat]                 # Combat feats\nGET /api/v1/feats?q=advantage                                  # Full-text search for \"advantage\"\nGET /api/v1/feats?q=spell&filter=improved_abilities IN [INT, WIS, CHA]  # Magic feats with ASI\n```\n\n**Filterable Fields by Data Type:**\n\n**Integer Fields** (Operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `TO`):\n- `id` (int): Feat ID\n  - Examples: `id = 42`, `id >= 10`, `id 1 TO 50`\n  - Use case: Direct reference or batch processing ranges\n\n**String Fields** (Operators: `=`, `!=`):\n- `slug` (string): URL-friendly feat identifier\n  - Examples: `slug = heavy-armor-master`, `slug != alert`\n  - Use case: Direct lookup by slug for permalinks\n\n**Boolean Fields** (Operators: `=`, `!=`, `IS NULL`, `EXISTS`):\n- `has_prerequisites` (bool): Feat has prerequisites (race, ability, or proficiency)\n  - Examples: `has_prerequisites = false`, `has_prerequisites = true`\n  - Use case: Find feats accessible at level 1 without requirements\n- `grants_proficiencies` (bool): Feat grants weapon, armor, tool, or skill proficiencies\n  - Examples: `grants_proficiencies = true`, `grants_proficiencies = false`\n  - Use case: Find proficiency-granting feats for skill/equipment access\n\n**Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):\n- `improved_abilities` (array): Ability codes improved by this feat (STR, DEX, CON, INT, WIS, CHA)\n  - Examples: `improved_abilities IN [STR]`, `improved_abilities IN [INT, WIS, CHA]`, `improved_abilities IS EMPTY`\n  - Use case: ASI decisions - find feats that boost specific abilities (Half-Feats)\n  - Critical for: Heavy Armor Master (+1 STR), Resilient (+1 any), Fey Touched (+1 INT/WIS/CHA)\n- `prerequisite_types` (array): Type of prerequisites required (Race, AbilityScore, ProficiencyType)\n  - Examples: `prerequisite_types IN [Race]`, `prerequisite_types IN [AbilityScore]`, `prerequisite_types IS EMPTY`\n  - Use case: Find race-locked feats (Elven Accuracy) or ability-gated feats (Heavy Armor Master requires STR 13)\n- `tag_slugs` (array): Tag slugs categorizing feat purpose (combat, magic, skill-improvement, etc.)\n  - Examples: `tag_slugs IN [combat]`, `tag_slugs IN [magic]`, `tag_slugs IS EMPTY`\n  - Use case: Browse feats by theme or build archetype\n- `source_codes` (array): Source book codes (PHB, XGE, TCoE, etc.)\n  - Examples: `source_codes IN [PHB]`, `source_codes IN [XGE, TCoE]`, `source_codes NOT IN [UA]`\n  - Use case: Filter by allowed sourcebooks for campaign restrictions\n\n**Complex Filter Examples:**\n- STR combat feats: `?filter=improved_abilities IN [STR] AND tag_slugs IN [combat]`\n- Feats without prerequisites: `?filter=has_prerequisites = false`\n- Race-specific feats with ASI: `?filter=prerequisite_types IN [Race] AND improved_abilities IS NOT EMPTY`\n- Magic feats with ability boosts: `?filter=tag_slugs IN [magic] AND improved_abilities IN [INT, WIS, CHA]`\n- Proficiency-granting feats: `?filter=grants_proficiencies = true AND has_prerequisites = false`\n- PHB-only feats without prerequisites: `?filter=source_codes IN [PHB] AND has_prerequisites = false`\n- Combat feats with DEX or STR boost: `?filter=tag_slugs IN [combat] AND improved_abilities IN [STR, DEX]`\n- Level 1 accessible ASI feats: `?filter=has_prerequisites = false AND improved_abilities IS NOT EMPTY`\n\n**Use Cases:**\n- **Character Building:** \"Which feats boost STR and help in combat?\" (`improved_abilities IN [STR] AND tag_slugs IN [combat]`)\n- **ASI Decisions:** \"Should I take +2 ASI or a half-feat?\" (`improved_abilities IS NOT EMPTY`)\n- **Race Synergy:** \"What feats are exclusive to Elves?\" (`prerequisite_types IN [Race]` + full-text search)\n- **Level 1 Variant Human:** \"Which feats can I take at level 1?\" (`has_prerequisites = false`)\n- **Build Planning:** \"Find magic feats with INT boost\" (`tag_slugs IN [magic] AND improved_abilities IN [INT]`)\n- **Equipment Access:** \"Which feats grant armor proficiencies?\" (`grants_proficiencies = true` + search \"armor\")\n\n**Operator Reference:**\nSee `docs/MEILISEARCH-FILTER-OPERATORS.md` for comprehensive operator documentation.\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description, prerequisites_text)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)",
+                "description": "Returns a paginated list of 138 D&D 5e feats. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/feats                                              # All feats\nGET /api/v1/feats?filter=has_prerequisites = false             # Feats without prerequisites (18 feats)\nGET /api/v1/feats?filter=improved_abilities IN [STR]           # STR-boosting feats (Heavy Armor Master, Athlete)\nGET /api/v1/feats?filter=prerequisite_types IN [Race]          # Race-specific feats (Elven Accuracy, Dwarven Fortitude)\nGET /api/v1/feats?filter=grants_proficiencies = true           # Feats that grant proficiencies (Weapon Master, Skill Expert)\nGET /api/v1/feats?filter=tag_slugs IN [combat]                 # Combat feats\nGET /api/v1/feats?q=advantage                                  # Full-text search for \"advantage\"\nGET /api/v1/feats?q=spell&filter=improved_abilities IN [INT, WIS, CHA]  # Magic feats with ASI\n```\n\n**Filterable Fields by Data Type:**\n\n**Integer Fields** (Operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `TO`):\n- `id` (int): Feat ID\n  - Examples: `id = 42`, `id >= 10`, `id 1 TO 50`\n  - Use case: Direct reference or batch processing ranges\n\n**String Fields** (Operators: `=`, `!=`):\n- `slug` (string): URL-friendly feat identifier\n  - Examples: `slug = heavy-armor-master`, `slug != alert`\n  - Use case: Direct lookup by slug for permalinks\n\n**Boolean Fields** (Operators: `=`, `!=`, `IS NULL`, `EXISTS`):\n- `has_prerequisites` (bool): Feat has prerequisites (race, ability, or proficiency)\n  - Examples: `has_prerequisites = false`, `has_prerequisites = true`\n  - Use case: Find feats accessible at level 1 without requirements\n- `grants_proficiencies` (bool): Feat grants weapon, armor, tool, or skill proficiencies\n  - Examples: `grants_proficiencies = true`, `grants_proficiencies = false`\n  - Use case: Find proficiency-granting feats for skill/equipment access\n- `is_half_feat` (bool): Feat grants +1 to an ability score (half-feats)\n  - Examples: `is_half_feat = true`, `is_half_feat = false`\n  - Use case: Find feats for odd ability scores (15 STR \u2192 16 STR + feat benefits)\n\n**Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):\n- `improved_abilities` (array): Ability codes improved by this feat (STR, DEX, CON, INT, WIS, CHA)\n  - Examples: `improved_abilities IN [STR]`, `improved_abilities IN [INT, WIS, CHA]`, `improved_abilities IS EMPTY`\n  - Use case: ASI decisions - find feats that boost specific abilities (Half-Feats)\n  - Critical for: Heavy Armor Master (+1 STR), Resilient (+1 any), Fey Touched (+1 INT/WIS/CHA)\n- `prerequisite_types` (array): Type of prerequisites required (Race, AbilityScore, ProficiencyType)\n  - Examples: `prerequisite_types IN [Race]`, `prerequisite_types IN [AbilityScore]`, `prerequisite_types IS EMPTY`\n  - Use case: Find race-locked feats (Elven Accuracy) or ability-gated feats (Heavy Armor Master requires STR 13)\n- `tag_slugs` (array): Tag slugs categorizing feat purpose (combat, magic, skill-improvement, etc.)\n  - Examples: `tag_slugs IN [combat]`, `tag_slugs IN [magic]`, `tag_slugs IS EMPTY`\n  - Use case: Browse feats by theme or build archetype\n- `source_codes` (array): Source book codes (PHB, XGE, TCoE, etc.)\n  - Examples: `source_codes IN [PHB]`, `source_codes IN [XGE, TCoE]`, `source_codes NOT IN [UA]`\n  - Use case: Filter by allowed sourcebooks for campaign restrictions\n\n**String Fields** (Operators: `=`, `!=`):\n- `parent_feat_slug` (string|null): Parent slug for variant feats (Resilient, Elemental Adept, etc.)\n  - Examples: `parent_feat_slug = resilient`, `parent_feat_slug = elemental-adept`\n  - Use case: Group all variants of a feat together (e.g., all Resilient variants)\n  - Note: Returns null for non-variant feats (Great Weapon Master, Lucky, etc.)\n\n**Complex Filter Examples:**\n- STR combat feats: `?filter=improved_abilities IN [STR] AND tag_slugs IN [combat]`\n- Feats without prerequisites: `?filter=has_prerequisites = false`\n- Race-specific feats with ASI: `?filter=prerequisite_types IN [Race] AND improved_abilities IS NOT EMPTY`\n- Magic feats with ability boosts: `?filter=tag_slugs IN [magic] AND improved_abilities IN [INT, WIS, CHA]`\n- Proficiency-granting feats: `?filter=grants_proficiencies = true AND has_prerequisites = false`\n- PHB-only feats without prerequisites: `?filter=source_codes IN [PHB] AND has_prerequisites = false`\n- Combat feats with DEX or STR boost: `?filter=tag_slugs IN [combat] AND improved_abilities IN [STR, DEX]`\n- Level 1 accessible ASI feats: `?filter=has_prerequisites = false AND improved_abilities IS NOT EMPTY`\n- All half-feats: `?filter=is_half_feat = true`\n- Half-feats with STR boost: `?filter=is_half_feat = true AND improved_abilities IN [STR]`\n- All Resilient variants: `?filter=parent_feat_slug = resilient`\n- All Elemental Adept variants: `?filter=parent_feat_slug = elemental-adept`\n\n**Use Cases:**\n- **Character Building:** \"Which feats boost STR and help in combat?\" (`improved_abilities IN [STR] AND tag_slugs IN [combat]`)\n- **ASI Decisions:** \"Should I take +2 ASI or a half-feat?\" (`improved_abilities IS NOT EMPTY`)\n- **Race Synergy:** \"What feats are exclusive to Elves?\" (`prerequisite_types IN [Race]` + full-text search)\n- **Level 1 Variant Human:** \"Which feats can I take at level 1?\" (`has_prerequisites = false`)\n- **Build Planning:** \"Find magic feats with INT boost\" (`tag_slugs IN [magic] AND improved_abilities IN [INT]`)\n- **Equipment Access:** \"Which feats grant armor proficiencies?\" (`grants_proficiencies = true` + search \"armor\")\n\n**Operator Reference:**\nSee `docs/MEILISEARCH-FILTER-OPERATORS.md` for comprehensive operator documentation.\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description, prerequisites_text)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)",
                 "summary": "List all feats",
                 "tags": [
                     "Feat"
@@ -2883,12 +2883,12 @@
                     {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). See docs/MEILISEARCH-FILTER-OPERATORS.md for details.",
+                        "description": "Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Filterable fields: id, slug, source_codes, tag_slugs, has_prerequisites, grants_proficiencies, is_half_feat, improved_abilities, prerequisite_types, parent_feat_slug. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
                         },
-                        "example": "improved_abilities IN [STR] AND has_prerequisites = false"
+                        "example": "is_half_feat = true AND improved_abilities IN [STR]"
                     }
                 ],
                 "responses": {
@@ -3153,7 +3153,7 @@
         "/v1/items": {
             "get": {
                 "operationId": "items.index",
-                "description": "Returns a paginated list of 2,232 D&D 5e items including weapons, armor, and magic items. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/items                                          # All items\nGET /api/v1/items?filter=is_magic = true                   # Magic items only\nGET /api/v1/items?filter=type_code = HA                    # Heavy armor\nGET /api/v1/items?filter=rarity = legendary                # Legendary items\nGET /api/v1/items?filter=requires_attunement = true        # Attunement items\nGET /api/v1/items?filter=spell_slugs IN [fireball]         # Items with Fireball\nGET /api/v1/items?q=staff                                  # Full-text search for \"staff\"\nGET /api/v1/items?q=sword&filter=is_magic = true           # Search + filter combined\n```\n\n**Filterable Fields by Data Type:**\n\n**Integer Fields** (Operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `TO`):\n- `id` (int): Item ID\n- `weight` (float): Weight in pounds\n  - Examples: `weight <= 1.0`, `weight >= 5`, `weight 1 TO 10`\n- `cost_cp` (int): Cost in copper pieces (100cp = 1gp)\n  - Examples: `cost_cp >= 5000` (50+ gold), `cost_cp 100 TO 1000` (1-10gp)\n- `range_normal` (int): Normal range in feet (ranged weapons)\n  - Examples: `range_normal >= 80`, `range_normal > 0` (has range)\n- `range_long` (int): Long range in feet (ranged weapons)\n- `armor_class` (int): Base armor class (armor only)\n  - Examples: `armor_class >= 16`, `armor_class 14 TO 18`\n- `strength_requirement` (int): Minimum strength to wear (heavy armor)\n  - Examples: `strength_requirement > 0` (has requirement)\n- `charges_max` (int): Maximum charges (magic items)\n  - Examples: `charges_max >= 10`, `charges_max 5 TO 20`\n\n**String Fields** (Operators: `=`, `!=`):\n- `slug` (string): URL-friendly identifier\n- `type_name` (string): Full type name (Heavy Armor, Wand, Staff, etc.)\n- `type_code` (string): Two-letter type code (HA, WD, ST, RD, SCR, P, etc.)\n  - Examples: `type_code = HA` (heavy armor), `type_code = WD` (wands)\n- `rarity` (string): common, uncommon, rare, very_rare, legendary, artifact\n  - Examples: `rarity = legendary`, `rarity != common`\n- `damage_dice` (string): Damage dice (1d8, 2d6, etc.)\n- `versatile_damage` (string): Versatile damage dice\n- `damage_type` (string): Damage type (Slashing, Piercing, Bludgeoning, Fire, etc.)\n- `recharge_timing` (string): When charges recharge (dawn, dusk, etc.)\n- `recharge_formula` (string): Recharge dice formula (1d6+4, etc.)\n\n**Boolean Fields** (Operators: `=`, `!=`, `IS NULL`, `EXISTS`):\n- `requires_attunement` (bool): Requires attunement\n  - Examples: `requires_attunement = true`, `requires_attunement = false`\n- `is_magic` (bool): Magic item\n  - Examples: `is_magic = true`\n- `stealth_disadvantage` (bool): Imposes disadvantage on Stealth (heavy armor)\n  - Examples: `stealth_disadvantage = false` (silent armor)\n- `has_charges` (bool): Item has charges\n  - Examples: `has_charges = true`\n- `has_prerequisites` (bool): Has class/race/level prerequisites\n  - Examples: `has_prerequisites = true`\n\n**Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):\n- `source_codes` (array): Source book codes (PHB, DMG, XGE, TCoE, etc.)\n  - Examples: `source_codes IN [PHB, DMG]`, `source_codes NOT IN [UA]`\n- `spell_slugs` (array): Spell slugs associated with item\n  - Examples: `spell_slugs IN [fireball]`, `spell_slugs IS EMPTY`\n- `tag_slugs` (array): Tag slugs\n  - Examples: `tag_slugs IN [fire]`, `tag_slugs IS EMPTY`\n- `property_codes` (array): Weapon/armor property codes (F=Finesse, V=Versatile, etc.)\n  - Examples: `property_codes IN [F]` (finesse weapons)\n- `modifier_categories` (array): Stat modifier categories\n  - Examples: `modifier_categories IN [ability_score]`\n- `proficiency_names` (array): Required proficiency names\n  - Examples: `proficiency_names IN [martial weapons]`\n- `saving_throw_abilities` (array): Saving throw ability codes (STR, DEX, CON, INT, WIS, CHA)\n  - Examples: `saving_throw_abilities IN [DEX]`, `saving_throw_abilities IS EMPTY`\n\n**Complex Filter Examples:**\n- Heavy armor with high AC: `?filter=type_code = HA AND armor_class >= 16`\n- Ranged weapons: `?filter=range_normal >= 80`\n- Magic items with charges: `?filter=is_magic = true AND has_charges = true`\n- Finesse weapons: `?filter=property_codes IN [F] AND type_code = W`\n- Silent heavy armor: `?filter=type_code = HA AND stealth_disadvantage = false`\n- Affordable magic items: `?filter=is_magic = true AND cost_cp <= 10000` (100gp or less)\n- Legendary items requiring attunement: `?filter=rarity = legendary AND requires_attunement = true`\n- Items with prerequisites: `?filter=has_prerequisites = true`\n\n**Use Cases:**\n- Shopping lists: Filter by cost range and item type\n- Loot tables: Filter by rarity and magic status\n- Equipment planning: Filter by weight for encumbrance\n- Class builds: Filter by weapon properties and proficiencies\n- Magic item search: Filter by spell effects and attunement\n- Armor optimization: Filter by AC, stealth, and strength requirement\n\n**Operator Reference:**\nSee `docs/MEILISEARCH-FILTER-OPERATORS.md` for comprehensive operator documentation.\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, weight, cost_cp, armor_class, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)",
+                "description": "Returns a paginated list of 2,232 D&D 5e items including weapons, armor, and magic items. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/items                                          # All items\nGET /api/v1/items?filter=is_magic = true                   # Magic items only\nGET /api/v1/items?filter=type_code = HA                    # Heavy armor\nGET /api/v1/items?filter=rarity = legendary                # Legendary items\nGET /api/v1/items?filter=requires_attunement = true        # Attunement items\nGET /api/v1/items?filter=spell_slugs IN [fireball]         # Items with Fireball\nGET /api/v1/items?q=staff                                  # Full-text search for \"staff\"\nGET /api/v1/items?q=sword&filter=is_magic = true           # Search + filter combined\n```\n\n**Filterable Fields by Data Type:**\n\n**Integer Fields** (Operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `TO`):\n- `id` (int): Item ID\n- `weight` (float): Weight in pounds\n  - Examples: `weight <= 1.0`, `weight >= 5`, `weight 1 TO 10`\n- `cost_cp` (int): Cost in copper pieces (100cp = 1gp)\n  - Examples: `cost_cp >= 5000` (50+ gold), `cost_cp 100 TO 1000` (1-10gp)\n- `range_normal` (int): Normal range in feet (ranged weapons)\n  - Examples: `range_normal >= 80`, `range_normal > 0` (has range)\n- `range_long` (int): Long range in feet (ranged weapons)\n- `armor_class` (int): Base armor class (armor only)\n  - Examples: `armor_class >= 16`, `armor_class 14 TO 18`\n- `strength_requirement` (int): Minimum strength to wear (heavy armor)\n  - Examples: `strength_requirement > 0` (has requirement)\n- `charges_max` (int): Maximum charges (magic items)\n  - Examples: `charges_max >= 10`, `charges_max 5 TO 20`\n\n**String Fields** (Operators: `=`, `!=`):\n- `slug` (string): URL-friendly identifier\n- `type_name` (string): Full type name (Heavy Armor, Wand, Staff, etc.)\n- `type_code` (string): Two-letter type code (HA, WD, ST, RD, SCR, P, etc.)\n  - Examples: `type_code = HA` (heavy armor), `type_code = WD` (wands)\n- `rarity` (string): common, uncommon, rare, very_rare, legendary, artifact\n  - Examples: `rarity = legendary`, `rarity != common`\n- `damage_dice` (string): Damage dice (1d8, 2d6, etc.)\n- `versatile_damage` (string): Versatile damage dice\n- `damage_type` (string): Damage type (Slashing, Piercing, Bludgeoning, Fire, etc.)\n- `recharge_timing` (string): When charges recharge (dawn, dusk, etc.)\n- `recharge_formula` (string): Recharge dice formula (1d6+4, etc.)\n\n**Boolean Fields** (Operators: `=`, `!=`, `IS NULL`, `EXISTS`):\n- `requires_attunement` (bool): Requires attunement\n  - Examples: `requires_attunement = true`, `requires_attunement = false`\n- `is_magic` (bool): Magic item\n  - Examples: `is_magic = true`\n- `stealth_disadvantage` (bool): Imposes disadvantage on Stealth (heavy armor)\n  - Examples: `stealth_disadvantage = false` (silent armor)\n- `has_charges` (bool): Item has charges\n  - Examples: `has_charges = true`\n- `has_prerequisites` (bool): Has class/race/level prerequisites\n  - Examples: `has_prerequisites = true`\n\n**Computed Fields** (Operators vary by type):\n- `proficiency_category` (string): Weapon proficiency type\n  - Values: simple_melee, martial_melee, simple_ranged, martial_ranged, or null for non-weapons\n  - Examples: `proficiency_category = martial_melee`, `proficiency_category = simple_ranged`\n- `magic_bonus` (int): Magic bonus (+1/+2/+3) from modifiers, null for non-magic items\n  - Examples: `magic_bonus = 2`, `magic_bonus >= 1`, `magic_bonus EXISTS`\n\n**Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):\n- `source_codes` (array): Source book codes (PHB, DMG, XGE, TCoE, etc.)\n  - Examples: `source_codes IN [PHB, DMG]`, `source_codes NOT IN [UA]`\n- `spell_slugs` (array): Spell slugs associated with item\n  - Examples: `spell_slugs IN [fireball]`, `spell_slugs IS EMPTY`\n- `tag_slugs` (array): Tag slugs\n  - Examples: `tag_slugs IN [fire]`, `tag_slugs IS EMPTY`\n- `property_codes` (array): Weapon/armor property codes (F=Finesse, V=Versatile, etc.)\n  - Examples: `property_codes IN [F]` (finesse weapons)\n- `modifier_categories` (array): Stat modifier categories\n  - Examples: `modifier_categories IN [ability_score]`\n- `proficiency_names` (array): Required proficiency names\n  - Examples: `proficiency_names IN [martial weapons]`\n- `saving_throw_abilities` (array): Saving throw ability codes (STR, DEX, CON, INT, WIS, CHA)\n  - Examples: `saving_throw_abilities IN [DEX]`, `saving_throw_abilities IS EMPTY`\n\n**Complex Filter Examples:**\n- Heavy armor with high AC: `?filter=type_code = HA AND armor_class >= 16`\n- Ranged weapons: `?filter=range_normal >= 80`\n- Magic items with charges: `?filter=is_magic = true AND has_charges = true`\n- Finesse weapons: `?filter=property_codes IN [F] AND type_code = M`\n- Silent heavy armor: `?filter=type_code = HA AND stealth_disadvantage = false`\n- Affordable magic items: `?filter=is_magic = true AND cost_cp <= 10000` (100gp or less)\n- Legendary items requiring attunement: `?filter=rarity = legendary AND requires_attunement = true`\n- Items with prerequisites: `?filter=has_prerequisites = true`\n- All martial melee weapons: `?filter=proficiency_category = martial_melee`\n- Simple ranged weapons: `?filter=proficiency_category = simple_ranged`\n- +2 or better magic weapons: `?filter=magic_bonus >= 2`\n- +1 martial longswords: `?filter=proficiency_category = martial_melee AND magic_bonus = 1`\n\n**Use Cases:**\n- Shopping lists: Filter by cost range and item type\n- Loot tables: Filter by rarity and magic status\n- Equipment planning: Filter by weight for encumbrance\n- Class builds: Filter by weapon properties and proficiencies\n- Magic item search: Filter by spell effects and attunement\n- Armor optimization: Filter by AC, stealth, and strength requirement\n\n**Operator Reference:**\nSee `docs/MEILISEARCH-FILTER-OPERATORS.md` for comprehensive operator documentation.\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, weight, cost_cp, armor_class, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)",
                 "summary": "List all items",
                 "tags": [
                     "Item"
@@ -3215,12 +3215,12 @@
                     {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Filterable fields: id, slug, type_name, type_code, rarity, requires_attunement, is_magic, weight, cost_cp, source_codes, damage_dice, versatile_damage, damage_type, range_normal, range_long, armor_class, strength_requirement, stealth_disadvantage, charges_max, has_charges, recharge_timing, recharge_formula, spell_slugs, tag_slugs, property_codes, modifier_categories, proficiency_names, saving_throw_abilities, has_prerequisites. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.",
+                        "description": "Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Filterable fields: id, slug, type_name, type_code, rarity, requires_attunement, is_magic, weight, cost_cp, source_codes, damage_dice, versatile_damage, damage_type, range_normal, range_long, armor_class, strength_requirement, stealth_disadvantage, charges_max, has_charges, recharge_timing, recharge_formula, spell_slugs, tag_slugs, property_codes, modifier_categories, proficiency_names, saving_throw_abilities, has_prerequisites, proficiency_category, magic_bonus. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
                         },
-                        "example": "type_code = HA AND armor_class >= 16"
+                        "example": "proficiency_category = martial_melee AND magic_bonus >= 1"
                     }
                 ],
                 "responses": {
@@ -7350,7 +7350,7 @@
         "/v1/spells": {
             "get": {
                 "operationId": "spells.index",
-                "description": "Returns a paginated list of 477 D&D 5e spells. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/spells                                    # All spells\nGET /api/v1/spells?filter=level = 0                   # Cantrips (44 spells)\nGET /api/v1/spells?filter=level <= 3                  # Low-level spells\nGET /api/v1/spells?filter=school_code = EV            # Evocation spells\nGET /api/v1/spells?filter=class_slugs IN [bard]       # Bard spells (147 spells)\nGET /api/v1/spells?filter=concentration = true        # Concentration spells\nGET /api/v1/spells?q=fire                             # Full-text search for \"fire\"\nGET /api/v1/spells?q=fire&filter=level <= 3           # Search + filter combined\n```\n\n**Filterable Fields by Data Type:**\n\n**Integer Fields** (Operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `TO`):\n- `id` (int): Spell ID\n- `level` (0-9): Spell level (0 = cantrip)\n  - Examples: `level = 3`, `level >= 5`, `level 1 TO 5`\n\n**String Fields** (Operators: `=`, `!=`):\n- `school_code` (string): Two-letter spell school code (EV, EN, AB, C, D, I, N, T)\n  - Examples: `school_code = EV`, `school_code != EV`\n- `school_name` (string): Full spell school name (Evocation, Enchantment, etc.)\n- `casting_time`, `range`, `duration` (string): Descriptive text fields\n\n**Boolean Fields** (Operators: `=`, `!=`, `IS NULL`, `EXISTS`):\n- `concentration` (bool): Requires concentration\n  - Examples: `concentration = true`, `concentration = false`\n- `ritual` (bool): Can be cast as ritual\n- `requires_verbal` (bool): Requires verbal component (castable in Silence when false)\n- `requires_somatic` (bool): Requires somatic component (castable while grappled when false)\n- `requires_material` (bool): Requires material component\n\n**Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):\n- `class_slugs` (array): Class slugs that can learn this spell\n  - Examples: `class_slugs IN [wizard, sorcerer]`, `class_slugs NOT IN [wizard]`\n- `tag_slugs` (array): Tag slugs (Note: Only 22% of spells have tags)\n  - Examples: `tag_slugs IN [fire]`, `tag_slugs IS EMPTY`\n- `source_codes` (array): Source book codes (PHB, XGE, TCoE, etc.)\n  - Examples: `source_codes IN [PHB, XGE]`, `source_codes NOT IN [UA]`\n- `damage_types` (array): Damage type codes (F=Fire, C=Cold, O=Force, etc.)\n  - Examples: `damage_types IN [F]`, `damage_types IS EMPTY` (utility spells)\n- `saving_throws` (array): Ability codes (STR, DEX, CON, INT, WIS, CHA)\n  - Examples: `saving_throws IN [DEX]`, `saving_throws IS EMPTY` (auto-hit spells)\n- `effect_types` (array): Effect type strings\n\n**Complex Filter Examples:**\n- Range query: `?filter=level >= 3 AND level <= 5` OR `?filter=level 3 TO 5`\n- Multiple conditions: `?filter=class_slugs IN [wizard] AND level <= 3 AND concentration = true`\n- Array membership: `?filter=damage_types IN [F, C] AND level > 0`\n- Empty arrays: `?filter=damage_types IS EMPTY` (utility spells with no damage)\n- Subtle Spell candidates: `?filter=requires_verbal = false AND requires_somatic = false`\n\n**Operator Reference:**\nSee `docs/MEILISEARCH-FILTER-OPERATORS.md` for comprehensive operator documentation.\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, level, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)",
+                "description": "Returns a paginated list of 477 D&D 5e spells. Use `?filter=` for filtering and `?q=` for full-text search.\n\n**Common Examples:**\n```\nGET /api/v1/spells                                    # All spells\nGET /api/v1/spells?filter=level = 0                   # Cantrips (44 spells)\nGET /api/v1/spells?filter=level <= 3                  # Low-level spells\nGET /api/v1/spells?filter=school_code = EV            # Evocation spells\nGET /api/v1/spells?filter=class_slugs IN [bard]       # Bard spells (147 spells)\nGET /api/v1/spells?filter=concentration = true        # Concentration spells\nGET /api/v1/spells?q=fire                             # Full-text search for \"fire\"\nGET /api/v1/spells?q=fire&filter=level <= 3           # Search + filter combined\n```\n\n**Filterable Fields by Data Type:**\n\n**Integer Fields** (Operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `TO`):\n- `id` (int): Spell ID\n- `level` (0-9): Spell level (0 = cantrip)\n  - Examples: `level = 3`, `level >= 5`, `level 1 TO 5`\n\n**String Fields** (Operators: `=`, `!=`):\n- `school_code` (string): Two-letter spell school code (EV, EN, AB, C, D, I, N, T)\n  - Examples: `school_code = EV`, `school_code != EV`\n- `school_name` (string): Full spell school name (Evocation, Enchantment, etc.)\n- `casting_time`, `range`, `duration` (string): Descriptive text fields\n\n**Boolean Fields** (Operators: `=`, `!=`, `IS NULL`, `EXISTS`):\n- `concentration` (bool): Requires concentration\n  - Examples: `concentration = true`, `concentration = false`\n- `ritual` (bool): Can be cast as ritual\n- `requires_verbal` (bool): Requires verbal component (castable in Silence when false)\n- `requires_somatic` (bool): Requires somatic component (castable while grappled when false)\n- `requires_material` (bool): Requires material component\n- `material_consumed` (bool): Material component is consumed by the spell\n  - Examples: `material_consumed = true`, `material_consumed = false`\n  - Use case: Find reusable-focus vs consumed-component spells\n\n**Computed Fields** (Issues #27, #28):\n- `material_cost_gp` (int): Gold piece cost of material components\n  - Examples: `material_cost_gp >= 100`, `material_cost_gp EXISTS`\n  - Use case: Find expensive spells, budget-friendly options\n- `aoe_type` (string): Area of effect shape (cone, sphere, cube, line, cylinder)\n  - Examples: `aoe_type = sphere`, `aoe_type = cone`\n  - Use case: Find AoE spells by shape\n- `aoe_size` (int): Primary dimension of area in feet\n  - Examples: `aoe_size >= 20`, `aoe_size = 15`\n  - Use case: Find large AoE spells\n\n**Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):\n- `class_slugs` (array): Class slugs that can learn this spell\n  - Examples: `class_slugs IN [wizard, sorcerer]`, `class_slugs NOT IN [wizard]`\n- `tag_slugs` (array): Tag slugs (Note: Only 22% of spells have tags)\n  - Examples: `tag_slugs IN [fire]`, `tag_slugs IS EMPTY`\n- `source_codes` (array): Source book codes (PHB, XGE, TCoE, etc.)\n  - Examples: `source_codes IN [PHB, XGE]`, `source_codes NOT IN [UA]`\n- `damage_types` (array): Damage type codes (F=Fire, C=Cold, O=Force, etc.)\n  - Examples: `damage_types IN [F]`, `damage_types IS EMPTY` (utility spells)\n- `saving_throws` (array): Ability codes (STR, DEX, CON, INT, WIS, CHA)\n  - Examples: `saving_throws IN [DEX]`, `saving_throws IS EMPTY` (auto-hit spells)\n- `effect_types` (array): Effect type strings\n\n**Complex Filter Examples:**\n- Range query: `?filter=level >= 3 AND level <= 5` OR `?filter=level 3 TO 5`\n- Multiple conditions: `?filter=class_slugs IN [wizard] AND level <= 3 AND concentration = true`\n- Array membership: `?filter=damage_types IN [F, C] AND level > 0`\n- Empty arrays: `?filter=damage_types IS EMPTY` (utility spells with no damage)\n- Subtle Spell candidates: `?filter=requires_verbal = false AND requires_somatic = false`\n- Expensive spells: `?filter=material_cost_gp >= 100`\n- Consumed materials: `?filter=material_consumed = true AND material_cost_gp >= 50`\n- Fireball-style spells: `?filter=aoe_type = sphere AND aoe_size >= 20`\n- All cone spells: `?filter=aoe_type = cone`\n- Large AoE spells: `?filter=aoe_size >= 30`\n\n**Operator Reference:**\nSee `docs/MEILISEARCH-FILTER-OPERATORS.md` for comprehensive operator documentation.\n\n**Query Parameters:**\n- `q` (string): Full-text search (searches name, description)\n- `filter` (string): Meilisearch filter expression\n- `sort_by` (string): name, level, created_at, updated_at (default: name)\n- `sort_direction` (string): asc, desc (default: asc)\n- `per_page` (int): 1-100 (default: 15)\n- `page` (int): Page number (default: 1)",
                 "summary": "List all spells",
                 "tags": [
                     "Spell"
@@ -7411,12 +7411,12 @@
                     {
                         "name": "filter",
                         "in": "query",
-                        "description": "Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). See docs/MEILISEARCH-FILTER-OPERATORS.md for details.",
+                        "description": "Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Filterable fields include: id, level, school_code, school_name, concentration, ritual, requires_verbal, requires_somatic, requires_material, class_slugs, tag_slugs, source_codes, damage_types, saving_throws, effect_types, material_cost_gp, material_consumed, aoe_type, aoe_size. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.",
                         "schema": {
                             "type": "string",
                             "maxLength": 1000
                         },
-                        "example": "level >= 3 AND class_slugs IN [wizard]"
+                        "example": "aoe_type = sphere AND aoe_size >= 20"
                     }
                 ],
                 "responses": {
@@ -8344,6 +8344,28 @@
                 ],
                 "title": "AbilityScoreResource"
             },
+            "AreaOfEffectResource": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "size": {
+                        "type": "integer"
+                    },
+                    "width": {
+                        "type": "integer"
+                    },
+                    "height": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "type",
+                    "size"
+                ],
+                "title": "AreaOfEffectResource"
+            },
             "BackgroundResource": {
                 "type": "object",
                 "properties": {
@@ -8356,8 +8378,16 @@
                     "name": {
                         "type": "string"
                     },
+                    "feature_name": {
+                        "type": "string",
+                        "description": "Feature extraction (computed from traits with category='feature')"
+                    },
+                    "feature_description": {
+                        "type": "string"
+                    },
                     "traits": {
                         "type": "array",
+                        "description": "Relationships",
                         "items": {
                             "$ref": "#/components/schemas/TraitResource"
                         }
@@ -8396,221 +8426,52 @@
                 "required": [
                     "id",
                     "slug",
-                    "name"
+                    "name",
+                    "feature_name",
+                    "feature_description"
                 ],
                 "title": "BackgroundResource"
+            },
+            "CharacterClassResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "slug"
+                ],
+                "title": "CharacterClassResource"
             },
             "ClassComputedResource": {
                 "type": "object",
                 "properties": {
                     "hit_points": {
-                        "type": [
-                            "object",
-                            "null"
-                        ],
                         "description": "Pre-computed hit points using D&D 5e formulas.",
-                        "properties": {
-                            "hit_die": {
-                                "type": "string"
-                            },
-                            "hit_die_numeric": {
-                                "type": "integer"
-                            },
-                            "first_level": {
-                                "type": "object",
-                                "properties": {
-                                    "value": {
-                                        "type": "integer"
-                                    },
-                                    "description": {
-                                        "type": "string"
-                                    }
-                                },
-                                "required": [
-                                    "value",
-                                    "description"
-                                ]
-                            },
-                            "higher_levels": {
-                                "type": "object",
-                                "properties": {
-                                    "roll": {
-                                        "type": "string"
-                                    },
-                                    "average": {
-                                        "type": "integer"
-                                    },
-                                    "description": {
-                                        "type": "string"
-                                    }
-                                },
-                                "required": [
-                                    "roll",
-                                    "average",
-                                    "description"
-                                ]
-                            }
-                        },
-                        "required": [
-                            "hit_die",
-                            "hit_die_numeric",
-                            "first_level",
-                            "higher_levels"
-                        ]
+                        "$ref": "#/components/schemas/HitPointsResource"
                     },
                     "spell_slot_summary": {
-                        "type": [
-                            "object",
-                            "null"
-                        ],
                         "description": "Spell slot summary for frontend column visibility optimization.",
-                        "properties": {
-                            "has_spell_slots": {
-                                "type": "boolean"
-                            },
-                            "max_spell_level": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ]
-                            },
-                            "available_levels": {
-                                "type": "array",
-                                "items": {
-                                    "type": "integer"
-                                }
-                            },
-                            "has_cantrips": {
-                                "type": "boolean"
-                            },
-                            "caster_type": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
-                        },
-                        "required": [
-                            "has_spell_slots",
-                            "max_spell_level",
-                            "available_levels",
-                            "has_cantrips",
-                            "caster_type"
-                        ]
+                        "$ref": "#/components/schemas/SpellSlotSummaryResource"
                     },
                     "section_counts": {
-                        "type": [
-                            "object",
-                            "null"
-                        ],
-                        "description": "Section counts for lazy-loading accordions in UI. Features count excludes multiclass-only features (e.g., \"Multiclass Cleric\").\nMulticlass features are counted separately for optional display.",
-                        "properties": {
-                            "features": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ]
-                            },
-                            "multiclass_features": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ]
-                            },
-                            "proficiencies": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ]
-                            },
-                            "traits": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ]
-                            },
-                            "subclasses": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ]
-                            },
-                            "spells": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ]
-                            },
-                            "counters": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ]
-                            },
-                            "optional_features": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ]
-                            }
-                        },
-                        "required": [
-                            "features",
-                            "multiclass_features",
-                            "proficiencies",
-                            "traits",
-                            "subclasses",
-                            "spells",
-                            "counters",
-                            "optional_features"
-                        ]
+                        "description": "Section counts for lazy-loading accordions in UI.",
+                        "$ref": "#/components/schemas/SectionCountsResource"
                     },
                     "progression_table": {
-                        "type": [
-                            "object",
-                            "null"
-                        ],
                         "description": "Pre-computed progression table for detail views.",
-                        "properties": {
-                            "columns": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "key": {
-                                            "type": "string"
-                                        },
-                                        "label": {
-                                            "type": "string"
-                                        },
-                                        "type": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "key",
-                                        "label",
-                                        "type"
-                                    ]
-                                }
-                            },
-                            "rows": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "additionalProperties": {}
-                                }
-                            }
-                        },
-                        "required": [
-                            "columns",
-                            "rows"
-                        ]
+                        "$ref": "#/components/schemas/ProgressionTableResource"
                     }
                 },
-                "required": [
-                    "hit_points"
-                ],
                 "title": "ClassComputedResource"
             },
             "ClassFeatureResource": {
@@ -8637,6 +8498,9 @@
                     "is_choice_option": {
                         "type": "string"
                     },
+                    "is_always_prepared": {
+                        "type": "string"
+                    },
                     "parent_feature_id": {
                         "type": [
                             "integer",
@@ -8651,6 +8515,29 @@
                         "description": "Relationships",
                         "items": {
                             "$ref": "#/components/schemas/EntityDataTableResource"
+                        }
+                    },
+                    "spells": {
+                        "type": "array",
+                        "description": "Subclass spells (domain, circle, expanded)",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "spell": {
+                                    "$ref": "#/components/schemas/SpellResource"
+                                },
+                                "level_requirement": {
+                                    "type": "string"
+                                },
+                                "is_cantrip": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "spell",
+                                "level_requirement",
+                                "is_cantrip"
+                            ]
                         }
                     },
                     "choice_options": {
@@ -8669,6 +8556,7 @@
                     "is_optional",
                     "is_multiclass_only",
                     "is_choice_option",
+                    "is_always_prepared",
                     "parent_feature_id",
                     "sort_order"
                 ],
@@ -9361,28 +9249,8 @@
                     "group_id": {
                         "type": "integer"
                     },
-                    "prerequisite": {
-                        "description": "Generic prerequisite field (polymorphic relationship)",
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/AbilityScoreResource"
-                            },
-                            {
-                                "$ref": "#/components/schemas/RaceResource"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SkillResource"
-                            },
-                            {
-                                "$ref": "#/components/schemas/ProficiencyTypeResource"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ]
-                    },
                     "ability_score": {
-                        "description": "Conditionally include nested resources based on prerequisite type",
+                        "description": "Type-specific nested resources (only one will be present based on prerequisite_type)\nNote: Removed generic 'prerequisite' field to avoid duplicate data (Issue #73)",
                         "$ref": "#/components/schemas/AbilityScoreResource"
                     },
                     "race": {
@@ -9466,7 +9334,10 @@
                         "type": "integer"
                     },
                     "spell_id": {
-                        "type": "integer"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "spell": {
                         "$ref": "#/components/schemas/SpellResource"
@@ -9513,6 +9384,37 @@
                             "string",
                             "null"
                         ]
+                    },
+                    "is_choice": {
+                        "type": "boolean",
+                        "description": "Choice support"
+                    },
+                    "choice_count": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "choice_group": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "max_level": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "school": {
+                        "$ref": "#/components/schemas/SpellSchoolResource"
+                    },
+                    "character_class": {
+                        "$ref": "#/components/schemas/CharacterClassResource"
+                    },
+                    "is_ritual_only": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -9524,7 +9426,8 @@
                     "is_cantrip",
                     "charges_cost_min",
                     "charges_cost_max",
-                    "charges_cost_formula"
+                    "charges_cost_formula",
+                    "is_choice"
                 ],
                 "title": "EntitySpellResource"
             },
@@ -9555,8 +9458,16 @@
                     "description": {
                         "type": "string"
                     },
+                    "is_half_feat": {
+                        "type": "string",
+                        "description": "Computed fields"
+                    },
+                    "parent_feat_slug": {
+                        "type": "string"
+                    },
                     "modifiers": {
                         "type": "array",
+                        "description": "Relationships",
                         "items": {
                             "$ref": "#/components/schemas/ModifierResource"
                         }
@@ -9584,6 +9495,21 @@
                         "items": {
                             "$ref": "#/components/schemas/TagResource"
                         }
+                    },
+                    "spells": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EntitySpellResource"
+                        }
+                    },
+                    "spell_choices": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {
+                            "$ref": "#/components/schemas/SpellChoiceResource"
+                        }
                     }
                 },
                 "required": [
@@ -9591,7 +9517,9 @@
                     "slug",
                     "name",
                     "prerequisites_text",
-                    "description"
+                    "description",
+                    "is_half_feat",
+                    "parent_feat_slug"
                 ],
                 "title": "FeatResource"
             },
@@ -9622,6 +9550,58 @@
                     "progression"
                 ],
                 "title": "GroupedCounterResource"
+            },
+            "HitPointsResource": {
+                "type": "object",
+                "properties": {
+                    "hit_die": {
+                        "type": "string"
+                    },
+                    "hit_die_numeric": {
+                        "type": "integer"
+                    },
+                    "first_level": {
+                        "type": "object",
+                        "properties": {
+                            "value": {
+                                "type": "integer"
+                            },
+                            "description": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "value",
+                            "description"
+                        ]
+                    },
+                    "higher_levels": {
+                        "type": "object",
+                        "properties": {
+                            "roll": {
+                                "type": "string"
+                            },
+                            "average": {
+                                "type": "integer"
+                            },
+                            "description": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "roll",
+                            "average",
+                            "description"
+                        ]
+                    }
+                },
+                "required": [
+                    "hit_die",
+                    "hit_die_numeric",
+                    "first_level",
+                    "higher_levels"
+                ],
+                "title": "HitPointsResource"
             },
             "ItemAbilityResource": {
                 "type": "object",
@@ -9843,6 +9823,13 @@
                             "null"
                         ]
                     },
+                    "proficiency_category": {
+                        "type": "string",
+                        "description": "Computed fields"
+                    },
+                    "magic_bonus": {
+                        "type": "string"
+                    },
                     "item_type": {
                         "description": "Relationships",
                         "$ref": "#/components/schemas/ItemTypeResource"
@@ -9933,7 +9920,9 @@
                     "description",
                     "charges_max",
                     "recharge_formula",
-                    "recharge_timing"
+                    "recharge_timing",
+                    "proficiency_category",
+                    "magic_bonus"
                 ],
                 "title": "ItemResource"
             },
@@ -10372,6 +10361,12 @@
                             "$ref": "#/components/schemas/MonsterActionResource"
                         }
                     },
+                    "reactions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MonsterActionResource"
+                        }
+                    },
                     "legendary_actions": {
                         "type": "array",
                         "items": {
@@ -10722,6 +10717,113 @@
                 ],
                 "title": "ProficiencyTypeResource"
             },
+            "ProgressionColumnResource": {
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "key",
+                    "label",
+                    "type"
+                ],
+                "title": "ProgressionColumnResource"
+            },
+            "ProgressionRowResource": {
+                "type": "object",
+                "properties": {
+                    "level": {
+                        "type": "integer"
+                    },
+                    "proficiency_bonus": {
+                        "type": "string"
+                    },
+                    "features": {
+                        "type": "string"
+                    },
+                    "sneak_attack": {
+                        "type": "string"
+                    },
+                    "ki_points": {
+                        "type": "integer"
+                    },
+                    "martial_arts": {
+                        "type": "string"
+                    },
+                    "rage_damage": {
+                        "type": "string"
+                    },
+                    "rages": {
+                        "type": "integer"
+                    },
+                    "cantrips_known": {
+                        "type": "integer"
+                    },
+                    "spell_slots_1st": {
+                        "type": "integer"
+                    },
+                    "spell_slots_2nd": {
+                        "type": "integer"
+                    },
+                    "spell_slots_3rd": {
+                        "type": "integer"
+                    },
+                    "spell_slots_4th": {
+                        "type": "integer"
+                    },
+                    "spell_slots_5th": {
+                        "type": "integer"
+                    },
+                    "spell_slots_6th": {
+                        "type": "integer"
+                    },
+                    "spell_slots_7th": {
+                        "type": "integer"
+                    },
+                    "spell_slots_8th": {
+                        "type": "integer"
+                    },
+                    "spell_slots_9th": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "level",
+                    "proficiency_bonus",
+                    "features"
+                ],
+                "title": "ProgressionRowResource"
+            },
+            "ProgressionTableResource": {
+                "type": "object",
+                "properties": {
+                    "columns": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProgressionColumnResource"
+                        }
+                    },
+                    "rows": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProgressionRowResource"
+                        }
+                    }
+                },
+                "required": [
+                    "columns",
+                    "rows"
+                ],
+                "title": "ProgressionTableResource"
+            },
             "RaceResource": {
                 "type": "object",
                 "properties": {
@@ -10739,6 +10841,24 @@
                     },
                     "speed": {
                         "type": "integer"
+                    },
+                    "fly_speed": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "swim_speed": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "climb_speed": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "is_subrace": {
                         "type": "string"
@@ -10883,6 +11003,9 @@
                     "slug",
                     "name",
                     "speed",
+                    "fly_speed",
+                    "swim_speed",
+                    "climb_speed",
                     "is_subrace"
                 ],
                 "title": "RaceResource"
@@ -11058,6 +11181,46 @@
                 ],
                 "title": "SearchResource"
             },
+            "SectionCountsResource": {
+                "type": "object",
+                "properties": {
+                    "features": {
+                        "type": "string"
+                    },
+                    "multiclass_features": {
+                        "type": "string"
+                    },
+                    "proficiencies": {
+                        "type": "string"
+                    },
+                    "traits": {
+                        "type": "string"
+                    },
+                    "subclasses": {
+                        "type": "string"
+                    },
+                    "spells": {
+                        "type": "string"
+                    },
+                    "counters": {
+                        "type": "string"
+                    },
+                    "optional_features": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "features",
+                    "multiclass_features",
+                    "proficiencies",
+                    "traits",
+                    "subclasses",
+                    "spells",
+                    "counters",
+                    "optional_features"
+                ],
+                "title": "SectionCountsResource"
+            },
             "SizeResource": {
                 "type": "object",
                 "properties": {
@@ -11174,6 +11337,48 @@
                 ],
                 "title": "SourceResource"
             },
+            "SpellChoiceResource": {
+                "type": "object",
+                "properties": {
+                    "choice_group": {
+                        "type": "string"
+                    },
+                    "choice_count": {
+                        "type": "integer"
+                    },
+                    "max_level": {
+                        "type": "integer"
+                    },
+                    "is_ritual_only": {
+                        "type": "boolean"
+                    },
+                    "allowed_schools": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SpellSchoolResource"
+                        }
+                    },
+                    "allowed_class": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/CharacterClassResource"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "required": [
+                    "choice_group",
+                    "choice_count",
+                    "max_level",
+                    "is_ritual_only",
+                    "allowed_schools",
+                    "allowed_class"
+                ],
+                "title": "SpellChoiceResource"
+            },
             "SpellEffectResource": {
                 "type": "object",
                 "properties": {
@@ -11225,6 +11430,24 @@
                             "null"
                         ]
                     },
+                    "projectile_count": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "projectile_per_level": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "projectile_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
                     "damage_type": {
                         "$ref": "#/components/schemas/DamageTypeResource"
                     }
@@ -11238,7 +11461,10 @@
                     "scaling_type",
                     "min_character_level",
                     "min_spell_slot",
-                    "scaling_increment"
+                    "scaling_increment",
+                    "projectile_count",
+                    "projectile_per_level",
+                    "projectile_name"
                 ],
                 "title": "SpellEffectResource"
             },
@@ -11278,6 +11504,12 @@
                             "null"
                         ]
                     },
+                    "material_cost_gp": {
+                        "type": "string"
+                    },
+                    "material_consumed": {
+                        "type": "string"
+                    },
                     "duration": {
                         "type": "string"
                     },
@@ -11305,6 +11537,10 @@
                     },
                     "requires_material": {
                         "type": "boolean"
+                    },
+                    "area_of_effect": {
+                        "description": "Area of effect (parsed from description)",
+                        "$ref": "#/components/schemas/AreaOfEffectResource"
                     },
                     "sources": {
                         "type": "array",
@@ -11353,6 +11589,8 @@
                     "range",
                     "components",
                     "material_components",
+                    "material_cost_gp",
+                    "material_consumed",
                     "duration",
                     "needs_concentration",
                     "is_ritual",
@@ -11390,6 +11628,34 @@
                     "description"
                 ],
                 "title": "SpellSchoolResource"
+            },
+            "SpellSlotSummaryResource": {
+                "type": "object",
+                "properties": {
+                    "has_spell_slots": {
+                        "type": "boolean"
+                    },
+                    "max_spell_level": {
+                        "type": "string"
+                    },
+                    "available_levels": {
+                        "type": "string"
+                    },
+                    "has_cantrips": {
+                        "type": "boolean"
+                    },
+                    "caster_type": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "has_spell_slots",
+                    "max_spell_level",
+                    "available_levels",
+                    "has_cantrips",
+                    "caster_type"
+                ],
+                "title": "SpellSlotSummaryResource"
             },
             "TagResource": {
                 "type": "object",

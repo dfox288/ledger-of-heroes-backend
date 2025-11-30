@@ -234,6 +234,70 @@ class ClassDetailOptimizationTest extends TestCase
     }
 
     #[Test]
+    public function progression_table_columns_have_correct_structure(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'fighter',
+        ]);
+
+        $response = $this->getJson("/api/v1/classes/{$class->slug}/progression");
+
+        $response->assertOk();
+
+        $columns = $response->json('data.columns');
+
+        // Each column must have key, label, type (all strings)
+        foreach ($columns as $column) {
+            $this->assertArrayHasKey('key', $column);
+            $this->assertArrayHasKey('label', $column);
+            $this->assertArrayHasKey('type', $column);
+            $this->assertIsString($column['key']);
+            $this->assertIsString($column['label']);
+            $this->assertIsString($column['type']);
+            $this->assertContains($column['type'], ['integer', 'bonus', 'string', 'dice']);
+        }
+
+        // Verify required columns exist
+        $columnKeys = array_column($columns, 'key');
+        $this->assertContains('level', $columnKeys);
+        $this->assertContains('proficiency_bonus', $columnKeys);
+        $this->assertContains('features', $columnKeys);
+    }
+
+    #[Test]
+    public function progression_table_rows_are_array_of_objects(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'fighter',
+        ]);
+
+        $response = $this->getJson("/api/v1/classes/{$class->slug}/progression");
+
+        $response->assertOk();
+
+        $rows = $response->json('data.rows');
+
+        // Rows must be an array
+        $this->assertIsArray($rows);
+        $this->assertCount(20, $rows);
+
+        // Each row must be an object (associative array) with expected keys
+        foreach ($rows as $index => $row) {
+            $this->assertIsArray($row, "Row $index should be an array/object");
+            $this->assertArrayHasKey('level', $row);
+            $this->assertArrayHasKey('proficiency_bonus', $row);
+            $this->assertArrayHasKey('features', $row);
+
+            // Values should be strings or integers
+            $this->assertIsInt($row['level']);
+            $this->assertIsString($row['proficiency_bonus']);
+            $this->assertIsString($row['features']);
+        }
+    }
+
+    #[Test]
     public function progression_endpoint_returns_table(): void
     {
         $class = CharacterClass::factory()->create([

@@ -20,15 +20,17 @@ class ProgressionTableResource extends JsonResource
      * Transform the resource into an array.
      *
      * @return array{
-     *   columns: array<array{key: string, label: string, type: string}>,
-     *   rows: array<array<string, mixed>>
+     *   columns: array<ProgressionColumnResource>,
+     *   rows: array<ProgressionRowResource>
      * }
      */
     public function toArray(Request $request): array
     {
         return [
-            'columns' => ProgressionColumnResource::collection(collect($this->resource['columns']))->resolve(),
-            'rows' => (array) $this->resource['rows'],
+            /** @var array<ProgressionColumnResource> */
+            'columns' => ProgressionColumnResource::collection(collect($this->resource['columns'])),
+            /** @var array<ProgressionRowResource> */
+            'rows' => ProgressionRowResource::collection(collect($this->resource['rows'])),
         ];
     }
 }

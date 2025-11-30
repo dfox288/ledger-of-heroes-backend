@@ -515,4 +515,84 @@ XML;
         $this->assertArrayHasKey('random_tables', $backgrounds[0]);
         $this->assertEmpty($backgrounds[0]['random_tables']);
     }
+
+    #[Test]
+    public function it_strips_pipe_table_data_from_trait_descriptions_after_extraction()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Acolyte</name>
+    <proficiency>Insight</proficiency>
+    <trait>
+      <name>Suggested Characteristics</name>
+      <text>Acolytes are shaped by their experience in temples or other religious communities.
+
+d8 | Personality Trait
+1 | I idolize a particular hero of my faith.
+2 | I can find common ground between the fiercest enemies.
+
+d6 | Ideal
+1 | Tradition. The ancient traditions must be preserved. (Lawful)
+2 | Charity. I always try to help those in need. (Good)</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        // Tables should be extracted
+        $this->assertCount(2, $backgrounds[0]['random_tables']);
+
+        // Trait description should NOT contain pipe-separated table data
+        $charTrait = collect($backgrounds[0]['traits'])->firstWhere('name', 'Suggested Characteristics');
+        $description = $charTrait['description'];
+
+        // Should keep the intro text
+        $this->assertStringContainsString('Acolytes are shaped by their experience', $description);
+
+        // Should NOT contain the pipe-separated table data
+        $this->assertStringNotContainsString('d8 | Personality Trait', $description);
+        $this->assertStringNotContainsString('1 | I idolize', $description);
+        $this->assertStringNotContainsString('d6 | Ideal', $description);
+        $this->assertStringNotContainsString('1 | Tradition', $description);
+    }
+
+    #[Test]
+    public function it_preserves_non_table_text_when_stripping_tables()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Test</name>
+    <proficiency>Insight</proficiency>
+    <trait>
+      <name>Flavor Trait</name>
+      <text>Some intro text here.
+
+d6 | Options
+1 | Option one
+2 | Option two
+
+Some closing text here.</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        $trait = $backgrounds[0]['traits'][0];
+
+        // Should keep intro and closing text
+        $this->assertStringContainsString('Some intro text here', $trait['description']);
+        $this->assertStringContainsString('Some closing text here', $trait['description']);
+
+        // Should NOT contain the table
+        $this->assertStringNotContainsString('d6 | Options', $trait['description']);
+        $this->assertStringNotContainsString('1 | Option one', $trait['description']);
+    }
 }

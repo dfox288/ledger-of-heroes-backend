@@ -28,7 +28,7 @@ class BackgroundXmlParser
             // Parse traits
             $parsedTraits = $this->parseTraits($bg->trait);
 
-            // Parse random tables from ALL traits
+            // Parse random tables from ALL traits and strip them from descriptions
             $randomTables = $this->parseAllEmbeddedTables($parsedTraits);
 
             $backgrounds[] = [
@@ -392,18 +392,26 @@ class BackgroundXmlParser
     }
 
     /**
-     * Parse ALL embedded random tables from ALL traits.
+     * Parse ALL embedded random tables from ALL traits and strip table text from descriptions.
      * Uses ItemTableDetector and ItemTableParser to extract tables from trait text.
+     *
+     * @param  array  $traits  Passed by reference - descriptions will be modified to remove table text
      */
-    private function parseAllEmbeddedTables(array $traits): array
+    private function parseAllEmbeddedTables(array &$traits): array
     {
         $detector = new ItemTableDetector;
         $parser = new ItemTableParser;
         $allTables = [];
 
-        foreach ($traits as $trait) {
+        foreach ($traits as $index => $trait) {
             $text = $trait['description'];
             $detectedTables = $detector->detectTables($text);
+
+            if (! empty($detectedTables)) {
+                // Strip tables from description (process in reverse order to preserve positions)
+                $strippedText = $this->stripTablesFromText($text, $detectedTables);
+                $traits[$index]['description'] = $strippedText;
+            }
 
             foreach ($detectedTables as $tableInfo) {
                 $parsedTable = $parser->parse($tableInfo['text'], $tableInfo['dice_type']);
@@ -418,5 +426,26 @@ class BackgroundXmlParser
         }
 
         return $allTables;
+    }
+
+    /**
+     * Strip detected table text from a string using start/end positions.
+     * Processes tables in reverse order to preserve character positions.
+     */
+    private function stripTablesFromText(string $text, array $tables): string
+    {
+        // Sort tables by start_pos in descending order to strip from end first
+        usort($tables, fn ($a, $b) => $b['start_pos'] <=> $a['start_pos']);
+
+        foreach ($tables as $table) {
+            $before = substr($text, 0, $table['start_pos']);
+            $after = substr($text, $table['end_pos']);
+            $text = $before.$after;
+        }
+
+        // Clean up multiple consecutive newlines left by removed tables
+        $text = preg_replace('/\n{3,}/', "\n\n", $text);
+
+        return trim($text);
     }
 }

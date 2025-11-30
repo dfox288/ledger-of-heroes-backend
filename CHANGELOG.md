@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Background trait descriptions now clean after table extraction** (Issue #52)
+  - Pipe-separated roll table data (Personality Traits, Ideals, Bonds, Flaws) is now stripped from trait descriptions after being parsed into `data_tables`
+  - Preserves intro/outro text while removing ugly raw table markup
+  - Affects "Suggested Characteristics" and other flavor traits with embedded tables
+
 ### Added
 
 - **Spell material cost and area of effect fields** (Issues #27, #28)

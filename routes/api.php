@@ -208,4 +208,22 @@ Route::prefix('v1')->group(function () {
     |
     */
     Route::apiResource('characters', CharacterController::class);
+
+    // Character Spell Management
+    Route::prefix('characters/{character}')->name('characters.')->group(function () {
+        Route::get('spells', [\App\Http\Controllers\Api\CharacterSpellController::class, 'index'])
+            ->name('spells.index');
+        Route::get('available-spells', [\App\Http\Controllers\Api\CharacterSpellController::class, 'available'])
+            ->name('spells.available');
+        Route::post('spells', [\App\Http\Controllers\Api\CharacterSpellController::class, 'store'])
+            ->name('spells.store');
+        Route::delete('spells/{spell}', [\App\Http\Controllers\Api\CharacterSpellController::class, 'destroy'])
+            ->name('spells.destroy');
+        Route::patch('spells/{spell}/prepare', [\App\Http\Controllers\Api\CharacterSpellController::class, 'prepare'])
+            ->name('spells.prepare');
+        Route::patch('spells/{spell}/unprepare', [\App\Http\Controllers\Api\CharacterSpellController::class, 'unprepare'])
+            ->name('spells.unprepare');
+        Route::get('spell-slots', [\App\Http\Controllers\Api\CharacterSpellController::class, 'slots'])
+            ->name('spell-slots');
+    });
 });

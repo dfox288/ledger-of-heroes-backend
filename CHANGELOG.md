@@ -28,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Eldritch Blast: Now has 4 character-level effect entries (levels 0, 5, 11, 17) with beam scaling
   - Frontend can compute projectile counts: `projectile_count + (slot - base_level) * projectile_per_level`
 
+- **Monster reactions separated from actions in API** (Issue #62)
+  - `MonsterResource` now returns `reactions` array separate from `actions`
+  - Actions with `action_type: 'reaction'` filtered into dedicated `reactions` array
+  - Matches existing pattern for `legendary_actions` and `lair_actions`
+
 ### Fixed
 
 - **Magic item data tables with digit-prefixed text rows** (Issue #74)

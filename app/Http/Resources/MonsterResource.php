@@ -43,7 +43,12 @@ class MonsterResource extends JsonResource
             'senses' => EntitySenseResource::collection($this->whenLoaded('senses')),
             'description' => $this->description,
             'traits' => MonsterTraitResource::collection($this->whenLoaded('traits')),
-            'actions' => MonsterActionResource::collection($this->whenLoaded('actions')),
+            'actions' => MonsterActionResource::collection(
+                $this->whenLoaded('actions', fn () => $this->actions->where('action_type', '!=', 'reaction'))
+            ),
+            'reactions' => MonsterActionResource::collection(
+                $this->whenLoaded('actions', fn () => $this->actions->where('action_type', 'reaction'))
+            ),
             'legendary_actions' => MonsterLegendaryActionResource::collection(
                 $this->whenLoaded('legendaryActions', fn () => $this->legendaryActions->where('is_lair_action', false))
             ),

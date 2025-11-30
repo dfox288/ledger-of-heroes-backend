@@ -123,4 +123,20 @@ class RaceSearchableTest extends TestCase
         $this->assertFalse($searchable['has_fly_speed']);
         $this->assertFalse($searchable['has_swim_speed']);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_includes_speed_and_sense_fields_in_filterable_attributes(): void
+    {
+        $race = new Race;
+        $options = $race->searchableOptions();
+
+        $filterable = $options['filterableAttributes'];
+
+        $this->assertContains('fly_speed', $filterable);
+        $this->assertContains('swim_speed', $filterable);
+        $this->assertContains('has_fly_speed', $filterable);
+        $this->assertContains('has_swim_speed', $filterable);
+        $this->assertContains('has_darkvision', $filterable);
+        $this->assertContains('darkvision_range', $filterable);
+    }
 }

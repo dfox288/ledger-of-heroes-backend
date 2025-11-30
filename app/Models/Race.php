@@ -201,6 +201,11 @@ class Race extends BaseModel
                 'size_name',
                 'size_code',
                 'speed',
+                // Alternate movement speeds
+                'fly_speed',
+                'swim_speed',
+                'has_fly_speed',
+                'has_swim_speed',
                 'source_codes',
                 'is_subrace',
                 'parent_race_name',
@@ -215,10 +220,16 @@ class Race extends BaseModel
                 'ability_int_bonus',
                 'ability_wis_bonus',
                 'ability_cha_bonus',
+                // Senses
+                'has_darkvision',
+                'darkvision_range',
             ],
             'sortableAttributes' => [
                 'name',
                 'speed',
+                'fly_speed',
+                'swim_speed',
+                'darkvision_range',
             ],
             'searchableAttributes' => [
                 'name',

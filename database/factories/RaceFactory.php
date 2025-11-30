@@ -28,4 +28,24 @@ class RaceFactory extends Factory
             'parent_race_id' => null,
         ];
     }
+
+    /**
+     * Create a race with flying speed.
+     */
+    public function withFlySpeed(int $speed = 50): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'fly_speed' => $speed,
+        ]);
+    }
+
+    /**
+     * Create a race with swimming speed.
+     */
+    public function withSwimSpeed(int $speed = 30): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'swim_speed' => $speed,
+        ]);
+    }
 }

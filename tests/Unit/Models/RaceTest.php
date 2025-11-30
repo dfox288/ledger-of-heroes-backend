@@ -55,4 +55,20 @@ class RaceTest extends TestCase
         $this->assertEquals('integer', $casts['fly_speed']);
         $this->assertEquals('integer', $casts['swim_speed']);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function factory_can_create_race_with_fly_speed(): void
+    {
+        $race = Race::factory()->withFlySpeed(50)->create();
+
+        $this->assertEquals(50, $race->fly_speed);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function factory_can_create_race_with_swim_speed(): void
+    {
+        $race = Race::factory()->withSwimSpeed(30)->create();
+
+        $this->assertEquals(30, $race->swim_speed);
+    }
 }

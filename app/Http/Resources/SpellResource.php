@@ -32,7 +32,10 @@ class SpellResource extends JsonResource
             'requires_somatic' => str_contains($this->components ?? '', 'S'),
             'requires_material' => str_contains($this->components ?? '', 'M'),
             // Area of effect (parsed from description)
-            'area_of_effect' => $this->area_of_effect,
+            'area_of_effect' => $this->when(
+                $this->area_of_effect !== null,
+                fn () => new AreaOfEffectResource($this->area_of_effect)
+            ),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'effects' => SpellEffectResource::collection($this->whenLoaded('effects')),
             'classes' => ClassResource::collection($this->whenLoaded('classes')),

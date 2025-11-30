@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **API docs schema mismatch with actual responses** (Issue #79)
+  - Created `AreaOfEffectResource` for Spell `area_of_effect` field (was returning object, schema said string)
+  - Created `HitPointsResource` for CharacterClass `hit_points` computed field
+  - Created `SpellSlotSummaryResource` for CharacterClass `spell_slot_summary` computed field
+  - Created `SectionCountsResource` for class section counts
+  - Created `ProgressionTableResource` and `ProgressionColumnResource` for class progression tables
+  - All complex object fields now have proper Resource classes for accurate OpenAPI schema generation
+
 ### Added
 
 - **Subclass spell lists (domain, circle, expanded spells)** (Issue #63)

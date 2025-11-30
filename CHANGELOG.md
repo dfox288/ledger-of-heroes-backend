@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **New source books for import**
+  - Added Fizban's Treasury of Dragons (FToD) - includes Drakewarden Ranger subclass
+  - Added Van Richten's Guide to Ravenloft (VRGtR) - includes The Undead Warlock patron
+  - Import config now supports 11 source directories
+
 ### Fixed
 
 - **OpenAPI spec mismatch for GroupedCounterResource.progression** (Issue #41)

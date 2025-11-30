@@ -39,10 +39,12 @@ return [
         'xge' => '02_Supplements/Xanathars_Guide_to_Everything',
         'tce' => '02_Supplements/Tashas_Cauldron_of_Everything',
         'vgm' => '02_Supplements/Volos_Guide_to_Monsters',
+        'ftod' => '02_Supplements/Fizbans_Treasury_of_Dragons',
 
         // Campaign Settings
         'scag' => '03_Campaign_Settings/Sword_Coast_Adventurers_Guide',
         'erlw' => '03_Campaign_Settings/Eberron_Rising_From_the_Last_War',
+        'vrgtr' => '03_Campaign_Settings/Van_Richtens_Guide_to_Ravenloft',
 
         // Adventures
         'twbtw' => '05_Adventures/The_Wild_Beyond_the_Witchlight',

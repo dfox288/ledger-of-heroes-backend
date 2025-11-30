@@ -61,6 +61,52 @@ class Feat extends BaseModel
         return $this->morphMany(EntityPrerequisite::class, 'reference');
     }
 
+    // =========================================================================
+    // Computed Accessors
+    // =========================================================================
+
+    /**
+     * Check if this is a "half-feat" (grants +1 to an ability score).
+     *
+     * Half-feats are feats that provide both a +1 ability score increase
+     * and other benefits, making them popular choices for odd ability scores.
+     */
+    public function getIsHalfFeatAttribute(): bool
+    {
+        $this->loadMissing('modifiers');
+
+        return $this->modifiers
+            ->where('modifier_category', 'ability_score')
+            ->where('value', '1')
+            ->isNotEmpty();
+    }
+
+    /**
+     * Get the parent feat slug for variant feats.
+     *
+     * Variant feats like "Resilient (Constitution)" or "Elemental Adept (Fire)"
+     * share a common parent. This returns the slugified base name.
+     *
+     * Returns null for non-variant feats (those without parentheses).
+     */
+    public function getParentFeatSlugAttribute(): ?string
+    {
+        // Check if name contains parentheses (variant indicator)
+        if (! str_contains($this->name, '(')) {
+            return null;
+        }
+
+        // Extract base name before the parentheses
+        $baseName = trim(explode('(', $this->name)[0]);
+
+        // Convert to slug format
+        return \Illuminate\Support\Str::slug($baseName);
+    }
+
+    // =========================================================================
+    // Scopes
+    // =========================================================================
+
     /**
      * Scope a query to search feats.
      */
@@ -161,6 +207,9 @@ class Feat extends BaseModel
                 ->pluck('prerequisite_type')
                 ->map(fn ($type) => class_basename($type))
                 ->unique()->values()->all(),
+            // Computed fields
+            'is_half_feat' => $this->is_half_feat,
+            'parent_feat_slug' => $this->parent_feat_slug,
         ];
     }
 
@@ -195,6 +244,9 @@ class Feat extends BaseModel
                 // Phase 4: Array filters
                 'improved_abilities',
                 'prerequisite_types',
+                // Computed fields
+                'is_half_feat',
+                'parent_feat_slug',
             ],
             'sortableAttributes' => [
                 'name',

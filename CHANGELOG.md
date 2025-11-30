@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Feat is_half_feat and parent_feat_slug fields** (Issue #29)
+  - New `is_half_feat` computed accessor on Feat model
+  - Returns: `true` for feats that grant +1 to an ability score, `false` otherwise
+  - Computed from modifiers with category `ability_score` and value `1`
+  - New `parent_feat_slug` computed accessor on Feat model
+  - Returns: slugified base name for variant feats (e.g., `resilient` for "Resilient (Constitution)")
+  - Returns `null` for non-variant feats
+  - Both fields exposed in FeatResource API response
+  - Both fields indexed in Meilisearch for filtering
+  - New filter examples: `is_half_feat = true`, `parent_feat_slug = resilient`
+
 - **Item proficiency_category and magic_bonus fields** (Issue #30)
   - New `proficiency_category` computed accessor on Item model
   - Returns: `simple_melee`, `martial_melee`, `simple_ranged`, `martial_ranged`, or `null` for non-weapons

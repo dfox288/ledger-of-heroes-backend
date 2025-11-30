@@ -51,6 +51,9 @@ class FeatController extends Controller
      * - `grants_proficiencies` (bool): Feat grants weapon, armor, tool, or skill proficiencies
      *   - Examples: `grants_proficiencies = true`, `grants_proficiencies = false`
      *   - Use case: Find proficiency-granting feats for skill/equipment access
+     * - `is_half_feat` (bool): Feat grants +1 to an ability score (half-feats)
+     *   - Examples: `is_half_feat = true`, `is_half_feat = false`
+     *   - Use case: Find feats for odd ability scores (15 STR → 16 STR + feat benefits)
      *
      * **Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):
      * - `improved_abilities` (array): Ability codes improved by this feat (STR, DEX, CON, INT, WIS, CHA)
@@ -67,6 +70,12 @@ class FeatController extends Controller
      *   - Examples: `source_codes IN [PHB]`, `source_codes IN [XGE, TCoE]`, `source_codes NOT IN [UA]`
      *   - Use case: Filter by allowed sourcebooks for campaign restrictions
      *
+     * **String Fields** (Operators: `=`, `!=`):
+     * - `parent_feat_slug` (string|null): Parent slug for variant feats (Resilient, Elemental Adept, etc.)
+     *   - Examples: `parent_feat_slug = resilient`, `parent_feat_slug = elemental-adept`
+     *   - Use case: Group all variants of a feat together (e.g., all Resilient variants)
+     *   - Note: Returns null for non-variant feats (Great Weapon Master, Lucky, etc.)
+     *
      * **Complex Filter Examples:**
      * - STR combat feats: `?filter=improved_abilities IN [STR] AND tag_slugs IN [combat]`
      * - Feats without prerequisites: `?filter=has_prerequisites = false`
@@ -76,6 +85,10 @@ class FeatController extends Controller
      * - PHB-only feats without prerequisites: `?filter=source_codes IN [PHB] AND has_prerequisites = false`
      * - Combat feats with DEX or STR boost: `?filter=tag_slugs IN [combat] AND improved_abilities IN [STR, DEX]`
      * - Level 1 accessible ASI feats: `?filter=has_prerequisites = false AND improved_abilities IS NOT EMPTY`
+     * - All half-feats: `?filter=is_half_feat = true`
+     * - Half-feats with STR boost: `?filter=is_half_feat = true AND improved_abilities IN [STR]`
+     * - All Resilient variants: `?filter=parent_feat_slug = resilient`
+     * - All Elemental Adept variants: `?filter=parent_feat_slug = elemental-adept`
      *
      * **Use Cases:**
      * - **Character Building:** "Which feats boost STR and help in combat?" (`improved_abilities IN [STR] AND tag_slugs IN [combat]`)
@@ -101,7 +114,7 @@ class FeatController extends Controller
      * @param  Client  $meilisearch  Meilisearch client for advanced filtering
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'improved_abilities IN [STR] AND has_prerequisites = false')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Filterable fields: id, slug, source_codes, tag_slugs, has_prerequisites, grants_proficiencies, is_half_feat, improved_abilities, prerequisite_types, parent_feat_slug. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'is_half_feat = true AND improved_abilities IN [STR]')]
     public function index(FeatIndexRequest $request, FeatSearchService $service, Client $meilisearch)
     {
         $dto = FeatSearchDTO::fromRequest($request);

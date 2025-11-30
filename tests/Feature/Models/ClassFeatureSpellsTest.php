@@ -119,4 +119,38 @@ class ClassFeatureSpellsTest extends TestCase
 
         $this->assertFalse($feature->is_always_prepared);
     }
+
+    #[Test]
+    public function paladin_oath_spells_are_always_prepared(): void
+    {
+        $paladin = CharacterClass::factory()->create(['name' => 'Paladin']);
+        $oathOfDevotion = CharacterClass::factory()->create([
+            'name' => 'Oath of Devotion',
+            'parent_class_id' => $paladin->id,
+        ]);
+        $feature = ClassFeature::factory()->create([
+            'class_id' => $oathOfDevotion->id,
+            'feature_name' => 'Oath Spells (Oath of Devotion)',
+        ]);
+
+        $this->assertTrue($feature->is_always_prepared);
+    }
+
+    #[Test]
+    public function feature_without_loaded_class_relationship_is_not_always_prepared(): void
+    {
+        // Create a feature and explicitly unset the relationship
+        // to simulate the edge case where characterClass returns null
+        $class = CharacterClass::factory()->create(['name' => 'Fighter']);
+        $feature = ClassFeature::factory()->create([
+            'class_id' => $class->id,
+            'feature_name' => 'Some Feature',
+        ]);
+
+        // Unset the relationship to simulate a null relationship
+        // This tests the defensive null check in getIsAlwaysPreparedAttribute
+        $feature->setRelation('characterClass', null);
+
+        $this->assertFalse($feature->is_always_prepared);
+    }
 }

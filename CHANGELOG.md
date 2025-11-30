@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Character Builder API - Phase 1 & 2** (Issue #21)
+  - Database schema: 5 new tables (`characters`, `character_spells`, `character_proficiencies`, `character_features`, `character_equipment`)
+  - Models: `Character` with wizard-style creation (nullable fields), `CharacterSpell`, `CharacterProficiency`, `CharacterFeature`, `CharacterEquipment`
+  - `CharacterStatCalculator` service: D&D 5e stat calculations (ability modifiers, proficiency bonus, spell save DC, skill modifiers, HP, AC, spell slots, preparation limits)
+  - CRUD API: `GET/POST/PATCH/DELETE /api/v1/characters` with Form Request validation
+  - `CharacterResource`: computed stats (ability scores, modifiers, proficiency bonus), validation status for wizard-style creation
+  - 28 unit tests for stat calculator, 22 feature tests for CRUD API
+
 ### Fixed
 
 - **ProgressionTableResource schema incorrect** (Issue #80)

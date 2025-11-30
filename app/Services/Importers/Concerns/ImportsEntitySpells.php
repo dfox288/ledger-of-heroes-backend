@@ -2,7 +2,9 @@
 
 namespace App\Services\Importers\Concerns;
 
+use App\Models\CharacterClass;
 use App\Models\Spell;
+use App\Models\SpellSchool;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -10,30 +12,41 @@ use Illuminate\Support\Facades\Log;
 /**
  * Trait for importing spell associations for polymorphic entities.
  *
- * Handles the common pattern of:
- * 1. Clear existing entity_spells records
- * 2. Look up spell by name (case-insensitive)
- * 3. Create entity_spell pivot record with entity-specific data
+ * Handles both fixed spells and spell choices with constraints.
  *
- * Used by: ItemImporter, RaceImporter, (future: MonsterImporter)
+ * Used by: ItemImporter, RaceImporter, FeatImporter
  */
 trait ImportsEntitySpells
 {
     /**
      * Import spell associations for a polymorphic entity.
      *
-     * @param  Model  $entity  The entity (Item, Race, Monster, etc.)
-     * @param  array  $spellsData  Array of spell associations with pivot data
+     * @param  Model  $entity  The entity (Item, Race, Feat, etc.)
+     * @param  array  $spellsData  Array of spell associations (fixed or choice)
      *
-     * Expected format:
+     * Expected format for fixed spells:
      * [
      *     [
      *         'spell_name' => 'Cure Wounds',
      *         'pivot_data' => [
-     *             'charges_cost_min' => 1,
-     *             'charges_cost_max' => 4,
+     *             'is_cantrip' => false,
+     *             'usage_limit' => 'long_rest',
      *             // ... other entity-specific fields
      *         ]
+     *     ],
+     *     ...
+     * ]
+     *
+     * Expected format for spell choices:
+     * [
+     *     [
+     *         'is_choice' => true,
+     *         'choice_count' => 1,
+     *         'choice_group' => 'spell_choice_1',
+     *         'max_level' => 1,
+     *         'schools' => ['illusion', 'necromancy'], // optional
+     *         'class_name' => 'bard',                  // optional
+     *         'is_ritual_only' => false,
      *     ],
      *     ...
      * ]
@@ -47,32 +60,103 @@ trait ImportsEntitySpells
             ->delete();
 
         foreach ($spellsData as $spellData) {
-            // Look up spell by name (case-insensitive)
-            $spell = Spell::whereRaw('LOWER(name) = ?', [strtolower($spellData['spell_name'])])
-                ->first();
-
-            if (! $spell) {
-                Log::warning("Spell not found: {$spellData['spell_name']} (for {$entity->name})");
-
-                continue;
+            if (isset($spellData['is_choice']) && $spellData['is_choice']) {
+                $this->importSpellChoice($entity, $spellData);
+            } else {
+                $this->importFixedSpell($entity, $spellData);
             }
+        }
+    }
 
-            // Merge common fields + entity-specific pivot data
-            DB::table('entity_spells')->updateOrInsert(
-                [
+    /**
+     * Import a fixed spell (existing behavior).
+     */
+    private function importFixedSpell(Model $entity, array $spellData): void
+    {
+        $spell = Spell::whereRaw('LOWER(name) = ?', [strtolower($spellData['spell_name'])])
+            ->first();
+
+        if (! $spell) {
+            Log::warning("Spell not found: {$spellData['spell_name']} (for {$entity->name})");
+
+            return;
+        }
+
+        DB::table('entity_spells')->insert([
+            'reference_type' => get_class($entity),
+            'reference_id' => $entity->id,
+            'spell_id' => $spell->id,
+            'is_choice' => false,
+            'is_cantrip' => $spellData['pivot_data']['is_cantrip'] ?? false,
+            'usage_limit' => $spellData['pivot_data']['usage_limit'] ?? null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    /**
+     * Import a spell choice with constraints.
+     *
+     * Creates one row per allowed school (if school-constrained),
+     * or a single row (if class-constrained).
+     */
+    private function importSpellChoice(Model $entity, array $choiceData): void
+    {
+        $schools = $choiceData['schools'] ?? [];
+        $className = $choiceData['class_name'] ?? null;
+
+        // Look up class_id if class-constrained
+        $classId = null;
+        if ($className) {
+            $characterClass = CharacterClass::whereRaw('LOWER(name) = ?', [strtolower($className)])->first();
+            if ($characterClass) {
+                $classId = $characterClass->id;
+            } else {
+                Log::warning("CharacterClass not found: {$className} (for {$entity->name})");
+            }
+        }
+
+        // School-constrained: create one row per school
+        if (! empty($schools)) {
+            foreach ($schools as $schoolName) {
+                $school = SpellSchool::whereRaw('LOWER(name) = ?', [strtolower($schoolName)])->first();
+                if (! $school) {
+                    Log::warning("SpellSchool not found: {$schoolName} (for {$entity->name})");
+
+                    continue;
+                }
+
+                DB::table('entity_spells')->insert([
                     'reference_type' => get_class($entity),
                     'reference_id' => $entity->id,
-                    'spell_id' => $spell->id,
-                ],
-                array_merge(
-                    [
-                        'reference_type' => get_class($entity),
-                        'reference_id' => $entity->id,
-                        'spell_id' => $spell->id,
-                    ],
-                    $spellData['pivot_data'] ?? []
-                )
-            );
+                    'spell_id' => null,
+                    'is_choice' => true,
+                    'choice_count' => $choiceData['choice_count'],
+                    'choice_group' => $choiceData['choice_group'],
+                    'max_level' => $choiceData['max_level'],
+                    'school_id' => $school->id,
+                    'class_id' => $classId,
+                    'is_ritual_only' => $choiceData['is_ritual_only'] ?? false,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        } else {
+            // Class-constrained only (no school constraint): single row
+            DB::table('entity_spells')->insert([
+                'reference_type' => get_class($entity),
+                'reference_id' => $entity->id,
+                'spell_id' => null,
+                'is_choice' => true,
+                'choice_count' => $choiceData['choice_count'],
+                'choice_group' => $choiceData['choice_group'],
+                'max_level' => $choiceData['max_level'],
+                'school_id' => null,
+                'class_id' => $classId,
+                'is_ritual_only' => $choiceData['is_ritual_only'] ?? false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         }
     }
 }

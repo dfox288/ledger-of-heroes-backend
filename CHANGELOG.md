@@ -11,6 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Feat `grants_spells` filterable attribute** (Issue #71)
 
+### Fixed
+
+- **Feat prerequisites parsing for OR syntax and subraces** (Issue #73)
+  - Parser now handles "Elf or Half-Elf" OR syntax in prerequisite text
+  - Parser now handles parenthetical subrace syntax like "Elf (High)", "Elf (Drow)", "Elf (Wood)"
+  - New `findSubrace()` method looks up subraces by parent race and subrace name
+  - `splitRaceList()` helper normalizes both comma and " or " separators
+  - Elven Accuracy feats now correctly link to both Elf and Half-Elf races
+  - Drow High Magic, Fey Teleportation, Wood Elf Magic now correctly link to specific subraces
+
+- **Removed redundant `prerequisite` field from EntityPrerequisiteResource** (Issue #73)
+  - API previously returned both generic `prerequisite` and type-specific fields (e.g., `race`)
+  - Now only returns the type-specific field (`ability_score`, `race`, `skill`, `proficiency_type`)
+  - Reduces API response size and eliminates confusion from duplicate data
+
 ### Changed
 
 - **Skill-based advantages now stored in entity_modifiers instead of entity_conditions** (Issue #70)

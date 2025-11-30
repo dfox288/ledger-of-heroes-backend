@@ -198,4 +198,57 @@ class FeatPrerequisitesApiTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.prerequisites', []);
     }
+
+    #[Test]
+    public function race_prerequisite_does_not_include_redundant_prerequisite_field()
+    {
+        // Issue #73: API returns both "prerequisite" and "race" with same data
+        // We should only include the type-specific field (race), not a generic "prerequisite"
+        $feat = Feat::factory()->create([
+            'name' => 'Dragon Fear',
+            'prerequisites_text' => 'Dragonborn',
+        ]);
+
+        $dragonborn = Race::factory()->create([
+            'name' => 'Dragonborn',
+            'slug' => 'dragonborn',
+        ]);
+
+        $feat->prerequisites()->create([
+            'prerequisite_type' => Race::class,
+            'prerequisite_id' => $dragonborn->id,
+            'description' => null,
+        ]);
+
+        $response = $this->getJson("/api/v1/feats/{$feat->id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.prerequisites.0.race.name', 'Dragonborn')
+            // The generic "prerequisite" field should NOT be present (it's redundant)
+            ->assertJsonMissingPath('data.prerequisites.0.prerequisite');
+    }
+
+    #[Test]
+    public function ability_score_prerequisite_does_not_include_redundant_prerequisite_field()
+    {
+        $feat = Feat::factory()->create([
+            'name' => 'Test Feat',
+            'prerequisites_text' => 'Strength 13 or higher',
+        ]);
+
+        $strength = AbilityScore::where('code', 'STR')->first();
+
+        $feat->prerequisites()->create([
+            'prerequisite_type' => AbilityScore::class,
+            'prerequisite_id' => $strength->id,
+            'minimum_value' => 13,
+        ]);
+
+        $response = $this->getJson("/api/v1/feats/{$feat->id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.prerequisites.0.ability_score.code', 'STR')
+            // The generic "prerequisite" field should NOT be present
+            ->assertJsonMissingPath('data.prerequisites.0.prerequisite');
+    }
 }

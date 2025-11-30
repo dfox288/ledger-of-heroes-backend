@@ -62,7 +62,7 @@ class ItemPrerequisitesApiTest extends TestCase
                             'prerequisite_id',
                             'minimum_value',
                             'group_id',
-                            'prerequisite',
+                            'ability_score', // Type-specific field, not generic 'prerequisite'
                         ],
                     ],
                 ],

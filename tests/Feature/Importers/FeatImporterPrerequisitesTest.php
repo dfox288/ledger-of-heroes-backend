@@ -221,4 +221,169 @@ class FeatImporterPrerequisitesTest extends TestCase
         // Old prerequisite should be deleted
         $this->assertNull(EntityPrerequisite::find($oldPrereqId));
     }
+
+    #[Test]
+    public function it_imports_feat_with_or_syntax_race_prerequisite()
+    {
+        // Create races that exist in our seeder
+        $elf = Race::factory()->create(['name' => 'Elf', 'slug' => 'elf']);
+        $halfElf = Race::factory()->create(['name' => 'Half-Elf', 'slug' => 'half-elf']);
+
+        $featData = [
+            'name' => 'Elven Accuracy (Charisma)',
+            'prerequisites' => 'Elf or Half-Elf',
+            'description' => 'The accuracy of elves is legendary...',
+            'sources' => [
+                ['code' => 'XGE', 'pages' => '74'],
+            ],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+        ];
+
+        $feat = $this->importer->import($featData);
+
+        // Should have 2 prerequisites (Elf OR Half-Elf)
+        $this->assertCount(2, $feat->prerequisites);
+
+        // Both should be Race type in same group (OR logic)
+        foreach ($feat->prerequisites as $prereq) {
+            $this->assertEquals(Race::class, $prereq->prerequisite_type);
+            $this->assertEquals(1, $prereq->group_id);
+        }
+
+        // Should have both Elf and Half-Elf
+        $raceIds = $feat->prerequisites->pluck('prerequisite_id')->sort()->values()->toArray();
+        $expectedIds = collect([$elf->id, $halfElf->id])->sort()->values()->toArray();
+        $this->assertEquals($expectedIds, $raceIds);
+    }
+
+    #[Test]
+    public function it_imports_feat_with_comma_or_syntax_race_prerequisite()
+    {
+        // Create races
+        $halfElf = Race::factory()->create(['name' => 'Half-Elf', 'slug' => 'half-elf']);
+        $halfOrc = Race::factory()->create(['name' => 'Half-Orc', 'slug' => 'half-orc']);
+        $human = Race::factory()->create(['name' => 'Human', 'slug' => 'human']);
+
+        $featData = [
+            'name' => 'Prodigy',
+            'prerequisites' => 'Half-Elf, Half-Orc, Human',
+            'description' => 'You have a knack for learning new things...',
+            'sources' => [
+                ['code' => 'XGE', 'pages' => '75'],
+            ],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+        ];
+
+        $feat = $this->importer->import($featData);
+
+        // Should have 3 prerequisites
+        $this->assertCount(3, $feat->prerequisites);
+
+        // All should be Race type in same group
+        foreach ($feat->prerequisites as $prereq) {
+            $this->assertEquals(Race::class, $prereq->prerequisite_type);
+            $this->assertEquals(1, $prereq->group_id);
+        }
+    }
+
+    #[Test]
+    public function it_imports_feat_with_parenthetical_subrace_prerequisite()
+    {
+        // Create parent race and subrace
+        $elf = Race::factory()->create(['name' => 'Elf', 'slug' => 'elf']);
+        $highElf = Race::factory()->create([
+            'name' => 'High',
+            'slug' => 'high-elf',
+            'parent_race_id' => $elf->id,
+        ]);
+
+        $featData = [
+            'name' => 'Fey Teleportation (Intelligence)',
+            'prerequisites' => 'Elf (High)',
+            'description' => 'Your study of high elven lore...',
+            'sources' => [
+                ['code' => 'XGE', 'pages' => '74'],
+            ],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+        ];
+
+        $feat = $this->importer->import($featData);
+
+        // Should have 1 prerequisite pointing to the subrace
+        $this->assertCount(1, $feat->prerequisites);
+
+        $prereq = $feat->prerequisites->first();
+        $this->assertEquals(Race::class, $prereq->prerequisite_type);
+        $this->assertEquals($highElf->id, $prereq->prerequisite_id);
+    }
+
+    #[Test]
+    public function it_imports_feat_with_drow_subrace_prerequisite()
+    {
+        // Drow has alternate name format "Drow / Dark"
+        $elf = Race::factory()->create(['name' => 'Elf', 'slug' => 'elf']);
+        $drow = Race::factory()->create([
+            'name' => 'Drow / Dark',
+            'slug' => 'drow',
+            'parent_race_id' => $elf->id,
+        ]);
+
+        $featData = [
+            'name' => 'Drow High Magic',
+            'prerequisites' => 'Elf (Drow)',
+            'description' => 'You learn more of the magic typical of dark elves...',
+            'sources' => [
+                ['code' => 'XGE', 'pages' => '74'],
+            ],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+        ];
+
+        $feat = $this->importer->import($featData);
+
+        // Should have 1 prerequisite pointing to the Drow subrace
+        $this->assertCount(1, $feat->prerequisites);
+
+        $prereq = $feat->prerequisites->first();
+        $this->assertEquals(Race::class, $prereq->prerequisite_type);
+        $this->assertEquals($drow->id, $prereq->prerequisite_id);
+    }
+
+    #[Test]
+    public function it_imports_feat_with_wood_elf_subrace_prerequisite()
+    {
+        $elf = Race::factory()->create(['name' => 'Elf', 'slug' => 'elf']);
+        $woodElf = Race::factory()->create([
+            'name' => 'Wood',
+            'slug' => 'wood-elf',
+            'parent_race_id' => $elf->id,
+        ]);
+
+        $featData = [
+            'name' => 'Wood Elf Magic',
+            'prerequisites' => 'Elf (Wood)',
+            'description' => 'You learn the magic of the primeval woods...',
+            'sources' => [
+                ['code' => 'XGE', 'pages' => '75'],
+            ],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+        ];
+
+        $feat = $this->importer->import($featData);
+
+        $this->assertCount(1, $feat->prerequisites);
+
+        $prereq = $feat->prerequisites->first();
+        $this->assertEquals(Race::class, $prereq->prerequisite_type);
+        $this->assertEquals($woodElf->id, $prereq->prerequisite_id);
+    }
 }

@@ -584,6 +584,8 @@ class FeatXmlParser
         // "Elf", "Dwarf, Gnome, Halfling" - YES
         // "Dwarf, Gnome, Halfling, Proficiency in Acrobatics" - YES
         // "Dwarf, Gnome, Halfling, Small Race, Proficiency in the Acrobatics skill" - YES
+        // "Elf or Half-Elf" - YES (OR syntax)
+        // "Elf (High)", "Elf (Drow)", "Elf (Wood)" - YES (parenthetical subrace)
         // "The ability to cast..." - NO (too many lowercase words)
         // "Spellcasting or Pact Magic feature" - NO (has "feature" at end)
 
@@ -600,12 +602,30 @@ class FeatXmlParser
             return false;
         }
 
-        // Check for race pattern: capitalized words, comma-separated
-        return preg_match('/^[A-Z][a-z]+(\s+[A-Z][a-z]+)?(,\s+[A-Z][a-z]+(\s+[A-Z][a-z]+)*)*/', $text) === 1;
+        // Check for parenthetical subrace pattern: "Elf (High)", "Elf (Drow)"
+        if (preg_match('/^[A-Z][a-z]+(-[A-Z][a-z]+)?\s*\([A-Z][a-z]+\)$/', $text)) {
+            return true;
+        }
+
+        // Check for OR syntax: "Elf or Half-Elf"
+        // Pattern: Race or Race (with optional hyphenated names like Half-Elf)
+        if (preg_match('/^[A-Z][a-z]+(-[A-Z][a-z]+)?\s+or\s+[A-Z][a-z]+(-[A-Z][a-z]+)?$/', $text)) {
+            return true;
+        }
+
+        // Check for race pattern: capitalized words, comma-separated (with optional hyphens)
+        return preg_match('/^[A-Z][a-z]+(-[A-Z][a-z]+)?(\s+[A-Z][a-z]+)?(,\s+[A-Z][a-z]+(-[A-Z][a-z]+)?(\s+[A-Z][a-z]+)*)*/', $text) === 1;
     }
 
     /**
      * Parse race prerequisites (with optional proficiency/skill at end).
+     *
+     * Handles:
+     * - Simple race: "Elf"
+     * - Comma-separated: "Dwarf, Gnome, Halfling"
+     * - OR syntax: "Elf or Half-Elf"
+     * - Parenthetical subrace: "Elf (High)", "Elf (Drow)"
+     * - With proficiency: "Dwarf, Gnome, Halfling, Proficiency in Acrobatics"
      *
      * @return array<int, array<string, mixed>>
      */
@@ -627,8 +647,8 @@ class FeatXmlParser
 
             $proficiencyPart = "Proficiency {$preposition} {$proficiencyName}";
 
-            // Parse races (group 1)
-            $raceNames = array_map('trim', explode(',', $racesPart));
+            // Parse races (group 1) - split on comma OR " or "
+            $raceNames = $this->splitRaceList($racesPart);
             foreach ($raceNames as $raceName) {
                 // Skip "Small Race" - it's a size descriptor, redundant when actual small races are listed
                 if (stripos($raceName, 'Small Race') !== false) {
@@ -661,7 +681,8 @@ class FeatXmlParser
             $prerequisites = array_merge($prerequisites, $profPrereqs);
         } else {
             // Simple race list (all OR within same group)
-            $raceNames = array_map('trim', explode(',', $text));
+            // Split on comma OR " or " to handle both "A, B, C" and "A or B"
+            $raceNames = $this->splitRaceList($text);
             foreach ($raceNames as $raceName) {
                 $race = $this->findRace($raceName);
                 if ($race) {
@@ -680,11 +701,38 @@ class FeatXmlParser
     }
 
     /**
+     * Split a race list on both comma and " or " separators.
+     *
+     * @return array<int, string>
+     */
+    private function splitRaceList(string $text): array
+    {
+        // Replace " or " with comma, then split on comma
+        $normalized = preg_replace('/\s+or\s+/i', ', ', $text);
+
+        return array_map('trim', explode(',', $normalized));
+    }
+
+    /**
      * Find race by name.
+     *
+     * Handles:
+     * - Simple race: "Elf", "Dwarf"
+     * - Parenthetical subrace: "Elf (High)", "Elf (Drow)", "Elf (Wood)"
      */
     private function findRace(string $name): ?\App\Models\Race
     {
-        $normalized = strtolower(trim($name));
+        $name = trim($name);
+
+        // Check for parenthetical subrace pattern: "Elf (High)", "Elf (Drow)"
+        if (preg_match('/^(.+?)\s*\((.+?)\)$/', $name, $matches)) {
+            $parentRaceName = trim($matches[1]);
+            $subraceName = trim($matches[2]);
+
+            return $this->findSubrace($parentRaceName, $subraceName);
+        }
+
+        $normalized = strtolower($name);
 
         // Try exact match first
         $race = \App\Models\Race::whereRaw('LOWER(name) = ?', [$normalized])->first();
@@ -694,6 +742,41 @@ class FeatXmlParser
 
         // Try LIKE match
         return \App\Models\Race::where('name', 'LIKE', "%{$name}%")->first();
+    }
+
+    /**
+     * Find a subrace by parent race name and subrace name.
+     *
+     * Examples:
+     * - findSubrace("Elf", "High") -> Race with name "High" and parent_race_id pointing to "Elf"
+     * - findSubrace("Elf", "Drow") -> Race with name containing "Drow" (e.g., "Drow / Dark")
+     */
+    private function findSubrace(string $parentRaceName, string $subraceName): ?\App\Models\Race
+    {
+        // First find the parent race
+        $parentRace = \App\Models\Race::whereRaw('LOWER(name) = ?', [strtolower($parentRaceName)])
+            ->whereNull('parent_race_id')
+            ->first();
+
+        if (! $parentRace) {
+            return null;
+        }
+
+        $normalizedSubrace = strtolower($subraceName);
+
+        // Try exact match on subrace name
+        $subrace = \App\Models\Race::where('parent_race_id', $parentRace->id)
+            ->whereRaw('LOWER(name) = ?', [$normalizedSubrace])
+            ->first();
+
+        if ($subrace) {
+            return $subrace;
+        }
+
+        // Try LIKE match (for names like "Drow / Dark" matching "Drow")
+        return \App\Models\Race::where('parent_race_id', $parentRace->id)
+            ->where('name', 'LIKE', "%{$subraceName}%")
+            ->first();
     }
 
     /**

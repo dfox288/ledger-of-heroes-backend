@@ -44,8 +44,29 @@ class RaceXmlParser
             $raceName = $fullName; // Keep full name as-is
         }
 
-        // Parse traits
-        $traits = $this->parseTraitElements($element);
+        // Parse traits and categorize them
+        $allTraits = $this->parseTraitElements($element);
+
+        // Separate traits into base race traits and subrace-specific traits
+        // Base race traits: species category + description + general (no category)
+        // Subrace traits: subspecies category only
+        $baseTraits = [];
+        $subraceTraits = [];
+
+        foreach ($allTraits as $trait) {
+            $category = $trait['category'] ?? null;
+
+            if ($category === 'subspecies') {
+                $subraceTraits[] = $trait;
+            } else {
+                // species, description, or no category = base race trait
+                $baseTraits[] = $trait;
+            }
+        }
+
+        // For backward compatibility, keep 'traits' as all traits
+        // But also provide separated arrays for the importer
+        $traits = $allTraits;
 
         // Extract sources from first description trait using shared trait
         $sources = [];
@@ -99,6 +120,8 @@ class RaceXmlParser
             'size_code' => (string) $element->size,
             'speed' => (int) $element->speed,
             'traits' => $traits,
+            'base_traits' => $baseTraits,           // species, description, general traits
+            'subrace_traits' => $subraceTraits,     // subspecies traits only
             'ability_bonuses' => $abilityBonuses,
             'sources' => $sources,
             'proficiencies' => $proficiencies,

@@ -43,6 +43,11 @@ class RaceImporter extends BaseImporter
             }
         }
 
+        // If a base race was newly created by SubraceStrategy, populate it with base race data
+        if (! empty($raceData['_base_race_needs_population']) && ! empty($raceData['_base_race'])) {
+            $this->populateBaseRace($raceData['_base_race'], $raceData['_base_race_data']);
+        }
+
         // Lookup size by code
         $size = Size::where('code', $raceData['size_code'])->firstOrFail();
 
@@ -71,8 +76,10 @@ class RaceImporter extends BaseImporter
 
         // Import embedded tables in trait descriptions
         foreach ($createdTraits as $index => $trait) {
-            $traitData = $raceData['traits'][$index];
-            $this->importTraitTables($trait, $traitData['description']);
+            $traitData = $raceData['traits'][$index] ?? null;
+            if ($traitData) {
+                $this->importTraitTables($trait, $traitData['description']);
+            }
         }
 
         // Import all modifiers (ability bonuses, choices, resistances, and trait modifiers)
@@ -84,14 +91,25 @@ class RaceImporter extends BaseImporter
             $raceData['modifiers'] ?? []
         );
 
-        // Import proficiencies if present
-        $this->importEntityProficiencies($race, $raceData['proficiencies'] ?? []);
+        // For subraces, don't duplicate proficiencies that belong to base race
+        // Only import if this is not a subrace, or if we have subrace-specific proficiencies
+        $proficiencies = $raceData['proficiencies'] ?? [];
+        if (empty($raceData['parent_race_id'])) {
+            // Base race or standalone race - import all proficiencies
+            $this->importEntityProficiencies($race, $proficiencies);
+        }
+        // Note: Subraces inherit proficiencies from parent via inherited_data in API
 
-        // Import languages if present
-        $this->importEntityLanguages($race, $raceData['languages'] ?? []);
+        // Import languages if present (for base races only, subraces inherit)
+        if (empty($raceData['parent_race_id'])) {
+            $this->importEntityLanguages($race, $raceData['languages'] ?? []);
+        }
 
         // Import conditions (immunities, advantages, resistances)
-        $this->importEntityConditions($race, $raceData['conditions'] ?? []);
+        // For subraces, only import subrace-specific conditions
+        if (empty($raceData['parent_race_id'])) {
+            $this->importEntityConditions($race, $raceData['conditions'] ?? []);
+        }
 
         // Import spells
         if (isset($raceData['spellcasting'])) {
@@ -102,6 +120,7 @@ class RaceImporter extends BaseImporter
         $this->importDataTablesFromRolls($createdTraits, $raceData['traits'] ?? []);
 
         // Extract and import senses from traits (Darkvision, Superior Darkvision)
+        // For subraces, only extract from subspecies traits to avoid duplication
         $sensesData = $this->extractSensesFromTraits($raceData['traits'] ?? []);
         $this->importEntitySenses($race, $sensesData);
 
@@ -109,6 +128,58 @@ class RaceImporter extends BaseImporter
         $race->refresh();
 
         return $race;
+    }
+
+    /**
+     * Populate a newly created base race with data from its first subrace.
+     *
+     * When a subrace is imported and its base race doesn't exist, we create
+     * a stub base race. This method populates that stub with the shared
+     * base race traits, modifiers, proficiencies, etc.
+     */
+    private function populateBaseRace(Race $baseRace, array $baseRaceData): void
+    {
+        // Import traits (species, description, general traits)
+        $createdTraits = $this->importEntityTraits($baseRace, $baseRaceData['traits'] ?? []);
+
+        // Import embedded tables in trait descriptions
+        foreach ($createdTraits as $index => $trait) {
+            $traitData = $baseRaceData['traits'][$index] ?? null;
+            if ($traitData) {
+                $this->importTraitTables($trait, $traitData['description'] ?? '');
+            }
+        }
+
+        // Import modifiers (ability bonuses, resistances)
+        $this->importAllModifiers(
+            $baseRace,
+            $baseRaceData['ability_bonuses'] ?? [],
+            [], // No ability choices for base races typically
+            $baseRaceData['resistances'] ?? [],
+            []  // No trait modifiers for base races
+        );
+
+        // Import proficiencies
+        $this->importEntityProficiencies($baseRace, $baseRaceData['proficiencies'] ?? []);
+
+        // Import sources
+        $this->importEntitySources($baseRace, $baseRaceData['sources'] ?? []);
+
+        // Import languages
+        $this->importEntityLanguages($baseRace, $baseRaceData['languages'] ?? []);
+
+        // Import conditions
+        $this->importEntityConditions($baseRace, $baseRaceData['conditions'] ?? []);
+
+        // Extract and import senses from base traits
+        $sensesData = $this->extractSensesFromTraits($baseRaceData['traits'] ?? []);
+        $this->importEntitySenses($baseRace, $sensesData);
+
+        Log::channel('import-strategy')->info('Populated base race', [
+            'base_race' => $baseRace->name,
+            'traits_count' => count($createdTraits),
+            'proficiencies_count' => count($baseRaceData['proficiencies'] ?? []),
+        ]);
     }
 
     /**
@@ -172,8 +243,8 @@ class RaceImporter extends BaseImporter
 
         // Transform damage resistances into modifier format
         foreach ($resistancesData as $resistanceData) {
-            // Look up damage type by name
-            $damageType = \App\Models\DamageType::where('name', $resistanceData['damage_type'])->first();
+            // Look up damage type by name (case-insensitive for SQLite compatibility)
+            $damageType = \App\Models\DamageType::whereRaw('LOWER(name) = ?', [strtolower($resistanceData['damage_type'])])->first();
 
             if ($damageType) {
                 $modifiersData[] = [

@@ -47,6 +47,7 @@ final class RaceSearchService
         'parent.conditions.condition',
         'parent.spells.spell',
         'parent.spells.abilityScore',
+        'parent.senses.sense',
         'parent.tags',
         'subraces',
         'proficiencies.skill.abilityScore',

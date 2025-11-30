@@ -34,6 +34,41 @@ class RaceResource extends JsonResource
             'spells' => EntitySpellResource::collection($this->whenLoaded('spells')),
             'senses' => EntitySenseResource::collection($this->whenLoaded('senses')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
+
+            // === INHERITED DATA (subraces only) ===
+            /**
+             * Data inherited from parent race. Only included for subraces when parent is loaded.
+             * Contains the base race's traits, modifiers, proficiencies, languages, conditions, and senses.
+             *
+             * @var array{traits: array<TraitResource>|null, modifiers: array<ModifierResource>|null, proficiencies: array<ProficiencyResource>|null, languages: array<EntityLanguageResource>|null, conditions: array<EntityConditionResource>|null, senses: array<EntitySenseResource>|null}|null
+             */
+            'inherited_data' => $this->when(
+                $this->is_subrace && $this->relationLoaded('parent') && $this->parent,
+                function () {
+                    $parent = $this->parent;
+
+                    return [
+                        'traits' => $parent->relationLoaded('traits')
+                            ? TraitResource::collection($parent->traits)
+                            : null,
+                        'modifiers' => $parent->relationLoaded('modifiers')
+                            ? ModifierResource::collection($parent->modifiers)
+                            : null,
+                        'proficiencies' => $parent->relationLoaded('proficiencies')
+                            ? ProficiencyResource::collection($parent->proficiencies)
+                            : null,
+                        'languages' => $parent->relationLoaded('languages')
+                            ? EntityLanguageResource::collection($parent->languages)
+                            : null,
+                        'conditions' => $parent->relationLoaded('conditions')
+                            ? EntityConditionResource::collection($parent->conditions)
+                            : null,
+                        'senses' => $parent->relationLoaded('senses')
+                            ? EntitySenseResource::collection($parent->senses)
+                            : null,
+                    ];
+                }
+            ),
         ];
     }
 }

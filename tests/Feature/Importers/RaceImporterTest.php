@@ -296,16 +296,26 @@ XML;
 
         unlink($tmpFile);
 
-        $race = Race::where('name', 'High')->first();
-        $this->assertNotNull($race);
+        // Proficiencies are now on the base race (Elf), not the subrace (High)
+        $baseRace = Race::where('name', 'Elf')
+            ->whereNull('parent_race_id')
+            ->first();
+        $this->assertNotNull($baseRace);
 
-        $proficiencies = $race->proficiencies;
+        $proficiencies = $baseRace->proficiencies;
         $this->assertCount(1, $proficiencies);
 
         $proficiency = $proficiencies->first();
         $this->assertEquals('skill', $proficiency->proficiency_type);
         $this->assertNotNull($proficiency->skill_id);
         $this->assertEquals('Perception', $proficiency->skill->name);
+
+        // Subrace should have no proficiencies (inherited from parent)
+        $subrace = Race::where('name', 'High')
+            ->whereNotNull('parent_race_id')
+            ->first();
+        $this->assertNotNull($subrace);
+        $this->assertCount(0, $subrace->proficiencies);
     }
 
     #[Test]
@@ -335,8 +345,11 @@ XML;
 
         unlink($tmpFile);
 
-        $race = Race::where('name', 'High')->first();
-        $proficiencies = $race->proficiencies;
+        // Weapon proficiencies are now on the base race (Elf), not the subrace (High)
+        $baseRace = Race::where('name', 'Elf')
+            ->whereNull('parent_race_id')
+            ->first();
+        $proficiencies = $baseRace->proficiencies;
 
         $this->assertCount(2, $proficiencies);
 
@@ -373,15 +386,17 @@ XML;
         $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
         file_put_contents($tmpFile, $xml);
 
-        // First import
+        // First import - proficiencies are on the base race (Elf)
         $this->importer->importFromFile($tmpFile);
-        $race = Race::where('name', 'High')->first();
-        $this->assertCount(2, $race->proficiencies);
+        $baseRace = Race::where('name', 'Elf')
+            ->whereNull('parent_race_id')
+            ->first();
+        $this->assertCount(2, $baseRace->proficiencies);
 
         // Second import (should clear old proficiencies)
         $this->importer->importFromFile($tmpFile);
-        $race->refresh();
-        $this->assertCount(2, $race->proficiencies);
+        $baseRace->refresh();
+        $this->assertCount(2, $baseRace->proficiencies);
 
         unlink($tmpFile);
     }
@@ -718,5 +733,212 @@ XML;
         $darkvision = $senses->first();
         $this->assertEquals('darkvision', $darkvision->sense->slug);
         $this->assertEquals(120, $darkvision->range_feet);
+    }
+
+    #[Test]
+    public function it_populates_base_race_with_species_traits_from_first_subrace()
+    {
+        // Create required sense types
+        \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
+
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dwarf, Hill</name>
+    <size>M</size>
+    <speed>25</speed>
+    <ability>Con +2, Wis +1</ability>
+    <resist>poison</resist>
+    <weapons>Battleaxe, Handaxe</weapons>
+    <trait category="description">
+      <name>Description</name>
+      <text>As a hill dwarf, you have keen senses.
+Source: Player's Handbook (2014) p. 20</text>
+    </trait>
+    <trait category="species">
+      <name>Darkvision</name>
+      <text>You can see in dim light within 60 feet of you.</text>
+    </trait>
+    <trait category="species">
+      <name>Dwarven Resilience</name>
+      <text>You have advantage on saving throws against poison.</text>
+    </trait>
+    <trait category="subspecies">
+      <name>Dwarven Toughness</name>
+      <text>Your hit point maximum increases by 1.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        // Base "Dwarf" race should have species traits
+        $baseRace = Race::where('name', 'Dwarf')
+            ->whereNull('parent_race_id')
+            ->first();
+
+        $this->assertNotNull($baseRace, 'Base Dwarf race should exist');
+
+        // Base race should have species traits (Darkvision, Dwarven Resilience)
+        $baseTraits = $baseRace->traits;
+        $this->assertGreaterThanOrEqual(2, $baseTraits->count(), 'Base race should have species traits');
+
+        $baseTraitNames = $baseTraits->pluck('name')->toArray();
+        $this->assertContains('Darkvision', $baseTraitNames);
+        $this->assertContains('Dwarven Resilience', $baseTraitNames);
+
+        // Base race should NOT have subspecies traits
+        $this->assertNotContains('Dwarven Toughness', $baseTraitNames);
+
+        // Subrace should have subspecies traits only
+        $subrace = Race::where('name', 'Hill')
+            ->whereNotNull('parent_race_id')
+            ->first();
+
+        $this->assertNotNull($subrace, 'Hill subrace should exist');
+
+        $subraceTraits = $subrace->traits;
+        $subraceTraitNames = $subraceTraits->pluck('name')->toArray();
+
+        // Subrace should have subspecies trait
+        $this->assertContains('Dwarven Toughness', $subraceTraitNames);
+
+        // Subrace should NOT duplicate species traits (they come from parent)
+        $this->assertNotContains('Darkvision', $subraceTraitNames);
+        $this->assertNotContains('Dwarven Resilience', $subraceTraitNames);
+    }
+
+    #[Test]
+    public function it_populates_base_race_with_modifiers_from_first_subrace()
+    {
+        // Verify poison damage type exists (seeded by LookupSeeder)
+        $poisonType = \App\Models\DamageType::where('name', 'Poison')->first();
+        $this->assertNotNull($poisonType, 'Poison damage type should be seeded');
+
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dwarf, Hill</name>
+    <size>M</size>
+    <speed>25</speed>
+    <ability>Con +2, Wis +1</ability>
+    <resist>poison</resist>
+    <trait category="description">
+      <name>Description</name>
+      <text>Hill dwarf.
+Source: Player's Handbook (2014) p. 20</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        // Base "Dwarf" race should have shared modifiers (Con +2)
+        $baseRace = Race::where('name', 'Dwarf')
+            ->whereNull('parent_race_id')
+            ->first();
+
+        $this->assertNotNull($baseRace);
+
+        // Base race should have Con +2 modifier
+        $conAbility = AbilityScore::where('code', 'CON')->first();
+        $baseConModifier = $baseRace->modifiers()
+            ->where('ability_score_id', $conAbility->id)
+            ->first();
+
+        $this->assertNotNull($baseConModifier, 'Base race should have Con modifier');
+        $this->assertEquals(2, $baseConModifier->value);
+
+        // Base race should have poison resistance
+        $poisonResistance = $baseRace->modifiers()
+            ->where('modifier_category', 'damage_resistance')
+            ->first();
+
+        $this->assertNotNull($poisonResistance, 'Base race should have poison resistance');
+
+        // Subrace should have only subrace-specific modifiers (Wis +1)
+        $subrace = Race::where('name', 'Hill')
+            ->whereNotNull('parent_race_id')
+            ->first();
+
+        $wisAbility = AbilityScore::where('code', 'WIS')->first();
+        $subraceWisModifier = $subrace->modifiers()
+            ->where('ability_score_id', $wisAbility->id)
+            ->first();
+
+        $this->assertNotNull($subraceWisModifier, 'Subrace should have Wis modifier');
+        $this->assertEquals(1, $subraceWisModifier->value);
+
+        // Subrace should NOT duplicate base race modifiers
+        $subraceConModifier = $subrace->modifiers()
+            ->where('ability_score_id', $conAbility->id)
+            ->first();
+
+        $this->assertNull($subraceConModifier, 'Subrace should not have Con modifier (inherited from parent)');
+    }
+
+    #[Test]
+    public function it_populates_base_race_with_proficiencies_from_first_subrace()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Elf, High</name>
+    <size>M</size>
+    <speed>30</speed>
+    <proficiency>Perception</proficiency>
+    <weapons>Longsword, Shortsword, Shortbow, Longbow</weapons>
+    <trait category="description">
+      <name>Description</name>
+      <text>High elf.
+Source: Player's Handbook (2014) p. 23</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        // Base "Elf" race should have shared proficiencies
+        $baseRace = Race::where('name', 'Elf')
+            ->whereNull('parent_race_id')
+            ->first();
+
+        $this->assertNotNull($baseRace);
+
+        // Base race should have Perception skill proficiency
+        $perceptionProf = $baseRace->proficiencies()
+            ->where('proficiency_type', 'skill')
+            ->whereHas('skill', fn ($q) => $q->where('name', 'Perception'))
+            ->first();
+
+        $this->assertNotNull($perceptionProf, 'Base race should have Perception proficiency');
+
+        // Base race should have weapon proficiencies (Elf Weapon Training)
+        $weaponProfs = $baseRace->proficiencies()
+            ->where('proficiency_type', 'weapon')
+            ->get();
+
+        $this->assertGreaterThanOrEqual(4, $weaponProfs->count(), 'Base race should have weapon proficiencies');
     }
 }

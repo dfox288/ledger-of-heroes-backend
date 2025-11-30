@@ -106,6 +106,11 @@ class MonsterController extends Controller
      * - `armor_type` (string): Armor description (natural armor, plate armor, etc.)
      *   - Examples: `armor_type = natural armor`, `armor_type = plate armor`
      *
+     * **Response-Only Fields** (not filterable, included in response):
+     * - `languages` (string|null): Languages the monster speaks or understands
+     *   - Formats: "Common, Elvish", "Deep Speech, telepathy 120 ft.", "understands Common but can't speak"
+     *   - Null for creatures without language (e.g., most beasts)
+     *
      * **Boolean Fields** (Operators: `=`, `!=`, `IS NULL`, `EXISTS`):
      * - `has_legendary_actions` (bool): Has legendary actions (not lair actions)
      *   - Examples: `has_legendary_actions = true`, `has_legendary_actions = false`

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Base race trait inheritance for Races**
+  - Base races (Elf, Dwarf, etc.) now populated with species-category traits from subraces
+  - Traits with `category="species"` go to base race, `category="subspecies"` go to subrace
+  - Modifiers (ability bonuses, resistances) split: primary bonus to base race, secondary to subrace
+  - Proficiencies, languages, conditions stored on base race only
+  - New `inherited_data` field in `RaceResource` for subraces (mirrors `ClassResource` pattern)
+  - `inherited_data` contains parent's traits, modifiers, proficiencies, languages, conditions, senses
+  - Fixes issue #24: Elf/Dwarf base races now have traits/modifiers instead of empty stubs
+
 - **Languages array for Monsters**
   - New `languages` column in `monsters` table (varchar 255, nullable)
   - Parser already extracted languages from XML; now stored in database

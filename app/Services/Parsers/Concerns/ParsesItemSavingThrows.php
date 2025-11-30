@@ -2,8 +2,19 @@
 
 namespace App\Services\Parsers\Concerns;
 
+use App\Models\Condition;
+use Illuminate\Support\Collection;
+
 trait ParsesItemSavingThrows
 {
+    private ?string $itemConditionRegexPattern = null;
+
+    /**
+     * Additional item-specific effects that aren't standard conditions but should trigger "negates".
+     * Includes movement effects like forced/pushed.
+     */
+    private array $additionalItemNegateEffects = ['forced', 'pushed'];
+
     /**
      * Parse saving throw from item description
      *
@@ -89,11 +100,60 @@ trait ParsesItemSavingThrows
         }
 
         // Pattern 3: "or be [condition]" = negates (avoid condition on save)
-        if (preg_match('/or\s+be\s+(frightened|charmed|stunned|paralyzed|petrified|forced|pushed)/i', $description)) {
+        // Uses dynamic condition list from database + additional item effects
+        $conditionPattern = $this->getItemConditionRegexPattern();
+        if (preg_match('/or\s+be\s+('.$conditionPattern.')/i', $description)) {
             return 'negates';
         }
 
         // Default: negates (most common for non-damage effects)
         return 'negates';
+    }
+
+    /**
+     * Get the regex pattern for matching conditions in item descriptions.
+     * Builds pattern from database conditions + additional item effects.
+     * Falls back to hardcoded list if database not available.
+     */
+    protected function getItemConditionRegexPattern(): string
+    {
+        if ($this->itemConditionRegexPattern !== null) {
+            return $this->itemConditionRegexPattern;
+        }
+
+        $conditions = $this->loadItemConditionsFromDatabase();
+
+        if ($conditions->isEmpty()) {
+            // Fallback for unit tests or when DB unavailable
+            $conditions = collect([
+                'charmed', 'frightened', 'paralyzed', 'stunned', 'poisoned',
+                'restrained', 'blinded', 'deafened', 'petrified', 'incapacitated',
+                'grappled', 'prone', 'unconscious', 'invisible',
+            ]);
+        }
+
+        // Add item-specific effects (forced movement, etc.)
+        $allEffects = $conditions->merge($this->additionalItemNegateEffects)->unique();
+
+        $this->itemConditionRegexPattern = $allEffects->implode('|');
+
+        return $this->itemConditionRegexPattern;
+    }
+
+    /**
+     * Load condition slugs from database.
+     * Returns empty collection if database unavailable.
+     */
+    protected function loadItemConditionsFromDatabase(): Collection
+    {
+        try {
+            if (function_exists('app') && app()->bound('db')) {
+                return Condition::pluck('slug');
+            }
+        } catch (\Exception $e) {
+            // Database not available
+        }
+
+        return collect();
     }
 }

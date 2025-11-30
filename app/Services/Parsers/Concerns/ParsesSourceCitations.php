@@ -82,7 +82,7 @@ trait ParsesSourceCitations
         // Fallback if no sources parsed
         if (empty($sources)) {
             $sources[] = [
-                'code' => 'PHB',
+                'code' => $this->getDefaultSourceCode(),
                 'pages' => '',
             ];
         }
@@ -139,7 +139,19 @@ trait ParsesSourceCitations
             });
         }
 
-        // Return code or fallback to PHB
-        return $source?->code ?? 'PHB';
+        // Return code or fallback to configured default
+        return $source?->code ?? $this->getDefaultSourceCode();
+    }
+
+    /**
+     * Get the default source code from config, with fallback for unit tests.
+     */
+    protected function getDefaultSourceCode(): string
+    {
+        if (function_exists('config') && app()->bound('config')) {
+            return config('import.default_source_code', 'PHB');
+        }
+
+        return 'PHB';
     }
 }

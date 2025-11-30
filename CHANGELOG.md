@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Parser defaults moved to configuration** (Issue #20)
+  - Default source code (`PHB`) now configurable via `config('import.default_source_code')` or `IMPORT_DEFAULT_SOURCE_CODE` env var
+  - Default publisher (`Wizards of the Coast`) now configurable via `config('import.default_publisher')` or `IMPORT_DEFAULT_PUBLISHER` env var
+  - Condition regex in saving throw parsers now built dynamically from database `Condition::pluck('slug')`
+  - Falls back to hardcoded lists when database unavailable (unit tests)
+  - Additional spell/item-specific effects (`banished`, `cursed`, `forced`, `pushed`) merged with DB conditions
+
 ### Fixed
 
 - **Background trait descriptions now clean after table extraction** (Issue #52)

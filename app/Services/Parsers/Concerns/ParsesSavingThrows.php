@@ -2,6 +2,9 @@
 
 namespace App\Services\Parsers\Concerns;
 
+use App\Models\Condition;
+use Illuminate\Support\Collection;
+
 /**
  * Trait for parsing saving throw requirements from entity descriptions.
  *
@@ -15,6 +18,14 @@ namespace App\Services\Parsers\Concerns;
  */
 trait ParsesSavingThrows
 {
+    private ?string $conditionRegexPattern = null;
+
+    /**
+     * Additional spell-specific effects that aren't standard conditions but should trigger "negates".
+     * These are checked alongside database conditions.
+     */
+    private array $additionalNegateEffects = ['banished', 'cursed'];
+
     /**
      * Extract saving throw requirements from spell description.
      *
@@ -190,8 +201,10 @@ trait ParsesSavingThrows
 
         // Check for negates (save completely negates effect)
         // Expanded to include "become/becomes" in addition to "be"
+        // Uses dynamic condition list from database + additional spell effects
+        $conditionPattern = $this->getConditionRegexPattern();
         if (
-            preg_match('/or\s+(be|become|becomes?)\s+(charmed|frightened|paralyzed|stunned|poisoned|restrained|blinded|deafened|petrified|banished|incapacitated|cursed)/i', $context) ||
+            preg_match('/or\s+(be|become|becomes?)\s+('.$conditionPattern.')/i', $context) ||
             stripos($lowerContext, 'negates') !== false ||
             stripos($lowerContext, 'avoids') !== false
         ) {
@@ -216,5 +229,52 @@ trait ParsesSavingThrows
 
         // If we can't determine, return null
         return null;
+    }
+
+    /**
+     * Get the regex pattern for matching conditions.
+     * Builds pattern from database conditions + additional spell effects.
+     * Falls back to hardcoded list if database not available.
+     */
+    protected function getConditionRegexPattern(): string
+    {
+        if ($this->conditionRegexPattern !== null) {
+            return $this->conditionRegexPattern;
+        }
+
+        $conditions = $this->loadConditionsFromDatabase();
+
+        if ($conditions->isEmpty()) {
+            // Fallback for unit tests or when DB unavailable
+            $conditions = collect([
+                'charmed', 'frightened', 'paralyzed', 'stunned', 'poisoned',
+                'restrained', 'blinded', 'deafened', 'petrified', 'incapacitated',
+                'grappled', 'prone', 'unconscious', 'invisible', 'exhaustion',
+            ]);
+        }
+
+        // Add spell-specific effects that aren't standard conditions
+        $allEffects = $conditions->merge($this->additionalNegateEffects)->unique();
+
+        $this->conditionRegexPattern = $allEffects->implode('|');
+
+        return $this->conditionRegexPattern;
+    }
+
+    /**
+     * Load condition slugs from database.
+     * Returns empty collection if database unavailable.
+     */
+    protected function loadConditionsFromDatabase(): Collection
+    {
+        try {
+            if (function_exists('app') && app()->bound('db')) {
+                return Condition::pluck('slug');
+            }
+        } catch (\Exception $e) {
+            // Database not available
+        }
+
+        return collect();
     }
 }

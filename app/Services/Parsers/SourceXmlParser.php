@@ -59,7 +59,7 @@ class SourceXmlParser
             'url' => $this->nullIfEmpty((string) $element->url),
             'author' => $this->nullIfEmpty((string) $element->author),
             'artist' => $this->nullIfEmpty((string) $element->artist),
-            'publisher' => $this->nullIfEmpty((string) $element->publisher) ?? 'Wizards of the Coast',
+            'publisher' => $this->nullIfEmpty((string) $element->publisher) ?? $this->getDefaultPublisher(),
             'website' => $this->nullIfEmpty((string) $element->website),
             'category' => $this->nullIfEmpty((string) $element->category),
             'publication_year' => $publicationYear,
@@ -75,5 +75,17 @@ class SourceXmlParser
         $trimmed = trim($value);
 
         return $trimmed === '' ? null : $trimmed;
+    }
+
+    /**
+     * Get the default publisher from config, with fallback for unit tests.
+     */
+    private function getDefaultPublisher(): string
+    {
+        if (function_exists('config') && app()->bound('config')) {
+            return config('import.default_publisher', 'Wizards of the Coast');
+        }
+
+        return 'Wizards of the Coast';
     }
 }

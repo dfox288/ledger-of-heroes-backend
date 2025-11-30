@@ -3,6 +3,17 @@
 return [
     /*
     |--------------------------------------------------------------------------
+    | Parser Defaults
+    |--------------------------------------------------------------------------
+    |
+    | Default values used by parsers when data is missing or cannot be matched.
+    |
+    */
+    'default_source_code' => env('IMPORT_DEFAULT_SOURCE_CODE', 'PHB'),
+    'default_publisher' => env('IMPORT_DEFAULT_PUBLISHER', 'Wizards of the Coast'),
+
+    /*
+    |--------------------------------------------------------------------------
     | XML Source Path
     |--------------------------------------------------------------------------
     |

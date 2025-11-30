@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Subclass spell lists (domain, circle, expanded spells)** (Issue #63)
+  - `ClassFeature.spells()` MorphToMany relationship links features to granted spells via `entity_spells`
+  - `ClassFeature.is_always_prepared` computed accessor: Cleric/Druid/Paladin subclass spells = true, Warlock = false
+  - `ParsesSubclassSpellTables` trait parses pipe-delimited spell tables from feature descriptions
+  - Supports all class formats: Artificer, Cleric, Druid, Paladin, Ranger, Sorcerer, Warlock
+  - `ImportsSubclassSpells` trait creates EntitySpell records with `level_requirement` for each class level
+  - `ClassFeatureResource` exposes spells array with spell data and `level_requirement`
+  - Eager loading configured for `features.spells` to prevent N+1 queries
+
 - **Feat `grants_spells` filterable attribute** (Issue #71)
 
 ### Fixed

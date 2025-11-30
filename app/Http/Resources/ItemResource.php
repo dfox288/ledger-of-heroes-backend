@@ -35,6 +35,10 @@ class ItemResource extends JsonResource
             'recharge_formula' => $this->recharge_formula,
             'recharge_timing' => $this->recharge_timing,
 
+            // Computed fields
+            'proficiency_category' => $this->proficiency_category,
+            'magic_bonus' => $this->magic_bonus,
+
             // Relationships
             'item_type' => ItemTypeResource::make($this->whenLoaded('itemType')),
             'damage_type' => DamageTypeResource::make($this->whenLoaded('damageType')),

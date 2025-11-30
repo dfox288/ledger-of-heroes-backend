@@ -75,6 +75,13 @@ class ItemController extends Controller
      * - `has_prerequisites` (bool): Has class/race/level prerequisites
      *   - Examples: `has_prerequisites = true`
      *
+     * **Computed Fields** (Operators vary by type):
+     * - `proficiency_category` (string): Weapon proficiency type
+     *   - Values: simple_melee, martial_melee, simple_ranged, martial_ranged, or null for non-weapons
+     *   - Examples: `proficiency_category = martial_melee`, `proficiency_category = simple_ranged`
+     * - `magic_bonus` (int): Magic bonus (+1/+2/+3) from modifiers, null for non-magic items
+     *   - Examples: `magic_bonus = 2`, `magic_bonus >= 1`, `magic_bonus EXISTS`
+     *
      * **Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):
      * - `source_codes` (array): Source book codes (PHB, DMG, XGE, TCoE, etc.)
      *   - Examples: `source_codes IN [PHB, DMG]`, `source_codes NOT IN [UA]`
@@ -95,11 +102,15 @@ class ItemController extends Controller
      * - Heavy armor with high AC: `?filter=type_code = HA AND armor_class >= 16`
      * - Ranged weapons: `?filter=range_normal >= 80`
      * - Magic items with charges: `?filter=is_magic = true AND has_charges = true`
-     * - Finesse weapons: `?filter=property_codes IN [F] AND type_code = W`
+     * - Finesse weapons: `?filter=property_codes IN [F] AND type_code = M`
      * - Silent heavy armor: `?filter=type_code = HA AND stealth_disadvantage = false`
      * - Affordable magic items: `?filter=is_magic = true AND cost_cp <= 10000` (100gp or less)
      * - Legendary items requiring attunement: `?filter=rarity = legendary AND requires_attunement = true`
      * - Items with prerequisites: `?filter=has_prerequisites = true`
+     * - All martial melee weapons: `?filter=proficiency_category = martial_melee`
+     * - Simple ranged weapons: `?filter=proficiency_category = simple_ranged`
+     * - +2 or better magic weapons: `?filter=magic_bonus >= 2`
+     * - +1 martial longswords: `?filter=proficiency_category = martial_melee AND magic_bonus = 1`
      *
      * **Use Cases:**
      * - Shopping lists: Filter by cost range and item type
@@ -125,7 +136,7 @@ class ItemController extends Controller
      * @param  Client  $meilisearch  Meilisearch client for advanced filtering
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Filterable fields: id, slug, type_name, type_code, rarity, requires_attunement, is_magic, weight, cost_cp, source_codes, damage_dice, versatile_damage, damage_type, range_normal, range_long, armor_class, strength_requirement, stealth_disadvantage, charges_max, has_charges, recharge_timing, recharge_formula, spell_slugs, tag_slugs, property_codes, modifier_categories, proficiency_names, saving_throw_abilities, has_prerequisites. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'type_code = HA AND armor_class >= 16')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Filterable fields: id, slug, type_name, type_code, rarity, requires_attunement, is_magic, weight, cost_cp, source_codes, damage_dice, versatile_damage, damage_type, range_normal, range_long, armor_class, strength_requirement, stealth_disadvantage, charges_max, has_charges, recharge_timing, recharge_formula, spell_slugs, tag_slugs, property_codes, modifier_categories, proficiency_names, saving_throw_abilities, has_prerequisites, proficiency_category, magic_bonus. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'proficiency_category = martial_melee AND magic_bonus >= 1')]
     public function index(ItemIndexRequest $request, ItemSearchService $service, Client $meilisearch)
     {
         $dto = ItemSearchDTO::fromRequest($request);

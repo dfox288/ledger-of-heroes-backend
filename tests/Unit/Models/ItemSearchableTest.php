@@ -4,7 +4,9 @@ namespace Tests\Unit\Models;
 
 use App\Models\EntitySource;
 use App\Models\Item;
+use App\Models\ItemProperty;
 use App\Models\ItemType;
+use App\Models\Modifier;
 use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -81,5 +83,72 @@ class ItemSearchableTest extends TestCase
         $item = new Item;
 
         $this->assertEquals('test_items', $item->searchableAs());
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_includes_proficiency_category_in_searchable_array(): void
+    {
+        $meleeType = ItemType::firstOrCreate(
+            ['code' => 'M'],
+            ['name' => 'Melee Weapon']
+        );
+
+        $martialProperty = ItemProperty::firstOrCreate(
+            ['code' => 'M'],
+            ['name' => 'Martial']
+        );
+
+        $item = Item::factory()->create([
+            'name' => 'Longsword',
+            'item_type_id' => $meleeType->id,
+        ]);
+
+        $item->properties()->attach($martialProperty->id);
+        $item->refresh();
+
+        $searchable = $item->toSearchableArray();
+
+        $this->assertArrayHasKey('proficiency_category', $searchable);
+        $this->assertEquals('martial_melee', $searchable['proficiency_category']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_includes_magic_bonus_in_searchable_array(): void
+    {
+        $meleeType = ItemType::firstOrCreate(
+            ['code' => 'M'],
+            ['name' => 'Melee Weapon']
+        );
+
+        $item = Item::factory()->create([
+            'name' => 'Longsword +2',
+            'item_type_id' => $meleeType->id,
+            'is_magic' => true,
+        ]);
+
+        Modifier::create([
+            'reference_type' => Item::class,
+            'reference_id' => $item->id,
+            'modifier_category' => 'weapon_attack',
+            'value' => '2',
+        ]);
+
+        $item->refresh();
+
+        $searchable = $item->toSearchableArray();
+
+        $this->assertArrayHasKey('magic_bonus', $searchable);
+        $this->assertEquals(2, $searchable['magic_bonus']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_includes_new_fields_in_filterable_attributes(): void
+    {
+        $item = new Item;
+
+        $options = $item->searchableOptions();
+
+        $this->assertContains('proficiency_category', $options['filterableAttributes']);
+        $this->assertContains('magic_bonus', $options['filterableAttributes']);
     }
 }

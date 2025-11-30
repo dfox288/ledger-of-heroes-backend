@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Item proficiency_category and magic_bonus fields** (Issue #30)
+  - New `proficiency_category` computed accessor on Item model
+  - Returns: `simple_melee`, `martial_melee`, `simple_ranged`, `martial_ranged`, or `null` for non-weapons
+  - Computed from item type (M/R) and Martial property presence
+  - New `magic_bonus` computed accessor on Item model
+  - Returns: `1`, `2`, or `3` for magic items with weapon_attack/ac_magic modifiers, `null` otherwise
+  - Both fields exposed in ItemResource API response
+  - Both fields indexed in Meilisearch for filtering
+  - New filter examples: `proficiency_category = martial_melee`, `magic_bonus >= 2`
+
 - **Race speed and sense filtering** (Issue #26)
   - New `fly_speed` and `swim_speed` columns in races table
   - Extracted from "Flight" and "Swim Speed" traits during import (e.g., Aarakocra: 50ft fly, Triton: 30ft swim)

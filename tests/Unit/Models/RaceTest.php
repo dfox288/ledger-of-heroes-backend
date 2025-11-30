@@ -40,7 +40,7 @@ class RaceTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_has_speed_columns_fillable(): void
     {
-        $race = new Race();
+        $race = new Race;
 
         $this->assertContains('fly_speed', $race->getFillable());
         $this->assertContains('swim_speed', $race->getFillable());
@@ -49,7 +49,7 @@ class RaceTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_casts_speed_columns_to_integer(): void
     {
-        $race = new Race();
+        $race = new Race;
         $casts = $race->getCasts();
 
         $this->assertEquals('integer', $casts['fly_speed']);

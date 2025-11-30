@@ -130,6 +130,67 @@ class Item extends BaseModel
             ->withTimestamps();
     }
 
+    // =========================================================================
+    // Computed Accessors
+    // =========================================================================
+
+    /**
+     * Get the proficiency category for weapons (simple/martial + melee/ranged).
+     *
+     * Returns: simple_melee, martial_melee, simple_ranged, martial_ranged, or null for non-weapons.
+     */
+    public function getProficiencyCategoryAttribute(): ?string
+    {
+        $this->loadMissing(['itemType', 'properties']);
+
+        $typeCode = $this->itemType?->code;
+
+        // Only weapons have proficiency categories
+        if (! in_array($typeCode, ['M', 'R'])) {
+            return null;
+        }
+
+        $isMartial = $this->properties->contains('code', 'M');
+        $attackType = $typeCode === 'M' ? 'melee' : 'ranged';
+        $proficiencyType = $isMartial ? 'martial' : 'simple';
+
+        return "{$proficiencyType}_{$attackType}";
+    }
+
+    /**
+     * Get the magic bonus (+1/+2/+3) from modifiers.
+     *
+     * Checks weapon_attack modifier for weapons, ac_magic for armor/shields.
+     */
+    public function getMagicBonusAttribute(): ?int
+    {
+        $this->loadMissing('modifiers');
+
+        // Check weapon_attack first (for weapons)
+        $weaponBonus = $this->modifiers
+            ->where('modifier_category', 'weapon_attack')
+            ->first();
+
+        if ($weaponBonus) {
+            return (int) $weaponBonus->value;
+        }
+
+        // Check ac_magic (for armor/shields)
+        $acBonus = $this->modifiers
+            ->where('modifier_category', 'ac_magic')
+            ->first();
+
+        if ($acBonus) {
+            return (int) $acBonus->value;
+        }
+
+        return null;
+    }
+
+    // =========================================================================
+    // Scopes
+    // =========================================================================
+
     /**
      * Scope: Filter by minimum strength requirement
      * Usage: Item::whereMinStrength(15)->get()
@@ -219,6 +280,9 @@ class Item extends BaseModel
             'saving_throw_abilities' => $this->savingThrows->pluck('code')->unique()->all(),
             // Prerequisites (boolean for filtering)
             'has_prerequisites' => $this->prerequisites->isNotEmpty() || $this->strength_requirement !== null,
+            // Computed fields for filtering
+            'proficiency_category' => $this->proficiency_category,
+            'magic_bonus' => $this->magic_bonus,
         ];
     }
 
@@ -288,6 +352,8 @@ class Item extends BaseModel
                 'proficiency_names',
                 'saving_throw_abilities',
                 'has_prerequisites',
+                'proficiency_category',
+                'magic_bonus',
             ],
             'sortableAttributes' => [
                 'name',

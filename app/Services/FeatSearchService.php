@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\DTOs\FeatSearchDTO;
-use App\Exceptions\InvalidFilterSyntaxException;
+use App\Exceptions\Search\InvalidFilterSyntaxException;
 use App\Models\Feat;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;

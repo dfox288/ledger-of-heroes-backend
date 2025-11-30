@@ -189,7 +189,7 @@ class Feat extends BaseModel
     public function toSearchableArray(): array
     {
         // Load tags relationship if not already loaded
-        $this->loadMissing(['tags', 'prerequisites.prerequisite', 'modifiers.abilityScore', 'proficiencies']);
+        $this->loadMissing(['tags', 'prerequisites.prerequisite', 'modifiers.abilityScore', 'proficiencies', 'spells']);
 
         return [
             'id' => $this->id,
@@ -204,6 +204,7 @@ class Feat extends BaseModel
             // Phase 3: Boolean filters
             'has_prerequisites' => $this->prerequisites->isNotEmpty(),
             'grants_proficiencies' => $this->proficiencies->isNotEmpty(),
+            'grants_spells' => $this->spells->isNotEmpty(),
             // Phase 4: Array filters
             'improved_abilities' => $this->modifiers
                 ->where('modifier_category', 'ability_score')
@@ -249,6 +250,7 @@ class Feat extends BaseModel
                 // Phase 3: Boolean filters
                 'has_prerequisites',
                 'grants_proficiencies',
+                'grants_spells',
                 // Phase 4: Array filters
                 'improved_abilities',
                 'prerequisite_types',

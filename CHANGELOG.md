@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Feat `grants_spells` filterable attribute** (Issue #71)
+  - Added `grants_spells` boolean to Feat model's `toSearchableArray()`
+  - Added to Meilisearch filterableAttributes for search filtering
+  - Enables filtering feats that grant spells (Magic Initiate, Fey Touched, etc.)
+  - Example: `GET /api/v1/feats?filter=grants_spells=true`
+
 - **Passive score modifier parsing from description text** (Issue #69)
   - FeatXmlParser extracts "+N bonus to your passive Ability (Skill)" patterns
   - Creates `passive_score` modifiers with `skill_name` for each skill mentioned

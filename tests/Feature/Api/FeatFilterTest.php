@@ -131,6 +131,30 @@ class FeatFilterTest extends TestCase
     }
 
     #[Test]
+    public function it_filters_feats_by_grants_spells()
+    {
+        // Filter for feats WITH spells
+        $response = $this->getJson('/api/v1/feats?filter=grants_spells = true');
+        $response->assertOk();
+
+        // Verify all returned feats have spells
+        foreach ($response->json('data') as $feat) {
+            $featModel = Feat::find($feat['id']);
+            $this->assertTrue($featModel->spells()->exists(), "{$feat['name']} should grant spells");
+        }
+
+        // Filter for feats WITHOUT spells
+        $response = $this->getJson('/api/v1/feats?filter=grants_spells = false');
+        $response->assertOk();
+
+        // Verify all returned feats do NOT have spells
+        foreach ($response->json('data') as $feat) {
+            $featModel = Feat::find($feat['id']);
+            $this->assertFalse($featModel->spells()->exists(), "{$feat['name']} should not grant spells");
+        }
+    }
+
+    #[Test]
     public function it_combines_multiple_filters()
     {
         // Get count of feats with both prerequisites AND proficiencies

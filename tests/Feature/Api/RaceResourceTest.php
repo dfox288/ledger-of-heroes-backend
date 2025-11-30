@@ -1,0 +1,53 @@
+<?php
+
+namespace Tests\Feature\Api;
+
+use App\Http\Resources\RaceResource;
+use App\Models\Race;
+use App\Models\Size;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+class RaceResourceTest extends TestCase
+{
+    use RefreshDatabase;
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_includes_speed_fields_in_resource(): void
+    {
+        $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
+
+        $race = Race::factory()->create([
+            'size_id' => $size->id,
+            'fly_speed' => 50,
+            'swim_speed' => 30,
+        ]);
+
+        $resource = (new RaceResource($race))->toArray(request());
+
+        $this->assertArrayHasKey('fly_speed', $resource);
+        $this->assertArrayHasKey('swim_speed', $resource);
+        $this->assertEquals(50, $resource['fly_speed']);
+        $this->assertEquals(30, $resource['swim_speed']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_returns_null_for_missing_speeds(): void
+    {
+        $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
+
+        $race = Race::factory()->create([
+            'size_id' => $size->id,
+            'fly_speed' => null,
+            'swim_speed' => null,
+        ]);
+
+        $resource = (new RaceResource($race))->toArray(request());
+
+        $this->assertArrayHasKey('fly_speed', $resource);
+        $this->assertArrayHasKey('swim_speed', $resource);
+        $this->assertNull($resource['fly_speed']);
+        $this->assertNull($resource['swim_speed']);
+    }
+}

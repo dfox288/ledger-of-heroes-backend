@@ -98,6 +98,7 @@ trait ParsesModifiers
             str_contains($target, 'hp') || str_contains($target, 'hit point') => 'hp',
             str_contains($target, 'speed') => 'speed',
             str_contains($target, 'initiative') => 'initiative',
+            str_contains($target, 'passive') => 'passive',
 
             // AC modifiers (exact match to avoid matching "acrobatics")
             ($target === 'ac' || $target === 'armor class') && $xmlCategory === 'bonus' => 'ac_magic',

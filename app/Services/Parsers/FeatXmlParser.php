@@ -59,14 +59,20 @@ class FeatXmlParser
         $modifiersFromXml = $this->parseModifiers($element);
 
         // Parse passive score modifiers from description text
-        $passiveScoreModifiers = $this->parsePassiveScoreModifiers($description);
+        // Pass XML modifiers to determine which ability variant was chosen
+        $passiveScoreModifiers = $this->parsePassiveScoreModifiers($description, $modifiersFromXml);
+
+        // Filter out ambiguous "Passive" bonus modifiers - we replace them with specific passive_score modifiers
+        $modifiersFromXml = array_filter($modifiersFromXml, function ($mod) {
+            return $mod['modifier_category'] !== 'passive';
+        });
 
         return [
             'name' => (string) $element->name,
             'prerequisites' => isset($element->prerequisite) ? (string) $element->prerequisite : null,
             'description' => trim($description),
             'sources' => $sources,
-            'modifiers' => array_merge($modifiersFromXml, $passiveScoreModifiers),
+            'modifiers' => array_merge(array_values($modifiersFromXml), $passiveScoreModifiers),
             'proficiencies' => array_merge($proficienciesFromXml, $proficienciesFromText),
             'conditions' => $this->parseConditions($description),
             'spells' => $this->parseSpells($description),
@@ -744,17 +750,20 @@ class FeatXmlParser
     /**
      * Parse passive score bonuses from description text.
      *
-     * Detects patterns like:
-     * - "+5 bonus to your passive Wisdom (Perception) and passive Intelligence (Investigation)"
+     * For feats like Observant that grant passive bonuses:
+     * - Detects "+N bonus to your passive Ability (Skill)" patterns
+     * - Uses the ability_score modifier to determine which variant was chosen
+     * - Returns only the passive_score modifier for the matching ability's skill
      *
-     * Extracts the skill name from parentheses, not the ability name.
+     * Example: Observant (Intelligence) has ability_score modifier for INT,
+     * so we return passive_score for Investigation (INT-based skill), not Perception.
      *
+     * @param  string  $text  The feat description text
+     * @param  array  $xmlModifiers  Modifiers parsed from XML (to determine chosen ability)
      * @return array<int, array<string, mixed>>
      */
-    private function parsePassiveScoreModifiers(string $text): array
+    private function parsePassiveScoreModifiers(string $text, array $xmlModifiers): array
     {
-        $modifiers = [];
-
         // Extract the bonus value: "+N bonus to your passive" or "+N bonus to passive"
         $bonusValue = null;
         if (preg_match('/\+(\d+)\s+bonus\s+to\s+(?:your\s+)?passive/i', $text, $valueMatch)) {
@@ -765,18 +774,42 @@ class FeatXmlParser
             return [];
         }
 
-        // Pattern: "passive Ability (Skill)" - extract skill name from parentheses
-        // Examples: "passive Wisdom (Perception)", "passive Intelligence (Investigation)"
-        if (preg_match_all('/passive\s+(?:Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma)\s*\(([^)]+)\)/i', $text, $matches)) {
-            foreach ($matches[1] as $skillName) {
-                $modifiers[] = [
-                    'modifier_category' => 'passive_score',
-                    'value' => $bonusValue,
-                    'skill_name' => trim($skillName),
-                ];
+        // Find which ability was chosen from the ability_score modifier
+        $chosenAbility = null;
+        foreach ($xmlModifiers as $mod) {
+            if (($mod['modifier_category'] ?? '') === 'ability_score' && isset($mod['ability_code'])) {
+                $chosenAbility = strtoupper($mod['ability_code']);
+                break;
             }
         }
 
-        return $modifiers;
+        if ($chosenAbility === null) {
+            return [];
+        }
+
+        // Pattern: "passive Ability (Skill)" - extract both ability and skill
+        // Examples: "passive Wisdom (Perception)", "passive Intelligence (Investigation)"
+        if (preg_match_all('/passive\s+(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma)\s*\(([^)]+)\)/i', $text, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $abilityName = $match[1];
+                $skillName = trim($match[2]);
+
+                // Map ability name to code
+                $abilityCode = $this->mapAbilityNameToCode($abilityName);
+
+                // Only return the modifier for the chosen ability
+                if ($abilityCode === $chosenAbility) {
+                    return [
+                        [
+                            'modifier_category' => 'passive_score',
+                            'value' => $bonusValue,
+                            'skill_name' => $skillName,
+                        ],
+                    ];
+                }
+            }
+        }
+
+        return [];
     }
 }

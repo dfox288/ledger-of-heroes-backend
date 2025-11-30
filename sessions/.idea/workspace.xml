@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="663d0041-6a6e-4f4a-9f6b-8a224911d4a9" name="Changes" comment="" />
+    <list default="true" id="663d0041-6a6e-4f4a-9f6b-8a224911d4a9" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../tests/Fixtures/test-output/entities/optionalfeatures.json" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/Fixtures/test-output/entities/optionalfeatures.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -55,7 +57,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1764415412823</updated>
-      <workItem from="1764415413992" duration="682000" />
+      <workItem from="1764415413992" duration="683000" />
     </task>
     <servers />
   </component>

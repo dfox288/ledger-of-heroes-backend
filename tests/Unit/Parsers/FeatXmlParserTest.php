@@ -756,7 +756,7 @@ XML;
     }
 
     #[Test]
-    public function it_parses_passive_score_modifiers_from_description_text()
+    public function it_parses_passive_score_modifier_for_intelligence_variant()
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -781,19 +781,65 @@ XML;
         $this->assertCount(1, $feats);
         $modifiers = $feats[0]['modifiers'];
 
-        // Find passive score modifiers (from description parsing)
-        $passiveModifiers = array_filter($modifiers, fn ($m) => ($m['modifier_category'] ?? '') === 'passive_score');
-        $this->assertCount(2, $passiveModifiers);
+        // Should have exactly 2 modifiers: ability_score and passive_score
+        $this->assertCount(2, $modifiers);
 
-        $passiveModifiers = array_values($passiveModifiers);
-        $skillNames = array_column($passiveModifiers, 'skill_name');
+        // Verify ability_score modifier
+        $abilityMod = array_values(array_filter($modifiers, fn ($m) => $m['modifier_category'] === 'ability_score'))[0];
+        $this->assertEquals(1, $abilityMod['value']);
+        $this->assertEquals('INT', $abilityMod['ability_code']);
 
-        $this->assertContains('Perception', $skillNames);
-        $this->assertContains('Investigation', $skillNames);
+        // Verify passive_score modifier - should be Investigation (INT-based) not Perception
+        $passiveMod = array_values(array_filter($modifiers, fn ($m) => $m['modifier_category'] === 'passive_score'))[0];
+        $this->assertEquals(5, $passiveMod['value']);
+        $this->assertEquals('Investigation', $passiveMod['skill_name']);
 
-        // Both should have value 5
-        foreach ($passiveModifiers as $mod) {
-            $this->assertEquals(5, $mod['value']);
-        }
+        // Ambiguous "Passive Wisdom +5" bonus modifier should be filtered out
+        $bonusModifiers = array_filter($modifiers, fn ($m) => $m['modifier_category'] === 'bonus');
+        $this->assertEmpty($bonusModifiers);
+    }
+
+    #[Test]
+    public function it_parses_passive_score_modifier_for_wisdom_variant()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Observant (Wisdom)</name>
+        <text>Quick to notice details of your environment, you gain the following benefits:
+
+	• Increase your Intelligence or Wisdom score by 1, to a maximum of 20.
+
+	• You have a +5 bonus to your passive Wisdom (Perception) and passive Intelligence (Investigation) scores.
+
+Source:	Player's Handbook (2014) p. 168</text>
+        <modifier category="ability score">wisdom +1</modifier>
+        <modifier category="bonus">Passive Wisdom +5</modifier>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $modifiers = $feats[0]['modifiers'];
+
+        // Should have exactly 2 modifiers: ability_score and passive_score
+        $this->assertCount(2, $modifiers);
+
+        // Verify ability_score modifier
+        $abilityMod = array_values(array_filter($modifiers, fn ($m) => $m['modifier_category'] === 'ability_score'))[0];
+        $this->assertEquals(1, $abilityMod['value']);
+        $this->assertEquals('WIS', $abilityMod['ability_code']);
+
+        // Verify passive_score modifier - should be Perception (WIS-based) not Investigation
+        $passiveMod = array_values(array_filter($modifiers, fn ($m) => $m['modifier_category'] === 'passive_score'))[0];
+        $this->assertEquals(5, $passiveMod['value']);
+        $this->assertEquals('Perception', $passiveMod['skill_name']);
+
+        // Ambiguous "Passive Wisdom +5" bonus modifier should be filtered out
+        $bonusModifiers = array_filter($modifiers, fn ($m) => $m['modifier_category'] === 'bonus');
+        $this->assertEmpty($bonusModifiers);
     }
 }

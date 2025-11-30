@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **OpenAPI spec mismatch for GroupedCounterResource.progression** (Issue #41)
+  - Created new `CounterProgressionResource` for level/value progression entries
+  - `GroupedCounterResource.progression` now returns `CounterProgressionResource[]` instead of raw array
+  - OpenAPI spec correctly documents progression as array of objects with `level: int` and `value: int|string`
+  - Fixes frontend `types:sync` generating incorrect types
+
 ### Added
 
 - **Base race trait inheritance for Races**

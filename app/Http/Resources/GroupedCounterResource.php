@@ -25,7 +25,7 @@ class GroupedCounterResource extends JsonResource
     /**
      * Transform a group of counters into the grouped format.
      *
-     * @return array{name: string, reset_timing: string, progression: array<array{level: int, value: int|string}>}
+     * @return array{name: string, reset_timing: 'Short Rest'|'Long Rest'|'Does Not Reset', progression: CounterProgressionResource[]}
      */
     public function toArray(Request $request): array
     {
@@ -40,10 +40,7 @@ class GroupedCounterResource extends JsonResource
                 'L' => 'Long Rest',
                 default => 'Does Not Reset',
             },
-            'progression' => $counters->sortBy('level')->map(fn ($counter) => [
-                'level' => $counter->level,
-                'value' => $counter->counter_value === -1 ? 'Unlimited' : $counter->counter_value,
-            ])->values()->all(),
+            'progression' => CounterProgressionResource::collection($counters->sortBy('level')->values()),
         ];
     }
 

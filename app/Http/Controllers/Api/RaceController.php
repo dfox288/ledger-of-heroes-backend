@@ -173,10 +173,10 @@ class RaceController extends Controller
      */
     public function spells(Race $race)
     {
-        $race->load(['entitySpells' => function ($query) {
+        $race->load(['spells' => function ($query) {
             $query->orderBy('level')->orderBy('name');
-        }, 'entitySpells.spellSchool']);
+        }, 'spells.spellSchool']);
 
-        return SpellResource::collection($race->entitySpells);
+        return SpellResource::collection($race->spells);
     }
 }

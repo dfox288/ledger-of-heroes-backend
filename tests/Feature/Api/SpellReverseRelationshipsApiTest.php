@@ -78,8 +78,8 @@ class SpellReverseRelationshipsApiTest extends TestCase
         $goblin = Monster::factory()->create(['name' => 'Goblin', 'slug' => 'goblin']);
 
         // Attach spell to lich and archmage via entity_spells
-        $lich->entitySpells()->attach($spell, ['usage_limit' => '1/day']);
-        $archmage->entitySpells()->attach($spell, ['usage_limit' => 'at will']);
+        $lich->spells()->attach($spell, ['usage_limit' => '1/day']);
+        $archmage->spells()->attach($spell, ['usage_limit' => 'at will']);
 
         $response = $this->getJson("/api/v1/spells/{$spell->slug}/monsters");
 
@@ -105,7 +105,7 @@ class SpellReverseRelationshipsApiTest extends TestCase
     {
         $spell = Spell::factory()->create(['name' => 'Test Spell']);
         $lich = Monster::factory()->create(['name' => 'Lich']);
-        $lich->entitySpells()->attach($spell);
+        $lich->spells()->attach($spell);
 
         $response = $this->getJson("/api/v1/spells/{$spell->id}/monsters");
 

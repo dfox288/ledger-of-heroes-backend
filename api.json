@@ -9498,6 +9498,7 @@
                     },
                     "spells": {
                         "type": "array",
+                        "description": "Use entitySpellRecords for EntitySpell pivot records (includes spell choices)",
                         "items": {
                             "$ref": "#/components/schemas/EntitySpellResource"
                         }
@@ -10382,7 +10383,7 @@
                     "spells": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/EntitySpellResource"
+                            "$ref": "#/components/schemas/MonsterSpellResource"
                         }
                     },
                     "modifiers": {
@@ -10443,6 +10444,46 @@
                     "description"
                 ],
                 "title": "MonsterResource"
+            },
+            "MonsterSpellResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "level": {
+                        "type": "string"
+                    },
+                    "school": {
+                        "$ref": "#/components/schemas/SpellSchoolResource"
+                    },
+                    "usage_limit": {
+                        "type": "string",
+                        "description": "Usage metadata from pivot table (entity_spells)"
+                    },
+                    "level_requirement": {
+                        "type": "string"
+                    },
+                    "is_cantrip": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "slug",
+                    "level",
+                    "usage_limit",
+                    "level_requirement",
+                    "is_cantrip"
+                ],
+                "title": "MonsterSpellResource"
             },
             "MonsterTraitResource": {
                 "type": "object",
@@ -10910,6 +10951,7 @@
                     },
                     "spells": {
                         "type": "array",
+                        "description": "Use entitySpellRecords for EntitySpell pivot records (includes pivot data like level_requirement)",
                         "items": {
                             "$ref": "#/components/schemas/EntitySpellResource"
                         }

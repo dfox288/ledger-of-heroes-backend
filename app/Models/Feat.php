@@ -110,7 +110,7 @@ class Feat extends BaseModel
 
     public function searchableWith(): array
     {
-        return ['sources.source', 'tags', 'prerequisites.prerequisite', 'modifiers.abilityScore', 'modifiers.skill', 'proficiencies', 'spells.school', 'spells.characterClass'];
+        return ['sources.source', 'tags', 'prerequisites.prerequisite', 'modifiers.abilityScore', 'modifiers.skill', 'proficiencies', 'spells.spellSchool'];
     }
 
     public function searchableAs(): string

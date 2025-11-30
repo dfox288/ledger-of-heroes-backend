@@ -36,7 +36,7 @@ final class MonsterSearchService
         'traits',
         'actions',
         'legendaryActions',
-        'entitySpells.spell',
+        'spells',
         'sources.source',
         'modifiers.abilityScore',
         'modifiers.skill',

@@ -27,6 +27,7 @@ final class FeatSearchService
 
     /**
      * Relationships for show/detail endpoints (comprehensive)
+     * Uses entitySpellRecords for full EntitySpell pivot records (includes spell choices)
      */
     private const SHOW_RELATIONSHIPS = [
         'sources.source',
@@ -39,10 +40,10 @@ final class FeatSearchService
         'conditions.condition',
         'prerequisites.prerequisite',
         'tags',
-        'spells.spell',
-        'spells.abilityScore',
-        'spells.school',
-        'spells.characterClass',
+        'entitySpellRecords.spell',
+        'entitySpellRecords.abilityScore',
+        'entitySpellRecords.school',
+        'entitySpellRecords.characterClass',
     ];
 
     /**

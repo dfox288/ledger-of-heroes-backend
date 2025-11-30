@@ -37,15 +37,15 @@ class FeatSpellChoicesApiTest extends TestCase
             'slug' => 'shadow-touched-charisma',
         ]);
 
-        // Fixed spell
-        $feat->spells()->create([
+        // Fixed spell (use entitySpellRecords for creating pivot records)
+        $feat->entitySpellRecords()->create([
             'spell_id' => $invisibility->id,
             'is_choice' => false,
             'usage_limit' => 'long_rest',
         ]);
 
         // Spell choices (school-constrained)
-        $feat->spells()->create([
+        $feat->entitySpellRecords()->create([
             'spell_id' => null,
             'is_choice' => true,
             'choice_count' => 1,
@@ -53,7 +53,7 @@ class FeatSpellChoicesApiTest extends TestCase
             'max_level' => 1,
             'school_id' => $illusion->id,
         ]);
-        $feat->spells()->create([
+        $feat->entitySpellRecords()->create([
             'spell_id' => null,
             'is_choice' => true,
             'choice_count' => 1,
@@ -86,8 +86,8 @@ class FeatSpellChoicesApiTest extends TestCase
             'slug' => 'magic-initiate-bard',
         ]);
 
-        // Cantrip choice
-        $feat->spells()->create([
+        // Cantrip choice (use entitySpellRecords for creating pivot records)
+        $feat->entitySpellRecords()->create([
             'spell_id' => null,
             'is_choice' => true,
             'choice_count' => 2,
@@ -97,7 +97,7 @@ class FeatSpellChoicesApiTest extends TestCase
         ]);
 
         // 1st-level spell choice
-        $feat->spells()->create([
+        $feat->entitySpellRecords()->create([
             'spell_id' => null,
             'is_choice' => true,
             'choice_count' => 1,

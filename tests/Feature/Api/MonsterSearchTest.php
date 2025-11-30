@@ -131,7 +131,7 @@ class MonsterSearchTest extends TestCase
     public function monster_search_index_includes_spell_slugs(): void
     {
         // Find a monster that has spells in fixtures
-        $monsterWithSpells = Monster::whereHas('entitySpells')->first();
+        $monsterWithSpells = Monster::whereHas('spells')->first();
 
         if (! $monsterWithSpells) {
             $this->markTestSkipped('No monsters with spells in fixtures');
@@ -152,14 +152,14 @@ class MonsterSearchTest extends TestCase
         }
 
         // Find a monster with spells and one without
-        $monsterWithSpells = Monster::whereHas('entitySpells')->first();
-        $monsterWithoutSpells = Monster::whereDoesntHave('entitySpells')->first();
+        $monsterWithSpells = Monster::whereHas('spells')->first();
+        $monsterWithoutSpells = Monster::whereDoesntHave('spells')->first();
 
         if (! $monsterWithSpells || ! $monsterWithoutSpells) {
             $this->markTestSkipped('Need monsters with and without spells in fixtures');
         }
 
-        $spellSlug = $monsterWithSpells->entitySpells()->first()->slug;
+        $spellSlug = $monsterWithSpells->spells()->first()->slug;
 
         // Search with spell filter using Meilisearch
         $results = Monster::search('')->where('spell_slugs', $spellSlug)->get();

@@ -362,7 +362,7 @@ class RaceApiTest extends TestCase
     public function race_response_includes_spells()
     {
         // Find a race with spells
-        $race = Race::whereHas('entitySpells')->first();
+        $race = Race::whereHas('spells')->first();
 
         if (! $race) {
             $this->markTestSkipped('No races with spells in imported data');

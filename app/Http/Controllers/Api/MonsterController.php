@@ -283,10 +283,10 @@ class MonsterController extends Controller
      */
     public function spells(Monster $monster)
     {
-        $monster->load(['entitySpells' => function ($query) {
+        $monster->load(['spells' => function ($query) {
             $query->orderBy('level')->orderBy('name');
-        }, 'entitySpells.spellSchool']);
+        }, 'spells.spellSchool']);
 
-        return SpellResource::collection($monster->entitySpells);
+        return SpellResource::collection($monster->spells);
     }
 }

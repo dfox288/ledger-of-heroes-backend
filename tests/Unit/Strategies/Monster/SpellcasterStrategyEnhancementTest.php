@@ -46,7 +46,7 @@ class SpellcasterStrategyEnhancementTest extends TestCase
         $this->strategy->afterCreate($monster, $monsterData);
 
         // Assert: Spell synced to entity_spells
-        $this->assertTrue($monster->entitySpells()->where('spell_id', $fireball->id)->exists());
+        $this->assertTrue($monster->spells()->where('spell_id', $fireball->id)->exists());
 
         // Assert: Metrics tracked
         $metadata = $this->strategy->extractMetadata($monsterData);
@@ -86,10 +86,10 @@ class SpellcasterStrategyEnhancementTest extends TestCase
         $this->strategy->afterCreate($monster, $monsterData);
 
         // Assert: All spells synced
-        $this->assertTrue($monster->entitySpells()->where('spell_id', $fireball->id)->exists());
-        $this->assertTrue($monster->entitySpells()->where('spell_id', $lightning->id)->exists());
-        $this->assertTrue($monster->entitySpells()->where('spell_id', $cone->id)->exists());
-        $this->assertEquals(3, $monster->entitySpells()->count());
+        $this->assertTrue($monster->spells()->where('spell_id', $fireball->id)->exists());
+        $this->assertTrue($monster->spells()->where('spell_id', $lightning->id)->exists());
+        $this->assertTrue($monster->spells()->where('spell_id', $cone->id)->exists());
+        $this->assertEquals(3, $monster->spells()->count());
 
         // Assert: Metrics tracked
         $metadata = $this->strategy->extractMetadata($monsterData);
@@ -118,7 +118,7 @@ class SpellcasterStrategyEnhancementTest extends TestCase
         $this->strategy->afterCreate($monster, $monsterData);
 
         // Assert: Spell matched despite case difference
-        $this->assertTrue($monster->entitySpells()->where('spell_id', $fireball->id)->exists());
+        $this->assertTrue($monster->spells()->where('spell_id', $fireball->id)->exists());
 
         // Assert: Metrics tracked
         $metadata = $this->strategy->extractMetadata($monsterData);
@@ -139,7 +139,7 @@ class SpellcasterStrategyEnhancementTest extends TestCase
         $this->strategy->afterCreate($monster, $monsterData);
 
         // Assert: No spell synced
-        $this->assertEquals(0, $monster->entitySpells()->count());
+        $this->assertEquals(0, $monster->spells()->count());
 
         // Assert: Warning logged in metadata
         $metadata = $this->strategy->extractMetadata($monsterData);
@@ -174,9 +174,9 @@ class SpellcasterStrategyEnhancementTest extends TestCase
         $this->strategy->afterCreate($monster, $monsterData);
 
         // Assert: Only found spells synced
-        $this->assertTrue($monster->entitySpells()->where('spell_id', $fireball->id)->exists());
-        $this->assertTrue($monster->entitySpells()->where('spell_id', $lightning->id)->exists());
-        $this->assertEquals(2, $monster->entitySpells()->count());
+        $this->assertTrue($monster->spells()->where('spell_id', $fireball->id)->exists());
+        $this->assertTrue($monster->spells()->where('spell_id', $lightning->id)->exists());
+        $this->assertEquals(2, $monster->spells()->count());
 
         // Assert: Metrics tracked
         $metadata = $this->strategy->extractMetadata($monsterData);
@@ -211,9 +211,9 @@ class SpellcasterStrategyEnhancementTest extends TestCase
         $this->strategy->afterCreate($monster, $monsterData);
 
         // Assert: Spells matched despite whitespace
-        $this->assertTrue($monster->entitySpells()->where('spell_id', $fireball->id)->exists());
-        $this->assertTrue($monster->entitySpells()->where('spell_id', $lightning->id)->exists());
-        $this->assertEquals(2, $monster->entitySpells()->count());
+        $this->assertTrue($monster->spells()->where('spell_id', $fireball->id)->exists());
+        $this->assertTrue($monster->spells()->where('spell_id', $lightning->id)->exists());
+        $this->assertEquals(2, $monster->spells()->count());
     }
 
     #[Test]
@@ -230,7 +230,7 @@ class SpellcasterStrategyEnhancementTest extends TestCase
         $this->strategy->afterCreate($monster, $monsterData);
 
         // Assert: No spells synced
-        $this->assertEquals(0, $monster->entitySpells()->count());
+        $this->assertEquals(0, $monster->spells()->count());
 
         // Assert: No metrics tracked
         $metadata = $this->strategy->extractMetadata($monsterData);
@@ -262,8 +262,8 @@ class SpellcasterStrategyEnhancementTest extends TestCase
         $this->strategy->afterCreate($monster2, $monsterData);
 
         // Assert: Both monsters have the spell
-        $this->assertTrue($monster1->entitySpells()->where('spell_id', $fireball->id)->exists());
-        $this->assertTrue($monster2->entitySpells()->where('spell_id', $fireball->id)->exists());
+        $this->assertTrue($monster1->spells()->where('spell_id', $fireball->id)->exists());
+        $this->assertTrue($monster2->spells()->where('spell_id', $fireball->id)->exists());
 
         // Note: Performance verification would require query counting,
         // but this test verifies functional behavior with cache

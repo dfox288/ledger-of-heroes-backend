@@ -61,7 +61,7 @@ class SpellcasterStrategy extends AbstractMonsterStrategy
 
             if ($spell) {
                 // Sync to entity_spells pivot table
-                $monster->entitySpells()->attach($spell->id);
+                $monster->spells()->attach($spell->id);
                 $this->incrementMetric('spells_matched');
             } else {
                 $this->incrementMetric('spells_not_found');

@@ -110,7 +110,13 @@ class Monster extends BaseModel
         return $this->hasMany(MonsterLegendaryAction::class);
     }
 
-    public function entitySpells(): MorphToMany
+    /**
+     * Get spells available to this monster.
+     *
+     * Returns Spell models directly via the polymorphic entity_spells pivot table.
+     * Consistent naming with Item::spells() for unified API access.
+     */
+    public function spells(): MorphToMany
     {
         return $this->morphToMany(
             Spell::class,
@@ -161,7 +167,7 @@ class Monster extends BaseModel
     public function toSearchableArray(): array
     {
         // Load relationships to avoid N+1 queries
-        $this->loadMissing(['size', 'sources.source', 'entitySpells', 'tags', 'legendaryActions', 'actions', 'traits', 'senses.sense']);
+        $this->loadMissing(['size', 'sources.source', 'spells', 'tags', 'legendaryActions', 'actions', 'traits', 'senses.sense']);
 
         return [
             'id' => $this->id,
@@ -197,13 +203,13 @@ class Monster extends BaseModel
             'sources' => $this->getSearchableSourceNames(),
             'source_codes' => $this->getSearchableSourceCodes(),
             // Spell slugs for fast Meilisearch filtering (1,098 relationships for 129 spellcasters)
-            'spell_slugs' => $this->entitySpells->pluck('slug')->all(),
+            'spell_slugs' => $this->spells->pluck('slug')->all(),
             // Tag slugs for filtering (e.g., fire_immune, undead, construct)
             'tag_slugs' => $this->getSearchableTagSlugs(),
             // Phase 3: Boolean capability flags
             'has_legendary_actions' => $this->legendaryActions->where('is_lair_action', 0)->isNotEmpty(),
             'has_lair_actions' => $this->legendaryActions->where('is_lair_action', 1)->isNotEmpty(),
-            'is_spellcaster' => $this->entitySpells->isNotEmpty(),
+            'is_spellcaster' => $this->spells->isNotEmpty(),
             'has_reactions' => $this->actions->where('action_type', 'reaction')->isNotEmpty(),
             // Phase 4: Trait-based capability flags
             'has_legendary_resistance' => $this->traits->contains(fn ($t) => str_contains($t->name, 'Legendary Resistance')),

@@ -13,6 +13,7 @@ final class RaceSearchService
 {
     /**
      * Relationships for index/list endpoints (lightweight)
+     * Uses entitySpellRecords for full EntitySpell pivot records
      */
     private const INDEX_RELATIONSHIPS = [
         'size',
@@ -22,14 +23,15 @@ final class RaceSearchService
         'traits.dataTables.entries',
         'modifiers.abilityScore',
         'conditions.condition',
-        'spells.spell',
-        'spells.abilityScore',
+        'entitySpellRecords.spell',
+        'entitySpellRecords.abilityScore',
         'senses.sense',
         'parent',
     ];
 
     /**
      * Relationships for show/detail endpoints (comprehensive)
+     * Uses entitySpellRecords for full EntitySpell pivot records
      */
     private const SHOW_RELATIONSHIPS = [
         'size',
@@ -45,8 +47,8 @@ final class RaceSearchService
         'parent.modifiers.damageType',
         'parent.languages.language',
         'parent.conditions.condition',
-        'parent.spells.spell',
-        'parent.spells.abilityScore',
+        'parent.entitySpellRecords.spell',
+        'parent.entitySpellRecords.abilityScore',
         'parent.senses.sense',
         'parent.tags',
         'subraces',
@@ -59,8 +61,8 @@ final class RaceSearchService
         'modifiers.damageType',
         'languages.language',
         'conditions.condition',
-        'spells.spell',
-        'spells.abilityScore',
+        'entitySpellRecords.spell',
+        'entitySpellRecords.abilityScore',
         'senses.sense',
         'tags',
     ];

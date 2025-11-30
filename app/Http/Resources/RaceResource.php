@@ -34,7 +34,8 @@ class RaceResource extends JsonResource
             'proficiencies' => ProficiencyResource::collection($this->whenLoaded('proficiencies')),
             'languages' => EntityLanguageResource::collection($this->whenLoaded('languages')),
             'conditions' => EntityConditionResource::collection($this->whenLoaded('conditions')),
-            'spells' => EntitySpellResource::collection($this->whenLoaded('spells')),
+            // Use entitySpellRecords for EntitySpell pivot records (includes pivot data like level_requirement)
+            'spells' => EntitySpellResource::collection($this->whenLoaded('entitySpellRecords')),
             'senses' => EntitySenseResource::collection($this->whenLoaded('senses')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
 

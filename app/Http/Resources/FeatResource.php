@@ -32,12 +32,13 @@ class FeatResource extends JsonResource
             'conditions' => EntityConditionResource::collection($this->whenLoaded('conditions')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
-            'spells' => EntitySpellResource::collection($this->whenLoaded('spells')),
+            // Use entitySpellRecords for EntitySpell pivot records (includes spell choices)
+            'spells' => EntitySpellResource::collection($this->whenLoaded('entitySpellRecords')),
 
             // Computed: grouped spell choices for easier frontend consumption
             /** @var array<int, SpellChoiceResource>|null */
             'spell_choices' => $this->when(
-                $this->relationLoaded('spells'),
+                $this->relationLoaded('entitySpellRecords'),
                 fn () => $this->getGroupedSpellChoices()
             ),
         ];
@@ -50,7 +51,7 @@ class FeatResource extends JsonResource
      */
     private function getGroupedSpellChoices(): ?array
     {
-        $choices = $this->spells->where('is_choice', true);
+        $choices = $this->entitySpellRecords->where('is_choice', true);
 
         if ($choices->isEmpty()) {
             return null;

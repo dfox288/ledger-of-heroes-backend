@@ -15,7 +15,6 @@ use App\Models\Concerns\HasSenses;
 use App\Models\Concerns\HasSources;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
@@ -73,27 +72,11 @@ class Race extends BaseModel
         return $this->hasMany(Race::class, 'parent_race_id');
     }
 
-    public function entitySpells(): MorphToMany
-    {
-        return $this->morphToMany(
-            Spell::class,
-            'reference',
-            'entity_spells',
-            'reference_id',
-            'spell_id'
-        )->withPivot([
-            'ability_score_id',
-            'level_requirement',
-            'usage_limit',
-            'is_cantrip',
-        ]);
-    }
-
     // Scout Searchable Methods
     public function toSearchableArray(): array
     {
         // Load relationships if not already loaded
-        $this->loadMissing(['tags', 'spells.spell', 'modifiers.abilityScore', 'senses.sense']);
+        $this->loadMissing(['tags', 'spells', 'modifiers.abilityScore', 'senses.sense']);
 
         // Extract ability score bonuses from modifiers
         $abilityBonuses = $this->modifiers->where('modifier_category', 'ability_score');
@@ -118,8 +101,8 @@ class Race extends BaseModel
             'parent_race_name' => $this->parent?->name,
             // Tag slugs for filtering (e.g., darkvision, fey_ancestry)
             'tag_slugs' => $this->getSearchableTagSlugs(),
-            // Phase 3: Spell filtering
-            'spell_slugs' => $this->spells->pluck('spell.slug')->filter()->values()->all(),
+            // Phase 3: Spell filtering (spells() now returns Spell models directly)
+            'spell_slugs' => $this->spells->pluck('slug')->all(),
             'has_innate_spells' => $this->spells->isNotEmpty(),
             // Phase 4: Ability score bonuses (cast to int for Meilisearch filtering)
             'ability_str_bonus' => (int) ($abilityBonuses->firstWhere('abilityScore.code', 'STR')?->value ?? 0),
@@ -136,7 +119,7 @@ class Race extends BaseModel
 
     public function searchableWith(): array
     {
-        return ['size', 'sources.source', 'parent', 'tags', 'spells.spell', 'modifiers.abilityScore', 'senses.sense'];
+        return ['size', 'sources.source', 'parent', 'tags', 'spells', 'modifiers.abilityScore', 'senses.sense'];
     }
 
     public function searchableAs(): string

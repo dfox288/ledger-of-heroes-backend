@@ -181,4 +181,180 @@ class ClassImporterMergeTest extends TestCase
         $this->assertEquals($originalId, $result->id);
         $this->assertEquals(1, CharacterClass::where('slug', 'barbarian')->count());
     }
+
+    #[Test]
+    public function it_merges_features_from_supplement_without_duplicating_existing()
+    {
+        // Step 1: Import PHB Warlock with base pact boons
+        $phbData = [
+            'name' => 'Warlock',
+            'hit_die' => 8,
+            'traits' => [],
+            'proficiencies' => [],
+            'features' => [
+                [
+                    'name' => 'Pact Boon',
+                    'level' => 3,
+                    'is_optional' => false,
+                    'description' => 'At 3rd level, your patron bestows a gift upon you.',
+                    'sort_order' => 0,
+                ],
+                [
+                    'name' => 'Pact Boon: Pact of the Chain',
+                    'level' => 3,
+                    'is_optional' => true,
+                    'description' => 'You learn the find familiar spell.',
+                    'sort_order' => 1,
+                ],
+                [
+                    'name' => 'Pact Boon: Pact of the Blade',
+                    'level' => 3,
+                    'is_optional' => true,
+                    'description' => 'You can create a pact weapon.',
+                    'sort_order' => 2,
+                ],
+                [
+                    'name' => 'Pact Boon: Pact of the Tome',
+                    'level' => 3,
+                    'is_optional' => true,
+                    'description' => 'Your patron gives you a grimoire.',
+                    'sort_order' => 3,
+                ],
+            ],
+            'spell_progression' => [],
+            'counters' => [],
+            'equipment' => ['wealth' => null, 'items' => []],
+            'subclasses' => [],
+        ];
+
+        $warlock = $this->importer->import($phbData);
+
+        $this->assertEquals(4, $warlock->features()->count());
+
+        // Step 2: Merge TCE Warlock with Pact of the Talisman (new feature)
+        $tceData = [
+            'name' => 'Warlock',
+            'hit_die' => 8,
+            'traits' => [],
+            'proficiencies' => [],
+            'features' => [
+                // This is the new feature from TCE
+                [
+                    'name' => 'Pact Boon: Pact of the Talisman',
+                    'level' => 3,
+                    'is_optional' => true,
+                    'description' => 'Your patron gives you an amulet, a talisman.',
+                    'sort_order' => 4,
+                ],
+                // This is a duplicate - should NOT be added again
+                [
+                    'name' => 'Pact Boon: Pact of the Chain',
+                    'level' => 3,
+                    'is_optional' => true,
+                    'description' => 'You learn the find familiar spell.',
+                    'sort_order' => 1,
+                ],
+            ],
+            'spell_progression' => [],
+            'counters' => [],
+            'equipment' => ['wealth' => null, 'items' => []],
+            'subclasses' => [],
+        ];
+
+        $warlock = $this->importer->importWithMerge($tceData, MergeMode::MERGE);
+
+        // Should now have 5 features (4 original + 1 new Talisman)
+        $this->assertEquals(5, $warlock->features()->count());
+
+        // Verify feature names
+        $featureNames = $warlock->features()->pluck('feature_name')->toArray();
+        $this->assertContains('Pact Boon', $featureNames);
+        $this->assertContains('Pact Boon: Pact of the Chain', $featureNames);
+        $this->assertContains('Pact Boon: Pact of the Blade', $featureNames);
+        $this->assertContains('Pact Boon: Pact of the Tome', $featureNames);
+        $this->assertContains('Pact Boon: Pact of the Talisman', $featureNames);
+    }
+
+    #[Test]
+    public function it_merges_counters_from_supplement_without_duplicating_existing()
+    {
+        // Step 1: Import base class with features AND counters
+        // (Must have features so existingClassMissingBaseData returns false)
+        $phbData = [
+            'name' => 'TestClass',
+            'hit_die' => 10,
+            'traits' => [],
+            'proficiencies' => [],
+            'features' => [
+                [
+                    'name' => 'Some Feature',
+                    'level' => 1,
+                    'is_optional' => false,
+                    'description' => 'A feature.',
+                    'sort_order' => 0,
+                ],
+            ],
+            'spell_progression' => [],
+            'counters' => [
+                [
+                    'name' => 'Existing Counter',
+                    'level' => 1,
+                    'value' => 2,
+                    'reset_timing' => 'short_rest',
+                ],
+                [
+                    'name' => 'Existing Counter',
+                    'level' => 5,
+                    'value' => 3,
+                    'reset_timing' => 'short_rest',
+                ],
+            ],
+            'equipment' => ['wealth' => null, 'items' => []],
+            'subclasses' => [],
+        ];
+
+        $class = $this->importer->import($phbData);
+
+        $this->assertEquals(2, $class->counters()->count());
+        $this->assertEquals(1, $class->features()->count());
+
+        // Step 2: Merge supplement with new counter
+        $supplementData = [
+            'name' => 'TestClass',
+            'hit_die' => 10,
+            'traits' => [],
+            'proficiencies' => [],
+            'features' => [],
+            'spell_progression' => [],
+            'counters' => [
+                // New counter from supplement
+                [
+                    'name' => 'New Counter',
+                    'level' => 3,
+                    'value' => 1,
+                    'reset_timing' => 'long_rest',
+                ],
+                // Duplicate - should NOT be added again
+                [
+                    'name' => 'Existing Counter',
+                    'level' => 1,
+                    'value' => 2,
+                    'reset_timing' => 'short_rest',
+                ],
+            ],
+            'spell_progression' => [],
+            'equipment' => ['wealth' => null, 'items' => []],
+            'subclasses' => [],
+        ];
+
+        $class = $this->importer->importWithMerge($supplementData, MergeMode::MERGE);
+
+        // Should now have 3 counters (2 original + 1 new)
+        $this->assertEquals(3, $class->counters()->count());
+
+        // Verify counter names
+        $counterNames = $class->counters()->pluck('counter_name')->unique()->toArray();
+        $this->assertContains('Existing Counter', $counterNames);
+        $this->assertContains('New Counter', $counterNames);
+    }
 }

@@ -429,12 +429,32 @@ class ClassImporter extends BaseImporter
             }
         }
 
+        // Merge features from supplement (e.g., Pact of the Talisman from TCE)
+        // Uses updateOrCreate so duplicates are safely skipped
+        $mergedFeatures = 0;
+        if (! empty($supplementData['features'])) {
+            $existingFeatureCount = $existingClass->features()->count();
+            $this->importFeatures($existingClass, $supplementData['features']);
+            $mergedFeatures = $existingClass->features()->count() - $existingFeatureCount;
+        }
+
+        // Merge counters from supplement
+        // Uses updateOrCreate so duplicates are safely skipped
+        $mergedCounters = 0;
+        if (! empty($supplementData['counters'])) {
+            $existingCounterCount = $existingClass->counters()->count();
+            $this->importCounters($existingClass, $supplementData['counters']);
+            $mergedCounters = $existingClass->counters()->count() - $existingCounterCount;
+        }
+
         Log::channel('import-strategy')->info('Merged supplement data', [
             'class' => $existingClass->name,
             'base_class_updated' => $baseClassUpdated,
             'base_relationships_imported' => $baseClassRelationshipsImported,
             'subclasses_merged' => $mergedSubclasses,
             'subclasses_skipped' => $skippedSubclasses,
+            'features_merged' => $mergedFeatures,
+            'counters_merged' => $mergedCounters,
         ]);
 
         return $existingClass->fresh(); // Reload to get new subclasses

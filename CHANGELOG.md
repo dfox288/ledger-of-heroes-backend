@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added Van Richten's Guide to Ravenloft (VRGtR) - includes The Undead Warlock patron
   - Import config now supports 11 source directories
 
+- **ClassImporter supplement merging enhancement** (Issue #12)
+  - `mergeSupplementData()` now merges features and counters from supplement books
+  - Previously only merged subclasses; base class features from supplements were skipped
+  - Fixes Pact of the Talisman (TCE) not being imported for Warlock
+  - Uses existing `updateOrCreate` patterns to safely skip duplicates
+
 ### Fixed
 
 - **OpenAPI spec mismatch for GroupedCounterResource.progression** (Issue #41)

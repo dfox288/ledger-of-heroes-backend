@@ -83,6 +83,7 @@
             <file>tests/Feature/Api/ClassResourceCompleteTest.php</file>
             <file>tests/Feature/Api/ClassSpellListTest.php</file>
             <file>tests/Feature/Api/FeatPrerequisitesApiTest.php</file>
+            <file>tests/Feature/Api/FeatSpellChoicesApiTest.php</file>
             <file>tests/Feature/Api/ItemPrerequisitesApiTest.php</file>
             <file>tests/Feature/Api/ItemSpellsApiTest.php</file>
             <file>tests/Feature/Api/TagIntegrationTest.php</file>

@@ -16,6 +16,8 @@ use App\Models\Proficiency;
  */
 trait ImportsClassFeatures
 {
+    use ImportsSubclassSpells;
+
     /**
      * Import class features.
      */
@@ -98,6 +100,11 @@ trait ImportsClassFeatures
             // Import data tables from pipe-delimited tables in description text
             // This handles BOTH dice-based random tables AND reference tables (dice_type = null)
             $this->importDataTablesFromText($feature, $featureData['description'], clearExisting: false);
+
+            // Import subclass spell tables (domain spells, circle spells, expanded spells)
+            if ($this->hasSubclassSpellTable($featureData['description'])) {
+                $this->importSubclassSpells($feature, $featureData['description']);
+            }
         }
 
         // Second pass: Link child features to their parents

@@ -66,6 +66,8 @@ class FeatImporter extends BaseImporter
 
     /**
      * Prepare modifiers data by converting ability_code to ability_score_id.
+     *
+     * Preserves skill_name for ImportsModifiers trait to resolve to skill_id.
      */
     private function prepareModifiersData(array $modifiers): array
     {
@@ -87,6 +89,11 @@ class FeatImporter extends BaseImporter
                 if ($abilityScore) {
                     $prepared['ability_score_id'] = $abilityScore->id;
                 }
+            }
+
+            // Preserve skill_name for ImportsModifiers trait to resolve
+            if (isset($modifierData['skill_name'])) {
+                $prepared['skill_name'] = $modifierData['skill_name'];
             }
 
             return $prepared;

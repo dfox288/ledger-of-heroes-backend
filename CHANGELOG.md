@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Passive score modifier parsing from description text** (Issue #69)
+  - FeatXmlParser extracts "+N bonus to your passive Ability (Skill)" patterns
+  - Creates `passive_score` modifiers with `skill_name` for each skill mentioned
+  - Observant feat now correctly links +5 bonus to Perception and Investigation skills
+  - FeatImporter preserves `skill_name` for ImportsModifiers trait resolution
+  - Feat model's `searchableWith()` includes `modifiers.skill` for API eager loading
+
 - **Feat spell choices support** (Issue #64)
   - Extended `entity_spells` table with `is_choice`, `choice_count`, `choice_group`, `max_level`, `school_id`, `class_id`, `is_ritual_only` columns
   - Parser detects school-constrained choices (Shadow/Fey Touched: "1st-level spell from illusion or necromancy")

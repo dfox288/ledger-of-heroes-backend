@@ -62,7 +62,7 @@ class FeatSpellChoicesApiTest extends TestCase
             'school_id' => $necromancy->id,
         ]);
 
-        $response = $this->getJson('/api/v1/feats/' . $feat->id);
+        $response = $this->getJson('/api/v1/feats/'.$feat->id);
 
         $response->assertOk()
             ->assertJsonPath('data.name', 'Shadow Touched (Charisma)')
@@ -106,7 +106,7 @@ class FeatSpellChoicesApiTest extends TestCase
             'class_id' => $bard->id,
         ]);
 
-        $response = $this->getJson('/api/v1/feats/' . $feat->id);
+        $response = $this->getJson('/api/v1/feats/'.$feat->id);
 
         $response->assertOk()
             ->assertJsonCount(2, 'data.spells')

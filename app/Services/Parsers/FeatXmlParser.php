@@ -55,12 +55,18 @@ class FeatXmlParser
         $proficienciesFromText = $this->parseProficiencies($description);
         $proficienciesFromXml = $this->parseProficiencyElements($element);
 
+        // Parse modifiers from XML elements
+        $modifiersFromXml = $this->parseModifiers($element);
+
+        // Parse passive score modifiers from description text
+        $passiveScoreModifiers = $this->parsePassiveScoreModifiers($description);
+
         return [
             'name' => (string) $element->name,
             'prerequisites' => isset($element->prerequisite) ? (string) $element->prerequisite : null,
             'description' => trim($description),
             'sources' => $sources,
-            'modifiers' => $this->parseModifiers($element),
+            'modifiers' => array_merge($modifiersFromXml, $passiveScoreModifiers),
             'proficiencies' => array_merge($proficienciesFromXml, $proficienciesFromText),
             'conditions' => $this->parseConditions($description),
             'spells' => $this->parseSpells($description),
@@ -733,5 +739,44 @@ class FeatXmlParser
         }
 
         return null;
+    }
+
+    /**
+     * Parse passive score bonuses from description text.
+     *
+     * Detects patterns like:
+     * - "+5 bonus to your passive Wisdom (Perception) and passive Intelligence (Investigation)"
+     *
+     * Extracts the skill name from parentheses, not the ability name.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function parsePassiveScoreModifiers(string $text): array
+    {
+        $modifiers = [];
+
+        // Extract the bonus value: "+N bonus to your passive" or "+N bonus to passive"
+        $bonusValue = null;
+        if (preg_match('/\+(\d+)\s+bonus\s+to\s+(?:your\s+)?passive/i', $text, $valueMatch)) {
+            $bonusValue = (int) $valueMatch[1];
+        }
+
+        if ($bonusValue === null) {
+            return [];
+        }
+
+        // Pattern: "passive Ability (Skill)" - extract skill name from parentheses
+        // Examples: "passive Wisdom (Perception)", "passive Intelligence (Investigation)"
+        if (preg_match_all('/passive\s+(?:Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma)\s*\(([^)]+)\)/i', $text, $matches)) {
+            foreach ($matches[1] as $skillName) {
+                $modifiers[] = [
+                    'modifier_category' => 'passive_score',
+                    'value' => $bonusValue,
+                    'skill_name' => trim($skillName),
+                ];
+            }
+        }
+
+        return $modifiers;
     }
 }

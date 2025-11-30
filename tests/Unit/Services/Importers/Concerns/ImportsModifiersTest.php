@@ -186,4 +186,40 @@ class ImportsModifiersTest extends TestCase
         $this->assertNull($modifier->skill_id);
         $this->assertNull($modifier->damage_type_id);
     }
+
+    #[Test]
+    public function it_resolves_skill_name_to_skill_id()
+    {
+        $race = Race::factory()->create();
+        $perception = Skill::where('name', 'Perception')->first();
+        $investigation = Skill::where('name', 'Investigation')->first();
+
+        $modifiersData = [
+            [
+                'modifier_category' => 'passive_score',
+                'value' => 5,
+                'skill_name' => 'Perception',
+            ],
+            [
+                'modifier_category' => 'passive_score',
+                'value' => 5,
+                'skill_name' => 'Investigation',
+            ],
+        ];
+
+        $this->importEntityModifiers($race, $modifiersData);
+
+        $modifiers = $race->modifiers->sortBy('skill_id')->values();
+        $this->assertCount(2, $modifiers);
+
+        $perceptionMod = $modifiers->firstWhere('skill_id', $perception->id);
+        $this->assertEquals('passive_score', $perceptionMod->modifier_category);
+        $this->assertEquals('5', $perceptionMod->value);
+        $this->assertEquals($perception->id, $perceptionMod->skill_id);
+
+        $investigationMod = $modifiers->firstWhere('skill_id', $investigation->id);
+        $this->assertEquals('passive_score', $investigationMod->modifier_category);
+        $this->assertEquals('5', $investigationMod->value);
+        $this->assertEquals($investigation->id, $investigationMod->skill_id);
+    }
 }

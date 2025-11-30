@@ -754,4 +754,46 @@ XML;
         $this->assertEquals('bard', strtolower($choice['class_name']));
         $this->assertTrue($choice['is_ritual_only']);
     }
+
+    #[Test]
+    public function it_parses_passive_score_modifiers_from_description_text()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Observant (Intelligence)</name>
+        <text>Quick to notice details of your environment, you gain the following benefits:
+
+	• Increase your Intelligence or Wisdom score by 1, to a maximum of 20.
+
+	• You have a +5 bonus to your passive Wisdom (Perception) and passive Intelligence (Investigation) scores.
+
+Source:	Player's Handbook (2014) p. 168</text>
+        <modifier category="ability score">intelligence +1</modifier>
+        <modifier category="bonus">Passive Wisdom +5</modifier>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $modifiers = $feats[0]['modifiers'];
+
+        // Find passive score modifiers (from description parsing)
+        $passiveModifiers = array_filter($modifiers, fn ($m) => ($m['modifier_category'] ?? '') === 'passive_score');
+        $this->assertCount(2, $passiveModifiers);
+
+        $passiveModifiers = array_values($passiveModifiers);
+        $skillNames = array_column($passiveModifiers, 'skill_name');
+
+        $this->assertContains('Perception', $skillNames);
+        $this->assertContains('Investigation', $skillNames);
+
+        // Both should have value 5
+        foreach ($passiveModifiers as $mod) {
+            $this->assertEquals(5, $mod['value']);
+        }
+    }
 }

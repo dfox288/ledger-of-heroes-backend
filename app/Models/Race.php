@@ -22,6 +22,7 @@ class Race extends BaseModel
         'speed',
         'fly_speed',
         'swim_speed',
+        'climb_speed',
         'parent_race_id',
     ];
 
@@ -30,6 +31,7 @@ class Race extends BaseModel
         'speed' => 'integer',
         'fly_speed' => 'integer',
         'swim_speed' => 'integer',
+        'climb_speed' => 'integer',
         'parent_race_id' => 'integer',
     ];
 
@@ -151,8 +153,10 @@ class Race extends BaseModel
             // Alternate movement speeds
             'fly_speed' => $this->fly_speed,
             'swim_speed' => $this->swim_speed,
+            'climb_speed' => $this->climb_speed,
             'has_fly_speed' => $this->fly_speed !== null,
             'has_swim_speed' => $this->swim_speed !== null,
+            'has_climb_speed' => $this->climb_speed !== null,
             'sources' => $this->sources->pluck('source.name')->unique()->values()->all(),
             'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
             'is_subrace' => $this->parent_race_id !== null,
@@ -204,8 +208,10 @@ class Race extends BaseModel
                 // Alternate movement speeds
                 'fly_speed',
                 'swim_speed',
+                'climb_speed',
                 'has_fly_speed',
                 'has_swim_speed',
+                'has_climb_speed',
                 'source_codes',
                 'is_subrace',
                 'parent_race_name',
@@ -229,6 +235,7 @@ class Race extends BaseModel
                 'speed',
                 'fly_speed',
                 'swim_speed',
+                'climb_speed',
                 'darkvision_range',
             ],
             'searchableAttributes' => [

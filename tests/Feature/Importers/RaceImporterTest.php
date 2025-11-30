@@ -1003,4 +1003,35 @@ XML;
         $this->assertNotNull($race);
         $this->assertEquals(30, $race->swim_speed);
     }
+
+    #[Test]
+    public function it_extracts_climb_speed_from_cats_claws_trait()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Tabaxi</name>
+        <size>M</size>
+        <speed>30</speed>
+        <trait>
+            <name>Cat's Claws</name>
+            <text>Because of your claws, you have a climbing speed of 20 feet. In addition, your claws are natural weapons.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $race = Race::where('name', 'Tabaxi')->first();
+
+        $this->assertNotNull($race);
+        $this->assertEquals(20, $race->climb_speed);
+    }
 }

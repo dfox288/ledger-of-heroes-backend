@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Race climb_speed field** (Issue #60)
+  - New `climb_speed` column on races table (nullable, unsignedSmallInteger)
+  - Extracted from traits during import (e.g., Tabaxi's "Cat's Claws" with "climbing speed of X feet")
+  - Exposed in RaceResource API response
+  - `climb_speed` and `has_climb_speed` added to Meilisearch filterableAttributes
+  - `climb_speed` added to Meilisearch sortableAttributes
+  - New `withClimbSpeed()` factory method for testing
+
 - **Background feature extraction** (Issue #59)
   - New `feature_name` computed accessor: extracts background feature name (e.g., "Shelter of the Faithful")
   - New `feature_description` computed accessor: returns feature mechanics text

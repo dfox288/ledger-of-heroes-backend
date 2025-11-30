@@ -76,6 +76,7 @@ class RaceImporter extends BaseImporter
                 'speed' => $raceData['speed'],
                 'fly_speed' => $extractedSpeeds['fly_speed'],
                 'swim_speed' => $extractedSpeeds['swim_speed'],
+                'climb_speed' => $extractedSpeeds['climb_speed'],
             ]
         );
 
@@ -448,17 +449,18 @@ class RaceImporter extends BaseImporter
     /**
      * Extract alternate movement speeds from race traits.
      *
-     * Looks for traits like "Flight" or "Swim Speed" and extracts
+     * Looks for traits like "Flight", "Swim Speed", or "Cat's Claws" and extracts
      * the speed value from the description text.
      *
      * @param  array  $traits  Array of trait data from parser
-     * @return array Array with 'fly_speed' and 'swim_speed' keys (nullable)
+     * @return array Array with 'fly_speed', 'swim_speed', and 'climb_speed' keys (nullable)
      */
     private function extractSpeedsFromTraits(array $traits): array
     {
         $speeds = [
             'fly_speed' => null,
             'swim_speed' => null,
+            'climb_speed' => null,
         ];
 
         foreach ($traits as $trait) {
@@ -477,6 +479,11 @@ class RaceImporter extends BaseImporter
                 if (preg_match('/swimming speed of (\d+) feet/i', $description, $matches)) {
                     $speeds['swim_speed'] = (int) $matches[1];
                 }
+            }
+
+            // Check for Climb Speed trait (e.g., Tabaxi's Cat's Claws)
+            if (preg_match('/climbing speed of (\d+) feet/i', $description, $matches)) {
+                $speeds['climb_speed'] = (int) $matches[1];
             }
         }
 

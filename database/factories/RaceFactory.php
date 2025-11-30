@@ -48,4 +48,14 @@ class RaceFactory extends Factory
             'swim_speed' => $speed,
         ]);
     }
+
+    /**
+     * Create a race with climbing speed.
+     */
+    public function withClimbSpeed(int $speed = 20): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'climb_speed' => $speed,
+        ]);
+    }
 }

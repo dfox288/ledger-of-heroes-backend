@@ -22,6 +22,7 @@ class RaceResource extends JsonResource
             'speed' => $this->speed,
             'fly_speed' => $this->fly_speed,
             'swim_speed' => $this->swim_speed,
+            'climb_speed' => $this->climb_speed,
             'is_subrace' => $this->is_subrace,
             'traits' => TraitResource::collection($this->whenLoaded('traits')),
             'modifiers' => ModifierResource::collection($this->whenLoaded('modifiers')),

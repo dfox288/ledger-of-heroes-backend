@@ -22,14 +22,17 @@ class RaceResourceTest extends TestCase
             'size_id' => $size->id,
             'fly_speed' => 50,
             'swim_speed' => 30,
+            'climb_speed' => 20,
         ]);
 
         $resource = (new RaceResource($race))->toArray(request());
 
         $this->assertArrayHasKey('fly_speed', $resource);
         $this->assertArrayHasKey('swim_speed', $resource);
+        $this->assertArrayHasKey('climb_speed', $resource);
         $this->assertEquals(50, $resource['fly_speed']);
         $this->assertEquals(30, $resource['swim_speed']);
+        $this->assertEquals(20, $resource['climb_speed']);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -41,13 +44,16 @@ class RaceResourceTest extends TestCase
             'size_id' => $size->id,
             'fly_speed' => null,
             'swim_speed' => null,
+            'climb_speed' => null,
         ]);
 
         $resource = (new RaceResource($race))->toArray(request());
 
         $this->assertArrayHasKey('fly_speed', $resource);
         $this->assertArrayHasKey('swim_speed', $resource);
+        $this->assertArrayHasKey('climb_speed', $resource);
         $this->assertNull($resource['fly_speed']);
         $this->assertNull($resource['swim_speed']);
+        $this->assertNull($resource['climb_speed']);
     }
 }

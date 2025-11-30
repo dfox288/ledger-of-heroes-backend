@@ -20,6 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Feat `grants_spells` filterable attribute** (Issue #71)
 
+- **Spell projectile/target scaling fields** (Issues #75, #76, #77)
+  - New `projectile_count`, `projectile_per_level`, `projectile_name` fields on `spell_effects`
+  - `ParsesProjectileScaling` trait parses "At Higher Levels" text for projectile patterns
+  - Magic Missile: 3 darts + 1 per slot level above 1st
+  - Scorching Ray: 3 rays + 1 per slot level above 2nd
+  - Eldritch Blast: Now has 4 character-level effect entries (levels 0, 5, 11, 17) with beam scaling
+  - Frontend can compute projectile counts: `projectile_count + (slot - base_level) * projectile_per_level`
+
 ### Fixed
 
 - **Magic item data tables with digit-prefixed text rows** (Issue #74)

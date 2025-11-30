@@ -4,6 +4,7 @@ namespace App\Services\Parsers;
 
 use App\Services\Parsers\Concerns\LoadsLookupData;
 use App\Services\Parsers\Concerns\ParsesDataTables;
+use App\Services\Parsers\Concerns\ParsesProjectileScaling;
 use App\Services\Parsers\Concerns\ParsesSavingThrows;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use SimpleXMLElement;
@@ -12,6 +13,7 @@ class SpellXmlParser
 {
     use LoadsLookupData;
     use ParsesDataTables;
+    use ParsesProjectileScaling;
     use ParsesSavingThrows;
     use ParsesSourceCitations;
 
@@ -102,6 +104,26 @@ class SpellXmlParser
 
         // Parse roll elements for spell effects
         $effects = $this->parseRollElements($element);
+
+        // Parse projectile scaling from higher_levels text and apply to first damage effect
+        $projectileScaling = $this->parseProjectileScaling($higherLevels, (int) $element->level);
+
+        // For cantrips, also check description for beam scaling (Eldritch Blast)
+        if ($projectileScaling === null && (int) $element->level === 0) {
+            $projectileScaling = $this->parseCharacterLevelBeamScaling($description);
+        }
+
+        if ($projectileScaling !== null && ! empty($effects)) {
+            // Apply projectile scaling to the first damage effect
+            foreach ($effects as $index => $effect) {
+                if ($effect['effect_type'] === 'damage') {
+                    $effects[$index]['projectile_count'] = $projectileScaling['projectile_count'];
+                    $effects[$index]['projectile_per_level'] = $projectileScaling['projectile_per_level'];
+                    $effects[$index]['projectile_name'] = $projectileScaling['projectile_name'];
+                    break; // Only apply to first damage effect
+                }
+            }
+        }
 
         // Parse saving throws from description
         $savingThrows = $this->parseSavingThrows($description);

@@ -16,12 +16,17 @@ class SpellEffect extends BaseModel
         'min_character_level',
         'min_spell_slot',
         'scaling_increment',
+        'projectile_count',
+        'projectile_per_level',
+        'projectile_name',
         'damage_type_id',
     ];
 
     protected $casts = [
         'min_character_level' => 'integer',
         'min_spell_slot' => 'integer',
+        'projectile_count' => 'integer',
+        'projectile_per_level' => 'integer',
     ];
 
     // Relationships

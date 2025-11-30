@@ -23,6 +23,15 @@ class EntitySpellResource extends JsonResource
             'charges_cost_min' => $this->charges_cost_min,
             'charges_cost_max' => $this->charges_cost_max,
             'charges_cost_formula' => $this->charges_cost_formula,
+
+            // Choice support
+            'is_choice' => $this->is_choice,
+            'choice_count' => $this->when($this->is_choice, $this->choice_count),
+            'choice_group' => $this->when($this->is_choice, $this->choice_group),
+            'max_level' => $this->when($this->is_choice, $this->max_level),
+            'school' => new SpellSchoolResource($this->whenLoaded('school')),
+            'character_class' => new CharacterClassResource($this->whenLoaded('characterClass')),
+            'is_ritual_only' => $this->when($this->is_choice, $this->is_ritual_only),
         ];
     }
 }

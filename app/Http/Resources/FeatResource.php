@@ -33,6 +33,49 @@ class FeatResource extends JsonResource
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
             'spells' => EntitySpellResource::collection($this->whenLoaded('spells')),
+
+            // Computed: grouped spell choices for easier frontend consumption
+            'spell_choices' => $this->when(
+                $this->relationLoaded('spells'),
+                fn () => $this->getGroupedSpellChoices()
+            ),
         ];
+    }
+
+    /**
+     * Group spell choices by choice_group for frontend consumption.
+     *
+     * @return array<string, array<string, mixed>>|null
+     */
+    private function getGroupedSpellChoices(): ?array
+    {
+        $choices = $this->spells->where('is_choice', true);
+
+        if ($choices->isEmpty()) {
+            return null;
+        }
+
+        return $choices->groupBy('choice_group')->map(function ($group, $groupName) {
+            $first = $group->first();
+
+            return [
+                'choice_group' => $groupName,
+                'choice_count' => $first->choice_count,
+                'max_level' => $first->max_level,
+                'is_ritual_only' => $first->is_ritual_only,
+                'allowed_schools' => $group
+                    ->filter(fn ($s) => $s->school_id !== null)
+                    ->map(fn ($s) => [
+                        'id' => $s->school_id,
+                        'name' => $s->school?->name,
+                    ])
+                    ->values()
+                    ->all(),
+                'allowed_class' => $first->class_id ? [
+                    'id' => $first->class_id,
+                    'name' => $first->characterClass?->name,
+                ] : null,
+            ];
+        })->values()->all();
     }
 }

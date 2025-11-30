@@ -5,10 +5,14 @@ namespace App\Services\Parsers\Concerns;
 /**
  * Trait for parsing subclass spell tables from feature descriptions.
  *
- * Handles three formats:
- * - Cleric domain spells: "Cleric Level | Spells"
- * - Druid circle spells: "Druid Level | Circle Spells"
- * - Warlock expanded spells: "Spell Level | Spells"
+ * Handles multiple class-specific formats:
+ * - Artificer: "Artificer Level | Spell"
+ * - Cleric domain: "Cleric Level | Spells"
+ * - Druid circle: "Druid Level | Circle Spells"
+ * - Paladin oath: "Paladin Level | Spells"
+ * - Ranger: "Ranger Level | Spells"
+ * - Sorcerer: "Sorcerer Level | Spells"
+ * - Warlock patron: "Spell Level | Spells"
  */
 trait ParsesSubclassSpellTables
 {
@@ -20,12 +24,12 @@ trait ParsesSubclassSpellTables
      */
     protected function parseSubclassSpellTable(string $text): ?array
     {
-        // Pattern matches:
-        // "Cleric Level | Spells"
-        // "Druid Level | Circle Spells"
-        // "Spell Level | Spells"
+        // Pattern matches all class-specific spell table formats:
+        // "Artificer Level | Spell", "Cleric Level | Spells", "Paladin Level | Spells"
+        // "Druid Level | Circle Spells", "Ranger Level | Spells", "Sorcerer Level | Spells"
+        // "Spell Level | Spells" (Warlock)
         // Followed by rows like "1st | bless, cure wounds"
-        $tablePattern = '/(?:Cleric Level|Druid Level|Spell Level)\s*\|\s*(?:Circle )?Spells\s*\n((?:\d+(?:st|nd|rd|th)\s*\|[^\n]+\n?)+)/i';
+        $tablePattern = '/(?:Artificer Level|Cleric Level|Druid Level|Paladin Level|Ranger Level|Sorcerer Level|Spell Level)\s*\|\s*(?:Circle )?Spells?\s*\n((?:\d+(?:st|nd|rd|th)\s*\|[^\n]+\n?)+)/i';
 
         if (! preg_match($tablePattern, $text, $matches)) {
             return null;
@@ -66,6 +70,6 @@ trait ParsesSubclassSpellTables
      */
     protected function hasSubclassSpellTable(string $text): bool
     {
-        return preg_match('/(?:Cleric Level|Druid Level|Spell Level)\s*\|\s*(?:Circle )?Spells/i', $text) === 1;
+        return preg_match('/(?:Artificer Level|Cleric Level|Druid Level|Paladin Level|Ranger Level|Sorcerer Level|Spell Level)\s*\|\s*(?:Circle )?Spells?/i', $text) === 1;
     }
 }

@@ -137,4 +137,117 @@ TEXT;
         $this->assertNotNull($result);
         $this->assertEquals(['spell one', 'spell two', 'spell three'], $result[0]['spells']);
     }
+
+    #[Test]
+    public function parses_paladin_oath_spells(): void
+    {
+        $text = <<<'TEXT'
+Oath Spells:
+You gain oath spells at the paladin levels listed.
+
+Oath of Devotion Spells:
+Paladin Level | Spells
+3rd | protection from evil and good, sanctuary
+5th | lesser restoration, zone of truth
+9th | beacon of hope, dispel magic
+13th | freedom of movement, guardian of faith
+17th | commune, flame strike
+
+Source: Player's Handbook (2014) p. 86
+TEXT;
+
+        $result = $this->parseSubclassSpellTable($text);
+
+        $this->assertNotNull($result);
+        $this->assertCount(5, $result);
+
+        // Paladin oath spells start at 3rd level
+        $this->assertEquals(3, $result[0]['level']);
+        $this->assertEquals(['protection from evil and good', 'sanctuary'], $result[0]['spells']);
+
+        // Check 17th level
+        $this->assertEquals(17, $result[4]['level']);
+        $this->assertEquals(['commune', 'flame strike'], $result[4]['spells']);
+    }
+
+    #[Test]
+    public function parses_artificer_spells_singular(): void
+    {
+        // Artificer uses "Spell" (singular) in some tables
+        $text = <<<'TEXT'
+Artificer Specialist Spells:
+At certain levels you gain access to special spells.
+
+Alchemist Spells:
+Artificer Level | Spell
+3rd | healing word
+5th | flaming sphere
+
+Source: Tasha's Cauldron of Everything p. 14
+TEXT;
+
+        $result = $this->parseSubclassSpellTable($text);
+
+        $this->assertNotNull($result);
+        $this->assertCount(2, $result);
+
+        $this->assertEquals(3, $result[0]['level']);
+        $this->assertEquals(['healing word'], $result[0]['spells']);
+
+        $this->assertEquals(5, $result[1]['level']);
+        $this->assertEquals(['flaming sphere'], $result[1]['spells']);
+    }
+
+    #[Test]
+    public function parses_ranger_spells(): void
+    {
+        $text = <<<'TEXT'
+Ranger Archetype Spells:
+Starting at 3rd level, you learn an additional spell.
+
+Fey Wanderer Spells:
+Ranger Level | Spells
+3rd | charm person
+5th | misty step
+9th | dispel magic
+
+Source: Tasha's Cauldron of Everything p. 58
+TEXT;
+
+        $result = $this->parseSubclassSpellTable($text);
+
+        $this->assertNotNull($result);
+        $this->assertCount(3, $result);
+
+        $this->assertEquals(3, $result[0]['level']);
+        $this->assertEquals(['charm person'], $result[0]['spells']);
+    }
+
+    #[Test]
+    public function parses_sorcerer_spells(): void
+    {
+        $text = <<<'TEXT'
+Clockwork Magic:
+You learn additional spells when you reach certain levels.
+
+Clockwork Magic Spells:
+Sorcerer Level | Spells
+1st | alarm, protection from evil and good
+3rd | aid, lesser restoration
+5th | dispel magic, protection from energy
+
+Source: Tasha's Cauldron of Everything p. 68
+TEXT;
+
+        $result = $this->parseSubclassSpellTable($text);
+
+        $this->assertNotNull($result);
+        $this->assertCount(3, $result);
+
+        $this->assertEquals(1, $result[0]['level']);
+        $this->assertEquals(['alarm', 'protection from evil and good'], $result[0]['spells']);
+
+        $this->assertEquals(5, $result[2]['level']);
+        $this->assertEquals(['dispel magic', 'protection from energy'], $result[2]['spells']);
+    }
 }

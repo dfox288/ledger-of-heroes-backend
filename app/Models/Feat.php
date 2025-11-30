@@ -61,6 +61,14 @@ class Feat extends BaseModel
         return $this->morphMany(EntityPrerequisite::class, 'reference');
     }
 
+    /**
+     * Get all spells granted by this feat (polymorphic).
+     */
+    public function spells(): MorphMany
+    {
+        return $this->morphMany(EntitySpell::class, 'reference', 'reference_type', 'reference_id');
+    }
+
     // =========================================================================
     // Computed Accessors
     // =========================================================================

@@ -32,6 +32,7 @@ class FeatResource extends JsonResource
             'conditions' => EntityConditionResource::collection($this->whenLoaded('conditions')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
+            'spells' => EntitySpellResource::collection($this->whenLoaded('spells')),
         ];
     }
 }

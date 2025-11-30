@@ -540,4 +540,87 @@ XML;
         $this->assertArrayHasKey('proficiencies', $feats[0]);
         $this->assertCount(2, $feats[0]['proficiencies']);
     }
+
+    #[Test]
+    public function it_parses_specific_spell_from_description()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Fey Touched (Charisma)</name>
+        <text>Your exposure to the Feywild's magic has changed you, granting you the following benefits:
+
+	• Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20.
+
+	• You learn the misty step spell and one 1st-level spell of your choice. The 1st-level spell must be from the divination or enchantment school of magic. You can cast each of these spells without expending a spell slot. Once you cast either of these spells in this way, you can't cast that spell in this way again until you finish a long rest.
+
+Source:	Tasha's Cauldron of Everything p. 79</text>
+        <modifier category="ability score">charisma +1</modifier>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('spells', $feats[0]);
+        $this->assertCount(1, $feats[0]['spells']);
+
+        $spell = $feats[0]['spells'][0];
+        $this->assertEquals('Misty Step', $spell['spell_name']);
+        $this->assertFalse($spell['pivot_data']['is_cantrip']);
+    }
+
+    #[Test]
+    public function it_parses_shadow_touched_invisibility_spell()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Shadow Touched (Intelligence)</name>
+        <text>Your exposure to the Shadowfell's magic has changed you, granting you the following benefits:
+
+	• Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20.
+
+	• You learn the invisibility spell and one 1st-level spell of your choice.
+
+Source:	Tasha's Cauldron of Everything p. 80</text>
+        <modifier category="ability score">intelligence +1</modifier>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('spells', $feats[0]);
+        $this->assertCount(1, $feats[0]['spells']);
+
+        $spell = $feats[0]['spells'][0];
+        $this->assertEquals('Invisibility', $spell['spell_name']);
+    }
+
+    #[Test]
+    public function it_returns_empty_spells_array_for_feats_without_spells()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Alert</name>
+        <text>Always on the lookout for danger, you gain the following benefits.
+
+Source:	Player's Handbook (2014) p. 165</text>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('spells', $feats[0]);
+        $this->assertEmpty($feats[0]['spells']);
+    }
 }

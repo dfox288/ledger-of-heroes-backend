@@ -6,6 +6,7 @@ use App\Models\AbilityScore;
 use App\Models\Feat;
 use App\Models\Proficiency;
 use App\Services\Importers\Concerns\ImportsConditions;
+use App\Services\Importers\Concerns\ImportsEntitySpells;
 use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Importers\Concerns\ImportsPrerequisites;
 use App\Services\Parsers\FeatXmlParser;
@@ -13,6 +14,7 @@ use App\Services\Parsers\FeatXmlParser;
 class FeatImporter extends BaseImporter
 {
     use ImportsConditions;
+    use ImportsEntitySpells;
     use ImportsModifiers;
     use ImportsPrerequisites;
 
@@ -53,7 +55,10 @@ class FeatImporter extends BaseImporter
         // 7. Import sources using trait
         $this->importEntitySources($feat, $data['sources'] ?? []);
 
-        // 8. Refresh to load all relationships created during import
+        // 8. Import spells granted by feat
+        $this->importEntitySpells($feat, $data['spells'] ?? []);
+
+        // 9. Refresh to load all relationships created during import
         $feat->refresh();
 
         return $feat;

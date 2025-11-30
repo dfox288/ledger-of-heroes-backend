@@ -263,4 +263,84 @@ class FeatImporterTest extends TestCase
         $this->assertNotEmpty($feat->name);
         $this->assertNotEmpty($feat->description);
     }
+
+    #[Test]
+    public function it_imports_feat_with_specific_spell()
+    {
+        // Create test spells
+        $mistyStep = \App\Models\Spell::factory()->create([
+            'name' => 'Misty Step',
+            'slug' => 'misty-step',
+            'level' => 2,
+        ]);
+
+        $charisma = \App\Models\AbilityScore::where('code', 'CHA')->first();
+
+        $featData = [
+            'name' => 'Fey Touched (Charisma)',
+            'prerequisites' => null,
+            'description' => 'Your exposure to the Feywild has changed you. You learn the misty step spell and one 1st-level spell.',
+            'sources' => [
+                ['code' => 'TCE', 'pages' => '79'],
+            ],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+            'spells' => [
+                [
+                    'spell_name' => 'Misty Step',
+                    'pivot_data' => [
+                        'ability_score_id' => $charisma->id,
+                        'usage_limit' => 'long_rest',
+                        'is_cantrip' => false,
+                    ],
+                ],
+            ],
+        ];
+
+        $feat = $this->importer->import($featData);
+
+        $this->assertCount(1, $feat->spells);
+        $featSpell = $feat->spells->first();
+        $this->assertEquals($mistyStep->id, $featSpell->spell_id);
+        $this->assertEquals($charisma->id, $featSpell->ability_score_id);
+        $this->assertEquals('long_rest', $featSpell->usage_limit);
+        $this->assertFalse($featSpell->is_cantrip);
+    }
+
+    #[Test]
+    public function it_clears_spells_on_reimport()
+    {
+        // Create test spells
+        $spell1 = \App\Models\Spell::factory()->create(['name' => 'Spell One', 'slug' => 'spell-one']);
+        $spell2 = \App\Models\Spell::factory()->create(['name' => 'Spell Two', 'slug' => 'spell-two']);
+
+        $featData = [
+            'name' => 'Magic Feat',
+            'prerequisites' => null,
+            'description' => 'A magical feat.',
+            'sources' => [],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+            'spells' => [
+                ['spell_name' => 'Spell One', 'pivot_data' => []],
+            ],
+        ];
+
+        // First import
+        $feat = $this->importer->import($featData);
+        $this->assertCount(1, $feat->spells);
+        $this->assertEquals($spell1->id, $feat->spells->first()->spell_id);
+
+        // Second import with different spell
+        $featData['spells'] = [
+            ['spell_name' => 'Spell Two', 'pivot_data' => []],
+        ];
+        $feat = $this->importer->import($featData);
+        $feat->refresh();
+
+        $this->assertCount(1, $feat->spells);
+        $this->assertEquals($spell2->id, $feat->spells->first()->spell_id);
+    }
 }

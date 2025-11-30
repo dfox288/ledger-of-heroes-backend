@@ -63,6 +63,7 @@ class FeatXmlParser
             'modifiers' => $this->parseModifiers($element),
             'proficiencies' => array_merge($proficienciesFromXml, $proficienciesFromText),
             'conditions' => $this->parseConditions($description),
+            'spells' => $this->parseSpells($description),
         ];
     }
 
@@ -615,5 +616,64 @@ class FeatXmlParser
 
         // Try LIKE match
         return \App\Models\Race::where('name', 'LIKE', "%{$name}%")->first();
+    }
+
+    /**
+     * Parse spells granted by a feat from description text.
+     *
+     * Looks for patterns like:
+     * - "You learn the misty step spell"
+     * - "You learn the invisibility spell"
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function parseSpells(string $text): array
+    {
+        $spells = [];
+
+        // Known spell-granting feat patterns with their specific spells
+        // Pattern: "You learn the {spell name} spell"
+        // This captures named spells that are guaranteed grants (not choices)
+        if (preg_match_all('/you learn the ([a-z][a-z\s\']+?) spell/i', $text, $matches)) {
+            foreach ($matches[1] as $spellName) {
+                // Clean up spell name - capitalize properly
+                $spellName = trim($spellName);
+                $spellName = ucwords(strtolower($spellName));
+
+                // Skip generic patterns like "one 1st-level spell" or "cantrip"
+                if (preg_match('/^\d+(st|nd|rd|th)-level/i', $spellName) ||
+                    stripos($spellName, 'cantrip') !== false ||
+                    stripos($spellName, 'of your choice') !== false) {
+                    continue;
+                }
+
+                $spells[] = [
+                    'spell_name' => $spellName,
+                    'pivot_data' => [
+                        'is_cantrip' => false,
+                        'usage_limit' => $this->detectUsageLimit($text),
+                    ],
+                ];
+            }
+        }
+
+        return $spells;
+    }
+
+    /**
+     * Detect the usage limit from description text.
+     */
+    private function detectUsageLimit(string $text): ?string
+    {
+        if (stripos($text, 'finish a long rest') !== false) {
+            return 'long_rest';
+        }
+
+        if (stripos($text, 'finish a short or long rest') !== false ||
+            stripos($text, 'finish a short rest') !== false) {
+            return 'short_rest';
+        }
+
+        return null;
     }
 }

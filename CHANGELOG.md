@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Feat-granted spells relationship** (Issue #61)
+  - Added `spells` polymorphic relationship to Feat model via `entity_spells` table
+  - FeatXmlParser extracts named spells from description (e.g., "You learn the misty step spell")
+  - Detects usage_limit from description (long_rest, short_rest)
+  - FeatImporter uses `ImportsEntitySpells` trait for spell associations
+  - FeatResource exposes spells via EntitySpellResource
+  - Supports Fey Touched (misty step), Shadow Touched (invisibility), and similar feats
+
 - **Race climb_speed field** (Issue #60)
   - New `climb_speed` column on races table (nullable, unsignedSmallInteger)
   - Extracted from traits during import (e.g., Tabaxi's "Cat's Claws" with "climbing speed of X feet")

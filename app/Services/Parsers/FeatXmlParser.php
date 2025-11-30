@@ -621,26 +621,23 @@ class FeatXmlParser
     /**
      * Parse spells granted by a feat from description text.
      *
-     * Looks for patterns like:
-     * - "You learn the misty step spell"
-     * - "You learn the invisibility spell"
+     * Handles both fixed spells ("You learn the misty step spell") and
+     * spell choices ("one 1st-level spell of your choice from illusion or necromancy").
      *
      * @return array<int, array<string, mixed>>
      */
     private function parseSpells(string $text): array
     {
         $spells = [];
+        $choiceGroupCounter = 1;
 
-        // Known spell-granting feat patterns with their specific spells
-        // Pattern: "You learn the {spell name} spell"
-        // This captures named spells that are guaranteed grants (not choices)
+        // 1. Parse fixed spells: "You learn the {spell name} spell"
         if (preg_match_all('/you learn the ([a-z][a-z\s\']+?) spell/i', $text, $matches)) {
             foreach ($matches[1] as $spellName) {
-                // Clean up spell name - capitalize properly
                 $spellName = trim($spellName);
                 $spellName = ucwords(strtolower($spellName));
 
-                // Skip generic patterns like "one 1st-level spell" or "cantrip"
+                // Skip generic patterns
                 if (preg_match('/^\d+(st|nd|rd|th)-level/i', $spellName) ||
                     stripos($spellName, 'cantrip') !== false ||
                     stripos($spellName, 'of your choice') !== false) {
@@ -653,6 +650,67 @@ class FeatXmlParser
                         'is_cantrip' => false,
                         'usage_limit' => $this->detectUsageLimit($text),
                     ],
+                ];
+            }
+        }
+
+        // 2. Parse school-constrained spell choices
+        // Pattern: "one 1st-level spell of your choice" + "must be from the X or Y school"
+        if (preg_match('/(?:one|two|three)\s+(\d+)(?:st|nd|rd|th)-level spell(?:s)? of your choice/i', $text, $levelMatch)) {
+            if (preg_match('/must be from the ([a-z]+)(?: or ([a-z]+))? school/i', $text, $schoolMatch)) {
+                $count = $this->wordToNumber(strtolower(preg_match('/^(one|two|three)/i', $text, $countMatch) ? $countMatch[1] : 'one'));
+                $schools = array_filter([strtolower($schoolMatch[1]), isset($schoolMatch[2]) ? strtolower($schoolMatch[2]) : null]);
+
+                $spells[] = [
+                    'is_choice' => true,
+                    'choice_count' => $count,
+                    'choice_group' => 'spell_choice_'.$choiceGroupCounter++,
+                    'max_level' => (int) $levelMatch[1],
+                    'schools' => $schools,
+                    'class_name' => null,
+                    'is_ritual_only' => false,
+                ];
+            }
+        }
+
+        // 3. Parse class-constrained cantrip choices
+        // Pattern: "You learn two bard cantrips of your choice"
+        if (preg_match('/(one|two|three|four)\s+([a-z]+)\s+cantrips?\s+of your choice/i', $text, $cantripMatch)) {
+            $count = $this->wordToNumber(strtolower($cantripMatch[1]));
+            $className = strtolower($cantripMatch[2]);
+
+            $spells[] = [
+                'is_choice' => true,
+                'choice_count' => $count,
+                'choice_group' => 'spell_choice_'.$choiceGroupCounter++,
+                'max_level' => 0, // 0 = cantrip
+                'schools' => [],
+                'class_name' => $className,
+                'is_ritual_only' => false,
+            ];
+        }
+
+        // 4. Parse class-constrained spell choices
+        // Pattern: "choose one 1st-level bard spell" or "one 1st-level bard spell"
+        if (preg_match('/(?:choose\s+)?(one|two|three)\s+(\d+)(?:st|nd|rd|th)-level\s+([a-z]+)\s+spell/i', $text, $classSpellMatch)) {
+            // Don't duplicate if already captured by school pattern
+            $hasSchoolConstraint = preg_match('/must be from the [a-z]+ school/i', $text);
+            if (! $hasSchoolConstraint) {
+                $count = $this->wordToNumber(strtolower($classSpellMatch[1]));
+                $level = (int) $classSpellMatch[2];
+                $className = strtolower($classSpellMatch[3]);
+
+                // Check for ritual constraint
+                $isRitualOnly = (bool) preg_match('/must have the ritual tag/i', $text);
+
+                $spells[] = [
+                    'is_choice' => true,
+                    'choice_count' => $count,
+                    'choice_group' => 'spell_choice_'.$choiceGroupCounter++,
+                    'max_level' => $level,
+                    'schools' => [],
+                    'class_name' => $className,
+                    'is_ritual_only' => $isRitualOnly,
                 ];
             }
         }

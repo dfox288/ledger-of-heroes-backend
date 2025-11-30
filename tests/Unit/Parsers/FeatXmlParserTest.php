@@ -565,11 +565,17 @@ XML;
 
         $this->assertCount(1, $feats);
         $this->assertArrayHasKey('spells', $feats[0]);
-        $this->assertCount(1, $feats[0]['spells']);
 
-        $spell = $feats[0]['spells'][0];
-        $this->assertEquals('Misty Step', $spell['spell_name']);
-        $this->assertFalse($spell['pivot_data']['is_cantrip']);
+        // Should have fixed spell (Misty Step) + spell choice
+        $spells = $feats[0]['spells'];
+        $this->assertGreaterThanOrEqual(2, count($spells));
+
+        // Find the fixed spell
+        $fixedSpells = array_filter($spells, fn ($s) => isset($s['spell_name']));
+        $this->assertNotEmpty($fixedSpells);
+        $fixedSpell = array_values($fixedSpells)[0];
+        $this->assertEquals('Misty Step', $fixedSpell['spell_name']);
+        $this->assertFalse($fixedSpell['pivot_data']['is_cantrip']);
     }
 
     #[Test]
@@ -654,13 +660,13 @@ XML;
         $this->assertGreaterThanOrEqual(2, count($spells));
 
         // Find the fixed spell
-        $fixedSpells = array_filter($spells, fn($s) => isset($s['spell_name']));
+        $fixedSpells = array_filter($spells, fn ($s) => isset($s['spell_name']));
         $this->assertNotEmpty($fixedSpells);
         $fixedSpell = array_values($fixedSpells)[0];
         $this->assertEquals('Invisibility', $fixedSpell['spell_name']);
 
         // Find the choice spell(s)
-        $choiceSpells = array_filter($spells, fn($s) => isset($s['is_choice']) && $s['is_choice'] === true);
+        $choiceSpells = array_filter($spells, fn ($s) => isset($s['is_choice']) && $s['is_choice'] === true);
         $this->assertNotEmpty($choiceSpells);
 
         $choice = array_values($choiceSpells)[0];
@@ -694,20 +700,20 @@ XML;
         $this->assertArrayHasKey('spells', $feats[0]);
 
         $spells = $feats[0]['spells'];
-        $choiceSpells = array_filter($spells, fn($s) => isset($s['is_choice']) && $s['is_choice'] === true);
+        $choiceSpells = array_filter($spells, fn ($s) => isset($s['is_choice']) && $s['is_choice'] === true);
         $this->assertCount(2, $choiceSpells); // cantrips + 1st-level spell
 
         $choiceSpells = array_values($choiceSpells);
 
         // First choice: 2 cantrips
-        $cantripsChoice = array_filter($choiceSpells, fn($s) => $s['max_level'] === 0);
+        $cantripsChoice = array_filter($choiceSpells, fn ($s) => $s['max_level'] === 0);
         $this->assertNotEmpty($cantripsChoice);
         $cantripsChoice = array_values($cantripsChoice)[0];
         $this->assertEquals(2, $cantripsChoice['choice_count']);
         $this->assertEquals('bard', strtolower($cantripsChoice['class_name']));
 
         // Second choice: 1 first-level spell
-        $spellChoice = array_filter($choiceSpells, fn($s) => $s['max_level'] === 1);
+        $spellChoice = array_filter($choiceSpells, fn ($s) => $s['max_level'] === 1);
         $this->assertNotEmpty($spellChoice);
         $spellChoice = array_values($spellChoice)[0];
         $this->assertEquals(1, $spellChoice['choice_count']);
@@ -738,7 +744,7 @@ XML;
         $this->assertArrayHasKey('spells', $feats[0]);
 
         $spells = $feats[0]['spells'];
-        $choiceSpells = array_filter($spells, fn($s) => isset($s['is_choice']) && $s['is_choice'] === true);
+        $choiceSpells = array_filter($spells, fn ($s) => isset($s['is_choice']) && $s['is_choice'] === true);
         $this->assertNotEmpty($choiceSpells);
 
         $choice = array_values($choiceSpells)[0];

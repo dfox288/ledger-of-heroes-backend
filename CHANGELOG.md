@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Race speed and sense filtering** (Issue #26)
+  - New `fly_speed` and `swim_speed` columns in races table
+  - Extracted from "Flight" and "Swim Speed" traits during import (e.g., Aarakocra: 50ft fly, Triton: 30ft swim)
+  - `darkvision_range` now indexed in Meilisearch for filtering
+  - New boolean filters: `has_fly_speed`, `has_swim_speed`, `has_darkvision`
+  - New sortable attributes: `fly_speed`, `swim_speed`, `darkvision_range`
+  - RaceResource exposes `fly_speed` and `swim_speed` in API response
+
 - **New source books for import**
   - Added Fizban's Treasury of Dragons (FToD) - includes Drakewarden Ranger subclass
   - Added Van Richten's Guide to Ravenloft (VRGtR) - includes The Undead Warlock patron

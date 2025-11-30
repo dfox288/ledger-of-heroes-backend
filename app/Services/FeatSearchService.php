@@ -39,6 +39,8 @@ final class FeatSearchService
         'conditions.condition',
         'prerequisites.prerequisite',
         'tags',
+        'spells.spell',
+        'spells.abilityScore',
     ];
 
     /**

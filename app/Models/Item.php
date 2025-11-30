@@ -2,16 +2,22 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDataTables;
+use App\Models\Concerns\HasModifiers;
+use App\Models\Concerns\HasPrerequisites;
+use App\Models\Concerns\HasProficiencies;
+use App\Models\Concerns\HasSearchableHelpers;
+use App\Models\Concerns\HasSources;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
 class Item extends BaseModel
 {
+    use HasDataTables, HasModifiers, HasPrerequisites, HasProficiencies, HasSearchableHelpers, HasSources;
     use HasTags, Searchable;
 
     protected $fillable = [
@@ -71,31 +77,6 @@ class Item extends BaseModel
     public function abilities(): HasMany
     {
         return $this->hasMany(ItemAbility::class);
-    }
-
-    public function sources(): MorphMany
-    {
-        return $this->morphMany(EntitySource::class, 'reference');
-    }
-
-    public function proficiencies(): MorphMany
-    {
-        return $this->morphMany(Proficiency::class, 'reference');
-    }
-
-    public function modifiers(): MorphMany
-    {
-        return $this->morphMany(Modifier::class, 'reference');
-    }
-
-    public function dataTables(): MorphMany
-    {
-        return $this->morphMany(EntityDataTable::class, 'reference');
-    }
-
-    public function prerequisites(): MorphMany
-    {
-        return $this->morphMany(EntityPrerequisite::class, 'reference');
     }
 
     public function spells(): MorphToMany
@@ -252,8 +233,8 @@ class Item extends BaseModel
             'is_magic' => $this->is_magic,
             'weight' => $this->weight,
             'cost_cp' => $this->cost_cp,
-            'sources' => $this->sources->pluck('source.name')->all(),
-            'source_codes' => $this->sources->pluck('source.code')->all(),
+            'sources' => $this->getSearchableSourceNames(),
+            'source_codes' => $this->getSearchableSourceCodes(),
             // Weapon-specific
             'damage_dice' => $this->damage_dice,
             'versatile_damage' => $this->versatile_damage,
@@ -272,7 +253,7 @@ class Item extends BaseModel
             // Spell filtering (similar to Monster)
             'spell_slugs' => $this->spells->pluck('slug')->all(),
             // Tag filtering
-            'tag_slugs' => $this->tags->pluck('slug')->all(),
+            'tag_slugs' => $this->getSearchableTagSlugs(),
             // Array fields (Phase 4)
             'property_codes' => $this->properties->pluck('code')->all(),
             'modifier_categories' => $this->modifiers->pluck('modifier_category')->unique()->values()->all(),

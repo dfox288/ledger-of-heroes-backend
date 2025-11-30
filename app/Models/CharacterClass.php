@@ -2,7 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasEntityTraits;
+use App\Models\Concerns\HasModifiers;
+use App\Models\Concerns\HasProficiencies;
 use App\Models\Concerns\HasProficiencyScopes;
+use App\Models\Concerns\HasSearchableHelpers;
+use App\Models\Concerns\HasSources;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +17,7 @@ use Spatie\Tags\HasTags;
 
 class CharacterClass extends BaseModel
 {
-    use HasProficiencyScopes, HasTags, Searchable;
+    use HasEntityTraits, HasModifiers, HasProficiencies, HasProficiencyScopes, HasSearchableHelpers, HasSources, HasTags, Searchable;
 
     protected $table = 'classes';
 
@@ -127,11 +132,6 @@ class CharacterClass extends BaseModel
         return $this->hasMany(ClassCounter::class, 'class_id');
     }
 
-    public function proficiencies(): MorphMany
-    {
-        return $this->morphMany(Proficiency::class, 'reference');
-    }
-
     /**
      * Get multiclass ability score requirements.
      *
@@ -142,11 +142,6 @@ class CharacterClass extends BaseModel
     {
         return $this->morphMany(Proficiency::class, 'reference')
             ->where('proficiency_type', 'multiclass_requirement');
-    }
-
-    public function traits(): MorphMany
-    {
-        return $this->morphMany(CharacterTrait::class, 'reference');
     }
 
     public function spells(): BelongsToMany
@@ -165,19 +160,9 @@ class CharacterClass extends BaseModel
             ->withTimestamps();
     }
 
-    public function sources(): MorphMany
-    {
-        return $this->morphMany(EntitySource::class, 'reference', 'reference_type', 'reference_id');
-    }
-
     public function equipment(): MorphMany
     {
         return $this->morphMany(EntityItem::class, 'reference');
-    }
-
-    public function modifiers(): MorphMany
-    {
-        return $this->morphMany(Modifier::class, 'reference');
     }
 
     // Computed property
@@ -441,13 +426,13 @@ class CharacterClass extends BaseModel
             'primary_ability' => $this->primary_ability,
             'spellcasting_ability' => $this->spellcastingAbility?->code,
             'is_spellcaster' => $this->spellcasting_ability_id !== null,
-            'sources' => $this->sources->pluck('source.name')->unique()->values()->all(),
-            'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
+            'sources' => $this->getSearchableSourceNames(),
+            'source_codes' => $this->getSearchableSourceCodes(),
             'is_subclass' => $this->parent_class_id !== null,
             'is_base_class' => $this->parent_class_id === null,
             'parent_class_name' => $this->parentClass?->name,
             // Tag slugs for filtering (e.g., spellcaster, martial, half_caster)
-            'tag_slugs' => $this->tags->pluck('slug')->all(),
+            'tag_slugs' => $this->getSearchableTagSlugs(),
             // Phase 3: Spell counts (quick wins)
             'has_spells' => $this->spells_count > 0,
             'spell_count' => $this->spells_count,

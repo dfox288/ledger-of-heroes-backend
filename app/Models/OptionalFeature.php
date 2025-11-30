@@ -4,6 +4,9 @@ namespace App\Models;
 
 use App\Enums\OptionalFeatureType;
 use App\Enums\ResourceType;
+use App\Models\Concerns\HasPrerequisites;
+use App\Models\Concerns\HasSearchableHelpers;
+use App\Models\Concerns\HasSources;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,7 +16,7 @@ use Spatie\Tags\HasTags;
 
 class OptionalFeature extends BaseModel
 {
-    use HasTags, Searchable;
+    use HasPrerequisites, HasSearchableHelpers, HasSources, HasTags, Searchable;
 
     protected $fillable = [
         'slug',
@@ -74,22 +77,6 @@ class OptionalFeature extends BaseModel
     public function rolls(): MorphMany
     {
         return $this->morphMany(EntityDataTable::class, 'reference');
-    }
-
-    /**
-     * Get source citations for this feature.
-     */
-    public function sources(): MorphMany
-    {
-        return $this->morphMany(EntitySource::class, 'reference');
-    }
-
-    /**
-     * Get structured prerequisites for this feature.
-     */
-    public function prerequisites(): MorphMany
-    {
-        return $this->morphMany(EntityPrerequisite::class, 'reference');
     }
 
     // Scopes

@@ -2,18 +2,28 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasConditions;
+use App\Models\Concerns\HasEntityLanguages;
+use App\Models\Concerns\HasEntitySpells;
+use App\Models\Concerns\HasEntityTraits;
 use App\Models\Concerns\HasLanguageScopes;
+use App\Models\Concerns\HasModifiers;
+use App\Models\Concerns\HasProficiencies;
 use App\Models\Concerns\HasProficiencyScopes;
+use App\Models\Concerns\HasSearchableHelpers;
+use App\Models\Concerns\HasSenses;
+use App\Models\Concerns\HasSources;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
 class Race extends BaseModel
 {
-    use HasLanguageScopes, HasProficiencyScopes, HasTags, Searchable;
+    use HasConditions, HasEntityLanguages, HasEntitySpells, HasEntityTraits, HasLanguageScopes;
+    use HasModifiers, HasProficiencies, HasProficiencyScopes, HasSearchableHelpers, HasSenses, HasSources;
+    use HasTags, Searchable;
 
     protected $fillable = [
         'slug',
@@ -63,49 +73,6 @@ class Race extends BaseModel
         return $this->hasMany(Race::class, 'parent_race_id');
     }
 
-    public function proficiencies(): MorphMany
-    {
-        return $this->morphMany(Proficiency::class, 'reference');
-    }
-
-    public function traits(): MorphMany
-    {
-        return $this->morphMany(CharacterTrait::class, 'reference');
-    }
-
-    public function modifiers(): MorphMany
-    {
-        return $this->morphMany(Modifier::class, 'reference');
-    }
-
-    public function sources(): MorphMany
-    {
-        return $this->morphMany(EntitySource::class, 'reference', 'reference_type', 'reference_id');
-    }
-
-    public function languages(): MorphMany
-    {
-        return $this->morphMany(EntityLanguage::class, 'reference');
-    }
-
-    public function conditions(): MorphMany
-    {
-        return $this->morphMany(EntityCondition::class, 'reference', 'reference_type', 'reference_id');
-    }
-
-    public function spells(): MorphMany
-    {
-        return $this->morphMany(EntitySpell::class, 'reference', 'reference_type', 'reference_id');
-    }
-
-    /**
-     * Get the race's senses (darkvision, etc.).
-     */
-    public function senses(): MorphMany
-    {
-        return $this->morphMany(EntitySense::class, 'reference');
-    }
-
     public function entitySpells(): MorphToMany
     {
         return $this->morphToMany(
@@ -120,18 +87,6 @@ class Race extends BaseModel
             'usage_limit',
             'is_cantrip',
         ]);
-    }
-
-    // Scopes for API filtering
-    public function scopeSearch($query, $searchTerm)
-    {
-        // Search name only (learned from spells - don't search description)
-        return $query->where('name', 'LIKE', "%{$searchTerm}%");
-    }
-
-    public function scopeSize($query, $sizeId)
-    {
-        return $query->where('size_id', $sizeId);
     }
 
     // Scout Searchable Methods
@@ -157,12 +112,12 @@ class Race extends BaseModel
             'has_fly_speed' => $this->fly_speed !== null,
             'has_swim_speed' => $this->swim_speed !== null,
             'has_climb_speed' => $this->climb_speed !== null,
-            'sources' => $this->sources->pluck('source.name')->unique()->values()->all(),
-            'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
+            'sources' => $this->getSearchableSourceNames(),
+            'source_codes' => $this->getSearchableSourceCodes(),
             'is_subrace' => $this->parent_race_id !== null,
             'parent_race_name' => $this->parent?->name,
             // Tag slugs for filtering (e.g., darkvision, fey_ancestry)
-            'tag_slugs' => $this->tags->pluck('slug')->all(),
+            'tag_slugs' => $this->getSearchableTagSlugs(),
             // Phase 3: Spell filtering
             'spell_slugs' => $this->spells->pluck('spell.slug')->filter()->values()->all(),
             'has_innate_spells' => $this->spells->isNotEmpty(),

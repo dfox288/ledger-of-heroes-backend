@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasModifiers;
+use App\Models\Concerns\HasSearchableHelpers;
+use App\Models\Concerns\HasSenses;
+use App\Models\Concerns\HasSources;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
 class Monster extends BaseModel
 {
-    use HasTags, Searchable;
+    use HasModifiers, HasSearchableHelpers, HasSenses, HasSources, HasTags, Searchable;
 
     protected $fillable = [
         'name',
@@ -123,28 +126,10 @@ class Monster extends BaseModel
         ]);
     }
 
-    public function modifiers(): MorphMany
-    {
-        return $this->morphMany(Modifier::class, 'reference');
-    }
-
     public function conditions(): MorphToMany
     {
         return $this->morphToMany(Condition::class, 'reference', 'entity_conditions')
             ->withPivot('description');
-    }
-
-    public function sources(): MorphMany
-    {
-        return $this->morphMany(EntitySource::class, 'reference');
-    }
-
-    /**
-     * Get the monster's senses (darkvision, blindsight, etc.).
-     */
-    public function senses(): MorphMany
-    {
-        return $this->morphMany(EntitySense::class, 'reference');
     }
 
     /**
@@ -209,12 +194,12 @@ class Monster extends BaseModel
             // Perception and NPC status
             'passive_perception' => $this->passive_perception,
             'is_npc' => $this->is_npc,
-            'sources' => $this->sources->pluck('source.name')->all(),
-            'source_codes' => $this->sources->pluck('source.code')->all(),
+            'sources' => $this->getSearchableSourceNames(),
+            'source_codes' => $this->getSearchableSourceCodes(),
             // Spell slugs for fast Meilisearch filtering (1,098 relationships for 129 spellcasters)
             'spell_slugs' => $this->entitySpells->pluck('slug')->all(),
             // Tag slugs for filtering (e.g., fire_immune, undead, construct)
-            'tag_slugs' => $this->tags->pluck('slug')->all(),
+            'tag_slugs' => $this->getSearchableTagSlugs(),
             // Phase 3: Boolean capability flags
             'has_legendary_actions' => $this->legendaryActions->where('is_lair_action', 0)->isNotEmpty(),
             'has_lair_actions' => $this->legendaryActions->where('is_lair_action', 1)->isNotEmpty(),

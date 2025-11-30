@@ -2,17 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDataTables;
+use App\Models\Concerns\HasSearchableHelpers;
+use App\Models\Concerns\HasSources;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
 class Spell extends BaseModel
 {
-    use HasTags, Searchable;
+    use HasDataTables, HasSearchableHelpers, HasSources, HasTags, Searchable;
 
     protected $fillable = [
         'slug',
@@ -208,11 +210,6 @@ class Spell extends BaseModel
         return $this->hasMany(SpellEffect::class);
     }
 
-    public function sources(): MorphMany
-    {
-        return $this->morphMany(EntitySource::class, 'reference', 'reference_type', 'reference_id');
-    }
-
     public function savingThrows(): MorphToMany
     {
         return $this->morphToMany(
@@ -224,11 +221,6 @@ class Spell extends BaseModel
         )
             ->withPivot('save_effect', 'is_initial_save', 'save_modifier')
             ->withTimestamps();
-    }
-
-    public function dataTables(): MorphMany
-    {
-        return $this->morphMany(EntityDataTable::class, 'reference');
     }
 
     // Reverse relationships (entities that reference this spell)
@@ -266,55 +258,6 @@ class Spell extends BaseModel
         )->withPivot(['usage_limit', 'level_requirement']);
     }
 
-    // Scopes for API filtering
-    public function scopeLevel($query, $level)
-    {
-        return $query->where('level', $level);
-    }
-
-    public function scopeSchool($query, $schoolIdentifier)
-    {
-        // Accept ID, code (EV, EN), or name (evocation, enchantment)
-        if (is_numeric($schoolIdentifier)) {
-            return $query->where('spell_school_id', $schoolIdentifier);
-        }
-
-        // Resolve by code or name
-        $school = SpellSchool::where('code', strtoupper($schoolIdentifier))
-            ->orWhere('name', 'LIKE', $schoolIdentifier)
-            ->first();
-
-        return $school
-            ? $query->where('spell_school_id', $school->id)
-            : $query->whereRaw('1 = 0'); // No results if school not found
-    }
-
-    public function scopeConcentration($query, $needsConcentration)
-    {
-        return $query->where('needs_concentration', $needsConcentration);
-    }
-
-    public function scopeRitual($query, $isRitual)
-    {
-        return $query->where('is_ritual', $isRitual);
-    }
-
-    public function scopeSearch($query, $searchTerm)
-    {
-        $driver = $query->getConnection()->getDriverName();
-
-        if ($driver === 'mysql') {
-            // Search name with LIKE (prioritizes name matches)
-            return $query->where('name', 'LIKE', "%{$searchTerm}%");
-        }
-
-        // Fallback to LIKE search for other databases (e.g., SQLite for testing)
-        return $query->where(function ($q) use ($searchTerm) {
-            $q->where('name', 'LIKE', "%{$searchTerm}%")
-                ->orWhere('description', 'LIKE', "%{$searchTerm}%");
-        });
-    }
-
     // Scout Search Configuration
 
     /**
@@ -340,11 +283,11 @@ class Spell extends BaseModel
             'ritual' => $this->is_ritual,
             'description' => $this->description,
             'at_higher_levels' => $this->higher_levels,
-            'sources' => $this->sources->pluck('source.name')->all(),
-            'source_codes' => $this->sources->pluck('source.code')->all(),
+            'sources' => $this->getSearchableSourceNames(),
+            'source_codes' => $this->getSearchableSourceCodes(),
             'classes' => $this->classes->pluck('name')->all(),
             'class_slugs' => $this->classes->pluck('slug')->all(),
-            'tag_slugs' => $this->tags->pluck('slug')->all(),
+            'tag_slugs' => $this->getSearchableTagSlugs(),
             // Damage types from spell effects (array of damage type codes)
             'damage_types' => $this->effects->filter(fn ($e) => $e->damageType)->pluck('damageType.code')->unique()->values()->all(),
             // Saving throws (array of ability codes like 'DEX', 'WIS')

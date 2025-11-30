@@ -94,14 +94,26 @@ class ItemTableDetector
             }
         }
 
-        // Pattern 3: Tables with text in first column (e.g., Draconic Ancestry)
+        // Pattern 3: Tables with text in first column (e.g., Draconic Ancestry, Staff of the Magi)
         // Matches:
         //   Table Name:
         //   Header | Header | Header
         //   TextValue | Data | Data
         //   TextValue | Data | Data
+        //
+        // Also matches digit-prefixed text that isn't a pure number/range/ordinal:
+        //   10 ft. away | Data (matched - digit followed by non-digit text)
+        //   10 | Data (NOT matched - pure number, handled by Pattern 1)
+        //   2-3 | Data (NOT matched - range, handled by Pattern 1)
+        //   1st | Data (NOT matched - ordinal, handled by Pattern 4)
+        //
+        // Regex breakdown:
+        //   (?!\d+(?:-\d+)?\s*\|) - Negative lookahead: NOT a pure number or range followed by |
+        //   (?!\d+(?:st|nd|rd|th)\s*\|) - Negative lookahead: NOT an ordinal followed by |
+        //   [^\n]+ - Then any text (including digit-prefixed like "10 ft.")
+        //   \| - Followed by pipe delimiter
 
-        $pattern3 = '/^(.+?):\s*\n([^\n]+\|[^\n]+)\s*\n((?:^[^\d\n][^\n]*\|[^\n]+\s*\n?)+)/m';
+        $pattern3 = '/^(.+?):\s*\n([^\n]+\|[^\n]+)\s*\n((?:^(?!\d+(?:-\d+)?\s*\|)(?!\d+(?:st|nd|rd|th)\s*\|)[^\n]+\|[^\n]+\s*\n?)+)/m';
 
         if (preg_match_all($pattern3, $text, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
             foreach ($matches as $match) {

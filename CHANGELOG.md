@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Magic item data tables with digit-prefixed text rows** (Issue #74)
+  - `ItemTableDetector` Pattern 3 now matches tables with rows like "10 ft. away | Damage"
+  - Previously only matched rows starting with pure text (e.g., "Black | Acid")
+  - Staff of the Magi Retributive Strike damage table now correctly parsed into `data_tables`
+  - Added negative lookahead to exclude pure numbers, ranges, and ordinals from Pattern 3
+
 - **Feat prerequisites parsing for OR syntax and subraces** (Issue #73)
   - Parser now handles "Elf or Half-Elf" OR syntax in prerequisite text
   - Parser now handles parenthetical subrace syntax like "Elf (High)", "Elf (Drow)", "Elf (Wood)"

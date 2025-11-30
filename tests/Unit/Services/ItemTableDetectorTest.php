@@ -253,4 +253,30 @@ TEXT;
         $this->assertCount(1, $tables);
         $this->assertEquals('Sneak Attack', $tables[0]['name']);
     }
+
+    #[Test]
+    public function it_detects_tables_with_digit_prefixed_text_rows(): void
+    {
+        // Staff of the Magi Retributive Strike damage table
+        // Rows start with digits but are NOT pure numeric/range values
+        $text = <<<'TEXT'
+The staff is destroyed and releases its remaining magic in an explosion.
+
+Staff of the Magi:
+Distance from Origin | Damage
+10 ft. away or closer | 8 × the number of charges in the staff
+11 to 20 ft. away | 6 × the number of charges in the staff
+21 to 30 ft. away | 4 × the number of charges in the staff
+
+On a successful save, a creature takes half as much damage.
+TEXT;
+
+        $tables = $this->detector->detectTables($text);
+
+        $this->assertCount(1, $tables);
+        $this->assertEquals('Staff of the Magi', $tables[0]['name']);
+        $this->assertStringContainsString('10 ft. away or closer | 8', $tables[0]['text']);
+        $this->assertStringContainsString('21 to 30 ft. away | 4', $tables[0]['text']);
+        $this->assertNull($tables[0]['dice_type']); // No dice type for lookup tables
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class ClassFeature extends BaseModel
 {
@@ -76,6 +77,27 @@ class ClassFeature extends BaseModel
     public function specialTags(): HasMany
     {
         return $this->hasMany(ClassFeatureSpecialTag::class);
+    }
+
+    /**
+     * Spells granted by this feature (domain spells, circle spells, expanded spells).
+     *
+     * Uses entity_spells polymorphic table. The level_requirement pivot field
+     * indicates the class level at which each spell is gained.
+     */
+    public function spells(): MorphToMany
+    {
+        return $this->morphToMany(
+            Spell::class,
+            'reference',
+            'entity_spells',
+            'reference_id',
+            'spell_id'
+        )->withPivot([
+            'level_requirement',
+            'is_cantrip',
+            'usage_limit',
+        ]);
     }
 
     // Accessors

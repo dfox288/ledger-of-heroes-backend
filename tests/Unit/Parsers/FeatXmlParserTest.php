@@ -623,4 +623,51 @@ XML;
         $this->assertArrayHasKey('spells', $feats[0]);
         $this->assertEmpty($feats[0]['spells']);
     }
+
+    #[Test]
+    public function it_parses_school_constrained_spell_choice()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Shadow Touched (Charisma)</name>
+        <text>Your exposure to the Shadowfell's magic has changed you, granting you the following benefits:
+
+	• Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20.
+
+	• You learn the invisibility spell and one 1st-level spell of your choice. The 1st-level spell must be from the illusion or necromancy school of magic. You can cast each of these spells without expending a spell slot. Once you cast either of these spells in this way, you can't cast that spell in this way again until you finish a long rest. You can also cast these spells using spell slots you have of the appropriate level. The spells' spellcasting ability is the ability increased by this feat.
+
+Source:	Tasha's Cauldron of Everything p. 80</text>
+        <modifier category="ability score">charisma +1</modifier>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('spells', $feats[0]);
+
+        // Should have fixed spell (Invisibility) + spell choice
+        $spells = $feats[0]['spells'];
+        $this->assertGreaterThanOrEqual(2, count($spells));
+
+        // Find the fixed spell
+        $fixedSpells = array_filter($spells, fn($s) => isset($s['spell_name']));
+        $this->assertNotEmpty($fixedSpells);
+        $fixedSpell = array_values($fixedSpells)[0];
+        $this->assertEquals('Invisibility', $fixedSpell['spell_name']);
+
+        // Find the choice spell(s)
+        $choiceSpells = array_filter($spells, fn($s) => isset($s['is_choice']) && $s['is_choice'] === true);
+        $this->assertNotEmpty($choiceSpells);
+
+        $choice = array_values($choiceSpells)[0];
+        $this->assertTrue($choice['is_choice']);
+        $this->assertEquals(1, $choice['choice_count']);
+        $this->assertEquals(1, $choice['max_level']);
+        $this->assertContains('illusion', $choice['schools']);
+        $this->assertContains('necromancy', $choice['schools']);
+    }
 }

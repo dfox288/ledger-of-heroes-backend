@@ -64,6 +64,134 @@ class Spell extends BaseModel
         };
     }
 
+    /**
+     * Parse material component cost in gold pieces.
+     *
+     * Parses patterns like:
+     * - "worth at least 25 gp"
+     * - "worth 50 gp"
+     * - "10 gp worth of"
+     * - "worth at least 1,000 gp"
+     *
+     * Returns null if no cost is specified.
+     *
+     * Note: Handles ~90% of cases. Edge cases with unusual formatting may not parse correctly.
+     */
+    public function getMaterialCostGpAttribute(): ?int
+    {
+        $materials = $this->material_components;
+
+        if (empty($materials)) {
+            return null;
+        }
+
+        // Pattern 1: "worth at least X gp" or "worth X gp"
+        if (preg_match('/worth(?:\s+at\s+least)?\s+([\d,]+)\s*gp/i', $materials, $matches)) {
+            return (int) str_replace(',', '', $matches[1]);
+        }
+
+        // Pattern 2: "X gp worth of"
+        if (preg_match('/([\d,]+)\s*gp\s+worth/i', $materials, $matches)) {
+            return (int) str_replace(',', '', $matches[1]);
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if material components are consumed by the spell.
+     *
+     * Returns:
+     * - true if materials are consumed
+     * - false if materials exist but are not consumed
+     * - null if spell has no material components
+     *
+     * Note: Handles ~90% of cases. Edge cases with unusual formatting may not parse correctly.
+     */
+    public function getMaterialConsumedAttribute(): ?bool
+    {
+        $materials = $this->material_components;
+
+        if (empty($materials)) {
+            return null;
+        }
+
+        $materialsLower = strtolower($materials);
+
+        // Check for "consumes" or "consumed" patterns
+        if (str_contains($materialsLower, 'consume')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Parse area of effect from spell description.
+     *
+     * Returns an array with:
+     * - type: cone, sphere, cube, line, cylinder
+     * - size: primary dimension in feet
+     * - width: (lines only) width in feet
+     * - height: (cylinders only) height in feet
+     *
+     * Returns null if no area of effect pattern is found.
+     *
+     * Note: Handles ~90% of cases. Edge cases with unusual formatting may not parse correctly.
+     */
+    public function getAreaOfEffectAttribute(): ?array
+    {
+        $description = $this->description;
+
+        if (empty($description)) {
+            return null;
+        }
+
+        // Cone: "15-foot cone"
+        if (preg_match('/(\d+)[- ]foot[- ]cone/i', $description, $matches)) {
+            return [
+                'type' => 'cone',
+                'size' => (int) $matches[1],
+            ];
+        }
+
+        // Sphere: "20-foot-radius sphere"
+        if (preg_match('/(\d+)[- ]foot[- ]radius\s+sphere/i', $description, $matches)) {
+            return [
+                'type' => 'sphere',
+                'size' => (int) $matches[1],
+            ];
+        }
+
+        // Cube: "15-foot cube"
+        if (preg_match('/(\d+)[- ]foot[- ]cube/i', $description, $matches)) {
+            return [
+                'type' => 'cube',
+                'size' => (int) $matches[1],
+            ];
+        }
+
+        // Line: "100 feet long and 5 feet wide"
+        if (preg_match('/(\d+)\s+feet\s+long\s+and\s+(\d+)\s+feet\s+wide/i', $description, $matches)) {
+            return [
+                'type' => 'line',
+                'size' => (int) $matches[1],
+                'width' => (int) $matches[2],
+            ];
+        }
+
+        // Cylinder: "10-foot-radius, 40-foot-high cylinder"
+        if (preg_match('/(\d+)[- ]foot[- ]radius[,\s]+(\d+)[- ]foot[- ]high\s+cylinder/i', $description, $matches)) {
+            return [
+                'type' => 'cylinder',
+                'size' => (int) $matches[1],
+                'height' => (int) $matches[2],
+            ];
+        }
+
+        return null;
+    }
+
     // Relationships
     public function spellSchool(): BelongsTo
     {
@@ -227,6 +355,12 @@ class Spell extends BaseModel
             'requires_material' => str_contains($this->components ?? '', 'M'),
             // Effect types (array of effect type strings)
             'effect_types' => $this->effects->pluck('effect_type')->unique()->values()->all(),
+            // Material component parsing (Issue #27)
+            'material_cost_gp' => $this->material_cost_gp,
+            'material_consumed' => $this->material_consumed,
+            // Area of effect parsing (Issue #28)
+            'aoe_type' => $this->area_of_effect['type'] ?? null,
+            'aoe_size' => $this->area_of_effect['size'] ?? null,
         ];
     }
 
@@ -276,6 +410,12 @@ class Spell extends BaseModel
                 'requires_somatic',
                 'requires_material',
                 'effect_types',
+                // Material component fields (Issue #27)
+                'material_cost_gp',
+                'material_consumed',
+                // Area of effect fields (Issue #28)
+                'aoe_type',
+                'aoe_size',
             ],
             'sortableAttributes' => [
                 'name',

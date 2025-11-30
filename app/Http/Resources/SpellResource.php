@@ -20,6 +20,8 @@ class SpellResource extends JsonResource
             'range' => $this->range,
             'components' => $this->components,
             'material_components' => $this->material_components,
+            'material_cost_gp' => $this->material_cost_gp,
+            'material_consumed' => $this->material_consumed,
             'duration' => $this->duration,
             'needs_concentration' => $this->needs_concentration,
             'is_ritual' => $this->is_ritual,
@@ -29,6 +31,8 @@ class SpellResource extends JsonResource
             'requires_verbal' => str_contains($this->components ?? '', 'V'),
             'requires_somatic' => str_contains($this->components ?? '', 'S'),
             'requires_material' => str_contains($this->components ?? '', 'M'),
+            // Area of effect (parsed from description)
+            'area_of_effect' => $this->area_of_effect,
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'effects' => SpellEffectResource::collection($this->whenLoaded('effects')),
             'classes' => ClassResource::collection($this->whenLoaded('classes')),

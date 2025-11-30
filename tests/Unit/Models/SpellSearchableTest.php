@@ -81,4 +81,49 @@ class SpellSearchableTest extends TestCase
         // In testing environment, Scout adds 'test_' prefix (see .env.testing SCOUT_PREFIX)
         $this->assertEquals('test_spells', $spell->searchableAs());
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_includes_material_cost_fields_in_searchable_array(): void
+    {
+        $spell = Spell::factory()->create([
+            'name' => 'Arcane Lock',
+            'material_components' => 'gold dust worth at least 25 gp, which the spell consumes',
+        ]);
+
+        $searchable = $spell->toSearchableArray();
+
+        $this->assertArrayHasKey('material_cost_gp', $searchable);
+        $this->assertEquals(25, $searchable['material_cost_gp']);
+        $this->assertArrayHasKey('material_consumed', $searchable);
+        $this->assertTrue($searchable['material_consumed']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_includes_aoe_fields_in_searchable_array(): void
+    {
+        $spell = Spell::factory()->create([
+            'name' => 'Fireball',
+            'description' => 'Each creature in a 20-foot-radius sphere must make a Dexterity saving throw.',
+        ]);
+
+        $searchable = $spell->toSearchableArray();
+
+        $this->assertArrayHasKey('aoe_type', $searchable);
+        $this->assertEquals('sphere', $searchable['aoe_type']);
+        $this->assertArrayHasKey('aoe_size', $searchable);
+        $this->assertEquals(20, $searchable['aoe_size']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_includes_new_fields_in_filterable_attributes(): void
+    {
+        $spell = new Spell;
+
+        $options = $spell->searchableOptions();
+
+        $this->assertContains('material_cost_gp', $options['filterableAttributes']);
+        $this->assertContains('material_consumed', $options['filterableAttributes']);
+        $this->assertContains('aoe_type', $options['filterableAttributes']);
+        $this->assertContains('aoe_size', $options['filterableAttributes']);
+    }
 }

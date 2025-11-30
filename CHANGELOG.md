@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Spell material cost and area of effect fields** (Issues #27, #28)
+  - New `material_cost_gp` computed accessor: parses gold cost from material_components
+  - Patterns: "worth at least X gp", "worth X gp", "X gp worth of"
+  - New `material_consumed` computed accessor: detects if materials are consumed
+  - New `area_of_effect` computed accessor: parses AoE from description
+  - Returns structured object: `{type, size, width?, height?}`
+  - Supported types: cone, sphere, cube, line, cylinder
+  - All fields exposed in SpellResource API response
+  - Filterable in Meilisearch: `material_cost_gp`, `material_consumed`, `aoe_type`, `aoe_size`
+  - Filter examples: `material_cost_gp >= 100`, `aoe_type = sphere AND aoe_size >= 20`
+  - Note: Regex parsing handles ~90% of cases; edge cases may not parse correctly
+
 - **Feat is_half_feat and parent_feat_slug fields** (Issue #29)
   - New `is_half_feat` computed accessor on Feat model
   - Returns: `true` for feats that grant +1 to an ability score, `false` otherwise

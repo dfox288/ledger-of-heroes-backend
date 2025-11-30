@@ -56,6 +56,20 @@ class SpellController extends Controller
      * - `requires_verbal` (bool): Requires verbal component (castable in Silence when false)
      * - `requires_somatic` (bool): Requires somatic component (castable while grappled when false)
      * - `requires_material` (bool): Requires material component
+     * - `material_consumed` (bool): Material component is consumed by the spell
+     *   - Examples: `material_consumed = true`, `material_consumed = false`
+     *   - Use case: Find reusable-focus vs consumed-component spells
+     *
+     * **Computed Fields** (Issues #27, #28):
+     * - `material_cost_gp` (int): Gold piece cost of material components
+     *   - Examples: `material_cost_gp >= 100`, `material_cost_gp EXISTS`
+     *   - Use case: Find expensive spells, budget-friendly options
+     * - `aoe_type` (string): Area of effect shape (cone, sphere, cube, line, cylinder)
+     *   - Examples: `aoe_type = sphere`, `aoe_type = cone`
+     *   - Use case: Find AoE spells by shape
+     * - `aoe_size` (int): Primary dimension of area in feet
+     *   - Examples: `aoe_size >= 20`, `aoe_size = 15`
+     *   - Use case: Find large AoE spells
      *
      * **Array Fields** (Operators: `IN`, `NOT IN`, `IS EMPTY`):
      * - `class_slugs` (array): Class slugs that can learn this spell
@@ -76,6 +90,11 @@ class SpellController extends Controller
      * - Array membership: `?filter=damage_types IN [F, C] AND level > 0`
      * - Empty arrays: `?filter=damage_types IS EMPTY` (utility spells with no damage)
      * - Subtle Spell candidates: `?filter=requires_verbal = false AND requires_somatic = false`
+     * - Expensive spells: `?filter=material_cost_gp >= 100`
+     * - Consumed materials: `?filter=material_consumed = true AND material_cost_gp >= 50`
+     * - Fireball-style spells: `?filter=aoe_type = sphere AND aoe_size >= 20`
+     * - All cone spells: `?filter=aoe_type = cone`
+     * - Large AoE spells: `?filter=aoe_size >= 30`
      *
      * **Operator Reference:**
      * See `docs/MEILISEARCH-FILTER-OPERATORS.md` for comprehensive operator documentation.
@@ -93,7 +112,7 @@ class SpellController extends Controller
      * @param  Client  $meilisearch  Meilisearch client for advanced filtering
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'level >= 3 AND class_slugs IN [wizard]')]
+    #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Filterable fields include: id, level, school_code, school_name, concentration, ritual, requires_verbal, requires_somatic, requires_material, class_slugs, tag_slugs, source_codes, damage_types, saving_throws, effect_types, material_cost_gp, material_consumed, aoe_type, aoe_size. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'aoe_type = sphere AND aoe_size >= 20')]
     public function index(SpellIndexRequest $request, SpellSearchService $service, Client $meilisearch)
     {
         $dto = SpellSearchDTO::fromRequest($request);

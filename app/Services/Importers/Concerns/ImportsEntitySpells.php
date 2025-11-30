@@ -89,8 +89,6 @@ trait ImportsEntitySpells
             'is_choice' => false,
             'is_cantrip' => $spellData['pivot_data']['is_cantrip'] ?? false,
             'usage_limit' => $spellData['pivot_data']['usage_limit'] ?? null,
-            'created_at' => now(),
-            'updated_at' => now(),
         ]);
     }
 
@@ -137,8 +135,6 @@ trait ImportsEntitySpells
                     'school_id' => $school->id,
                     'class_id' => $classId,
                     'is_ritual_only' => $choiceData['is_ritual_only'] ?? false,
-                    'created_at' => now(),
-                    'updated_at' => now(),
                 ]);
             }
         } else {
@@ -154,8 +150,6 @@ trait ImportsEntitySpells
                 'school_id' => null,
                 'class_id' => $classId,
                 'is_ritual_only' => $choiceData['is_ritual_only'] ?? false,
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
         }
     }

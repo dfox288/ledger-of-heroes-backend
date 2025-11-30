@@ -41,6 +41,8 @@ final class FeatSearchService
         'tags',
         'spells.spell',
         'spells.abilityScore',
+        'spells.school',
+        'spells.characterClass',
     ];
 
     /**

@@ -20,12 +20,16 @@ class Race extends BaseModel
         'name',
         'size_id',
         'speed',
+        'fly_speed',
+        'swim_speed',
         'parent_race_id',
     ];
 
     protected $casts = [
         'size_id' => 'integer',
         'speed' => 'integer',
+        'fly_speed' => 'integer',
+        'swim_speed' => 'integer',
         'parent_race_id' => 'integer',
     ];
 

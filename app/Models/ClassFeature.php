@@ -113,6 +113,36 @@ class ClassFeature extends BaseModel
         return $this->parent_feature_id !== null;
     }
 
+    /**
+     * Check if spells from this feature are always prepared.
+     *
+     * D&D Context:
+     * - Cleric domain spells: Always prepared, don't count against limit
+     * - Druid circle spells: Always prepared, don't count against limit
+     * - Paladin oath spells: Always prepared, don't count against limit
+     * - Warlock expanded spells: Added to spell list options, NOT auto-prepared
+     *
+     * Determined by the base class (parent of subclass).
+     */
+    public function getIsAlwaysPreparedAttribute(): bool
+    {
+        // Get the base class name (parent of subclass, or self if base class)
+        $class = $this->characterClass;
+        if (! $class) {
+            return false;
+        }
+
+        // If this is a subclass, get the parent class name
+        $baseClassName = $class->parent_class_id !== null && $class->parentClass
+            ? strtolower($class->parentClass->name)
+            : strtolower($class->name);
+
+        // These classes have "always prepared" subclass spells
+        $alwaysPreparedClasses = ['cleric', 'druid', 'paladin'];
+
+        return in_array($baseClassName, $alwaysPreparedClasses);
+    }
+
     // Helper Methods
 
     /**

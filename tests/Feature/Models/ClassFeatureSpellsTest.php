@@ -59,4 +59,64 @@ class ClassFeatureSpellsTest extends TestCase
         $loadedSpell = $feature->spells()->first();
         $this->assertEquals(3, $loadedSpell->pivot->level_requirement);
     }
+
+    #[Test]
+    public function cleric_domain_spells_are_always_prepared(): void
+    {
+        $cleric = CharacterClass::factory()->create(['name' => 'Cleric']);
+        $lifeDomain = CharacterClass::factory()->create([
+            'name' => 'Life Domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+        $feature = ClassFeature::factory()->create([
+            'class_id' => $lifeDomain->id,
+            'feature_name' => 'Divine Domain: Life Domain',
+        ]);
+
+        $this->assertTrue($feature->is_always_prepared);
+    }
+
+    #[Test]
+    public function druid_circle_spells_are_always_prepared(): void
+    {
+        $druid = CharacterClass::factory()->create(['name' => 'Druid']);
+        $arcticCircle = CharacterClass::factory()->create([
+            'name' => 'Circle of the Land (Arctic)',
+            'parent_class_id' => $druid->id,
+        ]);
+        $feature = ClassFeature::factory()->create([
+            'class_id' => $arcticCircle->id,
+            'feature_name' => 'Circle Spells (Circle of the Land)',
+        ]);
+
+        $this->assertTrue($feature->is_always_prepared);
+    }
+
+    #[Test]
+    public function warlock_expanded_spells_are_not_always_prepared(): void
+    {
+        $warlock = CharacterClass::factory()->create(['name' => 'Warlock']);
+        $fiend = CharacterClass::factory()->create([
+            'name' => 'The Fiend',
+            'parent_class_id' => $warlock->id,
+        ]);
+        $feature = ClassFeature::factory()->create([
+            'class_id' => $fiend->id,
+            'feature_name' => 'Expanded Spell List (The Fiend)',
+        ]);
+
+        $this->assertFalse($feature->is_always_prepared);
+    }
+
+    #[Test]
+    public function base_class_features_are_not_always_prepared(): void
+    {
+        $fighter = CharacterClass::factory()->create(['name' => 'Fighter']);
+        $feature = ClassFeature::factory()->create([
+            'class_id' => $fighter->id,
+            'feature_name' => 'Second Wind',
+        ]);
+
+        $this->assertFalse($feature->is_always_prepared);
+    }
 }

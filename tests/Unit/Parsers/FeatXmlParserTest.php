@@ -713,4 +713,39 @@ XML;
         $this->assertEquals(1, $spellChoice['choice_count']);
         $this->assertEquals('bard', strtolower($spellChoice['class_name']));
     }
+
+    #[Test]
+    public function it_parses_ritual_constrained_spell_choices()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Ritual Caster (Bard)</name>
+        <prerequisite>Intelligence or Wisdom 13 or higher</prerequisite>
+        <text>You have learned a number of spells that you can cast as rituals. These spells are written in a ritual book, which you must have in hand while casting one of them.
+	When you choose this feat, you acquire a ritual book holding two 1st-level bard spells of your choice. The spells you choose must have the ritual tag. Charisma is your spellcasting ability for these spells.
+	If you come across a spell in written form, such as a magical spell scroll or a wizard's spellbook, you might be able to add it to your ritual book. The spell must be on the bard spell list, the spell's level can be no higher than half your level (rounded up), and it must have the ritual tag. The process of copying the spell into your ritual book takes 2 hours per level of the spell, and costs 50 gp per level. The cost represents material components you expend as you experiment with the spell to master it, as well as the fine inks you need to record it.
+
+Source:	Player's Handbook (2014) p. 169</text>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('spells', $feats[0]);
+
+        $spells = $feats[0]['spells'];
+        $choiceSpells = array_filter($spells, fn($s) => isset($s['is_choice']) && $s['is_choice'] === true);
+        $this->assertNotEmpty($choiceSpells);
+
+        $choice = array_values($choiceSpells)[0];
+        $this->assertTrue($choice['is_choice']);
+        $this->assertEquals(2, $choice['choice_count']);
+        $this->assertEquals(1, $choice['max_level']);
+        $this->assertEquals('bard', strtolower($choice['class_name']));
+        $this->assertTrue($choice['is_ritual_only']);
+    }
 }

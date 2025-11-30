@@ -62,4 +62,65 @@ class RaceSearchableTest extends TestCase
         $race = new Race;
         $this->assertEquals('test_races', $race->searchableAs());
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_indexes_darkvision_fields_in_searchable_array(): void
+    {
+        $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
+        $sense = \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
+
+        $race = Race::factory()->create(['size_id' => $size->id]);
+
+        \App\Models\EntitySense::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'sense_id' => $sense->id,
+            'range_feet' => 60,
+            'is_limited' => false,
+        ]);
+
+        $race->refresh();
+        $searchable = $race->toSearchableArray();
+
+        $this->assertTrue($searchable['has_darkvision']);
+        $this->assertEquals(60, $searchable['darkvision_range']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_indexes_speed_fields_in_searchable_array(): void
+    {
+        $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
+
+        $race = Race::factory()->create([
+            'size_id' => $size->id,
+            'fly_speed' => 50,
+            'swim_speed' => 30,
+        ]);
+
+        $searchable = $race->toSearchableArray();
+
+        $this->assertEquals(50, $searchable['fly_speed']);
+        $this->assertEquals(30, $searchable['swim_speed']);
+        $this->assertTrue($searchable['has_fly_speed']);
+        $this->assertTrue($searchable['has_swim_speed']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_indexes_false_for_missing_speeds(): void
+    {
+        $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
+
+        $race = Race::factory()->create([
+            'size_id' => $size->id,
+            'fly_speed' => null,
+            'swim_speed' => null,
+        ]);
+
+        $searchable = $race->toSearchableArray();
+
+        $this->assertNull($searchable['fly_speed']);
+        $this->assertNull($searchable['swim_speed']);
+        $this->assertFalse($searchable['has_fly_speed']);
+        $this->assertFalse($searchable['has_swim_speed']);
+    }
 }

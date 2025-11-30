@@ -136,7 +136,7 @@ class Race extends BaseModel
     public function toSearchableArray(): array
     {
         // Load relationships if not already loaded
-        $this->loadMissing(['tags', 'spells.spell', 'modifiers.abilityScore']);
+        $this->loadMissing(['tags', 'spells.spell', 'modifiers.abilityScore', 'senses.sense']);
 
         // Extract ability score bonuses from modifiers
         $abilityBonuses = $this->modifiers->where('modifier_category', 'ability_score');
@@ -148,6 +148,11 @@ class Race extends BaseModel
             'size_name' => $this->size?->name,
             'size_code' => $this->size?->code,
             'speed' => $this->speed,
+            // Alternate movement speeds
+            'fly_speed' => $this->fly_speed,
+            'swim_speed' => $this->swim_speed,
+            'has_fly_speed' => $this->fly_speed !== null,
+            'has_swim_speed' => $this->swim_speed !== null,
             'sources' => $this->sources->pluck('source.name')->unique()->values()->all(),
             'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
             'is_subrace' => $this->parent_race_id !== null,
@@ -164,12 +169,15 @@ class Race extends BaseModel
             'ability_int_bonus' => (int) ($abilityBonuses->firstWhere('abilityScore.code', 'INT')?->value ?? 0),
             'ability_wis_bonus' => (int) ($abilityBonuses->firstWhere('abilityScore.code', 'WIS')?->value ?? 0),
             'ability_cha_bonus' => (int) ($abilityBonuses->firstWhere('abilityScore.code', 'CHA')?->value ?? 0),
+            // Senses (darkvision range for filtering)
+            'has_darkvision' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'darkvision'),
+            'darkvision_range' => $this->senses->firstWhere(fn ($s) => $s->sense?->slug === 'darkvision')?->range_feet,
         ];
     }
 
     public function searchableWith(): array
     {
-        return ['size', 'sources.source', 'parent', 'tags', 'spells.spell', 'modifiers.abilityScore'];
+        return ['size', 'sources.source', 'parent', 'tags', 'spells.spell', 'modifiers.abilityScore', 'senses.sense'];
     }
 
     public function searchableAs(): string

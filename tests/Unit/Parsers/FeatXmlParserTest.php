@@ -670,4 +670,47 @@ XML;
         $this->assertContains('illusion', $choice['schools']);
         $this->assertContains('necromancy', $choice['schools']);
     }
+
+    #[Test]
+    public function it_parses_class_constrained_spell_choices()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Magic Initiate (Bard)</name>
+        <text>You learn two bard cantrips of your choice.
+	In addition, choose one 1st-level bard spell. You learn that spell and can cast it at its lowest level. Once you cast it, you must finish a long rest before you can cast it again using this feat.
+	Your spellcasting ability for these spells is Charisma.
+
+Source:	Player's Handbook (2014) p. 168</text>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('spells', $feats[0]);
+
+        $spells = $feats[0]['spells'];
+        $choiceSpells = array_filter($spells, fn($s) => isset($s['is_choice']) && $s['is_choice'] === true);
+        $this->assertCount(2, $choiceSpells); // cantrips + 1st-level spell
+
+        $choiceSpells = array_values($choiceSpells);
+
+        // First choice: 2 cantrips
+        $cantripsChoice = array_filter($choiceSpells, fn($s) => $s['max_level'] === 0);
+        $this->assertNotEmpty($cantripsChoice);
+        $cantripsChoice = array_values($cantripsChoice)[0];
+        $this->assertEquals(2, $cantripsChoice['choice_count']);
+        $this->assertEquals('bard', strtolower($cantripsChoice['class_name']));
+
+        // Second choice: 1 first-level spell
+        $spellChoice = array_filter($choiceSpells, fn($s) => $s['max_level'] === 1);
+        $this->assertNotEmpty($spellChoice);
+        $spellChoice = array_values($spellChoice)[0];
+        $this->assertEquals(1, $spellChoice['choice_count']);
+        $this->assertEquals('bard', strtolower($spellChoice['class_name']));
+    }
 }

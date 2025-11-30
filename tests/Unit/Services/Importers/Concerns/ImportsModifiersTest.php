@@ -222,4 +222,29 @@ class ImportsModifiersTest extends TestCase
         $this->assertEquals('5', $investigationMod->value);
         $this->assertEquals($investigation->id, $investigationMod->skill_id);
     }
+
+    #[Test]
+    public function it_imports_skill_advantage_modifier()
+    {
+        $race = Race::factory()->create();
+        $deception = Skill::where('name', 'Deception')->first();
+
+        $modifiersData = [
+            [
+                'modifier_category' => 'skill_advantage',
+                'value' => 'advantage',
+                'skill_name' => 'Deception',
+                'condition' => 'when trying to pass yourself off as a different person',
+            ],
+        ];
+
+        $this->importEntityModifiers($race, $modifiersData);
+
+        $modifier = $race->modifiers->first();
+        $this->assertNotNull($modifier);
+        $this->assertEquals('skill_advantage', $modifier->modifier_category);
+        $this->assertEquals('advantage', $modifier->value);
+        $this->assertEquals($deception->id, $modifier->skill_id);
+        $this->assertEquals('when trying to pass yourself off as a different person', $modifier->condition);
+    }
 }

@@ -355,7 +355,7 @@ XML;
     }
 
     #[Test]
-    public function it_parses_advantage_on_skill_checks()
+    public function it_parses_skill_based_advantages_as_modifiers_not_conditions()
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -364,9 +364,14 @@ XML;
         <name>Actor</name>
         <text>Skilled at mimicry and dramatics, you gain the following benefits:
 
+	• Increase your Charisma score by 1, to a maximum of 20.
+
 	• You have advantage on Charisma (Deception) and Charisma (Performance) checks when trying to pass yourself off as a different person.
 
+	• You can mimic the speech of another person or the sounds made by other creatures. You must have heard the person speaking, or heard the creature make the sound, for at least 1 minute. A successful Wisdom (Insight) check contested by your Charisma (Deception) check allows a listener to determine that the effect is faked.
+
 Source:	Player's Handbook (2014) p. 165</text>
+        <modifier category="ability score">charisma +1</modifier>
     </feat>
 </compendium>
 XML;
@@ -374,12 +379,35 @@ XML;
         $feats = $this->parser->parse($xml);
 
         $this->assertCount(1, $feats);
-        $this->assertArrayHasKey('conditions', $feats[0]);
-        $this->assertGreaterThanOrEqual(1, count($feats[0]['conditions']));
 
-        $condition = $feats[0]['conditions'][0];
-        $this->assertEquals('advantage', $condition['effect_type']);
-        $this->assertStringContainsString('Deception', $condition['description']);
+        // Skill-based advantages should be in modifiers, not conditions
+        $conditions = $feats[0]['conditions'];
+        $modifiers = $feats[0]['modifiers'];
+
+        // Should NOT have the skill advantage in conditions
+        $skillAdvantageConditions = array_filter($conditions, fn ($c) => str_contains(strtolower($c['description'] ?? ''), 'deception')
+        );
+        $this->assertEmpty($skillAdvantageConditions, 'Skill-based advantages should not be in conditions');
+
+        // Should have skill advantages in modifiers
+        $skillAdvantageModifiers = array_filter($modifiers, fn ($m) => ($m['modifier_category'] ?? '') === 'skill_advantage'
+        );
+        $this->assertCount(2, $skillAdvantageModifiers);
+
+        $skillAdvantageModifiers = array_values($skillAdvantageModifiers);
+
+        // Check Deception modifier
+        $deceptionMod = array_filter($skillAdvantageModifiers, fn ($m) => ($m['skill_name'] ?? '') === 'Deception');
+        $this->assertNotEmpty($deceptionMod);
+        $deceptionMod = array_values($deceptionMod)[0];
+        $this->assertEquals('advantage', $deceptionMod['value']);
+        $this->assertStringContainsString('pass yourself off', $deceptionMod['condition']);
+
+        // Check Performance modifier
+        $performanceMod = array_filter($skillAdvantageModifiers, fn ($m) => ($m['skill_name'] ?? '') === 'Performance');
+        $this->assertNotEmpty($performanceMod);
+        $performanceMod = array_values($performanceMod)[0];
+        $this->assertEquals('advantage', $performanceMod['value']);
     }
 
     #[Test]

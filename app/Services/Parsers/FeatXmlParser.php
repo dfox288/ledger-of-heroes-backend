@@ -67,12 +67,15 @@ class FeatXmlParser
             return $mod['modifier_category'] !== 'passive';
         });
 
+        // Parse skill-based advantages from description text
+        $skillAdvantageModifiers = $this->parseSkillAdvantages($description);
+
         return [
             'name' => (string) $element->name,
             'prerequisites' => isset($element->prerequisite) ? (string) $element->prerequisite : null,
             'description' => trim($description),
             'sources' => $sources,
-            'modifiers' => array_merge(array_values($modifiersFromXml), $passiveScoreModifiers),
+            'modifiers' => array_merge(array_values($modifiersFromXml), $passiveScoreModifiers, $skillAdvantageModifiers),
             'proficiencies' => array_merge($proficienciesFromXml, $proficienciesFromText),
             'conditions' => $this->parseConditions($description),
             'spells' => $this->parseSpells($description),
@@ -182,6 +185,9 @@ class FeatXmlParser
     /**
      * Parse advantage/disadvantage conditions from feat description text.
      *
+     * NOTE: Skill-based advantages like "advantage on Charisma (Deception) checks"
+     * are handled by parseSkillAdvantages() and routed to modifiers instead.
+     *
      * @return array<int, array<string, mixed>>
      */
     private function parseConditions(string $text): array
@@ -191,6 +197,12 @@ class FeatXmlParser
         // Pattern for "You have advantage on..."
         if (preg_match_all('/you have advantage on ([^.]+)/i', $text, $matches)) {
             foreach ($matches[1] as $match) {
+                // Skip skill-based advantages - handled separately by parseSkillAdvantages()
+                // Pattern: "Ability (Skill) checks" or "Ability (Skill) and Ability (Skill) checks"
+                if (preg_match('/^[A-Z][a-z]+\s*\([^)]+\)(?:\s+and\s+[A-Z][a-z]+\s*\([^)]+\))?\s+checks?\s/i', $match)) {
+                    continue;
+                }
+
                 $conditions[] = [
                     'effect_type' => 'advantage',
                     'description' => trim($match),
@@ -211,6 +223,11 @@ class FeatXmlParser
         // Pattern for "you have disadvantage on..." (less common but possible)
         if (preg_match_all('/you have disadvantage on ([^.]+)/i', $text, $matches)) {
             foreach ($matches[1] as $match) {
+                // Skip skill-based disadvantages
+                if (preg_match('/^[A-Z][a-z]+\s*\([^)]+\)(?:\s+and\s+[A-Z][a-z]+\s*\([^)]+\))?\s+checks?\s/i', $match)) {
+                    continue;
+                }
+
                 $conditions[] = [
                     'effect_type' => 'disadvantage',
                     'description' => trim($match),
@@ -219,6 +236,55 @@ class FeatXmlParser
         }
 
         return $conditions;
+    }
+
+    /**
+     * Parse skill-based advantages from description text.
+     *
+     * Detects patterns like:
+     * - "advantage on Charisma (Deception) and Charisma (Performance) checks when..."
+     * - "advantage on Wisdom (Perception) checks while..."
+     *
+     * These are routed to modifiers (not conditions) because they're skill check
+     * modifiers, not D&D Condition interactions.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function parseSkillAdvantages(string $text): array
+    {
+        $modifiers = [];
+
+        // Pattern: "advantage on Ability (Skill) checks" with optional second skill and condition
+        // Captures: skill names in parentheses, and the conditional text after "when/while"
+        $pattern = '/advantage on\s+(?:[A-Z][a-z]+)\s*\(([^)]+)\)(?:\s+and\s+(?:[A-Z][a-z]+)\s*\(([^)]+)\))?\s+checks?\s*(?:(when|while)\s+(.+?))?(?:\.|$)/i';
+
+        if (preg_match($pattern, $text, $match)) {
+            $skills = [];
+
+            // First skill
+            if (! empty($match[1])) {
+                $skills[] = trim($match[1]);
+            }
+
+            // Second skill (if "and" pattern)
+            if (! empty($match[2])) {
+                $skills[] = trim($match[2]);
+            }
+
+            // Condition text (after "when" or "while")
+            $conditionText = ! empty($match[4]) ? trim($match[4]) : null;
+
+            foreach ($skills as $skillName) {
+                $modifiers[] = [
+                    'modifier_category' => 'skill_advantage',
+                    'skill_name' => $skillName,
+                    'value' => 'advantage',  // Type of check modifier (advantage/disadvantage)
+                    'condition' => $conditionText,
+                ];
+            }
+        }
+
+        return $modifiers;
     }
 
     /**

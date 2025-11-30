@@ -10,10 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Feat `grants_spells` filterable attribute** (Issue #71)
-  - Added `grants_spells` boolean to Feat model's `toSearchableArray()`
-  - Added to Meilisearch filterableAttributes for search filtering
-  - Enables filtering feats that grant spells (Magic Initiate, Fey Touched, etc.)
-  - Example: `GET /api/v1/feats?filter=grants_spells=true`
+
+### Changed
+
+- **Skill-based advantages now stored in entity_modifiers instead of entity_conditions** (Issue #70)
+  - Parser detects "advantage on Ability (Skill) checks" patterns (e.g., Actor's Deception/Performance)
+  - Creates `skill_advantage` modifiers with `skill_name`, `value='advantage'`, and `condition` text
+  - `parseConditions()` skips skill-based patterns, routing them to new `parseSkillAdvantages()` method
+  - `entity_conditions` table now reserved for D&D Condition interactions (Blinded, Charmed, etc.)
+  - Actor feat correctly shows skill advantages for Deception and Performance
 
 - **Passive score modifier parsing from description text** (Issue #69)
   - FeatXmlParser extracts "+N bonus to your passive Ability (Skill)" patterns

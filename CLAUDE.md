@@ -47,6 +47,8 @@ gh issue create --repo dfox288/dnd-rulebook-project \
 
 ### Close When Fixed
 
+Issues close automatically when PR merges if the PR body contains `Closes #N`. For manual closure:
+
 ```bash
 gh issue close 42 --repo dfox288/dnd-rulebook-project --comment "Fixed in PR #123"
 ```
@@ -70,16 +72,32 @@ gh issue close 42 --repo dfox288/dnd-rulebook-project --comment "Fixed in PR #12
 
 ```
 1. Check Laravel skills     → Use Superpower skills if applicable
-2. Check GitHub Issues      → /issue:inbox for assigned tasks
-3. Write tests FIRST        → Watch them fail (TDD mandatory)
-4. Write minimal code       → Make tests pass
-5. Refactor while green     → Clean up
-6. Run test suite           → Smallest relevant suite
-7. Format with Pint         → docker compose exec php ./vendor/bin/pint
-8. Update CHANGELOG.md      → Under [Unreleased]
-9. Commit + Push            → Clear message, push to remote
-10. Close GitHub Issue      → /issue:close N with resolution comment
+2. Check GitHub Issues      → gh issue list for assigned tasks
+3. Create feature branch    → git checkout -b feature/issue-N-short-description
+4. Write tests FIRST        → Watch them fail (TDD mandatory)
+5. Write minimal code       → Make tests pass
+6. Refactor while green     → Clean up
+7. Run test suite           → Smallest relevant suite
+8. Format with Pint         → docker compose exec php ./vendor/bin/pint
+9. Update CHANGELOG.md      → Under [Unreleased]
+10. Commit + Push           → Clear message, push to feature branch
+11. Create PR               → gh pr create with issue reference
+12. Close GitHub Issue      → Closes automatically via PR merge (or manual close)
 ```
+
+### Branch Naming Convention
+
+```bash
+# Format: feature/issue-{number}-{short-description}
+git checkout -b feature/issue-42-entity-spells-relationship
+git checkout -b fix/issue-99-filter-syntax-error
+git checkout -b chore/issue-13-api-documentation
+```
+
+**Prefixes:**
+- `feature/` - New functionality
+- `fix/` - Bug fixes
+- `chore/` - Maintenance, docs, refactoring
 
 ### For API Changes (Additional)
 - Update Form Requests validation
@@ -285,15 +303,23 @@ tests/
 
 ## Git Workflow
 
-**No worktrees** - work directly on main or feature branches.
+**Feature branches required** - never commit directly to main.
 
 ```bash
+# Branch naming
+git checkout -b feature/issue-42-entity-spells
+git checkout -b fix/issue-99-filter-bug
+git checkout -b chore/issue-13-docs-update
+
 # Commit convention
 feat|fix|refactor|test|docs|perf: description
 
-# Always include
+# Always include in commit message
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 Co-Authored-By: Claude <noreply@anthropic.com>
+
+# Create PR when ready
+gh pr create --title "feat: Add feature" --body "Closes #42"
 ```
 
 ---
@@ -320,15 +346,16 @@ Run `/organize-docs` to archive old handovers.
 
 ## Success Checklist
 
-Before marking ANY work complete:
+Before creating a PR:
 
+- [ ] Working on feature branch (`feature/issue-N-*`)
 - [ ] Tests written FIRST (TDD mandate)
 - [ ] All tests pass (relevant suite)
 - [ ] Full suite passes (pre-commit)
 - [ ] Code formatted with Pint
 - [ ] CHANGELOG.md updated
-- [ ] Work committed and pushed
-- [ ] GitHub Issue closed with resolution comment
+- [ ] Commits pushed to feature branch
+- [ ] **PR created with issue reference** (`Closes #N`)
 
 **For API changes:**
 - [ ] Form Requests validate new parameters
@@ -351,4 +378,4 @@ Before marking ANY work complete:
 
 ---
 
-**Branch:** `main` | **Status:** See `docs/PROJECT-STATUS.md`
+**Default Branch:** `main` | **Workflow:** Feature branches → PR → Merge | **Status:** See `docs/PROJECT-STATUS.md`

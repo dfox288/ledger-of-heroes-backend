@@ -11,6 +11,13 @@ use Illuminate\Support\Collection;
  *
  * Takes a collection of EntitySpell models that share the same choice_group
  * and presents them as a single grouped choice with constraints.
+ *
+ * @property string $choice_group Group identifier (e.g., "spell_choice_1")
+ * @property int $choice_count Number of spells to pick from this pool
+ * @property int $max_level Maximum spell level (0=cantrip, 1-9=spell level)
+ * @property bool $is_ritual_only Whether spells must have ritual tag
+ * @property SpellSchoolResource[] $allowed_schools Schools the spell can be from
+ * @property CharacterClassResource|null $allowed_class Class spell list to choose from
  */
 class SpellChoiceResource extends JsonResource
 {
@@ -41,10 +48,10 @@ class SpellChoiceResource extends JsonResource
         $first = $this->resource->first();
 
         return [
-            'choice_group' => $this->choiceGroup,
-            'choice_count' => $first->choice_count,
-            'max_level' => $first->max_level,
-            'is_ritual_only' => $first->is_ritual_only,
+            'choice_group' => (string) $this->choiceGroup,
+            'choice_count' => (int) $first->choice_count,
+            'max_level' => (int) $first->max_level,
+            'is_ritual_only' => (bool) $first->is_ritual_only,
             'allowed_schools' => $this->getAllowedSchools(),
             'allowed_class' => $this->getAllowedClass($first),
         ];
@@ -53,7 +60,7 @@ class SpellChoiceResource extends JsonResource
     /**
      * Get the allowed schools from the choice group.
      *
-     * @return array<int, array<string, mixed>>
+     * @return SpellSchoolResource[]
      */
     private function getAllowedSchools(): array
     {

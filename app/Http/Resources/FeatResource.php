@@ -35,6 +35,7 @@ class FeatResource extends JsonResource
             'spells' => EntitySpellResource::collection($this->whenLoaded('spells')),
 
             // Computed: grouped spell choices for easier frontend consumption
+            /** @var array<int, SpellChoiceResource>|null */
             'spell_choices' => $this->when(
                 $this->relationLoaded('spells'),
                 fn () => $this->getGroupedSpellChoices()

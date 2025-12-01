@@ -290,6 +290,50 @@ class CharacterAbilityScoreMethodTest extends TestCase
     // =====================
 
     #[Test]
+    public function it_rejects_switching_to_point_buy_without_providing_scores(): void
+    {
+        $character = Character::factory()->create([
+            'ability_score_method' => AbilityScoreMethod::Manual,
+            'strength' => 18, // Outside point buy range
+            'dexterity' => 16,
+            'constitution' => 14,
+            'intelligence' => 12,
+            'wisdom' => 10,
+            'charisma' => 8,
+        ]);
+
+        // Try to switch to point_buy without providing new scores
+        $response = $this->patchJson("/api/v1/characters/{$character->id}", [
+            'ability_score_method' => 'point_buy',
+        ]);
+
+        // Should fail because all 6 scores are required for point_buy
+        $response->assertUnprocessable();
+    }
+
+    #[Test]
+    public function it_rejects_switching_to_standard_array_without_providing_scores(): void
+    {
+        $character = Character::factory()->create([
+            'ability_score_method' => AbilityScoreMethod::Manual,
+            'strength' => 18,
+            'dexterity' => 16,
+            'constitution' => 14,
+            'intelligence' => 12,
+            'wisdom' => 10,
+            'charisma' => 8,
+        ]);
+
+        // Try to switch to standard_array without providing new scores
+        $response = $this->patchJson("/api/v1/characters/{$character->id}", [
+            'ability_score_method' => 'standard_array',
+        ]);
+
+        // Should fail because all 6 scores are required for standard_array
+        $response->assertUnprocessable();
+    }
+
+    #[Test]
     public function it_allows_switching_from_point_buy_to_manual(): void
     {
         $character = Character::factory()->create([

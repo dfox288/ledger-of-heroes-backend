@@ -214,12 +214,13 @@ class AbilityScoreValidatorServiceTest extends TestCase
     #[Test]
     public function it_returns_error_messages_for_invalid_point_buy(): void
     {
-        // Over budget
+        // Over budget: 9+9+9+2+0+0 = 29 points
         $scores = ['STR' => 15, 'DEX' => 15, 'CON' => 15, 'INT' => 10, 'WIS' => 8, 'CHA' => 8];
         $errors = $this->service->getPointBuyErrors($scores);
 
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('29', $errors[0]); // Should mention the total
+        $this->assertStringContainsString('29', $errors[0]); // Should mention total used
+        $this->assertStringContainsString('over by 2', $errors[0]); // Should mention difference
     }
 
     #[Test]

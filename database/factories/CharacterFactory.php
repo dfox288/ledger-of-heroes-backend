@@ -153,4 +153,38 @@ class CharacterFactory extends Factory
             'armor_class' => $ac,
         ]);
     }
+
+    /**
+     * Create character with valid point buy scores.
+     * Uses standard allocation: 15, 14, 13, 12, 10, 8 (exactly 27 points).
+     */
+    public function withPointBuy(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'ability_score_method' => AbilityScoreMethod::PointBuy,
+            'strength' => 15,
+            'dexterity' => 14,
+            'constitution' => 13,
+            'intelligence' => 12,
+            'wisdom' => 10,
+            'charisma' => 8,
+        ]);
+    }
+
+    /**
+     * Create character with standard array scores.
+     * Uses: 15, 14, 13, 12, 10, 8 assigned in order.
+     */
+    public function withStandardArray(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'ability_score_method' => AbilityScoreMethod::StandardArray,
+            'strength' => 15,
+            'dexterity' => 14,
+            'constitution' => 13,
+            'intelligence' => 12,
+            'wisdom' => 10,
+            'charisma' => 8,
+        ]);
+    }
 }

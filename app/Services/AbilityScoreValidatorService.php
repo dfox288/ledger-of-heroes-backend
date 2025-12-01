@@ -160,7 +160,9 @@ class AbilityScoreValidatorService
         try {
             $total = $this->calculateTotalCost($scores);
             if ($total !== self::POINT_BUY_BUDGET) {
-                $errors[] = "Point buy total is {$total}, must be exactly ".self::POINT_BUY_BUDGET.'.';
+                $difference = $total - self::POINT_BUY_BUDGET;
+                $direction = $difference > 0 ? 'over' : 'under';
+                $errors[] = "Point buy uses {$total} points ({$direction} by ".abs($difference).'). Must use exactly '.self::POINT_BUY_BUDGET.' points.';
             }
         } catch (InvalidArgumentException $e) {
             $errors[] = $e->getMessage();

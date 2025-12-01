@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Character Equipment System** (Issue #90)
+  - Add/remove items from character inventory with quantity stacking
+  - Equip/unequip armor, shields, and weapons
+  - Automatic AC calculation from equipped items using D&D 5e rules:
+    - Light armor: Base AC + full DEX modifier
+    - Medium armor: Base AC + DEX modifier (max +2)
+    - Heavy armor: Base AC only (no DEX bonus)
+    - Shield: +2 AC bonus (stacks with armor)
+  - Single armor / single shield constraint enforced (auto-unequips previous)
+  - `EquipmentManagerService` for inventory and equipment logic
+  - `CharacterStatCalculator::calculateArmorClass()` computes AC from equipped items
+  - API endpoints: `GET/POST/PATCH/DELETE /api/v1/characters/{id}/equipment`
+  - `CharacterResource` now includes equipped items summary
+  - Uses item type codes (LA/MA/HA/S) instead of hardcoded IDs for stability
+  - 8 unit tests for AC calculation, 13 unit tests for equipment service, 12 feature tests for API
+
 - **Ability Score Methods for Character Builder** (Issue #87)
   - Point Buy method: 27 points to spend on scores 8-15 (PHB cost table)
   - Standard Array method: assign [15, 14, 13, 12, 10, 8] to abilities

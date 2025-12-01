@@ -2,8 +2,21 @@
 
 namespace App\Services;
 
+use App\Models\Character;
+
 class CharacterStatCalculator
 {
+    /**
+     * Item type IDs for armor categories.
+     */
+    private const LIGHT_ARMOR = 4;
+
+    private const MEDIUM_ARMOR = 5;
+
+    private const HEAVY_ARMOR = 6;
+
+    private const SHIELD = 7;
+
     /**
      * Full caster spell slot progression table (levels 1-20).
      * Used by: Wizard, Cleric, Druid, Sorcerer, Bard
@@ -209,6 +222,46 @@ class CharacterStatCalculator
         }
 
         return $armorBaseAC + $dexBonus + $shieldBonus + $otherBonuses;
+    }
+
+    /**
+     * Calculate armor class from a Character's equipped items.
+     *
+     * This method looks up the character's equipped armor and shield,
+     * then delegates to calculateAC with the appropriate values.
+     */
+    public function calculateArmorClass(Character $character): int
+    {
+        $dexMod = $this->abilityModifier($character->dexterity ?? 10);
+
+        $equippedArmor = $character->equippedArmor();
+        $equippedShield = $character->equippedShield();
+
+        // Determine armor values
+        $armorBaseAC = null;
+        $armorMaxDex = null;
+
+        if ($equippedArmor !== null) {
+            $armor = $equippedArmor->item;
+            $armorBaseAC = $armor->armor_class ?? 10;
+            $armorType = $armor->item_type_id;
+
+            // Set max DEX based on armor type
+            $armorMaxDex = match ($armorType) {
+                self::LIGHT_ARMOR => null,       // No limit
+                self::MEDIUM_ARMOR => 2,         // Max +2
+                self::HEAVY_ARMOR => 0,          // No DEX bonus
+                default => null,
+            };
+        }
+
+        // Get shield bonus
+        $shieldBonus = 0;
+        if ($equippedShield !== null) {
+            $shieldBonus = $equippedShield->item->armor_class ?? 2;
+        }
+
+        return $this->calculateAC($dexMod, $armorBaseAC, $armorMaxDex, $shieldBonus, 0);
     }
 
     /**

@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Character Builder API - Phases 1, 2 & 3** (Issue #21)
+  - Database schema: 5 new tables (`characters`, `character_spells`, `character_proficiencies`, `character_features`, `character_equipment`)
+  - Models: `Character` with wizard-style creation (nullable fields), `CharacterSpell`, `CharacterProficiency`, `CharacterFeature`, `CharacterEquipment`
+  - `CharacterStatCalculator` service: D&D 5e stat calculations (ability modifiers, proficiency bonus, spell save DC, skill modifiers, HP, AC, spell slots, preparation limits)
+  - CRUD API: `GET/POST/PATCH/DELETE /api/v1/characters` with Form Request validation
+  - `CharacterResource`: computed stats (ability scores, modifiers, proficiency bonus), validation status for wizard-style creation
+  - **NEW** Spell Management API:
+    - `SpellManagerService`: learn, forget, prepare, unprepare spells with D&D 5e rule validation
+    - Endpoints: `GET/POST /characters/{id}/spells`, `DELETE/PATCH /characters/{id}/spells/{spell}`, `GET /characters/{id}/available-spells`, `GET /characters/{id}/spell-slots`
+    - Validates spell is on class spell list, spell level is accessible at character level
+    - Enforces preparation limits per class (Wizard: INT+level, Paladin: CHA+level/2, etc.)
+    - Handles always-prepared spells (domain spells cannot be unprepared), cantrips (cannot be prepared)
+  - **NEW** Stats Endpoint with Caching:
+    - `GET /api/v1/characters/{id}/stats`: Computed character statistics with 15-minute caching
+    - `CharacterStatsDTO`: Data transfer object for stats (ability scores, modifiers, spell save DC, spell slots, etc.)
+    - `CharacterUpdated` event and `InvalidateCharacterCache` listener for automatic cache invalidation
+  - 28 unit tests for stat calculator, 22 feature tests for CRUD API, 17 feature tests for spell management, 9 integration tests for creation flow
+
 ### Fixed
 
 - **ProgressionTableResource schema incorrect** (Issue #80)

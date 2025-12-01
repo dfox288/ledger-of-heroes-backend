@@ -13,6 +13,7 @@
             <directory>tests/Unit/Resources</directory>
             <directory>tests/Unit/Parsers</directory>
             <directory>tests/Unit/Services/Parsers</directory>
+            <file>tests/Unit/Services/CharacterStatCalculatorTest.php</file>
             <exclude>tests/Unit/Parsers/ClassXmlParserTest.php</exclude>
             <exclude>tests/Unit/Parsers/ClassXmlParserEquipmentTest.php</exclude>
             <exclude>tests/Unit/Parsers/FeatXmlParserPrerequisitesTest.php</exclude>
@@ -89,6 +90,9 @@
             <file>tests/Feature/Api/TagIntegrationTest.php</file>
             <file>tests/Feature/Api/SpellReverseRelationshipsApiTest.php</file>
             <file>tests/Feature/Api/ClassDetailOptimizationTest.php</file>
+            <file>tests/Feature/Api/CharacterControllerTest.php</file>
+            <file>tests/Feature/Api/CharacterSpellTest.php</file>
+            <file>tests/Feature/Api/CharacterCreationFlowTest.php</file>
         </testsuite>
 
         <!-- Feature-Search: Unified Meilisearch tests using fixture data (approx 120s) -->

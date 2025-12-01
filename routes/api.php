@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AlignmentController;
 use App\Http\Controllers\Api\ArmorTypeController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BackgroundController;
+use App\Http\Controllers\Api\CharacterController;
 use App\Http\Controllers\Api\ClassController;
 use App\Http\Controllers\Api\ConditionController;
 use App\Http\Controllers\Api\DamageTypeController;
@@ -196,4 +197,35 @@ Route::prefix('v1')->group(function () {
     // Optional Features
     Route::get('optional-features', [OptionalFeatureController::class, 'index'])->name('optional-features.index');
     Route::get('optional-features/{optionalFeature:slug}', [OptionalFeatureController::class, 'show'])->name('optional-features.show');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Character Builder API
+    |--------------------------------------------------------------------------
+    |
+    | Character creation and management endpoints for the D&D 5e Character Builder.
+    | Supports wizard-style creation where fields can be filled in any order.
+    |
+    */
+    Route::apiResource('characters', CharacterController::class);
+    Route::get('characters/{character}/stats', [CharacterController::class, 'stats'])
+        ->name('characters.stats');
+
+    // Character Spell Management
+    Route::prefix('characters/{character}')->name('characters.')->group(function () {
+        Route::get('spells', [\App\Http\Controllers\Api\CharacterSpellController::class, 'index'])
+            ->name('spells.index');
+        Route::get('available-spells', [\App\Http\Controllers\Api\CharacterSpellController::class, 'available'])
+            ->name('spells.available');
+        Route::post('spells', [\App\Http\Controllers\Api\CharacterSpellController::class, 'store'])
+            ->name('spells.store');
+        Route::delete('spells/{spell}', [\App\Http\Controllers\Api\CharacterSpellController::class, 'destroy'])
+            ->name('spells.destroy');
+        Route::patch('spells/{spell}/prepare', [\App\Http\Controllers\Api\CharacterSpellController::class, 'prepare'])
+            ->name('spells.prepare');
+        Route::patch('spells/{spell}/unprepare', [\App\Http\Controllers\Api\CharacterSpellController::class, 'unprepare'])
+            ->name('spells.unprepare');
+        Route::get('spell-slots', [\App\Http\Controllers\Api\CharacterSpellController::class, 'slots'])
+            ->name('spell-slots');
+    });
 });

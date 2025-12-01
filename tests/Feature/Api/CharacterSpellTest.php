@@ -1,0 +1,411 @@
+<?php
+
+namespace Tests\Feature\Api;
+
+use App\Models\Character;
+use App\Models\CharacterClass;
+use App\Models\CharacterSpell;
+use App\Models\Spell;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
+
+class CharacterSpellTest extends TestCase
+{
+    use RefreshDatabase;
+
+    // =====================
+    // List Character Spells Tests
+    // =====================
+
+    #[Test]
+    public function it_lists_spells_for_a_character(): void
+    {
+        $character = Character::factory()->create();
+        $spells = Spell::factory()->count(3)->create();
+
+        foreach ($spells as $spell) {
+            CharacterSpell::create([
+                'character_id' => $character->id,
+                'spell_id' => $spell->id,
+                'preparation_status' => 'known',
+                'source' => 'class',
+            ]);
+        }
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk()
+            ->assertJsonCount(3, 'data')
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => ['id', 'spell', 'preparation_status', 'source'],
+                ],
+            ]);
+    }
+
+    #[Test]
+    public function it_returns_empty_array_when_character_has_no_spells(): void
+    {
+        $character = Character::factory()->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    // =====================
+    // Available Spells Tests
+    // =====================
+
+    #[Test]
+    public function it_lists_available_spells_for_a_spellcaster(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()->withClass($wizardClass)->create();
+
+        // Create spells and attach to wizard class
+        $wizardSpells = Spell::factory()->count(3)->create(['level' => 1]);
+        $wizardClass->spells()->attach($wizardSpells->pluck('id'));
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-spells");
+
+        $response->assertOk()
+            ->assertJsonCount(3, 'data');
+    }
+
+    #[Test]
+    public function it_filters_available_spells_by_level(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()->withClass($wizardClass)->level(5)->create();
+
+        // Level 1 spells
+        $level1Spells = Spell::factory()->count(2)->create(['level' => 1]);
+        // Level 3 spells
+        $level3Spells = Spell::factory()->count(2)->create(['level' => 3]);
+        // Level 5 spells (too high for level 5 wizard to learn yet)
+        $level5Spells = Spell::factory()->count(2)->create(['level' => 5]);
+
+        $wizardClass->spells()->attach(
+            $level1Spells->pluck('id')
+                ->merge($level3Spells->pluck('id'))
+                ->merge($level5Spells->pluck('id'))
+        );
+
+        // A level 5 wizard can cast up to 3rd level spells
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-spells?max_level=3");
+
+        $response->assertOk()
+            ->assertJsonCount(4, 'data'); // Only level 1 and 3 spells
+    }
+
+    #[Test]
+    public function it_excludes_already_known_spells_from_available(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()->withClass($wizardClass)->create();
+
+        $spells = Spell::factory()->count(5)->create(['level' => 1]);
+        $wizardClass->spells()->attach($spells->pluck('id'));
+
+        // Character already knows 2 spells
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_id' => $spells[0]->id,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_id' => $spells[1]->id,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-spells");
+
+        $response->assertOk()
+            ->assertJsonCount(3, 'data'); // 5 total - 2 known = 3 available
+    }
+
+    // =====================
+    // Learn Spell Tests
+    // =====================
+
+    #[Test]
+    public function it_learns_a_spell_on_class_list(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()->withClass($wizardClass)->create();
+        $spell = Spell::factory()->create(['level' => 1]);
+        $wizardClass->spells()->attach($spell->id);
+
+        $response = $this->postJson("/api/v1/characters/{$character->id}/spells", [
+            'spell_id' => $spell->id,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.spell.id', $spell->id)
+            ->assertJsonPath('data.preparation_status', 'known');
+
+        $this->assertDatabaseHas('character_spells', [
+            'character_id' => $character->id,
+            'spell_id' => $spell->id,
+        ]);
+    }
+
+    #[Test]
+    public function it_rejects_learning_spell_not_on_class_list(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $clericClass = CharacterClass::factory()->spellcaster('WIS')->create(['name' => 'Cleric']);
+        $character = Character::factory()->withClass($wizardClass)->create();
+
+        // Create a cleric-only spell
+        $clericSpell = Spell::factory()->create(['name' => 'Cure Wounds', 'level' => 1]);
+        $clericClass->spells()->attach($clericSpell->id);
+
+        $response = $this->postJson("/api/v1/characters/{$character->id}/spells", [
+            'spell_id' => $clericSpell->id,
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['spell_id']);
+    }
+
+    #[Test]
+    public function it_rejects_learning_spell_too_high_level(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()->withClass($wizardClass)->level(1)->create();
+
+        // Level 5 spell - too high for level 1 wizard
+        $spell = Spell::factory()->create(['level' => 5]);
+        $wizardClass->spells()->attach($spell->id);
+
+        $response = $this->postJson("/api/v1/characters/{$character->id}/spells", [
+            'spell_id' => $spell->id,
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['spell_id']);
+    }
+
+    #[Test]
+    public function it_rejects_learning_already_known_spell(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()->withClass($wizardClass)->create();
+        $spell = Spell::factory()->create(['level' => 1]);
+        $wizardClass->spells()->attach($spell->id);
+
+        // Character already knows this spell
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_id' => $spell->id,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->postJson("/api/v1/characters/{$character->id}/spells", [
+            'spell_id' => $spell->id,
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['spell_id']);
+    }
+
+    // =====================
+    // Remove Spell Tests
+    // =====================
+
+    #[Test]
+    public function it_removes_a_learned_spell(): void
+    {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create();
+
+        $characterSpell = CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_id' => $spell->id,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->deleteJson("/api/v1/characters/{$character->id}/spells/{$spell->id}");
+
+        $response->assertNoContent();
+
+        $this->assertDatabaseMissing('character_spells', [
+            'character_id' => $character->id,
+            'spell_id' => $spell->id,
+        ]);
+    }
+
+    #[Test]
+    public function it_returns_404_when_removing_spell_not_known(): void
+    {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create();
+
+        $response = $this->deleteJson("/api/v1/characters/{$character->id}/spells/{$spell->id}");
+
+        $response->assertNotFound();
+    }
+
+    // =====================
+    // Prepare/Unprepare Spell Tests
+    // =====================
+
+    #[Test]
+    public function it_prepares_a_known_spell(): void
+    {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create(['level' => 1]);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_id' => $spell->id,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->patchJson("/api/v1/characters/{$character->id}/spells/{$spell->id}/prepare");
+
+        $response->assertOk()
+            ->assertJsonPath('data.preparation_status', 'prepared');
+
+        $this->assertDatabaseHas('character_spells', [
+            'character_id' => $character->id,
+            'spell_id' => $spell->id,
+            'preparation_status' => 'prepared',
+        ]);
+    }
+
+    #[Test]
+    public function it_unprepares_a_prepared_spell(): void
+    {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create(['level' => 1]);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_id' => $spell->id,
+            'preparation_status' => 'prepared',
+            'source' => 'class',
+        ]);
+
+        $response = $this->patchJson("/api/v1/characters/{$character->id}/spells/{$spell->id}/unprepare");
+
+        $response->assertOk()
+            ->assertJsonPath('data.preparation_status', 'known');
+
+        $this->assertDatabaseHas('character_spells', [
+            'character_id' => $character->id,
+            'spell_id' => $spell->id,
+            'preparation_status' => 'known',
+        ]);
+    }
+
+    #[Test]
+    public function it_cannot_unprepare_always_prepared_spell(): void
+    {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create(['level' => 1]);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_id' => $spell->id,
+            'preparation_status' => 'always_prepared',
+            'source' => 'class', // Always-prepared spells come from class features/domain
+        ]);
+
+        $response = $this->patchJson("/api/v1/characters/{$character->id}/spells/{$spell->id}/unprepare");
+
+        $response->assertUnprocessable();
+    }
+
+    #[Test]
+    public function it_cannot_prepare_cantrip(): void
+    {
+        $character = Character::factory()->create();
+        $cantrip = Spell::factory()->cantrip()->create();
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_id' => $cantrip->id,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->patchJson("/api/v1/characters/{$character->id}/spells/{$cantrip->id}/prepare");
+
+        $response->assertUnprocessable();
+    }
+
+    // =====================
+    // Spell Slot & Preparation Limit Tests
+    // =====================
+
+    #[Test]
+    public function it_returns_spell_slots_for_character(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()
+            ->withClass($wizardClass)
+            ->withAbilityScores(['intelligence' => 16])
+            ->level(3)
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spell-slots");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'slots',
+                    'preparation_limit',
+                ],
+            ]);
+    }
+
+    #[Test]
+    public function it_rejects_preparing_when_at_preparation_limit(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()
+            ->withClass($wizardClass)
+            ->withAbilityScores(['intelligence' => 12]) // +1 modifier
+            ->level(1)
+            ->create();
+
+        $spells = Spell::factory()->count(5)->create(['level' => 1]);
+        $wizardClass->spells()->attach($spells->pluck('id'));
+
+        // Preparation limit for level 1 wizard with +1 INT = 2 spells
+        // Learn and prepare the maximum number of spells
+        foreach ($spells->take(2) as $spell) {
+            CharacterSpell::create([
+                'character_id' => $character->id,
+                'spell_id' => $spell->id,
+                'preparation_status' => 'prepared',
+                'source' => 'class',
+            ]);
+        }
+
+        // Learn but don't prepare a third spell
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_id' => $spells[2]->id,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        // Try to prepare beyond the limit
+        $response = $this->patchJson("/api/v1/characters/{$character->id}/spells/{$spells[2]->id}/prepare");
+
+        $response->assertUnprocessable()
+            ->assertJsonPath('message', 'Preparation limit reached. Unprepare a spell first.');
+    }
+}

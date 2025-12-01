@@ -92,6 +92,7 @@
             <file>tests/Feature/Api/ClassDetailOptimizationTest.php</file>
             <file>tests/Feature/Api/CharacterControllerTest.php</file>
             <file>tests/Feature/Api/CharacterSpellTest.php</file>
+            <file>tests/Feature/Api/CharacterCreationFlowTest.php</file>
         </testsuite>
 
         <!-- Feature-Search: Unified Meilisearch tests using fixture data (approx 120s) -->

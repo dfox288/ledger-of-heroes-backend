@@ -208,6 +208,8 @@ Route::prefix('v1')->group(function () {
     |
     */
     Route::apiResource('characters', CharacterController::class);
+    Route::get('characters/{character}/stats', [CharacterController::class, 'stats'])
+        ->name('characters.stats');
 
     // Character Spell Management
     Route::prefix('characters/{character}')->name('characters.')->group(function () {

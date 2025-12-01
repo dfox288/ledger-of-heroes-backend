@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\CharacterUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Character extends Model
 {
     use HasFactory;
+
+    /**
+     * The event map for the model.
+     *
+     * @var array<string, string>
+     */
+    protected $dispatchesEvents = [
+        'updated' => CharacterUpdated::class,
+    ];
 
     protected $fillable = [
         'user_id',

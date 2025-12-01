@@ -2,18 +2,26 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\DTOs\CharacterStatsDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Character\CharacterIndexRequest;
 use App\Http\Requests\Character\CharacterShowRequest;
 use App\Http\Requests\Character\CharacterStoreRequest;
 use App\Http\Requests\Character\CharacterUpdateRequest;
 use App\Http\Resources\CharacterResource;
+use App\Http\Resources\CharacterStatsResource;
 use App\Models\Character;
+use App\Services\CharacterStatCalculator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 
 class CharacterController extends Controller
 {
+    public function __construct(
+        private CharacterStatCalculator $statCalculator
+    ) {}
+
     /**
      * List all characters
      *
@@ -126,8 +134,47 @@ class CharacterController extends Controller
      */
     public function destroy(Character $character): Response
     {
+        // Clear stats cache before deleting
+        Cache::forget("character:{$character->id}:stats");
+
         $character->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * Get computed stats for a character
+     *
+     * Returns all computed statistics for the character, including ability modifiers,
+     * proficiency bonus, saving throws, spell save DC, and spell slots.
+     *
+     * Results are cached for 15 minutes for performance. Cache is invalidated
+     * when the character is updated.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/characters/1/stats
+     * ```
+     *
+     * **Response includes:**
+     * - Ability scores with modifiers
+     * - Proficiency bonus
+     * - Saving throw modifiers
+     * - Armor class and hit points
+     * - Spellcasting: ability, spell save DC, attack bonus
+     * - Spell slots by level
+     * - Preparation limit and count
+     */
+    public function stats(Character $character): CharacterStatsResource
+    {
+        $character->load(['characterClass.parentClass', 'characterClass.spellcastingAbility']);
+
+        $stats = Cache::remember(
+            "character:{$character->id}:stats",
+            now()->addMinutes(15),
+            fn () => CharacterStatsDTO::fromCharacter($character, $this->statCalculator)
+        );
+
+        return new CharacterStatsResource($stats);
     }
 }

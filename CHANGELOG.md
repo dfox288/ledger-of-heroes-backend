@@ -21,7 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Validates spell is on class spell list, spell level is accessible at character level
     - Enforces preparation limits per class (Wizard: INT+level, Paladin: CHA+level/2, etc.)
     - Handles always-prepared spells (domain spells cannot be unprepared), cantrips (cannot be prepared)
-  - 28 unit tests for stat calculator, 22 feature tests for CRUD API, 17 feature tests for spell management
+  - **NEW** Stats Endpoint with Caching:
+    - `GET /api/v1/characters/{id}/stats`: Computed character statistics with 15-minute caching
+    - `CharacterStatsDTO`: Data transfer object for stats (ability scores, modifiers, spell save DC, spell slots, etc.)
+    - `CharacterUpdated` event and `InvalidateCharacterCache` listener for automatic cache invalidation
+  - 28 unit tests for stat calculator, 22 feature tests for CRUD API, 17 feature tests for spell management, 9 integration tests for creation flow
 
 ### Fixed
 

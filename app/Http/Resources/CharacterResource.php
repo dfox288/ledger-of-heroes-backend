@@ -49,6 +49,9 @@ class CharacterResource extends JsonResource
             'temp_hit_points' => $this->temp_hit_points,
             'armor_class' => $this->armor_class,
 
+            // Equipped items summary
+            'equipped' => $this->getEquippedSummary(),
+
             // Relationships (conditionally loaded)
             'race' => $this->when($this->relationLoaded('race') || $this->race_id, function () {
                 return $this->race ? [
@@ -107,5 +110,33 @@ class CharacterResource extends JsonResource
         }
 
         return $modifiers;
+    }
+
+    /**
+     * Get summary of equipped items.
+     */
+    private function getEquippedSummary(): array
+    {
+        $summary = [];
+
+        $armor = $this->resource->equippedArmor();
+        if ($armor) {
+            $summary['armor'] = [
+                'id' => $armor->id,
+                'name' => $armor->item->name,
+                'armor_class' => $armor->item->armor_class,
+            ];
+        }
+
+        $shield = $this->resource->equippedShield();
+        if ($shield) {
+            $summary['shield'] = [
+                'id' => $shield->id,
+                'name' => $shield->item->name,
+                'armor_class' => $shield->item->armor_class,
+            ];
+        }
+
+        return $summary;
     }
 }

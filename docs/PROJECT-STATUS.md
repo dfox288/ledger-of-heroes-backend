@@ -1,8 +1,8 @@
 # Project Status
 
-**Last Updated:** 2025-11-29
+**Last Updated:** 2025-12-01
 **Branch:** main
-**Status:** ✅ Production-Ready - API Documentation Standardization Complete
+**Status:** ✅ Character Builder API v1 Complete - PR #9 Ready for Merge
 
 ---
 
@@ -10,12 +10,13 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 1,396+ passing (~10,265 assertions) - All suites |
-| **Test Files** | 221 |
+| **Tests** | 1,472+ passing (~11,865 assertions) - All suites |
+| **Test Files** | 225 |
 | **Filter Tests** | 151 operator tests (2,750+ assertions) - 100% coverage |
-| **Duration** | ~10s (Unit-Pure), ~6s (Unit-DB), ~9s (Feature-DB), ~23s (Feature-Search) |
-| **Models** | 32 (all with HasFactory) |
-| **API** | 44 Resources + 27 Controllers + 36 Form Requests |
+| **Character Builder Tests** | 76 tests (1,600+ assertions) |
+| **Duration** | ~5s (Unit-Pure), ~9s (Unit-DB), ~12s (Feature-DB), ~23s (Feature-Search) |
+| **Models** | 37 (32 + 5 Character Builder) |
+| **API** | 47 Resources + 28 Controllers + 40 Form Requests |
 | **Importers** | 9 working (Strategy Pattern) |
 | **Import Commands** | 12 (10 standardized with BaseImportCommand) |
 | **Monster Strategies** | 12 (95%+ coverage) |
@@ -27,6 +28,33 @@
 ---
 
 ## 🚀 Recent Milestones
+
+### Character Builder API v1 ✅ COMPLETE (2025-12-01)
+- **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/9
+- **Issue:** #21
+- **Scope:** Complete D&D 5e character creation API
+
+**Phase 1: Foundation**
+- 5 new tables: `characters`, `character_spells`, `character_proficiencies`, `character_features`, `character_equipment`
+- `CharacterStatCalculator` service with all D&D 5e formulas
+- 28 unit tests for stat calculations
+
+**Phase 2: CRUD API**
+- `GET/POST/PATCH/DELETE /api/v1/characters` endpoints
+- Wizard-style creation (nullable fields, validation status tracking)
+- 22 feature tests
+
+**Phase 3: Spell Management**
+- 7 endpoints for learning, preparing, and managing spells
+- `SpellManagerService` with D&D 5e rule validation
+- 17 feature tests
+
+**Phase 4: Integration & Polish**
+- `GET /characters/{id}/stats` with 15-minute caching
+- `CharacterUpdated` event + cache invalidation
+- 9 integration tests covering complete creation flow
+
+**Test Summary:** 76 tests, 1,600+ assertions, all passing
 
 ### Bug Fixes & API Improvements ✅ COMPLETE (2025-11-29)
 - **Duplicate Senses Import Error:** Fixed `ImportsSenses` trait to deduplicate senses by type

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\AbilityScoreMethod;
 use App\Models\Background;
 use App\Models\Character;
 use App\Models\CharacterClass;
@@ -39,6 +40,7 @@ class CharacterFactory extends Factory
             'intelligence' => null,
             'wisdom' => null,
             'charisma' => null,
+            'ability_score_method' => AbilityScoreMethod::Manual,
             'max_hit_points' => null,
             'current_hit_points' => null,
             'temp_hit_points' => 0,

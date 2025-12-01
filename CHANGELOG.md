@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Ability Score Methods for Character Builder** (Issue #87)
+  - Point Buy method: 27 points to spend on scores 8-15 (PHB cost table)
+  - Standard Array method: assign [15, 14, 13, 12, 10, 8] to abilities
+  - Manual method: direct assignment of scores 3-20 (existing behavior)
+  - `ability_score_method` field tracks which method was used
+  - `AbilityScoreValidatorService`: validates point buy budget (exactly 27), standard array values (exact set, no duplicates)
+  - `CharacterUpdateRequest`: conditional validation based on method - point buy/standard array require all 6 scores together
+  - 24 unit tests for validator service, 18 feature tests for API validation
+
 - **Character Builder API - Phases 1, 2 & 3** (Issue #21)
   - Database schema: 5 new tables (`characters`, `character_spells`, `character_proficiencies`, `character_features`, `character_equipment`)
   - Models: `Character` with wizard-style creation (nullable fields), `CharacterSpell`, `CharacterProficiency`, `CharacterFeature`, `CharacterEquipment`

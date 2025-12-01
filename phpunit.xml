@@ -47,6 +47,7 @@
             <file>tests/Unit/Services/ItemTableParserTest.php</file>
             <file>tests/Unit/Services/ClassProgressionTableGeneratorTest.php</file>
             <file>tests/Unit/Services/CharacterStatCalculatorACTest.php</file>
+            <file>tests/Unit/Services/EquipmentManagerServiceTest.php</file>
         </testsuite>
 
         <!-- Feature-DB: API/Model tests without Meilisearch (approx 30s) -->

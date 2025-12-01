@@ -200,15 +200,11 @@ class Character extends Model
     // Equipment Helpers
 
     /**
-     * Item type IDs for armor categories.
+     * Item type codes for armor categories.
      */
-    private const LIGHT_ARMOR = 4;
+    private const ARMOR_TYPE_CODES = ['LA', 'MA', 'HA'];
 
-    private const MEDIUM_ARMOR = 5;
-
-    private const HEAVY_ARMOR = 6;
-
-    private const SHIELD = 7;
+    private const SHIELD_TYPE_CODE = 'S';
 
     /**
      * Get equipped armor (Light, Medium, or Heavy).
@@ -217,10 +213,10 @@ class Character extends Model
     {
         return $this->equipment()
             ->where('equipped', true)
-            ->whereHas('item', function ($query) {
-                $query->whereIn('item_type_id', [self::LIGHT_ARMOR, self::MEDIUM_ARMOR, self::HEAVY_ARMOR]);
+            ->whereHas('item.itemType', function ($query) {
+                $query->whereIn('code', self::ARMOR_TYPE_CODES);
             })
-            ->with('item')
+            ->with('item.itemType')
             ->first();
     }
 
@@ -231,10 +227,10 @@ class Character extends Model
     {
         return $this->equipment()
             ->where('equipped', true)
-            ->whereHas('item', function ($query) {
-                $query->where('item_type_id', self::SHIELD);
+            ->whereHas('item.itemType', function ($query) {
+                $query->where('code', self::SHIELD_TYPE_CODE);
             })
-            ->with('item')
+            ->with('item.itemType')
             ->first();
     }
 

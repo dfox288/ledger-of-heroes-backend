@@ -81,7 +81,7 @@ class CharacterEquipment extends Model
      */
     public function scopeArmor(Builder $query): Builder
     {
-        return $query->whereHas('item', fn ($q) => $q->whereIn('item_type_id', [4, 5, 6]));
+        return $query->whereHas('item.itemType', fn ($q) => $q->whereIn('code', ['LA', 'MA', 'HA']));
     }
 
     /**
@@ -90,7 +90,7 @@ class CharacterEquipment extends Model
      */
     public function scopeShields(Builder $query): Builder
     {
-        return $query->whereHas('item', fn ($q) => $q->where('item_type_id', 7));
+        return $query->whereHas('item.itemType', fn ($q) => $q->where('code', 'S'));
     }
 
     /**
@@ -99,23 +99,23 @@ class CharacterEquipment extends Model
      */
     public function scopeWeapons(Builder $query): Builder
     {
-        return $query->whereHas('item', fn ($q) => $q->whereIn('item_type_id', [2, 3]));
+        return $query->whereHas('item.itemType', fn ($q) => $q->whereIn('code', ['M', 'R']));
     }
 
     // Type checks
 
     public function isArmor(): bool
     {
-        return in_array($this->item->item_type_id, [4, 5, 6]);
+        return in_array($this->item->itemType?->code, ['LA', 'MA', 'HA']);
     }
 
     public function isShield(): bool
     {
-        return $this->item->item_type_id === 7;
+        return $this->item->itemType?->code === 'S';
     }
 
     public function isWeapon(): bool
     {
-        return in_array($this->item->item_type_id, [2, 3]);
+        return in_array($this->item->itemType?->code, ['M', 'R']);
     }
 }

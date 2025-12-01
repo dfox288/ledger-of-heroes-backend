@@ -7,15 +7,15 @@ use App\Models\Character;
 class CharacterStatCalculator
 {
     /**
-     * Item type IDs for armor categories.
+     * Item type codes for armor categories.
      */
-    private const LIGHT_ARMOR = 4;
+    private const LIGHT_ARMOR = 'LA';
 
-    private const MEDIUM_ARMOR = 5;
+    private const MEDIUM_ARMOR = 'MA';
 
-    private const HEAVY_ARMOR = 6;
+    private const HEAVY_ARMOR = 'HA';
 
-    private const SHIELD = 7;
+    private const SHIELD = 'S';
 
     /**
      * Full caster spell slot progression table (levels 1-20).
@@ -244,10 +244,10 @@ class CharacterStatCalculator
         if ($equippedArmor !== null) {
             $armor = $equippedArmor->item;
             $armorBaseAC = $armor->armor_class ?? 10;
-            $armorType = $armor->item_type_id;
+            $armorTypeCode = $armor->itemType?->code;
 
-            // Set max DEX based on armor type
-            $armorMaxDex = match ($armorType) {
+            // Set max DEX based on armor type code
+            $armorMaxDex = match ($armorTypeCode) {
                 self::LIGHT_ARMOR => null,       // No limit
                 self::MEDIUM_ARMOR => 2,         // Max +2
                 self::HEAVY_ARMOR => 0,          // No DEX bonus

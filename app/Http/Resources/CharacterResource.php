@@ -33,6 +33,9 @@ class CharacterResource extends JsonResource
             'is_complete' => $this->is_complete,
             'validation_status' => $this->validation_status,
 
+            // Ability score method
+            'ability_score_method' => $this->ability_score_method?->value,
+
             // Ability scores (as STR/DEX/CON/INT/WIS/CHA keyed array)
             'ability_scores' => $abilityScores,
             'modifiers' => $modifiers,

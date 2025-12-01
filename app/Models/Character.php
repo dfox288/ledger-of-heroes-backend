@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AbilityScoreMethod;
 use App\Events\CharacterUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -35,6 +36,7 @@ class Character extends Model
         'intelligence',
         'wisdom',
         'charisma',
+        'ability_score_method',
         'max_hit_points',
         'current_hit_points',
         'temp_hit_points',
@@ -50,6 +52,7 @@ class Character extends Model
         'intelligence' => 'integer',
         'wisdom' => 'integer',
         'charisma' => 'integer',
+        'ability_score_method' => AbilityScoreMethod::class,
         'max_hit_points' => 'integer',
         'current_hit_points' => 'integer',
         'temp_hit_points' => 'integer',

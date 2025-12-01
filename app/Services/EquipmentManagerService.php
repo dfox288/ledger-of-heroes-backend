@@ -2,19 +2,14 @@
 
 namespace App\Services;
 
+use App\Enums\ItemTypeCode;
+use App\Exceptions\ItemNotEquippableException;
 use App\Models\Character;
 use App\Models\CharacterEquipment;
 use App\Models\Item;
 
 class EquipmentManagerService
 {
-    /**
-     * Item type codes for armor and shield categories.
-     */
-    private const ARMOR_TYPE_CODES = ['LA', 'MA', 'HA'];
-
-    private const SHIELD_TYPE_CODE = 'S';
-
     /**
      * Add item to character inventory.
      */
@@ -54,11 +49,18 @@ class EquipmentManagerService
 
     /**
      * Equip an item.
+     *
+     * @throws ItemNotEquippableException
      */
     public function equipItem(CharacterEquipment $equipment): void
     {
         $item = $equipment->item;
         $item->loadMissing('itemType');
+
+        // Validate item can be equipped
+        if (! $this->isEquippable($item)) {
+            throw new ItemNotEquippableException($item);
+        }
 
         // Unequip conflicting items
         if ($this->isArmor($item)) {
@@ -88,7 +90,7 @@ class EquipmentManagerService
     {
         $character->equipment()
             ->where('equipped', true)
-            ->whereHas('item.itemType', fn ($q) => $q->whereIn('code', self::ARMOR_TYPE_CODES))
+            ->whereHas('item.itemType', fn ($q) => $q->whereIn('code', ItemTypeCode::armorCodes()))
             ->update(['equipped' => false, 'location' => 'backpack']);
     }
 
@@ -96,17 +98,22 @@ class EquipmentManagerService
     {
         $character->equipment()
             ->where('equipped', true)
-            ->whereHas('item.itemType', fn ($q) => $q->where('code', self::SHIELD_TYPE_CODE))
+            ->whereHas('item.itemType', fn ($q) => $q->where('code', ItemTypeCode::SHIELD->value))
             ->update(['equipped' => false, 'location' => 'backpack']);
     }
 
     private function isArmor(Item $item): bool
     {
-        return in_array($item->itemType?->code, self::ARMOR_TYPE_CODES);
+        return in_array($item->itemType?->code, ItemTypeCode::armorCodes());
     }
 
     private function isShield(Item $item): bool
     {
-        return $item->itemType?->code === self::SHIELD_TYPE_CODE;
+        return $item->itemType?->code === ItemTypeCode::SHIELD->value;
+    }
+
+    private function isEquippable(Item $item): bool
+    {
+        return in_array($item->itemType?->code, ItemTypeCode::equippableCodes());
     }
 }

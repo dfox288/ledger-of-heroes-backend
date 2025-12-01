@@ -2,21 +2,11 @@
 
 namespace App\Services;
 
+use App\Enums\ItemTypeCode;
 use App\Models\Character;
 
 class CharacterStatCalculator
 {
-    /**
-     * Item type codes for armor categories.
-     */
-    private const LIGHT_ARMOR = 'LA';
-
-    private const MEDIUM_ARMOR = 'MA';
-
-    private const HEAVY_ARMOR = 'HA';
-
-    private const SHIELD = 'S';
-
     /**
      * Full caster spell slot progression table (levels 1-20).
      * Used by: Wizard, Cleric, Druid, Sorcerer, Bard
@@ -248,9 +238,9 @@ class CharacterStatCalculator
 
             // Set max DEX based on armor type code
             $armorMaxDex = match ($armorTypeCode) {
-                self::LIGHT_ARMOR => null,       // No limit
-                self::MEDIUM_ARMOR => 2,         // Max +2
-                self::HEAVY_ARMOR => 0,          // No DEX bonus
+                ItemTypeCode::LIGHT_ARMOR->value => null,   // No limit
+                ItemTypeCode::MEDIUM_ARMOR->value => 2,     // Max +2
+                ItemTypeCode::HEAVY_ARMOR->value => 0,      // No DEX bonus
                 default => null,
             };
         }

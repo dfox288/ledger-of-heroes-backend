@@ -223,4 +223,39 @@ class CharacterStatCalculatorACTest extends TestCase
 
         $this->assertEquals(12, $ac);
     }
+
+    #[Test]
+    public function armor_class_override_takes_precedence_over_calculated_ac(): void
+    {
+        // Character with override set should use override, not calculated AC
+        $character = Character::factory()
+            ->withAbilityScores(['dexterity' => 18]) // Would give AC 14 unarmored
+            ->create(['armor_class_override' => 20]);
+
+        // Equip plate armor (AC 18) - should be ignored due to override
+        CharacterEquipment::factory()
+            ->withItem($this->plateArmor)
+            ->equipped()
+            ->create(['character_id' => $character->id]);
+
+        // The accessor should return the override value
+        $this->assertEquals(20, $character->armor_class);
+    }
+
+    #[Test]
+    public function calculated_ac_is_used_when_override_is_null(): void
+    {
+        // Character without override should use calculated AC
+        $character = Character::factory()
+            ->withAbilityScores(['dexterity' => 14]) // +2 mod
+            ->create(['armor_class_override' => null]);
+
+        // Equip leather armor (AC 11 + 2 = 13)
+        CharacterEquipment::factory()
+            ->withItem($this->leatherArmor)
+            ->equipped()
+            ->create(['character_id' => $character->id]);
+
+        $this->assertEquals(13, $character->armor_class);
+    }
 }

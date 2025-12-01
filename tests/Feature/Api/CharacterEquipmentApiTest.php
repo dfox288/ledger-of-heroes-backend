@@ -259,4 +259,36 @@ class CharacterEquipmentApiTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    // =============================
+    // Non-Equippable Items Tests
+    // =============================
+
+    #[Test]
+    public function it_returns_422_when_equipping_non_equippable_item(): void
+    {
+        $character = Character::factory()->create();
+
+        // Create a potion (not equippable)
+        $potionType = ItemType::where('code', 'P')->first();
+        $potion = Item::create([
+            'name' => 'Healing Potion',
+            'slug' => 'healing-potion',
+            'item_type_id' => $potionType->id,
+            'rarity' => 'common',
+            'description' => 'A potion that heals.',
+        ]);
+
+        $equipment = CharacterEquipment::factory()
+            ->withItem($potion)
+            ->create(['character_id' => $character->id]);
+
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/equipment/{$equipment->id}",
+            ['equipped' => true]
+        );
+
+        $response->assertUnprocessable()
+            ->assertJsonPath('item.name', 'Healing Potion');
+    }
 }

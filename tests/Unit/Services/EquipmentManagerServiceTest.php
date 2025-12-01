@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Services;
 
+use App\Exceptions\ItemNotEquippableException;
 use App\Models\Character;
 use App\Models\CharacterEquipment;
 use App\Models\Item;
@@ -288,5 +289,44 @@ class EquipmentManagerServiceTest extends TestCase
         $this->service->removeItem($equipment, 50);
 
         $this->assertDatabaseMissing('character_equipment', ['id' => $equipment->id]);
+    }
+
+    // =============================
+    // Non-Equippable Items Tests
+    // =============================
+
+    #[Test]
+    public function it_throws_exception_when_equipping_non_equippable_item(): void
+    {
+        $character = Character::factory()->create();
+
+        // Create a potion (not equippable)
+        $potionType = ItemType::where('code', 'P')->first();
+        $potion = Item::create([
+            'name' => 'Healing Potion',
+            'slug' => 'healing-potion',
+            'item_type_id' => $potionType->id,
+            'rarity' => 'common',
+            'description' => 'A potion that heals.',
+        ]);
+
+        $equipment = $this->service->addItem($character, $potion);
+
+        $this->expectException(ItemNotEquippableException::class);
+        $this->expectExceptionMessage("Item 'Healing Potion' cannot be equipped");
+
+        $this->service->equipItem($equipment);
+    }
+
+    #[Test]
+    public function it_allows_equipping_weapons(): void
+    {
+        $character = Character::factory()->create();
+        $equipment = $this->service->addItem($character, $this->longsword);
+
+        $this->service->equipItem($equipment);
+
+        $equipment->refresh();
+        $this->assertTrue($equipment->equipped);
     }
 }

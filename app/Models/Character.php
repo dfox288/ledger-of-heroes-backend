@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AbilityScoreMethod;
+use App\Enums\ItemTypeCode;
 use App\Events\CharacterUpdated;
 use App\Services\CharacterStatCalculator;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -200,13 +201,6 @@ class Character extends Model
     // Equipment Helpers
 
     /**
-     * Item type codes for armor categories.
-     */
-    private const ARMOR_TYPE_CODES = ['LA', 'MA', 'HA'];
-
-    private const SHIELD_TYPE_CODE = 'S';
-
-    /**
      * Get equipped armor (Light, Medium, or Heavy).
      */
     public function equippedArmor(): ?CharacterEquipment
@@ -214,7 +208,7 @@ class Character extends Model
         return $this->equipment()
             ->where('equipped', true)
             ->whereHas('item.itemType', function ($query) {
-                $query->whereIn('code', self::ARMOR_TYPE_CODES);
+                $query->whereIn('code', ItemTypeCode::armorCodes());
             })
             ->with('item.itemType')
             ->first();
@@ -228,7 +222,7 @@ class Character extends Model
         return $this->equipment()
             ->where('equipped', true)
             ->whereHas('item.itemType', function ($query) {
-                $query->where('code', self::SHIELD_TYPE_CODE);
+                $query->where('code', ItemTypeCode::SHIELD->value);
             })
             ->with('item.itemType')
             ->first();

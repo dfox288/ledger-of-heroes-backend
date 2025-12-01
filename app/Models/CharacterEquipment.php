@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ItemTypeCode;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -81,7 +82,7 @@ class CharacterEquipment extends Model
      */
     public function scopeArmor(Builder $query): Builder
     {
-        return $query->whereHas('item.itemType', fn ($q) => $q->whereIn('code', ['LA', 'MA', 'HA']));
+        return $query->whereHas('item.itemType', fn ($q) => $q->whereIn('code', ItemTypeCode::armorCodes()));
     }
 
     /**
@@ -90,7 +91,7 @@ class CharacterEquipment extends Model
      */
     public function scopeShields(Builder $query): Builder
     {
-        return $query->whereHas('item.itemType', fn ($q) => $q->where('code', 'S'));
+        return $query->whereHas('item.itemType', fn ($q) => $q->where('code', ItemTypeCode::SHIELD->value));
     }
 
     /**
@@ -99,23 +100,31 @@ class CharacterEquipment extends Model
      */
     public function scopeWeapons(Builder $query): Builder
     {
-        return $query->whereHas('item.itemType', fn ($q) => $q->whereIn('code', ['M', 'R']));
+        return $query->whereHas('item.itemType', fn ($q) => $q->whereIn('code', ItemTypeCode::weaponCodes()));
     }
 
     // Type checks
 
     public function isArmor(): bool
     {
-        return in_array($this->item->itemType?->code, ['LA', 'MA', 'HA']);
+        return in_array($this->item->itemType?->code, ItemTypeCode::armorCodes());
     }
 
     public function isShield(): bool
     {
-        return $this->item->itemType?->code === 'S';
+        return $this->item->itemType?->code === ItemTypeCode::SHIELD->value;
     }
 
     public function isWeapon(): bool
     {
-        return in_array($this->item->itemType?->code, ['M', 'R']);
+        return in_array($this->item->itemType?->code, ItemTypeCode::weaponCodes());
+    }
+
+    /**
+     * Check if this item can be equipped.
+     */
+    public function isEquippable(): bool
+    {
+        return in_array($this->item->itemType?->code, ItemTypeCode::equippableCodes());
     }
 }

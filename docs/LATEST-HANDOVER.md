@@ -1,1 +1,1 @@
-handovers/SESSION-HANDOVER-2025-11-29-2130-bugfixes.md
+handovers/SESSION-HANDOVER-2025-12-02-equipment-system.md

@@ -1,8 +1,8 @@
 # Project Status
 
-**Last Updated:** 2025-12-01
-**Branch:** main
-**Status:** ✅ Character Builder API v1 Complete - PR #9 Ready for Merge
+**Last Updated:** 2025-12-02
+**Branch:** feature/issue-90-equipment-system
+**Status:** ✅ Equipment System Complete - PR #11 Ready for Merge
 
 ---
 
@@ -10,13 +10,13 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 1,472+ passing (~11,865 assertions) - All suites |
-| **Test Files** | 225 |
+| **Tests** | 1,510+ passing (~11,900 assertions) - All suites |
+| **Test Files** | 228 |
 | **Filter Tests** | 151 operator tests (2,750+ assertions) - 100% coverage |
-| **Character Builder Tests** | 76 tests (1,600+ assertions) |
-| **Duration** | ~5s (Unit-Pure), ~9s (Unit-DB), ~12s (Feature-DB), ~23s (Feature-Search) |
+| **Character Builder Tests** | 114 tests (1,800+ assertions) |
+| **Duration** | ~4s (Unit-Pure), ~8s (Unit-DB), ~10s (Feature-DB), ~23s (Feature-Search) |
 | **Models** | 37 (32 + 5 Character Builder) |
-| **API** | 47 Resources + 28 Controllers + 40 Form Requests |
+| **API** | 48 Resources + 29 Controllers + 42 Form Requests |
 | **Importers** | 9 working (Strategy Pattern) |
 | **Import Commands** | 12 (10 standardized with BaseImportCommand) |
 | **Monster Strategies** | 12 (95%+ coverage) |
@@ -24,10 +24,43 @@
 | **Parser Traits** | 16 reusable (~150 lines eliminated) |
 | **Search** | 3,600+ documents indexed (Scout + Meilisearch) |
 | **Code Quality** | Laravel Pint formatted |
+| **Enums** | 2 (AbilityScoreMethod, ItemTypeCode) |
 
 ---
 
 ## 🚀 Recent Milestones
+
+### Character Equipment System ✅ COMPLETE (2025-12-02)
+- **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/11
+- **Issue:** #90
+- **Scope:** Add/remove/equip inventory items with automatic AC calculation
+
+**Features Implemented:**
+- Add/remove items from inventory with quantity stacking
+- Equip/unequip armor, shields, and weapons
+- Automatic AC calculation using D&D 5e rules:
+  - Light armor: Base AC + full DEX modifier
+  - Medium armor: Base AC + DEX modifier (max +2)
+  - Heavy armor: Base AC only (no DEX bonus)
+  - Shield: +2 AC bonus (stacks with armor)
+- Single armor / single shield constraint (auto-unequips previous)
+- `armor_class_override` for manual AC (e.g., Mage Armor, Unarmored Defense)
+
+**Architecture:**
+- `ItemTypeCode` enum - centralized item type codes (LA/MA/HA/S/M/R)
+- `EquipmentManagerService` - inventory and equipment management
+- `CharacterStatCalculator::calculateArmorClass()` - computes AC from equipment
+- `ItemNotEquippableException` - 422 response for non-equippable items
+- `CharacterEquipmentController` - CRUD API endpoints
+- `CharacterEquipmentResource` - JSON transformation
+
+**API Endpoints:**
+- `GET /api/v1/characters/{id}/equipment` - list inventory
+- `POST /api/v1/characters/{id}/equipment` - add item
+- `PATCH /api/v1/characters/{id}/equipment/{id}` - equip/unequip/update
+- `DELETE /api/v1/characters/{id}/equipment/{id}` - remove item
+
+**Tests:** 38 new tests (10 AC + 15 service + 13 API)
 
 ### Character Builder API v1 ✅ COMPLETE (2025-12-01)
 - **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/9

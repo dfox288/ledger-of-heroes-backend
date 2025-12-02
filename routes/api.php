@@ -237,5 +237,9 @@ Route::prefix('v1')->group(function () {
             ->name('equipment.update');
         Route::delete('equipment/{equipment}', [\App\Http\Controllers\Api\CharacterEquipmentController::class, 'destroy'])
             ->name('equipment.destroy');
+
+        // Character Level-Up
+        Route::post('level-up', \App\Http\Controllers\Api\CharacterLevelUpController::class)
+            ->name('level-up');
     });
 });

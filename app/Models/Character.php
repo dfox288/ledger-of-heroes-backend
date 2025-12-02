@@ -43,6 +43,7 @@ class Character extends Model
         'current_hit_points',
         'temp_hit_points',
         'armor_class_override',
+        'asi_choices_remaining',
     ];
 
     protected $casts = [
@@ -59,6 +60,7 @@ class Character extends Model
         'current_hit_points' => 'integer',
         'temp_hit_points' => 'integer',
         'armor_class_override' => 'integer',
+        'asi_choices_remaining' => 'integer',
     ];
 
     protected $appends = [

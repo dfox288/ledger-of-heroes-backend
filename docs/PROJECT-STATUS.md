@@ -1,8 +1,8 @@
 # Project Status
 
 **Last Updated:** 2025-12-02
-**Branch:** feature/issue-90-equipment-system
-**Status:** ✅ Equipment System Complete - PR #11 Ready for Merge
+**Branch:** feature/issue-91-level-up-flow
+**Status:** 🔄 Level-Up Flow - PR #13 In Review
 
 ---
 
@@ -10,13 +10,13 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 1,510+ passing (~11,900 assertions) - All suites |
-| **Test Files** | 228 |
+| **Tests** | 1,560+ passing (~12,500 assertions) - All suites |
+| **Test Files** | 232 |
 | **Filter Tests** | 151 operator tests (2,750+ assertions) - 100% coverage |
-| **Character Builder Tests** | 114 tests (1,800+ assertions) |
-| **Duration** | ~4s (Unit-Pure), ~8s (Unit-DB), ~10s (Feature-DB), ~23s (Feature-Search) |
+| **Character Builder Tests** | 140+ tests (2,200+ assertions) |
+| **Duration** | ~4s (Unit-Pure), ~8s (Unit-DB), ~12s (Feature-DB), ~23s (Feature-Search) |
 | **Models** | 37 (32 + 5 Character Builder) |
-| **API** | 48 Resources + 29 Controllers + 42 Form Requests |
+| **API** | 49 Resources + 30 Controllers + 42 Form Requests |
 | **Importers** | 9 working (Strategy Pattern) |
 | **Import Commands** | 12 (10 standardized with BaseImportCommand) |
 | **Monster Strategies** | 12 (95%+ coverage) |
@@ -25,10 +25,43 @@
 | **Search** | 3,600+ documents indexed (Scout + Meilisearch) |
 | **Code Quality** | Laravel Pint formatted |
 | **Enums** | 2 (AbilityScoreMethod, ItemTypeCode) |
+| **DTOs** | 3 (ProficiencyStatus, LevelUpResult, + 1 existing) |
 
 ---
 
 ## 🚀 Recent Milestones
+
+### Level-Up Flow 🔄 IN REVIEW (2025-12-02)
+- **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/13
+- **Issue:** #91
+- **Scope:** Milestone-based level-up with HP, features, and ASI tracking
+
+**Features Implemented:**
+- `POST /api/v1/characters/{id}/level-up` endpoint
+- HP increase: average hit die + CON modifier (minimum 1)
+- Auto-grant class features at new level
+- ASI tracking at levels 4, 8, 12, 16, 19 (class-specific variations)
+- `asi_choices_remaining` field for pending ASI/Feat choices
+
+**Architecture:**
+- `LevelUpService` - orchestrates level-up logic with DB transaction
+- `LevelUpResult` DTO - detailed level-up response
+- `MaxLevelReachedException`, `IncompleteCharacterException`
+
+**Tests:** 26 new tests (16 unit, 10 feature)
+
+### Proficiency Validation ✅ COMPLETE (2025-12-02)
+- **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/12 (merged)
+- **Issue:** #94
+- **Scope:** Soft validation for armor/weapon proficiency with penalty tracking
+
+**Features Implemented:**
+- Check proficiency from class/race/background
+- Track penalties per D&D 5e rules (disadvantage, can't cast spells, etc.)
+- `proficiency_status` on equipped items in API response
+- `proficiency_penalties` summary on character
+
+**Tests:** 27 tests (18 unit, 9 feature)
 
 ### Character Equipment System ✅ COMPLETE (2025-12-02)
 - **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/11

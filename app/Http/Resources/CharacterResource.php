@@ -53,6 +53,9 @@ class CharacterResource extends JsonResource
             'temp_hit_points' => $this->temp_hit_points,
             'armor_class' => $this->armor_class,
 
+            // Level-up tracking
+            'asi_choices_remaining' => $this->asi_choices_remaining ?? 0,
+
             // Equipped items summary
             'equipped' => $this->getEquippedSummary(),
 

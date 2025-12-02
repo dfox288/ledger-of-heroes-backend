@@ -1,1 +1,1 @@
-handovers/SESSION-HANDOVER-2025-12-02-equipment-system.md
+handovers/SESSION-HANDOVER-2025-12-02-proficiency-levelup.md

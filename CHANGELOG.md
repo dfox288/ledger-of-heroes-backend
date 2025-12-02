@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Level-Up Flow** (Issue #91)
+  - `POST /api/v1/characters/{id}/level-up` endpoint for milestone leveling
+  - `LevelUpService`: orchestrates HP increase, feature grants, spell slot updates
+  - `LevelUpResult` DTO with detailed level-up information
+  - HP increase: average hit die + CON modifier (minimum 1 HP)
+  - Auto-grant class features for new level
+  - Track ASI pending at levels 4, 8, 12, 16, 19 (class-specific variations for Fighter/Rogue)
+  - `asi_choices_remaining` field on Character model
+  - `MaxLevelReachedException` and `IncompleteCharacterException` for validation
+  - 15 unit tests for level-up service, 10 feature tests for API
+
 - **Armor/Weapon Proficiency Validation** (Issue #94)
   - `ProficiencyCheckerService`: checks if character has proficiency with armor/weapons
   - `ProficiencyStatus` DTO: returns `has_proficiency`, `penalties` array, and `source` (class/race/background)

@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Services\CharacterStatCalculator;
+use App\Services\ProficiencyCheckerService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -10,10 +11,13 @@ class CharacterResource extends JsonResource
 {
     private CharacterStatCalculator $calculator;
 
+    private ProficiencyCheckerService $proficiencyChecker;
+
     public function __construct($resource)
     {
         parent::__construct($resource);
         $this->calculator = new CharacterStatCalculator;
+        $this->proficiencyChecker = app(ProficiencyCheckerService::class);
     }
 
     public function toArray(Request $request): array
@@ -51,6 +55,9 @@ class CharacterResource extends JsonResource
 
             // Equipped items summary
             'equipped' => $this->getEquippedSummary(),
+
+            // Proficiency penalties from equipped items
+            'proficiency_penalties' => $this->getProficiencyPenalties(),
 
             // Relationships (conditionally loaded)
             'race' => $this->when($this->relationLoaded('race') || $this->race_id, function () {
@@ -138,5 +145,72 @@ class CharacterResource extends JsonResource
         }
 
         return $summary;
+    }
+
+    /**
+     * Get proficiency penalties from equipped items.
+     *
+     * @return array<string, mixed>
+     */
+    private function getProficiencyPenalties(): array
+    {
+        $penalties = [
+            'has_armor_penalty' => false,
+            'has_weapon_penalty' => false,
+            'penalties' => [],
+        ];
+
+        // Check equipped armor
+        $armor = $this->resource->equippedArmor();
+        if ($armor) {
+            $status = $this->proficiencyChecker->checkEquipmentProficiency(
+                $this->resource,
+                $armor->item
+            );
+            if (! $status->hasProficiency) {
+                $penalties['has_armor_penalty'] = true;
+                $penalties['penalties'] = array_merge(
+                    $penalties['penalties'],
+                    $status->penalties
+                );
+            }
+        }
+
+        // Check equipped shield
+        $shield = $this->resource->equippedShield();
+        if ($shield) {
+            $status = $this->proficiencyChecker->checkEquipmentProficiency(
+                $this->resource,
+                $shield->item
+            );
+            if (! $status->hasProficiency) {
+                $penalties['has_armor_penalty'] = true;
+                $penalties['penalties'] = array_merge(
+                    $penalties['penalties'],
+                    $status->penalties
+                );
+            }
+        }
+
+        // Check equipped weapons
+        $weapons = $this->resource->equippedWeapons();
+        foreach ($weapons as $weapon) {
+            $status = $this->proficiencyChecker->checkEquipmentProficiency(
+                $this->resource,
+                $weapon->item
+            );
+            if (! $status->hasProficiency) {
+                $penalties['has_weapon_penalty'] = true;
+                $penalties['penalties'] = array_merge(
+                    $penalties['penalties'],
+                    $status->penalties
+                );
+            }
+        }
+
+        // Remove duplicate penalties
+        $penalties['penalties'] = array_values(array_unique($penalties['penalties']));
+
+        return $penalties;
     }
 }

@@ -229,6 +229,22 @@ class Character extends Model
     }
 
     /**
+     * Get equipped weapons.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, CharacterEquipment>
+     */
+    public function equippedWeapons(): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->equipment()
+            ->where('equipped', true)
+            ->whereHas('item.itemType', function ($query) {
+                $query->whereIn('code', ItemTypeCode::weaponCodes());
+            })
+            ->with(['item.itemType', 'item.properties'])
+            ->get();
+    }
+
+    /**
      * Calculate armor class from equipped items or use override.
      */
     public function getArmorClassAttribute(): int

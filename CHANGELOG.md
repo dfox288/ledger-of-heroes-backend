@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Armor/Weapon Proficiency Validation** (Issue #94)
+  - `ProficiencyCheckerService`: checks if character has proficiency with armor/weapons
+  - `ProficiencyStatus` DTO: returns `has_proficiency`, `penalties` array, and `source` (class/race/background)
+  - Soft validation: allows equipping without proficiency, but tracks penalties per D&D 5e rules:
+    - Armor without proficiency: disadvantage on STR/DEX checks, saves, attack rolls; cannot cast spells
+    - Weapons without proficiency: no proficiency bonus to attack rolls
+  - Proficiency sources checked: class, race, and background
+  - `CharacterEquipmentResource`: includes `proficiency_status` for equipped items
+  - `CharacterResource`: includes `proficiency_penalties` summary with `has_armor_penalty`, `has_weapon_penalty`, and penalties array
+  - `Character::equippedWeapons()` helper method
+  - 18 unit tests for proficiency checker, 9 feature tests for API
+
 - **Character Equipment System** (Issue #90)
   - Add/remove items from character inventory with quantity stacking
   - Equip/unequip armor, shields, and weapons

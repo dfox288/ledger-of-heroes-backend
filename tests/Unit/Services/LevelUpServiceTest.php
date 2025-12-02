@@ -219,6 +219,28 @@ class LevelUpServiceTest extends TestCase
     }
 
     #[Test]
+    public function it_sets_asi_pending_at_rogue_level_10(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'hit_die' => 8,
+            'slug' => 'rogue',
+        ]);
+        $race = Race::factory()->create();
+
+        $character = Character::factory()
+            ->withClass($class)
+            ->withRace($race)
+            ->withAbilityScores(['CON' => 10])
+            ->withHitPoints(50)
+            ->create(['level' => 9]);
+
+        $result = $this->service->levelUp($character);
+
+        $this->assertTrue($result->asiPending);
+        $this->assertEquals(1, $character->fresh()->asi_choices_remaining);
+    }
+
+    #[Test]
     public function it_does_not_set_asi_at_non_asi_level(): void
     {
         $class = CharacterClass::factory()->create([

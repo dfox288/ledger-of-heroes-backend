@@ -10,6 +10,7 @@ use App\Exceptions\MaxLevelReachedException;
 use App\Models\Character;
 use App\Models\CharacterFeature;
 use App\Models\ClassFeature;
+use Illuminate\Support\Facades\DB;
 
 class LevelUpService
 {
@@ -38,45 +39,51 @@ class LevelUpService
     {
         $this->validateCanLevelUp($character);
 
-        $previousLevel = $character->level;
-        $newLevel = $previousLevel + 1;
+        return DB::transaction(function () use ($character) {
+            $previousLevel = $character->level;
+            $newLevel = $previousLevel + 1;
 
-        $hpIncrease = $this->calculateHpIncrease($character);
-        $featuresGained = $this->grantClassFeatures($character, $newLevel);
-        $asiPending = $this->isAsiLevel($character, $newLevel);
+            $hpIncrease = $this->calculateHpIncrease($character);
+            $featuresGained = $this->grantClassFeatures($character, $newLevel);
+            $asiPending = $this->isAsiLevel($character, $newLevel);
 
-        $character->level = $newLevel;
-        $character->max_hit_points += $hpIncrease;
-        $character->current_hit_points += $hpIncrease;
+            $character->level = $newLevel;
+            $character->max_hit_points += $hpIncrease;
+            $character->current_hit_points += $hpIncrease;
 
-        if ($asiPending) {
-            $character->asi_choices_remaining++;
-        }
+            if ($asiPending) {
+                $character->asi_choices_remaining++;
+            }
 
-        $character->save();
+            $character->save();
 
-        $spellSlots = $this->getSpellSlots($character);
+            $spellSlots = $this->getSpellSlots($character);
 
-        return new LevelUpResult(
-            previousLevel: $previousLevel,
-            newLevel: $newLevel,
-            hpIncrease: $hpIncrease,
-            newMaxHp: $character->max_hit_points,
-            featuresGained: $featuresGained,
-            spellSlots: $spellSlots,
-            asiPending: $asiPending,
-        );
+            return new LevelUpResult(
+                previousLevel: $previousLevel,
+                newLevel: $newLevel,
+                hpIncrease: $hpIncrease,
+                newMaxHp: $character->max_hit_points,
+                featuresGained: $featuresGained,
+                spellSlots: $spellSlots,
+                asiPending: $asiPending,
+            );
+        });
     }
 
     /**
      * Calculate HP increase for level up.
      *
      * Uses average hit die + CON modifier (minimum 1 HP).
+     * D&D 5e average formula: (hitDie / 2) rounded down + 1
+     * Examples: d6=4, d8=5, d10=6, d12=7
      */
     public function calculateHpIncrease(Character $character): int
     {
         $hitDie = $character->characterClass->effective_hit_die
             ?? $character->characterClass->hit_die;
+
+        // D&D 5e average: (hitDie / 2) rounded down + 1
         $averageRoll = (int) floor($hitDie / 2) + 1;
         $conModifier = $this->calculator->abilityModifier($character->constitution ?? 10);
 
@@ -85,6 +92,8 @@ class LevelUpService
 
     /**
      * Grant class features for the new level.
+     *
+     * Uses firstOrCreate to prevent duplicate features if level-up is called multiple times.
      *
      * @return array<array{id: int, name: string, description: string|null}>
      */
@@ -97,13 +106,17 @@ class LevelUpService
 
         $granted = [];
         foreach ($features as $feature) {
-            CharacterFeature::create([
-                'character_id' => $character->id,
-                'feature_type' => ClassFeature::class,
-                'feature_id' => $feature->id,
-                'source' => 'class',
-                'level_acquired' => $newLevel,
-            ]);
+            CharacterFeature::firstOrCreate(
+                [
+                    'character_id' => $character->id,
+                    'feature_type' => ClassFeature::class,
+                    'feature_id' => $feature->id,
+                    'source' => 'class',
+                ],
+                [
+                    'level_acquired' => $newLevel,
+                ]
+            );
 
             $granted[] = [
                 'id' => $feature->id,

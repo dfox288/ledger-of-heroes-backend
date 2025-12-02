@@ -44,7 +44,7 @@ class CharacterFactory extends Factory
             'max_hit_points' => null,
             'current_hit_points' => null,
             'temp_hit_points' => 0,
-            'armor_class' => null,
+            'armor_class_override' => null,
         ];
     }
 
@@ -145,12 +145,12 @@ class CharacterFactory extends Factory
     }
 
     /**
-     * Set armor class.
+     * Set armor class override.
      */
-    public function withArmorClass(int $ac): static
+    public function withArmorClassOverride(int $ac): static
     {
         return $this->state(fn (array $attributes) => [
-            'armor_class' => $ac,
+            'armor_class_override' => $ac,
         ]);
     }
 

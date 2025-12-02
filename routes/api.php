@@ -227,5 +227,15 @@ Route::prefix('v1')->group(function () {
             ->name('spells.unprepare');
         Route::get('spell-slots', [\App\Http\Controllers\Api\CharacterSpellController::class, 'slots'])
             ->name('spell-slots');
+
+        // Character Equipment Management
+        Route::get('equipment', [\App\Http\Controllers\Api\CharacterEquipmentController::class, 'index'])
+            ->name('equipment.index');
+        Route::post('equipment', [\App\Http\Controllers\Api\CharacterEquipmentController::class, 'store'])
+            ->name('equipment.store');
+        Route::patch('equipment/{equipment}', [\App\Http\Controllers\Api\CharacterEquipmentController::class, 'update'])
+            ->name('equipment.update');
+        Route::delete('equipment/{equipment}', [\App\Http\Controllers\Api\CharacterEquipmentController::class, 'destroy'])
+            ->name('equipment.destroy');
     });
 });

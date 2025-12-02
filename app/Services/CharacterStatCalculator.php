@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\ItemTypeCode;
+use App\Models\Character;
+
 class CharacterStatCalculator
 {
     /**
@@ -209,6 +212,46 @@ class CharacterStatCalculator
         }
 
         return $armorBaseAC + $dexBonus + $shieldBonus + $otherBonuses;
+    }
+
+    /**
+     * Calculate armor class from a Character's equipped items.
+     *
+     * This method looks up the character's equipped armor and shield,
+     * then delegates to calculateAC with the appropriate values.
+     */
+    public function calculateArmorClass(Character $character): int
+    {
+        $dexMod = $this->abilityModifier($character->dexterity ?? 10);
+
+        $equippedArmor = $character->equippedArmor();
+        $equippedShield = $character->equippedShield();
+
+        // Determine armor values
+        $armorBaseAC = null;
+        $armorMaxDex = null;
+
+        if ($equippedArmor !== null) {
+            $armor = $equippedArmor->item;
+            $armorBaseAC = $armor->armor_class ?? 10;
+            $armorTypeCode = $armor->itemType?->code;
+
+            // Set max DEX based on armor type code
+            $armorMaxDex = match ($armorTypeCode) {
+                ItemTypeCode::LIGHT_ARMOR->value => null,   // No limit
+                ItemTypeCode::MEDIUM_ARMOR->value => 2,     // Max +2
+                ItemTypeCode::HEAVY_ARMOR->value => 0,      // No DEX bonus
+                default => null,
+            };
+        }
+
+        // Get shield bonus
+        $shieldBonus = 0;
+        if ($equippedShield !== null) {
+            $shieldBonus = $equippedShield->item->armor_class ?? 2;
+        }
+
+        return $this->calculateAC($dexMod, $armorBaseAC, $armorMaxDex, $shieldBonus, 0);
     }
 
     /**

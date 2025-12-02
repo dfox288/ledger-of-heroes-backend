@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Enums\AbilityScoreMethod;
+use App\Enums\ItemTypeCode;
 use App\Events\CharacterUpdated;
+use App\Services\CharacterStatCalculator;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -40,7 +42,7 @@ class Character extends Model
         'max_hit_points',
         'current_hit_points',
         'temp_hit_points',
-        'armor_class',
+        'armor_class_override',
     ];
 
     protected $casts = [
@@ -56,7 +58,7 @@ class Character extends Model
         'max_hit_points' => 'integer',
         'current_hit_points' => 'integer',
         'temp_hit_points' => 'integer',
-        'armor_class' => 'integer',
+        'armor_class_override' => 'integer',
     ];
 
     protected $appends = [
@@ -194,5 +196,48 @@ class Character extends Model
             'WIS' => $this->wisdom,
             'CHA' => $this->charisma,
         ];
+    }
+
+    // Equipment Helpers
+
+    /**
+     * Get equipped armor (Light, Medium, or Heavy).
+     */
+    public function equippedArmor(): ?CharacterEquipment
+    {
+        return $this->equipment()
+            ->where('equipped', true)
+            ->whereHas('item.itemType', function ($query) {
+                $query->whereIn('code', ItemTypeCode::armorCodes());
+            })
+            ->with('item.itemType')
+            ->first();
+    }
+
+    /**
+     * Get equipped shield.
+     */
+    public function equippedShield(): ?CharacterEquipment
+    {
+        return $this->equipment()
+            ->where('equipped', true)
+            ->whereHas('item.itemType', function ($query) {
+                $query->where('code', ItemTypeCode::SHIELD->value);
+            })
+            ->with('item.itemType')
+            ->first();
+    }
+
+    /**
+     * Calculate armor class from equipped items or use override.
+     */
+    public function getArmorClassAttribute(): int
+    {
+        // If override is set, use it
+        if ($this->armor_class_override !== null) {
+            return $this->armor_class_override;
+        }
+
+        return app(CharacterStatCalculator::class)->calculateArmorClass($this);
     }
 }

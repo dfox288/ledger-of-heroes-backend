@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\ProficiencyCheckerService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -31,6 +32,25 @@ class CharacterEquipmentResource extends JsonResource
             'quantity' => $this->quantity,
             'equipped' => $this->equipped,
             'location' => $this->location,
+            'proficiency_status' => $this->when(
+                $this->equipped,
+                fn () => $this->getProficiencyStatus()
+            ),
         ];
+    }
+
+    /**
+     * Get the proficiency status for this equipped item.
+     *
+     * @return array<string, mixed>
+     */
+    private function getProficiencyStatus(): array
+    {
+        $checker = app(ProficiencyCheckerService::class);
+
+        return $checker->checkEquipmentProficiency(
+            $this->character,
+            $this->item
+        )->toArray();
     }
 }

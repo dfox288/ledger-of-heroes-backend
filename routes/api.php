@@ -248,6 +248,14 @@ Route::prefix('v1')->group(function () {
         Route::post('proficiencies/populate', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'populate'])
             ->name('proficiencies.populate');
 
+        // Character Features
+        Route::get('features', [\App\Http\Controllers\Api\CharacterFeatureController::class, 'index'])
+            ->name('features.index');
+        Route::post('features/populate', [\App\Http\Controllers\Api\CharacterFeatureController::class, 'populate'])
+            ->name('features.populate');
+        Route::delete('features/{source}', [\App\Http\Controllers\Api\CharacterFeatureController::class, 'clear'])
+            ->name('features.clear');
+
         // Character Level-Up
         Route::post('level-up', \App\Http\Controllers\Api\CharacterLevelUpController::class)
             ->name('level-up');

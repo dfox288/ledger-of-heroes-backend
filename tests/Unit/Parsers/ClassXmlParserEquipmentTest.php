@@ -480,4 +480,94 @@ XML;
             $this->assertEquals('musical_instrument', $option['choice_items'][0]['value'], "Option {$optionNum} should be musical_instrument");
         }
     }
+
+    #[Test]
+    public function it_parses_comma_separated_items_in_choice_option()
+    {
+        // This tests the Fighter equipment choice: "(b) leather armor, longbow, and arrows (20)"
+        // The comma-separated items before "and" should be parsed as separate items
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <class>
+        <name>Fighter</name>
+        <hd>10</hd>
+        <autolevel level="1">
+            <feature>
+                <name>Starting Fighter</name>
+                <text>You begin play with the following equipment:
+
+• (a) chain mail or (b) leather armor, longbow, and arrows (20)
+</text>
+            </feature>
+        </autolevel>
+    </class>
+</compendium>
+XML;
+
+        $classes = $this->parser->parse($xml);
+        $items = $classes[0]['equipment']['items'];
+
+        // Option B should have 3 separate items: leather armor, longbow, arrows
+        $optionB = collect($items)->first(fn ($i) => $i['choice_option'] === 2);
+        $this->assertNotNull($optionB);
+        $this->assertArrayHasKey('choice_items', $optionB);
+        $this->assertCount(3, $optionB['choice_items'], 'Option B should have 3 items: leather armor, longbow, arrows');
+
+        // Verify each item
+        $choiceItems = $optionB['choice_items'];
+
+        // First: leather armor
+        $this->assertEquals('item', $choiceItems[0]['type']);
+        $this->assertEquals('leather armor', $choiceItems[0]['value']);
+        $this->assertEquals(1, $choiceItems[0]['quantity']);
+
+        // Second: longbow
+        $this->assertEquals('item', $choiceItems[1]['type']);
+        $this->assertEquals('longbow', $choiceItems[1]['value']);
+        $this->assertEquals(1, $choiceItems[1]['quantity']);
+
+        // Third: arrows with quantity 20
+        $this->assertEquals('item', $choiceItems[2]['type']);
+        $this->assertEquals('arrows', $choiceItems[2]['value']);
+        $this->assertEquals(20, $choiceItems[2]['quantity']);
+    }
+
+    #[Test]
+    public function it_parses_comma_separated_items_with_quantity_prefix()
+    {
+        // Alternative format where quantity comes before item name
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <class>
+        <name>Fighter</name>
+        <hd>10</hd>
+        <autolevel level="1">
+            <feature>
+                <name>Starting Fighter</name>
+                <text>You begin play with the following equipment:
+
+• (a) chain mail or (b) leather armor, longbow, and 20 arrows
+</text>
+            </feature>
+        </autolevel>
+    </class>
+</compendium>
+XML;
+
+        $classes = $this->parser->parse($xml);
+        $items = $classes[0]['equipment']['items'];
+
+        // Option B should have 3 separate items
+        $optionB = collect($items)->first(fn ($i) => $i['choice_option'] === 2);
+        $this->assertNotNull($optionB);
+        $this->assertCount(3, $optionB['choice_items'], 'Option B should have 3 items: leather armor, longbow, arrows');
+
+        // Verify longbow is present
+        $longbow = collect($optionB['choice_items'])->first(fn ($i) => $i['value'] === 'longbow');
+        $this->assertNotNull($longbow, 'Longbow should be parsed as a separate item');
+        $this->assertEquals('item', $longbow['type']);
+        $this->assertEquals(1, $longbow['quantity']);
+    }
 }

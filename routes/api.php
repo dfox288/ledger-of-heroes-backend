@@ -238,6 +238,16 @@ Route::prefix('v1')->group(function () {
         Route::delete('equipment/{equipment}', [\App\Http\Controllers\Api\CharacterEquipmentController::class, 'destroy'])
             ->name('equipment.destroy');
 
+        // Character Proficiencies
+        Route::get('proficiencies', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'index'])
+            ->name('proficiencies.index');
+        Route::get('proficiency-choices', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'choices'])
+            ->name('proficiencies.choices');
+        Route::post('proficiency-choices', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'storeChoice'])
+            ->name('proficiencies.storeChoice');
+        Route::post('proficiencies/populate', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'populate'])
+            ->name('proficiencies.populate');
+
         // Character Level-Up
         Route::post('level-up', \App\Http\Controllers\Api\CharacterLevelUpController::class)
             ->name('level-up');

@@ -85,6 +85,56 @@ XML;
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
+    public function it_merges_spells_known_from_separate_autolevel_elements(): void
+    {
+        // Real-world case: Bard has slots and counters in SEPARATE autolevels
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <class>
+    <name>Bard</name>
+    <hd>8</hd>
+    <!-- Slots in one autolevel -->
+    <autolevel level="1">
+      <slots>2,2</slots>
+    </autolevel>
+    <autolevel level="2">
+      <slots>2,3</slots>
+    </autolevel>
+    <!-- Spells Known counters in separate autolevels -->
+    <autolevel level="1">
+      <counter>
+        <name>Spells Known</name>
+        <value>4</value>
+      </counter>
+    </autolevel>
+    <autolevel level="2">
+      <counter>
+        <name>Spells Known</name>
+        <value>5</value>
+      </counter>
+    </autolevel>
+  </class>
+</compendium>
+XML;
+
+        $parser = new ClassXmlParser;
+        $data = $parser->parse($xml);
+
+        $this->assertCount(2, $data[0]['spell_progression']);
+
+        // Level 1: should have merged spells_known from separate autolevel
+        $level1 = collect($data[0]['spell_progression'])->firstWhere('level', 1);
+        $this->assertEquals(4, $level1['spells_known'], 'Level 1 should have 4 spells known');
+        $this->assertEquals(2, $level1['cantrips_known']);
+        $this->assertEquals(2, $level1['spell_slots_1st']);
+
+        // Level 2
+        $level2 = collect($data[0]['spell_progression'])->firstWhere('level', 2);
+        $this->assertEquals(5, $level2['spells_known'], 'Level 2 should have 5 spells known');
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_skips_spells_known_for_optional_slots(): void
     {
         // Classes with optional slots (Fighter, Rogue) should NOT have spell progression

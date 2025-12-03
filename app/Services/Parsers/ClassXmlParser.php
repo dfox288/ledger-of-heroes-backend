@@ -306,8 +306,11 @@ class ClassXmlParser
     private function parseSpellSlots(SimpleXMLElement $element): array
     {
         $spellProgression = [];
+        $spellsKnownByLevel = [];
+        $hasOptionalSlots = false;
 
-        // Iterate through all autolevel elements
+        // First pass: collect spell slots and spells_known counters separately
+        // This handles XML where slots and counters are in different <autolevel> elements
         foreach ($element->autolevel as $autolevel) {
             $level = (int) $autolevel['level'];
 
@@ -317,9 +320,9 @@ class ClassXmlParser
                 $isOptional = isset($autolevel->slots['optional'])
                     && (string) $autolevel->slots['optional'] === 'YES';
 
-                // Skip optional slots for base class - they belong to subclasses
-                // Example: Rogue has optional="YES" for Arcane Trickster only
                 if ($isOptional) {
+                    $hasOptionalSlots = true;
+
                     continue;
                 }
 
@@ -341,63 +344,30 @@ class ClassXmlParser
                     'spell_slots_9th' => $slots[9] ?? 0,
                 ];
 
-                $spellProgression[] = $progression;
+                $spellProgression[$level] = $progression;
             }
 
-            // Check for "Spells Known" counter
-            // NOTE: Only process these if there are non-optional spell slots
-            // (Rogue has "Spells Known" counters for Arcane Trickster, but slots are optional)
-            $spellsKnown = null;
+            // Collect "Spells Known" counters (may be in separate autolevel from slots)
             foreach ($autolevel->counter as $counterElement) {
                 if ((string) $counterElement->name === 'Spells Known') {
-                    $spellsKnown = (int) $counterElement->value;
+                    $spellsKnownByLevel[$level] = (int) $counterElement->value;
                     break;
-                }
-            }
-
-            // If we found spells_known, merge it into existing progression
-            // BUT: Only if this level has non-optional spell slots
-            if ($spellsKnown !== null && isset($autolevel->slots)) {
-                $isOptional = isset($autolevel->slots['optional'])
-                    && (string) $autolevel->slots['optional'] === 'YES';
-
-                // Skip if slots are optional (subclass-only spellcasting)
-                if ($isOptional) {
-                    continue;
-                }
-
-                // Find existing progression entry for this level
-                $found = false;
-                foreach ($spellProgression as &$prog) {
-                    if ($prog['level'] === $level) {
-                        $prog['spells_known'] = $spellsKnown;
-                        $found = true;
-                        break;
-                    }
-                }
-                unset($prog);
-
-                // If no existing entry, create one with just spells_known
-                if (! $found) {
-                    $spellProgression[] = [
-                        'level' => $level,
-                        'cantrips_known' => 0,
-                        'spell_slots_1st' => 0,
-                        'spell_slots_2nd' => 0,
-                        'spell_slots_3rd' => 0,
-                        'spell_slots_4th' => 0,
-                        'spell_slots_5th' => 0,
-                        'spell_slots_6th' => 0,
-                        'spell_slots_7th' => 0,
-                        'spell_slots_8th' => 0,
-                        'spell_slots_9th' => 0,
-                        'spells_known' => $spellsKnown,
-                    ];
                 }
             }
         }
 
-        return $spellProgression;
+        // Second pass: merge spells_known into spell progression
+        // Only if this class has non-optional spell slots (not Fighter/Rogue subclass casters)
+        if (! empty($spellProgression) && ! $hasOptionalSlots) {
+            foreach ($spellsKnownByLevel as $level => $spellsKnown) {
+                if (isset($spellProgression[$level])) {
+                    $spellProgression[$level]['spells_known'] = $spellsKnown;
+                }
+            }
+        }
+
+        // Re-index array to be sequential
+        return array_values($spellProgression);
     }
 
     /**

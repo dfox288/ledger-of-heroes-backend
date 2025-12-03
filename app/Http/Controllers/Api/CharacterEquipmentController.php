@@ -37,13 +37,26 @@ class CharacterEquipmentController extends Controller
      */
     public function store(StoreEquipmentRequest $request, Character $character): JsonResponse
     {
-        $item = Item::findOrFail($request->item_id);
-        $equipment = $this->equipmentManager->addItem(
-            $character,
-            $item,
-            $request->quantity ?? 1
-        );
-        $equipment->load('item.itemType');
+        if ($request->item_id) {
+            // Database item
+            $item = Item::findOrFail($request->item_id);
+            $equipment = $this->equipmentManager->addItem(
+                $character,
+                $item,
+                $request->quantity ?? 1
+            );
+            $equipment->load('item.itemType');
+        } else {
+            // Custom/freetext item
+            $equipment = $character->equipment()->create([
+                'item_id' => null,
+                'custom_name' => $request->custom_name,
+                'custom_description' => $request->custom_description,
+                'quantity' => $request->quantity ?? 1,
+                'equipped' => false,
+                'location' => 'backpack',
+            ]);
+        }
 
         return (new CharacterEquipmentResource($equipment))
             ->response()
@@ -65,6 +78,10 @@ class CharacterEquipmentController extends Controller
 
         if ($request->has('equipped')) {
             if ($request->equipped) {
+                // Custom items cannot be equipped
+                if ($equipment->isCustomItem()) {
+                    abort(422, 'Custom items cannot be equipped.');
+                }
                 $this->equipmentManager->equipItem($equipment);
             } else {
                 $this->equipmentManager->unequipItem($equipment);
@@ -75,7 +92,9 @@ class CharacterEquipmentController extends Controller
             $equipment->update(['quantity' => $request->quantity]);
         }
 
-        $equipment->load('item.itemType');
+        if ($equipment->item_id) {
+            $equipment->load('item.itemType');
+        }
 
         return new CharacterEquipmentResource($equipment);
     }

@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Available Spells Endpoint Missing Known Spells** (Issue #104)
+  - Added `include_known=true` query parameter to `/characters/{id}/available-spells`
+  - When enabled, already-learned spells are included in the response
+  - Fixes spell selection UI highlighting when navigating back to spells step
+  - Backward compatible - default behavior unchanged (excludes known spells)
+
 - **Musical Instrument Equipment Choices** (Issue #99, PR #16)
   - "Any musical instrument" equipment choices now link to proficiency category
   - Added "Musical Instruments" parent proficiency type (slug: `musical-instruments`)

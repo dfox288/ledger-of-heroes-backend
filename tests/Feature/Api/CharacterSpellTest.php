@@ -130,6 +130,35 @@ class CharacterSpellTest extends TestCase
             ->assertJsonCount(3, 'data'); // 5 total - 2 known = 3 available
     }
 
+    #[Test]
+    public function it_includes_known_spells_when_include_known_parameter_is_true(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()->withClass($wizardClass)->create();
+
+        $spells = Spell::factory()->count(5)->create(['level' => 1]);
+        $wizardClass->spells()->attach($spells->pluck('id'));
+
+        // Character already knows 2 spells
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_id' => $spells[0]->id,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_id' => $spells[1]->id,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-spells?include_known=true");
+
+        $response->assertOk()
+            ->assertJsonCount(5, 'data'); // All 5 spells including already known
+    }
+
     // =====================
     // Learn Spell Tests
     // =====================

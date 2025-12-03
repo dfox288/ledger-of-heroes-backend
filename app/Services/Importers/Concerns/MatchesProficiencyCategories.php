@@ -32,6 +32,9 @@ trait MatchesProficiencyCategories
         'medium_armor' => 'medium-armor',
         'heavy_armor' => 'heavy-armor',
         'shields' => 'shields',
+
+        // Tools/instruments categories
+        'musical_instrument' => 'musical-instruments',
     ];
 
     /**

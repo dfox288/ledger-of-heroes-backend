@@ -110,7 +110,11 @@ class ProficiencyTypeSeeder extends Seeder
             ['name' => 'Playing Card Set', 'category' => 'gaming_set'],
             ['name' => 'Three-Dragon Ante Set', 'category' => 'gaming_set'],
 
-            // Musical Instruments (category already specific, no subcategory needed)
+            // Musical Instruments - Parent category (like Simple/Martial Weapons)
+            // Note: No subcategory needed - individual instruments don't have subcategory distinctions
+            ['name' => 'Musical Instruments', 'category' => 'musical_instrument'],
+
+            // Musical Instruments - Individual instruments
             ['name' => 'Bagpipes', 'category' => 'musical_instrument'],
             ['name' => 'Drum', 'category' => 'musical_instrument'],
             ['name' => 'Dulcimer', 'category' => 'musical_instrument'],

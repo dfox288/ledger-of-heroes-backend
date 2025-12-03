@@ -929,6 +929,15 @@ class ClassXmlParser
                 continue;
             }
 
+            // Check for musical instrument category
+            // Patterns: "any musical instrument", "any other musical instrument", "musical instrument of your choice", etc.
+            if (preg_match('/^(?:any\s+)?(?:other\s+)?musical\s+instruments?(?:\s+of\s+your\s+choice)?$/i', $part) ||
+                preg_match('/^(?:one\s+)?musical\s+instruments?$/i', $part)) {
+                $items[] = ['type' => 'category', 'value' => 'musical_instrument', 'quantity' => $quantity];
+
+                continue;
+            }
+
             // Handle "quiver of arrows (20)" or "arrows (20)" pattern
             if (preg_match('/(?:quiver\s+of\s+)?(\w+)\s*\((\d+)\)/i', $part, $m)) {
                 $items[] = ['type' => 'item', 'value' => strtolower($m[1]), 'quantity' => (int) $m[2]];

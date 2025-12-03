@@ -1,8 +1,8 @@
 # Project Status
 
 **Last Updated:** 2025-12-03
-**Branch:** main
-**Status:** ✅ ASI Choice / Feat Selection Complete
+**Branch:** feature/issue-96-equipment-choice-items
+**Status:** ✅ Equipment Choice Items Complete (PR #15 pending merge)
 
 ---
 
@@ -30,6 +30,33 @@
 ---
 
 ## 🚀 Recent Milestones
+
+### Structured Equipment Choice Items ✅ COMPLETE (2025-12-03)
+- **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/15 (pending merge)
+- **Issue:** #96
+- **Scope:** Add structured item type references for equipment choices
+
+**Features Implemented:**
+- New `equipment_choice_items` table linking equipment choices to items or proficiency categories
+- Parser extracts compound choices (e.g., "a martial weapon and a shield" → 2 choice_items)
+- Category references link to `proficiency_types` (e.g., "Martial Weapons", "Simple Weapons")
+- Quantity tracking for choices like "two martial weapons" (quantity=2)
+- API response includes `choice_items` array with `proficiency_type` and `item` data
+
+**Architecture:**
+- `EquipmentChoiceItem` model with `proficiency_type_id` and `item_id` relationships
+- `MatchesProficiencyCategories` trait for category resolution
+- `parseCompoundItem()` in ClassXmlParser extracts structured choice_items
+- `EquipmentChoiceItemResource` for API responses
+
+**Frontend Integration:**
+- Detect categories via `choice_item.proficiency_type !== null`
+- Query matching items: `GET /api/v1/items?filter=proficiency_category = "martial_melee"`
+- Display item picker for user selection
+
+**Results:** 125 equipment_choice_items created across all classes
+
+**Tests:** 5 new parser tests for compound item extraction
 
 ### ASI Choice / Feat Selection ✅ COMPLETE (2025-12-03)
 - **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/14 (merged)
@@ -413,7 +440,7 @@
 ## 🎯 Next Priorities
 
 ### Priority 1: Multiclass Support (Issue #92)
-- **Status:** Ready to start
+- **Status:** Design complete, implementation plan ready
 - Allow characters to have multiple classes
 - Track levels per class
 - Handle multiclass spellcasting rules
@@ -429,6 +456,9 @@
 - Database indexing: composite indexes, slug indexes
 - Caching: monster spell lists, popular filters
 - Query optimization: reduce N+1 queries
+
+### Recently Completed
+- ✅ Equipment Choice Items (Issue #96) - PR #15 pending merge
 
 ### Additional Opportunities
 - Encounter Builder API
@@ -511,7 +541,7 @@ docker compose exec php php artisan search:configure-indexes
 ---
 
 **Last Updated:** 2025-12-03
-**Next Session:** Multiclass Support (#92), XP-Based Leveling (#95), or Performance Optimizations
+**Next Session:** Merge PR #15, then Multiclass Support (#92), XP-Based Leveling (#95), or Performance Optimizations
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

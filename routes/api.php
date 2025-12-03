@@ -241,5 +241,9 @@ Route::prefix('v1')->group(function () {
         // Character Level-Up
         Route::post('level-up', \App\Http\Controllers\Api\CharacterLevelUpController::class)
             ->name('level-up');
+
+        // ASI Choice (Feat or Ability Score Increase)
+        Route::post('asi-choice', \App\Http\Controllers\Api\AsiChoiceController::class)
+            ->name('asi-choice');
     });
 });

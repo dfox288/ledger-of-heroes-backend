@@ -409,4 +409,75 @@ XML;
         $this->assertEquals('item', $dagger['choice_items'][0]['type']);
         $this->assertEquals(2, $dagger['choice_items'][0]['quantity']);
     }
+
+    #[Test]
+    public function it_parses_musical_instrument_as_category()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <class>
+        <name>Bard</name>
+        <hd>8</hd>
+        <autolevel level="1">
+            <feature>
+                <name>Starting Bard</name>
+                <text>You begin play with the following equipment:
+
+• (a) a lute or (b) any other musical instrument
+</text>
+            </feature>
+        </autolevel>
+    </class>
+</compendium>
+XML;
+
+        $classes = $this->parser->parse($xml);
+        $items = $classes[0]['equipment']['items'];
+
+        // Option B: any other musical instrument
+        $optionB = collect($items)->first(fn ($i) => $i['choice_option'] === 2);
+        $this->assertNotNull($optionB);
+        $this->assertArrayHasKey('choice_items', $optionB);
+        $this->assertCount(1, $optionB['choice_items']);
+
+        // Should be a category reference, not an item
+        $this->assertEquals('category', $optionB['choice_items'][0]['type']);
+        $this->assertEquals('musical_instrument', $optionB['choice_items'][0]['value']);
+        $this->assertEquals(1, $optionB['choice_items'][0]['quantity']);
+    }
+
+    #[Test]
+    public function it_parses_various_musical_instrument_phrases()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <class>
+        <name>Test</name>
+        <hd>8</hd>
+        <autolevel level="1">
+            <feature>
+                <name>Starting Test</name>
+                <text>You begin play with the following equipment:
+
+• (a) a musical instrument or (b) any musical instrument of your choice or (c) one musical instrument
+</text>
+            </feature>
+        </autolevel>
+    </class>
+</compendium>
+XML;
+
+        $classes = $this->parser->parse($xml);
+        $items = $classes[0]['equipment']['items'];
+
+        // All three options should be musical instrument categories
+        foreach ([1, 2, 3] as $optionNum) {
+            $option = collect($items)->first(fn ($i) => $i['choice_option'] === $optionNum);
+            $this->assertNotNull($option, "Option {$optionNum} should exist");
+            $this->assertEquals('category', $option['choice_items'][0]['type'], "Option {$optionNum} should be category");
+            $this->assertEquals('musical_instrument', $option['choice_items'][0]['value'], "Option {$optionNum} should be musical_instrument");
+        }
+    }
 }

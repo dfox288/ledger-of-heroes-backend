@@ -334,6 +334,41 @@ class CharacterProficiencyApiTest extends TestCase
     }
 
     #[Test]
+    public function it_replaces_existing_choices_when_resubmitting(): void
+    {
+        $character = Character::factory()
+            ->withClass($this->fighterClass)
+            ->create();
+
+        // First submission: athletics + acrobatics
+        $this->postJson("/api/v1/characters/{$character->id}/proficiency-choices", [
+            'source' => 'class',
+            'choice_group' => 'skill_choice_1',
+            'skill_ids' => [$this->athletics->id, $this->acrobatics->id],
+        ])->assertOk();
+
+        $character->refresh();
+        $this->assertCount(2, $character->proficiencies);
+
+        // Second submission: athletics + perception (change of mind)
+        $response = $this->postJson("/api/v1/characters/{$character->id}/proficiency-choices", [
+            'source' => 'class',
+            'choice_group' => 'skill_choice_1',
+            'skill_ids' => [$this->athletics->id, $this->perception->id],
+        ]);
+
+        $response->assertOk();
+
+        // Should still have exactly 2 proficiencies (replaced, not added)
+        $character->refresh();
+        $this->assertCount(2, $character->proficiencies);
+        $this->assertTrue($character->proficiencies->contains('skill_id', $this->athletics->id));
+        $this->assertTrue($character->proficiencies->contains('skill_id', $this->perception->id));
+        // Acrobatics should be gone (replaced)
+        $this->assertFalse($character->proficiencies->contains('skill_id', $this->acrobatics->id));
+    }
+
+    #[Test]
     public function it_rejects_invalid_skill_choices(): void
     {
         $character = Character::factory()

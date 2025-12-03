@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **POST /proficiency-choices adds skills instead of replacing** (Issue #124)
+  - Resubmitting proficiency choices now replaces existing selections instead of adding to them
+  - Clears previous choices for the same source + choice_group before adding new ones
+  - Prevents duplicate proficiencies when user changes their mind during character creation
+
 ### Added
 
 - **Character Alignment** (Issue #115)

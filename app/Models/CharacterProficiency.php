@@ -17,6 +17,7 @@ class CharacterProficiency extends Model
         'proficiency_type_id',
         'skill_id',
         'source',
+        'choice_group',
         'expertise',
     ];
 

@@ -244,4 +244,169 @@ XML;
         $this->assertEquals(2, $dagger['quantity']);
         $this->assertEquals(4, $javelin['quantity']);
     }
+
+    #[Test]
+    public function it_parses_compound_choice_items_with_category_references()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <class>
+        <name>Fighter</name>
+        <hd>10</hd>
+        <autolevel level="1">
+            <feature>
+                <name>Starting Fighter</name>
+                <text>You begin play with the following equipment:
+
+• (a) a martial weapon and a shield or (b) two martial weapons
+</text>
+            </feature>
+        </autolevel>
+    </class>
+</compendium>
+XML;
+
+        $classes = $this->parser->parse($xml);
+        $items = $classes[0]['equipment']['items'];
+
+        // Option A: martial weapon + shield
+        $optionA = collect($items)->first(fn ($i) => $i['choice_option'] === 1);
+        $this->assertNotNull($optionA);
+        $this->assertArrayHasKey('choice_items', $optionA);
+        $this->assertCount(2, $optionA['choice_items']);
+
+        // First item: martial weapon category
+        $this->assertEquals('category', $optionA['choice_items'][0]['type']);
+        $this->assertEquals('martial', $optionA['choice_items'][0]['value']);
+        $this->assertEquals(1, $optionA['choice_items'][0]['quantity']);
+
+        // Second item: shield (specific item)
+        $this->assertEquals('item', $optionA['choice_items'][1]['type']);
+        $this->assertEquals('shield', $optionA['choice_items'][1]['value']);
+
+        // Option B: two martial weapons
+        $optionB = collect($items)->first(fn ($i) => $i['choice_option'] === 2);
+        $this->assertNotNull($optionB);
+        $this->assertCount(1, $optionB['choice_items']);
+        $this->assertEquals('category', $optionB['choice_items'][0]['type']);
+        $this->assertEquals('martial', $optionB['choice_items'][0]['value']);
+        $this->assertEquals(2, $optionB['choice_items'][0]['quantity']);
+    }
+
+    #[Test]
+    public function it_parses_shortbow_with_quiver_of_arrows()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <class>
+        <name>Rogue</name>
+        <hd>8</hd>
+        <autolevel level="1">
+            <feature>
+                <name>Starting Rogue</name>
+                <text>You begin play with the following equipment:
+
+• (a) a shortbow and quiver of arrows (20) or (b) a shortsword
+</text>
+            </feature>
+        </autolevel>
+    </class>
+</compendium>
+XML;
+
+        $classes = $this->parser->parse($xml);
+        $items = $classes[0]['equipment']['items'];
+
+        // Option A: shortbow + arrows
+        $optionA = collect($items)->first(fn ($i) => $i['choice_option'] === 1);
+        $this->assertNotNull($optionA);
+        $this->assertArrayHasKey('choice_items', $optionA);
+        $this->assertCount(2, $optionA['choice_items']);
+
+        // First: shortbow
+        $this->assertEquals('item', $optionA['choice_items'][0]['type']);
+        $this->assertEquals('shortbow', $optionA['choice_items'][0]['value']);
+        $this->assertEquals(1, $optionA['choice_items'][0]['quantity']);
+
+        // Second: arrows with quantity 20
+        $this->assertEquals('item', $optionA['choice_items'][1]['type']);
+        $this->assertEquals('arrows', $optionA['choice_items'][1]['value']);
+        $this->assertEquals(20, $optionA['choice_items'][1]['quantity']);
+    }
+
+    #[Test]
+    public function it_parses_simple_and_martial_melee_categories()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <class>
+        <name>Test</name>
+        <hd>8</hd>
+        <autolevel level="1">
+            <feature>
+                <name>Starting Test</name>
+                <text>You begin play with the following equipment:
+
+• (a) any simple melee weapon or (b) any martial ranged weapon
+</text>
+            </feature>
+        </autolevel>
+    </class>
+</compendium>
+XML;
+
+        $classes = $this->parser->parse($xml);
+        $items = $classes[0]['equipment']['items'];
+
+        // Option A: simple melee
+        $optionA = collect($items)->first(fn ($i) => $i['choice_option'] === 1);
+        $this->assertEquals('category', $optionA['choice_items'][0]['type']);
+        $this->assertEquals('simple_melee', $optionA['choice_items'][0]['value']);
+
+        // Option B: martial ranged
+        $optionB = collect($items)->first(fn ($i) => $i['choice_option'] === 2);
+        $this->assertEquals('category', $optionB['choice_items'][0]['type']);
+        $this->assertEquals('martial_ranged', $optionB['choice_items'][0]['value']);
+    }
+
+    #[Test]
+    public function it_includes_choice_items_for_non_choice_equipment()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <class>
+        <name>Test</name>
+        <hd>8</hd>
+        <autolevel level="1">
+            <feature>
+                <name>Starting Test</name>
+                <text>You begin play with the following equipment:
+
+• Leather armor, two dagger, and thieves' tools
+</text>
+            </feature>
+        </autolevel>
+    </class>
+</compendium>
+XML;
+
+        $classes = $this->parser->parse($xml);
+        $items = $classes[0]['equipment']['items'];
+
+        // Each non-choice item should have choice_items array
+        foreach ($items as $item) {
+            $this->assertArrayHasKey('choice_items', $item);
+            $this->assertNotEmpty($item['choice_items']);
+        }
+
+        // Find dagger item
+        $dagger = collect($items)->first(fn ($i) => str_contains(strtolower($i['description']), 'dagger'));
+        $this->assertNotNull($dagger);
+        $this->assertEquals('item', $dagger['choice_items'][0]['type']);
+        $this->assertEquals(2, $dagger['choice_items'][0]['quantity']);
+    }
 }

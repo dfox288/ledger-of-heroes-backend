@@ -1,1 +1,1 @@
-handovers/SESSION-HANDOVER-2025-12-03-asi-choice.md
+handovers/SESSION-HANDOVER-2025-12-03-1430-equipment-choice-items.md

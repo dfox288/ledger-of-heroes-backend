@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class EntityItem extends BaseModel
@@ -34,5 +35,10 @@ class EntityItem extends BaseModel
     public function item(): BelongsTo
     {
         return $this->belongsTo(Item::class);
+    }
+
+    public function choiceItems(): HasMany
+    {
+        return $this->hasMany(EquipmentChoiceItem::class)->orderBy('sort_order');
     }
 }

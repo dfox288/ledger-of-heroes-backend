@@ -824,7 +824,7 @@ class ClassXmlParser
      * - "(a) X, (b) Y, or (c) Z" (three-way choice)
      * - "An explorer's pack, and four javelins"
      *
-     * @return array<int, array{description: string, is_choice: bool, choice_group: string|null, choice_option: int|null, quantity: int}>
+     * @return array<int, array{description: string, is_choice: bool, choice_group: string|null, choice_option: int|null, quantity: int, choice_items: array}>
      */
     private function parseEquipmentChoices(string $text): array
     {
@@ -855,19 +855,19 @@ class ClassXmlParser
                             continue;
                         }
 
-                        // Extract quantity if present
-                        $quantity = 1;
-                        if (preg_match('/^(two|three|four|five|six|seven|eight|nine|ten|twenty)\s+/i', $choiceText, $qtyMatch)) {
-                            $quantity = $this->wordToNumber($qtyMatch[1]);
-                            $choiceText = preg_replace('/^(two|three|four|five|six|seven|eight|nine|ten|twenty)\s+/i', '', $choiceText);
-                        }
+                        // Parse compound items (e.g., "a martial weapon and a shield")
+                        $choiceItems = $this->parseCompoundItem($choiceText);
+
+                        // Calculate total quantity from choice_items for backwards compat
+                        $totalQuantity = array_sum(array_column($choiceItems, 'quantity'));
 
                         $items[] = [
                             'description' => trim($choiceText),
                             'is_choice' => true,
                             'choice_group' => "choice_{$choiceGroupNumber}",
                             'choice_option' => $optionNumber++,
-                            'quantity' => $quantity,
+                            'quantity' => $totalQuantity ?: 1,
+                            'choice_items' => $choiceItems,
                         ];
                     }
                     $choiceGroupNumber++;
@@ -885,28 +885,94 @@ class ClassXmlParser
                         continue;
                     }
 
-                    // Extract quantity if present: "four javelins" → quantity=4, "javelins"
-                    // Handle: two, three, four, five, six, seven, eight, nine, ten, twenty
-                    $quantity = 1;
-                    if (preg_match('/^(two|three|four|five|six|seven|eight|nine|ten|twenty)\s+(.+)/i', $part, $qtyMatch)) {
-                        $quantity = $this->wordToNumber($qtyMatch[1]);
-                        $part = $qtyMatch[2]; // Item name after quantity
-                    }
+                    // Parse as compound item (handles quantity extraction too)
+                    $choiceItems = $this->parseCompoundItem($part);
 
-                    // Skip if part is empty
-                    $part = trim($part);
-                    if (empty($part)) {
-                        continue;
-                    }
+                    // Calculate total quantity from choice_items
+                    $totalQuantity = array_sum(array_column($choiceItems, 'quantity'));
 
                     $items[] = [
                         'description' => $part,
                         'is_choice' => false,
                         'choice_group' => null,
                         'choice_option' => null,
-                        'quantity' => $quantity,
+                        'quantity' => $totalQuantity ?: 1,
+                        'choice_items' => $choiceItems,
                     ];
                 }
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * Parse a compound item description into structured choice_items.
+     *
+     * Handles patterns like:
+     * - "a martial weapon and a shield" → 2 items
+     * - "two martial weapons" → 1 item with quantity=2
+     * - "shortbow and quiver of arrows (20)" → 2 items
+     * - "any simple weapon" → 1 category item
+     *
+     * @return array<int, array{type: string, value: string, quantity: int}>
+     */
+    private function parseCompoundItem(string $text): array
+    {
+        $items = [];
+
+        // Split on " and " for compound items
+        $parts = preg_split('/\s+and\s+/i', $text);
+
+        foreach ($parts as $part) {
+            $part = trim($part);
+            if (empty($part)) {
+                continue;
+            }
+
+            // Extract quantity from start (two, three, etc.)
+            $quantity = 1;
+            if (preg_match('/^(two|three|four|five|six|seven|eight|nine|ten|twenty)\s+/i', $part, $m)) {
+                $quantity = $this->wordToNumber($m[1]);
+                $part = preg_replace('/^(two|three|four|five|six|seven|eight|nine|ten|twenty)\s+/i', '', $part);
+            }
+
+            // Remove leading articles (a, an, the)
+            $part = preg_replace('/^(a|an|the)\s+/i', '', $part);
+
+            // Check for category references (martial/simple weapons)
+            // Pattern: "any martial weapon", "martial weapon", "martial melee weapon", "simple ranged weapon"
+            if (preg_match('/^(?:any\s+)?(martial|simple)\s+(?:(melee|ranged)\s+)?weapons?$/i', $part, $m)) {
+                $category = strtolower($m[1]);
+                if (! empty($m[2])) {
+                    $category .= '_'.strtolower($m[2]);
+                }
+                $items[] = ['type' => 'category', 'value' => $category, 'quantity' => $quantity];
+
+                continue;
+            }
+
+            // Check for armor categories
+            if (preg_match('/^(?:any\s+)?(light|medium|heavy)\s+armou?r$/i', $part, $m)) {
+                $items[] = ['type' => 'category', 'value' => strtolower($m[1]).'_armor', 'quantity' => $quantity];
+
+                continue;
+            }
+
+            // Handle "quiver of arrows (20)" or "arrows (20)" pattern
+            if (preg_match('/(?:quiver\s+of\s+)?(\w+)\s*\((\d+)\)/i', $part, $m)) {
+                $items[] = ['type' => 'item', 'value' => strtolower($m[1]), 'quantity' => (int) $m[2]];
+
+                continue;
+            }
+
+            // Specific item - clean up for matching
+            // Remove parenthetical notes like "(holy symbol)" but keep item name
+            $itemName = preg_replace('/\s*\([^)]+\)\s*$/', '', $part);
+            $itemName = trim($itemName);
+
+            if (! empty($itemName)) {
+                $items[] = ['type' => 'item', 'value' => $itemName, 'quantity' => $quantity];
             }
         }
 

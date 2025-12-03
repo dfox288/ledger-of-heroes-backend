@@ -156,7 +156,7 @@ class CharacterProficiencyServiceTest extends TestCase
     }
 
     #[Test]
-    public function it_excludes_already_chosen_skills_from_pending(): void
+    public function it_tracks_already_chosen_skills_in_selected_array(): void
     {
         $athletics = $this->createSkill('Athletics');
         $acrobatics = $this->createSkill('Acrobatics');
@@ -178,8 +178,22 @@ class CharacterProficiencyServiceTest extends TestCase
 
         $choices = $this->service->getPendingChoices($character);
 
+        $choiceData = $choices['class']['skill_choice_1'];
+
         // Should have 0 remaining since quantity (1) is fulfilled
-        $this->assertEquals(0, $choices['class']['skill_choice_1']['remaining']);
+        $this->assertEquals(0, $choiceData['remaining']);
+
+        // Should still return ALL options (not filtered)
+        $this->assertCount(2, $choiceData['options']);
+
+        // Should track selected skill ID in separate array
+        $this->assertArrayHasKey('selected_skills', $choiceData);
+        $this->assertContains($athletics->id, $choiceData['selected_skills']);
+        $this->assertNotContains($acrobatics->id, $choiceData['selected_skills']);
+
+        // selected_proficiency_types should be empty
+        $this->assertArrayHasKey('selected_proficiency_types', $choiceData);
+        $this->assertEmpty($choiceData['selected_proficiency_types']);
     }
 
     // =====================

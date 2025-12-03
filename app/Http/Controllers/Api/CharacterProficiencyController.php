@@ -82,7 +82,9 @@ class CharacterProficiencyController extends Controller
      *     "class": {
      *       "skill_choice_1": {
      *         "quantity": 2,
-     *         "remaining": 2,
+     *         "remaining": 0,
+     *         "selected_skills": [1, 3],
+     *         "selected_proficiency_types": [],
      *         "options": [
      *           {"type": "skill", "skill_id": 1, "skill": {"id": 1, "name": "Acrobatics", "slug": "acrobatics"}},
      *           {"type": "skill", "skill_id": 3, "skill": {"id": 3, "name": "Athletics", "slug": "athletics"}},
@@ -99,7 +101,9 @@ class CharacterProficiencyController extends Controller
      * **Fields:**
      * - `quantity`: Total number of choices required
      * - `remaining`: Number of choices still needed (quantity - already chosen)
-     * - `options`: Available options that haven't been chosen yet
+     * - `selected_skills`: Array of skill IDs already chosen
+     * - `selected_proficiency_types`: Array of proficiency type IDs already chosen
+     * - `options`: All available options for this choice group (always includes full list)
      */
     public function choices(Character $character): JsonResponse
     {

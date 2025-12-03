@@ -217,7 +217,7 @@ class CharacterProficiencyService
     /**
      * Get choice groups from an entity.
      *
-     * @return array<string, array{quantity: int, remaining: int, options: array}>
+     * @return array<string, array{quantity: int, remaining: int, selected_skills: array<int>, selected_proficiency_types: array<int>, options: array}>
      */
     private function getChoicesFromEntity($entity, array $existingSkillIds, array $existingProfTypeIds): array
     {
@@ -238,48 +238,56 @@ class CharacterProficiencyService
 
             $quantity = $options->first()->quantity ?? 1;
 
-            // Count how many have already been chosen from this group
-            $chosenCount = 0;
-            $availableOptions = [];
+            // Track selected IDs and count
+            $selectedSkillIds = [];
+            $selectedProfTypeIds = [];
+            $allOptions = [];
 
             foreach ($options as $option) {
                 if ($option->skill_id) {
+                    // Always add to options (don't filter out selected)
+                    $allOptions[] = [
+                        'type' => 'skill',
+                        'skill_id' => $option->skill_id,
+                        'skill' => $option->skill ? [
+                            'id' => $option->skill->id,
+                            'name' => $option->skill->name,
+                            'slug' => $option->skill->slug,
+                        ] : null,
+                    ];
+
+                    // Track if already selected
                     if (in_array($option->skill_id, $existingSkillIds)) {
-                        $chosenCount++;
-                    } else {
-                        $availableOptions[] = [
-                            'type' => 'skill',
-                            'skill_id' => $option->skill_id,
-                            'skill' => $option->skill ? [
-                                'id' => $option->skill->id,
-                                'name' => $option->skill->name,
-                                'slug' => $option->skill->slug,
-                            ] : null,
-                        ];
+                        $selectedSkillIds[] = $option->skill_id;
                     }
                 } elseif ($option->proficiency_type_id) {
+                    // Always add to options (don't filter out selected)
+                    $allOptions[] = [
+                        'type' => 'proficiency_type',
+                        'proficiency_type_id' => $option->proficiency_type_id,
+                        'proficiency_type' => $option->proficiencyType ? [
+                            'id' => $option->proficiencyType->id,
+                            'name' => $option->proficiencyType->name,
+                            'slug' => $option->proficiencyType->slug,
+                        ] : null,
+                    ];
+
+                    // Track if already selected
                     if (in_array($option->proficiency_type_id, $existingProfTypeIds)) {
-                        $chosenCount++;
-                    } else {
-                        $availableOptions[] = [
-                            'type' => 'proficiency_type',
-                            'proficiency_type_id' => $option->proficiency_type_id,
-                            'proficiency_type' => $option->proficiencyType ? [
-                                'id' => $option->proficiencyType->id,
-                                'name' => $option->proficiencyType->name,
-                                'slug' => $option->proficiencyType->slug,
-                            ] : null,
-                        ];
+                        $selectedProfTypeIds[] = $option->proficiency_type_id;
                     }
                 }
             }
 
-            $remaining = $quantity - $chosenCount;
+            $chosenCount = count($selectedSkillIds) + count($selectedProfTypeIds);
+            $remaining = max(0, $quantity - $chosenCount);
 
             $choices[$groupName] = [
                 'quantity' => $quantity,
                 'remaining' => $remaining,
-                'options' => $availableOptions,
+                'selected_skills' => $selectedSkillIds,
+                'selected_proficiency_types' => $selectedProfTypeIds,
+                'options' => $allOptions,
             ];
         }
 

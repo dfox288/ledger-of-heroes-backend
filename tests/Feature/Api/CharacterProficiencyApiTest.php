@@ -271,23 +271,151 @@ class CharacterProficiencyApiTest extends TestCase
     }
 
     #[Test]
-    public function it_excludes_already_chosen_skills_from_pending(): void
+    public function it_returns_all_options_with_selected_ids_when_choices_made(): void
     {
         $character = Character::factory()
             ->withClass($this->fighterClass)
             ->create();
 
-        // Character already chose athletics
+        // Character already chose athletics and acrobatics
         CharacterProficiency::create([
             'character_id' => $character->id,
             'skill_id' => $this->athletics->id,
             'source' => 'class',
+            'choice_group' => 'skill_choice_1',
+        ]);
+        CharacterProficiency::create([
+            'character_id' => $character->id,
+            'skill_id' => $this->acrobatics->id,
+            'source' => 'class',
+            'choice_group' => 'skill_choice_1',
         ]);
 
         $response = $this->getJson("/api/v1/characters/{$character->id}/proficiency-choices");
 
+        $response->assertOk();
+
+        $choiceData = $response->json('data.class.skill_choice_1');
+
+        // Should have 0 remaining since all choices made
+        $this->assertEquals(0, $choiceData['remaining']);
+
+        // Should still return ALL 3 options (not empty)
+        $this->assertCount(3, $choiceData['options']);
+
+        // Should include selected_skills array with the chosen skill IDs
+        $this->assertArrayHasKey('selected_skills', $choiceData);
+        $this->assertContains($this->athletics->id, $choiceData['selected_skills']);
+        $this->assertContains($this->acrobatics->id, $choiceData['selected_skills']);
+        $this->assertCount(2, $choiceData['selected_skills']);
+
+        // selected_proficiency_types should be empty for skill-only choices
+        $this->assertArrayHasKey('selected_proficiency_types', $choiceData);
+        $this->assertEmpty($choiceData['selected_proficiency_types']);
+    }
+
+    #[Test]
+    public function it_returns_partial_selection_with_remaining_count(): void
+    {
+        $character = Character::factory()
+            ->withClass($this->fighterClass)
+            ->create();
+
+        // Character chose only 1 of 2 required
+        CharacterProficiency::create([
+            'character_id' => $character->id,
+            'skill_id' => $this->athletics->id,
+            'source' => 'class',
+            'choice_group' => 'skill_choice_1',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/proficiency-choices");
+
+        $choiceData = $response->json('data.class.skill_choice_1');
+
         // Should have 1 remaining since 1 of 2 is fulfilled
-        $this->assertEquals(1, $response->json('data.class.skill_choice_1.remaining'));
+        $this->assertEquals(1, $choiceData['remaining']);
+
+        // Should still return ALL 3 options
+        $this->assertCount(3, $choiceData['options']);
+
+        // selected_skills should contain only the one chosen skill
+        $this->assertCount(1, $choiceData['selected_skills']);
+        $this->assertContains($this->athletics->id, $choiceData['selected_skills']);
+
+        // selected_proficiency_types should be empty
+        $this->assertEmpty($choiceData['selected_proficiency_types']);
+    }
+
+    #[Test]
+    public function it_separates_skill_and_proficiency_type_selections(): void
+    {
+        // Create a race with both skill and tool proficiency choices
+        $toolProficiency = ProficiencyType::create([
+            'name' => 'Thieves Tools',
+            'slug' => 'thieves-tools-'.uniqid(),
+            'category' => 'tool',
+        ]);
+
+        $raceWithMixedChoices = Race::factory()->create([
+            'name' => 'Half-Elf',
+            'slug' => 'half-elf-'.uniqid(),
+        ]);
+
+        // Add skill choice option
+        $raceWithMixedChoices->proficiencies()->create([
+            'proficiency_type' => 'skill',
+            'skill_id' => $this->perception->id,
+            'is_choice' => true,
+            'choice_group' => 'mixed_choice_1',
+            'quantity' => 2,
+        ]);
+
+        // Add tool proficiency choice option
+        $raceWithMixedChoices->proficiencies()->create([
+            'proficiency_type' => 'tool',
+            'proficiency_type_id' => $toolProficiency->id,
+            'is_choice' => true,
+            'choice_group' => 'mixed_choice_1',
+        ]);
+
+        $character = Character::factory()
+            ->withRace($raceWithMixedChoices)
+            ->create();
+
+        // Character chose one skill and one tool proficiency
+        CharacterProficiency::create([
+            'character_id' => $character->id,
+            'skill_id' => $this->perception->id,
+            'source' => 'race',
+            'choice_group' => 'mixed_choice_1',
+        ]);
+        CharacterProficiency::create([
+            'character_id' => $character->id,
+            'proficiency_type_id' => $toolProficiency->id,
+            'source' => 'race',
+            'choice_group' => 'mixed_choice_1',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/proficiency-choices");
+
+        $response->assertOk();
+
+        $choiceData = $response->json('data.race.mixed_choice_1');
+
+        // Should have 0 remaining
+        $this->assertEquals(0, $choiceData['remaining']);
+
+        // Should return all 2 options
+        $this->assertCount(2, $choiceData['options']);
+
+        // Skill selections should be in selected_skills
+        $this->assertCount(1, $choiceData['selected_skills']);
+        $this->assertContains($this->perception->id, $choiceData['selected_skills']);
+
+        // Tool proficiency selections should be in selected_proficiency_types
+        $this->assertCount(1, $choiceData['selected_proficiency_types']);
+        $this->assertContains($toolProficiency->id, $choiceData['selected_proficiency_types']);
     }
 
     // =============================

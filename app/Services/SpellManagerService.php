@@ -28,9 +28,9 @@ class SpellManagerService
      * Filters by:
      * - Class spell list
      * - Max spell level (optional)
-     * - Excludes already known spells
+     * - Excludes already known spells (unless includeKnown is true)
      */
-    public function getAvailableSpells(Character $character, ?int $maxLevel = null): Collection
+    public function getAvailableSpells(Character $character, ?int $maxLevel = null, bool $includeKnown = false): Collection
     {
         $class = $character->characterClass;
 
@@ -41,11 +41,13 @@ class SpellManagerService
         // Get the base class (for subclasses, we need the parent's spell list)
         $baseClass = $class->parent_class_id ? $class->parentClass : $class;
 
-        // Get spell IDs already known by the character
-        $knownSpellIds = $character->spells()->pluck('spell_id');
+        $query = $baseClass->spells();
 
-        $query = $baseClass->spells()
-            ->whereNotIn('spells.id', $knownSpellIds);
+        // Exclude already known spells unless includeKnown is true
+        if (! $includeKnown) {
+            $knownSpellIds = $character->spells()->pluck('spell_id');
+            $query->whereNotIn('spells.id', $knownSpellIds);
+        }
 
         if ($maxLevel !== null) {
             $query->where('level', '<=', $maxLevel);

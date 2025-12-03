@@ -41,20 +41,28 @@ class CharacterSpellController extends Controller
      *
      * Returns spells on the character's class spell list that they haven't learned yet.
      * Optionally filter by maximum spell level.
+     * Use include_known=true to include already-learned spells (useful for UI highlighting
+     * when user navigates back to spell selection screen).
      *
      * **Examples:**
      * ```
      * GET /api/v1/characters/1/available-spells
      * GET /api/v1/characters/1/available-spells?max_level=3
+     * GET /api/v1/characters/1/available-spells?include_known=true
+     * GET /api/v1/characters/1/available-spells?max_level=1&include_known=true
      * ```
      */
     public function available(Request $request, Character $character): AnonymousResourceCollection
     {
-        $maxLevel = $request->query('max_level') !== null
-            ? (int) $request->query('max_level')
-            : null;
+        $validated = $request->validate([
+            'max_level' => ['sometimes', 'integer', 'min:0', 'max:9'],
+            'include_known' => ['sometimes', 'in:true,false,1,0'],
+        ]);
 
-        $spells = $this->spellManager->getAvailableSpells($character, $maxLevel);
+        $maxLevel = $validated['max_level'] ?? null;
+        $includeKnown = filter_var($validated['include_known'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        $spells = $this->spellManager->getAvailableSpells($character, $maxLevel, $includeKnown);
 
         return SpellResource::collection($spells);
     }

@@ -41,6 +41,7 @@ final class ItemSearchService
         'spells.spellSchool',
         'savingThrows',
         'tags',
+        'contents.item',
     ];
 
     /**

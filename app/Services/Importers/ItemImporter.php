@@ -15,6 +15,7 @@ use App\Services\Importers\Concerns\ImportsArmorModifiers;
 use App\Services\Importers\Concerns\ImportsDataTablesFromText;
 use App\Services\Importers\Concerns\ImportsEntitySpells;
 use App\Services\Importers\Concerns\ImportsModifiers;
+use App\Services\Importers\Concerns\ImportsPackContents;
 use App\Services\Importers\Concerns\ImportsPrerequisites;
 use App\Services\Parsers\Concerns\ParsesItemSavingThrows;
 use App\Services\Parsers\Concerns\ParsesItemSpells;
@@ -27,6 +28,7 @@ class ItemImporter extends BaseImporter
     use ImportsDataTablesFromText;
     use ImportsEntitySpells;
     use ImportsModifiers;
+    use ImportsPackContents;
     use ImportsPrerequisites;
 
     // Note: These parser traits parse description TEXT (not XML) after item creation.

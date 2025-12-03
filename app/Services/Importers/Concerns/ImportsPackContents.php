@@ -5,6 +5,7 @@ namespace App\Services\Importers\Concerns;
 use App\Models\EntityItem;
 use App\Models\Item;
 use App\Services\Parsers\Concerns\ParsesPackContents;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -75,30 +76,37 @@ trait ImportsPackContents
             return; // Not a pack or no contents found
         }
 
-        // Clear existing pack contents (idempotent import)
-        EntityItem::where('reference_type', Item::class)
-            ->where('reference_id', $pack->id)
-            ->delete();
+        // Wrap delete/insert in transaction for atomicity
+        DB::transaction(function () use ($pack, $parsedContents) {
+            // Clear existing pack contents (idempotent import)
+            EntityItem::where('reference_type', Item::class)
+                ->where('reference_id', $pack->id)
+                ->delete();
 
-        // Link parsed contents to items
-        foreach ($parsedContents as $content) {
-            $item = $this->findItemByNormalizedName($content['name']);
+            // Link parsed contents to items
+            foreach ($parsedContents as $content) {
+                $item = $this->findItemByNormalizedName($content['name']);
 
-            if ($item === null) {
-                Log::warning("Pack content item not found: '{$content['name']}' (pack: {$pack->name})");
+                if ($item === null) {
+                    Log::warning('Pack content item not found', [
+                        'normalized_name' => $content['name'],
+                        'pack' => $pack->name,
+                        'quantity' => $content['quantity'],
+                    ]);
 
-                continue;
+                    continue;
+                }
+
+                EntityItem::create([
+                    'reference_type' => Item::class,
+                    'reference_id' => $pack->id,
+                    'item_id' => $item->id,
+                    'quantity' => $content['quantity'],
+                ]);
+
+                Log::debug("Linked pack content: {$pack->name} -> {$item->name} (qty: {$content['quantity']})");
             }
-
-            EntityItem::create([
-                'reference_type' => Item::class,
-                'reference_id' => $pack->id,
-                'item_id' => $item->id,
-                'quantity' => $content['quantity'],
-            ]);
-
-            Log::debug("Linked pack content: {$pack->name} -> {$item->name} (qty: {$content['quantity']})");
-        }
+        });
     }
 
     /**
@@ -136,31 +144,21 @@ trait ImportsPackContents
     /**
      * Import pack contents for all equipment packs.
      *
+     * Dynamically discovers packs by looking for items with "Includes:" in description.
      * Should be called after all items have been imported.
      */
     public function importAllPackContents(): int
     {
-        $packNames = [
-            "Burglar's Pack",
-            "Diplomat's Pack",
-            "Dungeoneer's Pack",
-            "Entertainer's Pack",
-            "Explorer's Pack",
-            "Priest's Pack",
-            "Scholar's Pack",
-        ];
+        // Dynamically discover packs by description pattern
+        $packs = Item::whereNotNull('description')
+            ->where('description', 'like', '%Includes:%')
+            ->get();
 
         $imported = 0;
 
-        foreach ($packNames as $packName) {
-            $pack = Item::where('name', $packName)->first();
-
-            if ($pack) {
-                $this->importPackContents($pack);
-                $imported++;
-            } else {
-                Log::warning("Pack not found: {$packName}");
-            }
+        foreach ($packs as $pack) {
+            $this->importPackContents($pack);
+            $imported++;
         }
 
         return $imported;

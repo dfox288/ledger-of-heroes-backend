@@ -6,6 +6,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * EntityItem - Polymorphic pivot for starting equipment grants.
+ *
+ * Table: entity_items
+ * Used by: CharacterClass, Background
+ *
+ * Represents equipment granted by a class or background, including:
+ * - Fixed items (is_choice = false)
+ * - Equipment choices (is_choice = true, with choice_group for grouping options)
+ */
 class EntityItem extends BaseModel
 {
     protected $fillable = [

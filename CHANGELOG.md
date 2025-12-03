@@ -58,6 +58,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Frontend can now detect instrument categories and show appropriate item picker
   - 2 new parser tests for musical instrument parsing
 
+### Improved
+
+- **Model Architecture Documentation** (Issue #86)
+  - Added PHPDoc to all Entity* pivot models documenting table names and entity types
+  - Added inverse relationships to Condition model (feats, races)
+  - Added PHPDoc to Language and Proficiency models
+  - Documented table naming conventions in CLAUDE.md (standard, polymorphic, HasMany patterns)
+  - Documented polymorphic table entity type mappings in CLAUDE.md
+  - Standardized OptionalFeature toSearchableArray to use helper methods
+
 - **Missing spells_known in class level progression** (Issue #98)
   - XML has `<slots>` and `<counter name="Spells Known">` in separate `<autolevel>` elements
   - Parser now uses two-pass approach: collect slots and counters separately, then merge

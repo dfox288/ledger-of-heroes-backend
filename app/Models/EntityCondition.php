@@ -5,6 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * EntityCondition - Polymorphic pivot for condition immunities/resistances.
+ *
+ * Table: entity_conditions
+ * Used by: Feat, Race
+ *
+ * Represents condition immunities or resistances granted by feats or racial traits.
+ * effect_type indicates the nature of the relationship (immunity, resistance, etc.).
+ */
 class EntityCondition extends BaseModel
 {
     protected $fillable = [

@@ -139,8 +139,9 @@ class OptionalFeature extends BaseModel
             'class_slugs' => $this->classes->pluck('slug')->unique()->values()->all(),
             'class_names' => $this->classes->pluck('name')->unique()->values()->all(),
             'subclass_names' => $this->classPivots->pluck('subclass_name')->filter()->unique()->values()->all(),
-            'source_codes' => $this->sources->pluck('source.code')->unique()->values()->all(),
-            'tag_slugs' => $this->tags->pluck('slug')->all(),
+            'sources' => $this->getSearchableSourceNames(),
+            'source_codes' => $this->getSearchableSourceCodes(),
+            'tag_slugs' => $this->getSearchableTagSlugs(),
         ];
     }
 

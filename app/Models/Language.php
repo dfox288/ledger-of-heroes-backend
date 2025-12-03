@@ -5,6 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
+/**
+ * Language - Lookup model for D&D languages (Common, Elvish, etc.).
+ *
+ * Table: languages
+ *
+ * Inverse relationships show which entities grant this language:
+ * - races(): Races that speak this language
+ * - backgrounds(): Backgrounds that teach this language
+ */
 class Language extends BaseModel
 {
     protected $fillable = [

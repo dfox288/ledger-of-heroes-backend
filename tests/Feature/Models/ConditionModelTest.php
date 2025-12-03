@@ -3,6 +3,9 @@
 namespace Tests\Feature\Models;
 
 use App\Models\Condition;
+use App\Models\EntityCondition;
+use App\Models\Feat;
+use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -59,5 +62,53 @@ class ConditionModelTest extends TestCase
             'slug' => 'unique-test', // Same slug
             'description' => 'Duplicate condition.',
         ]);
+    }
+
+    #[Test]
+    public function it_has_feats_inverse_relationship(): void
+    {
+        $condition = Condition::create([
+            'name' => 'Test Condition For Feats',
+            'slug' => 'test-condition-feats-'.uniqid(),
+            'description' => 'A test condition for feats relationship.',
+        ]);
+
+        $feat = Feat::factory()->create(['name' => 'Test Feat With Condition']);
+
+        EntityCondition::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $feat->id,
+            'condition_id' => $condition->id,
+            'effect_type' => 'advantage',
+            'description' => 'Advantage on saves against this condition',
+        ]);
+
+        $this->assertCount(1, $condition->feats);
+        $this->assertEquals('Test Feat With Condition', $condition->feats->first()->name);
+        $this->assertEquals('advantage', $condition->feats->first()->pivot->effect_type);
+    }
+
+    #[Test]
+    public function it_has_races_inverse_relationship(): void
+    {
+        $condition = Condition::create([
+            'name' => 'Test Condition For Races',
+            'slug' => 'test-condition-races-'.uniqid(),
+            'description' => 'A test condition for races relationship.',
+        ]);
+
+        $race = Race::factory()->create(['name' => 'Test Race With Condition']);
+
+        EntityCondition::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'condition_id' => $condition->id,
+            'effect_type' => 'advantage',
+            'description' => 'Advantage on saves against this condition',
+        ]);
+
+        $this->assertCount(1, $condition->races);
+        $this->assertEquals('Test Race With Condition', $condition->races->first()->name);
+        $this->assertEquals('advantage', $condition->races->first()->pivot->effect_type);
     }
 }

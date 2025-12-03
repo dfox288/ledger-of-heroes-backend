@@ -5,8 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * Modifier - Polymorphic pivot for stat modifiers.
+ *
+ * Table: entity_modifiers (custom table name for polymorphic consistency)
+ * Used by: CharacterClass, Feat, Item, Monster, Race
+ *
+ * Represents stat modifications granted by entities (ability score bonuses, skill bonuses, etc.).
+ * modifier_category defines the type: ability_score, skill, damage_resistance, ac_magic, etc.
+ */
 class Modifier extends BaseModel
 {
+    /**
+     * Custom table name for polymorphic consistency with other entity_* tables.
+     */
     protected $table = 'entity_modifiers';
 
     protected $fillable = [

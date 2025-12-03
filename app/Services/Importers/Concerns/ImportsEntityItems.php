@@ -2,6 +2,7 @@
 
 namespace App\Services\Importers\Concerns;
 
+use App\Models\EntityItem;
 use App\Models\Item;
 use Illuminate\Support\Facades\Log;
 
@@ -12,6 +13,42 @@ use Illuminate\Support\Facades\Log;
  */
 trait ImportsEntityItems
 {
+    /**
+     * Import structured choice_items for an EntityItem.
+     *
+     * @param  EntityItem  $entityItem  The parent entity item
+     * @param  array  $choiceItems  Array of choice items from parser
+     */
+    protected function importChoiceItems(EntityItem $entityItem, array $choiceItems): void
+    {
+        foreach ($choiceItems as $index => $choiceItem) {
+            $data = [
+                'quantity' => $choiceItem['quantity'] ?? 1,
+                'sort_order' => $index,
+            ];
+
+            if ($choiceItem['type'] === 'category') {
+                // Use MatchesProficiencyCategories trait (must be used by importer class)
+                $profType = $this->matchProficiencyCategory($choiceItem['value']);
+                $data['proficiency_type_id'] = $profType?->id;
+
+                if ($profType === null) {
+                    Log::warning("Could not match proficiency category: '{$choiceItem['value']}'");
+                }
+            } else {
+                // type === 'item'
+                $item = $this->matchItemByDescription($choiceItem['value']);
+                $data['item_id'] = $item?->id;
+
+                if ($item === null) {
+                    Log::warning("Could not match item: '{$choiceItem['value']}'");
+                }
+            }
+
+            $entityItem->choiceItems()->create($data);
+        }
+    }
+
     /**
      * Match an equipment description to an Item record.
      *

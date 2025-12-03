@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Structured Item Type References for Equipment Choices** (Issue #96)
+  - New `equipment_choice_items` table linking equipment choices to actual items or categories
+  - `EquipmentChoiceItem` model with `proficiency_type_id` (for categories) and `item_id` (for specific items)
+  - Parser extracts compound equipment choices (e.g., "a martial weapon and a shield" → 2 choice_items)
+  - Category references link to `proficiency_types` table (e.g., "Martial Weapons", "Simple Weapons")
+  - Quantity tracking for choices like "two martial weapons" (quantity=2)
+  - API response includes new `choice_items` array on `EntityItemResource`
+  - Frontend can now offer item pickers based on `proficiency_type.subcategory` filtering
+  - Supports patterns: category choices, specific items, compound "X and Y", quantity multiples
+  - 5 new parser tests, updated importer with `MatchesProficiencyCategories` trait
+
 - **ASI Choice (Feat Selection)** (Issue #93)
   - `POST /api/v1/characters/{id}/asi-choice` endpoint for spending ASI choices
   - Choose between taking a feat or increasing ability scores (+2 to one or +1 to two)

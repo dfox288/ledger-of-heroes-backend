@@ -11,6 +11,7 @@ use App\Services\Importers\Concerns\ImportsDataTablesFromText;
 use App\Services\Importers\Concerns\ImportsEntityItems;
 use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Importers\Concerns\ImportsSpellProgression;
+use App\Services\Importers\Concerns\MatchesProficiencyCategories;
 use App\Services\Importers\Strategies\CharacterClass\BaseClassStrategy;
 use App\Services\Importers\Strategies\CharacterClass\SubclassStrategy;
 use App\Services\Parsers\ClassXmlParser;
@@ -24,6 +25,7 @@ class ClassImporter extends BaseImporter
     use ImportsEntityItems;
     use ImportsModifiers;
     use ImportsSpellProgression;
+    use MatchesProficiencyCategories;
 
     private array $strategies = [];
 
@@ -643,24 +645,26 @@ class ClassImporter extends BaseImporter
             return;
         }
 
-        // Clear existing equipment
+        // Clear existing equipment (cascade deletes choice_items)
         $class->equipment()->delete();
 
         foreach ($equipmentData['items'] as $itemData) {
-            // Try to match item description to Item record
-            $item = $this->matchItemByDescription($itemData['description']);
-
-            $class->equipment()->create([
-                'item_id' => $item?->id,
+            // Create container entity_item
+            $entityItem = $class->equipment()->create([
                 'description' => $itemData['description'],
                 'is_choice' => $itemData['is_choice'],
                 'choice_group' => $itemData['choice_group'] ?? null,
                 'choice_option' => $itemData['choice_option'] ?? null,
-                'quantity' => $itemData['quantity'],
+                'quantity' => $itemData['quantity'] ?? 1,
                 'choice_description' => $itemData['is_choice']
                     ? 'Starting equipment choice'
                     : null,
             ]);
+
+            // Import structured choice_items if present
+            if (! empty($itemData['choice_items'])) {
+                $this->importChoiceItems($entityItem, $itemData['choice_items']);
+            }
         }
     }
 

@@ -25,6 +25,9 @@ class EntityItemResource extends JsonResource
             'choice_description' => $this->choice_description,
             'proficiency_subcategory' => $this->proficiency_subcategory,
             'description' => $this->description,
+            'choice_items' => EquipmentChoiceItemResource::collection(
+                $this->whenLoaded('choiceItems')
+            ),
         ];
     }
 }

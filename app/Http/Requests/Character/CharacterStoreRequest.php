@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Character;
 
+use App\Models\Character;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CharacterStoreRequest extends FormRequest
@@ -33,7 +34,7 @@ class CharacterStoreRequest extends FormRequest
             'level' => ['sometimes', 'integer', 'min:1', 'max:20'],
 
             // Alignment (optional, must be valid D&D alignment)
-            'alignment' => ['sometimes', 'nullable', 'string', 'in:Lawful Good,Neutral Good,Chaotic Good,Lawful Neutral,True Neutral,Chaotic Neutral,Lawful Evil,Neutral Evil,Chaotic Evil,Unaligned'],
+            'alignment' => ['sometimes', 'nullable', 'string', 'in:'.implode(',', Character::ALIGNMENTS)],
 
             // Inspiration (optional, boolean)
             'has_inspiration' => ['sometimes', 'boolean'],

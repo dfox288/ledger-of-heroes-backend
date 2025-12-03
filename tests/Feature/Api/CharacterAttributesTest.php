@@ -251,6 +251,17 @@ class CharacterAttributesTest extends TestCase
     }
 
     #[Test]
+    public function it_returns_null_speeds_when_no_race(): void
+    {
+        $character = Character::factory()->create(['race_id' => null]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.speeds', null);
+    }
+
+    #[Test]
     public function it_includes_all_movement_speeds_from_race(): void
     {
         $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);

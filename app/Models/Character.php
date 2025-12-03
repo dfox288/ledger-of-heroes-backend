@@ -82,6 +82,22 @@ class Character extends Model
         'CHA' => 'charisma',
     ];
 
+    /**
+     * Valid D&D 5e alignments.
+     */
+    public const ALIGNMENTS = [
+        'Lawful Good',
+        'Neutral Good',
+        'Chaotic Good',
+        'Lawful Neutral',
+        'True Neutral',
+        'Chaotic Neutral',
+        'Lawful Evil',
+        'Neutral Evil',
+        'Chaotic Evil',
+        'Unaligned',
+    ];
+
     // Relationships
 
     public function user(): BelongsTo

@@ -158,7 +158,7 @@ class CharacterProficiencyService
         // This ensures re-submitting replaces rather than adds
         $character->proficiencies()
             ->where('source', $source)
-            ->whereIn('skill_id', $validSkillIds)
+            ->where('choice_group', $choiceGroup)
             ->delete();
 
         // Create the proficiencies
@@ -167,6 +167,7 @@ class CharacterProficiencyService
                 'character_id' => $character->id,
                 'skill_id' => $skillId,
                 'source' => $source,
+                'choice_group' => $choiceGroup,
             ]);
         }
 

@@ -287,4 +287,46 @@ class CharacterProficiencyServiceTest extends TestCase
         $this->assertFalse($character->proficiencies->contains('skill_id', $athletics->id));
         $this->assertFalse($character->proficiencies->contains('skill_id', $acrobatics->id));
     }
+
+    #[Test]
+    public function it_does_not_delete_proficiencies_from_other_choice_groups(): void
+    {
+        $athletics = $this->createSkill('Athletics');
+        $acrobatics = $this->createSkill('Acrobatics');
+        $intimidation = $this->createSkill('Intimidation');
+        $survival = $this->createSkill('Survival');
+
+        // Class with two choice groups, with athletics appearing in both
+        $fighterClass = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter-'.uniqid()]);
+        $fighterClass->proficiencies()->createMany([
+            // Choice group 1: pick 1 from athletics, acrobatics
+            ['proficiency_type' => 'skill', 'skill_id' => $athletics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1', 'quantity' => 1],
+            ['proficiency_type' => 'skill', 'skill_id' => $acrobatics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1'],
+            // Choice group 2: pick 1 from athletics, intimidation, survival
+            ['proficiency_type' => 'skill', 'skill_id' => $athletics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_2', 'quantity' => 1],
+            ['proficiency_type' => 'skill', 'skill_id' => $intimidation->id, 'is_choice' => true, 'choice_group' => 'skill_choice_2'],
+            ['proficiency_type' => 'skill', 'skill_id' => $survival->id, 'is_choice' => true, 'choice_group' => 'skill_choice_2'],
+        ]);
+
+        $character = Character::factory()->withClass($fighterClass)->create();
+
+        // Choose athletics from group 1
+        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$athletics->id]);
+        $this->assertCount(1, $character->proficiencies);
+
+        // Choose intimidation from group 2
+        $this->service->makeSkillChoice($character, 'class', 'skill_choice_2', [$intimidation->id]);
+        $character->refresh();
+        $this->assertCount(2, $character->proficiencies);
+
+        // Now change group 1 to acrobatics - should NOT affect group 2's intimidation
+        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$acrobatics->id]);
+
+        $character->refresh();
+        $this->assertCount(2, $character->proficiencies);
+        $this->assertTrue($character->proficiencies->contains('skill_id', $acrobatics->id));
+        $this->assertTrue($character->proficiencies->contains('skill_id', $intimidation->id));
+        // Athletics from group 1 should be gone
+        $this->assertFalse($character->proficiencies->contains('skill_id', $athletics->id));
+    }
 }

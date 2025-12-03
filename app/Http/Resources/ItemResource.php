@@ -52,6 +52,7 @@ class ItemResource extends JsonResource
             'tags' => TagResource::collection($this->whenLoaded('tags')),
             'spells' => ItemSpellResource::collection($this->whenLoaded('spells')),
             'saving_throws' => SavingThrowResource::collection($this->whenLoaded('savingThrows')),
+            'contents' => PackContentResource::collection($this->whenLoaded('contents')),
         ];
     }
 }

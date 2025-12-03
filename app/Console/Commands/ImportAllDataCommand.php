@@ -82,6 +82,12 @@ class ImportAllDataCommand extends Command
         if (! $onlyTypes || in_array('items', $onlyTypes)) {
             $this->step('Importing items (STEP 2/10)');
             $this->importEntityType('items', 'import:items');
+
+            // Link pack contents after all items are imported
+            $this->info('  Linking pack contents...');
+            $importer = app(\App\Services\Importers\ItemImporter::class);
+            $packsLinked = $importer->importAllPackContents();
+            $this->info("  ✓ Linked contents for {$packsLinked} equipment pack(s)");
         }
 
         // Step 4: Import classes (required by spells) - using batch merge strategy

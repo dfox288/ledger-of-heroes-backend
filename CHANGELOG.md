@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Equipment Pack Contents Linking** (Issue #129)
+  - Equipment packs (Explorer's Pack, Burglar's Pack, etc.) now link to their contained items
+  - New `contents` relationship on Item model returns EntityItem records with quantities
+  - New `containedIn` inverse relationship shows which packs contain an item
+  - PackContentResource exposes pack contents in API responses
+  - ParsesPackContents trait extracts items from pack description "Includes:" section
+  - ImportsPackContents trait links parsed contents to existing Item records
+  - Automatic import during `import:all` after items are loaded
+  - 36 new tests covering model, parser, resource, and importer functionality
+
 ### Fixed
 
 - **POST /proficiency-choices adds skills instead of replacing** (Issue #124)

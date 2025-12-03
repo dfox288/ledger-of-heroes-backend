@@ -11,6 +11,7 @@ use App\Models\Concerns\HasSources;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
@@ -109,6 +110,27 @@ class Item extends BaseModel
         )
             ->withPivot('dc', 'save_effect', 'is_initial_save', 'save_modifier')
             ->withTimestamps();
+    }
+
+    /**
+     * Get the contents of this pack (for equipment packs like Explorer's Pack).
+     *
+     * Returns EntityItem records linking to the items contained in this pack.
+     */
+    public function contents(): MorphMany
+    {
+        return $this->morphMany(EntityItem::class, 'reference');
+    }
+
+    /**
+     * Get the packs that contain this item (inverse of contents).
+     *
+     * Returns EntityItem records where this item is the content.
+     */
+    public function containedIn(): HasMany
+    {
+        return $this->hasMany(EntityItem::class, 'item_id')
+            ->where('reference_type', self::class);
     }
 
     // =========================================================================

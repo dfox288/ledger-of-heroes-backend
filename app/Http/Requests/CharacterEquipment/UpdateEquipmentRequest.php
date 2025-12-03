@@ -25,6 +25,11 @@ class UpdateEquipmentRequest extends FormRequest
         return [
             'equipped' => ['nullable', 'boolean'],
             'quantity' => ['nullable', 'integer', 'min:1'],
+            'location' => ['nullable', 'string', 'max:255'],
+            // Prevent changing item type (database ↔ custom)
+            'item_id' => ['prohibited'],
+            'custom_name' => ['prohibited'],
+            'custom_description' => ['prohibited'],
         ];
     }
 }

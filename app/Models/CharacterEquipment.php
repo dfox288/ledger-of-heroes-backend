@@ -19,6 +19,8 @@ class CharacterEquipment extends Model
     protected $fillable = [
         'character_id',
         'item_id',
+        'custom_name',
+        'custom_description',
         'quantity',
         'equipped',
         'location',
@@ -122,9 +124,22 @@ class CharacterEquipment extends Model
 
     /**
      * Check if this item can be equipped.
+     * Custom items cannot be equipped.
      */
     public function isEquippable(): bool
     {
+        if ($this->isCustomItem()) {
+            return false;
+        }
+
         return in_array($this->item->itemType?->code, ItemTypeCode::equippableCodes());
+    }
+
+    /**
+     * Check if this is a custom/freetext item (not from database).
+     */
+    public function isCustomItem(): bool
+    {
+        return $this->item_id === null && $this->custom_name !== null;
     }
 }

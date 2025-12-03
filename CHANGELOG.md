@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Custom/Freetext Equipment Items** (Issue #102, PR #17)
+  - Characters can now have custom equipment items not in the database
+  - New `custom_name` and `custom_description` columns on `character_equipment`
+  - `item_id` now nullable - either `item_id` OR `custom_name` required
+  - Custom items cannot be equipped (returns 422)
+  - Use cases: trinkets, flavor items, quest items, homebrew equipment
+  - 6 new tests for custom equipment functionality
+
 ### Fixed
+
+- **Musical Instrument Equipment Choices** (Issue #99, PR #16)
+  - "Any musical instrument" equipment choices now link to proficiency category
+  - Added "Musical Instruments" parent proficiency type (slug: `musical-instruments`)
+  - Parser recognizes patterns: "any musical instrument", "any other musical instrument", etc.
+  - Frontend can now detect instrument categories and show appropriate item picker
+  - 2 new parser tests for musical instrument parsing
 
 - **Missing spells_known in class level progression** (Issue #98)
   - XML has `<slots>` and `<counter name="Spells Known">` in separate `<autolevel>` elements

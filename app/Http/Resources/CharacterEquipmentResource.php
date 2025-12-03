@@ -20,7 +20,7 @@ class CharacterEquipmentResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'item' => [
+            'item' => $this->when($this->item_id !== null, fn () => [
                 'id' => $this->item->id,
                 'name' => $this->item->name,
                 'slug' => $this->item->slug,
@@ -28,12 +28,14 @@ class CharacterEquipmentResource extends JsonResource
                 'armor_class' => $this->item->armor_class,
                 'damage_dice' => $this->item->damage_dice,
                 'weight' => $this->item->weight,
-            ],
+            ]),
+            'custom_name' => $this->custom_name,
+            'custom_description' => $this->custom_description,
             'quantity' => $this->quantity,
             'equipped' => $this->equipped,
             'location' => $this->location,
             'proficiency_status' => $this->when(
-                $this->equipped,
+                $this->equipped && $this->item_id !== null,
                 fn () => $this->getProficiencyStatus()
             ),
         ];

@@ -2,7 +2,7 @@
 
 **Last Updated:** 2025-12-03
 **Branch:** main
-**Status:** ✅ Equipment Choice Items Merged
+**Status:** ✅ Custom Equipment Items (PR #17 pending)
 
 ---
 
@@ -30,6 +30,31 @@
 ---
 
 ## 🚀 Recent Milestones
+
+### Custom/Freetext Equipment Items 🔄 PR PENDING (2025-12-03)
+- **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/17
+- **Issue:** #102
+- **Scope:** Allow custom equipment items not in the database
+
+**Features Implemented:**
+- New `custom_name` and `custom_description` columns on `character_equipment`
+- `item_id` now nullable - either `item_id` OR `custom_name` required
+- Custom items cannot be equipped (returns 422)
+- Use cases: trinkets, flavor items, quest items, homebrew equipment
+
+**Tests:** 6 new tests (19 total equipment API tests, 48 assertions)
+
+### Musical Instrument Equipment Choices ✅ MERGED (2025-12-03)
+- **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/16 (merged)
+- **Issue:** #99
+- **Scope:** Fix parsing of musical instrument equipment choices
+
+**Features Implemented:**
+- Parser recognizes "any musical instrument", "any other musical instrument", etc.
+- Added "Musical Instruments" parent proficiency type (slug: `musical-instruments`)
+- Frontend can now detect instrument categories and show item picker
+
+**Tests:** 2 new parser tests for musical instrument parsing
 
 ### Structured Equipment Choice Items ✅ COMPLETE (2025-12-03)
 - **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/15 (merged)

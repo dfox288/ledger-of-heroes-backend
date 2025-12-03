@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Missing spells_known in class level progression** (Issue #98)
+  - XML has `<slots>` and `<counter name="Spells Known">` in separate `<autolevel>` elements
+  - Parser now uses two-pass approach: collect slots and counters separately, then merge
+  - Affected classes now correctly populated: Bard (4), Sorcerer (2), Warlock (2), Ranger (2 at level 2)
+
 ### Added
 
 - **Structured Item Type References for Equipment Choices** (Issue #96)

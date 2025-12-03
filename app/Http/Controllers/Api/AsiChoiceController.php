@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Character\AsiChoiceRequest;
-use App\Http\Resources\AsiChoiceResource;
 use App\Models\Character;
 use App\Models\Feat;
 use App\Services\AsiChoiceService;
+use Illuminate\Http\JsonResponse;
 
 class AsiChoiceController extends Controller
 {
@@ -64,7 +64,7 @@ class AsiChoiceController extends Controller
      * @response 422 {"message": "Character does not meet feat prerequisites."}
      * @response 422 {"message": "Ability score cannot exceed 20."}
      */
-    public function __invoke(AsiChoiceRequest $request, Character $character): AsiChoiceResource
+    public function __invoke(AsiChoiceRequest $request, Character $character): JsonResponse
     {
         $choiceType = $request->validated('choice_type');
 
@@ -76,6 +76,17 @@ class AsiChoiceController extends Controller
             $result = $this->asiChoiceService->applyAbilityIncrease($character, $increases);
         }
 
-        return new AsiChoiceResource($result);
+        return response()->json([
+            'success' => true,
+            'choice_type' => $result->choiceType,
+            'asi_choices_remaining' => $result->asiChoicesRemaining,
+            'changes' => [
+                'feat' => $result->feat,
+                'ability_increases' => $result->abilityIncreases,
+                'proficiencies_gained' => $result->proficienciesGained,
+                'spells_gained' => $result->spellsGained,
+            ],
+            'new_ability_scores' => $result->newAbilityScores,
+        ]);
     }
 }

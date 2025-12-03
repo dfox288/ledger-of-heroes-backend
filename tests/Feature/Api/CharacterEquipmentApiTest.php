@@ -409,4 +409,51 @@ class CharacterEquipmentApiTest extends TestCase
 
         $response->assertUnprocessable();
     }
+
+    #[Test]
+    public function it_updates_quantity_on_custom_item(): void
+    {
+        $character = Character::factory()->create();
+
+        $equipment = CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_id' => null,
+            'custom_name' => 'Rations',
+            'quantity' => 5,
+            'equipped' => false,
+            'location' => 'backpack',
+        ]);
+
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/equipment/{$equipment->id}",
+            ['quantity' => 10]
+        );
+
+        $response->assertOk()
+            ->assertJsonPath('data.quantity', 10)
+            ->assertJsonPath('data.custom_name', 'Rations');
+    }
+
+    #[Test]
+    public function it_deletes_custom_item(): void
+    {
+        $character = Character::factory()->create();
+
+        $equipment = CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_id' => null,
+            'custom_name' => 'Old Map',
+            'custom_description' => 'A weathered map of an unknown region.',
+            'quantity' => 1,
+            'equipped' => false,
+            'location' => 'backpack',
+        ]);
+
+        $response = $this->deleteJson(
+            "/api/v1/characters/{$character->id}/equipment/{$equipment->id}"
+        );
+
+        $response->assertNoContent();
+        $this->assertDatabaseMissing('character_equipment', ['id' => $equipment->id]);
+    }
 }

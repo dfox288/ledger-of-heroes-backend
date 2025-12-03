@@ -271,23 +271,73 @@ class CharacterProficiencyApiTest extends TestCase
     }
 
     #[Test]
-    public function it_excludes_already_chosen_skills_from_pending(): void
+    public function it_returns_all_options_with_selected_ids_when_choices_made(): void
     {
         $character = Character::factory()
             ->withClass($this->fighterClass)
             ->create();
 
-        // Character already chose athletics
+        // Character already chose athletics and acrobatics
         CharacterProficiency::create([
             'character_id' => $character->id,
             'skill_id' => $this->athletics->id,
             'source' => 'class',
+            'choice_group' => 'skill_choice_1',
+        ]);
+        CharacterProficiency::create([
+            'character_id' => $character->id,
+            'skill_id' => $this->acrobatics->id,
+            'source' => 'class',
+            'choice_group' => 'skill_choice_1',
         ]);
 
         $response = $this->getJson("/api/v1/characters/{$character->id}/proficiency-choices");
 
+        $response->assertOk();
+
+        $choiceData = $response->json('data.class.skill_choice_1');
+
+        // Should have 0 remaining since all choices made
+        $this->assertEquals(0, $choiceData['remaining']);
+
+        // Should still return ALL 3 options (not empty)
+        $this->assertCount(3, $choiceData['options']);
+
+        // Should include selected array with the chosen skill IDs
+        $this->assertArrayHasKey('selected', $choiceData);
+        $this->assertContains($this->athletics->id, $choiceData['selected']);
+        $this->assertContains($this->acrobatics->id, $choiceData['selected']);
+        $this->assertCount(2, $choiceData['selected']);
+    }
+
+    #[Test]
+    public function it_returns_partial_selection_with_remaining_count(): void
+    {
+        $character = Character::factory()
+            ->withClass($this->fighterClass)
+            ->create();
+
+        // Character chose only 1 of 2 required
+        CharacterProficiency::create([
+            'character_id' => $character->id,
+            'skill_id' => $this->athletics->id,
+            'source' => 'class',
+            'choice_group' => 'skill_choice_1',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/proficiency-choices");
+
+        $choiceData = $response->json('data.class.skill_choice_1');
+
         // Should have 1 remaining since 1 of 2 is fulfilled
-        $this->assertEquals(1, $response->json('data.class.skill_choice_1.remaining'));
+        $this->assertEquals(1, $choiceData['remaining']);
+
+        // Should still return ALL 3 options
+        $this->assertCount(3, $choiceData['options']);
+
+        // Selected should contain only the one chosen skill
+        $this->assertCount(1, $choiceData['selected']);
+        $this->assertContains($this->athletics->id, $choiceData['selected']);
     }
 
     // =============================

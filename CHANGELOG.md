@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **GET /proficiency-choices returns all options with selected array** (Issue #128)
+  - Endpoint now returns ALL available options regardless of whether choices have been made
+  - New `selected` array field shows IDs of already-chosen skills/proficiencies
+  - Enables frontend to display full options list for editing existing selections
+  - `remaining` field still indicates how many more choices are needed
+
 ### Added
 
 - **Equipment Pack Contents Linking** (Issue #129)

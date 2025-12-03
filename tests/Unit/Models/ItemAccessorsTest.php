@@ -132,6 +132,75 @@ class ItemAccessorsTest extends TestCase
         $this->assertNull($item->proficiency_category);
     }
 
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_returns_musical_instrument_for_items_with_instrument_detail(): void
+    {
+        $gearType = ItemType::firstOrCreate(
+            ['code' => 'G'],
+            ['name' => 'Adventuring Gear']
+        );
+
+        $item = Item::factory()->create([
+            'name' => 'Lute',
+            'item_type_id' => $gearType->id,
+            'detail' => 'instrument',
+        ]);
+
+        $this->assertEquals('musical_instrument', $item->proficiency_category);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_returns_musical_instrument_for_items_with_instrument_detail_and_rarity(): void
+    {
+        $gearType = ItemType::firstOrCreate(
+            ['code' => 'G'],
+            ['name' => 'Adventuring Gear']
+        );
+
+        $item = Item::factory()->create([
+            'name' => 'Instrument of the Bards (Anstruth Harp)',
+            'item_type_id' => $gearType->id,
+            'detail' => 'instrument, very rare (requires attunement by a bard)',
+            'is_magic' => true,
+        ]);
+
+        $this->assertEquals('musical_instrument', $item->proficiency_category);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_returns_artisan_tools_for_items_with_artisan_tools_detail(): void
+    {
+        $gearType = ItemType::firstOrCreate(
+            ['code' => 'G'],
+            ['name' => 'Adventuring Gear']
+        );
+
+        $item = Item::factory()->create([
+            'name' => "Smith's Tools",
+            'item_type_id' => $gearType->id,
+            'detail' => 'artisan tools',
+        ]);
+
+        $this->assertEquals('artisan_tools', $item->proficiency_category);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_returns_gaming_set_for_items_with_gaming_set_detail(): void
+    {
+        $gearType = ItemType::firstOrCreate(
+            ['code' => 'G'],
+            ['name' => 'Adventuring Gear']
+        );
+
+        $item = Item::factory()->create([
+            'name' => 'Dice Set',
+            'item_type_id' => $gearType->id,
+            'detail' => 'gaming set',
+        ]);
+
+        $this->assertEquals('gaming_set', $item->proficiency_category);
+    }
+
     // =========================================================================
     // magic_bonus accessor tests
     // =========================================================================

@@ -116,9 +116,11 @@ class Item extends BaseModel
     // =========================================================================
 
     /**
-     * Get the proficiency category for weapons (simple/martial + melee/ranged).
+     * Get the proficiency category for items.
      *
-     * Returns: simple_melee, martial_melee, simple_ranged, martial_ranged, or null for non-weapons.
+     * Weapons return: simple_melee, martial_melee, simple_ranged, martial_ranged
+     * Tools/instruments return: musical_instrument, artisan_tools, gaming_set
+     * Other items return: null
      */
     public function getProficiencyCategoryAttribute(): ?string
     {
@@ -126,16 +128,32 @@ class Item extends BaseModel
 
         $typeCode = $this->itemType?->code;
 
-        // Only weapons have proficiency categories
-        if (! in_array($typeCode, ['M', 'R'])) {
-            return null;
+        // Weapons: determine simple/martial + melee/ranged
+        if (in_array($typeCode, ['M', 'R'])) {
+            $isMartial = $this->properties->contains('code', 'M');
+            $attackType = $typeCode === 'M' ? 'melee' : 'ranged';
+            $proficiencyType = $isMartial ? 'martial' : 'simple';
+
+            return "{$proficiencyType}_{$attackType}";
         }
 
-        $isMartial = $this->properties->contains('code', 'M');
-        $attackType = $typeCode === 'M' ? 'melee' : 'ranged';
-        $proficiencyType = $isMartial ? 'martial' : 'simple';
+        // Non-weapons: check detail field for tool/instrument categories
+        if ($this->detail !== null) {
+            $detailLower = strtolower($this->detail);
 
-        return "{$proficiencyType}_{$attackType}";
+            // Check detail prefix for category (e.g., "instrument, rare" starts with "instrument")
+            if (str_starts_with($detailLower, 'instrument')) {
+                return 'musical_instrument';
+            }
+            if (str_starts_with($detailLower, 'artisan tools')) {
+                return 'artisan_tools';
+            }
+            if (str_starts_with($detailLower, 'gaming set')) {
+                return 'gaming_set';
+            }
+        }
+
+        return null;
     }
 
     /**

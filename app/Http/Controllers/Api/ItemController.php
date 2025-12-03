@@ -76,9 +76,11 @@ class ItemController extends Controller
      *   - Examples: `has_prerequisites = true`
      *
      * **Computed Fields** (Operators vary by type):
-     * - `proficiency_category` (string): Weapon proficiency type
-     *   - Values: simple_melee, martial_melee, simple_ranged, martial_ranged, or null for non-weapons
-     *   - Examples: `proficiency_category = martial_melee`, `proficiency_category = simple_ranged`
+     * - `proficiency_category` (string): Item proficiency category for equipment selection
+     *   - Weapons: simple_melee, martial_melee, simple_ranged, martial_ranged
+     *   - Tools: musical_instrument, artisan_tools, gaming_set
+     *   - Other items: null
+     *   - Examples: `proficiency_category = martial_melee`, `proficiency_category = musical_instrument`
      * - `magic_bonus` (int): Magic bonus (+1/+2/+3) from modifiers, null for non-magic items
      *   - Examples: `magic_bonus = 2`, `magic_bonus >= 1`, `magic_bonus EXISTS`
      *
@@ -109,6 +111,8 @@ class ItemController extends Controller
      * - Items with prerequisites: `?filter=has_prerequisites = true`
      * - All martial melee weapons: `?filter=proficiency_category = martial_melee`
      * - Simple ranged weapons: `?filter=proficiency_category = simple_ranged`
+     * - Musical instruments: `?filter=proficiency_category = musical_instrument`
+     * - Artisan tools: `?filter=proficiency_category = artisan_tools`
      * - +2 or better magic weapons: `?filter=magic_bonus >= 2`
      * - +1 martial longswords: `?filter=proficiency_category = martial_melee AND magic_bonus = 1`
      *

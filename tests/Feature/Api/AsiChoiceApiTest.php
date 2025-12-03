@@ -62,11 +62,11 @@ class AsiChoiceApiTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('success', true)
-            ->assertJsonPath('choice_type', 'feat')
-            ->assertJsonPath('asi_choices_remaining', 0)
-            ->assertJsonPath('changes.feat.name', 'Alert')
-            ->assertJsonPath('changes.feat.slug', 'alert');
+            ->assertJsonPath('data.success', true)
+            ->assertJsonPath('data.choice_type', 'feat')
+            ->assertJsonPath('data.asi_choices_remaining', 0)
+            ->assertJsonPath('data.changes.feat.name', 'Alert')
+            ->assertJsonPath('data.changes.feat.slug', 'alert');
 
         $this->assertEquals(0, $character->fresh()->asi_choices_remaining);
         $this->assertDatabaseHas('character_features', [
@@ -97,8 +97,8 @@ class AsiChoiceApiTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('changes.ability_increases.CON', 1)
-            ->assertJsonPath('new_ability_scores.CON', 15);
+            ->assertJsonPath('data.changes.ability_increases.CON', 1)
+            ->assertJsonPath('data.new_ability_scores.CON', 15);
 
         $this->assertEquals(15, $character->fresh()->constitution);
     }
@@ -122,7 +122,7 @@ class AsiChoiceApiTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('changes.proficiencies_gained.0', 'Heavy Armor');
+            ->assertJsonPath('data.changes.proficiencies_gained.0', 'Heavy Armor');
     }
 
     #[Test]
@@ -139,7 +139,7 @@ class AsiChoiceApiTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('changes.spells_gained.0.name', 'Fire Bolt');
+            ->assertJsonPath('data.changes.spells_gained.0.name', 'Fire Bolt');
 
         $this->assertDatabaseHas('character_spells', [
             'character_id' => $character->id,
@@ -237,11 +237,11 @@ class AsiChoiceApiTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('success', true)
-            ->assertJsonPath('choice_type', 'ability_increase')
-            ->assertJsonPath('changes.ability_increases.STR', 2)
-            ->assertJsonPath('new_ability_scores.STR', 16)
-            ->assertJsonPath('changes.feat', null);
+            ->assertJsonPath('data.success', true)
+            ->assertJsonPath('data.choice_type', 'ability_increase')
+            ->assertJsonPath('data.changes.ability_increases.STR', 2)
+            ->assertJsonPath('data.new_ability_scores.STR', 16)
+            ->assertJsonPath('data.changes.feat', null);
 
         $this->assertEquals(16, $character->fresh()->strength);
     }
@@ -257,10 +257,10 @@ class AsiChoiceApiTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('changes.ability_increases.STR', 1)
-            ->assertJsonPath('changes.ability_increases.CON', 1)
-            ->assertJsonPath('new_ability_scores.STR', 15)
-            ->assertJsonPath('new_ability_scores.CON', 15);
+            ->assertJsonPath('data.changes.ability_increases.STR', 1)
+            ->assertJsonPath('data.changes.ability_increases.CON', 1)
+            ->assertJsonPath('data.new_ability_scores.STR', 15)
+            ->assertJsonPath('data.new_ability_scores.CON', 15);
 
         $character->refresh();
         $this->assertEquals(15, $character->strength);

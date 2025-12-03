@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **ASI Choice (Feat Selection)** (Issue #93)
+  - `POST /api/v1/characters/{id}/asi-choice` endpoint for spending ASI choices
+  - Choose between taking a feat or increasing ability scores (+2 to one or +1 to two)
+  - `AsiChoiceService`: orchestrates feat/ability choice with prerequisite validation
+  - `PrerequisiteCheckerService`: validates feat prerequisites (ability scores, proficiencies, race, skills)
+  - Feat selection features:
+    - Blocks duplicate feats (most feats can only be taken once)
+    - Half-feat ability increases applied automatically from feat modifiers
+    - Auto-grants proficiencies from feats (e.g., Heavy Armor Master)
+    - Auto-grants spells from feats (e.g., Magic Initiate)
+  - Ability score increase features:
+    - +2 to single ability or +1 to two abilities
+    - Enforces ability score cap of 20
+  - Custom exceptions: `NoAsiChoicesRemainingException`, `PrerequisitesNotMetException`, `FeatAlreadyTakenException`, `AbilityScoreCapExceededException`
+  - `AsiChoiceResult` DTO and `AsiChoiceResource` for API responses
+  - 12 unit tests for prerequisite checker, 17 unit tests for ASI choice service, 14 feature tests for API
+
 - **Level-Up Flow** (Issue #91)
   - `POST /api/v1/characters/{id}/level-up` endpoint for milestone leveling
   - `LevelUpService`: orchestrates HP increase, feature grants, spell slot updates

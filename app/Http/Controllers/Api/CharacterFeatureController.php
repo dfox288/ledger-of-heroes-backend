@@ -26,6 +26,45 @@ class CharacterFeatureController extends Controller
      * ```
      * GET /api/v1/characters/1/features
      * ```
+     *
+     * **Response:**
+     * ```json
+     * {
+     *   "data": [
+     *     {
+     *       "id": 1,
+     *       "source": "class",
+     *       "level_acquired": 1,
+     *       "feature_type": "class_feature",
+     *       "uses_remaining": null,
+     *       "max_uses": null,
+     *       "has_limited_uses": false,
+     *       "feature": {
+     *         "id": 42,
+     *         "name": "Second Wind",
+     *         "description": "You have a limited well of stamina...",
+     *         "level": 1,
+     *         "is_optional": false
+     *       }
+     *     },
+     *     {
+     *       "id": 2,
+     *       "source": "race",
+     *       "level_acquired": 1,
+     *       "feature_type": "trait",
+     *       "uses_remaining": null,
+     *       "max_uses": null,
+     *       "has_limited_uses": false,
+     *       "feature": {
+     *         "id": 15,
+     *         "name": "Darkvision",
+     *         "description": "You can see in dim light within 60 feet...",
+     *         "category": "sense"
+     *       }
+     *     }
+     *   ]
+     * }
+     * ```
      */
     public function index(Character $character): AnonymousResourceCollection
     {
@@ -49,6 +88,21 @@ class CharacterFeatureController extends Controller
      * ```
      * POST /api/v1/characters/1/features/populate
      * ```
+     *
+     * **Response:**
+     * ```json
+     * {
+     *   "message": "Features populated successfully",
+     *   "data": [
+     *     {"id": 1, "source": "class", "feature_type": "class_feature", ...},
+     *     {"id": 2, "source": "race", "feature_type": "trait", ...},
+     *     {"id": 3, "source": "background", "feature_type": "trait", ...}
+     *   ]
+     * }
+     * ```
+     *
+     * **Note:** This endpoint is idempotent - calling it multiple times will not create duplicates.
+     * Features are auto-populated when class/race/background changes via the PopulateCharacterAbilities listener.
      */
     public function populate(Character $character): JsonResponse
     {
@@ -70,11 +124,27 @@ class CharacterFeatureController extends Controller
      * Removes all features for a character from the specified source (class, race, background).
      * Useful when a character changes class, race, or background.
      *
+     * **Valid sources:** `class`, `race`, `background`, `feat`, `item`
+     *
      * **Examples:**
      * ```
      * DELETE /api/v1/characters/1/features/class
      * DELETE /api/v1/characters/1/features/race
+     * DELETE /api/v1/characters/1/features/background
      * ```
+     *
+     * **Response:**
+     * ```json
+     * {"message": "Features from class cleared successfully"}
+     * ```
+     *
+     * **Error Response (422):**
+     * ```json
+     * {"message": "Invalid source. Valid sources: class, race, background, feat, item"}
+     * ```
+     *
+     * **Note:** This is automatically called by the PopulateCharacterAbilities listener
+     * when a character's class/race/background changes.
      */
     public function clear(Character $character, string $source): JsonResponse
     {

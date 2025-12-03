@@ -1,8 +1,8 @@
 # Project Status
 
 **Last Updated:** 2025-12-03
-**Branch:** feature/issue-96-equipment-choice-items
-**Status:** ✅ Equipment Choice Items Complete (PR #15 pending merge)
+**Branch:** main
+**Status:** ✅ Equipment Choice Items Merged
 
 ---
 
@@ -32,7 +32,7 @@
 ## 🚀 Recent Milestones
 
 ### Structured Equipment Choice Items ✅ COMPLETE (2025-12-03)
-- **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/15 (pending merge)
+- **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/15 (merged)
 - **Issue:** #96
 - **Scope:** Add structured item type references for equipment choices
 
@@ -458,7 +458,7 @@
 - Query optimization: reduce N+1 queries
 
 ### Recently Completed
-- ✅ Equipment Choice Items (Issue #96) - PR #15 pending merge
+- ✅ Equipment Choice Items (Issue #96) - PR #15 merged
 
 ### Additional Opportunities
 - Encounter Builder API
@@ -541,7 +541,7 @@ docker compose exec php php artisan search:configure-indexes
 ---
 
 **Last Updated:** 2025-12-03
-**Next Session:** Merge PR #15, then Multiclass Support (#92), XP-Based Leveling (#95), or Performance Optimizations
+**Next Session:** Multiclass Support (#92), XP-Based Leveling (#95), or Performance Optimizations
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

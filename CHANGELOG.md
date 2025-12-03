@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Character Alignment** (Issue #115)
+  - New `alignment` field on characters (nullable string)
+  - Validates against 10 standard D&D alignments: LG, NG, CG, LN, N, CN, LE, NE, CE, Unaligned
+  - Included in CharacterResource response
+
+- **Character Inspiration Tracking** (Issue #119)
+  - New `has_inspiration` boolean field on characters (default false)
+  - Simple toggle for D&D inspiration mechanic
+  - Included in CharacterResource response
+
+- **Character Speed and Size from Race** (Issue #116)
+  - New computed `speed`, `size`, and `speeds` attributes derived from race
+  - `speed`: Walking speed in feet (from race)
+  - `size`: Size category name (from race → size relationship)
+  - `speeds`: All movement types `{walk, fly, swim, climb}` (from race)
+  - Returns null when character has no race selected
+
 - **Character Proficiency Management** (Issue #101)
   - New endpoints: `GET/POST /characters/{id}/proficiencies`, `GET/POST /proficiency-choices`
   - Auto-populate fixed proficiencies from class/race/background

@@ -56,6 +56,15 @@ class CharacterResource extends JsonResource
             // Level-up tracking
             'asi_choices_remaining' => $this->asi_choices_remaining ?? 0,
 
+            // Character attributes
+            'alignment' => $this->alignment,
+            'has_inspiration' => $this->has_inspiration ?? false,
+
+            // Race-derived attributes
+            'speed' => $this->speed,
+            'speeds' => $this->speeds,
+            'size' => $this->size,
+
             // Equipped items summary
             'equipped' => $this->getEquippedSummary(),
 

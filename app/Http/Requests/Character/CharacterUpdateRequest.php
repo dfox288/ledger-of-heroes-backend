@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Character;
 
 use App\Enums\AbilityScoreMethod;
+use App\Models\Character;
 use App\Services\AbilityScoreValidatorService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -46,6 +47,12 @@ class CharacterUpdateRequest extends FormRequest
 
             // Armor class
             'armor_class' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:30'],
+
+            // Alignment (optional, must be valid D&D alignment)
+            'alignment' => ['sometimes', 'nullable', 'string', 'in:'.implode(',', Character::ALIGNMENTS)],
+
+            // Inspiration (optional, boolean)
+            'has_inspiration' => ['sometimes', 'boolean'],
         ];
     }
 

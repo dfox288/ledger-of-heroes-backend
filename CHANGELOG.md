@@ -37,6 +37,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Items Missing proficiency_category for Equipment Picker** (Issue #107)
+  - Extended `proficiency_category` accessor to include non-weapon items
+  - Musical instruments now return `musical_instrument`
+  - Artisan tools now return `artisan_tools`
+  - Gaming sets now return `gaming_set`
+  - Weapons retain existing values: `simple_melee`, `martial_melee`, `simple_ranged`, `martial_ranged`
+  - Frontend can now filter items by any proficiency category
+
 - **Available Spells Endpoint Missing Known Spells** (Issue #104)
   - Added `include_known=true` query parameter to `/characters/{id}/available-spells`
   - When enabled, already-learned spells are included in the response

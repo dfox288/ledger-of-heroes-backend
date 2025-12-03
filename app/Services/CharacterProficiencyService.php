@@ -154,9 +154,16 @@ class CharacterProficiencyService
             }
         }
 
+        // Clear existing choices for this source + choice_group before adding new ones
+        // This ensures re-submitting replaces rather than adds
+        $character->proficiencies()
+            ->where('source', $source)
+            ->whereIn('skill_id', $validSkillIds)
+            ->delete();
+
         // Create the proficiencies
         foreach ($skillIds as $skillId) {
-            CharacterProficiency::firstOrCreate([
+            CharacterProficiency::create([
                 'character_id' => $character->id,
                 'skill_id' => $skillId,
                 'source' => $source,

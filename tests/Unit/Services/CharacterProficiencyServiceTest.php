@@ -250,4 +250,41 @@ class CharacterProficiencyServiceTest extends TestCase
         // Trying to choose only 1 when 2 are required
         $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$athletics->id]);
     }
+
+    #[Test]
+    public function it_replaces_existing_choices_when_resubmitting(): void
+    {
+        $athletics = $this->createSkill('Athletics');
+        $acrobatics = $this->createSkill('Acrobatics');
+        $perception = $this->createSkill('Perception');
+        $stealth = $this->createSkill('Stealth');
+
+        $fighterClass = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter-'.uniqid()]);
+        $fighterClass->proficiencies()->createMany([
+            ['proficiency_type' => 'skill', 'skill_id' => $athletics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1', 'quantity' => 2],
+            ['proficiency_type' => 'skill', 'skill_id' => $acrobatics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1'],
+            ['proficiency_type' => 'skill', 'skill_id' => $perception->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1'],
+            ['proficiency_type' => 'skill', 'skill_id' => $stealth->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1'],
+        ]);
+
+        $character = Character::factory()->withClass($fighterClass)->create();
+
+        // First choice: athletics and acrobatics
+        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$athletics->id, $acrobatics->id]);
+        $this->assertCount(2, $character->proficiencies);
+        $this->assertTrue($character->proficiencies->contains('skill_id', $athletics->id));
+        $this->assertTrue($character->proficiencies->contains('skill_id', $acrobatics->id));
+
+        // Second choice (change of mind): perception and stealth
+        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$perception->id, $stealth->id]);
+
+        // Should still have exactly 2 proficiencies, not 4
+        $character->refresh();
+        $this->assertCount(2, $character->proficiencies);
+        $this->assertTrue($character->proficiencies->contains('skill_id', $perception->id));
+        $this->assertTrue($character->proficiencies->contains('skill_id', $stealth->id));
+        // Old choices should be gone
+        $this->assertFalse($character->proficiencies->contains('skill_id', $athletics->id));
+        $this->assertFalse($character->proficiencies->contains('skill_id', $acrobatics->id));
+    }
 }

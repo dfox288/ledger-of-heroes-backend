@@ -39,7 +39,7 @@ services:
       MYSQL_USER: dnd_user
       MYSQL_PASSWORD: dnd_password
     ports:
-      - "3306:3306"
+      - "33060:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -51,7 +51,7 @@ services:
     image: 'getmeili/meilisearch:v1.10'
     container_name: dnd_importer_meilisearch
     ports:
-      - '${FORWARD_MEILISEARCH_PORT:-7700}:7700'
+      - '${FORWARD_MEILISEARCH_PORT:-7700}:7701'
     environment:
       MEILI_MASTER_KEY: '${MEILISEARCH_KEY:-masterKey}'
       MEILI_NO_ANALYTICS: '${MEILI_NO_ANALYTICS:-true}'
@@ -71,8 +71,6 @@ services:
   redis:
     image: redis:7-alpine
     container_name: dnd_importer_redis
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     networks:

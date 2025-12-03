@@ -217,7 +217,7 @@ class CharacterProficiencyService
     /**
      * Get choice groups from an entity.
      *
-     * @return array<string, array{quantity: int, remaining: int, selected: array, options: array}>
+     * @return array<string, array{quantity: int, remaining: int, selected_skills: array<int>, selected_proficiency_types: array<int>, options: array}>
      */
     private function getChoicesFromEntity($entity, array $existingSkillIds, array $existingProfTypeIds): array
     {
@@ -282,13 +282,11 @@ class CharacterProficiencyService
             $chosenCount = count($selectedSkillIds) + count($selectedProfTypeIds);
             $remaining = max(0, $quantity - $chosenCount);
 
-            // Combine selected IDs (skills use skill_id, prof types use proficiency_type_id)
-            $selected = array_merge($selectedSkillIds, $selectedProfTypeIds);
-
             $choices[$groupName] = [
                 'quantity' => $quantity,
                 'remaining' => $remaining,
-                'selected' => $selected,
+                'selected_skills' => $selectedSkillIds,
+                'selected_proficiency_types' => $selectedProfTypeIds,
                 'options' => $allOptions,
             ];
         }

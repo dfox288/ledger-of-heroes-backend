@@ -186,10 +186,14 @@ class CharacterProficiencyServiceTest extends TestCase
         // Should still return ALL options (not filtered)
         $this->assertCount(2, $choiceData['options']);
 
-        // Should track selected skill ID
-        $this->assertArrayHasKey('selected', $choiceData);
-        $this->assertContains($athletics->id, $choiceData['selected']);
-        $this->assertNotContains($acrobatics->id, $choiceData['selected']);
+        // Should track selected skill ID in separate array
+        $this->assertArrayHasKey('selected_skills', $choiceData);
+        $this->assertContains($athletics->id, $choiceData['selected_skills']);
+        $this->assertNotContains($acrobatics->id, $choiceData['selected_skills']);
+
+        // selected_proficiency_types should be empty
+        $this->assertArrayHasKey('selected_proficiency_types', $choiceData);
+        $this->assertEmpty($choiceData['selected_proficiency_types']);
     }
 
     // =====================

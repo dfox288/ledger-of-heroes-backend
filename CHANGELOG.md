@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **GET /proficiency-choices returns all options with selected array** (Issue #128)
+- **GET /proficiency-choices returns all options with selected arrays** (Issue #128)
   - Endpoint now returns ALL available options regardless of whether choices have been made
-  - New `selected` array field shows IDs of already-chosen skills/proficiencies
+  - New `selected_skills` array contains IDs of already-chosen skills
+  - New `selected_proficiency_types` array contains IDs of already-chosen proficiency types
+  - Separating by type prevents ID collisions between skills and proficiency types
   - Enables frontend to display full options list for editing existing selections
   - `remaining` field still indicates how many more choices are needed
 

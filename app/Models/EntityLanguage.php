@@ -5,6 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * EntityLanguage - Polymorphic pivot for language grants.
+ *
+ * Table: entity_languages
+ * Used by: Background, Race
+ *
+ * Represents languages granted by races or backgrounds.
+ * Supports both fixed languages (language_id set) and language choices (is_choice=true).
+ */
 class EntityLanguage extends BaseModel
 {
     protected $fillable = [

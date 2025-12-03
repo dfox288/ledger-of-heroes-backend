@@ -5,6 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * EntitySource - Polymorphic pivot for source book citations.
+ *
+ * Table: entity_sources
+ * Used by: Background, CharacterClass, Feat, Item, OptionalFeature, Race, Spell
+ *
+ * Links entities to their source books with page references.
+ */
 class EntitySource extends BaseModel
 {
     protected $fillable = [

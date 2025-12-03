@@ -4,6 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * EntityDataTableEntry - Row entry for a data table.
+ *
+ * Table: entity_data_table_entries
+ * Parent: EntityDataTable (belongs to)
+ *
+ * Represents a single row in a data table (roll result, level progression entry, etc.).
+ */
 class EntityDataTableEntry extends BaseModel
 {
     protected $fillable = [

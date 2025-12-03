@@ -5,8 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * Proficiency - Polymorphic pivot for proficiency grants.
+ *
+ * Table: entity_proficiencies (custom table name for polymorphic consistency)
+ * Used by: Background, CharacterClass, Feat, Item, Race
+ *
+ * Represents proficiencies granted by entities (weapon, armor, skill, tool, saving throw).
+ * Supports both fixed proficiencies and proficiency choices (is_choice=true with choice_group).
+ */
 class Proficiency extends BaseModel
 {
+    /**
+     * Custom table name for polymorphic consistency with other entity_* tables.
+     */
     protected $table = 'entity_proficiencies';
 
     protected $fillable = [

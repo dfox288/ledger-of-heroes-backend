@@ -6,6 +6,15 @@ use App\Enums\DataTableType;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * EntityDataTable - Polymorphic pivot for structured data tables.
+ *
+ * Table: entity_data_tables
+ * Used by: CharacterTrait, ClassFeature, Item, Spell
+ *
+ * Represents tables embedded in entity descriptions (damage scaling, random roll tables, etc.).
+ * Each table has multiple EntityDataTableEntry rows for its contents.
+ */
 class EntityDataTable extends BaseModel
 {
     protected $fillable = [

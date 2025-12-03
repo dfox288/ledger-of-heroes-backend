@@ -4,12 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * EntityPrerequisite - Polymorphic pivot for entity prerequisites.
+ *
+ * Table: entity_prerequisites
+ * Used by: Feat, Item, OptionalFeature
+ *
+ * Represents requirements to use/take an entity (ability score minimums, race requirements, etc.).
+ * Uses double polymorphic pattern: reference → entity that HAS prerequisite, prerequisite → the requirement.
+ */
 class EntityPrerequisite extends BaseModel
 {
-    /**
-     * Indicates if the model should be timestamped.
-     */
-
     /**
      * The attributes that are mass assignable.
      */

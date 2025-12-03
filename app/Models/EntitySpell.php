@@ -5,6 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * EntitySpell - Polymorphic pivot for innate/granted spell relationships.
+ *
+ * Table: entity_spells
+ * Used by: Feat, Monster, Race
+ *
+ * Represents spells granted by entities (racial spells, feat spells, monster innate casting).
+ * Supports both fixed spells (spell_id set) and spell choices (is_choice=true with constraints).
+ *
+ * Note: CharacterClass uses a separate class_spells table for class spell lists.
+ */
 class EntitySpell extends BaseModel
 {
     protected $fillable = [

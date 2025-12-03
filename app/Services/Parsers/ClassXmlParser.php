@@ -891,8 +891,10 @@ class ClassXmlParser
     {
         $items = [];
 
-        // Split on " and " for compound items
-        $parts = preg_split('/\s+and\s+/i', $text);
+        // Split on ", and " (Oxford comma) or " and " for compound items
+        // This handles: "leather armor, longbow, and arrows (20)"
+        // Result: ["leather armor, longbow", "arrows (20)"]
+        $parts = preg_split('/,?\s+and\s+/i', $text);
 
         foreach ($parts as $part) {
             $part = trim($part);
@@ -900,62 +902,105 @@ class ClassXmlParser
                 continue;
             }
 
-            // Extract quantity from start (two, three, etc.)
-            $quantity = 1;
-            if (preg_match('/^(two|three|four|five|six|seven|eight|nine|ten|twenty)\s+/i', $part, $m)) {
-                $quantity = $this->wordToNumber($m[1]);
-                $part = preg_replace('/^(two|three|four|five|six|seven|eight|nine|ten|twenty)\s+/i', '', $part);
-            }
-
-            // Remove leading articles (a, an, the)
-            $part = preg_replace('/^(a|an|the)\s+/i', '', $part);
-
-            // Check for category references (martial/simple weapons)
-            // Pattern: "any martial weapon", "martial weapon", "martial melee weapon", "simple ranged weapon"
-            if (preg_match('/^(?:any\s+)?(martial|simple)\s+(?:(melee|ranged)\s+)?weapons?$/i', $part, $m)) {
-                $category = strtolower($m[1]);
-                if (! empty($m[2])) {
-                    $category .= '_'.strtolower($m[2]);
+            // Check if this part contains comma-separated items (e.g., "leather armor, longbow")
+            // Only split if commas exist AND there's no parentheses (to avoid splitting "quiver of arrows (20)")
+            if (str_contains($part, ',') && ! preg_match('/\([^)]+\)/', $part)) {
+                $subParts = explode(',', $part);
+                foreach ($subParts as $subPart) {
+                    $subPart = trim($subPart);
+                    if (! empty($subPart)) {
+                        $parsedItem = $this->parseSingleItem($subPart);
+                        if ($parsedItem !== null) {
+                            $items[] = $parsedItem;
+                        }
+                    }
                 }
-                $items[] = ['type' => 'category', 'value' => $category, 'quantity' => $quantity];
-
-                continue;
-            }
-
-            // Check for armor categories
-            if (preg_match('/^(?:any\s+)?(light|medium|heavy)\s+armou?r$/i', $part, $m)) {
-                $items[] = ['type' => 'category', 'value' => strtolower($m[1]).'_armor', 'quantity' => $quantity];
-
-                continue;
-            }
-
-            // Check for musical instrument category
-            // Patterns: "any musical instrument", "any other musical instrument", "musical instrument of your choice", etc.
-            if (preg_match('/^(?:any\s+)?(?:other\s+)?musical\s+instruments?(?:\s+of\s+your\s+choice)?$/i', $part) ||
-                preg_match('/^(?:one\s+)?musical\s+instruments?$/i', $part)) {
-                $items[] = ['type' => 'category', 'value' => 'musical_instrument', 'quantity' => $quantity];
-
-                continue;
-            }
-
-            // Handle "quiver of arrows (20)" or "arrows (20)" pattern
-            if (preg_match('/(?:quiver\s+of\s+)?(\w+)\s*\((\d+)\)/i', $part, $m)) {
-                $items[] = ['type' => 'item', 'value' => strtolower($m[1]), 'quantity' => (int) $m[2]];
-
-                continue;
-            }
-
-            // Specific item - clean up for matching
-            // Remove parenthetical notes like "(holy symbol)" but keep item name
-            $itemName = preg_replace('/\s*\([^)]+\)\s*$/', '', $part);
-            $itemName = trim($itemName);
-
-            if (! empty($itemName)) {
-                $items[] = ['type' => 'item', 'value' => $itemName, 'quantity' => $quantity];
+            } else {
+                // Single item (may have quantity prefix or parenthetical quantity)
+                $parsedItem = $this->parseSingleItem($part);
+                if ($parsedItem !== null) {
+                    $items[] = $parsedItem;
+                }
             }
         }
 
         return $items;
+    }
+
+    /**
+     * Parse a single item string into a structured array.
+     *
+     * Handles:
+     * - Quantity prefixes: "two daggers", "20 arrows"
+     * - Parenthetical quantities: "arrows (20)", "quiver of arrows (20)"
+     * - Category references: "any martial weapon", "simple melee weapon"
+     * - Armor categories: "light armor", "heavy armour"
+     * - Musical instruments: "any musical instrument"
+     * - Specific items: "longbow", "leather armor"
+     *
+     * @return array{type: string, value: string, quantity: int}|null
+     */
+    private function parseSingleItem(string $part): ?array
+    {
+        $part = trim($part);
+        if (empty($part)) {
+            return null;
+        }
+
+        // Extract quantity from start (two, three, etc.)
+        $quantity = 1;
+        if (preg_match('/^(two|three|four|five|six|seven|eight|nine|ten|twenty)\s+/i', $part, $m)) {
+            $quantity = $this->wordToNumber($m[1]);
+            $part = preg_replace('/^(two|three|four|five|six|seven|eight|nine|ten|twenty)\s+/i', '', $part);
+        }
+
+        // Extract numeric quantity from start (20 arrows)
+        if (preg_match('/^(\d+)\s+/i', $part, $m)) {
+            $quantity = (int) $m[1];
+            $part = preg_replace('/^\d+\s+/', '', $part);
+        }
+
+        // Remove leading articles (a, an, the)
+        $part = preg_replace('/^(a|an|the)\s+/i', '', $part);
+
+        // Check for category references (martial/simple weapons)
+        // Pattern: "any martial weapon", "martial weapon", "martial melee weapon", "simple ranged weapon"
+        if (preg_match('/^(?:any\s+)?(martial|simple)\s+(?:(melee|ranged)\s+)?weapons?$/i', $part, $m)) {
+            $category = strtolower($m[1]);
+            if (! empty($m[2])) {
+                $category .= '_'.strtolower($m[2]);
+            }
+
+            return ['type' => 'category', 'value' => $category, 'quantity' => $quantity];
+        }
+
+        // Check for armor categories
+        if (preg_match('/^(?:any\s+)?(light|medium|heavy)\s+armou?r$/i', $part, $m)) {
+            return ['type' => 'category', 'value' => strtolower($m[1]).'_armor', 'quantity' => $quantity];
+        }
+
+        // Check for musical instrument category
+        // Patterns: "any musical instrument", "any other musical instrument", "musical instrument of your choice", etc.
+        if (preg_match('/^(?:any\s+)?(?:other\s+)?musical\s+instruments?(?:\s+of\s+your\s+choice)?$/i', $part) ||
+            preg_match('/^(?:one\s+)?musical\s+instruments?$/i', $part)) {
+            return ['type' => 'category', 'value' => 'musical_instrument', 'quantity' => $quantity];
+        }
+
+        // Handle "quiver of arrows (20)" or "arrows (20)" pattern
+        if (preg_match('/(?:quiver\s+of\s+)?(\w+)\s*\((\d+)\)/i', $part, $m)) {
+            return ['type' => 'item', 'value' => strtolower($m[1]), 'quantity' => (int) $m[2]];
+        }
+
+        // Specific item - clean up for matching
+        // Remove parenthetical notes like "(holy symbol)" but keep item name
+        $itemName = preg_replace('/\s*\([^)]+\)\s*$/', '', $part);
+        $itemName = trim($itemName);
+
+        if (! empty($itemName)) {
+            return ['type' => 'item', 'value' => $itemName, 'quantity' => $quantity];
+        }
+
+        return null;
     }
 
     /**

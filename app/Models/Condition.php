@@ -10,10 +10,10 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
  * Table: conditions
  *
  * Inverse relationships show which entities interact with this condition:
- * - spells(): Spells that inflict this condition
- * - monsters(): Monsters that inflict this condition
- * - feats(): Feats that grant immunity to this condition
- * - races(): Races that grant immunity to this condition
+ * - spells(): Spells that inflict this condition (effect_type = 'inflicts')
+ * - monsters(): Monsters that inflict this condition (effect_type = 'inflicts')
+ * - feats(): Feats that interact with this condition (advantage, negates_disadvantage, etc.)
+ * - races(): Races that interact with this condition (advantage on saves, etc.)
  */
 class Condition extends BaseModel
 {
@@ -62,9 +62,10 @@ class Condition extends BaseModel
     }
 
     /**
-     * Get feats that grant immunity to this condition.
+     * Get feats that interact with this condition.
      *
      * Uses polymorphic many-to-many via entity_conditions table.
+     * Effect types include: advantage, disadvantage, negates_disadvantage.
      */
     public function feats(): MorphToMany
     {
@@ -78,9 +79,10 @@ class Condition extends BaseModel
     }
 
     /**
-     * Get races that grant immunity to this condition.
+     * Get races that interact with this condition.
      *
      * Uses polymorphic many-to-many via entity_conditions table.
+     * Effect types include: advantage (on saving throws against this condition).
      */
     public function races(): MorphToMany
     {

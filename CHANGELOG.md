@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Character Proficiency Management** (Issue #101, WIP)
+  - New endpoints: `GET/POST /characters/{id}/proficiencies`, `GET/POST /proficiency-choices`
+  - Auto-populate fixed proficiencies from class/race/background
+  - Handle skill choices (e.g., "pick 2 skills from this list")
+  - CharacterProficiencyService with 8 unit tests
+  - Still needed: features/traits management, auto-population hook
+
 - **Custom/Freetext Equipment Items** (Issue #102, PR #17)
   - Characters can now have custom equipment items not in the database
   - New `custom_name` and `custom_description` columns on `character_equipment`

@@ -38,6 +38,8 @@ class Character extends Model
         'intelligence',
         'wisdom',
         'charisma',
+        'alignment',
+        'has_inspiration',
         'ability_score_method',
         'max_hit_points',
         'current_hit_points',
@@ -55,6 +57,7 @@ class Character extends Model
         'intelligence' => 'integer',
         'wisdom' => 'integer',
         'charisma' => 'integer',
+        'has_inspiration' => 'boolean',
         'ability_score_method' => AbilityScoreMethod::class,
         'max_hit_points' => 'integer',
         'current_hit_points' => 'integer',
@@ -257,5 +260,42 @@ class Character extends Model
         }
 
         return app(CharacterStatCalculator::class)->calculateArmorClass($this);
+    }
+
+    // Race-Derived Attributes
+
+    /**
+     * Get walking speed from race.
+     */
+    public function getSpeedAttribute(): ?int
+    {
+        return $this->race?->speed;
+    }
+
+    /**
+     * Get size name from race.
+     */
+    public function getSizeAttribute(): ?string
+    {
+        return $this->race?->size?->name;
+    }
+
+    /**
+     * Get all movement speeds from race.
+     *
+     * @return array<string, int|null>|null
+     */
+    public function getSpeedsAttribute(): ?array
+    {
+        if ($this->race === null) {
+            return null;
+        }
+
+        return [
+            'walk' => $this->race->speed,
+            'fly' => $this->race->fly_speed,
+            'swim' => $this->race->swim_speed,
+            'climb' => $this->race->climb_speed,
+        ];
     }
 }

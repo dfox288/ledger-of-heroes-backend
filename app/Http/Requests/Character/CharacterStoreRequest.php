@@ -31,6 +31,12 @@ class CharacterStoreRequest extends FormRequest
 
             // Level (default 1)
             'level' => ['sometimes', 'integer', 'min:1', 'max:20'],
+
+            // Alignment (optional, must be valid D&D alignment)
+            'alignment' => ['sometimes', 'nullable', 'string', 'in:Lawful Good,Neutral Good,Chaotic Good,Lawful Neutral,True Neutral,Chaotic Neutral,Lawful Evil,Neutral Evil,Chaotic Evil,Unaligned'],
+
+            // Inspiration (optional, boolean)
+            'has_inspiration' => ['sometimes', 'boolean'],
         ];
     }
 

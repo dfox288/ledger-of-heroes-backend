@@ -1,8 +1,8 @@
 # Project Status
 
-**Last Updated:** 2025-12-02
-**Branch:** feature/issue-91-level-up-flow
-**Status:** 🔄 Level-Up Flow - PR #13 In Review
+**Last Updated:** 2025-12-03
+**Branch:** main
+**Status:** ✅ ASI Choice / Feat Selection Complete
 
 ---
 
@@ -10,13 +10,13 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 1,560+ passing (~12,500 assertions) - All suites |
-| **Test Files** | 232 |
+| **Tests** | 1,600+ passing (~13,000 assertions) - All suites |
+| **Test Files** | 235 |
 | **Filter Tests** | 151 operator tests (2,750+ assertions) - 100% coverage |
-| **Character Builder Tests** | 140+ tests (2,200+ assertions) |
-| **Duration** | ~4s (Unit-Pure), ~8s (Unit-DB), ~12s (Feature-DB), ~23s (Feature-Search) |
+| **Character Builder Tests** | 180+ tests (2,700+ assertions) |
+| **Duration** | ~4s (Unit-Pure), ~12s (Unit-DB), ~15s (Feature-DB), ~23s (Feature-Search) |
 | **Models** | 37 (32 + 5 Character Builder) |
-| **API** | 49 Resources + 30 Controllers + 42 Form Requests |
+| **API** | 50 Resources + 31 Controllers + 43 Form Requests |
 | **Importers** | 9 working (Strategy Pattern) |
 | **Import Commands** | 12 (10 standardized with BaseImportCommand) |
 | **Monster Strategies** | 12 (95%+ coverage) |
@@ -25,14 +25,38 @@
 | **Search** | 3,600+ documents indexed (Scout + Meilisearch) |
 | **Code Quality** | Laravel Pint formatted |
 | **Enums** | 2 (AbilityScoreMethod, ItemTypeCode) |
-| **DTOs** | 3 (ProficiencyStatus, LevelUpResult, + 1 existing) |
+| **DTOs** | 5 (AsiChoiceResult, PrerequisiteResult, ProficiencyStatus, LevelUpResult, + 1 existing) |
 
 ---
 
 ## 🚀 Recent Milestones
 
-### Level-Up Flow 🔄 IN REVIEW (2025-12-02)
-- **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/13
+### ASI Choice / Feat Selection ✅ COMPLETE (2025-12-03)
+- **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/14 (merged)
+- **Issue:** #93
+- **Scope:** Unified endpoint for spending ASI choices on feats or ability increases
+
+**Features Implemented:**
+- `POST /api/v1/characters/{id}/asi-choice` endpoint
+- Choose between taking a feat or ability score increase (+2/+1/+1)
+- Prerequisite validation (ability scores, proficiencies, race, skills)
+- Blocks duplicate feats (most feats can only be taken once)
+- Half-feat ability bonuses applied automatically from modifiers
+- Auto-grants proficiencies from feats (e.g., Heavy Armor Master)
+- Auto-grants spells from feats (e.g., Magic Initiate)
+- Ability score cap enforcement (max 20)
+
+**Architecture:**
+- `AsiChoiceService` - orchestrates feat/ability choice with DB transaction
+- `PrerequisiteCheckerService` - validates feat prerequisites
+- `AsiChoiceResult` DTO, `PrerequisiteResult` DTO
+- `AsiChoiceResource` for JSON response
+- 5 custom exceptions for validation errors
+
+**Tests:** 43 new tests (12 prerequisite + 17 service + 14 feature)
+
+### Level-Up Flow ✅ COMPLETE (2025-12-03)
+- **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/13 (merged)
 - **Issue:** #91
 - **Scope:** Milestone-based level-up with HP, features, and ASI tracking
 
@@ -388,24 +412,28 @@
 
 ## 🎯 Next Priorities
 
-### Priority 1: Cleanup Legacy Import Files (Optional, 1 hour)
-- **Status:** Ready - can remove `import-files/` directory
-- XML import now reads from fightclub_forked repository directly
-- Legacy directory no longer needed
+### Priority 1: Multiclass Support (Issue #92)
+- **Status:** Ready to start
+- Allow characters to have multiple classes
+- Track levels per class
+- Handle multiclass spellcasting rules
+- Proficiency overlap resolution
 
-### Priority 2: Performance Optimizations (Optional, 2-4 hours)
+### Priority 2: XP-Based Leveling (Issue #95)
+- **Status:** Optional enhancement
+- Automatic leveling when XP threshold reached
+- XP threshold table (300, 900, 2700... 355,000)
+- Integration with existing level-up flow
+
+### Priority 3: Performance Optimizations
 - Database indexing: composite indexes, slug indexes
 - Caching: monster spell lists, popular filters
 - Query optimization: reduce N+1 queries
 
-### Priority 3: Character Builder API (Optional, 8-12 hours)
-- `POST /characters`, `GET /characters/{id}`, `PATCH /characters/{id}/level-up`
-- `POST /characters/{id}/spells`, `GET /characters/{id}/available-spells`
-
 ### Additional Opportunities
-- Encounter Builder API (6-10 hours)
-- Additional Monster Strategies (2-3h each)
-- Frontend Application (20-40 hours)
+- Encounter Builder API
+- Additional Monster Strategies
+- Frontend Application
 - Rate Limiting
 
 ---
@@ -421,13 +449,13 @@
 - ✅ Data imports (one-command master import)
 
 **Confidence Level:** 🟢 Very High
-- 1,410+ tests passing (100% pass rate, 30 skipped)
+- 1,600+ tests passing (100% pass rate)
 - All test suites passing (Unit-Pure, Unit-DB, Feature-DB, Feature-Search)
 - Comprehensive test coverage with data-agnostic assertions
 - Clean architecture with Strategy Pattern
 - Well-documented codebase
 - No known blockers
-- All major features complete
+- Character Builder v1 feature-complete (CRUD, equipment, level-up, feats)
 
 ---
 
@@ -482,8 +510,8 @@ docker compose exec php php artisan search:configure-indexes
 
 ---
 
-**Last Updated:** 2025-11-29
-**Next Session:** Entity Data Tables Refactor (plan ready), Character Builder API, or Performance Optimizations
+**Last Updated:** 2025-12-03
+**Next Session:** Multiclass Support (#92), XP-Based Leveling (#95), or Performance Optimizations
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

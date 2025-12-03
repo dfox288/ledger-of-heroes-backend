@@ -1,1 +1,1 @@
-handovers/SESSION-HANDOVER-2025-12-02-proficiency-levelup.md
+handovers/SESSION-HANDOVER-2025-12-03-asi-choice.md

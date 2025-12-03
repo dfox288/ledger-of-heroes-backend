@@ -159,6 +159,42 @@ class CharacterSpellTest extends TestCase
             ->assertJsonCount(5, 'data'); // All 5 spells including already known
     }
 
+    #[Test]
+    public function it_combines_max_level_and_include_known_parameters(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()->withClass($wizardClass)->level(5)->create();
+
+        // Create spells at different levels
+        $level1Spells = Spell::factory()->count(3)->create(['level' => 1]);
+        $level3Spells = Spell::factory()->count(2)->create(['level' => 3]);
+        $wizardClass->spells()->attach(
+            $level1Spells->pluck('id')->merge($level3Spells->pluck('id'))
+        );
+
+        // Character knows 1 level-1 spell and 1 level-3 spell
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_id' => $level1Spells[0]->id,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_id' => $level3Spells[0]->id,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        // Without include_known: should get 2 level-1 spells (3 - 1 known)
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-spells?max_level=1");
+        $response->assertOk()->assertJsonCount(2, 'data');
+
+        // With include_known: should get all 3 level-1 spells
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-spells?max_level=1&include_known=true");
+        $response->assertOk()->assertJsonCount(3, 'data');
+    }
+
     // =====================
     // Learn Spell Tests
     // =====================

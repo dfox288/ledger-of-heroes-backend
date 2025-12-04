@@ -570,4 +570,169 @@ XML;
         $this->assertEquals('item', $longbow['type']);
         $this->assertEquals(1, $longbow['quantity']);
     }
+
+    #[Test]
+    public function it_parses_any_x_of_your_choice_pattern_as_choice()
+    {
+        // Tests "any two simple weapons of your choice" pattern (Artificer)
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <class>
+        <name>Artificer</name>
+        <hd>8</hd>
+        <autolevel level="1">
+            <feature>
+                <name>Starting Artificer</name>
+                <text>You start with the following equipment:
+
+• any two simple weapons of your choice
+• a light crossbow and 20 bolts
+</text>
+            </feature>
+        </autolevel>
+    </class>
+</compendium>
+XML;
+
+        $classes = $this->parser->parse($xml);
+        $items = $classes[0]['equipment']['items'];
+
+        // Find the "any two simple weapons" item
+        $weaponChoice = collect($items)->first(fn ($i) => str_contains(strtolower($i['description']), 'any two simple weapons'));
+
+        $this->assertNotNull($weaponChoice, 'Should find the "any two simple weapons" item');
+        $this->assertTrue($weaponChoice['is_choice'], 'Should be marked as a choice');
+        $this->assertNotNull($weaponChoice['choice_group'], 'Should have a choice group');
+        $this->assertEquals(2, $weaponChoice['quantity'], 'Should have quantity of 2');
+
+        // Should have choice_items with category reference
+        $this->assertNotEmpty($weaponChoice['choice_items']);
+        $this->assertEquals('category', $weaponChoice['choice_items'][0]['type']);
+        $this->assertEquals('simple', $weaponChoice['choice_items'][0]['value']);
+        $this->assertEquals(2, $weaponChoice['choice_items'][0]['quantity']);
+    }
+
+    #[Test]
+    public function it_parses_your_choice_of_x_or_y_pattern_as_choice()
+    {
+        // Tests "your choice of studded leather armor or scale mail" pattern (Artificer)
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <class>
+        <name>Artificer</name>
+        <hd>8</hd>
+        <autolevel level="1">
+            <feature>
+                <name>Starting Artificer</name>
+                <text>You start with the following equipment:
+
+• your choice of studded leather armor or scale mail
+• thieves' tools and a dungeoneer's pack
+</text>
+            </feature>
+        </autolevel>
+    </class>
+</compendium>
+XML;
+
+        $classes = $this->parser->parse($xml);
+        $items = $classes[0]['equipment']['items'];
+
+        // Should have choice items for armor
+        $choiceItems = collect($items)->filter(fn ($i) => $i['is_choice']);
+
+        $this->assertCount(2, $choiceItems, 'Should have 2 choice options for armor');
+
+        // Both should be in the same choice group
+        $choiceGroups = $choiceItems->pluck('choice_group')->unique();
+        $this->assertCount(1, $choiceGroups, 'Both armor options should be in same choice group');
+
+        // Find specific options
+        $studdedLeather = $choiceItems->first(fn ($i) => str_contains(strtolower($i['description']), 'studded leather'));
+        $scaleMail = $choiceItems->first(fn ($i) => str_contains(strtolower($i['description']), 'scale mail'));
+
+        $this->assertNotNull($studdedLeather, 'Should have studded leather armor option');
+        $this->assertNotNull($scaleMail, 'Should have scale mail option');
+        $this->assertEquals(1, $studdedLeather['choice_option']);
+        $this->assertEquals(2, $scaleMail['choice_option']);
+    }
+
+    #[Test]
+    public function it_parses_full_artificer_equipment()
+    {
+        // Full Artificer starting equipment to test all patterns together
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <class>
+        <name>Artificer</name>
+        <hd>8</hd>
+        <autolevel level="1">
+            <feature>
+                <name>Starting Artificer</name>
+                <text>You start with the following equipment:
+
+• any two simple weapons of your choice
+• a light crossbow and 20 bolts
+• your choice of studded leather armor or scale mail
+• thieves' tools and a dungeoneer's pack
+</text>
+            </feature>
+        </autolevel>
+    </class>
+</compendium>
+XML;
+
+        $classes = $this->parser->parse($xml);
+        $items = $classes[0]['equipment']['items'];
+
+        // Count choice groups
+        $choiceGroups = collect($items)
+            ->filter(fn ($i) => $i['is_choice'])
+            ->pluck('choice_group')
+            ->unique()
+            ->values();
+
+        // Should have at least 2 choice groups:
+        // 1. "any two simple weapons of your choice"
+        // 2. "your choice of studded leather armor or scale mail"
+        $this->assertGreaterThanOrEqual(2, $choiceGroups->count(), 'Should have at least 2 choice groups');
+    }
+
+    #[Test]
+    public function it_handles_any_simple_weapon_singular()
+    {
+        // Test singular variant: "any simple weapon"
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <class>
+        <name>Test</name>
+        <hd>8</hd>
+        <autolevel level="1">
+            <feature>
+                <name>Starting Test</name>
+                <text>You start with the following equipment:
+
+• any simple weapon
+</text>
+            </feature>
+        </autolevel>
+    </class>
+</compendium>
+XML;
+
+        $classes = $this->parser->parse($xml);
+        $items = $classes[0]['equipment']['items'];
+
+        $weaponChoice = collect($items)->first(fn ($i) => str_contains(strtolower($i['description']), 'any simple weapon'));
+
+        $this->assertNotNull($weaponChoice);
+        $this->assertTrue($weaponChoice['is_choice']);
+        $this->assertEquals(1, $weaponChoice['quantity']);
+        $this->assertEquals('category', $weaponChoice['choice_items'][0]['type']);
+        $this->assertEquals('simple', $weaponChoice['choice_items'][0]['value']);
+    }
 }

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Artificer Equipment Choices Parsing** (Issue #167)
+  - Parser now detects Tasha's format choice patterns that don't use `(a)/(b)` markers
+  - Added support for `any (number)? (category) weapons of your choice` pattern (e.g., "any two simple weapons of your choice")
+  - Added support for `your choice of X or Y` pattern (e.g., "your choice of studded leather armor or scale mail")
+  - Both patterns now set `is_choice: true` with appropriate `choice_group` and `choice_items`
+  - Artificer equipment now correctly has 2 choice groups instead of 0
+
 - **Artificer Equipment Parsing** (Issue #165)
   - Fixed regex pattern to recognize "You start with" variant used by Tasha's/non-PHB classes
   - Previously only matched "You begin play with" (PHB classes)

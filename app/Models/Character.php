@@ -161,6 +161,14 @@ class Character extends Model implements HasMedia
         return $this->hasMany(CharacterSpellSlot::class);
     }
 
+    /**
+     * Get active conditions for this character.
+     */
+    public function conditions(): HasMany
+    {
+        return $this->hasMany(CharacterCondition::class);
+    }
+
     // Computed Accessors
 
     /**

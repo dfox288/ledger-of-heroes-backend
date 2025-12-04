@@ -108,6 +108,18 @@ class CharacterResource extends JsonResource
             ),
             'spell_slots' => $this->getSpellSlots(),
 
+            // Active conditions
+            'conditions' => $this->whenLoaded('conditions', function () {
+                return $this->conditions->map(fn ($cc) => [
+                    'id' => $cc->condition->id,
+                    'name' => $cc->condition->name,
+                    'slug' => $cc->condition->slug,
+                    'level' => $cc->level,
+                    'source' => $cc->source,
+                    'duration' => $cc->duration,
+                ]);
+            }),
+
             // Portrait
             'portrait' => $this->getPortraitData(),
 

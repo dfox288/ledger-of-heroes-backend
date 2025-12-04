@@ -2,9 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Race;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Race
+ */
 class RaceResource extends JsonResource
 {
     /**
@@ -23,6 +27,7 @@ class RaceResource extends JsonResource
             'fly_speed' => $this->fly_speed,
             'swim_speed' => $this->swim_speed,
             'climb_speed' => $this->climb_speed,
+            /** @var bool Whether this race is a subrace (has a parent race) */
             'is_subrace' => $this->is_subrace,
             'traits' => TraitResource::collection($this->whenLoaded('traits')),
             'modifiers' => ModifierResource::collection($this->whenLoaded('modifiers')),

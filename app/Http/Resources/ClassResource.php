@@ -2,9 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\CharacterClass;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin CharacterClass
+ */
 class ClassResource extends JsonResource
 {
     /**
@@ -37,6 +41,7 @@ class ClassResource extends JsonResource
             'id' => $this->id,
             'slug' => $this->slug,
             'name' => $this->name,
+            /** @var int Hit die value (e.g., 8, 10, 12) - inherits from parent for subclasses */
             'hit_die' => $this->effective_hit_die,
             'description' => $this->description,
             'archetype' => $this->archetype,
@@ -45,7 +50,9 @@ class ClassResource extends JsonResource
                 return new AbilityScoreResource($this->effective_spellcasting_ability);
             }),
             'parent_class_id' => $this->parent_class_id,
+            /** @var bool Whether this is a base class (not a subclass) */
             'is_base_class' => $this->is_base_class,
+            /** @var int|null Level at which subclass is chosen */
             'subclass_level' => $this->subclass_level,
             'spellcasting_type' => $this->spellcasting_type,
 
@@ -69,6 +76,7 @@ class ClassResource extends JsonResource
             }),
 
             'level_progression' => ClassLevelProgressionResource::collection($this->whenLoaded('levelProgression')),
+            /** @var array<GroupedCounterResource>|null Class counters grouped by name */
             'counters' => $this->when($this->relationLoaded('counters'), fn () => GroupedCounterResource::fromCounters($this->counters)),
             'spells' => SpellResource::collection($this->whenLoaded('spells')),
             'optional_features' => OptionalFeatureResource::collection($this->whenLoaded('optionalFeatures')),

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **OpenAPI Type Annotations** (Issues #157, #158, #159)
+  - Fixed `CharacterResource` fields now correctly typed: `level`, `total_level` (integer), `is_multiclass`, `is_complete` (boolean), `validation_status` (object), `armor_class` (integer|null), `speed` (integer|null), `speeds` (object|null), `size` (string|null)
+  - Fixed `CharacterStatsResource` fields now correctly typed: `ability_scores`, `saving_throws`, `spell_slots` (object), `spellcasting` (object|null), `hit_dice` (array)
+  - Fixed `ClassResource` fields now correctly typed: `id` (integer), `hit_die` (integer), `is_base_class` (boolean), `subclass_level` (integer|null), `counters` (array<GroupedCounterResource>|null)
+  - Fixed `RaceResource.is_subrace` now correctly typed as boolean
+  - Added `@mixin` annotations to resources for Scramble type inference
+  - Added `@property` annotations to models for computed property types
+
 ### Added
 
 - **Proficiency Choices Metadata** (Issue #168)

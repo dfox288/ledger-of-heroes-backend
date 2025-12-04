@@ -3,12 +3,16 @@
 namespace App\Http\Resources;
 
 use App\Http\Resources\Concerns\FormatsRelatedModels;
+use App\Models\Character;
 use App\Services\CharacterStatCalculator;
 use App\Services\MulticlassSpellSlotCalculator;
 use App\Services\ProficiencyCheckerService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Character
+ */
 class CharacterResource extends JsonResource
 {
     use FormatsRelatedModels;
@@ -35,20 +39,27 @@ class CharacterResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            /** @var int Character level (total across all classes) */
             'level' => $level,
+            /** @var int Total character level */
             'total_level' => $this->total_level,
+            /** @var bool Whether character has multiple classes */
             'is_multiclass' => $this->is_multiclass,
             'experience_points' => $this->experience_points ?? 0,
 
             // Completion status
+            /** @var bool Whether character has all required fields */
             'is_complete' => $this->is_complete,
+            /** @var array{is_complete: bool, missing: array<string>} Validation status with missing fields */
             'validation_status' => $this->validation_status,
 
             // Ability score method
             'ability_score_method' => $this->ability_score_method?->value,
 
             // Ability scores (as STR/DEX/CON/INT/WIS/CHA keyed array)
+            /** @var array{STR: int|null, DEX: int|null, CON: int|null, INT: int|null, WIS: int|null, CHA: int|null} */
             'ability_scores' => $abilityScores,
+            /** @var array{STR: int|null, DEX: int|null, CON: int|null, INT: int|null, WIS: int|null, CHA: int|null} */
             'modifiers' => $modifiers,
 
             // Calculated stats
@@ -60,6 +71,7 @@ class CharacterResource extends JsonResource
             'temp_hit_points' => $this->temp_hit_points,
             'death_save_successes' => $this->death_save_successes,
             'death_save_failures' => $this->death_save_failures,
+            /** @var int|null Calculated armor class */
             'armor_class' => $this->armor_class,
 
             // Level-up tracking
@@ -70,8 +82,11 @@ class CharacterResource extends JsonResource
             'has_inspiration' => $this->has_inspiration ?? false,
 
             // Race-derived attributes
+            /** @var int|null Walking speed from race */
             'speed' => $this->speed,
+            /** @var array{walk: int|null, fly: int|null, swim: int|null, climb: int|null}|null All movement speeds */
             'speeds' => $this->speeds,
+            /** @var string|null Character size (e.g., "Medium", "Small") */
             'size' => $this->size,
 
             // Equipped items summary
@@ -100,6 +115,7 @@ class CharacterResource extends JsonResource
             'classes' => CharacterClassPivotResource::collection(
                 $this->whenLoaded('characterClasses', $this->characterClasses, collect())
             ),
+            /** @var array{standard: array<string, int>|null, pact: array{count: int, level: int}|null}|null Spell slots */
             'spell_slots' => $this->getSpellSlots(),
 
             // Active conditions

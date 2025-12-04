@@ -18,6 +18,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
+/**
+ * @property bool $is_subrace Whether this race is a subrace (has a parent race)
+ */
 class Race extends BaseModel
 {
     use HasConditions, HasEntityLanguages, HasEntitySpells, HasEntityTraits, HasLanguageScopes;

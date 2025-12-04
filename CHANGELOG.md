@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Character Notes System** (Issue #114, also closes #121)
+  - Normalized `character_notes` table for storing personality traits, ideals, bonds, flaws, backstory, and custom player notes
+  - `NoteCategory` enum with categories: `personality_trait`, `ideal`, `bond`, `flaw`, `backstory`, `custom`
+  - Multiple notes per category (D&D gives 2 personality traits, not 1)
+  - Custom notes require a title; backstory notes also require title for organization
+  - Auto-incrementing `sort_order` within each category
+  - New API endpoints:
+    - `GET /characters/{id}/notes` - List notes grouped by category
+    - `POST /characters/{id}/notes` - Add a note
+    - `GET /characters/{id}/notes/{noteId}` - Get a single note
+    - `PUT /characters/{id}/notes/{noteId}` - Update a note
+    - `DELETE /characters/{id}/notes/{noteId}` - Delete a note
+  - `CharacterNote` model with `CharacterNoteResource`
+  - Form request validation with category-specific title requirements
+  - Cascade delete: notes are removed when character is deleted
+  - 24 new tests covering full CRUD and validation
+
 - **Derived Combat Stats** (Issue #113)
   - New stats available via `GET /characters/{id}/stats` endpoint:
     - `initiative_bonus` - DEX modifier (supports future feature bonuses like Alert feat)

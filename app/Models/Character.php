@@ -132,6 +132,11 @@ class Character extends Model
         return $this->hasMany(CharacterEquipment::class);
     }
 
+    public function notes(): HasMany
+    {
+        return $this->hasMany(CharacterNote::class)->orderBy('category')->orderBy('sort_order');
+    }
+
     /**
      * Get all classes this character has (for multiclass support).
      */

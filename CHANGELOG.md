@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Character Condition Tracking** (Issue #117)
+  - Track active conditions on characters (blinded, poisoned, exhaustion, etc.)
+  - New `character_conditions` table linking characters to conditions
+  - New API endpoints:
+    - `GET /characters/{id}/conditions` - List active conditions
+    - `POST /characters/{id}/conditions` - Add or update condition
+    - `DELETE /characters/{id}/conditions/{idOrSlug}` - Remove condition
+  - Exhaustion special handling:
+    - Levels 1-6 tracked (other conditions have null level)
+    - Level defaults to 1 when adding exhaustion without specifying
+    - Level 6 returns warning: "Level 6 exhaustion results in death"
+  - Upsert behavior: adding existing condition updates it instead of erroring
+  - Delete supports both condition ID and slug
+  - Conditions included in CharacterResource when loaded
+  - 22 new tests (8 model, 14 API)
+
 - **Rest Mechanics** (Issue #110)
   - Implement short and long rest mechanics for character management
   - New API endpoints:

@@ -376,4 +376,4 @@ jobs:
           $(cat /tmp/review.txt)
 
           ---
-          *@meistermind*"
+          *Want a follow-up review after making changes? Tag @meistermind in your comment.*"

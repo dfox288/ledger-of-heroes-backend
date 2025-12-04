@@ -58,12 +58,12 @@ class CharacterConditionController extends Controller
     /**
      * Remove a condition from a character.
      */
-    public function destroy(Character $character, string $condition): JsonResponse
+    public function destroy(Character $character, string $conditionIdOrSlug): JsonResponse
     {
         // Find by ID or slug
-        $conditionModel = is_numeric($condition)
-            ? Condition::findOrFail($condition)
-            : Condition::where('slug', $condition)->firstOrFail();
+        $conditionModel = is_numeric($conditionIdOrSlug)
+            ? Condition::findOrFail($conditionIdOrSlug)
+            : Condition::where('slug', $conditionIdOrSlug)->firstOrFail();
 
         $deleted = $character->conditions()
             ->where('condition_id', $conditionModel->id)

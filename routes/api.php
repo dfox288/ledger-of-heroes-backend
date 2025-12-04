@@ -318,7 +318,7 @@ Route::prefix('v1')->group(function () {
             ->name('conditions.index');
         Route::post('conditions', [\App\Http\Controllers\Api\CharacterConditionController::class, 'store'])
             ->name('conditions.store');
-        Route::delete('conditions/{condition}', [\App\Http\Controllers\Api\CharacterConditionController::class, 'destroy'])
+        Route::delete('conditions/{conditionIdOrSlug}', [\App\Http\Controllers\Api\CharacterConditionController::class, 'destroy'])
             ->name('conditions.destroy');
     });
 

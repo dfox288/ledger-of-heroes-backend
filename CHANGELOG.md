@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Feat Language Grants** (Issue #140)
+  - Parse language grants from feat descriptions (e.g., Linguist: "You learn three languages of your choice")
+  - Add `languages` field to Feat API response
+  - Uses existing `entity_languages` polymorphic infrastructure (same as Race/Background)
+  - 6 new tests (parser + importer + API)
+
 - **Optional Feature Selection API** (Issue #118 - Part 2)
   - New `character_optional_features` table tracks character selections
   - `CharacterOptionalFeature` model with usage tracking (uses_remaining, max_uses)

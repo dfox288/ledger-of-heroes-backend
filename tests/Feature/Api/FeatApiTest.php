@@ -176,4 +176,39 @@ class FeatApiTest extends TestCase
 
         $this->assertEquals($sortedNames, $names, 'Feats should be sorted alphabetically by name');
     }
+
+    #[Test]
+    public function feat_includes_languages_in_response()
+    {
+        // Linguist feat should exist from import
+        $feat = Feat::where('slug', 'linguist')->first();
+
+        if (! $feat) {
+            $this->markTestSkipped('Linguist feat not found in imported data');
+        }
+
+        // Ensure language data exists (may need re-import for full coverage)
+        if ($feat->languages()->count() === 0) {
+            $feat->languages()->create([
+                'language_id' => null,
+                'is_choice' => true,
+                'quantity' => 3,
+            ]);
+        }
+
+        $response = $this->getJson("/api/v1/feats/{$feat->id}");
+
+        $response->assertOk();
+        $response->assertJsonStructure([
+            'data' => [
+                'languages' => [
+                    '*' => ['is_choice', 'quantity'],
+                ],
+            ],
+        ]);
+
+        // Linguist grants 3 language choices
+        $response->assertJsonPath('data.languages.0.is_choice', true);
+        $response->assertJsonPath('data.languages.0.quantity', 3);
+    }
 }

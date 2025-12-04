@@ -107,7 +107,7 @@ class CharacterProficiencyController extends Controller
      */
     public function choices(Character $character): JsonResponse
     {
-        $character->load(['characterClass', 'race', 'background']);
+        $character->load(['characterClasses.characterClass', 'race', 'background']);
 
         $choices = $this->proficiencyService->getPendingChoices($character);
 
@@ -158,7 +158,7 @@ class CharacterProficiencyController extends Controller
             'skill_ids.*' => ['required', 'integer', 'exists:skills,id'],
         ]);
 
-        $character->load(['characterClass', 'race', 'background']);
+        $character->load(['characterClasses.characterClass', 'race', 'background']);
 
         try {
             $this->proficiencyService->makeSkillChoice(
@@ -212,7 +212,7 @@ class CharacterProficiencyController extends Controller
      */
     public function populate(Character $character): JsonResponse
     {
-        $character->load(['characterClass', 'race', 'background']);
+        $character->load(['characterClasses.characterClass', 'race', 'background']);
 
         $this->proficiencyService->populateAll($character);
 

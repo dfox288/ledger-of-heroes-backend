@@ -77,11 +77,18 @@ class LevelUpService
      * Uses average hit die + CON modifier (minimum 1 HP).
      * D&D 5e average formula: (hitDie / 2) rounded down + 1
      * Examples: d6=4, d8=5, d10=6, d12=7
+     *
+     * Uses the primary class's hit die for the calculation.
      */
     public function calculateHpIncrease(Character $character): int
     {
-        $hitDie = $character->characterClass->effective_hit_die
-            ?? $character->characterClass->hit_die;
+        $primaryClass = $character->primaryClass;
+        if (! $primaryClass) {
+            // Default to d8 if no class (shouldn't happen in practice)
+            $hitDie = 8;
+        } else {
+            $hitDie = $primaryClass->effective_hit_die ?? $primaryClass->hit_die;
+        }
 
         // D&D 5e average: (hitDie / 2) rounded down + 1
         $averageRoll = (int) floor($hitDie / 2) + 1;
@@ -94,12 +101,18 @@ class LevelUpService
      * Grant class features for the new level.
      *
      * Uses firstOrCreate to prevent duplicate features if level-up is called multiple times.
+     * Grants features from the primary class for the new level.
      *
      * @return array<array{id: int, name: string, description: string|null}>
      */
     private function grantClassFeatures(Character $character, int $newLevel): array
     {
-        $features = $character->characterClass->features()
+        $primaryClass = $character->primaryClass;
+        if (! $primaryClass) {
+            return [];
+        }
+
+        $features = $primaryClass->features()
             ->where('level', $newLevel)
             ->where('is_optional', false)
             ->get();
@@ -130,10 +143,13 @@ class LevelUpService
 
     /**
      * Check if the new level grants an Ability Score Improvement.
+     *
+     * Uses the primary class to determine ASI levels (Fighter and Rogue get extra ASIs).
      */
     private function isAsiLevel(Character $character, int $level): bool
     {
-        $classSlug = strtolower($character->characterClass->slug ?? '');
+        $primaryClass = $character->primaryClass;
+        $classSlug = strtolower($primaryClass->slug ?? '');
 
         $asiLevels = match ($classSlug) {
             'fighter' => self::ASI_LEVELS_FIGHTER,
@@ -147,11 +163,14 @@ class LevelUpService
     /**
      * Get current spell slots for the character's class and level.
      *
+     * Uses the primary class for spell slot calculation.
+     *
      * @return array<int, int>
      */
     private function getSpellSlots(Character $character): array
     {
-        $classSlug = $character->characterClass->slug ?? '';
+        $primaryClass = $character->primaryClass;
+        $classSlug = $primaryClass->slug ?? '';
 
         return $this->calculator->getSpellSlots($classSlug, $character->level);
     }

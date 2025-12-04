@@ -106,7 +106,7 @@ class CharacterFeatureController extends Controller
      */
     public function populate(Character $character): JsonResponse
     {
-        $character->load(['characterClass', 'race', 'background']);
+        $character->load(['characterClasses.characterClass', 'race', 'background']);
 
         $this->featureService->populateAll($character);
 

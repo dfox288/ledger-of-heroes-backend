@@ -11,33 +11,40 @@ class CharacterFeatureService
 {
     /**
      * Populate class features for the character up to their current level.
+     *
+     * Iterates over all character classes (multiclass support) and populates
+     * features from each class up to the character's level in that class.
      */
     public function populateFromClass(Character $character): void
     {
-        if (! $character->class_id) {
+        $character->loadMissing('characterClasses.characterClass');
+
+        if ($character->characterClasses->isEmpty()) {
             return;
         }
 
-        $characterClass = $character->characterClass;
-        if (! $characterClass) {
-            return;
-        }
+        foreach ($character->characterClasses as $charClass) {
+            $class = $charClass->characterClass;
+            if (! $class) {
+                continue;
+            }
 
-        // Get non-optional class features up to character's level
-        $features = $characterClass->features()
-            ->where('is_optional', false)
-            ->where('level', '<=', $character->level)
-            ->whereNull('parent_feature_id') // Exclude child features (choice options)
-            ->get();
+            // Get non-optional class features up to character's level in this class
+            $features = $class->features()
+                ->where('is_optional', false)
+                ->where('level', '<=', $charClass->level)
+                ->whereNull('parent_feature_id') // Exclude child features (choice options)
+                ->get();
 
-        foreach ($features as $feature) {
-            $this->createFeatureIfNotExists(
-                $character,
-                ClassFeature::class,
-                $feature->id,
-                'class',
-                $feature->level
-            );
+            foreach ($features as $feature) {
+                $this->createFeatureIfNotExists(
+                    $character,
+                    ClassFeature::class,
+                    $feature->id,
+                    'class',
+                    $feature->level
+                );
+            }
         }
 
         $character->load('features');

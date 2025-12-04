@@ -229,9 +229,11 @@ class CharacterOptionalFeatureController extends Controller
         }
 
         // Count selected features by type
+        // Filter out orphaned records where optionalFeature was deleted
         $selectedCounts = $character->optionalFeatures()
             ->with('optionalFeature')
             ->get()
+            ->filter(fn ($cof) => $cof->optionalFeature !== null)
             ->groupBy(fn ($cof) => $cof->optionalFeature->feature_type?->value)
             ->map(fn ($group) => $group->count());
 

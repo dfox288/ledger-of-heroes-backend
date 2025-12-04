@@ -65,13 +65,18 @@ class CharacterLanguageService
         // Get feat IDs from character features (polymorphic)
         $featIds = $character->features()
             ->where('feature_type', Feat::class)
-            ->pluck('feature_id');
+            ->pluck('feature_id')
+            ->toArray();
 
-        foreach ($featIds as $featId) {
-            $feat = Feat::find($featId);
-            if ($feat) {
-                $this->populateFixedLanguages($character, $feat, 'feat');
-            }
+        if (empty($featIds)) {
+            return;
+        }
+
+        // Load all feats in one query to avoid N+1
+        $feats = Feat::whereIn('id', $featIds)->get();
+
+        foreach ($feats as $feat) {
+            $this->populateFixedLanguages($character, $feat, 'feat');
         }
     }
 

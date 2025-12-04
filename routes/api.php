@@ -312,6 +312,14 @@ Route::prefix('v1')->group(function () {
             ->name('short-rest');
         Route::post('long-rest', [\App\Http\Controllers\Api\RestController::class, 'longRest'])
             ->name('long-rest');
+
+        // Conditions
+        Route::get('conditions', [\App\Http\Controllers\Api\CharacterConditionController::class, 'index'])
+            ->name('conditions.index');
+        Route::post('conditions', [\App\Http\Controllers\Api\CharacterConditionController::class, 'store'])
+            ->name('conditions.store');
+        Route::delete('conditions/{condition}', [\App\Http\Controllers\Api\CharacterConditionController::class, 'destroy'])
+            ->name('conditions.destroy');
     });
 
     /*

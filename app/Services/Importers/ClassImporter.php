@@ -261,6 +261,25 @@ class ClassImporter extends BaseImporter
         // 6. Import subclass-specific features
         if (! empty($subclassData['features'])) {
             $this->importFeatures($subclass, $subclassData['features']);
+
+            // 6a. Extract and import sources from features (Issue #141)
+            $sources = [];
+            foreach ($subclassData['features'] as $feature) {
+                if (! empty($feature['sources'])) {
+                    $sources = array_merge($sources, $feature['sources']);
+                }
+            }
+
+            // Remove duplicates based on code
+            $uniqueSources = [];
+            foreach ($sources as $source) {
+                $uniqueSources[$source['code']] = $source;
+            }
+            $sources = array_values($uniqueSources);
+
+            if (! empty($sources)) {
+                $this->importEntitySources($subclass, $sources);
+            }
         }
 
         // 7. Import subclass-specific counters

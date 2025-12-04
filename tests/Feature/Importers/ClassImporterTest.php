@@ -447,4 +447,48 @@ class ClassImporterTest extends TestCase
         $nonChoices = $barbarian->equipment()->where('is_choice', false)->get();
         $this->assertGreaterThan(0, $nonChoices->count(), 'Should have non-choice equipment items');
     }
+
+    #[Test]
+    public function it_imports_subclass_source_attribution()
+    {
+        // Issue #141: Subclasses should have their own source attribution
+        // Parse the Fighter XML
+        $xmlPath = base_path('import-files/class-fighter-phb.xml');
+        $xmlContent = file_get_contents($xmlPath);
+        $parser = new ClassXmlParser;
+        $classes = $parser->parse($xmlContent);
+        $fighterData = $classes[0];
+
+        // Import the base Fighter class (which also imports subclasses)
+        $fighter = $this->importer->import($fighterData);
+
+        // Assert base class has sources
+        $this->assertGreaterThan(0, $fighter->sources()->count(), 'Base class should have sources');
+
+        // Import subclasses and verify they have sources
+        foreach ($fighterData['subclasses'] as $subclassData) {
+            $subclass = $this->importer->importSubclass($fighter, $subclassData);
+
+            // Assert subclass has sources
+            $this->assertGreaterThan(
+                0,
+                $subclass->sources()->count(),
+                "Subclass {$subclass->name} should have sources"
+            );
+
+            // Assert PHB is among the sources (all Fighter subclasses in PHB are from PHB)
+            $sourceCodes = $subclass->sources->pluck('source.code')->toArray();
+            $this->assertContains('PHB', $sourceCodes, "Subclass {$subclass->name} should have PHB source");
+        }
+
+        // Specifically check Battle Master
+        $battleMaster = CharacterClass::where('slug', 'fighter-battle-master')->first();
+        $this->assertNotNull($battleMaster);
+        $this->assertGreaterThan(0, $battleMaster->sources()->count(), 'Battle Master should have sources');
+
+        // Check that source has page number
+        $battleMasterSource = $battleMaster->sources()->first();
+        $this->assertNotNull($battleMasterSource->pages, 'Battle Master source should have page number');
+        $this->assertEquals('73', $battleMasterSource->pages, 'Battle Master should be on page 73');
+    }
 }

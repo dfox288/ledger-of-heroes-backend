@@ -34,6 +34,7 @@ class FeatResource extends JsonResource
             'tags' => TagResource::collection($this->whenLoaded('tags')),
             // Use entitySpellRecords for EntitySpell pivot records (includes spell choices)
             'spells' => EntitySpellResource::collection($this->whenLoaded('entitySpellRecords')),
+            'languages' => EntityLanguageResource::collection($this->whenLoaded('languages')),
 
             // Computed: grouped spell choices for easier frontend consumption
             /** @var array<int, SpellChoiceResource>|null */

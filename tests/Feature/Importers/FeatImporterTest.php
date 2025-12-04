@@ -343,4 +343,75 @@ class FeatImporterTest extends TestCase
         $this->assertCount(1, $feat->spells);
         $this->assertEquals($spell2->id, $feat->spells->first()->spell_id);
     }
+
+    #[Test]
+    public function it_imports_feat_with_language_choices()
+    {
+        $featData = [
+            'name' => 'Linguist',
+            'prerequisites' => null,
+            'description' => 'You have studied languages and codes.',
+            'sources' => [
+                ['code' => 'PHB', 'pages' => '167'],
+            ],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+            'languages' => [
+                [
+                    'language_id' => null,
+                    'is_choice' => true,
+                    'quantity' => 3,
+                ],
+            ],
+        ];
+
+        $feat = $this->importer->import($featData);
+
+        $this->assertCount(1, $feat->languages);
+        $language = $feat->languages->first();
+        $this->assertNull($language->language_id);
+        $this->assertTrue($language->is_choice);
+        $this->assertEquals(3, $language->quantity);
+    }
+
+    #[Test]
+    public function it_clears_languages_on_reimport()
+    {
+        $featData = [
+            'name' => 'Linguist',
+            'prerequisites' => null,
+            'description' => 'You have studied languages and codes.',
+            'sources' => [],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+            'languages' => [
+                [
+                    'language_id' => null,
+                    'is_choice' => true,
+                    'quantity' => 3,
+                ],
+            ],
+        ];
+
+        // First import
+        $feat = $this->importer->import($featData);
+        $this->assertCount(1, $feat->languages);
+        $this->assertEquals(3, $feat->languages->first()->quantity);
+
+        // Second import with different quantity
+        $featData['languages'] = [
+            [
+                'language_id' => null,
+                'is_choice' => true,
+                'quantity' => 2,
+            ],
+        ];
+        $feat = $this->importer->import($featData);
+        $feat->refresh();
+
+        $this->assertCount(1, $feat->languages);
+        $this->assertEquals(2, $feat->languages->first()->quantity);
+    }
 }

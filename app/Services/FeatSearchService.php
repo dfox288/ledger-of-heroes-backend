@@ -23,6 +23,7 @@ final class FeatSearchService
         'proficiencies.item',
         'conditions.condition',
         'prerequisites.prerequisite',
+        'languages.language',
     ];
 
     /**
@@ -44,6 +45,7 @@ final class FeatSearchService
         'entitySpellRecords.abilityScore',
         'entitySpellRecords.school',
         'entitySpellRecords.characterClass',
+        'languages.language',
     ];
 
     /**

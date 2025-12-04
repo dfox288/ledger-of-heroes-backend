@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ResetTiming;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -20,6 +21,7 @@ class ClassFeature extends BaseModel
         'parent_feature_id',
         'description',
         'sort_order',
+        'resets_on',
     ];
 
     protected $casts = [
@@ -29,6 +31,7 @@ class ClassFeature extends BaseModel
         'is_multiclass_only' => 'boolean',
         'parent_feature_id' => 'integer',
         'sort_order' => 'integer',
+        'resets_on' => ResetTiming::class,
     ];
 
     // Relationships

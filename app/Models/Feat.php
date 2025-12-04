@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ResetTiming;
 use App\Models\Concerns\HasConditions;
 use App\Models\Concerns\HasEntitySpells;
 use App\Models\Concerns\HasModifiers;
@@ -26,6 +27,14 @@ class Feat extends BaseModel
         'slug',
         'prerequisites_text',
         'description',
+        'resets_on',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     */
+    protected $casts = [
+        'resets_on' => ResetTiming::class,
     ];
 
     // =========================================================================

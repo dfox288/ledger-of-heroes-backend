@@ -7,15 +7,12 @@ use App\Models\Item;
 use App\Models\Monster;
 use App\Models\Race;
 use App\Models\Spell;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use Tests\Feature\Api\Concerns\ReverseRelationshipTestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('feature-db')]
-class SpellReverseRelationshipsApiTest extends TestCase
+class SpellReverseRelationshipsApiTest extends ReverseRelationshipTestCase
 {
-    use RefreshDatabase;
-
     // ========================================
     // Classes Endpoint Tests
     // ========================================
@@ -23,21 +20,15 @@ class SpellReverseRelationshipsApiTest extends TestCase
     #[Test]
     public function it_returns_classes_that_can_learn_spell()
     {
-        $spell = Spell::factory()->create(['slug' => 'fireball', 'name' => 'Fireball']);
-        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
-        $sorcerer = CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
-        $cleric = CharacterClass::factory()->create(['name' => 'Cleric', 'slug' => 'cleric']);
+        $spell = Spell::factory()->create(['slug' => 'fireball-' . uniqid(), 'name' => 'Fireball']);
+        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard-' . uniqid()]);
+        $sorcerer = CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer-' . uniqid()]);
+        $cleric = CharacterClass::factory()->create(['name' => 'Cleric', 'slug' => 'cleric-' . uniqid()]);
 
-        // Attach spell to wizard and sorcerer only
         $wizard->spells()->attach($spell);
         $sorcerer->spells()->attach($spell);
 
-        $response = $this->getJson("/api/v1/spells/{$spell->slug}/classes");
-
-        $response->assertOk()
-            ->assertJsonCount(2, 'data')
-            ->assertJsonPath('data.0.name', 'Sorcerer') // Ordered by name
-            ->assertJsonPath('data.1.name', 'Wizard');
+        $this->assertReturnsRelatedEntities("/api/v1/spells/{$spell->slug}/classes", 2, ['Sorcerer', 'Wizard']);
     }
 
     #[Test]
@@ -45,10 +36,7 @@ class SpellReverseRelationshipsApiTest extends TestCase
     {
         $spell = Spell::factory()->create(['slug' => 'custom-spell', 'name' => 'Custom Spell']);
 
-        $response = $this->getJson("/api/v1/spells/{$spell->slug}/classes");
-
-        $response->assertOk()
-            ->assertJsonCount(0, 'data');
+        $this->assertReturnsEmpty("/api/v1/spells/{$spell->slug}/classes");
     }
 
     #[Test]
@@ -58,11 +46,7 @@ class SpellReverseRelationshipsApiTest extends TestCase
         $wizard = CharacterClass::factory()->create(['name' => 'Wizard']);
         $wizard->spells()->attach($spell);
 
-        $response = $this->getJson("/api/v1/spells/{$spell->id}/classes");
-
-        $response->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.name', 'Wizard');
+        $this->assertAcceptsAlternativeIdentifier("/api/v1/spells/{$spell->id}/classes");
     }
 
     // ========================================
@@ -72,21 +56,15 @@ class SpellReverseRelationshipsApiTest extends TestCase
     #[Test]
     public function it_returns_monsters_that_can_cast_spell()
     {
-        $spell = Spell::factory()->create(['slug' => 'fireball', 'name' => 'Fireball']);
-        $lich = Monster::factory()->create(['name' => 'Lich', 'slug' => 'lich']);
-        $archmage = Monster::factory()->create(['name' => 'Archmage', 'slug' => 'archmage']);
-        $goblin = Monster::factory()->create(['name' => 'Goblin', 'slug' => 'goblin']);
+        $spell = Spell::factory()->create(['slug' => 'fireball-' . uniqid(), 'name' => 'Fireball']);
+        $lich = Monster::factory()->create(['name' => 'Lich', 'slug' => 'lich-' . uniqid()]);
+        $archmage = Monster::factory()->create(['name' => 'Archmage', 'slug' => 'archmage-' . uniqid()]);
+        $goblin = Monster::factory()->create(['name' => 'Goblin', 'slug' => 'goblin-' . uniqid()]);
 
-        // Attach spell to lich and archmage via entity_spells
         $lich->spells()->attach($spell, ['usage_limit' => '1/day']);
         $archmage->spells()->attach($spell, ['usage_limit' => 'at will']);
 
-        $response = $this->getJson("/api/v1/spells/{$spell->slug}/monsters");
-
-        $response->assertOk()
-            ->assertJsonCount(2, 'data')
-            ->assertJsonPath('data.0.name', 'Archmage') // Ordered by name
-            ->assertJsonPath('data.1.name', 'Lich');
+        $this->assertReturnsRelatedEntities("/api/v1/spells/{$spell->slug}/monsters", 2, ['Archmage', 'Lich']);
     }
 
     #[Test]
@@ -94,10 +72,7 @@ class SpellReverseRelationshipsApiTest extends TestCase
     {
         $spell = Spell::factory()->create(['slug' => 'cure-wounds', 'name' => 'Cure Wounds']);
 
-        $response = $this->getJson("/api/v1/spells/{$spell->slug}/monsters");
-
-        $response->assertOk()
-            ->assertJsonCount(0, 'data');
+        $this->assertReturnsEmpty("/api/v1/spells/{$spell->slug}/monsters");
     }
 
     #[Test]
@@ -107,11 +82,7 @@ class SpellReverseRelationshipsApiTest extends TestCase
         $lich = Monster::factory()->create(['name' => 'Lich']);
         $lich->spells()->attach($spell);
 
-        $response = $this->getJson("/api/v1/spells/{$spell->id}/monsters");
-
-        $response->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.name', 'Lich');
+        $this->assertAcceptsAlternativeIdentifier("/api/v1/spells/{$spell->id}/monsters");
     }
 
     // ========================================
@@ -121,21 +92,15 @@ class SpellReverseRelationshipsApiTest extends TestCase
     #[Test]
     public function it_returns_items_that_contain_spell()
     {
-        $spell = Spell::factory()->create(['slug' => 'fireball', 'name' => 'Fireball']);
-        $staff = Item::factory()->create(['name' => 'Staff of Fire', 'slug' => 'staff-of-fire']);
-        $wand = Item::factory()->create(['name' => 'Wand of Fireballs', 'slug' => 'wand-of-fireballs']);
-        $sword = Item::factory()->create(['name' => 'Longsword', 'slug' => 'longsword']);
+        $spell = Spell::factory()->create(['slug' => 'fireball-' . uniqid(), 'name' => 'Fireball']);
+        $staff = Item::factory()->create(['name' => 'Staff of Fire', 'slug' => 'staff-of-fire-' . uniqid()]);
+        $wand = Item::factory()->create(['name' => 'Wand of Fireballs', 'slug' => 'wand-of-fireballs-' . uniqid()]);
+        $sword = Item::factory()->create(['name' => 'Longsword', 'slug' => 'longsword-' . uniqid()]);
 
-        // Attach spell to staff and wand via entity_spells
         $staff->spells()->attach($spell, ['charges_cost_min' => 3, 'charges_cost_max' => 3]);
         $wand->spells()->attach($spell, ['charges_cost_min' => 1, 'charges_cost_max' => 1]);
 
-        $response = $this->getJson("/api/v1/spells/{$spell->slug}/items");
-
-        $response->assertOk()
-            ->assertJsonCount(2, 'data')
-            ->assertJsonPath('data.0.name', 'Staff of Fire') // Ordered by name
-            ->assertJsonPath('data.1.name', 'Wand of Fireballs');
+        $this->assertReturnsRelatedEntities("/api/v1/spells/{$spell->slug}/items", 2, ['Staff of Fire', 'Wand of Fireballs']);
     }
 
     #[Test]
@@ -143,10 +108,7 @@ class SpellReverseRelationshipsApiTest extends TestCase
     {
         $spell = Spell::factory()->create(['slug' => 'wish', 'name' => 'Wish']);
 
-        $response = $this->getJson("/api/v1/spells/{$spell->slug}/items");
-
-        $response->assertOk()
-            ->assertJsonCount(0, 'data');
+        $this->assertReturnsEmpty("/api/v1/spells/{$spell->slug}/items");
     }
 
     #[Test]
@@ -156,11 +118,7 @@ class SpellReverseRelationshipsApiTest extends TestCase
         $staff = Item::factory()->create(['name' => 'Magic Staff']);
         $staff->spells()->attach($spell);
 
-        $response = $this->getJson("/api/v1/spells/{$spell->id}/items");
-
-        $response->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.name', 'Magic Staff');
+        $this->assertAcceptsAlternativeIdentifier("/api/v1/spells/{$spell->id}/items");
     }
 
     // ========================================
@@ -170,31 +128,15 @@ class SpellReverseRelationshipsApiTest extends TestCase
     #[Test]
     public function it_returns_races_that_can_cast_spell()
     {
-        $spell = Spell::factory()->create(['slug' => 'dancing-lights', 'name' => 'Dancing Lights']);
-        $drow = Race::factory()->create(['name' => 'Drow', 'slug' => 'drow']);
-        $highElf = Race::factory()->create(['name' => 'High Elf', 'slug' => 'high-elf']);
-        $human = Race::factory()->create(['name' => 'Human', 'slug' => 'human']);
+        $spell = Spell::factory()->create(['slug' => 'dancing-lights-' . uniqid(), 'name' => 'Dancing Lights']);
+        $drow = Race::factory()->create(['name' => 'Drow', 'slug' => 'drow-' . uniqid()]);
+        $highElf = Race::factory()->create(['name' => 'High Elf', 'slug' => 'high-elf-' . uniqid()]);
+        $human = Race::factory()->create(['name' => 'Human', 'slug' => 'human-' . uniqid()]);
 
-        // Create EntitySpell records for drow and high elf
-        \App\Models\EntitySpell::create([
-            'reference_type' => Race::class,
-            'reference_id' => $drow->id,
-            'spell_id' => $spell->id,
-            'level_requirement' => 1,
-        ]);
-        \App\Models\EntitySpell::create([
-            'reference_type' => Race::class,
-            'reference_id' => $highElf->id,
-            'spell_id' => $spell->id,
-            'is_cantrip' => true,
-        ]);
+        \App\Models\EntitySpell::create(['reference_type' => Race::class, 'reference_id' => $drow->id, 'spell_id' => $spell->id, 'level_requirement' => 1]);
+        \App\Models\EntitySpell::create(['reference_type' => Race::class, 'reference_id' => $highElf->id, 'spell_id' => $spell->id, 'is_cantrip' => true]);
 
-        $response = $this->getJson("/api/v1/spells/{$spell->slug}/races");
-
-        $response->assertOk()
-            ->assertJsonCount(2, 'data')
-            ->assertJsonPath('data.0.name', 'Drow') // Ordered by name
-            ->assertJsonPath('data.1.name', 'High Elf');
+        $this->assertReturnsRelatedEntities("/api/v1/spells/{$spell->slug}/races", 2, ['Drow', 'High Elf']);
     }
 
     #[Test]
@@ -202,10 +144,7 @@ class SpellReverseRelationshipsApiTest extends TestCase
     {
         $spell = Spell::factory()->create(['slug' => 'power-word-kill', 'name' => 'Power Word Kill']);
 
-        $response = $this->getJson("/api/v1/spells/{$spell->slug}/races");
-
-        $response->assertOk()
-            ->assertJsonCount(0, 'data');
+        $this->assertReturnsEmpty("/api/v1/spells/{$spell->slug}/races");
     }
 
     #[Test]
@@ -214,17 +153,9 @@ class SpellReverseRelationshipsApiTest extends TestCase
         $spell = Spell::factory()->create(['name' => 'Test Spell']);
         $drow = Race::factory()->create(['name' => 'Drow']);
 
-        \App\Models\EntitySpell::create([
-            'reference_type' => Race::class,
-            'reference_id' => $drow->id,
-            'spell_id' => $spell->id,
-        ]);
+        \App\Models\EntitySpell::create(['reference_type' => Race::class, 'reference_id' => $drow->id, 'spell_id' => $spell->id]);
 
-        $response = $this->getJson("/api/v1/spells/{$spell->id}/races");
-
-        $response->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.name', 'Drow');
+        $this->assertAcceptsAlternativeIdentifier("/api/v1/spells/{$spell->id}/races");
     }
 
     // ========================================

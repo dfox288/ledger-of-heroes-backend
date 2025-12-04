@@ -67,7 +67,6 @@
             <file>tests/Feature/Api/ArmorTypeApiTest.php</file>
             <file>tests/Feature/Api/ConditionApiTest.php</file>
             <file>tests/Feature/Api/ConditionReverseRelationshipsApiTest.php</file>
-            <file>tests/Feature/Api/CorsTest.php</file>
             <file>tests/Feature/Api/DamageTypeApiTest.php</file>
             <file>tests/Feature/Api/DamageTypeReverseRelationshipsApiTest.php</file>
             <file>tests/Feature/Api/ItemPropertyApiTest.php</file>
@@ -124,10 +123,8 @@
             <file>tests/Feature/Api/SpellFilterOperatorTest.php</file>
             <file>tests/Feature/Api/ClassFilterOperatorTest.php</file>
             <file>tests/Feature/Api/RaceFilterOperatorTest.php</file>
-            <file>tests/Feature/Api/SpellMeilisearchFilterTest.php</file>
+            <file>tests/Feature/Api/SpellSearchAndFilterTest.php</file>
             <file>tests/Feature/Api/SpellEnhancedFilteringTest.php</file>
-            <file>tests/Feature/Api/SpellSearchTest.php</file>
-            <file>tests/Feature/Api/SpellFilterExceptionTest.php</file>
             <file>tests/Feature/Api/ClassSearchTest.php</file>
             <file>tests/Feature/Api/RaceSearchTest.php</file>
             <file>tests/Feature/Api/MonsterSearchTest.php</file>

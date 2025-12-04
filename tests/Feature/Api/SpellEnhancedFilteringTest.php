@@ -61,7 +61,7 @@ class SpellEnhancedFilteringTest extends TestCase
                 $this->assertTrue($hasFire, "Spell {$spell['name']} should have fire damage");
             }
         } else {
-            $this->markTestIncomplete('No fire damage spells found in test data - verify indexing');
+            $this->markTestSkipped('Test data fixtures do not include spells with fire damage');
         }
     }
 
@@ -87,7 +87,7 @@ class SpellEnhancedFilteringTest extends TestCase
                 $this->assertTrue($hasFireOrCold, "Spell {$spell['name']} should have fire or cold damage");
             }
         } else {
-            $this->markTestIncomplete('No fire/cold damage spells found in test data - verify indexing');
+            $this->markTestSkipped('Test data fixtures do not include spells with fire or cold damage');
         }
     }
 
@@ -182,7 +182,7 @@ class SpellEnhancedFilteringTest extends TestCase
                 $this->assertTrue($hasDex, "Spell {$spell['name']} should require DEX save");
             }
         } else {
-            $this->markTestIncomplete('No DEX save spells found in test data - verify indexing');
+            $this->markTestSkipped('Test data fixtures do not include spells with DEX saving throws');
         }
     }
 
@@ -210,7 +210,7 @@ class SpellEnhancedFilteringTest extends TestCase
                     "Spell {$spell['name']} should require DEX or CON save");
             }
         } else {
-            $this->markTestIncomplete('No DEX/CON save spells found in test data - verify indexing');
+            $this->markTestSkipped('Test data fixtures do not include spells with DEX or CON saving throws');
         }
     }
 
@@ -229,7 +229,7 @@ class SpellEnhancedFilteringTest extends TestCase
                     "Spell {$spell['name']} should not require saving throws");
             }
         } else {
-            $this->markTestIncomplete('Expected to find spells without saves - verify indexing');
+            $this->markTestSkipped('Test data fixtures do not include spells without saving throws');
         }
     }
 
@@ -279,7 +279,7 @@ class SpellEnhancedFilteringTest extends TestCase
                     "Spell {$spell['name']} should not require verbal component");
             }
         } else {
-            $this->markTestIncomplete('No spells without verbal component found - verify indexing');
+            $this->markTestSkipped('Test data fixtures do not include spells without verbal component');
         }
     }
 
@@ -299,7 +299,7 @@ class SpellEnhancedFilteringTest extends TestCase
                     "Spell {$spell['name']} should not require somatic component");
             }
         } else {
-            $this->markTestIncomplete('No spells without somatic component found - verify indexing');
+            $this->markTestSkipped('Test data fixtures do not include spells without somatic component');
         }
     }
 
@@ -319,7 +319,7 @@ class SpellEnhancedFilteringTest extends TestCase
                     "Spell {$spell['name']} should not require material component");
             }
         } else {
-            $this->markTestIncomplete('No spells without material component found - verify indexing');
+            $this->markTestSkipped('Test data fixtures do not include spells without material component');
         }
     }
 

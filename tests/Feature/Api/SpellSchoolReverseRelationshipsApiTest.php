@@ -4,15 +4,12 @@ namespace Tests\Feature\Api;
 
 use App\Models\Spell;
 use App\Models\SpellSchool;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use Tests\Feature\Api\Concerns\ReverseRelationshipTestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('feature-db')]
-class SpellSchoolReverseRelationshipsApiTest extends TestCase
+class SpellSchoolReverseRelationshipsApiTest extends ReverseRelationshipTestCase
 {
-    use RefreshDatabase;
-
     protected $seeder = \Database\Seeders\LookupSeeder::class;
 
     #[Test]
@@ -20,31 +17,14 @@ class SpellSchoolReverseRelationshipsApiTest extends TestCase
     {
         $evocation = SpellSchool::where('code', 'EV')->first();
 
-        $fireball = Spell::factory()->create([
-            'spell_school_id' => $evocation->id,
-            'name' => 'Fireball',
-            'slug' => 'fireball',
-        ]);
-
-        $magicMissile = Spell::factory()->create([
-            'spell_school_id' => $evocation->id,
-            'name' => 'Magic Missile',
-            'slug' => 'magic-missile',
-        ]);
+        $fireball = Spell::factory()->create(['spell_school_id' => $evocation->id, 'name' => 'Fireball', 'slug' => 'fireball']);
+        $magicMissile = Spell::factory()->create(['spell_school_id' => $evocation->id, 'name' => 'Magic Missile', 'slug' => 'magic-missile']);
 
         // Different school - should not appear
         $abjuration = SpellSchool::where('code', 'A')->first();
-        Spell::factory()->create([
-            'spell_school_id' => $abjuration->id,
-            'name' => 'Shield',
-        ]);
+        Spell::factory()->create(['spell_school_id' => $abjuration->id, 'name' => 'Shield']);
 
-        $response = $this->getJson("/api/v1/lookups/spell-schools/{$evocation->id}/spells");
-
-        $response->assertOk()
-            ->assertJsonCount(2, 'data')
-            ->assertJsonPath('data.0.name', 'Fireball')
-            ->assertJsonPath('data.1.name', 'Magic Missile');
+        $this->assertReturnsRelatedEntities("/api/v1/lookups/spell-schools/{$evocation->id}/spells", 2, ['Fireball', 'Magic Missile']);
     }
 
     #[Test]
@@ -52,35 +32,25 @@ class SpellSchoolReverseRelationshipsApiTest extends TestCase
     {
         $school = SpellSchool::where('code', 'D')->first();
 
-        $response = $this->getJson("/api/v1/lookups/spell-schools/{$school->id}/spells");
-
-        $response->assertOk()
-            ->assertJsonCount(0, 'data');
+        $this->assertReturnsEmpty("/api/v1/lookups/spell-schools/{$school->id}/spells");
     }
 
     #[Test]
     public function it_accepts_numeric_id_for_spells_endpoint()
     {
         $school = SpellSchool::where('code', 'EV')->first();
-        $spell = Spell::factory()->create(['spell_school_id' => $school->id]);
+        Spell::factory()->create(['spell_school_id' => $school->id]);
 
-        $response = $this->getJson("/api/v1/lookups/spell-schools/{$school->id}/spells");
-
-        $response->assertOk()
-            ->assertJsonCount(1, 'data');
+        $this->assertAcceptsAlternativeIdentifier("/api/v1/lookups/spell-schools/{$school->id}/spells");
     }
 
     #[Test]
     public function it_paginates_spell_results()
     {
         $school = SpellSchool::where('code', 'EV')->first();
-        Spell::factory()->count(75)->create(['spell_school_id' => $school->id]);
 
-        $response = $this->getJson("/api/v1/lookups/spell-schools/{$school->id}/spells?per_page=25");
+        $this->createMultipleEntities(75, fn() => Spell::factory()->create(['spell_school_id' => $school->id]));
 
-        $response->assertOk()
-            ->assertJsonCount(25, 'data')
-            ->assertJsonPath('meta.total', 75)
-            ->assertJsonPath('meta.per_page', 25);
+        $this->assertPaginatesCorrectly("/api/v1/lookups/spell-schools/{$school->id}/spells?per_page=25", 25, 75, 25);
     }
 }

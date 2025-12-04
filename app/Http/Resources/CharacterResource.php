@@ -55,6 +55,8 @@ class CharacterResource extends JsonResource
             'max_hit_points' => $this->max_hit_points,
             'current_hit_points' => $this->current_hit_points,
             'temp_hit_points' => $this->temp_hit_points,
+            'death_save_successes' => $this->death_save_successes ?? 0,
+            'death_save_failures' => $this->death_save_failures ?? 0,
             'armor_class' => $this->armor_class,
 
             // Level-up tracking

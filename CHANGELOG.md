@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Death Saves Tracking** (Issue #112)
+  - Track death saving throw successes and failures for characters at 0 HP
+  - New fields on Character: `death_save_successes`, `death_save_failures` (0-3 each)
+  - New API endpoints:
+    - `POST /characters/{id}/death-save` - Record a death save roll or damage
+    - `POST /characters/{id}/stabilize` - Stabilize character and reset saves
+  - D&D 5e rules fully implemented:
+    - 3 successes = stabilized
+    - 3 failures = dead
+    - Natural 1 = 2 failures (critical failure)
+    - Natural 20 = regain 1 HP, reset saves (critical success)
+    - Damage at 0 HP = automatic failure (critical = 2 failures)
+  - Auto-reset: Death saves automatically reset when HP goes above 0
+  - Death save fields included in CharacterResource response
+  - 30 new tests covering all D&D 5e death save mechanics
+
 - **Character Portrait Support** (Issue #120)
   - New `spatie/laravel-medialibrary` package for image management
   - Polymorphic `MediaController` for any media-enabled model

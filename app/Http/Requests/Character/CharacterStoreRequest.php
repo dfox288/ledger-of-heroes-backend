@@ -33,6 +33,10 @@ class CharacterStoreRequest extends FormRequest
             // Level (default 1)
             'level' => ['sometimes', 'integer', 'min:1', 'max:20'],
 
+            // Death saves
+            'death_save_successes' => ['sometimes', 'integer', 'min:0', 'max:3'],
+            'death_save_failures' => ['sometimes', 'integer', 'min:0', 'max:3'],
+
             // Alignment (optional, must be valid D&D alignment)
             'alignment' => ['sometimes', 'nullable', 'string', 'in:'.implode(',', Character::ALIGNMENTS)],
 

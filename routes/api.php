@@ -288,6 +288,12 @@ Route::prefix('v1')->group(function () {
             ->name('notes.update');
         Route::delete('notes/{note}', [\App\Http\Controllers\Api\CharacterNoteController::class, 'destroy'])
             ->name('notes.destroy');
+
+        // Death Saves
+        Route::post('death-save', [\App\Http\Controllers\Api\CharacterDeathSaveController::class, 'store'])
+            ->name('death-save.store');
+        Route::post('stabilize', [\App\Http\Controllers\Api\CharacterDeathSaveController::class, 'stabilize'])
+            ->name('stabilize');
     });
 
     /*

@@ -253,6 +253,16 @@ Route::prefix('v1')->group(function () {
         Route::post('proficiencies/populate', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'populate'])
             ->name('proficiencies.populate');
 
+        // Character Languages
+        Route::get('languages', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'index'])
+            ->name('languages.index');
+        Route::get('language-choices', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'choices'])
+            ->name('languages.choices');
+        Route::post('language-choices', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'storeChoice'])
+            ->name('languages.storeChoice');
+        Route::post('languages/populate', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'populate'])
+            ->name('languages.populate');
+
         // Character Features
         Route::get('features', [\App\Http\Controllers\Api\CharacterFeatureController::class, 'index'])
             ->name('features.index');

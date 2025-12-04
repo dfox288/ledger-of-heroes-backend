@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Character Language Choices API** (Issue #139)
+  - New `character_languages` table tracks languages a character knows
+  - `CharacterLanguage` model with source tracking (race, background, feat)
+  - `CharacterLanguageService` for language management logic
+  - New API endpoints:
+    - `GET /characters/{id}/languages` - List known languages
+    - `GET /characters/{id}/language-choices` - Get pending language choices by source
+    - `POST /characters/{id}/language-choices` - Make a language selection
+    - `POST /characters/{id}/languages/populate` - Auto-populate fixed languages
+  - Features:
+    - Supports language grants from race, background, and feats
+    - Excludes already-known languages from choice options
+    - Tracks remaining choices per source
+    - Prevents duplicate language learning
+    - Idempotent populate endpoint
+  - 26 new feature tests
+
 - **Feat Language Grants** (Issue #140)
   - Parse language grants from feat descriptions (e.g., Linguist: "You learn three languages of your choice")
   - Add `languages` field to Feat API response

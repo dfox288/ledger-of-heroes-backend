@@ -177,6 +177,14 @@ class Character extends Model implements HasMedia
         return $this->hasMany(CharacterOptionalFeature::class);
     }
 
+    /**
+     * Get languages known by this character.
+     */
+    public function languages(): HasMany
+    {
+        return $this->hasMany(CharacterLanguage::class);
+    }
+
     // Computed Accessors
 
     /**

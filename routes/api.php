@@ -226,8 +226,10 @@ Route::prefix('v1')->group(function () {
             ->name('spells.prepare');
         Route::patch('spells/{spell}/unprepare', [\App\Http\Controllers\Api\CharacterSpellController::class, 'unprepare'])
             ->name('spells.unprepare');
-        Route::get('spell-slots', [\App\Http\Controllers\Api\CharacterSpellController::class, 'slots'])
-            ->name('spell-slots');
+        Route::get('spell-slots', [\App\Http\Controllers\Api\SpellSlotController::class, 'index'])
+            ->name('spell-slots.index');
+        Route::post('spell-slots/use', [\App\Http\Controllers\Api\SpellSlotController::class, 'use'])
+            ->name('spell-slots.use');
 
         // Character Equipment Management
         Route::get('equipment', [\App\Http\Controllers\Api\CharacterEquipmentController::class, 'index'])
@@ -302,6 +304,12 @@ Route::prefix('v1')->group(function () {
             ->name('hit-dice.spend');
         Route::post('hit-dice/recover', [\App\Http\Controllers\Api\HitDiceController::class, 'recover'])
             ->name('hit-dice.recover');
+
+        // Rest Mechanics
+        Route::post('short-rest', [\App\Http\Controllers\Api\RestController::class, 'shortRest'])
+            ->name('short-rest');
+        Route::post('long-rest', [\App\Http\Controllers\Api\RestController::class, 'longRest'])
+            ->name('long-rest');
     });
 
     /*

@@ -47,6 +47,8 @@ class CharacterStatsResource extends JsonResource
             'spell_slots' => $this->resource->spellSlots,
             'preparation_limit' => $this->resource->preparationLimit,
             'prepared_spell_count' => $this->resource->preparedSpellCount,
+
+            'hit_dice' => $this->resource->hitDice,
         ];
     }
 

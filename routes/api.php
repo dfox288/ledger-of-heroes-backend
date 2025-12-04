@@ -294,6 +294,14 @@ Route::prefix('v1')->group(function () {
             ->name('death-save.store');
         Route::post('stabilize', [\App\Http\Controllers\Api\CharacterDeathSaveController::class, 'stabilize'])
             ->name('stabilize');
+
+        // Hit Dice
+        Route::get('hit-dice', [\App\Http\Controllers\Api\HitDiceController::class, 'index'])
+            ->name('hit-dice.index');
+        Route::post('hit-dice/spend', [\App\Http\Controllers\Api\HitDiceController::class, 'spend'])
+            ->name('hit-dice.spend');
+        Route::post('hit-dice/recover', [\App\Http\Controllers\Api\HitDiceController::class, 'recover'])
+            ->name('hit-dice.recover');
     });
 
     /*

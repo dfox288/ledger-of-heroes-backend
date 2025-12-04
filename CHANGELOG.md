@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Hit Dice Tracking** (Issue #111)
+  - Track and manage hit dice for short rest healing mechanics
+  - Storage already existed in `character_classes.hit_dice_spent`; now exposed via API
+  - New API endpoints:
+    - `GET /characters/{id}/hit-dice` - View hit dice by die type with totals
+    - `POST /characters/{id}/hit-dice/spend` - Spend hit dice (for short rest)
+    - `POST /characters/{id}/hit-dice/recover` - Recover hit dice (for long rest)
+  - D&D 5e rules implemented:
+    - Multiclass support: tracks separate pools per die type (d6, d8, d10, d12)
+    - Default recovery: half of total max hit dice (minimum 1)
+    - Recovery prioritizes larger dice for maximum healing potential
+  - Hit dice included in character stats endpoint (`hit_dice` field)
+  - New `HitDiceService` with full unit test coverage
+  - 20 new tests (10 unit, 10 feature)
+
 - **Death Saves Tracking** (Issue #112)
   - Track death saving throw successes and failures for characters at 0 HP
   - New fields on Character: `death_save_successes`, `death_save_failures` (0-3 each)

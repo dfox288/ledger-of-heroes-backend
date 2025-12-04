@@ -35,7 +35,7 @@ final class BackgroundSearchService
         'proficiencies.proficiencyType',
         'proficiencies.item',
         'languages.language',
-        'equipment.item',
+        'equipment.item.contents.item',
         'tags',
     ];
 

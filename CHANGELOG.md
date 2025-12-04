@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Optional Feature Selection API** (Issue #118 - Part 2)
+  - New `character_optional_features` table tracks character selections
+  - `CharacterOptionalFeature` model with usage tracking (uses_remaining, max_uses)
+  - New API endpoints:
+    - `GET /characters/{id}/optional-features` - List selected features
+    - `GET /characters/{id}/available-optional-features` - Features eligible to select
+    - `GET /characters/{id}/optional-feature-choices` - Pending choices by class/subclass
+    - `POST /characters/{id}/optional-features` - Select a feature
+    - `DELETE /characters/{id}/optional-features/{id}` - Remove (retrain) feature
+  - Validation:
+    - Character can't select same feature twice
+    - Level requirement enforcement
+    - Class/subclass eligibility checking
+  - Optional features included in CharacterResource when loaded
+
+- **Feature Choice Progressions Parser** (Issue #118 - Part 1)
+  - New `ParsesFeatureChoiceProgressions` trait extracts optional feature choice counts from ClassFeature descriptions
+  - Parses natural language patterns: "learn three maneuvers", "gain two Metamagic options"
+  - Parses embedded tables: "Level | Known | Active" format
+  - Parses "should know X" patterns for Elemental Disciplines
+  - Stores progressions in existing `class_counters` table
+  - New counter types generated:
+    - `Maneuvers Known` (Battle Master): 3→5→7→9 at L3,7,10,15
+    - `Fighting Styles Known` (Fighter/Champion): 1 at L1, +1 at L10
+    - `Metamagic Known` (Sorcerer): 2→3→4 at L3,10,17
+    - `Infusions Known` (Artificer): 4→6→8→10→12 at L2,6,10,14,18
+    - `Elemental Disciplines Known` (Way of Four Elements): 1→2→3→4 at L3,6,11,17
+    - `Runes Known` (Rune Knight): 2→3→4→5 at L3,7,10,15
+    - `Arcane Shots Known` (Arcane Archer): 2→3→4→5→6 at L3,7,10,15,18
+  - 13 new unit tests for parser trait
+
 - **Character Condition Tracking** (Issue #117)
   - Track active conditions on characters (blinded, poisoned, exhaustion, etc.)
   - New `character_conditions` table linking characters to conditions

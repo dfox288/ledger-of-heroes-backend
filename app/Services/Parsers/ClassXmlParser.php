@@ -6,6 +6,7 @@ use App\Services\Parsers\Concerns\ConvertsWordNumbers;
 use App\Services\Parsers\Concerns\LoadsLookupData;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
+use App\Services\Parsers\Concerns\ParsesFeatureChoiceProgressions;
 use App\Services\Parsers\Concerns\ParsesModifiers;
 use App\Services\Parsers\Concerns\ParsesRestTiming;
 use App\Services\Parsers\Concerns\ParsesRolls;
@@ -15,7 +16,7 @@ use SimpleXMLElement;
 
 class ClassXmlParser
 {
-    use ConvertsWordNumbers, LoadsLookupData, MapsAbilityCodes, MatchesProficiencyTypes, ParsesModifiers, ParsesRestTiming, ParsesRolls, ParsesSourceCitations, ParsesTraits;
+    use ConvertsWordNumbers, LoadsLookupData, MapsAbilityCodes, MatchesProficiencyTypes, ParsesFeatureChoiceProgressions, ParsesModifiers, ParsesRestTiming, ParsesRolls, ParsesSourceCitations, ParsesTraits;
 
     /**
      * Parse classes from XML string.
@@ -91,6 +92,11 @@ class ClassXmlParser
 
         // Parse counters from autolevel elements
         $data['counters'] = $this->parseCounters($element);
+
+        // Parse feature choice progressions from feature descriptions
+        // (Maneuvers, Metamagic, Infusions, etc. not covered by XML counters)
+        $featureChoiceCounters = $this->parseFeatureChoiceProgressions($data['features']);
+        $data['counters'] = array_merge($data['counters'], $featureChoiceCounters);
 
         // Parse optional spell slots (for subclasses like Arcane Trickster, Eldritch Knight)
         $optionalSpellData = $this->parseOptionalSpellSlots($element);

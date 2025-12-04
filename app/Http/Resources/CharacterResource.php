@@ -120,6 +120,19 @@ class CharacterResource extends JsonResource
                 ]);
             }),
 
+            // Optional feature selections (invocations, maneuvers, metamagic, etc.)
+            'optional_features' => $this->whenLoaded('optionalFeatures', function () {
+                return $this->optionalFeatures->map(fn ($cof) => [
+                    'id' => $cof->optionalFeature->id,
+                    'name' => $cof->optionalFeature->name,
+                    'slug' => $cof->optionalFeature->slug,
+                    'feature_type' => $cof->optionalFeature->feature_type?->value,
+                    'level_acquired' => $cof->level_acquired,
+                    'class_name' => $cof->characterClass?->name,
+                    'subclass_name' => $cof->subclass_name,
+                ]);
+            }),
+
             // Portrait
             'portrait' => $this->getPortraitData(),
 

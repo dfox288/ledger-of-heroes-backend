@@ -270,15 +270,9 @@ class ClassImporter extends BaseImporter
                 }
             }
 
-            // Remove duplicates based on code
-            $uniqueSources = [];
-            foreach ($sources as $source) {
-                $uniqueSources[$source['code']] = $source;
-            }
-            $sources = array_values($uniqueSources);
-
             if (! empty($sources)) {
-                $this->importEntitySources($subclass, $sources);
+                // Use deduplicate=true to merge page numbers (e.g., PHB p.74, 75)
+                $this->importEntitySources($subclass, $sources, deduplicate: true);
             }
         }
 

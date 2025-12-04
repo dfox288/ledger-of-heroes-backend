@@ -481,14 +481,23 @@ class ClassImporterTest extends TestCase
             $this->assertContains('PHB', $sourceCodes, "Subclass {$subclass->name} should have PHB source");
         }
 
-        // Specifically check Battle Master
+        // Specifically check Battle Master (all features on same page)
         $battleMaster = CharacterClass::where('slug', 'fighter-battle-master')->first();
         $this->assertNotNull($battleMaster);
         $this->assertGreaterThan(0, $battleMaster->sources()->count(), 'Battle Master should have sources');
 
-        // Check that source has page number
+        // Check that source has page number (Battle Master features are all on p.73)
         $battleMasterSource = $battleMaster->sources()->first();
         $this->assertNotNull($battleMasterSource->pages, 'Battle Master source should have page number');
         $this->assertEquals('73', $battleMasterSource->pages, 'Battle Master should be on page 73');
+
+        // Specifically check Eldritch Knight (features span multiple pages - tests page merging)
+        $eldritchKnight = CharacterClass::where('slug', 'fighter-eldritch-knight')->first();
+        $this->assertNotNull($eldritchKnight);
+        $eldritchKnightSource = $eldritchKnight->sources()->first();
+        $this->assertNotNull($eldritchKnightSource->pages, 'Eldritch Knight source should have page number');
+        // Eldritch Knight features are on pages 74 and 75 - should be merged
+        $this->assertStringContainsString('74', $eldritchKnightSource->pages, 'Eldritch Knight should include page 74');
+        $this->assertStringContainsString('75', $eldritchKnightSource->pages, 'Eldritch Knight should include page 75');
     }
 }

@@ -84,7 +84,7 @@ trait ImportsSources
         foreach ($sourcesByCode as $code => $pagesList) {
             $deduplicated[] = [
                 'code' => $code,
-                'pages' => implode(', ', $pagesList),
+                'pages' => implode(', ', array_unique($pagesList)),
             ];
         }
 

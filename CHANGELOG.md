@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Character Portrait Support** (Issue #120)
+  - New `spatie/laravel-medialibrary` package for image management
+  - Polymorphic `MediaController` for any media-enabled model
+  - Character portraits with automatic thumbnail generation (150x150, 300x300)
+  - Support for both uploaded images and external URLs via `portrait_url`
+  - New API endpoints:
+    - `POST /characters/{id}/media/portrait` - Upload portrait image
+    - `GET /characters/{id}/media/portrait` - List portrait media
+    - `DELETE /characters/{id}/media/portrait` - Clear portrait collection
+    - `DELETE /characters/{id}/media/portrait/{mediaId}` - Delete specific media
+  - `portrait` field in CharacterResource with `original`, `thumb`, `medium`, and `is_uploaded`
+  - File validation: max 2MB, JPEG/PNG/WebP only
+  - Uploaded portraits take precedence over external URLs
+  - 16 new tests for MediaController and CharacterResource portrait
+
 - **Character Notes System** (Issue #114, also closes #121)
   - Normalized `character_notes` table for storing personality traits, ideals, bonds, flaws, backstory, and custom player notes
   - `NoteCategory` enum with categories: `personality_trait`, `ideal`, `bond`, `flaw`, `backstory`, `custom`

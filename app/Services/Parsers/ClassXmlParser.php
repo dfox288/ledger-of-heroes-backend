@@ -162,19 +162,40 @@ class ClassXmlParser
             }
         }
 
-        // Parse tool proficiencies
+        // Parse tool proficiencies (including choice-based tools like "Artisan's Tools of your choice")
         if (isset($element->tools)) {
             $tools = array_map('trim', explode(',', (string) $element->tools));
             foreach ($tools as $tool) {
                 if (strtolower($tool) === 'none') {
                     continue;
                 }
-                $proficiencyType = $this->matchProficiencyType($tool);
-                $proficiencies[] = [
-                    'type' => 'tool',
-                    'name' => $tool,
-                    'proficiency_type_id' => $proficiencyType?->id,
-                ];
+
+                // Check if this is an artisan tool choice
+                if ($this->isArtisanToolChoice($tool)) {
+                    $quantity = $this->extractToolChoiceQuantity($tool);
+
+                    // Store as a single choice proficiency with subcategory reference
+                    // Frontend looks up options from proficiency_types where subcategory='artisan'
+                    $proficiencies[] = [
+                        'type' => 'tool',
+                        'name' => $tool, // Keep original text for display
+                        'proficiency_type_id' => null, // No specific type - it's a choice
+                        'proficiency_subcategory' => 'artisan', // Reference to subcategory
+                        'is_choice' => true,
+                        'choice_group' => "tool_choice_{$choiceCounter}",
+                        'quantity' => $quantity,
+                    ];
+                    $choiceCounter++;
+                } else {
+                    // Standard tool proficiency (not a choice)
+                    $proficiencyType = $this->matchProficiencyType($tool);
+                    $proficiencies[] = [
+                        'type' => 'tool',
+                        'name' => $tool,
+                        'proficiency_type_id' => $proficiencyType?->id,
+                        'is_choice' => false,
+                    ];
+                }
             }
         }
 

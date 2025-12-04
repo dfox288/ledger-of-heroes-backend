@@ -37,6 +37,7 @@ trait ImportsProficiencies
                 'proficiency_type' => $profData['type'],
                 'proficiency_name' => $profData['name'], // Always store name as fallback
                 'proficiency_type_id' => $profData['proficiency_type_id'] ?? null, // From parser
+                'proficiency_subcategory' => $profData['proficiency_subcategory'] ?? null, // For choice lookups (e.g., 'artisan')
                 'grants' => $profData['grants'] ?? $grants, // Use provided or default
                 'is_choice' => $profData['is_choice'] ?? false, // Choice-based proficiency
                 'choice_group' => $profData['choice_group'] ?? null, // Group related choices together

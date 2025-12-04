@@ -183,4 +183,48 @@ trait MatchesProficiencyTypes
     {
         $this->initializeProficiencyTypesCache();
     }
+
+    /**
+     * Check if a tool name represents an artisan tool choice.
+     *
+     * @param  string  $name  Tool name from XML
+     * @return bool True if this is an artisan tool choice
+     */
+    protected function isArtisanToolChoice(string $name): bool
+    {
+        $lowerName = strtolower($name);
+
+        return str_contains($lowerName, 'artisan') && $this->isChoiceBasedProficiency($name);
+    }
+
+    /**
+     * Extract quantity from a tool choice description.
+     *
+     * Examples:
+     * - "one type of Artisan's Tools" → 1
+     * - "two types of Artisan's Tools" → 2
+     *
+     * @param  string  $name  Tool name from XML
+     * @return int Quantity to choose (default 1)
+     */
+    protected function extractToolChoiceQuantity(string $name): int
+    {
+        $lowerName = strtolower($name);
+
+        $wordNumbers = [
+            'one' => 1,
+            'two' => 2,
+            'three' => 3,
+            'four' => 4,
+            'five' => 5,
+        ];
+
+        foreach ($wordNumbers as $word => $number) {
+            if (str_contains($lowerName, $word)) {
+                return $number;
+            }
+        }
+
+        return 1;
+    }
 }

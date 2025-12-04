@@ -557,4 +557,50 @@ XML;
         $level20 = array_values($level20Rage)[0];
         $this->assertEquals(-1, $level20['value'], 'Level 20 Rage should be Unlimited (represented as -1)');
     }
+
+    #[Test]
+    public function it_parses_artisan_tool_choice_as_choice_proficiency()
+    {
+        // Artificer has: Thieves' Tools, Tinker's Tools, one type of Artisan's Tools of your choice
+        $xml = <<<'XML'
+        <compendium>
+            <class>
+                <name>Artificer</name>
+                <hd>8</hd>
+                <tools>Thieves' Tools, Tinker's Tools, one type of Artisan's Tools of your choice</tools>
+            </class>
+        </compendium>
+        XML;
+
+        $classes = $this->parser->parse($xml);
+        $proficiencies = $classes[0]['proficiencies'];
+
+        // Filter to only tool proficiencies
+        $toolProfs = array_values(array_filter($proficiencies, fn ($p) => $p['type'] === 'tool'));
+
+        // Should have 3 tool proficiencies: 2 fixed + 1 choice (with subcategory reference)
+        $this->assertCount(3, $toolProfs, 'Should have 3 tool proficiencies');
+
+        // Find the artisan tools choice
+        $artisanChoices = array_values(array_filter($toolProfs, fn ($p) => ($p['is_choice'] ?? false) === true));
+        $this->assertCount(1, $artisanChoices, 'Should have exactly 1 artisan tool choice entry');
+
+        $artisanChoice = $artisanChoices[0];
+
+        // Verify the choice proficiency structure
+        $this->assertTrue($artisanChoice['is_choice'], 'Should be marked as a choice');
+        $this->assertEquals('tool_choice_1', $artisanChoice['choice_group'], 'Should have choice_group');
+        $this->assertEquals(1, $artisanChoice['quantity'], 'Should have quantity=1 (pick one)');
+        $this->assertEquals('artisan', $artisanChoice['proficiency_subcategory'], 'Should reference artisan subcategory');
+        $this->assertNull($artisanChoice['proficiency_type_id'], 'Should not have specific type ID (it\'s a choice)');
+        $this->assertStringContainsString('Artisan', $artisanChoice['name'], 'Should preserve original description');
+
+        // Thieves' Tools and Tinker's Tools should be fixed proficiencies (not choices)
+        $fixedTools = array_values(array_filter($toolProfs, fn ($p) => ($p['is_choice'] ?? false) === false));
+        $this->assertCount(2, $fixedTools, 'Should have 2 fixed tool proficiencies');
+
+        $fixedNames = array_column($fixedTools, 'name');
+        $this->assertContains("Thieves' Tools", $fixedNames, "Thieves' Tools should be a fixed proficiency");
+        $this->assertContains("Tinker's Tools", $fixedNames, "Tinker's Tools should be a fixed proficiency");
+    }
 }

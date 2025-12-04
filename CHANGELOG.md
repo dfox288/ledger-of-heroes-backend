@@ -15,6 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Artificer now correctly returns 6 equipment items instead of 22 corrupted entries
   - Prevents proficiencies, skills, and HP text from being parsed as equipment
 
+- **Artisan Tool Choice Proficiency** (Issue #163)
+  - Parser now detects "one type of Artisan's Tools of your choice" patterns
+  - Stores single proficiency row with `proficiency_subcategory: "artisan"` reference
+  - Frontend looks up options from `proficiency_types` where `subcategory='artisan'`
+  - Avoids creating 17 rows per class - cleaner and supports new tools automatically
+  - Choice has `is_choice: true`, `choice_group`, and `quantity: 1`
+  - Fixed tools (Thieves' Tools, Tinker's Tools) remain as `is_choice: false`
+
 ### Added
 
 - **Racial Cantrip Choice Parsing**

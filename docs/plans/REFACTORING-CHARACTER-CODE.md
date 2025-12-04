@@ -271,49 +271,41 @@ class PendingChoicesDTO
 
 ---
 
-## Phase 3: Additional Quick Wins (Optional)
+## Phase 3: Additional Quick Wins ✅ COMPLETED
 
-### 3a. Create Source Enum
+**Completed:** 2025-12-04
 
-```php
-// app/Enums/CharacterSource.php
-enum CharacterSource: string
-{
-    case RACE = 'race';
-    case BACKGROUND = 'background';
-    case CLASS = 'class';
-    case FEAT = 'feat';
-    case ITEM = 'item';
-}
-```
+### 3a. Create Source Enum ✅
 
-**Usage:**
-```php
-// Before
-if (! in_array($source, ['race', 'background', 'feat'])) { ... }
+Created `app/Enums/CharacterSource.php`:
+- Cases: `RACE`, `BACKGROUND`, `CHARACTER_CLASS` (not `CLASS` - reserved word), `FEAT`, `ITEM`, `OTHER`
+- Helper methods: `forLanguages()`, `forProficiencies()`, `forSpells()`, `forFeatures()`
+- `validationRule()` generates Laravel validation strings
+- 10 unit tests in `tests/Unit/Enums/CharacterSourceTest.php`
 
-// After
-CharacterSource::tryFrom($source) ?? throw new InvalidArgumentException();
-```
+**Updated services to use enum:**
+- `CharacterLanguageService::makeChoice()` - validates source with enum
+- `CharacterProficiencyService::makeSkillChoice()` - validates source with enum
 
-### 3b. Resource Formatting Trait
+### 3b. Resource Formatting Trait ✅
 
-```php
-// app/Http/Resources/Concerns/FormatsRelatedModels.php
-trait FormatsRelatedModels
-{
-    protected function formatEntity(?Model $entity, array $fields = ['id', 'name', 'slug']): ?array
-    {
-        if (! $entity) {
-            return null;
-        }
+Created `app/Http/Resources/Concerns/FormatsRelatedModels.php`:
+- `formatEntity($entity, $fields)` - extract fields from model
+- `formatEntityWith($entity, $fields, $computed)` - static + computed fields
+- `formatEntityWithExtra($entity, $extraFields)` - standard fields + extras
+- 7 unit tests in `tests/Unit/Http/Resources/Concerns/FormatsRelatedModelsTest.php`
 
-        return collect($fields)
-            ->mapWithKeys(fn($field) => [$field => $entity->$field])
-            ->toArray();
-    }
-}
-```
+---
+
+## Phase 2: Service Trait - DEFERRED
+
+After analysis, the `PopulatesCharacterEntities` trait was determined to be **too abstract** for the actual patterns in use. The three services have fundamentally different data structures:
+
+- **Languages**: `language_id`, checks ALL sources for duplicates
+- **Proficiencies**: `skill_id` OR `proficiency_type_id`, checks SAME source
+- **Features**: Polymorphic `feature_type` + `feature_id`, has `level_acquired`
+
+The `CharacterSource` enum provides the main benefit (type-safe validation) without forcing artificial abstraction.
 
 ---
 

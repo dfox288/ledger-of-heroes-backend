@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\CharacterSource;
 use App\Models\Character;
 use App\Models\CharacterLanguage;
 use App\Models\EntityLanguage;
@@ -111,8 +112,11 @@ class CharacterLanguageService
      */
     public function makeChoice(Character $character, string $source, array $languageIds): void
     {
-        // Validate source
-        if (! in_array($source, ['race', 'background', 'feat'])) {
+        // Validate source using enum
+        $validSources = CharacterSource::forLanguages();
+        $sourceEnum = CharacterSource::tryFrom($source);
+
+        if (! $sourceEnum || ! in_array($sourceEnum, $validSources)) {
             throw new InvalidArgumentException("Invalid source: {$source}");
         }
 

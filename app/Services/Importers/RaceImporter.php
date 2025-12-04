@@ -393,6 +393,19 @@ class RaceImporter extends BaseImporter
 
         // Transform parsed spells into format expected by ImportsEntitySpells trait
         $spellsData = array_map(function ($spellData) use ($abilityScore) {
+            // Handle spell choices (e.g., High Elf cantrip from wizard list)
+            if (! empty($spellData['is_choice'])) {
+                return [
+                    'is_choice' => true,
+                    'choice_count' => $spellData['choice_count'] ?? 1,
+                    'choice_group' => 'racial_cantrip',
+                    'max_level' => $spellData['max_level'] ?? 0,
+                    'class_name' => $spellData['class_name'] ?? null,
+                    'is_ritual_only' => $spellData['is_ritual_only'] ?? false,
+                ];
+            }
+
+            // Handle fixed spells (e.g., Tiefling's Thaumaturgy)
             return [
                 'spell_name' => $spellData['spell_name'],
                 'pivot_data' => [

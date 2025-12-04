@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Racial Cantrip Choice Parsing**
+  - Parser now detects "cantrip of your choice from the X spell list" patterns
+  - Creates `entity_spells` records with `is_choice=true` and `class_id` for class restriction
+  - Supports multiple class options (e.g., "cleric or wizard spell list")
+  - Examples: High Elf (wizard cantrip), Aereni Elf (cleric or wizard cantrip)
+  - Added `ability_score_id` and `level_requirement` to fixed spell imports
+  - API now includes `character_class` and `school` in spell choice responses
+
 - **Tiefling Variant Subraces** (Issue #156)
   - Parser now expands "Tiefling, Variants" into 4 separate subraces: Feral, Devil's Tongue, Hellfire, Winged
   - Each variant is a self-contained subrace with appropriate traits from SCAG

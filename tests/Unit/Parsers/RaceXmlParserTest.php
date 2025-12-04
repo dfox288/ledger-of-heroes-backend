@@ -658,6 +658,75 @@ XML;
     }
 
     #[Test]
+    public function it_parses_cantrip_choice_from_class_spell_list()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Elf, High</name>
+        <size>M</size>
+        <speed>30</speed>
+        <spellAbility>Intelligence</spellAbility>
+        <trait category="subspecies">
+            <name>Cantrip</name>
+            <text>You know one cantrip of your choice from the wizard spell list. Intelligence is your spellcasting ability for it.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('spellcasting', $races[0]);
+        $this->assertEquals('Intelligence', $races[0]['spellcasting']['ability']);
+        $this->assertCount(1, $races[0]['spellcasting']['spells']);
+
+        // Verify the cantrip choice is parsed correctly
+        $choice = $races[0]['spellcasting']['spells'][0];
+        $this->assertTrue($choice['is_choice']);
+        $this->assertEquals(1, $choice['choice_count']);
+        $this->assertEquals('wizard', $choice['class_name']);
+        $this->assertEquals(0, $choice['max_level']); // cantrip = level 0
+        $this->assertTrue($choice['is_cantrip']);
+    }
+
+    #[Test]
+    public function it_parses_cantrip_choice_with_multiple_class_options()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Aereni Elf</name>
+        <size>M</size>
+        <speed>30</speed>
+        <trait category="subspecies">
+            <name>Cantrip</name>
+            <text>You know one cantrip of your choice from the cleric or wizard spell list. Your spellcasting ability depends on the class you chose: Wisdom for cleric or Intelligence for wizard.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('spellcasting', $races[0]);
+        $this->assertCount(2, $races[0]['spellcasting']['spells']);
+
+        // Should create two choice entries - one for cleric, one for wizard
+        $classNames = collect($races[0]['spellcasting']['spells'])->pluck('class_name')->sort()->values()->all();
+        $this->assertEquals(['cleric', 'wizard'], $classNames);
+
+        foreach ($races[0]['spellcasting']['spells'] as $choice) {
+            $this->assertTrue($choice['is_choice']);
+            $this->assertEquals(1, $choice['choice_count']);
+            $this->assertEquals(0, $choice['max_level']);
+            $this->assertTrue($choice['is_cantrip']);
+        }
+    }
+
+    #[Test]
     public function it_parses_damage_resistance_from_resist_element()
     {
         $xml = <<<'XML'

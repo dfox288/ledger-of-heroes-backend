@@ -664,9 +664,61 @@ XML;
 
         $this->assertCount(1, $race->fresh()->spells);
         $raceSpell = $race->spells->first();
-        $this->assertEquals($spell->id, $raceSpell->spell_id);
-        $this->assertEquals($charisma->id, $raceSpell->ability_score_id);
-        $this->assertTrue($raceSpell->is_cantrip);
+        $this->assertEquals($spell->id, $raceSpell->id);
+        $this->assertEquals($charisma->id, $raceSpell->pivot->ability_score_id);
+        $this->assertTrue((bool) $raceSpell->pivot->is_cantrip);
+    }
+
+    #[Test]
+    public function it_imports_cantrip_choice_from_class_spell_list()
+    {
+        // Create wizard class for lookup
+        $wizard = \App\Models\CharacterClass::factory()->create([
+            'slug' => 'wizard',
+            'name' => 'Wizard',
+        ]);
+
+        $raceData = [
+            'name' => 'Test Elf',
+            'size_code' => 'M',
+            'speed' => 30,
+            'ability_bonuses' => [],
+            'traits' => [],
+            'proficiencies' => [],
+            'sources' => [],
+            'spellcasting' => [
+                'ability' => 'Intelligence',
+                'spells' => [
+                    [
+                        'is_choice' => true,
+                        'choice_count' => 1,
+                        'class_name' => 'wizard',
+                        'max_level' => 0, // cantrip
+                        'is_cantrip' => true,
+                        'is_ritual_only' => false,
+                    ],
+                ],
+            ],
+        ];
+
+        $race = $this->importer->import($raceData);
+
+        // Check that a spell choice record was created
+        $spellChoices = \Illuminate\Support\Facades\DB::table('entity_spells')
+            ->where('reference_type', \App\Models\Race::class)
+            ->where('reference_id', $race->id)
+            ->where('is_choice', true)
+            ->get();
+
+        $this->assertCount(1, $spellChoices);
+        $choice = $spellChoices->first();
+        $this->assertNull($choice->spell_id); // No specific spell - it's a choice
+        $this->assertTrue((bool) $choice->is_choice);
+        $this->assertTrue((bool) $choice->is_cantrip); // max_level=0 means cantrip
+        $this->assertEquals(1, $choice->choice_count);
+        $this->assertEquals(0, $choice->max_level); // cantrip
+        $this->assertEquals($wizard->id, $choice->class_id);
+        $this->assertEquals('racial_cantrip', $choice->choice_group);
     }
 
     #[Test]

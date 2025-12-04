@@ -364,7 +364,26 @@ class RaceXmlParser
                 continue;
             }
 
-            // Pattern: "You know the SPELL cantrip"
+            // Pattern: "You know one cantrip of your choice from the CLASS spell list"
+            // Handles: High Elf ("wizard"), Aereni Elf ("cleric or wizard"), etc.
+            if (preg_match('/You know (?:one|a) (?:\w+ )?cantrip of your choice from the ([\w\s]+?) spell list/i', $text, $matches)) {
+                $classString = strtolower(trim($matches[1]));
+                // Parse class options (handles "cleric or wizard", "wizard", etc.)
+                $classNames = preg_split('/\s+or\s+/', $classString);
+
+                foreach ($classNames as $className) {
+                    $spellData['spells'][] = [
+                        'is_choice' => true,
+                        'choice_count' => 1,
+                        'class_name' => trim($className),
+                        'max_level' => 0, // cantrip = level 0
+                        'is_cantrip' => true,
+                        'is_ritual_only' => false,
+                    ];
+                }
+            }
+
+            // Pattern: "You know the SPELL cantrip" (fixed spell, not a choice)
             if (preg_match_all('/You know the ([\w\s\']+) cantrip/i', $text, $matches)) {
                 foreach ($matches[1] as $spellName) {
                     $spellData['spells'][] = [

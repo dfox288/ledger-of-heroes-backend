@@ -25,6 +25,8 @@ final class RaceSearchService
         'conditions.condition',
         'entitySpellRecords.spell',
         'entitySpellRecords.abilityScore',
+        'entitySpellRecords.school',
+        'entitySpellRecords.characterClass',
         'senses.sense',
         'parent',
     ];
@@ -49,6 +51,8 @@ final class RaceSearchService
         'parent.conditions.condition',
         'parent.entitySpellRecords.spell',
         'parent.entitySpellRecords.abilityScore',
+        'parent.entitySpellRecords.school',
+        'parent.entitySpellRecords.characterClass',
         'parent.senses.sense',
         'parent.tags',
         'subraces',
@@ -63,6 +67,8 @@ final class RaceSearchService
         'conditions.condition',
         'entitySpellRecords.spell',
         'entitySpellRecords.abilityScore',
+        'entitySpellRecords.school',
+        'entitySpellRecords.characterClass',
         'senses.sense',
         'tags',
     ];

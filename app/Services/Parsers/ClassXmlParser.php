@@ -824,6 +824,8 @@ class ClassXmlParser
      * - "(a) a greataxe or (b) any martial melee weapon"
      * - "(a) X, (b) Y, or (c) Z" (three-way choice)
      * - "An explorer's pack, and four javelins"
+     * - "any two simple weapons of your choice" (Tasha's format)
+     * - "your choice of studded leather armor or scale mail" (Tasha's format)
      *
      * @return array<int, array{description: string, is_choice: bool, choice_group: string|null, choice_option: int|null, quantity: int, choice_items: array}>
      */
@@ -838,6 +840,75 @@ class ClassXmlParser
 
         foreach ($bullets[1] as $bulletText) {
             $bulletText = trim($bulletText);
+
+            // Pattern 1: "any (number)? (category) weapons? of your choice"
+            // Examples: "any two simple weapons of your choice", "any simple weapon"
+            if (preg_match('/^any\s+(?:(two|three|four|five|one|\d+)\s+)?(simple|martial)(?:\s+(melee|ranged))?\s+weapons?\s*(?:of\s+your\s+choice)?$/i', $bulletText, $matches)) {
+                $quantity = 1;
+                if (! empty($matches[1])) {
+                    $quantity = is_numeric($matches[1]) ? (int) $matches[1] : $this->wordToNumber($matches[1]);
+                }
+
+                $category = strtolower($matches[2]);
+                if (! empty($matches[3])) {
+                    $category .= '_'.strtolower($matches[3]);
+                }
+
+                $items[] = [
+                    'description' => $bulletText,
+                    'is_choice' => true,
+                    'choice_group' => "choice_{$choiceGroupNumber}",
+                    'choice_option' => null, // Single category choice, no options
+                    'quantity' => $quantity,
+                    'choice_items' => [
+                        ['type' => 'category', 'value' => $category, 'quantity' => $quantity],
+                    ],
+                ];
+                $choiceGroupNumber++;
+
+                continue;
+            }
+
+            // Pattern 2: "your choice of X or Y"
+            // Examples: "your choice of studded leather armor or scale mail"
+            if (preg_match('/^your\s+choice\s+of\s+(.+?)\s+or\s+(.+)$/i', $bulletText, $matches)) {
+                $optionA = trim($matches[1]);
+                $optionB = trim($matches[2]);
+
+                // Remove leading articles
+                $optionA = preg_replace('/^(a|an|the)\s+/i', '', $optionA);
+                $optionB = preg_replace('/^(a|an|the)\s+/i', '', $optionB);
+
+                $choiceGroup = "choice_{$choiceGroupNumber}";
+
+                // Parse option A
+                $choiceItemsA = $this->parseCompoundItem($optionA);
+                $quantityA = array_sum(array_column($choiceItemsA, 'quantity')) ?: 1;
+                $items[] = [
+                    'description' => $optionA,
+                    'is_choice' => true,
+                    'choice_group' => $choiceGroup,
+                    'choice_option' => 1,
+                    'quantity' => $quantityA,
+                    'choice_items' => $choiceItemsA,
+                ];
+
+                // Parse option B
+                $choiceItemsB = $this->parseCompoundItem($optionB);
+                $quantityB = array_sum(array_column($choiceItemsB, 'quantity')) ?: 1;
+                $items[] = [
+                    'description' => $optionB,
+                    'is_choice' => true,
+                    'choice_group' => $choiceGroup,
+                    'choice_option' => 2,
+                    'quantity' => $quantityB,
+                    'choice_items' => $choiceItemsB,
+                ];
+
+                $choiceGroupNumber++;
+
+                continue;
+            }
 
             // Check if this is a choice: "(a) X or (b) Y" or "(a) X, (b) Y, or (c) Z"
             // Pattern matches (a) followed by text (allowing nested parentheses) until next choice or end

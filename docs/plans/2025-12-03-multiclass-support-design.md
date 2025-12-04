@@ -1,6 +1,9 @@
 # Multiclass Support Design
 
-**Issue:** #92 - Character Builder v2: Multiclass Support
+**Issues:**
+- #92 - Multiclass Support (primary)
+- #109 - Subclass Selection (covered by `character_classes.subclass_id`)
+
 **Date:** 2025-12-03
 **Status:** Approved
 

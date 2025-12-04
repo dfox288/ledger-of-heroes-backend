@@ -8,7 +8,9 @@
 
 **Tech Stack:** Laravel 12, PHP 8.4, PHPUnit 11, MySQL/SQLite
 
-**Issue:** #92
+**Issues:**
+- #92 - Multiclass Support (primary)
+- #109 - Subclass Selection (covered by this implementation - `character_classes.subclass_id`)
 
 ---
 

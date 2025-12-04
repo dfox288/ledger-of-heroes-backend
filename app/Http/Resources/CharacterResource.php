@@ -83,7 +83,8 @@ class CharacterResource extends JsonResource
                     'slug' => $this->race->slug,
                 ] : null;
             }),
-            // Primary class (for backwards compatibility)
+            // Primary class (for backwards compatibility - deprecated, use 'classes' array instead)
+            // TODO: Remove in API v2.0 - clients should migrate to 'classes' array
             'class' => $this->when($this->relationLoaded('characterClasses') || $primaryClass, function () use ($primaryClass) {
                 return $primaryClass ? [
                     'id' => $primaryClass->id,

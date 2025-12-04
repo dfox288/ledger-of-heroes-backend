@@ -11,6 +11,20 @@ return new class extends Migration
      *
      * Removes legacy single-class columns now that multiclass support
      * uses the character_classes junction table instead.
+     *
+     * BREAKING CHANGE: This migration removes deprecated columns.
+     * The down() method restores the column structure but NOT the data.
+     *
+     * Before running this migration in production:
+     * 1. Ensure all clients have migrated to using the 'classes' array
+     * 2. Verify character_classes junction table has all character data
+     * 3. Take a database backup for safety
+     *
+     * Rollback considerations:
+     * - The down() method recreates the columns with default values
+     * - Data from the removed columns CANNOT be recovered automatically
+     * - If rollback is needed, restore from backup or manually populate
+     *   level/class_id from the character_classes junction table
      */
     public function up(): void
     {

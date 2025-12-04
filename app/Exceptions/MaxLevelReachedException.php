@@ -15,7 +15,7 @@ class MaxLevelReachedException extends Exception
     ) {
         $charInfo = "Character '{$this->character->name}' (ID: {$this->character->id})";
 
-        parent::__construct("{$charInfo} is already at maximum level (20)");
+        parent::__construct("{$charInfo} is already at maximum level (20).");
     }
 
     /**

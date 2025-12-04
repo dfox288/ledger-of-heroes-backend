@@ -15,6 +15,6 @@ class DuplicateClassException extends Exception
             ? "Character '{$characterName}' (ID: {$characterId})"
             : 'Character';
 
-        parent::__construct("{$charInfo} already has levels in {$className}");
+        parent::__construct("{$charInfo} already has levels in {$className}.");
     }
 }

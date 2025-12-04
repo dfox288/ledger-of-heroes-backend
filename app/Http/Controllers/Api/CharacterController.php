@@ -16,6 +16,7 @@ use App\Services\CharacterStatCalculator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class CharacterController extends Controller
 {
@@ -150,39 +151,44 @@ class CharacterController extends Controller
     {
         $validated = $request->validated();
 
-        // Handle class_id specially - add via junction table if provided
-        if (isset($validated['class_id'])) {
-            $classId = $validated['class_id'];
-            unset($validated['class_id']);
+        // Extract class_id and level before transaction
+        $classId = $validated['class_id'] ?? null;
+        $level = $validated['level'] ?? null;
+        unset($validated['class_id'], $validated['level']);
 
-            // Only add if character doesn't already have this class
-            if ($classId && ! $character->characterClasses()->where('class_id', $classId)->exists()) {
-                $isPrimary = $character->characterClasses()->count() === 0;
-                $order = ($character->characterClasses()->max('order') ?? 0) + 1;
+        // Use transaction with pessimistic locking for class operations
+        DB::transaction(function () use ($character, $validated, $classId, $level) {
+            // Handle class_id - add via junction table if provided
+            if ($classId) {
+                // Lock the character's class rows to prevent concurrent modifications
+                $existingClasses = $character->characterClasses()->lockForUpdate()->get();
 
-                CharacterClassPivot::create([
-                    'character_id' => $character->id,
-                    'class_id' => $classId,
-                    'level' => 1,
-                    'is_primary' => $isPrimary,
-                    'order' => $order,
-                    'hit_dice_spent' => 0,
-                ]);
+                // Only add if character doesn't already have this class
+                if (! $existingClasses->where('class_id', $classId)->first()) {
+                    $isPrimary = $existingClasses->isEmpty();
+                    $order = ($existingClasses->max('order') ?? 0) + 1;
+
+                    CharacterClassPivot::create([
+                        'character_id' => $character->id,
+                        'class_id' => $classId,
+                        'level' => 1,
+                        'is_primary' => $isPrimary,
+                        'order' => $order,
+                        'hit_dice_spent' => 0,
+                    ]);
+                }
             }
-        }
 
-        // Handle level specially - update primary class level if provided
-        if (isset($validated['level'])) {
-            $level = $validated['level'];
-            unset($validated['level']);
-
-            $primaryClass = $character->characterClasses()->where('is_primary', true)->first();
-            if ($primaryClass) {
-                $primaryClass->update(['level' => $level]);
+            // Handle level - update primary class level if provided
+            if ($level !== null) {
+                $primaryClass = $character->characterClasses()->where('is_primary', true)->first();
+                if ($primaryClass) {
+                    $primaryClass->update(['level' => $level]);
+                }
             }
-        }
 
-        $character->update($validated);
+            $character->update($validated);
+        });
 
         $character->load([
             'race',

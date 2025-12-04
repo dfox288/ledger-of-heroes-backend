@@ -6,6 +6,7 @@ use App\Exceptions\DuplicateClassException;
 use App\Exceptions\InvalidSubclassException;
 use App\Exceptions\MaxLevelReachedException;
 use App\Exceptions\MulticlassPrerequisiteException;
+use App\Exceptions\SubclassLevelRequirementException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Character\AddCharacterClassRequest;
 use App\Http\Requests\Character\SetSubclassRequest;
@@ -132,7 +133,12 @@ class CharacterClassController extends Controller
     /**
      * Set the subclass for a character's class.
      *
-     * Validates that the subclass belongs to the class being modified.
+     * Validates that:
+     * - The subclass belongs to the class being modified
+     * - The character is at least level 3 in this class (D&D 5e rule)
+     *
+     * @throws InvalidSubclassException If subclass doesn't belong to the class
+     * @throws SubclassLevelRequirementException If character level is below 3
      */
     public function setSubclass(SetSubclassRequest $request, Character $character, CharacterClass $class): JsonResponse
     {
@@ -150,6 +156,14 @@ class CharacterClassController extends Controller
         // Validate subclass belongs to this class
         if ($subclass && $subclass->parent_class_id !== $class->id) {
             throw new InvalidSubclassException($subclass->name, $class->name);
+        }
+
+        // Validate level requirement (most classes require level 3 for subclass)
+        // Note: Some classes like Cleric/Sorcerer/Warlock get subclass at level 1,
+        // but we use level 3 as the default. Override via class configuration if needed.
+        $requiredLevel = $class->subclass_level ?? 3;
+        if ($pivot->level < $requiredLevel) {
+            throw new SubclassLevelRequirementException($class->name, $pivot->level, $requiredLevel);
         }
 
         $pivot->subclass_id = $subclassId;

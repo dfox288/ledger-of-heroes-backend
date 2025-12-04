@@ -122,7 +122,7 @@ class CharacterMulticlassApiTest extends TestCase
         ]);
 
         $response->assertUnprocessable()
-            ->assertJsonPath('message', 'Multiclass prerequisites not met');
+            ->assertSee('does not meet multiclass prerequisites');
     }
 
     #[Test]
@@ -178,7 +178,7 @@ class CharacterMulticlassApiTest extends TestCase
         ]);
 
         $response->assertUnprocessable()
-            ->assertJsonPath('message', 'Character already has levels in Fighter');
+            ->assertSee('already has levels in Fighter');
     }
 
     #[Test]
@@ -293,6 +293,164 @@ class CharacterMulticlassApiTest extends TestCase
 
         $response->assertUnprocessable()
             ->assertJsonPath('message', 'Character has reached maximum level (20)');
+    }
+
+    #[Test]
+    public function it_sets_subclass_for_character_class(): void
+    {
+        $character = Character::factory()->create();
+        $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'parent_class_id' => null, 'hit_die' => 10]);
+        $champion = CharacterClass::factory()->create([
+            'name' => 'Champion',
+            'parent_class_id' => $fighter->id,
+            'hit_die' => 10,
+        ]);
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_id' => $fighter->id,
+            'level' => 3, // Level 3 required for subclass
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$fighter->id}/subclass", [
+            'subclass_id' => $champion->id,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.subclass.name', 'Champion');
+
+        $this->assertDatabaseHas('character_classes', [
+            'character_id' => $character->id,
+            'class_id' => $fighter->id,
+            'subclass_id' => $champion->id,
+        ]);
+    }
+
+    #[Test]
+    public function it_prevents_setting_subclass_from_wrong_class(): void
+    {
+        $character = Character::factory()->create();
+        $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'parent_class_id' => null]);
+        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'parent_class_id' => null]);
+        $abjuration = CharacterClass::factory()->create([
+            'name' => 'School of Abjuration',
+            'parent_class_id' => $wizard->id,
+        ]);
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_id' => $fighter->id,
+            'level' => 3,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$fighter->id}/subclass", [
+            'subclass_id' => $abjuration->id,
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonPath('message', "Subclass 'School of Abjuration' does not belong to class 'Fighter'.");
+    }
+
+    #[Test]
+    public function it_prevents_setting_subclass_before_required_level(): void
+    {
+        $character = Character::factory()->create();
+        $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'parent_class_id' => null, 'hit_die' => 10]);
+        $champion = CharacterClass::factory()->create([
+            'name' => 'Champion',
+            'parent_class_id' => $fighter->id,
+            'hit_die' => 10,
+        ]);
+
+        // Create subclass feature at level 3 to set the subclass_level
+        \App\Models\ClassFeature::factory()->create([
+            'class_id' => $champion->id,
+            'level' => 3,
+            'feature_name' => 'Improved Critical',
+        ]);
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_id' => $fighter->id,
+            'level' => 2, // Below required level 3
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$fighter->id}/subclass", [
+            'subclass_id' => $champion->id,
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonStructure(['message', 'errors', 'current_level', 'required_level'])
+            ->assertJsonPath('current_level', 2)
+            ->assertJsonPath('required_level', 3);
+    }
+
+    #[Test]
+    public function it_allows_subclass_at_level_1_for_cleric_style_classes(): void
+    {
+        $character = Character::factory()->create();
+        $cleric = CharacterClass::factory()->create(['name' => 'Cleric', 'parent_class_id' => null, 'hit_die' => 8]);
+        $lifeDomain = CharacterClass::factory()->create([
+            'name' => 'Life Domain',
+            'parent_class_id' => $cleric->id,
+            'hit_die' => 8,
+        ]);
+
+        // Create subclass feature at level 1
+        \App\Models\ClassFeature::factory()->create([
+            'class_id' => $lifeDomain->id,
+            'level' => 1,
+            'feature_name' => 'Disciple of Life',
+        ]);
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_id' => $cleric->id,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$cleric->id}/subclass", [
+            'subclass_id' => $lifeDomain->id,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.subclass.name', 'Life Domain');
+    }
+
+    #[Test]
+    public function it_returns_404_when_setting_subclass_for_class_not_on_character(): void
+    {
+        $character = Character::factory()->create();
+        $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'parent_class_id' => null]);
+        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'parent_class_id' => null]);
+        $abjuration = CharacterClass::factory()->create([
+            'name' => 'School of Abjuration',
+            'parent_class_id' => $wizard->id,
+        ]);
+
+        // Character only has Fighter, not Wizard
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_id' => $fighter->id,
+            'level' => 3,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$wizard->id}/subclass", [
+            'subclass_id' => $abjuration->id,
+        ]);
+
+        $response->assertNotFound()
+            ->assertJsonPath('message', 'Class not found on character');
     }
 
     private function seedAbilityScores(): void

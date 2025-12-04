@@ -15,6 +15,6 @@ class MulticlassPrerequisiteException extends Exception
             ? "Character '{$characterName}' (ID: {$characterId})"
             : 'Character';
 
-        parent::__construct("{$charInfo} does not meet multiclass prerequisites");
+        parent::__construct("{$charInfo} does not meet multiclass prerequisites.");
     }
 }

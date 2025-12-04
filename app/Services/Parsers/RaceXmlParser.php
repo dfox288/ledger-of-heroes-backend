@@ -566,11 +566,10 @@ class RaceXmlParser
         // Parse all traits
         $allTraits = $this->parseTraitElements($element);
 
-        // Categorize traits
-        $sharedTraits = [];           // Species, description, general traits (shared by all)
-        $replaceableTrait = null;     // The trait that variants replace (e.g., Infernal Legacy)
-        $appearanceTrait = null;      // Cosmetic trait duplicated on all
-        $variantTraits = [];          // Mutually exclusive variant traits
+        // First pass: collect variant traits and build replacement pattern
+        $variantTraits = [];
+        $appearanceTrait = null;
+        $replacedTraitNames = [];
 
         foreach ($allTraits as $trait) {
             $category = $trait['category'] ?? null;
@@ -581,12 +580,35 @@ class RaceXmlParser
                     $appearanceTrait = $trait;
                 } elseif (str_starts_with($traitName, 'Variant:')) {
                     $variantTraits[] = $trait;
+                    // Detect which trait this variant replaces by checking description
+                    // Pattern: "replaces the X trait" or "This replaces the X trait"
+                    if (preg_match('/replaces\s+the\s+([A-Za-z\s]+?)\s+trait/i', $trait['description'], $matches)) {
+                        $replacedTraitNames[] = trim($matches[1]);
+                    }
                 }
-            } elseif ($category === 'species' && $traitName === 'Infernal Legacy') {
-                // This is the replaceable trait
+            }
+        }
+
+        // Get unique replaced trait name (typically one trait like "Infernal Legacy")
+        $replacedTraitNames = array_unique($replacedTraitNames);
+
+        // Second pass: categorize traits into shared vs replaceable
+        $sharedTraits = [];
+        $replaceableTrait = null;
+
+        foreach ($allTraits as $trait) {
+            $category = $trait['category'] ?? null;
+            $traitName = $trait['name'];
+
+            // Skip subspecies traits (handled separately)
+            if ($category === 'subspecies') {
+                continue;
+            }
+
+            // Check if this is the trait that variants replace
+            if ($category === 'species' && in_array($traitName, $replacedTraitNames)) {
                 $replaceableTrait = $trait;
             } else {
-                // All other traits are shared
                 $sharedTraits[] = $trait;
             }
         }
@@ -602,7 +624,7 @@ class RaceXmlParser
             'modifiers' => $this->parseModifiers($element),
         ];
 
-        // Extract sources
+        // Extract sources from description trait
         $sources = [];
         foreach ($sharedTraits as &$trait) {
             if (str_contains($trait['description'], 'Source:')) {
@@ -611,6 +633,7 @@ class RaceXmlParser
                 break;
             }
         }
+        unset($trait); // Clear reference to avoid accidental mutation
         if (empty($sources)) {
             $sources = [['code' => 'PHB', 'pages' => '']];
         }
@@ -631,7 +654,10 @@ class RaceXmlParser
         // Build the expanded races
         $expandedRaces = [];
 
-        // 1. Create "Feral" variant - keeps the replaceable trait (Infernal Legacy)
+        // 1. Create "Feral" variant - the base variant that keeps the original replaceable trait.
+        // "Feral" is the SCAG-specific name for the Tiefling variant with Dex+2/Int+1 ability scores
+        // (vs PHB's Cha+2/Int+1). It uses "Infernal Legacy" spellcasting like standard Tieflings.
+        // For other future variant bundles, this would be the "base" variant that doesn't swap traits.
         $feralTraits = $sharedTraits;
         if ($replaceableTrait) {
             $feralTraits[] = $replaceableTrait;

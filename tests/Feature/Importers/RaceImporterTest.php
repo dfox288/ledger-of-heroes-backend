@@ -1109,13 +1109,19 @@ XML;
 
         unlink($tmpFile);
 
-        // Should import 4 subraces: Feral, Devil's Tongue, Hellfire, Winged
-        // Plus 1 for base race tracking (even though Tiefling already exists, the counter tracks first occurrence)
-        $this->assertEquals(5, $count);
+        // The import count includes 4 subraces + 1 base race reference tracking
+        // (importFromFile counts base race first occurrence even when it already exists)
+        $expectedSubraces = 4;
+        $baseRaceTracking = 1;
+        $this->assertEquals(
+            $expectedSubraces + $baseRaceTracking,
+            $count,
+            'Should count 4 subraces + 1 base race reference'
+        );
 
-        // All 4 subraces should exist with Tiefling as parent
+        // Verify the actual database state - 4 subraces created
         $subraces = Race::where('parent_race_id', $baseTiefling->id)->get();
-        $this->assertCount(4, $subraces);
+        $this->assertCount($expectedSubraces, $subraces, 'Should create exactly 4 Tiefling variant subraces');
 
         $subraceNames = $subraces->pluck('name')->toArray();
         $this->assertContains('Feral', $subraceNames);

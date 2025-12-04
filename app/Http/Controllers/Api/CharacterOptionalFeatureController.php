@@ -259,7 +259,7 @@ class CharacterOptionalFeatureController extends Controller
         foreach ($counterToFeatureType as $counterName => $featureType) {
             // Find the highest counter value at or below the character's level
             $relevantCounters = $counters
-                ->filter(fn ($c) => $c->name === $counterName && $c->level <= $classLevel)
+                ->filter(fn ($c) => $c->counter_name === $counterName && $c->level <= $classLevel)
                 ->sortByDesc('level');
 
             if ($relevantCounters->isEmpty()) {
@@ -273,7 +273,7 @@ class CharacterOptionalFeatureController extends Controller
                 'feature_type' => $featureType,
                 'class_name' => $className,
                 'subclass_name' => $subclassName,
-                'allowed' => $maxCounter->value,
+                'allowed' => $maxCounter->counter_value,
                 'selected' => 0,
                 'remaining' => 0,
             ];

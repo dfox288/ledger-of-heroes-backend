@@ -12,9 +12,10 @@ class MaxLevelReachedException extends Exception
 {
     public function __construct(
         public readonly Character $character,
-        string $message = 'Character is already at maximum level (20).',
     ) {
-        parent::__construct($message);
+        $charInfo = "Character '{$this->character->name}' (ID: {$this->character->id})";
+
+        parent::__construct("{$charInfo} is already at maximum level (20).");
     }
 
     /**
@@ -25,7 +26,7 @@ class MaxLevelReachedException extends Exception
         return response()->json([
             'message' => $this->getMessage(),
             'character_id' => $this->character->id,
-            'current_level' => $this->character->level,
+            'current_level' => $this->character->total_level,
         ], 422);
     }
 }

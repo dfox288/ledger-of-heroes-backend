@@ -26,13 +26,13 @@ class SpellManagerService
      * Get spells available for a character to learn.
      *
      * Filters by:
-     * - Class spell list
+     * - Class spell list (from primary class)
      * - Max spell level (optional)
      * - Excludes already known spells (unless includeKnown is true)
      */
     public function getAvailableSpells(Character $character, ?int $maxLevel = null, bool $includeKnown = false): Collection
     {
-        $class = $character->characterClass;
+        $class = $character->primary_class;
 
         if (! $class) {
             return collect();
@@ -84,7 +84,7 @@ class SpellManagerService
             'spell_id' => $spell->id,
             'preparation_status' => 'known',
             'source' => $source,
-            'level_acquired' => $character->level,
+            'level_acquired' => $character->total_level,
         ]);
     }
 
@@ -169,7 +169,7 @@ class SpellManagerService
      */
     public function getSpellSlots(Character $character): array
     {
-        $class = $character->characterClass;
+        $class = $character->primary_class;
 
         if (! $class) {
             return [
@@ -183,7 +183,7 @@ class SpellManagerService
             : strtolower($class->name);
 
         return [
-            'slots' => $this->statCalculator->getSpellSlots($baseClassName, $character->level),
+            'slots' => $this->statCalculator->getSpellSlots($baseClassName, $character->total_level),
             'preparation_limit' => $this->getPreparationLimit($character),
         ];
     }
@@ -193,7 +193,7 @@ class SpellManagerService
      */
     private function isSpellOnClassList(Character $character, Spell $spell): bool
     {
-        $class = $character->characterClass;
+        $class = $character->primary_class;
 
         if (! $class) {
             return false;
@@ -215,7 +215,7 @@ class SpellManagerService
     {
         // For full casters: max spell level = ceil(level / 2) capped at 9
         // Level 1: 1st, Level 3: 2nd, Level 5: 3rd, etc.
-        return min(9, (int) ceil($character->level / 2));
+        return min(9, (int) ceil($character->total_level / 2));
     }
 
     /**
@@ -231,7 +231,7 @@ class SpellManagerService
      */
     private function getPreparationLimit(Character $character): ?int
     {
-        $class = $character->characterClass;
+        $class = $character->primary_class;
 
         if (! $class) {
             return null;
@@ -257,7 +257,7 @@ class SpellManagerService
 
         $abilityModifier = $this->statCalculator->abilityModifier($abilityScore);
 
-        return $this->statCalculator->getPreparationLimit($baseClassName, $character->level, $abilityModifier);
+        return $this->statCalculator->getPreparationLimit($baseClassName, $character->total_level, $abilityModifier);
     }
 
     /**

@@ -273,5 +273,7 @@ Route::prefix('v1')->group(function () {
             ->name('classes.destroy');
         Route::post('classes/{class}/level-up', [\App\Http\Controllers\Api\CharacterClassController::class, 'levelUp'])
             ->name('classes.level-up');
+        Route::put('classes/{class}/subclass', [\App\Http\Controllers\Api\CharacterClassController::class, 'setSubclass'])
+            ->name('classes.set-subclass');
     });
 });

@@ -10,15 +10,16 @@ use InvalidArgumentException;
 class CharacterProficiencyService
 {
     /**
-     * Populate fixed (non-choice) proficiencies from the character's class.
+     * Populate fixed (non-choice) proficiencies from the character's primary class.
      */
     public function populateFromClass(Character $character): void
     {
-        if (! $character->class_id) {
+        $primaryClass = $character->primary_class;
+        if (! $primaryClass) {
             return;
         }
 
-        $this->populateFixedProficiencies($character, $character->characterClass, 'class');
+        $this->populateFixedProficiencies($character, $primaryClass, 'class');
     }
 
     /**
@@ -75,10 +76,11 @@ class CharacterProficiencyService
             ->pluck('proficiency_type_id')
             ->toArray();
 
-        // Check class choices
-        if ($character->characterClass) {
+        // Check class choices (use primary class)
+        $primaryClass = $character->primary_class;
+        if ($primaryClass) {
             $choices['class'] = $this->getChoicesFromEntity(
-                $character->characterClass,
+                $primaryClass,
                 $existingSkillIds,
                 $existingProfTypeIds
             );
@@ -116,7 +118,7 @@ class CharacterProficiencyService
     {
         // Get the source entity
         $entity = match ($source) {
-            'class' => $character->characterClass,
+            'class' => $character->primary_class,
             'race' => $character->race,
             'background' => $character->background,
             default => throw new InvalidArgumentException("Invalid source: {$source}"),

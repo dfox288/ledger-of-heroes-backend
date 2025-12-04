@@ -34,7 +34,7 @@ class CharacterStatsDTO
      */
     public static function fromCharacter(Character $character, CharacterStatCalculator $calculator): self
     {
-        $level = $character->level;
+        $level = $character->total_level;
         $proficiencyBonus = $calculator->proficiencyBonus($level);
 
         // Ability scores and modifiers
@@ -50,18 +50,18 @@ class CharacterStatsDTO
             $savingThrows[$code] = $abilityModifiers[$code]; // Base modifier only for now
         }
 
-        // Spellcasting info
+        // Spellcasting info (uses primary class)
         $spellcasting = null;
         $spellSlots = [];
         $preparationLimit = null;
 
-        if ($character->characterClass) {
-            $class = $character->characterClass;
-            $baseClassName = $class->parent_class_id
-                ? strtolower($class->parentClass->name ?? '')
-                : strtolower($class->name);
+        $primaryClass = $character->primary_class;
+        if ($primaryClass) {
+            $baseClassName = $primaryClass->parent_class_id
+                ? strtolower($primaryClass->parentClass->name ?? '')
+                : strtolower($primaryClass->name);
 
-            $spellcastingAbility = $class->effective_spellcasting_ability;
+            $spellcastingAbility = $primaryClass->effective_spellcasting_ability;
 
             if ($spellcastingAbility) {
                 $abilityCode = $spellcastingAbility->code;

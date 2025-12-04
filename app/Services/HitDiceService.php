@@ -22,6 +22,11 @@ class HitDiceService
         $totalSpent = 0;
 
         foreach ($character->characterClasses as $classPivot) {
+            // Skip zero-level classes (shouldn't exist but defensive)
+            if ($classPivot->level <= 0) {
+                continue;
+            }
+
             $dieType = 'd'.$classPivot->characterClass->hit_die;
             $max = $classPivot->level;
             $spent = $classPivot->hit_dice_spent;
@@ -56,7 +61,7 @@ class HitDiceService
     /**
      * Spend hit dice of a specific type.
      *
-     * @return array{hit_dice: array, total: array}
+     * @return array{hit_dice: array<string, array{available: int, max: int, spent: int}>, total: array{available: int, max: int, spent: int}}
      *
      * @throws InsufficientHitDiceException
      */
@@ -97,6 +102,11 @@ class HitDiceService
             }
         }
 
+        // Defensive check: should never happen given pre-validation
+        if ($remaining > 0) {
+            throw new \LogicException("Failed to spend all hit dice. Remaining: {$remaining}. This indicates a bug.");
+        }
+
         return $this->getHitDice($character->fresh());
     }
 
@@ -106,7 +116,7 @@ class HitDiceService
      * If quantity is null, recovers half of total max (minimum 1) per D&D 5e rules.
      * Recovers larger dice first to maximize healing potential.
      *
-     * @return array{recovered: int, hit_dice: array, total: array}
+     * @return array{recovered: int, hit_dice: array<string, array{available: int, max: int, spent: int}>, total: array{available: int, max: int, spent: int}}
      */
     public function recover(Character $character, ?int $quantity = null): array
     {
@@ -145,6 +155,11 @@ class HitDiceService
             if ($remaining === 0) {
                 break;
             }
+        }
+
+        // Defensive check: should never happen given $toRecover = min($quantity, $totalSpent)
+        if ($remaining > 0) {
+            throw new \LogicException("Failed to recover all hit dice. Remaining: {$remaining}. This indicates a bug.");
         }
 
         return array_merge(

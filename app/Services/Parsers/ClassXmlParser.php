@@ -777,9 +777,11 @@ class ClassXmlParser
                 if (preg_match('/^Starting\s+\w+$/i', $featureName)) {
                     $text = (string) $feature->text;
 
-                    // Extract only the equipment section (after "You begin play with")
-                    // and before "If you forgo" to avoid proficiency/hit point text
-                    if (preg_match('/You begin play with the following equipment[^•\-]+(.*?)(?=\n\nIf you forgo|$)/s', $text, $match)) {
+                    // Extract only the equipment section
+                    // PHB classes use "You begin play with the following equipment"
+                    // Tasha's/non-PHB classes use "You start with the following equipment"
+                    // Match either variant and extract until "If you forgo"
+                    if (preg_match('/You (?:begin play|start) with the following equipment[^•\-]+(.*?)(?=\n\nIf you forgo|$)/s', $text, $match)) {
                         $equipmentText = $match[1];
                         $equipment['items'] = $this->parseEquipmentChoices($equipmentText);
                     } else {

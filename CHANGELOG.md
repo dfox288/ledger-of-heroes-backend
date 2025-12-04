@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Artificer Equipment Parsing** (Issue #165)
+  - Fixed regex pattern to recognize "You start with" variant used by Tasha's/non-PHB classes
+  - Previously only matched "You begin play with" (PHB classes)
+  - Artificer now correctly returns 6 equipment items instead of 22 corrupted entries
+  - Prevents proficiencies, skills, and HP text from being parsed as equipment
+
 ### Added
 
 - **Racial Cantrip Choice Parsing**

@@ -378,6 +378,96 @@ XML;
     }
 
     #[Test]
+    public function it_parses_starting_equipment_with_you_start_with_variant()
+    {
+        // Artificer (and some other non-PHB classes) use "You start with" instead of "You begin play with"
+        // This test ensures the parser handles both variants correctly
+        $xml = <<<'XML'
+<compendium>
+    <class>
+        <name>Artificer</name>
+        <hd>8</hd>
+        <wealth>5d4x10</wealth>
+        <autolevel level="1">
+            <feature optional="YES">
+                <name>Starting Artificer</name>
+                <text>As a 1st-level Artificer, you begin play with 8 + your Constitution modifier hit points.
+
+You are proficient with the following items, in addition to any proficiencies provided by your race or background.
+
+	• Armor: light armor, medium armor, shields
+	• Weapons: simple weapons
+	• Tools: thieves' tools, tinker's tools, one type of artisan's tools of your choice
+	• Skills: Choose 2 from Arcana, History, Investigation, Medicine, Nature, Perception, Sleight of Hand
+
+You start with the following equipment, in addition to the equipment granted by your background:
+
+	• any two simple weapons of your choice
+	• a light crossbow and 20 bolts
+	• your choice of studded leather armor or scale mail
+	• thieves' tools and a dungeoneer's pack
+
+If you forgo this starting equipment, as well as the items offered by your background, you start with 5d4 × 10 gp to buy your equipment.</text>
+            </feature>
+        </autolevel>
+    </class>
+</compendium>
+XML;
+
+        $classes = $this->parser->parse($xml);
+
+        // Assert: equipment key exists
+        $this->assertArrayHasKey('equipment', $classes[0]);
+        $equipment = $classes[0]['equipment'];
+
+        // Assert: equipment items were parsed
+        $this->assertArrayHasKey('items', $equipment);
+        $this->assertNotEmpty($equipment['items'], 'Should have equipment items');
+
+        // Assert: should have 6 equipment items (4 bullet points split into 6 items)
+        // - "any two simple weapons of your choice" = 1 item
+        // - "a light crossbow and 20 bolts" = 2 items (crossbow + bolts)
+        // - "your choice of studded leather armor or scale mail" = 1 item
+        // - "thieves' tools and a dungeoneer's pack" = 2 items (tools + pack)
+        $this->assertCount(6, $equipment['items'], 'Should have exactly 6 equipment items');
+
+        // Assert: verify equipment descriptions are actual equipment, not proficiencies
+        $descriptions = array_column($equipment['items'], 'description');
+
+        // Should contain equipment items
+        $this->assertTrue(
+            collect($descriptions)->contains(fn ($d) => str_contains(strtolower($d), 'simple weapon')),
+            'Should have simple weapons equipment'
+        );
+        $this->assertTrue(
+            collect($descriptions)->contains(fn ($d) => str_contains(strtolower($d), 'crossbow')),
+            'Should have crossbow equipment'
+        );
+        $this->assertTrue(
+            collect($descriptions)->contains(fn ($d) => str_contains(strtolower($d), 'armor') || str_contains(strtolower($d), 'scale mail')),
+            'Should have armor equipment'
+        );
+        $this->assertTrue(
+            collect($descriptions)->contains(fn ($d) => str_contains(strtolower($d), 'dungeoneer')),
+            'Should have dungeoneer pack'
+        );
+
+        // Should NOT contain proficiency text
+        $this->assertFalse(
+            collect($descriptions)->contains(fn ($d) => str_contains(strtolower($d), 'skills:')),
+            'Should not include Skills proficiency text'
+        );
+        $this->assertFalse(
+            collect($descriptions)->contains(fn ($d) => str_contains(strtolower($d), 'hit points')),
+            'Should not include HP text'
+        );
+        $this->assertFalse(
+            collect($descriptions)->contains(fn ($d) => $d === 'History' || $d === 'Investigation'),
+            'Should not include skill names as equipment'
+        );
+    }
+
+    #[Test]
     public function it_extracts_archetype_from_fighter()
     {
         // Load real Fighter XML from file

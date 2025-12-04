@@ -313,6 +313,18 @@ Route::prefix('v1')->group(function () {
         Route::post('long-rest', [\App\Http\Controllers\Api\RestController::class, 'longRest'])
             ->name('long-rest');
 
+        // Optional Features (Invocations, Maneuvers, Metamagic, etc.)
+        Route::get('optional-features', [\App\Http\Controllers\Api\CharacterOptionalFeatureController::class, 'index'])
+            ->name('optional-features.index');
+        Route::get('available-optional-features', [\App\Http\Controllers\Api\CharacterOptionalFeatureController::class, 'available'])
+            ->name('optional-features.available');
+        Route::get('optional-feature-choices', [\App\Http\Controllers\Api\CharacterOptionalFeatureController::class, 'choices'])
+            ->name('optional-features.choices');
+        Route::post('optional-features', [\App\Http\Controllers\Api\CharacterOptionalFeatureController::class, 'store'])
+            ->name('optional-features.store');
+        Route::delete('optional-features/{optionalFeature}', [\App\Http\Controllers\Api\CharacterOptionalFeatureController::class, 'destroy'])
+            ->name('optional-features.destroy');
+
         // Conditions
         Route::get('conditions', [\App\Http\Controllers\Api\CharacterConditionController::class, 'index'])
             ->name('conditions.index');

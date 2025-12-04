@@ -169,6 +169,14 @@ class Character extends Model implements HasMedia
         return $this->hasMany(CharacterCondition::class);
     }
 
+    /**
+     * Get optional features selected by this character (invocations, maneuvers, etc.)
+     */
+    public function optionalFeatures(): HasMany
+    {
+        return $this->hasMany(CharacterOptionalFeature::class);
+    }
+
     // Computed Accessors
 
     /**

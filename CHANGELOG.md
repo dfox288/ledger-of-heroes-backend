@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Optional Feature Selection API** (Issue #118 - Part 2)
+  - New `character_optional_features` table tracks character selections
+  - `CharacterOptionalFeature` model with usage tracking (uses_remaining, max_uses)
+  - New API endpoints:
+    - `GET /characters/{id}/optional-features` - List selected features
+    - `GET /characters/{id}/available-optional-features` - Features eligible to select
+    - `GET /characters/{id}/optional-feature-choices` - Pending choices by class/subclass
+    - `POST /characters/{id}/optional-features` - Select a feature
+    - `DELETE /characters/{id}/optional-features/{id}` - Remove (retrain) feature
+  - Validation:
+    - Character can't select same feature twice
+    - Level requirement enforcement
+    - Class/subclass eligibility checking
+  - Optional features included in CharacterResource when loaded
+
 - **Feature Choice Progressions Parser** (Issue #118 - Part 1)
   - New `ParsesFeatureChoiceProgressions` trait extracts optional feature choice counts from ClassFeature descriptions
   - Parses natural language patterns: "learn three maneuvers", "gain two Metamagic options"

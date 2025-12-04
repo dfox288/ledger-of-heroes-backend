@@ -247,6 +247,12 @@ class CharacterProficiencyService
             }
 
             $firstOption = $options->first();
+
+            // Defensive check - shouldn't happen since groupBy creates groups from existing items
+            if (! $firstOption) {
+                continue;
+            }
+
             $quantity = $firstOption->quantity ?? 1;
 
             // Extract proficiency_type and proficiency_subcategory from the first option

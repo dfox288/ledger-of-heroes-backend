@@ -20,10 +20,10 @@ class SpellReverseRelationshipsApiTest extends ReverseRelationshipTestCase
     #[Test]
     public function it_returns_classes_that_can_learn_spell()
     {
-        $spell = Spell::factory()->create(['slug' => 'fireball-' . uniqid(), 'name' => 'Fireball']);
-        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard-' . uniqid()]);
-        $sorcerer = CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer-' . uniqid()]);
-        $cleric = CharacterClass::factory()->create(['name' => 'Cleric', 'slug' => 'cleric-' . uniqid()]);
+        $spell = Spell::factory()->create(['slug' => 'fireball-'.uniqid(), 'name' => 'Fireball']);
+        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard-'.uniqid()]);
+        $sorcerer = CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer-'.uniqid()]);
+        $cleric = CharacterClass::factory()->create(['name' => 'Cleric', 'slug' => 'cleric-'.uniqid()]);
 
         $wizard->spells()->attach($spell);
         $sorcerer->spells()->attach($spell);
@@ -56,10 +56,10 @@ class SpellReverseRelationshipsApiTest extends ReverseRelationshipTestCase
     #[Test]
     public function it_returns_monsters_that_can_cast_spell()
     {
-        $spell = Spell::factory()->create(['slug' => 'fireball-' . uniqid(), 'name' => 'Fireball']);
-        $lich = Monster::factory()->create(['name' => 'Lich', 'slug' => 'lich-' . uniqid()]);
-        $archmage = Monster::factory()->create(['name' => 'Archmage', 'slug' => 'archmage-' . uniqid()]);
-        $goblin = Monster::factory()->create(['name' => 'Goblin', 'slug' => 'goblin-' . uniqid()]);
+        $spell = Spell::factory()->create(['slug' => 'fireball-'.uniqid(), 'name' => 'Fireball']);
+        $lich = Monster::factory()->create(['name' => 'Lich', 'slug' => 'lich-'.uniqid()]);
+        $archmage = Monster::factory()->create(['name' => 'Archmage', 'slug' => 'archmage-'.uniqid()]);
+        $goblin = Monster::factory()->create(['name' => 'Goblin', 'slug' => 'goblin-'.uniqid()]);
 
         $lich->spells()->attach($spell, ['usage_limit' => '1/day']);
         $archmage->spells()->attach($spell, ['usage_limit' => 'at will']);
@@ -92,10 +92,10 @@ class SpellReverseRelationshipsApiTest extends ReverseRelationshipTestCase
     #[Test]
     public function it_returns_items_that_contain_spell()
     {
-        $spell = Spell::factory()->create(['slug' => 'fireball-' . uniqid(), 'name' => 'Fireball']);
-        $staff = Item::factory()->create(['name' => 'Staff of Fire', 'slug' => 'staff-of-fire-' . uniqid()]);
-        $wand = Item::factory()->create(['name' => 'Wand of Fireballs', 'slug' => 'wand-of-fireballs-' . uniqid()]);
-        $sword = Item::factory()->create(['name' => 'Longsword', 'slug' => 'longsword-' . uniqid()]);
+        $spell = Spell::factory()->create(['slug' => 'fireball-'.uniqid(), 'name' => 'Fireball']);
+        $staff = Item::factory()->create(['name' => 'Staff of Fire', 'slug' => 'staff-of-fire-'.uniqid()]);
+        $wand = Item::factory()->create(['name' => 'Wand of Fireballs', 'slug' => 'wand-of-fireballs-'.uniqid()]);
+        $sword = Item::factory()->create(['name' => 'Longsword', 'slug' => 'longsword-'.uniqid()]);
 
         $staff->spells()->attach($spell, ['charges_cost_min' => 3, 'charges_cost_max' => 3]);
         $wand->spells()->attach($spell, ['charges_cost_min' => 1, 'charges_cost_max' => 1]);
@@ -128,10 +128,10 @@ class SpellReverseRelationshipsApiTest extends ReverseRelationshipTestCase
     #[Test]
     public function it_returns_races_that_can_cast_spell()
     {
-        $spell = Spell::factory()->create(['slug' => 'dancing-lights-' . uniqid(), 'name' => 'Dancing Lights']);
-        $drow = Race::factory()->create(['name' => 'Drow', 'slug' => 'drow-' . uniqid()]);
-        $highElf = Race::factory()->create(['name' => 'High Elf', 'slug' => 'high-elf-' . uniqid()]);
-        $human = Race::factory()->create(['name' => 'Human', 'slug' => 'human-' . uniqid()]);
+        $spell = Spell::factory()->create(['slug' => 'dancing-lights-'.uniqid(), 'name' => 'Dancing Lights']);
+        $drow = Race::factory()->create(['name' => 'Drow', 'slug' => 'drow-'.uniqid()]);
+        $highElf = Race::factory()->create(['name' => 'High Elf', 'slug' => 'high-elf-'.uniqid()]);
+        $human = Race::factory()->create(['name' => 'Human', 'slug' => 'human-'.uniqid()]);
 
         \App\Models\EntitySpell::create(['reference_type' => Race::class, 'reference_id' => $drow->id, 'spell_id' => $spell->id, 'level_requirement' => 1]);
         \App\Models\EntitySpell::create(['reference_type' => Race::class, 'reference_id' => $highElf->id, 'spell_id' => $spell->id, 'is_cantrip' => true]);

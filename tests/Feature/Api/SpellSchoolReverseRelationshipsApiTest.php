@@ -49,7 +49,7 @@ class SpellSchoolReverseRelationshipsApiTest extends ReverseRelationshipTestCase
     {
         $school = SpellSchool::where('code', 'EV')->first();
 
-        $this->createMultipleEntities(75, fn() => Spell::factory()->create(['spell_school_id' => $school->id]));
+        $this->createMultipleEntities(75, fn () => Spell::factory()->create(['spell_school_id' => $school->id]));
 
         $this->assertPaginatesCorrectly("/api/v1/lookups/spell-schools/{$school->id}/spells?per_page=25", 25, 75, 25);
     }

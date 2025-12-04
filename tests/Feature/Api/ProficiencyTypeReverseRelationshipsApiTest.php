@@ -80,6 +80,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends ReverseRelationshipTest
         $this->createMultipleEntities(15, function () use ($heavyArmor) {
             $class = CharacterClass::factory()->create();
             Proficiency::factory()->create(['reference_type' => CharacterClass::class, 'reference_id' => $class->id, 'proficiency_type_id' => $heavyArmor->id]);
+
             return $class;
         });
 
@@ -151,6 +152,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends ReverseRelationshipTest
         $this->createMultipleEntities(12, function () use ($darkvision) {
             $race = Race::factory()->create();
             Proficiency::factory()->create(['reference_type' => Race::class, 'reference_id' => $race->id, 'proficiency_type_id' => $darkvision->id]);
+
             return $race;
         });
 
@@ -222,6 +224,7 @@ class ProficiencyTypeReverseRelationshipsApiTest extends ReverseRelationshipTest
         $this->createMultipleEntities(8, function () use ($insight) {
             $background = Background::factory()->create();
             Proficiency::factory()->create(['reference_type' => Background::class, 'reference_id' => $background->id, 'proficiency_type_id' => $insight->id]);
+
             return $background;
         });
 

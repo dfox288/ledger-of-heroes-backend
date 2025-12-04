@@ -46,12 +46,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Background Conditional Language Parsing** (Issue #146)
   - Fixed Clan Crafter background: now correctly parses "Dwarvish, or one other of your choice if you already speak Dwarvish"
-    - Returns Dwarvish as a fixed language grant PLUS one unrestricted choice
+    - Returns Dwarvish as a fixed language grant
+    - Returns a conditional choice with `condition.type = 'already_knows'` and `condition.language` referencing Dwarvish
+    - Frontend can check if character already knows Dwarvish from race to show/hide the choice
   - Fixed Feylost background: now correctly parses "One of your choice of Elvish, Gnomish, Goblin, or Sylvan"
     - Returns 4 restricted choice options with `choice_group` linking them
-  - Added `choice_group` and `choice_option` columns to `entity_languages` table (matches `entity_proficiencies` pattern)
+  - Added `choice_group`, `choice_option`, `condition_type`, `condition_language_id` columns to `entity_languages`
+  - Updated `EntityLanguageResource` to expose `condition` object with `type` and `language` details
   - Updated `BackgroundXmlParser::parseLanguagesFromTraitText()` with 4 distinct pattern handlers
-  - Updated `ImportsLanguages` trait to handle restricted choices
+  - Updated `ImportsLanguages` trait to handle restricted and conditional choices
 
 - **Subclass Source Attribution** (Issue #141)
   - Subclasses now have their own source attribution populated during import

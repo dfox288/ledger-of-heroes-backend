@@ -68,6 +68,7 @@ class DamageTypeReverseRelationshipsApiTest extends ReverseRelationshipTestCase
         $this->createMultipleEntities(75, function () use ($fire) {
             $spell = Spell::factory()->create();
             SpellEffect::factory()->create(['spell_id' => $spell->id, 'damage_type_id' => $fire->id]);
+
             return $spell;
         });
 
@@ -115,7 +116,7 @@ class DamageTypeReverseRelationshipsApiTest extends ReverseRelationshipTestCase
     {
         $slashing = DamageType::firstOrCreate(['code' => 'S'], ['name' => 'Slashing']);
 
-        $this->createMultipleEntities(75, fn() => Item::factory()->create(['damage_type_id' => $slashing->id]));
+        $this->createMultipleEntities(75, fn () => Item::factory()->create(['damage_type_id' => $slashing->id]));
 
         $this->assertPaginatesCorrectly("/api/v1/lookups/damage-types/{$slashing->id}/items?per_page=25", 25, 75, 25);
     }

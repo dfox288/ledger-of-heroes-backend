@@ -48,7 +48,7 @@ class SizeReverseRelationshipsApiTest extends ReverseRelationshipTestCase
     {
         $medium = Size::where('code', 'M')->firstOrFail();
 
-        $this->createMultipleEntities(15, fn() => Race::factory()->create(['size_id' => $medium->id]));
+        $this->createMultipleEntities(15, fn () => Race::factory()->create(['size_id' => $medium->id]));
 
         $response = $this->getJson("/api/v1/lookups/sizes/{$medium->id}/races?per_page=10");
 
@@ -98,7 +98,7 @@ class SizeReverseRelationshipsApiTest extends ReverseRelationshipTestCase
     {
         $medium = Size::where('code', 'M')->firstOrFail();
 
-        $this->createMultipleEntities(30, fn() => Monster::factory()->create(['size_id' => $medium->id]));
+        $this->createMultipleEntities(30, fn () => Monster::factory()->create(['size_id' => $medium->id]));
 
         $response = $this->getJson("/api/v1/lookups/sizes/{$medium->id}/monsters?per_page=25");
 

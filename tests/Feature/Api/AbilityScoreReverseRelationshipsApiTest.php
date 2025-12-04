@@ -61,6 +61,7 @@ class AbilityScoreReverseRelationshipsApiTest extends ReverseRelationshipTestCas
         $this->createMultipleEntities(75, function () use ($con) {
             $spell = Spell::factory()->create();
             $con->entitiesRequiringSave()->attach($spell, ['save_effect' => 'half_damage', 'is_initial_save' => true]);
+
             return $spell;
         });
 

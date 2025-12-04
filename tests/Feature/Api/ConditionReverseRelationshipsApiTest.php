@@ -11,7 +11,6 @@ use Tests\Feature\Api\Concerns\ReverseRelationshipTestCase;
 #[\PHPUnit\Framework\Attributes\Group('feature-db')]
 class ConditionReverseRelationshipsApiTest extends ReverseRelationshipTestCase
 {
-
     // ========================================
     // Spells Endpoint Tests
     // ========================================
@@ -56,6 +55,7 @@ class ConditionReverseRelationshipsApiTest extends ReverseRelationshipTestCase
         $this->createMultipleEntities(75, function () use ($stunned) {
             $spell = Spell::factory()->create();
             $stunned->spells()->attach($spell, ['effect_type' => 'inflicts']);
+
             return $spell;
         });
 
@@ -106,6 +106,7 @@ class ConditionReverseRelationshipsApiTest extends ReverseRelationshipTestCase
         $this->createMultipleEntities(75, function () use ($paralyzed) {
             $monster = Monster::factory()->create();
             $paralyzed->monsters()->attach($monster, ['effect_type' => 'inflicts']);
+
             return $monster;
         });
 

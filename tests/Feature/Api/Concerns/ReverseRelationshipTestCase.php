@@ -27,10 +27,9 @@ abstract class ReverseRelationshipTestCase extends TestCase
     /**
      * Test helper: Assert endpoint returns related entities.
      *
-     * @param string $route Full API route (e.g., "/api/v1/lookups/conditions/poisoned/spells")
-     * @param int $expectedCount Expected number of entities in response
-     * @param array $expectedNames Expected names in order
-     * @return \Illuminate\Testing\TestResponse
+     * @param  string  $route  Full API route (e.g., "/api/v1/lookups/conditions/poisoned/spells")
+     * @param  int  $expectedCount  Expected number of entities in response
+     * @param  array  $expectedNames  Expected names in order
      */
     protected function assertReturnsRelatedEntities(string $route, int $expectedCount, array $expectedNames = []): \Illuminate\Testing\TestResponse
     {
@@ -49,8 +48,7 @@ abstract class ReverseRelationshipTestCase extends TestCase
     /**
      * Test helper: Assert endpoint returns empty array.
      *
-     * @param string $route Full API route
-     * @return \Illuminate\Testing\TestResponse
+     * @param  string  $route  Full API route
      */
     protected function assertReturnsEmpty(string $route): \Illuminate\Testing\TestResponse
     {
@@ -65,11 +63,10 @@ abstract class ReverseRelationshipTestCase extends TestCase
     /**
      * Test helper: Assert endpoint paginates results correctly.
      *
-     * @param string $route Full API route with pagination params
-     * @param int $expectedDataCount Expected number in current page
-     * @param int $expectedTotal Total count across all pages
-     * @param int $expectedPerPage Per-page value
-     * @return \Illuminate\Testing\TestResponse
+     * @param  string  $route  Full API route with pagination params
+     * @param  int  $expectedDataCount  Expected number in current page
+     * @param  int  $expectedTotal  Total count across all pages
+     * @param  int  $expectedPerPage  Per-page value
      */
     protected function assertPaginatesCorrectly(
         string $route,
@@ -90,9 +87,8 @@ abstract class ReverseRelationshipTestCase extends TestCase
     /**
      * Test helper: Assert endpoint accepts alternative identifier.
      *
-     * @param string $route Full API route using slug/code/name
-     * @param int $expectedMinCount Minimum expected count (use 1 for "has results")
-     * @return \Illuminate\Testing\TestResponse
+     * @param  string  $route  Full API route using slug/code/name
+     * @param  int  $expectedMinCount  Minimum expected count (use 1 for "has results")
      */
     protected function assertAcceptsAlternativeIdentifier(string $route, int $expectedMinCount = 1): \Illuminate\Testing\TestResponse
     {
@@ -109,8 +105,8 @@ abstract class ReverseRelationshipTestCase extends TestCase
     /**
      * Test helper: Create multiple related entities via callback.
      *
-     * @param int $count Number of entities to create
-     * @param \Closure $createCallback Callback that creates one entity: function() => Model
+     * @param  int  $count  Number of entities to create
+     * @param  \Closure  $createCallback  Callback that creates one entity: function() => Model
      * @return array Created entities
      */
     protected function createMultipleEntities(int $count, \Closure $createCallback): array
@@ -119,6 +115,7 @@ abstract class ReverseRelationshipTestCase extends TestCase
         for ($i = 0; $i < $count; $i++) {
             $entities[] = $createCallback();
         }
+
         return $entities;
     }
 }

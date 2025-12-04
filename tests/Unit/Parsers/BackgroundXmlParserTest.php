@@ -258,6 +258,95 @@ XML;
     }
 
     #[Test]
+    public function it_parses_conditional_language_with_fallback_choice()
+    {
+        // Pattern: "Dwarvish, or one other of your choice if you already speak Dwarvish"
+        // Returns: 1) Dwarvish (fixed) + 2) conditional choice (requires already knowing Dwarvish)
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Clan Crafter</name>
+    <proficiency>History, Insight</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>• Skill Proficiencies: History, Insight
+• Tool Proficiencies: One type of artisan's tools
+• Languages: Dwarvish, or one other of your choice if you already speak Dwarvish
+• Equipment: A set of artisan's tools</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('languages', $backgrounds[0]);
+        $this->assertCount(2, $backgrounds[0]['languages']);
+
+        // First entry: Dwarvish (fixed language grant for those who don't already know it)
+        $dwarvish = $backgrounds[0]['languages'][0];
+        $this->assertFalse($dwarvish['is_choice']);
+        $this->assertEquals(1, $dwarvish['quantity']);
+        $this->assertEquals('dwarvish', $dwarvish['language_slug']);
+
+        // Second entry: conditional choice (only if character already knows Dwarvish)
+        $choice = $backgrounds[0]['languages'][1];
+        $this->assertTrue($choice['is_choice']);
+        $this->assertEquals(1, $choice['quantity']);
+        $this->assertNull($choice['language_slug']);
+        $this->assertNull($choice['choice_group']);
+        $this->assertEquals('already_knows', $choice['condition_type']);
+        $this->assertEquals('dwarvish', $choice['condition_language_slug']);
+    }
+
+    #[Test]
+    public function it_parses_language_choice_from_restricted_list()
+    {
+        // Pattern: "One of your choice of Elvish, Gnomish, Goblin, or Sylvan"
+        // This should return 4 rows with choice_group linking them
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Feylost</name>
+    <proficiency>Deception, Survival</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>• Skill Proficiencies: Deception, Survival
+• Tool Proficiencies: One type of musical instrument
+• Languages: One of your choice of Elvish, Gnomish, Goblin, or Sylvan
+• Equipment: A musical instrument</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        $this->assertArrayHasKey('languages', $backgrounds[0]);
+        $this->assertCount(4, $backgrounds[0]['languages']);
+
+        // All should be choices with the same choice_group
+        $languages = $backgrounds[0]['languages'];
+        $expectedSlugs = ['elvish', 'gnomish', 'goblin', 'sylvan'];
+
+        foreach ($languages as $index => $lang) {
+            $this->assertTrue($lang['is_choice']);
+            $this->assertEquals('lang_choice_1', $lang['choice_group']);
+            $this->assertEquals($index + 1, $lang['choice_option']);
+            $this->assertEquals($expectedSlugs[$index], $lang['language_slug']);
+
+            // Only first row has quantity
+            if ($index === 0) {
+                $this->assertEquals(1, $lang['quantity']);
+            } else {
+                $this->assertNull($lang['quantity']);
+            }
+        }
+    }
+
+    #[Test]
     public function it_parses_tool_proficiency_choice_from_trait_text()
     {
         $xml = <<<'XML'

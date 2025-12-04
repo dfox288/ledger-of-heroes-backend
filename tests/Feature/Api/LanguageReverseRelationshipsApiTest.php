@@ -59,6 +59,7 @@ class LanguageReverseRelationshipsApiTest extends ReverseRelationshipTestCase
         $this->createMultipleEntities(75, function () use ($undercommon) {
             $race = Race::factory()->create();
             $undercommon->races()->attach($race, ['is_choice' => false]);
+
             return $race;
         });
 
@@ -97,7 +98,7 @@ class LanguageReverseRelationshipsApiTest extends ReverseRelationshipTestCase
     {
         $primordial = Language::where('slug', 'primordial')->first() ?? Language::factory()->create(['name' => 'Primordial Test', 'slug' => 'primordial-test']);
 
-        $outlander = Background::factory()->create(['name' => 'Outlander ' . uniqid()]);
+        $outlander = Background::factory()->create(['name' => 'Outlander '.uniqid()]);
         $primordial->backgrounds()->attach($outlander, ['is_choice' => false]);
 
         $this->assertAcceptsAlternativeIdentifier("/api/v1/lookups/languages/{$primordial->slug}/backgrounds");
@@ -111,6 +112,7 @@ class LanguageReverseRelationshipsApiTest extends ReverseRelationshipTestCase
         $this->createMultipleEntities(60, function () use ($giant) {
             $background = Background::factory()->create();
             $giant->backgrounds()->attach($background, ['is_choice' => false]);
+
             return $background;
         });
 

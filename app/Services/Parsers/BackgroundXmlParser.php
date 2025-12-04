@@ -140,7 +140,13 @@ class BackgroundXmlParser
 
     /**
      * Parse languages from trait Description text.
-     * Pattern: "• Languages: Two of your choice" or "• Languages: Common"
+     *
+     * Handles patterns like:
+     * - "Two of your choice" → 2 unrestricted choice slots
+     * - "One of your choice" → 1 unrestricted choice slot
+     * - "Common" → specific fixed language
+     * - "Dwarvish, or one other of your choice if you already speak Dwarvish" → Dwarvish + 1 conditional choice
+     * - "One of your choice of Elvish, Gnomish, Goblin, or Sylvan" → restricted choice from list
      */
     private function parseLanguagesFromTraitText(string $text): array
     {
@@ -150,9 +156,114 @@ class BackgroundXmlParser
 
         $languageText = trim($matches[1]);
 
-        // Check for "X of your choice" patterns (e.g., "One of your choice", "Two of your choice")
+        // Pattern 1: Conditional language with fallback choice
+        // "Dwarvish, or one other of your choice if you already speak Dwarvish"
+        // Returns: fixed language + 1 conditional choice (only if character already knows the language)
+        if (preg_match('/^(\w+),\s*or\s+one\s+other\s+of\s+your\s+choice\s+if\s+you\s+already\s+speak\s+\1$/i', $languageText, $conditionalMatch)) {
+            $languageName = $conditionalMatch[1];
+            $results = [];
+
+            try {
+                $language = $this->matchLanguage($languageName);
+                $slug = $this->normalizeLanguageName($languageName);
+
+                // Fixed language grant (for those who don't already know it)
+                $results[] = [
+                    'language_id' => $language?->id,
+                    'language_slug' => $slug,
+                    'is_choice' => false,
+                    'quantity' => 1,
+                ];
+
+                // Conditional choice (only applies if character already knows the language)
+                $results[] = [
+                    'language_id' => null,
+                    'language_slug' => null,
+                    'is_choice' => true,
+                    'quantity' => 1,
+                    'choice_group' => null,
+                    'choice_option' => null,
+                    'condition_type' => 'already_knows',
+                    'condition_language_id' => $language?->id,
+                    'condition_language_slug' => $slug,
+                ];
+
+                return $results;
+            } catch (\Exception $e) {
+                // Database not available - return structure without IDs (for unit tests)
+                $slug = $this->normalizeLanguageName($languageName);
+
+                return [
+                    [
+                        'language_id' => null,
+                        'language_slug' => $slug,
+                        'is_choice' => false,
+                        'quantity' => 1,
+                    ],
+                    [
+                        'language_id' => null,
+                        'language_slug' => null,
+                        'is_choice' => true,
+                        'quantity' => 1,
+                        'choice_group' => null,
+                        'choice_option' => null,
+                        'condition_type' => 'already_knows',
+                        'condition_language_id' => null,
+                        'condition_language_slug' => $slug,
+                    ],
+                ];
+            }
+        }
+
+        // Pattern 2: Restricted choice list
+        // "One of your choice of Elvish, Gnomish, Goblin, or Sylvan"
+        // Returns: multiple rows with choice_group linking them
+        if (preg_match('/^one\s+of\s+your\s+choice\s+of\s+(.+)$/i', $languageText, $restrictedMatch)) {
+            $languageList = $restrictedMatch[1];
+
+            // Parse the language names from "Elvish, Gnomish, Goblin, or Sylvan"
+            $languageNames = $this->parseLanguageList($languageList);
+            $results = [];
+            $choiceGroup = 'lang_choice_1';
+            $optionNum = 1;
+
+            try {
+                foreach ($languageNames as $langName) {
+                    $language = $this->matchLanguage($langName);
+
+                    $results[] = [
+                        'language_id' => $language?->id,
+                        'language_slug' => $language ? $language->slug : $this->normalizeLanguageName($langName),
+                        'is_choice' => true,
+                        'quantity' => $optionNum === 1 ? 1 : null, // Only first row has quantity
+                        'choice_group' => $choiceGroup,
+                        'choice_option' => $optionNum,
+                    ];
+                    $optionNum++;
+                }
+
+                return $results;
+            } catch (\Exception $e) {
+                // Database not available - return structure without IDs (for unit tests)
+                foreach ($languageNames as $langName) {
+                    $results[] = [
+                        'language_id' => null,
+                        'language_slug' => $this->normalizeLanguageName($langName),
+                        'is_choice' => true,
+                        'quantity' => $optionNum === 1 ? 1 : null,
+                        'choice_group' => $choiceGroup,
+                        'choice_option' => $optionNum,
+                    ];
+                    $optionNum++;
+                }
+
+                return $results;
+            }
+        }
+
+        // Pattern 3: Simple "X of your choice" patterns (e.g., "One of your choice", "Two of your choice")
         // Uses wordToNumber() from ConvertsWordNumbers trait (via MatchesLanguages)
-        if (preg_match('/\b(one|two|three|four|any)\b.*?\bchoice\b/i', $languageText, $choiceMatch)) {
+        if (preg_match('/^(one|two|three|four|any)\s+of\s+your\s+choice$/i', $languageText, $choiceMatch)) {
             $quantity = $this->wordToNumber($choiceMatch[1]);
 
             return [[
@@ -162,7 +273,7 @@ class BackgroundXmlParser
             ]];
         }
 
-        // Try to match specific language by name directly
+        // Pattern 4: Try to match specific language by name directly
         try {
             // Note: languagesCache uses lazy initialization via trait
             $language = $this->matchLanguage($languageText);
@@ -201,6 +312,19 @@ class BackgroundXmlParser
             // Database not available in unit tests - return empty
             return [];
         }
+    }
+
+    /**
+     * Parse a comma/and/or separated list of language names.
+     * "Elvish, Gnomish, Goblin, or Sylvan" → ["Elvish", "Gnomish", "Goblin", "Sylvan"]
+     */
+    private function parseLanguageList(string $text): array
+    {
+        // Remove "or" and "and" connectors, then split by comma
+        $text = preg_replace('/\s+(or|and)\s+/i', ', ', $text);
+        $parts = array_map('trim', explode(',', $text));
+
+        return array_filter($parts, fn ($p) => ! empty($p));
     }
 
     /**

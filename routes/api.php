@@ -226,7 +226,9 @@ Route::prefix('v1')->group(function () {
             ->name('spells.prepare');
         Route::patch('spells/{spell}/unprepare', [\App\Http\Controllers\Api\CharacterSpellController::class, 'unprepare'])
             ->name('spells.unprepare');
-        Route::get('spell-slots', [\App\Http\Controllers\Api\SpellSlotController::class, 'index'])
+        Route::get('spell-slots', [\App\Http\Controllers\Api\CharacterSpellController::class, 'slots'])
+            ->name('spell-slots');
+        Route::get('spell-slots/tracked', [\App\Http\Controllers\Api\SpellSlotController::class, 'index'])
             ->name('spell-slots.index');
         Route::post('spell-slots/use', [\App\Http\Controllers\Api\SpellSlotController::class, 'use'])
             ->name('spell-slots.use');

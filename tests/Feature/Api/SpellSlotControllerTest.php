@@ -46,7 +46,7 @@ class SpellSlotControllerTest extends TestCase
             'slot_type' => SpellSlotType::PACT_MAGIC,
         ]);
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}/spell-slots");
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spell-slots/tracked");
 
         $response->assertOk()
             ->assertJsonStructure([

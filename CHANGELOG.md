@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Rest Mechanics** (Issue #110)
+  - Implement short and long rest mechanics for character management
+  - New API endpoints:
+    - `POST /characters/{id}/short-rest` - Take a short rest
+    - `POST /characters/{id}/long-rest` - Take a long rest
+    - `GET /characters/{id}/spell-slots/tracked` - View tracked spell slot usage
+    - `POST /characters/{id}/spell-slots/use` - Use a spell slot
+  - Short rest effects:
+    - Reset pact magic spell slots (Warlock)
+    - Identifies features with short rest reset timing
+  - Long rest effects:
+    - Restore HP to maximum
+    - Recover half hit dice (minimum 1)
+    - Reset all spell slots (standard and pact magic)
+    - Clear death saves
+    - Reset all features (short rest, long rest, and dawn timing)
+  - Spell slot tracking:
+    - New `character_spell_slots` table with used/max tracking
+    - Support for standard and pact magic slot types
+    - Auto-recalculation on level up and multiclassing
+  - Parser enhancements:
+    - New `ParsesRestTiming` trait for extracting reset timing from feature descriptions
+    - New `resets_on` column on `class_features` and `feats` tables
+    - Detects short rest, long rest, and dawn reset patterns
+  - New enums: `ResetTiming`, `SpellSlotType`
+  - New services: `RestService`, `SpellSlotService`
+  - 50+ new tests covering all rest mechanics
+
 - **Hit Dice Tracking** (Issue #111)
   - Track and manage hit dice for short rest healing mechanics
   - Storage already existed in `character_classes.hit_dice_spent`; now exposed via API

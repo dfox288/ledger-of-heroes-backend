@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Multiclass Support for Character Builder** (Issue #92, #109)
+  - New `character_classes` junction table for multiple classes per character
+  - Subclass support via `subclass_id` on junction table (also covers Issue #109)
+  - `MulticlassValidationService` for prerequisite checking (PHB p163)
+  - `MulticlassSpellSlotCalculator` for combined caster level and spell slots (PHB p164-165)
+  - `AddClassService` for adding classes with proper validation
+  - New API endpoints:
+    - `GET /characters/{id}/classes` - List character's classes
+    - `POST /characters/{id}/classes` - Add class (multiclass)
+    - `DELETE /characters/{id}/classes/{classId}` - Remove class
+    - `POST /characters/{id}/classes/{classId}/level-up` - Level specific class
+  - Separate Pact Magic tracking for Warlocks
+  - Per-class hit dice tracking for short rest recovery
+  - `multiclass_spell_slots` lookup table seeded from PHB p165
+  - CharacterResource now includes `total_level`, `is_multiclass`, `classes`, and `spell_slots`
+
 ### Changed
 
 - **GET /proficiency-choices returns all options with selected arrays** (Issue #128)

@@ -45,6 +45,10 @@ class CharacterUpdateRequest extends FormRequest
             'current_hit_points' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'temp_hit_points' => ['sometimes', 'integer', 'min:0'],
 
+            // Death saves
+            'death_save_successes' => ['sometimes', 'integer', 'min:0', 'max:3'],
+            'death_save_failures' => ['sometimes', 'integer', 'min:0', 'max:3'],
+
             // Armor class
             'armor_class' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:30'],
 

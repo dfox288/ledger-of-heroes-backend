@@ -45,6 +45,8 @@ class Character extends Model implements HasMedia
         'max_hit_points',
         'current_hit_points',
         'temp_hit_points',
+        'death_save_successes',
+        'death_save_failures',
         'armor_class_override',
         'asi_choices_remaining',
         'portrait_url',
@@ -63,6 +65,8 @@ class Character extends Model implements HasMedia
         'max_hit_points' => 'integer',
         'current_hit_points' => 'integer',
         'temp_hit_points' => 'integer',
+        'death_save_successes' => 'integer',
+        'death_save_failures' => 'integer',
         'armor_class_override' => 'integer',
         'asi_choices_remaining' => 'integer',
     ];

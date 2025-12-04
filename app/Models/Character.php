@@ -10,10 +10,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class Character extends Model
+class Character extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
 
     /**
      * The event map for the model.
@@ -44,6 +47,7 @@ class Character extends Model
         'temp_hit_points',
         'armor_class_override',
         'asi_choices_remaining',
+        'portrait_url',
     ];
 
     protected $casts = [
@@ -342,5 +346,37 @@ class Character extends Model
             'swim' => $this->race->swim_speed,
             'climb' => $this->race->climb_speed,
         ];
+    }
+
+    // Media Collections
+
+    /**
+     * Register media collections for character portraits and tokens.
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('portrait')
+            ->singleFile()
+            ->acceptsMimeTypes(config('media.accepted_mimetypes'));
+
+        $this->addMediaCollection('token')
+            ->singleFile()
+            ->acceptsMimeTypes(config('media.accepted_mimetypes'));
+    }
+
+    /**
+     * Register media conversions for thumbnails.
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(150)
+            ->height(150)
+            ->performOnCollections('portrait', 'token');
+
+        $this->addMediaConversion('medium')
+            ->width(300)
+            ->height(300)
+            ->performOnCollections('portrait', 'token');
     }
 }

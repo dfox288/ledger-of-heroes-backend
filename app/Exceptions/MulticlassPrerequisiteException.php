@@ -8,8 +8,13 @@ class MulticlassPrerequisiteException extends Exception
 {
     public function __construct(
         public readonly array $errors,
-        string $message = 'Multiclass prerequisites not met'
+        public readonly ?int $characterId = null,
+        public readonly ?string $characterName = null,
     ) {
-        parent::__construct($message);
+        $charInfo = $characterId !== null
+            ? "Character '{$characterName}' (ID: {$characterId})"
+            : 'Character';
+
+        parent::__construct("{$charInfo} does not meet multiclass prerequisites");
     }
 }

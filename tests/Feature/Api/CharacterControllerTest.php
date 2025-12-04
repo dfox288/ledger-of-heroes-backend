@@ -56,7 +56,7 @@ class CharacterControllerTest extends TestCase
 
         $response->assertCreated()
             ->assertJsonPath('data.name', 'Gandalf')
-            ->assertJsonPath('data.level', 1)
+            ->assertJsonPath('data.level', 0) // No class = no level
             ->assertJsonPath('data.is_complete', false)
             ->assertJsonPath('data.validation_status.missing', ['race', 'class', 'ability_scores']);
 

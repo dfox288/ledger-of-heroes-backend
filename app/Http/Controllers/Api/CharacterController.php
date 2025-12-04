@@ -11,6 +11,7 @@ use App\Http\Requests\Character\CharacterUpdateRequest;
 use App\Http\Resources\CharacterResource;
 use App\Http\Resources\CharacterStatsResource;
 use App\Models\Character;
+use App\Models\CharacterClassPivot;
 use App\Services\CharacterStatCalculator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -39,7 +40,6 @@ class CharacterController extends Controller
 
         $characters = Character::with([
             'race',
-            'characterClass',
             'background',
             'characterClasses.characterClass.levelProgression',
             'characterClasses.subclass',
@@ -68,11 +68,28 @@ class CharacterController extends Controller
      */
     public function store(CharacterStoreRequest $request): JsonResponse
     {
-        $character = Character::create($request->validated());
+        $validated = $request->validated();
+
+        // Extract class_id before creating - we'll add it via junction table
+        $classId = $validated['class_id'] ?? null;
+        unset($validated['class_id']);
+
+        $character = Character::create($validated);
+
+        // Add class via junction table if provided
+        if ($classId) {
+            CharacterClassPivot::create([
+                'character_id' => $character->id,
+                'class_id' => $classId,
+                'level' => 1,
+                'is_primary' => true,
+                'order' => 1,
+                'hit_dice_spent' => 0,
+            ]);
+        }
 
         $character->load([
             'race',
-            'characterClass',
             'background',
             'characterClasses.characterClass.levelProgression',
             'characterClasses.subclass',
@@ -105,7 +122,6 @@ class CharacterController extends Controller
     {
         $character->load([
             'race',
-            'characterClass',
             'background',
             'characterClasses.characterClass.levelProgression',
             'characterClasses.subclass',
@@ -132,11 +148,44 @@ class CharacterController extends Controller
      */
     public function update(CharacterUpdateRequest $request, Character $character): CharacterResource
     {
-        $character->update($request->validated());
+        $validated = $request->validated();
+
+        // Handle class_id specially - add via junction table if provided
+        if (isset($validated['class_id'])) {
+            $classId = $validated['class_id'];
+            unset($validated['class_id']);
+
+            // Only add if character doesn't already have this class
+            if ($classId && ! $character->characterClasses()->where('class_id', $classId)->exists()) {
+                $isPrimary = $character->characterClasses()->count() === 0;
+                $order = ($character->characterClasses()->max('order') ?? 0) + 1;
+
+                CharacterClassPivot::create([
+                    'character_id' => $character->id,
+                    'class_id' => $classId,
+                    'level' => 1,
+                    'is_primary' => $isPrimary,
+                    'order' => $order,
+                    'hit_dice_spent' => 0,
+                ]);
+            }
+        }
+
+        // Handle level specially - update primary class level if provided
+        if (isset($validated['level'])) {
+            $level = $validated['level'];
+            unset($validated['level']);
+
+            $primaryClass = $character->characterClasses()->where('is_primary', true)->first();
+            if ($primaryClass) {
+                $primaryClass->update(['level' => $level]);
+            }
+        }
+
+        $character->update($validated);
 
         $character->load([
             'race',
-            'characterClass',
             'background',
             'characterClasses.characterClass.levelProgression',
             'characterClasses.subclass',
@@ -190,7 +239,7 @@ class CharacterController extends Controller
      */
     public function stats(Character $character): CharacterStatsResource
     {
-        $character->load(['characterClass.parentClass', 'characterClass.spellcastingAbility']);
+        $character->load(['characterClasses.characterClass.parentClass', 'characterClasses.characterClass.spellcastingAbility']);
 
         $stats = Cache::remember(
             "character:{$character->id}:stats",

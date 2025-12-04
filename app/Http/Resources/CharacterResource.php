@@ -25,8 +25,9 @@ class CharacterResource extends JsonResource
     {
         $abilityScores = $this->getAbilityScoresArray();
         $modifiers = $this->calculateModifiers($abilityScores);
-        $level = $this->level ?? 1;
+        $level = $this->total_level;
         $proficiencyBonus = $this->calculator->proficiencyBonus($level);
+        $primaryClass = $this->primary_class;
 
         return [
             'id' => $this->id,
@@ -82,11 +83,12 @@ class CharacterResource extends JsonResource
                     'slug' => $this->race->slug,
                 ] : null;
             }),
-            'class' => $this->when($this->relationLoaded('characterClass') || $this->class_id, function () {
-                return $this->characterClass ? [
-                    'id' => $this->characterClass->id,
-                    'name' => $this->characterClass->name,
-                    'slug' => $this->characterClass->slug,
+            // Primary class (for backwards compatibility)
+            'class' => $this->when($this->relationLoaded('characterClasses') || $primaryClass, function () use ($primaryClass) {
+                return $primaryClass ? [
+                    'id' => $primaryClass->id,
+                    'name' => $primaryClass->name,
+                    'slug' => $primaryClass->slug,
                 ] : null;
             }),
             'background' => $this->when($this->relationLoaded('background') || $this->background_id, function () {

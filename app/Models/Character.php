@@ -27,10 +27,8 @@ class Character extends Model
     protected $fillable = [
         'user_id',
         'name',
-        'level',
         'experience_points',
         'race_id',
-        'class_id',
         'background_id',
         'strength',
         'dexterity',
@@ -49,7 +47,6 @@ class Character extends Model
     ];
 
     protected $casts = [
-        'level' => 'integer',
         'experience_points' => 'integer',
         'strength' => 'integer',
         'dexterity' => 'integer',
@@ -110,11 +107,6 @@ class Character extends Model
         return $this->belongsTo(Race::class);
     }
 
-    public function characterClass(): BelongsTo
-    {
-        return $this->belongsTo(CharacterClass::class, 'class_id');
-    }
-
     public function background(): BelongsTo
     {
         return $this->belongsTo(Background::class);
@@ -163,11 +155,7 @@ class Character extends Model
      */
     public function getTotalLevelAttribute(): int
     {
-        if ($this->characterClasses->isEmpty()) {
-            return $this->level ?? 1;
-        }
-
-        return $this->characterClasses->sum('level');
+        return $this->characterClasses->sum('level') ?: 0;
     }
 
     /**
@@ -184,7 +172,7 @@ class Character extends Model
     public function getIsCompleteAttribute(): bool
     {
         return $this->race_id !== null
-            && $this->class_id !== null
+            && $this->characterClasses->isNotEmpty()
             && $this->hasAllAbilityScores();
     }
 
@@ -199,7 +187,7 @@ class Character extends Model
             $missing[] = 'race';
         }
 
-        if ($this->class_id === null) {
+        if ($this->characterClasses->isEmpty()) {
             $missing[] = 'class';
         }
 

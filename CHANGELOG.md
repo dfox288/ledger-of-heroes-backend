@@ -20,10 +20,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `POST /characters/{id}/classes` - Add class (multiclass)
     - `DELETE /characters/{id}/classes/{classId}` - Remove class
     - `POST /characters/{id}/classes/{classId}/level-up` - Level specific class
+    - `PUT /characters/{id}/classes/{classId}/subclass` - Set subclass for class
   - Separate Pact Magic tracking for Warlocks
   - Per-class hit dice tracking for short rest recovery
   - `multiclass_spell_slots` lookup table seeded from PHB p165
   - CharacterResource now includes `total_level`, `is_multiclass`, `classes`, and `spell_slots`
+  - `InvalidSubclassException` for subclass validation
+  - Race condition protection: DB transactions and pessimistic locking in AddClassService and CharacterClassController
+  - Audit logging for forced multiclass additions (DM override)
+  - Improved exception messages now include character ID and name
+  - Removed legacy `level` and `class_id` columns from characters table (migration included)
 
 ### Changed
 

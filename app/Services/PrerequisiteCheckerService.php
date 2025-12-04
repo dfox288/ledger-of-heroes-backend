@@ -114,15 +114,17 @@ class PrerequisiteCheckerService
      */
     private function characterHasProficiencyType(Character $character, ProficiencyType $proficiencyType): bool
     {
-        $character->loadMissing(['characterClass.proficiencies', 'race.proficiencies', 'background.proficiencies']);
+        $character->loadMissing(['characterClasses.characterClass.proficiencies', 'race.proficiencies', 'background.proficiencies']);
 
         $targetName = strtolower($proficiencyType->name);
 
-        // Check class proficiencies
-        if ($character->characterClass) {
-            foreach ($character->characterClass->proficiencies as $prof) {
-                if (strtolower($prof->proficiency_name) === $targetName) {
-                    return true;
+        // Check class proficiencies (all classes, not just primary)
+        foreach ($character->characterClasses as $charClass) {
+            if ($charClass->characterClass) {
+                foreach ($charClass->characterClass->proficiencies as $prof) {
+                    if (strtolower($prof->proficiency_name) === $targetName) {
+                        return true;
+                    }
                 }
             }
         }

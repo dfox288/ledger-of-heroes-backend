@@ -136,19 +136,21 @@ class ProficiencyCheckerService
     }
 
     /**
-     * Get all proficiencies of a given type from character's class, race, and background.
+     * Get all proficiencies of a given type from character's classes, race, and background.
      */
     private function getCharacterProficiencies(Character $character, string $type): Collection
     {
         $proficiencies = collect();
 
-        // From class
-        if ($character->characterClass) {
-            $proficiencies = $proficiencies->merge(
-                $character->characterClass->proficiencies
-                    ->where('proficiency_type', $type)
-                    ->pluck('proficiency_name')
-            );
+        // From all classes (multiclass support)
+        foreach ($character->characterClasses as $charClass) {
+            if ($charClass->characterClass) {
+                $proficiencies = $proficiencies->merge(
+                    $charClass->characterClass->proficiencies
+                        ->where('proficiency_type', $type)
+                        ->pluck('proficiency_name')
+                );
+            }
         }
 
         // From race
@@ -203,16 +205,18 @@ class ProficiencyCheckerService
     {
         $normalizedName = strtolower(trim($name));
 
-        // Check class
-        if ($character->characterClass) {
-            $hasProf = $character->characterClass->proficiencies
-                ->where('proficiency_type', $type)
-                ->pluck('proficiency_name')
-                ->map(fn ($p) => strtolower(trim((string) $p)))
-                ->contains($normalizedName);
+        // Check all classes
+        foreach ($character->characterClasses as $charClass) {
+            if ($charClass->characterClass) {
+                $hasProf = $charClass->characterClass->proficiencies
+                    ->where('proficiency_type', $type)
+                    ->pluck('proficiency_name')
+                    ->map(fn ($p) => strtolower(trim((string) $p)))
+                    ->contains($normalizedName);
 
-            if ($hasProf) {
-                return $character->characterClass->name;
+                if ($hasProf) {
+                    return $charClass->characterClass->name;
+                }
             }
         }
 

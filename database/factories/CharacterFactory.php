@@ -6,6 +6,7 @@ use App\Enums\AbilityScoreMethod;
 use App\Models\Background;
 use App\Models\Character;
 use App\Models\CharacterClass;
+use App\Models\CharacterClassPivot;
 use App\Models\Race;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,6 +21,7 @@ class CharacterFactory extends Factory
      * Define the model's default state.
      *
      * Wizard-style creation: all optional fields are nullable by default.
+     * Note: Class is assigned via character_classes junction table, not directly.
      *
      * @return array<string, mixed>
      */
@@ -28,11 +30,9 @@ class CharacterFactory extends Factory
         return [
             'name' => fake()->name(),
             'user_id' => null,
-            'level' => 1,
             'experience_points' => 0,
             // All nullable for wizard-style creation
             'race_id' => null,
-            'class_id' => null,
             'background_id' => null,
             'strength' => null,
             'dexterity' => null,
@@ -50,17 +50,16 @@ class CharacterFactory extends Factory
 
     /**
      * Create a complete character (all required fields set).
+     * Creates the character and adds a class via the junction table.
      */
     public function complete(): static
     {
         return $this->state(function (array $attributes) {
             $race = Race::whereNull('parent_race_id')->inRandomOrder()->first();
-            $class = CharacterClass::whereNull('parent_class_id')->inRandomOrder()->first();
             $background = Background::inRandomOrder()->first();
 
             return [
                 'race_id' => $race?->id,
-                'class_id' => $class?->id,
                 'background_id' => $background?->id,
                 'strength' => fake()->numberBetween(8, 18),
                 'dexterity' => fake()->numberBetween(8, 18),
@@ -69,6 +68,18 @@ class CharacterFactory extends Factory
                 'wisdom' => fake()->numberBetween(8, 18),
                 'charisma' => fake()->numberBetween(8, 18),
             ];
+        })->afterCreating(function (Character $character) {
+            $class = CharacterClass::whereNull('parent_class_id')->inRandomOrder()->first();
+            if ($class) {
+                CharacterClassPivot::create([
+                    'character_id' => $character->id,
+                    'class_id' => $class->id,
+                    'level' => 1,
+                    'is_primary' => true,
+                    'order' => 1,
+                    'hit_dice_spent' => 0,
+                ]);
+            }
         });
     }
 
@@ -88,16 +99,6 @@ class CharacterFactory extends Factory
     }
 
     /**
-     * Set character level.
-     */
-    public function level(int $level): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'level' => $level,
-        ]);
-    }
-
-    /**
      * Set character race.
      */
     public function withRace(Race|int $race): static
@@ -110,15 +111,27 @@ class CharacterFactory extends Factory
     }
 
     /**
-     * Set character class.
+     * Add a class to the character via the junction table.
+     *
+     * If level() was called before withClass(), uses that level.
+     * Otherwise uses the $level parameter (default 1).
      */
-    public function withClass(CharacterClass|int $class): static
+    public function withClass(CharacterClass|int $class, int $level = 1): static
     {
-        $classId = $class instanceof CharacterClass ? $class->id : $class;
+        return $this->afterCreating(function (Character $character) use ($class, $level) {
+            $classId = $class instanceof CharacterClass ? $class->id : $class;
+            $isPrimary = $character->characterClasses()->count() === 0;
+            $order = ($character->characterClasses()->max('order') ?? 0) + 1;
 
-        return $this->state(fn (array $attributes) => [
-            'class_id' => $classId,
-        ]);
+            CharacterClassPivot::create([
+                'character_id' => $character->id,
+                'class_id' => $classId,
+                'level' => $level,
+                'is_primary' => $isPrimary,
+                'order' => $order,
+                'hit_dice_spent' => 0,
+            ]);
+        });
     }
 
     /**
@@ -186,5 +199,40 @@ class CharacterFactory extends Factory
             'wisdom' => 10,
             'charisma' => 8,
         ]);
+    }
+
+    /**
+     * Set character level (updates the primary class level).
+     *
+     * If no class exists, automatically creates one with a random base class.
+     * If no base classes exist in the database, creates one via the factory.
+     */
+    public function level(int $level): static
+    {
+        return $this->afterCreating(function (Character $character) use ($level) {
+            $primaryClassPivot = $character->characterClasses()->where('is_primary', true)->first();
+
+            if ($primaryClassPivot) {
+                // Update existing class level
+                $primaryClassPivot->update(['level' => $level]);
+            } else {
+                // Create a class with the specified level
+                $class = CharacterClass::whereNull('parent_class_id')->first();
+
+                // If no classes exist, create one
+                if (! $class) {
+                    $class = CharacterClass::factory()->create();
+                }
+
+                CharacterClassPivot::create([
+                    'character_id' => $character->id,
+                    'class_id' => $class->id,
+                    'level' => $level,
+                    'is_primary' => true,
+                    'order' => 1,
+                    'hit_dice_spent' => 0,
+                ]);
+            }
+        });
     }
 }

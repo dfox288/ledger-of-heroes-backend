@@ -94,46 +94,46 @@ class CharacterStatsDTO
             ->count();
 
         // Calculate derived combat stats
-        $dexMod = $abilityModifiers['DEX'] ?? 0;
-        $wisMod = $abilityModifiers['WIS'] ?? 0;
-        $intMod = $abilityModifiers['INT'] ?? 0;
-        $strScore = $abilityScores['STR'] ?? 10;
+        // Use null to properly track missing ability scores (not 0, which is a valid modifier)
+        $dexMod = $abilityModifiers['DEX'];
+        $wisMod = $abilityModifiers['WIS'];
+        $intMod = $abilityModifiers['INT'];
+        $strScore = $abilityScores['STR'];
+
+        // Get skill proficiencies for passive skills (eager-load if not already loaded)
+        if (! $character->relationLoaded('proficiencies')) {
+            $character->load('proficiencies.skill');
+        }
+        $skillProficiencies = self::getSkillProficiencies($character);
 
         // Initiative bonus (DEX modifier + any bonuses from features)
         // TODO: Add feature bonuses (Alert feat, etc.) when feature system tracks them
-        $initiativeBonus = $dexMod !== null ? $calculator->calculateInitiative($dexMod) : null;
+        $initiativeBonus = $dexMod !== null
+            ? $calculator->calculateInitiative($dexMod)
+            : null;
 
-        // Get skill proficiencies for passive skills
-        $skillProficiencies = self::getSkillProficiencies($character);
+        // Passive skills - helper to reduce duplication
+        $calculatePassive = fn (?int $mod, string $skill) => $mod !== null
+            ? $calculator->calculatePassiveSkill(
+                $mod,
+                $skillProficiencies[$skill]['proficient'] ?? false,
+                $skillProficiencies[$skill]['expertise'] ?? false,
+                $proficiencyBonus
+            )
+            : null;
 
-        // Passive Perception (WIS-based)
-        $passivePerception = $wisMod !== null ? $calculator->calculatePassiveSkill(
-            $wisMod,
-            $skillProficiencies['perception']['proficient'] ?? false,
-            $skillProficiencies['perception']['expertise'] ?? false,
-            $proficiencyBonus
-        ) : null;
-
-        // Passive Investigation (INT-based)
-        $passiveInvestigation = $intMod !== null ? $calculator->calculatePassiveSkill(
-            $intMod,
-            $skillProficiencies['investigation']['proficient'] ?? false,
-            $skillProficiencies['investigation']['expertise'] ?? false,
-            $proficiencyBonus
-        ) : null;
-
-        // Passive Insight (WIS-based)
-        $passiveInsight = $wisMod !== null ? $calculator->calculatePassiveSkill(
-            $wisMod,
-            $skillProficiencies['insight']['proficient'] ?? false,
-            $skillProficiencies['insight']['expertise'] ?? false,
-            $proficiencyBonus
-        ) : null;
+        $passivePerception = $calculatePassive($wisMod, 'perception');
+        $passiveInvestigation = $calculatePassive($intMod, 'investigation');
+        $passiveInsight = $calculatePassive($wisMod, 'insight');
 
         // Carrying capacity (based on STR and size)
         $size = $character->size ?? 'Medium';
-        $carryingCapacity = $strScore !== null ? $calculator->calculateCarryingCapacity($strScore, $size) : null;
-        $pushDragLift = $strScore !== null ? $calculator->calculatePushDragLift($strScore, $size) : null;
+        $carryingCapacity = $strScore !== null
+            ? $calculator->calculateCarryingCapacity($strScore, $size)
+            : null;
+        $pushDragLift = $strScore !== null
+            ? $calculator->calculatePushDragLift($strScore, $size)
+            : null;
 
         return new self(
             characterId: $character->id,
@@ -162,17 +162,17 @@ class CharacterStatsDTO
     /**
      * Get skill proficiency and expertise status for a character.
      *
+     * Expects proficiencies.skill to be eager-loaded to avoid N+1 queries.
+     *
      * @return array<string, array{proficient: bool, expertise: bool}>
      */
     private static function getSkillProficiencies(Character $character): array
     {
         $result = [];
 
-        // Load character's skill proficiencies with skill relationship
-        $proficiencies = $character->proficiencies()
-            ->whereNotNull('skill_id')
-            ->with('skill')
-            ->get();
+        // Use the already-loaded proficiencies relation (filtered in memory)
+        $proficiencies = $character->proficiencies
+            ->filter(fn ($p) => $p->skill_id !== null);
 
         foreach ($proficiencies as $proficiency) {
             if ($proficiency->skill) {

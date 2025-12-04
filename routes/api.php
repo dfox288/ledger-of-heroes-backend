@@ -263,5 +263,15 @@ Route::prefix('v1')->group(function () {
         // ASI Choice (Feat or Ability Score Increase)
         Route::post('asi-choice', \App\Http\Controllers\Api\AsiChoiceController::class)
             ->name('asi-choice');
+
+        // Character Classes (Multiclass Support)
+        Route::get('classes', [\App\Http\Controllers\Api\CharacterClassController::class, 'index'])
+            ->name('classes.index');
+        Route::post('classes', [\App\Http\Controllers\Api\CharacterClassController::class, 'store'])
+            ->name('classes.store');
+        Route::delete('classes/{class}', [\App\Http\Controllers\Api\CharacterClassController::class, 'destroy'])
+            ->name('classes.destroy');
+        Route::post('classes/{class}/level-up', [\App\Http\Controllers\Api\CharacterClassController::class, 'levelUp'])
+            ->name('classes.level-up');
     });
 });

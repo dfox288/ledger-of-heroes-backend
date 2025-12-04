@@ -37,8 +37,13 @@ class CharacterController extends Controller
     {
         $perPage = $request->validated('per_page', 15);
 
-        $characters = Character::with(['race', 'characterClass', 'background'])
-            ->paginate($perPage);
+        $characters = Character::with([
+            'race',
+            'characterClass',
+            'background',
+            'characterClasses.characterClass.levelProgression',
+            'characterClasses.subclass',
+        ])->paginate($perPage);
 
         return CharacterResource::collection($characters);
     }
@@ -65,7 +70,13 @@ class CharacterController extends Controller
     {
         $character = Character::create($request->validated());
 
-        $character->load(['race', 'characterClass', 'background']);
+        $character->load([
+            'race',
+            'characterClass',
+            'background',
+            'characterClasses.characterClass.levelProgression',
+            'characterClasses.subclass',
+        ]);
 
         return (new CharacterResource($character))
             ->response()
@@ -92,7 +103,13 @@ class CharacterController extends Controller
      */
     public function show(CharacterShowRequest $request, Character $character): CharacterResource
     {
-        $character->load(['race', 'characterClass', 'background']);
+        $character->load([
+            'race',
+            'characterClass',
+            'background',
+            'characterClasses.characterClass.levelProgression',
+            'characterClasses.subclass',
+        ]);
 
         return new CharacterResource($character);
     }
@@ -117,7 +134,13 @@ class CharacterController extends Controller
     {
         $character->update($request->validated());
 
-        $character->load(['race', 'characterClass', 'background']);
+        $character->load([
+            'race',
+            'characterClass',
+            'background',
+            'characterClasses.characterClass.levelProgression',
+            'characterClasses.subclass',
+        ]);
 
         return new CharacterResource($character);
     }

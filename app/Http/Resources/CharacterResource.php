@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Services\CharacterStatCalculator;
+use App\Services\MulticlassSpellSlotCalculator;
 use App\Services\ProficiencyCheckerService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -31,6 +32,8 @@ class CharacterResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'level' => $level,
+            'total_level' => $this->total_level,
+            'is_multiclass' => $this->is_multiclass,
             'experience_points' => $this->experience_points ?? 0,
 
             // Completion status
@@ -93,6 +96,12 @@ class CharacterResource extends JsonResource
                     'slug' => $this->background->slug,
                 ] : null;
             }),
+
+            // Multiclass support
+            'classes' => CharacterClassPivotResource::collection(
+                $this->whenLoaded('characterClasses', $this->characterClasses, collect())
+            ),
+            'spell_slots' => $this->getSpellSlots(),
 
             // Timestamps
             'created_at' => $this->created_at?->toIso8601String(),
@@ -224,5 +233,30 @@ class CharacterResource extends JsonResource
         $penalties['penalties'] = array_values(array_unique($penalties['penalties']));
 
         return $penalties;
+    }
+
+    /**
+     * Get spell slots for multiclass character.
+     */
+    private function getSpellSlots(): ?array
+    {
+        if (! $this->relationLoaded('characterClasses') || $this->characterClasses->isEmpty()) {
+            return null;
+        }
+
+        $calculator = app(MulticlassSpellSlotCalculator::class);
+        $result = $calculator->calculate($this->resource);
+
+        if ($result->standardSlots === null && $result->pactSlots === null) {
+            return null;
+        }
+
+        return [
+            'standard' => $result->standardSlots,
+            'pact' => $result->pactSlots ? [
+                'count' => $result->pactSlots->count,
+                'level' => $result->pactSlots->level,
+            ] : null,
+        ];
     }
 }

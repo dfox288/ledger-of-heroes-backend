@@ -140,7 +140,43 @@ class Character extends Model
         return $this->hasMany(CharacterEquipment::class);
     }
 
+    /**
+     * Get all classes this character has (for multiclass support).
+     */
+    public function characterClasses(): HasMany
+    {
+        return $this->hasMany(CharacterClassPivot::class)->orderBy('order');
+    }
+
     // Computed Accessors
+
+    /**
+     * Get the primary class (first class taken).
+     */
+    public function getPrimaryClassAttribute(): ?CharacterClass
+    {
+        return $this->characterClasses->firstWhere('is_primary', true)?->characterClass;
+    }
+
+    /**
+     * Get total level across all classes.
+     */
+    public function getTotalLevelAttribute(): int
+    {
+        if ($this->characterClasses->isEmpty()) {
+            return $this->level ?? 1;
+        }
+
+        return $this->characterClasses->sum('level');
+    }
+
+    /**
+     * Check if character has multiple classes.
+     */
+    public function getIsMulticlassAttribute(): bool
+    {
+        return $this->characterClasses->count() > 1;
+    }
 
     /**
      * Check if character has all required fields set (wizard-style complete).

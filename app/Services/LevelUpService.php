@@ -24,9 +24,14 @@ class LevelUpService
 
     private CharacterStatCalculator $calculator;
 
-    public function __construct(?CharacterStatCalculator $calculator = null)
-    {
+    private SpellSlotService $spellSlotService;
+
+    public function __construct(
+        ?CharacterStatCalculator $calculator = null,
+        ?SpellSlotService $spellSlotService = null
+    ) {
         $this->calculator = $calculator ?? new CharacterStatCalculator;
+        $this->spellSlotService = $spellSlotService ?? app(SpellSlotService::class);
     }
 
     /**
@@ -56,6 +61,9 @@ class LevelUpService
             }
 
             $character->save();
+
+            // Recalculate spell slots when leveling up
+            $this->spellSlotService->recalculateMaxSlots($character);
 
             $spellSlots = $this->getSpellSlots($character);
 

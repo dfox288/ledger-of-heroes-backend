@@ -80,6 +80,7 @@ class FeatXmlParser
             'proficiencies' => array_merge($proficienciesFromXml, $proficienciesFromText),
             'conditions' => $this->parseConditions($description),
             'spells' => $this->parseSpells($description),
+            'languages' => $this->parseLanguages($description),
             'resets_on' => $this->parseResetTiming($description),
         ];
     }
@@ -959,6 +960,27 @@ class FeatXmlParser
                     ];
                 }
             }
+        }
+
+        return [];
+    }
+
+    /**
+     * Parse language grants from feat description text.
+     *
+     * Handles patterns like "You learn three languages of your choice"
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function parseLanguages(string $text): array
+    {
+        // Pattern: "You learn X languages of your choice"
+        if (preg_match('/you learn (one|two|three|four|five|six) languages? of your choice/i', $text, $match)) {
+            return [[
+                'language_id' => null,
+                'is_choice' => true,
+                'quantity' => $this->wordToNumber($match[1]),
+            ]];
         }
 
         return [];

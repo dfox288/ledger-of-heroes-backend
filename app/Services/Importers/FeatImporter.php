@@ -7,6 +7,7 @@ use App\Models\Feat;
 use App\Models\Proficiency;
 use App\Services\Importers\Concerns\ImportsConditions;
 use App\Services\Importers\Concerns\ImportsEntitySpells;
+use App\Services\Importers\Concerns\ImportsLanguages;
 use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Importers\Concerns\ImportsPrerequisites;
 use App\Services\Parsers\FeatXmlParser;
@@ -15,6 +16,7 @@ class FeatImporter extends BaseImporter
 {
     use ImportsConditions;
     use ImportsEntitySpells;
+    use ImportsLanguages;
     use ImportsModifiers;
     use ImportsPrerequisites;
 
@@ -39,6 +41,7 @@ class FeatImporter extends BaseImporter
         $feat->prerequisites()->delete();
         $feat->sources()->delete();
         $feat->conditions()->delete();
+        $feat->languages()->delete();
 
         // 3. Import modifiers (convert ability_code to ability_score_id)
         $modifiersData = $this->prepareModifiersData($data['modifiers'] ?? []);
@@ -59,7 +62,10 @@ class FeatImporter extends BaseImporter
         // 8. Import spells granted by feat
         $this->importEntitySpells($feat, $data['spells'] ?? []);
 
-        // 9. Refresh to load all relationships created during import
+        // 9. Import languages granted by feat
+        $this->importEntityLanguages($feat, $data['languages'] ?? []);
+
+        // 10. Refresh to load all relationships created during import
         $feat->refresh();
 
         return $feat;

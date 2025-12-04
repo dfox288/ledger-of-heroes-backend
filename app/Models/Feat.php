@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ResetTiming;
 use App\Models\Concerns\HasConditions;
+use App\Models\Concerns\HasEntityLanguages;
 use App\Models\Concerns\HasEntitySpells;
 use App\Models\Concerns\HasModifiers;
 use App\Models\Concerns\HasPrerequisites;
@@ -16,7 +17,7 @@ use Spatie\Tags\HasTags;
 
 class Feat extends BaseModel
 {
-    use HasConditions, HasEntitySpells, HasModifiers, HasPrerequisites, HasProficiencies;
+    use HasConditions, HasEntityLanguages, HasEntitySpells, HasModifiers, HasPrerequisites, HasProficiencies;
     use HasProficiencyScopes, HasSearchableHelpers, HasSources, HasTags, Searchable;
 
     /**
@@ -119,7 +120,7 @@ class Feat extends BaseModel
 
     public function searchableWith(): array
     {
-        return ['sources.source', 'tags', 'prerequisites.prerequisite', 'modifiers.abilityScore', 'modifiers.skill', 'proficiencies', 'spells.spellSchool'];
+        return ['sources.source', 'tags', 'prerequisites.prerequisite', 'modifiers.abilityScore', 'modifiers.skill', 'proficiencies', 'spells.spellSchool', 'languages.language'];
     }
 
     public function searchableAs(): string

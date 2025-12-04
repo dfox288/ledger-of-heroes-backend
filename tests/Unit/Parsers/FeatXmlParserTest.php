@@ -870,4 +870,89 @@ XML;
         $bonusModifiers = array_filter($modifiers, fn ($m) => $m['modifier_category'] === 'bonus');
         $this->assertEmpty($bonusModifiers);
     }
+
+    #[Test]
+    public function it_parses_language_choice_grants()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Linguist</name>
+        <text>You have studied languages and codes, gaining the following benefits:
+
+	• Increase your Intelligence score by 1, to a maximum of 20.
+
+	• You learn three languages of your choice.
+
+	• You can ably create written ciphers. Others can't decipher a code you create unless you teach them, they succeed on an Intelligence check (DC equal to your Intelligence score + your proficiency bonus), or they use magic to decipher it.
+
+Source:	Player's Handbook (2014) p. 167</text>
+        <modifier category="ability score">intelligence +1</modifier>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('languages', $feats[0]);
+        $this->assertCount(1, $feats[0]['languages']);
+
+        $language = $feats[0]['languages'][0];
+        $this->assertNull($language['language_id']);
+        $this->assertTrue($language['is_choice']);
+        $this->assertEquals(3, $language['quantity']);
+    }
+
+    #[Test]
+    public function it_parses_single_language_choice()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Test Language Feat</name>
+        <text>You gain the following benefit:
+
+	• You learn one language of your choice.
+
+Source:	Test Book p. 1</text>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('languages', $feats[0]);
+        $this->assertCount(1, $feats[0]['languages']);
+
+        $language = $feats[0]['languages'][0];
+        $this->assertNull($language['language_id']);
+        $this->assertTrue($language['is_choice']);
+        $this->assertEquals(1, $language['quantity']);
+    }
+
+    #[Test]
+    public function it_returns_empty_languages_for_feats_without_language_grants()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Alert</name>
+        <text>Always on the lookout for danger, you gain the following benefits.
+
+Source:	Player's Handbook (2014) p. 165</text>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('languages', $feats[0]);
+        $this->assertEmpty($feats[0]['languages']);
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasLimitedUses;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class CharacterOptionalFeature extends Model
 {
     use HasFactory;
+    use HasLimitedUses;
 
     protected $fillable = [
         'character_id',
@@ -44,39 +46,5 @@ class CharacterOptionalFeature extends Model
     public function characterClass(): BelongsTo
     {
         return $this->belongsTo(CharacterClass::class, 'class_id');
-    }
-
-    // Helper methods
-
-    public function hasLimitedUses(): bool
-    {
-        return $this->max_uses !== null;
-    }
-
-    public function hasUsesRemaining(): bool
-    {
-        return $this->uses_remaining === null || $this->uses_remaining > 0;
-    }
-
-    public function useFeature(): bool
-    {
-        if (! $this->hasLimitedUses()) {
-            return true;
-        }
-
-        if ($this->uses_remaining > 0) {
-            $this->decrement('uses_remaining');
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public function resetUses(): void
-    {
-        if ($this->hasLimitedUses()) {
-            $this->update(['uses_remaining' => $this->max_uses]);
-        }
     }
 }

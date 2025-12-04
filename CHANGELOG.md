@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Extract HasLimitedUses Trait** (Issue #142 - Phase 1)
+  - Created `App\Models\Concerns\HasLimitedUses` trait for limited-use feature tracking
+  - Consolidated identical methods from `CharacterFeature` and `CharacterOptionalFeature`
+  - Methods: `hasLimitedUses()`, `hasUsesRemaining()`, `useFeature()`, `resetUses()`
+  - Eliminates ~30 lines of duplicated code
+  - Added 11 dedicated unit tests for trait behavior
+
 ### Fixed
 
 - **Subclass Source Attribution** (Issue #141)

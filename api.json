@@ -12200,13 +12200,16 @@
                         "type": "string"
                     },
                     "level": {
-                        "type": "string"
+                        "type": "integer",
+                        "description": "Character level (total across all classes)"
                     },
                     "total_level": {
-                        "type": "string"
+                        "type": "integer",
+                        "description": "Total character level"
                     },
                     "is_multiclass": {
-                        "type": "string"
+                        "type": "boolean",
+                        "description": "Whether character has multiple classes"
                     },
                     "experience_points": {
                         "anyOf": [
@@ -12222,11 +12225,27 @@
                         ]
                     },
                     "is_complete": {
-                        "type": "string",
-                        "description": "Completion status"
+                        "type": "boolean",
+                        "description": "Whether character has all required fields"
                     },
                     "validation_status": {
-                        "type": "string"
+                        "type": "object",
+                        "description": "Validation status with missing fields",
+                        "properties": {
+                            "is_complete": {
+                                "type": "boolean"
+                            },
+                            "missing": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "required": [
+                            "is_complete",
+                            "missing"
+                        ]
                     },
                     "ability_score_method": {
                         "type": "string",
@@ -12234,7 +12253,6 @@
                     },
                     "ability_scores": {
                         "type": "object",
-                        "description": "Ability scores (as STR/DEX/CON/INT/WIS/CHA keyed array)",
                         "properties": {
                             "STR": {
                                 "type": [
@@ -12283,8 +12301,53 @@
                         ]
                     },
                     "modifiers": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "properties": {
+                            "STR": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "DEX": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "CON": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "INT": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "WIS": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "CHA": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "STR",
+                            "DEX",
+                            "CON",
+                            "INT",
+                            "WIS",
+                            "CHA"
+                        ]
                     },
                     "proficiency_bonus": {
                         "type": "integer",
@@ -12313,7 +12376,11 @@
                         "type": "integer"
                     },
                     "armor_class": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Calculated armor class"
                     },
                     "asi_choices_remaining": {
                         "description": "Level-up tracking",
@@ -12340,14 +12407,57 @@
                         "type": "boolean"
                     },
                     "speed": {
-                        "type": "string",
-                        "description": "Race-derived attributes"
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Walking speed from race"
                     },
                     "speeds": {
-                        "type": "string"
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "description": "All movement speeds",
+                        "properties": {
+                            "walk": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "fly": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "swim": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "climb": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "walk",
+                            "fly",
+                            "swim",
+                            "climb"
+                        ]
                     },
                     "size": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Character size (e.g., \"Medium\", \"Small\")"
                     },
                     "equipped": {
                         "type": "object",
@@ -12453,9 +12563,16 @@
                             "object",
                             "null"
                         ],
+                        "description": "Spell slots",
                         "properties": {
                             "standard": {
-                                "type": "string"
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": {
+                                    "type": "integer"
+                                }
                             },
                             "pact": {
                                 "type": [
@@ -12464,10 +12581,10 @@
                                 ],
                                 "properties": {
                                     "count": {
-                                        "type": "string"
+                                        "type": "integer"
                                     },
                                     "level": {
-                                        "type": "string"
+                                        "type": "integer"
                                     }
                                 },
                                 "required": [
@@ -12761,12 +12878,39 @@
                         "type": "integer"
                     },
                     "ability_scores": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "description": "Ability scores keyed by code (STR, DEX, etc.)",
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "score": {
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ]
+                                },
+                                "modifier": {
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "score",
+                                "modifier"
+                            ]
+                        }
                     },
                     "saving_throws": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "description": "Saving throw modifiers keyed by ability code",
+                        "additionalProperties": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
                     },
                     "armor_class": {
                         "type": [
@@ -12838,14 +12982,37 @@
                     },
                     "spellcasting": {
                         "type": [
-                            "array",
+                            "object",
                             "null"
                         ],
-                        "items": {}
+                        "description": "Spellcasting info",
+                        "properties": {
+                            "ability": {
+                                "type": "string"
+                            },
+                            "ability_modifier": {
+                                "type": "integer"
+                            },
+                            "spell_save_dc": {
+                                "type": "integer"
+                            },
+                            "spell_attack_bonus": {
+                                "type": "integer"
+                            }
+                        },
+                        "required": [
+                            "ability",
+                            "ability_modifier",
+                            "spell_save_dc",
+                            "spell_attack_bonus"
+                        ]
                     },
                     "spell_slots": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "description": "Spell slots keyed by level (e.g., \"1\" => 4, \"2\" => 3)",
+                        "additionalProperties": {
+                            "type": "integer"
+                        }
                     },
                     "preparation_limit": {
                         "type": [
@@ -12858,7 +13025,26 @@
                     },
                     "hit_dice": {
                         "type": "array",
-                        "items": {}
+                        "description": "Hit dice by die type",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "die": {
+                                    "type": "string"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                },
+                                "current": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "die",
+                                "total",
+                                "current"
+                            ]
+                        }
                     }
                 },
                 "required": [
@@ -13379,7 +13565,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string",
+                        "type": "integer",
                         "description": "=== BASE FIELDS ===\nNote: hit_die and spellcasting_ability use effective values that\ninherit from parent class for subclasses (see class docblock)"
                     },
                     "slug": {
@@ -13389,28 +13575,43 @@
                         "type": "string"
                     },
                     "hit_die": {
-                        "type": "string"
+                        "type": "integer",
+                        "description": "Hit die value (e.g., 8, 10, 12) - inherits from parent for subclasses"
                     },
                     "description": {
                         "type": "string"
                     },
                     "archetype": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "primary_ability": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "spellcasting_ability": {
                         "$ref": "#/components/schemas/AbilityScoreResource"
                     },
                     "parent_class_id": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "is_base_class": {
-                        "type": "string"
+                        "type": "boolean",
+                        "description": "Whether this is a base class (not a subclass)"
                     },
                     "subclass_level": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Level at which subclass is chosen"
                     },
                     "spellcasting_type": {
                         "type": "string"
@@ -13468,7 +13669,11 @@
                         }
                     },
                     "counters": {
-                        "type": "array",
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "Class counters grouped by name",
                         "items": {
                             "$ref": "#/components/schemas/GroupedCounterResource"
                         }
@@ -15929,7 +16134,8 @@
                         ]
                     },
                     "is_subrace": {
-                        "type": "string"
+                        "type": "boolean",
+                        "description": "Whether this race is a subrace (has a parent race)"
                     },
                     "traits": {
                         "type": "array",

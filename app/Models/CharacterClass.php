@@ -15,6 +15,15 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
+/**
+ * @property int $id
+ * @property int $hit_die Hit die value (e.g., 8, 10, 12)
+ * @property int|null $parent_class_id Parent class ID for subclasses
+ * @property bool $is_base_class Whether this is a base class (not a subclass)
+ * @property int|null $subclass_level Level at which subclass is chosen
+ * @property int $effective_hit_die Effective hit die (inherits from parent for subclasses)
+ * @property AbilityScore|null $effective_spellcasting_ability Effective spellcasting ability
+ */
 class CharacterClass extends BaseModel
 {
     use HasEntityTraits, HasModifiers, HasProficiencies, HasProficiencyScopes, HasSearchableHelpers, HasSources, HasTags, Searchable;

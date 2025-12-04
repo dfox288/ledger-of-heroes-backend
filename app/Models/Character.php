@@ -14,6 +14,17 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
+/**
+ * @property int $total_level Total character level across all classes
+ * @property bool $is_multiclass Whether character has multiple classes
+ * @property bool $is_complete Whether character has all required fields
+ * @property array{is_complete: bool, missing: array<string>} $validation_status Validation status with missing fields
+ * @property int $armor_class Calculated armor class
+ * @property int|null $speed Walking speed from race
+ * @property array{walk: int|null, fly: int|null, swim: int|null, climb: int|null}|null $speeds All movement speeds
+ * @property string|null $size Character size from race
+ * @property CharacterClass|null $primary_class Primary class (first class taken)
+ */
 class Character extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;

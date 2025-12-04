@@ -295,6 +295,14 @@ class CharacterCreationFlowTest extends TestCase
                     'saving_throws',
                     'armor_class',
                     'hit_points',
+                    // Derived combat stats
+                    'initiative_bonus',
+                    'passive_perception',
+                    'passive_investigation',
+                    'passive_insight',
+                    'carrying_capacity',
+                    'push_drag_lift',
+                    // Spellcasting
                     'spellcasting',
                     'spell_slots',
                     'preparation_limit',
@@ -305,6 +313,14 @@ class CharacterCreationFlowTest extends TestCase
             ->assertJsonPath('data.proficiency_bonus', 3)
             ->assertJsonPath('data.ability_scores.INT.score', 18)
             ->assertJsonPath('data.ability_scores.INT.modifier', 4)
+            // Derived combat stats
+            ->assertJsonPath('data.initiative_bonus', 2) // DEX 14 (+2)
+            ->assertJsonPath('data.passive_perception', 11) // 10 + WIS mod (+1)
+            ->assertJsonPath('data.passive_investigation', 14) // 10 + INT mod (+4)
+            ->assertJsonPath('data.passive_insight', 11) // 10 + WIS mod (+1)
+            ->assertJsonPath('data.carrying_capacity', 120) // STR 8 × 15
+            ->assertJsonPath('data.push_drag_lift', 240) // STR 8 × 30
+            // Spellcasting
             ->assertJsonPath('data.spellcasting.ability', 'INT')
             ->assertJsonPath('data.spellcasting.spell_save_dc', 15) // 8 + 3 + 4
             ->assertJsonPath('data.spellcasting.spell_attack_bonus', 7); // 3 + 4

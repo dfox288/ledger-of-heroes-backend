@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Derived Combat Stats** (Issue #113)
+  - New stats available via `GET /characters/{id}/stats` endpoint:
+    - `initiative_bonus` - DEX modifier (supports future feature bonuses like Alert feat)
+    - `passive_perception` - 10 + WIS mod + proficiency/expertise in Perception
+    - `passive_investigation` - 10 + INT mod + proficiency/expertise in Investigation
+    - `passive_insight` - 10 + WIS mod + proficiency/expertise in Insight
+    - `carrying_capacity` - STR × 15, modified by creature size
+    - `push_drag_lift` - STR × 30, modified by creature size
+  - Size multipliers for carrying capacity: Tiny (×0.5), Small/Medium (×1), Large (×2), Huge (×4), Gargantuan (×8)
+  - Accounts for skill proficiency and expertise in passive skill calculations
+  - New methods in CharacterStatCalculator: `calculateInitiative()`, `calculatePassiveSkill()`, `calculateCarryingCapacity()`, `calculatePushDragLift()`
+
 - **Multiclass Support for Character Builder** (Issue #92, #109)
   - New `character_classes` junction table for multiple classes per character
   - Subclass support via `subclass_id` on junction table (also covers Issue #109)

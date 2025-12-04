@@ -3,6 +3,7 @@
 namespace App\DTOs;
 
 use App\Models\Character;
+use App\Models\Skill;
 use App\Services\CharacterStatCalculator;
 
 /**
@@ -27,6 +28,13 @@ class CharacterStatsDTO
         public readonly array $spellSlots,
         public readonly ?int $preparationLimit,
         public readonly int $preparedSpellCount,
+        // Derived combat stats
+        public readonly ?int $initiativeBonus,
+        public readonly ?int $passivePerception,
+        public readonly ?int $passiveInvestigation,
+        public readonly ?int $passiveInsight,
+        public readonly ?int $carryingCapacity,
+        public readonly ?int $pushDragLift,
     ) {}
 
     /**
@@ -85,6 +93,48 @@ class CharacterStatsDTO
             ->whereHas('spell', fn ($q) => $q->where('level', '>', 0))
             ->count();
 
+        // Calculate derived combat stats
+        $dexMod = $abilityModifiers['DEX'] ?? 0;
+        $wisMod = $abilityModifiers['WIS'] ?? 0;
+        $intMod = $abilityModifiers['INT'] ?? 0;
+        $strScore = $abilityScores['STR'] ?? 10;
+
+        // Initiative bonus (DEX modifier + any bonuses from features)
+        // TODO: Add feature bonuses (Alert feat, etc.) when feature system tracks them
+        $initiativeBonus = $dexMod !== null ? $calculator->calculateInitiative($dexMod) : null;
+
+        // Get skill proficiencies for passive skills
+        $skillProficiencies = self::getSkillProficiencies($character);
+
+        // Passive Perception (WIS-based)
+        $passivePerception = $wisMod !== null ? $calculator->calculatePassiveSkill(
+            $wisMod,
+            $skillProficiencies['perception']['proficient'] ?? false,
+            $skillProficiencies['perception']['expertise'] ?? false,
+            $proficiencyBonus
+        ) : null;
+
+        // Passive Investigation (INT-based)
+        $passiveInvestigation = $intMod !== null ? $calculator->calculatePassiveSkill(
+            $intMod,
+            $skillProficiencies['investigation']['proficient'] ?? false,
+            $skillProficiencies['investigation']['expertise'] ?? false,
+            $proficiencyBonus
+        ) : null;
+
+        // Passive Insight (WIS-based)
+        $passiveInsight = $wisMod !== null ? $calculator->calculatePassiveSkill(
+            $wisMod,
+            $skillProficiencies['insight']['proficient'] ?? false,
+            $skillProficiencies['insight']['expertise'] ?? false,
+            $proficiencyBonus
+        ) : null;
+
+        // Carrying capacity (based on STR and size)
+        $size = $character->size ?? 'Medium';
+        $carryingCapacity = $strScore !== null ? $calculator->calculateCarryingCapacity($strScore, $size) : null;
+        $pushDragLift = $strScore !== null ? $calculator->calculatePushDragLift($strScore, $size) : null;
+
         return new self(
             characterId: $character->id,
             level: $level,
@@ -100,6 +150,40 @@ class CharacterStatsDTO
             spellSlots: $spellSlots,
             preparationLimit: $preparationLimit,
             preparedSpellCount: $preparedSpellCount,
+            initiativeBonus: $initiativeBonus,
+            passivePerception: $passivePerception,
+            passiveInvestigation: $passiveInvestigation,
+            passiveInsight: $passiveInsight,
+            carryingCapacity: $carryingCapacity,
+            pushDragLift: $pushDragLift,
         );
+    }
+
+    /**
+     * Get skill proficiency and expertise status for a character.
+     *
+     * @return array<string, array{proficient: bool, expertise: bool}>
+     */
+    private static function getSkillProficiencies(Character $character): array
+    {
+        $result = [];
+
+        // Load character's skill proficiencies with skill relationship
+        $proficiencies = $character->proficiencies()
+            ->whereNotNull('skill_id')
+            ->with('skill')
+            ->get();
+
+        foreach ($proficiencies as $proficiency) {
+            if ($proficiency->skill) {
+                $slug = $proficiency->skill->slug;
+                $result[$slug] = [
+                    'proficient' => true,
+                    'expertise' => $proficiency->expertise ?? false,
+                ];
+            }
+        }
+
+        return $result;
     }
 }

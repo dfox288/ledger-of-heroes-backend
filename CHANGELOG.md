@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Proficiency Choices Metadata** (Issue #168)
+  - Added `proficiency_type` and `proficiency_subcategory` fields to `/characters/{id}/proficiency-choices` response
+  - For subcategory-based choices (e.g., artisan tools), `options: []` with `proficiency_subcategory: "artisan"`
+  - Frontend can now detect subcategory choices and fetch options from `/lookups/proficiency-types?category=tool&subcategory=artisan`
+  - Regular choices (skills, specific tools) have `proficiency_subcategory: null` with populated `options`
+
 ### Fixed
 
 - **Artificer Equipment Choices Parsing** (Issue #167)

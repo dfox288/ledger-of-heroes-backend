@@ -21,7 +21,15 @@ class RaceXmlParser
         $races = [];
 
         foreach ($xml->race as $raceElement) {
-            $races[] = $this->parseRace($raceElement);
+            // Check if this is a variant bundle that needs expansion
+            if ($this->isVariantBundle($raceElement)) {
+                $expandedRaces = $this->expandVariantBundle($raceElement);
+                foreach ($expandedRaces as $expandedRace) {
+                    $races[] = $expandedRace;
+                }
+            } else {
+                $races[] = $this->parseRace($raceElement);
+            }
         }
 
         return $races;
@@ -497,6 +505,174 @@ class RaceXmlParser
         }
 
         return $modifiers;
+    }
+
+    /**
+     * Check if a race element is a "variant bundle" that should be expanded.
+     *
+     * Variant bundles are races like "Tiefling, Variants" that contain multiple
+     * mutually exclusive subspecies options in a single <race> element.
+     *
+     * Detection criteria:
+     * - Name ends with ", Variants"
+     * - Has 2+ subspecies traits with "Variant:" prefix (excluding Appearance)
+     */
+    private function isVariantBundle(SimpleXMLElement $element): bool
+    {
+        $name = (string) $element->name;
+
+        // Must be named "Something, Variants"
+        if (! str_ends_with($name, ', Variants')) {
+            return false;
+        }
+
+        // Count subspecies traits with "Variant:" prefix (excluding Appearance)
+        $variantTraitCount = 0;
+        foreach ($element->trait as $trait) {
+            $category = (string) $trait['category'];
+            $traitName = (string) $trait->name;
+
+            if ($category === 'subspecies'
+                && str_starts_with($traitName, 'Variant:')
+                && ! str_contains($traitName, 'Appearance')) {
+                $variantTraitCount++;
+            }
+        }
+
+        // Need at least 2 mutually exclusive variant traits
+        return $variantTraitCount >= 2;
+    }
+
+    /**
+     * Expand a variant bundle into multiple separate race arrays.
+     *
+     * For "Tiefling, Variants", this creates:
+     * - Feral (keeps Infernal Legacy)
+     * - Devil's Tongue (variant trait replaces Infernal Legacy)
+     * - Hellfire (variant trait replaces Infernal Legacy)
+     * - Winged (variant trait replaces Infernal Legacy)
+     *
+     * All subraces share: Darkvision, Hellish Resistance, Appearance, and common traits.
+     *
+     * @return array<int, array> Array of race data arrays
+     */
+    private function expandVariantBundle(SimpleXMLElement $element): array
+    {
+        $fullName = (string) $element->name;
+
+        // Extract base race name: "Tiefling, Variants" -> "Tiefling"
+        [$baseRaceName] = array_map('trim', explode(',', $fullName, 2));
+
+        // Parse all traits
+        $allTraits = $this->parseTraitElements($element);
+
+        // Categorize traits
+        $sharedTraits = [];           // Species, description, general traits (shared by all)
+        $replaceableTrait = null;     // The trait that variants replace (e.g., Infernal Legacy)
+        $appearanceTrait = null;      // Cosmetic trait duplicated on all
+        $variantTraits = [];          // Mutually exclusive variant traits
+
+        foreach ($allTraits as $trait) {
+            $category = $trait['category'] ?? null;
+            $traitName = $trait['name'];
+
+            if ($category === 'subspecies') {
+                if (str_contains($traitName, 'Appearance')) {
+                    $appearanceTrait = $trait;
+                } elseif (str_starts_with($traitName, 'Variant:')) {
+                    $variantTraits[] = $trait;
+                }
+            } elseif ($category === 'species' && $traitName === 'Infernal Legacy') {
+                // This is the replaceable trait
+                $replaceableTrait = $trait;
+            } else {
+                // All other traits are shared
+                $sharedTraits[] = $trait;
+            }
+        }
+
+        // Parse common data that all variants share
+        $commonData = [
+            'base_race_name' => $baseRaceName,
+            'size_code' => (string) $element->size,
+            'speed' => (int) $element->speed,
+            'ability_bonuses' => $this->parseAbilityBonuses($element),
+            'proficiencies' => $this->parseProficiencies($element),
+            'resistances' => $this->parseResistances($element),
+            'modifiers' => $this->parseModifiers($element),
+        ];
+
+        // Extract sources
+        $sources = [];
+        foreach ($sharedTraits as &$trait) {
+            if (str_contains($trait['description'], 'Source:')) {
+                $sources = $this->parseSourceCitations($trait['description']);
+                $trait['description'] = trim(preg_replace('/\n*Source:\s*[^\n]+/', '', $trait['description']));
+                break;
+            }
+        }
+        if (empty($sources)) {
+            $sources = [['code' => 'PHB', 'pages' => '']];
+        }
+        $commonData['sources'] = $sources;
+
+        // Parse languages
+        $commonData['languages'] = $this->parseLanguages($element);
+
+        // Parse conditions
+        $commonData['conditions'] = $this->parseConditionsAndImmunities($allTraits);
+
+        // Parse ability choices
+        $commonData['ability_choices'] = $this->parseAbilityChoices($allTraits);
+
+        // Parse spellcasting (will be overridden per variant as needed)
+        $commonSpellcasting = $this->parseSpellcasting($element, $allTraits);
+
+        // Build the expanded races
+        $expandedRaces = [];
+
+        // 1. Create "Feral" variant - keeps the replaceable trait (Infernal Legacy)
+        $feralTraits = $sharedTraits;
+        if ($replaceableTrait) {
+            $feralTraits[] = $replaceableTrait;
+        }
+        if ($appearanceTrait) {
+            $feralTraits[] = $appearanceTrait;
+        }
+
+        // For expanded variants, we DON'T set subrace_traits because SubraceStrategy
+        // would replace 'traits' with just subspecies traits. These are self-contained
+        // subraces from SCAG that need all their traits imported directly.
+        $expandedRaces[] = array_merge($commonData, [
+            'name' => 'Feral',
+            'traits' => $feralTraits,
+            'spellcasting' => $commonSpellcasting,
+        ]);
+
+        // 2. Create variants that replace Infernal Legacy
+        foreach ($variantTraits as $variantTrait) {
+            // Extract variant name: "Variant: Devil's Tongue" -> "Devil's Tongue"
+            $variantName = trim(str_replace('Variant:', '', $variantTrait['name']));
+
+            // Build traits for this variant (shared + variant trait + appearance)
+            $thisVariantTraits = $sharedTraits;
+            $thisVariantTraits[] = $variantTrait;
+            if ($appearanceTrait) {
+                $thisVariantTraits[] = $appearanceTrait;
+            }
+
+            // Parse spellcasting from this variant's trait text
+            $variantSpellcasting = $this->parseSpellcasting($element, [$variantTrait]);
+
+            // Same as Feral - don't set subrace_traits to preserve all traits
+            $expandedRaces[] = array_merge($commonData, [
+                'name' => $variantName,
+                'traits' => $thisVariantTraits,
+                'spellcasting' => $variantSpellcasting,
+            ]);
+        }
+
+        return $expandedRaces;
     }
 
     // parseModifierText() and determineBonusCategory() provided by ParsesModifiers trait

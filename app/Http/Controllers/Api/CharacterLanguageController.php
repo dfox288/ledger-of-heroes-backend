@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CharacterLanguageResource;
+use App\Http\Resources\ChoicesResource;
 use App\Models\Character;
 use App\Services\CharacterLanguageService;
 use Illuminate\Http\JsonResponse;
@@ -119,13 +120,13 @@ class CharacterLanguageController extends Controller
      * - `choices.selected`: Array of language IDs already chosen for this source
      * - `choices.options`: Available languages to choose from (excludes already known)
      */
-    public function choices(Character $character): JsonResponse
+    public function choices(Character $character): ChoicesResource
     {
         $character->load(['race', 'background', 'features', 'languages']);
 
         $choices = $this->languageService->getPendingChoices($character);
 
-        return response()->json(['data' => $choices]);
+        return new ChoicesResource($choices);
     }
 
     /**

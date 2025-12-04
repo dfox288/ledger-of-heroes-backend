@@ -2,11 +2,14 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Concerns\FormatsRelatedModels;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProficiencyResource extends JsonResource
 {
+    use FormatsRelatedModels;
+
     /**
      * Transform the resource into an array.
      *
@@ -30,12 +33,10 @@ class ProficiencyResource extends JsonResource
              *
              * @var array{id: int, name: string}|null
              */
-            'item' => $this->when($this->item_id, function () {
-                return [
-                    'id' => $this->item->id,
-                    'name' => $this->item->name,
-                ];
-            }),
+            'item' => $this->when(
+                $this->item_id,
+                fn () => $this->formatEntity($this->item, ['id', 'name'])
+            ),
             'ability_score' => $this->when($this->ability_score_id, function () {
                 return new AbilityScoreResource($this->whenLoaded('abilityScore'));
             }),

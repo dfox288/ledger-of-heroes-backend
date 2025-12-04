@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\LookupResource;
 use App\Models\Monster;
 use Dedoc\Scramble\Attributes\QueryParameter;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Str;
 
 /**
@@ -45,7 +46,7 @@ class MonsterTypeController extends Controller
      * - Spell effect verification (many spells target specific creature types)
      */
     #[QueryParameter('q', description: 'Search creature types by name', example: 'fiend')]
-    public function index(): JsonResponse
+    public function index(): AnonymousResourceCollection
     {
         $types = Monster::query()
             ->whereNotNull('type')
@@ -59,6 +60,6 @@ class MonsterTypeController extends Controller
             ])
             ->values();
 
-        return response()->json(['data' => $types]);
+        return LookupResource::collection($types);
     }
 }

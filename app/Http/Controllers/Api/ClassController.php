@@ -8,6 +8,7 @@ use App\Http\Requests\ClassIndexRequest;
 use App\Http\Requests\ClassShowRequest;
 use App\Http\Requests\ClassSpellListRequest;
 use App\Http\Resources\ClassResource;
+use App\Http\Resources\ProgressionTableResource;
 use App\Http\Resources\SpellResource;
 use App\Models\CharacterClass;
 use App\Services\Cache\EntityCacheService;
@@ -679,19 +680,19 @@ class ClassController extends Controller
      * When called on a subclass, returns the parent class's progression table
      * since subclasses inherit the base class progression mechanics.
      */
-    public function progression(CharacterClass $class, ClassProgressionTableGenerator $generator)
+    public function progression(CharacterClass $class, ClassProgressionTableGenerator $generator): ProgressionTableResource
     {
         // Load required relationships for progression table
         $progressionClass = $class->is_base_class ? $class : $class->parentClass;
 
         if (! $progressionClass) {
-            return response()->json(['data' => ['columns' => [], 'rows' => []]], 200);
+            return new ProgressionTableResource(['columns' => [], 'rows' => []]);
         }
 
         $progressionClass->load(['levelProgression', 'counters', 'features']);
 
         $table = $generator->generate($class);
 
-        return response()->json(['data' => $table]);
+        return new ProgressionTableResource($table);
     }
 }

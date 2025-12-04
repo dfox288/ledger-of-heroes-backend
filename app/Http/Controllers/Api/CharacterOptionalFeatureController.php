@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CharacterOptionalFeature\StoreCharacterOptionalFeatureRequest;
 use App\Http\Resources\CharacterOptionalFeatureResource;
+use App\Http\Resources\ChoicesResource;
 use App\Http\Resources\OptionalFeatureResource;
 use App\Models\Character;
 use App\Models\CharacterOptionalFeature;
@@ -107,11 +108,11 @@ class CharacterOptionalFeatureController extends Controller
      * GET /api/v1/characters/1/optional-feature-choices
      * ```
      */
-    public function choices(Character $character): JsonResponse
+    public function choices(Character $character): ChoicesResource
     {
         $choices = $this->calculatePendingChoices($character);
 
-        return response()->json(['data' => $choices]);
+        return new ChoicesResource($choices);
     }
 
     /**

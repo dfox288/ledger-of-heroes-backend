@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **API Resource Standardization** (Issue #145)
+  - Created `LookupResource` for generic slug/name lookup endpoints
+  - Created `OptionalFeatureTypeResource` for enum-based lookups
+  - Created `ShortRestResultResource` and `LongRestResultResource` for rest actions
+  - Created `SpellSlotsResource` for spell slot data
+  - Created `ChoicesResource` for choice-related endpoints
+  - Updated 12 controllers to use proper Laravel Resources instead of raw arrays
+  - Adopted `FormatsRelatedModels` trait in `CharacterResource`, `CharacterEquipmentResource`, `PackContentResource`, and `ProficiencyResource`
+  - Eliminates all `response()->json(['data' => ...])` patterns from API controllers
+
 - **CharacterSource Enum** (Issue #142 - Phase 3)
   - Created `App\Enums\CharacterSource` enum for type-safe source validation
   - Replaces magic strings ('race', 'background', 'class', 'feat', 'item', 'other')
@@ -33,6 +43,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added 11 dedicated unit tests for trait behavior
 
 ### Fixed
+
+- **Background Conditional Language Parsing** (Issue #146)
+  - Fixed Clan Crafter background: now correctly parses "Dwarvish, or one other of your choice if you already speak Dwarvish"
+    - Returns Dwarvish as a fixed language grant PLUS one unrestricted choice
+  - Fixed Feylost background: now correctly parses "One of your choice of Elvish, Gnomish, Goblin, or Sylvan"
+    - Returns 4 restricted choice options with `choice_group` linking them
+  - Added `choice_group` and `choice_option` columns to `entity_languages` table (matches `entity_proficiencies` pattern)
+  - Updated `BackgroundXmlParser::parseLanguagesFromTraitText()` with 4 distinct pattern handlers
+  - Updated `ImportsLanguages` trait to handle restricted choices
 
 - **Subclass Source Attribution** (Issue #141)
   - Subclasses now have their own source attribution populated during import

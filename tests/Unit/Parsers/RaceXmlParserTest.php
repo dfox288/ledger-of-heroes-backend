@@ -875,4 +875,63 @@ XML;
         $this->assertContains('Variant: Winged', $wingedTraitNames);
         $this->assertNotContains('Infernal Legacy', $wingedTraitNames);
     }
+
+    #[Test]
+    public function it_parses_spell_without_level_requirement()
+    {
+        // Test case: Eladrin (DMG) - "You can cast the misty step spell once using this trait"
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Elf, Eladrin (DMG)</name>
+    <size>M</size>
+    <speed>30</speed>
+    <ability>Dex +2, Int +1</ability>
+    <trait category="subspecies">
+      <name>Fey Step</name>
+      <text>You can cast the misty step spell once using this trait. You regain the ability to do so when you finish a short or long rest.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races);
+        $this->assertArrayHasKey('spellcasting', $races[0]);
+        $this->assertCount(1, $races[0]['spellcasting']['spells']);
+
+        $spell = $races[0]['spellcasting']['spells'][0];
+        $this->assertEquals('misty step', $spell['spell_name']);
+        $this->assertFalse($spell['is_cantrip']);
+        $this->assertNull($spell['level_requirement']);
+        $this->assertEquals('1/short rest', $spell['usage_limit']);
+    }
+
+    #[Test]
+    public function it_parses_spell_with_long_rest_recovery()
+    {
+        // Test case for spells with long rest only recovery
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Test Race</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait category="subspecies">
+      <name>Magic Trait</name>
+      <text>You can cast the shield spell once using this trait. You regain the ability to do so when you finish a long rest.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $spell = $races[0]['spellcasting']['spells'][0];
+        $this->assertEquals('shield', $spell['spell_name']);
+        $this->assertEquals('1/long rest', $spell['usage_limit']);
+    }
 }

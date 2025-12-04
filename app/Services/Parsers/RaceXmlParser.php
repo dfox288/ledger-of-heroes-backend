@@ -387,6 +387,25 @@ class RaceXmlParser
                     ];
                 }
             }
+
+            // Pattern: "You can cast the SPELL spell once" (no level requirement)
+            // This handles races like Eladrin (DMG) with innate spellcasting
+            if (preg_match_all('/You can cast the ([\w\s\']+) spell once/i', $text, $matches)) {
+                foreach ($matches[1] as $spellName) {
+                    // Determine rest type from surrounding text
+                    $usageLimit = '1/long rest';
+                    if (preg_match('/short or long rest|short rest/i', $text)) {
+                        $usageLimit = '1/short rest';
+                    }
+
+                    $spellData['spells'][] = [
+                        'spell_name' => trim($spellName),
+                        'is_cantrip' => false,
+                        'level_requirement' => null,
+                        'usage_limit' => $usageLimit,
+                    ];
+                }
+            }
         }
 
         return $spellData;

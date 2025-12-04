@@ -2,7 +2,25 @@
 
 **Issue:** #118 - Character Builder: Optional Feature Choices
 **Date:** 2025-12-04
-**Status:** Approved
+**Status:** ✅ Completed
+
+## Implementation Summary
+
+### Part 1: Parser (Commit 19c4867)
+- Created `ParsesFeatureChoiceProgressions` trait
+- Integrated into `ClassXmlParser`
+- 13 unit tests passing
+
+### Part 2: API (Commit b996c9a)
+- `character_optional_features` table and model
+- 5 API endpoints for feature selection/management
+- Validation: duplicates, level requirements, class eligibility
+- CharacterResource updated
+
+### Remaining
+- Feature tests for endpoints (optional, can be done later)
+
+---
 
 ## Problem
 

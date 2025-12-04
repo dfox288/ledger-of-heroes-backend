@@ -4,15 +4,12 @@ namespace Tests\Feature\Api;
 
 use App\Models\AbilityScore;
 use App\Models\Spell;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use Tests\Feature\Api\Concerns\ReverseRelationshipTestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('feature-db')]
-class AbilityScoreReverseRelationshipsApiTest extends TestCase
+class AbilityScoreReverseRelationshipsApiTest extends ReverseRelationshipTestCase
 {
-    use RefreshDatabase;
-
     protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
 
     #[Test]
@@ -20,41 +17,22 @@ class AbilityScoreReverseRelationshipsApiTest extends TestCase
     {
         $dexterity = AbilityScore::where('code', 'DEX')->first();
 
-        $fireball = Spell::factory()->create([
-            'name' => 'Fireball',
-            'slug' => 'fireball',
-        ]);
+        $fireball = Spell::factory()->create(['name' => 'Fireball', 'slug' => 'fireball']);
+        $lightningBolt = Spell::factory()->create(['name' => 'Lightning Bolt', 'slug' => 'lightning-bolt']);
 
-        $lightningBolt = Spell::factory()->create([
-            'name' => 'Lightning Bolt',
-            'slug' => 'lightning-bolt',
-        ]);
-
-        // Attach spells to ability score via entity_saving_throws
-        $dexterity->entitiesRequiringSave()->attach($fireball, [
-            'save_effect' => 'half_damage',
-            'is_initial_save' => true,
-        ]);
-
-        $dexterity->entitiesRequiringSave()->attach($lightningBolt, [
-            'save_effect' => 'half_damage',
-            'is_initial_save' => true,
-        ]);
+        $dexterity->entitiesRequiringSave()->attach($fireball, ['save_effect' => 'half_damage', 'is_initial_save' => true]);
+        $dexterity->entitiesRequiringSave()->attach($lightningBolt, ['save_effect' => 'half_damage', 'is_initial_save' => true]);
 
         // Different ability score - should not appear
         $wisdom = AbilityScore::where('code', 'WIS')->first();
         $holdPerson = Spell::factory()->create(['name' => 'Hold Person']);
-        $wisdom->entitiesRequiringSave()->attach($holdPerson, [
-            'save_effect' => 'negates',
-            'is_initial_save' => true,
-        ]);
+        $wisdom->entitiesRequiringSave()->attach($holdPerson, ['save_effect' => 'negates', 'is_initial_save' => true]);
 
-        $response = $this->getJson("/api/v1/lookups/ability-scores/{$dexterity->id}/spells");
-
-        $response->assertOk()
-            ->assertJsonCount(2, 'data')
-            ->assertJsonPath('data.0.name', 'Fireball')
-            ->assertJsonPath('data.1.name', 'Lightning Bolt');
+        $this->assertReturnsRelatedEntities(
+            "/api/v1/lookups/ability-scores/{$dexterity->id}/spells",
+            2,
+            ['Fireball', 'Lightning Bolt']
+        );
     }
 
     #[Test]
@@ -62,10 +40,7 @@ class AbilityScoreReverseRelationshipsApiTest extends TestCase
     {
         $charisma = AbilityScore::where('code', 'CHA')->first();
 
-        $response = $this->getJson("/api/v1/lookups/ability-scores/{$charisma->id}/spells");
-
-        $response->assertOk()
-            ->assertJsonCount(0, 'data');
+        $this->assertReturnsEmpty("/api/v1/lookups/ability-scores/{$charisma->id}/spells");
     }
 
     #[Test]
@@ -73,16 +48,9 @@ class AbilityScoreReverseRelationshipsApiTest extends TestCase
     {
         $dex = AbilityScore::where('code', 'DEX')->first();
         $spell = Spell::factory()->create();
+        $dex->entitiesRequiringSave()->attach($spell, ['save_effect' => 'half_damage', 'is_initial_save' => true]);
 
-        $dex->entitiesRequiringSave()->attach($spell, [
-            'save_effect' => 'half_damage',
-            'is_initial_save' => true,
-        ]);
-
-        $response = $this->getJson('/api/v1/lookups/ability-scores/DEX/spells');
-
-        $response->assertOk()
-            ->assertJsonCount(1, 'data');
+        $this->assertAcceptsAlternativeIdentifier('/api/v1/lookups/ability-scores/DEX/spells');
     }
 
     #[Test]
@@ -90,19 +58,17 @@ class AbilityScoreReverseRelationshipsApiTest extends TestCase
     {
         $con = AbilityScore::where('code', 'CON')->first();
 
-        // Create 75 spells with CON saves
-        Spell::factory()->count(75)->create()->each(function ($spell) use ($con) {
-            $con->entitiesRequiringSave()->attach($spell, [
-                'save_effect' => 'half_damage',
-                'is_initial_save' => true,
-            ]);
+        $this->createMultipleEntities(75, function () use ($con) {
+            $spell = Spell::factory()->create();
+            $con->entitiesRequiringSave()->attach($spell, ['save_effect' => 'half_damage', 'is_initial_save' => true]);
+            return $spell;
         });
 
-        $response = $this->getJson("/api/v1/lookups/ability-scores/{$con->id}/spells?per_page=25");
-
-        $response->assertOk()
-            ->assertJsonCount(25, 'data')
-            ->assertJsonPath('meta.total', 75)
-            ->assertJsonPath('meta.per_page', 25);
+        $this->assertPaginatesCorrectly(
+            "/api/v1/lookups/ability-scores/{$con->id}/spells?per_page=25",
+            25,
+            75,
+            25
+        );
     }
 }

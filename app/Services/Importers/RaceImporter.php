@@ -467,8 +467,8 @@ class RaceImporter extends BaseImporter
             $name = $trait['name'] ?? '';
             $description = $trait['description'] ?? '';
 
-            // Check for Flight trait
-            if (stripos($name, 'flight') !== false || stripos($name, 'flying') !== false) {
+            // Check for Flight trait (including Winged variants)
+            if (preg_match('/flight|flying|winged/i', $name)) {
                 if (preg_match('/flying speed of (\d+) feet/i', $description, $matches)) {
                     $speeds['fly_speed'] = (int) $matches[1];
                 }

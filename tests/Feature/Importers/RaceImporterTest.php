@@ -1034,4 +1034,123 @@ XML;
         $this->assertNotNull($race);
         $this->assertEquals(20, $race->climb_speed);
     }
+
+    #[Test]
+    public function it_expands_tiefling_variants_into_separate_subraces()
+    {
+        // First create the base Tiefling race (from PHB)
+        $baseTiefling = Race::factory()->create([
+            'name' => 'Tiefling',
+            'slug' => 'tiefling',
+            'speed' => 30,
+        ]);
+
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Tiefling, Variants</name>
+    <size>M</size>
+    <speed>30</speed>
+    <ability>Dex +2, Int +1</ability>
+    <resist>fire</resist>
+    <spellAbility>Charisma</spellAbility>
+    <trait category="description">
+      <name>Description</name>
+      <text>Since not all tieflings are of the blood of Asmodeus, some have traits that differ.
+
+Source:	Player's Handbook (2014) p. 43,
+		Sword Coast Adventurer's Guide p. 118</text>
+    </trait>
+    <trait>
+      <name>Age</name>
+      <text>Tieflings mature at the same rate as humans.</text>
+    </trait>
+    <trait category="species">
+      <name>Darkvision</name>
+      <text>You can see in dim light within 60 feet of you.</text>
+    </trait>
+    <trait category="species">
+      <name>Hellish Resistance</name>
+      <text>You have resistance to fire damage.</text>
+    </trait>
+    <trait category="species">
+      <name>Infernal Legacy</name>
+      <text>You know the Thaumaturgy cantrip.</text>
+    </trait>
+    <trait category="subspecies">
+      <name>Variant: Appearance</name>
+      <text>Your tiefling might not look like other tieflings.</text>
+    </trait>
+    <trait category="subspecies">
+      <name>Variant: Devil's Tongue</name>
+      <text>You know the vicious mockery cantrip. This trait replaces the Infernal Legacy trait.</text>
+    </trait>
+    <trait category="subspecies">
+      <name>Variant: Hellfire</name>
+      <text>You can cast burning hands. This trait replaces the Infernal Legacy trait.</text>
+    </trait>
+    <trait category="subspecies">
+      <name>Variant: Winged</name>
+      <text>You have bat-like wings. You have a flying speed of 30 feet. This replaces the Infernal Legacy trait.</text>
+    </trait>
+    <trait>
+      <name>Languages</name>
+      <text>You can speak Common and Infernal.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $count = $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        // The import count includes 4 subraces + 1 base race reference tracking
+        // (importFromFile counts base race first occurrence even when it already exists)
+        $expectedSubraces = 4;
+        $baseRaceTracking = 1;
+        $this->assertEquals(
+            $expectedSubraces + $baseRaceTracking,
+            $count,
+            'Should count 4 subraces + 1 base race reference'
+        );
+
+        // Verify the actual database state - 4 subraces created
+        $subraces = Race::where('parent_race_id', $baseTiefling->id)->get();
+        $this->assertCount($expectedSubraces, $subraces, 'Should create exactly 4 Tiefling variant subraces');
+
+        $subraceNames = $subraces->pluck('name')->toArray();
+        $this->assertContains('Feral', $subraceNames);
+        $this->assertContains("Devil's Tongue", $subraceNames);
+        $this->assertContains('Hellfire', $subraceNames);
+        $this->assertContains('Winged', $subraceNames);
+
+        // Check slugs are correct
+        $this->assertDatabaseHas('races', ['slug' => 'tiefling-feral']);
+        $this->assertDatabaseHas('races', ['slug' => 'tiefling-devils-tongue']);
+        $this->assertDatabaseHas('races', ['slug' => 'tiefling-hellfire']);
+        $this->assertDatabaseHas('races', ['slug' => 'tiefling-winged']);
+
+        // Check Feral has Infernal Legacy trait
+        $feral = Race::where('slug', 'tiefling-feral')->first();
+        $feralTraitNames = $feral->traits->pluck('name')->toArray();
+        $this->assertContains('Infernal Legacy', $feralTraitNames);
+        $this->assertContains('Darkvision', $feralTraitNames);
+        $this->assertContains('Variant: Appearance', $feralTraitNames);
+
+        // Check Devil's Tongue does NOT have Infernal Legacy but has its own trait
+        $devilsTongue = Race::where('slug', 'tiefling-devils-tongue')->first();
+        $devilsTongueTraitNames = $devilsTongue->traits->pluck('name')->toArray();
+        $this->assertContains("Variant: Devil's Tongue", $devilsTongueTraitNames);
+        $this->assertNotContains('Infernal Legacy', $devilsTongueTraitNames);
+        $this->assertContains('Darkvision', $devilsTongueTraitNames);
+
+        // Check Winged has flying speed extracted
+        $winged = Race::where('slug', 'tiefling-winged')->first();
+        $this->assertEquals(30, $winged->fly_speed);
+    }
 }

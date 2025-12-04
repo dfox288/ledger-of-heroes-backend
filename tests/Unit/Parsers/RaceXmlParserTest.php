@@ -728,4 +728,151 @@ XML;
         $this->assertTrue($toolChoice['is_choice']);
         $this->assertEquals(1, $toolChoice['quantity']);
     }
+
+    #[Test]
+    public function it_expands_tiefling_variants_into_separate_subraces()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Tiefling, Variants</name>
+    <size>M</size>
+    <speed>30</speed>
+    <ability>Dex +2, Int +1</ability>
+    <resist>fire</resist>
+    <spellAbility>Charisma</spellAbility>
+    <trait category="description">
+      <name>Description</name>
+      <text>Since not all tieflings are of the blood of Asmodeus, some have traits that differ from those in the Player's Handbook. The Dungeon Master may permit the following variants for your tiefling character, although Devil's Tongue, Hellfire, and Winged are mutually exclusive. (Choose only one)
+
+Source:	Player's Handbook (2014) p. 43,
+		Sword Coast Adventurer's Guide p. 118</text>
+    </trait>
+    <trait>
+      <name>Age</name>
+      <text>Tieflings mature at the same rate as humans but live a few years longer.</text>
+    </trait>
+    <trait>
+      <name>Size</name>
+      <text>Tieflings are about the same size and build as humans. Your size is Medium.</text>
+    </trait>
+    <trait category="species">
+      <name>Darkvision</name>
+      <text>Thanks to your infernal heritage, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.</text>
+    </trait>
+    <trait category="species">
+      <name>Hellish Resistance</name>
+      <text>You have resistance to fire damage.</text>
+    </trait>
+    <trait category="species">
+      <name>Infernal Legacy</name>
+      <text>You know the Thaumaturgy cantrip. Once you reach 3rd level, you can cast the hellish rebuke spell as a 2nd-level spell; you must finish a long rest in order to cast the spell again using this trait. Once you reach 5th level, you can also cast the darkness spell; you must finish a long rest in order to cast the spell again using this trait. Charisma is your spellcasting ability for these spells.</text>
+    </trait>
+    <trait category="subspecies">
+      <name>Variant: Appearance</name>
+      <text>Your tiefling might not look like other tieflings. Rather than having the physical characteristics described in the Player's Handbook, choose 1d4 + 1 of the following features:
+
+Small Horns;
+Fangs or Sharp Teeth;
+A Forked Tongue;
+Catlike Eyes;
+Six Fingers On Each Hand;
+Goat-Like Legs;
+Cloven Hoofs;
+A Forked Tail;
+Leathery or Scaly Skin;
+Red or Dark Blue Skin;
+Cast No Shadow Or Reflection;
+Exude a Smell Of Brimstone.</text>
+      <roll description="Features">1d4+1</roll>
+    </trait>
+    <trait category="subspecies">
+      <name>Variant: Devil's Tongue</name>
+      <text>You know the vicious mockery cantrip. When you reach 3rd level, you can cast the charm person spell as a 2nd-level spell once with this trait. When you reach 5th level, you can cast the enthrall spell once with this trait. You must finish a long rest to cast these spells once again with this trait. Charisma is your spellcasting ability for them. This trait replaces the Infernal Legacy trait.</text>
+    </trait>
+    <trait category="subspecies">
+      <name>Variant: Hellfire</name>
+      <text>Once you reach 3rd level, you can cast the burning hands spell once as a 2nd-level spell. This trait replaces the hellish rebuke spell of the Infernal Legacy trait.</text>
+    </trait>
+    <trait category="subspecies">
+      <name>Variant: Winged</name>
+      <text>You have bat-like wings sprouting from your shoulder blades. You have a flying speed of 30 feet while you aren't wearing heavy armor. This replaces the Infernal Legacy trait.</text>
+    </trait>
+    <trait>
+      <name>Languages</name>
+      <text>You can speak, read, and write Common and Infernal.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        // Should expand into 4 separate subraces
+        $this->assertCount(4, $races);
+
+        // All should have Tiefling as base race
+        foreach ($races as $race) {
+            $this->assertEquals('Tiefling', $race['base_race_name']);
+        }
+
+        // Extract race names for easier assertions
+        $raceNames = array_column($races, 'name');
+        $this->assertContains('Feral', $raceNames);
+        $this->assertContains("Devil's Tongue", $raceNames);
+        $this->assertContains('Hellfire', $raceNames);
+        $this->assertContains('Winged', $raceNames);
+
+        // All should have the same ability scores (Dex +2, Int +1)
+        foreach ($races as $race) {
+            $this->assertCount(2, $race['ability_bonuses']);
+            $this->assertEquals('Dex', $race['ability_bonuses'][0]['ability']);
+            $this->assertEquals('Int', $race['ability_bonuses'][1]['ability']);
+        }
+
+        // All should have Darkvision trait
+        foreach ($races as $race) {
+            $traitNames = array_column($race['traits'], 'name');
+            $this->assertContains('Darkvision', $traitNames, "Race {$race['name']} missing Darkvision");
+        }
+
+        // All should have Hellish Resistance trait
+        foreach ($races as $race) {
+            $traitNames = array_column($race['traits'], 'name');
+            $this->assertContains('Hellish Resistance', $traitNames, "Race {$race['name']} missing Hellish Resistance");
+        }
+
+        // All should have Variant: Appearance trait (duplicated per design)
+        foreach ($races as $race) {
+            $traitNames = array_column($race['traits'], 'name');
+            $this->assertContains('Variant: Appearance', $traitNames, "Race {$race['name']} missing Variant: Appearance");
+        }
+
+        // Feral should have Infernal Legacy
+        $feral = collect($races)->firstWhere('name', 'Feral');
+        $feralTraitNames = array_column($feral['traits'], 'name');
+        $this->assertContains('Infernal Legacy', $feralTraitNames);
+        $this->assertNotContains("Variant: Devil's Tongue", $feralTraitNames);
+        $this->assertNotContains('Variant: Hellfire', $feralTraitNames);
+        $this->assertNotContains('Variant: Winged', $feralTraitNames);
+
+        // Devil's Tongue should have its trait but NOT Infernal Legacy
+        $devilsTongue = collect($races)->firstWhere('name', "Devil's Tongue");
+        $devilsTongueTraitNames = array_column($devilsTongue['traits'], 'name');
+        $this->assertContains("Variant: Devil's Tongue", $devilsTongueTraitNames);
+        $this->assertNotContains('Infernal Legacy', $devilsTongueTraitNames);
+
+        // Hellfire should have its trait but NOT Infernal Legacy
+        $hellfire = collect($races)->firstWhere('name', 'Hellfire');
+        $hellfireTraitNames = array_column($hellfire['traits'], 'name');
+        $this->assertContains('Variant: Hellfire', $hellfireTraitNames);
+        $this->assertNotContains('Infernal Legacy', $hellfireTraitNames);
+
+        // Winged should have its trait but NOT Infernal Legacy
+        $winged = collect($races)->firstWhere('name', 'Winged');
+        $wingedTraitNames = array_column($winged['traits'], 'name');
+        $this->assertContains('Variant: Winged', $wingedTraitNames);
+        $this->assertNotContains('Infernal Legacy', $wingedTraitNames);
+    }
 }

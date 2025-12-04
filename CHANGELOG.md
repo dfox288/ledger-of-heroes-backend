@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Tiefling Variant Subraces** (Issue #156)
+  - Parser now expands "Tiefling, Variants" into 4 separate subraces: Feral, Devil's Tongue, Hellfire, Winged
+  - Each variant is a self-contained subrace with appropriate traits from SCAG
+  - Feral keeps Infernal Legacy trait; others get their variant trait instead
+  - All variants share: Darkvision, Hellish Resistance, Variant: Appearance
+  - Added "winged" to flight speed extraction patterns for Winged variant
+
 - **API Resource Standardization** (Issue #145)
   - Created `LookupResource` for generic slug/name lookup endpoints
   - Created `OptionalFeatureTypeResource` for enum-based lookups

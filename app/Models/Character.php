@@ -355,13 +355,13 @@ class Character extends Model implements HasMedia
      */
     public function registerMediaCollections(): void
     {
+        // Mime type validation is handled by MediaUploadRequest
+        // Collection only enforces single file constraint
         $this->addMediaCollection('portrait')
-            ->singleFile()
-            ->acceptsMimeTypes(config('media.accepted_mimetypes'));
+            ->singleFile();
 
         $this->addMediaCollection('token')
-            ->singleFile()
-            ->acceptsMimeTypes(config('media.accepted_mimetypes'));
+            ->singleFile();
     }
 
     /**

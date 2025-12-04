@@ -116,6 +116,7 @@ class CharacterResource extends JsonResource
                     'slug' => $cc->condition->slug,
                     'level' => $cc->level,
                     'source' => $cc->source,
+                    'duration' => $cc->duration,
                 ]);
             }),
 

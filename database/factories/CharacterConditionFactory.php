@@ -28,8 +28,10 @@ class CharacterConditionFactory extends Factory
     public function exhaustion(int $level = 1): static
     {
         return $this->state(fn () => [
-            'condition_id' => Condition::where('slug', 'exhaustion')->first()?->id
-                ?? Condition::factory()->state(['slug' => 'exhaustion', 'name' => 'Exhaustion']),
+            'condition_id' => Condition::firstOrCreate(
+                ['slug' => 'exhaustion'],
+                ['name' => 'Exhaustion', 'description' => 'Exhaustion condition']
+            )->id,
             'level' => $level,
         ]);
     }

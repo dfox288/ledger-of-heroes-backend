@@ -31,10 +31,19 @@ class CharacterConditionController extends Controller
         $condition = Condition::findOrFail($request->condition_id);
         $isExhaustion = $condition->slug === 'exhaustion';
 
-        // Determine level - only set for exhaustion, defaults to 1
+        // Determine level - only set for exhaustion
+        // If updating existing exhaustion without specifying level, preserve current level
+        // If adding new exhaustion without specifying level, default to 1
         $level = null;
         if ($isExhaustion) {
-            $level = $request->level ?? 1;
+            if ($request->has('level')) {
+                $level = $request->level;
+            } else {
+                $existingLevel = CharacterCondition::where('character_id', $character->id)
+                    ->where('condition_id', $condition->id)
+                    ->value('level');
+                $level = $existingLevel ?? 1;
+            }
         }
 
         // Upsert - update if exists, create if not

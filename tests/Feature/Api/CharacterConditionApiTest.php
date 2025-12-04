@@ -144,18 +144,51 @@ class CharacterConditionApiTest extends TestCase
     }
 
     #[Test]
-    public function it_ignores_level_for_non_exhaustion_conditions(): void
+    public function it_rejects_level_for_non_exhaustion_conditions(): void
     {
         $character = Character::factory()->create();
-        $poisoned = Condition::factory()->create(['slug' => 'test-poisoned-ignore-level']);
+        $poisoned = Condition::factory()->create(['slug' => 'test-poisoned-reject-level']);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/conditions", [
             'condition_id' => $poisoned->id,
             'level' => 3,
         ]);
 
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['level' => 'Level can only be set for exhaustion conditions.']);
+    }
+
+    #[Test]
+    public function it_preserves_exhaustion_level_on_update_without_level(): void
+    {
+        $character = Character::factory()->create();
+        $exhaustion = Condition::firstOrCreate(
+            ['slug' => 'exhaustion'],
+            ['name' => 'Exhaustion', 'description' => 'Exhaustion condition']
+        );
+
+        // Add exhaustion at level 3
+        CharacterCondition::create([
+            'character_id' => $character->id,
+            'condition_id' => $exhaustion->id,
+            'level' => 3,
+        ]);
+
+        // Update source without specifying level - level should be preserved
+        $response = $this->postJson("/api/v1/characters/{$character->id}/conditions", [
+            'condition_id' => $exhaustion->id,
+            'source' => 'Updated source',
+        ]);
+
         $response->assertSuccessful()
-            ->assertJsonPath('data.level', null);
+            ->assertJsonPath('data.level', 3)
+            ->assertJsonPath('data.source', 'Updated source');
+
+        $this->assertDatabaseHas('character_conditions', [
+            'character_id' => $character->id,
+            'condition_id' => $exhaustion->id,
+            'level' => 3,
+        ]);
     }
 
     #[Test]

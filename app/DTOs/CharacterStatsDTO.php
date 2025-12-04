@@ -5,6 +5,7 @@ namespace App\DTOs;
 use App\Models\Character;
 use App\Models\Skill;
 use App\Services\CharacterStatCalculator;
+use App\Services\HitDiceService;
 
 /**
  * Data Transfer Object for computed character statistics.
@@ -35,6 +36,8 @@ class CharacterStatsDTO
         public readonly ?int $passiveInsight,
         public readonly ?int $carryingCapacity,
         public readonly ?int $pushDragLift,
+        // Hit dice
+        public readonly array $hitDice,
     ) {}
 
     /**
@@ -135,6 +138,10 @@ class CharacterStatsDTO
             ? $calculator->calculatePushDragLift($strScore, $size)
             : null;
 
+        // Get hit dice data
+        $hitDiceService = app(HitDiceService::class);
+        $hitDiceData = $hitDiceService->getHitDice($character);
+
         return new self(
             characterId: $character->id,
             level: $level,
@@ -156,6 +163,7 @@ class CharacterStatsDTO
             passiveInsight: $passiveInsight,
             carryingCapacity: $carryingCapacity,
             pushDragLift: $pushDragLift,
+            hitDice: $hitDiceData['hit_dice'],
         );
     }
 

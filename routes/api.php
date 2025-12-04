@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\ItemPropertyController;
 use App\Http\Controllers\Api\ItemTypeController;
 use App\Http\Controllers\Api\LanguageController;
+use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\MonsterController;
 use App\Http\Controllers\Api\MonsterTypeController;
 use App\Http\Controllers\Api\OptionalFeatureController;
@@ -287,5 +288,26 @@ Route::prefix('v1')->group(function () {
             ->name('notes.update');
         Route::delete('notes/{note}', [\App\Http\Controllers\Api\CharacterNoteController::class, 'destroy'])
             ->name('notes.destroy');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Polymorphic Media Routes
+    |--------------------------------------------------------------------------
+    |
+    | Generic media upload/delete endpoints for any model registered in
+    | config/media.php. Used for character portraits, tokens, and future
+    | entity media attachments.
+    |
+    */
+    Route::prefix('{modelType}/{modelId}/media')->group(function () {
+        Route::get('{collection}', [MediaController::class, 'index'])
+            ->name('media.index');
+        Route::post('{collection}', [MediaController::class, 'store'])
+            ->name('media.store');
+        Route::delete('{collection}', [MediaController::class, 'destroy'])
+            ->name('media.destroy');
+        Route::delete('{collection}/{mediaId}', [MediaController::class, 'destroy'])
+            ->name('media.destroyOne');
     });
 });

@@ -44,6 +44,7 @@ class CharacterController extends Controller
             'background',
             'characterClasses.characterClass.levelProgression',
             'characterClasses.subclass',
+            'media',
         ])->paginate($perPage);
 
         return CharacterResource::collection($characters);
@@ -94,6 +95,7 @@ class CharacterController extends Controller
             'background',
             'characterClasses.characterClass.levelProgression',
             'characterClasses.subclass',
+            'media',
         ]);
 
         return (new CharacterResource($character))
@@ -126,6 +128,7 @@ class CharacterController extends Controller
             'background',
             'characterClasses.characterClass.levelProgression',
             'characterClasses.subclass',
+            'media',
         ]);
 
         return new CharacterResource($character);
@@ -195,6 +198,7 @@ class CharacterController extends Controller
             'background',
             'characterClasses.characterClass.levelProgression',
             'characterClasses.subclass',
+            'media',
         ]);
 
         return new CharacterResource($character);

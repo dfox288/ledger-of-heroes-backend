@@ -315,4 +315,88 @@ class CharacterStatCalculator
 
         return null;
     }
+
+    // ========================================================================
+    // Derived Combat Stats
+    // ========================================================================
+
+    /**
+     * Calculate initiative bonus.
+     * Base: DEX modifier
+     * Can be modified by features (e.g., Alert feat adds +5).
+     *
+     * @param  int  $dexModifier  The DEX ability modifier
+     * @param  int  $bonuses  Additional bonuses from features/items
+     */
+    public function calculateInitiative(int $dexModifier, int $bonuses = 0): int
+    {
+        return $dexModifier + $bonuses;
+    }
+
+    /**
+     * Calculate a passive skill score.
+     * Formula: 10 + skill modifier
+     * Advantage grants +5, disadvantage gives -5.
+     *
+     * @param  int  $abilityModifier  The modifier for the skill's ability
+     * @param  bool  $proficient  Whether proficient in the skill
+     * @param  bool  $expertise  Whether has expertise (double proficiency)
+     * @param  int  $proficiencyBonus  The character's proficiency bonus
+     * @param  int  $advantageModifier  +5 for advantage, -5 for disadvantage, 0 for neither
+     */
+    public function calculatePassiveSkill(
+        int $abilityModifier,
+        bool $proficient,
+        bool $expertise,
+        int $proficiencyBonus,
+        int $advantageModifier = 0
+    ): int {
+        $skillMod = $this->skillModifier($abilityModifier, $proficient, $expertise, $proficiencyBonus);
+
+        return 10 + $skillMod + $advantageModifier;
+    }
+
+    /**
+     * Calculate carrying capacity in pounds.
+     * Base: STR × 15
+     * Modified by size: Tiny = ×0.5, Small/Medium = ×1, Large = ×2, Huge = ×4, Gargantuan = ×8
+     *
+     * @param  int  $strengthScore  The STR ability score (not modifier)
+     * @param  string  $size  The creature size (Tiny, Small, Medium, Large, Huge, Gargantuan)
+     */
+    public function calculateCarryingCapacity(int $strengthScore, string $size = 'Medium'): int
+    {
+        $baseCapacity = $strengthScore * 15;
+
+        $multiplier = $this->getSizeMultiplier($size);
+
+        return (int) ($baseCapacity * $multiplier);
+    }
+
+    /**
+     * Calculate push/drag/lift limit in pounds.
+     * This is double the carrying capacity.
+     *
+     * @param  int  $strengthScore  The STR ability score
+     * @param  string  $size  The creature size
+     */
+    public function calculatePushDragLift(int $strengthScore, string $size = 'Medium'): int
+    {
+        return $this->calculateCarryingCapacity($strengthScore, $size) * 2;
+    }
+
+    /**
+     * Get size multiplier for carrying capacity.
+     */
+    private function getSizeMultiplier(string $size): float
+    {
+        return match (strtolower($size)) {
+            'tiny' => 0.5,
+            'small', 'medium' => 1.0,
+            'large' => 2.0,
+            'huge' => 4.0,
+            'gargantuan' => 8.0,
+            default => 1.0,
+        };
+    }
 }

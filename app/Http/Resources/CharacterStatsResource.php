@@ -35,6 +35,14 @@ class CharacterStatsResource extends JsonResource
                 'temporary' => $this->resource->tempHitPoints,
             ],
 
+            // Derived combat stats
+            'initiative_bonus' => $this->resource->initiativeBonus,
+            'passive_perception' => $this->resource->passivePerception,
+            'passive_investigation' => $this->resource->passiveInvestigation,
+            'passive_insight' => $this->resource->passiveInsight,
+            'carrying_capacity' => $this->resource->carryingCapacity,
+            'push_drag_lift' => $this->resource->pushDragLift,
+
             'spellcasting' => $this->resource->spellcasting,
             'spell_slots' => $this->resource->spellSlots,
             'preparation_limit' => $this->resource->preparationLimit,

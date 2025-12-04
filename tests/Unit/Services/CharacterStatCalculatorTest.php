@@ -526,4 +526,171 @@ class CharacterStatCalculatorTest extends TestCase
             abilityModifier: -2
         ));
     }
+
+    // ========================
+    // Initiative Tests
+    // ========================
+
+    #[Test]
+    public function it_calculates_initiative_from_dex_modifier(): void
+    {
+        // DEX 14 (+2): Initiative = +2
+        $this->assertEquals(2, $this->calculator->calculateInitiative(2));
+
+        // DEX 18 (+4): Initiative = +4
+        $this->assertEquals(4, $this->calculator->calculateInitiative(4));
+
+        // DEX 8 (-1): Initiative = -1
+        $this->assertEquals(-1, $this->calculator->calculateInitiative(-1));
+    }
+
+    #[Test]
+    public function it_calculates_initiative_with_bonus(): void
+    {
+        // DEX 14 (+2) with Alert feat (+5): Initiative = +7
+        $this->assertEquals(7, $this->calculator->calculateInitiative(2, 5));
+
+        // DEX 18 (+4) with other bonuses (+3): Initiative = +7
+        $this->assertEquals(7, $this->calculator->calculateInitiative(4, 3));
+    }
+
+    // ========================
+    // Passive Skill Tests
+    // ========================
+
+    #[Test]
+    public function it_calculates_passive_skill_without_proficiency(): void
+    {
+        // WIS 14 (+2), not proficient: Passive = 10 + 2 = 12
+        $this->assertEquals(12, $this->calculator->calculatePassiveSkill(
+            abilityModifier: 2,
+            proficient: false,
+            expertise: false,
+            proficiencyBonus: 2
+        ));
+    }
+
+    #[Test]
+    public function it_calculates_passive_skill_with_proficiency(): void
+    {
+        // WIS 14 (+2), proficient, level 1 (+2 prof): Passive = 10 + 2 + 2 = 14
+        $this->assertEquals(14, $this->calculator->calculatePassiveSkill(
+            abilityModifier: 2,
+            proficient: true,
+            expertise: false,
+            proficiencyBonus: 2
+        ));
+    }
+
+    #[Test]
+    public function it_calculates_passive_skill_with_expertise(): void
+    {
+        // WIS 14 (+2), expertise, level 1 (+4 doubled prof): Passive = 10 + 2 + 4 = 16
+        $this->assertEquals(16, $this->calculator->calculatePassiveSkill(
+            abilityModifier: 2,
+            proficient: true,
+            expertise: true,
+            proficiencyBonus: 2
+        ));
+    }
+
+    #[Test]
+    public function it_calculates_passive_skill_with_advantage(): void
+    {
+        // WIS 14 (+2), proficient (+2), advantage (+5): Passive = 10 + 4 + 5 = 19
+        $this->assertEquals(19, $this->calculator->calculatePassiveSkill(
+            abilityModifier: 2,
+            proficient: true,
+            expertise: false,
+            proficiencyBonus: 2,
+            advantageModifier: 5
+        ));
+    }
+
+    #[Test]
+    public function it_calculates_passive_skill_with_disadvantage(): void
+    {
+        // WIS 14 (+2), proficient (+2), disadvantage (-5): Passive = 10 + 4 - 5 = 9
+        $this->assertEquals(9, $this->calculator->calculatePassiveSkill(
+            abilityModifier: 2,
+            proficient: true,
+            expertise: false,
+            proficiencyBonus: 2,
+            advantageModifier: -5
+        ));
+    }
+
+    // ========================
+    // Carrying Capacity Tests
+    // ========================
+
+    #[Test]
+    public function it_calculates_carrying_capacity_for_medium_creature(): void
+    {
+        // STR 10: 10 × 15 = 150 lbs
+        $this->assertEquals(150, $this->calculator->calculateCarryingCapacity(10, 'Medium'));
+
+        // STR 16: 16 × 15 = 240 lbs
+        $this->assertEquals(240, $this->calculator->calculateCarryingCapacity(16, 'Medium'));
+
+        // STR 20: 20 × 15 = 300 lbs
+        $this->assertEquals(300, $this->calculator->calculateCarryingCapacity(20, 'Medium'));
+    }
+
+    #[Test]
+    public function it_calculates_carrying_capacity_for_small_creature(): void
+    {
+        // STR 10, Small: 10 × 15 × 1 = 150 lbs (same as Medium)
+        $this->assertEquals(150, $this->calculator->calculateCarryingCapacity(10, 'Small'));
+    }
+
+    #[Test]
+    public function it_calculates_carrying_capacity_for_tiny_creature(): void
+    {
+        // STR 10, Tiny: 10 × 15 × 0.5 = 75 lbs
+        $this->assertEquals(75, $this->calculator->calculateCarryingCapacity(10, 'Tiny'));
+    }
+
+    #[Test]
+    public function it_calculates_carrying_capacity_for_large_creature(): void
+    {
+        // STR 10, Large: 10 × 15 × 2 = 300 lbs
+        $this->assertEquals(300, $this->calculator->calculateCarryingCapacity(10, 'Large'));
+    }
+
+    #[Test]
+    public function it_calculates_carrying_capacity_for_huge_creature(): void
+    {
+        // STR 10, Huge: 10 × 15 × 4 = 600 lbs
+        $this->assertEquals(600, $this->calculator->calculateCarryingCapacity(10, 'Huge'));
+    }
+
+    #[Test]
+    public function it_calculates_carrying_capacity_for_gargantuan_creature(): void
+    {
+        // STR 10, Gargantuan: 10 × 15 × 8 = 1200 lbs
+        $this->assertEquals(1200, $this->calculator->calculateCarryingCapacity(10, 'Gargantuan'));
+    }
+
+    #[Test]
+    public function it_calculates_push_drag_lift_as_double_carrying_capacity(): void
+    {
+        // STR 10, Medium: 150 × 2 = 300 lbs
+        $this->assertEquals(300, $this->calculator->calculatePushDragLift(10, 'Medium'));
+
+        // STR 16, Medium: 240 × 2 = 480 lbs
+        $this->assertEquals(480, $this->calculator->calculatePushDragLift(16, 'Medium'));
+
+        // STR 10, Large: 300 × 2 = 600 lbs
+        $this->assertEquals(600, $this->calculator->calculatePushDragLift(10, 'Large'));
+    }
+
+    #[Test]
+    public function it_handles_case_insensitive_size(): void
+    {
+        // Should work with various case formats
+        $this->assertEquals(150, $this->calculator->calculateCarryingCapacity(10, 'medium'));
+        $this->assertEquals(150, $this->calculator->calculateCarryingCapacity(10, 'MEDIUM'));
+        $this->assertEquals(300, $this->calculator->calculateCarryingCapacity(10, 'LARGE'));
+    }
 }

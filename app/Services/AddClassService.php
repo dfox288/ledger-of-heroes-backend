@@ -15,6 +15,7 @@ class AddClassService
 {
     public function __construct(
         private MulticlassValidationService $validator,
+        private SpellSlotService $spellSlotService,
     ) {}
 
     /**
@@ -71,7 +72,7 @@ class AddClassService
             $isPrimary = $existingClasses->isEmpty();
             $order = ($existingClasses->max('order') ?? 0) + 1;
 
-            return CharacterClassPivot::create([
+            $pivot = CharacterClassPivot::create([
                 'character_id' => $character->id,
                 'class_id' => $class->id,
                 'level' => 1,
@@ -79,6 +80,11 @@ class AddClassService
                 'order' => $order,
                 'hit_dice_spent' => 0,
             ]);
+
+            // Recalculate spell slots when adding a new class (may gain spellcasting)
+            $this->spellSlotService->recalculateMaxSlots($character->fresh());
+
+            return $pivot;
         });
     }
 }

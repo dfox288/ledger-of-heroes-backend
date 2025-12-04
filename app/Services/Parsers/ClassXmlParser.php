@@ -7,6 +7,7 @@ use App\Services\Parsers\Concerns\LoadsLookupData;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesModifiers;
+use App\Services\Parsers\Concerns\ParsesRestTiming;
 use App\Services\Parsers\Concerns\ParsesRolls;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use App\Services\Parsers\Concerns\ParsesTraits;
@@ -14,7 +15,7 @@ use SimpleXMLElement;
 
 class ClassXmlParser
 {
-    use ConvertsWordNumbers, LoadsLookupData, MapsAbilityCodes, MatchesProficiencyTypes, ParsesModifiers, ParsesRolls, ParsesSourceCitations, ParsesTraits;
+    use ConvertsWordNumbers, LoadsLookupData, MapsAbilityCodes, MatchesProficiencyTypes, ParsesModifiers, ParsesRestTiming, ParsesRolls, ParsesSourceCitations, ParsesTraits;
 
     /**
      * Parse classes from XML string.
@@ -289,6 +290,7 @@ class ClassXmlParser
                     'special_tags' => $specialTags,
                     'modifiers' => $modifiers,
                     'grants_asi' => $grantsAsi,
+                    'resets_on' => $this->parseResetTiming($text),
                 ];
             }
         }

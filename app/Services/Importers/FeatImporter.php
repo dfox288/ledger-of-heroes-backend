@@ -30,6 +30,7 @@ class FeatImporter extends BaseImporter
                 'name' => $data['name'],
                 'prerequisites_text' => $data['prerequisites'] ?? null,
                 'description' => $data['description'],
+                'resets_on' => $data['resets_on'] ?? null,
             ]
         );
 

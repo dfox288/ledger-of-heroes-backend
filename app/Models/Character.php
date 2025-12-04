@@ -153,6 +153,14 @@ class Character extends Model implements HasMedia
         return $this->hasMany(CharacterClassPivot::class)->orderBy('order');
     }
 
+    /**
+     * Get spell slots for this character.
+     */
+    public function spellSlots(): HasMany
+    {
+        return $this->hasMany(CharacterSpellSlot::class);
+    }
+
     // Computed Accessors
 
     /**

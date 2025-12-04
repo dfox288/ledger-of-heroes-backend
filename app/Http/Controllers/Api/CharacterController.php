@@ -159,18 +159,19 @@ class CharacterController extends Controller
         $level = $validated['level'] ?? null;
         unset($validated['class_id'], $validated['level']);
 
-        // Auto-reset death saves when HP goes from 0 to positive
-        $wasAtZeroHp = $character->current_hit_points === 0;
-        $newHp = $validated['current_hit_points'] ?? null;
-        $shouldResetDeathSaves = $wasAtZeroHp && $newHp !== null && $newHp > 0;
+        // Use transaction with pessimistic locking for all operations
+        DB::transaction(function () use ($character, &$validated, $classId, $level) {
+            // Lock character row first for HP/death save consistency
+            $character->lockForUpdate()->first();
 
-        if ($shouldResetDeathSaves) {
-            $validated['death_save_successes'] = 0;
-            $validated['death_save_failures'] = 0;
-        }
+            // Auto-reset death saves when HP goes from 0 to positive (inside transaction)
+            $wasAtZeroHp = $character->current_hit_points === 0;
+            $newHp = $validated['current_hit_points'] ?? null;
+            if ($wasAtZeroHp && $newHp !== null && $newHp > 0) {
+                $validated['death_save_successes'] = 0;
+                $validated['death_save_failures'] = 0;
+            }
 
-        // Use transaction with pessimistic locking for class operations
-        DB::transaction(function () use ($character, $validated, $classId, $level) {
             // Handle class_id - add via junction table if provided
             if ($classId) {
                 // Lock the character's class rows to prevent concurrent modifications

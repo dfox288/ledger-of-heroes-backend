@@ -82,6 +82,8 @@ class CharacterDeathSaveController extends Controller
                 'current_hit_points' => $character->current_hit_points,
                 'result' => $result,
                 'outcome' => $outcome,
+                'is_stable' => $character->death_save_successes >= 3,
+                'is_dead' => $character->death_save_failures >= 3,
             ],
         ]);
     }

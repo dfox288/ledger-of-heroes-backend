@@ -557,4 +557,83 @@ class CharacterProficiencyApiTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    // =============================
+    // Subcategory-Based Choices (Issue #168)
+    // =============================
+
+    #[Test]
+    public function it_includes_proficiency_type_and_subcategory_for_subcategory_choices(): void
+    {
+        // Create a class with artisan tool choice (subcategory-based, no specific options)
+        $artificerClass = CharacterClass::factory()->create([
+            'name' => 'Artificer',
+            'slug' => 'artificer-'.uniqid(),
+        ]);
+
+        // Subcategory-based choice: "one type of artisan's tools of your choice"
+        // This has empty options - the frontend needs to look up options from proficiency_types
+        $artificerClass->proficiencies()->create([
+            'proficiency_type' => 'tool',
+            'proficiency_subcategory' => 'artisan',
+            'proficiency_type_id' => null, // No specific type - it's a subcategory choice
+            'is_choice' => true,
+            'choice_group' => 'tool_choice_1',
+            'quantity' => 1,
+        ]);
+
+        $character = Character::factory()
+            ->withClass($artificerClass)
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/proficiency-choices");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'class' => [
+                        'tool_choice_1' => [
+                            'proficiency_type',
+                            'proficiency_subcategory',
+                            'quantity',
+                            'remaining',
+                            'options',
+                        ],
+                    ],
+                ],
+            ]);
+
+        $choiceData = $response->json('data.class.tool_choice_1');
+
+        // Should include proficiency_type and proficiency_subcategory for frontend lookup
+        $this->assertEquals('tool', $choiceData['proficiency_type']);
+        $this->assertEquals('artisan', $choiceData['proficiency_subcategory']);
+
+        // Options should be empty since this is a subcategory-based choice
+        $this->assertEmpty($choiceData['options']);
+    }
+
+    #[Test]
+    public function it_returns_null_subcategory_for_specific_option_choices(): void
+    {
+        // For normal choices with specific options, proficiency_subcategory should be null
+        $character = Character::factory()
+            ->withClass($this->fighterClass)
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/proficiency-choices");
+
+        $response->assertOk();
+
+        $choiceData = $response->json('data.class.skill_choice_1');
+
+        // proficiency_type should be 'skill'
+        $this->assertEquals('skill', $choiceData['proficiency_type']);
+
+        // proficiency_subcategory should be null for specific option choices
+        $this->assertNull($choiceData['proficiency_subcategory']);
+
+        // Options should NOT be empty - they have specific skills
+        $this->assertNotEmpty($choiceData['options']);
+    }
 }

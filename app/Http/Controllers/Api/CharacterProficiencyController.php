@@ -82,6 +82,8 @@ class CharacterProficiencyController extends Controller
      *   "data": {
      *     "class": {
      *       "skill_choice_1": {
+     *         "proficiency_type": "skill",
+     *         "proficiency_subcategory": null,
      *         "quantity": 2,
      *         "remaining": 0,
      *         "selected_skills": [1, 3],
@@ -91,6 +93,15 @@ class CharacterProficiencyController extends Controller
      *           {"type": "skill", "skill_id": 3, "skill": {"id": 3, "name": "Athletics", "slug": "athletics"}},
      *           {"type": "skill", "skill_id": 10, "skill": {"id": 10, "name": "Intimidation", "slug": "intimidation"}}
      *         ]
+     *       },
+     *       "tool_choice_1": {
+     *         "proficiency_type": "tool",
+     *         "proficiency_subcategory": "artisan",
+     *         "quantity": 1,
+     *         "remaining": 1,
+     *         "selected_skills": [],
+     *         "selected_proficiency_types": [],
+     *         "options": []
      *       }
      *     },
      *     "race": {},
@@ -100,11 +111,14 @@ class CharacterProficiencyController extends Controller
      * ```
      *
      * **Fields:**
+     * - `proficiency_type`: Type of proficiency (skill, tool, armor, weapon, etc.)
+     * - `proficiency_subcategory`: Subcategory for lookup-based choices (e.g., "artisan" for artisan tools).
+     *   When present with empty `options`, frontend fetches options from `/lookups/proficiency-types?category={type}&subcategory={subcategory}`
      * - `quantity`: Total number of choices required
      * - `remaining`: Number of choices still needed (quantity - already chosen)
      * - `selected_skills`: Array of skill IDs already chosen
      * - `selected_proficiency_types`: Array of proficiency type IDs already chosen
-     * - `options`: All available options for this choice group (always includes full list)
+     * - `options`: All available options for this choice group (empty for subcategory-based choices)
      */
     public function choices(Character $character): ChoicesResource
     {

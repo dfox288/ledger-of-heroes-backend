@@ -227,7 +227,7 @@ class CharacterProficiencyService
     /**
      * Get choice groups from an entity.
      *
-     * @return array<string, array{quantity: int, remaining: int, selected_skills: array<int>, selected_proficiency_types: array<int>, options: array}>
+     * @return array<string, array{proficiency_type: string|null, proficiency_subcategory: string|null, quantity: int, remaining: int, selected_skills: array<int>, selected_proficiency_types: array<int>, options: array}>
      */
     private function getChoicesFromEntity($entity, array $existingSkillIds, array $existingProfTypeIds): array
     {
@@ -246,7 +246,19 @@ class CharacterProficiencyService
                 continue;
             }
 
-            $quantity = $options->first()->quantity ?? 1;
+            $firstOption = $options->first();
+
+            // Defensive check - shouldn't happen since groupBy creates groups from existing items
+            if (! $firstOption) {
+                continue;
+            }
+
+            $quantity = $firstOption->quantity ?? 1;
+
+            // Extract proficiency_type and proficiency_subcategory from the first option
+            // These fields tell the frontend what kind of choice this is
+            $proficiencyType = $firstOption->proficiency_type;
+            $proficiencySubcategory = $firstOption->proficiency_subcategory;
 
             // Track selected IDs and count
             $selectedSkillIds = [];
@@ -287,12 +299,18 @@ class CharacterProficiencyService
                         $selectedProfTypeIds[] = $option->proficiency_type_id;
                     }
                 }
+                // Note: Subcategory-based choices (like "artisan tools") have neither skill_id
+                // nor proficiency_type_id - they just have proficiency_subcategory.
+                // These result in empty options[], but frontend uses proficiency_type and
+                // proficiency_subcategory to fetch options from the proficiency-types lookup.
             }
 
             $chosenCount = count($selectedSkillIds) + count($selectedProfTypeIds);
             $remaining = max(0, $quantity - $chosenCount);
 
             $choices[$groupName] = [
+                'proficiency_type' => $proficiencyType,
+                'proficiency_subcategory' => $proficiencySubcategory,
                 'quantity' => $quantity,
                 'remaining' => $remaining,
                 'selected_skills' => $selectedSkillIds,

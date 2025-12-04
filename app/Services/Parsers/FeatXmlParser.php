@@ -5,13 +5,14 @@ namespace App\Services\Parsers;
 use App\Services\Parsers\Concerns\ConvertsWordNumbers;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\ParsesModifiers;
+use App\Services\Parsers\Concerns\ParsesRestTiming;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use App\Services\Parsers\Concerns\StripsSourceCitations;
 use SimpleXMLElement;
 
 class FeatXmlParser
 {
-    use ConvertsWordNumbers, MapsAbilityCodes, ParsesModifiers, ParsesSourceCitations, StripsSourceCitations;
+    use ConvertsWordNumbers, MapsAbilityCodes, ParsesModifiers, ParsesRestTiming, ParsesSourceCitations, StripsSourceCitations;
 
     /**
      * Parse feats from XML string.
@@ -79,6 +80,7 @@ class FeatXmlParser
             'proficiencies' => array_merge($proficienciesFromXml, $proficienciesFromText),
             'conditions' => $this->parseConditions($description),
             'spells' => $this->parseSpells($description),
+            'resets_on' => $this->parseResetTiming($description),
         ];
     }
 

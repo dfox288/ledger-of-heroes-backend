@@ -42,6 +42,7 @@ trait ImportsClassFeatures
                     'is_optional' => $featureData['is_optional'],
                     'is_multiclass_only' => $isMulticlassOnly,
                     'description' => $featureData['description'],
+                    'resets_on' => $featureData['resets_on'] ?? null,
                 ]
             );
 

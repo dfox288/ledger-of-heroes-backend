@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Subclass Source Attribution** (Issue #141)
+  - Subclasses now have their own source attribution populated during import
+  - Source citations extracted from subclass feature descriptions (e.g., Battle Master → PHB p.73)
+  - Fixes frontend source filtering for subclass selection in character builder
+
 ### Added
 
 - **Character Language Choices API** (Issue #139)

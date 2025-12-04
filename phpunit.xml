@@ -98,6 +98,7 @@
             <file>tests/Feature/Api/CharacterCreationFlowTest.php</file>
             <file>tests/Feature/Api/CharacterEquipmentApiTest.php</file>
             <file>tests/Feature/Api/MediaControllerTest.php</file>
+            <file>tests/Feature/Api/CharacterResourcePortraitTest.php</file>
         </testsuite>
 
         <!-- Feature-Search: Unified Meilisearch tests using fixture data (approx 120s) -->

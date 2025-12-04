@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\ItemPropertyController;
 use App\Http\Controllers\Api\ItemTypeController;
 use App\Http\Controllers\Api\LanguageController;
+use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\MonsterController;
 use App\Http\Controllers\Api\MonsterTypeController;
 use App\Http\Controllers\Api\OptionalFeatureController;
@@ -27,7 +28,6 @@ use App\Http\Controllers\Api\SkillController;
 use App\Http\Controllers\Api\SourceController;
 use App\Http\Controllers\Api\SpellController;
 use App\Http\Controllers\Api\SpellSchoolController;
-use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\TagController;
 use Illuminate\Support\Facades\Route;
 

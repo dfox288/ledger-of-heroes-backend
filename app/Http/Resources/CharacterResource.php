@@ -106,10 +106,48 @@ class CharacterResource extends JsonResource
             ),
             'spell_slots' => $this->getSpellSlots(),
 
+            // Portrait
+            'portrait' => $this->getPortraitData(),
+
             // Timestamps
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
+    }
+
+    /**
+     * Get portrait data from uploaded media or external URL.
+     */
+    private function getPortraitData(): ?array
+    {
+        // Check for uploaded media first
+        if ($this->relationLoaded('media')) {
+            $media = $this->getFirstMedia('portrait');
+            if ($media) {
+                return [
+                    'original' => $media->getUrl(),
+                    'thumb' => $media->hasGeneratedConversion('thumb')
+                        ? $media->getUrl('thumb')
+                        : null,
+                    'medium' => $media->hasGeneratedConversion('medium')
+                        ? $media->getUrl('medium')
+                        : null,
+                    'is_uploaded' => true,
+                ];
+            }
+        }
+
+        // Fall back to external URL
+        if ($this->portrait_url) {
+            return [
+                'original' => $this->portrait_url,
+                'thumb' => null,
+                'medium' => null,
+                'is_uploaded' => false,
+            ];
+        }
+
+        return null;
     }
 
     /**

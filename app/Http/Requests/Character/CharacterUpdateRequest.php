@@ -53,6 +53,9 @@ class CharacterUpdateRequest extends FormRequest
 
             // Inspiration (optional, boolean)
             'has_inspiration' => ['sometimes', 'boolean'],
+
+            // Portrait URL (external image link)
+            'portrait_url' => ['sometimes', 'nullable', 'url', 'max:2048'],
         ];
     }
 

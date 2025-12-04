@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **CharacterSource Enum** (Issue #142 - Phase 3)
+  - Created `App\Enums\CharacterSource` enum for type-safe source validation
+  - Replaces magic strings ('race', 'background', 'class', 'feat', 'item', 'other')
+  - Helper methods: `forLanguages()`, `forProficiencies()`, `forSpells()`, `forFeatures()`
+  - `validationRule()` method generates Laravel validation strings
+  - Updated `CharacterLanguageService` and `CharacterProficiencyService` to use enum
+  - 10 unit tests
+
+- **FormatsRelatedModels Resource Trait** (Issue #142 - Phase 3)
+  - Created `App\Http\Resources\Concerns\FormatsRelatedModels` trait
+  - Standardizes formatting of related models in API Resources
+  - Methods: `formatEntity()`, `formatEntityWith()`, `formatEntityWithExtra()`
+  - 7 unit tests
+
 ### Changed
 
 - **Extract HasLimitedUses Trait** (Issue #142 - Phase 1)

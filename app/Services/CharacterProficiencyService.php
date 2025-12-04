@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\CharacterSource;
 use App\Models\Character;
 use App\Models\CharacterProficiency;
-use App\Models\Proficiency;
 use InvalidArgumentException;
 
 class CharacterProficiencyService
@@ -116,12 +116,20 @@ class CharacterProficiencyService
      */
     public function makeSkillChoice(Character $character, string $source, string $choiceGroup, array $skillIds): void
     {
+        // Validate source using enum
+        $sourceEnum = CharacterSource::tryFrom($source);
+        $validSources = CharacterSource::forProficiencies();
+
+        if (! $sourceEnum || ! in_array($sourceEnum, $validSources)) {
+            throw new InvalidArgumentException("Invalid source: {$source}");
+        }
+
         // Get the source entity
-        $entity = match ($source) {
-            'class' => $character->primary_class,
-            'race' => $character->race,
-            'background' => $character->background,
-            default => throw new InvalidArgumentException("Invalid source: {$source}"),
+        $entity = match ($sourceEnum) {
+            CharacterSource::CHARACTER_CLASS => $character->primary_class,
+            CharacterSource::RACE => $character->race,
+            CharacterSource::BACKGROUND => $character->background,
+            default => null,
         };
 
         if (! $entity) {

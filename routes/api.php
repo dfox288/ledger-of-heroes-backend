@@ -275,5 +275,17 @@ Route::prefix('v1')->group(function () {
             ->name('classes.level-up');
         Route::put('classes/{class}/subclass', [\App\Http\Controllers\Api\CharacterClassController::class, 'setSubclass'])
             ->name('classes.set-subclass');
+
+        // Character Notes (Personality traits, ideals, bonds, flaws, backstory, custom notes)
+        Route::get('notes', [\App\Http\Controllers\Api\CharacterNoteController::class, 'index'])
+            ->name('notes.index');
+        Route::post('notes', [\App\Http\Controllers\Api\CharacterNoteController::class, 'store'])
+            ->name('notes.store');
+        Route::get('notes/{note}', [\App\Http\Controllers\Api\CharacterNoteController::class, 'show'])
+            ->name('notes.show');
+        Route::put('notes/{note}', [\App\Http\Controllers\Api\CharacterNoteController::class, 'update'])
+            ->name('notes.update');
+        Route::delete('notes/{note}', [\App\Http\Controllers\Api\CharacterNoteController::class, 'destroy'])
+            ->name('notes.destroy');
     });
 });

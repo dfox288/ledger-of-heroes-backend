@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\OptionalFeatureType;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\OptionalFeatureTypeResource;
 use Dedoc\Scramble\Attributes\QueryParameter;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 /**
  * Optional feature type lookup endpoint.
@@ -49,17 +50,10 @@ class OptionalFeatureTypeController extends Controller
      * - **Feature Organization:** Group optional features by their mechanical type
      */
     #[QueryParameter('q', description: 'Search optional feature types by name', example: 'fighting')]
-    public function index(): JsonResponse
+    public function index(): AnonymousResourceCollection
     {
-        $types = collect(OptionalFeatureType::cases())
-            ->map(fn (OptionalFeatureType $type) => [
-                'value' => $type->value,
-                'label' => $type->label(),
-                'default_class' => $type->defaultClassName(),
-                'default_subclass' => $type->defaultSubclassName(),
-            ])
-            ->values();
+        $types = collect(OptionalFeatureType::cases());
 
-        return response()->json(['data' => $types]);
+        return OptionalFeatureTypeResource::collection($types);
     }
 }

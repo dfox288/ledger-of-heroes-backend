@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Concerns\FormatsRelatedModels;
 use App\Services\ProficiencyCheckerService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -11,6 +12,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class CharacterEquipmentResource extends JsonResource
 {
+    use FormatsRelatedModels;
+
     /**
      * Transform the resource into an array.
      *
@@ -20,15 +23,11 @@ class CharacterEquipmentResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'item' => $this->when($this->item_id !== null, fn () => [
-                'id' => $this->item->id,
-                'name' => $this->item->name,
-                'slug' => $this->item->slug,
-                'item_type' => $this->item->itemType?->name,
-                'armor_class' => $this->item->armor_class,
-                'damage_dice' => $this->item->damage_dice,
-                'weight' => $this->item->weight,
-            ]),
+            'item' => $this->when($this->item_id !== null, fn () => $this->formatEntityWith(
+                $this->item,
+                ['id', 'name', 'slug', 'armor_class', 'damage_dice', 'weight'],
+                ['item_type' => fn ($item) => $item->itemType?->name]
+            )),
             'custom_name' => $this->custom_name,
             'custom_description' => $this->custom_description,
             'quantity' => $this->quantity,

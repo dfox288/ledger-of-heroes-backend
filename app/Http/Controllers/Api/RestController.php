@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\LongRestResultResource;
+use App\Http\Resources\ShortRestResultResource;
 use App\Models\Character;
 use App\Services\RestService;
-use Illuminate\Http\JsonResponse;
 
 class RestController extends Controller
 {
@@ -36,11 +37,11 @@ class RestController extends Controller
      * }
      * ```
      */
-    public function shortRest(Character $character): JsonResponse
+    public function shortRest(Character $character): ShortRestResultResource
     {
         $result = $this->restService->shortRest($character);
 
-        return response()->json(['data' => $result]);
+        return new ShortRestResultResource($result);
     }
 
     /**
@@ -71,10 +72,10 @@ class RestController extends Controller
      * }
      * ```
      */
-    public function longRest(Character $character): JsonResponse
+    public function longRest(Character $character): LongRestResultResource
     {
         $result = $this->restService->longRest($character);
 
-        return response()->json(['data' => $result]);
+        return new LongRestResultResource($result);
     }
 }

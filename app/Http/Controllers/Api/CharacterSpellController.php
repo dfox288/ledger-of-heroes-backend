@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CharacterSpellResource;
 use App\Http\Resources\SpellResource;
+use App\Http\Resources\SpellSlotsResource;
 use App\Models\Character;
 use App\Models\Spell;
 use App\Services\SpellManagerService;
@@ -163,10 +164,10 @@ class CharacterSpellController extends Controller
      * GET /api/v1/characters/1/spell-slots
      * ```
      */
-    public function slots(Character $character): JsonResponse
+    public function slots(Character $character): SpellSlotsResource
     {
         $slotData = $this->spellManager->getSpellSlots($character);
 
-        return response()->json(['data' => $slotData]);
+        return new SpellSlotsResource($slotData);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Concerns\FormatsRelatedModels;
 use App\Services\CharacterStatCalculator;
 use App\Services\MulticlassSpellSlotCalculator;
 use App\Services\ProficiencyCheckerService;
@@ -10,6 +11,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class CharacterResource extends JsonResource
 {
+    use FormatsRelatedModels;
+
     private CharacterStatCalculator $calculator;
 
     private ProficiencyCheckerService $proficiencyChecker;
@@ -78,29 +81,20 @@ class CharacterResource extends JsonResource
             'proficiency_penalties' => $this->getProficiencyPenalties(),
 
             // Relationships (conditionally loaded)
-            'race' => $this->when($this->relationLoaded('race') || $this->race_id, function () {
-                return $this->race ? [
-                    'id' => $this->race->id,
-                    'name' => $this->race->name,
-                    'slug' => $this->race->slug,
-                ] : null;
-            }),
+            'race' => $this->when(
+                $this->relationLoaded('race') || $this->race_id,
+                fn () => $this->formatEntity($this->race)
+            ),
             // Primary class (for backwards compatibility - deprecated, use 'classes' array instead)
             // TODO: Remove in API v2.0 - clients should migrate to 'classes' array
-            'class' => $this->when($this->relationLoaded('characterClasses') || $primaryClass, function () use ($primaryClass) {
-                return $primaryClass ? [
-                    'id' => $primaryClass->id,
-                    'name' => $primaryClass->name,
-                    'slug' => $primaryClass->slug,
-                ] : null;
-            }),
-            'background' => $this->when($this->relationLoaded('background') || $this->background_id, function () {
-                return $this->background ? [
-                    'id' => $this->background->id,
-                    'name' => $this->background->name,
-                    'slug' => $this->background->slug,
-                ] : null;
-            }),
+            'class' => $this->when(
+                $this->relationLoaded('characterClasses') || $primaryClass,
+                fn () => $this->formatEntity($primaryClass)
+            ),
+            'background' => $this->when(
+                $this->relationLoaded('background') || $this->background_id,
+                fn () => $this->formatEntity($this->background)
+            ),
 
             // Multiclass support
             'classes' => CharacterClassPivotResource::collection(

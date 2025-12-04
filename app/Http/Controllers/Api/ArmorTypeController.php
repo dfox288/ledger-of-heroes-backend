@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\LookupResource;
 use App\Models\Monster;
 use Dedoc\Scramble\Attributes\QueryParameter;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Str;
 
 /**
@@ -58,7 +59,7 @@ class ArmorTypeController extends Controller
      * providing a comprehensive view of armor protection available to humanoid and monstrous creatures.
      */
     #[QueryParameter('q', description: 'Search armor types by name', example: 'plate')]
-    public function index(): JsonResponse
+    public function index(): AnonymousResourceCollection
     {
         $armorTypes = Monster::query()
             ->whereNotNull('armor_type')
@@ -72,6 +73,6 @@ class ArmorTypeController extends Controller
             ])
             ->values();
 
-        return response()->json(['data' => $armorTypes]);
+        return LookupResource::collection($armorTypes);
     }
 }

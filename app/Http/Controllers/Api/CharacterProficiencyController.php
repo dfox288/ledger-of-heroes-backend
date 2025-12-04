@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CharacterProficiencyResource;
+use App\Http\Resources\ChoicesResource;
 use App\Models\Character;
 use App\Services\CharacterProficiencyService;
 use Illuminate\Http\JsonResponse;
@@ -105,13 +106,13 @@ class CharacterProficiencyController extends Controller
      * - `selected_proficiency_types`: Array of proficiency type IDs already chosen
      * - `options`: All available options for this choice group (always includes full list)
      */
-    public function choices(Character $character): JsonResponse
+    public function choices(Character $character): ChoicesResource
     {
         $character->load(['characterClasses.characterClass', 'race', 'background']);
 
         $choices = $this->proficiencyService->getPendingChoices($character);
 
-        return response()->json(['data' => $choices]);
+        return new ChoicesResource($choices);
     }
 
     /**

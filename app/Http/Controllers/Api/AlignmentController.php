@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\LookupResource;
 use App\Models\Monster;
 use Dedoc\Scramble\Attributes\QueryParameter;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Str;
 
 /**
@@ -66,7 +67,7 @@ class AlignmentController extends Controller
      */
     #[QueryParameter('q', description: 'Search by alignment name (partial match)', example: 'good')]
     #[QueryParameter('per_page', description: 'Results per page, 1-100', example: '50')]
-    public function index(): JsonResponse
+    public function index(): AnonymousResourceCollection
     {
         $alignments = Monster::query()
             ->whereNotNull('alignment')
@@ -80,6 +81,6 @@ class AlignmentController extends Controller
             ])
             ->values();
 
-        return response()->json(['data' => $alignments]);
+        return LookupResource::collection($alignments);
     }
 }

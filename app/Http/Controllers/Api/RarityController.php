@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\LookupResource;
 use App\Models\Item;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Str;
 
 /**
@@ -45,10 +46,8 @@ class RarityController extends Controller
      * - Treasure hoard generation following DMG guidelines
      * - Campaign loot planning and balance
      * - Item rarity-based access control
-     *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    public function index(): JsonResponse
+    public function index(): AnonymousResourceCollection
     {
         // Define the canonical order for rarities
         $rarityOrder = [
@@ -77,6 +76,6 @@ class RarityController extends Controller
                 'name' => $item['name'],
             ]);
 
-        return response()->json(['data' => $rarities]);
+        return LookupResource::collection($rarities);
     }
 }

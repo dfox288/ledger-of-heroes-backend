@@ -6,6 +6,7 @@ use App\Enums\SpellSlotType;
 use App\Exceptions\InsufficientSpellSlotsException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SpellSlot\UseSpellSlotRequest;
+use App\Http\Resources\SpellSlotsResource;
 use App\Models\Character;
 use App\Services\SpellSlotService;
 use Illuminate\Http\JsonResponse;
@@ -43,11 +44,11 @@ class SpellSlotController extends Controller
      * }
      * ```
      */
-    public function index(Character $character): JsonResponse
+    public function index(Character $character): SpellSlotsResource
     {
         $slots = $this->spellSlotService->getSlots($character);
 
-        return response()->json(['data' => $slots]);
+        return new SpellSlotsResource($slots);
     }
 
     /**
@@ -72,7 +73,7 @@ class SpellSlotController extends Controller
      * **Errors:**
      * - 422: No slots available at that level
      */
-    public function use(UseSpellSlotRequest $request, Character $character): JsonResponse
+    public function use(UseSpellSlotRequest $request, Character $character): SpellSlotsResource|JsonResponse
     {
         $validated = $request->validated();
         $slotType = SpellSlotType::from($validated['slot_type']);
@@ -86,7 +87,7 @@ class SpellSlotController extends Controller
 
             $slots = $this->spellSlotService->getSlots($character);
 
-            return response()->json(['data' => $slots]);
+            return new SpellSlotsResource($slots);
         } catch (InsufficientSpellSlotsException $e) {
             return response()->json([
                 'message' => $e->getMessage(),

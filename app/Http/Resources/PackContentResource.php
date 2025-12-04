@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Concerns\FormatsRelatedModels;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,19 +14,16 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class PackContentResource extends JsonResource
 {
+    use FormatsRelatedModels;
+
     public function toArray(Request $request): array
     {
         return [
             'quantity' => $this->quantity,
-            'item' => $this->when($this->relationLoaded('item') && $this->item, function () {
-                return [
-                    'id' => $this->item->id,
-                    'name' => $this->item->name,
-                    'slug' => $this->item->slug,
-                    'weight' => $this->item->weight,
-                    'cost_cp' => $this->item->cost_cp,
-                ];
-            }),
+            'item' => $this->when(
+                $this->relationLoaded('item') && $this->item,
+                fn () => $this->formatEntity($this->item, ['id', 'name', 'slug', 'weight', 'cost_cp'])
+            ),
         ];
     }
 }

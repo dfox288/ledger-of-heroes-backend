@@ -25,13 +25,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Supports patterns: "X musical instruments of your choice", "one musical instrument", "any musical instrument"
   - 3 new test cases for musical instrument choice parsing
 
-- **Issue #227**: Human race incorrectly marked as subrace_required=true
-  - Updated `RaceImporter` to set `subrace_required` based on race slug during import
-  - Races with optional subraces (Human, Dragonborn, Tiefling, Half-Elf, Half-Orc) now correctly have `subrace_required=false`
-  - All subraces now correctly have `subrace_required=false` (no nested subraces in D&D 5e)
-  - Other base races (Dwarf, Elf, Gnome, Halfling) retain `subrace_required=true`
-  - Also updated `SubraceStrategy::createStubBaseRace()` for consistency
-  - 4 new test cases covering all subrace_required scenarios
+- **Issue #228**: Replace `OPTIONAL_SUBRACE_RACES` constant with dynamic ability score detection
+  - Replaced hardcoded race list with dynamic detection based on D&D 5e rules
+  - A race has optional subraces (`subrace_required=false`) if it has 3+ total ability score points
+  - Ability points include fixed bonuses (e.g., +2 STR, +1 CHA) AND choice bonuses (e.g., "two ability scores of your choice +1")
+  - Updated `RaceImporter::calculateTotalAbilityPoints()` to sum both fixed and choice-based bonuses
+  - Updated `SubraceStrategy::createStubBaseRace()` to use ability-based detection
+  - Updated `RaceFixtureSeeder` to use dynamic detection
+  - Enhanced `RaceXmlParser::parseAbilityChoices()` to match "two other ability scores" pattern
+  - 7 comprehensive test cases covering various ability point scenarios
+  - This change is self-documenting, future-proof, and requires no manual updates for new races
 
 - **Issue #224**: Proficiency choices now returns populated options for tool choices
   - `GET /api/v1/characters/{id}/proficiency-choices` now populates `options[]` for subcategory-based choices (e.g., artisan tools)

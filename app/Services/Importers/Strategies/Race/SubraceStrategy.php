@@ -110,16 +110,10 @@ class SubraceStrategy extends AbstractImportStrategy
     }
 
     /**
-     * Races where the base race is complete (has 3+ ability score points)
-     * and subrace selection is optional.
+     * Minimum ability score points for a race to be considered "complete".
+     * A complete race has optional subraces (subrace_required = false).
      */
-    private const OPTIONAL_SUBRACE_RACES = [
-        'human',
-        'dragonborn',
-        'tiefling',
-        'half-elf',
-        'half-orc',
-    ];
+    private const COMPLETE_RACE_ABILITY_THRESHOLD = 3;
 
     /**
      * Create a minimal stub base race when referenced by subrace.
@@ -135,8 +129,11 @@ class SubraceStrategy extends AbstractImportStrategy
         $size = Size::where('code', $subraceData['size_code'])->first();
         $slug = Str::slug($name);
 
-        // Determine subrace_required: false for races where base race is complete
-        $subraceRequired = ! in_array($slug, self::OPTIONAL_SUBRACE_RACES);
+        // Calculate base race ability points to determine if subraces are required
+        // Base race only gets the first ability bonus (e.g., Dwarf gets Con +2)
+        $baseAbilityBonuses = $this->extractBaseAbilityBonuses($subraceData['ability_bonuses'] ?? []);
+        $totalAbilityPoints = $this->calculateTotalAbilityPoints($baseAbilityBonuses);
+        $subraceRequired = $totalAbilityPoints < self::COMPLETE_RACE_ABILITY_THRESHOLD;
 
         return Race::create([
             'name' => $name,
@@ -146,6 +143,22 @@ class SubraceStrategy extends AbstractImportStrategy
             'description' => "Base race for {$name} subraces.",
             'subrace_required' => $subraceRequired,
         ]);
+    }
+
+    /**
+     * Calculate total ability score points from fixed bonuses.
+     *
+     * @param  array  $bonuses  Fixed ability bonuses [{ability: 'Str', value: 2}, ...]
+     * @return int Total ability score points
+     */
+    private function calculateTotalAbilityPoints(array $bonuses): int
+    {
+        $total = 0;
+        foreach ($bonuses as $bonus) {
+            $total += abs((int) ($bonus['value'] ?? 0));
+        }
+
+        return $total;
     }
 
     /**

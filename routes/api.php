@@ -214,7 +214,7 @@ Route::prefix('v1')->group(function () {
     | 7. POST /characters/{id}/language-choices     - Make language selections
     | 8. GET /characters/{id}/available-spells?max_level=1
     | 9. POST /characters/{id}/spells          - Learn starting spells
-    | 10. POST /characters/{id}/features/populate   - Apply features from sources
+    | 10. POST /characters/{id}/features/sync       - Apply features from sources
     | 11. GET /characters/{id}                 - Verify creation complete
     |
     | GAMEPLAY FLOW:
@@ -223,8 +223,9 @@ Route::prefix('v1')->group(function () {
     | - POST /characters/{id}/conditions       - Apply condition
     | - DELETE /characters/{id}/conditions/{slug}  - Remove condition
     | - POST /characters/{id}/spell-slots/use  - Cast spell (use slot)
-    | - POST /characters/{id}/death-save       - Death saving throw
-    | - POST /characters/{id}/stabilize        - Stabilize dying character
+    | - POST /characters/{id}/death-saves      - Death saving throw
+    | - POST /characters/{id}/death-saves/stabilize - Stabilize dying character
+    | - DELETE /characters/{id}/death-saves    - Reset death saves
     |
     | Rest:
     | - POST /characters/{id}/short-rest       - Short rest
@@ -235,8 +236,8 @@ Route::prefix('v1')->group(function () {
     | - POST /characters/{id}/classes/{class}/level-up  - Gain level in class
     | - PUT /characters/{id}/classes/{class}/subclass   - Choose subclass (level 3)
     | - POST /characters/{id}/asi-choice       - ASI or feat selection
-    | - GET /characters/{id}/optional-feature-choices   - Check new choices
-    | - POST /characters/{id}/optional-features - Select invocations, etc.
+    | - GET /characters/{id}/feature-selection-choices  - Check new choices
+    | - POST /characters/{id}/feature-selections        - Select invocations, etc.
     |
     */
     Route::apiResource('characters', CharacterController::class);
@@ -283,8 +284,8 @@ Route::prefix('v1')->group(function () {
             ->name('proficiencies.choices');
         Route::post('proficiency-choices', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'storeChoice'])
             ->name('proficiencies.storeChoice');
-        Route::post('proficiencies/populate', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'populate'])
-            ->name('proficiencies.populate');
+        Route::post('proficiencies/sync', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'sync'])
+            ->name('proficiencies.sync');
 
         // Character Languages
         Route::get('languages', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'index'])
@@ -293,14 +294,14 @@ Route::prefix('v1')->group(function () {
             ->name('languages.choices');
         Route::post('language-choices', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'storeChoice'])
             ->name('languages.storeChoice');
-        Route::post('languages/populate', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'populate'])
-            ->name('languages.populate');
+        Route::post('languages/sync', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'sync'])
+            ->name('languages.sync');
 
         // Character Features
         Route::get('features', [\App\Http\Controllers\Api\CharacterFeatureController::class, 'index'])
             ->name('features.index');
-        Route::post('features/populate', [\App\Http\Controllers\Api\CharacterFeatureController::class, 'populate'])
-            ->name('features.populate');
+        Route::post('features/sync', [\App\Http\Controllers\Api\CharacterFeatureController::class, 'sync'])
+            ->name('features.sync');
         Route::delete('features/{source}', [\App\Http\Controllers\Api\CharacterFeatureController::class, 'clear'])
             ->name('features.clear');
 
@@ -338,10 +339,12 @@ Route::prefix('v1')->group(function () {
             ->name('notes.destroy');
 
         // Death Saves
-        Route::post('death-save', [\App\Http\Controllers\Api\CharacterDeathSaveController::class, 'store'])
-            ->name('death-save.store');
-        Route::post('stabilize', [\App\Http\Controllers\Api\CharacterDeathSaveController::class, 'stabilize'])
-            ->name('stabilize');
+        Route::post('death-saves', [\App\Http\Controllers\Api\CharacterDeathSaveController::class, 'store'])
+            ->name('death-saves.store');
+        Route::post('death-saves/stabilize', [\App\Http\Controllers\Api\CharacterDeathSaveController::class, 'stabilize'])
+            ->name('death-saves.stabilize');
+        Route::delete('death-saves', [\App\Http\Controllers\Api\CharacterDeathSaveController::class, 'reset'])
+            ->name('death-saves.reset');
 
         // Hit Dice
         Route::get('hit-dice', [\App\Http\Controllers\Api\HitDiceController::class, 'index'])
@@ -357,17 +360,17 @@ Route::prefix('v1')->group(function () {
         Route::post('long-rest', [\App\Http\Controllers\Api\RestController::class, 'longRest'])
             ->name('long-rest');
 
-        // Optional Features (Invocations, Maneuvers, Metamagic, etc.)
-        Route::get('optional-features', [\App\Http\Controllers\Api\CharacterOptionalFeatureController::class, 'index'])
-            ->name('optional-features.index');
-        Route::get('available-optional-features', [\App\Http\Controllers\Api\CharacterOptionalFeatureController::class, 'available'])
-            ->name('optional-features.available');
-        Route::get('optional-feature-choices', [\App\Http\Controllers\Api\CharacterOptionalFeatureController::class, 'choices'])
-            ->name('optional-features.choices');
-        Route::post('optional-features', [\App\Http\Controllers\Api\CharacterOptionalFeatureController::class, 'store'])
-            ->name('optional-features.store');
-        Route::delete('optional-features/{optionalFeatureIdOrSlug}', [\App\Http\Controllers\Api\CharacterOptionalFeatureController::class, 'destroy'])
-            ->name('optional-features.destroy');
+        // Feature Selections (Invocations, Maneuvers, Metamagic, etc.)
+        Route::get('feature-selections', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'index'])
+            ->name('feature-selections.index');
+        Route::get('available-feature-selections', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'available'])
+            ->name('feature-selections.available');
+        Route::get('feature-selection-choices', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'choices'])
+            ->name('feature-selections.choices');
+        Route::post('feature-selections', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'store'])
+            ->name('feature-selections.store');
+        Route::delete('feature-selections/{featureIdOrSlug}', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'destroy'])
+            ->name('feature-selections.destroy');
 
         // Conditions
         Route::get('conditions', [\App\Http\Controllers\Api\CharacterConditionController::class, 'index'])

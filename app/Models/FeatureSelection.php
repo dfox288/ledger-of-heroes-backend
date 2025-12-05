@@ -7,10 +7,25 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CharacterOptionalFeature extends Model
+/**
+ * Tracks class-granted feature choices for a character.
+ *
+ * Feature selections include:
+ * - Eldritch Invocations (Warlock)
+ * - Maneuvers (Fighter - Battle Master)
+ * - Metamagic (Sorcerer)
+ * - Fighting Styles (Fighter, Paladin, Ranger, etc.)
+ * - Artificer Infusions (Artificer)
+ * - Runes (Fighter - Rune Knight)
+ * - Arcane Shots (Fighter - Arcane Archer)
+ * - Elemental Disciplines (Monk - Way of Four Elements)
+ */
+class FeatureSelection extends Model
 {
     use HasFactory;
     use HasLimitedUses;
+
+    protected $table = 'feature_selections';
 
     protected $fillable = [
         'character_id',

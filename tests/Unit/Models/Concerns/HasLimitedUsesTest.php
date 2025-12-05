@@ -3,7 +3,7 @@
 namespace Tests\Unit\Models\Concerns;
 
 use App\Models\CharacterFeature;
-use App\Models\CharacterOptionalFeature;
+use App\Models\FeatureSelection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -11,8 +11,8 @@ use Tests\TestCase;
 /**
  * Tests for the HasLimitedUses trait.
  *
- * Both CharacterFeature and CharacterOptionalFeature use this trait.
- * We test through CharacterOptionalFeature since it has a factory.
+ * Both CharacterFeature and FeatureSelection use this trait.
+ * We test through FeatureSelection since it has a factory.
  */
 class HasLimitedUsesTest extends TestCase
 {
@@ -23,7 +23,7 @@ class HasLimitedUsesTest extends TestCase
     #[Test]
     public function has_limited_uses_returns_true_when_max_uses_is_set()
     {
-        $feature = CharacterOptionalFeature::factory()->create([
+        $feature = FeatureSelection::factory()->create([
             'max_uses' => 3,
             'uses_remaining' => 3,
         ]);
@@ -34,7 +34,7 @@ class HasLimitedUsesTest extends TestCase
     #[Test]
     public function has_limited_uses_returns_false_when_max_uses_is_null()
     {
-        $feature = CharacterOptionalFeature::factory()->create([
+        $feature = FeatureSelection::factory()->create([
             'max_uses' => null,
             'uses_remaining' => null,
         ]);
@@ -45,7 +45,7 @@ class HasLimitedUsesTest extends TestCase
     #[Test]
     public function has_uses_remaining_returns_true_when_uses_available()
     {
-        $feature = CharacterOptionalFeature::factory()->create([
+        $feature = FeatureSelection::factory()->create([
             'max_uses' => 3,
             'uses_remaining' => 2,
         ]);
@@ -56,7 +56,7 @@ class HasLimitedUsesTest extends TestCase
     #[Test]
     public function has_uses_remaining_returns_false_when_no_uses_left()
     {
-        $feature = CharacterOptionalFeature::factory()->create([
+        $feature = FeatureSelection::factory()->create([
             'max_uses' => 3,
             'uses_remaining' => 0,
         ]);
@@ -67,7 +67,7 @@ class HasLimitedUsesTest extends TestCase
     #[Test]
     public function has_uses_remaining_returns_true_for_unlimited_feature()
     {
-        $feature = CharacterOptionalFeature::factory()->create([
+        $feature = FeatureSelection::factory()->create([
             'max_uses' => null,
             'uses_remaining' => null,
         ]);
@@ -78,7 +78,7 @@ class HasLimitedUsesTest extends TestCase
     #[Test]
     public function use_feature_decrements_uses_remaining()
     {
-        $feature = CharacterOptionalFeature::factory()->create([
+        $feature = FeatureSelection::factory()->create([
             'max_uses' => 3,
             'uses_remaining' => 3,
         ]);
@@ -92,7 +92,7 @@ class HasLimitedUsesTest extends TestCase
     #[Test]
     public function use_feature_returns_false_when_no_uses_remaining()
     {
-        $feature = CharacterOptionalFeature::factory()->create([
+        $feature = FeatureSelection::factory()->create([
             'max_uses' => 3,
             'uses_remaining' => 0,
         ]);
@@ -106,7 +106,7 @@ class HasLimitedUsesTest extends TestCase
     #[Test]
     public function use_feature_returns_true_for_unlimited_feature()
     {
-        $feature = CharacterOptionalFeature::factory()->create([
+        $feature = FeatureSelection::factory()->create([
             'max_uses' => null,
             'uses_remaining' => null,
         ]);
@@ -120,7 +120,7 @@ class HasLimitedUsesTest extends TestCase
     #[Test]
     public function reset_uses_restores_to_max()
     {
-        $feature = CharacterOptionalFeature::factory()->create([
+        $feature = FeatureSelection::factory()->create([
             'max_uses' => 3,
             'uses_remaining' => 0,
         ]);
@@ -133,7 +133,7 @@ class HasLimitedUsesTest extends TestCase
     #[Test]
     public function reset_uses_does_nothing_for_unlimited_feature()
     {
-        $feature = CharacterOptionalFeature::factory()->create([
+        $feature = FeatureSelection::factory()->create([
             'max_uses' => null,
             'uses_remaining' => null,
         ]);

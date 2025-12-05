@@ -3,32 +3,32 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CharacterOptionalFeature\StoreCharacterOptionalFeatureRequest;
-use App\Http\Resources\CharacterOptionalFeatureResource;
+use App\Http\Requests\FeatureSelection\StoreFeatureSelectionRequest;
 use App\Http\Resources\ChoicesResource;
+use App\Http\Resources\FeatureSelectionResource;
 use App\Http\Resources\OptionalFeatureResource;
 use App\Models\Character;
-use App\Models\CharacterOptionalFeature;
+use App\Models\FeatureSelection;
 use App\Models\OptionalFeature;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
-class CharacterOptionalFeatureController extends Controller
+class FeatureSelectionController extends Controller
 {
     /**
-     * List all optional features selected by the character
+     * List all feature selections for the character
      *
-     * Returns all optional features the character has selected, including eldritch invocations,
+     * Returns all feature selections the character has made, including eldritch invocations,
      * maneuvers, metamagic options, fighting styles, and other class-granted choices.
      *
      * **Examples:**
      * ```
-     * GET /api/v1/characters/1/optional-features
+     * GET /api/v1/characters/1/feature-selections
      * ```
      *
-     * **Optional Feature Types (8 total):**
+     * **Feature Selection Types (8 total):**
      * | Type | Label | Primary Class | Subclass |
      * |------|-------|---------------|----------|
      * | `eldritch_invocation` | Eldritch Invocation | Warlock | - |
@@ -45,29 +45,29 @@ class CharacterOptionalFeatureController extends Controller
      * - Class/subclass association
      * - Level the feature was acquired
      *
-     * @return AnonymousResourceCollection<CharacterOptionalFeatureResource>
+     * @return AnonymousResourceCollection<FeatureSelectionResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {
-        $optionalFeatures = $character->optionalFeatures()
+        $featureSelections = $character->featureSelections()
             ->with(['optionalFeature', 'characterClass'])
             ->get();
 
-        return CharacterOptionalFeatureResource::collection($optionalFeatures);
+        return FeatureSelectionResource::collection($featureSelections);
     }
 
     /**
-     * List optional features available for the character to select
+     * List available feature selections for the character
      *
      * Returns features the character is eligible for based on their class,
      * subclass, and level. Excludes features already selected.
      *
      * **Examples:**
      * ```
-     * GET /api/v1/characters/1/available-optional-features
-     * GET /api/v1/characters/1/available-optional-features?feature_type=maneuver
-     * GET /api/v1/characters/1/available-optional-features?feature_type=eldritch_invocation
-     * GET /api/v1/characters/1/available-optional-features?feature_type=metamagic
+     * GET /api/v1/characters/1/available-feature-selections
+     * GET /api/v1/characters/1/available-feature-selections?feature_type=maneuver
+     * GET /api/v1/characters/1/available-feature-selections?feature_type=eldritch_invocation
+     * GET /api/v1/characters/1/available-feature-selections?feature_type=metamagic
      * ```
      *
      * **Filtering by feature_type:**
@@ -89,7 +89,7 @@ class CharacterOptionalFeatureController extends Controller
      *
      * @return AnonymousResourceCollection<OptionalFeatureResource>
      */
-    #[QueryParameter('feature_type', description: 'Filter by optional feature type', example: 'maneuver')]
+    #[QueryParameter('feature_type', description: 'Filter by feature type', example: 'maneuver')]
     public function available(Character $character): AnonymousResourceCollection
     {
         // Get character's class and subclass info
@@ -98,7 +98,7 @@ class CharacterOptionalFeatureController extends Controller
             ->get();
 
         // Get already selected feature IDs
-        $selectedIds = $character->optionalFeatures()->pluck('optional_feature_id');
+        $selectedIds = $character->featureSelections()->pluck('optional_feature_id');
 
         // Build query for available features
         $query = OptionalFeature::with(['classes', 'classPivots', 'sources.source'])
@@ -140,7 +140,7 @@ class CharacterOptionalFeatureController extends Controller
     }
 
     /**
-     * Get pending optional feature choices
+     * Get pending feature selection choices
      *
      * Shows which feature types the character can still select choices for,
      * based on their class counter values. This helps track if a character
@@ -150,7 +150,7 @@ class CharacterOptionalFeatureController extends Controller
      *
      * **Examples:**
      * ```
-     * GET /api/v1/characters/1/optional-feature-choices
+     * GET /api/v1/characters/1/feature-selection-choices
      * ```
      *
      * **Counter to Feature Type Mapping:**
@@ -186,7 +186,7 @@ class CharacterOptionalFeatureController extends Controller
     }
 
     /**
-     * Select an optional feature
+     * Add a feature selection
      *
      * Adds an invocation, maneuver, metamagic, fighting style, etc. to the character.
      * Validates class eligibility and level requirements automatically.
@@ -195,7 +195,7 @@ class CharacterOptionalFeatureController extends Controller
      *
      * **Examples:**
      * ```
-     * POST /api/v1/characters/1/optional-features
+     * POST /api/v1/characters/1/feature-selections
      *
      * # Select a Battle Master maneuver
      * {"optional_feature_id": 123, "class_id": 5, "subclass_name": "Battle Master"}
@@ -222,15 +222,15 @@ class CharacterOptionalFeatureController extends Controller
      * - Character's level must meet feature's level_requirement
      *
      * **Error Responses:**
-     * - 422 if feature already selected: "This character has already selected this optional feature."
+     * - 422 if feature already selected: "This character has already selected this feature."
      * - 422 if level too low: "This feature requires level {N}. Character is level {M}."
      * - 422 if class ineligible: "This character does not have the required class or subclass for this feature."
      *
-     * @response 201 CharacterOptionalFeatureResource
+     * @response 201 FeatureSelectionResource
      * @response 404 array{message: string} Feature not found
      * @response 422 array{message: string, errors: array{optional_feature_id?: string[], class_id?: string[], subclass_name?: string[], level_acquired?: string[]}}
      */
-    public function store(StoreCharacterOptionalFeatureRequest $request, Character $character): JsonResponse
+    public function store(StoreFeatureSelectionRequest $request, Character $character): JsonResponse
     {
         $validated = $request->validated();
 
@@ -240,7 +240,7 @@ class CharacterOptionalFeatureController extends Controller
         // Set default level_acquired to character's current total level
         $levelAcquired = $validated['level_acquired'] ?? $character->total_level;
 
-        $characterOptionalFeature = CharacterOptionalFeature::create([
+        $featureSelection = FeatureSelection::create([
             'character_id' => $character->id,
             'optional_feature_id' => $optionalFeature->id,
             'class_id' => $validated['class_id'] ?? null,
@@ -248,15 +248,15 @@ class CharacterOptionalFeatureController extends Controller
             'level_acquired' => max(1, $levelAcquired),
         ]);
 
-        $characterOptionalFeature->load(['optionalFeature', 'characterClass']);
+        $featureSelection->load(['optionalFeature', 'characterClass']);
 
-        return (new CharacterOptionalFeatureResource($characterOptionalFeature))
+        return (new FeatureSelectionResource($featureSelection))
             ->response()
             ->setStatusCode(Response::HTTP_CREATED);
     }
 
     /**
-     * Remove an optional feature from the character
+     * Remove a feature selection from the character
      *
      * Used for retraining features (allowed by some class rules, typically at level-up).
      * For example, Battle Masters can swap one maneuver for another when they gain a level.
@@ -264,8 +264,8 @@ class CharacterOptionalFeatureController extends Controller
      *
      * **Examples:**
      * ```
-     * DELETE /api/v1/characters/1/optional-features/123                  # Remove by ID
-     * DELETE /api/v1/characters/1/optional-features/agonizing-blast      # Remove by slug
+     * DELETE /api/v1/characters/1/feature-selections/123                  # Remove by ID
+     * DELETE /api/v1/characters/1/feature-selections/agonizing-blast      # Remove by slug
      * ```
      *
      * **Retraining Rules (by type):**
@@ -277,31 +277,31 @@ class CharacterOptionalFeatureController extends Controller
      * **Note:** This API allows any removal for flexibility. Implement retraining rules in your UI.
      *
      * @param  Character  $character  The character
-     * @param  string  $optionalFeatureIdOrSlug  ID or slug of the optional feature to remove
+     * @param  string  $featureIdOrSlug  ID or slug of the optional feature to remove
      * @return Response 204 on success
      *
      * @response 204 No content on success
-     * @response 404 array{message: string} Character does not have this optional feature selected or feature not found
+     * @response 404 array{message: string} Character does not have this feature selected or feature not found
      */
-    public function destroy(Character $character, string $optionalFeatureIdOrSlug): Response
+    public function destroy(Character $character, string $featureIdOrSlug): Response
     {
-        $optionalFeature = is_numeric($optionalFeatureIdOrSlug)
-            ? OptionalFeature::findOrFail($optionalFeatureIdOrSlug)
-            : OptionalFeature::where('slug', $optionalFeatureIdOrSlug)->firstOrFail();
+        $optionalFeature = is_numeric($featureIdOrSlug)
+            ? OptionalFeature::findOrFail($featureIdOrSlug)
+            : OptionalFeature::where('slug', $featureIdOrSlug)->firstOrFail();
 
-        $deleted = $character->optionalFeatures()
+        $deleted = $character->featureSelections()
             ->where('optional_feature_id', $optionalFeature->id)
             ->delete();
 
         if ($deleted === 0) {
-            abort(404, 'Character does not have this optional feature selected.');
+            abort(404, 'Character does not have this feature selected.');
         }
 
         return response()->noContent();
     }
 
     /**
-     * Calculate pending optional feature choices for a character.
+     * Calculate pending feature selection choices for a character.
      *
      * Compares class counter values (e.g., "Maneuvers Known") against
      * selected features to determine remaining choices.
@@ -357,11 +357,11 @@ class CharacterOptionalFeatureController extends Controller
 
         // Count selected features by type
         // Filter out orphaned records where optionalFeature was deleted
-        $selectedCounts = $character->optionalFeatures()
+        $selectedCounts = $character->featureSelections()
             ->with('optionalFeature')
             ->get()
-            ->filter(fn ($cof) => $cof->optionalFeature !== null)
-            ->groupBy(fn ($cof) => $cof->optionalFeature->feature_type?->value)
+            ->filter(fn ($fs) => $fs->optionalFeature !== null)
+            ->groupBy(fn ($fs) => $fs->optionalFeature->feature_type?->value)
             ->map(fn ($group) => $group->count());
 
         // Calculate remaining choices

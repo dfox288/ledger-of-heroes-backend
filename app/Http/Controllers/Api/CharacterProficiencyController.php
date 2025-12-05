@@ -205,12 +205,12 @@ class CharacterProficiencyController extends Controller
     }
 
     /**
-     * Populate proficiencies from class, race, and background.
+     * Sync proficiencies from class, race, and background.
      *
-     * Auto-populates fixed proficiencies based on character's selections.
+     * Syncs fixed proficiencies based on character's selections.
      * This is typically called when finalizing character creation.
      *
-     * - Fixed proficiencies (armor, weapons, saving throws) are auto-populated
+     * - Fixed proficiencies (armor, weapons, saving throws) are synced automatically
      * - Choice-based proficiencies (skills) require using the proficiency-choices endpoint
      *
      * @x-flow character-creation
@@ -219,13 +219,13 @@ class CharacterProficiencyController extends Controller
      *
      * **Examples:**
      * ```
-     * POST /api/v1/characters/1/proficiencies/populate
+     * POST /api/v1/characters/1/proficiencies/sync
      * ```
      *
      * **Response:**
      * ```json
      * {
-     *   "message": "Proficiencies populated successfully",
+     *   "message": "Proficiencies synced successfully",
      *   "data": [
      *     {"id": 1, "source": "class", "proficiency_type": {"name": "Light Armor", ...}},
      *     {"id": 2, "source": "class", "proficiency_type": {"name": "Heavy Armor", ...}},
@@ -235,16 +235,16 @@ class CharacterProficiencyController extends Controller
      * ```
      *
      * **Note:** This endpoint is idempotent - calling it multiple times will not create duplicates.
-     * Proficiencies are auto-populated when class/race/background changes via the PopulateCharacterAbilities listener.
+     * Proficiencies are synced when class/race/background changes via the PopulateCharacterAbilities listener.
      */
-    public function populate(Character $character): JsonResponse
+    public function sync(Character $character): JsonResponse
     {
         $character->load(['characterClasses.characterClass', 'race', 'background']);
 
         $this->proficiencyService->populateAll($character);
 
         return response()->json([
-            'message' => 'Proficiencies populated successfully',
+            'message' => 'Proficiencies synced successfully',
             'data' => CharacterProficiencyResource::collection(
                 $this->proficiencyService->getCharacterProficiencies($character)
             ),

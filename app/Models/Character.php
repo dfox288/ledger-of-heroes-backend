@@ -181,11 +181,11 @@ class Character extends Model implements HasMedia
     }
 
     /**
-     * Get optional features selected by this character (invocations, maneuvers, etc.)
+     * Get feature selections for this character (invocations, maneuvers, metamagic, etc.)
      */
-    public function optionalFeatures(): HasMany
+    public function featureSelections(): HasMany
     {
-        return $this->hasMany(CharacterOptionalFeature::class);
+        return $this->hasMany(FeatureSelection::class);
     }
 
     /**

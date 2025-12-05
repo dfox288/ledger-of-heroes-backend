@@ -191,7 +191,7 @@ class CharacterProficiencyApiTest extends TestCase
     }
 
     // =============================
-    // POST /characters/{id}/proficiencies/populate
+    // POST /characters/{id}/proficiencies/sync
     // =============================
 
     #[Test]
@@ -201,7 +201,7 @@ class CharacterProficiencyApiTest extends TestCase
             ->withClass($this->fighterClass)
             ->create();
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/proficiencies/populate");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/proficiencies/sync");
 
         $response->assertOk()
             ->assertJsonPath('message', 'Proficiencies populated successfully');
@@ -217,7 +217,7 @@ class CharacterProficiencyApiTest extends TestCase
             ->withClass($this->fighterClass)
             ->create();
 
-        $this->postJson("/api/v1/characters/{$character->id}/proficiencies/populate");
+        $this->postJson("/api/v1/characters/{$character->id}/proficiencies/sync");
 
         // Verify no skill proficiencies were created (those are choices)
         $character->refresh();
@@ -232,8 +232,8 @@ class CharacterProficiencyApiTest extends TestCase
             ->withClass($this->fighterClass)
             ->create();
 
-        $this->postJson("/api/v1/characters/{$character->id}/proficiencies/populate");
-        $response = $this->postJson("/api/v1/characters/{$character->id}/proficiencies/populate");
+        $this->postJson("/api/v1/characters/{$character->id}/proficiencies/sync");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/proficiencies/sync");
 
         $response->assertOk();
         $this->assertCount(2, $response->json('data'));

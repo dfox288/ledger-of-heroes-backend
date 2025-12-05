@@ -166,7 +166,7 @@ class CharacterFeatureApiTest extends TestCase
     }
 
     // =============================
-    // POST /characters/{id}/features/populate
+    // POST /characters/{id}/features/sync
     // =============================
 
     #[Test]
@@ -178,7 +178,7 @@ class CharacterFeatureApiTest extends TestCase
             ->withBackground($this->soldierBackground)
             ->create(['level' => 1]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/features/populate");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/features/sync");
 
         $response->assertOk()
             ->assertJsonPath('message', 'Features populated successfully');
@@ -200,7 +200,7 @@ class CharacterFeatureApiTest extends TestCase
             ->withClass($this->fighterClass)
             ->create(['level' => 1]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/features/populate");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/features/sync");
 
         $response->assertOk();
 
@@ -216,7 +216,7 @@ class CharacterFeatureApiTest extends TestCase
             ->withClass($this->fighterClass)
             ->create(['level' => 2]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/features/populate");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/features/sync");
 
         $response->assertOk();
 
@@ -232,8 +232,8 @@ class CharacterFeatureApiTest extends TestCase
             ->create(['level' => 1]);
 
         // Call populate twice
-        $this->postJson("/api/v1/characters/{$character->id}/features/populate");
-        $response = $this->postJson("/api/v1/characters/{$character->id}/features/populate");
+        $this->postJson("/api/v1/characters/{$character->id}/features/sync");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/features/sync");
 
         $response->assertOk();
         $this->assertCount(1, $response->json('data'));

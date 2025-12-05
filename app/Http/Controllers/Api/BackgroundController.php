@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\DTOs\BackgroundSearchDTO;
+use App\Http\Controllers\Api\Concerns\CachesEntityShow;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BackgroundIndexRequest;
 use App\Http\Requests\BackgroundShowRequest;
@@ -15,6 +16,8 @@ use MeiliSearch\Client;
 
 class BackgroundController extends Controller
 {
+    use CachesEntityShow;
+
     /**
      * List all backgrounds
      *
@@ -120,26 +123,13 @@ class BackgroundController extends Controller
      */
     public function show(BackgroundShowRequest $request, Background $background, EntityCacheService $cache, BackgroundSearchService $service)
     {
-        $validated = $request->validated();
-
-        // Default relationships from service
-        $defaultRelationships = $service->getShowRelationships();
-
-        // Try cache first
-        $cachedBackground = $cache->getBackground($background->id);
-
-        if ($cachedBackground) {
-            // If include parameter provided, use it; otherwise load defaults
-            $includes = $validated['include'] ?? $defaultRelationships;
-            $cachedBackground->load($includes);
-
-            return new BackgroundResource($cachedBackground);
-        }
-
-        // Fallback to route model binding result (should rarely happen)
-        $includes = $validated['include'] ?? $defaultRelationships;
-        $background->load($includes);
-
-        return new BackgroundResource($background);
+        return $this->showWithCache(
+            request: $request,
+            entity: $background,
+            cache: $cache,
+            cacheMethod: 'getBackground',
+            resourceClass: BackgroundResource::class,
+            defaultRelationships: $service->getShowRelationships()
+        );
     }
 }

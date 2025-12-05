@@ -30,42 +30,68 @@ class CharacterResource extends JsonResource
 
     public function toArray(Request $request): array
     {
-        $abilityScores = $this->getAbilityScoresArray();
-        $modifiers = $this->calculateModifiers($abilityScores);
-        $level = $this->total_level;
-        $proficiencyBonus = $this->calculator->proficiencyBonus($level);
-        $primaryClass = $this->primary_class;
+        return [
+            ...$this->getBaseInfo(),
+            ...$this->getAbilityScoresData(),
+            ...$this->getCombatStats(),
+            ...$this->getCharacterAttributes(),
+            ...$this->getRaceAttributes(),
+            ...$this->getEquipmentData(),
+            ...$this->getRelationships(),
+            ...$this->getMulticlassData(),
+            ...$this->getFeaturesAndConditions(),
+            ...$this->getMediaData(),
+            ...$this->getTimestamps(),
+        ];
+    }
 
+    /**
+     * Get base character information.
+     */
+    private function getBaseInfo(): array
+    {
         return [
             'id' => $this->id,
             'name' => $this->name,
             /** @var int Character level (total across all classes) */
-            'level' => $level,
+            'level' => $this->total_level,
             /** @var int Total character level */
             'total_level' => $this->total_level,
             /** @var bool Whether character has multiple classes */
             'is_multiclass' => $this->is_multiclass,
             'experience_points' => $this->experience_points ?? 0,
-
-            // Completion status
             /** @var bool Whether character has all required fields */
             'is_complete' => $this->is_complete,
             /** @var array{is_complete: bool, missing: array<string>} Validation status with missing fields */
             'validation_status' => $this->validation_status,
+        ];
+    }
 
-            // Ability score method
+    /**
+     * Get ability scores and modifiers.
+     */
+    private function getAbilityScoresData(): array
+    {
+        $abilityScores = $this->getAbilityScoresArray();
+        $modifiers = $this->calculateModifiers($abilityScores);
+        $proficiencyBonus = $this->calculator->proficiencyBonus($this->total_level);
+
+        return [
             'ability_score_method' => $this->ability_score_method?->value,
-
-            // Ability scores (as STR/DEX/CON/INT/WIS/CHA keyed array)
             /** @var array{STR: int|null, DEX: int|null, CON: int|null, INT: int|null, WIS: int|null, CHA: int|null} */
             'ability_scores' => $abilityScores,
             /** @var array{STR: int|null, DEX: int|null, CON: int|null, INT: int|null, WIS: int|null, CHA: int|null} */
             'modifiers' => $modifiers,
-
-            // Calculated stats
             'proficiency_bonus' => $proficiencyBonus,
+        ];
+    }
 
-            // Combat stats (nullable until calculated)
+    /**
+     * Get combat statistics.
+     */
+    private function getCombatStats(): array
+    {
+        return [
             'max_hit_points' => $this->max_hit_points,
             'current_hit_points' => $this->current_hit_points,
             'temp_hit_points' => $this->temp_hit_points,
@@ -73,29 +99,55 @@ class CharacterResource extends JsonResource
             'death_save_failures' => $this->death_save_failures,
             /** @var int|null Calculated armor class */
             'armor_class' => $this->armor_class,
+        ];
+    }
 
-            // Level-up tracking
+    /**
+     * Get character attributes.
+     */
+    private function getCharacterAttributes(): array
+    {
+        return [
             'asi_choices_remaining' => $this->asi_choices_remaining ?? 0,
-
-            // Character attributes
             'alignment' => $this->alignment,
             'has_inspiration' => $this->has_inspiration ?? false,
+        ];
+    }
 
-            // Race-derived attributes
+    /**
+     * Get race-derived attributes.
+     */
+    private function getRaceAttributes(): array
+    {
+        return [
             /** @var int|null Walking speed from race */
             'speed' => $this->speed,
             /** @var array{walk: int|null, fly: int|null, swim: int|null, climb: int|null}|null All movement speeds */
             'speeds' => $this->speeds,
             /** @var string|null Character size (e.g., "Medium", "Small") */
             'size' => $this->size,
+        ];
+    }
 
-            // Equipped items summary
+    /**
+     * Get equipment data.
+     */
+    private function getEquipmentData(): array
+    {
+        return [
             'equipped' => $this->getEquippedSummary(),
-
-            // Proficiency penalties from equipped items
             'proficiency_penalties' => $this->getProficiencyPenalties(),
+        ];
+    }
 
-            // Relationships (conditionally loaded)
+    /**
+     * Get character relationships.
+     */
+    private function getRelationships(): array
+    {
+        $primaryClass = $this->primary_class;
+
+        return [
             'race' => $this->when(
                 $this->relationLoaded('race') || $this->race_id,
                 fn () => $this->formatEntity($this->race)
@@ -110,15 +162,29 @@ class CharacterResource extends JsonResource
                 $this->relationLoaded('background') || $this->background_id,
                 fn () => $this->formatEntity($this->background)
             ),
+        ];
+    }
 
-            // Multiclass support
+    /**
+     * Get multiclass data.
+     */
+    private function getMulticlassData(): array
+    {
+        return [
             'classes' => CharacterClassPivotResource::collection(
                 $this->whenLoaded('characterClasses', $this->characterClasses, collect())
             ),
             /** @var array{standard: array<string, int>|null, pact: array{count: int, level: int}|null}|null Spell slots */
             'spell_slots' => $this->getSpellSlots(),
+        ];
+    }
 
-            // Active conditions
+    /**
+     * Get features and conditions.
+     */
+    private function getFeaturesAndConditions(): array
+    {
+        return [
             'conditions' => $this->whenLoaded('conditions', function () {
                 return $this->conditions->map(fn ($cc) => [
                     'id' => $cc->condition->id,
@@ -129,8 +195,6 @@ class CharacterResource extends JsonResource
                     'duration' => $cc->duration,
                 ]);
             }),
-
-            // Optional feature selections (invocations, maneuvers, metamagic, etc.)
             'optional_features' => $this->whenLoaded('optionalFeatures', function () {
                 return $this->optionalFeatures->map(fn ($cof) => [
                     'id' => $cof->optionalFeature->id,
@@ -142,11 +206,25 @@ class CharacterResource extends JsonResource
                     'subclass_name' => $cof->subclass_name,
                 ]);
             }),
+        ];
+    }
 
-            // Portrait
+    /**
+     * Get media data.
+     */
+    private function getMediaData(): array
+    {
+        return [
             'portrait' => $this->getPortraitData(),
+        ];
+    }
 
-            // Timestamps
+    /**
+     * Get timestamps.
+     */
+    private function getTimestamps(): array
+    {
+        return [
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

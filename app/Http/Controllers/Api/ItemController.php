@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\DTOs\ItemSearchDTO;
+use App\Http\Controllers\Api\Concerns\CachesEntityShow;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ItemIndexRequest;
 use App\Http\Requests\ItemShowRequest;
@@ -15,6 +16,8 @@ use MeiliSearch\Client;
 
 class ItemController extends Controller
 {
+    use CachesEntityShow;
+
     /**
      * List all items
      *
@@ -166,26 +169,13 @@ class ItemController extends Controller
      */
     public function show(ItemShowRequest $request, Item $item, EntityCacheService $cache, ItemSearchService $service)
     {
-        $validated = $request->validated();
-
-        // Default relationships from service
-        $defaultRelationships = $service->getShowRelationships();
-
-        // Try cache first
-        $cachedItem = $cache->getItem($item->id);
-
-        if ($cachedItem) {
-            // If include parameter provided, use it; otherwise load defaults
-            $includes = $validated['include'] ?? $defaultRelationships;
-            $cachedItem->load($includes);
-
-            return new ItemResource($cachedItem);
-        }
-
-        // Fallback to route model binding result (should rarely happen)
-        $includes = $validated['include'] ?? $defaultRelationships;
-        $item->load($includes);
-
-        return new ItemResource($item);
+        return $this->showWithCache(
+            request: $request,
+            entity: $item,
+            cache: $cache,
+            cacheMethod: 'getItem',
+            resourceClass: ItemResource::class,
+            defaultRelationships: $service->getShowRelationships()
+        );
     }
 }

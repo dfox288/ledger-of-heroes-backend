@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\DTOs\SpellSearchDTO;
+use App\Http\Controllers\Api\Concerns\CachesEntityShow;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SpellIndexRequest;
 use App\Http\Requests\SpellShowRequest;
@@ -19,6 +20,8 @@ use MeiliSearch\Client;
 
 class SpellController extends Controller
 {
+    use CachesEntityShow;
+
     /**
      * List all spells
      *
@@ -138,27 +141,14 @@ class SpellController extends Controller
      */
     public function show(SpellShowRequest $request, Spell $spell, EntityCacheService $cache, SpellSearchService $service)
     {
-        $validated = $request->validated();
-
-        // Default relationships from service
-        $defaultRelationships = $service->getShowRelationships();
-
-        // Try cache first
-        $cachedSpell = $cache->getSpell($spell->id);
-
-        if ($cachedSpell) {
-            // If include parameter provided, use it; otherwise load defaults
-            $includes = $validated['include'] ?? $defaultRelationships;
-            $cachedSpell->load($includes);
-
-            return new SpellResource($cachedSpell);
-        }
-
-        // Fallback to route model binding result (should rarely happen)
-        $includes = $validated['include'] ?? $defaultRelationships;
-        $spell->load($includes);
-
-        return new SpellResource($spell);
+        return $this->showWithCache(
+            request: $request,
+            entity: $spell,
+            cache: $cache,
+            cacheMethod: 'getSpell',
+            resourceClass: SpellResource::class,
+            defaultRelationships: $service->getShowRelationships()
+        );
     }
 
     /**

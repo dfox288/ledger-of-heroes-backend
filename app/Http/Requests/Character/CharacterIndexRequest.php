@@ -2,20 +2,25 @@
 
 namespace App\Http\Requests\Character;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\BaseIndexRequest;
 
-class CharacterIndexRequest extends FormRequest
+class CharacterIndexRequest extends BaseIndexRequest
 {
-    public function authorize(): bool
+    /**
+     * Entity-specific validation rules.
+     *
+     * Characters use standard pagination inherited from BaseIndexRequest.
+     */
+    protected function entityRules(): array
     {
-        return true;
+        return [];
     }
 
-    public function rules(): array
+    /**
+     * Sortable columns for characters.
+     */
+    protected function getSortableColumns(): array
     {
-        return [
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-            'page' => ['sometimes', 'integer', 'min:1'],
-        ];
+        return ['name', 'created_at', 'updated_at'];
     }
 }

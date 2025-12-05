@@ -29,13 +29,21 @@ abstract class BaseIndexRequest extends FormRequest
             // Sorting
             'sort_by' => ['sometimes', Rule::in($this->getSortableColumns())],
             'sort_direction' => ['sometimes', Rule::in(['asc', 'desc'])],
+
+            // Search and filtering (common to all entities)
+            'q' => ['sometimes', 'string', 'min:2', 'max:255'],
+            'filter' => ['sometimes', 'string', 'max:1000'],
         ], $this->entityRules());
     }
 
     /**
      * Entity-specific validation rules.
+     * Override this method to add additional validation rules specific to the entity.
      */
-    abstract protected function entityRules(): array;
+    protected function entityRules(): array
+    {
+        return [];
+    }
 
     /**
      * Sortable columns for this entity.

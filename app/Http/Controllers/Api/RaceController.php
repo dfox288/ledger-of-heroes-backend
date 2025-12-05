@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\DTOs\RaceSearchDTO;
+use App\Http\Controllers\Api\Concerns\CachesEntityShow;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RaceIndexRequest;
 use App\Http\Requests\RaceShowRequest;
@@ -16,6 +17,8 @@ use MeiliSearch\Client as MeilisearchClient;
 
 class RaceController extends Controller
 {
+    use CachesEntityShow;
+
     /**
      * List all races and subraces
      *
@@ -127,27 +130,14 @@ class RaceController extends Controller
      */
     public function show(RaceShowRequest $request, Race $race, EntityCacheService $cache, RaceSearchService $service)
     {
-        $validated = $request->validated();
-
-        // Default relationships from service
-        $defaultRelationships = $service->getShowRelationships();
-
-        // Try cache first
-        $cachedRace = $cache->getRace($race->id);
-
-        if ($cachedRace) {
-            // If include parameter provided, use it; otherwise load defaults
-            $includes = $validated['include'] ?? $defaultRelationships;
-            $cachedRace->load($includes);
-
-            return new RaceResource($cachedRace);
-        }
-
-        // Fallback to route model binding result (should rarely happen)
-        $includes = $validated['include'] ?? $defaultRelationships;
-        $race->load($includes);
-
-        return new RaceResource($race);
+        return $this->showWithCache(
+            request: $request,
+            entity: $race,
+            cache: $cache,
+            cacheMethod: 'getRace',
+            resourceClass: RaceResource::class,
+            defaultRelationships: $service->getShowRelationships()
+        );
     }
 
     /**

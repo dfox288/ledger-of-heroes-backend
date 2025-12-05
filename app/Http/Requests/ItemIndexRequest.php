@@ -6,16 +6,12 @@ class ItemIndexRequest extends BaseIndexRequest
 {
     /**
      * Entity-specific validation rules.
+     *
+     * Common search/filter rules are inherited from BaseIndexRequest.
      */
     protected function entityRules(): array
     {
-        return [
-            // Search query (Scout/Meilisearch)
-            'q' => ['sometimes', 'string', 'min:2', 'max:255'],
-
-            // Meilisearch filter expression
-            'filter' => ['sometimes', 'string', 'max:1000'],
-        ];
+        return [];
     }
 
     /**

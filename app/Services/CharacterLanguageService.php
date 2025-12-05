@@ -9,10 +9,13 @@ use App\Models\EntityLanguage;
 use App\Models\Feat;
 use App\Models\Language;
 use App\Models\Race;
+use App\Services\Concerns\PopulatesFromEntity;
 use InvalidArgumentException;
 
 class CharacterLanguageService
 {
+    use PopulatesFromEntity;
+
     /**
      * Get all languages known by a character.
      *
@@ -33,62 +36,6 @@ class CharacterLanguageService
         $this->populateFromRace($character);
         $this->populateFromBackground($character);
         $this->populateFromFeats($character);
-    }
-
-    /**
-     * Populate fixed languages from the character's race.
-     * For subraces, also populates inherited languages from the parent race.
-     */
-    public function populateFromRace(Character $character): void
-    {
-        if (! $character->race_id) {
-            return;
-        }
-
-        $race = $character->race;
-
-        // For subraces, first populate languages from parent race
-        if ($race->is_subrace && $race->parent) {
-            $this->populateFixedLanguages($character, $race->parent, 'race');
-        }
-
-        // Then populate from the race itself
-        $this->populateFixedLanguages($character, $race, 'race');
-    }
-
-    /**
-     * Populate fixed languages from the character's background.
-     */
-    public function populateFromBackground(Character $character): void
-    {
-        if (! $character->background_id) {
-            return;
-        }
-
-        $this->populateFixedLanguages($character, $character->background, 'background');
-    }
-
-    /**
-     * Populate fixed languages from the character's feats.
-     */
-    public function populateFromFeats(Character $character): void
-    {
-        // Get feat IDs from character features (polymorphic)
-        $featIds = $character->features()
-            ->where('feature_type', Feat::class)
-            ->pluck('feature_id')
-            ->toArray();
-
-        if (empty($featIds)) {
-            return;
-        }
-
-        // Load all feats in one query to avoid N+1
-        $feats = Feat::whereIn('id', $featIds)->get();
-
-        foreach ($feats as $feat) {
-            $this->populateFixedLanguages($character, $feat, 'feat');
-        }
     }
 
     /**
@@ -178,8 +125,9 @@ class CharacterLanguageService
 
     /**
      * Populate fixed languages from an entity.
+     * Implementation of PopulatesFromEntity trait's abstract method.
      */
-    private function populateFixedLanguages(Character $character, $entity, string $source): void
+    protected function populateFromEntity(Character $character, $entity, string $source): void
     {
         if (! $entity) {
             return;

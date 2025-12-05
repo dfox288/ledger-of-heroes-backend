@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **BaseIndexRequest Consolidation** (Issue #189)
+  - Enhanced `BaseIndexRequest` to include common `q` and `filter` validation rules
+  - Removed duplicate validation rules from 9 entity index request classes
+  - Refactored `CharacterIndexRequest` to extend `BaseIndexRequest` (previously extended `FormRequest`)
+  - Net reduction: 24 lines of duplicate code across index requests
+  - All entities now inherit standardized search/filter validation from base class
+
 - **Shared Traits for Importers and Parsers** (Code Consolidation)
   - `NormalizesSpellNames` trait for spell name normalization and cached lookups
   - `TracksMetricsAndWarnings` trait for consistent warning/metric tracking

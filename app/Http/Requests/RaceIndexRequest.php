@@ -9,16 +9,11 @@ class RaceIndexRequest extends BaseIndexRequest
      *
      * NOTE: All filtering uses Meilisearch ?filter= parameter.
      * Legacy MySQL params (spells, spell_level, has_innate_spells, ability_bonus, size, etc.) have been removed.
+     * Common search/filter rules are inherited from BaseIndexRequest.
      */
     protected function entityRules(): array
     {
-        return [
-            // Full-text search query
-            'q' => ['sometimes', 'string', 'min:2', 'max:255'],
-
-            // Meilisearch filter expression
-            'filter' => ['sometimes', 'string', 'max:1000'],
-        ];
+        return [];
     }
 
     /**

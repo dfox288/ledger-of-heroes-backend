@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\DTOs\MonsterSearchDTO;
+use App\Http\Controllers\Api\Concerns\CachesEntityShow;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MonsterIndexRequest;
 use App\Http\Requests\MonsterShowRequest;
@@ -16,6 +17,8 @@ use MeiliSearch\Client;
 
 class MonsterController extends Controller
 {
+    use CachesEntityShow;
+
     /**
      * List all monsters
      *
@@ -231,27 +234,14 @@ class MonsterController extends Controller
      */
     public function show(MonsterShowRequest $request, Monster $monster, EntityCacheService $cache, MonsterSearchService $service)
     {
-        $validated = $request->validated();
-
-        // Default relationships from service
-        $defaultRelationships = $service->getShowRelationships();
-
-        // Try cache first
-        $cachedMonster = $cache->getMonster($monster->id);
-
-        if ($cachedMonster) {
-            // If include parameter provided, use it; otherwise load defaults
-            $includes = $validated['include'] ?? $defaultRelationships;
-            $cachedMonster->load($includes);
-
-            return new MonsterResource($cachedMonster);
-        }
-
-        // Fallback to route model binding result (should rarely happen)
-        $includes = $validated['include'] ?? $defaultRelationships;
-        $monster->load($includes);
-
-        return new MonsterResource($monster);
+        return $this->showWithCache(
+            request: $request,
+            entity: $monster,
+            cache: $cache,
+            cacheMethod: 'getMonster',
+            resourceClass: MonsterResource::class,
+            defaultRelationships: $service->getShowRelationships()
+        );
     }
 
     /**

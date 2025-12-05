@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\DTOs\ClassSearchDTO;
+use App\Http\Controllers\Api\Concerns\CachesEntityShow;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ClassIndexRequest;
 use App\Http\Requests\ClassShowRequest;
@@ -19,6 +20,8 @@ use MeiliSearch\Client;
 
 class ClassController extends Controller
 {
+    use CachesEntityShow;
+
     /**
      * Display a paginated, searchable, and filterable list of character classes.
      *
@@ -512,65 +515,35 @@ class ClassController extends Controller
      */
     public function show(ClassShowRequest $request, CharacterClass $class, EntityCacheService $cache, ClassSearchService $service)
     {
-        $validated = $request->validated();
+        return $this->showWithCache(
+            request: $request,
+            entity: $class,
+            cache: $cache,
+            cacheMethod: 'getClass',
+            resourceClass: ClassResource::class,
+            defaultRelationships: $service->getShowRelationships(),
+            beforeLoad: function ($entity, $includes) {
+                // Ensure parentClass relationship is loaded if features are requested
+                // (Resource will use getAllFeatures() to handle inheritance)
+                if (in_array('features', $includes) && ! in_array('parentClass', $includes)) {
+                    $includes[] = 'parentClass';
+                }
 
-        // Default relationships from service
-        $defaultRelationships = $service->getShowRelationships();
+                // Load counts for section_counts field
+                $entity->loadCount([
+                    'features' => fn ($query) => $query->topLevel()->where('is_multiclass_only', false),
+                    'features as multiclass_features_count' => fn ($query) => $query->topLevel()->where('is_multiclass_only', true),
+                    'proficiencies',
+                    'traits',
+                    'subclasses',
+                    'spells',
+                    'counters',
+                    'optionalFeatures',
+                ]);
 
-        // Try cache first
-        $cachedClass = $cache->getClass($class->id);
-
-        if ($cachedClass) {
-            // If include parameter provided, use it; otherwise load defaults
-            $includes = $validated['include'] ?? $defaultRelationships;
-
-            // Ensure parentClass relationship is loaded if features are requested
-            // (Resource will use getAllFeatures() to handle inheritance)
-            if (in_array('features', $includes) && ! in_array('parentClass', $includes)) {
-                $includes[] = 'parentClass';
+                return $includes;
             }
-
-            $cachedClass->load($includes);
-
-            // Load counts for section_counts field
-            $cachedClass->loadCount([
-                'features' => fn ($query) => $query->topLevel()->where('is_multiclass_only', false),
-                'features as multiclass_features_count' => fn ($query) => $query->topLevel()->where('is_multiclass_only', true),
-                'proficiencies',
-                'traits',
-                'subclasses',
-                'spells',
-                'counters',
-                'optionalFeatures',
-            ]);
-
-            return new ClassResource($cachedClass);
-        }
-
-        // Fallback to route model binding result (should rarely happen)
-        $includes = $validated['include'] ?? $defaultRelationships;
-
-        // Ensure parentClass relationship is loaded if features are requested
-        // (Resource will use getAllFeatures() to handle inheritance)
-        if (in_array('features', $includes) && ! in_array('parentClass', $includes)) {
-            $includes[] = 'parentClass';
-        }
-
-        $class->load($includes);
-
-        // Load counts for section_counts field
-        $class->loadCount([
-            'features' => fn ($query) => $query->topLevel()->where('is_multiclass_only', false),
-            'features as multiclass_features_count' => fn ($query) => $query->topLevel()->where('is_multiclass_only', true),
-            'proficiencies',
-            'traits',
-            'subclasses',
-            'spells',
-            'counters',
-            'optionalFeatures',
-        ]);
-
-        return new ClassResource($class);
+        );
     }
 
     /**

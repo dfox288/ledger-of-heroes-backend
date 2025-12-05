@@ -9,16 +9,11 @@ class SpellIndexRequest extends BaseIndexRequest
      *
      * NOTE: All filtering uses Meilisearch ?filter= parameter.
      * Legacy MySQL params (level, school, concentration, ritual, damage_type, etc.) have been removed.
+     * Common search/filter rules are inherited from BaseIndexRequest.
      */
     protected function entityRules(): array
     {
-        return [
-            // Full-text search query
-            'q' => ['sometimes', 'string', 'min:2', 'max:255'],
-
-            // Meilisearch filter expression
-            'filter' => ['sometimes', 'string', 'max:1000'],
-        ];
+        return [];
     }
 
     /**

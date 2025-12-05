@@ -5,10 +5,13 @@ namespace App\Services;
 use App\Enums\CharacterSource;
 use App\Models\Character;
 use App\Models\CharacterProficiency;
+use App\Services\Concerns\PopulatesFromEntity;
 use InvalidArgumentException;
 
 class CharacterProficiencyService
 {
+    use PopulatesFromEntity;
+
     /**
      * Populate fixed (non-choice) proficiencies from the character's primary class.
      */
@@ -19,31 +22,7 @@ class CharacterProficiencyService
             return;
         }
 
-        $this->populateFixedProficiencies($character, $primaryClass, 'class');
-    }
-
-    /**
-     * Populate fixed (non-choice) proficiencies from the character's race.
-     */
-    public function populateFromRace(Character $character): void
-    {
-        if (! $character->race_id) {
-            return;
-        }
-
-        $this->populateFixedProficiencies($character, $character->race, 'race');
-    }
-
-    /**
-     * Populate fixed (non-choice) proficiencies from the character's background.
-     */
-    public function populateFromBackground(Character $character): void
-    {
-        if (! $character->background_id) {
-            return;
-        }
-
-        $this->populateFixedProficiencies($character, $character->background, 'background');
+        $this->populateFromEntity($character, $primaryClass, 'class');
     }
 
     /**
@@ -187,8 +166,9 @@ class CharacterProficiencyService
 
     /**
      * Populate fixed proficiencies from an entity (class, race, or background).
+     * Implementation of PopulatesFromEntity trait's abstract method.
      */
-    private function populateFixedProficiencies(Character $character, $entity, string $source): void
+    protected function populateFromEntity(Character $character, $entity, string $source): void
     {
         $fixedProficiencies = $entity->proficiencies()
             ->where('is_choice', false)

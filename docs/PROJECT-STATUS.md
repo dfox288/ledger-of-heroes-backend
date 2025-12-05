@@ -10,11 +10,12 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 1,864 passing (~12,000 assertions) - All suites |
-| **Test Files** | 292 |
+| **Tests** | 1,883 passing (~7,000+ assertions) - Unit-Pure/Unit-DB/Feature-DB |
+| **Test Coverage** | 56.42% lines (8,544/15,144), 51.12% methods (802/1,569) |
+| **Test Files** | 300+ |
 | **Filter Tests** | 151 operator tests (2,750+ assertions) - 100% coverage |
 | **Character Builder Tests** | 200+ tests (3,000+ assertions) |
-| **Duration** | ~10s (Unit-Pure), ~19s (Unit-DB), ~22s (Feature-DB), ~35s (Feature-Search) |
+| **Duration** | ~10s (Unit-Pure), ~26s (Unit-DB), ~26s (Feature-DB), ~35s (Feature-Search) |
 | **Models** | 57 |
 | **API** | 80 Resources + 44 Controllers + 36 Form Requests |
 | **Importers** | 9 working (Strategy Pattern) |
@@ -30,6 +31,31 @@
 ---
 
 ## 🚀 Recent Milestones
+
+### Test Coverage Expansion ✅ COMPLETE (2025-12-05)
+- **PRs:** #58, #59 (merged)
+- **Issues:** #204, #205, #206, #207, #208, #209 (closed)
+- **Scope:** Comprehensive test coverage expansion across services, models, controllers, resources, and enums
+
+**Coverage Metrics (PCOV):**
+- Lines: 56.42% (8,544 / 15,144)
+- Methods: 51.12% (802 / 1,569)
+- Classes: 41.16% (184 / 447)
+
+**Tests Added:**
+| Category | Tests | Files |
+|----------|-------|-------|
+| Search Services | 123 | 8 service test files |
+| Character Services | 27 | CharacterLanguageServiceTest |
+| Models | 74 | 7 model test files |
+| Controllers | 43 | 4 controller test files |
+| API Resources | 45 | 5 resource test files |
+| Enum Helpers | 25 | 2 enum test files |
+| **Total** | **337** | **26 test files** |
+
+**Remaining Coverage Issues:**
+- #210: Parser Strategies (22-84% coverage) - LOW priority
+- #211: Importer Traits (4-63% coverage) - LOW priority
 
 ### Character Builder API Documentation ✅ COMPLETE (2025-12-05)
 - **PR:** #48 (merged)

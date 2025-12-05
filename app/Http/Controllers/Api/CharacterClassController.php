@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\ClassReplacementException;
 use App\Exceptions\DuplicateClassException;
 use App\Exceptions\InvalidSubclassException;
 use App\Exceptions\MaxLevelReachedException;
@@ -9,11 +10,13 @@ use App\Exceptions\MulticlassPrerequisiteException;
 use App\Exceptions\SubclassLevelRequirementException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Character\AddCharacterClassRequest;
+use App\Http\Requests\Character\ReplaceCharacterClassRequest;
 use App\Http\Requests\Character\SetSubclassRequest;
 use App\Http\Resources\CharacterClassPivotResource;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Services\AddClassService;
+use App\Services\ReplaceClassService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +26,7 @@ class CharacterClassController extends Controller
 {
     public function __construct(
         private AddClassService $addClassService,
+        private ReplaceClassService $replaceClassService,
     ) {}
 
     /**
@@ -250,6 +254,78 @@ class CharacterClassController extends Controller
                 ->response()
                 ->setStatusCode(Response::HTTP_OK);
         });
+    }
+
+    /**
+     * Replace a character's class (level 1 only)
+     *
+     * Replaces the character's current class with a different class. Only valid for
+     * level 1 characters with a single class. This is useful in character creation
+     * wizards where users can go back and change their class selection.
+     *
+     * @x-flow character-creation
+     *
+     * **Examples:**
+     * ```
+     * PUT /api/v1/characters/1/classes/5           # Replace by ID
+     * PUT /api/v1/characters/1/classes/fighter     # Replace by slug
+     *
+     * # Request body
+     * {"class_id": 7}
+     *
+     * # With force flag
+     * {"class_id": 7, "force": true}
+     * ```
+     *
+     * **Request Body:**
+     * | Field | Type | Required | Description |
+     * |-------|------|----------|-------------|
+     * | `class_id` | integer | Yes | ID of the new class |
+     * | `force` | boolean | No | Reserved for future DM override (default: false) |
+     *
+     * **Validation:**
+     * - Character must have exactly one class
+     * - Character must be at level 1 in that class
+     * - Target class must be a base class (not a subclass)
+     * - Target class must be different from the current class
+     *
+     * **Side Effects:**
+     * - Old class is removed
+     * - Subclass is cleared (set to null)
+     * - Hit dice spent is reset to 0
+     * - Class proficiencies from old class are cleared
+     * - Spell slots are recalculated
+     * - `is_primary` and `order` are preserved
+     *
+     * @param  ReplaceCharacterClassRequest  $request  The validated request
+     * @param  Character  $character  The character
+     * @param  string  $classIdOrSlug  The class ID or slug to replace
+     *
+     * @response 200 CharacterClassPivotResource with new class
+     * @response 404 array{message: string} Class not found on character
+     * @response 422 array{message: string} Level > 1, multiple classes, same class, or target is subclass
+     */
+    public function replace(ReplaceCharacterClassRequest $request, Character $character, string $classIdOrSlug): JsonResponse
+    {
+        $sourceClass = is_numeric($classIdOrSlug)
+            ? CharacterClass::findOrFail($classIdOrSlug)
+            : CharacterClass::where('slug', $classIdOrSlug)->firstOrFail();
+
+        $targetClass = CharacterClass::findOrFail($request->validated('class_id'));
+        $force = $request->validated('force', false);
+
+        try {
+            $pivot = $this->replaceClassService->replaceClass($character, $sourceClass, $targetClass, $force);
+            $pivot->load('characterClass', 'subclass');
+
+            return (new CharacterClassPivotResource($pivot))
+                ->response()
+                ->setStatusCode(Response::HTTP_OK);
+        } catch (ClassReplacementException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], $e->statusCode);
+        }
     }
 
     /**

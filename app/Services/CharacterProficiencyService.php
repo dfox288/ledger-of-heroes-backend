@@ -315,14 +315,132 @@ class CharacterProficiencyService
     }
 
     /**
-     * Get all proficiencies for a character.
+     * Get all proficiencies for a character, including granted proficiencies from class, race, and background.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * This aggregates:
+     * - Stored proficiencies from character_proficiencies table
+     * - Granted fixed proficiencies from primary class
+     * - Granted fixed proficiencies from race (including parent race for subraces)
+     * - Granted fixed proficiencies from background
+     *
+     * Proficiencies are deduplicated, preferring stored ones (which have an ID).
+     *
+     * @return \Illuminate\Support\Collection
      */
     public function getCharacterProficiencies(Character $character)
     {
-        return $character->proficiencies()
+        // Load relationships we'll need
+        $character->loadMissing(['characterClasses.characterClass', 'race.parent', 'background']);
+
+        // Get stored proficiencies
+        $storedProficiencies = $character->proficiencies()
             ->with(['skill', 'proficiencyType'])
             ->get();
+
+        // Collect granted proficiencies from all sources
+        $grantedProficiencies = $this->collectGrantedProficiencies($character);
+
+        // Merge and deduplicate, preferring stored ones
+        return $this->mergeAndDeduplicate($storedProficiencies, $grantedProficiencies);
+    }
+
+    /**
+     * Collect granted (fixed) proficiencies from class, race, and background.
+     */
+    private function collectGrantedProficiencies(Character $character): \Illuminate\Support\Collection
+    {
+        $proficiencies = collect();
+
+        // From primary class
+        $primaryClass = $character->primary_class;
+        if ($primaryClass) {
+            $proficiencies = $proficiencies->merge(
+                $this->getEntityGrantedProficiencies($primaryClass, 'class')
+            );
+        }
+
+        // From race (including parent if subrace)
+        if ($character->race) {
+            $race = $character->race;
+            if ($race->is_subrace && $race->parent) {
+                $proficiencies = $proficiencies->merge(
+                    $this->getEntityGrantedProficiencies($race->parent, 'race')
+                );
+            }
+            $proficiencies = $proficiencies->merge(
+                $this->getEntityGrantedProficiencies($race, 'race')
+            );
+        }
+
+        // From background
+        if ($character->background) {
+            $proficiencies = $proficiencies->merge(
+                $this->getEntityGrantedProficiencies($character->background, 'background')
+            );
+        }
+
+        return $proficiencies;
+    }
+
+    /**
+     * Get fixed (non-choice) proficiencies from an entity and convert to CharacterProficiency-like objects.
+     *
+     * @param  mixed  $entity  The source entity (CharacterClass, Race, Background)
+     * @param  string  $source  The source identifier ('class', 'race', 'background')
+     */
+    private function getEntityGrantedProficiencies($entity, string $source): \Illuminate\Support\Collection
+    {
+        return $entity->proficiencies()
+            ->where('is_choice', false)
+            ->with(['skill', 'proficiencyType'])
+            ->get()
+            ->map(function ($proficiency) use ($source) {
+                // Create a CharacterProficiency-like object with null ID to indicate it's granted
+                $charProf = new CharacterProficiency([
+                    'proficiency_type_id' => $proficiency->proficiency_type_id,
+                    'skill_id' => $proficiency->skill_id,
+                    'source' => $source,
+                    'expertise' => false,
+                ]);
+                // Manually set ID to null (not persisted)
+                $charProf->id = null;
+                // Copy relationships
+                $charProf->setRelations([
+                    'skill' => $proficiency->skill,
+                    'proficiencyType' => $proficiency->proficiencyType,
+                ]);
+
+                return $charProf;
+            });
+    }
+
+    /**
+     * Merge stored and granted proficiencies, deduplicating by skill_id or proficiency_type_id.
+     * Prefers stored proficiencies (which have an ID).
+     *
+     * @param  \Illuminate\Database\Eloquent\Collection  $stored
+     * @param  \Illuminate\Support\Collection  $granted
+     */
+    private function mergeAndDeduplicate($stored, $granted): \Illuminate\Support\Collection
+    {
+        // Create lookup sets for stored proficiencies
+        $storedSkillIds = $stored->whereNotNull('skill_id')->pluck('skill_id')->toArray();
+        $storedProfTypeIds = $stored->whereNotNull('proficiency_type_id')->pluck('proficiency_type_id')->toArray();
+
+        // Filter granted to exclude duplicates
+        $filteredGranted = $granted->filter(function ($prof) use ($storedSkillIds, $storedProfTypeIds) {
+            if ($prof->skill_id !== null) {
+                return ! in_array($prof->skill_id, $storedSkillIds);
+            }
+            if ($prof->proficiency_type_id !== null) {
+                return ! in_array($prof->proficiency_type_id, $storedProfTypeIds);
+            }
+
+            return true;
+        });
+
+        // Use concat instead of merge to avoid Eloquent Collection key collision
+        // (Eloquent Collection's merge uses model keys, and null-ID models all have null keys)
+        return $stored->concat($filteredGranted)->values();
     }
 }

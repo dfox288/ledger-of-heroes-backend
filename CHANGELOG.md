@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Class Replacement Endpoint** (Issue #217)
+  - Added `PUT /api/v1/characters/{id}/classes/{classIdOrSlug}` endpoint
+  - Allows replacing a character's class during character creation (level 1 only)
+  - Validates: level must be 1, single class only, target must not be a subclass
+  - Preserves `is_primary` and `order` flags
+  - Clears subclass and resets hit dice spent
+  - Clears old class proficiencies and recalculates spell slots
+  - New files: `ReplaceClassService`, `ClassReplacementException`, `ReplaceCharacterClassRequest`
+  - 18 test cases covering all validation and cascading effects
+
+- **Granted Proficiencies Aggregation** (Issue #218)
+  - Enhanced `GET /api/v1/characters/{id}/proficiencies` to include granted proficiencies
+  - Aggregates proficiencies from class, race (with subrace inheritance), and background
+  - Deduplicates granted vs stored proficiencies (prefers stored)
+  - Granted proficiencies have `id: null` to distinguish from stored ones
+  - 7 new test cases for aggregation, deduplication, and source attribution
+
 - **Enum Helper Method Tests** (Issue #209)
   - Added comprehensive unit tests for Enum helper methods with low coverage
   - OptionalFeatureTypeTest (9 tests, 27 assertions): Tests label(), defaultClassName(), defaultSubclassName()

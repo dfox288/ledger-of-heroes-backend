@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **PCOV Code Coverage Support** (Issue #195)
+  - Added PCOV extension to Docker PHP image for fast code coverage analysis
+  - Increased PHP memory limit from 256M to 1G for coverage reports
+  - Generated baseline coverage report: 75.17% line coverage overall
+  - Created follow-up issues for coverage gaps (#200, #201, #202, #203)
+
 - **BaseIndexRequest Consolidation** (Issue #189)
   - Enhanced `BaseIndexRequest` to include common `q` and `filter` validation rules
   - Removed duplicate validation rules from 9 entity index request classes

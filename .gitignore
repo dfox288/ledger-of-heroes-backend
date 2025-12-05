@@ -37,3 +37,4 @@ sessions/.archived/
 
 # Test output artifacts
 tests/Fixtures/test-output/
+storage/coverage/

@@ -18,6 +18,9 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 # Install Redis extension
 RUN pecl install redis && docker-php-ext-enable redis
 
+# Install PCOV for code coverage (faster than Xdebug)
+RUN pecl install pcov && docker-php-ext-enable pcov
+
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

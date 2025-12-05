@@ -26,6 +26,8 @@ class CharacterDeathSaveController extends Controller
      * Records either a death save roll or damage taken at 0 HP. The API handles all
      * D&D 5e death save mechanics including critical rolls and damage failures.
      *
+     * @x-flow gameplay-combat
+     *
      * **Examples:**
      * ```
      * POST /api/v1/characters/1/death-saves
@@ -68,7 +70,6 @@ class CharacterDeathSaveController extends Controller
      * - `outcome`: Final outcome if determined (stable, dead, conscious) or null
      * - `is_stable`: True if 3+ successes
      * - `is_dead`: True if 3+ failures
-     *
      *
      * @response 200 array{data: array{death_save_successes: int, death_save_failures: int, current_hit_points: int, result: string, outcome: ?string, is_stable: bool, is_dead: bool}}
      * @response 422 array{message: string, errors: array{roll?: string[], damage?: string[]}}
@@ -144,6 +145,8 @@ class CharacterDeathSaveController extends Controller
      * Manually stabilizes a character (e.g., via Spare the Dying spell or Medicine check).
      * Resets both success and failure counters to 0.
      *
+     * @x-flow gameplay-combat
+     *
      * **Examples:**
      * ```
      * POST /api/v1/characters/1/death-saves/stabilize
@@ -156,7 +159,6 @@ class CharacterDeathSaveController extends Controller
      *
      * **Note:** A stabilized character remains at 0 HP and unconscious but no longer
      * makes death saving throws. They regain 1 HP after 1d4 hours.
-     *
      *
      * @response 200 array{data: array{death_save_successes: int, death_save_failures: int, is_stable: bool}}
      */

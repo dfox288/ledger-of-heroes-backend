@@ -57,6 +57,12 @@ class CharacterClassController extends Controller
      * Adds a new class to the character (multiclassing) at level 1. The character
      * must meet multiclass prerequisites unless `force: true` is specified.
      *
+     * @x-flow character-creation
+     *
+     * @x-flow-step 3
+     *
+     * @x-flow gameplay-level-up
+     *
      * **Examples:**
      * ```
      * POST /api/v1/characters/1/classes
@@ -84,7 +90,6 @@ class CharacterClassController extends Controller
      * - Character cannot have the same class twice (use levelUp instead)
      * - Character's total level cannot exceed 20
      * - Must meet multiclass prerequisites (unless force=true)
-     *
      *
      * @response 201 CharacterClassPivotResource
      * @response 404 array{message: string} Class not found
@@ -119,10 +124,12 @@ class CharacterClassController extends Controller
      *
      * Removes a class from the character's multiclass configuration. Cannot remove
      * the character's only class. Uses pessimistic locking to prevent race conditions.
+     * Accepts either class ID or slug.
      *
      * **Examples:**
      * ```
-     * DELETE /api/v1/characters/1/classes/5
+     * DELETE /api/v1/characters/1/classes/5           # Remove by ID
+     * DELETE /api/v1/characters/1/classes/fighter     # Remove by slug
      * ```
      *
      * **Validation:**
@@ -135,14 +142,18 @@ class CharacterClassController extends Controller
      * - May affect character features, spells, etc. (handle in UI)
      *
      * @param  Character  $character  The character
-     * @param  CharacterClass  $class  The class to remove
+     * @param  string  $classIdOrSlug  Class ID or slug
      *
      * @response 204 No content on success
-     * @response 404 array{message: string} Class not found on character
+     * @response 404 array{message: string} Class not found on character or class not found
      * @response 422 array{message: string} Cannot remove the only class
      */
-    public function destroy(Character $character, CharacterClass $class): JsonResponse
+    public function destroy(Character $character, string $classIdOrSlug): JsonResponse
     {
+        $class = is_numeric($classIdOrSlug)
+            ? CharacterClass::findOrFail($classIdOrSlug)
+            : CharacterClass::where('slug', $classIdOrSlug)->firstOrFail();
+
         return DB::transaction(function () use ($character, $class) {
             // Lock the character's class rows to prevent concurrent modifications
             $classCount = $character->characterClasses()->lockForUpdate()->count();
@@ -170,12 +181,20 @@ class CharacterClassController extends Controller
     /**
      * Level up a specific class
      *
+     * **Preferred Method:** This is the recommended way to level up characters,
+     * especially in multiclass builds, as it provides explicit control over which
+     * class gains a level.
+     *
      * Increases the character's level in a specific class by 1. The total character
      * level cannot exceed 20. Uses pessimistic locking to prevent race conditions.
+     * Accepts either class ID or slug.
+     *
+     * @x-flow gameplay-level-up
      *
      * **Examples:**
      * ```
-     * POST /api/v1/characters/1/classes/5/level-up
+     * POST /api/v1/characters/1/classes/5/level-up           # Level up by ID
+     * POST /api/v1/characters/1/classes/fighter/level-up     # Level up by slug
      * ```
      *
      * **D&D 5e Level Rules:**
@@ -183,19 +202,28 @@ class CharacterClassController extends Controller
      * - Each class level grants new features, proficiencies, etc.
      * - Leveling up may trigger subclass selection (typically at level 3)
      *
+     * **Multiclass Benefits:**
+     * - Explicit control over which class levels up
+     * - No ambiguity in multiclass progression
+     * - Consistent API for both single-class and multiclass characters
+     *
      * **Validation:**
      * - Class must exist on the character
      * - Total character level cannot exceed 20
      *
      * @param  Character  $character  The character
-     * @param  CharacterClass  $class  The class to level up
+     * @param  string  $classIdOrSlug  Class ID or slug
      *
      * @response 200 CharacterClassPivotResource with updated level
-     * @response 404 array{message: string} Class not found on character
+     * @response 404 array{message: string} Class not found on character or class not found
      * @response 422 array{message: string} Character has reached maximum level (20)
      */
-    public function levelUp(Character $character, CharacterClass $class): JsonResponse
+    public function levelUp(Character $character, string $classIdOrSlug): JsonResponse
     {
+        $class = is_numeric($classIdOrSlug)
+            ? CharacterClass::findOrFail($classIdOrSlug)
+            : CharacterClass::where('slug', $classIdOrSlug)->firstOrFail();
+
         return DB::transaction(function () use ($character, $class) {
             // Lock the character's class rows to prevent concurrent modifications
             $existingClasses = $character->characterClasses()->lockForUpdate()->get();
@@ -229,10 +257,14 @@ class CharacterClassController extends Controller
      *
      * Assigns a subclass (archetype/specialization) to the character's class.
      * Most classes unlock subclasses at level 3, though some (Cleric, Sorcerer, Warlock) get them at level 1.
+     * Accepts either class ID or slug.
+     *
+     * @x-flow gameplay-level-up
      *
      * **Examples:**
      * ```
-     * PUT /api/v1/characters/1/classes/5/subclass
+     * PUT /api/v1/characters/1/classes/5/subclass           # Set by ID
+     * PUT /api/v1/characters/1/classes/fighter/subclass     # Set by slug
      *
      * # Set Battle Master subclass for Fighter
      * {"subclass_id": 42}
@@ -258,17 +290,20 @@ class CharacterClassController extends Controller
      *
      * @param  SetSubclassRequest  $request  The validated request
      * @param  Character  $character  The character
-     * @param  CharacterClass  $class  The class to set subclass for
+     * @param  string  $classIdOrSlug  Class ID or slug
      *
      * @throws InvalidSubclassException If subclass doesn't belong to the class
      * @throws SubclassLevelRequirementException If character level is below requirement
      *
      * @response 200 CharacterClassPivotResource with subclass set
-     * @response 404 array{message: string} Class not found on character
+     * @response 404 array{message: string} Class not found on character or class not found
      * @response 422 array{message: string} Subclass doesn't belong to class, or level requirement not met
      */
-    public function setSubclass(SetSubclassRequest $request, Character $character, CharacterClass $class): JsonResponse
+    public function setSubclass(SetSubclassRequest $request, Character $character, string $classIdOrSlug): JsonResponse
     {
+        $class = is_numeric($classIdOrSlug)
+            ? CharacterClass::findOrFail($classIdOrSlug)
+            : CharacterClass::where('slug', $classIdOrSlug)->firstOrFail();
         $pivot = $character->characterClasses()->where('class_id', $class->id)->first();
 
         if (! $pivot) {

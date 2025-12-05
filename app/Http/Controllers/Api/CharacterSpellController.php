@@ -26,6 +26,10 @@ class CharacterSpellController extends Controller
      * Returns spells the character has learned, including preparation status.
      * Spells are categorized by source (class, race, feat, item, other).
      *
+     * @x-flow character-creation
+     *
+     * @x-flow-step 9
+     *
      * **Examples:**
      * ```
      * GET /api/v1/characters/1/spells
@@ -53,6 +57,10 @@ class CharacterSpellController extends Controller
      * Optionally filter by maximum spell level.
      * Use include_known=true to include already-learned spells (useful for UI highlighting
      * when user navigates back to spell selection screen).
+     *
+     * @x-flow character-creation
+     *
+     * @x-flow-step 8
      *
      * **Examples:**
      * ```
@@ -82,6 +90,10 @@ class CharacterSpellController extends Controller
      *
      * Adds a spell to the character's known spells.
      *
+     * @x-flow character-creation
+     *
+     * @x-flow-step 9
+     *
      * **Examples:**
      * ```
      * POST /api/v1/characters/1/spells
@@ -108,7 +120,6 @@ class CharacterSpellController extends Controller
      * - Spell level must be accessible at character's level
      * - Spell must not already be known by character
      *
-     *
      * @response 201 CharacterSpellResource
      * @response 404 array{message: string} Spell not found
      * @response 422 array{message: string, errors: array{spell_id?: string[]}} Validation error or spell already known
@@ -134,25 +145,30 @@ class CharacterSpellController extends Controller
     /**
      * Remove a spell from the character's known spells
      *
-     * Forgets a spell the character previously learned.
+     * Forgets a spell the character previously learned. Accepts either spell ID or slug.
      *
      * **Examples:**
      * ```
-     * DELETE /api/v1/characters/1/spells/123
+     * DELETE /api/v1/characters/1/spells/123         # Remove by ID
+     * DELETE /api/v1/characters/1/spells/fireball    # Remove by slug
      * ```
      *
      * **Note:** Always-prepared spells (from domain, subclass, etc.) cannot be removed
      * without removing the source that granted them.
      *
      * @param  Character  $character  The character
-     * @param  Spell  $spell  The spell to forget
+     * @param  string  $spellIdOrSlug  Spell ID or slug
      * @return Response 204 on success
      *
      * @response 204 No content on success
-     * @response 404 array{message: string} Character doesn't know this spell
+     * @response 404 array{message: string} Character doesn't know this spell or spell not found
      */
-    public function destroy(Character $character, Spell $spell): Response
+    public function destroy(Character $character, string $spellIdOrSlug): Response
     {
+        $spell = is_numeric($spellIdOrSlug)
+            ? Spell::findOrFail($spellIdOrSlug)
+            : Spell::where('slug', $spellIdOrSlug)->firstOrFail();
+
         $this->spellManager->forgetSpell($character, $spell);
 
         return response()->noContent();
@@ -163,10 +179,12 @@ class CharacterSpellController extends Controller
      *
      * Changes a spell's status from 'known' to 'prepared'. Prepared casters
      * (Cleric, Druid, Paladin, Wizard) must prepare spells to cast them.
+     * Accepts either spell ID or slug.
      *
      * **Examples:**
      * ```
-     * PATCH /api/v1/characters/1/spells/123/prepare
+     * PATCH /api/v1/characters/1/spells/123/prepare         # Prepare by ID
+     * PATCH /api/v1/characters/1/spells/fireball/prepare    # Prepare by slug
      * ```
      *
      * **D&D 5e Preparation Rules:**
@@ -175,14 +193,18 @@ class CharacterSpellController extends Controller
      * - Prepared spells can be changed after a long rest
      *
      * @param  Character  $character  The character
-     * @param  Spell  $spell  The spell to prepare
+     * @param  string  $spellIdOrSlug  Spell ID or slug
      *
      * @response 200 CharacterSpellResource with is_prepared: true
-     * @response 404 array{message: string} Character doesn't know this spell
+     * @response 404 array{message: string} Character doesn't know this spell or spell not found
      * @response 422 array{message: string} Spell cannot be prepared (cantrip or already prepared)
      */
-    public function prepare(Character $character, Spell $spell): CharacterSpellResource
+    public function prepare(Character $character, string $spellIdOrSlug): CharacterSpellResource
     {
+        $spell = is_numeric($spellIdOrSlug)
+            ? Spell::findOrFail($spellIdOrSlug)
+            : Spell::where('slug', $spellIdOrSlug)->firstOrFail();
+
         $characterSpell = $this->spellManager->prepareSpell($character, $spell);
         $characterSpell->load('spell.spellSchool');
 
@@ -194,10 +216,12 @@ class CharacterSpellController extends Controller
      *
      * Changes a spell's status from 'prepared' to 'known'.
      * Frees up a preparation slot for another spell.
+     * Accepts either spell ID or slug.
      *
      * **Examples:**
      * ```
-     * PATCH /api/v1/characters/1/spells/123/unprepare
+     * PATCH /api/v1/characters/1/spells/123/unprepare         # Unprepare by ID
+     * PATCH /api/v1/characters/1/spells/fireball/unprepare    # Unprepare by slug
      * ```
      *
      * **Restrictions:**
@@ -205,14 +229,18 @@ class CharacterSpellController extends Controller
      * - Cantrips cannot be unprepared (they don't use preparation slots)
      *
      * @param  Character  $character  The character
-     * @param  Spell  $spell  The spell to unprepare
+     * @param  string  $spellIdOrSlug  Spell ID or slug
      *
      * @response 200 CharacterSpellResource with is_prepared: false
-     * @response 404 array{message: string} Character doesn't know this spell
+     * @response 404 array{message: string} Character doesn't know this spell or spell not found
      * @response 422 array{message: string} Spell cannot be unprepared (always-prepared)
      */
-    public function unprepare(Character $character, Spell $spell): CharacterSpellResource
+    public function unprepare(Character $character, string $spellIdOrSlug): CharacterSpellResource
     {
+        $spell = is_numeric($spellIdOrSlug)
+            ? Spell::findOrFail($spellIdOrSlug)
+            : Spell::where('slug', $spellIdOrSlug)->firstOrFail();
+
         $characterSpell = $this->spellManager->unprepareSpell($character, $spell);
         $characterSpell->load('spell.spellSchool');
 

@@ -16,6 +16,22 @@ class CharacterLevelUpController extends Controller
     /**
      * Level up a character
      *
+     * @deprecated Use POST /characters/{id}/classes/{class}/level-up instead.
+     *             This endpoint will be removed in API v2.
+     *
+     * **Why is this deprecated?**
+     * This endpoint automatically levels up the character's primary (first) class,
+     * which creates ambiguity in multiclass builds. The new class-specific endpoint
+     * provides explicit control over which class gains a level.
+     *
+     * **Migration Path:**
+     * - OLD: `POST /api/v1/characters/{id}/level-up`
+     * - NEW: `POST /api/v1/characters/{id}/classes/{classId}/level-up`
+     *
+     * **Removal Timeline:**
+     * - Deprecated: December 2025
+     * - Planned Removal: June 2026 (API v2)
+     *
      * Increases the character's level by 1 in their primary class. Automatically
      * calculates HP increase, grants class features, and updates spell slots.
      *
@@ -58,6 +74,9 @@ class CharacterLevelUpController extends Controller
     {
         $result = $this->levelUpService->levelUp($character);
 
-        return response()->json($result->toArray());
+        return response()->json($result->toArray())
+            ->header('Deprecation', 'true')
+            ->header('Sunset', 'Sat, 01 Jun 2026 00:00:00 GMT')
+            ->header('Link', '</api/v1/characters/'.$character->id.'/classes/{class}/level-up>; rel="successor-version"');
     }
 }

@@ -84,6 +84,10 @@ class CharacterFeatureController extends Controller
      * - Racial traits are always populated
      * - Background features are always populated
      *
+     * @x-flow character-creation
+     *
+     * @x-flow-step 10
+     *
      * **Examples:**
      * ```
      * POST /api/v1/characters/1/features/populate

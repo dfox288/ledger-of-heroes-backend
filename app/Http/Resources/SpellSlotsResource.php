@@ -24,7 +24,24 @@ class SpellSlotsResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Pass through the data as-is - structure varies by service
-        return $this->resource;
+        $data = $this->resource;
+
+        // If we have the new consolidated structure (has prepared_count),
+        // convert slots to an object to preserve spell level keys in JSON
+        if (isset($data['slots']) && isset($data['prepared_count'])) {
+            // Cast to object so JSON encoding preserves keys like "1", "2"
+            $data['slots'] = (object) $data['slots'];
+        }
+
+        // For the old structure (standard/pact_magic with sub-arrays),
+        // convert nested arrays to objects to preserve spell level keys
+        if (isset($data['standard']) && is_array($data['standard'])) {
+            $data['standard'] = (object) $data['standard'];
+        }
+        if (isset($data['pact_magic']) && is_array($data['pact_magic'])) {
+            $data['pact_magic'] = (object) $data['pact_magic'];
+        }
+
+        return $data;
     }
 }

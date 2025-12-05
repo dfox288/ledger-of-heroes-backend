@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Subrace Required Flag for Race API** (Issue #183)
+  - Added `subrace_required` boolean field to Race model and API resource
+  - `true` (default) = subrace selection is required (base race incomplete, e.g., Elf, Dwarf)
+  - `false` = subrace selection is optional (base race is playable as-is, e.g., Human, Dragonborn, Tiefling)
+  - Field is filterable in Meilisearch: `filter=subrace_required = false`
+  - Enables frontend character builder to show optional subrace step with "None/Keep base race" option
+
 ### Changed
 
 - **Character API Spell Slot Consolidation** (Issue #173 Phase 1.2)

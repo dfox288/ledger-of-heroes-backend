@@ -71,4 +71,42 @@ class RaceTest extends TestCase
 
         $this->assertEquals(30, $race->swim_speed);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function subrace_required_defaults_to_true(): void
+    {
+        $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
+        $race = Race::factory()->create(['size_id' => $size->id]);
+
+        $this->assertTrue($race->subrace_required);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function subrace_required_can_be_set_to_false(): void
+    {
+        $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
+        $race = Race::factory()->create([
+            'size_id' => $size->id,
+            'subrace_required' => false,
+        ]);
+
+        $this->assertFalse($race->subrace_required);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function subrace_required_is_fillable(): void
+    {
+        $race = new Race;
+
+        $this->assertContains('subrace_required', $race->getFillable());
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function subrace_required_is_cast_to_boolean(): void
+    {
+        $race = new Race;
+        $casts = $race->getCasts();
+
+        $this->assertEquals('boolean', $casts['subrace_required']);
+    }
 }

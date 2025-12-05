@@ -33,6 +33,9 @@ class RaceFixtureSeeder extends FixtureSeeder
             $parentRace = Race::where('slug', $item['parent_race_slug'])->first();
         }
 
+        // Races where subrace selection is optional (base race is complete)
+        $optionalSubraceRaces = ['human', 'dragonborn', 'tiefling', 'half-elf', 'half-orc'];
+
         // Create race
         $race = Race::create([
             'name' => $item['name'],
@@ -40,6 +43,7 @@ class RaceFixtureSeeder extends FixtureSeeder
             'size_id' => $size?->id,
             'speed' => $item['speed'],
             'parent_race_id' => $parentRace?->id,
+            'subrace_required' => ! in_array($item['slug'], $optionalSubraceRaces),
         ]);
 
         // Handle ability bonuses (create Modifiers)

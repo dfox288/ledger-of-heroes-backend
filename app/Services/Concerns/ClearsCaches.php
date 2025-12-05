@@ -16,8 +16,15 @@ use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
  * - Memory management (clear after large imports)
  * - Refreshing cached data after database changes
  *
- * Each trait has its own clearXxxCache() method to avoid trait collisions.
- * This class provides clearAll() to clear all caches at once.
+ * Each trait has its own uniquely-named clearXxxCache() static method
+ * to avoid trait collisions when multiple caching traits are used together.
+ *
+ * Note: NormalizesSpellNames uses instance-level caching (not static),
+ * so it's not included here. Instance caches are naturally cleared when
+ * the strategy object is recreated between import runs.
+ *
+ * Note: TracksMetricsAndWarnings::reset() is for session state, not cached
+ * lookups, so it's not included in this cache-clearing helper.
  */
 class ClearsCaches
 {

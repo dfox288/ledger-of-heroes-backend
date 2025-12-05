@@ -74,19 +74,9 @@ trait ImportsSenses
     }
 
     /**
-     * Reset the sense cache (useful between test runs).
-     *
-     * @deprecated Use clearSenseCache() instead for consistency
-     */
-    protected static function resetSenseCache(): void
-    {
-        self::clearSenseCache();
-    }
-
-    /**
      * Clear all static caches held by this trait.
      *
-     * Implements ClearsCaches interface pattern for test isolation.
+     * Implements ClearsCaches pattern for test isolation.
      */
     public static function clearSenseCache(): void
     {

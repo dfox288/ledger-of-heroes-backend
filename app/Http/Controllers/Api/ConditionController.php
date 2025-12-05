@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\ConditionIndexRequest;
 use App\Http\Resources\ConditionResource;
 use App\Http\Resources\MonsterResource;
@@ -10,9 +9,30 @@ use App\Http\Resources\SpellResource;
 use App\Models\Condition;
 use App\Services\Cache\LookupCacheService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class ConditionController extends Controller
+class ConditionController extends ReadOnlyLookupController
 {
+    protected function getModelClass(): string
+    {
+        return Condition::class;
+    }
+
+    protected function getResourceClass(): string
+    {
+        return ConditionResource::class;
+    }
+
+    protected function getIndexRequestClass(): string
+    {
+        return ConditionIndexRequest::class;
+    }
+
+    protected function getCacheMethod(): ?string
+    {
+        return 'getConditions';
+    }
+
     /**
      * List all D&D conditions
      *
@@ -51,41 +71,11 @@ class ConditionController extends Controller
      * - **Spell Selection:** Choose control spells based on conditions they inflict (Hold Person = Paralyzed)
      * - **Monster Abilities:** Understand dangerous monster attacks (Ghoul claws = Paralyzed, Medusa gaze = Petrified)
      * - **Condition Removal:** Prepare Lesser Restoration (removes Blinded, Deafened, Paralyzed, Poisoned)
-     *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     #[QueryParameter('q', description: 'Search by name', example: 'frightened')]
-    public function index(ConditionIndexRequest $request, LookupCacheService $cache)
+    public function index(ConditionIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
-        $query = Condition::query();
-
-        // Add search support
-        if ($request->has('q')) {
-            $search = $request->validated('q');
-            $query->where('name', 'LIKE', "%{$search}%");
-        }
-
-        // Add pagination support
-        $perPage = $request->validated('per_page', 50); // Higher default for lookups
-
-        // Use cache for unfiltered queries
-        if (! $request->has('q')) {
-            $allConditions = $cache->getConditions();
-            $currentPage = $request->input('page', 1);
-            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
-                $allConditions->forPage($currentPage, $perPage),
-                $allConditions->count(),
-                $perPage,
-                $currentPage,
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-
-            return ConditionResource::collection($paginated);
-        }
-
-        $entities = $query->paginate($perPage);
-
-        return ConditionResource::collection($entities);
+        return parent::index($request, $cache);
     }
 
     /**
@@ -105,9 +95,9 @@ class ConditionController extends Controller
      * - `id`, `name`, `slug`: Condition identification
      * - `description`: Full mechanical description of the condition's effects
      */
-    public function show(Condition $condition)
+    public function show(\Illuminate\Database\Eloquent\Model $condition): \Illuminate\Http\Resources\Json\JsonResource
     {
-        return new ConditionResource($condition);
+        return parent::show($condition);
     }
 
     /**

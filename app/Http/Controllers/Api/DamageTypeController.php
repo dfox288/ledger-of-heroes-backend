@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\DamageTypeIndexRequest;
 use App\Http\Resources\DamageTypeResource;
 use App\Http\Resources\ItemResource;
@@ -10,9 +9,30 @@ use App\Http\Resources\SpellResource;
 use App\Models\DamageType;
 use App\Services\Cache\LookupCacheService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class DamageTypeController extends Controller
+class DamageTypeController extends ReadOnlyLookupController
 {
+    protected function getModelClass(): string
+    {
+        return DamageType::class;
+    }
+
+    protected function getResourceClass(): string
+    {
+        return DamageTypeResource::class;
+    }
+
+    protected function getIndexRequestClass(): string
+    {
+        return DamageTypeIndexRequest::class;
+    }
+
+    protected function getCacheMethod(): ?string
+    {
+        return 'getDamageTypes';
+    }
+
     /**
      * List all damage types
      *
@@ -39,41 +59,11 @@ class DamageTypeController extends Controller
      * - **Resistance Planning:** Check enemy resistances before combat (many undead resist necrotic)
      * - **Spell Selection:** Build diverse spell lists with multiple damage types
      * - **Vulnerability Exploitation:** Target known vulnerabilities (trolls vs. fire/acid)
-     *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     #[QueryParameter('q', description: 'Search damage types by name', example: 'fire')]
-    public function index(DamageTypeIndexRequest $request, LookupCacheService $cache)
+    public function index(DamageTypeIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
-        $query = DamageType::query();
-
-        // Add search support
-        if ($request->has('q')) {
-            $search = $request->validated('q');
-            $query->where('name', 'LIKE', "%{$search}%");
-        }
-
-        // Add pagination support
-        $perPage = $request->validated('per_page', 50); // Higher default for lookups
-
-        // Use cache for unfiltered queries
-        if (! $request->has('q')) {
-            $allTypes = $cache->getDamageTypes();
-            $currentPage = $request->input('page', 1);
-            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
-                $allTypes->forPage($currentPage, $perPage),
-                $allTypes->count(),
-                $perPage,
-                $currentPage,
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-
-            return DamageTypeResource::collection($paginated);
-        }
-
-        $entities = $query->paginate($perPage);
-
-        return DamageTypeResource::collection($entities);
+        return parent::index($request, $cache);
     }
 
     /**
@@ -94,9 +84,9 @@ class DamageTypeController extends Controller
      * - `id`, `name`, `slug`: Damage type identification
      * - `code`: Single-letter abbreviation (F=Fire, C=Cold, L=Lightning, etc.)
      */
-    public function show(DamageType $damageType)
+    public function show(\Illuminate\Database\Eloquent\Model $damageType): \Illuminate\Http\Resources\Json\JsonResource
     {
-        return new DamageTypeResource($damageType);
+        return parent::show($damageType);
     }
 
     /**

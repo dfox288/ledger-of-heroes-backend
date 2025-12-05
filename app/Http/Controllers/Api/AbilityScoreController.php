@@ -2,16 +2,41 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\AbilityScoreIndexRequest;
 use App\Http\Resources\AbilityScoreResource;
 use App\Http\Resources\SpellResource;
 use App\Models\AbilityScore;
 use App\Services\Cache\LookupCacheService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class AbilityScoreController extends Controller
+class AbilityScoreController extends ReadOnlyLookupController
 {
+    protected function getModelClass(): string
+    {
+        return AbilityScore::class;
+    }
+
+    protected function getResourceClass(): string
+    {
+        return AbilityScoreResource::class;
+    }
+
+    protected function getIndexRequestClass(): string
+    {
+        return AbilityScoreIndexRequest::class;
+    }
+
+    protected function getCacheMethod(): ?string
+    {
+        return 'getAbilityScores';
+    }
+
+    protected function getSearchFields(): array
+    {
+        return ['name', 'code'];
+    }
+
     /**
      * List all ability scores
      *
@@ -42,44 +67,11 @@ class AbilityScoreController extends Controller
      * - **Character Building:** Determine which ability scores to prioritize based on class (Wizards need INT, Clerics need WIS, Rogues need DEX)
      * - **Ability Score Checks:** Understand what modifiers apply to skill checks and saving throws
      * - **Combat Analysis:** Know which abilities affect attack rolls, damage, and AC (DEX for AC, STR for melee attacks)
-     *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     #[QueryParameter('q', description: 'Search ability scores by name or code', example: 'strength')]
-    public function index(AbilityScoreIndexRequest $request, LookupCacheService $cache)
+    public function index(AbilityScoreIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
-        $query = AbilityScore::query();
-
-        // Search by name OR code
-        if ($request->has('q')) {
-            $search = $request->validated('q');
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                    ->orWhere('code', 'LIKE', "%{$search}%");
-            });
-        }
-
-        // Pagination
-        $perPage = $request->validated('per_page', 50);
-
-        // Use cache for unfiltered queries
-        if (! $request->has('q')) {
-            $allAbilityScores = $cache->getAbilityScores();
-            $currentPage = $request->input('page', 1);
-            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
-                $allAbilityScores->forPage($currentPage, $perPage),
-                $allAbilityScores->count(),
-                $perPage,
-                $currentPage,
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-
-            return AbilityScoreResource::collection($paginated);
-        }
-
-        return AbilityScoreResource::collection(
-            $query->paginate($perPage)
-        );
+        return parent::index($request, $cache);
     }
 
     /**
@@ -103,9 +95,9 @@ class AbilityScoreController extends Controller
      * @param  AbilityScore  $abilityScore  The ability score (by ID, code, or name)
      * @return \Illuminate\Http\Resources\Json\AbilityScoreResource
      */
-    public function show(AbilityScore $abilityScore)
+    public function show(\Illuminate\Database\Eloquent\Model $abilityScore): \Illuminate\Http\Resources\Json\JsonResource
     {
-        return new AbilityScoreResource($abilityScore);
+        return parent::show($abilityScore);
     }
 
     /**

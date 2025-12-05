@@ -10,9 +10,30 @@ use App\Models\SpellSchool;
 use App\Services\Cache\LookupCacheService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class SpellSchoolController extends Controller
+class SpellSchoolController extends ReadOnlyLookupController
 {
+    protected function getModelClass(): string
+    {
+        return SpellSchool::class;
+    }
+
+    protected function getResourceClass(): string
+    {
+        return SpellSchoolResource::class;
+    }
+
+    protected function getIndexRequestClass(): string
+    {
+        return SpellSchoolIndexRequest::class;
+    }
+
+    protected function getCacheMethod(): ?string
+    {
+        return 'getSpellSchools';
+    }
+
     /**
      * List all schools of magic
      *
@@ -43,42 +64,11 @@ class SpellSchoolController extends Controller
      * - **Wizard Specialization:** Choose a school to gain bonus features (Evocation for damage, Divination for utility)
      * - **Spell Selection:** Browse spells by school to build a thematic caster
      * - **Counterspell Decisions:** Identify spell schools to prioritize countering
-     *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     #[QueryParameter('q', description: 'Search schools by name', example: 'evocation')]
-    public function index(SpellSchoolIndexRequest $request, LookupCacheService $cache)
+    public function index(SpellSchoolIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
-        $query = SpellSchool::query();
-
-        // Search by name
-        if ($request->has('q')) {
-            $search = $request->validated('q');
-            $query->where('name', 'LIKE', "%{$search}%");
-        }
-
-        // Pagination
-        $perPage = $request->validated('per_page', 50);
-
-        // Use cache for unfiltered queries, otherwise hit database
-        if (! $request->has('q')) {
-            // Manually paginate the cached collection to maintain API contract
-            $allSchools = $cache->getSpellSchools();
-            $currentPage = $request->input('page', 1);
-            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
-                $allSchools->forPage($currentPage, $perPage),
-                $allSchools->count(),
-                $perPage,
-                $currentPage,
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-
-            return SpellSchoolResource::collection($paginated);
-        }
-
-        return SpellSchoolResource::collection(
-            $query->paginate($perPage)
-        );
+        return parent::index($request, $cache);
     }
 
     /**
@@ -101,9 +91,9 @@ class SpellSchoolController extends Controller
      *
      * **Related endpoint:** Use `/api/v1/lookups/spell-schools/{id}/spells` to list all spells in this school.
      */
-    public function show(SpellSchool $spellSchool)
+    public function show(\Illuminate\Database\Eloquent\Model $spellSchool): \Illuminate\Http\Resources\Json\JsonResource
     {
-        return new SpellSchoolResource($spellSchool);
+        return parent::show($spellSchool);
     }
 
     /**

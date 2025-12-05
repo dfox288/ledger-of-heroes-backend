@@ -18,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #227**: Human race incorrectly marked as subrace_required=true
+  - Updated `RaceImporter` to set `subrace_required` based on race slug during import
+  - Races with optional subraces (Human, Dragonborn, Tiefling, Half-Elf, Half-Orc) now correctly have `subrace_required=false`
+  - All subraces now correctly have `subrace_required=false` (no nested subraces in D&D 5e)
+  - Other base races (Dwarf, Elf, Gnome, Halfling) retain `subrace_required=true`
+  - Also updated `SubraceStrategy::createStubBaseRace()` for consistency
+  - 4 new test cases covering all subrace_required scenarios
+
 - **Issue #224**: Proficiency choices now returns populated options for tool choices
   - `GET /api/v1/characters/{id}/proficiency-choices` now populates `options[]` for subcategory-based choices (e.g., artisan tools)
   - Options are automatically looked up from `proficiency_types` table based on `category` and `subcategory`

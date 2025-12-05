@@ -27,6 +27,18 @@ class RaceImporter extends BaseImporter
 
     private array $createdBaseRaces = [];
 
+    /**
+     * Races where the base race is complete (has 3+ ability score points)
+     * and subrace selection is optional.
+     */
+    private const OPTIONAL_SUBRACE_RACES = [
+        'human',
+        'dragonborn',
+        'tiefling',
+        'half-elf',
+        'half-orc',
+    ];
+
     protected function importEntity(array $raceData): Race
     {
         // Apply all applicable strategies
@@ -66,6 +78,13 @@ class RaceImporter extends BaseImporter
         );
         $extractedSpeeds = $this->extractSpeedsFromTraits($allTraitsForExtraction);
 
+        // Determine subrace_required value:
+        // - Subraces (has parent_race_id): always false (no nested subraces in D&D 5e)
+        // - Base races in OPTIONAL_SUBRACE_RACES list: false
+        // - All other base races: true (subrace selection is mandatory)
+        $isSubrace = ! empty($raceData['parent_race_id']);
+        $subraceRequired = ! $isSubrace && ! in_array($raceData['slug'], self::OPTIONAL_SUBRACE_RACES);
+
         // Create or update race using slug as unique key
         $race = Race::updateOrCreate(
             ['slug' => $raceData['slug']],
@@ -77,6 +96,7 @@ class RaceImporter extends BaseImporter
                 'fly_speed' => $extractedSpeeds['fly_speed'],
                 'swim_speed' => $extractedSpeeds['swim_speed'],
                 'climb_speed' => $extractedSpeeds['climb_speed'],
+                'subrace_required' => $subraceRequired,
             ]
         );
 

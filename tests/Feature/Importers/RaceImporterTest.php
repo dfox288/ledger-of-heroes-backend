@@ -1205,4 +1205,160 @@ XML;
         $winged = Race::where('slug', 'tiefling-winged')->first();
         $this->assertEquals(30, $winged->fly_speed);
     }
+
+    #[Test]
+    public function it_sets_subrace_required_false_for_human_race()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Human</name>
+    <size>M</size>
+    <speed>30</speed>
+    <ability>Str +1, Dex +1, Con +1, Int +1, Wis +1, Cha +1</ability>
+    <trait category="description">
+      <name>Description</name>
+      <text>Humans are the most adaptable and ambitious people.
+Source: Player's Handbook (2014) p. 29</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $human = Race::where('name', 'Human')->first();
+
+        $this->assertNotNull($human);
+        $this->assertFalse($human->subrace_required, 'Human race should have subrace_required=false');
+    }
+
+    #[Test]
+    public function it_sets_subrace_required_false_for_dragonborn_race()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dragonborn</name>
+    <size>M</size>
+    <speed>30</speed>
+    <ability>Str +2, Cha +1</ability>
+    <trait category="description">
+      <name>Description</name>
+      <text>Born of dragons.
+Source: Player's Handbook (2014) p. 32</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $dragonborn = Race::where('name', 'Dragonborn')->first();
+
+        $this->assertNotNull($dragonborn);
+        $this->assertFalse($dragonborn->subrace_required, 'Dragonborn race should have subrace_required=false');
+    }
+
+    #[Test]
+    public function it_sets_subrace_required_true_for_races_with_mandatory_subraces()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dwarf, Hill</name>
+    <size>M</size>
+    <speed>25</speed>
+    <ability>Con +2, Wis +1</ability>
+    <trait category="description">
+      <name>Description</name>
+      <text>As a hill dwarf.
+Source: Player's Handbook (2014) p. 20</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        // Base Dwarf race should have subrace_required=true (subraces are mandatory)
+        $dwarf = Race::where('name', 'Dwarf')
+            ->whereNull('parent_race_id')
+            ->first();
+
+        $this->assertNotNull($dwarf);
+        $this->assertTrue($dwarf->subrace_required, 'Dwarf race should have subrace_required=true');
+
+        // Subraces should always have subrace_required=false (no nested subraces in D&D 5e)
+        $hill = Race::where('name', 'Hill')
+            ->whereNotNull('parent_race_id')
+            ->first();
+
+        $this->assertNotNull($hill);
+        $this->assertFalse($hill->subrace_required, 'Subraces should have subrace_required=false');
+    }
+
+    #[Test]
+    public function it_sets_subrace_required_false_for_tiefling_half_elf_half_orc()
+    {
+        // These races have optional subraces (variants) and complete base stats
+        $races = [
+            'Tiefling' => 'Tieflings share certain racial traits.',
+            'Half-Elf' => 'Half-elves share traits from both humans and elves.',
+            'Half-Orc' => 'Half-orcs inherit traits from both humans and orcs.',
+        ];
+
+        foreach ($races as $name => $desc) {
+            $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>{$name}</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait category="description">
+      <name>Description</name>
+      <text>{$desc}
+Source: Player's Handbook (2014)</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+            $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+            file_put_contents($tmpFile, $xml);
+
+            $this->importer->importFromFile($tmpFile);
+
+            unlink($tmpFile);
+        }
+
+        // Verify all three have subrace_required=false
+        foreach (['Tiefling', 'Half-Elf', 'Half-Orc'] as $name) {
+            $race = Race::where('name', $name)->first();
+            $this->assertNotNull($race, "{$name} should exist");
+            $this->assertFalse(
+                $race->subrace_required,
+                "{$name} should have subrace_required=false"
+            );
+        }
+    }
 }

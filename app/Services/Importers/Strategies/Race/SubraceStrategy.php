@@ -110,6 +110,18 @@ class SubraceStrategy extends AbstractImportStrategy
     }
 
     /**
+     * Races where the base race is complete (has 3+ ability score points)
+     * and subrace selection is optional.
+     */
+    private const OPTIONAL_SUBRACE_RACES = [
+        'human',
+        'dragonborn',
+        'tiefling',
+        'half-elf',
+        'half-orc',
+    ];
+
+    /**
      * Create a minimal stub base race when referenced by subrace.
      */
     private function createStubBaseRace(string $name, array $subraceData): Race
@@ -121,13 +133,18 @@ class SubraceStrategy extends AbstractImportStrategy
         }
 
         $size = Size::where('code', $subraceData['size_code'])->first();
+        $slug = Str::slug($name);
+
+        // Determine subrace_required: false for races where base race is complete
+        $subraceRequired = ! in_array($slug, self::OPTIONAL_SUBRACE_RACES);
 
         return Race::create([
             'name' => $name,
-            'slug' => Str::slug($name),
+            'slug' => $slug,
             'size_id' => $size->id,
             'speed' => $subraceData['speed'] ?? 30,
             'description' => "Base race for {$name} subraces.",
+            'subrace_required' => $subraceRequired,
         ]);
     }
 

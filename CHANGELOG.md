@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #230**: Bard musical instrument proficiency choices return empty options
+  - Individual musical instruments now have `category='tool', subcategory='musical_instrument'`
+  - This matches the pattern used for artisan tools and enables proper lookups
+  - Query `?category=tool&subcategory=musical_instrument` now returns all 10 instruments
+  - Parent "Musical Instruments" entry retained with `category='musical_instrument'` for broad grants
+  - Updated seeder to use slug as unique key for updateOrCreate (handles category changes)
+
 - **Issue #229**: Bard musical instrument proficiency choices not parsed correctly
   - Added `isMusicalInstrumentChoice()` method to `MatchesProficiencyTypes` trait
   - ClassXmlParser now detects musical instrument choice patterns like "Three musical instruments of your choice"

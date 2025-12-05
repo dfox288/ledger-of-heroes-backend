@@ -38,3 +38,7 @@ sessions/.archived/
 # Test output artifacts
 tests/Fixtures/test-output/
 storage/coverage/
+coverage*.xml
+
+# Repomix output
+repomix-output.xml

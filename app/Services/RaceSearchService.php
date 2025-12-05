@@ -2,14 +2,9 @@
 
 namespace App\Services;
 
-use App\DTOs\RaceSearchDTO;
-use App\Exceptions\Search\InvalidFilterSyntaxException;
 use App\Models\Race;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Pagination\LengthAwarePaginator;
-use MeiliSearch\Client;
 
-final class RaceSearchService
+final class RaceSearchService extends AbstractSearchService
 {
     /**
      * Relationships for index/list endpoints (lightweight)
@@ -74,45 +69,13 @@ final class RaceSearchService
     ];
 
     /**
-     * Backward compatibility alias
-     */
-    private const DEFAULT_RELATIONSHIPS = self::INDEX_RELATIONSHIPS;
-
-    /**
-     * Build Scout search query for full-text search
+     * Get the fully qualified model class name
      *
-     * NOTE: MySQL filtering has been removed. Use Meilisearch ?filter= parameter instead.
-     *
-     * Examples:
-     * - ?filter=size_code = M
-     * - ?filter=speed >= 30
-     * - ?filter=has_darkvision = true
-     * - ?filter=spell_slugs IN [misty-step, faerie-fire]
-     * - ?filter=tag_slugs IN [darkvision, fey-ancestry]
+     * @return class-string<\Illuminate\Database\Eloquent\Model>
      */
-    public function buildScoutQuery(RaceSearchDTO $dto): \Laravel\Scout\Builder
+    protected function getModelClass(): string
     {
-        return Race::search($dto->searchQuery);
-    }
-
-    /**
-     * Build Eloquent database query for pagination (no filters - use Meilisearch for filtering)
-     */
-    public function buildDatabaseQuery(RaceSearchDTO $dto): Builder
-    {
-        $query = Race::with(self::INDEX_RELATIONSHIPS);
-
-        $this->applySorting($query, $dto);
-
-        return $query;
-    }
-
-    /**
-     * Get default relationships for eager loading (index endpoints)
-     */
-    public function getDefaultRelationships(): array
-    {
-        return self::INDEX_RELATIONSHIPS;
+        return Race::class;
     }
 
     /**
@@ -131,77 +94,20 @@ final class RaceSearchService
         return self::SHOW_RELATIONSHIPS;
     }
 
-    private function applySorting(Builder $query, RaceSearchDTO $dto): void
-    {
-        $query->orderBy($dto->sortBy, $dto->sortDirection);
-    }
-
     /**
-     * Search using Meilisearch with custom filter expressions
+     * Build Scout search query for full-text search
+     *
+     * NOTE: MySQL filtering has been removed. Use Meilisearch ?filter= parameter instead.
+     *
+     * Examples:
+     * - ?filter=size_code = M
+     * - ?filter=speed >= 30
+     * - ?filter=has_darkvision = true
+     * - ?filter=spell_slugs IN [misty-step, faerie-fire]
+     * - ?filter=tag_slugs IN [darkvision, fey-ancestry]
      */
-    public function searchWithMeilisearch(RaceSearchDTO $dto, Client $client): LengthAwarePaginator
+    public function buildScoutQuery(object $dto): \Laravel\Scout\Builder
     {
-        $searchParams = [
-            'limit' => $dto->perPage,
-            'offset' => ($dto->page - 1) * $dto->perPage,
-        ];
-
-        // Add filter if provided
-        if ($dto->meilisearchFilter) {
-            $searchParams['filter'] = $dto->meilisearchFilter;
-        }
-
-        // Add sort if needed
-        if ($dto->sortBy && $dto->sortDirection) {
-            $searchParams['sort'] = ["{$dto->sortBy}:{$dto->sortDirection}"];
-        }
-
-        // Execute search
-        try {
-            // Use model's searchableAs() to respect Scout prefix (test_ for testing, none for production)
-            $indexName = (new Race)->searchableAs();
-            $results = $client->index($indexName)->search($dto->searchQuery ?? '', $searchParams);
-        } catch (\MeiliSearch\Exceptions\ApiException $e) {
-            throw new InvalidFilterSyntaxException(
-                filter: $dto->meilisearchFilter ?? 'unknown',
-                meilisearchMessage: $e->getMessage(),
-                previous: $e
-            );
-        }
-
-        // Convert SearchResult object to array
-        $resultsArray = $results->toArray();
-
-        // Hydrate Eloquent models to use with API Resources
-        $raceIds = collect($resultsArray['hits'])->pluck('id');
-
-        if ($raceIds->isEmpty()) {
-            // Return empty paginator with correct metadata
-            return new LengthAwarePaginator(
-                collect([]),
-                $resultsArray['estimatedTotalHits'] ?? 0,
-                $dto->perPage,
-                $dto->page,
-                ['path' => request()->url()]
-            );
-        }
-
-        // Fetch races with relationships, preserving Meilisearch order
-        $races = Race::with(self::INDEX_RELATIONSHIPS)
-            ->whereIn('id', $raceIds)
-            ->get()
-            ->sortBy(function ($race) use ($raceIds) {
-                return $raceIds->search($race->id);
-            })
-            ->values();
-
-        // Build paginator manually to match Meilisearch results
-        return new LengthAwarePaginator(
-            $races,
-            $resultsArray['estimatedTotalHits'] ?? 0,
-            $dto->perPage,
-            $dto->page,
-            ['path' => request()->url()]
-        );
+        return parent::buildScoutQuery($dto);
     }
 }

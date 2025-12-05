@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\LanguageIndexRequest;
 use App\Http\Requests\LanguageShowRequest;
 use App\Http\Resources\BackgroundResource;
@@ -13,8 +12,28 @@ use App\Services\Cache\LookupCacheService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class LanguageController extends Controller
+class LanguageController extends ReadOnlyLookupController
 {
+    protected function getModelClass(): string
+    {
+        return Language::class;
+    }
+
+    protected function getResourceClass(): string
+    {
+        return LanguageResource::class;
+    }
+
+    protected function getIndexRequestClass(): string
+    {
+        return LanguageIndexRequest::class;
+    }
+
+    protected function getCacheMethod(): ?string
+    {
+        return 'getLanguages';
+    }
+
     /**
      * List all D&D languages
      *
@@ -55,41 +74,11 @@ class LanguageController extends Controller
      * - **Character Creation:** Choose languages based on race and background
      * - **Campaign Planning:** Identify languages needed for specific settings (Underdark, Planes, etc.)
      * - **Roleplay:** Determine if characters can communicate with NPCs or creatures
-     *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     #[QueryParameter('q', description: 'Search by name', example: 'elvish')]
-    public function index(LanguageIndexRequest $request, LookupCacheService $cache)
+    public function index(LanguageIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
-        $query = Language::query();
-
-        // Add search support
-        if ($request->has('q')) {
-            $search = $request->validated('q');
-            $query->where('name', 'LIKE', "%{$search}%");
-        }
-
-        // Add pagination support
-        $perPage = $request->validated('per_page', 50); // Higher default for lookups
-
-        // Use cache for unfiltered queries
-        if (! $request->has('q')) {
-            $allLanguages = $cache->getLanguages();
-            $currentPage = $request->input('page', 1);
-            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
-                $allLanguages->forPage($currentPage, $perPage),
-                $allLanguages->count(),
-                $perPage,
-                $currentPage,
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-
-            return LanguageResource::collection($paginated);
-        }
-
-        $entities = $query->paginate($perPage);
-
-        return LanguageResource::collection($entities);
+        return $this->handleIndex($request, $cache);
     }
 
     /**
@@ -111,9 +100,9 @@ class LanguageController extends Controller
      * - `typical_speakers`: Races or creatures that commonly speak this language
      * - `description`: Lore and usage information
      */
-    public function show(Language $language)
+    public function show(Language $language): LanguageResource
     {
-        return new LanguageResource($language);
+        return $this->handleShow($language);
     }
 
     /**

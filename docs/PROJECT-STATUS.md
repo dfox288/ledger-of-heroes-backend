@@ -1,8 +1,8 @@
 # Project Status
 
-**Last Updated:** 2025-12-05
+**Last Updated:** 2025-12-06
 **Branch:** main
-**Status:** ✅ Character Builder API Documentation Complete
+**Status:** ✅ Refactoring & Test Coverage Complete
 
 ---
 
@@ -10,9 +10,9 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 1,883 passing (~7,000+ assertions) - Unit-Pure/Unit-DB/Feature-DB |
-| **Test Coverage** | 56.42% lines (8,544/15,144), 51.12% methods (802/1,569) |
-| **Test Files** | 300+ |
+| **Tests** | 2,008 passing (~7,700+ assertions) - Unit-Pure/Unit-DB/Feature-DB |
+| **Test Coverage** | 37.45% lines (5,751/15,355), 29.98% methods (485/1,618) - Unit suites |
+| **Test Files** | 310+ |
 | **Filter Tests** | 151 operator tests (2,750+ assertions) - 100% coverage |
 | **Character Builder Tests** | 200+ tests (3,000+ assertions) |
 | **Duration** | ~10s (Unit-Pure), ~26s (Unit-DB), ~26s (Feature-DB), ~35s (Feature-Search) |
@@ -31,6 +31,35 @@
 ---
 
 ## 🚀 Recent Milestones
+
+### Refactoring & Test Coverage Phase 2 ✅ COMPLETE (2025-12-06)
+- **PR:** #66 (pending)
+- **Issues:** #186, #187, #210, #211 (closed)
+- **Scope:** Base class extraction and parser/importer test coverage
+
+**New Base Classes:**
+- `ReadOnlyLookupController` - Extracted from 44 lookup controllers (5 refactored as proof of concept)
+- `AbstractSearchService` - Extracted from 7 search services (4 refactored: Spell, Background, Feat, Race)
+- **341 lines of duplicated code removed** from search services
+
+**Test Coverage Added:**
+| Category | Tests | Coverage Improvement |
+|----------|-------|---------------------|
+| ChargedItemStrategy | 20 | 22% → ~100% |
+| TattooStrategy | 20 | 84% → ~100% |
+| ItemXmlParser | 32 | 79% → ~95% |
+| ImportsSenses | 15 | 4% → significantly improved |
+| ImportsModifiers | 19 | 54% → significantly improved |
+| ImportsEntityItems | 13 | 60% → significantly improved |
+| ImportsLanguages | 12 | 63% → significantly improved |
+| ImportsDataTables | 8 | 25% → significantly improved |
+| **Total** | **~140** | Parser strategies + importer traits |
+
+**Refactored Controllers (using ReadOnlyLookupController):**
+- AbilityScoreController, ConditionController, DamageTypeController, LanguageController, SpellSchoolController
+
+**Refactored Services (using AbstractSearchService):**
+- SpellSearchService, BackgroundSearchService, FeatSearchService, RaceSearchService
 
 ### Test Coverage Expansion ✅ COMPLETE (2025-12-05)
 - **PRs:** #58, #59 (merged)
@@ -54,8 +83,8 @@
 | **Total** | **337** | **26 test files** |
 
 **Remaining Coverage Issues:**
-- #210: Parser Strategies (22-84% coverage) - LOW priority
-- #211: Importer Traits (4-63% coverage) - LOW priority
+- ✅ #210: Parser Strategies - COMPLETE (see Phase 2 above)
+- ✅ #211: Importer Traits - COMPLETE (see Phase 2 above)
 
 ### Character Builder API Documentation ✅ COMPLETE (2025-12-05)
 - **PR:** #48 (merged)
@@ -619,7 +648,7 @@ docker compose exec php php artisan search:configure-indexes
 
 ---
 
-**Last Updated:** 2025-12-05
+**Last Updated:** 2025-12-06
 **Next Session:** Character Export (#122), XP-Based Leveling (#95), or Missing Subclasses (#9)
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

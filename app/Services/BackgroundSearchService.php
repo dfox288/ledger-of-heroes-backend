@@ -2,12 +2,7 @@
 
 namespace App\Services;
 
-use App\DTOs\BackgroundSearchDTO;
-use App\Exceptions\Search\InvalidFilterSyntaxException;
 use App\Models\Background;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Pagination\LengthAwarePaginator;
-use MeiliSearch\Client;
 
 /**
  * Service for searching and filtering D&D backgrounds
@@ -16,7 +11,7 @@ use MeiliSearch\Client;
  * and returns paginated results. Keeps controllers thin by extracting
  * all query-building logic into this testable service layer.
  */
-final class BackgroundSearchService
+final class BackgroundSearchService extends AbstractSearchService
 {
     /**
      * Relationships for index/list endpoints (lightweight)
@@ -41,43 +36,13 @@ final class BackgroundSearchService
     ];
 
     /**
-     * Backward compatibility alias
-     */
-    private const DEFAULT_RELATIONSHIPS = self::INDEX_RELATIONSHIPS;
-
-    /**
-     * Build Scout search query for full-text search
+     * Get the fully qualified model class name
      *
-     * NOTE: MySQL filtering has been removed. Use Meilisearch ?filter= parameter instead.
-     *
-     * Examples:
-     * - ?filter=tag_slugs IN [criminal]
-     * - ?filter=tag_slugs IN [noble, outlander]
-     * - ?filter=source_codes IN [PHB]
+     * @return class-string<\Illuminate\Database\Eloquent\Model>
      */
-    public function buildScoutQuery(string $searchQuery): \Laravel\Scout\Builder
+    protected function getModelClass(): string
     {
-        return Background::search($searchQuery);
-    }
-
-    /**
-     * Build Eloquent database query for pagination (no filters - use Meilisearch for filtering)
-     */
-    public function buildDatabaseQuery(BackgroundSearchDTO $dto): Builder
-    {
-        $query = Background::with(self::INDEX_RELATIONSHIPS);
-
-        $this->applySorting($query, $dto);
-
-        return $query;
-    }
-
-    /**
-     * Get default relationships for eager loading (index endpoints)
-     */
-    public function getDefaultRelationships(): array
-    {
-        return self::INDEX_RELATIONSHIPS;
+        return Background::class;
     }
 
     /**
@@ -96,68 +61,22 @@ final class BackgroundSearchService
         return self::SHOW_RELATIONSHIPS;
     }
 
-    private function applySorting(Builder $query, BackgroundSearchDTO $dto): void
-    {
-        $query->orderBy($dto->sortBy, $dto->sortDirection);
-    }
-
     /**
-     * Search using Meilisearch with custom filter expressions
+     * Build Scout search query for full-text search
+     *
+     * NOTE: MySQL filtering has been removed. Use Meilisearch ?filter= parameter instead.
+     *
+     * Examples:
+     * - ?filter=tag_slugs IN [criminal]
+     * - ?filter=tag_slugs IN [noble, outlander]
+     * - ?filter=source_codes IN [PHB]
+     *
+     * @param  string|object  $searchQueryOrDto  Search query string or DTO object
      */
-    public function searchWithMeilisearch(BackgroundSearchDTO $dto, Client $client): LengthAwarePaginator
+    public function buildScoutQuery(string|object $searchQueryOrDto): \Laravel\Scout\Builder
     {
-        $searchParams = [
-            'limit' => $dto->perPage,
-            'offset' => ($dto->page - 1) * $dto->perPage,
-        ];
+        $searchQuery = is_string($searchQueryOrDto) ? $searchQueryOrDto : ($searchQueryOrDto->searchQuery ?? '');
 
-        // Add filter if provided
-        if ($dto->meilisearchFilter) {
-            $searchParams['filter'] = $dto->meilisearchFilter;
-        }
-
-        // Add sort if needed
-        if ($dto->sortBy && $dto->sortDirection) {
-            $searchParams['sort'] = ["{$dto->sortBy}:{$dto->sortDirection}"];
-        }
-
-        // Execute search
-        try {
-            // Use model's searchableAs() to respect Scout prefix (test_ for testing, none for production)
-            $indexName = (new Background)->searchableAs();
-            $results = $client->index($indexName)->search($dto->searchQuery ?? '', $searchParams);
-        } catch (\MeiliSearch\Exceptions\ApiException $e) {
-            throw new InvalidFilterSyntaxException(
-                filter: $dto->meilisearchFilter ?? 'unknown',
-                meilisearchMessage: $e->getMessage(),
-                previous: $e
-            );
-        }
-
-        // Convert SearchResult object to array
-        $resultsArray = $results->toArray();
-
-        // Hydrate Eloquent models to use with API Resources
-        $backgroundIds = collect($resultsArray['hits'])->pluck('id');
-
-        if ($backgroundIds->isEmpty()) {
-            return new LengthAwarePaginator([], 0, $dto->perPage, $dto->page);
-        }
-
-        $backgrounds = Background::with(self::INDEX_RELATIONSHIPS)
-            ->findMany($backgroundIds);
-
-        // Preserve Meilisearch result order
-        $orderedBackgrounds = $backgroundIds->map(function ($id) use ($backgrounds) {
-            return $backgrounds->firstWhere('id', $id);
-        })->filter();
-
-        return new LengthAwarePaginator(
-            $orderedBackgrounds,
-            $resultsArray['estimatedTotalHits'] ?? 0,
-            $dto->perPage,
-            $dto->page ?? 1,
-            ['path' => request()->url(), 'query' => request()->query()]
-        );
+        return Background::search($searchQuery);
     }
 }

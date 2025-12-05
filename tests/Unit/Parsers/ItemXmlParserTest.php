@@ -502,4 +502,504 @@ XML;
         $this->assertEquals('Cold', $items[0]['modifiers'][0]['damage_type_name']);
         $this->assertEquals('for 10 minutes', $items[0]['modifiers'][0]['condition']);
     }
+
+    #[Test]
+    public function it_concatenates_multiple_text_blocks(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Test Item</name>
+        <type>W</type>
+        <text>This is the first paragraph of text.</text>
+        <text>This is the second paragraph of text.</text>
+        <text>This is the third paragraph of text.</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $expectedDescription = "This is the first paragraph of text.\n\nThis is the second paragraph of text.\n\nThis is the third paragraph of text.";
+        $this->assertEquals($expectedDescription, $items[0]['description']);
+    }
+
+    #[Test]
+    public function it_parses_range_with_slash_format(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Longbow</name>
+        <type>R</type>
+        <range>150/600</range>
+        <text>A ranged weapon.
+
+Source: Player's Handbook (2014) p. 149</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertEquals(150, $items[0]['range_normal']);
+        $this->assertEquals(600, $items[0]['range_long']);
+    }
+
+    #[Test]
+    public function it_parses_range_with_single_numeric_value(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Dagger</name>
+        <type>M</type>
+        <range>20</range>
+        <text>A thrown weapon.
+
+Source: Player's Handbook (2014) p. 149</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertEquals(20, $items[0]['range_normal']);
+        $this->assertNull($items[0]['range_long']);
+    }
+
+    #[Test]
+    public function it_handles_empty_range(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Longsword</name>
+        <type>M</type>
+        <text>A melee weapon.
+
+Source: Player's Handbook (2014) p. 149</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertNull($items[0]['range_normal']);
+        $this->assertNull($items[0]['range_long']);
+    }
+
+    #[Test]
+    public function it_parses_properties_as_array(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Longsword</name>
+        <type>M</type>
+        <property>V, M</property>
+        <text>A versatile weapon.
+
+Source: Player's Handbook (2014) p. 149</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertIsArray($items[0]['properties']);
+        $this->assertCount(2, $items[0]['properties']);
+        $this->assertContains('V', $items[0]['properties']);
+        $this->assertContains('M', $items[0]['properties']);
+    }
+
+    #[Test]
+    public function it_handles_empty_properties(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Club</name>
+        <type>M</type>
+        <text>A simple weapon.
+
+Source: Player's Handbook (2014) p. 149</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertEmpty($items[0]['properties']);
+    }
+
+    #[Test]
+    public function it_parses_abilities_from_roll_elements(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Potion of Healing</name>
+        <type>P</type>
+        <roll description="Healing">2d4+2</roll>
+        <text>You regain hit points when you drink this potion.
+
+Source: Player's Handbook (2014) p. 153</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertCount(1, $items[0]['abilities']);
+        $this->assertEquals('roll', $items[0]['abilities'][0]['ability_type']);
+        $this->assertEquals('Healing', $items[0]['abilities'][0]['name']);
+        $this->assertEquals('2d4+2', $items[0]['abilities'][0]['description']);
+        $this->assertEquals('2d4+2', $items[0]['abilities'][0]['roll_formula']);
+    }
+
+    #[Test]
+    public function it_parses_abilities_without_description_attribute(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Test Item</name>
+        <type>W</type>
+        <roll>1d6</roll>
+        <text>An item with a roll ability.
+
+Source: Test Source p. 1</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertCount(1, $items[0]['abilities']);
+        $this->assertEquals('roll', $items[0]['abilities'][0]['ability_type']);
+        $this->assertEquals('1d6', $items[0]['abilities'][0]['name']);
+        $this->assertEquals('1d6', $items[0]['abilities'][0]['description']);
+        $this->assertEquals('1d6', $items[0]['abilities'][0]['roll_formula']);
+    }
+
+    #[Test]
+    public function it_parses_multiple_roll_abilities(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Wand of Wonder</name>
+        <type>W</type>
+        <roll description="Effect 1">1d10</roll>
+        <roll description="Effect 2">2d6+1</roll>
+        <text>This wand produces random effects.
+
+Source: Dungeon Master's Guide (2014) p. 212</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertCount(2, $items[0]['abilities']);
+        $this->assertEquals('Effect 1', $items[0]['abilities'][0]['name']);
+        $this->assertEquals('1d10', $items[0]['abilities'][0]['roll_formula']);
+        $this->assertEquals('Effect 2', $items[0]['abilities'][1]['name']);
+        $this->assertEquals('2d6+1', $items[0]['abilities'][1]['roll_formula']);
+    }
+
+    #[Test]
+    public function it_handles_items_without_roll_abilities(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Ring of Protection</name>
+        <type>W</type>
+        <text>This ring grants a bonus to AC.
+
+Source: Dungeon Master's Guide (2014) p. 191</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertEmpty($items[0]['abilities']);
+    }
+
+    #[Test]
+    public function it_parses_rarity_very_rare_before_rare(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Test Item</name>
+        <type>W</type>
+        <detail>very rare (requires attunement)</detail>
+        <text>A very rare item.
+
+Source: Test Source p. 1</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertEquals('very rare', $items[0]['rarity']);
+    }
+
+    #[Test]
+    public function it_parses_rarity_legendary(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Test Item</name>
+        <type>W</type>
+        <detail>legendary (requires attunement)</detail>
+        <text>A legendary item.
+
+Source: Test Source p. 1</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertEquals('legendary', $items[0]['rarity']);
+    }
+
+    #[Test]
+    public function it_parses_rarity_artifact(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Test Item</name>
+        <type>W</type>
+        <detail>artifact</detail>
+        <text>An artifact.
+
+Source: Test Source p. 1</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertEquals('artifact', $items[0]['rarity']);
+    }
+
+    #[Test]
+    public function it_defaults_to_common_rarity(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Test Item</name>
+        <type>W</type>
+        <text>An item with no rarity specified.
+
+Source: Test Source p. 1</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertEquals('common', $items[0]['rarity']);
+    }
+
+    #[Test]
+    public function it_parses_attunement_from_description_text(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Test Item</name>
+        <type>W</type>
+        <text>This item requires attunement to use its properties.
+
+Source: Test Source p. 1</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertTrue($items[0]['requires_attunement']);
+    }
+
+    #[Test]
+    public function it_parses_magic_flag(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Magic Sword</name>
+        <type>M</type>
+        <magic>YES</magic>
+        <text>A magic weapon.
+
+Source: Test Source p. 1</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertTrue($items[0]['is_magic']);
+    }
+
+    #[Test]
+    public function it_parses_non_magic_items(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Normal Sword</name>
+        <type>M</type>
+        <text>A normal weapon.
+
+Source: Test Source p. 1</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertFalse($items[0]['is_magic']);
+    }
+
+    #[Test]
+    public function it_parses_weight_as_float(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Chain Mail</name>
+        <type>HA</type>
+        <weight>55</weight>
+        <text>Heavy armor.
+
+Source: Player's Handbook (2014) p. 145</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertIsFloat($items[0]['weight']);
+        $this->assertEquals(55.0, $items[0]['weight']);
+    }
+
+    #[Test]
+    public function it_handles_missing_weight(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Test Item</name>
+        <type>W</type>
+        <text>An item without weight.
+
+Source: Test Source p. 1</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertNull($items[0]['weight']);
+    }
+
+    #[Test]
+    public function it_parses_damage_dice(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Longsword</name>
+        <type>M</type>
+        <dmg1>1d8</dmg1>
+        <text>A versatile weapon.
+
+Source: Player's Handbook (2014) p. 149</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertEquals('1d8', $items[0]['damage_dice']);
+    }
+
+    #[Test]
+    public function it_parses_versatile_damage(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Longsword</name>
+        <type>M</type>
+        <dmg1>1d8</dmg1>
+        <dmg2>1d10</dmg2>
+        <text>A versatile weapon.
+
+Source: Player's Handbook (2014) p. 149</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertEquals('1d8', $items[0]['damage_dice']);
+        $this->assertEquals('1d10', $items[0]['versatile_damage']);
+    }
+
+    #[Test]
+    public function it_parses_damage_type_code(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <item>
+        <name>Longsword</name>
+        <type>M</type>
+        <dmg1>1d8</dmg1>
+        <dmgType>S</dmgType>
+        <text>A slashing weapon.
+
+Source: Player's Handbook (2014) p. 149</text>
+    </item>
+</compendium>
+XML;
+
+        $items = $this->parser->parse($xml);
+
+        $this->assertEquals('S', $items[0]['damage_type_code']);
+    }
 }

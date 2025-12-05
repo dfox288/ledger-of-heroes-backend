@@ -36,6 +36,7 @@ class Race extends BaseModel
         'swim_speed',
         'climb_speed',
         'parent_race_id',
+        'subrace_required',
     ];
 
     protected $casts = [
@@ -45,6 +46,7 @@ class Race extends BaseModel
         'swim_speed' => 'integer',
         'climb_speed' => 'integer',
         'parent_race_id' => 'integer',
+        'subrace_required' => 'boolean',
     ];
 
     protected $appends = [
@@ -101,6 +103,7 @@ class Race extends BaseModel
             'sources' => $this->getSearchableSourceNames(),
             'source_codes' => $this->getSearchableSourceCodes(),
             'is_subrace' => $this->parent_race_id !== null,
+            'subrace_required' => $this->subrace_required,
             'parent_race_name' => $this->parent?->name,
             // Tag slugs for filtering (e.g., darkvision, fey_ancestry)
             'tag_slugs' => $this->getSearchableTagSlugs(),
@@ -155,6 +158,7 @@ class Race extends BaseModel
                 'has_climb_speed',
                 'source_codes',
                 'is_subrace',
+                'subrace_required',
                 'parent_race_name',
                 'tag_slugs',
                 // Phase 3: Spell filtering

@@ -26,6 +26,7 @@ class RaceFactory extends Factory
             'size_id' => Size::where('code', 'M')->first()->id,
             'speed' => 30,
             'parent_race_id' => null,
+            'subrace_required' => true,
         ];
     }
 
@@ -56,6 +57,16 @@ class RaceFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'climb_speed' => $speed,
+        ]);
+    }
+
+    /**
+     * Create a race where subrace selection is optional (base race is complete).
+     */
+    public function withOptionalSubraces(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'subrace_required' => false,
         ]);
     }
 }

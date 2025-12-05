@@ -29,6 +29,8 @@ class RaceResource extends JsonResource
             'climb_speed' => $this->climb_speed,
             /** @var bool Whether this race is a subrace (has a parent race) */
             'is_subrace' => $this->is_subrace,
+            /** @var bool Whether subrace selection is required to play this race (false = base race is complete on its own) */
+            'subrace_required' => $this->subrace_required,
             'traits' => TraitResource::collection($this->whenLoaded('traits')),
             'modifiers' => ModifierResource::collection($this->whenLoaded('modifiers')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),

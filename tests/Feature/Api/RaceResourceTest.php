@@ -56,4 +56,36 @@ class RaceResourceTest extends TestCase
         $this->assertNull($resource['swim_speed']);
         $this->assertNull($resource['climb_speed']);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_includes_subrace_required_in_resource(): void
+    {
+        $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
+
+        $race = Race::factory()->create([
+            'size_id' => $size->id,
+            'subrace_required' => true,
+        ]);
+
+        $resource = (new RaceResource($race))->toArray(request());
+
+        $this->assertArrayHasKey('subrace_required', $resource);
+        $this->assertTrue($resource['subrace_required']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_returns_false_for_subrace_required_when_set(): void
+    {
+        $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
+
+        $race = Race::factory()->create([
+            'size_id' => $size->id,
+            'subrace_required' => false,
+        ]);
+
+        $resource = (new RaceResource($race))->toArray(request());
+
+        $this->assertArrayHasKey('subrace_required', $resource);
+        $this->assertFalse($resource['subrace_required']);
+    }
 }

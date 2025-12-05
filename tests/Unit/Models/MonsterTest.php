@@ -141,4 +141,30 @@ class MonsterTest extends TestCase
             'CR 30' => ['30', 9],
         ];
     }
+
+    // Challenge Rating Tests
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    #[\PHPUnit\Framework\Attributes\DataProvider('challengeRatingProvider')]
+    public function get_challenge_rating_numeric_converts_correctly(string $cr, float $expected): void
+    {
+        $monster = Monster::factory()->create(['challenge_rating' => $cr]);
+
+        $this->assertEquals($expected, $monster->getChallengeRatingNumeric());
+    }
+
+    public static function challengeRatingProvider(): array
+    {
+        return [
+            'CR 0' => ['0', 0.0],
+            'CR 1/8' => ['1/8', 0.125],
+            'CR 1/4' => ['1/4', 0.25],
+            'CR 1/2' => ['1/2', 0.5],
+            'CR 1' => ['1', 1.0],
+            'CR 5' => ['5', 5.0],
+            'CR 10' => ['10', 10.0],
+            'CR 20' => ['20', 20.0],
+            'CR 30' => ['30', 30.0],
+        ];
+    }
 }

@@ -9,6 +9,7 @@
 
         <!-- Unit-Pure: No database, no external services (approx 5s) -->
         <testsuite name="Unit-Pure">
+            <directory>tests/Unit/Enums</directory>
             <directory>tests/Unit/Exceptions</directory>
             <directory>tests/Unit/Resources</directory>
             <directory>tests/Unit/Parsers</directory>

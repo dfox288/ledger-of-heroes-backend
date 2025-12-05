@@ -693,4 +693,31 @@ XML;
         $this->assertEquals(1, $instrumentChoice['quantity'], 'Should have quantity=1');
         $this->assertEquals('musical_instrument', $instrumentChoice['proficiency_subcategory'], 'Should reference musical_instrument subcategory');
     }
+
+    #[Test]
+    public function it_does_not_treat_specific_instrument_as_choice()
+    {
+        // Specific instruments like "Lute" should be fixed proficiencies, not choices
+        $xml = <<<'XML'
+        <compendium>
+            <class>
+                <name>TestClass</name>
+                <hd>8</hd>
+                <tools>Lute, Lyre</tools>
+            </class>
+        </compendium>
+        XML;
+
+        $classes = $this->parser->parse($xml);
+        $proficiencies = $classes[0]['proficiencies'];
+
+        $toolProfs = array_values(array_filter($proficiencies, fn ($p) => $p['type'] === 'tool'));
+        $this->assertCount(2, $toolProfs, 'Should have 2 tool proficiencies');
+
+        // Both should be fixed proficiencies, not choices
+        foreach ($toolProfs as $prof) {
+            $this->assertFalse($prof['is_choice'] ?? false, "{$prof['name']} should NOT be marked as a choice");
+            $this->assertArrayNotHasKey('proficiency_subcategory', $prof, "{$prof['name']} should not have proficiency_subcategory");
+        }
+    }
 }

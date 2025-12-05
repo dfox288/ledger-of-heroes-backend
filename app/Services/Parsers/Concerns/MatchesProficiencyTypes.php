@@ -230,12 +230,10 @@ trait MatchesProficiencyTypes
             }
         }
 
-        // Also check for word numbers at the start (e.g., "Three musical instruments")
-        $wordNumbers = ['one', 'two', 'three', 'four', 'five'];
-        foreach ($wordNumbers as $word) {
-            if (preg_match('/\b'.$word.'\b/', $lowerName)) {
-                return true;
-            }
+        // Check for word numbers immediately before "musical instrument" (e.g., "Three musical instruments")
+        // This prevents false positives like "one time you gain proficiency in musical instruments"
+        if (preg_match('/\b(?:one|two|three|four|five)\s+musical\s+instruments?/', $lowerName)) {
+            return true;
         }
 
         return false;

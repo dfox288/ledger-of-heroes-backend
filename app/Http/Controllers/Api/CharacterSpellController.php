@@ -250,12 +250,61 @@ class CharacterSpellController extends Controller
     /**
      * Get spell slot information for the character.
      *
-     * Returns available spell slots by level and the preparation limit.
+     * Returns consolidated spell slot data including calculated maximums,
+     * tracked usage (spent slots), and available slots. Also includes
+     * preparation limit for prepared casters and current prepared count.
+     *
+     * @x-flow character-creation
+     *
+     * @x-flow-step 9
      *
      * **Examples:**
      * ```
      * GET /api/v1/characters/1/spell-slots
      * ```
+     *
+     * **Response Structure:**
+     * ```json
+     * {
+     *   "data": {
+     *     "slots": {
+     *       "1": { "total": 4, "spent": 2, "available": 2 },
+     *       "2": { "total": 3, "spent": 1, "available": 2 }
+     *     },
+     *     "pact_magic": null,
+     *     "preparation_limit": 6,
+     *     "prepared_count": 3
+     *   }
+     * }
+     * ```
+     *
+     * **For Warlocks (Pact Magic):**
+     * ```json
+     * {
+     *   "data": {
+     *     "slots": {},
+     *     "pact_magic": {
+     *       "level": 2,
+     *       "total": 2,
+     *       "spent": 0,
+     *       "available": 2
+     *     },
+     *     "preparation_limit": null,
+     *     "prepared_count": 0
+     *   }
+     * }
+     * ```
+     *
+     * **Fields:**
+     * - `slots` - Standard spell slots by level (1-9) with total/spent/available
+     * - `pact_magic` - Warlock pact magic slots (level/total/spent/available) or null
+     * - `preparation_limit` - Max spells that can be prepared (for prepared casters) or null
+     * - `prepared_count` - Current number of prepared spells
+     *
+     * **Slot Tracking:**
+     * - If no usage has been tracked, `spent` will be 0 and `available` equals `total`
+     * - Spent slots are tracked in the `character_spell_slots` table
+     * - Use `POST /spell-slots/use` to expend a slot
      */
     public function slots(Character $character): SpellSlotsResource
     {

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Character API Spell Slot Consolidation** (Issue #173 Phase 1.2)
+  - `GET /characters/{id}/spell-slots` now returns consolidated response with tracked usage
+  - Response includes `total`, `spent`, and `available` for each slot level
+  - Added `prepared_count` field showing current number of prepared spells
+  - Eliminates need for separate `/spell-slots/tracked` call (still available for backward compatibility)
+  - Works for both standard spell slots and warlock pact magic
+
 ### Changed (BREAKING)
 
 - **Character API Phase 2 Restructuring** (Issue #173)
@@ -64,6 +73,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `@property` annotations to models for computed property types
 
 ### Added
+
+- **Character Summary Endpoint** (Issue #173 Phase 1.1)
+  - Added `GET /characters/{id}/summary` endpoint for aggregated character state
+  - Returns basic character info, pending choices, resources, combat state, and creation completeness
+  - Aggregates data from proficiency, language, spell slot, hit dice services
+  - Includes counts for pending proficiencies, languages, spells, optional features, and ASI choices
+  - Includes resource states: hit points, hit dice, spell slots, and feature uses
+  - Includes combat state: active conditions, death saves, consciousness
+  - Includes creation status: `is_complete` and array of missing required fields
+  - Use for character dashboard or creation progress tracking
 
 - **Proficiency Choices Metadata** (Issue #168)
   - Added `proficiency_type` and `proficiency_subcategory` fields to `/characters/{id}/proficiency-choices` response

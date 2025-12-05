@@ -461,7 +461,7 @@ class CharacterLanguageService
                 ->pluck('language_id')
                 ->toArray();
 
-            $fixedLanguageIds = array_unique(array_merge($fixedLanguageIds, $parentFixedLanguageIds));
+            $fixedLanguageIds = array_unique(array_merge($fixedLanguageIds, $parentFixedLanguageIds), SORT_NUMERIC);
         }
 
         return $fixedLanguageIds;

@@ -65,7 +65,7 @@ class CharacterCreationFlowTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('data.class.name', 'Wizard')
+            ->assertJsonPath('data.classes.0.class.name', 'Wizard')
             ->assertJsonPath('data.is_complete', false); // Still missing ability scores
 
         // Step 4: Set ability scores (can be done in any order)
@@ -120,7 +120,7 @@ class CharacterCreationFlowTest extends TestCase
             ->assertJsonPath('data.name', 'Elara the Wise')
             ->assertJsonPath('data.level', 1)
             ->assertJsonPath('data.race.name', 'High Elf')
-            ->assertJsonPath('data.class.name', 'Wizard')
+            ->assertJsonPath('data.classes.0.class.name', 'Wizard')
             ->assertJsonPath('data.background.name', 'Sage')
             ->assertJsonPath('data.is_complete', true)
             ->assertJsonPath('data.proficiency_bonus', 2); // Level 1 = +2

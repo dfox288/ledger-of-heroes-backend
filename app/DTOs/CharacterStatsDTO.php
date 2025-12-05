@@ -48,8 +48,8 @@ class CharacterStatsDTO
         $level = $character->total_level;
         $proficiencyBonus = $calculator->proficiencyBonus($level);
 
-        // Ability scores and modifiers
-        $abilityScores = $character->getAbilityScoresArray();
+        // Ability scores and modifiers (includes racial bonuses)
+        $abilityScores = $character->getFinalAbilityScoresArray();
         $abilityModifiers = [];
         foreach ($abilityScores as $code => $score) {
             $abilityModifiers[$code] = $score !== null ? $calculator->abilityModifier($score) : null;

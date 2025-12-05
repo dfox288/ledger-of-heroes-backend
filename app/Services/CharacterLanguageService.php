@@ -96,19 +96,21 @@ class CharacterLanguageService
             throw new InvalidArgumentException('One or more language IDs are invalid');
         }
 
-        // Validate languages are not already known
+        // Clear existing choices for this source before validation
+        // This makes the endpoint idempotent - re-submitting choices is allowed
+        $fixedLanguageIds = $this->getFixedLanguageIds($character, $source);
+        $character->languages()
+            ->where('source', $source)
+            ->whereNotIn('language_id', $fixedLanguageIds)
+            ->delete();
+
+        // Validate languages are not already known (excluding the ones we just deleted)
         $knownLanguageIds = $character->languages()->pluck('language_id')->toArray();
         foreach ($languageIds as $languageId) {
             if (in_array($languageId, $knownLanguageIds)) {
                 throw new InvalidArgumentException("Language ID {$languageId} is already known");
             }
         }
-
-        // Clear existing choices for this source before adding new ones
-        $character->languages()
-            ->where('source', $source)
-            ->whereNotIn('language_id', $this->getFixedLanguageIds($character, $source))
-            ->delete();
 
         // Create the language records
         foreach ($languageIds as $languageId) {

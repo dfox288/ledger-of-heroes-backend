@@ -420,7 +420,17 @@ class BackgroundXmlParser
             $isChoice = false;
             $choiceDescription = null;
             $proficiencySubcategory = null;
-            if (preg_match('/\(([^)]*choice[^)]*)\)/i', $part, $choiceMatch)) {
+
+            // Check for "with which you are proficient" pattern
+            if (preg_match('/^(.+?)\s+with which you (?:are|\'re) proficient$/i', $part, $profMatch)) {
+                $isChoice = true;
+                $choiceDescription = 'with which you are proficient';
+                // Update part to just the base item name for subcategory extraction
+                $part = trim($profMatch[1]);
+            }
+
+            // Then check for parenthetical choice pattern
+            if (! $isChoice && preg_match('/\(([^)]*choice[^)]*)\)/i', $part, $choiceMatch)) {
                 $isChoice = true;
                 $choiceDescription = trim($choiceMatch[1]);
                 // DON'T remove the choice text yet - we need it to extract subcategory

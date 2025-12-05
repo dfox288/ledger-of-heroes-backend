@@ -488,11 +488,38 @@ class RaceXmlParser
                 continue; // Skip other patterns if we matched this compound pattern
             }
 
+            // Pattern: "You gain proficiency in one skill of your choice" (simpler variant)
+            // This pattern is used by Human Variant and potentially other races
+            if (preg_match('/You gain proficienc(?:y|ies) in (\w+)\s+skill(?:s)?\s+of your choice/i', $text, $m)) {
+                $quantity = $this->wordToNumber($m[1]);
+                $choices[] = [
+                    'type' => 'skill',
+                    'name' => null,
+                    'proficiency_type_id' => null,
+                    'grants' => true,
+                    'is_choice' => true,
+                    'quantity' => $quantity,
+                ];
+            }
+
             // Pattern: "one skill proficiency...of your choice" (standalone)
             if (preg_match('/(\w+)\s+skill\s+proficienc(?:y|ies)\s+of your choice/i', $text, $m)) {
                 $quantity = $this->wordToNumber($m[1]);
                 $choices[] = [
                     'type' => 'skill',
+                    'name' => null,
+                    'proficiency_type_id' => null,
+                    'grants' => true,
+                    'is_choice' => true,
+                    'quantity' => $quantity,
+                ];
+            }
+
+            // Pattern: "You gain proficiency in one tool of your choice" (simpler variant)
+            if (preg_match('/You gain proficienc(?:y|ies) in (\w+)\s+tool(?:s)?\s+of your choice/i', $text, $m)) {
+                $quantity = $this->wordToNumber($m[1]);
+                $choices[] = [
+                    'type' => 'tool',
                     'name' => null,
                     'proficiency_type_id' => null,
                     'grants' => true,

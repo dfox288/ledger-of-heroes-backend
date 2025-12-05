@@ -1003,4 +1003,32 @@ XML;
         $this->assertEquals('shield', $spell['spell_name']);
         $this->assertEquals('1/long rest', $spell['usage_limit']);
     }
+
+    #[Test]
+    public function it_parses_skill_choice_from_skills_trait()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <race>
+    <name>Human, Variant</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait category="subspecies">
+      <name>Skills</name>
+      <text>You gain proficiency in one skill of your choice.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $proficiencies = $races[0]['proficiencies'];
+        $skillChoice = collect($proficiencies)->first(fn ($p) => $p['type'] === 'skill' && ($p['is_choice'] ?? false));
+
+        $this->assertNotNull($skillChoice, 'Should parse skill choice from Skills trait');
+        $this->assertEquals(1, $skillChoice['quantity']);
+        $this->assertTrue($skillChoice['is_choice']);
+    }
 }

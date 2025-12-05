@@ -9,6 +9,7 @@ use App\Listeners\InvalidateCharacterCache;
 use App\Listeners\PopulateCharacterAbilities;
 use App\Models\AbilityScore;
 use App\Models\Background;
+use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\Condition;
 use App\Models\DamageType;
@@ -21,6 +22,7 @@ use App\Models\Race;
 use App\Models\Skill;
 use App\Models\Spell;
 use App\Models\SpellSchool;
+use App\Observers\CharacterObserver;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -46,6 +48,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register model observers
+        Character::observe(CharacterObserver::class);
+
         // Register event listeners
         Event::listen(
             ModelImported::class,

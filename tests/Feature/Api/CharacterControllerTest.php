@@ -87,7 +87,7 @@ class CharacterControllerTest extends TestCase
         $response->assertCreated()
             ->assertJsonPath('data.name', 'Legolas')
             ->assertJsonPath('data.race.id', $race->id)
-            ->assertJsonPath('data.class.id', $class->id);
+            ->assertJsonPath('data.classes.0.class.id', $class->id);
     }
 
     #[Test]
@@ -330,8 +330,8 @@ class CharacterControllerTest extends TestCase
         $response = $this->getJson("/api/v1/characters/{$character->id}");
 
         $response->assertOk()
-            ->assertJsonPath('data.class.id', $class->id)
-            ->assertJsonPath('data.class.name', $class->name);
+            ->assertJsonPath('data.classes.0.class.id', $class->id)
+            ->assertJsonPath('data.classes.0.class.name', $class->name);
     }
 
     #[Test]

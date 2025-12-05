@@ -6,12 +6,13 @@ Laravel-based REST API for D&D 5th Edition content with XML import capability. F
 
 **Current Version:** 1.0.0 (Production Ready)
 - ✅ **7 Entity APIs Complete:** Spells, Items, Classes, Feats, Backgrounds, Races, Monsters (full REST APIs)
-- ✅ **1,489 Tests Passing** (7,704 assertions) - 99.7% pass rate
+- ✅ **Character Builder API:** Full character creation with equipment, spells, level-up, and ASI/Feat choices
+- ✅ **1,864 Tests Passing** (~12,000 assertions) - All test suites
 - ✅ **124 Filter Operator Tests** (2,462 assertions) - 100% coverage across all entities
 - ✅ **Performance Optimized:** Redis caching (93.7% improvement, 16.6x faster, <0.2ms response time)
 - ✅ **3,600+ Documents Indexed** in Meilisearch for fast, typo-tolerant search
 - ✅ **598 Monsters Imported** with type-specific parsing strategies
-- ✅ **OpenAPI Documentation** auto-generated via Scramble
+- ✅ **OpenAPI Documentation** auto-generated via Scramble with comprehensive PHPDoc
 - ✅ **Docker-based** development environment (no local PHP/MySQL required)
 
 ## ✨ Features
@@ -44,7 +45,7 @@ Laravel-based REST API for D&D 5th Edition content with XML import capability. F
 
 ### Performance & Code Quality
 - **Redis Caching:** Lookup + entity endpoints (93.7% improvement, <0.2ms response time)
-- **Test-Driven Development:** 1,273 tests with 99.8% pass rate
+- **Test-Driven Development:** 1,864 tests with ~12,000 assertions
 - **Type Safety:** PHP 8.4 strict types, Form Requests, DTOs
 - **Custom Exceptions:** Domain-specific exceptions with proper HTTP status codes
 - **Code Formatting:** Laravel Pint for consistent style
@@ -239,7 +240,7 @@ docker compose exec php php artisan test --filter=MonsterApi
 docker compose exec php php artisan test --coverage-text
 ```
 
-**Current Status:** 1,489 tests passing (7,704 assertions) in ~240s (includes Meilisearch indexing)
+**Current Status:** 1,864 tests passing (~12,000 assertions) across 4 test suites
 
 ## 📥 Import System
 
@@ -343,8 +344,8 @@ Auto-generated API documentation: `http://localhost:8080/docs/api`
 - **Form Request Pattern:** Validation + OpenAPI auto-generation
 
 ### Database Structure
-- **32 Models:** Entities + polymorphic relationships
-- **64 Migrations:** Complete schema with indexes
+- **57 Models:** Entities + Character Builder + polymorphic relationships
+- **66 Migrations:** Complete schema with indexes
 - **12 Seeders:** Lookup tables (sources, schools, languages, etc.)
 - **Performance:** 17 database indexes + Redis caching (94% query reduction)
 
@@ -368,18 +369,22 @@ Auto-generated API documentation: `http://localhost:8080/docs/api`
 
 ### Core Features (Complete) ✅
 - ✅ All 7 entity REST APIs
+- ✅ Character Builder API (creation, equipment, spells, level-up, ASI/Feat choices)
 - ✅ Performance optimization (Redis caching, 93.7% faster)
 - ✅ Database indexing
 - ✅ Meilisearch integration with filter-only queries
 - ✅ Comprehensive filter operator testing (124 tests, 100% coverage)
+- ✅ API Documentation (comprehensive PHPDoc for all controllers)
+
+### Open Issues
+1. **Character Export** (Issue #122) - Export to PDF/JSON format
+2. **XP-Based Leveling** (Issue #95) - Automatic leveling on XP threshold
+3. **Missing Subclasses** (Issue #9) - Explorer's Guide to Wildemount content
 
 ### Optional Enhancements
-1. **API Documentation Enhancements** (2-3 hours) - Standardize controller PHPDoc, add filter examples
-2. **Character Builder API** (8-12 hours) - Character creation, leveling, spell selection
-3. **Performance Optimizations** (2-4 hours) - Additional indexing, query optimization
-4. **Advanced Filter Testing** (4-6 hours) - Compound filters, performance benchmarks
-5. **Frontend Application** (20-40 hours) - Inertia.js + Vue or Next.js + React
-6. **Rate Limiting** - Per-IP throttling middleware
+- **Multiclass Support** - Design complete, ready for implementation
+- **Frontend Application** - Inertia.js + Vue or Next.js + React
+- **Rate Limiting** - Per-IP throttling middleware
 
 ## 🤝 Contributing
 

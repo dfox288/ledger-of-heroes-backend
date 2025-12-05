@@ -1,8 +1,8 @@
 # Project Status
 
-**Last Updated:** 2025-12-03
+**Last Updated:** 2025-12-05
 **Branch:** main
-**Status:** ✅ Custom Equipment Items (PR #17 pending)
+**Status:** ✅ Character Builder API Documentation Complete
 
 ---
 
@@ -10,13 +10,13 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 1,600+ passing (~13,000 assertions) - All suites |
-| **Test Files** | 235 |
+| **Tests** | 1,864 passing (~12,000 assertions) - All suites |
+| **Test Files** | 292 |
 | **Filter Tests** | 151 operator tests (2,750+ assertions) - 100% coverage |
-| **Character Builder Tests** | 180+ tests (2,700+ assertions) |
-| **Duration** | ~4s (Unit-Pure), ~12s (Unit-DB), ~15s (Feature-DB), ~23s (Feature-Search) |
-| **Models** | 37 (32 + 5 Character Builder) |
-| **API** | 50 Resources + 31 Controllers + 43 Form Requests |
+| **Character Builder Tests** | 200+ tests (3,000+ assertions) |
+| **Duration** | ~10s (Unit-Pure), ~19s (Unit-DB), ~22s (Feature-DB), ~35s (Feature-Search) |
+| **Models** | 57 |
+| **API** | 80 Resources + 44 Controllers + 36 Form Requests |
 | **Importers** | 9 working (Strategy Pattern) |
 | **Import Commands** | 12 (10 standardized with BaseImportCommand) |
 | **Monster Strategies** | 12 (95%+ coverage) |
@@ -24,25 +24,50 @@
 | **Parser Traits** | 16 reusable (~150 lines eliminated) |
 | **Search** | 3,600+ documents indexed (Scout + Meilisearch) |
 | **Code Quality** | Laravel Pint formatted |
-| **Enums** | 2 (AbilityScoreMethod, ItemTypeCode) |
+| **Enums** | 3 (AbilityScoreMethod, ItemTypeCode, CharacterSource) |
 | **DTOs** | 5 (AsiChoiceResult, PrerequisiteResult, ProficiencyStatus, LevelUpResult, + 1 existing) |
 
 ---
 
 ## 🚀 Recent Milestones
 
-### Custom/Freetext Equipment Items 🔄 PR PENDING (2025-12-03)
-- **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/17
-- **Issue:** #102
-- **Scope:** Allow custom equipment items not in the database
+### Character Builder API Documentation ✅ COMPLETE (2025-12-05)
+- **PR:** #48 (merged)
+- **Issue:** #155 (closed)
+- **Scope:** Comprehensive PHPDoc documentation for all Character Builder controllers
 
-**Features Implemented:**
-- New `custom_name` and `custom_description` columns on `character_equipment`
-- `item_id` now nullable - either `item_id` OR `custom_name` required
-- Custom items cannot be equipped (returns 422)
-- Use cases: trinkets, flavor items, quest items, homebrew equipment
+**Phase 1 - High Priority Controllers (72-80% → 90%):**
+- `CharacterConditionController`: Request body examples, exhaustion level handling (1-6), condition ID/slug table, error responses
+- `CharacterOptionalFeatureController`: 8 feature types enum, counter-to-feature mapping, eligibility rules, Scramble QueryParameter
+- `CharacterEquipmentController`: Request body examples for store/update, item_id vs custom_name paths, equipment rules
 
-**Tests:** 6 new tests (19 total equipment API tests, 48 assertions)
+**Phase 2 - Medium Priority Controllers:**
+- `CharacterClassController`: Examples for all 5 methods, multiclass prerequisites
+- `CharacterNoteController`: NoteCategory enum (6 values), title requirements
+- `CharacterDeathSaveController`: Request body (roll, damage, is_critical), D&D 5e death save rules
+- `CharacterLevelUpController`: Convert Scribe → Scramble PHPDoc style
+
+**Phase 3 - Standardization:**
+- `CharacterSpellController`: Error responses, source enum, preparation rules
+- `SpellSlotController`: Spell level range (1-9), slot types documentation
+
+All controllers now have consistent error response documentation with HTTP status codes and JSON structure.
+
+### OpenAPI Type Annotations ✅ COMPLETE (2025-12-04)
+- **PR:** #47 (merged)
+- **Issues:** #157, #158, #159 (closed)
+- **Scope:** Fix type annotations for API Resources
+
+**Resources Fixed:**
+- `CharacterResource`: level, total_level, is_multiclass, is_complete, armor_class, speed, speeds, size
+- `CharacterStatsResource`: ability_scores, saving_throws, spell_slots, spellcasting, hit_dice
+- `ClassResource`: id, hit_die, is_base_class, subclass_level, counters
+- `RaceResource`: is_subrace
+
+### Proficiency Choice Metadata ✅ COMPLETE (2025-12-04)
+- **PR:** #46 (merged)
+- **Issue:** #168 (closed)
+- **Scope:** Add proficiency_type and proficiency_subcategory to choices endpoint
 
 ### Musical Instrument Equipment Choices ✅ MERGED (2025-12-03)
 - **PR:** https://github.com/dfox288/dnd-rulebook-parser/pull/16 (merged)
@@ -464,12 +489,12 @@
 
 ## 🎯 Next Priorities
 
-### Priority 1: Multiclass Support (Issue #92)
-- **Status:** Design complete, implementation plan ready
-- Allow characters to have multiple classes
-- Track levels per class
-- Handle multiclass spellcasting rules
-- Proficiency overlap resolution
+### Priority 1: Character Export (Issue #122)
+- **Status:** Ready for implementation
+- Export character to PDF and/or JSON format
+- Include all character data: stats, equipment, spells, features
+- PDF format for printing character sheets
+- JSON format for backup/transfer
 
 ### Priority 2: XP-Based Leveling (Issue #95)
 - **Status:** Optional enhancement
@@ -477,15 +502,18 @@
 - XP threshold table (300, 900, 2700... 355,000)
 - Integration with existing level-up flow
 
-### Priority 3: Performance Optimizations
-- Database indexing: composite indexes, slug indexes
-- Caching: monster spell lists, popular filters
-- Query optimization: reduce N+1 queries
+### Priority 3: Missing Subclasses (Issue #9)
+- **Status:** Data import task
+- Add subclasses from Explorer's Guide to Wildemount
+- Requires new XML source files
 
 ### Recently Completed
-- ✅ Equipment Choice Items (Issue #96) - PR #15 merged
+- ✅ Character Builder API Documentation (Issue #155) - PR #48 merged
+- ✅ OpenAPI Type Annotations (Issues #157, #158, #159) - PR #47 merged
+- ✅ Proficiency Choice Metadata (Issue #168) - PR #46 merged
 
 ### Additional Opportunities
+- Multiclass Support (Issue #92 - design complete)
 - Encounter Builder API
 - Additional Monster Strategies
 - Frontend Application
@@ -565,8 +593,8 @@ docker compose exec php php artisan search:configure-indexes
 
 ---
 
-**Last Updated:** 2025-12-03
-**Next Session:** Multiclass Support (#92), XP-Based Leveling (#95), or Performance Optimizations
+**Last Updated:** 2025-12-05
+**Next Session:** Character Export (#122), XP-Based Leveling (#95), or Missing Subclasses (#9)
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

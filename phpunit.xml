@@ -146,6 +146,8 @@
             <file>tests/Feature/Requests/SourceIndexRequestTest.php</file>
             <file>tests/Feature/Requests/SpellSchoolIndexRequestTest.php</file>
             <file>tests/Feature/Requests/ProficiencyTypeIndexRequestTest.php</file>
+            <!-- Search Service tests -->
+            <directory>tests/Feature/Services</directory>
         </testsuite>
 
         <!-- Importers: XML import command tests (approx 90s) -->

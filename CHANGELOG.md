@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Search Service Unit Tests** (Issue #204)
+  - Added comprehensive unit tests for all 8 search service classes
+  - Tests cover: SpellSearchService, BackgroundSearchService, MonsterSearchService,
+    RaceSearchService, ClassSearchService, FeatSearchService, ItemSearchService,
+    OptionalFeatureSearchService
+  - 123 new test cases covering:
+    - Relationship configuration (index/show/default relationships)
+    - Scout query building
+    - Eloquent database query building with eager loading
+    - Meilisearch search with filters, pagination, and sorting
+    - Error handling for invalid filter syntax
+    - Empty result handling
+    - Model hydration with relationships
+  - Tests added to Feature-Search suite in phpunit.xml
+  - Note: ItemSearchService and MonsterSearchService don't pass sort params to Meilisearch
+    (tests document this current behavior)
+
 - **Character Management Exception Tests** (Issue #201)
   - Added unit tests for 13 character-related exceptions with 0% coverage
   - Tests cover construction, message generation, and JSON response rendering

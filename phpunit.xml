@@ -98,6 +98,7 @@
             <file>tests/Feature/Api/CharacterEquipmentApiTest.php</file>
             <file>tests/Feature/Api/MediaControllerTest.php</file>
             <file>tests/Feature/Api/CharacterResourcePortraitTest.php</file>
+            <file>tests/Feature/Api/CharacterSummaryTest.php</file>
             <!-- Feature Selection API tests -->
             <file>tests/Feature/Api/FeatureSelectionApiTest.php</file>
         </testsuite>

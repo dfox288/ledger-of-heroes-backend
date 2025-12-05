@@ -65,6 +65,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Character Summary Endpoint** (Issue #173 Phase 1.1)
+  - Added `GET /characters/{id}/summary` endpoint for aggregated character state
+  - Returns basic character info, pending choices, resources, combat state, and creation completeness
+  - Aggregates data from proficiency, language, spell slot, hit dice services
+  - Includes counts for pending proficiencies, languages, spells, optional features, and ASI choices
+  - Includes resource states: hit points, hit dice, spell slots, and feature uses
+  - Includes combat state: active conditions, death saves, consciousness
+  - Includes creation status: `is_complete` and array of missing required fields
+  - Use for character dashboard or creation progress tracking
+
 - **Proficiency Choices Metadata** (Issue #168)
   - Added `proficiency_type` and `proficiency_subcategory` fields to `/characters/{id}/proficiency-choices` response
   - For subcategory-based choices (e.g., artisan tools), `options: []` with `proficiency_subcategory: "artisan"`

@@ -209,7 +209,7 @@ class CharacterLanguageApiTest extends TestCase
         $response = $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
 
         $response->assertOk()
-            ->assertJsonPath('message', 'Languages populated successfully');
+            ->assertJsonPath('message', 'Languages synced successfully');
 
         // Elf has Common and Elvish as fixed languages
         $this->assertCount(2, $response->json('data'));
@@ -553,6 +553,34 @@ class CharacterLanguageApiTest extends TestCase
 
         $this->assertContains($this->dwarvish->id, $languageIds);
         $this->assertNotContains($this->elvish->id, $languageIds);
+    }
+
+    #[Test]
+    public function it_allows_resubmitting_same_language_choices(): void
+    {
+        $character = Character::factory()
+            ->withRace($this->humanRace)
+            ->create();
+
+        // First choice: Elvish
+        $this->postJson("/api/v1/characters/{$character->id}/language-choices", [
+            'source' => 'race',
+            'language_ids' => [$this->elvish->id],
+        ])->assertOk();
+
+        // Re-submit same choice (should be idempotent, not throw duplicate key error)
+        $response = $this->postJson("/api/v1/characters/{$character->id}/language-choices", [
+            'source' => 'race',
+            'language_ids' => [$this->elvish->id],
+        ]);
+
+        $response->assertOk();
+
+        // Should still have Elvish, exactly once
+        $character->refresh();
+        $raceLanguages = $character->languages->where('source', 'race');
+        $this->assertCount(1, $raceLanguages);
+        $this->assertEquals($this->elvish->id, $raceLanguages->first()->language_id);
     }
 
     #[Test]
@@ -976,5 +1004,112 @@ class CharacterLanguageApiTest extends TestCase
         $languageNames = collect($response->json('data'))->pluck('language.name')->toArray();
         $commonCount = collect($languageNames)->filter(fn ($n) => str_starts_with($n, 'Common '))->count();
         $this->assertEquals(1, $commonCount);
+    }
+
+    // =============================
+    // Auto-Population (Issue #222)
+    // =============================
+
+    #[Test]
+    public function it_auto_populates_fixed_languages_when_race_is_set(): void
+    {
+        // Create a character without race
+        $character = Character::factory()->create(['race_id' => null]);
+
+        // Verify no languages yet
+        $this->assertCount(0, $character->languages);
+
+        // Set the race (Elf has Common and Elvish as fixed languages)
+        $character->update(['race_id' => $this->elfRace->id]);
+        $character->refresh();
+
+        // Should now have fixed languages auto-populated
+        $this->assertCount(2, $character->languages);
+        $languageIds = $character->languages->pluck('language_id')->toArray();
+        $this->assertContains($this->common->id, $languageIds);
+        $this->assertContains($this->elvish->id, $languageIds);
+    }
+
+    #[Test]
+    public function it_auto_populates_fixed_languages_when_background_is_set(): void
+    {
+        // Create a background with a fixed language
+        $uniqueId = uniqid();
+        $hermitBackground = Background::factory()->create([
+            'name' => 'Hermit',
+            'slug' => 'hermit-'.$uniqueId,
+        ]);
+
+        EntityLanguage::create([
+            'reference_type' => Background::class,
+            'reference_id' => $hermitBackground->id,
+            'language_id' => $this->draconic->id,
+            'is_choice' => false,
+        ]);
+
+        // Create character without background
+        $character = Character::factory()
+            ->withRace($this->elfRace)
+            ->create(['background_id' => null]);
+
+        // Populate race languages first
+        $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
+        $character->refresh();
+        $initialCount = $character->languages->count();
+
+        // Set the background
+        $character->update(['background_id' => $hermitBackground->id]);
+        $character->refresh();
+
+        // Should now have background language added
+        $this->assertGreaterThan($initialCount, $character->languages->count());
+        $languageIds = $character->languages->pluck('language_id')->toArray();
+        $this->assertContains($this->draconic->id, $languageIds);
+    }
+
+    #[Test]
+    public function it_does_not_populate_when_race_is_set_to_null(): void
+    {
+        // Create character with race
+        $character = Character::factory()
+            ->withRace($this->elfRace)
+            ->create();
+
+        // Populate fixed languages
+        $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
+        $character->refresh();
+        $initialCount = $character->languages->count();
+
+        // Clear the race
+        $character->update(['race_id' => null]);
+        $character->refresh();
+
+        // Should not have added more languages (should be same count)
+        $this->assertEquals($initialCount, $character->languages->count());
+    }
+
+    #[Test]
+    public function it_does_not_duplicate_on_race_change(): void
+    {
+        // Create character with human race
+        $character = Character::factory()
+            ->withRace($this->humanRace)
+            ->create();
+
+        // Populate fixed languages (Human has Common)
+        $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
+        $character->refresh();
+
+        // Change to elf race (which also has Common + Elvish)
+        $character->update(['race_id' => $this->elfRace->id]);
+        $character->refresh();
+
+        // Should not duplicate Common
+        $languageIds = $character->languages->pluck('language_id')->toArray();
+        $commonCount = collect($languageIds)->filter(fn ($id) => $id === $this->common->id)->count();
+        $this->assertEquals(1, $commonCount);
+
+        // Should have added Elvish
+        $this->assertContains($this->elvish->id, $languageIds);
     }
 }

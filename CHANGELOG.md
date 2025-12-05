@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Auto-Populate Languages on Race/Background Assignment** (Issue #222)
+  - Implemented CharacterObserver to automatically populate fixed languages when race_id or background_id is updated
+  - Languages auto-populate when race or background is assigned to a character
+  - Only triggers on actual field changes (uses `wasChanged()`)
+  - Does not populate when race/background is set to null
+  - Deduplication handled by CharacterLanguageService (no duplicates created)
+  - New files: `CharacterObserver`
+  - Registered observer in `AppServiceProvider`
+  - 4 new test cases covering auto-population, null handling, and race changes
+
 - **Class Replacement Endpoint** (Issue #217)
   - Added `PUT /api/v1/characters/{id}/classes/{classIdOrSlug}` endpoint
   - Allows replacing a character's class during character creation (level 1 only)

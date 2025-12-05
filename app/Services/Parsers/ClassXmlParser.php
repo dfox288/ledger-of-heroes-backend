@@ -186,6 +186,20 @@ class ClassXmlParser
                         'quantity' => $quantity,
                     ];
                     $choiceCounter++;
+                } elseif ($this->isMusicalInstrumentChoice($tool)) {
+                    // Musical instrument choice (e.g., "Three musical instruments of your choice")
+                    $quantity = $this->extractToolChoiceQuantity($tool);
+
+                    $proficiencies[] = [
+                        'type' => 'tool',
+                        'name' => $tool,
+                        'proficiency_type_id' => null,
+                        'proficiency_subcategory' => 'musical_instrument',
+                        'is_choice' => true,
+                        'choice_group' => "tool_choice_{$choiceCounter}",
+                        'quantity' => $quantity,
+                    ];
+                    $choiceCounter++;
                 } else {
                     // Standard tool proficiency (not a choice)
                     $proficiencyType = $this->matchProficiencyType($tool);

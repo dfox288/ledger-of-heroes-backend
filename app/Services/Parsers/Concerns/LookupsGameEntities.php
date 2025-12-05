@@ -87,4 +87,15 @@ trait LookupsGameEntities
             }
         }
     }
+
+    /**
+     * Clear all static caches held by this trait.
+     *
+     * Implements ClearsCaches interface pattern for test isolation.
+     */
+    public static function clearGameEntitiesCache(): void
+    {
+        self::$skillsCache = null;
+        self::$abilityScoresCache = null;
+    }
 }

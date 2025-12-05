@@ -3,9 +3,10 @@
 namespace App\Services\Importers\Strategies\CharacterClass;
 
 use App\Models\CharacterClass;
+use App\Services\Importers\Strategies\AbstractImportStrategy;
 use Illuminate\Support\Str;
 
-class SubclassStrategy extends AbstractClassStrategy
+class SubclassStrategy extends AbstractImportStrategy
 {
     /**
      * Subclasses have hit_die = 0 (supplemental data only).

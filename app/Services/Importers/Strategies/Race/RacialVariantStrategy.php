@@ -3,9 +3,10 @@
 namespace App\Services\Importers\Strategies\Race;
 
 use App\Models\Race;
+use App\Services\Importers\Strategies\AbstractImportStrategy;
 use Illuminate\Support\Str;
 
-class RacialVariantStrategy extends AbstractRaceStrategy
+class RacialVariantStrategy extends AbstractImportStrategy
 {
     /**
      * Variants have a variant_of field.

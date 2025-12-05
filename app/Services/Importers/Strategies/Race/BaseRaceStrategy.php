@@ -2,7 +2,9 @@
 
 namespace App\Services\Importers\Strategies\Race;
 
-class BaseRaceStrategy extends AbstractRaceStrategy
+use App\Services\Importers\Strategies\AbstractImportStrategy;
+
+class BaseRaceStrategy extends AbstractImportStrategy
 {
     /**
      * Base races have no parent and are not variants.

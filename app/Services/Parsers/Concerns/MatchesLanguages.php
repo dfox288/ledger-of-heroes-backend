@@ -187,4 +187,14 @@ trait MatchesLanguages
     {
         $this->initializeLanguagesCache();
     }
+
+    /**
+     * Clear all static caches held by this trait.
+     *
+     * Implements ClearsCaches interface pattern for test isolation.
+     */
+    public static function clearLanguagesCache(): void
+    {
+        self::$languagesCache = null;
+    }
 }

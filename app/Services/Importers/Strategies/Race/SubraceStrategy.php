@@ -4,17 +4,11 @@ namespace App\Services\Importers\Strategies\Race;
 
 use App\Models\Race;
 use App\Models\Size;
+use App\Services\Importers\Strategies\AbstractImportStrategy;
 use Illuminate\Support\Str;
 
-class SubraceStrategy extends AbstractRaceStrategy
+class SubraceStrategy extends AbstractImportStrategy
 {
-    /**
-     * Track base races that need population (newly created in this import).
-     *
-     * @var array<string, Race>
-     */
-    private static array $baseRacesNeedingPopulation = [];
-
     /**
      * Subraces have a base_race_name but are not variants.
      */
@@ -174,13 +168,5 @@ class SubraceStrategy extends AbstractRaceStrategy
         array_shift($bonuses);
 
         return $bonuses;
-    }
-
-    /**
-     * Reset static state for testing.
-     */
-    public static function resetState(): void
-    {
-        self::$baseRacesNeedingPopulation = [];
     }
 }

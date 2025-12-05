@@ -227,4 +227,14 @@ trait MatchesProficiencyTypes
 
         return 1;
     }
+
+    /**
+     * Clear all static caches held by this trait.
+     *
+     * Implements ClearsCaches interface pattern for test isolation.
+     */
+    public static function clearProficiencyTypesCache(): void
+    {
+        self::$proficiencyTypesCache = null;
+    }
 }

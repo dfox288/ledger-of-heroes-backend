@@ -9,12 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Shared Traits for Importers and Parsers** (Code Consolidation)
+  - `NormalizesSpellNames` trait for spell name normalization and cached lookups
+  - `TracksMetricsAndWarnings` trait for consistent warning/metric tracking
+  - `FindsInDescription` trait for keyword extraction from item descriptions
+  - `ClearsCaches` helper class for centralized static cache clearing
+  - Standardized cache reset methods across all caching concerns (Issue #185 Phase 5)
+  - Reduces ~100+ lines of duplicate code across strategies
+
 - **Subrace Required Flag for Race API** (Issue #183)
   - Added `subrace_required` boolean field to Race model and API resource
   - `true` (default) = subrace selection is required (base race incomplete, e.g., Elf, Dwarf)
   - `false` = subrace selection is optional (base race is playable as-is, e.g., Human, Dragonborn, Tiefling)
   - Field is filterable in Meilisearch: `filter=subrace_required = false`
-  - Enables frontend character builder to show optional subrace step with "None/Keep base race" option
+
+### Removed
+
+- **Dead Code Cleanup**
+  - Removed empty `AbstractRaceStrategy` class (strategies now extend `AbstractImportStrategy` directly)
+  - Removed empty `AbstractClassStrategy` class (strategies now extend `AbstractImportStrategy` directly)
+  - Removed unused `$baseRacesNeedingPopulation` static property and `resetState()` from `SubraceStrategy`
 
 ### Changed
 

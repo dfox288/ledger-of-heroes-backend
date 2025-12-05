@@ -295,7 +295,8 @@ class RaceXmlParser
             $text = $trait['description'];
 
             // Pattern: "Two different ability scores of your choice increase by 1"
-            if (preg_match('/(\w+)\s+different\s+ability scores?\s+of your choice\s+increases?\s+by\s+(\d+)/i', $text, $m)) {
+            // Also matches: "two other ability scores of your choice increase by 1"
+            if (preg_match('/(\w+)\s+(?:different|other)\s+ability scores?\s+of your choice\s+increases?\s+by\s+(\d+)/i', $text, $m)) {
                 $count = $this->wordToNumber($m[1]);
                 $value = (int) $m[2];
 

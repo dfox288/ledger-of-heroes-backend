@@ -22,6 +22,12 @@ class RaceFixtureSeeder extends FixtureSeeder
         return Race::class;
     }
 
+    /**
+     * Minimum ability score points for a race to be considered "complete".
+     * A complete race has optional subraces (subrace_required = false).
+     */
+    private const COMPLETE_RACE_ABILITY_THRESHOLD = 3;
+
     protected function createFromFixture(array $item): void
     {
         // Resolve size by code
@@ -33,8 +39,16 @@ class RaceFixtureSeeder extends FixtureSeeder
             $parentRace = Race::where('slug', $item['parent_race_slug'])->first();
         }
 
-        // Races where subrace selection is optional (base race is complete)
-        $optionalSubraceRaces = ['human', 'dragonborn', 'tiefling', 'half-elf', 'half-orc'];
+        // Calculate total ability points to determine if subrace is required
+        // Subraces (has parent) never require nested subraces
+        // Base races with 3+ ability points have optional subraces
+        $isSubrace = ! empty($parentRace);
+        $totalAbilityPoints = $this->calculateTotalAbilityPoints(
+            $item['ability_bonuses'] ?? [],
+            $item['ability_choices'] ?? []
+        );
+        $hasCompleteAbilityScores = $totalAbilityPoints >= self::COMPLETE_RACE_ABILITY_THRESHOLD;
+        $subraceRequired = ! $isSubrace && ! $hasCompleteAbilityScores;
 
         // Create race
         $race = Race::create([
@@ -43,7 +57,7 @@ class RaceFixtureSeeder extends FixtureSeeder
             'size_id' => $size?->id,
             'speed' => $item['speed'],
             'parent_race_id' => $parentRace?->id,
-            'subrace_required' => ! in_array($item['slug'], $optionalSubraceRaces),
+            'subrace_required' => $subraceRequired,
         ]);
 
         // Handle ability bonuses (create Modifiers)
@@ -90,5 +104,31 @@ class RaceFixtureSeeder extends FixtureSeeder
                 ]);
             }
         }
+    }
+
+    /**
+     * Calculate total ability score points from bonuses and choices.
+     *
+     * @param  array  $bonuses  Ability bonuses [{ability: 'DEX', bonus: 2, is_choice: false}, ...]
+     * @param  array  $choices  Ability choices [{choice_count: 2, value: 1}, ...] (if fixtures include them)
+     * @return int Total ability score points
+     */
+    private function calculateTotalAbilityPoints(array $bonuses, array $choices = []): int
+    {
+        $total = 0;
+
+        // Sum fixed ability bonuses
+        foreach ($bonuses as $bonus) {
+            $total += abs((int) ($bonus['bonus'] ?? 0));
+        }
+
+        // Sum choice-based ability bonuses (if fixtures include them)
+        foreach ($choices as $choice) {
+            $choiceCount = (int) ($choice['choice_count'] ?? 1);
+            $value = abs((int) ($choice['value'] ?? 0));
+            $total += $choiceCount * $value;
+        }
+
+        return $total;
     }
 }

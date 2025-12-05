@@ -28,16 +28,11 @@ class RaceImporter extends BaseImporter
     private array $createdBaseRaces = [];
 
     /**
-     * Races where the base race is complete (has 3+ ability score points)
-     * and subrace selection is optional.
+     * Minimum ability score points for a race to be considered "complete".
+     * A complete race has optional subraces (subrace_required = false).
+     * D&D 5e standard is typically +2/+1 = 3 points for most races.
      */
-    private const OPTIONAL_SUBRACE_RACES = [
-        'human',
-        'dragonborn',
-        'tiefling',
-        'half-elf',
-        'half-orc',
-    ];
+    private const COMPLETE_RACE_ABILITY_THRESHOLD = 3;
 
     protected function importEntity(array $raceData): Race
     {
@@ -80,10 +75,15 @@ class RaceImporter extends BaseImporter
 
         // Determine subrace_required value:
         // - Subraces (has parent_race_id): always false (no nested subraces in D&D 5e)
-        // - Base races in OPTIONAL_SUBRACE_RACES list: false
-        // - All other base races: true (subrace selection is mandatory)
+        // - Base races with 3+ ability points: false (complete race, subraces optional)
+        // - Base races with < 3 ability points: true (incomplete, subrace required)
         $isSubrace = ! empty($raceData['parent_race_id']);
-        $subraceRequired = ! $isSubrace && ! in_array($raceData['slug'], self::OPTIONAL_SUBRACE_RACES);
+        $totalAbilityPoints = $this->calculateTotalAbilityPoints(
+            $raceData['ability_bonuses'] ?? [],
+            $raceData['ability_choices'] ?? []
+        );
+        $hasCompleteAbilityScores = $totalAbilityPoints >= self::COMPLETE_RACE_ABILITY_THRESHOLD;
+        $subraceRequired = ! $isSubrace && ! $hasCompleteAbilityScores;
 
         // Create or update race using slug as unique key
         $race = Race::updateOrCreate(
@@ -521,5 +521,39 @@ class RaceImporter extends BaseImporter
         }
 
         return $speeds;
+    }
+
+    /**
+     * Calculate total ability score points from fixed bonuses and choices.
+     *
+     * D&D 5e races typically grant ability bonuses in one of these patterns:
+     * - Fixed bonuses: +2 to one ability, +1 to another (3 points total)
+     * - All bonuses: +1 to all six abilities (6 points total, e.g., Human)
+     * - Mixed: Fixed bonuses + choice-based bonuses (e.g., Half-Elf: Cha +2 + choose 2 for +1)
+     *
+     * A race with 3+ total points is considered "complete" and doesn't require
+     * a subrace to be playable.
+     *
+     * @param  array  $bonuses  Fixed ability bonuses [{ability: 'Str', value: 2}, ...]
+     * @param  array  $choices  Choice-based bonuses [{choice_count: 2, value: 1}, ...]
+     * @return int Total ability score points
+     */
+    private function calculateTotalAbilityPoints(array $bonuses, array $choices): int
+    {
+        $total = 0;
+
+        // Sum fixed ability bonuses
+        foreach ($bonuses as $bonus) {
+            $total += abs((int) ($bonus['value'] ?? 0));
+        }
+
+        // Sum choice-based ability bonuses (choice_count * value)
+        foreach ($choices as $choice) {
+            $choiceCount = (int) ($choice['choice_count'] ?? 1);
+            $value = abs((int) ($choice['value'] ?? 0));
+            $total += $choiceCount * $value;
+        }
+
+        return $total;
     }
 }

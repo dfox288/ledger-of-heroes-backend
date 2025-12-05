@@ -1207,8 +1207,9 @@ XML;
     }
 
     #[Test]
-    public function it_sets_subrace_required_false_for_human_race()
+    public function it_sets_subrace_required_false_for_race_with_6_ability_points()
     {
+        // Human has +1 to all six abilities = 6 ability points = complete race
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
@@ -1236,12 +1237,14 @@ XML;
         $human = Race::where('name', 'Human')->first();
 
         $this->assertNotNull($human);
-        $this->assertFalse($human->subrace_required, 'Human race should have subrace_required=false');
+        // 6 ability points >= 3, so subrace_required should be false
+        $this->assertFalse($human->subrace_required, 'Race with 6 ability points should have subrace_required=false');
     }
 
     #[Test]
-    public function it_sets_subrace_required_false_for_dragonborn_race()
+    public function it_sets_subrace_required_false_for_race_with_3_ability_points()
     {
+        // Dragonborn has +2 Str, +1 Cha = 3 ability points = complete race
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
@@ -1269,12 +1272,15 @@ XML;
         $dragonborn = Race::where('name', 'Dragonborn')->first();
 
         $this->assertNotNull($dragonborn);
-        $this->assertFalse($dragonborn->subrace_required, 'Dragonborn race should have subrace_required=false');
+        // 3 ability points >= 3, so subrace_required should be false
+        $this->assertFalse($dragonborn->subrace_required, 'Race with 3 ability points should have subrace_required=false');
     }
 
     #[Test]
-    public function it_sets_subrace_required_true_for_races_with_mandatory_subraces()
+    public function it_sets_subrace_required_true_for_base_race_with_only_2_ability_points()
     {
+        // A subrace imports, its base race gets only the first bonus (Con +2 = 2 points)
+        // Base race should have subrace_required=true because 2 < 3
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
@@ -1299,13 +1305,14 @@ XML;
 
         unlink($tmpFile);
 
-        // Base Dwarf race should have subrace_required=true (subraces are mandatory)
+        // Base Dwarf race gets only the first bonus (Con +2 = 2 points)
+        // 2 ability points < 3, so subrace_required should be true
         $dwarf = Race::where('name', 'Dwarf')
             ->whereNull('parent_race_id')
             ->first();
 
         $this->assertNotNull($dwarf);
-        $this->assertTrue($dwarf->subrace_required, 'Dwarf race should have subrace_required=true');
+        $this->assertTrue($dwarf->subrace_required, 'Base race with 2 ability points should have subrace_required=true');
 
         // Subraces should always have subrace_required=false (no nested subraces in D&D 5e)
         $hill = Race::where('name', 'Hill')
@@ -1313,20 +1320,19 @@ XML;
             ->first();
 
         $this->assertNotNull($hill);
-        $this->assertFalse($hill->subrace_required, 'Subraces should have subrace_required=false');
+        $this->assertFalse($hill->subrace_required, 'Subraces should always have subrace_required=false');
     }
 
     #[Test]
-    public function it_sets_subrace_required_false_for_tiefling_half_elf_half_orc()
+    public function it_sets_subrace_required_false_for_races_with_3_plus_fixed_ability_points()
     {
-        // These races have optional subraces (variants) and complete base stats
+        // These races have 3+ fixed ability points and should have subrace_required=false
         $races = [
-            'Tiefling' => 'Tieflings share certain racial traits.',
-            'Half-Elf' => 'Half-elves share traits from both humans and elves.',
-            'Half-Orc' => 'Half-orcs inherit traits from both humans and orcs.',
+            'Tiefling' => 'Cha +2, Int +1',  // 3 points
+            'Half-Orc' => 'Str +2, Con +1',  // 3 points
         ];
 
-        foreach ($races as $name => $desc) {
+        foreach ($races as $name => $ability) {
             $xml = <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
@@ -1334,9 +1340,10 @@ XML;
     <name>{$name}</name>
     <size>M</size>
     <speed>30</speed>
+    <ability>{$ability}</ability>
     <trait category="description">
       <name>Description</name>
-      <text>{$desc}
+      <text>{$name} race description.
 Source: Player's Handbook (2014)</text>
     </trait>
   </race>
@@ -1351,14 +1358,169 @@ XML;
             unlink($tmpFile);
         }
 
-        // Verify all three have subrace_required=false
-        foreach (['Tiefling', 'Half-Elf', 'Half-Orc'] as $name) {
+        foreach (['Tiefling', 'Half-Orc'] as $name) {
             $race = Race::where('name', $name)->first();
             $this->assertNotNull($race, "{$name} should exist");
             $this->assertFalse(
                 $race->subrace_required,
-                "{$name} should have subrace_required=false"
+                "{$name} with 3 fixed ability points should have subrace_required=false"
             );
         }
+    }
+
+    #[Test]
+    public function it_sets_subrace_required_true_for_race_with_only_2_fixed_ability_points()
+    {
+        // Half-Elf without choice trait has only 2 fixed points (Cha +2)
+        // Since 2 < 3, subrace_required should be true
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Half-Elf</name>
+    <size>M</size>
+    <speed>30</speed>
+    <ability>Cha +2</ability>
+    <trait category="description">
+      <name>Description</name>
+      <text>Half-Elf race description.
+Source: Player's Handbook (2014)</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $halfElf = Race::where('name', 'Half-Elf')->first();
+        $this->assertNotNull($halfElf);
+        // Half-Elf has only 2 fixed ability points < 3, so subrace_required should be true
+        $this->assertTrue(
+            $halfElf->subrace_required,
+            'Half-Elf with only 2 fixed ability points should have subrace_required=true'
+        );
+    }
+
+    #[Test]
+    public function it_sets_subrace_required_false_when_ability_choices_give_3_plus_points()
+    {
+        // Half-Elf has Cha +2 (fixed) + "Two other ability scores increase by 1" (choice)
+        // Total = 2 + 2 = 4 points >= 3, so subrace_required should be false
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Half-Elf</name>
+    <size>M</size>
+    <speed>30</speed>
+    <ability>Cha +2</ability>
+    <trait>
+      <name>Ability Score Increase</name>
+      <text>Your Charisma score increases by 2, and two other ability scores of your choice increase by 1.</text>
+    </trait>
+    <trait category="description">
+      <name>Description</name>
+      <text>Half-elves combine human and elven traits.
+Source: Player's Handbook (2014)</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $halfElf = Race::where('name', 'Half-Elf')->first();
+
+        $this->assertNotNull($halfElf);
+        // 2 fixed + 2 from choices = 4 points >= 3
+        $this->assertFalse(
+            $halfElf->subrace_required,
+            'Half-Elf with 2 fixed + 2 choice ability points should have subrace_required=false'
+        );
+    }
+
+    #[Test]
+    public function it_sets_subrace_required_true_for_race_with_no_ability_bonuses()
+    {
+        // A race with no ability bonuses should require subraces
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>CustomRace</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait category="description">
+      <name>Description</name>
+      <text>A custom race with no ability bonuses.
+Source: Homebrew</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $customRace = Race::where('name', 'CustomRace')->first();
+
+        $this->assertNotNull($customRace);
+        // 0 ability points < 3, so subrace_required should be true
+        $this->assertTrue(
+            $customRace->subrace_required,
+            'Race with 0 ability points should have subrace_required=true'
+        );
+    }
+
+    #[Test]
+    public function it_sets_subrace_required_false_for_race_with_exactly_3_ability_points()
+    {
+        // Boundary test: exactly 3 points should result in subrace_required=false
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>BoundaryRace</name>
+    <size>M</size>
+    <speed>30</speed>
+    <ability>Str +2, Con +1</ability>
+    <trait category="description">
+      <name>Description</name>
+      <text>A race with exactly 3 ability points.
+Source: Test</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $race = Race::where('name', 'BoundaryRace')->first();
+
+        $this->assertNotNull($race);
+        // Exactly 3 points >= 3, so subrace_required should be false
+        $this->assertFalse(
+            $race->subrace_required,
+            'Race with exactly 3 ability points should have subrace_required=false'
+        );
     }
 }

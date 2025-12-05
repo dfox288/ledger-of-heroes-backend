@@ -285,7 +285,7 @@ class Character extends Model implements HasMedia
     }
 
     /**
-     * Get all ability scores as an associative array.
+     * Get all ability scores as an associative array (base scores only).
      */
     public function getAbilityScoresArray(): array
     {
@@ -297,6 +297,89 @@ class Character extends Model implements HasMedia
             'WIS' => $this->wisdom,
             'CHA' => $this->charisma,
         ];
+    }
+
+    /**
+     * Get final ability scores with racial bonuses applied.
+     *
+     * Returns ability scores with fixed racial and subrace modifiers applied.
+     * Does NOT include choice-based modifiers (those require user selection).
+     *
+     * @return array<string, int|null> Ability scores keyed by code (STR, DEX, etc.)
+     */
+    public function getFinalAbilityScoresArray(): array
+    {
+        $baseScores = $this->getAbilityScoresArray();
+
+        // No race = return base scores
+        if (! $this->race_id) {
+            return $baseScores;
+        }
+
+        // Load race with modifiers if not already loaded
+        if (! $this->relationLoaded('race')) {
+            $this->load('race.modifiers.abilityScore', 'race.parent.modifiers.abilityScore');
+        }
+
+        // Get fixed ability score bonuses from race
+        $racialBonuses = $this->getRacialAbilityBonuses();
+
+        // Apply bonuses to base scores
+        foreach ($baseScores as $code => $baseScore) {
+            if ($baseScore !== null && isset($racialBonuses[$code])) {
+                $baseScores[$code] = $baseScore + $racialBonuses[$code];
+            }
+        }
+
+        return $baseScores;
+    }
+
+    /**
+     * Get fixed racial ability score bonuses (includes parent race if subrace).
+     *
+     * @return array<string, int> Bonuses keyed by ability code
+     */
+    private function getRacialAbilityBonuses(): array
+    {
+        $bonuses = [];
+
+        if (! $this->race) {
+            return $bonuses;
+        }
+
+        // Get modifiers from current race
+        $modifiers = $this->race->modifiers()
+            ->where('modifier_category', 'ability_score')
+            ->where('is_choice', false)
+            ->whereNotNull('ability_score_id')
+            ->with('abilityScore')
+            ->get();
+
+        foreach ($modifiers as $modifier) {
+            if ($modifier->abilityScore) {
+                $code = $modifier->abilityScore->code;
+                $bonuses[$code] = ($bonuses[$code] ?? 0) + (int) $modifier->value;
+            }
+        }
+
+        // If this is a subrace, also get modifiers from parent race
+        if ($this->race->parent_race_id && $this->race->parent) {
+            $parentModifiers = $this->race->parent->modifiers()
+                ->where('modifier_category', 'ability_score')
+                ->where('is_choice', false)
+                ->whereNotNull('ability_score_id')
+                ->with('abilityScore')
+                ->get();
+
+            foreach ($parentModifiers as $modifier) {
+                if ($modifier->abilityScore) {
+                    $code = $modifier->abilityScore->code;
+                    $bonuses[$code] = ($bonuses[$code] ?? 0) + (int) $modifier->value;
+                }
+            }
+        }
+
+        return $bonuses;
     }
 
     // Equipment Helpers

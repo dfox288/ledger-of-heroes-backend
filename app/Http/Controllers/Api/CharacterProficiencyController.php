@@ -142,7 +142,7 @@ class CharacterProficiencyController extends Controller
      *
      * @x-flow-step 5
      *
-     * **Request Body:**
+     * **Request Body (Skills):**
      * ```json
      * {
      *   "source": "class",
@@ -151,10 +151,20 @@ class CharacterProficiencyController extends Controller
      * }
      * ```
      *
+     * **Request Body (Tools/Equipment):**
+     * ```json
+     * {
+     *   "source": "class",
+     *   "choice_group": "tool_choice_1",
+     *   "proficiency_type_ids": [42]
+     * }
+     * ```
+     *
      * **Parameters:**
      * - `source` (required): One of `class`, `race`, `background`
      * - `choice_group` (required): The choice group name from the choices endpoint
-     * - `skill_ids` (required): Array of skill IDs matching the required quantity
+     * - `skill_ids` (required for skill choices): Array of skill IDs matching the required quantity
+     * - `proficiency_type_ids` (required for tool/equipment choices): Array of proficiency type IDs matching the required quantity
      *
      * **Response:**
      * ```json
@@ -170,26 +180,55 @@ class CharacterProficiencyController extends Controller
      * **Error Responses (422):**
      * - "Must choose exactly N skills, got M" - Wrong quantity selected
      * - "Skill ID X is not a valid option for this choice" - Invalid skill selected
+     * - "Proficiency type ID X is not a valid option for this choice" - Invalid proficiency type selected
      * - "No choice group 'X' found for source" - Invalid choice group
+     * - "Must provide either skill_ids or proficiency_type_ids" - Missing required parameter
      */
     public function storeChoice(Request $request, Character $character): JsonResponse
     {
         $validated = $request->validate([
             'source' => ['required', 'in:class,race,background'],
             'choice_group' => ['required', 'string'],
-            'skill_ids' => ['required', 'array', 'min:1'],
+            'skill_ids' => ['nullable', 'array', 'min:1'],
             'skill_ids.*' => ['required', 'integer', 'exists:skills,id'],
+            'proficiency_type_ids' => ['nullable', 'array', 'min:1'],
+            'proficiency_type_ids.*' => ['required', 'integer', 'exists:proficiency_types,id'],
         ]);
 
         $character->load(['characterClasses.characterClass', 'race', 'background']);
 
+        // Ensure either skill_ids or proficiency_type_ids is provided, but not both
+        $hasSkillIds = ! empty($validated['skill_ids']);
+        $hasProfTypeIds = ! empty($validated['proficiency_type_ids']);
+
+        if (! $hasSkillIds && ! $hasProfTypeIds) {
+            return response()->json([
+                'message' => 'Must provide either skill_ids or proficiency_type_ids',
+            ], 422);
+        }
+
+        if ($hasSkillIds && $hasProfTypeIds) {
+            return response()->json([
+                'message' => 'Cannot provide both skill_ids and proficiency_type_ids',
+            ], 422);
+        }
+
         try {
-            $this->proficiencyService->makeSkillChoice(
-                $character,
-                $validated['source'],
-                $validated['choice_group'],
-                $validated['skill_ids']
-            );
+            if ($hasSkillIds) {
+                $this->proficiencyService->makeSkillChoice(
+                    $character,
+                    $validated['source'],
+                    $validated['choice_group'],
+                    $validated['skill_ids']
+                );
+            } else {
+                $this->proficiencyService->makeProficiencyTypeChoice(
+                    $character,
+                    $validated['source'],
+                    $validated['choice_group'],
+                    $validated['proficiency_type_ids']
+                );
+            }
         } catch (\InvalidArgumentException $e) {
             return response()->json([
                 'message' => $e->getMessage(),

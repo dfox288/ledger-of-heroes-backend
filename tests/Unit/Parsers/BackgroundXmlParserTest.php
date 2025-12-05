@@ -684,4 +684,32 @@ XML;
         $this->assertStringNotContainsString('d6 | Options', $trait['description']);
         $this->assertStringNotContainsString('1 | Option one', $trait['description']);
     }
+
+    #[Test]
+    public function it_parses_equipment_with_proficiency_constraint()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Clan Crafter</name>
+    <proficiency>History, Insight</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>• Tool Proficiencies: One type of artisan's tools
+• Equipment: A set of artisan's tools with which you are proficient, a maker's mark chisel</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        $equipment = $backgrounds[0]['equipment'];
+        $artisanTools = collect($equipment)->first(fn ($e) => str_contains($e['item_name'] ?? '', 'artisan'));
+
+        $this->assertTrue($artisanTools['is_choice']);
+        $this->assertEquals('with which you are proficient', $artisanTools['choice_description']);
+        $this->assertEquals('artisan', $artisanTools['proficiency_subcategory']);
+    }
 }

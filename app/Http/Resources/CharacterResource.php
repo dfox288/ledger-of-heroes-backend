@@ -145,18 +145,10 @@ class CharacterResource extends JsonResource
      */
     private function getRelationships(): array
     {
-        $primaryClass = $this->primary_class;
-
         return [
             'race' => $this->when(
                 $this->relationLoaded('race') || $this->race_id,
                 fn () => $this->formatEntity($this->race)
-            ),
-            // Primary class (for backwards compatibility - deprecated, use 'classes' array instead)
-            // See GitHub Issue #199 - remove in API v2.0
-            'class' => $this->when(
-                $this->relationLoaded('characterClasses') || $primaryClass,
-                fn () => $this->formatEntity($primaryClass)
             ),
             'background' => $this->when(
                 $this->relationLoaded('background') || $this->background_id,

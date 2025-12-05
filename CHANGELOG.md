@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- **Issue #199**: Removed deprecated `class` field from CharacterResource
+  - The singular `class` field has been removed from `GET /api/v1/characters/{id}` responses
+  - Use the `classes[]` array instead - primary class is always first (index 0)
+  - Access class name via `data.classes.0.class.name` instead of `data.class.name`
+  - Access class level via `data.classes.0.level` instead of relying on the deprecated field
+  - This change aligns the API with multiclass support and eliminates redundancy
+
+### Fixed
+
+- **Issue #224**: Proficiency choices now returns populated options for tool choices
+  - `GET /api/v1/characters/{id}/proficiency-choices` now populates `options[]` for subcategory-based choices (e.g., artisan tools)
+  - Options are automatically looked up from `proficiency_types` table based on `category` and `subcategory`
+  - `POST /api/v1/characters/{id}/proficiency-choices` now accepts `proficiency_type_ids[]` parameter (in addition to `skill_ids[]`)
+  - Validates proficiency type IDs against the choice's category/subcategory constraints
+  - Tracks selected proficiency types per choice group (like skills)
+  - New method: `CharacterProficiencyService::makeProficiencyTypeChoice()`
+  - Updated `getChoicesFromEntity()` to filter by source and choice_group for accurate tracking
+  - 4 new test cases covering tool choice options, validation, and selection tracking
+
+- **Issue #223**: Stats endpoint now returns final ability scores with racial bonuses applied
+  - Base ability scores from character are now combined with fixed racial modifiers
+  - Subrace bonuses stack with parent race bonuses (e.g., High Elf gets +2 DEX from Elf parent + +1 INT from High Elf)
+  - Derived stats (initiative, passive perception, etc.) now correctly use boosted ability scores
+  - Choice-based racial bonuses (like Half-Elf's +1 to any two abilities) are not yet supported
+  - New methods: `Character::getFinalAbilityScoresArray()`, `Character::getRacialAbilityBonuses()`
+  - Test file: `CharacterStatsRacialBonusesTest` (6 tests, 31 assertions)
+
 ### Added
 
 - **Auto-Populate Languages on Race/Background Assignment** (Issue #222)

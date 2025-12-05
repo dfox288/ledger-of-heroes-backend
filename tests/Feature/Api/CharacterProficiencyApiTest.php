@@ -541,7 +541,7 @@ class CharacterProficiencyApiTest extends TestCase
         $response = $this->postJson("/api/v1/characters/{$character->id}/proficiency-choices", []);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['source', 'choice_group', 'skill_ids']);
+            ->assertJsonValidationErrors(['source', 'choice_group']);
     }
 
     #[Test]
@@ -769,7 +769,7 @@ class CharacterProficiencyApiTest extends TestCase
         ]);
 
         // Subcategory-based choice: "one type of artisan's tools of your choice"
-        // This has empty options - the frontend needs to look up options from proficiency_types
+        // Options are now populated automatically from proficiency_types lookup
         $artificerClass->proficiencies()->create([
             'proficiency_type' => 'tool',
             'proficiency_subcategory' => 'artisan',
@@ -802,12 +802,13 @@ class CharacterProficiencyApiTest extends TestCase
 
         $choiceData = $response->json('data.class.tool_choice_1');
 
-        // Should include proficiency_type and proficiency_subcategory for frontend lookup
+        // Should include proficiency_type and proficiency_subcategory
         $this->assertEquals('tool', $choiceData['proficiency_type']);
         $this->assertEquals('artisan', $choiceData['proficiency_subcategory']);
 
-        // Options should be empty since this is a subcategory-based choice
-        $this->assertEmpty($choiceData['options']);
+        // Options are now populated from the proficiency_types lookup
+        // (Will be empty if no artisan tools exist in the database, but structure is correct)
+        $this->assertIsArray($choiceData['options']);
     }
 
     #[Test]
@@ -832,5 +833,230 @@ class CharacterProficiencyApiTest extends TestCase
 
         // Options should NOT be empty - they have specific skills
         $this->assertNotEmpty($choiceData['options']);
+    }
+
+    // =============================
+    // Tool Proficiency Choices (Issue #224)
+    // =============================
+
+    #[Test]
+    public function it_returns_artisan_tool_options_for_tool_choices(): void
+    {
+        // Create some artisan tool proficiency types
+        $smithsTools = ProficiencyType::create([
+            'name' => "Smith's Tools",
+            'slug' => 'smiths-tools-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'artisan',
+        ]);
+
+        $brewersSupplies = ProficiencyType::create([
+            'name' => "Brewer's Supplies",
+            'slug' => 'brewers-supplies-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'artisan',
+        ]);
+
+        $carpentersTools = ProficiencyType::create([
+            'name' => "Carpenter's Tools",
+            'slug' => 'carpenters-tools-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'artisan',
+        ]);
+
+        // Create Artificer class with artisan tool choice
+        $artificerClass = CharacterClass::factory()->create([
+            'name' => 'Artificer',
+            'slug' => 'artificer-'.uniqid(),
+        ]);
+
+        $artificerClass->proficiencies()->create([
+            'proficiency_type' => 'tool',
+            'proficiency_subcategory' => 'artisan',
+            'is_choice' => true,
+            'choice_group' => 'tool_choice_1',
+            'quantity' => 1,
+        ]);
+
+        $character = Character::factory()
+            ->withClass($artificerClass)
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/proficiency-choices");
+
+        $response->assertOk();
+
+        $choiceData = $response->json('data.class.tool_choice_1');
+
+        // Should have proficiency_type and proficiency_subcategory
+        $this->assertEquals('tool', $choiceData['proficiency_type']);
+        $this->assertEquals('artisan', $choiceData['proficiency_subcategory']);
+
+        // Options should now be populated with artisan tools from ProficiencyType lookup
+        $this->assertNotEmpty($choiceData['options']);
+        $this->assertGreaterThanOrEqual(3, count($choiceData['options']));
+
+        // Each option should have proficiency_type structure
+        $firstOption = $choiceData['options'][0];
+        $this->assertEquals('proficiency_type', $firstOption['type']);
+        $this->assertArrayHasKey('proficiency_type_id', $firstOption);
+        $this->assertArrayHasKey('proficiency_type', $firstOption);
+
+        // Verify one of our created tools is in the options
+        $optionIds = collect($choiceData['options'])->pluck('proficiency_type_id')->toArray();
+        $this->assertContains($smithsTools->id, $optionIds);
+    }
+
+    #[Test]
+    public function it_accepts_proficiency_type_ids_for_tool_choices(): void
+    {
+        // Create artisan tools
+        $smithsTools = ProficiencyType::create([
+            'name' => "Smith's Tools",
+            'slug' => 'smiths-tools-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'artisan',
+        ]);
+
+        // Create Artificer class with artisan tool choice
+        $artificerClass = CharacterClass::factory()->create([
+            'name' => 'Artificer',
+            'slug' => 'artificer-'.uniqid(),
+        ]);
+
+        $artificerClass->proficiencies()->create([
+            'proficiency_type' => 'tool',
+            'proficiency_subcategory' => 'artisan',
+            'is_choice' => true,
+            'choice_group' => 'tool_choice_1',
+            'quantity' => 1,
+        ]);
+
+        $character = Character::factory()
+            ->withClass($artificerClass)
+            ->create();
+
+        $response = $this->postJson("/api/v1/characters/{$character->id}/proficiency-choices", [
+            'source' => 'class',
+            'choice_group' => 'tool_choice_1',
+            'proficiency_type_ids' => [$smithsTools->id],
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'Choice saved successfully');
+
+        // Verify proficiency was created
+        $character->refresh();
+        $proficiencies = $character->proficiencies()
+            ->where('proficiency_type_id', $smithsTools->id)
+            ->get();
+
+        $this->assertCount(1, $proficiencies);
+        $this->assertEquals('class', $proficiencies->first()->source);
+        $this->assertEquals('tool_choice_1', $proficiencies->first()->choice_group);
+    }
+
+    #[Test]
+    public function it_validates_proficiency_type_ids_against_subcategory(): void
+    {
+        // Create an artisan tool and a gaming set (different subcategory)
+        $smithsTools = ProficiencyType::create([
+            'name' => "Smith's Tools",
+            'slug' => 'smiths-tools-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'artisan',
+        ]);
+
+        $diceSet = ProficiencyType::create([
+            'name' => 'Dice Set',
+            'slug' => 'dice-set-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'gaming_set',
+        ]);
+
+        // Create Artificer class with artisan tool choice only
+        $artificerClass = CharacterClass::factory()->create([
+            'name' => 'Artificer',
+            'slug' => 'artificer-'.uniqid(),
+        ]);
+
+        $artificerClass->proficiencies()->create([
+            'proficiency_type' => 'tool',
+            'proficiency_subcategory' => 'artisan',
+            'is_choice' => true,
+            'choice_group' => 'tool_choice_1',
+            'quantity' => 1,
+        ]);
+
+        $character = Character::factory()
+            ->withClass($artificerClass)
+            ->create();
+
+        // Try to select a gaming set (invalid for artisan choice)
+        $response = $this->postJson("/api/v1/characters/{$character->id}/proficiency-choices", [
+            'source' => 'class',
+            'choice_group' => 'tool_choice_1',
+            'proficiency_type_ids' => [$diceSet->id],
+        ]);
+
+        $response->assertStatus(422);
+    }
+
+    #[Test]
+    public function it_tracks_selected_proficiency_types_for_tool_choices(): void
+    {
+        // Create artisan tools
+        $smithsTools = ProficiencyType::create([
+            'name' => "Smith's Tools",
+            'slug' => 'smiths-tools-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'artisan',
+        ]);
+
+        $brewersSupplies = ProficiencyType::create([
+            'name' => "Brewer's Supplies",
+            'slug' => 'brewers-supplies-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'artisan',
+        ]);
+
+        // Create Artificer class with artisan tool choice (quantity 2)
+        $artificerClass = CharacterClass::factory()->create([
+            'name' => 'Artificer',
+            'slug' => 'artificer-'.uniqid(),
+        ]);
+
+        $artificerClass->proficiencies()->create([
+            'proficiency_type' => 'tool',
+            'proficiency_subcategory' => 'artisan',
+            'is_choice' => true,
+            'choice_group' => 'tool_choice_1',
+            'quantity' => 2,
+        ]);
+
+        $character = Character::factory()
+            ->withClass($artificerClass)
+            ->create();
+
+        // Make one selection
+        CharacterProficiency::create([
+            'character_id' => $character->id,
+            'proficiency_type_id' => $smithsTools->id,
+            'source' => 'class',
+            'choice_group' => 'tool_choice_1',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/proficiency-choices");
+
+        $response->assertOk();
+
+        $choiceData = $response->json('data.class.tool_choice_1');
+
+        // Should have 1 remaining
+        $this->assertEquals(1, $choiceData['remaining']);
+
+        // selected_proficiency_types should contain the smith's tools
+        $this->assertContains($smithsTools->id, $choiceData['selected_proficiency_types']);
+        $this->assertCount(1, $choiceData['selected_proficiency_types']);
     }
 }

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Character Management Exception Tests** (Issue #201)
+  - Added unit tests for 13 character-related exceptions with 0% coverage
+  - Tests cover construction, message generation, and JSON response rendering
+  - Exceptions tested: AbilityChoiceRequired, AbilityScoreCapExceeded, FeatAlreadyTaken,
+    IncompleteCharacter, InsufficientHitDice, InsufficientSpellSlots, InvalidSubclass,
+    MaxLevelReached, MulticlassPrerequisite, NoAsiChoicesRemaining, PrerequisitesNotMet,
+    SubclassLevelRequirement, and Auth/InvalidCredentials
+  - 53 new test cases with 147 assertions
+
 - **PCOV Code Coverage Support** (Issue #195)
   - Added PCOV extension to Docker PHP image for fast code coverage analysis
   - Increased PHP memory limit from 256M to 1G for coverage reports

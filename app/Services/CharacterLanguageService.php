@@ -8,6 +8,7 @@ use App\Models\CharacterLanguage;
 use App\Models\EntityLanguage;
 use App\Models\Feat;
 use App\Models\Language;
+use App\Models\Race;
 use InvalidArgumentException;
 
 class CharacterLanguageService
@@ -36,6 +37,7 @@ class CharacterLanguageService
 
     /**
      * Populate fixed languages from the character's race.
+     * For subraces, also populates inherited languages from the parent race.
      */
     public function populateFromRace(Character $character): void
     {
@@ -43,7 +45,15 @@ class CharacterLanguageService
             return;
         }
 
-        $this->populateFixedLanguages($character, $character->race, 'race');
+        $race = $character->race;
+
+        // For subraces, first populate languages from parent race
+        if ($race->is_subrace && $race->parent) {
+            $this->populateFixedLanguages($character, $race->parent, 'race');
+        }
+
+        // Then populate from the race itself
+        $this->populateFixedLanguages($character, $race, 'race');
     }
 
     /**
@@ -203,6 +213,7 @@ class CharacterLanguageService
 
     /**
      * Get choices from a single entity (race, background).
+     * For subraces, includes inherited languages and choices from the parent race.
      */
     private function getChoicesFromEntity($entity, string $source, Character $character, array $knownLanguageIds, $allLanguages): array
     {
@@ -237,6 +248,15 @@ class CharacterLanguageService
             ->first();
 
         $quantity = $choiceRecord?->quantity ?? 0;
+
+        // For subraces, also check parent race for language choices
+        if ($source === 'race' && $entity instanceof Race && $entity->is_subrace && $entity->parent) {
+            $parentChoiceRecord = $entity->parent->languages()
+                ->where('is_choice', true)
+                ->first();
+
+            $quantity += $parentChoiceRecord?->quantity ?? 0;
+        }
 
         // Get selected choice languages (not fixed ones)
         $fixedLanguageIds = $this->getFixedLanguageIds($character, $source, $entity);
@@ -355,6 +375,7 @@ class CharacterLanguageService
 
     /**
      * Get the number of language choices available for a source.
+     * For subraces, includes inherited choices from the parent race.
      */
     private function getChoiceQuantity(Character $character, string $source): int
     {
@@ -380,13 +401,23 @@ class CharacterLanguageService
             return 0;
         }
 
-        return $entity->languages()
+        $quantity = $entity->languages()
             ->where('is_choice', true)
             ->sum('quantity');
+
+        // For subraces, also include parent race language choices
+        if ($source === 'race' && $entity instanceof Race && $entity->is_subrace && $entity->parent) {
+            $quantity += $entity->parent->languages()
+                ->where('is_choice', true)
+                ->sum('quantity');
+        }
+
+        return $quantity;
     }
 
     /**
      * Get fixed language IDs from an entity.
+     * For subraces, includes inherited fixed languages from the parent race.
      */
     private function getFixedLanguageIds(Character $character, string $source, $entity = null): array
     {
@@ -416,10 +447,23 @@ class CharacterLanguageService
             return [];
         }
 
-        return $entity->languages()
+        $fixedLanguageIds = $entity->languages()
             ->where('is_choice', false)
             ->whereNotNull('language_id')
             ->pluck('language_id')
             ->toArray();
+
+        // For subraces, also include parent race fixed languages
+        if ($source === 'race' && $entity instanceof Race && $entity->is_subrace && $entity->parent) {
+            $parentFixedLanguageIds = $entity->parent->languages()
+                ->where('is_choice', false)
+                ->whereNotNull('language_id')
+                ->pluck('language_id')
+                ->toArray();
+
+            $fixedLanguageIds = array_unique(array_merge($fixedLanguageIds, $parentFixedLanguageIds));
+        }
+
+        return $fixedLanguageIds;
     }
 }

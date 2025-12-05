@@ -27,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Subrace Language Inheritance** (Issue #171)
+  - Fixed `/characters/{id}/language-choices` endpoint to include inherited languages from parent race in `known` array
+  - Fixed `/characters/{id}/languages/populate` to populate inherited languages from parent race for subraces
+  - Subraces (like Aasimar DMG) now correctly inherit Common and Celestial from their parent race
+  - Language choices from parent races are now correctly included in the choice quantity calculation
+
 - **OpenAPI Type Annotations** (Issues #157, #158, #159)
   - Fixed `CharacterResource` fields now correctly typed: `level`, `total_level` (integer), `is_multiclass`, `is_complete` (boolean), `validation_status` (object), `armor_class` (integer|null), `speed` (integer|null), `speeds` (object|null), `size` (string|null)
   - Fixed `CharacterStatsResource` fields now correctly typed: `ability_scores`, `saving_throws`, `spell_slots` (object), `spellcasting` (object|null), `hit_dice` (array)

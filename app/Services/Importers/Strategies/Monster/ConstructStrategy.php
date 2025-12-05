@@ -19,37 +19,19 @@ class ConstructStrategy extends AbstractMonsterStrategy
      */
     public function enhanceTraits(array $traits, array $monsterData): array
     {
-        $tags = ['construct'];
-
-        // Most constructs are poison immune
-        if ($this->hasDamageImmunity($monsterData, 'poison')) {
-            $tags[] = 'poison_immune';
-        }
-
-        // Check for condition immunities (common in constructs)
-        $conditionImmune = false;
-        foreach (['charm', 'exhaustion', 'frightened', 'paralyzed', 'petrified'] as $condition) {
-            if ($this->hasConditionImmunity($monsterData, $condition)) {
-                $conditionImmune = true;
-                break;
-            }
-        }
-
-        if ($conditionImmune) {
-            $tags[] = 'condition_immune';
-            $this->incrementMetric('condition_immune_count');
-        }
-
-        // Detect "Constructed Nature" trait
-        if ($this->hasTraitContaining($traits, 'constructed nature')
-            || $this->hasTraitContaining($traits, "doesn't require air")) {
-            $tags[] = 'constructed_nature';
-            $this->incrementMetric('constructed_nature_count');
-        }
-
-        // Store tags and increment enhancement counter
-        $this->setMetric('tags_applied', $tags);
-        $this->incrementMetric('constructs_enhanced');
+        $this->applyConditionalTags('construct', [
+            // Most constructs are poison immune
+            'immunity:poison' => 'poison_immune',
+            // Condition immunities (any of the common construct immunities)
+            'condition:charm' => 'condition_immune',
+            'condition:exhaustion' => 'condition_immune',
+            'condition:frightened' => 'condition_immune',
+            'condition:paralyzed' => 'condition_immune',
+            'condition:petrified' => 'condition_immune',
+            // Constructed Nature trait
+            'trait:constructed nature' => 'constructed_nature',
+            "trait:doesn't require air" => 'constructed_nature',
+        ], $traits, $monsterData);
 
         return $traits;
     }

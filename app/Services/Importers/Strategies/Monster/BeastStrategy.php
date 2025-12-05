@@ -17,41 +17,22 @@ class BeastStrategy extends AbstractMonsterStrategy
      */
     public function enhanceTraits(array $traits, array $monsterData): array
     {
-        $tags = ['beast'];
-
-        // Keen Senses - heightened perception/tracking
-        if ($this->hasTraitContaining($traits, 'keen smell')
-            || $this->hasTraitContaining($traits, 'keen sight')
-            || $this->hasTraitContaining($traits, 'keen hearing')) {
-            $tags[] = 'keen_senses';
-            $this->incrementMetric('keen_senses_count');
-        }
-
-        // Pack Tactics - cooperative hunting
-        if ($this->hasTraitContaining($traits, 'pack tactics')) {
-            $tags[] = 'pack_tactics';
-            $this->incrementMetric('pack_tactics_count');
-        }
-
-        // Charge/Pounce - movement-based attacks
-        if ($this->hasTraitContaining($traits, 'charge')
-            || $this->hasTraitContaining($traits, 'pounce')
-            || $this->hasTraitContaining($traits, 'trampling charge')) {
-            $tags[] = 'charge';
-            $this->incrementMetric('charge_count');
-        }
-
-        // Special Movement - spider climb, web walker, amphibious
-        if ($this->hasTraitContaining($traits, 'spider climb')
-            || $this->hasTraitContaining($traits, 'web walker')
-            || $this->hasTraitContaining($traits, 'amphibious')) {
-            $tags[] = 'special_movement';
-            $this->incrementMetric('special_movement_count');
-        }
-
-        // Store tags and increment enhancement counter
-        $this->setMetric('tags_applied', $tags);
-        $this->incrementMetric('beasts_enhanced');
+        $this->applyConditionalTags('beast', [
+            // Keen Senses - heightened perception/tracking
+            'trait:keen smell' => 'keen_senses',
+            'trait:keen sight' => 'keen_senses',
+            'trait:keen hearing' => 'keen_senses',
+            // Pack Tactics - cooperative hunting
+            'trait:pack tactics' => 'pack_tactics',
+            // Charge/Pounce - movement-based attacks
+            'trait:charge' => 'charge',
+            'trait:pounce' => 'charge',
+            'trait:trampling charge' => 'charge',
+            // Special Movement - spider climb, web walker, amphibious
+            'trait:spider climb' => 'special_movement',
+            'trait:web walker' => 'special_movement',
+            'trait:amphibious' => 'special_movement',
+        ], $traits, $monsterData);
 
         return $traits;
     }

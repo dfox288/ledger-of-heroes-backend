@@ -15,7 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `FindsInDescription` trait for keyword extraction from item descriptions
   - `ClearsCaches` helper class for centralized static cache clearing
   - Standardized cache reset methods across all caching concerns (Issue #185 Phase 5)
-  - Reduces ~100+ lines of duplicate code across strategies
+  - `applyConditionalTags()` method in `AbstractMonsterStrategy` for consolidated tag accumulation (Issue #185 Phase 4)
+  - Refactored BeastStrategy, FiendStrategy, ConstructStrategy to use consolidated tagging
+  - Reduces ~125+ lines of duplicate code across strategies
 
 - **Subrace Required Flag for Race API** (Issue #183)
   - Added `subrace_required` boolean field to Race model and API resource

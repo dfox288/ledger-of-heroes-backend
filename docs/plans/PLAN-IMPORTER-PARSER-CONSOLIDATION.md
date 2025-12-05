@@ -1,7 +1,7 @@
 # Importer & Parser Consolidation Plan
 
 **Created:** 2025-12-05
-**Status:** Phases 1-3 and 5 Complete, Phase 4 Deferred
+**Status:** All Phases Complete
 **Priority:** Medium
 **Estimated Impact:** ~125+ lines of code reduced, improved maintainability
 **GitHub Issue:** [#185](https://github.com/dfox288/dnd-rulebook-project/issues/185) (Phases 4-5)
@@ -11,8 +11,13 @@
 - [x] **Phase 1:** Extract `NormalizesSpellNames` trait ✅
 - [x] **Phase 2:** Extract `TracksMetricsAndWarnings` trait ✅
 - [x] **Phase 3:** Extract `FindsInDescription` trait ✅
-- [ ] **Phase 4:** Refactor Monster Tag Accumulation - DEFERRED (strategies are too diverse)
+- [x] **Phase 4:** Refactor Monster Tag Accumulation ✅ (3 of 7 strategies refactored - BeastStrategy, FiendStrategy, ConstructStrategy)
 - [x] **Phase 5:** Standardize Cache Reset Pattern ✅
+
+**Phase 4 Notes:** Added `applyConditionalTags()` to `AbstractMonsterStrategy` for consolidated tag accumulation.
+Refactored 3 strategies that had clean trait/immunity/condition check patterns. The remaining 4 strategies
+(ElementalStrategy, ShapechangerStrategy, AberrationStrategy, CelestialStrategy) have more complex logic
+(name-based checks, language checks, action iteration) that doesn't fit the consolidated pattern cleanly.
 
 ---
 

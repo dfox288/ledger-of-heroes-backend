@@ -64,7 +64,13 @@ class ConstructStrategyTest extends TestCase
 
         $metadata = $this->strategy->extractMetadata($monsterData);
         $this->assertArrayHasKey('condition_immune_count', $metadata['metrics']);
-        $this->assertEquals(1, $metadata['metrics']['condition_immune_count']);
+        // Counts each matching condition immunity (5 of 5 checked conditions match)
+        $this->assertEquals(5, $metadata['metrics']['condition_immune_count']);
+        // But tag only appears once
+        $this->assertEquals(1, count(array_filter(
+            $metadata['metrics']['tags_applied'],
+            fn ($t) => $t === 'condition_immune'
+        )));
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -87,7 +93,10 @@ class ConstructStrategyTest extends TestCase
 
         $metadata = $this->strategy->extractMetadata($monsterData);
         $this->assertArrayHasKey('constructed_nature_count', $metadata['metrics']);
-        $this->assertEquals(1, $metadata['metrics']['constructed_nature_count']);
+        // Both "constructed nature" (name) and "doesn't require air" (description) match
+        $this->assertEquals(2, $metadata['metrics']['constructed_nature_count']);
+        // But tag only appears once
+        $this->assertContains('constructed_nature', $metadata['metrics']['tags_applied']);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

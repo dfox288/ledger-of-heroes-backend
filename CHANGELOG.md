@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Character API Spell Slot Consolidation** (Issue #173 Phase 1.2)
+  - `GET /characters/{id}/spell-slots` now returns consolidated response with tracked usage
+  - Response includes `total`, `spent`, and `available` for each slot level
+  - Added `prepared_count` field showing current number of prepared spells
+  - Eliminates need for separate `/spell-slots/tracked` call (still available for backward compatibility)
+  - Works for both standard spell slots and warlock pact magic
+
 ### Changed (BREAKING)
 
 - **Character API Phase 2 Restructuring** (Issue #173)

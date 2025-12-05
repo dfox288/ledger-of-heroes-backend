@@ -5,6 +5,7 @@ namespace Tests\Feature\Api;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterSpell;
+use App\Models\CharacterSpellSlot;
 use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -431,8 +432,121 @@ class CharacterSpellTest extends TestCase
                 'data' => [
                     'slots',
                     'preparation_limit',
+                    'prepared_count',
                 ],
             ]);
+    }
+
+    #[Test]
+    public function it_returns_consolidated_spell_slots_with_usage_data(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()
+            ->withClass($wizardClass)
+            ->withAbilityScores(['intelligence' => 16])
+            ->level(3)
+            ->create();
+
+        // Create tracked spell slot usage
+        CharacterSpellSlot::create([
+            'character_id' => $character->id,
+            'spell_level' => 1,
+            'max_slots' => 4,
+            'used_slots' => 2,
+            'slot_type' => \App\Enums\SpellSlotType::STANDARD,
+        ]);
+
+        CharacterSpellSlot::create([
+            'character_id' => $character->id,
+            'spell_level' => 2,
+            'max_slots' => 2,
+            'used_slots' => 1,
+            'slot_type' => \App\Enums\SpellSlotType::STANDARD,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spell-slots");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'slots' => [
+                        '1' => ['total', 'spent', 'available'],
+                        '2' => ['total', 'spent', 'available'],
+                    ],
+                    'pact_magic',
+                    'preparation_limit',
+                    'prepared_count',
+                ],
+            ])
+            ->assertJsonPath('data.slots.1.total', 4)
+            ->assertJsonPath('data.slots.1.spent', 2)
+            ->assertJsonPath('data.slots.1.available', 2)
+            ->assertJsonPath('data.slots.2.total', 2)
+            ->assertJsonPath('data.slots.2.spent', 1)
+            ->assertJsonPath('data.slots.2.available', 1)
+            ->assertJsonPath('data.pact_magic', null);
+    }
+
+    #[Test]
+    public function it_returns_warlock_pact_magic_slots_with_usage_data(): void
+    {
+        $warlockClass = CharacterClass::factory()->spellcaster('CHA')->create(['name' => 'Warlock']);
+        $character = Character::factory()
+            ->withClass($warlockClass)
+            ->withAbilityScores(['charisma' => 16])
+            ->level(5)
+            ->create();
+
+        // Create pact magic slot usage
+        CharacterSpellSlot::create([
+            'character_id' => $character->id,
+            'spell_level' => 3,
+            'max_slots' => 2,
+            'used_slots' => 1,
+            'slot_type' => \App\Enums\SpellSlotType::PACT_MAGIC,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spell-slots");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'slots',
+                    'pact_magic' => ['level', 'total', 'spent', 'available'],
+                    'preparation_limit',
+                    'prepared_count',
+                ],
+            ])
+            ->assertJsonPath('data.slots', []) // Warlocks have no standard slots
+            ->assertJsonPath('data.pact_magic.level', 3)
+            ->assertJsonPath('data.pact_magic.total', 2)
+            ->assertJsonPath('data.pact_magic.spent', 1)
+            ->assertJsonPath('data.pact_magic.available', 1);
+    }
+
+    #[Test]
+    public function it_returns_zero_spent_when_no_usage_tracked(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()
+            ->withClass($wizardClass)
+            ->withAbilityScores(['intelligence' => 16])
+            ->level(3)
+            ->create();
+
+        // No CharacterSpellSlot records exist - all slots should show as available
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spell-slots");
+
+        $response->assertOk();
+
+        $slots = $response->json('data.slots');
+
+        // Verify all slots show 0 spent and full availability
+        foreach ($slots as $level => $slotData) {
+            $this->assertEquals(0, $slotData['spent'], "Level $level should have 0 spent");
+            $this->assertEquals($slotData['total'], $slotData['available'], "Level $level should be fully available");
+        }
     }
 
     #[Test]

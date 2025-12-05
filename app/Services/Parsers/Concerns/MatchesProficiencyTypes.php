@@ -198,6 +198,50 @@ trait MatchesProficiencyTypes
     }
 
     /**
+     * Check if a tool name represents a musical instrument choice.
+     *
+     * Matches patterns like:
+     * - "Three musical instruments of your choice"
+     * - "one musical instrument of your choice"
+     * - "any musical instrument"
+     *
+     * @param  string  $name  Tool name from XML
+     * @return bool True if this is a musical instrument choice
+     */
+    protected function isMusicalInstrumentChoice(string $name): bool
+    {
+        $lowerName = strtolower($name);
+
+        // Must contain "musical instrument" (singular or plural)
+        if (! preg_match('/musical\s+instruments?/', $lowerName)) {
+            return false;
+        }
+
+        // Check for choice patterns: "of your choice", "any", or word numbers (one, two, three, etc.)
+        $choiceIndicators = [
+            'of your choice',
+            'your choice',
+            'any ',
+        ];
+
+        foreach ($choiceIndicators as $indicator) {
+            if (str_contains($lowerName, $indicator)) {
+                return true;
+            }
+        }
+
+        // Also check for word numbers at the start (e.g., "Three musical instruments")
+        $wordNumbers = ['one', 'two', 'three', 'four', 'five'];
+        foreach ($wordNumbers as $word) {
+            if (preg_match('/\b'.$word.'\b/', $lowerName)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Extract quantity from a tool choice description.
      *
      * Examples:

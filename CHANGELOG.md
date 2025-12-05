@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #229**: Bard musical instrument proficiency choices not parsed correctly
+  - Added `isMusicalInstrumentChoice()` method to `MatchesProficiencyTypes` trait
+  - ClassXmlParser now detects musical instrument choice patterns like "Three musical instruments of your choice"
+  - Creates structured choice proficiency with `proficiency_subcategory='musical_instrument'` and correct `quantity`
+  - Supports patterns: "X musical instruments of your choice", "one musical instrument", "any musical instrument"
+  - 3 new test cases for musical instrument choice parsing
+
 - **Issue #227**: Human race incorrectly marked as subrace_required=true
   - Updated `RaceImporter` to set `subrace_required` based on race slug during import
   - Races with optional subraces (Human, Dragonborn, Tiefling, Half-Elf, Half-Orc) now correctly have `subrace_required=false`

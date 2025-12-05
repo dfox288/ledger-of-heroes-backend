@@ -424,12 +424,12 @@ XML;
         $this->assertArrayHasKey('items', $equipment);
         $this->assertNotEmpty($equipment['items'], 'Should have equipment items');
 
-        // Assert: should have 6 equipment items (4 bullet points split into 6 items)
-        // - "any two simple weapons of your choice" = 1 item
+        // Assert: should have 7 equipment items (4 bullet points split into 7 items)
+        // - "any two simple weapons of your choice" = 1 item (choice)
         // - "a light crossbow and 20 bolts" = 2 items (crossbow + bolts)
-        // - "your choice of studded leather armor or scale mail" = 1 item
+        // - "your choice of studded leather armor or scale mail" = 2 items (one per option in choice)
         // - "thieves' tools and a dungeoneer's pack" = 2 items (tools + pack)
-        $this->assertCount(6, $equipment['items'], 'Should have exactly 6 equipment items');
+        $this->assertCount(7, $equipment['items'], 'Should have exactly 7 equipment items');
 
         // Assert: verify equipment descriptions are actual equipment, not proficiencies
         $descriptions = array_column($equipment['items'], 'description');
@@ -602,5 +602,95 @@ XML;
         $fixedNames = array_column($fixedTools, 'name');
         $this->assertContains("Thieves' Tools", $fixedNames, "Thieves' Tools should be a fixed proficiency");
         $this->assertContains("Tinker's Tools", $fixedNames, "Tinker's Tools should be a fixed proficiency");
+    }
+
+    #[Test]
+    public function it_parses_musical_instrument_choice_as_choice_proficiency()
+    {
+        // Bard has: Three musical instruments of your choice
+        $xml = <<<'XML'
+        <compendium>
+            <class>
+                <name>Bard</name>
+                <hd>8</hd>
+                <tools>Three musical instruments of your choice</tools>
+            </class>
+        </compendium>
+        XML;
+
+        $classes = $this->parser->parse($xml);
+        $proficiencies = $classes[0]['proficiencies'];
+
+        // Filter to only tool proficiencies
+        $toolProfs = array_values(array_filter($proficiencies, fn ($p) => $p['type'] === 'tool'));
+
+        // Should have 1 tool proficiency: the musical instrument choice
+        $this->assertCount(1, $toolProfs, 'Should have 1 tool proficiency');
+
+        // Find the musical instrument choice
+        $instrumentChoices = array_values(array_filter($toolProfs, fn ($p) => ($p['is_choice'] ?? false) === true));
+        $this->assertCount(1, $instrumentChoices, 'Should have exactly 1 musical instrument choice entry');
+
+        $instrumentChoice = $instrumentChoices[0];
+
+        // Verify the choice proficiency structure
+        $this->assertTrue($instrumentChoice['is_choice'], 'Should be marked as a choice');
+        $this->assertEquals('tool_choice_1', $instrumentChoice['choice_group'], 'Should have choice_group');
+        $this->assertEquals(3, $instrumentChoice['quantity'], 'Should have quantity=3 (pick three)');
+        $this->assertEquals('musical_instrument', $instrumentChoice['proficiency_subcategory'], 'Should reference musical_instrument subcategory');
+        $this->assertNull($instrumentChoice['proficiency_type_id'], 'Should not have specific type ID (it\'s a choice)');
+        $this->assertStringContainsString('musical instrument', strtolower($instrumentChoice['name']), 'Should preserve original description');
+    }
+
+    #[Test]
+    public function it_parses_single_musical_instrument_choice()
+    {
+        // Test "one musical instrument of your choice" pattern
+        $xml = <<<'XML'
+        <compendium>
+            <class>
+                <name>TestClass</name>
+                <hd>8</hd>
+                <tools>one musical instrument of your choice</tools>
+            </class>
+        </compendium>
+        XML;
+
+        $classes = $this->parser->parse($xml);
+        $proficiencies = $classes[0]['proficiencies'];
+
+        $toolProfs = array_values(array_filter($proficiencies, fn ($p) => $p['type'] === 'tool'));
+        $this->assertCount(1, $toolProfs, 'Should have 1 tool proficiency');
+
+        $instrumentChoice = $toolProfs[0];
+        $this->assertTrue($instrumentChoice['is_choice'], 'Should be marked as a choice');
+        $this->assertEquals(1, $instrumentChoice['quantity'], 'Should have quantity=1');
+        $this->assertEquals('musical_instrument', $instrumentChoice['proficiency_subcategory'], 'Should reference musical_instrument subcategory');
+    }
+
+    #[Test]
+    public function it_parses_any_musical_instrument_choice()
+    {
+        // Test "any musical instrument" pattern
+        $xml = <<<'XML'
+        <compendium>
+            <class>
+                <name>TestClass</name>
+                <hd>8</hd>
+                <tools>any musical instrument</tools>
+            </class>
+        </compendium>
+        XML;
+
+        $classes = $this->parser->parse($xml);
+        $proficiencies = $classes[0]['proficiencies'];
+
+        $toolProfs = array_values(array_filter($proficiencies, fn ($p) => $p['type'] === 'tool'));
+        $this->assertCount(1, $toolProfs, 'Should have 1 tool proficiency');
+
+        $instrumentChoice = $toolProfs[0];
+        $this->assertTrue($instrumentChoice['is_choice'], 'Should be marked as a choice');
+        $this->assertEquals(1, $instrumentChoice['quantity'], 'Should have quantity=1');
+        $this->assertEquals('musical_instrument', $instrumentChoice['proficiency_subcategory'], 'Should reference musical_instrument subcategory');
     }
 }

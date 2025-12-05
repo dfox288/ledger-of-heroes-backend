@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Enum Helper Method Tests** (Issue #209)
+  - Added comprehensive unit tests for Enum helper methods with low coverage
+  - OptionalFeatureTypeTest (9 tests, 27 assertions): Tests label(), defaultClassName(), defaultSubclassName()
+  - ItemTypeCodeTest (16 tests, 89 assertions): Tests isArmor(), isWeapon(), isEquippable(), armorCodes(), weaponCodes(), equippableCodes()
+  - 25 new test cases with 116 assertions total
+  - CharacterSourceTest already had full coverage (10 tests, 35 assertions)
+
 - **Search Service Unit Tests** (Issue #204)
   - Added comprehensive unit tests for all 8 search service classes
   - Tests cover: SpellSearchService, BackgroundSearchService, MonsterSearchService,

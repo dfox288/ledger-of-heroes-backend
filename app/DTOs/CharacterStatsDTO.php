@@ -110,7 +110,7 @@ class CharacterStatsDTO
         $skillProficiencies = self::getSkillProficiencies($character);
 
         // Initiative bonus (DEX modifier + any bonuses from features)
-        // TODO: Add feature bonuses (Alert feat, etc.) when feature system tracks them
+        // See GitHub Issue #196 for feature bonus implementation
         $initiativeBonus = $dexMod !== null
             ? $calculator->calculateInitiative($dexMod)
             : null;

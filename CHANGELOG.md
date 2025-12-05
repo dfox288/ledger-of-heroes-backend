@@ -27,10 +27,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- **Dead Code Cleanup**
+- **Dead Code Cleanup** (Issue #192)
+  - Removed empty `applyFilters()` methods from all 8 search services (MySQL filtering moved to Meilisearch)
+    - SpellSearchService, MonsterSearchService, ItemSearchService, RaceSearchService
+    - ClassSearchService, FeatSearchService, BackgroundSearchService, OptionalFeatureSearchService
   - Removed empty `AbstractRaceStrategy` class (strategies now extend `AbstractImportStrategy` directly)
   - Removed empty `AbstractClassStrategy` class (strategies now extend `AbstractImportStrategy` directly)
   - Removed unused `$baseRacesNeedingPopulation` static property and `resetState()` from `SubraceStrategy`
+
+- **TODO Comment Cleanup** (Issue #193)
+  - Converted 5 TODO comments to tracked GitHub issues with references in code
+  - Created Issue #196 for feature usage tracking system
+  - Created Issue #197 for user authentication implementation
+  - Created Issue #198 for spell scaling parsing
+  - Created Issue #199 for API v2.0 deprecation planning
 
 ### Changed
 

@@ -95,11 +95,13 @@ final class RaceSearchService
         return Race::search($dto->searchQuery);
     }
 
+    /**
+     * Build Eloquent database query for pagination (no filters - use Meilisearch for filtering)
+     */
     public function buildDatabaseQuery(RaceSearchDTO $dto): Builder
     {
         $query = Race::with(self::INDEX_RELATIONSHIPS);
 
-        $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
 
         return $query;
@@ -127,22 +129,6 @@ final class RaceSearchService
     public function getShowRelationships(): array
     {
         return self::SHOW_RELATIONSHIPS;
-    }
-
-    private function applyFilters(Builder $query, RaceSearchDTO $dto): void
-    {
-        // MySQL filtering has been removed - use Meilisearch ?filter= parameter instead
-        //
-        // Examples:
-        // - ?filter=size_code = M
-        // - ?filter=speed >= 30
-        // - ?filter=has_darkvision = true
-        // - ?filter=spell_slugs IN [misty-step, faerie-fire]
-        // - ?filter=tag_slugs IN [darkvision, fey-ancestry]
-        // - ?filter=tag_slugs IN [darkvision] AND speed >= 35
-        // - ?filter=spell_slugs IN [dancing-lights] AND size_code = M
-        //
-        // All filtering should happen via Meilisearch for consistency and performance.
     }
 
     private function applySorting(Builder $query, RaceSearchDTO $dto): void

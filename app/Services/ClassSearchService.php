@@ -100,11 +100,13 @@ final class ClassSearchService
         return CharacterClass::search($searchQuery);
     }
 
+    /**
+     * Build Eloquent database query for pagination (no filters - use Meilisearch for filtering)
+     */
     public function buildDatabaseQuery(ClassSearchDTO $dto): Builder
     {
         $query = CharacterClass::with(self::INDEX_RELATIONSHIPS);
 
-        $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
 
         return $query;
@@ -132,22 +134,6 @@ final class ClassSearchService
     public function getShowRelationships(): array
     {
         return self::SHOW_RELATIONSHIPS;
-    }
-
-    private function applyFilters(Builder $query, ClassSearchDTO $dto): void
-    {
-        // MySQL filtering has been removed - use Meilisearch ?filter= parameter instead
-        //
-        // Examples:
-        // - Base classes only: ?filter=is_subclass = false
-        // - Subclasses only: ?filter=is_subclass = true
-        // - High HP classes: ?filter=hit_die >= 10
-        // - Spellcasters: ?filter=spellcasting_ability != null
-        // - INT casters: ?filter=spellcasting_ability = INT
-        // - Tag-based: ?filter=tag_slugs IN [spellcaster, martial]
-        // - Combined: ?filter=is_subclass = false AND tag_slugs IN [full-caster]
-        //
-        // All filtering should happen via Meilisearch for consistency and performance.
     }
 
     private function applySorting(Builder $query, ClassSearchDTO $dto): void

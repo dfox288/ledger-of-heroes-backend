@@ -198,7 +198,7 @@ class SpellXmlParser
                 'scaling_type' => $scalingType,
                 'min_character_level' => $minCharacterLevel,
                 'min_spell_slot' => $minSpellSlot,
-                'scaling_increment' => null, // TODO: Parse from "At Higher Levels" text
+                'scaling_increment' => null, // See GitHub Issue #198 for parsing implementation
             ];
         }
 

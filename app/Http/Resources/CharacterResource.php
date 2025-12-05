@@ -101,7 +101,7 @@ class CharacterResource extends JsonResource
                 fn () => $this->formatEntity($this->race)
             ),
             // Primary class (for backwards compatibility - deprecated, use 'classes' array instead)
-            // TODO: Remove in API v2.0 - clients should migrate to 'classes' array
+            // See GitHub Issue #199 - remove in API v2.0
             'class' => $this->when(
                 $this->relationLoaded('characterClasses') || $primaryClass,
                 fn () => $this->formatEntity($primaryClass)

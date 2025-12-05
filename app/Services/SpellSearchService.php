@@ -62,13 +62,12 @@ final class SpellSearchService
     }
 
     /**
-     * Build Eloquent database query with filters
+     * Build Eloquent database query for pagination (no filters - use Meilisearch for filtering)
      */
     public function buildDatabaseQuery(SpellSearchDTO $dto): Builder
     {
         $query = Spell::with(self::INDEX_RELATIONSHIPS);
 
-        $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
 
         return $query;
@@ -96,21 +95,6 @@ final class SpellSearchService
     public function getShowRelationships(): array
     {
         return self::SHOW_RELATIONSHIPS;
-    }
-
-    private function applyFilters(Builder $query, SpellSearchDTO $dto): void
-    {
-        // MySQL filtering has been removed - use Meilisearch ?filter= parameter instead
-        //
-        // Examples:
-        // - ?filter=level = 0
-        // - ?filter=school = EV
-        // - ?filter=concentration = true AND ritual = false
-        // - ?filter=tag_slugs IN [fire, aoe]
-        // - ?filter=class_slugs IN [wizard, sorcerer]
-        // - ?filter=class_slugs IN [bard] AND level <= 3
-        //
-        // All filtering should happen via Meilisearch for consistency and performance.
     }
 
     private function applySorting(Builder $query, SpellSearchDTO $dto): void

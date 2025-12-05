@@ -69,11 +69,13 @@ final class FeatSearchService
         return Feat::search($searchQuery);
     }
 
+    /**
+     * Build Eloquent database query for pagination (no filters - use Meilisearch for filtering)
+     */
     public function buildDatabaseQuery(FeatSearchDTO $dto): Builder
     {
         $query = Feat::with(self::INDEX_RELATIONSHIPS);
 
-        $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
 
         return $query;
@@ -101,24 +103,6 @@ final class FeatSearchService
     public function getShowRelationships(): array
     {
         return self::SHOW_RELATIONSHIPS;
-    }
-
-    private function applyFilters(Builder $query, FeatSearchDTO $dto): void
-    {
-        // MySQL filtering has been removed - use Meilisearch ?filter= parameter instead
-        //
-        // Examples:
-        // - ?filter=tag_slugs IN [combat]
-        // - ?filter=tag_slugs IN [magic, skill-improvement]
-        // - ?filter=source_codes IN [PHB, XGE]
-        // - ?filter=tag_slugs IN [combat] AND source_codes IN [PHB]
-        //
-        // All filtering should happen via Meilisearch for consistency and performance.
-        //
-        // NOTE: Legacy MySQL filters (prerequisite_race, prerequisite_ability, has_prerequisites,
-        // grants_proficiency, prerequisite_proficiency, grants_skill) are deprecated.
-        // These complex relational filters should be migrated to Meilisearch by indexing
-        // the prerequisite/proficiency data in toSearchableArray() method.
     }
 
     private function applySorting(Builder $query, FeatSearchDTO $dto): void

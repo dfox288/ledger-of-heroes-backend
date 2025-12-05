@@ -68,13 +68,12 @@ final class MonsterSearchService
     }
 
     /**
-     * Build Eloquent database query with filters
+     * Build Eloquent database query for pagination (no filters - use Meilisearch for filtering)
      */
     public function buildDatabaseQuery(MonsterSearchDTO $dto): Builder
     {
         $query = Monster::with(self::INDEX_RELATIONSHIPS);
 
-        $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
 
         return $query;
@@ -102,24 +101,6 @@ final class MonsterSearchService
     public function getShowRelationships(): array
     {
         return self::SHOW_RELATIONSHIPS;
-    }
-
-    private function applyFilters(Builder $query, MonsterSearchDTO $dto): void
-    {
-        // MySQL filtering has been removed - use Meilisearch ?filter= parameter instead
-        //
-        // Examples:
-        // - ?filter=spell_slugs IN [fireball]
-        // - ?filter=spell_slugs IN [fireball, lightning-bolt]
-        // - ?filter=challenge_rating >= 5
-        // - ?filter=challenge_rating >= 10 AND challenge_rating <= 20
-        // - ?filter=type = dragon
-        // - ?filter=type = dragon AND spell_slugs IN [fireball]
-        // - ?filter=tag_slugs IN [undead] AND hit_points_average > 100
-        // - ?filter=armor_class >= 18 AND hit_points_average >= 100
-        // - ?filter=size_code = L AND strength >= 20
-        //
-        // All filtering should happen via Meilisearch for consistency and performance.
     }
 
     private function applySorting(Builder $query, MonsterSearchDTO $dto): void

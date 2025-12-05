@@ -9,8 +9,8 @@ class UpdateEquipmentRequest extends FormRequest
     /**
      * Determine if the user is authorized to make this request.
      *
-     * TODO: Add proper authorization when user authentication is implemented.
-     * Example: return $this->user()->can('update', $this->route('character'));
+     * See GitHub Issue #197 for user authentication implementation.
+     * When implemented: return $this->user()->can('update', $this->route('character'));
      */
     public function authorize(): bool
     {

@@ -68,13 +68,12 @@ final class ItemSearchService
     }
 
     /**
-     * Build Eloquent database query with filters
+     * Build Eloquent database query for pagination (no filters - use Meilisearch for filtering)
      */
     public function buildDatabaseQuery(ItemSearchDTO $dto): Builder
     {
         $query = Item::with(self::INDEX_RELATIONSHIPS);
 
-        $this->applyFilters($query, $dto);
         $this->applySorting($query, $dto);
 
         return $query;
@@ -102,31 +101,6 @@ final class ItemSearchService
     public function getShowRelationships(): array
     {
         return self::SHOW_RELATIONSHIPS;
-    }
-
-    private function applyFilters(Builder $query, ItemSearchDTO $dto): void
-    {
-        // MySQL filtering has been removed - use Meilisearch ?filter= parameter instead
-        //
-        // Examples:
-        // - ?filter=rarity IN [rare, very_rare, legendary]
-        // - ?filter=type_code = WD (wands)
-        // - ?filter=type_code = SCR (scrolls)
-        // - ?filter=requires_attunement = true
-        // - ?filter=is_magic = true
-        // - ?filter=has_charges = true
-        // - ?filter=spell_slugs IN [fireball] (items containing Fireball)
-        // - ?filter=spell_slugs IN [fireball, lightning-bolt] (items with either spell)
-        // - ?filter=tag_slugs IN [fire, damage]
-        // - ?filter=cost_cp >= 5000 (items worth 50+ gold)
-        // - ?filter=weight <= 1.0 (lightweight items)
-        //
-        // Combined filters:
-        // - ?filter=spell_slugs IN [fireball] AND type_code = WD AND rarity = rare
-        // - ?filter=has_charges = true AND spell_slugs IN [teleport]
-        // - ?filter=is_magic = true AND rarity IN [legendary, artifact]
-        //
-        // All filtering should happen via Meilisearch for consistency and performance.
     }
 
     private function applySorting(Builder $query, ItemSearchDTO $dto): void

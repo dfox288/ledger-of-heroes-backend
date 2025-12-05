@@ -40,7 +40,7 @@ class RestService
         }
 
         // Reset features with short_rest timing
-        // TODO: Track feature usage when that system is implemented
+        // See GitHub Issue #196 for feature usage tracking implementation
         // For now, just identify which features WOULD reset
         $character->loadMissing('characterClasses.characterClass.features');
         foreach ($character->characterClasses as $classPivot) {

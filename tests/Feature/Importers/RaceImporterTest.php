@@ -1324,16 +1324,15 @@ XML;
     }
 
     #[Test]
-    public function it_sets_subrace_required_false_for_races_with_3_plus_ability_points()
+    public function it_sets_subrace_required_false_for_races_with_3_plus_fixed_ability_points()
     {
-        // These races have 3+ ability points and should have subrace_required=false
+        // These races have 3+ fixed ability points and should have subrace_required=false
         $races = [
-            'Tiefling' => ['ability' => 'Cha +2, Int +1', 'points' => 3],
-            'Half-Elf' => ['ability' => 'Cha +2', 'points' => 2], // But has choice for +2 more
-            'Half-Orc' => ['ability' => 'Str +2, Con +1', 'points' => 3],
+            'Tiefling' => 'Cha +2, Int +1',  // 3 points
+            'Half-Orc' => 'Str +2, Con +1',  // 3 points
         ];
 
-        foreach ($races as $name => $data) {
+        foreach ($races as $name => $ability) {
             $xml = <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium version="5" auto_indent="NO">
@@ -1341,7 +1340,7 @@ XML;
     <name>{$name}</name>
     <size>M</size>
     <speed>30</speed>
-    <ability>{$data['ability']}</ability>
+    <ability>{$ability}</ability>
     <trait category="description">
       <name>Description</name>
       <text>{$name} race description.
@@ -1359,18 +1358,45 @@ XML;
             unlink($tmpFile);
         }
 
-        // Tiefling and Half-Orc have 3 points, should be false
         foreach (['Tiefling', 'Half-Orc'] as $name) {
             $race = Race::where('name', $name)->first();
             $this->assertNotNull($race, "{$name} should exist");
             $this->assertFalse(
                 $race->subrace_required,
-                "{$name} with 3 ability points should have subrace_required=false"
+                "{$name} with 3 fixed ability points should have subrace_required=false"
             );
         }
+    }
 
-        // Half-Elf only has 2 fixed points (Cha +2) in this XML (no choice trait)
-        // With only 2 points, subrace_required should be true
+    #[Test]
+    public function it_sets_subrace_required_true_for_race_with_only_2_fixed_ability_points()
+    {
+        // Half-Elf without choice trait has only 2 fixed points (Cha +2)
+        // Since 2 < 3, subrace_required should be true
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Half-Elf</name>
+    <size>M</size>
+    <speed>30</speed>
+    <ability>Cha +2</ability>
+    <trait category="description">
+      <name>Description</name>
+      <text>Half-Elf race description.
+Source: Player's Handbook (2014)</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
         $halfElf = Race::where('name', 'Half-Elf')->first();
         $this->assertNotNull($halfElf);
         // Half-Elf has only 2 fixed ability points < 3, so subrace_required should be true

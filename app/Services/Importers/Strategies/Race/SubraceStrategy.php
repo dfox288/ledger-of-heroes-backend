@@ -131,8 +131,10 @@ class SubraceStrategy extends AbstractImportStrategy
 
         // Calculate base race ability points to determine if subraces are required
         // Base race only gets the first ability bonus (e.g., Dwarf gets Con +2)
+        // Also include any ability choices that may be present on the base race
         $baseAbilityBonuses = $this->extractBaseAbilityBonuses($subraceData['ability_bonuses'] ?? []);
-        $totalAbilityPoints = $this->calculateTotalAbilityPoints($baseAbilityBonuses);
+        $abilityChoices = $subraceData['ability_choices'] ?? [];
+        $totalAbilityPoints = $this->calculateTotalAbilityPoints($baseAbilityBonuses, $abilityChoices);
         $subraceRequired = $totalAbilityPoints < self::COMPLETE_RACE_ABILITY_THRESHOLD;
 
         return Race::create([
@@ -146,16 +148,26 @@ class SubraceStrategy extends AbstractImportStrategy
     }
 
     /**
-     * Calculate total ability score points from fixed bonuses.
+     * Calculate total ability score points from fixed bonuses and choices.
      *
      * @param  array  $bonuses  Fixed ability bonuses [{ability: 'Str', value: 2}, ...]
+     * @param  array  $choices  Choice-based bonuses [{choice_count: 2, value: 1}, ...]
      * @return int Total ability score points
      */
-    private function calculateTotalAbilityPoints(array $bonuses): int
+    private function calculateTotalAbilityPoints(array $bonuses, array $choices = []): int
     {
         $total = 0;
+
+        // Sum fixed ability bonuses
         foreach ($bonuses as $bonus) {
             $total += abs((int) ($bonus['value'] ?? 0));
+        }
+
+        // Sum choice-based ability bonuses (choice_count * value)
+        foreach ($choices as $choice) {
+            $choiceCount = (int) ($choice['choice_count'] ?? 1);
+            $value = abs((int) ($choice['value'] ?? 0));
+            $total += $choiceCount * $value;
         }
 
         return $total;

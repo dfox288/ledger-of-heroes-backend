@@ -43,7 +43,10 @@ class RaceFixtureSeeder extends FixtureSeeder
         // Subraces (has parent) never require nested subraces
         // Base races with 3+ ability points have optional subraces
         $isSubrace = ! empty($parentRace);
-        $totalAbilityPoints = $this->calculateTotalAbilityPoints($item['ability_bonuses'] ?? []);
+        $totalAbilityPoints = $this->calculateTotalAbilityPoints(
+            $item['ability_bonuses'] ?? [],
+            $item['ability_choices'] ?? []
+        );
         $hasCompleteAbilityScores = $totalAbilityPoints >= self::COMPLETE_RACE_ABILITY_THRESHOLD;
         $subraceRequired = ! $isSubrace && ! $hasCompleteAbilityScores;
 
@@ -104,16 +107,26 @@ class RaceFixtureSeeder extends FixtureSeeder
     }
 
     /**
-     * Calculate total ability score points from bonuses.
+     * Calculate total ability score points from bonuses and choices.
      *
      * @param  array  $bonuses  Ability bonuses [{ability: 'DEX', bonus: 2, is_choice: false}, ...]
+     * @param  array  $choices  Ability choices [{choice_count: 2, value: 1}, ...] (if fixtures include them)
      * @return int Total ability score points
      */
-    private function calculateTotalAbilityPoints(array $bonuses): int
+    private function calculateTotalAbilityPoints(array $bonuses, array $choices = []): int
     {
         $total = 0;
+
+        // Sum fixed ability bonuses
         foreach ($bonuses as $bonus) {
             $total += abs((int) ($bonus['bonus'] ?? 0));
+        }
+
+        // Sum choice-based ability bonuses (if fixtures include them)
+        foreach ($choices as $choice) {
+            $choiceCount = (int) ($choice['choice_count'] ?? 1);
+            $value = abs((int) ($choice['value'] ?? 0));
+            $total += $choiceCount * $value;
         }
 
         return $total;

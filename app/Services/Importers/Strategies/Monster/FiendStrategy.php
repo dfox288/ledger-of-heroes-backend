@@ -22,30 +22,15 @@ class FiendStrategy extends AbstractMonsterStrategy
      */
     public function enhanceTraits(array $traits, array $monsterData): array
     {
-        $tags = ['fiend'];
+        $this->applyConditionalTags('fiend', [
+            // Fire immunity (common in demons and devils)
+            'immunity:fire' => 'fire_immune',
+            // Poison immunity (common in most fiends)
+            'immunity:poison' => 'poison_immune',
+            // Magic resistance trait
+            'trait:magic resistance' => 'magic_resistance',
+        ], $traits, $monsterData);
 
-        // Detect fire immunity (common in demons and devils)
-        if ($this->hasDamageImmunity($monsterData, 'fire')) {
-            $tags[] = 'fire_immune';
-            $this->incrementMetric('fire_immune_count');
-        }
-
-        // Detect poison immunity (common in most fiends)
-        if ($this->hasDamageImmunity($monsterData, 'poison')) {
-            $tags[] = 'poison_immune';
-            $this->incrementMetric('poison_immune_count');
-        }
-
-        // Detect magic resistance trait
-        if ($this->hasTraitContaining($traits, 'magic resistance')) {
-            $tags[] = 'magic_resistance';
-            $this->incrementMetric('magic_resistance_count');
-        }
-
-        // Store tags and increment enhancement counter
-        $this->setMetric('tags_applied', $tags);
-        $this->incrementMetric('fiends_enhanced');
-
-        return $traits; // Traits unchanged, tags stored in metrics
+        return $traits;
     }
 }

@@ -28,20 +28,9 @@ class InsufficientSpellSlotsExceptionTest extends TestCase
     }
 
     #[Test]
-    public function it_generates_message_when_some_slots_available(): void
-    {
-        $exception = new InsufficientSpellSlotsException(
-            spellLevel: 2,
-            slotType: SpellSlotType::STANDARD,
-            available: 1
-        );
-
-        $this->assertEquals('Not enough Standard slots at level 2. Have 1, need 1.', $exception->getMessage());
-    }
-
-    #[Test]
     public function it_generates_message_when_no_slots_available(): void
     {
+        // When available is exactly 0
         $exception = new InsufficientSpellSlotsException(
             spellLevel: 5,
             slotType: SpellSlotType::STANDARD,
@@ -49,6 +38,20 @@ class InsufficientSpellSlotsExceptionTest extends TestCase
         );
 
         $this->assertEquals('No Standard slots available at level 5.', $exception->getMessage());
+    }
+
+    #[Test]
+    public function it_generates_message_showing_available_count(): void
+    {
+        // When there are some slots but not enough (edge case - useSlot failed mid-operation)
+        // The message indicates how many are available vs the 1 needed
+        $exception = new InsufficientSpellSlotsException(
+            spellLevel: 3,
+            slotType: SpellSlotType::STANDARD,
+            available: 2
+        );
+
+        $this->assertEquals('Not enough Standard slots at level 3. Have 2, need 1.', $exception->getMessage());
     }
 
     #[Test]

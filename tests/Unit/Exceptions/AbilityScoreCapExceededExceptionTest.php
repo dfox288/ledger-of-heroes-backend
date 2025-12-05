@@ -75,4 +75,24 @@ class AbilityScoreCapExceededExceptionTest extends TestCase
         $this->assertEquals(21, $data['would_be']);
         $this->assertEquals(20, $data['maximum']);
     }
+
+    #[Test]
+    public function it_handles_already_at_cap_edge_case(): void
+    {
+        $character = Character::factory()->create(['name' => 'Maxed Out']);
+
+        $exception = new AbilityScoreCapExceededException(
+            character: $character,
+            abilityCode: 'str',
+            currentValue: 20,
+            attemptedIncrease: 1
+        );
+
+        $response = $exception->render();
+        $data = $response->getData(true);
+
+        $this->assertEquals(20, $data['current_value']);
+        $this->assertEquals(1, $data['attempted_increase']);
+        $this->assertEquals(21, $data['would_be']);
+    }
 }

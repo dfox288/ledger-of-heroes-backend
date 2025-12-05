@@ -26,7 +26,23 @@ class CharacterClassController extends Controller
     ) {}
 
     /**
-     * List all classes for a character.
+     * List all classes for a character
+     *
+     * Returns all classes the character has, with their levels and subclasses.
+     * Characters can have multiple classes (multiclassing).
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/characters/1/classes
+     * ```
+     *
+     * **Response includes:**
+     * - `class_id` and class details (name, slug, hit_die)
+     * - `level` in this class
+     * - `subclass` (if selected, includes full subclass details)
+     * - `is_primary` flag for the character's main class
+     *
+     * @return AnonymousResourceCollection<CharacterClassPivotResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {
@@ -36,7 +52,43 @@ class CharacterClassController extends Controller
     }
 
     /**
-     * Add a class to a character.
+     * Add a class to a character
+     *
+     * Adds a new class to the character (multiclassing) at level 1. The character
+     * must meet multiclass prerequisites unless `force: true` is specified.
+     *
+     * **Examples:**
+     * ```
+     * POST /api/v1/characters/1/classes
+     *
+     * # Add Fighter class
+     * {"class_id": 5}
+     *
+     * # Force add class (bypass prerequisites)
+     * {"class_id": 5, "force": true}
+     * ```
+     *
+     * **Request Body:**
+     * | Field | Type | Required | Description |
+     * |-------|------|----------|-------------|
+     * | `class_id` | integer | Yes | ID of the class to add |
+     * | `force` | boolean | No | Bypass multiclass prerequisites (default: false) |
+     *
+     * **Multiclass Prerequisites (D&D 5e):**
+     * - Each class has ability score requirements
+     * - Character must meet both old class and new class prerequisites
+     * - Example: Fighter requires STR 13 or DEX 13
+     * - Example: Wizard requires INT 13
+     *
+     * **Validation:**
+     * - Character cannot have the same class twice (use levelUp instead)
+     * - Character's total level cannot exceed 20
+     * - Must meet multiclass prerequisites (unless force=true)
+     *
+     *
+     * @response 201 CharacterClassPivotResource
+     * @response 404 array{message: string} Class not found
+     * @response 422 array{message: string, errors?: array{class_id: string[]}} Duplicate class, max level reached, or prerequisites not met
      */
     public function store(AddCharacterClassRequest $request, Character $character): JsonResponse
     {
@@ -63,10 +115,31 @@ class CharacterClassController extends Controller
     }
 
     /**
-     * Remove a class from a character.
+     * Remove a class from a character
      *
-     * Uses pessimistic locking to prevent race conditions where concurrent
-     * requests could leave a character with zero classes.
+     * Removes a class from the character's multiclass configuration. Cannot remove
+     * the character's only class. Uses pessimistic locking to prevent race conditions.
+     *
+     * **Examples:**
+     * ```
+     * DELETE /api/v1/characters/1/classes/5
+     * ```
+     *
+     * **Validation:**
+     * - Cannot remove the character's only class
+     * - Class must exist on the character
+     *
+     * **Side Effects:**
+     * - Removes all levels in this class
+     * - Associated subclass is also removed
+     * - May affect character features, spells, etc. (handle in UI)
+     *
+     * @param  Character  $character  The character
+     * @param  CharacterClass  $class  The class to remove
+     *
+     * @response 204 No content on success
+     * @response 404 array{message: string} Class not found on character
+     * @response 422 array{message: string} Cannot remove the only class
      */
     public function destroy(Character $character, CharacterClass $class): JsonResponse
     {
@@ -95,10 +168,31 @@ class CharacterClassController extends Controller
     }
 
     /**
-     * Level up a specific class.
+     * Level up a specific class
      *
-     * Uses pessimistic locking to prevent race conditions where concurrent
-     * requests could exceed the level 20 cap.
+     * Increases the character's level in a specific class by 1. The total character
+     * level cannot exceed 20. Uses pessimistic locking to prevent race conditions.
+     *
+     * **Examples:**
+     * ```
+     * POST /api/v1/characters/1/classes/5/level-up
+     * ```
+     *
+     * **D&D 5e Level Rules:**
+     * - Total character level (sum of all classes) caps at 20
+     * - Each class level grants new features, proficiencies, etc.
+     * - Leveling up may trigger subclass selection (typically at level 3)
+     *
+     * **Validation:**
+     * - Class must exist on the character
+     * - Total character level cannot exceed 20
+     *
+     * @param  Character  $character  The character
+     * @param  CharacterClass  $class  The class to level up
+     *
+     * @response 200 CharacterClassPivotResource with updated level
+     * @response 404 array{message: string} Class not found on character
+     * @response 422 array{message: string} Character has reached maximum level (20)
      */
     public function levelUp(Character $character, CharacterClass $class): JsonResponse
     {
@@ -131,14 +225,47 @@ class CharacterClassController extends Controller
     }
 
     /**
-     * Set the subclass for a character's class.
+     * Set the subclass for a character's class
      *
-     * Validates that:
-     * - The subclass belongs to the class being modified
-     * - The character is at least level 3 in this class (D&D 5e rule)
+     * Assigns a subclass (archetype/specialization) to the character's class.
+     * Most classes unlock subclasses at level 3, though some (Cleric, Sorcerer, Warlock) get them at level 1.
+     *
+     * **Examples:**
+     * ```
+     * PUT /api/v1/characters/1/classes/5/subclass
+     *
+     * # Set Battle Master subclass for Fighter
+     * {"subclass_id": 42}
+     *
+     * # Clear subclass (set to null)
+     * {"subclass_id": null}
+     * ```
+     *
+     * **Request Body:**
+     * | Field | Type | Required | Description |
+     * |-------|------|----------|-------------|
+     * | `subclass_id` | integer\|null | Yes | ID of subclass, or null to clear |
+     *
+     * **Subclass Level Requirements (by class):**
+     * - Level 1: Cleric (Domain), Sorcerer (Origin), Warlock (Patron)
+     * - Level 2: Druid (Circle), Wizard (School)
+     * - Level 3: Most other classes (Fighter, Rogue, Ranger, etc.)
+     *
+     * **Validation:**
+     * - Subclass must belong to the specified class
+     * - Character must meet the class's subclass level requirement
+     * - Class must exist on the character
+     *
+     * @param  SetSubclassRequest  $request  The validated request
+     * @param  Character  $character  The character
+     * @param  CharacterClass  $class  The class to set subclass for
      *
      * @throws InvalidSubclassException If subclass doesn't belong to the class
-     * @throws SubclassLevelRequirementException If character level is below 3
+     * @throws SubclassLevelRequirementException If character level is below requirement
+     *
+     * @response 200 CharacterClassPivotResource with subclass set
+     * @response 404 array{message: string} Class not found on character
+     * @response 422 array{message: string} Subclass doesn't belong to class, or level requirement not met
      */
     public function setSubclass(SetSubclassRequest $request, Character $character, CharacterClass $class): JsonResponse
     {

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Docs
+
+- **Character Builder API Documentation** (Issue #155)
+  - **Phase 1 - High Priority Controllers:**
+    - `CharacterConditionController`: Added request body examples, exhaustion level handling (1-6), condition ID/slug table, error responses
+    - `CharacterOptionalFeatureController`: Documented 8 feature types enum table, counter-to-feature mapping, eligibility rules, Scramble QueryParameter
+    - `CharacterEquipmentController`: Added request body examples for store/update, item_id vs custom_name paths, equipment rules
+  - **Phase 2 - Medium Priority Controllers:**
+    - `CharacterClassController`: Added examples for all 5 methods (index, store, destroy, levelUp, setSubclass), multiclass prerequisites
+    - `CharacterNoteController`: Documented NoteCategory enum (6 values: personality_trait, ideal, bond, flaw, backstory, custom), title requirements
+    - `CharacterDeathSaveController`: Documented request body (roll, damage, is_critical), roll result table, D&D 5e death save rules
+    - `CharacterLevelUpController`: Converted from Scribe to Scramble PHPDoc style, added HP calculation rules
+  - **Phase 3 - Standardization:**
+    - `CharacterSpellController`: Added error responses, source enum documentation, preparation rules
+    - `SpellSlotController`: Documented spell level range (1-9), slot types (standard, pact_magic)
+  - All controllers now have consistent error response documentation with HTTP status codes and JSON structure
+  - All POST/PATCH methods now have request body tables with field types and descriptions
+
 ### Fixed
 
 - **OpenAPI Type Annotations** (Issues #157, #158, #159)

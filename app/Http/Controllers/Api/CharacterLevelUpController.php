@@ -14,28 +14,45 @@ class CharacterLevelUpController extends Controller
     ) {}
 
     /**
-     * Level up a character.
+     * Level up a character
      *
-     * Increases character level by 1, grants HP, class features, and updates spell slots.
+     * Increases the character's level by 1 in their primary class. Automatically
+     * calculates HP increase, grants class features, and updates spell slots.
      *
-     * @group Character Builder
+     * **Examples:**
+     * ```
+     * POST /api/v1/characters/1/level-up
+     * ```
      *
-     * @urlParam character integer required The character ID. Example: 1
+     * **What Happens on Level Up:**
+     * 1. Level in primary class increases by 1
+     * 2. HP increases (based on class hit die + CON modifier)
+     * 3. New class features are granted (if any at this level)
+     * 4. Spell slots updated for spellcasters
+     * 5. ASI/Feat choice flagged at levels 4, 8, 12, 16, 19
      *
-     * @response 200 {
-     *   "previous_level": 3,
-     *   "new_level": 4,
-     *   "hp_increase": 7,
-     *   "new_max_hp": 35,
-     *   "features_gained": [
-     *     {"id": 1, "name": "Ability Score Improvement", "description": "..."}
-     *   ],
-     *   "spell_slots": {"1": 4, "2": 3},
-     *   "asi_pending": true
-     * }
-     * @response 404 {"message": "Character not found"}
-     * @response 422 {"message": "Character is already at maximum level (20)."}
-     * @response 422 {"message": "Character must be complete before leveling up."}
+     * **HP Calculation:**
+     * - Level 1: Max hit die + CON modifier
+     * - Level 2+: (hit die / 2 + 1) + CON modifier (average roll)
+     *
+     * **Response Fields:**
+     * - `previous_level` - Level before this level up
+     * - `new_level` - Level after this level up
+     * - `hp_increase` - HP gained this level
+     * - `new_max_hp` - Total max HP after level up
+     * - `features_gained` - Array of new class features
+     * - `spell_slots` - Updated spell slot progression
+     * - `asi_pending` - True if character needs to select ASI/Feat
+     *
+     * **Multiclass Notes:**
+     * This endpoint levels up the character's primary (first) class. To level up
+     * a specific class in a multiclass build, use `POST /api/v1/characters/{id}/classes/{classId}/level-up`.
+     *
+     * @param  Character  $character  The character to level up
+     *
+     * @response 200 array{previous_level: int, new_level: int, hp_increase: int, new_max_hp: int, features_gained: array, spell_slots: array, asi_pending: bool}
+     * @response 404 array{message: string} Character not found
+     * @response 422 array{message: string} Character at max level (20) or character incomplete
      */
     public function __invoke(Character $character): JsonResponse
     {

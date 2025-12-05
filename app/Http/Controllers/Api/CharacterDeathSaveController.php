@@ -21,7 +21,57 @@ use Illuminate\Http\JsonResponse;
 class CharacterDeathSaveController extends Controller
 {
     /**
-     * Record a death saving throw result.
+     * Record a death saving throw result
+     *
+     * Records either a death save roll or damage taken at 0 HP. The API handles all
+     * D&D 5e death save mechanics including critical rolls and damage failures.
+     *
+     * **Examples:**
+     * ```
+     * POST /api/v1/characters/1/death-saves
+     *
+     * # Roll result (d20 value)
+     * {"roll": 15}       # Success (10+)
+     * {"roll": 8}        # Failure (9-)
+     * {"roll": 20}       # Critical success - regain 1 HP, reset saves
+     * {"roll": 1}        # Critical failure - 2 failures
+     *
+     * # Taking damage at 0 HP
+     * {"damage": 5}                    # 1 automatic failure
+     * {"damage": 10, "is_critical": true}  # 2 automatic failures (crit hit)
+     * ```
+     *
+     * **Request Body (Option A - Death Save Roll):**
+     * | Field | Type | Required | Description |
+     * |-------|------|----------|-------------|
+     * | `roll` | integer | Yes | The d20 roll result (1-20) |
+     *
+     * **Request Body (Option B - Damage at 0 HP):**
+     * | Field | Type | Required | Description |
+     * |-------|------|----------|-------------|
+     * | `damage` | integer | Yes | Damage amount taken (triggers automatic failure) |
+     * | `is_critical` | boolean | No | If true, counts as 2 failures (default: false) |
+     *
+     * **Roll Results:**
+     * | Roll | Result | Effect |
+     * |------|--------|--------|
+     * | 20 | `critical_success` | Regain 1 HP, wake up, reset all saves |
+     * | 10-19 | `success` | Add 1 success (3 = stable) |
+     * | 2-9 | `failure` | Add 1 failure (3 = dead) |
+     * | 1 | `critical_failure` | Add 2 failures |
+     *
+     * **Response Fields:**
+     * - `death_save_successes` (0-3): Current success count
+     * - `death_save_failures` (0-3): Current failure count
+     * - `current_hit_points`: Character's HP (may be 1 on nat 20)
+     * - `result`: What happened (success, failure, critical_success, critical_failure, damage, critical_damage)
+     * - `outcome`: Final outcome if determined (stable, dead, conscious) or null
+     * - `is_stable`: True if 3+ successes
+     * - `is_dead`: True if 3+ failures
+     *
+     *
+     * @response 200 array{data: array{death_save_successes: int, death_save_failures: int, current_hit_points: int, result: string, outcome: ?string, is_stable: bool, is_dead: bool}}
+     * @response 422 array{message: string, errors: array{roll?: string[], damage?: string[]}}
      */
     public function store(DeathSaveRequest $request, Character $character): JsonResponse
     {
@@ -89,7 +139,26 @@ class CharacterDeathSaveController extends Controller
     }
 
     /**
-     * Stabilize a character and reset death saves.
+     * Stabilize a character and reset death saves
+     *
+     * Manually stabilizes a character (e.g., via Spare the Dying spell or Medicine check).
+     * Resets both success and failure counters to 0.
+     *
+     * **Examples:**
+     * ```
+     * POST /api/v1/characters/1/death-saves/stabilize
+     * ```
+     *
+     * **Use Cases:**
+     * - Spare the Dying cantrip cast on character
+     * - Successful Medicine check (DC 10) to stabilize
+     * - Healing spell cast on character (though this also heals HP)
+     *
+     * **Note:** A stabilized character remains at 0 HP and unconscious but no longer
+     * makes death saving throws. They regain 1 HP after 1d4 hours.
+     *
+     *
+     * @response 200 array{data: array{death_save_successes: int, death_save_failures: int, is_stable: bool}}
      */
     public function stabilize(Character $character): JsonResponse
     {

@@ -60,18 +60,30 @@ class SpellSlotController extends Controller
      * **Examples:**
      * ```
      * POST /api/v1/characters/1/spell-slots/use
+     *
+     * # Use a 1st level standard slot
      * {"spell_level": 1, "slot_type": "standard"}
      *
-     * POST /api/v1/characters/1/spell-slots/use
+     * # Use a pact magic slot (Warlock)
      * {"spell_level": 3, "slot_type": "pact_magic"}
      * ```
      *
-     * **Validation:**
-     * - `spell_level` (required): 1-9
-     * - `slot_type` (required): "standard" or "pact_magic"
+     * **Request Body:**
+     * | Field | Type | Required | Description |
+     * |-------|------|----------|-------------|
+     * | `spell_level` | integer | Yes | Spell level 1-9 (cantrips don't use slots) |
+     * | `slot_type` | string | Yes | "standard" or "pact_magic" |
      *
-     * **Errors:**
-     * - 422: No slots available at that level
+     * **Slot Types:**
+     * - `standard` - Normal spell slots (most spellcasters)
+     * - `pact_magic` - Warlock pact magic slots (fewer slots, higher level, recharge on short rest)
+     *
+     * **Spell Levels (1-9):**
+     * Cantrips (level 0) do not consume spell slots and cannot be specified here.
+     *
+     *
+     * @response 200 SpellSlotsResource with updated slot counts
+     * @response 422 array{message: string, errors: array{spell_level: string[]}} No slots available at that level
      */
     public function use(UseSpellSlotRequest $request, Character $character): SpellSlotsResource|JsonResponse
     {

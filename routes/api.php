@@ -321,6 +321,8 @@ Route::prefix('v1')->group(function () {
             ->name('classes.store');
         Route::delete('classes/{classIdOrSlug}', [\App\Http\Controllers\Api\CharacterClassController::class, 'destroy'])
             ->name('classes.destroy');
+        Route::put('classes/{classIdOrSlug}', [\App\Http\Controllers\Api\CharacterClassController::class, 'replace'])
+            ->name('classes.replace');
         Route::post('classes/{classIdOrSlug}/level-up', [\App\Http\Controllers\Api\CharacterClassController::class, 'levelUp'])
             ->name('classes.level-up');
         Route::put('classes/{classIdOrSlug}/subclass', [\App\Http\Controllers\Api\CharacterClassController::class, 'setSubclass'])

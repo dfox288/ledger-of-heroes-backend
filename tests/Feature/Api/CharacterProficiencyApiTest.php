@@ -134,6 +134,7 @@ class CharacterProficiencyApiTest extends TestCase
             ->withClass($this->fighterClass)
             ->create();
 
+        // Create a stored proficiency
         CharacterProficiency::create([
             'character_id' => $character->id,
             'proficiency_type_id' => $this->lightArmor->id,
@@ -142,10 +143,20 @@ class CharacterProficiencyApiTest extends TestCase
 
         $response = $this->getJson("/api/v1/characters/{$character->id}/proficiencies");
 
-        $response->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.source', 'class')
-            ->assertJsonPath('data.0.proficiency_type.name', 'Light Armor');
+        $response->assertOk();
+
+        // Should have 2 proficiencies: 1 stored (light armor) + 1 granted (heavy armor)
+        // The class grants both light and heavy armor, but light armor was already stored
+        // so it should appear once (deduplicated)
+        $this->assertCount(2, $response->json('data'));
+
+        // Verify the stored one has an ID and the granted one has null ID
+        $data = collect($response->json('data'));
+        $storedProf = $data->firstWhere('proficiency_type.id', $this->lightArmor->id);
+        $grantedProf = $data->firstWhere('proficiency_type.id', $this->heavyArmor->id);
+
+        $this->assertNotNull($storedProf['id']); // Stored has ID
+        $this->assertNull($grantedProf['id']); // Granted has null ID
     }
 
     #[Test]
@@ -204,9 +215,11 @@ class CharacterProficiencyApiTest extends TestCase
         $response = $this->postJson("/api/v1/characters/{$character->id}/proficiencies/sync");
 
         $response->assertOk()
-            ->assertJsonPath('message', 'Proficiencies populated successfully');
+            ->assertJsonPath('message', 'Proficiencies synced successfully');
 
         // Should have 2 fixed armor proficiencies (not skill choices)
+        // The sync stores them in the DB, but the response now includes all proficiencies
+        // Both should appear with IDs since they were synced
         $this->assertCount(2, $response->json('data'));
     }
 
@@ -556,6 +569,190 @@ class CharacterProficiencyApiTest extends TestCase
         $response = $this->getJson('/api/v1/characters/99999/proficiencies');
 
         $response->assertNotFound();
+    }
+
+    // =============================
+    // Granted Proficiencies (Issue #218)
+    // =============================
+
+    #[Test]
+    public function it_includes_granted_armor_proficiencies_from_class(): void
+    {
+        $character = Character::factory()
+            ->withClass($this->fighterClass)
+            ->create();
+
+        // Don't sync - we want to test that granted proficiencies appear without sync
+        $response = $this->getJson("/api/v1/characters/{$character->id}/proficiencies");
+
+        $response->assertOk();
+
+        // Should include the fixed armor proficiencies from class even without sync
+        $data = $response->json('data');
+        $armorProficiencies = collect($data)->filter(fn ($p) => isset($p['proficiency_type']) && $p['proficiency_type']['category'] === 'armor');
+
+        $this->assertCount(2, $armorProficiencies);
+        $this->assertTrue($armorProficiencies->contains(fn ($p) => $p['proficiency_type']['name'] === 'Light Armor'));
+        $this->assertTrue($armorProficiencies->contains(fn ($p) => $p['proficiency_type']['name'] === 'Heavy Armor'));
+    }
+
+    #[Test]
+    public function it_includes_granted_proficiencies_from_race(): void
+    {
+        // Add a fixed proficiency to the race
+        $this->elfRace->proficiencies()->create([
+            'proficiency_type' => 'skill',
+            'skill_id' => $this->perception->id,
+            'is_choice' => false,
+        ]);
+
+        $character = Character::factory()
+            ->withRace($this->elfRace)
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/proficiencies");
+
+        $response->assertOk();
+
+        $data = $response->json('data');
+        $skillProficiencies = collect($data)->filter(fn ($p) => isset($p['skill']));
+
+        $this->assertCount(1, $skillProficiencies);
+        $this->assertTrue($skillProficiencies->contains(fn ($p) => $p['skill']['id'] === $this->perception->id));
+        $this->assertTrue($skillProficiencies->contains(fn ($p) => $p['source'] === 'race'));
+    }
+
+    #[Test]
+    public function it_includes_granted_proficiencies_from_background(): void
+    {
+        // Add a fixed skill proficiency to the background
+        $this->soldierBackground->proficiencies()->create([
+            'proficiency_type' => 'skill',
+            'skill_id' => $this->athletics->id,
+            'is_choice' => false,
+        ]);
+
+        $character = Character::factory()
+            ->withBackground($this->soldierBackground)
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/proficiencies");
+
+        $response->assertOk();
+
+        $data = $response->json('data');
+        $skillProficiencies = collect($data)->filter(fn ($p) => isset($p['skill']));
+
+        $this->assertCount(1, $skillProficiencies);
+        $this->assertTrue($skillProficiencies->contains(fn ($p) => $p['skill']['id'] === $this->athletics->id));
+        $this->assertTrue($skillProficiencies->contains(fn ($p) => $p['source'] === 'background'));
+    }
+
+    #[Test]
+    public function it_marks_granted_proficiencies_with_null_id(): void
+    {
+        $character = Character::factory()
+            ->withClass($this->fighterClass)
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/proficiencies");
+
+        $response->assertOk();
+
+        $data = $response->json('data');
+        $grantedProficiencies = collect($data)->filter(fn ($p) => isset($p['proficiency_type']));
+
+        // Granted proficiencies should have null ID since they're not stored in character_proficiencies
+        foreach ($grantedProficiencies as $proficiency) {
+            $this->assertNull($proficiency['id']);
+        }
+    }
+
+    #[Test]
+    public function it_deduplicates_proficiencies_when_user_chose_same_as_granted(): void
+    {
+        // Class grants Light Armor
+        $character = Character::factory()
+            ->withClass($this->fighterClass)
+            ->create();
+
+        // User also has Light Armor stored (e.g., synced)
+        CharacterProficiency::create([
+            'character_id' => $character->id,
+            'proficiency_type_id' => $this->lightArmor->id,
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/proficiencies");
+
+        $response->assertOk();
+
+        $data = $response->json('data');
+        $lightArmorProficiencies = collect($data)->filter(
+            fn ($p) => isset($p['proficiency_type']) && $p['proficiency_type']['id'] === $this->lightArmor->id
+        );
+
+        // Should only appear once, not twice
+        $this->assertCount(1, $lightArmorProficiencies);
+        // Should prefer the stored one (has an ID)
+        $this->assertNotNull($lightArmorProficiencies->first()['id']);
+    }
+
+    #[Test]
+    public function it_aggregates_proficiencies_from_all_sources(): void
+    {
+        // Add proficiencies to each source
+        $this->elfRace->proficiencies()->create([
+            'proficiency_type' => 'skill',
+            'skill_id' => $this->perception->id,
+            'is_choice' => false,
+        ]);
+
+        $this->soldierBackground->proficiencies()->create([
+            'proficiency_type' => 'skill',
+            'skill_id' => $this->acrobatics->id,
+            'is_choice' => false,
+        ]);
+
+        $character = Character::factory()
+            ->withClass($this->fighterClass) // grants light armor, heavy armor
+            ->withRace($this->elfRace) // grants perception
+            ->withBackground($this->soldierBackground) // grants acrobatics
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/proficiencies");
+
+        $response->assertOk();
+
+        $data = $response->json('data');
+
+        // Should have 4 proficiencies total: 2 armor + 2 skills
+        $this->assertCount(4, $data);
+
+        // Verify sources are correctly attributed
+        $sources = collect($data)->pluck('source')->unique()->sort()->values();
+        $this->assertEquals(['background', 'class', 'race'], $sources->toArray());
+    }
+
+    #[Test]
+    public function it_does_not_include_choice_proficiencies_as_granted(): void
+    {
+        $character = Character::factory()
+            ->withClass($this->fighterClass) // has skill choices
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/proficiencies");
+
+        $response->assertOk();
+
+        $data = $response->json('data');
+
+        // Should only have fixed proficiencies (armor), not skill choices
+        $this->assertCount(2, $data);
+
+        foreach ($data as $proficiency) {
+            $this->assertArrayHasKey('proficiency_type', $proficiency);
+        }
     }
 
     // =============================

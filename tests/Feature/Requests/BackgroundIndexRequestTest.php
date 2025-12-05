@@ -20,11 +20,11 @@ class BackgroundIndexRequestTest extends TestCase
     {
         $source = $this->getSource('PHB');
 
-        // Create backgrounds to test against
-        $bg1 = Background::factory()->create(['name' => 'Acolyte']);
+        // Create backgrounds to test against (use factory-generated unique names)
+        $bg1 = Background::factory()->create();
         $bg1->sources()->create(['source_id' => $source->id, 'pages' => '127']);
 
-        $bg2 = Background::factory()->create(['name' => 'Charlatan']);
+        $bg2 = Background::factory()->create();
         $bg2->sources()->create(['source_id' => $source->id, 'pages' => '128']);
 
         // Valid sortable columns (no timestamps - models use BaseModel with $timestamps = false)
@@ -45,8 +45,8 @@ class BackgroundIndexRequestTest extends TestCase
     {
         $source = $this->getSource('PHB');
 
-        // Create a background to test against
-        $bg = Background::factory()->create(['name' => 'Acolyte']);
+        // Create a background to test against (use factory-generated unique name)
+        $bg = Background::factory()->create();
         $bg->sources()->create(['source_id' => $source->id, 'pages' => '127']);
 
         // Valid pagination
@@ -74,12 +74,12 @@ class BackgroundIndexRequestTest extends TestCase
     {
         $source = $this->getSource('PHB');
 
-        // Create a background to test against
-        $bg = Background::factory()->create(['name' => 'Acolyte']);
+        // Create a background to test against (use factory-generated unique name)
+        $bg = Background::factory()->create();
         $bg->sources()->create(['source_id' => $source->id, 'pages' => '127']);
 
-        // Valid search string
-        $response = $this->getJson('/api/v1/backgrounds?q=Acolyte');
+        // Valid search string (use created background's name)
+        $response = $this->getJson('/api/v1/backgrounds?q='.urlencode($bg->name));
         $response->assertStatus(200);
 
         // Search string too short (min 2)
@@ -99,12 +99,12 @@ class BackgroundIndexRequestTest extends TestCase
     {
         $source = $this->getSource('PHB');
 
-        // Create a background to test against
-        $bg = Background::factory()->create(['name' => 'Acolyte']);
+        // Create a background to test against (use factory-generated unique name)
+        $bg = Background::factory()->create();
         $bg->sources()->create(['source_id' => $source->id, 'pages' => '127']);
 
-        // Valid filter string
-        $response = $this->getJson('/api/v1/backgrounds?filter=name="Acolyte"');
+        // Valid filter string (use created background's name)
+        $response = $this->getJson('/api/v1/backgrounds?filter=name="'.urlencode($bg->name).'"');
         $response->assertStatus(200);
 
         // Filter string too long (max 1000)

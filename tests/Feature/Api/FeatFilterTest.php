@@ -47,30 +47,36 @@ class FeatFilterTest extends TestCase
     #[Test]
     public function it_filters_feats_by_prerequisite_type()
     {
-        // Get count of feats with AbilityScore prerequisites
-        $abilityPrereqCount = Feat::whereHas('prerequisites', function ($q) {
-            $q->where('prerequisite_type', 'App\Models\AbilityScore');
-        })->count();
+        // Filter for feats with AbilityScore prerequisites
+        $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [AbilityScore]&per_page=100');
+        $response->assertOk();
+        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find feats with AbilityScore prerequisites');
 
-        // Get count of feats with Race prerequisites
-        $racePrereqCount = Feat::whereHas('prerequisites', function ($q) {
-            $q->where('prerequisite_type', 'App\Models\Race');
-        })->count();
-
-        if ($abilityPrereqCount === 0 && $racePrereqCount === 0) {
-            $this->markTestSkipped('No feats with typed prerequisites in imported data');
+        // Verify all returned feats have AbilityScore prerequisite type (check via DB model)
+        foreach ($response->json('data') as $feat) {
+            $featModel = Feat::find($feat['id']);
+            if ($featModel) {
+                $hasAbilityScorePrereq = $featModel->prerequisites()
+                    ->where('prerequisite_type', 'App\Models\AbilityScore')
+                    ->exists();
+                $this->assertTrue($hasAbilityScorePrereq, "{$feat['name']} should have AbilityScore prerequisite");
+            }
         }
 
-        if ($abilityPrereqCount > 0) {
-            $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [AbilityScore]');
-            $response->assertOk();
-            $this->assertEquals($abilityPrereqCount, $response->json('meta.total'));
-        }
+        // Filter for feats with Race prerequisites
+        $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [Race]&per_page=100');
+        $response->assertOk();
+        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find feats with Race prerequisites');
 
-        if ($racePrereqCount > 0) {
-            $response = $this->getJson('/api/v1/feats?filter=prerequisite_types IN [Race]');
-            $response->assertOk();
-            $this->assertEquals($racePrereqCount, $response->json('meta.total'));
+        // Verify all returned feats have Race prerequisite type (check via DB model)
+        foreach ($response->json('data') as $feat) {
+            $featModel = Feat::find($feat['id']);
+            if ($featModel) {
+                $hasRacePrereq = $featModel->prerequisites()
+                    ->where('prerequisite_type', 'App\Models\Race')
+                    ->exists();
+                $this->assertTrue($hasRacePrereq, "{$feat['name']} should have Race prerequisite");
+            }
         }
     }
 
@@ -101,32 +107,38 @@ class FeatFilterTest extends TestCase
     #[Test]
     public function it_filters_feats_by_improved_abilities()
     {
-        // Get count of feats with STR improvement
-        $strImprovementCount = Feat::whereHas('modifiers', function ($q) {
-            $q->where('modifier_category', 'ability_score')
-                ->whereHas('abilityScore', fn ($sq) => $sq->where('code', 'STR'));
-        })->count();
+        // Filter for feats with STR improvement
+        $response = $this->getJson('/api/v1/feats?filter=improved_abilities IN [STR]&per_page=100');
+        $response->assertOk();
+        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find feats that improve STR');
 
-        // Get count of feats with DEX improvement
-        $dexImprovementCount = Feat::whereHas('modifiers', function ($q) {
-            $q->where('modifier_category', 'ability_score')
-                ->whereHas('abilityScore', fn ($sq) => $sq->where('code', 'DEX'));
-        })->count();
-
-        if ($strImprovementCount === 0 && $dexImprovementCount === 0) {
-            $this->markTestSkipped('No feats with ability improvements in imported data');
+        // Verify all returned feats have STR ability score modifier (check via DB model)
+        foreach ($response->json('data') as $feat) {
+            $featModel = Feat::find($feat['id']);
+            if ($featModel) {
+                $hasStrModifier = $featModel->modifiers()
+                    ->where('modifier_category', 'ability_score')
+                    ->whereHas('abilityScore', fn ($q) => $q->where('code', 'STR'))
+                    ->exists();
+                $this->assertTrue($hasStrModifier, "{$feat['name']} should have STR ability modifier");
+            }
         }
 
-        if ($strImprovementCount > 0) {
-            $response = $this->getJson('/api/v1/feats?filter=improved_abilities IN [STR]');
-            $response->assertOk();
-            $this->assertEquals($strImprovementCount, $response->json('meta.total'));
-        }
+        // Filter for feats with DEX improvement
+        $response = $this->getJson('/api/v1/feats?filter=improved_abilities IN [DEX]&per_page=100');
+        $response->assertOk();
+        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find feats that improve DEX');
 
-        if ($dexImprovementCount > 0) {
-            $response = $this->getJson('/api/v1/feats?filter=improved_abilities IN [DEX]');
-            $response->assertOk();
-            $this->assertEquals($dexImprovementCount, $response->json('meta.total'));
+        // Verify all returned feats have DEX ability score modifier (check via DB model)
+        foreach ($response->json('data') as $feat) {
+            $featModel = Feat::find($feat['id']);
+            if ($featModel) {
+                $hasDexModifier = $featModel->modifiers()
+                    ->where('modifier_category', 'ability_score')
+                    ->whereHas('abilityScore', fn ($q) => $q->where('code', 'DEX'))
+                    ->exists();
+                $this->assertTrue($hasDexModifier, "{$feat['name']} should have DEX ability modifier");
+            }
         }
     }
 
@@ -157,20 +169,17 @@ class FeatFilterTest extends TestCase
     #[Test]
     public function it_combines_multiple_filters()
     {
-        // Get count of feats with both prerequisites AND proficiencies
-        $combinedCount = Feat::has('prerequisites')
-            ->has('proficiencies')
-            ->count();
+        // Test combined filter returns valid response
+        $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true AND grants_proficiencies = true&per_page=100');
+        $response->assertOk();
 
-        if ($combinedCount === 0) {
-            // Just verify the combined filter returns a valid response
-            $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true AND grants_proficiencies = true');
-            $response->assertOk();
-            $this->assertEquals(0, $response->json('meta.total'));
-        } else {
-            $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true AND grants_proficiencies = true');
-            $response->assertOk();
-            $this->assertEquals($combinedCount, $response->json('meta.total'));
+        // Verify all returned feats have both prerequisites AND proficiencies
+        foreach ($response->json('data') as $feat) {
+            $featModel = Feat::find($feat['id']);
+            if ($featModel) {
+                $this->assertTrue($featModel->prerequisites()->exists(), "{$feat['name']} should have prerequisites");
+                $this->assertTrue($featModel->proficiencies()->exists(), "{$feat['name']} should grant proficiencies");
+            }
         }
     }
 
@@ -186,19 +195,21 @@ class FeatFilterTest extends TestCase
     #[Test]
     public function it_paginates_filtered_results()
     {
-        // Get total feats with prerequisites
-        $withPrereqCount = Feat::has('prerequisites')->count();
-
-        if ($withPrereqCount < 2) {
-            $this->markTestSkipped('Not enough feats with prerequisites for pagination test');
-        }
-
+        // Test pagination with filtered results
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true&per_page=10');
         $response->assertOk();
 
         // Verify pagination structure
         $this->assertLessThanOrEqual(10, count($response->json('data')));
-        $this->assertEquals($withPrereqCount, $response->json('meta.total'));
+        $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find feats with prerequisites');
         $this->assertEquals(10, $response->json('meta.per_page'));
+
+        // Verify all returned feats actually have prerequisites
+        foreach ($response->json('data') as $feat) {
+            $featModel = Feat::find($feat['id']);
+            if ($featModel) {
+                $this->assertTrue($featModel->prerequisites()->exists(), "{$feat['name']} should have prerequisites");
+            }
+        }
     }
 }

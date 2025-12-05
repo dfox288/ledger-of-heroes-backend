@@ -59,10 +59,11 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
 
         $response->assertOk();
 
-        // Verify all returned classes have hit_die = 12
+        // Verify all returned classes have effective_hit_die = 12
+        // Note: Subclasses inherit hit_die from parent, so use effective_hit_die
         foreach ($response->json('data') as $class) {
             $classModel = CharacterClass::find($class['id']);
-            $this->assertEquals(12, $classModel->hit_die, "{$class['name']} should have hit_die = 12");
+            $this->assertEquals(12, $classModel->effective_hit_die, "{$class['name']} should have effective_hit_die = 12");
         }
     }
 
@@ -73,10 +74,11 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
 
         $response->assertOk();
 
-        // Verify all returned classes have hit_die = 10
+        // Verify all returned classes have effective_hit_die = 10
+        // Note: Subclasses inherit hit_die from parent, so use effective_hit_die
         foreach ($response->json('data') as $class) {
             $classModel = CharacterClass::find($class['id']);
-            $this->assertEquals(10, $classModel->hit_die, "{$class['name']} should have hit_die = 10");
+            $this->assertEquals(10, $classModel->effective_hit_die, "{$class['name']} should have effective_hit_die = 10");
         }
     }
 
@@ -88,11 +90,12 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
 
         $response->assertOk();
 
-        // Verify all returned classes have hit_die = 10 AND are spellcasters
+        // Verify all returned classes have effective_hit_die = 10 AND are spellcasters
+        // Note: Use effective values which handle inheritance for subclasses
         foreach ($response->json('data') as $class) {
             $classModel = CharacterClass::find($class['id']);
-            $this->assertEquals(10, $classModel->hit_die, "{$class['name']} should have hit_die = 10");
-            $this->assertNotNull($classModel->spellcasting_ability_id, "{$class['name']} should be a spellcaster");
+            $this->assertEquals(10, $classModel->effective_hit_die, "{$class['name']} should have effective_hit_die = 10");
+            $this->assertNotNull($classModel->effective_spellcasting_ability, "{$class['name']} should be a spellcaster");
         }
     }
 
@@ -104,11 +107,12 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
 
         $response->assertOk();
 
-        // Verify all returned classes have hit_die = 12 AND are not spellcasters
+        // Verify all returned classes have effective_hit_die = 12 AND are not spellcasters
+        // Note: Use effective values which handle inheritance for subclasses
         foreach ($response->json('data') as $class) {
             $classModel = CharacterClass::find($class['id']);
-            $this->assertEquals(12, $classModel->hit_die, "{$class['name']} should have hit_die = 12");
-            $this->assertNull($classModel->spellcasting_ability_id, "{$class['name']} should not be a spellcaster");
+            $this->assertEquals(12, $classModel->effective_hit_die, "{$class['name']} should have effective_hit_die = 12");
+            $this->assertNull($classModel->effective_spellcasting_ability, "{$class['name']} should not be a spellcaster");
         }
     }
 

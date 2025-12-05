@@ -429,12 +429,15 @@ class CharacterClass extends BaseModel
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'hit_die' => $this->hit_die,
+            // Use effective_hit_die to inherit from parent for subclasses
+            // This ensures filtering matches API response (which uses effective_hit_die)
+            'hit_die' => $this->effective_hit_die,
             'description' => $this->description,
             'archetype' => $this->archetype,
             'primary_ability' => $this->primary_ability,
-            'spellcasting_ability' => $this->spellcastingAbility?->code,
-            'is_spellcaster' => $this->spellcasting_ability_id !== null,
+            // Use effective_spellcasting_ability to inherit from parent for subclasses
+            'spellcasting_ability' => $this->effective_spellcasting_ability?->code,
+            'is_spellcaster' => $this->effective_spellcasting_ability !== null,
             'sources' => $this->getSearchableSourceNames(),
             'source_codes' => $this->getSearchableSourceCodes(),
             'is_subclass' => $this->parent_class_id !== null,

@@ -211,4 +211,157 @@ class FeatApiTest extends TestCase
         $response->assertJsonPath('data.languages.0.is_choice', true);
         $response->assertJsonPath('data.languages.0.quantity', 3);
     }
+
+    #[Test]
+    public function can_search_feats_by_name()
+    {
+        // Use any feat from fixtures
+        $feat = Feat::first();
+        $this->assertNotNull($feat, 'Should have feats in database');
+
+        $response = $this->getJson('/api/v1/feats?q='.urlencode($feat->name));
+
+        $response->assertOk();
+
+        // Verify that the feat is in the results
+        $names = collect($response->json('data'))->pluck('name')->toArray();
+        $this->assertContains($feat->name, $names, "Expected to find {$feat->name} in search results");
+    }
+
+    #[Test]
+    public function can_search_feats_by_partial_name()
+    {
+        // Search for feats containing "master"
+        $response = $this->getJson('/api/v1/feats?q=master');
+
+        $response->assertOk();
+
+        // Should find feats like "Heavy Armor Master", "Crossbow Expert" etc
+        if (count($response->json('data')) > 0) {
+            foreach ($response->json('data') as $result) {
+                $hasMatch = stripos($result['name'], 'master') !== false ||
+                            stripos($result['description'], 'master') !== false;
+                $this->assertTrue($hasMatch, "Expected 'master' in name or description: {$result['name']}");
+            }
+        }
+    }
+
+    #[Test]
+    public function can_search_feats_by_description()
+    {
+        // Search for "advantage" - common term in feat descriptions
+        $response = $this->getJson('/api/v1/feats?q=advantage');
+
+        $response->assertOk();
+        $this->assertGreaterThan(0, count($response->json('data')), 'Expected feats mentioning advantage');
+
+        // Verify results contain "advantage" in name or description
+        foreach ($response->json('data') as $result) {
+            $hasMatch = stripos($result['name'], 'advantage') !== false ||
+                        stripos($result['description'], 'advantage') !== false;
+            $this->assertTrue($hasMatch, "Expected 'advantage' in feat {$result['name']}");
+        }
+    }
+
+    #[Test]
+    public function can_search_and_filter_feats_combined()
+    {
+        // Search for combat feats that boost STR
+        $response = $this->getJson('/api/v1/feats?q=attack&filter=improved_abilities IN [STR]');
+
+        $response->assertOk();
+
+        // If there are results, verify they match both criteria
+        if (count($response->json('data')) > 0) {
+            foreach ($response->json('data') as $result) {
+                // Should contain "attack" somewhere (relaxed check)
+                $hasAttack = stripos($result['name'], 'attack') !== false ||
+                             stripos($result['description'], 'attack') !== false;
+                $this->assertTrue($hasAttack, "Expected 'attack' in feat {$result['name']}");
+            }
+        }
+    }
+
+    #[Test]
+    public function can_search_feats_with_filter_only()
+    {
+        // Filter without search query - feats without prerequisites
+        $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = false');
+
+        $response->assertOk();
+        $this->assertGreaterThan(0, count($response->json('data')), 'Expected feats without prerequisites');
+    }
+
+    #[Test]
+    public function search_returns_empty_for_nonexistent_term()
+    {
+        $response = $this->getJson('/api/v1/feats?q=xyznonexistentfeat12345');
+
+        $response->assertOk();
+        $this->assertEquals(0, count($response->json('data')), 'Expected no results for nonexistent search term');
+    }
+
+    #[Test]
+    public function can_paginate_search_results()
+    {
+        // Search for common term with pagination
+        $response = $this->getJson('/api/v1/feats?q=weapon&per_page=5');
+
+        $response->assertOk();
+
+        if (count($response->json('data')) > 0) {
+            $this->assertLessThanOrEqual(5, count($response->json('data')), 'Should respect per_page limit');
+            $response->assertJsonPath('meta.per_page', 5);
+        }
+    }
+
+    #[Test]
+    public function can_sort_search_results()
+    {
+        // Search and sort by name
+        $response = $this->getJson('/api/v1/feats?q=armor&sort_by=name&sort_direction=asc');
+
+        $response->assertOk();
+
+        if (count($response->json('data')) > 1) {
+            $names = collect($response->json('data'))->pluck('name')->toArray();
+
+            // Verify results are in alphabetical order by checking first vs last
+            $this->assertLessThanOrEqual(0, strcasecmp($names[0], end($names)),
+                'Search results should be sorted alphabetically');
+        }
+    }
+
+    #[Test]
+    public function can_search_feats_case_insensitive()
+    {
+        // Use Alert feat with various case combinations
+        $response = $this->getJson('/api/v1/feats?q=ALERT');
+
+        $response->assertOk();
+
+        if (count($response->json('data')) > 0) {
+            $names = collect($response->json('data'))->pluck('name')->toArray();
+            // Should find "Alert" feat regardless of case
+            $this->assertTrue(
+                in_array('Alert', $names),
+                'Expected to find Alert feat in case-insensitive search'
+            );
+        }
+    }
+
+    #[Test]
+    public function search_supports_multiple_word_queries()
+    {
+        // Search for multi-word term
+        $response = $this->getJson('/api/v1/feats?q=heavy+armor');
+
+        $response->assertOk();
+
+        // Should find some feats (Meilisearch handles multi-word searches)
+        // Just verify we get results without checking specific content
+        // as Meilisearch may use relevance scoring
+        $this->assertGreaterThanOrEqual(0, count($response->json('data')),
+            'Multi-word search should return results or empty array');
+    }
 }

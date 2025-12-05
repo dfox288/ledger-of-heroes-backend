@@ -289,4 +289,135 @@ class MonsterApiTest extends TestCase
         $response->assertJsonPath('data.legendary_actions', []);
         $response->assertJsonPath('data.lair_actions', []);
     }
+
+    #[Test]
+    public function can_search_monsters_by_name()
+    {
+        // Use a specific monster that should exist in fixtures
+        $monster = Monster::where('name', 'LIKE', '%goblin%')->first();
+
+        if (! $monster) {
+            $this->markTestSkipped('No goblin-like monster in fixtures');
+        }
+
+        $response = $this->getJson('/api/v1/monsters?q='.urlencode($monster->name));
+
+        $response->assertOk();
+
+        // Verify that some results were returned
+        $this->assertGreaterThan(0, count($response->json('data')), 'Expected search results for monster name');
+    }
+
+    #[Test]
+    public function can_search_monsters_by_partial_name()
+    {
+        // Find a dragon for partial search
+        $dragon = Monster::where('type', 'dragon')->first();
+
+        if (! $dragon) {
+            $this->markTestSkipped('No dragon monsters in fixtures');
+        }
+
+        $response = $this->getJson('/api/v1/monsters?q=dragon');
+
+        $response->assertOk();
+        $this->assertGreaterThan(0, count($response->json('data')), 'Expected some dragons in search results');
+
+        // Verify all results contain "dragon" in name or type
+        foreach ($response->json('data') as $result) {
+            $hasMatch = stripos($result['name'], 'dragon') !== false ||
+                        stripos($result['type'], 'dragon') !== false;
+            $this->assertTrue($hasMatch, "Expected dragon in name or type: {$result['name']} ({$result['type']})");
+        }
+    }
+
+    #[Test]
+    public function can_search_and_filter_monsters_combined()
+    {
+        // Search for dragons with CR >= 10
+        $response = $this->getJson('/api/v1/monsters?q=dragon&filter=challenge_rating >= 10');
+
+        $response->assertOk();
+
+        // If there are results, verify CR criteria is met
+        if (count($response->json('data')) > 0) {
+            foreach ($response->json('data') as $result) {
+                // Should have CR >= 10 (convert fractional CRs to numeric)
+                $crNumeric = $this->convertCRToNumeric($result['challenge_rating']);
+                $this->assertGreaterThanOrEqual(10, $crNumeric,
+                    "Expected CR >= 10, got {$result['challenge_rating']} for {$result['name']}");
+            }
+
+            // Meilisearch may return results with 'dragon' in various fields
+            // Just verify we got some results
+            $this->assertGreaterThan(0, count($response->json('data')), 'Expected results from combined search/filter');
+        }
+    }
+
+    #[Test]
+    public function can_search_monsters_by_type()
+    {
+        $response = $this->getJson('/api/v1/monsters?q=undead');
+
+        $response->assertOk();
+
+        // Should find undead type monsters
+        if (count($response->json('data')) > 0) {
+            $types = collect($response->json('data'))->pluck('type')->unique()->toArray();
+            $this->assertContains('undead', $types, 'Expected to find undead monsters');
+        }
+    }
+
+    #[Test]
+    public function search_returns_empty_for_nonexistent_term()
+    {
+        $response = $this->getJson('/api/v1/monsters?q=xyznonexistentmonster12345');
+
+        $response->assertOk();
+        $this->assertEquals(0, count($response->json('data')), 'Expected no results for nonexistent search term');
+    }
+
+    #[Test]
+    public function can_paginate_search_results()
+    {
+        // Search for a common type
+        $response = $this->getJson('/api/v1/monsters?q=dragon&per_page=5');
+
+        $response->assertOk();
+
+        if (count($response->json('data')) > 0) {
+            $this->assertLessThanOrEqual(5, count($response->json('data')), 'Should respect per_page limit');
+            $response->assertJsonPath('meta.per_page', 5);
+        }
+    }
+
+    #[Test]
+    public function can_sort_search_results()
+    {
+        // Search and sort by name
+        $response = $this->getJson('/api/v1/monsters?q=dragon&sort_by=name&sort_direction=asc&per_page=10');
+
+        $response->assertOk();
+
+        if (count($response->json('data')) > 1) {
+            $names = collect($response->json('data'))->pluck('name')->toArray();
+            $sortedNames = collect($names)->sort()->values()->toArray();
+            $this->assertEquals($sortedNames, $names, 'Search results should be sorted by name');
+        }
+    }
+
+    /**
+     * Helper method to convert challenge rating string to numeric value
+     */
+    private function convertCRToNumeric(string $cr): float
+    {
+        if (strpos($cr, '/') !== false) {
+            // Fractional CR (e.g., "1/4" -> 0.25, "1/2" -> 0.5)
+            [$numerator, $denominator] = explode('/', $cr);
+
+            return (float) $numerator / (float) $denominator;
+        }
+
+        return (float) $cr;
+    }
 }

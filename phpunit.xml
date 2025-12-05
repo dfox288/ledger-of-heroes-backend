@@ -63,6 +63,7 @@
             <exclude>tests/Feature/Requests/SourceIndexRequestTest.php</exclude>
             <exclude>tests/Feature/Requests/SpellSchoolIndexRequestTest.php</exclude>
             <exclude>tests/Feature/Requests/ProficiencyTypeIndexRequestTest.php</exclude>
+            <file>tests/Feature/Api/AbilityScoreApiTest.php</file>
             <file>tests/Feature/Api/AbilityScoreReverseRelationshipsApiTest.php</file>
             <file>tests/Feature/Api/AlignmentApiTest.php</file>
             <file>tests/Feature/Api/ArmorTypeApiTest.php</file>
@@ -78,6 +79,7 @@
             <file>tests/Feature/Api/ProficiencyTypeApiTest.php</file>
             <file>tests/Feature/Api/ProficiencyTypeReverseRelationshipsApiTest.php</file>
             <file>tests/Feature/Api/RarityApiTest.php</file>
+            <file>tests/Feature/Api/SizeApiTest.php</file>
             <file>tests/Feature/Api/SizeReverseRelationshipsApiTest.php</file>
             <file>tests/Feature/Api/SkillApiTest.php</file>
             <file>tests/Feature/Api/SourceApiTest.php</file>
@@ -146,6 +148,8 @@
             <file>tests/Feature/Requests/SourceIndexRequestTest.php</file>
             <file>tests/Feature/Requests/SpellSchoolIndexRequestTest.php</file>
             <file>tests/Feature/Requests/ProficiencyTypeIndexRequestTest.php</file>
+            <!-- Search Service tests -->
+            <directory>tests/Feature/Services</directory>
         </testsuite>
 
         <!-- Importers: XML import command tests (approx 90s) -->

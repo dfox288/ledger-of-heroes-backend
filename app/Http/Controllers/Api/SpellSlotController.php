@@ -21,12 +21,19 @@ class SpellSlotController extends Controller
     /**
      * Get spell slots for a character
      *
+     * @deprecated Use GET /api/v1/characters/{id}/spell-slots instead
+     *
      * Returns spell slots grouped by type (standard and pact_magic), with each
      * spell level showing max, used, and available counts.
      *
+     * **Deprecation Notice:**
+     * This endpoint is deprecated and will be removed on 2026-06-01.
+     * Use GET /api/v1/characters/{id}/spell-slots for consolidated slot data
+     * that includes both slot maximums and tracked usage.
+     *
      * **Examples:**
      * ```
-     * GET /api/v1/characters/1/spell-slots
+     * GET /api/v1/characters/1/spell-slots/tracked
      * ```
      *
      * **Response:**
@@ -44,11 +51,17 @@ class SpellSlotController extends Controller
      * }
      * ```
      */
-    public function index(Character $character): SpellSlotsResource
+    public function index(Character $character): JsonResponse
     {
         $slots = $this->spellSlotService->getSlots($character);
 
-        return new SpellSlotsResource($slots);
+        return (new SpellSlotsResource($slots))
+            ->response()
+            ->withHeaders([
+                'Deprecation' => 'true',
+                'Sunset' => 'Sat, 01 Jun 2026 00:00:00 GMT',
+                'Link' => '</api/v1/characters/'.$character->id.'/spell-slots>; rel="successor-version"',
+            ]);
     }
 
     /**
@@ -56,6 +69,8 @@ class SpellSlotController extends Controller
      *
      * Expends one spell slot of the specified level and type. Used when casting
      * a spell that consumes a slot.
+     *
+     * @x-flow gameplay-combat
      *
      * **Examples:**
      * ```
@@ -80,7 +95,6 @@ class SpellSlotController extends Controller
      *
      * **Spell Levels (1-9):**
      * Cantrips (level 0) do not consume spell slots and cannot be specified here.
-     *
      *
      * @response 200 SpellSlotsResource with updated slot counts
      * @response 422 array{message: string, errors: array{spell_level: string[]}} No slots available at that level

@@ -11,7 +11,8 @@ use Illuminate\Support\Collection;
 class SpellManagerService
 {
     public function __construct(
-        private CharacterStatCalculator $statCalculator
+        private CharacterStatCalculator $statCalculator,
+        private SpellSlotService $spellSlotService
     ) {}
 
     /**
@@ -166,6 +167,12 @@ class SpellManagerService
 
     /**
      * Get spell slot information for the character.
+     *
+     * Returns consolidated slot data with tracked usage:
+     * - slots: keyed by level with total/spent/available
+     * - pact_magic: warlock slots with level/total/spent/available
+     * - preparation_limit: max prepared spells for prepared casters
+     * - prepared_count: current number of prepared spells
      */
     public function getSpellSlots(Character $character): array
     {
@@ -174,7 +181,9 @@ class SpellManagerService
         if (! $class) {
             return [
                 'slots' => [],
+                'pact_magic' => null,
                 'preparation_limit' => null,
+                'prepared_count' => 0,
             ];
         }
 
@@ -182,9 +191,73 @@ class SpellManagerService
             ? strtolower($class->parentClass->name ?? '')
             : strtolower($class->name);
 
+        // Get calculated slots from stat calculator
+        $calculatedSlots = $this->statCalculator->getSpellSlots($baseClassName, $character->total_level);
+
+        // Get tracked slot usage from database
+        $trackedSlots = $this->spellSlotService->getSlots($character);
+
+        // Merge calculated slots with tracked usage
+        $consolidatedSlots = $this->mergeSlotData($calculatedSlots, $trackedSlots, $baseClassName);
+
         return [
-            'slots' => $this->statCalculator->getSpellSlots($baseClassName, $character->total_level),
+            'slots' => $consolidatedSlots['slots'],
+            'pact_magic' => $consolidatedSlots['pact_magic'],
             'preparation_limit' => $this->getPreparationLimit($character),
+            'prepared_count' => $this->countPreparedSpells($character),
+        ];
+    }
+
+    /**
+     * Merge calculated slot maximums with tracked usage data.
+     */
+    private function mergeSlotData(array $calculatedSlots, array $trackedSlots, string $baseClassName): array
+    {
+        $isWarlock = strtolower($baseClassName) === 'warlock';
+
+        if ($isWarlock) {
+            // Warlock uses pact magic
+            $pactMagicSlot = null;
+
+            if (! empty($calculatedSlots)) {
+                // Warlock slots are keyed by level (e.g., [2 => 2] means 2 slots of level 2)
+                $slotLevel = (int) array_key_first($calculatedSlots);
+                $maxSlots = $calculatedSlots[$slotLevel];
+
+                // Get tracked usage for this level
+                $usedSlots = $trackedSlots['pact_magic'][$slotLevel]['used'] ?? 0;
+
+                $pactMagicSlot = [
+                    'level' => $slotLevel,
+                    'total' => $maxSlots,
+                    'spent' => $usedSlots,
+                    'available' => max(0, $maxSlots - $usedSlots),
+                ];
+            }
+
+            return [
+                'slots' => [],
+                'pact_magic' => $pactMagicSlot,
+            ];
+        }
+
+        // Standard spellcasters
+        $consolidatedSlots = [];
+
+        foreach ($calculatedSlots as $level => $maxSlots) {
+            $usedSlots = $trackedSlots['standard'][$level]['used'] ?? 0;
+
+            // Use string keys to preserve level numbers in JSON
+            $consolidatedSlots[(string) $level] = [
+                'total' => $maxSlots,
+                'spent' => $usedSlots,
+                'available' => max(0, $maxSlots - $usedSlots),
+            ];
+        }
+
+        return [
+            'slots' => $consolidatedSlots,
+            'pact_magic' => null,
         ];
     }
 

@@ -53,6 +53,8 @@ class HitDiceController extends Controller
      * to heal. The character rolls the hit dice and adds their Constitution
      * modifier to determine HP recovered (client-side calculation).
      *
+     * @x-flow gameplay-rest
+     *
      * **Examples:**
      * ```
      * POST /api/v1/characters/1/hit-dice/spend

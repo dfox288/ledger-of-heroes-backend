@@ -201,16 +201,49 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Character Builder API
+    | Character Builder API - Flow Documentation
     |--------------------------------------------------------------------------
     |
-    | Character creation and management endpoints for the D&D 5e Character Builder.
-    | Supports wizard-style creation where fields can be filled in any order.
+    | CHARACTER CREATION FLOW (Wizard):
+    | 1. POST /characters                      - Create character shell
+    | 2. PATCH /characters/{id}                - Set race, background, ability scores
+    | 3. POST /characters/{id}/classes         - Add primary class
+    | 4. GET /characters/{id}/proficiency-choices
+    | 5. POST /characters/{id}/proficiency-choices  - Make proficiency selections
+    | 6. GET /characters/{id}/language-choices
+    | 7. POST /characters/{id}/language-choices     - Make language selections
+    | 8. GET /characters/{id}/available-spells?max_level=1
+    | 9. POST /characters/{id}/spells          - Learn starting spells
+    | 10. POST /characters/{id}/features/populate   - Apply features from sources
+    | 11. GET /characters/{id}                 - Verify creation complete
+    |
+    | GAMEPLAY FLOW:
+    |
+    | Combat:
+    | - POST /characters/{id}/conditions       - Apply condition
+    | - DELETE /characters/{id}/conditions/{slug}  - Remove condition
+    | - POST /characters/{id}/spell-slots/use  - Cast spell (use slot)
+    | - POST /characters/{id}/death-save       - Death saving throw
+    | - POST /characters/{id}/stabilize        - Stabilize dying character
+    |
+    | Rest:
+    | - POST /characters/{id}/short-rest       - Short rest
+    | - POST /characters/{id}/hit-dice/spend   - Heal during short rest
+    | - POST /characters/{id}/long-rest        - Long rest (full reset)
+    |
+    | Level Up:
+    | - POST /characters/{id}/classes/{class}/level-up  - Gain level in class
+    | - PUT /characters/{id}/classes/{class}/subclass   - Choose subclass (level 3)
+    | - POST /characters/{id}/asi-choice       - ASI or feat selection
+    | - GET /characters/{id}/optional-feature-choices   - Check new choices
+    | - POST /characters/{id}/optional-features - Select invocations, etc.
     |
     */
     Route::apiResource('characters', CharacterController::class);
     Route::get('characters/{character}/stats', [CharacterController::class, 'stats'])
         ->name('characters.stats');
+    Route::get('characters/{character}/summary', [CharacterController::class, 'summary'])
+        ->name('characters.summary');
 
     // Character Spell Management
     Route::prefix('characters/{character}')->name('characters.')->group(function () {
@@ -220,11 +253,11 @@ Route::prefix('v1')->group(function () {
             ->name('spells.available');
         Route::post('spells', [\App\Http\Controllers\Api\CharacterSpellController::class, 'store'])
             ->name('spells.store');
-        Route::delete('spells/{spell}', [\App\Http\Controllers\Api\CharacterSpellController::class, 'destroy'])
+        Route::delete('spells/{spellIdOrSlug}', [\App\Http\Controllers\Api\CharacterSpellController::class, 'destroy'])
             ->name('spells.destroy');
-        Route::patch('spells/{spell}/prepare', [\App\Http\Controllers\Api\CharacterSpellController::class, 'prepare'])
+        Route::patch('spells/{spellIdOrSlug}/prepare', [\App\Http\Controllers\Api\CharacterSpellController::class, 'prepare'])
             ->name('spells.prepare');
-        Route::patch('spells/{spell}/unprepare', [\App\Http\Controllers\Api\CharacterSpellController::class, 'unprepare'])
+        Route::patch('spells/{spellIdOrSlug}/unprepare', [\App\Http\Controllers\Api\CharacterSpellController::class, 'unprepare'])
             ->name('spells.unprepare');
         Route::get('spell-slots', [\App\Http\Controllers\Api\CharacterSpellController::class, 'slots'])
             ->name('spell-slots');
@@ -272,6 +305,7 @@ Route::prefix('v1')->group(function () {
             ->name('features.clear');
 
         // Character Level-Up
+        // @deprecated - Use /classes/{class}/level-up instead
         Route::post('level-up', \App\Http\Controllers\Api\CharacterLevelUpController::class)
             ->name('level-up');
 
@@ -284,11 +318,11 @@ Route::prefix('v1')->group(function () {
             ->name('classes.index');
         Route::post('classes', [\App\Http\Controllers\Api\CharacterClassController::class, 'store'])
             ->name('classes.store');
-        Route::delete('classes/{class}', [\App\Http\Controllers\Api\CharacterClassController::class, 'destroy'])
+        Route::delete('classes/{classIdOrSlug}', [\App\Http\Controllers\Api\CharacterClassController::class, 'destroy'])
             ->name('classes.destroy');
-        Route::post('classes/{class}/level-up', [\App\Http\Controllers\Api\CharacterClassController::class, 'levelUp'])
+        Route::post('classes/{classIdOrSlug}/level-up', [\App\Http\Controllers\Api\CharacterClassController::class, 'levelUp'])
             ->name('classes.level-up');
-        Route::put('classes/{class}/subclass', [\App\Http\Controllers\Api\CharacterClassController::class, 'setSubclass'])
+        Route::put('classes/{classIdOrSlug}/subclass', [\App\Http\Controllers\Api\CharacterClassController::class, 'setSubclass'])
             ->name('classes.set-subclass');
 
         // Character Notes (Personality traits, ideals, bonds, flaws, backstory, custom notes)
@@ -332,7 +366,7 @@ Route::prefix('v1')->group(function () {
             ->name('optional-features.choices');
         Route::post('optional-features', [\App\Http\Controllers\Api\CharacterOptionalFeatureController::class, 'store'])
             ->name('optional-features.store');
-        Route::delete('optional-features/{optionalFeature}', [\App\Http\Controllers\Api\CharacterOptionalFeatureController::class, 'destroy'])
+        Route::delete('optional-features/{optionalFeatureIdOrSlug}', [\App\Http\Controllers\Api\CharacterOptionalFeatureController::class, 'destroy'])
             ->name('optional-features.destroy');
 
         // Conditions

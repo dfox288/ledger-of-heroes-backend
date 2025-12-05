@@ -71,6 +71,10 @@ class CharacterProficiencyController extends Controller
      * Returns proficiency choices that need user input (e.g., "pick 2 skills from this list").
      * Organized by source (class, race, background) and choice group.
      *
+     * @x-flow character-creation
+     *
+     * @x-flow-step 4
+     *
      * **Examples:**
      * ```
      * GET /api/v1/characters/1/proficiency-choices
@@ -133,6 +137,10 @@ class CharacterProficiencyController extends Controller
      * Make a proficiency choice.
      *
      * Submits the user's selection for a proficiency choice group.
+     *
+     * @x-flow character-creation
+     *
+     * @x-flow-step 5
      *
      * **Request Body:**
      * ```json
@@ -204,6 +212,10 @@ class CharacterProficiencyController extends Controller
      *
      * - Fixed proficiencies (armor, weapons, saving throws) are auto-populated
      * - Choice-based proficiencies (skills) require using the proficiency-choices endpoint
+     *
+     * @x-flow character-creation
+     *
+     * @x-flow-step 5
      *
      * **Examples:**
      * ```

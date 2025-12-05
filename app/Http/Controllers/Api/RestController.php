@@ -22,6 +22,8 @@ class RestController extends Controller
      * - Features with "resets on short rest" are reset
      * - Character can spend hit dice to heal (use the hit-dice/spend endpoint separately)
      *
+     * @x-flow gameplay-rest
+     *
      * **Examples:**
      * ```
      * POST /api/v1/characters/1/short-rest
@@ -53,6 +55,8 @@ class RestController extends Controller
      * - All spell slots reset (standard and pact magic)
      * - Death saves cleared
      * - All features reset (short rest, long rest, and dawn)
+     *
+     * @x-flow gameplay-rest
      *
      * **Examples:**
      * ```

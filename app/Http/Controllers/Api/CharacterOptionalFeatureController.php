@@ -146,6 +146,8 @@ class CharacterOptionalFeatureController extends Controller
      * based on their class counter values. This helps track if a character
      * has remaining maneuvers, invocations, metamagic, etc. to choose.
      *
+     * @x-flow gameplay-level-up
+     *
      * **Examples:**
      * ```
      * GET /api/v1/characters/1/optional-feature-choices
@@ -189,6 +191,8 @@ class CharacterOptionalFeatureController extends Controller
      * Adds an invocation, maneuver, metamagic, fighting style, etc. to the character.
      * Validates class eligibility and level requirements automatically.
      *
+     * @x-flow gameplay-level-up
+     *
      * **Examples:**
      * ```
      * POST /api/v1/characters/1/optional-features
@@ -221,7 +225,6 @@ class CharacterOptionalFeatureController extends Controller
      * - 422 if feature already selected: "This character has already selected this optional feature."
      * - 422 if level too low: "This feature requires level {N}. Character is level {M}."
      * - 422 if class ineligible: "This character does not have the required class or subclass for this feature."
-     *
      *
      * @response 201 CharacterOptionalFeatureResource
      * @response 404 array{message: string} Feature not found
@@ -257,10 +260,12 @@ class CharacterOptionalFeatureController extends Controller
      *
      * Used for retraining features (allowed by some class rules, typically at level-up).
      * For example, Battle Masters can swap one maneuver for another when they gain a level.
+     * Accepts either optional feature ID or slug.
      *
      * **Examples:**
      * ```
-     * DELETE /api/v1/characters/1/optional-features/123
+     * DELETE /api/v1/characters/1/optional-features/123                  # Remove by ID
+     * DELETE /api/v1/characters/1/optional-features/agonizing-blast      # Remove by slug
      * ```
      *
      * **Retraining Rules (by type):**
@@ -272,16 +277,20 @@ class CharacterOptionalFeatureController extends Controller
      * **Note:** This API allows any removal for flexibility. Implement retraining rules in your UI.
      *
      * @param  Character  $character  The character
-     * @param  int  $optionalFeatureId  ID of the optional feature to remove
+     * @param  string  $optionalFeatureIdOrSlug  ID or slug of the optional feature to remove
      * @return Response 204 on success
      *
      * @response 204 No content on success
-     * @response 404 array{message: string} Character does not have this optional feature selected
+     * @response 404 array{message: string} Character does not have this optional feature selected or feature not found
      */
-    public function destroy(Character $character, int $optionalFeatureId): Response
+    public function destroy(Character $character, string $optionalFeatureIdOrSlug): Response
     {
+        $optionalFeature = is_numeric($optionalFeatureIdOrSlug)
+            ? OptionalFeature::findOrFail($optionalFeatureIdOrSlug)
+            : OptionalFeature::where('slug', $optionalFeatureIdOrSlug)->firstOrFail();
+
         $deleted = $character->optionalFeatures()
-            ->where('optional_feature_id', $optionalFeatureId)
+            ->where('optional_feature_id', $optionalFeature->id)
             ->delete();
 
         if ($deleted === 0) {

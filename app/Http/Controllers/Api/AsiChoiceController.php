@@ -22,6 +22,8 @@ class AsiChoiceController extends Controller
      * - Take a feat (with prerequisite validation)
      * - Increase ability scores (+2 to one or +1 to two, max 20)
      *
+     * @x-flow gameplay-level-up
+     *
      * @group Character Builder
      *
      * @urlParam character integer required The character ID. Example: 1

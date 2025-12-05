@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\DTOs\CharacterStatsDTO;
+use App\DTOs\CharacterSummaryDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Character\CharacterIndexRequest;
 use App\Http\Requests\Character\CharacterShowRequest;
@@ -10,9 +11,14 @@ use App\Http\Requests\Character\CharacterStoreRequest;
 use App\Http\Requests\Character\CharacterUpdateRequest;
 use App\Http\Resources\CharacterResource;
 use App\Http\Resources\CharacterStatsResource;
+use App\Http\Resources\CharacterSummaryResource;
 use App\Models\Character;
 use App\Models\CharacterClassPivot;
+use App\Services\CharacterLanguageService;
+use App\Services\CharacterProficiencyService;
 use App\Services\CharacterStatCalculator;
+use App\Services\HitDiceService;
+use App\Services\SpellSlotService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
@@ -21,7 +27,11 @@ use Illuminate\Support\Facades\DB;
 class CharacterController extends Controller
 {
     public function __construct(
-        private CharacterStatCalculator $statCalculator
+        private CharacterStatCalculator $statCalculator,
+        private CharacterProficiencyService $proficiencyService,
+        private CharacterLanguageService $languageService,
+        private SpellSlotService $spellSlotService,
+        private HitDiceService $hitDiceService
     ) {}
 
     /**
@@ -55,6 +65,10 @@ class CharacterController extends Controller
      *
      * Creates a new character with the provided data. Supports wizard-style creation where only name is required,
      * and other fields can be filled in later via PATCH updates.
+     *
+     * @x-flow character-creation
+     *
+     * @x-flow-step 1
      *
      * **Examples:**
      * ```
@@ -138,6 +152,10 @@ class CharacterController extends Controller
      * Update a character
      *
      * Updates character fields. Supports partial updates (PATCH semantics).
+     *
+     * @x-flow character-creation
+     *
+     * @x-flow-step 2
      *
      * **Examples:**
      * ```
@@ -269,5 +287,38 @@ class CharacterController extends Controller
         );
 
         return new CharacterStatsResource($stats);
+    }
+
+    /**
+     * Get character summary overview
+     *
+     * Returns a comprehensive overview of character state including pending choices,
+     * resource states, combat state, and creation completeness.
+     *
+     * Use this endpoint to display a character dashboard or creation progress tracker.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/characters/1/summary
+     * ```
+     *
+     * **Response includes:**
+     * - Basic character info (id, name, level)
+     * - Pending choices (proficiencies, languages, spells, optional features, ASI)
+     * - Resources (hit points, hit dice, spell slots, feature uses)
+     * - Combat state (conditions, death saves, consciousness)
+     * - Creation status (complete/incomplete, missing requirements)
+     */
+    public function summary(Character $character): CharacterSummaryResource
+    {
+        $summary = CharacterSummaryDTO::fromCharacter(
+            $character,
+            $this->proficiencyService,
+            $this->languageService,
+            $this->spellSlotService,
+            $this->hitDiceService
+        );
+
+        return new CharacterSummaryResource($summary);
     }
 }

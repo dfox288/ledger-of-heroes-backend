@@ -68,6 +68,10 @@ class CharacterLanguageController extends Controller
      * Returns language choices that need user input (e.g., "choose 1 language").
      * Organized by source (race, background, feat).
      *
+     * @x-flow character-creation
+     *
+     * @x-flow-step 6
+     *
      * **Examples:**
      * ```
      * GET /api/v1/characters/1/language-choices
@@ -133,6 +137,10 @@ class CharacterLanguageController extends Controller
      * Make a language choice.
      *
      * Submits the user's selection for a language choice.
+     *
+     * @x-flow character-creation
+     *
+     * @x-flow-step 7
      *
      * **Request Body:**
      * ```json
@@ -200,6 +208,10 @@ class CharacterLanguageController extends Controller
      *
      * - Fixed languages are auto-populated
      * - Choice-based languages require using the language-choices endpoint
+     *
+     * @x-flow character-creation
+     *
+     * @x-flow-step 7
      *
      * **Examples:**
      * ```

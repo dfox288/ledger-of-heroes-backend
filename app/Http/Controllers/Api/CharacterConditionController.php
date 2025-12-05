@@ -66,6 +66,8 @@ class CharacterConditionController extends Controller
      * Applies a condition to the character or updates an existing one. Uses upsert logic:
      * if the character already has the condition, it updates the source/duration/level.
      *
+     * @x-flow gameplay-combat
+     *
      * **Examples:**
      * ```
      * POST /api/v1/characters/1/conditions
@@ -112,7 +114,6 @@ class CharacterConditionController extends Controller
      * - `"Item: {item name}"` - From a magical item
      * - `"Environmental"` - From environmental hazard
      * - `"Forced march"`, `"No food"`, `"No water"` - Common exhaustion sources
-     *
      *
      * @response 200 array{data: array{id: int, condition: array{id: int, name: string, slug: string}, level: ?int, source: ?string, duration: ?string, is_exhaustion: bool, exhaustion_warning: ?string}}
      * @response 404 array{message: string} Condition not found
@@ -161,6 +162,8 @@ class CharacterConditionController extends Controller
      *
      * Removes the specified condition from the character. Accepts either condition ID or slug.
      * For exhaustion, this removes all levels (full recovery).
+     *
+     * @x-flow gameplay-combat
      *
      * **Examples:**
      * ```

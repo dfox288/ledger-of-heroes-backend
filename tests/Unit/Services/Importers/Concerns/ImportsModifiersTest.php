@@ -247,4 +247,312 @@ class ImportsModifiersTest extends TestCase
         $this->assertEquals($deception->id, $modifier->skill_id);
         $this->assertEquals('when trying to pass yourself off as a different person', $modifier->condition);
     }
+
+    #[Test]
+    public function it_uses_import_modifier_helper_method()
+    {
+        $race = Race::factory()->create();
+        $str = AbilityScore::where('code', 'STR')->first();
+
+        $modifier = $this->importModifier($race, 'ability_score', [
+            'value' => '+2',
+            'ability_score_id' => $str->id,
+        ]);
+
+        $this->assertInstanceOf(Modifier::class, $modifier);
+        $this->assertEquals('ability_score', $modifier->modifier_category);
+        $this->assertEquals('+2', $modifier->value);
+        $this->assertEquals($str->id, $modifier->ability_score_id);
+    }
+
+    #[Test]
+    public function it_uses_import_asi_modifier_helper_method_with_default_value()
+    {
+        $race = Race::factory()->create();
+
+        $modifier = $this->importAsiModifier($race, 4);
+
+        $this->assertInstanceOf(Modifier::class, $modifier);
+        $this->assertEquals('ability_score', $modifier->modifier_category);
+        $this->assertEquals(4, $modifier->level);
+        $this->assertEquals('+2', $modifier->value);
+        $this->assertTrue($modifier->is_choice);
+        $this->assertEquals(2, $modifier->choice_count);
+        $this->assertNull($modifier->ability_score_id);
+    }
+
+    #[Test]
+    public function it_uses_import_asi_modifier_helper_method_with_custom_value()
+    {
+        $race = Race::factory()->create();
+
+        $modifier = $this->importAsiModifier($race, 8, '+1');
+
+        $this->assertEquals(8, $modifier->level);
+        $this->assertEquals('+1', $modifier->value);
+    }
+
+    #[Test]
+    public function it_resolves_ability_score_code_to_id()
+    {
+        $race = Race::factory()->create();
+
+        $modifiersData = [
+            [
+                'modifier_category' => 'ability_score',
+                'value' => '+2',
+                'ability_score_code' => 'STR',
+            ],
+            [
+                'modifier_category' => 'ability_score',
+                'value' => '+1',
+                'ability_score_code' => 'CHA',
+            ],
+        ];
+
+        $this->importEntityModifiers($race, $modifiersData);
+
+        $modifiers = $race->modifiers->sortBy('ability_score_id')->values();
+        $this->assertCount(2, $modifiers);
+
+        $str = AbilityScore::where('code', 'STR')->first();
+        $cha = AbilityScore::where('code', 'CHA')->first();
+
+        $this->assertEquals($str->id, $modifiers[0]->ability_score_id);
+        $this->assertEquals($cha->id, $modifiers[1]->ability_score_id);
+    }
+
+    #[Test]
+    public function it_resolves_damage_type_name_to_id()
+    {
+        $race = Race::factory()->create();
+
+        $modifiersData = [
+            [
+                'modifier_category' => 'damage_resistance',
+                'value' => 'resistance',
+                'damage_type_name' => 'Fire',
+            ],
+        ];
+
+        $this->importEntityModifiers($race, $modifiersData);
+
+        $modifier = $race->modifiers->first();
+        $fireDamageType = DamageType::where('name', 'Fire')->first();
+        $this->assertEquals($fireDamageType->id, $modifier->damage_type_id);
+    }
+
+    #[Test]
+    public function it_resolves_damage_type_code_to_id()
+    {
+        $race = Race::factory()->create();
+
+        $modifiersData = [
+            [
+                'modifier_category' => 'damage_immunity',
+                'value' => 'immunity',
+                'damage_type_code' => 'F',
+            ],
+        ];
+
+        $this->importEntityModifiers($race, $modifiersData);
+
+        $modifier = $race->modifiers->first();
+        $fireDamageType = DamageType::where('code', 'F')->first();
+        $this->assertEquals($fireDamageType->id, $modifier->damage_type_id);
+    }
+
+    #[Test]
+    public function it_prefers_damage_type_name_over_code()
+    {
+        $race = Race::factory()->create();
+
+        // Create a custom damage type with same code but different name
+        $fireDamageType = DamageType::where('name', 'Fire')->first();
+
+        $modifiersData = [
+            [
+                'modifier_category' => 'damage_resistance',
+                'value' => 'resistance',
+                'damage_type_name' => 'Fire',
+                'damage_type_code' => 'WRONG_CODE',
+            ],
+        ];
+
+        $this->importEntityModifiers($race, $modifiersData);
+
+        $modifier = $race->modifiers->first();
+        // Should use name lookup, not code
+        $this->assertEquals($fireDamageType->id, $modifier->damage_type_id);
+    }
+
+    #[Test]
+    public function it_uses_update_or_create_to_prevent_duplicates()
+    {
+        $race = Race::factory()->create();
+        $str = AbilityScore::where('code', 'STR')->first();
+
+        $modifiersData = [
+            [
+                'modifier_category' => 'ability_score',
+                'value' => '+2',
+                'ability_score_id' => $str->id,
+            ],
+        ];
+
+        // Import twice
+        $this->importEntityModifiers($race, $modifiersData);
+        $this->importEntityModifiers($race, $modifiersData);
+
+        // Should still only have 1 modifier (delete + recreate pattern)
+        $this->assertCount(1, $race->fresh()->modifiers);
+    }
+
+    #[Test]
+    public function it_handles_modifiers_with_level()
+    {
+        $race = Race::factory()->create();
+        $str = AbilityScore::where('code', 'STR')->first();
+
+        $modifiersData = [
+            [
+                'modifier_category' => 'ability_score',
+                'value' => '+2',
+                'ability_score_id' => $str->id,
+                'level' => 3,
+            ],
+        ];
+
+        $this->importEntityModifiers($race, $modifiersData);
+
+        $modifier = $race->modifiers->first();
+        $this->assertEquals(3, $modifier->level);
+    }
+
+    #[Test]
+    public function it_handles_modifiers_with_condition()
+    {
+        $race = Race::factory()->create();
+
+        $modifiersData = [
+            [
+                'modifier_category' => 'armor_class',
+                'value' => '+1',
+                'condition' => 'while wearing light armor',
+            ],
+        ];
+
+        $this->importEntityModifiers($race, $modifiersData);
+
+        $modifier = $race->modifiers->first();
+        $this->assertEquals('while wearing light armor', $modifier->condition);
+    }
+
+    #[Test]
+    public function it_handles_modifier_with_choice_constraint()
+    {
+        $race = Race::factory()->create();
+
+        $modifiersData = [
+            [
+                'modifier_category' => 'ability_score',
+                'value' => '+1',
+                'is_choice' => true,
+                'choice_count' => 1,
+                'choice_constraint' => 'Intelligence, Wisdom, or Charisma',
+            ],
+        ];
+
+        $this->importEntityModifiers($race, $modifiersData);
+
+        $modifier = $race->modifiers->first();
+        $this->assertEquals('Intelligence, Wisdom, or Charisma', $modifier->choice_constraint);
+    }
+
+    #[Test]
+    public function it_accepts_category_or_modifier_category_key()
+    {
+        $race = Race::factory()->create();
+
+        // Test with 'category' key
+        $modifiersData1 = [
+            [
+                'category' => 'speed',
+                'value' => '+10',
+            ],
+        ];
+
+        $this->importEntityModifiers($race, $modifiersData1);
+        $this->assertEquals('speed', $race->modifiers->first()->modifier_category);
+
+        // Clear and test with 'modifier_category' key
+        $race->modifiers()->delete();
+
+        $modifiersData2 = [
+            [
+                'modifier_category' => 'speed',
+                'value' => '+10',
+            ],
+        ];
+
+        $this->importEntityModifiers($race, $modifiersData2);
+        $this->assertEquals('speed', $race->fresh()->modifiers->first()->modifier_category);
+    }
+
+    #[Test]
+    public function it_handles_skill_lookup_failure_gracefully()
+    {
+        $race = Race::factory()->create();
+
+        $modifiersData = [
+            [
+                'modifier_category' => 'passive_score',
+                'value' => 5,
+                'skill_name' => 'Nonexistent Skill',
+            ],
+        ];
+
+        $this->importEntityModifiers($race, $modifiersData);
+
+        $modifier = $race->modifiers->first();
+        $this->assertNull($modifier->skill_id);
+    }
+
+    #[Test]
+    public function it_handles_ability_score_lookup_failure_gracefully()
+    {
+        $race = Race::factory()->create();
+
+        $modifiersData = [
+            [
+                'modifier_category' => 'ability_score',
+                'value' => '+2',
+                'ability_score_code' => 'NONEXISTENT',
+            ],
+        ];
+
+        $this->importEntityModifiers($race, $modifiersData);
+
+        $modifier = $race->modifiers->first();
+        $this->assertNull($modifier->ability_score_id);
+    }
+
+    #[Test]
+    public function it_handles_damage_type_lookup_failure_gracefully()
+    {
+        $race = Race::factory()->create();
+
+        $modifiersData = [
+            [
+                'modifier_category' => 'damage_resistance',
+                'value' => 'resistance',
+                'damage_type_name' => 'Nonexistent Type',
+            ],
+        ];
+
+        $this->importEntityModifiers($race, $modifiersData);
+
+        $modifier = $race->modifiers->first();
+        $this->assertNull($modifier->damage_type_id);
+    }
 }

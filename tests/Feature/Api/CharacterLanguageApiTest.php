@@ -719,4 +719,262 @@ class CharacterLanguageApiTest extends TestCase
 
         $response->assertStatus(422);
     }
+
+    // =============================
+    // Subrace Language Inheritance
+    // =============================
+
+    #[Test]
+    public function it_includes_inherited_parent_race_languages_in_known_array(): void
+    {
+        $uniqueId = uniqid();
+
+        // Create parent race with languages (like Aasimar base)
+        $parentRace = Race::factory()->create([
+            'name' => 'Aasimar',
+            'slug' => 'aasimar-'.$uniqueId,
+        ]);
+
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $parentRace->id,
+            'language_id' => $this->common->id,
+            'is_choice' => false,
+        ]);
+
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $parentRace->id,
+            'language_id' => $this->draconic->id, // Using draconic as "Celestial"
+            'is_choice' => false,
+        ]);
+
+        // Create subrace with no direct languages (like Aasimar DMG)
+        $subrace = Race::factory()->create([
+            'name' => 'Aasimar (DMG)',
+            'slug' => 'aasimar-dmg-'.$uniqueId,
+            'parent_race_id' => $parentRace->id,
+        ]);
+
+        $character = Character::factory()
+            ->withRace($subrace)
+            ->create();
+
+        // Populate fixed languages (should include inherited)
+        $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/language-choices");
+
+        $response->assertOk();
+
+        $knownLanguages = $response->json('data.race.known');
+
+        // Should include both inherited languages (Common and Draconic/"Celestial")
+        $this->assertCount(2, $knownLanguages);
+        $this->assertTrue(
+            collect($knownLanguages)->contains(fn ($lang) => str_starts_with($lang['name'], 'Common '))
+        );
+        $this->assertTrue(
+            collect($knownLanguages)->contains(fn ($lang) => str_starts_with($lang['name'], 'Draconic '))
+        );
+    }
+
+    #[Test]
+    public function it_populates_inherited_parent_race_languages(): void
+    {
+        $uniqueId = uniqid();
+
+        // Create parent race with languages
+        $parentRace = Race::factory()->create([
+            'name' => 'Aasimar',
+            'slug' => 'aasimar-parent-'.$uniqueId,
+        ]);
+
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $parentRace->id,
+            'language_id' => $this->common->id,
+            'is_choice' => false,
+        ]);
+
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $parentRace->id,
+            'language_id' => $this->draconic->id,
+            'is_choice' => false,
+        ]);
+
+        // Create subrace with no direct languages
+        $subrace = Race::factory()->create([
+            'name' => 'Aasimar (DMG)',
+            'slug' => 'aasimar-dmg-parent-'.$uniqueId,
+            'parent_race_id' => $parentRace->id,
+        ]);
+
+        $character = Character::factory()
+            ->withRace($subrace)
+            ->create();
+
+        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+
+        $response->assertOk();
+
+        // Should have both inherited languages
+        $this->assertCount(2, $response->json('data'));
+
+        $languageNames = collect($response->json('data'))->pluck('language.name')->toArray();
+        $this->assertTrue(collect($languageNames)->contains(fn ($n) => str_starts_with($n, 'Common ')));
+        $this->assertTrue(collect($languageNames)->contains(fn ($n) => str_starts_with($n, 'Draconic ')));
+    }
+
+    #[Test]
+    public function it_includes_inherited_language_choices_from_parent_race(): void
+    {
+        $uniqueId = uniqid();
+
+        // Create parent race with 1 language choice
+        $parentRace = Race::factory()->create([
+            'name' => 'Parent Race',
+            'slug' => 'parent-race-'.$uniqueId,
+        ]);
+
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $parentRace->id,
+            'language_id' => $this->common->id,
+            'is_choice' => false,
+        ]);
+
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $parentRace->id,
+            'language_id' => null,
+            'is_choice' => true,
+            'quantity' => 1,
+        ]);
+
+        // Create subrace with no direct languages or choices
+        $subrace = Race::factory()->create([
+            'name' => 'Subrace',
+            'slug' => 'subrace-'.$uniqueId,
+            'parent_race_id' => $parentRace->id,
+        ]);
+
+        $character = Character::factory()
+            ->withRace($subrace)
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/language-choices");
+
+        $response->assertOk();
+
+        $raceData = $response->json('data.race');
+        // Should inherit the 1 language choice from parent
+        $this->assertEquals(1, $raceData['choices']['quantity']);
+        $this->assertEquals(1, $raceData['choices']['remaining']);
+    }
+
+    #[Test]
+    public function it_combines_inherited_and_direct_language_choices(): void
+    {
+        $uniqueId = uniqid();
+
+        // Create parent race with 1 language choice
+        $parentRace = Race::factory()->create([
+            'name' => 'Parent Race With Choice',
+            'slug' => 'parent-choice-'.$uniqueId,
+        ]);
+
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $parentRace->id,
+            'language_id' => $this->common->id,
+            'is_choice' => false,
+        ]);
+
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $parentRace->id,
+            'language_id' => null,
+            'is_choice' => true,
+            'quantity' => 1,
+        ]);
+
+        // Create subrace with its OWN language choice (in addition to inherited)
+        $subrace = Race::factory()->create([
+            'name' => 'Subrace With Choice',
+            'slug' => 'subrace-choice-'.$uniqueId,
+            'parent_race_id' => $parentRace->id,
+        ]);
+
+        // Subrace adds an additional language choice
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $subrace->id,
+            'language_id' => null,
+            'is_choice' => true,
+            'quantity' => 2,
+        ]);
+
+        $character = Character::factory()
+            ->withRace($subrace)
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/language-choices");
+
+        $response->assertOk();
+
+        $raceData = $response->json('data.race');
+        // Should combine: 1 from parent + 2 from subrace = 3 total choices
+        $this->assertEquals(3, $raceData['choices']['quantity']);
+        $this->assertEquals(3, $raceData['choices']['remaining']);
+    }
+
+    #[Test]
+    public function it_does_not_duplicate_same_language_from_parent_and_subrace(): void
+    {
+        $uniqueId = uniqid();
+
+        // Create parent race with Common
+        $parentRace = Race::factory()->create([
+            'name' => 'Parent With Common',
+            'slug' => 'parent-common-'.$uniqueId,
+        ]);
+
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $parentRace->id,
+            'language_id' => $this->common->id,
+            'is_choice' => false,
+        ]);
+
+        // Create subrace that ALSO has Common defined (shouldn't create duplicate)
+        $subrace = Race::factory()->create([
+            'name' => 'Subrace With Common',
+            'slug' => 'subrace-common-'.$uniqueId,
+            'parent_race_id' => $parentRace->id,
+        ]);
+
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $subrace->id,
+            'language_id' => $this->common->id,
+            'is_choice' => false,
+        ]);
+
+        $character = Character::factory()
+            ->withRace($subrace)
+            ->create();
+
+        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+
+        $response->assertOk();
+
+        // Should have only ONE Common, not two
+        $this->assertCount(1, $response->json('data'));
+
+        $languageNames = collect($response->json('data'))->pluck('language.name')->toArray();
+        $commonCount = collect($languageNames)->filter(fn ($n) => str_starts_with($n, 'Common '))->count();
+        $this->assertEquals(1, $commonCount);
+    }
 }

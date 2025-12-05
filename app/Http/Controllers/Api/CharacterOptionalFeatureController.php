@@ -10,6 +10,7 @@ use App\Http\Resources\OptionalFeatureResource;
 use App\Models\Character;
 use App\Models\CharacterOptionalFeature;
 use App\Models\OptionalFeature;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -17,15 +18,34 @@ use Illuminate\Http\Response;
 class CharacterOptionalFeatureController extends Controller
 {
     /**
-     * List all optional features selected by the character.
+     * List all optional features selected by the character
      *
-     * Returns invocations, maneuvers, metamagic, fighting styles, etc. that
-     * the character has chosen.
+     * Returns all optional features the character has selected, including eldritch invocations,
+     * maneuvers, metamagic options, fighting styles, and other class-granted choices.
      *
      * **Examples:**
      * ```
      * GET /api/v1/characters/1/optional-features
      * ```
+     *
+     * **Optional Feature Types (8 total):**
+     * | Type | Label | Primary Class | Subclass |
+     * |------|-------|---------------|----------|
+     * | `eldritch_invocation` | Eldritch Invocation | Warlock | - |
+     * | `elemental_discipline` | Elemental Discipline | Monk | Way of the Four Elements |
+     * | `maneuver` | Maneuver | Fighter | Battle Master |
+     * | `metamagic` | Metamagic | Sorcerer | - |
+     * | `fighting_style` | Fighting Style | Multiple | - |
+     * | `artificer_infusion` | Artificer Infusion | Artificer | - |
+     * | `rune` | Rune | Fighter | Rune Knight |
+     * | `arcane_shot` | Arcane Shot | Fighter | Arcane Archer |
+     *
+     * **Response includes:**
+     * - Full optional feature details (name, description, type)
+     * - Class/subclass association
+     * - Level the feature was acquired
+     *
+     * @return AnonymousResourceCollection<CharacterOptionalFeatureResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {
@@ -37,7 +57,7 @@ class CharacterOptionalFeatureController extends Controller
     }
 
     /**
-     * List optional features available for the character to select.
+     * List optional features available for the character to select
      *
      * Returns features the character is eligible for based on their class,
      * subclass, and level. Excludes features already selected.
@@ -46,8 +66,30 @@ class CharacterOptionalFeatureController extends Controller
      * ```
      * GET /api/v1/characters/1/available-optional-features
      * GET /api/v1/characters/1/available-optional-features?feature_type=maneuver
+     * GET /api/v1/characters/1/available-optional-features?feature_type=eldritch_invocation
+     * GET /api/v1/characters/1/available-optional-features?feature_type=metamagic
      * ```
+     *
+     * **Filtering by feature_type:**
+     * Use the `feature_type` query parameter to filter by type:
+     * - `eldritch_invocation` - Warlock invocations
+     * - `elemental_discipline` - Monk (Way of Four Elements) disciplines
+     * - `maneuver` - Fighter (Battle Master) maneuvers
+     * - `metamagic` - Sorcerer metamagic options
+     * - `fighting_style` - Fighting styles (Fighter, Paladin, Ranger, etc.)
+     * - `artificer_infusion` - Artificer infusions
+     * - `rune` - Fighter (Rune Knight) runes
+     * - `arcane_shot` - Fighter (Arcane Archer) shots
+     *
+     * **Eligibility Rules:**
+     * - Feature's required class must match character's class
+     * - Feature's subclass requirement (if any) must match character's subclass
+     * - Feature's level requirement must be <= character's total level
+     * - Feature must not already be selected by this character
+     *
+     * @return AnonymousResourceCollection<OptionalFeatureResource>
      */
+    #[QueryParameter('feature_type', description: 'Filter by optional feature type', example: 'maneuver')]
     public function available(Character $character): AnonymousResourceCollection
     {
         // Get character's class and subclass info
@@ -98,15 +140,41 @@ class CharacterOptionalFeatureController extends Controller
     }
 
     /**
-     * Get pending optional feature choices.
+     * Get pending optional feature choices
      *
      * Shows which feature types the character can still select choices for,
-     * based on their class counter values.
+     * based on their class counter values. This helps track if a character
+     * has remaining maneuvers, invocations, metamagic, etc. to choose.
      *
      * **Examples:**
      * ```
      * GET /api/v1/characters/1/optional-feature-choices
      * ```
+     *
+     * **Counter to Feature Type Mapping:**
+     * | Counter Name | Feature Type |
+     * |--------------|--------------|
+     * | Maneuvers Known | `maneuver` |
+     * | Metamagic Known | `metamagic` |
+     * | Infusions Known | `artificer_infusion` |
+     * | Fighting Styles Known | `fighting_style` |
+     * | Runes Known | `rune` |
+     * | Arcane Shots Known | `arcane_shot` |
+     * | Elemental Disciplines Known | `elemental_discipline` |
+     * | Eldritch Invocations Known | `eldritch_invocation` |
+     *
+     * **Response Structure:**
+     * Returns an array of choice slots, each containing:
+     * - `feature_type` - The type of feature (e.g., "maneuver")
+     * - `class_name` - Which class grants these choices
+     * - `subclass_name` - Subclass if applicable (null otherwise)
+     * - `allowed` - Total choices available at current level
+     * - `selected` - Number already chosen
+     * - `remaining` - Choices still available (allowed - selected)
+     *
+     * **Use Case:**
+     * A level 3 Battle Master Fighter gets 3 maneuvers. If they've selected 2,
+     * this endpoint shows: `{"feature_type": "maneuver", "allowed": 3, "selected": 2, "remaining": 1}`
      */
     public function choices(Character $character): ChoicesResource
     {
@@ -116,15 +184,48 @@ class CharacterOptionalFeatureController extends Controller
     }
 
     /**
-     * Select an optional feature.
+     * Select an optional feature
      *
      * Adds an invocation, maneuver, metamagic, fighting style, etc. to the character.
+     * Validates class eligibility and level requirements automatically.
      *
      * **Examples:**
      * ```
-     * POST /api/v1/characters/1/optional-features {"optional_feature_id": 123}
-     * POST /api/v1/characters/1/optional-features {"optional_feature_id": 456, "class_id": 1, "subclass_name": "Battle Master"}
+     * POST /api/v1/characters/1/optional-features
+     *
+     * # Select a Battle Master maneuver
+     * {"optional_feature_id": 123, "class_id": 5, "subclass_name": "Battle Master"}
+     *
+     * # Select a Warlock eldritch invocation (class/subclass optional if unambiguous)
+     * {"optional_feature_id": 456}
+     *
+     * # Select with specific level acquired
+     * {"optional_feature_id": 789, "level_acquired": 3}
      * ```
+     *
+     * **Request Body:**
+     * | Field | Type | Required | Description |
+     * |-------|------|----------|-------------|
+     * | `optional_feature_id` | integer | Yes | ID of the optional feature to select |
+     * | `class_id` | integer | No | ID of the class granting this feature |
+     * | `subclass_name` | string | No | Name of the subclass (max 100 chars) |
+     * | `level_acquired` | integer | No | Level when acquired (1-20, defaults to current total level) |
+     *
+     * **Validation:**
+     * - Feature must exist
+     * - Character cannot already have this feature (no duplicates)
+     * - Character must have a class eligible for this feature
+     * - Character's level must meet feature's level_requirement
+     *
+     * **Error Responses:**
+     * - 422 if feature already selected: "This character has already selected this optional feature."
+     * - 422 if level too low: "This feature requires level {N}. Character is level {M}."
+     * - 422 if class ineligible: "This character does not have the required class or subclass for this feature."
+     *
+     *
+     * @response 201 CharacterOptionalFeatureResource
+     * @response 404 array{message: string} Feature not found
+     * @response 422 array{message: string, errors: array{optional_feature_id?: string[], class_id?: string[], subclass_name?: string[], level_acquired?: string[]}}
      */
     public function store(StoreCharacterOptionalFeatureRequest $request, Character $character): JsonResponse
     {
@@ -152,14 +253,30 @@ class CharacterOptionalFeatureController extends Controller
     }
 
     /**
-     * Remove an optional feature from the character.
+     * Remove an optional feature from the character
      *
-     * Used for retraining features (allowed by some class rules).
+     * Used for retraining features (allowed by some class rules, typically at level-up).
+     * For example, Battle Masters can swap one maneuver for another when they gain a level.
      *
      * **Examples:**
      * ```
      * DELETE /api/v1/characters/1/optional-features/123
      * ```
+     *
+     * **Retraining Rules (by type):**
+     * - **Maneuvers** - Battle Masters can replace 1 maneuver at each Fighter level-up
+     * - **Eldritch Invocations** - Warlocks can replace 1 invocation at each Warlock level-up
+     * - **Metamagic** - Sorcerers can swap 1 option when gaining Sorcerer levels (at certain levels)
+     * - **Fighting Styles** - Generally cannot be retrained (feature swaps via multiclass)
+     *
+     * **Note:** This API allows any removal for flexibility. Implement retraining rules in your UI.
+     *
+     * @param  Character  $character  The character
+     * @param  int  $optionalFeatureId  ID of the optional feature to remove
+     * @return Response 204 on success
+     *
+     * @response 204 No content on success
+     * @response 404 array{message: string} Character does not have this optional feature selected
      */
     public function destroy(Character $character, int $optionalFeatureId): Response
     {

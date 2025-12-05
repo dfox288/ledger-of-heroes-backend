@@ -21,7 +21,28 @@ class CharacterEquipmentController extends Controller
     ) {}
 
     /**
-     * List all equipment for a character.
+     * List all equipment for a character
+     *
+     * Returns all items in the character's inventory, including equipped items,
+     * backpack items, and custom/freetext items.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/characters/1/equipment
+     * ```
+     *
+     * **Response includes:**
+     * - Database items with full `item` object (id, name, type, etc.)
+     * - Custom items with `custom_name` and `custom_description`
+     * - `equipped` status (true/false)
+     * - `quantity` for stackable items
+     * - `location` for item organization (e.g., "backpack", "belt")
+     *
+     * **Item Types:**
+     * - **Database items** - Reference items from the items table with full stats
+     * - **Custom items** - Freetext items (homebrew, quest rewards, notes)
+     *
+     * @return AnonymousResourceCollection<CharacterEquipmentResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {
@@ -33,7 +54,49 @@ class CharacterEquipmentController extends Controller
     }
 
     /**
-     * Add item to character inventory.
+     * Add item to character inventory
+     *
+     * Adds a database item or custom freetext item to the character's inventory.
+     * Must provide either `item_id` (database item) or `custom_name` (freetext item), but not both.
+     *
+     * **Examples:**
+     * ```
+     * POST /api/v1/characters/1/equipment
+     *
+     * # Add a database item (e.g., Longsword)
+     * {"item_id": 123, "quantity": 1}
+     *
+     * # Add multiple of same item (e.g., 50 gold pieces)
+     * {"item_id": 456, "quantity": 50}
+     *
+     * # Add a custom/homebrew item
+     * {"custom_name": "Ring of Plot Convenience", "custom_description": "A mysterious ring from the DM"}
+     *
+     * # Add custom item with quantity
+     * {"custom_name": "Mystery Potion", "quantity": 3}
+     * ```
+     *
+     * **Request Body:**
+     * | Field | Type | Required | Description |
+     * |-------|------|----------|-------------|
+     * | `item_id` | integer | Conditional | ID of database item (from /items endpoint) |
+     * | `custom_name` | string | Conditional | Name for freetext item (max 255 chars) |
+     * | `custom_description` | string | No | Description for freetext item (max 2000 chars) |
+     * | `quantity` | integer | No | Number of items (default: 1, min: 1) |
+     *
+     * **Validation Rules:**
+     * - Must provide either `item_id` OR `custom_name` (not both, not neither)
+     * - `item_id` must reference an existing item in the database
+     * - Stackable items with same `item_id` may be consolidated
+     *
+     * **New items default to:**
+     * - `equipped`: false
+     * - `location`: "backpack"
+     *
+     *
+     * @response 201 CharacterEquipmentResource
+     * @response 404 array{message: string} Item not found (when item_id provided but invalid)
+     * @response 422 array{message: string, errors: array{item_id?: string[]}} Validation error
      */
     public function store(StoreEquipmentRequest $request, Character $character): JsonResponse
     {
@@ -64,7 +127,52 @@ class CharacterEquipmentController extends Controller
     }
 
     /**
-     * Update equipment (equip/unequip, change quantity).
+     * Update equipment (equip/unequip, change quantity)
+     *
+     * Modifies an existing equipment entry. Use this to equip/unequip items,
+     * change quantities, or update location. Cannot change the item itself.
+     *
+     * **Examples:**
+     * ```
+     * PATCH /api/v1/characters/1/equipment/99
+     *
+     * # Equip an item
+     * {"equipped": true}
+     *
+     * # Unequip an item
+     * {"equipped": false}
+     *
+     * # Change quantity (e.g., use a potion)
+     * {"quantity": 2}
+     *
+     * # Move item to different location
+     * {"location": "belt"}
+     *
+     * # Combined update
+     * {"equipped": true, "location": "main_hand"}
+     * ```
+     *
+     * **Request Body:**
+     * | Field | Type | Required | Description |
+     * |-------|------|----------|-------------|
+     * | `equipped` | boolean | No | Whether item is equipped |
+     * | `quantity` | integer | No | New quantity (min: 1) |
+     * | `location` | string | No | Storage location (max 255 chars) |
+     *
+     * **Prohibited Fields (cannot change item type):**
+     * - `item_id` - Cannot change database item reference
+     * - `custom_name` - Cannot change custom item name
+     * - `custom_description` - Cannot change custom item description
+     *
+     * **Equipment Rules:**
+     * - Custom items cannot be equipped (only database items with proper slots)
+     * - Equipment slot conflicts handled by EquipmentManagerService
+     * - Unequipping always succeeds
+     *
+     *
+     * @response 200 CharacterEquipmentResource
+     * @response 404 array{message: string} Equipment not found or doesn't belong to character
+     * @response 422 array{message: string} "Custom items cannot be equipped."
      */
     public function update(
         UpdateEquipmentRequest $request,
@@ -100,7 +208,31 @@ class CharacterEquipmentController extends Controller
     }
 
     /**
-     * Remove item from inventory.
+     * Remove item from inventory
+     *
+     * Removes an item from the character's inventory completely. Use the update
+     * endpoint to reduce quantity instead of full removal.
+     *
+     * **Examples:**
+     * ```
+     * DELETE /api/v1/characters/1/equipment/99
+     * ```
+     *
+     * **Use Cases:**
+     * - Selling/trading items
+     * - Discarding items
+     * - Item destruction (broken, lost)
+     * - Transferring to another character (delete + add)
+     *
+     * **Note:** To reduce quantity without full removal, use PATCH with `{"quantity": N}`.
+     * To remove just one from a stack, reduce quantity to (current - 1).
+     *
+     * @param  Character  $character  The character
+     * @param  CharacterEquipment  $equipment  The equipment entry to remove
+     * @return Response 204 on success
+     *
+     * @response 204 No content on success
+     * @response 404 array{message: string} Equipment not found or doesn't belong to character
      */
     public function destroy(Character $character, CharacterEquipment $equipment): Response
     {

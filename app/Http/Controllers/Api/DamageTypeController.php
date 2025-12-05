@@ -63,7 +63,7 @@ class DamageTypeController extends ReadOnlyLookupController
     #[QueryParameter('q', description: 'Search damage types by name', example: 'fire')]
     public function index(DamageTypeIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
-        return parent::index($request, $cache);
+        return $this->handleIndex($request, $cache);
     }
 
     /**
@@ -84,9 +84,9 @@ class DamageTypeController extends ReadOnlyLookupController
      * - `id`, `name`, `slug`: Damage type identification
      * - `code`: Single-letter abbreviation (F=Fire, C=Cold, L=Lightning, etc.)
      */
-    public function show(\Illuminate\Database\Eloquent\Model $damageType): \Illuminate\Http\Resources\Json\JsonResource
+    public function show(DamageType $damageType): DamageTypeResource
     {
-        return parent::show($damageType);
+        return $this->handleShow($damageType);
     }
 
     /**

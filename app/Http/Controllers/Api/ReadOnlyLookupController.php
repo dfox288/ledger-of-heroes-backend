@@ -13,7 +13,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 /**
  * Base controller for read-only lookup endpoints.
  *
- * Provides common index() and show() implementations with:
+ * Provides helper methods for index and show operations with:
  * - Search support via 'q' parameter
  * - Pagination via 'per_page' and 'page' parameters
  * - Optional caching for unfiltered queries
@@ -22,10 +22,13 @@ use Illuminate\Pagination\LengthAwarePaginator;
  * Child controllers must define:
  * - getModelClass(): string - Fully qualified model class name
  * - getResourceClass(): string - Fully qualified resource class name
- * - getIndexRequestClass(): string - Fully qualified index request class name
  * - getRelationships(): array - Array of relationships to eager load (optional)
  * - getCacheMethod(): ?string - Cache method name on LookupCacheService (optional)
  * - getSearchFields(): array - Fields to search in (default: ['name'])
+ *
+ * Child controllers implement their own index() and show() methods with proper
+ * type hints for route model binding and documentation, calling the protected
+ * helper methods.
  */
 abstract class ReadOnlyLookupController extends Controller
 {
@@ -38,11 +41,6 @@ abstract class ReadOnlyLookupController extends Controller
      * Get the resource class name.
      */
     abstract protected function getResourceClass(): string;
-
-    /**
-     * Get the index request class name.
-     */
-    abstract protected function getIndexRequestClass(): string;
 
     /**
      * Get relationships to eager load.
@@ -70,9 +68,12 @@ abstract class ReadOnlyLookupController extends Controller
     }
 
     /**
-     * List all records with search and pagination support.
+     * Handle index request with search and pagination.
+     *
+     * @param  FormRequest  $request  The validated request
+     * @param  LookupCacheService  $cache  The cache service
      */
-    public function index(FormRequest $request, LookupCacheService $cache): AnonymousResourceCollection
+    protected function handleIndex(FormRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
         $modelClass = $this->getModelClass();
         $resourceClass = $this->getResourceClass();
@@ -122,9 +123,11 @@ abstract class ReadOnlyLookupController extends Controller
     }
 
     /**
-     * Get a single record.
+     * Handle show request for a single record.
+     *
+     * @param  Model  $record  The model instance
      */
-    public function show(Model $record): JsonResource
+    protected function handleShow(Model $record): JsonResource
     {
         $resourceClass = $this->getResourceClass();
 

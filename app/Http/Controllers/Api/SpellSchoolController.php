@@ -68,7 +68,7 @@ class SpellSchoolController extends ReadOnlyLookupController
     #[QueryParameter('q', description: 'Search schools by name', example: 'evocation')]
     public function index(SpellSchoolIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
-        return parent::index($request, $cache);
+        return $this->handleIndex($request, $cache);
     }
 
     /**
@@ -91,9 +91,9 @@ class SpellSchoolController extends ReadOnlyLookupController
      *
      * **Related endpoint:** Use `/api/v1/lookups/spell-schools/{id}/spells` to list all spells in this school.
      */
-    public function show(\Illuminate\Database\Eloquent\Model $spellSchool): \Illuminate\Http\Resources\Json\JsonResource
+    public function show(SpellSchool $spellSchool): SpellSchoolResource
     {
-        return parent::show($spellSchool);
+        return $this->handleShow($spellSchool);
     }
 
     /**

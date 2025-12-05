@@ -78,7 +78,7 @@ class LanguageController extends ReadOnlyLookupController
     #[QueryParameter('q', description: 'Search by name', example: 'elvish')]
     public function index(LanguageIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
-        return parent::index($request, $cache);
+        return $this->handleIndex($request, $cache);
     }
 
     /**
@@ -100,9 +100,9 @@ class LanguageController extends ReadOnlyLookupController
      * - `typical_speakers`: Races or creatures that commonly speak this language
      * - `description`: Lore and usage information
      */
-    public function show(\Illuminate\Database\Eloquent\Model $language): \Illuminate\Http\Resources\Json\JsonResource
+    public function show(Language $language): LanguageResource
     {
-        return parent::show($language);
+        return $this->handleShow($language);
     }
 
     /**

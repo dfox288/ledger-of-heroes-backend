@@ -75,7 +75,7 @@ class ConditionController extends ReadOnlyLookupController
     #[QueryParameter('q', description: 'Search by name', example: 'frightened')]
     public function index(ConditionIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
-        return parent::index($request, $cache);
+        return $this->handleIndex($request, $cache);
     }
 
     /**
@@ -95,9 +95,9 @@ class ConditionController extends ReadOnlyLookupController
      * - `id`, `name`, `slug`: Condition identification
      * - `description`: Full mechanical description of the condition's effects
      */
-    public function show(\Illuminate\Database\Eloquent\Model $condition): \Illuminate\Http\Resources\Json\JsonResource
+    public function show(Condition $condition): ConditionResource
     {
-        return parent::show($condition);
+        return $this->handleShow($condition);
     }
 
     /**

@@ -71,7 +71,7 @@ class AbilityScoreController extends ReadOnlyLookupController
     #[QueryParameter('q', description: 'Search ability scores by name or code', example: 'strength')]
     public function index(AbilityScoreIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
-        return parent::index($request, $cache);
+        return $this->handleIndex($request, $cache);
     }
 
     /**
@@ -95,9 +95,9 @@ class AbilityScoreController extends ReadOnlyLookupController
      * @param  AbilityScore  $abilityScore  The ability score (by ID, code, or name)
      * @return \Illuminate\Http\Resources\Json\AbilityScoreResource
      */
-    public function show(\Illuminate\Database\Eloquent\Model $abilityScore): \Illuminate\Http\Resources\Json\JsonResource
+    public function show(AbilityScore $abilityScore): AbilityScoreResource
     {
-        return parent::show($abilityScore);
+        return $this->handleShow($abilityScore);
     }
 
     /**

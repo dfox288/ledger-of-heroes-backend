@@ -174,6 +174,7 @@ class CharacterProficiencyServiceTest extends TestCase
             'character_id' => $character->id,
             'skill_id' => $athletics->id,
             'source' => 'class',
+            'choice_group' => 'skill_choice_1',
         ]);
 
         $choices = $this->service->getPendingChoices($character);

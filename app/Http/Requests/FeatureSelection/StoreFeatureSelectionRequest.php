@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\CharacterOptionalFeature;
+namespace App\Http\Requests\FeatureSelection;
 
 use App\Models\OptionalFeature;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
-class StoreCharacterOptionalFeatureRequest extends FormRequest
+class StoreFeatureSelectionRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -24,7 +24,7 @@ class StoreCharacterOptionalFeatureRequest extends FormRequest
                 'integer',
                 Rule::exists('optional_features', 'id'),
                 // Ensure the character doesn't already have this feature
-                Rule::unique('character_optional_features')
+                Rule::unique('feature_selections')
                     ->where('character_id', $character->id),
             ],
             'class_id' => [
@@ -74,7 +74,7 @@ class StoreCharacterOptionalFeatureRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'optional_feature_id.unique' => 'This character has already selected this optional feature.',
+            'optional_feature_id.unique' => 'This character has already selected this feature.',
         ];
     }
 

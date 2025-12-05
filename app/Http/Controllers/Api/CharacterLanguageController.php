@@ -201,12 +201,12 @@ class CharacterLanguageController extends Controller
     }
 
     /**
-     * Populate languages from race, background, and feats.
+     * Sync languages from race, background, and feats.
      *
-     * Auto-populates fixed languages based on character's selections.
+     * Syncs fixed languages based on character's selections.
      * This is typically called when finalizing character creation.
      *
-     * - Fixed languages are auto-populated
+     * - Fixed languages are synced automatically
      * - Choice-based languages require using the language-choices endpoint
      *
      * @x-flow character-creation
@@ -215,13 +215,13 @@ class CharacterLanguageController extends Controller
      *
      * **Examples:**
      * ```
-     * POST /api/v1/characters/1/languages/populate
+     * POST /api/v1/characters/1/languages/sync
      * ```
      *
      * **Response:**
      * ```json
      * {
-     *   "message": "Languages populated successfully",
+     *   "message": "Languages synced successfully",
      *   "data": [
      *     {"id": 1, "source": "race", "language": {"name": "Common", ...}},
      *     {"id": 2, "source": "race", "language": {"name": "Elvish", ...}}
@@ -231,14 +231,14 @@ class CharacterLanguageController extends Controller
      *
      * **Note:** This endpoint is idempotent - calling it multiple times will not create duplicates.
      */
-    public function populate(Character $character): JsonResponse
+    public function sync(Character $character): JsonResponse
     {
         $character->load(['race', 'background', 'features']);
 
         $this->languageService->populateFixed($character);
 
         return response()->json([
-            'message' => 'Languages populated successfully',
+            'message' => 'Languages synced successfully',
             'data' => CharacterLanguageResource::collection(
                 $this->languageService->getCharacterLanguages($character)
             ),

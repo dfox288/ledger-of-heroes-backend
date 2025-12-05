@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (BREAKING)
+
+- **Character API Phase 2 Restructuring** (Issue #173)
+  - **Renamed "Optional Features" to "Feature Selections":**
+    - Model: `CharacterOptionalFeature` → `FeatureSelection`
+    - Table: `character_optional_features` → `feature_selections`
+    - Endpoints: `/optional-features` → `/feature-selections`
+    - Endpoints: `/available-optional-features` → `/available-feature-selections`
+    - Endpoints: `/optional-feature-choices` → `/feature-selection-choices`
+    - Better describes class-granted choices (invocations, maneuvers, metamagic)
+
+  - **Renamed "Populate" to "Sync":**
+    - `POST /proficiencies/populate` → `POST /proficiencies/sync`
+    - `POST /languages/populate` → `POST /languages/sync`
+    - `POST /features/populate` → `POST /features/sync`
+    - "Sync" better conveys the idempotent nature of these operations
+
+  - **Restructured Death Save Endpoints:**
+    - `POST /death-save` → `POST /death-saves` (pluralized)
+    - `POST /stabilize` → `POST /death-saves/stabilize` (nested under death-saves)
+    - Added `DELETE /death-saves` to reset death save counters
+
 ### Docs
 
 - **Character Builder API Documentation** (Issue #155)

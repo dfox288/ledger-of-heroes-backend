@@ -176,4 +176,38 @@ class CharacterDeathSaveController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Reset death saves without stabilizing
+     *
+     * Manually resets both success and failure counters to 0. Use this when
+     * the character regains HP through healing or other means.
+     *
+     * @x-flow gameplay-combat
+     *
+     * **Examples:**
+     * ```
+     * DELETE /api/v1/characters/1/death-saves
+     * ```
+     *
+     * **Use Cases:**
+     * - Character receives healing while making death saves
+     * - DM manually resets death save tracking
+     * - Character is revived after dying
+     *
+     * @response 200 array{data: array{death_save_successes: int, death_save_failures: int}}
+     */
+    public function reset(Character $character): JsonResponse
+    {
+        $character->death_save_successes = 0;
+        $character->death_save_failures = 0;
+        $character->save();
+
+        return response()->json([
+            'data' => [
+                'death_save_successes' => 0,
+                'death_save_failures' => 0,
+            ],
+        ]);
+    }
 }

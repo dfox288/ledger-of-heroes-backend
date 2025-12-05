@@ -4,16 +4,16 @@ namespace Database\Factories;
 
 use App\Models\Character;
 use App\Models\CharacterClass;
-use App\Models\CharacterOptionalFeature;
+use App\Models\FeatureSelection;
 use App\Models\OptionalFeature;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\CharacterOptionalFeature>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\FeatureSelection>
  */
-class CharacterOptionalFeatureFactory extends Factory
+class FeatureSelectionFactory extends Factory
 {
-    protected $model = CharacterOptionalFeature::class;
+    protected $model = FeatureSelection::class;
 
     public function definition(): array
     {

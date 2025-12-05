@@ -320,57 +320,57 @@ class CharacterSlugIdParameterTest extends TestCase
     }
 
     // ========================================
-    // CharacterOptionalFeatureController Tests
+    // FeatureSelectionController Tests
     // ========================================
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_deletes_optional_feature_by_id()
+    public function it_deletes_feature_selection_by_id()
     {
-        // Add optional feature to character
-        $this->character->optionalFeatures()->create([
+        // Add feature selection to character
+        $this->character->featureSelections()->create([
             'optional_feature_id' => $this->optionalFeature->id,
             'level_acquired' => 3,
         ]);
 
-        $response = $this->deleteJson("/api/v1/characters/{$this->character->id}/optional-features/{$this->optionalFeature->id}");
+        $response = $this->deleteJson("/api/v1/characters/{$this->character->id}/feature-selections/{$this->optionalFeature->id}");
 
         $response->assertNoContent();
-        $this->assertDatabaseMissing('character_optional_features', [
+        $this->assertDatabaseMissing('feature_selections', [
             'character_id' => $this->character->id,
             'optional_feature_id' => $this->optionalFeature->id,
         ]);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_deletes_optional_feature_by_slug()
+    public function it_deletes_feature_selection_by_slug()
     {
-        // Add optional feature to character
-        $this->character->optionalFeatures()->create([
+        // Add feature selection to character
+        $this->character->featureSelections()->create([
             'optional_feature_id' => $this->optionalFeature->id,
             'level_acquired' => 3,
         ]);
 
-        $response = $this->deleteJson("/api/v1/characters/{$this->character->id}/optional-features/{$this->optionalFeature->slug}");
+        $response = $this->deleteJson("/api/v1/characters/{$this->character->id}/feature-selections/{$this->optionalFeature->slug}");
 
         $response->assertNoContent();
-        $this->assertDatabaseMissing('character_optional_features', [
+        $this->assertDatabaseMissing('feature_selections', [
             'character_id' => $this->character->id,
             'optional_feature_id' => $this->optionalFeature->id,
         ]);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_returns_404_for_invalid_optional_feature_slug()
+    public function it_returns_404_for_invalid_feature_selection_slug()
     {
-        $response = $this->deleteJson("/api/v1/characters/{$this->character->id}/optional-features/invalid-slug");
+        $response = $this->deleteJson("/api/v1/characters/{$this->character->id}/feature-selections/invalid-slug");
 
         $response->assertNotFound();
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_returns_404_for_invalid_optional_feature_id()
+    public function it_returns_404_for_invalid_feature_selection_id()
     {
-        $response = $this->deleteJson("/api/v1/characters/{$this->character->id}/optional-features/99999");
+        $response = $this->deleteJson("/api/v1/characters/{$this->character->id}/feature-selections/99999");
 
         $response->assertNotFound();
     }

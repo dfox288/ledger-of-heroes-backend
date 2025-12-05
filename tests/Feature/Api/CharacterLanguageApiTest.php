@@ -196,7 +196,7 @@ class CharacterLanguageApiTest extends TestCase
     }
 
     // =============================
-    // POST /characters/{id}/languages/populate
+    // POST /characters/{id}/languages/sync
     // =============================
 
     #[Test]
@@ -206,7 +206,7 @@ class CharacterLanguageApiTest extends TestCase
             ->withRace($this->elfRace)
             ->create();
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
 
         $response->assertOk()
             ->assertJsonPath('message', 'Languages populated successfully');
@@ -226,7 +226,7 @@ class CharacterLanguageApiTest extends TestCase
             ->withRace($this->humanRace)
             ->create();
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
 
         $response->assertOk();
 
@@ -258,7 +258,7 @@ class CharacterLanguageApiTest extends TestCase
             ->withBackground($hermitBackground)
             ->create();
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
 
         $response->assertOk();
 
@@ -273,8 +273,8 @@ class CharacterLanguageApiTest extends TestCase
             ->withRace($this->elfRace)
             ->create();
 
-        $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
-        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+        $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
 
         $response->assertOk();
         $this->assertCount(2, $response->json('data'));
@@ -302,7 +302,7 @@ class CharacterLanguageApiTest extends TestCase
             ->withBackground($urbanBackground) // Also grants Common
             ->create();
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
 
         $response->assertOk();
 
@@ -370,7 +370,7 @@ class CharacterLanguageApiTest extends TestCase
             ->create();
 
         // Populate fixed languages (Common)
-        $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+        $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
 
         $response = $this->getJson("/api/v1/characters/{$character->id}/language-choices");
 
@@ -395,7 +395,7 @@ class CharacterLanguageApiTest extends TestCase
             ->create();
 
         // Populate fixed languages
-        $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+        $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
 
         $response = $this->getJson("/api/v1/characters/{$character->id}/language-choices");
 
@@ -421,7 +421,7 @@ class CharacterLanguageApiTest extends TestCase
             ->create();
 
         // Populate fixed languages
-        $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+        $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
 
         // Make one background choice
         CharacterLanguage::create([
@@ -453,7 +453,7 @@ class CharacterLanguageApiTest extends TestCase
             ->create();
 
         // Populate fixed languages first
-        $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+        $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/language-choices", [
             'source' => 'race',
@@ -514,7 +514,7 @@ class CharacterLanguageApiTest extends TestCase
             ->create();
 
         // Populate fixed languages (Common)
-        $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+        $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
 
         // Try to choose Common which is already known
         $response = $this->postJson("/api/v1/characters/{$character->id}/language-choices", [
@@ -628,7 +628,7 @@ class CharacterLanguageApiTest extends TestCase
             'source' => 'feat',
         ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
 
         $response->assertOk();
 
@@ -700,7 +700,7 @@ class CharacterLanguageApiTest extends TestCase
     #[Test]
     public function it_returns_404_for_nonexistent_character_on_populate(): void
     {
-        $response = $this->postJson('/api/v1/characters/99999/languages/populate');
+        $response = $this->postJson('/api/v1/characters/99999/languages/sync');
 
         $response->assertNotFound();
     }
@@ -761,7 +761,7 @@ class CharacterLanguageApiTest extends TestCase
             ->create();
 
         // Populate fixed languages (should include inherited)
-        $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+        $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
 
         $response = $this->getJson("/api/v1/characters/{$character->id}/language-choices");
 
@@ -815,7 +815,7 @@ class CharacterLanguageApiTest extends TestCase
             ->withRace($subrace)
             ->create();
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
 
         $response->assertOk();
 
@@ -966,7 +966,7 @@ class CharacterLanguageApiTest extends TestCase
             ->withRace($subrace)
             ->create();
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/populate");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
 
         $response->assertOk();
 

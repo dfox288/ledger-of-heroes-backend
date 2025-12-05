@@ -233,7 +233,7 @@ class CharacterDeathSavesTest extends TestCase
     }
 
     // =====================
-    // POST /death-save Endpoint Tests
+    // POST /death-saves Endpoint Tests
     // =====================
 
     #[Test]
@@ -245,7 +245,7 @@ class CharacterDeathSavesTest extends TestCase
             'death_save_failures' => 0,
         ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/death-save", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/death-saves", [
             'roll' => 10, // 10+ is a success
         ]);
 
@@ -265,7 +265,7 @@ class CharacterDeathSavesTest extends TestCase
             'death_save_failures' => 0,
         ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/death-save", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/death-saves", [
             'roll' => 9, // Below 10 is a failure
         ]);
 
@@ -285,7 +285,7 @@ class CharacterDeathSavesTest extends TestCase
             'death_save_failures' => 0,
         ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/death-save", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/death-saves", [
             'roll' => 1,
         ]);
 
@@ -304,7 +304,7 @@ class CharacterDeathSavesTest extends TestCase
             'death_save_failures' => 2,
         ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/death-save", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/death-saves", [
             'roll' => 20,
         ]);
 
@@ -325,7 +325,7 @@ class CharacterDeathSavesTest extends TestCase
             'death_save_failures' => 1,
         ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/death-save", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/death-saves", [
             'roll' => 15,
         ]);
 
@@ -343,7 +343,7 @@ class CharacterDeathSavesTest extends TestCase
             'death_save_failures' => 2,
         ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/death-save", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/death-saves", [
             'roll' => 5,
         ]);
 
@@ -361,7 +361,7 @@ class CharacterDeathSavesTest extends TestCase
             'death_save_failures' => 0,
         ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/death-save", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/death-saves", [
             'damage' => 5,
         ]);
 
@@ -379,7 +379,7 @@ class CharacterDeathSavesTest extends TestCase
             'death_save_failures' => 0,
         ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/death-save", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/death-saves", [
             'damage' => 5,
             'is_critical' => true,
         ]);
@@ -394,14 +394,14 @@ class CharacterDeathSavesTest extends TestCase
     {
         $character = Character::factory()->create(['current_hit_points' => 0]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/death-save", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/death-saves", [
             'roll' => 21,
         ]);
 
         $response->assertUnprocessable()
             ->assertJsonValidationErrors(['roll']);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/death-save", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/death-saves", [
             'roll' => 0,
         ]);
 
@@ -414,7 +414,7 @@ class CharacterDeathSavesTest extends TestCase
     {
         $character = Character::factory()->create(['current_hit_points' => 0]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/death-save", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/death-saves", [
             'damage' => -5,
         ]);
 
@@ -427,7 +427,7 @@ class CharacterDeathSavesTest extends TestCase
     {
         $character = Character::factory()->create(['current_hit_points' => 0]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/death-save", []);
+        $response = $this->postJson("/api/v1/characters/{$character->id}/death-saves", []);
 
         $response->assertUnprocessable();
     }
@@ -439,7 +439,7 @@ class CharacterDeathSavesTest extends TestCase
             'current_hit_points' => 10,
         ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/death-save", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/death-saves", [
             'roll' => 15,
         ]);
 
@@ -448,7 +448,7 @@ class CharacterDeathSavesTest extends TestCase
     }
 
     // =====================
-    // POST /stabilize Endpoint Tests
+    // POST /death-saves/stabilize Endpoint Tests
     // =====================
 
     #[Test]
@@ -460,7 +460,7 @@ class CharacterDeathSavesTest extends TestCase
             'death_save_failures' => 1,
         ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/stabilize");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/death-saves/stabilize");
 
         $response->assertOk()
             ->assertJsonPath('data.death_save_successes', 0)

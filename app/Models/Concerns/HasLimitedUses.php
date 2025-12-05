@@ -9,7 +9,7 @@ namespace App\Models\Concerns;
  * - max_uses: ?int - Maximum uses per rest (null = unlimited)
  * - uses_remaining: ?int - Current uses remaining
  *
- * Used by: CharacterFeature, CharacterOptionalFeature
+ * Used by: CharacterFeature, FeatureSelection
  */
 trait HasLimitedUses
 {

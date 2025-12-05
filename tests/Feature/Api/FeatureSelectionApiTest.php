@@ -4,13 +4,13 @@ namespace Tests\Feature\Api;
 
 use App\Models\Character;
 use App\Models\CharacterClass;
-use App\Models\CharacterOptionalFeature;
+use App\Models\FeatureSelection;
 use App\Models\OptionalFeature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class CharacterOptionalFeatureApiTest extends TestCase
+class FeatureSelectionApiTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -19,36 +19,36 @@ class CharacterOptionalFeatureApiTest extends TestCase
     // ==========================================
 
     #[Test]
-    public function it_returns_empty_array_when_character_has_no_optional_features(): void
+    public function it_returns_empty_array_when_character_has_no_feature_selections(): void
     {
         $character = Character::factory()->create();
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}/optional-features");
+        $response = $this->getJson("/api/v1/characters/{$character->id}/feature-selections");
 
         $response->assertOk()
             ->assertJson(['data' => []]);
     }
 
     #[Test]
-    public function it_lists_all_optional_features_selected_by_character(): void
+    public function it_lists_all_feature_selections_for_character(): void
     {
         $character = Character::factory()->create();
         $feature1 = OptionalFeature::factory()->maneuver()->create(['name' => 'Riposte']);
         $feature2 = OptionalFeature::factory()->maneuver()->create(['name' => 'Parry']);
 
-        CharacterOptionalFeature::factory()
+        FeatureSelection::factory()
             ->for($character)
             ->withFeature($feature1)
             ->atLevel(3)
             ->create();
 
-        CharacterOptionalFeature::factory()
+        FeatureSelection::factory()
             ->for($character)
             ->withFeature($feature2)
             ->atLevel(3)
             ->create();
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}/optional-features");
+        $response = $this->getJson("/api/v1/characters/{$character->id}/feature-selections");
 
         $response->assertOk()
             ->assertJsonCount(2, 'data')
@@ -61,7 +61,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
     // ==========================================
 
     #[Test]
-    public function it_returns_available_optional_features_for_character_class(): void
+    public function it_returns_available_feature_selections_for_character_class(): void
     {
         // Create a Fighter class with unique slug
         $fighterClass = CharacterClass::factory()->create([
@@ -97,7 +97,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
             ]);
         $wizardFeature->classes()->attach($wizardClass->id);
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}/available-optional-features");
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-feature-selections");
 
         $response->assertOk();
 
@@ -140,12 +140,12 @@ class CharacterOptionalFeatureApiTest extends TestCase
         $availableFeature->classes()->attach($fighterClass->id);
 
         // Select one feature
-        CharacterOptionalFeature::factory()
+        FeatureSelection::factory()
             ->for($character)
             ->withFeature($selectedFeature)
             ->create();
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}/available-optional-features");
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-feature-selections");
 
         $response->assertOk();
 
@@ -188,7 +188,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
             ]);
         $noRequirement->classes()->attach($fighterClass->id);
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}/available-optional-features");
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-feature-selections");
 
         $response->assertOk();
 
@@ -228,7 +228,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
             ]);
         $fightingStyle->classes()->attach($fighterClass->id);
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}/available-optional-features?feature_type=maneuver");
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-feature-selections?feature_type=maneuver");
 
         $response->assertOk();
 
@@ -270,7 +270,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
             'is_starting_class' => true,
         ]);
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}/optional-feature-choices");
+        $response = $this->getJson("/api/v1/characters/{$character->id}/feature-selection-choices");
 
         $response->assertOk();
 
@@ -314,10 +314,10 @@ class CharacterOptionalFeatureApiTest extends TestCase
         $maneuver1 = OptionalFeature::factory()->maneuver()->create();
         $maneuver2 = OptionalFeature::factory()->maneuver()->create();
 
-        CharacterOptionalFeature::factory()->for($character)->withFeature($maneuver1)->create();
-        CharacterOptionalFeature::factory()->for($character)->withFeature($maneuver2)->create();
+        FeatureSelection::factory()->for($character)->withFeature($maneuver1)->create();
+        FeatureSelection::factory()->for($character)->withFeature($maneuver2)->create();
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}/optional-feature-choices");
+        $response = $this->getJson("/api/v1/characters/{$character->id}/feature-selection-choices");
 
         $response->assertOk();
 
@@ -335,7 +335,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
     // ==========================================
 
     #[Test]
-    public function it_adds_optional_feature_to_character(): void
+    public function it_adds_feature_selection_to_character(): void
     {
         $fighterClass = CharacterClass::factory()->create([
             'name' => 'Fighter',
@@ -357,7 +357,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
                 'level_requirement' => null,
             ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/optional-features", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/feature-selections", [
             'optional_feature_id' => $maneuver->id,
         ]);
 
@@ -365,7 +365,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
             ->assertJsonPath('data.optional_feature.name', 'Riposte')
             ->assertJsonPath('data.level_acquired', 3);
 
-        $this->assertDatabaseHas('character_optional_features', [
+        $this->assertDatabaseHas('feature_selections', [
             'character_id' => $character->id,
             'optional_feature_id' => $maneuver->id,
         ]);
@@ -392,13 +392,13 @@ class CharacterOptionalFeatureApiTest extends TestCase
             ->create(['level_requirement' => null]);
 
         // Select the feature once
-        CharacterOptionalFeature::factory()
+        FeatureSelection::factory()
             ->for($character)
             ->withFeature($maneuver)
             ->create();
 
         // Try to select again
-        $response = $this->postJson("/api/v1/characters/{$character->id}/optional-features", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/feature-selections", [
             'optional_feature_id' => $maneuver->id,
         ]);
 
@@ -428,7 +428,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
             ->forClass($fighterClass)
             ->create(['level_requirement' => 5]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/optional-features", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/feature-selections", [
             'optional_feature_id' => $highLevelFeature->id,
         ]);
 
@@ -461,7 +461,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
             ->forClass($wizardClass)
             ->create();
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/optional-features", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/feature-selections", [
             'optional_feature_id' => $wizardFeature->id,
         ]);
 
@@ -495,7 +495,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
             ->forClass($fighterClass)
             ->create(['level_requirement' => null]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/optional-features", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/feature-selections", [
             'optional_feature_id' => $maneuver->id,
             'class_id' => $fighterClass->id,
             'subclass_name' => 'Battle Master',
@@ -526,7 +526,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
             ->forClass($fighterClass)
             ->create(['level_requirement' => null]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/optional-features", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/feature-selections", [
             'optional_feature_id' => $maneuver->id,
             'level_acquired' => 3,
         ]);
@@ -540,26 +540,26 @@ class CharacterOptionalFeatureApiTest extends TestCase
     // ==========================================
 
     #[Test]
-    public function it_removes_optional_feature_from_character(): void
+    public function it_removes_feature_selection_from_character(): void
     {
         $character = Character::factory()->create();
         $feature = OptionalFeature::factory()->maneuver()->create();
 
-        CharacterOptionalFeature::factory()
+        FeatureSelection::factory()
             ->for($character)
             ->withFeature($feature)
             ->create();
 
-        $this->assertDatabaseHas('character_optional_features', [
+        $this->assertDatabaseHas('feature_selections', [
             'character_id' => $character->id,
             'optional_feature_id' => $feature->id,
         ]);
 
-        $response = $this->deleteJson("/api/v1/characters/{$character->id}/optional-features/{$feature->id}");
+        $response = $this->deleteJson("/api/v1/characters/{$character->id}/feature-selections/{$feature->id}");
 
         $response->assertNoContent();
 
-        $this->assertDatabaseMissing('character_optional_features', [
+        $this->assertDatabaseMissing('feature_selections', [
             'character_id' => $character->id,
             'optional_feature_id' => $feature->id,
         ]);
@@ -571,7 +571,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
         $character = Character::factory()->create();
         $feature = OptionalFeature::factory()->maneuver()->create();
 
-        $response = $this->deleteJson("/api/v1/characters/{$character->id}/optional-features/{$feature->id}");
+        $response = $this->deleteJson("/api/v1/characters/{$character->id}/feature-selections/{$feature->id}");
 
         $response->assertNotFound();
     }
@@ -583,7 +583,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
     #[Test]
     public function it_returns_404_for_nonexistent_character_on_index(): void
     {
-        $response = $this->getJson('/api/v1/characters/99999/optional-features');
+        $response = $this->getJson('/api/v1/characters/99999/feature-selections');
 
         $response->assertNotFound();
     }
@@ -591,7 +591,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
     #[Test]
     public function it_returns_404_for_nonexistent_character_on_available(): void
     {
-        $response = $this->getJson('/api/v1/characters/99999/available-optional-features');
+        $response = $this->getJson('/api/v1/characters/99999/available-feature-selections');
 
         $response->assertNotFound();
     }
@@ -599,7 +599,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
     #[Test]
     public function it_returns_404_for_nonexistent_character_on_choices(): void
     {
-        $response = $this->getJson('/api/v1/characters/99999/optional-feature-choices');
+        $response = $this->getJson('/api/v1/characters/99999/feature-selection-choices');
 
         $response->assertNotFound();
     }
@@ -609,7 +609,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
     {
         $feature = OptionalFeature::factory()->create();
 
-        $response = $this->postJson('/api/v1/characters/99999/optional-features', [
+        $response = $this->postJson('/api/v1/characters/99999/feature-selections', [
             'optional_feature_id' => $feature->id,
         ]);
 
@@ -621,7 +621,7 @@ class CharacterOptionalFeatureApiTest extends TestCase
     {
         $character = Character::factory()->create();
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/optional-features", [
+        $response = $this->postJson("/api/v1/characters/{$character->id}/feature-selections", [
             'optional_feature_id' => 99999,
         ]);
 

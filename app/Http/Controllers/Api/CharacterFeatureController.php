@@ -74,15 +74,15 @@ class CharacterFeatureController extends Controller
     }
 
     /**
-     * Populate features from class, race, and background.
+     * Sync features from class, race, and background.
      *
-     * Auto-populates features based on character's selections and level.
+     * Syncs features based on character's selections and level.
      * This is typically called when finalizing character creation or when leveling up.
      *
-     * - Class features are populated up to the character's current level
-     * - Optional/choice features (like Fighting Style) are NOT auto-populated
-     * - Racial traits are always populated
-     * - Background features are always populated
+     * - Class features are synced up to the character's current level
+     * - Optional/choice features (like Fighting Style) are NOT synced automatically
+     * - Racial traits are always synced
+     * - Background features are always synced
      *
      * @x-flow character-creation
      *
@@ -90,13 +90,13 @@ class CharacterFeatureController extends Controller
      *
      * **Examples:**
      * ```
-     * POST /api/v1/characters/1/features/populate
+     * POST /api/v1/characters/1/features/sync
      * ```
      *
      * **Response:**
      * ```json
      * {
-     *   "message": "Features populated successfully",
+     *   "message": "Features synced successfully",
      *   "data": [
      *     {"id": 1, "source": "class", "feature_type": "class_feature", ...},
      *     {"id": 2, "source": "race", "feature_type": "trait", ...},
@@ -106,16 +106,16 @@ class CharacterFeatureController extends Controller
      * ```
      *
      * **Note:** This endpoint is idempotent - calling it multiple times will not create duplicates.
-     * Features are auto-populated when class/race/background changes via the PopulateCharacterAbilities listener.
+     * Features are synced when class/race/background changes via the PopulateCharacterAbilities listener.
      */
-    public function populate(Character $character): JsonResponse
+    public function sync(Character $character): JsonResponse
     {
         $character->load(['characterClasses.characterClass', 'race', 'background']);
 
         $this->featureService->populateAll($character);
 
         return response()->json([
-            'message' => 'Features populated successfully',
+            'message' => 'Features synced successfully',
             'data' => CharacterFeatureResource::collection(
                 $this->featureService->getCharacterFeatures($character)
             ),

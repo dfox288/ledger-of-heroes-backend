@@ -2,11 +2,11 @@
 
 namespace Tests\Unit\Strategies\CharacterClass;
 
-use App\Services\Importers\Strategies\CharacterClass\AbstractClassStrategy;
+use App\Services\Importers\Strategies\AbstractImportStrategy;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
 class AbstractClassStrategyTest extends TestCase
 {
     private ConcreteTestStrategy $strategy;
@@ -51,7 +51,7 @@ class AbstractClassStrategyTest extends TestCase
     }
 }
 
-class ConcreteTestStrategy extends AbstractClassStrategy
+class ConcreteTestStrategy extends AbstractImportStrategy
 {
     public function appliesTo(array $data): bool
     {

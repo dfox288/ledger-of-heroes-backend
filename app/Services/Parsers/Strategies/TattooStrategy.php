@@ -2,6 +2,7 @@
 
 namespace App\Services\Parsers\Strategies;
 
+use App\Services\Parsers\Concerns\FindsInDescription;
 use SimpleXMLElement;
 
 /**
@@ -11,6 +12,8 @@ use SimpleXMLElement;
  */
 class TattooStrategy extends AbstractItemStrategy
 {
+    use FindsInDescription;
+
     /**
      * Applies to wondrous items with "tattoo" in the name.
      */
@@ -61,13 +64,7 @@ class TattooStrategy extends AbstractItemStrategy
     {
         $locations = ['arm', 'chest', 'back', 'head', 'hand', 'leg', 'torso', 'shoulder', 'neck'];
 
-        foreach ($locations as $location) {
-            if (str_contains(strtolower($description), $location)) {
-                return $location;
-            }
-        }
-
-        return null;
+        return $this->findFirstKeyword($description, $locations);
     }
 
     /**

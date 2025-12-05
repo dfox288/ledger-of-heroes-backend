@@ -3,12 +3,11 @@
 namespace App\Services\Importers\Strategies\Monster;
 
 use App\Models\Monster;
-use App\Models\Spell;
+use App\Services\Concerns\NormalizesSpellNames;
 
 class SpellcasterStrategy extends AbstractMonsterStrategy
 {
-    /** @var array<string, Spell|null> Cache of spell lookups */
-    private array $spellCache = [];
+    use NormalizesSpellNames;
 
     public function appliesTo(array $monsterData): bool
     {
@@ -83,29 +82,5 @@ class SpellcasterStrategy extends AbstractMonsterStrategy
             fn ($name) => $this->normalizeSpellName($name),
             $names
         );
-    }
-
-    /**
-     * Normalize spell name to Title Case.
-     */
-    private function normalizeSpellName(string $name): string
-    {
-        $name = trim($name);
-
-        return mb_convert_case($name, MB_CASE_TITLE, 'UTF-8');
-    }
-
-    /**
-     * Find spell by name (case-insensitive) with caching.
-     */
-    private function findSpell(string $name): ?Spell
-    {
-        $cacheKey = mb_strtolower($name);
-
-        if (! isset($this->spellCache[$cacheKey])) {
-            $this->spellCache[$cacheKey] = Spell::whereRaw('LOWER(name) = ?', [$cacheKey])->first();
-        }
-
-        return $this->spellCache[$cacheKey];
     }
 }

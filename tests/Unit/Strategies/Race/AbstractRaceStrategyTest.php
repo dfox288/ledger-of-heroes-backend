@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Strategies\Race;
 
-use App\Services\Importers\Strategies\Race\AbstractRaceStrategy;
+use App\Services\Importers\Strategies\AbstractImportStrategy;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -53,7 +53,7 @@ class AbstractRaceStrategyTest extends TestCase
 }
 
 // Concrete test implementation to test abstract class
-class ConcreteTestStrategy extends AbstractRaceStrategy
+class ConcreteTestStrategy extends AbstractImportStrategy
 {
     public function appliesTo(array $data): bool
     {

@@ -3,8 +3,9 @@
 namespace App\Services\Importers\Strategies\CharacterClass;
 
 use App\Models\AbilityScore;
+use App\Services\Importers\Strategies\AbstractImportStrategy;
 
-class BaseClassStrategy extends AbstractClassStrategy
+class BaseClassStrategy extends AbstractImportStrategy
 {
     /**
      * Base classes have hit_die > 0.

@@ -2,6 +2,7 @@
 
 namespace App\Services\Parsers\Strategies;
 
+use App\Services\Parsers\Concerns\FindsInDescription;
 use SimpleXMLElement;
 
 /**
@@ -11,6 +12,8 @@ use SimpleXMLElement;
  */
 class LegendaryStrategy extends AbstractItemStrategy
 {
+    use FindsInDescription;
+
     /**
      * Applies to legendary and artifact items.
      */
@@ -79,15 +82,7 @@ class LegendaryStrategy extends AbstractItemStrategy
             'communicates',
         ];
 
-        $descLower = strtolower($description);
-
-        foreach ($sentientIndicators as $indicator) {
-            if (str_contains($descLower, $indicator)) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->hasAnyKeyword($description, $sentientIndicators);
     }
 
     /**
@@ -97,8 +92,6 @@ class LegendaryStrategy extends AbstractItemStrategy
      */
     private function extractAlignment(string $description, string $detail): ?string
     {
-        $text = strtolower($description.' '.$detail);
-
         $alignments = [
             'lawful good', 'lawful neutral', 'lawful evil',
             'neutral good', 'true neutral', 'neutral evil',
@@ -106,13 +99,7 @@ class LegendaryStrategy extends AbstractItemStrategy
             'unaligned',
         ];
 
-        foreach ($alignments as $alignment) {
-            if (str_contains($text, $alignment)) {
-                return $alignment;
-            }
-        }
-
-        return null;
+        return $this->findFirstKeyword($description.' '.$detail, $alignments);
     }
 
     /**
@@ -120,22 +107,12 @@ class LegendaryStrategy extends AbstractItemStrategy
      */
     private function extractPersonalityTraits(string $description): array
     {
-        $traits = [];
-        $descLower = strtolower($description);
-
-        // Common personality descriptors
         $descriptors = [
             'arrogant', 'kind', 'cruel', 'benevolent', 'malevolent',
             'proud', 'humble', 'greedy', 'generous', 'wrathful',
             'patient', 'impulsive', 'cunning', 'straightforward',
         ];
 
-        foreach ($descriptors as $descriptor) {
-            if (str_contains($descLower, $descriptor)) {
-                $traits[] = $descriptor;
-            }
-        }
-
-        return $traits;
+        return $this->findAllKeywords($description, $descriptors);
     }
 }

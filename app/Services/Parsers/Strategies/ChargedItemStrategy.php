@@ -2,7 +2,7 @@
 
 namespace App\Services\Parsers\Strategies;
 
-use App\Models\Spell;
+use App\Services\Concerns\NormalizesSpellNames;
 use SimpleXMLElement;
 
 /**
@@ -12,6 +12,8 @@ use SimpleXMLElement;
  */
 class ChargedItemStrategy extends AbstractItemStrategy
 {
+    use NormalizesSpellNames;
+
     /**
      * Applies to magic items with charge mechanics (staves, wands, rods, wondrous items).
      * Also applies to items that mention spells with charge costs, even if not explicitly magic.
@@ -105,24 +107,5 @@ class ChargedItemStrategy extends AbstractItemStrategy
         }
 
         return $spells;
-    }
-
-    /**
-     * Normalize spell name to title case for database matching.
-     */
-    private function normalizeSpellName(string $name): string
-    {
-        $name = trim($name);
-
-        // Title case the spell name
-        return mb_convert_case($name, MB_CASE_TITLE, 'UTF-8');
-    }
-
-    /**
-     * Find spell by name (case-insensitive).
-     */
-    private function findSpell(string $name): ?Spell
-    {
-        return Spell::whereRaw('LOWER(name) = ?', [mb_strtolower($name)])->first();
     }
 }

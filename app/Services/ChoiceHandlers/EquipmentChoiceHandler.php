@@ -164,20 +164,26 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             throw new InvalidSelectionException($choice->id, 'empty', 'Selection cannot be empty');
         }
 
+        // Handle array format: selected is an array like ["a"], extract first element
+        $selectedOption = is_array($selected) ? ($selected[0] ?? null) : $selected;
+        if (empty($selectedOption)) {
+            throw new InvalidSelectionException($choice->id, 'empty', 'Selection cannot be empty');
+        }
+
         // Find the selected option in the choice options
-        $selectedOption = null;
+        $foundOption = null;
         foreach ($choice->options as $option) {
-            if ($option['option'] === $selected) {
-                $selectedOption = $option;
+            if ($option['option'] === $selectedOption) {
+                $foundOption = $option;
                 break;
             }
         }
 
-        if (! $selectedOption) {
+        if (! $foundOption) {
             throw new InvalidSelectionException(
                 $choice->id,
-                $selected,
-                "Invalid option '{$selected}' for equipment choice"
+                $selectedOption,
+                "Invalid option '{$selectedOption}' for equipment choice"
             );
         }
 
@@ -188,7 +194,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
         ]);
 
         // Grant each item in the selected option
-        foreach ($selectedOption['items'] as $item) {
+        foreach ($foundOption['items'] as $item) {
             CharacterEquipment::create([
                 'character_id' => $character->id,
                 'item_id' => $item['id'],

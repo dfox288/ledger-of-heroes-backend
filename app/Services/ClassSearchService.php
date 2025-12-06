@@ -105,7 +105,8 @@ final class ClassSearchService
      */
     public function buildDatabaseQuery(ClassSearchDTO $dto): Builder
     {
-        $query = CharacterClass::with(self::INDEX_RELATIONSHIPS);
+        $query = CharacterClass::with(self::INDEX_RELATIONSHIPS)
+            ->withCount('spells');
 
         $this->applySorting($query, $dto);
 
@@ -187,6 +188,7 @@ final class ClassSearchService
         }
 
         $classes = CharacterClass::with(self::INDEX_RELATIONSHIPS)
+            ->withCount('spells')
             ->findMany($classIds);
 
         // Preserve Meilisearch result order

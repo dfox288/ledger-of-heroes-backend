@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #273**: Populate `primary_ability` field for all base classes
+  - Data migration adds PHB p.163 primary abilities (STR, DEX, INT, WIS, CHA)
+  - Classes with multiple abilities use "STR or DEX" (Fighter) or "DEX and WIS" (Monk) format
+
+- **Issue #274**: Add descriptions to spell school lookup
+  - Updated SpellSchoolSeeder with PHB p.203 descriptions for all 8 schools of magic
+
+- **Issue #277**: Add `spell_count` to class list responses
+  - Shows number of spells available to each class for quick reference
+  - Uses `withCount('spells')` in ClassSearchService for efficiency
+
+- **Issue #278**: Add `monster_count` and `spell_count` to condition lookup
+  - Shows how many monsters/spells inflict each condition
+  - Currently returns 0 as monster/spell condition relationships need to be imported
+
+### Added
+
 - **Issue #246/#247**: Unified Choice System - Core Infrastructure
   - New `PendingChoice` DTO for representing any character choice uniformly
   - New `ChoiceTypeHandler` interface and `AbstractChoiceHandler` base class for choice type implementations

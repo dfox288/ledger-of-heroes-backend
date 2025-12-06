@@ -55,6 +55,8 @@ class ClassResource extends JsonResource
             /** @var int|null Level at which subclass is chosen */
             'subclass_level' => $this->subclass_level,
             'spellcasting_type' => $this->spellcasting_type,
+            /** @var int|null Number of spells available to this class */
+            'spell_count' => $this->spells_count ?? null,
 
             // === MULTICLASS REQUIREMENTS ===
             'multiclass_requirements' => $this->when(

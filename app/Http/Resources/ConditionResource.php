@@ -19,6 +19,10 @@ class ConditionResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
+            /** @var int|null Number of monsters that inflict this condition */
+            'monster_count' => $this->monsters_count ?? null,
+            /** @var int|null Number of spells that inflict this condition */
+            'spell_count' => $this->spells_count ?? null,
         ];
     }
 }

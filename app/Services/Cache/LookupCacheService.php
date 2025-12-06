@@ -57,13 +57,15 @@ class LookupCacheService
 
     /**
      * Get all conditions (15 D&D conditions).
+     *
+     * Includes monster and spell counts showing how many entities inflict each condition.
      */
     public function getConditions(): Collection
     {
         return Cache::remember(
             self::PREFIX.'conditions:all',
             self::TTL,
-            fn () => Condition::all()
+            fn () => Condition::withCount(['monsters', 'spells'])->get()
         );
     }
 

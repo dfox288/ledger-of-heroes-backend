@@ -82,7 +82,9 @@ class ConditionController extends Controller
             return ConditionResource::collection($paginated);
         }
 
-        return ConditionResource::collection($query->paginate($perPage));
+        return ConditionResource::collection(
+            $query->withCount(['monsters', 'spells'])->paginate($perPage)
+        );
     }
 
     /**
@@ -104,6 +106,8 @@ class ConditionController extends Controller
      */
     public function show(Condition $condition): ConditionResource
     {
+        $condition->loadCount(['monsters', 'spells']);
+
         return new ConditionResource($condition);
     }
 

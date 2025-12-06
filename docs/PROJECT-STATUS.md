@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated:** 2025-12-06
+**Last Updated:** 2025-12-07
 **Branch:** main
 **Status:** ✅ Refactoring & Test Coverage Complete
 
@@ -10,7 +10,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 2,132 passing (~7,900+ assertions) - Unit-Pure/Unit-DB/Feature-DB |
+| **Tests** | 2,857+ passing (~11,500 assertions) - All test suites |
 | **Test Coverage** | ~23% (Unit suites combined) - ongoing improvements |
 | **Test Files** | 310+ |
 | **Filter Tests** | 151 operator tests (2,750+ assertions) - 100% coverage |
@@ -31,6 +31,27 @@
 ---
 
 ## 🚀 Recent Milestones
+
+### GitHub Issues Audit & Coverage Sprint Closure ✅ COMPLETE (2025-12-07)
+- **Issues Closed:** #232 (LevelUpService), #233 (Multiclass services)
+- **Issues Updated:** #236 (Character controllers - 5/7 complete), #240 (Coverage Epic progress)
+
+**Coverage Issues Now Complete:**
+| Issue | Service/Component | Status |
+|-------|-------------------|--------|
+| #231 | RestService | ✅ CLOSED |
+| #232 | LevelUpService | ✅ CLOSED (106 tests) |
+| #233 | Multiclass services | ✅ CLOSED (96 tests) |
+| #234 | PrerequisiteCheckerService | ✅ CLOSED |
+| #237 | SpellSlotService | ✅ CLOSED |
+| #238 | Parser strategies | ✅ CLOSED |
+
+**Still Open:**
+- #235 - ReplaceClassService (0% coverage)
+- #236 - Character controllers (2 remaining: AuthController, AsiChoiceController)
+- #239 - SpellManagerService (89% → 95% target)
+
+**New Epic Started:** Slug-based Character References (#288-297) - 9 issues for URL-safe entity references
 
 ### Service & Parser Test Coverage Sprint ✅ COMPLETE (2025-12-06)
 - **Issues Closed:** #238, #237, #234, #231
@@ -511,8 +532,8 @@ All controllers now have consistent error response documentation with HTTP statu
 - 3,600+ documents indexed
 
 ### Testing Layer (100% Complete)
-- 208 test files (~1,410 tests, ~10,500 assertions)
-- **All suites passing:** Unit-Pure, Unit-DB, Feature-DB, Feature-Search
+- 310+ test files (~2,857 tests, ~11,500 assertions)
+- **All suites passing:** Unit-Pure, Unit-DB, Feature-DB, Feature-Search, Importers
 - Feature tests (API, importers, models, migrations, search)
 - Unit tests (parsers, services, strategies)
 - Strategy-specific tests (Item: 44, Monster: 105, Beast: 8)
@@ -565,35 +586,41 @@ All controllers now have consistent error response documentation with HTTP statu
 
 ## 🎯 Next Priorities
 
-### Priority 1: Character Export (Issue #122)
-- **Status:** Ready for implementation
-- Export character to PDF and/or JSON format
-- Include all character data: stats, equipment, spells, features
-- PDF format for printing character sheets
-- JSON format for backup/transfer
+### Priority 1: Slug-Based Character References (Epic #288)
+- **Status:** In progress - 9 issues created
+- Add `full_slug` column to entity tables for URL-safe references
+- Update API layer, service layer, and test suites
+- Improve character data portability and URL readability
 
-### Priority 2: XP-Based Leveling (Issue #95)
-- **Status:** Optional enhancement
-- Automatic leveling when XP threshold reached
-- XP threshold table (300, 900, 2700... 355,000)
+### Priority 2: Character HP Auto-Initialization (Issue #254)
+- **Status:** Ready for implementation
+- Automatic HP calculation on character creation and level-up
 - Integration with existing level-up flow
 
-### Priority 3: Missing Subclasses (Issue #9)
-- **Status:** Data import task
-- Add subclasses from Explorer's Guide to Wildemount
-- Requires new XML source files
+### Priority 3: Feature Uses Tracking (Issue #256)
+- **Status:** Ready for implementation
+- Track limited-use abilities (per short rest, per long rest, etc.)
+- Reset tracking on appropriate rest type
+
+### Priority 4: Test Coverage to 80% (Epic #240)
+- **Status:** 6 of 9 sub-issues closed
+- Remaining: #235 (ReplaceClassService), #236 (2 controllers), #239 (SpellManagerService)
+
+### Backlog
+- Character Export (Issue #122) - Export to PDF/JSON format
+- XP-Based Leveling (Issue #95) - Automatic leveling on XP threshold
+- Missing Subclasses (Issue #9) - Explorer's Guide to Wildemount content
+- Batch API Endpoints (Issues #242, #243)
+- Parser Improvements (Issues #279, #280)
 
 ### Recently Completed
+- ✅ Coverage issues #231, #232, #233, #234, #237, #238 - All closed
 - ✅ Character Builder API Documentation (Issue #155) - PR #48 merged
 - ✅ OpenAPI Type Annotations (Issues #157, #158, #159) - PR #47 merged
 - ✅ Proficiency Choice Metadata (Issue #168) - PR #46 merged
-
-### Additional Opportunities
-- Multiclass Support (Issue #92 - design complete)
-- Encounter Builder API
-- Additional Monster Strategies
-- Frontend Application
-- Rate Limiting
+- ✅ Unified Character Choice System (Issue #246) - PR #68 merged
+- ✅ Enhanced Stats Endpoint (Issue #255) - PR #69 merged
+- ✅ Equipment Choice Improvements (Issues #281-286) - All merged
 
 ---
 
@@ -608,8 +635,8 @@ All controllers now have consistent error response documentation with HTTP statu
 - ✅ Data imports (one-command master import)
 
 **Confidence Level:** 🟢 Very High
-- 1,600+ tests passing (100% pass rate)
-- All test suites passing (Unit-Pure, Unit-DB, Feature-DB, Feature-Search)
+- 2,857+ tests passing (100% pass rate)
+- All test suites passing (Unit-Pure, Unit-DB, Feature-DB, Feature-Search, Importers)
 - Comprehensive test coverage with data-agnostic assertions
 - Clean architecture with Strategy Pattern
 - Well-documented codebase
@@ -669,8 +696,8 @@ docker compose exec php php artisan search:configure-indexes
 
 ---
 
-**Last Updated:** 2025-12-06
-**Next Session:** Character Export (#122), XP-Based Leveling (#95), or Missing Subclasses (#9)
+**Last Updated:** 2025-12-07
+**Next Session:** Slug-Based Character References (Epic #288), Character HP (#254), or Feature Uses Tracking (#256)
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

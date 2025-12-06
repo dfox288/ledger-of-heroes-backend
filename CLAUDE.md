@@ -193,11 +193,11 @@ docker compose exec php ./vendor/bin/pest --coverage-clover=coverage/clover.xml
 
 | Suite | Time | Tests | When to Use |
 |-------|------|-------|-------------|
-| `Unit-Pure` | ~3s | 273 | Parser changes, exceptions, pure logic |
-| `Unit-DB` | ~7s | 436 | Factories, models, strategies, caching |
-| `Feature-DB` | ~9s | 367 | API endpoints (no search), requests |
-| `Feature-Search` | ~20s | 286 | All search/filter tests with fixture data |
-| `Importers` | ~30s | ~135 | XML import command tests |
+| `Unit-Pure` | ~12s | 741 | Parser changes, exceptions, pure logic |
+| `Unit-DB` | ~26s | 1030 | Factories, models, strategies, caching |
+| `Feature-DB` | ~19s | 516 | API endpoints (no search), requests |
+| `Feature-Search` | ~38s | 510 | All search/filter tests with fixture data |
+| `Importers` | ~12s | 269 | XML import command tests |
 
 ```bash
 # Quick feedback during development

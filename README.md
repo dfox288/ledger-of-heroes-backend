@@ -7,8 +7,8 @@ Laravel-based REST API for D&D 5th Edition content with XML import capability. F
 **Current Version:** 1.0.0 (Production Ready)
 - ✅ **7 Entity APIs Complete:** Spells, Items, Classes, Feats, Backgrounds, Races, Monsters (full REST APIs)
 - ✅ **Character Builder API:** Full character creation with equipment, spells, level-up, and ASI/Feat choices
-- ✅ **1,864 Tests Passing** (~12,000 assertions) - All test suites
-- ✅ **124 Filter Operator Tests** (2,462 assertions) - 100% coverage across all entities
+- ✅ **2,857+ Tests Passing** (~11,500 assertions) - All test suites
+- ✅ **151 Filter Operator Tests** (2,750+ assertions) - 100% coverage across all entities
 - ✅ **Performance Optimized:** Redis caching (93.7% improvement, 16.6x faster, <0.2ms response time)
 - ✅ **3,600+ Documents Indexed** in Meilisearch for fast, typo-tolerant search
 - ✅ **598 Monsters Imported** with type-specific parsing strategies
@@ -240,7 +240,7 @@ docker compose exec php php artisan test --filter=MonsterApi
 docker compose exec php php artisan test --coverage-text
 ```
 
-**Current Status:** 1,864 tests passing (~12,000 assertions) across 4 test suites
+**Current Status:** 2,857+ tests passing (~11,500 assertions) across 5 test suites
 
 ## 📥 Import System
 
@@ -376,13 +376,20 @@ Auto-generated API documentation: `http://localhost:8080/docs/api`
 - ✅ Comprehensive filter operator testing (124 tests, 100% coverage)
 - ✅ API Documentation (comprehensive PHPDoc for all controllers)
 
+### In Progress
+1. **Slug-Based Character References** (Epic #288) - 9 issues for URL-safe entity references
+2. **Test Coverage to 80%** (Epic #240) - 3 remaining sub-issues (#235, #236, #239)
+
 ### Open Issues
-1. **Character Export** (Issue #122) - Export to PDF/JSON format
-2. **XP-Based Leveling** (Issue #95) - Automatic leveling on XP threshold
-3. **Missing Subclasses** (Issue #9) - Explorer's Guide to Wildemount content
+1. **Character HP Auto-Initialization** (Issue #254) - HP calculation on level-up
+2. **Feature Uses Tracking** (Issue #256) - Limited-use ability tracking
+3. **Character Export** (Issue #122) - Export to PDF/JSON format
+4. **XP-Based Leveling** (Issue #95) - Automatic leveling on XP threshold
+5. **Missing Subclasses** (Issue #9) - Explorer's Guide to Wildemount content
 
 ### Optional Enhancements
-- **Multiclass Support** - Design complete, ready for implementation
+- **Batch API Endpoints** (Issues #242, #243) - Batch spell/equipment operations
+- **Parser Improvements** (Issues #279, #280) - Speed values and source references
 - **Frontend Application** - Inertia.js + Vue or Next.js + React
 - **Rate Limiting** - Per-IP throttling middleware
 

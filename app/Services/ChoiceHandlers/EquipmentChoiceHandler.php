@@ -8,6 +8,8 @@ use App\DTOs\PendingChoice;
 use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
 use App\Models\CharacterEquipment;
+use App\Models\Item;
+use App\Models\ProficiencyType;
 use Illuminate\Support\Collection;
 
 class EquipmentChoiceHandler extends AbstractChoiceHandler
@@ -62,7 +64,6 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
 
                 // Get items for this option from choiceItems relationship
                 $items = [];
-                $itemFilter = null;
 
                 foreach ($optionItems as $optionItem) {
                     foreach ($optionItem->choiceItems as $choiceItem) {
@@ -97,13 +98,15 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                             $items[] = $itemData;
                         } elseif ($choiceItem->proficiencyType) {
                             // Category-based choice (e.g., "any simple weapon")
-                            // Only set item_filter if category is defined
-                            $proficiencyType = $choiceItem->proficiencyType;
-                            if ($proficiencyType->category !== null) {
-                                $itemFilter = array_filter([
-                                    'category' => $proficiencyType->category,
-                                    'subcategory' => $proficiencyType->subcategory,
-                                ], fn ($v) => $v !== null && $v !== '');
+                            // Fetch all matching items and add them to the items array
+                            $categoryItems = $this->getItemsForProficiencyType($choiceItem->proficiencyType);
+                            foreach ($categoryItems as $categoryItem) {
+                                $items[] = [
+                                    'id' => $categoryItem->id,
+                                    'name' => $categoryItem->name,
+                                    'slug' => $categoryItem->slug,
+                                    'quantity' => $choiceItem->quantity,
+                                ];
                             }
                         }
                     }
@@ -112,18 +115,11 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                 // Get label from EntityItem description field (e.g., "a rapier")
                 $label = $optionItems->first()?->description ?? '';
 
-                $option = [
+                $builtOptions[] = [
                     'option' => $optionLetter,
                     'label' => $label,
                     'items' => $items,
                 ];
-
-                // Add item_filter for category-based choices
-                if ($itemFilter !== null) {
-                    $option['item_filter'] = $itemFilter;
-                }
-
-                $builtOptions[] = $option;
             }
 
             // Quantity is always 1 for equipment choices (pick one option)
@@ -231,5 +227,54 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             ->delete();
 
         $character->load('equipment');
+    }
+
+    /**
+     * Get all items matching a proficiency type category.
+     *
+     * For "Simple Weapons" (category=weapon, subcategory=simple):
+     *   - Find ProficiencyTypes where subcategory starts with "simple_" (simple_melee, simple_ranged)
+     *   - Match items by slug
+     *
+     * For "Martial Weapons" (category=weapon, subcategory=martial):
+     *   - Find ProficiencyTypes where subcategory starts with "martial_"
+     *   - Match items by slug
+     *
+     * For "Musical Instruments" (category=musical_instrument):
+     *   - Find ProficiencyTypes where subcategory = "musical_instrument"
+     *   - Match items by slug
+     */
+    private function getItemsForProficiencyType(ProficiencyType $proficiencyType): Collection
+    {
+        $category = $proficiencyType->category;
+        $subcategory = $proficiencyType->subcategory;
+
+        // Build query for matching proficiency types
+        $query = ProficiencyType::query();
+
+        if ($category === 'weapon' && $subcategory === 'simple') {
+            // Simple Weapons: match simple_melee and simple_ranged
+            $query->where('category', 'weapon')
+                ->where('subcategory', 'like', 'simple_%');
+        } elseif ($category === 'weapon' && $subcategory === 'martial') {
+            // Martial Weapons: match martial_melee and martial_ranged
+            $query->where('category', 'weapon')
+                ->where('subcategory', 'like', 'martial_%');
+        } elseif ($category === 'musical_instrument') {
+            // Musical Instruments: match tool/musical_instrument
+            $query->where('subcategory', 'musical_instrument');
+        } else {
+            // Unknown category - return empty collection
+            return collect();
+        }
+
+        // Get slugs of matching proficiency types
+        $slugs = $query->pluck('slug');
+
+        // Find items matching these slugs (non-magic base items only)
+        return Item::whereIn('slug', $slugs)
+            ->where('is_magic', false)
+            ->orderBy('name')
+            ->get(['id', 'name', 'slug']);
     }
 }

@@ -14,9 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Label is sourced from the `description` field in `entity_items` table
 
 - **Issue #283**: Equipment choice dynamic options support
-  - Category-based choices (e.g., "any simple weapon") now include `item_filter` with category/subcategory
+  - Category-based choices (e.g., "any simple weapon") now populate `items` array with all matching items
   - Pack items (e.g., "dungeoneer's pack") now include `contents` array with contained items
-  - Frontend can use `item_filter` to query available items or display category choices
+  - All data is inline - no additional API calls needed
 
 - **Issue #285**: Fix "Array to string conversion" error when resolving equipment choices
   - EquipmentChoiceHandler now correctly handles `selected` as an array (e.g., `["a"]`)

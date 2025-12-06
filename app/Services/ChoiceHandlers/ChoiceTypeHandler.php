@@ -11,7 +11,7 @@ interface ChoiceTypeHandler
     /**
      * Get the choice type this handler manages.
      *
-     * @return string One of: proficiency, language, equipment, spell, asi_or_feat, subclass, optional_feature, expertise, fighting_style
+     * @return string One of: proficiency, language, equipment, spell, asi_or_feat, subclass, optional_feature, expertise, fighting_style, hit_points
      */
     public function getType(): string;
 

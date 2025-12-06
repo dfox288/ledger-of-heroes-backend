@@ -1,0 +1,613 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Services\ChoiceHandlers;
+
+use App\DTOs\PendingChoice;
+use App\Exceptions\InvalidSelectionException;
+use App\Models\Character;
+use App\Models\CharacterClass;
+use App\Models\CharacterClassPivot;
+use App\Models\ClassFeature;
+use App\Services\ChoiceHandlers\SubclassChoiceHandler;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class SubclassChoiceHandlerTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private SubclassChoiceHandler $handler;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->handler = app(SubclassChoiceHandler::class);
+    }
+
+    public function test_get_type_returns_subclass(): void
+    {
+        $this->assertSame('subclass', $this->handler->getType());
+    }
+
+    public function test_returns_subclass_choice_for_cleric_at_level_1(): void
+    {
+        // Cleric gets Divine Domain at level 1
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        // Create some subclasses
+        $lifeDomain = CharacterClass::factory()->create([
+            'name' => 'Life Domain',
+            'slug' => 'life-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        $warDomain = CharacterClass::factory()->create([
+            'name' => 'War Domain',
+            'slug' => 'war-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        // Add features to subclasses to determine subclass_level
+        ClassFeature::factory()->create([
+            'class_id' => $lifeDomain->id,
+            'feature_name' => 'Bonus Proficiency',
+            'level' => 1,
+        ]);
+
+        ClassFeature::factory()->create([
+            'class_id' => $warDomain->id,
+            'feature_name' => 'War Priest',
+            'level' => 1,
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_id' => $cleric->id,
+            'subclass_id' => null,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $character->load('characterClasses.characterClass.subclasses');
+
+        $choices = $this->handler->getChoices($character);
+
+        $this->assertCount(1, $choices);
+
+        $choice = $choices->first();
+        $this->assertInstanceOf(PendingChoice::class, $choice);
+        $this->assertSame('subclass', $choice->type);
+        $this->assertSame('class', $choice->source);
+        $this->assertSame('Cleric', $choice->sourceName);
+        $this->assertSame(1, $choice->levelGranted);
+        $this->assertTrue($choice->required);
+        $this->assertSame(1, $choice->quantity);
+        $this->assertSame(1, $choice->remaining);
+        $this->assertCount(2, $choice->options);
+        $this->assertSame($cleric->id, $choice->metadata['class_id']);
+    }
+
+    public function test_does_not_return_choice_for_fighter_at_level_1(): void
+    {
+        // Fighter gets Martial Archetype at level 3
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'fighter',
+            'parent_class_id' => null,
+        ]);
+
+        // Create subclass
+        $champion = CharacterClass::factory()->create([
+            'name' => 'Champion',
+            'slug' => 'champion',
+            'parent_class_id' => $fighter->id,
+        ]);
+
+        // Add feature at level 3
+        ClassFeature::factory()->create([
+            'class_id' => $champion->id,
+            'feature_name' => 'Improved Critical',
+            'level' => 3,
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_id' => $fighter->id,
+            'subclass_id' => null,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $character->load('characterClasses.characterClass.subclasses');
+
+        $choices = $this->handler->getChoices($character);
+
+        $this->assertCount(0, $choices);
+    }
+
+    public function test_returns_choice_for_fighter_at_level_3(): void
+    {
+        // Fighter gets Martial Archetype at level 3
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'fighter',
+            'parent_class_id' => null,
+        ]);
+
+        // Create subclasses
+        $champion = CharacterClass::factory()->create([
+            'name' => 'Champion',
+            'slug' => 'champion',
+            'parent_class_id' => $fighter->id,
+        ]);
+
+        $battlemaster = CharacterClass::factory()->create([
+            'name' => 'Battle Master',
+            'slug' => 'battle-master',
+            'parent_class_id' => $fighter->id,
+        ]);
+
+        // Add features at level 3
+        ClassFeature::factory()->create([
+            'class_id' => $champion->id,
+            'feature_name' => 'Improved Critical',
+            'level' => 3,
+        ]);
+
+        ClassFeature::factory()->create([
+            'class_id' => $battlemaster->id,
+            'feature_name' => 'Combat Superiority',
+            'level' => 3,
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_id' => $fighter->id,
+            'subclass_id' => null,
+            'level' => 3,
+            'is_primary' => true,
+        ]);
+
+        $character->load('characterClasses.characterClass.subclasses');
+
+        $choices = $this->handler->getChoices($character);
+
+        $this->assertCount(1, $choices);
+
+        $choice = $choices->first();
+        $this->assertSame('subclass', $choice->type);
+        $this->assertSame('Fighter', $choice->sourceName);
+        $this->assertSame(3, $choice->levelGranted);
+        $this->assertCount(2, $choice->options);
+    }
+
+    public function test_does_not_return_choice_if_subclass_already_selected(): void
+    {
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        $lifeDomain = CharacterClass::factory()->create([
+            'name' => 'Life Domain',
+            'slug' => 'life-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        ClassFeature::factory()->create([
+            'class_id' => $lifeDomain->id,
+            'feature_name' => 'Bonus Proficiency',
+            'level' => 1,
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_id' => $cleric->id,
+            'subclass_id' => $lifeDomain->id, // Already selected
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $character->load('characterClasses.characterClass.subclasses');
+
+        $choices = $this->handler->getChoices($character);
+
+        $this->assertCount(0, $choices);
+    }
+
+    public function test_resolve_sets_subclass_on_character_class_pivot(): void
+    {
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        $lifeDomain = CharacterClass::factory()->create([
+            'name' => 'Life Domain',
+            'slug' => 'life-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        $character = Character::factory()->create();
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_id' => $cleric->id,
+            'subclass_id' => null,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $choice = new PendingChoice(
+            id: "subclass:class:{$cleric->id}:1:subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Cleric',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_id' => $cleric->id],
+        );
+
+        $this->handler->resolve($character, $choice, [
+            'subclass_id' => $lifeDomain->id,
+        ]);
+
+        $pivot->refresh();
+        $this->assertSame($lifeDomain->id, $pivot->subclass_id);
+    }
+
+    public function test_resolve_throws_exception_if_subclass_id_not_provided(): void
+    {
+        $this->expectException(InvalidSelectionException::class);
+
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_id' => $cleric->id,
+            'subclass_id' => null,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $choice = new PendingChoice(
+            id: "subclass:class:{$cleric->id}:1:subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Cleric',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_id' => $cleric->id],
+        );
+
+        $this->handler->resolve($character, $choice, []);
+    }
+
+    public function test_resolve_throws_exception_if_subclass_does_not_belong_to_class(): void
+    {
+        $this->expectException(InvalidSelectionException::class);
+
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'fighter',
+            'parent_class_id' => null,
+        ]);
+
+        $champion = CharacterClass::factory()->create([
+            'name' => 'Champion',
+            'slug' => 'champion',
+            'parent_class_id' => $fighter->id, // Belongs to Fighter, not Cleric
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_id' => $cleric->id,
+            'subclass_id' => null,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $choice = new PendingChoice(
+            id: "subclass:class:{$cleric->id}:1:subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Cleric',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_id' => $cleric->id],
+        );
+
+        $this->handler->resolve($character, $choice, [
+            'subclass_id' => $champion->id,
+        ]);
+    }
+
+    public function test_can_undo_returns_true_at_creation_level(): void
+    {
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        $lifeDomain = CharacterClass::factory()->create([
+            'name' => 'Life Domain',
+            'slug' => 'life-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        ClassFeature::factory()->create([
+            'class_id' => $lifeDomain->id,
+            'feature_name' => 'Bonus Proficiency',
+            'level' => 1,
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_id' => $cleric->id,
+            'subclass_id' => $lifeDomain->id,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $character->load('characterClasses');
+
+        $choice = new PendingChoice(
+            id: "subclass:class:{$cleric->id}:1:subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Cleric',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 0,
+            selected: [(string) $lifeDomain->id],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_id' => $cleric->id],
+        );
+
+        $this->assertTrue($this->handler->canUndo($character, $choice));
+    }
+
+    public function test_can_undo_returns_false_after_leveling_beyond_subclass_level(): void
+    {
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        $lifeDomain = CharacterClass::factory()->create([
+            'name' => 'Life Domain',
+            'slug' => 'life-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        ClassFeature::factory()->create([
+            'class_id' => $lifeDomain->id,
+            'feature_name' => 'Bonus Proficiency',
+            'level' => 1,
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_id' => $cleric->id,
+            'subclass_id' => $lifeDomain->id,
+            'level' => 5, // Leveled beyond level 1
+            'is_primary' => true,
+        ]);
+
+        $character->load('characterClasses');
+
+        $choice = new PendingChoice(
+            id: "subclass:class:{$cleric->id}:1:subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Cleric',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 0,
+            selected: [(string) $lifeDomain->id],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_id' => $cleric->id],
+        );
+
+        $this->assertFalse($this->handler->canUndo($character, $choice));
+    }
+
+    public function test_undo_clears_subclass_id_on_pivot(): void
+    {
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        $lifeDomain = CharacterClass::factory()->create([
+            'name' => 'Life Domain',
+            'slug' => 'life-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        $character = Character::factory()->create();
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_id' => $cleric->id,
+            'subclass_id' => $lifeDomain->id,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $choice = new PendingChoice(
+            id: "subclass:class:{$cleric->id}:1:subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Cleric',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 0,
+            selected: [(string) $lifeDomain->id],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_id' => $cleric->id],
+        );
+
+        $this->handler->undo($character, $choice);
+
+        $pivot->refresh();
+        $this->assertNull($pivot->subclass_id);
+    }
+
+    public function test_generates_correct_choice_id(): void
+    {
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        $lifeDomain = CharacterClass::factory()->create([
+            'name' => 'Life Domain',
+            'slug' => 'life-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        ClassFeature::factory()->create([
+            'class_id' => $lifeDomain->id,
+            'feature_name' => 'Bonus Proficiency',
+            'level' => 1,
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_id' => $cleric->id,
+            'subclass_id' => null,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $character->load('characterClasses.characterClass.subclasses');
+
+        $choices = $this->handler->getChoices($character);
+        $choice = $choices->first();
+
+        $this->assertSame("subclass:class:{$cleric->id}:1:subclass", $choice->id);
+    }
+
+    public function test_includes_subclass_details_in_options(): void
+    {
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+            'description' => 'A priestly champion',
+        ]);
+
+        $lifeDomain = CharacterClass::factory()->create([
+            'name' => 'Life Domain',
+            'slug' => 'life-domain',
+            'parent_class_id' => $cleric->id,
+            'description' => 'The Life domain focuses on healing',
+        ]);
+
+        ClassFeature::factory()->create([
+            'class_id' => $lifeDomain->id,
+            'feature_name' => 'Bonus Proficiency',
+            'level' => 1,
+        ]);
+
+        ClassFeature::factory()->create([
+            'class_id' => $lifeDomain->id,
+            'feature_name' => 'Disciple of Life',
+            'level' => 1,
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_id' => $cleric->id,
+            'subclass_id' => null,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $character->load('characterClasses.characterClass.subclasses.features');
+
+        $choices = $this->handler->getChoices($character);
+        $choice = $choices->first();
+
+        $this->assertCount(1, $choice->options);
+
+        $option = $choice->options[0];
+        $this->assertSame($lifeDomain->id, $option['id']);
+        $this->assertSame('Life Domain', $option['name']);
+        $this->assertSame('life-domain', $option['slug']);
+        $this->assertSame('The Life domain focuses on healing', $option['description']);
+        $this->assertIsArray($option['features_preview']);
+        $this->assertContains('Bonus Proficiency', $option['features_preview']);
+        $this->assertContains('Disciple of Life', $option['features_preview']);
+    }
+}

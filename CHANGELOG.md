@@ -30,6 +30,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Supports slug-to-ID resolution for selections
   - Proficiency and language choices are undoable; ASI/Feat choices are permanent
 
+- **Issue #259/#251/#252/#253/#260/#261/#262**: Unified Choice System - Phase 3 Handlers
+  - `OptionalFeatureChoiceHandler` (#259) - Handles Eldritch Invocations, Metamagic, Maneuvers, and other optional features
+    - Supports 8 feature types with class-specific progression rules
+    - Options filtered by level requirement and prerequisites
+    - Features can be swapped/retrained (undoable)
+  - `EquipmentChoiceHandler` (#251) - Handles starting equipment choices at level 1
+    - Parses class equipment with choice groups (a/b/c options)
+    - Creates CharacterEquipment records for selected items
+    - Only available during character creation (level 1)
+  - `SubclassChoiceHandler` (#252) - Handles subclass selection at class-specific levels
+    - Cleric/Sorcerer/Warlock at L1, Druid/Wizard at L2, others at L3
+    - Options include subclass details and feature previews
+    - Undoable only at creation level
+  - `SpellChoiceHandler` (#253) - Handles cantrip and spell selections for spellcasters
+    - Supports known casters (Bard, Sorcerer, Warlock) with fixed spell counts
+    - Cantrip choices for all spellcasters (including prepared casters)
+    - Tracks remaining vs selected for accurate choice counts
+  - `ExpertiseChoiceHandler` (#260) - Handles Rogue/Bard expertise selections
+    - Rogue: 2 at L1, 2 more at L6
+    - Bard: 2 at L3, 2 more at L10
+    - Options filtered to existing proficiencies without expertise
+    - Bards limited to skills only; Rogues can include tools
+  - `FightingStyleChoiceHandler` (#261) - Handles martial class fighting styles
+    - Fighter at L1, Paladin/Ranger at L2, Champion Fighter bonus at L10
+    - Excludes already-taken styles across multiclass
+    - Fighting style choices are permanent (not undoable)
+  - `HitPointRollChoiceHandler` (#262) - Manages hit point choices when leveling up
+    - Players choose between rolling hit die or taking average
+    - Server-side random rolling ensures fairness
+    - Minimum 1 HP gained per level; supports all hit die types
+
 ### Fixed
 
 - **Issue #248**: OpenAPI spec now includes pagination metadata for lookup endpoints

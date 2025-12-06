@@ -50,6 +50,13 @@ class AppServiceProvider extends ServiceProvider
             // Register choice handlers
             $service->registerHandler($app->make(\App\Services\ChoiceHandlers\ProficiencyChoiceHandler::class));
             $service->registerHandler($app->make(\App\Services\ChoiceHandlers\LanguageChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\EquipmentChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\ExpertiseChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\FightingStyleChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\SubclassChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\OptionalFeatureChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\SpellChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\HitPointRollChoiceHandler::class));
 
             return $service;
         });

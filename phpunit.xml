@@ -52,6 +52,7 @@
             <file>tests/Unit/Services/EquipmentManagerServiceTest.php</file>
             <file>tests/Unit/Services/CharacterProficiencyServiceTest.php</file>
             <file>tests/Unit/Services/PrerequisiteCheckerServiceTest.php</file>
+            <directory>tests/Unit/Services/ChoiceHandlers</directory>
         </testsuite>
 
         <!-- Feature-DB: API/Model tests without Meilisearch (approx 30s) -->

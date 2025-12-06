@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AlignmentController;
 use App\Http\Controllers\Api\ArmorTypeController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BackgroundController;
+use App\Http\Controllers\Api\CharacterChoiceController;
 use App\Http\Controllers\Api\CharacterController;
 use App\Http\Controllers\Api\ClassController;
 use App\Http\Controllers\Api\ConditionController;
@@ -276,6 +277,16 @@ Route::prefix('v1')->group(function () {
             ->name('equipment.update');
         Route::delete('equipment/{equipment}', [\App\Http\Controllers\Api\CharacterEquipmentController::class, 'destroy'])
             ->name('equipment.destroy');
+
+        // Unified Choice System
+        Route::get('pending-choices', [CharacterChoiceController::class, 'index'])
+            ->name('pending-choices.index');
+        Route::get('pending-choices/{choiceId}', [CharacterChoiceController::class, 'show'])
+            ->name('pending-choices.show');
+        Route::post('choices/{choiceId}', [CharacterChoiceController::class, 'resolve'])
+            ->name('choices.resolve');
+        Route::delete('choices/{choiceId}', [CharacterChoiceController::class, 'undo'])
+            ->name('choices.undo');
 
         // Character Proficiencies
         Route::get('proficiencies', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'index'])

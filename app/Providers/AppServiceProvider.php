@@ -23,6 +23,7 @@ use App\Models\Skill;
 use App\Models\Spell;
 use App\Models\SpellSchool;
 use App\Observers\CharacterObserver;
+use App\Services\CharacterChoiceService;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -40,6 +41,24 @@ class AppServiceProvider extends ServiceProvider
                 config('scout.meilisearch.host'),
                 config('scout.meilisearch.key')
             );
+        });
+
+        // Bind CharacterChoiceService
+        $this->app->singleton(CharacterChoiceService::class, function ($app) {
+            $service = new CharacterChoiceService;
+
+            // Register choice handlers
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\ProficiencyChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\LanguageChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\EquipmentChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\ExpertiseChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\FightingStyleChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\SubclassChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\OptionalFeatureChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\SpellChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\HitPointRollChoiceHandler::class));
+
+            return $service;
         });
     }
 

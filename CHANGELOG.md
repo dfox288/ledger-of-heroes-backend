@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Pack items (e.g., "dungeoneer's pack") now include `contents` array with contained items
   - Frontend can use `item_filter` to query available items or display category choices
 
+- **Issue #285**: Fix "Array to string conversion" error when resolving equipment choices
+  - EquipmentChoiceHandler now correctly handles `selected` as an array (e.g., `["a"]`)
+
 ### Added
 
 - **Issue #255**: Enhanced Stats Endpoint with Full Character Statistics

@@ -39,6 +39,7 @@ sessions/.archived/
 tests/Fixtures/test-output/
 storage/coverage/
 coverage*.xml
+/coverage
 
 # Repomix output
 repomix-output.xml

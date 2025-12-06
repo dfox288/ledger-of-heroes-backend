@@ -11,6 +11,7 @@ use App\Services\HitDiceService;
  * Data Transfer Object for computed character statistics.
  *
  * Encapsulates all derived stats for a D&D 5e character.
+ * Issue #255: Enhanced to include full skills, saving throw proficiencies, speed, and passive scores.
  */
 class CharacterStatsDTO
 {
@@ -38,6 +39,10 @@ class CharacterStatsDTO
         public readonly ?int $pushDragLift,
         // Hit dice
         public readonly array $hitDice,
+        // Issue #255: New properties
+        public readonly array $skills,
+        public readonly array $speed,
+        public readonly array $passive,
     ) {}
 
     /**
@@ -55,10 +60,23 @@ class CharacterStatsDTO
             $abilityModifiers[$code] = $score !== null ? $calculator->abilityModifier($score) : null;
         }
 
-        // Saving throws (proficiency TBD - depends on class)
+        // Get saving throw proficiencies from primary class
+        $savingThrowProficiencies = self::getSavingThrowProficiencies($character);
+
+        // Saving throws with proficiency info
         $savingThrows = [];
         foreach ($abilityScores as $code => $score) {
-            $savingThrows[$code] = $abilityModifiers[$code]; // Base modifier only for now
+            $baseMod = $abilityModifiers[$code];
+            $proficient = $savingThrowProficiencies[$code] ?? false;
+            $total = $baseMod !== null
+                ? $baseMod + ($proficient ? $proficiencyBonus : 0)
+                : null;
+
+            $savingThrows[$code] = [
+                'modifier' => $baseMod,
+                'proficient' => $proficient,
+                'total' => $total,
+            ];
         }
 
         // Spellcasting info (uses primary class)
@@ -129,6 +147,13 @@ class CharacterStatsDTO
         $passiveInvestigation = $calculatePassive($intMod, 'investigation');
         $passiveInsight = $calculatePassive($wisMod, 'insight');
 
+        // Grouped passive scores object
+        $passive = [
+            'perception' => $passivePerception,
+            'investigation' => $passiveInvestigation,
+            'insight' => $passiveInsight,
+        ];
+
         // Carrying capacity (based on STR and size)
         $size = $character->size ?? 'Medium';
         $carryingCapacity = $strScore !== null
@@ -141,6 +166,12 @@ class CharacterStatsDTO
         // Get hit dice data
         $hitDiceService = app(HitDiceService::class);
         $hitDiceData = $hitDiceService->getHitDice($character);
+
+        // Build full skills array
+        $skills = self::buildSkills($abilityModifiers, $skillProficiencies, $proficiencyBonus, $calculator);
+
+        // Build speed array
+        $speed = self::buildSpeed($character);
 
         return new self(
             characterId: $character->id,
@@ -164,7 +195,59 @@ class CharacterStatsDTO
             carryingCapacity: $carryingCapacity,
             pushDragLift: $pushDragLift,
             hitDice: $hitDiceData['hit_dice'],
+            skills: $skills,
+            speed: $speed,
+            passive: $passive,
         );
+    }
+
+    /**
+     * Get saving throw proficiency status from primary class.
+     *
+     * @return array<string, bool> Keyed by ability code (STR, DEX, etc.)
+     */
+    private static function getSavingThrowProficiencies(Character $character): array
+    {
+        $result = [
+            'STR' => false,
+            'DEX' => false,
+            'CON' => false,
+            'INT' => false,
+            'WIS' => false,
+            'CHA' => false,
+        ];
+
+        $primaryClass = $character->primary_class;
+        if (! $primaryClass) {
+            return $result;
+        }
+
+        // Load proficiencies if not loaded
+        if (! $primaryClass->relationLoaded('proficiencies')) {
+            $primaryClass->load('proficiencies');
+        }
+
+        // Map ability names to codes
+        $nameToCode = [
+            'Strength' => 'STR',
+            'Dexterity' => 'DEX',
+            'Constitution' => 'CON',
+            'Intelligence' => 'INT',
+            'Wisdom' => 'WIS',
+            'Charisma' => 'CHA',
+        ];
+
+        $savingThrows = $primaryClass->proficiencies
+            ->where('proficiency_type', 'saving_throw');
+
+        foreach ($savingThrows as $prof) {
+            $code = $nameToCode[$prof->proficiency_name] ?? null;
+            if ($code) {
+                $result[$code] = true;
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -193,5 +276,80 @@ class CharacterStatsDTO
         }
 
         return $result;
+    }
+
+    /**
+     * Build complete skills array with all 18 skills.
+     *
+     * @return array<int, array{
+     *   name: string,
+     *   slug: string,
+     *   ability: string,
+     *   ability_modifier: int|null,
+     *   proficient: bool,
+     *   expertise: bool,
+     *   modifier: int|null,
+     *   passive: int|null
+     * }>
+     */
+    private static function buildSkills(
+        array $abilityModifiers,
+        array $skillProficiencies,
+        int $proficiencyBonus,
+        CharacterStatCalculator $calculator
+    ): array {
+        // Note: This queries 18 skills per request. Acceptable trade-off as skills
+        // rarely change and the query is small. Consider caching if profiling shows issues.
+        $skills = Skill::with('abilityScore')->get();
+
+        return $skills->map(function ($skill) use ($abilityModifiers, $skillProficiencies, $proficiencyBonus, $calculator) {
+            // Defensive: skip skills without ability score (shouldn't happen with proper seeding)
+            if (! $skill->abilityScore) {
+                return null;
+            }
+
+            $abilityCode = $skill->abilityScore->code;
+            $abilityMod = $abilityModifiers[$abilityCode];
+            $profData = $skillProficiencies[$skill->slug] ?? ['proficient' => false, 'expertise' => false];
+            $proficient = $profData['proficient'];
+            $expertise = $profData['expertise'];
+
+            $modifier = $abilityMod !== null
+                ? $calculator->skillModifier($abilityMod, $proficient, $expertise, $proficiencyBonus)
+                : null;
+
+            $passive = $abilityMod !== null
+                ? $calculator->calculatePassiveSkill($abilityMod, $proficient, $expertise, $proficiencyBonus)
+                : null;
+
+            return [
+                'name' => $skill->name,
+                'slug' => $skill->slug,
+                'ability' => $abilityCode,
+                'ability_modifier' => $abilityMod,
+                'proficient' => $proficient,
+                'expertise' => $expertise,
+                'modifier' => $modifier,
+                'passive' => $passive,
+            ];
+        })->filter()->sortBy('name')->values()->all();
+    }
+
+    /**
+     * Build speed array from character's race.
+     *
+     * @return array{walk: int, fly: int|null, swim: int|null, climb: int|null, burrow: int|null}
+     */
+    private static function buildSpeed(Character $character): array
+    {
+        $race = $character->race;
+
+        return [
+            'walk' => $race?->speed ?? 30,
+            'fly' => $race?->fly_speed,
+            'swim' => $race?->swim_speed,
+            'climb' => $race?->climb_speed,
+            'burrow' => null, // Not currently tracked on races
+        ];
     }
 }

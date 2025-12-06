@@ -36,8 +36,12 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
         }
 
         // Get equipment choices from class
+        // Eager load: proficiencyType for category filters, item.contents.item for pack contents
         $equipmentChoices = $primaryClass->equipment()
-            ->with('choiceItems.item')
+            ->with([
+                'choiceItems.item.contents.item',
+                'choiceItems.proficiencyType',
+            ])
             ->where('is_choice', true)
             ->orderBy('choice_group')
             ->orderBy('choice_option')
@@ -58,14 +62,38 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
 
                 // Get items for this option from choiceItems relationship
                 $items = [];
+                $itemFilter = null;
+
                 foreach ($optionItems as $optionItem) {
                     foreach ($optionItem->choiceItems as $choiceItem) {
                         if ($choiceItem->item) {
-                            $items[] = [
+                            // Build item data with optional contents for packs
+                            $itemData = [
                                 'id' => $choiceItem->item->id,
                                 'name' => $choiceItem->item->name,
                                 'slug' => $choiceItem->item->slug,
                                 'quantity' => $choiceItem->quantity,
+                            ];
+
+                            // Include pack contents if available
+                            if ($choiceItem->item->contents && $choiceItem->item->contents->isNotEmpty()) {
+                                $itemData['contents'] = $choiceItem->item->contents->map(fn ($content) => [
+                                    'quantity' => $content->quantity,
+                                    'item' => $content->item ? [
+                                        'id' => $content->item->id,
+                                        'name' => $content->item->name,
+                                        'slug' => $content->item->slug,
+                                    ] : null,
+                                ])->filter(fn ($c) => $c['item'] !== null)->values()->all();
+                            }
+
+                            $items[] = $itemData;
+                        } elseif ($choiceItem->proficiencyType) {
+                            // Category-based choice (e.g., "any simple weapon")
+                            $profType = $choiceItem->proficiencyType;
+                            $itemFilter = [
+                                'category' => $profType->category,
+                                'subcategory' => $profType->subcategory,
                             ];
                         }
                     }
@@ -74,11 +102,18 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                 // Get label from EntityItem description field (e.g., "a rapier")
                 $label = $optionItems->first()?->description ?? '';
 
-                $builtOptions[] = [
+                $option = [
                     'option' => $optionLetter,
                     'label' => $label,
                     'items' => $items,
                 ];
+
+                // Add item_filter for category-based choices
+                if ($itemFilter !== null) {
+                    $option['item_filter'] = $itemFilter;
+                }
+
+                $builtOptions[] = $option;
             }
 
             // Quantity is always 1 for equipment choices (pick one option)

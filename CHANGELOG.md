@@ -7,16 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Breaking Changes
-
-- **Issue #199**: Removed deprecated `class` field from CharacterResource
-  - The singular `class` field has been removed from `GET /api/v1/characters/{id}` responses
-  - Use the `classes[]` array instead - primary class is always first (index 0)
-  - Access class name via `data.classes.0.class.name` instead of `data.class.name`
-  - Access class level via `data.classes.0.level` instead of relying on the deprecated field
-  - This change aligns the API with multiclass support and eliminates redundancy
-
 ### Fixed
+
+- **Issue #241**: CharacterResource now includes primary class data in `class` field
+  - Added `class` field to `GET /api/v1/characters/{id}` response with primary class details
+  - Includes class `id`, `name`, `slug`, and `equipment` for character creation wizard
+  - Returns `null` when character has no class assigned
+  - For multiclass characters, returns the class marked as `is_primary: true`
+  - Eager loads class equipment to prevent N+1 queries
+  - Note: The `classes[]` array remains the canonical source for all class data (including levels)
 
 - **Issue #230**: Bard musical instrument proficiency choices return empty options
   - Individual musical instruments now have `category='tool', subcategory='musical_instrument'`

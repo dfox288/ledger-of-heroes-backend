@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\LanguageIndexRequest;
 use App\Http\Requests\LanguageShowRequest;
 use App\Http\Resources\BackgroundResource;
@@ -11,29 +12,10 @@ use App\Models\Language;
 use App\Services\Cache\LookupCacheService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
-class LanguageController extends ReadOnlyLookupController
+class LanguageController extends Controller
 {
-    protected function getModelClass(): string
-    {
-        return Language::class;
-    }
-
-    protected function getResourceClass(): string
-    {
-        return LanguageResource::class;
-    }
-
-    protected function getIndexRequestClass(): string
-    {
-        return LanguageIndexRequest::class;
-    }
-
-    protected function getCacheMethod(): ?string
-    {
-        return 'getLanguages';
-    }
-
     /**
      * List all D&D languages
      *
@@ -74,13 +56,36 @@ class LanguageController extends ReadOnlyLookupController
      * - **Character Creation:** Choose languages based on race and background
      * - **Campaign Planning:** Identify languages needed for specific settings (Underdark, Planes, etc.)
      * - **Roleplay:** Determine if characters can communicate with NPCs or creatures
-     *
-     * @response AnonymousResourceCollection<LanguageResource>
      */
     #[QueryParameter('q', description: 'Search by name', example: 'elvish')]
     public function index(LanguageIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
-        return $this->handleIndex($request, $cache);
+        $query = Language::query();
+
+        // Search by name
+        if ($request->has('q')) {
+            $search = $request->validated('q');
+            $query->where('name', 'LIKE', "%{$search}%");
+        }
+
+        $perPage = $request->validated('per_page', 50);
+
+        // Use cache for unfiltered queries
+        if (! $request->has('q')) {
+            $allRecords = $cache->getLanguages();
+            $currentPage = $request->input('page', 1);
+            $paginated = new LengthAwarePaginator(
+                $allRecords->forPage($currentPage, $perPage),
+                $allRecords->count(),
+                $perPage,
+                $currentPage,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return LanguageResource::collection($paginated);
+        }
+
+        return LanguageResource::collection($query->paginate($perPage));
     }
 
     /**
@@ -104,7 +109,7 @@ class LanguageController extends ReadOnlyLookupController
      */
     public function show(Language $language): LanguageResource
     {
-        return $this->handleShow($language);
+        return new LanguageResource($language);
     }
 
     /**

@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #248**: OpenAPI spec now includes pagination metadata for lookup endpoints
+  - Inlined pagination logic into 5 controllers (AbilityScore, Condition, DamageType, Language, SpellSchool)
+  - Removed `ReadOnlyLookupController` abstract class that was blocking Scramble's pagination detection
+  - Removed `@response` annotations that overrode automatic pagination metadata generation
+  - All lookup endpoints now correctly show `data`, `links`, and `meta` in OpenAPI spec
+
 - **OpenAPI Spec Audit**: Fixed 36 OpenAPI specification issues across all API endpoints
   - Fixed 7 endpoints returning `data: array of strings` instead of proper resource types
   - Added `@response AnonymousResourceCollection<ResourceType>` annotations to ~30 controllers
@@ -16,8 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     Alignment, ArmorType, MonsterType, OptionalFeatureType, Rarity, Tag, all Character* controllers,
     SpellController (relationship methods), MonsterController, RaceController, MediaController, FeatureSelectionController
   - Note: Some endpoints intentionally return non-paginated collections (character data, small lookup tables)
-  - Scramble limitation: ReadOnlyLookupController-based endpoints show correct resource types but
-    lack pagination metadata in spec (actual API responses include pagination correctly)
 
 - **Issue #241**: CharacterResource now includes primary class data in `class` field
   - Added `class` field to `GET /api/v1/characters/{id}` response with primary class details

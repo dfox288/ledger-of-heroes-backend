@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\DamageTypeIndexRequest;
 use App\Http\Resources\DamageTypeResource;
 use App\Http\Resources\ItemResource;
@@ -10,29 +11,10 @@ use App\Models\DamageType;
 use App\Services\Cache\LookupCacheService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
-class DamageTypeController extends ReadOnlyLookupController
+class DamageTypeController extends Controller
 {
-    protected function getModelClass(): string
-    {
-        return DamageType::class;
-    }
-
-    protected function getResourceClass(): string
-    {
-        return DamageTypeResource::class;
-    }
-
-    protected function getIndexRequestClass(): string
-    {
-        return DamageTypeIndexRequest::class;
-    }
-
-    protected function getCacheMethod(): ?string
-    {
-        return 'getDamageTypes';
-    }
-
     /**
      * List all damage types
      *
@@ -59,13 +41,36 @@ class DamageTypeController extends ReadOnlyLookupController
      * - **Resistance Planning:** Check enemy resistances before combat (many undead resist necrotic)
      * - **Spell Selection:** Build diverse spell lists with multiple damage types
      * - **Vulnerability Exploitation:** Target known vulnerabilities (trolls vs. fire/acid)
-     *
-     * @response AnonymousResourceCollection<DamageTypeResource>
      */
     #[QueryParameter('q', description: 'Search damage types by name', example: 'fire')]
     public function index(DamageTypeIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
-        return $this->handleIndex($request, $cache);
+        $query = DamageType::query();
+
+        // Search by name
+        if ($request->has('q')) {
+            $search = $request->validated('q');
+            $query->where('name', 'LIKE', "%{$search}%");
+        }
+
+        $perPage = $request->validated('per_page', 50);
+
+        // Use cache for unfiltered queries
+        if (! $request->has('q')) {
+            $allRecords = $cache->getDamageTypes();
+            $currentPage = $request->input('page', 1);
+            $paginated = new LengthAwarePaginator(
+                $allRecords->forPage($currentPage, $perPage),
+                $allRecords->count(),
+                $perPage,
+                $currentPage,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return DamageTypeResource::collection($paginated);
+        }
+
+        return DamageTypeResource::collection($query->paginate($perPage));
     }
 
     /**
@@ -88,7 +93,7 @@ class DamageTypeController extends ReadOnlyLookupController
      */
     public function show(DamageType $damageType): DamageTypeResource
     {
-        return $this->handleShow($damageType);
+        return new DamageTypeResource($damageType);
     }
 
     /**

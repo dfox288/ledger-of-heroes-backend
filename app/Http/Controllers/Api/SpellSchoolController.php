@@ -11,29 +11,10 @@ use App\Services\Cache\LookupCacheService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
-class SpellSchoolController extends ReadOnlyLookupController
+class SpellSchoolController extends Controller
 {
-    protected function getModelClass(): string
-    {
-        return SpellSchool::class;
-    }
-
-    protected function getResourceClass(): string
-    {
-        return SpellSchoolResource::class;
-    }
-
-    protected function getIndexRequestClass(): string
-    {
-        return SpellSchoolIndexRequest::class;
-    }
-
-    protected function getCacheMethod(): ?string
-    {
-        return 'getSpellSchools';
-    }
-
     /**
      * List all schools of magic
      *
@@ -64,13 +45,36 @@ class SpellSchoolController extends ReadOnlyLookupController
      * - **Wizard Specialization:** Choose a school to gain bonus features (Evocation for damage, Divination for utility)
      * - **Spell Selection:** Browse spells by school to build a thematic caster
      * - **Counterspell Decisions:** Identify spell schools to prioritize countering
-     *
-     * @response AnonymousResourceCollection<SpellSchoolResource>
      */
     #[QueryParameter('q', description: 'Search schools by name', example: 'evocation')]
     public function index(SpellSchoolIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
-        return $this->handleIndex($request, $cache);
+        $query = SpellSchool::query();
+
+        // Search by name
+        if ($request->has('q')) {
+            $search = $request->validated('q');
+            $query->where('name', 'LIKE', "%{$search}%");
+        }
+
+        $perPage = $request->validated('per_page', 50);
+
+        // Use cache for unfiltered queries
+        if (! $request->has('q')) {
+            $allRecords = $cache->getSpellSchools();
+            $currentPage = $request->input('page', 1);
+            $paginated = new LengthAwarePaginator(
+                $allRecords->forPage($currentPage, $perPage),
+                $allRecords->count(),
+                $perPage,
+                $currentPage,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return SpellSchoolResource::collection($paginated);
+        }
+
+        return SpellSchoolResource::collection($query->paginate($perPage));
     }
 
     /**
@@ -95,7 +99,7 @@ class SpellSchoolController extends ReadOnlyLookupController
      */
     public function show(SpellSchool $spellSchool): SpellSchoolResource
     {
-        return $this->handleShow($spellSchool);
+        return new SpellSchoolResource($spellSchool);
     }
 
     /**

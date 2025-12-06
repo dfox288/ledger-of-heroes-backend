@@ -174,9 +174,9 @@ class CharacterResource extends JsonResource
             'id' => $primaryClass->id,
             'name' => $primaryClass->name,
             'slug' => $primaryClass->slug,
-            'equipment' => EntityItemResource::collection(
-                $primaryClass->relationLoaded('equipment') ? $primaryClass->equipment : collect()
-            ),
+            'equipment' => $primaryClass->relationLoaded('equipment')
+                ? EntityItemResource::collection($primaryClass->equipment)
+                : [],
         ];
     }
 

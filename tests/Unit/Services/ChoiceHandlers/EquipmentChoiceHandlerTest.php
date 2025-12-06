@@ -117,16 +117,19 @@ it('returns equipment choices for level 1 character', function () {
     $entityItem1->shouldReceive('getAttribute')->with('choice_group')->andReturn('equipment_choice_1');
     $entityItem1->shouldReceive('getAttribute')->with('choice_option')->andReturn(1);
     $entityItem1->shouldReceive('getAttribute')->with('quantity')->andReturn(1);
+    $entityItem1->shouldReceive('getAttribute')->with('description')->andReturn('chain mail');
     $entityItem1->shouldReceive('getAttribute')->with('choiceItems')->andReturn(new EloquentCollection([$choice1Item1]));
     $entityItem1->shouldReceive('__get')->with('is_choice')->andReturn(true);
     $entityItem1->shouldReceive('__get')->with('choice_group')->andReturn('equipment_choice_1');
     $entityItem1->shouldReceive('__get')->with('choice_option')->andReturn(1);
     $entityItem1->shouldReceive('__get')->with('quantity')->andReturn(1);
+    $entityItem1->shouldReceive('__get')->with('description')->andReturn('chain mail');
     $entityItem1->shouldReceive('__get')->with('choiceItems')->andReturn(new EloquentCollection([$choice1Item1]));
     $entityItem1->shouldReceive('offsetExists')->andReturn(true);
     $entityItem1->shouldReceive('offsetGet')->with('choice_group')->andReturn('equipment_choice_1');
     $entityItem1->shouldReceive('offsetGet')->with('choice_option')->andReturn(1);
     $entityItem1->shouldReceive('offsetGet')->with('quantity')->andReturn(1);
+    $entityItem1->shouldReceive('offsetGet')->with('description')->andReturn('chain mail');
     $entityItem1->shouldReceive('offsetGet')->with('choiceItems')->andReturn(new EloquentCollection([$choice1Item1]));
 
     $entityItem2 = Mockery::mock(EntityItem::class);
@@ -134,16 +137,19 @@ it('returns equipment choices for level 1 character', function () {
     $entityItem2->shouldReceive('getAttribute')->with('choice_group')->andReturn('equipment_choice_1');
     $entityItem2->shouldReceive('getAttribute')->with('choice_option')->andReturn(2);
     $entityItem2->shouldReceive('getAttribute')->with('quantity')->andReturn(1);
+    $entityItem2->shouldReceive('getAttribute')->with('description')->andReturn('leather armor, longbow, and arrows (20)');
     $entityItem2->shouldReceive('getAttribute')->with('choiceItems')->andReturn(new EloquentCollection([$choice1Item2]));
     $entityItem2->shouldReceive('__get')->with('is_choice')->andReturn(true);
     $entityItem2->shouldReceive('__get')->with('choice_group')->andReturn('equipment_choice_1');
     $entityItem2->shouldReceive('__get')->with('choice_option')->andReturn(2);
     $entityItem2->shouldReceive('__get')->with('quantity')->andReturn(1);
+    $entityItem2->shouldReceive('__get')->with('description')->andReturn('leather armor, longbow, and arrows (20)');
     $entityItem2->shouldReceive('__get')->with('choiceItems')->andReturn(new EloquentCollection([$choice1Item2]));
     $entityItem2->shouldReceive('offsetExists')->andReturn(true);
     $entityItem2->shouldReceive('offsetGet')->with('choice_group')->andReturn('equipment_choice_1');
     $entityItem2->shouldReceive('offsetGet')->with('choice_option')->andReturn(2);
     $entityItem2->shouldReceive('offsetGet')->with('quantity')->andReturn(1);
+    $entityItem2->shouldReceive('offsetGet')->with('description')->andReturn('leather armor, longbow, and arrows (20)');
     $entityItem2->shouldReceive('offsetGet')->with('choiceItems')->andReturn(new EloquentCollection([$choice1Item2]));
 
     $equipment = new EloquentCollection([$entityItem1, $entityItem2]);
@@ -175,6 +181,7 @@ it('returns equipment choices for level 1 character', function () {
     $firstChoice = $choices->first();
     expect($firstChoice->options[0])
         ->toHaveKey('option', 'a')
+        ->toHaveKey('label', 'chain mail')
         ->toHaveKey('items')
         ->and($firstChoice->options[0]['items'])->toHaveCount(1)
         ->and($firstChoice->options[0]['items'][0])->toMatchArray([
@@ -186,6 +193,7 @@ it('returns equipment choices for level 1 character', function () {
 
     expect($firstChoice->options[1])
         ->toHaveKey('option', 'b')
+        ->toHaveKey('label', 'leather armor, longbow, and arrows (20)')
         ->toHaveKey('items')
         ->and($firstChoice->options[1]['items'])->toHaveCount(1);
 });

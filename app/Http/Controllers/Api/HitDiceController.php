@@ -64,10 +64,6 @@ class HitDiceController extends Controller
      * **Validation:**
      * - `die_type` (required): Must be d6, d8, d10, or d12
      * - `quantity` (required): Must be at least 1
-     *
-     * **Errors:**
-     * - 422: Invalid die type or quantity
-     * - 422: Not enough hit dice available
      */
     public function spend(SpendHitDiceRequest $request, Character $character): HitDiceResource|JsonResponse
     {

@@ -40,8 +40,6 @@ class CharacterSpellController extends Controller
      * - `is_prepared` - True if spell is currently prepared
      * - `is_always_prepared` - True if spell is always prepared (domain, etc.)
      * - `source` - How the spell was acquired (class, race, feat, item, other)
-     *
-     * @response AnonymousResourceCollection<CharacterSpellResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {
@@ -61,8 +59,6 @@ class CharacterSpellController extends Controller
      * @x-flow character-creation
      *
      * @x-flow-step 8
-     *
-     * @response AnonymousResourceCollection<SpellResource>
      *
      * **Examples:**
      * ```
@@ -121,10 +117,6 @@ class CharacterSpellController extends Controller
      * - Spell must be on the character's class spell list (for class source)
      * - Spell level must be accessible at character's level
      * - Spell must not already be known by character
-     *
-     * @response 201 CharacterSpellResource
-     * @response 404 array{message: string} Spell not found
-     * @response 422 array{message: string, errors: array{spell_id?: string[]}} Validation error or spell already known
      */
     public function store(Request $request, Character $character): JsonResponse
     {
@@ -161,9 +153,6 @@ class CharacterSpellController extends Controller
      * @param  Character  $character  The character
      * @param  string  $spellIdOrSlug  Spell ID or slug
      * @return Response 204 on success
-     *
-     * @response 204 No content on success
-     * @response 404 array{message: string} Character doesn't know this spell or spell not found
      */
     public function destroy(Character $character, string $spellIdOrSlug): Response
     {
@@ -196,10 +185,6 @@ class CharacterSpellController extends Controller
      *
      * @param  Character  $character  The character
      * @param  string  $spellIdOrSlug  Spell ID or slug
-     *
-     * @response 200 CharacterSpellResource with is_prepared: true
-     * @response 404 array{message: string} Character doesn't know this spell or spell not found
-     * @response 422 array{message: string} Spell cannot be prepared (cantrip or already prepared)
      */
     public function prepare(Character $character, string $spellIdOrSlug): CharacterSpellResource
     {
@@ -232,10 +217,6 @@ class CharacterSpellController extends Controller
      *
      * @param  Character  $character  The character
      * @param  string  $spellIdOrSlug  Spell ID or slug
-     *
-     * @response 200 CharacterSpellResource with is_prepared: false
-     * @response 404 array{message: string} Character doesn't know this spell or spell not found
-     * @response 422 array{message: string} Spell cannot be unprepared (always-prepared)
      */
     public function unprepare(Character $character, string $spellIdOrSlug): CharacterSpellResource
     {

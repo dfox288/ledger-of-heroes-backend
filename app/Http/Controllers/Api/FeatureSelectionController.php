@@ -44,8 +44,6 @@ class FeatureSelectionController extends Controller
      * - Full optional feature details (name, description, type)
      * - Class/subclass association
      * - Level the feature was acquired
-     *
-     * @response AnonymousResourceCollection<FeatureSelectionResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {
@@ -86,8 +84,6 @@ class FeatureSelectionController extends Controller
      * - Feature's subclass requirement (if any) must match character's subclass
      * - Feature's level requirement must be <= character's total level
      * - Feature must not already be selected by this character
-     *
-     * @response AnonymousResourceCollection<OptionalFeatureResource>
      */
     #[QueryParameter('feature_type', description: 'Filter by feature type', example: 'maneuver')]
     public function available(Character $character): AnonymousResourceCollection
@@ -225,10 +221,6 @@ class FeatureSelectionController extends Controller
      * - 422 if feature already selected: "This character has already selected this feature."
      * - 422 if level too low: "This feature requires level {N}. Character is level {M}."
      * - 422 if class ineligible: "This character does not have the required class or subclass for this feature."
-     *
-     * @response 201 FeatureSelectionResource
-     * @response 404 array{message: string} Feature not found
-     * @response 422 array{message: string, errors: array{optional_feature_id?: string[], class_id?: string[], subclass_name?: string[], level_acquired?: string[]}}
      */
     public function store(StoreFeatureSelectionRequest $request, Character $character): JsonResponse
     {
@@ -279,9 +271,6 @@ class FeatureSelectionController extends Controller
      * @param  Character  $character  The character
      * @param  string  $featureIdOrSlug  ID or slug of the optional feature to remove
      * @return Response 204 on success
-     *
-     * @response 204 No content on success
-     * @response 404 array{message: string} Character does not have this feature selected or feature not found
      */
     public function destroy(Character $character, string $featureIdOrSlug): Response
     {

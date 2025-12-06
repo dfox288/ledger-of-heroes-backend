@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CharacterFeatureResource;
+use App\Http\Resources\MessageResource;
+use App\Http\Resources\SyncResultResource;
 use App\Models\Character;
 use App\Services\CharacterFeatureService;
 use Illuminate\Http\JsonResponse;
@@ -90,8 +92,6 @@ class CharacterFeatureController extends Controller
      *
      * @x-flow-step 10
      *
-     * @response AnonymousResourceCollection<CharacterFeatureResource>
-     *
      * **Examples:**
      * ```
      * POST /api/v1/characters/1/features/sync
@@ -112,18 +112,18 @@ class CharacterFeatureController extends Controller
      * **Note:** This endpoint is idempotent - calling it multiple times will not create duplicates.
      * Features are synced when class/race/background changes via the PopulateCharacterAbilities listener.
      */
-    public function sync(Character $character): JsonResponse
+    public function sync(Character $character): SyncResultResource
     {
         $character->load(['characterClasses.characterClass', 'race', 'background']);
 
         $this->featureService->populateAll($character);
 
-        return response()->json([
-            'message' => 'Features synced successfully',
-            'data' => CharacterFeatureResource::collection(
+        return SyncResultResource::withMessage(
+            'Features synced successfully',
+            CharacterFeatureResource::collection(
                 $this->featureService->getCharacterFeatures($character)
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -154,7 +154,7 @@ class CharacterFeatureController extends Controller
      * **Note:** This is automatically called by the PopulateCharacterAbilities listener
      * when a character's class/race/background changes.
      */
-    public function clear(Character $character, string $source): JsonResponse
+    public function clear(Character $character, string $source): MessageResource|JsonResponse
     {
         $validSources = ['class', 'race', 'background', 'feat', 'item'];
 
@@ -166,8 +166,6 @@ class CharacterFeatureController extends Controller
 
         $this->featureService->clearFeatures($character, $source);
 
-        return response()->json([
-            'message' => "Features from {$source} cleared successfully",
-        ]);
+        return new MessageResource("Features from {$source} cleared successfully");
     }
 }

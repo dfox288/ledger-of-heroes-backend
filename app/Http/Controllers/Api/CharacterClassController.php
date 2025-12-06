@@ -45,8 +45,6 @@ class CharacterClassController extends Controller
      * - `level` in this class
      * - `subclass` (if selected, includes full subclass details)
      * - `is_primary` flag for the character's main class
-     *
-     * @response AnonymousResourceCollection<CharacterClassPivotResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {
@@ -94,10 +92,6 @@ class CharacterClassController extends Controller
      * - Character cannot have the same class twice (use levelUp instead)
      * - Character's total level cannot exceed 20
      * - Must meet multiclass prerequisites (unless force=true)
-     *
-     * @response 201 CharacterClassPivotResource
-     * @response 404 array{message: string} Class not found
-     * @response 422 array{message: string, errors?: array{class_id: string[]}} Duplicate class, max level reached, or prerequisites not met
      */
     public function store(AddCharacterClassRequest $request, Character $character): JsonResponse
     {
@@ -147,10 +141,6 @@ class CharacterClassController extends Controller
      *
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  Class ID or slug
-     *
-     * @response 204 No content on success
-     * @response 404 array{message: string} Class not found on character or class not found
-     * @response 422 array{message: string} Cannot remove the only class
      */
     public function destroy(Character $character, string $classIdOrSlug): JsonResponse
     {
@@ -217,10 +207,6 @@ class CharacterClassController extends Controller
      *
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  Class ID or slug
-     *
-     * @response 200 CharacterClassPivotResource with updated level
-     * @response 404 array{message: string} Class not found on character or class not found
-     * @response 422 array{message: string} Character has reached maximum level (20)
      */
     public function levelUp(Character $character, string $classIdOrSlug): JsonResponse
     {
@@ -300,10 +286,6 @@ class CharacterClassController extends Controller
      * @param  ReplaceCharacterClassRequest  $request  The validated request
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  The class ID or slug to replace
-     *
-     * @response 200 CharacterClassPivotResource with new class
-     * @response 404 array{message: string} Class not found on character
-     * @response 422 array{message: string} Level > 1, multiple classes, same class, or target is subclass
      */
     public function replace(ReplaceCharacterClassRequest $request, Character $character, string $classIdOrSlug): JsonResponse
     {
@@ -370,10 +352,6 @@ class CharacterClassController extends Controller
      *
      * @throws InvalidSubclassException If subclass doesn't belong to the class
      * @throws SubclassLevelRequirementException If character level is below requirement
-     *
-     * @response 200 CharacterClassPivotResource with subclass set
-     * @response 404 array{message: string} Class not found on character or class not found
-     * @response 422 array{message: string} Subclass doesn't belong to class, or level requirement not met
      */
     public function setSubclass(SetSubclassRequest $request, Character $character, string $classIdOrSlug): JsonResponse
     {

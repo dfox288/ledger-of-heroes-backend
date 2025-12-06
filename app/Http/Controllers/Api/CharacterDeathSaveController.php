@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Character\DeathSaveRequest;
+use App\Http\Resources\DeathSaveResultResource;
+use App\Http\Resources\DeathSaveStatusResource;
 use App\Models\Character;
-use Illuminate\Http\JsonResponse;
 
 /**
  * Handles death saving throws for characters at 0 HP.
@@ -70,11 +71,8 @@ class CharacterDeathSaveController extends Controller
      * - `outcome`: Final outcome if determined (stable, dead, conscious) or null
      * - `is_stable`: True if 3+ successes
      * - `is_dead`: True if 3+ failures
-     *
-     * @response 200 array{data: array{death_save_successes: int, death_save_failures: int, current_hit_points: int, result: string, outcome: ?string, is_stable: bool, is_dead: bool}}
-     * @response 422 array{message: string, errors: array{roll?: string[], damage?: string[]}}
      */
-    public function store(DeathSaveRequest $request, Character $character): JsonResponse
+    public function store(DeathSaveRequest $request, Character $character): DeathSaveResultResource
     {
         $result = null;
         $outcome = null;
@@ -126,16 +124,14 @@ class CharacterDeathSaveController extends Controller
         $character->death_save_failures = $failures;
         $character->save();
 
-        return response()->json([
-            'data' => [
-                'death_save_successes' => $character->death_save_successes,
-                'death_save_failures' => $character->death_save_failures,
-                'current_hit_points' => $character->current_hit_points,
-                'result' => $result,
-                'outcome' => $outcome,
-                'is_stable' => $character->death_save_successes >= 3,
-                'is_dead' => $character->death_save_failures >= 3,
-            ],
+        return new DeathSaveResultResource([
+            'death_save_successes' => $character->death_save_successes,
+            'death_save_failures' => $character->death_save_failures,
+            'current_hit_points' => $character->current_hit_points,
+            'result' => $result,
+            'outcome' => $outcome,
+            'is_stable' => $character->death_save_successes >= 3,
+            'is_dead' => $character->death_save_failures >= 3,
         ]);
     }
 
@@ -159,21 +155,17 @@ class CharacterDeathSaveController extends Controller
      *
      * **Note:** A stabilized character remains at 0 HP and unconscious but no longer
      * makes death saving throws. They regain 1 HP after 1d4 hours.
-     *
-     * @response 200 array{data: array{death_save_successes: int, death_save_failures: int, is_stable: bool}}
      */
-    public function stabilize(Character $character): JsonResponse
+    public function stabilize(Character $character): DeathSaveStatusResource
     {
         $character->death_save_successes = 0;
         $character->death_save_failures = 0;
         $character->save();
 
-        return response()->json([
-            'data' => [
-                'death_save_successes' => 0,
-                'death_save_failures' => 0,
-                'is_stable' => true,
-            ],
+        return new DeathSaveStatusResource([
+            'death_save_successes' => 0,
+            'death_save_failures' => 0,
+            'is_stable' => true,
         ]);
     }
 
@@ -194,20 +186,16 @@ class CharacterDeathSaveController extends Controller
      * - Character receives healing while making death saves
      * - DM manually resets death save tracking
      * - Character is revived after dying
-     *
-     * @response 200 array{data: array{death_save_successes: int, death_save_failures: int}}
      */
-    public function reset(Character $character): JsonResponse
+    public function reset(Character $character): DeathSaveStatusResource
     {
         $character->death_save_successes = 0;
         $character->death_save_failures = 0;
         $character->save();
 
-        return response()->json([
-            'data' => [
-                'death_save_successes' => 0,
-                'death_save_failures' => 0,
-            ],
+        return new DeathSaveStatusResource([
+            'death_save_successes' => 0,
+            'death_save_failures' => 0,
         ]);
     }
 }

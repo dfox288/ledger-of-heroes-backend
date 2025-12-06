@@ -65,10 +65,6 @@ class CharacterLevelUpController extends Controller
      * a specific class in a multiclass build, use `POST /api/v1/characters/{id}/classes/{classId}/level-up`.
      *
      * @param  Character  $character  The character to level up
-     *
-     * @response 200 array{previous_level: int, new_level: int, hp_increase: int, new_max_hp: int, features_gained: array, spell_slots: array, asi_pending: bool}
-     * @response 404 array{message: string} Character not found
-     * @response 422 array{message: string} Character at max level (20) or character incomplete
      */
     public function __invoke(Character $character): JsonResponse
     {

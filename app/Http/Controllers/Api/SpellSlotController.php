@@ -95,9 +95,6 @@ class SpellSlotController extends Controller
      *
      * **Spell Levels (1-9):**
      * Cantrips (level 0) do not consume spell slots and cannot be specified here.
-     *
-     * @response 200 SpellSlotsResource with updated slot counts
-     * @response 422 array{message: string, errors: array{spell_level: string[]}} No slots available at that level
      */
     public function use(UseSpellSlotRequest $request, Character $character): SpellSlotsResource|JsonResponse
     {

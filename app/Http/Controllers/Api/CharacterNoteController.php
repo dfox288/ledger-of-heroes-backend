@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\NoteCategory;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CharacterNote\CharacterNoteStoreRequest;
 use App\Http\Requests\CharacterNote\CharacterNoteUpdateRequest;
 use App\Http\Resources\CharacterNoteResource;
+use App\Http\Resources\CharacterNotesGroupedResource;
 use App\Models\Character;
 use App\Models\CharacterNote;
 use Illuminate\Http\JsonResponse;
@@ -47,22 +47,11 @@ class CharacterNoteController extends Controller
      * }
      * ```
      */
-    public function index(Character $character): JsonResponse
+    public function index(Character $character): CharacterNotesGroupedResource
     {
         $notes = $character->notes()->get();
 
-        // Group notes by category for easier frontend consumption
-        $grouped = [];
-        foreach (NoteCategory::cases() as $category) {
-            $categoryNotes = $notes->where('category', $category);
-            if ($categoryNotes->isNotEmpty()) {
-                $grouped[$category->value] = CharacterNoteResource::collection($categoryNotes);
-            }
-        }
-
-        return response()->json([
-            'data' => $grouped,
-        ]);
+        return new CharacterNotesGroupedResource($notes);
     }
 
     /**
@@ -104,10 +93,6 @@ class CharacterNoteController extends Controller
      * **Category Validation:**
      * - `backstory` and `custom` categories require a `title` field
      * - Other categories (`personality_trait`, `ideal`, `bond`, `flaw`) should not include title
-     *
-     *
-     * @response 201 CharacterNoteResource
-     * @response 422 array{message: string, errors: array{category?: string[], title?: string[], content?: string[]}}
      */
     public function store(CharacterNoteStoreRequest $request, Character $character): JsonResponse
     {
@@ -140,9 +125,6 @@ class CharacterNoteController extends Controller
      *
      * @param  Character  $character  The character
      * @param  CharacterNote  $note  The note to retrieve
-     *
-     * @response 200 CharacterNoteResource
-     * @response 404 Note not found or doesn't belong to character
      */
     public function show(Character $character, CharacterNote $note): CharacterNoteResource
     {
@@ -179,11 +161,6 @@ class CharacterNoteController extends Controller
      * | `sort_order` | integer | No | Display order within category |
      *
      * **Note:** Category cannot be changed. Create a new note if category change is needed.
-     *
-     *
-     * @response 200 CharacterNoteResource
-     * @response 404 Note not found or doesn't belong to character
-     * @response 422 array{message: string, errors: array}
      */
     public function update(
         CharacterNoteUpdateRequest $request,
@@ -211,9 +188,6 @@ class CharacterNoteController extends Controller
      * @param  Character  $character  The character
      * @param  CharacterNote  $note  The note to delete
      * @return Response 204 on success
-     *
-     * @response 204 No content on success
-     * @response 404 Note not found or doesn't belong to character
      */
     public function destroy(Character $character, CharacterNote $note): Response
     {

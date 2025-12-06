@@ -48,8 +48,6 @@ class CharacterConditionController extends Controller
      * - `duration` (optional string like "1 minute" or "until long rest")
      * - `is_exhaustion` (boolean flag)
      * - `exhaustion_warning` (warning message at level 6)
-     *
-     * @response AnonymousResourceCollection<CharacterConditionResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {
@@ -112,10 +110,6 @@ class CharacterConditionController extends Controller
      * - `"Item: {item name}"` - From a magical item
      * - `"Environmental"` - From environmental hazard
      * - `"Forced march"`, `"No food"`, `"No water"` - Common exhaustion sources
-     *
-     * @response 200 array{data: array{id: int, condition: array{id: int, name: string, slug: string}, level: ?int, source: ?string, duration: ?string, is_exhaustion: bool, exhaustion_warning: ?string}}
-     * @response 404 array{message: string} Condition not found
-     * @response 422 array{message: string, errors: array{condition_id?: string[], level?: string[], source?: string[], duration?: string[]}} Validation error (e.g., level set for non-exhaustion condition)
      */
     public function store(StoreCharacterConditionRequest $request, Character $character): CharacterConditionResource
     {
@@ -198,9 +192,6 @@ class CharacterConditionController extends Controller
      * @param  Character  $character  The character to remove the condition from
      * @param  string  $conditionIdOrSlug  Condition ID (1-15) or slug (e.g., "poisoned")
      * @return JsonResponse 204 on success
-     *
-     * @response 204 No content on success
-     * @response 404 array{message: string} Character doesn't have this condition, or condition not found
      */
     public function destroy(Character $character, string $conditionIdOrSlug): JsonResponse
     {

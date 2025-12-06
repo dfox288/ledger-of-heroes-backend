@@ -41,8 +41,6 @@ class CharacterEquipmentController extends Controller
      * **Item Types:**
      * - **Database items** - Reference items from the items table with full stats
      * - **Custom items** - Freetext items (homebrew, quest rewards, notes)
-     *
-     * @response AnonymousResourceCollection<CharacterEquipmentResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {
@@ -92,11 +90,6 @@ class CharacterEquipmentController extends Controller
      * **New items default to:**
      * - `equipped`: false
      * - `location`: "backpack"
-     *
-     *
-     * @response 201 CharacterEquipmentResource
-     * @response 404 array{message: string} Item not found (when item_id provided but invalid)
-     * @response 422 array{message: string, errors: array{item_id?: string[]}} Validation error
      */
     public function store(StoreEquipmentRequest $request, Character $character): JsonResponse
     {
@@ -168,11 +161,6 @@ class CharacterEquipmentController extends Controller
      * - Custom items cannot be equipped (only database items with proper slots)
      * - Equipment slot conflicts handled by EquipmentManagerService
      * - Unequipping always succeeds
-     *
-     *
-     * @response 200 CharacterEquipmentResource
-     * @response 404 array{message: string} Equipment not found or doesn't belong to character
-     * @response 422 array{message: string} "Custom items cannot be equipped."
      */
     public function update(
         UpdateEquipmentRequest $request,
@@ -230,9 +218,6 @@ class CharacterEquipmentController extends Controller
      * @param  Character  $character  The character
      * @param  CharacterEquipment  $equipment  The equipment entry to remove
      * @return Response 204 on success
-     *
-     * @response 204 No content on success
-     * @response 404 array{message: string} Equipment not found or doesn't belong to character
      */
     public function destroy(Character $character, CharacterEquipment $equipment): Response
     {

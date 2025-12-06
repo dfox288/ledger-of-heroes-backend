@@ -65,6 +65,8 @@ class CharacterFeatureController extends Controller
      *   ]
      * }
      * ```
+     *
+     * @response AnonymousResourceCollection<CharacterFeatureResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {
@@ -87,6 +89,8 @@ class CharacterFeatureController extends Controller
      * @x-flow character-creation
      *
      * @x-flow-step 10
+     *
+     * @response AnonymousResourceCollection<CharacterFeatureResource>
      *
      * **Examples:**
      * ```

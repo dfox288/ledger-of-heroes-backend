@@ -44,6 +44,8 @@ class MonsterTypeController extends Controller
      * - Cleric/Paladin spell targeting (Turn Undead, Protection from Evil, etc.)
      * - Monster encounter filtering and encounter building
      * - Spell effect verification (many spells target specific creature types)
+     *
+     * @response AnonymousResourceCollection<LookupResource>
      */
     #[QueryParameter('q', description: 'Search creature types by name', example: 'fiend')]
     public function index(): AnonymousResourceCollection

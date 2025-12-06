@@ -42,7 +42,7 @@ class CharacterEquipmentController extends Controller
      * - **Database items** - Reference items from the items table with full stats
      * - **Custom items** - Freetext items (homebrew, quest rewards, notes)
      *
-     * @return AnonymousResourceCollection<CharacterEquipmentResource>
+     * @response AnonymousResourceCollection<CharacterEquipmentResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {

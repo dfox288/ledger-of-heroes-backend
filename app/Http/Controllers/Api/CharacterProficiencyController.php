@@ -57,6 +57,8 @@ class CharacterProficiencyController extends Controller
      *   ]
      * }
      * ```
+     *
+     * @response AnonymousResourceCollection<CharacterProficiencyResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {
@@ -255,6 +257,8 @@ class CharacterProficiencyController extends Controller
      * @x-flow character-creation
      *
      * @x-flow-step 5
+     *
+     * @response AnonymousResourceCollection<CharacterProficiencyResource>
      *
      * **Examples:**
      * ```

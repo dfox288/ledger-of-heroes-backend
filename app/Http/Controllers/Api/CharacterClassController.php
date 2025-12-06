@@ -46,7 +46,7 @@ class CharacterClassController extends Controller
      * - `subclass` (if selected, includes full subclass details)
      * - `is_primary` flag for the character's main class
      *
-     * @return AnonymousResourceCollection<CharacterClassPivotResource>
+     * @response AnonymousResourceCollection<CharacterClassPivotResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {

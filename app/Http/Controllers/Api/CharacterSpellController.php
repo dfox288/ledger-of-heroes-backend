@@ -41,7 +41,7 @@ class CharacterSpellController extends Controller
      * - `is_always_prepared` - True if spell is always prepared (domain, etc.)
      * - `source` - How the spell was acquired (class, race, feat, item, other)
      *
-     * @return AnonymousResourceCollection<CharacterSpellResource>
+     * @response AnonymousResourceCollection<CharacterSpellResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {
@@ -61,6 +61,8 @@ class CharacterSpellController extends Controller
      * @x-flow character-creation
      *
      * @x-flow-step 8
+     *
+     * @response AnonymousResourceCollection<SpellResource>
      *
      * **Examples:**
      * ```

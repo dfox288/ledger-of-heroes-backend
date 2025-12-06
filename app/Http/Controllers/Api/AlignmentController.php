@@ -63,6 +63,8 @@ class AlignmentController extends Controller
      * - `q` (string): Search by name (partial match, case-insensitive)
      * - `per_page` (int): Results per page, 1-100 (default: 50)
      *
+     * @response AnonymousResourceCollection<LookupResource>
+     *
      * @return \Illuminate\Http\JsonResponse JSON response with alignment array [slug, name]
      */
     #[QueryParameter('q', description: 'Search by alignment name (partial match)', example: 'good')]

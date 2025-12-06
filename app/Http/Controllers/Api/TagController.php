@@ -68,6 +68,8 @@ class TagController extends Controller
      * Tag system powered by Spatie Laravel Tags package. All tags are synced during entity imports
      * and tagged dynamically through the application. Total unique tags: 100+
      *
+     * @response AnonymousResourceCollection<TagResource>
+     *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     #[QueryParameter('type', description: 'Filter tags by entity type: spell, monster, item, race, class, feat, background', example: 'spell')]

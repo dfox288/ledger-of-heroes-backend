@@ -28,6 +28,8 @@ class MediaController extends Controller
      * ```
      * GET /api/v1/characters/5/media/portrait
      * ```
+     *
+     * @response AnonymousResourceCollection<MediaResource>
      */
     public function index(Request $request, string $modelType, int $modelId, string $collection)
     {

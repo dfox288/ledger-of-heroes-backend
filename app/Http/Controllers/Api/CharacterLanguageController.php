@@ -54,6 +54,8 @@ class CharacterLanguageController extends Controller
      *   ]
      * }
      * ```
+     *
+     * @response AnonymousResourceCollection<CharacterLanguageResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {
@@ -212,6 +214,8 @@ class CharacterLanguageController extends Controller
      * @x-flow character-creation
      *
      * @x-flow-step 7
+     *
+     * @response AnonymousResourceCollection<CharacterLanguageResource>
      *
      * **Examples:**
      * ```

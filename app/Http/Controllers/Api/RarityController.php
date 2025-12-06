@@ -46,6 +46,8 @@ class RarityController extends Controller
      * - Treasure hoard generation following DMG guidelines
      * - Campaign loot planning and balance
      * - Item rarity-based access control
+     *
+     * @response AnonymousResourceCollection<LookupResource>
      */
     public function index(): AnonymousResourceCollection
     {

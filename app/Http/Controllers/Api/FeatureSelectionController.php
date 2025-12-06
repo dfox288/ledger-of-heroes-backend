@@ -45,7 +45,7 @@ class FeatureSelectionController extends Controller
      * - Class/subclass association
      * - Level the feature was acquired
      *
-     * @return AnonymousResourceCollection<FeatureSelectionResource>
+     * @response AnonymousResourceCollection<FeatureSelectionResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {
@@ -87,7 +87,7 @@ class FeatureSelectionController extends Controller
      * - Feature's level requirement must be <= character's total level
      * - Feature must not already be selected by this character
      *
-     * @return AnonymousResourceCollection<OptionalFeatureResource>
+     * @response AnonymousResourceCollection<OptionalFeatureResource>
      */
     #[QueryParameter('feature_type', description: 'Filter by feature type', example: 'maneuver')]
     public function available(Character $character): AnonymousResourceCollection

@@ -52,6 +52,8 @@ class ProficiencyTypeController extends Controller
      * - **Character Building:** Find which proficiencies your race/class/background grants
      * - **Equipment Shopping:** Browse weapon proficiencies to know what you can use effectively
      *
+     * @response AnonymousResourceCollection<ProficiencyTypeResource>
+     *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     #[QueryParameter('q', description: 'Search proficiencies by name', example: 'longsword')]
@@ -185,6 +187,8 @@ class ProficiencyTypeController extends Controller
      * - Includes base classes AND subclasses (e.g., Eldritch Knight Fighter counts separately)
      * - Check `parent_class_id` in response to distinguish base vs subclass
      *
+     * @response AnonymousResourceCollection<ClassResource>
+     *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function classes(ProficiencyTypeShowRequest $request, ProficiencyType $proficiencyType): JsonResponse
@@ -247,6 +251,8 @@ class ProficiencyTypeController extends Controller
      * - Results include base races AND subraces (e.g., High Elf, Wood Elf count separately)
      * - Check `parent_race_id` in response to distinguish base race vs subrace
      * - Results alphabetically sorted for consistent browsing
+     *
+     * @response AnonymousResourceCollection<RaceResource>
      *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
@@ -317,6 +323,8 @@ class ProficiencyTypeController extends Controller
      * - Results alphabetically sorted for consistent navigation
      * - All backgrounds are base-level (no "sub-backgrounds" like races/classes have)
      * - Check background description for thematic fit beyond mechanical proficiencies
+     *
+     * @response AnonymousResourceCollection<BackgroundResource>
      *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */

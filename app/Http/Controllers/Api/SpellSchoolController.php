@@ -64,6 +64,8 @@ class SpellSchoolController extends ReadOnlyLookupController
      * - **Wizard Specialization:** Choose a school to gain bonus features (Evocation for damage, Divination for utility)
      * - **Spell Selection:** Browse spells by school to build a thematic caster
      * - **Counterspell Decisions:** Identify spell schools to prioritize countering
+     *
+     * @response AnonymousResourceCollection<SpellSchoolResource>
      */
     #[QueryParameter('q', description: 'Search schools by name', example: 'evocation')]
     public function index(SpellSchoolIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection

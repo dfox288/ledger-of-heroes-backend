@@ -159,6 +159,8 @@ class RaceController extends Controller
      * - High Elf: 1 wizard cantrip (player's choice)
      * - Forest Gnome: Minor Illusion (0)
      *
+     * @response AnonymousResourceCollection<SpellResource>
+     *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function spells(Race $race)

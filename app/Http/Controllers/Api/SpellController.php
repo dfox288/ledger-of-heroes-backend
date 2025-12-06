@@ -174,6 +174,9 @@ class SpellController extends Controller
      * across 131 classes/subclasses and 477 spells imported from official D&D sourcebooks.
      *
      * @param  Spell  $spell  The spell to find classes for (accepts ID or slug)
+     *
+     * @response AnonymousResourceCollection<ClassResource>
+     *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function classes(Spell $spell)
@@ -209,6 +212,9 @@ class SpellController extends Controller
      * monster imports with 100% spell name match rate.
      *
      * @param  Spell  $spell  The spell to find monsters for (accepts ID or slug)
+     *
+     * @response AnonymousResourceCollection<MonsterResource>
+     *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function monsters(Spell $spell)
@@ -244,6 +250,9 @@ class SpellController extends Controller
      * ChargedItemStrategy during item imports using case-insensitive spell name matching.
      *
      * @param  Spell  $spell  The spell to find items for (accepts ID or slug)
+     *
+     * @response AnonymousResourceCollection<ItemResource>
+     *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function items(Spell $spell)
@@ -279,6 +288,9 @@ class SpellController extends Controller
      * official D&D sourcebooks.
      *
      * @param  Spell  $spell  The spell to find races for (accepts ID or slug)
+     *
+     * @response AnonymousResourceCollection<RaceResource>
+     *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function races(Spell $spell)

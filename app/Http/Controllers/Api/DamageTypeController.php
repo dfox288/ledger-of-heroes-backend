@@ -59,6 +59,8 @@ class DamageTypeController extends ReadOnlyLookupController
      * - **Resistance Planning:** Check enemy resistances before combat (many undead resist necrotic)
      * - **Spell Selection:** Build diverse spell lists with multiple damage types
      * - **Vulnerability Exploitation:** Target known vulnerabilities (trolls vs. fire/acid)
+     *
+     * @response AnonymousResourceCollection<DamageTypeResource>
      */
     #[QueryParameter('q', description: 'Search damage types by name', example: 'fire')]
     public function index(DamageTypeIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection

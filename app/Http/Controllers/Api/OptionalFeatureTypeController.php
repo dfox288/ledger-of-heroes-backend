@@ -48,6 +48,8 @@ class OptionalFeatureTypeController extends Controller
      * - **Class Feature Selection:** Show available feature types for a specific class
      * - **Frontend Dropdowns:** Populate filter/search dropdowns in UI
      * - **Feature Organization:** Group optional features by their mechanical type
+     *
+     * @response AnonymousResourceCollection<OptionalFeatureTypeResource>
      */
     #[QueryParameter('q', description: 'Search optional feature types by name', example: 'fighting')]
     public function index(): AnonymousResourceCollection

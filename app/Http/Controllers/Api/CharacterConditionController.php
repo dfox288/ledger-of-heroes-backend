@@ -49,9 +49,7 @@ class CharacterConditionController extends Controller
      * - `is_exhaustion` (boolean flag)
      * - `exhaustion_warning` (warning message at level 6)
      *
-     * @return AnonymousResourceCollection<CharacterConditionResource>
-     *
-     * @response array{data: array<int, array{id: int, condition: array{id: int, name: string, slug: string}, level: ?int, source: ?string, duration: ?string, is_exhaustion: bool, exhaustion_warning: ?string}>}
+     * @response AnonymousResourceCollection<CharacterConditionResource>
      */
     public function index(Character $character): AnonymousResourceCollection
     {

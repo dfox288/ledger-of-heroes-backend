@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **OpenAPI Spec Audit**: Fixed 36 OpenAPI specification issues across all API endpoints
+  - Fixed 7 endpoints returning `data: array of strings` instead of proper resource types
+  - Added `@response AnonymousResourceCollection<ResourceType>` annotations to ~30 controllers
+  - Affected controllers: AbilityScore, Condition, DamageType, Language, ProficiencyType, Size, SpellSchool,
+    Alignment, ArmorType, MonsterType, OptionalFeatureType, Rarity, Tag, all Character* controllers,
+    SpellController (relationship methods), MonsterController, RaceController, MediaController, FeatureSelectionController
+  - Note: Some endpoints intentionally return non-paginated collections (character data, small lookup tables)
+  - Scramble limitation: ReadOnlyLookupController-based endpoints show correct resource types but
+    lack pagination metadata in spec (actual API responses include pagination correctly)
+
 - **Issue #241**: CharacterResource now includes primary class data in `class` field
   - Added `class` field to `GET /api/v1/characters/{id}` response with primary class details
   - Includes class `id`, `name`, `slug`, and `equipment` for character creation wizard

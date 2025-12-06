@@ -57,6 +57,8 @@ class ArmorTypeController extends Controller
      * **Reference Data:**
      * Armor types are extracted from ~430 creatures in the Monster Manual and supplemental sources,
      * providing a comprehensive view of armor protection available to humanoid and monstrous creatures.
+     *
+     * @response AnonymousResourceCollection<LookupResource>
      */
     #[QueryParameter('q', description: 'Search armor types by name', example: 'plate')]
     public function index(): AnonymousResourceCollection

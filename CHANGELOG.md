@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Issue #246/#247**: Unified Choice System - Core Infrastructure
+  - New `PendingChoice` DTO for representing any character choice uniformly
+  - New `ChoiceTypeHandler` interface and `AbstractChoiceHandler` base class for choice type implementations
+  - New `CharacterChoiceService` for orchestrating all choice handlers with summary statistics
+  - New API endpoints:
+    - `GET /characters/{id}/pending-choices` - List all pending choices with summary
+    - `GET /characters/{id}/pending-choices/{choiceId}` - Get specific choice details
+    - `POST /characters/{id}/choices/{choiceId}` - Resolve a choice
+    - `DELETE /characters/{id}/choices/{choiceId}` - Undo a choice (if allowed)
+  - New exception classes: `InvalidChoiceException`, `ChoiceNotFoundException`, `ChoiceNotUndoableException`, `InvalidSelectionException`
+  - Choice IDs are deterministic: `{type}:{source}:{sourceId}:{level}:{group}`
+  - Comprehensive unit and feature tests for all new components
+
 ### Fixed
 
 - **Issue #248**: OpenAPI spec now includes pagination metadata for lookup endpoints

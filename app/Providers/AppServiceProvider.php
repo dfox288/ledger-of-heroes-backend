@@ -23,6 +23,7 @@ use App\Models\Skill;
 use App\Models\Spell;
 use App\Models\SpellSchool;
 use App\Observers\CharacterObserver;
+use App\Services\CharacterChoiceService;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -40,6 +41,17 @@ class AppServiceProvider extends ServiceProvider
                 config('scout.meilisearch.host'),
                 config('scout.meilisearch.key')
             );
+        });
+
+        // Bind CharacterChoiceService
+        $this->app->singleton(CharacterChoiceService::class, function ($app) {
+            $service = new CharacterChoiceService;
+
+            // Handlers will be registered here as they are implemented
+            // Example (uncomment when handler exists):
+            // $service->registerHandler($app->make(\App\Services\ChoiceHandlers\ProficiencyChoiceHandler::class));
+
+            return $service;
         });
     }
 

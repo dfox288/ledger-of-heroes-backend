@@ -89,28 +89,45 @@ it('returns equipment choices for level 1 character', function () {
         ->andReturn($characterClasses);
 
     // Mock equipment relationship on the class
-    $item1 = (object) ['id' => 123, 'name' => 'Chain Mail', 'slug' => 'chain-mail'];
-    $item2 = (object) ['id' => 456, 'name' => 'Leather Armor', 'slug' => 'leather-armor'];
+    // Items need contents collection for pack content support
+    $emptyContents = new EloquentCollection([]);
+
+    // Use stdClass with dynamic properties for items (simpler than Mockery for property access)
+    $item1 = new \stdClass;
+    $item1->id = 123;
+    $item1->name = 'Chain Mail';
+    $item1->slug = 'chain-mail';
+    $item1->contents = $emptyContents;
+
+    $item2 = new \stdClass;
+    $item2->id = 456;
+    $item2->name = 'Leather Armor';
+    $item2->slug = 'leather-armor';
+    $item2->contents = $emptyContents;
 
     $choice1Item1 = Mockery::mock(EquipmentChoiceItem::class);
     $choice1Item1->shouldReceive('getAttribute')->with('item_id')->andReturn(123);
     $choice1Item1->shouldReceive('getAttribute')->with('item')->andReturn($item1);
     $choice1Item1->shouldReceive('getAttribute')->with('quantity')->andReturn(1);
     $choice1Item1->shouldReceive('getAttribute')->with('proficiency_type_id')->andReturn(null);
+    $choice1Item1->shouldReceive('getAttribute')->with('proficiencyType')->andReturn(null);
     $choice1Item1->shouldReceive('__get')->with('item_id')->andReturn(123);
     $choice1Item1->shouldReceive('__get')->with('item')->andReturn($item1);
     $choice1Item1->shouldReceive('__get')->with('quantity')->andReturn(1);
     $choice1Item1->shouldReceive('__get')->with('proficiency_type_id')->andReturn(null);
+    $choice1Item1->shouldReceive('__get')->with('proficiencyType')->andReturn(null);
 
     $choice1Item2 = Mockery::mock(EquipmentChoiceItem::class);
     $choice1Item2->shouldReceive('getAttribute')->with('item_id')->andReturn(456);
     $choice1Item2->shouldReceive('getAttribute')->with('item')->andReturn($item2);
     $choice1Item2->shouldReceive('getAttribute')->with('quantity')->andReturn(1);
     $choice1Item2->shouldReceive('getAttribute')->with('proficiency_type_id')->andReturn(null);
+    $choice1Item2->shouldReceive('getAttribute')->with('proficiencyType')->andReturn(null);
     $choice1Item2->shouldReceive('__get')->with('item_id')->andReturn(456);
     $choice1Item2->shouldReceive('__get')->with('item')->andReturn($item2);
     $choice1Item2->shouldReceive('__get')->with('quantity')->andReturn(1);
     $choice1Item2->shouldReceive('__get')->with('proficiency_type_id')->andReturn(null);
+    $choice1Item2->shouldReceive('__get')->with('proficiencyType')->andReturn(null);
 
     $entityItem1 = Mockery::mock(EntityItem::class);
     $entityItem1->shouldReceive('getAttribute')->with('is_choice')->andReturn(true);
@@ -155,7 +172,10 @@ it('returns equipment choices for level 1 character', function () {
     $equipment = new EloquentCollection([$entityItem1, $entityItem2]);
 
     $equipmentRelation = Mockery::mock(\Illuminate\Database\Eloquent\Relations\MorphMany::class);
-    $equipmentRelation->shouldReceive('with')->with('choiceItems.item')->andReturnSelf();
+    $equipmentRelation->shouldReceive('with')->with([
+        'choiceItems.item.contents.item',
+        'choiceItems.proficiencyType',
+    ])->andReturnSelf();
     $equipmentRelation->shouldReceive('where')->with('is_choice', true)->andReturnSelf();
     $equipmentRelation->shouldReceive('orderBy')->with('choice_group')->andReturnSelf();
     $equipmentRelation->shouldReceive('orderBy')->with('choice_option')->andReturnSelf();

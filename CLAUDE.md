@@ -6,7 +6,7 @@ This file provides guidance to Claude Code when working with this repository.
 
 Laravel 12.x application importing D&D 5th Edition XML content and providing a RESTful API.
 
-**Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 (prod) / SQLite (tests) | PHPUnit 11+ | Docker Compose | Meilisearch | Redis
+**Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 (prod) / SQLite (tests) | Pest 3.x | Docker Compose | Meilisearch | Redis
 
 **Commands:** `docker compose exec php php artisan ...` | `docker compose exec php ./vendor/bin/pint`
 
@@ -128,21 +128,62 @@ Your work will be **REJECTED** if:
 - Tests written after implementation
 - "Manual testing is enough"
 
-### PHPUnit 11 Syntax
+### Pest Syntax
 
 ```php
-// Use attributes (doc-comments deprecated)
-#[\PHPUnit\Framework\Attributes\Test]
-public function it_creates_a_record() { }
+// Pest uses a functional syntax (not PHPUnit classes)
+it('creates a record', function () {
+    $record = Record::factory()->create();
+    expect($record)->toBeInstanceOf(Record::class);
+});
+
+test('user can view spells', function () {
+    $response = $this->getJson('/api/v1/spells');
+    $response->assertOk();
+});
+
+// Group related tests
+describe('spell filtering', function () {
+    it('filters by level', function () { /* ... */ });
+    it('filters by school', function () { /* ... */ });
+});
 ```
 
-### PHPUnit 11 "Risky" Warnings
+### Pest Expectations
 
-PHPUnit 11 tracks error/exception handler changes and marks tests "risky" if handlers aren't properly restored. The Guzzle HTTP client (used by Meilisearch) temporarily modifies these handlers during requests.
+```php
+expect($value)->toBe($expected);           // Strict equality
+expect($value)->toEqual($expected);        // Loose equality
+expect($collection)->toHaveCount(5);
+expect($response)->toBeInstanceOf(Response::class);
+expect($array)->toContain('item');
+expect($string)->toMatch('/pattern/');
+```
 
-**Solution:** `tests/TestCase.php` captures handlers in `setUp()` and restores them in `tearDown()`. This handles ~99% of cases. One or two tests may still show risky warnings due to timing edge cases with Meilisearch - this is acceptable.
+### Running with Coverage
 
-**If you see many risky warnings:** Ensure your test extends `Tests\TestCase`, not `PHPUnit\Framework\TestCase`.
+**Prerequisites:** XDebug 3.0+ or PCOV must be installed.
+
+```bash
+# Basic coverage report
+docker compose exec php ./vendor/bin/pest --coverage
+
+# Enforce minimum coverage threshold
+docker compose exec php ./vendor/bin/pest --coverage --min=80
+
+# Generate HTML coverage report
+docker compose exec php ./vendor/bin/pest --coverage-html=coverage/html
+
+# Generate Clover XML (for CI tools)
+docker compose exec php ./vendor/bin/pest --coverage-clover=coverage/clover.xml
+```
+
+**Exclude untestable code:**
+```php
+// @codeCoverageIgnoreStart
+// untestable code here
+// @codeCoverageIgnoreEnd
+```
 
 ---
 
@@ -160,14 +201,20 @@ PHPUnit 11 tracks error/exception handler changes and marks tests "risky" if han
 
 ```bash
 # Quick feedback during development
-docker compose exec php php artisan test --testsuite=Unit-Pure
+docker compose exec php ./vendor/bin/pest --testsuite=Unit-Pure
 
 # Standard validation (run each suite)
-docker compose exec php php artisan test --testsuite=Unit-DB
-docker compose exec php php artisan test --testsuite=Feature-DB
+docker compose exec php ./vendor/bin/pest --testsuite=Unit-DB
+docker compose exec php ./vendor/bin/pest --testsuite=Feature-DB
 
 # Search tests (requires Meilisearch with fixture data)
-docker compose exec php php artisan test --testsuite=Feature-Search
+docker compose exec php ./vendor/bin/pest --testsuite=Feature-Search
+
+# Run specific test file
+docker compose exec php ./vendor/bin/pest tests/Feature/Api/SpellApiTest.php
+
+# Run with coverage
+docker compose exec php ./vendor/bin/pest --coverage --min=80
 ```
 
 **Note:** Run suites individually, not combined. Cross-suite runs may have data isolation issues.

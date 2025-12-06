@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Issue #282**: Add `label` field to equipment choice options
+  - Equipment options now include the human-readable description (e.g., "a rapier", "leather armor, longbow, and arrows (20)")
+  - Label is sourced from the `description` field in `entity_items` table
+
 ### Added
 
 - **Issue #255**: Enhanced Stats Endpoint with Full Character Statistics

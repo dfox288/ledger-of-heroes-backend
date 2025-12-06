@@ -71,8 +71,12 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                     }
                 }
 
+                // Get label from EntityItem description field (e.g., "a rapier")
+                $label = $optionItems->first()?->description ?? '';
+
                 $builtOptions[] = [
                     'option' => $optionLetter,
+                    'label' => $label,
                     'items' => $items,
                 ];
             }

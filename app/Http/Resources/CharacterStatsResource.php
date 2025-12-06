@@ -39,6 +39,8 @@ class CharacterStatsResource extends JsonResource
 
             // Derived combat stats
             'initiative_bonus' => $this->resource->initiativeBonus,
+            // Note: Individual passive fields kept for backwards compatibility.
+            // New 'passive' object provides grouped access (Issue #255).
             'passive_perception' => $this->resource->passivePerception,
             'passive_investigation' => $this->resource->passiveInvestigation,
             'passive_insight' => $this->resource->passiveInsight,

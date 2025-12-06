@@ -5,6 +5,7 @@ namespace Tests\Unit\DTOs;
 use App\DTOs\CharacterStatsDTO;
 use App\Models\Character;
 use App\Models\CharacterClass;
+use App\Models\Race;
 use App\Models\Skill;
 use App\Services\CharacterStatCalculator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -249,6 +250,25 @@ class CharacterStatsDTOTest extends TestCase
 
         // Default speed is 30 when no race speed is set
         $this->assertEquals(30, $dto->speed['walk']);
+    }
+
+    #[Test]
+    public function it_uses_race_speed_when_available(): void
+    {
+        $race = Race::factory()->create([
+            'speed' => 25,
+            'fly_speed' => 50,
+            'swim_speed' => 30,
+            'climb_speed' => 20,
+        ]);
+        $character = Character::factory()->create(['race_id' => $race->id]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character, $this->calculator);
+
+        $this->assertEquals(25, $dto->speed['walk']);
+        $this->assertEquals(50, $dto->speed['fly']);
+        $this->assertEquals(30, $dto->speed['swim']);
+        $this->assertEquals(20, $dto->speed['climb']);
     }
 
     // === Passive Scores Tests ===

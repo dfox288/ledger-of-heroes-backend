@@ -298,9 +298,16 @@ class CharacterStatsDTO
         int $proficiencyBonus,
         CharacterStatCalculator $calculator
     ): array {
+        // Note: This queries 18 skills per request. Acceptable trade-off as skills
+        // rarely change and the query is small. Consider caching if profiling shows issues.
         $skills = Skill::with('abilityScore')->get();
 
         return $skills->map(function ($skill) use ($abilityModifiers, $skillProficiencies, $proficiencyBonus, $calculator) {
+            // Defensive: skip skills without ability score (shouldn't happen with proper seeding)
+            if (! $skill->abilityScore) {
+                return null;
+            }
+
             $abilityCode = $skill->abilityScore->code;
             $abilityMod = $abilityModifiers[$abilityCode];
             $profData = $skillProficiencies[$skill->slug] ?? ['proficient' => false, 'expertise' => false];
@@ -325,7 +332,7 @@ class CharacterStatsDTO
                 'modifier' => $modifier,
                 'passive' => $passive,
             ];
-        })->sortBy('name')->values()->all();
+        })->filter()->sortBy('name')->values()->all();
     }
 
     /**

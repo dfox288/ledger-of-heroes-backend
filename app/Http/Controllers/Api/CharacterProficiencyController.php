@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CharacterProficiencyResource;
-use App\Http\Resources\ChoicesResource;
+use App\Http\Resources\ProficiencyChoicesResource;
+use App\Http\Resources\SyncResultResource;
 use App\Models\Character;
 use App\Services\CharacterProficiencyService;
 use Illuminate\Http\JsonResponse;
@@ -125,14 +126,16 @@ class CharacterProficiencyController extends Controller
      * - `selected_skills`: Array of skill IDs already chosen
      * - `selected_proficiency_types`: Array of proficiency type IDs already chosen
      * - `options`: All available options for this choice group (empty for subcategory-based choices)
+     *
+     * @response ProficiencyChoicesResource
      */
-    public function choices(Character $character): ChoicesResource
+    public function choices(Character $character): ProficiencyChoicesResource
     {
         $character->load(['characterClasses.characterClass', 'race', 'background']);
 
         $choices = $this->proficiencyService->getPendingChoices($character);
 
-        return new ChoicesResource($choices);
+        return new ProficiencyChoicesResource($choices);
     }
 
     /**
@@ -186,7 +189,7 @@ class CharacterProficiencyController extends Controller
      * - "No choice group 'X' found for source" - Invalid choice group
      * - "Must provide either skill_ids or proficiency_type_ids" - Missing required parameter
      */
-    public function storeChoice(Request $request, Character $character): JsonResponse
+    public function storeChoice(Request $request, Character $character): SyncResultResource|JsonResponse
     {
         $validated = $request->validate([
             'source' => ['required', 'in:class,race,background'],
@@ -237,12 +240,12 @@ class CharacterProficiencyController extends Controller
             ], 422);
         }
 
-        return response()->json([
-            'message' => 'Choice saved successfully',
-            'data' => CharacterProficiencyResource::collection(
+        return SyncResultResource::withMessage(
+            'Choice saved successfully',
+            CharacterProficiencyResource::collection(
                 $this->proficiencyService->getCharacterProficiencies($character)
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -257,8 +260,6 @@ class CharacterProficiencyController extends Controller
      * @x-flow character-creation
      *
      * @x-flow-step 5
-     *
-     * @response AnonymousResourceCollection<CharacterProficiencyResource>
      *
      * **Examples:**
      * ```
@@ -280,17 +281,17 @@ class CharacterProficiencyController extends Controller
      * **Note:** This endpoint is idempotent - calling it multiple times will not create duplicates.
      * Proficiencies are synced when class/race/background changes via the PopulateCharacterAbilities listener.
      */
-    public function sync(Character $character): JsonResponse
+    public function sync(Character $character): SyncResultResource
     {
         $character->load(['characterClasses.characterClass', 'race', 'background']);
 
         $this->proficiencyService->populateAll($character);
 
-        return response()->json([
-            'message' => 'Proficiencies synced successfully',
-            'data' => CharacterProficiencyResource::collection(
+        return SyncResultResource::withMessage(
+            'Proficiencies synced successfully',
+            CharacterProficiencyResource::collection(
                 $this->proficiencyService->getCharacterProficiencies($character)
-            ),
-        ]);
+            )
+        );
     }
 }

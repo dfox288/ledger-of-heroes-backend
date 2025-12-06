@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CharacterLanguageResource;
-use App\Http\Resources\ChoicesResource;
+use App\Http\Resources\LanguageChoicesResource;
+use App\Http\Resources\SyncResultResource;
 use App\Models\Character;
 use App\Services\CharacterLanguageService;
 use Illuminate\Http\JsonResponse;
@@ -125,14 +126,16 @@ class CharacterLanguageController extends Controller
      * - `choices.remaining`: Number of choices still needed
      * - `choices.selected`: Array of language IDs already chosen for this source
      * - `choices.options`: Available languages to choose from (excludes already known)
+     *
+     * @response LanguageChoicesResource
      */
-    public function choices(Character $character): ChoicesResource
+    public function choices(Character $character): LanguageChoicesResource
     {
         $character->load(['race', 'background', 'features', 'languages']);
 
         $choices = $this->languageService->getPendingChoices($character);
 
-        return new ChoicesResource($choices);
+        return new LanguageChoicesResource($choices);
     }
 
     /**
@@ -172,7 +175,7 @@ class CharacterLanguageController extends Controller
      * - "Language ID X is already known" - Duplicate language selected
      * - "No language choices available for source" - Source has no choices
      */
-    public function storeChoice(Request $request, Character $character): JsonResponse
+    public function storeChoice(Request $request, Character $character): SyncResultResource|JsonResponse
     {
         $validated = $request->validate([
             'source' => ['required', 'in:race,background,feat'],
@@ -194,12 +197,12 @@ class CharacterLanguageController extends Controller
             ], 422);
         }
 
-        return response()->json([
-            'message' => 'Languages saved successfully',
-            'data' => CharacterLanguageResource::collection(
+        return SyncResultResource::withMessage(
+            'Languages saved successfully',
+            CharacterLanguageResource::collection(
                 $this->languageService->getCharacterLanguages($character)
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -214,8 +217,6 @@ class CharacterLanguageController extends Controller
      * @x-flow character-creation
      *
      * @x-flow-step 7
-     *
-     * @response AnonymousResourceCollection<CharacterLanguageResource>
      *
      * **Examples:**
      * ```
@@ -235,17 +236,17 @@ class CharacterLanguageController extends Controller
      *
      * **Note:** This endpoint is idempotent - calling it multiple times will not create duplicates.
      */
-    public function sync(Character $character): JsonResponse
+    public function sync(Character $character): SyncResultResource
     {
         $character->load(['race', 'background', 'features']);
 
         $this->languageService->populateFixed($character);
 
-        return response()->json([
-            'message' => 'Languages synced successfully',
-            'data' => CharacterLanguageResource::collection(
+        return SyncResultResource::withMessage(
+            'Languages synced successfully',
+            CharacterLanguageResource::collection(
                 $this->languageService->getCharacterLanguages($character)
-            ),
-        ]);
+            )
+        );
     }
 }

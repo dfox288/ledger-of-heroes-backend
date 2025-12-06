@@ -141,6 +141,7 @@ class CharacterController extends Controller
             'race',
             'background',
             'characterClasses.characterClass.levelProgression',
+            'characterClasses.characterClass.equipment.item',
             'characterClasses.subclass',
             'media',
         ]);

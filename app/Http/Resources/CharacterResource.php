@@ -154,6 +154,29 @@ class CharacterResource extends JsonResource
                 $this->relationLoaded('background') || $this->background_id,
                 fn () => $this->formatEntity($this->background)
             ),
+            /** @var array{id: int, name: string, slug: string, equipment: array}|null Primary class with equipment */
+            'class' => $this->getPrimaryClassData(),
+        ];
+    }
+
+    /**
+     * Get primary class data with equipment for wizard flow.
+     */
+    private function getPrimaryClassData(): ?array
+    {
+        $primaryClass = $this->primary_class;
+
+        if (! $primaryClass) {
+            return null;
+        }
+
+        return [
+            'id' => $primaryClass->id,
+            'name' => $primaryClass->name,
+            'slug' => $primaryClass->slug,
+            'equipment' => EntityItemResource::collection(
+                $primaryClass->relationLoaded('equipment') ? $primaryClass->equipment : collect()
+            ),
         ];
     }
 

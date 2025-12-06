@@ -35,6 +35,7 @@ class TestDatabaseSeeder extends Seeder
             ConditionSeeder::class,
             ProficiencyTypeSeeder::class,
             LanguageSeeder::class,
+            MulticlassSpellSlotSeeder::class,
         ]);
 
         // Step 2: Entity fixtures (order respects dependencies)

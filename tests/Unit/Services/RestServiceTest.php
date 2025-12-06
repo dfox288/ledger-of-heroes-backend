@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Services;
 
+use App\Enums\ResetTiming;
 use App\Enums\SpellSlotType;
 use App\Models\Character;
 use App\Models\CharacterClass;
@@ -229,6 +230,52 @@ class RestServiceTest extends TestCase
     }
 
     #[Test]
+    public function short_rest_identifies_features_that_reset(): void
+    {
+        $fighter = CharacterClass::factory()->baseClass()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+        ]);
+
+        // Create a feature that resets on short rest
+        $fighter->features()->create([
+            'level' => 2,
+            'feature_name' => 'Action Surge',
+            'is_optional' => false,
+            'is_multiclass_only' => false,
+            'description' => 'Once on your turn, you can take one additional action',
+            'sort_order' => 0,
+            'resets_on' => ResetTiming::SHORT_REST,
+        ]);
+
+        // Create a feature that doesn't reset on short rest
+        $fighter->features()->create([
+            'level' => 3,
+            'feature_name' => 'Second Wind',
+            'is_optional' => false,
+            'is_multiclass_only' => false,
+            'description' => 'Regain hit points',
+            'sort_order' => 1,
+            'resets_on' => ResetTiming::LONG_REST,
+        ]);
+
+        $character = Character::factory()->create();
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_id' => $fighter->id,
+            'level' => 5,
+            'is_primary' => true,
+        ]);
+
+        $result = $this->service->shortRest($character);
+
+        // Should identify Action Surge but not Second Wind
+        $this->assertContains('Action Surge', $result['features_reset']);
+        $this->assertNotContains('Second Wind', $result['features_reset']);
+        $this->assertCount(1, $result['features_reset']);
+    }
+
+    #[Test]
     public function long_rest_caps_hp_at_max(): void
     {
         $character = Character::factory()->create([
@@ -265,6 +312,74 @@ class RestServiceTest extends TestCase
         $pivot = CharacterClassPivot::where('character_id', $character->id)->first();
         $this->assertEquals(0, $pivot->hit_dice_spent);
         $this->assertEquals(2, $result['hit_dice_recovered']); // Only recovered what was spent
+    }
+
+    #[Test]
+    public function long_rest_identifies_all_resetting_features(): void
+    {
+        $druid = CharacterClass::factory()->baseClass()->create([
+            'name' => 'Druid',
+            'hit_die' => 8,
+        ]);
+
+        // Create features with different reset timings
+        $druid->features()->create([
+            'level' => 2,
+            'feature_name' => 'Wild Shape',
+            'is_optional' => false,
+            'is_multiclass_only' => false,
+            'description' => 'Transform into a beast',
+            'sort_order' => 0,
+            'resets_on' => ResetTiming::SHORT_REST,
+        ]);
+
+        $druid->features()->create([
+            'level' => 5,
+            'feature_name' => 'Wild Shape (CR 1)',
+            'is_optional' => false,
+            'is_multiclass_only' => false,
+            'description' => 'Transform into CR 1 beasts',
+            'sort_order' => 1,
+            'resets_on' => ResetTiming::LONG_REST,
+        ]);
+
+        $druid->features()->create([
+            'level' => 18,
+            'feature_name' => 'Beast Spells',
+            'is_optional' => false,
+            'is_multiclass_only' => false,
+            'description' => 'Cast spells while wild shaped',
+            'sort_order' => 2,
+            'resets_on' => ResetTiming::DAWN,
+        ]);
+
+        // Feature above character's level should not appear
+        $druid->features()->create([
+            'level' => 20,
+            'feature_name' => 'Archdruid',
+            'is_optional' => false,
+            'is_multiclass_only' => false,
+            'description' => 'Unlimited Wild Shape',
+            'sort_order' => 3,
+            'resets_on' => ResetTiming::SHORT_REST,
+        ]);
+
+        $character = Character::factory()->create();
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_id' => $druid->id,
+            'level' => 18, // Below level 20, so Archdruid should not be included
+            'is_primary' => true,
+        ]);
+
+        $result = $this->service->longRest($character);
+
+        // Should identify all three features at or below level 18 with SHORT_REST, LONG_REST, or DAWN
+        $this->assertContains('Wild Shape', $result['features_reset']);
+        $this->assertContains('Wild Shape (CR 1)', $result['features_reset']);
+        $this->assertContains('Beast Spells', $result['features_reset']);
+        $this->assertNotContains('Archdruid', $result['features_reset']);
+        $this->assertCount(3, $result['features_reset']);
     }
 
     // =========================================================================

@@ -9,6 +9,11 @@ class MulticlassSpellSlotSeeder extends Seeder
 {
     public function run(): void
     {
+        // Skip if already seeded (for idempotency)
+        if (DB::table('multiclass_spell_slots')->count() > 0) {
+            return;
+        }
+
         // PHB p165 - Multiclass Spellcaster: Spell Slots per Spell Level
         $slots = [
             ['caster_level' => 1, 'slots_1st' => 2, 'slots_2nd' => 0, 'slots_3rd' => 0, 'slots_4th' => 0, 'slots_5th' => 0, 'slots_6th' => 0, 'slots_7th' => 0, 'slots_8th' => 0, 'slots_9th' => 0],

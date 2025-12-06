@@ -10,12 +10,12 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 2,008 passing (~7,700+ assertions) - Unit-Pure/Unit-DB/Feature-DB |
-| **Test Coverage** | 37.45% lines (5,751/15,355), 29.98% methods (485/1,618) - Unit suites |
+| **Tests** | 2,132 passing (~7,900+ assertions) - Unit-Pure/Unit-DB/Feature-DB |
+| **Test Coverage** | ~23% (Unit suites combined) - ongoing improvements |
 | **Test Files** | 310+ |
 | **Filter Tests** | 151 operator tests (2,750+ assertions) - 100% coverage |
 | **Character Builder Tests** | 200+ tests (3,000+ assertions) |
-| **Duration** | ~10s (Unit-Pure), ~26s (Unit-DB), ~26s (Feature-DB), ~35s (Feature-Search) |
+| **Duration** | ~11s (Unit-Pure), ~21s (Unit-DB), ~20s (Feature-DB), ~35s (Feature-Search) |
 | **Models** | 57 |
 | **API** | 80 Resources + 44 Controllers + 36 Form Requests |
 | **Importers** | 9 working (Strategy Pattern) |
@@ -31,6 +31,27 @@
 ---
 
 ## 🚀 Recent Milestones
+
+### Service & Parser Test Coverage Sprint ✅ COMPLETE (2025-12-06)
+- **Issues Closed:** #238, #237, #234, #231
+- **Scope:** Improve test coverage for parser strategies and character services
+
+**Parser Strategy Coverage (Issue #238):**
+| Strategy | Before | After | Tests Added |
+|----------|--------|-------|-------------|
+| ScrollStrategy | 8.3% | 100% | +22 |
+| TattooStrategy | 9.4% | 100% | +22 |
+| LegendaryStrategy | 42.9% | 100% | +38 |
+| PotionStrategy | 40.4% | 100% | +23 |
+
+**Service Coverage:**
+| Service | Before | After | Tests Added |
+|---------|--------|-------|-------------|
+| SpellSlotService (#237) | ~20% | 73.9% | +10 |
+| PrerequisiteCheckerService (#234) | 0% | 100% | +9 |
+| RestService (#231) | 96.8% | 100% | +2 |
+
+**Total:** +126 new tests, +2,409 lines of test code
 
 ### Refactoring & Test Coverage Phase 2 ✅ COMPLETE (2025-12-06)
 - **PR:** #66 (pending)

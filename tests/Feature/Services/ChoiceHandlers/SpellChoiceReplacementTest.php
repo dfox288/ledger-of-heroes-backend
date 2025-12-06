@@ -4,7 +4,6 @@ namespace Tests\Feature\Services\ChoiceHandlers;
 
 use App\DTOs\PendingChoice;
 use App\Models\Character;
-use App\Models\CharacterSpell;
 use App\Models\Spell;
 use App\Services\ChoiceHandlers\SpellChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;

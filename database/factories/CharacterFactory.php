@@ -18,6 +18,26 @@ class CharacterFactory extends Factory
     protected $model = Character::class;
 
     /**
+     * D&D-themed adjectives for generating public IDs
+     */
+    private const ADJECTIVES = [
+        'ancient', 'arcane', 'bold', 'brave', 'crimson', 'dark', 'divine',
+        'elder', 'eternal', 'fallen', 'fierce', 'frozen', 'golden', 'grim',
+        'hidden', 'iron', 'lost', 'mighty', 'mystic', 'noble', 'primal',
+        'radiant', 'rune', 'sacred', 'shadow', 'silent', 'silver', 'storm',
+    ];
+
+    /**
+     * D&D-themed nouns for generating public IDs
+     */
+    private const NOUNS = [
+        'archer', 'bard', 'blade', 'cleric', 'dragon', 'druid', 'falcon',
+        'flame', 'fury', 'guardian', 'hawk', 'herald', 'hunter', 'knight',
+        'mage', 'oracle', 'paladin', 'phoenix', 'ranger', 'raven', 'rogue',
+        'sage', 'seeker', 'sentinel', 'slayer', 'warden', 'warrior', 'wolf',
+    ];
+
+    /**
      * Define the model's default state.
      *
      * Wizard-style creation: all optional fields are nullable by default.
@@ -28,6 +48,7 @@ class CharacterFactory extends Factory
     public function definition(): array
     {
         return [
+            'public_id' => $this->generatePublicId(),
             'name' => fake()->name(),
             'user_id' => null,
             'experience_points' => 0,
@@ -234,5 +255,41 @@ class CharacterFactory extends Factory
                 ]);
             }
         });
+    }
+
+    /**
+     * Generate a unique public ID in format: adjective-noun-xxxx
+     */
+    private function generatePublicId(): string
+    {
+        $adjective = self::ADJECTIVES[array_rand(self::ADJECTIVES)];
+        $noun = self::NOUNS[array_rand(self::NOUNS)];
+        $suffix = $this->generateSuffix();
+
+        return "{$adjective}-{$noun}-{$suffix}";
+    }
+
+    /**
+     * Generate a 4-character alphanumeric suffix
+     */
+    private function generateSuffix(): string
+    {
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        $suffix = '';
+        for ($i = 0; $i < 4; $i++) {
+            $suffix .= $chars[random_int(0, strlen($chars) - 1)];
+        }
+
+        return $suffix;
+    }
+
+    /**
+     * Set a specific public_id for the character.
+     */
+    public function withPublicId(string $publicId): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'public_id' => $publicId,
+        ]);
     }
 }

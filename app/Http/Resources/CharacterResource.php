@@ -52,6 +52,7 @@ class CharacterResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'public_id' => $this->public_id,
             'name' => $this->name,
             /** @var int Character level (total across all classes) */
             'level' => $this->total_level,

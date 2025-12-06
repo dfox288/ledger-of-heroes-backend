@@ -39,8 +39,9 @@ class CharacterCreationFlowTest extends TestCase
         $wizardClass->spells()->attach($spells->pluck('id'));
         $wizardClass->spells()->attach($cantrips->pluck('id'));
 
-        // Step 1: Create draft character (only name required)
+        // Step 1: Create draft character (public_id and name required)
         $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'elara-wise-ab12',
             'name' => 'Elara the Wise',
         ]);
 
@@ -145,8 +146,11 @@ class CharacterCreationFlowTest extends TestCase
         $class = CharacterClass::factory()->create();
         $background = Background::factory()->create();
 
-        // Create character with just name
-        $response = $this->postJson('/api/v1/characters', ['name' => 'Test']);
+        // Create character with public_id and name
+        $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'test-hero-cd34',
+            'name' => 'Test',
+        ]);
         $characterId = $response->json('data.id');
 
         // Set background first (any order allowed)
@@ -180,8 +184,11 @@ class CharacterCreationFlowTest extends TestCase
         $race = Race::factory()->create();
         $class = CharacterClass::factory()->create();
 
-        // Start: missing everything
-        $response = $this->postJson('/api/v1/characters', ['name' => 'Test']);
+        // Start: missing everything except public_id and name
+        $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'test-hero-ef56',
+            'name' => 'Test',
+        ]);
         $response->assertCreated()
             ->assertJsonPath('data.validation_status.is_complete', false)
             ->assertJsonPath('data.validation_status.missing', ['race', 'class', 'ability_scores']);

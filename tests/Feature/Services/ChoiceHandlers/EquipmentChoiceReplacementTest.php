@@ -4,7 +4,6 @@ namespace Tests\Feature\Services\ChoiceHandlers;
 
 use App\DTOs\PendingChoice;
 use App\Models\Character;
-use App\Models\CharacterEquipment;
 use App\Models\Item;
 use App\Services\ChoiceHandlers\EquipmentChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;

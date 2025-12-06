@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Issue #286**: Add `public_id` column for URL-safe character slugs
+  - Characters now have a `public_id` field (e.g., `shadow-warden-q3x9`) for memorable URLs
+  - Client provides `public_id` on character creation (format: `adjective-noun-XXXX`)
+  - Routes support both `public_id` and numeric `id` for backwards compatibility
+  - Migration auto-generates D&D-themed slugs for existing characters
+  - Enables URL persistence: `/characters/shadow-warden-q3x9/edit` survives page reload
+
 ### Fixed
 
 - **Choice replacement bug**: Re-submitting equipment or spell choices now replaces instead of duplicating

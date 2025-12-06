@@ -38,7 +38,40 @@ class Character extends Model implements HasMedia
         'updated' => CharacterUpdated::class,
     ];
 
+    /**
+     * Get the route key for the model.
+     *
+     * Uses public_id as the primary route key, but resolveRouteBinding
+     * also accepts numeric IDs for backwards compatibility.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'public_id';
+    }
+
+    /**
+     * Resolve the model for route binding.
+     *
+     * Supports both public_id (slug format) and numeric id for backwards compatibility.
+     * Frontend should use public_id, tests can use either.
+     *
+     * @param  mixed  $value
+     * @param  string|null  $field
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        // If it's a numeric value, look up by id
+        if (is_numeric($value)) {
+            return $this->where('id', $value)->first();
+        }
+
+        // Otherwise look up by public_id
+        return $this->where('public_id', $value)->first();
+    }
+
     protected $fillable = [
+        'public_id',
         'user_id',
         'name',
         'experience_points',

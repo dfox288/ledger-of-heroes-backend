@@ -15,6 +15,16 @@ class CharacterStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // URL-safe public identifier (required, client-generated)
+            // Format: {adjective}-{noun}-{4-char-suffix} e.g., "shadow-warden-q3x9"
+            'public_id' => [
+                'required',
+                'string',
+                'max:30',
+                'unique:characters,public_id',
+                'regex:/^[a-z]+-[a-z]+-[A-Za-z0-9]{4}$/',
+            ],
+
             'name' => ['required', 'string', 'max:255'],
 
             // Core choices (nullable for wizard-style creation)
@@ -48,6 +58,9 @@ class CharacterStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'public_id.required' => 'A public ID is required for character creation.',
+            'public_id.unique' => 'This public ID is already in use. Please generate a new one.',
+            'public_id.regex' => 'Public ID must be in format: adjective-noun-XXXX (e.g., shadow-warden-q3x9)',
             'strength.min' => 'Ability scores must be at least 3.',
             'strength.max' => 'Ability scores cannot exceed 20.',
             'dexterity.min' => 'Ability scores must be at least 3.',

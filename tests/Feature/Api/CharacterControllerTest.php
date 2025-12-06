@@ -51,22 +51,26 @@ class CharacterControllerTest extends TestCase
     public function it_creates_a_draft_character_with_just_name(): void
     {
         $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'shadow-warden-q3x9',
             'name' => 'Gandalf',
         ]);
 
         $response->assertCreated()
             ->assertJsonPath('data.name', 'Gandalf')
+            ->assertJsonPath('data.public_id', 'shadow-warden-q3x9')
             ->assertJsonPath('data.level', 0) // No class = no level
             ->assertJsonPath('data.is_complete', false)
             ->assertJsonPath('data.validation_status.missing', ['race', 'class', 'ability_scores']);
 
-        $this->assertDatabaseHas('characters', ['name' => 'Gandalf']);
+        $this->assertDatabaseHas('characters', ['name' => 'Gandalf', 'public_id' => 'shadow-warden-q3x9']);
     }
 
     #[Test]
     public function it_requires_name_to_create_character(): void
     {
-        $response = $this->postJson('/api/v1/characters', []);
+        $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'test-char-ab12',
+        ]);
 
         $response->assertUnprocessable()
             ->assertJsonValidationErrors(['name']);
@@ -79,6 +83,7 @@ class CharacterControllerTest extends TestCase
         $class = CharacterClass::factory()->create();
 
         $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'brave-archer-zx78',
             'name' => 'Legolas',
             'race_id' => $race->id,
             'class_id' => $class->id,
@@ -94,6 +99,7 @@ class CharacterControllerTest extends TestCase
     public function it_validates_ability_score_range_minimum(): void
     {
         $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'test-hero-ab12',
             'name' => 'Test',
             'strength' => 2, // Invalid - min is 3
         ]);
@@ -106,6 +112,7 @@ class CharacterControllerTest extends TestCase
     public function it_validates_ability_score_range_maximum(): void
     {
         $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'test-hero-cd34',
             'name' => 'Test',
             'strength' => 25, // Invalid - max is 20
         ]);
@@ -118,6 +125,7 @@ class CharacterControllerTest extends TestCase
     public function it_validates_race_exists(): void
     {
         $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'test-hero-ef56',
             'name' => 'Test',
             'race_id' => 99999, // Non-existent
         ]);
@@ -130,6 +138,7 @@ class CharacterControllerTest extends TestCase
     public function it_validates_class_exists(): void
     {
         $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'test-hero-gh78',
             'name' => 'Test',
             'class_id' => 99999, // Non-existent
         ]);
@@ -147,14 +156,16 @@ class CharacterControllerTest extends TestCase
     {
         $character = Character::factory()->create(['name' => 'TestHero']);
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}");
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}");
 
         $response->assertOk()
             ->assertJsonPath('data.id', $character->id)
+            ->assertJsonPath('data.public_id', $character->public_id)
             ->assertJsonPath('data.name', 'TestHero')
             ->assertJsonStructure([
                 'data' => [
                     'id',
+                    'public_id',
                     'name',
                     'level',
                     'experience_points',
@@ -167,7 +178,7 @@ class CharacterControllerTest extends TestCase
     #[Test]
     public function it_returns_404_for_non_existent_character(): void
     {
-        $response = $this->getJson('/api/v1/characters/99999');
+        $response = $this->getJson('/api/v1/characters/nonexistent-slug-xxxx');
 
         $response->assertNotFound();
     }
@@ -186,7 +197,7 @@ class CharacterControllerTest extends TestCase
             ])
             ->create();
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}");
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}");
 
         $response->assertOk()
             ->assertJsonPath('data.ability_scores.STR', 18)
@@ -201,7 +212,7 @@ class CharacterControllerTest extends TestCase
     {
         $character = Character::factory()->level(5)->create();
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}");
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}");
 
         $response->assertOk()
             ->assertJsonPath('data.proficiency_bonus', 3); // Level 5 = +3
@@ -216,7 +227,7 @@ class CharacterControllerTest extends TestCase
     {
         $character = Character::factory()->create(['name' => 'OldName']);
 
-        $response = $this->patchJson("/api/v1/characters/{$character->id}", [
+        $response = $this->patchJson("/api/v1/characters/{$character->public_id}", [
             'name' => 'NewName',
         ]);
 
@@ -231,7 +242,7 @@ class CharacterControllerTest extends TestCase
     {
         $character = Character::factory()->create();
 
-        $response = $this->patchJson("/api/v1/characters/{$character->id}", [
+        $response = $this->patchJson("/api/v1/characters/{$character->public_id}", [
             'strength' => 18,
             'dexterity' => 14,
             'constitution' => 16,
@@ -250,7 +261,7 @@ class CharacterControllerTest extends TestCase
     {
         $character = Character::factory()->create();
 
-        $response = $this->patchJson("/api/v1/characters/{$character->id}", [
+        $response = $this->patchJson("/api/v1/characters/{$character->public_id}", [
             'strength' => 25, // Invalid
         ]);
 
@@ -273,7 +284,7 @@ class CharacterControllerTest extends TestCase
             ])
             ->create();
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}");
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}");
 
         $response->assertOk()
             ->assertJsonPath('data.is_complete', true)
@@ -290,7 +301,7 @@ class CharacterControllerTest extends TestCase
     {
         $character = Character::factory()->create();
 
-        $response = $this->deleteJson("/api/v1/characters/{$character->id}");
+        $response = $this->deleteJson("/api/v1/characters/{$character->public_id}");
 
         $response->assertNoContent();
         $this->assertDatabaseMissing('characters', ['id' => $character->id]);
@@ -299,7 +310,7 @@ class CharacterControllerTest extends TestCase
     #[Test]
     public function it_returns_404_when_deleting_non_existent_character(): void
     {
-        $response = $this->deleteJson('/api/v1/characters/99999');
+        $response = $this->deleteJson('/api/v1/characters/nonexistent-slug-xxxx');
 
         $response->assertNotFound();
     }
@@ -314,7 +325,7 @@ class CharacterControllerTest extends TestCase
         $race = Race::factory()->create();
         $character = Character::factory()->withRace($race)->create();
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}");
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}");
 
         $response->assertOk()
             ->assertJsonPath('data.race.id', $race->id)
@@ -327,7 +338,7 @@ class CharacterControllerTest extends TestCase
         $class = CharacterClass::factory()->create();
         $character = Character::factory()->withClass($class)->create();
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}");
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}");
 
         $response->assertOk()
             ->assertJsonPath('data.classes.0.class.id', $class->id)
@@ -340,7 +351,7 @@ class CharacterControllerTest extends TestCase
         $background = Background::factory()->create();
         $character = Character::factory()->withBackground($background)->create();
 
-        $response = $this->getJson("/api/v1/characters/{$character->id}");
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}");
 
         $response->assertOk()
             ->assertJsonPath('data.background.id', $background->id)

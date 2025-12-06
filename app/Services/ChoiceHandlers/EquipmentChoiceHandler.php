@@ -75,26 +75,36 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                                 'quantity' => $choiceItem->quantity,
                             ];
 
-                            // Include pack contents if available
+                            // Include pack contents if available (filter out orphaned records)
                             if ($choiceItem->item->contents && $choiceItem->item->contents->isNotEmpty()) {
-                                $itemData['contents'] = $choiceItem->item->contents->map(fn ($content) => [
-                                    'quantity' => $content->quantity,
-                                    'item' => $content->item ? [
-                                        'id' => $content->item->id,
-                                        'name' => $content->item->name,
-                                        'slug' => $content->item->slug,
-                                    ] : null,
-                                ])->filter(fn ($c) => $c['item'] !== null)->values()->all();
+                                $contents = $choiceItem->item->contents
+                                    ->map(fn ($content) => [
+                                        'quantity' => $content->quantity,
+                                        'item' => $content->item ? [
+                                            'id' => $content->item->id,
+                                            'name' => $content->item->name,
+                                            'slug' => $content->item->slug,
+                                        ] : null,
+                                    ])
+                                    ->filter(fn ($c) => $c['item'] !== null)
+                                    ->values();
+
+                                if ($contents->isNotEmpty()) {
+                                    $itemData['contents'] = $contents->all();
+                                }
                             }
 
                             $items[] = $itemData;
                         } elseif ($choiceItem->proficiencyType) {
                             // Category-based choice (e.g., "any simple weapon")
-                            $profType = $choiceItem->proficiencyType;
-                            $itemFilter = [
-                                'category' => $profType->category,
-                                'subcategory' => $profType->subcategory,
-                            ];
+                            // Only set item_filter if category is defined
+                            $proficiencyType = $choiceItem->proficiencyType;
+                            if ($proficiencyType->category !== null) {
+                                $itemFilter = array_filter([
+                                    'category' => $proficiencyType->category,
+                                    'subcategory' => $proficiencyType->subcategory,
+                                ], fn ($v) => $v !== null && $v !== '');
+                            }
                         }
                     }
                 }

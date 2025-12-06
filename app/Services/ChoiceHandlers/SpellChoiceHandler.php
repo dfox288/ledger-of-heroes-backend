@@ -77,6 +77,23 @@ class SpellChoiceHandler extends AbstractChoiceHandler
 
         $parsed = $this->parseChoiceId($choice->id);
 
+        // Clear existing spells for this choice before adding new ones
+        // This ensures re-submitting replaces rather than duplicates
+        // Use the group (cantrips vs spells_known) to determine spell level filter
+        $isCantrip = $parsed['group'] === 'cantrips';
+
+        $character->spells()
+            ->where('source', $parsed['source'])
+            ->where('level_acquired', $parsed['level'])
+            ->whereHas('spell', function ($query) use ($isCantrip) {
+                if ($isCantrip) {
+                    $query->where('level', 0);
+                } else {
+                    $query->where('level', '>', 0);
+                }
+            })
+            ->delete();
+
         // Create CharacterSpell records
         foreach ($selected as $spellId) {
             CharacterSpell::create([
@@ -101,10 +118,20 @@ class SpellChoiceHandler extends AbstractChoiceHandler
     {
         $parsed = $this->parseChoiceId($choice->id);
 
-        // Delete CharacterSpell records for this choice
+        // Delete CharacterSpell records for this specific choice
+        // Use the group (cantrips vs spells_known) to determine spell level filter
+        $isCantrip = $parsed['group'] === 'cantrips';
+
         $character->spells()
             ->where('source', $parsed['source'])
             ->where('level_acquired', $parsed['level'])
+            ->whereHas('spell', function ($query) use ($isCantrip) {
+                if ($isCantrip) {
+                    $query->where('level', 0);
+                } else {
+                    $query->where('level', '>', 0);
+                }
+            })
             ->delete();
 
         $character->load('spells.spell');

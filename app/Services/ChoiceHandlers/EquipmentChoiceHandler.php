@@ -189,6 +189,12 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             'choice_group' => $choiceGroup,
         ]);
 
+        // Clear existing equipment from this choice_group before adding new ones
+        // This ensures re-submitting replaces rather than duplicates
+        $character->equipment()
+            ->where('custom_description', $metadata)
+            ->delete();
+
         // Grant each item in the selected option
         foreach ($foundOption['items'] as $item) {
             CharacterEquipment::create([

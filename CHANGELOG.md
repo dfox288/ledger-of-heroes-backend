@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Choice replacement bug**: Re-submitting equipment or spell choices now replaces instead of duplicating
+  - Equipment choices: Selecting a different option clears previous choice for that choice_group
+  - Spell choices (cantrips and spells known): Re-selecting spells replaces previous selections
+  - Different choice groups (e.g., armor vs weapon, cantrips vs spells) remain independent
+  - Level-up choices don't affect choices from previous levels
+
 - **Issue #282**: Add `label` field to equipment choice options
   - Equipment options now include the human-readable description (e.g., "a rapier", "leather armor, longbow, and arrows (20)")
   - Label is sourced from the `description` field in `entity_items` table

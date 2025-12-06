@@ -302,10 +302,10 @@ class FeatImporterTest extends TestCase
 
         $this->assertCount(1, $feat->spells);
         $featSpell = $feat->spells->first();
-        $this->assertEquals($mistyStep->id, $featSpell->spell_id);
-        $this->assertEquals($charisma->id, $featSpell->ability_score_id);
-        $this->assertEquals('long_rest', $featSpell->usage_limit);
-        $this->assertFalse($featSpell->is_cantrip);
+        $this->assertEquals($mistyStep->id, $featSpell->id);
+        $this->assertEquals($charisma->id, $featSpell->pivot->ability_score_id);
+        $this->assertEquals('long_rest', $featSpell->pivot->usage_limit);
+        $this->assertFalse((bool) $featSpell->pivot->is_cantrip);
     }
 
     #[Test]
@@ -331,17 +331,17 @@ class FeatImporterTest extends TestCase
         // First import
         $feat = $this->importer->import($featData);
         $this->assertCount(1, $feat->spells);
-        $this->assertEquals($spell1->id, $feat->spells->first()->spell_id);
+        $this->assertEquals($spell1->id, $feat->spells->first()->id);
 
         // Second import with different spell
         $featData['spells'] = [
             ['spell_name' => 'Spell Two', 'pivot_data' => []],
         ];
         $feat = $this->importer->import($featData);
-        $feat->refresh();
+        $feat->load('spells'); // Reload to get fresh data
 
         $this->assertCount(1, $feat->spells);
-        $this->assertEquals($spell2->id, $feat->spells->first()->spell_id);
+        $this->assertEquals($spell2->id, $feat->spells->first()->id);
     }
 
     #[Test]

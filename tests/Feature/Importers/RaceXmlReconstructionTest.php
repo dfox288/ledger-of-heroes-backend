@@ -2,8 +2,12 @@
 
 namespace Tests\Feature\Importers;
 
+use App\Models\AbilityScore;
+use App\Models\Language;
 use App\Models\Race;
+use App\Models\Size;
 use App\Services\Importers\RaceImporter;
+use App\Services\Parsers\Concerns\MatchesLanguages;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -18,6 +22,21 @@ class RaceXmlReconstructionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Seed necessary lookup tables for race imports
+        if (Size::count() === 0) {
+            $this->seed(\Database\Seeders\SizeSeeder::class);
+        }
+        if (AbilityScore::count() === 0) {
+            $this->seed(\Database\Seeders\AbilityScoreSeeder::class);
+        }
+        if (Language::count() === 0) {
+            $this->seed(\Database\Seeders\LanguageSeeder::class);
+        }
+
+        // Clear static cache so it uses fresh seeded data
+        MatchesLanguages::clearLanguagesCache();
+
         $this->importer = new RaceImporter;
     }
 
@@ -491,7 +510,13 @@ XML;
 
         if ($modifiers->isNotEmpty()) {
             $abilities = $modifiers
-                ->map(fn ($m) => $m->abilityScore->code.' '.($m->value >= 0 ? '+'.$m->value : $m->value))
+                ->map(function ($m) {
+                    // Handle choice-based modifiers (null ability_score_id)
+                    $code = $m->abilityScore ? $m->abilityScore->code : 'Any';
+                    $sign = $m->value >= 0 ? '+' : '';
+
+                    return $code.' '.$sign.$m->value;
+                })
                 ->join(', ');
             $xml .= "<ability>{$abilities}</ability>";
         }

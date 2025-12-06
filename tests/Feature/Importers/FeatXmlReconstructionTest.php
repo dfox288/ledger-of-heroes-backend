@@ -420,21 +420,22 @@ XML;
         $feat = Feat::where('name', 'Actor')->first();
         $this->assertNotNull($feat, 'Feat should be imported');
 
-        // Verify modifier
+        // Verify modifiers: 1 ability_score + 2 skill_advantage (Deception, Performance)
         $modifiers = $feat->modifiers;
-        $this->assertCount(1, $modifiers, 'Should have 1 modifier');
+        $this->assertCount(3, $modifiers, 'Should have 3 modifiers (1 ability score + 2 skill advantages)');
 
-        $modifier = $modifiers->first();
-        $this->assertEquals('ability_score', $modifier->modifier_category);
-        $this->assertEquals(1, $modifier->value);
+        // Verify ability score modifier
+        $abilityModifier = $modifiers->firstWhere('modifier_category', 'ability_score');
+        $this->assertNotNull($abilityModifier, 'Should have ability_score modifier');
+        $this->assertEquals(1, $abilityModifier->value);
 
         // Verify it's Charisma
-        $abilityScore = AbilityScore::find($modifier->ability_score_id);
+        $abilityScore = AbilityScore::find($abilityModifier->ability_score_id);
         $this->assertEquals('CHA', $abilityScore->code);
 
-        // Verify advantage conditions
-        $conditions = $feat->conditions;
-        $this->assertGreaterThanOrEqual(1, $conditions->count(), 'Should detect advantage condition');
+        // Verify skill advantage modifiers
+        $skillModifiers = $modifiers->where('modifier_category', 'skill_advantage');
+        $this->assertCount(2, $skillModifiers, 'Should have 2 skill advantage modifiers');
     }
 
     /**

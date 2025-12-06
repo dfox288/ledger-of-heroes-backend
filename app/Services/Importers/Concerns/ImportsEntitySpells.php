@@ -91,6 +91,10 @@ trait ImportsEntitySpells
             'level_requirement' => $spellData['pivot_data']['level_requirement'] ?? null,
             'is_cantrip' => $spellData['pivot_data']['is_cantrip'] ?? false,
             'usage_limit' => $spellData['pivot_data']['usage_limit'] ?? null,
+            // Item-specific charge cost fields
+            'charges_cost_min' => $spellData['pivot_data']['charges_cost_min'] ?? null,
+            'charges_cost_max' => $spellData['pivot_data']['charges_cost_max'] ?? null,
+            'charges_cost_formula' => $spellData['pivot_data']['charges_cost_formula'] ?? null,
         ]);
     }
 

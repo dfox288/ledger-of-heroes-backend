@@ -10,6 +10,7 @@ use App\Exceptions\ChoiceNotUndoableException;
 use App\Models\Character;
 use App\Services\ChoiceHandlers\ChoiceTypeHandler;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class CharacterChoiceService
 {
@@ -71,13 +72,18 @@ class CharacterChoiceService
     /**
      * Resolve a choice with the given selection.
      *
+     * Wrapped in a database transaction to prevent race conditions
+     * when concurrent requests try to resolve the same choice.
+     *
      * @throws ChoiceNotFoundException
      */
     public function resolveChoice(Character $character, string $choiceId, array $selection): void
     {
-        $choice = $this->getChoice($character, $choiceId);
-        $handler = $this->handlers[$choice->type];
-        $handler->resolve($character, $choice, $selection);
+        DB::transaction(function () use ($character, $choiceId, $selection) {
+            $choice = $this->getChoice($character, $choiceId);
+            $handler = $this->handlers[$choice->type];
+            $handler->resolve($character, $choice, $selection);
+        });
     }
 
     /**

@@ -5,6 +5,29 @@ namespace App\Http\Requests\Character;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Resolve a pending character choice.
+ *
+ * This request supports multiple formats depending on the choice type:
+ *
+ * **Generic Selection** (most choice types):
+ * ```json
+ * {"selected": ["option1", "option2"]}
+ * ```
+ * The `selected` array contains IDs or slugs of the chosen options.
+ *
+ * **ASI Choice** (Ability Score Improvement):
+ * ```json
+ * {"type": "asi", "increases": {"strength": 2, "dexterity": 1}}
+ * ```
+ * The `increases` object maps ability names to increase amounts (1 or 2).
+ *
+ * **Feat Choice**:
+ * ```json
+ * {"type": "feat", "feat_id": 42}
+ * ```
+ * The `feat_id` is the ID of the chosen feat.
+ */
 class ResolveChoiceRequest extends FormRequest
 {
     public function authorize(): bool

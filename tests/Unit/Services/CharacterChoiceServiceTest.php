@@ -493,6 +493,11 @@ describe('CharacterChoiceService', function () {
     });
 
     it('resolves a choice using the correct handler', function () {
+        // Mock DB::transaction to simply execute the callback
+        Illuminate\Support\Facades\DB::shouldReceive('transaction')
+            ->once()
+            ->andReturnUsing(fn ($callback) => $callback());
+
         $choice = new PendingChoice(
             id: 'proficiency:class:rogue:1:skills',
             type: 'proficiency',

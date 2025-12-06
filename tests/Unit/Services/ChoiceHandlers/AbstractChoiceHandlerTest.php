@@ -136,28 +136,24 @@ describe('AbstractChoiceHandler', function () {
             ]);
         });
 
-        it('handles incomplete choice IDs gracefully', function () {
-            $parsed = $this->handler->testParseChoiceId('proficiency:class');
-
-            expect($parsed)->toMatchArray([
-                'type' => 'proficiency',
-                'source' => 'class',
-                'sourceId' => 0,
-                'level' => 0,
-                'group' => '',
-            ]);
+        it('throws exception for incomplete choice IDs', function () {
+            expect(fn () => $this->handler->testParseChoiceId('proficiency:class'))
+                ->toThrow(\App\Exceptions\InvalidChoiceException::class);
         });
 
-        it('handles empty string gracefully', function () {
-            $parsed = $this->handler->testParseChoiceId('');
+        it('throws exception for empty string', function () {
+            expect(fn () => $this->handler->testParseChoiceId(''))
+                ->toThrow(\App\Exceptions\InvalidChoiceException::class);
+        });
 
-            expect($parsed)->toMatchArray([
-                'type' => '',
-                'source' => '',
-                'sourceId' => 0,
-                'level' => 0,
-                'group' => '',
-            ]);
+        it('throws exception for choice ID with wrong segment count', function () {
+            // Too few segments
+            expect(fn () => $this->handler->testParseChoiceId('a:b:c'))
+                ->toThrow(\App\Exceptions\InvalidChoiceException::class);
+
+            // Too many segments
+            expect(fn () => $this->handler->testParseChoiceId('a:b:c:d:e:f'))
+                ->toThrow(\App\Exceptions\InvalidChoiceException::class);
         });
     });
 

@@ -36,6 +36,7 @@
             <directory>tests/Unit/Services/Cache</directory>
             <directory>tests/Unit/Services/Importers</directory>
             <directory>tests/Unit/Services/Matching</directory>
+            <file>tests/Unit/DTOs/CharacterStatsDTOTest.php</file>
             <file>tests/Unit/Parsers/ClassXmlParserEquipmentTest.php</file>
             <file>tests/Unit/Parsers/FeatXmlParserPrerequisitesTest.php</file>
             <file>tests/Unit/Parsers/ItemXmlParserTest.php</file>

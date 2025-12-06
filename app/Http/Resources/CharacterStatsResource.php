@@ -27,7 +27,7 @@ class CharacterStatsResource extends JsonResource
 
             /** @var array<string, array{score: int|null, modifier: int|null}> Ability scores keyed by code (STR, DEX, etc.) */
             'ability_scores' => $this->formatAbilityScores(),
-            /** @var array<string, int|null> Saving throw modifiers keyed by ability code */
+            /** @var array<string, array{modifier: int|null, proficient: bool, total: int|null}> Saving throws with proficiency status */
             'saving_throws' => $this->resource->savingThrows,
 
             'armor_class' => $this->resource->armorClass,
@@ -54,6 +54,14 @@ class CharacterStatsResource extends JsonResource
 
             /** @var array<array{die: string, total: int, current: int}> Hit dice by die type */
             'hit_dice' => $this->resource->hitDice,
+
+            // Issue #255: Enhanced stats
+            /** @var array<int, array{name: string, slug: string, ability: string, ability_modifier: int|null, proficient: bool, expertise: bool, modifier: int|null, passive: int|null}> All 18 skills with full breakdown */
+            'skills' => $this->resource->skills,
+            /** @var array{walk: int, fly: int|null, swim: int|null, climb: int|null, burrow: int|null} Movement speeds */
+            'speed' => $this->resource->speed,
+            /** @var array{perception: int|null, investigation: int|null, insight: int|null} Grouped passive scores */
+            'passive' => $this->resource->passive,
         ];
     }
 

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #255**: Enhanced Stats Endpoint with Full Character Statistics
+  - Saving throws now include proficiency status from primary class (`modifier`, `proficient`, `total`)
+  - Full skills array with all 18 skills, each containing: name, slug, ability, ability_modifier, proficient, expertise, modifier, and passive score
+  - Speed breakdown with walk, fly, swim, climb, and burrow values from race
+  - Grouped passive scores object (perception, investigation, insight)
+  - New unit tests for CharacterStatsDTO
+
 - **Issue #273**: Populate `primary_ability` field for all base classes
   - Data migration adds PHB p.163 primary abilities (STR, DEX, INT, WIS, CHA)
   - Classes with multiple abilities use "STR or DEX" (Fighter) or "DEX and WIS" (Monk) format

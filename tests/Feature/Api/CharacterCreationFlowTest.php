@@ -307,6 +307,10 @@ class CharacterCreationFlowTest extends TestCase
                     'spell_slots',
                     'preparation_limit',
                     'prepared_spell_count',
+                    // Issue #255: Enhanced stats
+                    'skills',
+                    'speed',
+                    'passive',
                 ],
             ])
             ->assertJsonPath('data.level', 5)
@@ -323,7 +327,16 @@ class CharacterCreationFlowTest extends TestCase
             // Spellcasting
             ->assertJsonPath('data.spellcasting.ability', 'INT')
             ->assertJsonPath('data.spellcasting.spell_save_dc', 15) // 8 + 3 + 4
-            ->assertJsonPath('data.spellcasting.spell_attack_bonus', 7); // 3 + 4
+            ->assertJsonPath('data.spellcasting.spell_attack_bonus', 7) // 3 + 4
+            // Issue #255: Enhanced stats - saving throws include proficiency
+            ->assertJsonPath('data.saving_throws.INT.proficient', false) // Wizard doesn't have INT save by default
+            ->assertJsonPath('data.saving_throws.INT.modifier', 4)
+            // Skills array has 18 entries
+            ->assertJsonCount(18, 'data.skills')
+            // Speed has all movement types
+            ->assertJsonPath('data.speed.walk', 30)
+            // Passive is grouped
+            ->assertJsonPath('data.passive.perception', 11);
     }
 
     #[Test]

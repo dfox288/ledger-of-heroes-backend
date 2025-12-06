@@ -199,4 +199,336 @@ class ScrollStrategyTest extends TestCase
         // Protection scrolls should not add spell_level
         $this->assertEmpty($relationships);
     }
+
+    #[Test]
+    public function it_handles_missing_type_code()
+    {
+        $baseData = ['name' => 'Some Item'];
+        $xml = new SimpleXMLElement('<item><name>Some Item</name></item>');
+
+        $this->assertFalse($this->strategy->appliesTo($baseData, $xml));
+    }
+
+    #[Test]
+    public function it_handles_empty_type_code()
+    {
+        $baseData = ['type_code' => '', 'name' => 'Some Item'];
+        $xml = new SimpleXMLElement('<item><name>Some Item</name></item>');
+
+        $this->assertFalse($this->strategy->appliesTo($baseData, $xml));
+    }
+
+    #[Test]
+    public function it_handles_missing_name_in_enhance_modifiers()
+    {
+        $baseData = ['description' => 'Some description'];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $result = $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
+
+    #[Test]
+    public function it_handles_missing_description_in_enhance_modifiers()
+    {
+        $baseData = ['name' => 'Scroll of Protection from Dragons'];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEquals(1, $metadata['metrics']['protection_scrolls']);
+        $this->assertArrayNotHasKey('protection_duration', $metadata['metrics']);
+    }
+
+    #[Test]
+    public function it_handles_hour_duration_in_protection_scrolls()
+    {
+        $baseData = [
+            'name' => 'Scroll of Protection from Magic',
+            'description' => 'For 1 hour, you are protected.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEquals('1 hour', $metadata['metrics']['protection_duration']);
+    }
+
+    #[Test]
+    public function it_handles_plural_hours_duration_in_protection_scrolls()
+    {
+        $baseData = [
+            'name' => 'Scroll of Protection from Magic',
+            'description' => 'For 8 hours, you are protected.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEquals('8 hours', $metadata['metrics']['protection_duration']);
+    }
+
+    #[Test]
+    public function it_handles_plural_minutes_duration_in_protection_scrolls()
+    {
+        $baseData = [
+            'name' => 'Scroll of Protection from Fiends',
+            'description' => 'For 10 minutes, creatures cannot enter.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEquals('10 minutes', $metadata['metrics']['protection_duration']);
+    }
+
+    #[Test]
+    public function it_handles_missing_name_in_enhance_relationships()
+    {
+        $baseData = ['description' => 'Some description'];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $relationships = $this->strategy->enhanceRelationships($baseData, $xml);
+
+        $this->assertEmpty($relationships);
+    }
+
+    #[Test]
+    public function it_handles_empty_name_in_enhance_relationships()
+    {
+        $baseData = ['name' => '', 'description' => ''];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $relationships = $this->strategy->enhanceRelationships($baseData, $xml);
+
+        $this->assertEmpty($relationships);
+    }
+
+    #[Test]
+    public function it_handles_case_insensitive_protection_scroll_detection()
+    {
+        $baseData = [
+            'name' => 'SCROLL OF PROTECTION FROM UNDEAD',
+            'description' => 'For 5 minutes...',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $relationships = $this->strategy->enhanceRelationships($baseData, $xml);
+
+        $this->assertEmpty($relationships);
+    }
+
+    #[Test]
+    public function it_handles_case_insensitive_spell_scroll_detection()
+    {
+        $baseData = [
+            'name' => 'SPELL SCROLL (3RD LEVEL)',
+            'description' => '',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $relationships = $this->strategy->enhanceRelationships($baseData, $xml);
+
+        $this->assertEquals(3, $relationships['spell_level']);
+    }
+
+    #[Test]
+    public function it_handles_case_insensitive_cantrip_scroll_detection()
+    {
+        $baseData = [
+            'name' => 'SPELL SCROLL (CANTRIP)',
+            'description' => '',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $relationships = $this->strategy->enhanceRelationships($baseData, $xml);
+
+        $this->assertEquals(0, $relationships['spell_level']);
+    }
+
+    #[Test]
+    public function it_does_not_match_spell_scroll_with_excessive_whitespace()
+    {
+        $baseData = [
+            'name' => 'Spell Scroll (  3rd  Level  )',
+            'description' => '',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $relationships = $this->strategy->enhanceRelationships($baseData, $xml);
+
+        // Excessive whitespace in parentheses doesn't match the regex pattern
+        $this->assertEmpty($relationships);
+        $metadata = $this->strategy->extractMetadata();
+        $this->assertCount(1, $metadata['warnings']);
+    }
+
+    #[Test]
+    public function it_does_not_match_cantrip_scroll_with_excessive_whitespace()
+    {
+        $baseData = [
+            'name' => 'Spell Scroll (  Cantrip  )',
+            'description' => '',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $relationships = $this->strategy->enhanceRelationships($baseData, $xml);
+
+        // Excessive whitespace in parentheses doesn't match the regex pattern
+        $this->assertEmpty($relationships);
+        $metadata = $this->strategy->extractMetadata();
+        $this->assertCount(1, $metadata['warnings']);
+    }
+
+    #[Test]
+    public function it_returns_empty_array_for_unrecognized_spell_scroll_format()
+    {
+        $baseData = [
+            'name' => 'Spell Scroll of Fireball',
+            'description' => '',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $relationships = $this->strategy->enhanceRelationships($baseData, $xml);
+
+        $this->assertEmpty($relationships);
+        $metadata = $this->strategy->extractMetadata();
+        $this->assertCount(1, $metadata['warnings']);
+    }
+
+    #[Test]
+    public function it_accumulates_spell_scroll_metrics_across_multiple_calls()
+    {
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], ['name' => 'Spell Scroll (1st Level)'], $xml);
+        $this->strategy->enhanceModifiers([], ['name' => 'Spell Scroll (2nd Level)'], $xml);
+        $this->strategy->enhanceModifiers([], ['name' => 'Spell Scroll (3rd Level)'], $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEquals(3, $metadata['metrics']['spell_scrolls']);
+    }
+
+    #[Test]
+    public function it_accumulates_protection_scroll_metrics_across_multiple_calls()
+    {
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], ['name' => 'Scroll of Protection from Aberrations'], $xml);
+        $this->strategy->enhanceModifiers([], ['name' => 'Scroll of Protection from Undead'], $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEquals(2, $metadata['metrics']['protection_scrolls']);
+    }
+
+    #[Test]
+    public function it_preserves_passed_modifiers_in_enhance_modifiers()
+    {
+        $existingModifiers = [
+            ['type' => 'bonus', 'value' => '+1'],
+        ];
+        $baseData = ['name' => 'Spell Scroll (1st Level)'];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $result = $this->strategy->enhanceModifiers($existingModifiers, $baseData, $xml);
+
+        $this->assertEquals($existingModifiers, $result);
+    }
+
+    #[Test]
+    public function it_handles_protection_in_middle_of_name()
+    {
+        $baseData = [
+            'name' => 'Ancient Protection Scroll',
+            'description' => 'For 5 minutes...',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEquals(1, $metadata['metrics']['protection_scrolls']);
+    }
+
+    #[Test]
+    public function it_handles_duration_with_case_variations()
+    {
+        $baseData = [
+            'name' => 'Scroll of Protection',
+            'description' => 'For 5 Minutes, you are protected.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        // The regex preserves the original case from the description
+        $this->assertEquals('5 Minutes', $metadata['metrics']['protection_duration']);
+    }
+
+    #[Test]
+    public function it_does_not_extract_duration_from_spell_scrolls()
+    {
+        $baseData = [
+            'name' => 'Spell Scroll (3rd Level)',
+            'description' => 'For 10 minutes, the spell lasts.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertArrayNotHasKey('protection_duration', $metadata['metrics']);
+    }
+
+    #[Test]
+    public function it_does_not_warn_for_non_spell_scroll_items()
+    {
+        $baseData = [
+            'name' => 'Random Scroll',
+            'description' => '',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceRelationships($baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEmpty($metadata['warnings']);
+    }
 }

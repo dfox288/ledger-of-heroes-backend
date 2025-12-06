@@ -419,4 +419,335 @@ class TattooStrategyTest extends TestCase
 
         $this->assertContains('action', $metadata['metrics']['activation_methods']);
     }
+
+    #[Test]
+    public function it_extracts_body_location_head()
+    {
+        $baseData = [
+            'name' => 'Test Tattoo',
+            'description' => 'This tattoo is placed on your head.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEquals('head', $metadata['metrics']['body_location']);
+    }
+
+    #[Test]
+    public function it_extracts_body_location_hand()
+    {
+        $baseData = [
+            'name' => 'Test Tattoo',
+            'description' => 'This tattoo appears on your hand.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEquals('hand', $metadata['metrics']['body_location']);
+    }
+
+    #[Test]
+    public function it_extracts_body_location_leg()
+    {
+        $baseData = [
+            'name' => 'Test Tattoo',
+            'description' => 'This tattoo wraps around your leg.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEquals('leg', $metadata['metrics']['body_location']);
+    }
+
+    #[Test]
+    public function it_extracts_body_location_torso()
+    {
+        $baseData = [
+            'name' => 'Test Tattoo',
+            'description' => 'This tattoo covers your torso.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEquals('torso', $metadata['metrics']['body_location']);
+    }
+
+    #[Test]
+    public function it_extracts_body_location_shoulder()
+    {
+        $baseData = [
+            'name' => 'Test Tattoo',
+            'description' => 'This tattoo adorns your shoulder.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEquals('shoulder', $metadata['metrics']['body_location']);
+    }
+
+    #[Test]
+    public function it_extracts_body_location_neck()
+    {
+        $baseData = [
+            'name' => 'Test Tattoo',
+            'description' => 'This tattoo is visible on your neck.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEquals('neck', $metadata['metrics']['body_location']);
+    }
+
+    #[Test]
+    public function it_extracts_first_body_location_when_multiple_mentioned()
+    {
+        $baseData = [
+            'name' => 'Test Tattoo',
+            'description' => 'This tattoo can be placed on your arm, chest, or back.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEquals('arm', $metadata['metrics']['body_location']);
+    }
+
+    #[Test]
+    public function it_does_not_apply_when_type_code_is_missing()
+    {
+        $baseData = ['name' => 'Absorbing Tattoo'];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->assertFalse($this->strategy->appliesTo($baseData, $xml));
+    }
+
+    #[Test]
+    public function it_does_not_apply_when_name_is_missing()
+    {
+        $baseData = ['type_code' => 'W'];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->assertFalse($this->strategy->appliesTo($baseData, $xml));
+    }
+
+    #[Test]
+    public function it_does_not_apply_when_both_type_code_and_name_are_missing()
+    {
+        $baseData = [];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->assertFalse($this->strategy->appliesTo($baseData, $xml));
+    }
+
+    #[Test]
+    public function it_returns_null_tattoo_type_when_name_does_not_end_with_tattoo()
+    {
+        $baseData = [
+            'name' => 'Magical Ink',
+            'description' => 'This is a tattoo that does not have tattoo in the name format.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertArrayNotHasKey('tattoo_type', $metadata['metrics']);
+    }
+
+    #[Test]
+    public function it_returns_null_tattoo_type_when_name_is_just_tattoo()
+    {
+        $baseData = [
+            'name' => 'Tattoo',
+            'description' => 'This is just called Tattoo.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertArrayNotHasKey('tattoo_type', $metadata['metrics']);
+    }
+
+    #[Test]
+    public function it_detects_using_action_phrasing()
+    {
+        $baseData = [
+            'name' => 'Test Tattoo',
+            'description' => 'You activate it using action from your turn.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertContains('action', $metadata['metrics']['activation_methods']);
+    }
+
+    #[Test]
+    public function it_detects_using_an_action_phrasing()
+    {
+        $baseData = [
+            'name' => 'Test Tattoo',
+            'description' => 'You can activate this using an action on your turn.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertContains('action', $metadata['metrics']['activation_methods']);
+    }
+
+    #[Test]
+    public function it_detects_take_an_action_phrasing()
+    {
+        $baseData = [
+            'name' => 'Test Tattoo',
+            'description' => 'You must take an action to invoke its power.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertContains('action', $metadata['metrics']['activation_methods']);
+    }
+
+    #[Test]
+    public function it_does_not_detect_passive_when_explicit_activation_exists()
+    {
+        $baseData = [
+            'name' => 'Test Tattoo',
+            'description' => 'While you are attuned, you can use an action to activate this.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertNotContains('passive', $metadata['metrics']['activation_methods']);
+    }
+
+    #[Test]
+    public function it_handles_empty_modifiers_array()
+    {
+        $baseData = [
+            'name' => 'Test Tattoo',
+            'description' => 'Simple tattoo description.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $result = $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
+
+    #[Test]
+    public function it_preserves_complex_modifiers()
+    {
+        $modifiers = [
+            ['category' => 'ac_magic', 'value' => 2, 'condition' => 'while attuned'],
+            ['category' => 'damage_resistance', 'value' => 'fire'],
+        ];
+        $baseData = [
+            'name' => 'Test Tattoo',
+            'description' => 'Complex magical tattoo.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $result = $this->strategy->enhanceModifiers($modifiers, $baseData, $xml);
+
+        $this->assertCount(2, $result);
+        $this->assertEquals($modifiers, $result);
+    }
+
+    #[Test]
+    public function it_handles_tattoo_with_mixed_case_in_middle_of_name()
+    {
+        $baseData = ['type_code' => 'W', 'name' => 'Absorbing TaTtOo'];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->assertTrue($this->strategy->appliesTo($baseData, $xml));
+    }
+
+    #[Test]
+    public function it_handles_single_word_tattoo_type()
+    {
+        $baseData = [
+            'name' => 'Dragon Tattoo',
+            'description' => 'This dragon tattoo grants you draconic powers.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+
+        $this->assertEquals('dragon', $metadata['metrics']['tattoo_type']);
+        $this->assertEquals(1, $metadata['metrics']['type_dragon']);
+    }
+
+    #[Test]
+    public function it_does_not_increment_type_metric_when_tattoo_type_is_null()
+    {
+        $baseData = [
+            'name' => 'Magical Ink',
+            'description' => 'This is magical.',
+        ];
+        $xml = new SimpleXMLElement('<item><name>Test</name></item>');
+
+        $this->strategy->reset();
+        $this->strategy->enhanceModifiers([], $baseData, $xml);
+
+        $metadata = $this->strategy->extractMetadata();
+        $metrics = $metadata['metrics'];
+
+        // Check that no type_* metrics were added
+        $typeMetrics = array_filter(array_keys($metrics), fn ($key) => str_starts_with($key, 'type_'));
+        $this->assertEmpty($typeMetrics);
+    }
 }

@@ -22,6 +22,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Choice IDs are deterministic: `{type}:{source}:{sourceId}:{level}:{group}`
   - Comprehensive unit and feature tests for all new components
 
+- **Issue #249/#250/#257**: Unified Choice System - Phase 2 Handlers
+  - `ProficiencyChoiceHandler` - Wraps `CharacterProficiencyService` for skill/tool/weapon/armor choices
+  - `LanguageChoiceHandler` - Wraps `CharacterLanguageService` for language choices from race/background/feat
+  - `AsiChoiceHandler` - Wraps `AsiChoiceService` for ASI/Feat choices at levels 4, 8, 12, 16, 19
+  - All handlers registered in `AppServiceProvider` and available through unified endpoints
+  - Supports slug-to-ID resolution for selections
+  - Proficiency and language choices are undoable; ASI/Feat choices are permanent
+
 ### Fixed
 
 - **Issue #248**: OpenAPI spec now includes pagination metadata for lookup endpoints

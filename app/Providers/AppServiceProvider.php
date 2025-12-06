@@ -47,9 +47,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(CharacterChoiceService::class, function ($app) {
             $service = new CharacterChoiceService;
 
-            // Handlers will be registered here as they are implemented
-            // Example (uncomment when handler exists):
-            // $service->registerHandler($app->make(\App\Services\ChoiceHandlers\ProficiencyChoiceHandler::class));
+            // Register choice handlers
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\ProficiencyChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\LanguageChoiceHandler::class));
 
             return $service;
         });

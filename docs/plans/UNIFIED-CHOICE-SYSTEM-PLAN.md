@@ -4,6 +4,29 @@
 **Branch:** `feature/issue-246-unified-choice-system`
 **Environment:** Sail (detected)
 
+## Status
+
+| Phase | Status | Issues |
+|-------|--------|--------|
+| Phase 1: Core Infrastructure | ✅ Complete | #247 |
+| Phase 2: Migrate Existing | ✅ Complete | #249, #250, #257 |
+| Phase 3: Add Missing Types | 🔄 In Progress | #259, #251, #252, #253, #260, #261 |
+
+### Completed Handlers
+- `ProficiencyChoiceHandler` - skill/tool/weapon/armor choices
+- `LanguageChoiceHandler` - language choices from race/background/feat
+- `AsiChoiceHandler` - ASI/Feat choices at levels 4,8,12,16,19
+
+### Remaining Handlers
+- `OptionalFeatureChoiceHandler` (#259) - invocations, maneuvers, metamagic
+- `EquipmentChoiceHandler` (#251) - starting equipment
+- `SubclassChoiceHandler` (#252) - subclass selection
+- `SpellChoiceHandler` (#253) - cantrips and spells known
+- `ExpertiseChoiceHandler` (#260) - Rogue/Bard expertise
+- `FightingStyleChoiceHandler` (#261) - Fighter/Ranger/Paladin
+
+---
+
 ## Overview
 
 Replace fragmented choice endpoints with a unified system. All character choices (proficiencies, languages, equipment, spells, ASI/feat, subclass, optional features, expertise, fighting styles) flow through a single API pattern.

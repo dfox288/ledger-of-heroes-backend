@@ -138,11 +138,19 @@ class FeatureSelectionController extends Controller
     /**
      * Get pending feature selection choices
      *
+     * @deprecated Use GET /api/v1/characters/{id}/pending-choices?type=feature_selection instead.
+     *             This endpoint will be removed in API v2 (June 2026).
+     *
      * Shows which feature types the character can still select choices for,
      * based on their class counter values. This helps track if a character
      * has remaining maneuvers, invocations, metamagic, etc. to choose.
      *
      * @x-flow gameplay-level-up
+     *
+     * **Deprecation Notice:**
+     * This endpoint is superseded by the unified choice system. Use the new endpoints:
+     * - `GET /api/v1/characters/{id}/pending-choices?type=feature_selection` - List pending choices
+     * - `POST /api/v1/characters/{id}/choices/{choiceId}` - Resolve a choice
      *
      * **Examples:**
      * ```
@@ -174,11 +182,17 @@ class FeatureSelectionController extends Controller
      * A level 3 Battle Master Fighter gets 3 maneuvers. If they've selected 2,
      * this endpoint shows: `{"feature_type": "maneuver", "allowed": 3, "selected": 2, "remaining": 1}`
      */
-    public function choices(Character $character): ChoicesResource
+    public function choices(Character $character): \Illuminate\Http\JsonResponse
     {
         $choices = $this->calculatePendingChoices($character);
 
-        return new ChoicesResource($choices);
+        return (new ChoicesResource($choices))
+            ->response()
+            ->withHeaders([
+                'Deprecation' => 'true',
+                'Sunset' => 'Sat, 01 Jun 2026 00:00:00 GMT',
+                'Link' => '</api/v1/characters/'.$character->id.'/pending-choices?type=feature_selection>; rel="successor-version"',
+            ]);
     }
 
     /**

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Deprecated
+
+- **API Endpoint Deprecation** (Sunset: June 1, 2026)
+  - `GET /characters/{id}/proficiency-choices` → Use `GET /characters/{id}/pending-choices?type=proficiency`
+  - `POST /characters/{id}/proficiency-choices` → Use `POST /characters/{id}/choices/{choiceId}`
+  - `GET /characters/{id}/language-choices` → Use `GET /characters/{id}/pending-choices?type=language`
+  - `POST /characters/{id}/language-choices` → Use `POST /characters/{id}/choices/{choiceId}`
+  - `GET /characters/{id}/feature-selection-choices` → Use `GET /characters/{id}/pending-choices?type=feature_selection`
+  - All deprecated endpoints now return `Deprecation` and `Sunset` HTTP headers
+  - See `docs/reference/API-DEPRECATION-GUIDE.md` for migration details
+
 ### Added
 
 - **Issue #286**: Add `public_id` column for URL-safe character slugs

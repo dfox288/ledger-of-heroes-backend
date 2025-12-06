@@ -291,8 +291,10 @@ Route::prefix('v1')->group(function () {
         // Character Proficiencies
         Route::get('proficiencies', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'index'])
             ->name('proficiencies.index');
+        // @deprecated - Use GET /pending-choices?type=proficiency (Sunset: June 2026)
         Route::get('proficiency-choices', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'choices'])
             ->name('proficiencies.choices');
+        // @deprecated - Use POST /choices/{choiceId} (Sunset: June 2026)
         Route::post('proficiency-choices', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'storeChoice'])
             ->name('proficiencies.storeChoice');
         Route::post('proficiencies/sync', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'sync'])
@@ -301,8 +303,10 @@ Route::prefix('v1')->group(function () {
         // Character Languages
         Route::get('languages', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'index'])
             ->name('languages.index');
+        // @deprecated - Use GET /pending-choices?type=language (Sunset: June 2026)
         Route::get('language-choices', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'choices'])
             ->name('languages.choices');
+        // @deprecated - Use POST /choices/{choiceId} (Sunset: June 2026)
         Route::post('language-choices', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'storeChoice'])
             ->name('languages.storeChoice');
         Route::post('languages/sync', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'sync'])
@@ -378,6 +382,7 @@ Route::prefix('v1')->group(function () {
             ->name('feature-selections.index');
         Route::get('available-feature-selections', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'available'])
             ->name('feature-selections.available');
+        // @deprecated - Use GET /pending-choices?type=feature_selection (Sunset: June 2026)
         Route::get('feature-selection-choices', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'choices'])
             ->name('feature-selections.choices');
         Route::post('feature-selections', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'store'])

@@ -68,12 +68,20 @@ class CharacterLanguageController extends Controller
     /**
      * Get pending language choices for a character.
      *
+     * @deprecated Use GET /api/v1/characters/{id}/pending-choices?type=language instead.
+     *             This endpoint will be removed in API v2 (June 2026).
+     *
      * Returns language choices that need user input (e.g., "choose 1 language").
      * Organized by source (race, background, feat).
      *
      * @x-flow character-creation
      *
      * @x-flow-step 6
+     *
+     * **Deprecation Notice:**
+     * This endpoint is superseded by the unified choice system. Use the new endpoints:
+     * - `GET /api/v1/characters/{id}/pending-choices?type=language` - List pending choices
+     * - `POST /api/v1/characters/{id}/choices/{choiceId}` - Resolve a choice
      *
      * **Examples:**
      * ```
@@ -129,23 +137,36 @@ class CharacterLanguageController extends Controller
      *
      * @response LanguageChoicesResource
      */
-    public function choices(Character $character): LanguageChoicesResource
+    public function choices(Character $character): \Illuminate\Http\JsonResponse
     {
         $character->load(['race', 'background', 'features', 'languages']);
 
         $choices = $this->languageService->getPendingChoices($character);
 
-        return new LanguageChoicesResource($choices);
+        return (new LanguageChoicesResource($choices))
+            ->response()
+            ->withHeaders([
+                'Deprecation' => 'true',
+                'Sunset' => 'Sat, 01 Jun 2026 00:00:00 GMT',
+                'Link' => '</api/v1/characters/'.$character->id.'/pending-choices?type=language>; rel="successor-version"',
+            ]);
     }
 
     /**
      * Make a language choice.
+     *
+     * @deprecated Use POST /api/v1/characters/{id}/choices/{choiceId} instead.
+     *             This endpoint will be removed in API v2 (June 2026).
      *
      * Submits the user's selection for a language choice.
      *
      * @x-flow character-creation
      *
      * @x-flow-step 7
+     *
+     * **Deprecation Notice:**
+     * This endpoint is superseded by the unified choice system. Use:
+     * - `POST /api/v1/characters/{id}/choices/{choiceId}` - Resolve any choice type
      *
      * **Request Body:**
      * ```json
@@ -175,7 +196,7 @@ class CharacterLanguageController extends Controller
      * - "Language ID X is already known" - Duplicate language selected
      * - "No language choices available for source" - Source has no choices
      */
-    public function storeChoice(Request $request, Character $character): SyncResultResource|JsonResponse
+    public function storeChoice(Request $request, Character $character): JsonResponse
     {
         $validated = $request->validate([
             'source' => ['required', 'in:race,background,feat'],
@@ -202,7 +223,11 @@ class CharacterLanguageController extends Controller
             CharacterLanguageResource::collection(
                 $this->languageService->getCharacterLanguages($character)
             )
-        );
+        )->response()->withHeaders([
+            'Deprecation' => 'true',
+            'Sunset' => 'Sat, 01 Jun 2026 00:00:00 GMT',
+            'Link' => '</api/v1/characters/'.$character->id.'/choices/{choiceId}>; rel="successor-version"',
+        ]);
     }
 
     /**

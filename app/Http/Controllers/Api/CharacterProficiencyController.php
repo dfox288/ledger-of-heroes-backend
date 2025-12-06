@@ -71,12 +71,20 @@ class CharacterProficiencyController extends Controller
     /**
      * Get pending proficiency choices for a character.
      *
+     * @deprecated Use GET /api/v1/characters/{id}/pending-choices?type=proficiency instead.
+     *             This endpoint will be removed in API v2 (June 2026).
+     *
      * Returns proficiency choices that need user input (e.g., "pick 2 skills from this list").
      * Organized by source (class, race, background) and choice group.
      *
      * @x-flow character-creation
      *
      * @x-flow-step 4
+     *
+     * **Deprecation Notice:**
+     * This endpoint is superseded by the unified choice system. Use the new endpoints:
+     * - `GET /api/v1/characters/{id}/pending-choices?type=proficiency` - List pending choices
+     * - `POST /api/v1/characters/{id}/choices/{choiceId}` - Resolve a choice
      *
      * **Examples:**
      * ```
@@ -129,23 +137,36 @@ class CharacterProficiencyController extends Controller
      *
      * @response ProficiencyChoicesResource
      */
-    public function choices(Character $character): ProficiencyChoicesResource
+    public function choices(Character $character): \Illuminate\Http\JsonResponse
     {
         $character->load(['characterClasses.characterClass', 'race', 'background']);
 
         $choices = $this->proficiencyService->getPendingChoices($character);
 
-        return new ProficiencyChoicesResource($choices);
+        return (new ProficiencyChoicesResource($choices))
+            ->response()
+            ->withHeaders([
+                'Deprecation' => 'true',
+                'Sunset' => 'Sat, 01 Jun 2026 00:00:00 GMT',
+                'Link' => '</api/v1/characters/'.$character->id.'/pending-choices?type=proficiency>; rel="successor-version"',
+            ]);
     }
 
     /**
      * Make a proficiency choice.
+     *
+     * @deprecated Use POST /api/v1/characters/{id}/choices/{choiceId} instead.
+     *             This endpoint will be removed in API v2 (June 2026).
      *
      * Submits the user's selection for a proficiency choice group.
      *
      * @x-flow character-creation
      *
      * @x-flow-step 5
+     *
+     * **Deprecation Notice:**
+     * This endpoint is superseded by the unified choice system. Use:
+     * - `POST /api/v1/characters/{id}/choices/{choiceId}` - Resolve any choice type
      *
      * **Request Body (Skills):**
      * ```json
@@ -189,7 +210,7 @@ class CharacterProficiencyController extends Controller
      * - "No choice group 'X' found for source" - Invalid choice group
      * - "Must provide either skill_ids or proficiency_type_ids" - Missing required parameter
      */
-    public function storeChoice(Request $request, Character $character): SyncResultResource|JsonResponse
+    public function storeChoice(Request $request, Character $character): JsonResponse
     {
         $validated = $request->validate([
             'source' => ['required', 'in:class,race,background'],
@@ -245,7 +266,11 @@ class CharacterProficiencyController extends Controller
             CharacterProficiencyResource::collection(
                 $this->proficiencyService->getCharacterProficiencies($character)
             )
-        );
+        )->response()->withHeaders([
+            'Deprecation' => 'true',
+            'Sunset' => 'Sat, 01 Jun 2026 00:00:00 GMT',
+            'Link' => '</api/v1/characters/'.$character->id.'/choices/{choiceId}>; rel="successor-version"',
+        ]);
     }
 
     /**

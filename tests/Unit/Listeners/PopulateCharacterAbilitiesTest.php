@@ -176,7 +176,7 @@ class PopulateCharacterAbilitiesTest extends TestCase
             'description' => 'See in the dark.',
         ]);
 
-        $character = Character::factory()->create(['race_id' => null]);
+        $character = Character::factory()->create(['race_slug' => null]);
 
         // Assign race
         $character->race_id = $race->id;

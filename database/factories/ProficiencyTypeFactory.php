@@ -30,10 +30,12 @@ class ProficiencyTypeFactory extends Factory
         ];
 
         $name = fake()->words(2, true);
+        $slug = Str::slug($name);
 
         return [
             'name' => $name,
-            'slug' => Str::slug($name),
+            'slug' => $slug,
+            'full_slug' => 'test:'.$slug,
             'category' => $category,
             'subcategory' => isset($subcategories[$category]) ? fake()->randomElement($subcategories[$category]) : null,
             'item_id' => null,

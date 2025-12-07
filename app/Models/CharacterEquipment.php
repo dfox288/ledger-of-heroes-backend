@@ -18,7 +18,7 @@ class CharacterEquipment extends Model
 
     protected $fillable = [
         'character_id',
-        'item_id',
+        'item_slug',
         'custom_name',
         'custom_description',
         'quantity',
@@ -41,7 +41,7 @@ class CharacterEquipment extends Model
 
     public function item(): BelongsTo
     {
-        return $this->belongsTo(Item::class);
+        return $this->belongsTo(Item::class, 'item_slug', 'full_slug');
     }
 
     // Helper methods
@@ -140,6 +140,6 @@ class CharacterEquipment extends Model
      */
     public function isCustomItem(): bool
     {
-        return $this->item_id === null && $this->custom_name !== null;
+        return $this->item_slug === null && $this->custom_name !== null;
     }
 }

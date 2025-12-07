@@ -14,7 +14,7 @@ class CharacterLanguage extends Model
 
     protected $fillable = [
         'character_id',
-        'language_id',
+        'language_slug',
         'source',
     ];
 
@@ -31,6 +31,6 @@ class CharacterLanguage extends Model
 
     public function language(): BelongsTo
     {
-        return $this->belongsTo(Language::class);
+        return $this->belongsTo(Language::class, 'language_slug', 'full_slug');
     }
 }

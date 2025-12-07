@@ -53,7 +53,7 @@ class CharacterCreationFlowTest extends TestCase
 
         // Step 2: Choose race
         $response = $this->patchJson("/api/v1/characters/{$characterId}", [
-            'race_id' => $race->id,
+            'race_slug' => $race->full_slug,
         ]);
 
         $response->assertOk()
@@ -171,7 +171,7 @@ class CharacterCreationFlowTest extends TestCase
 
         // Then race last
         $response = $this->patchJson("/api/v1/characters/{$characterId}", [
-            'race_id' => $race->id,
+            'race_slug' => $race->full_slug,
         ]);
 
         $response->assertOk()
@@ -197,7 +197,7 @@ class CharacterCreationFlowTest extends TestCase
 
         // Add race: still missing class and abilities
         $response = $this->patchJson("/api/v1/characters/{$characterId}", [
-            'race_id' => $race->id,
+            'race_slug' => $race->full_slug,
         ]);
         $response->assertOk()
             ->assertJsonPath('data.validation_status.missing', ['class', 'ability_scores']);

@@ -19,9 +19,11 @@ class RaceFactory extends Factory
     public function definition(): array
     {
         $name = fake()->unique()->word();
+        $slug = Str::slug($name);
 
         return [
-            'slug' => Str::slug($name),
+            'slug' => $slug,
+            'full_slug' => 'test:'.$slug,
             'name' => $name,
             'size_id' => Size::where('code', 'M')->first()->id,
             'speed' => 30,

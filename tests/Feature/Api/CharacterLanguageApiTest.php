@@ -1014,13 +1014,13 @@ class CharacterLanguageApiTest extends TestCase
     public function it_auto_populates_fixed_languages_when_race_is_set(): void
     {
         // Create a character without race
-        $character = Character::factory()->create(['race_id' => null]);
+        $character = Character::factory()->create(['race_slug' => null]);
 
         // Verify no languages yet
         $this->assertCount(0, $character->languages);
 
         // Set the race (Elf has Common and Elvish as fixed languages)
-        $character->update(['race_id' => $this->elfRace->id]);
+        $character->update(['race_slug' => $this->elfRace->full_slug]);
         $character->refresh();
 
         // Should now have fixed languages auto-populated
@@ -1081,7 +1081,7 @@ class CharacterLanguageApiTest extends TestCase
         $initialCount = $character->languages->count();
 
         // Clear the race
-        $character->update(['race_id' => null]);
+        $character->update(['race_slug' => null]);
         $character->refresh();
 
         // Should not have added more languages (should be same count)
@@ -1101,7 +1101,7 @@ class CharacterLanguageApiTest extends TestCase
         $character->refresh();
 
         // Change to elf race (which also has Common + Elvish)
-        $character->update(['race_id' => $this->elfRace->id]);
+        $character->update(['race_slug' => $this->elfRace->full_slug]);
         $character->refresh();
 
         // Should not duplicate Common

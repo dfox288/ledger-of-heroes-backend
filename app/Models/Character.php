@@ -75,8 +75,8 @@ class Character extends Model implements HasMedia
         'user_id',
         'name',
         'experience_points',
-        'race_id',
-        'background_id',
+        'race_slug',
+        'background_slug',
         'strength',
         'dexterity',
         'constitution',
@@ -156,12 +156,12 @@ class Character extends Model implements HasMedia
 
     public function race(): BelongsTo
     {
-        return $this->belongsTo(Race::class);
+        return $this->belongsTo(Race::class, 'race_slug', 'full_slug');
     }
 
     public function background(): BelongsTo
     {
-        return $this->belongsTo(Background::class);
+        return $this->belongsTo(Background::class, 'background_slug', 'full_slug');
     }
 
     public function spells(): HasMany
@@ -260,7 +260,7 @@ class Character extends Model implements HasMedia
      */
     public function getIsCompleteAttribute(): bool
     {
-        return $this->race_id !== null
+        return $this->race_slug !== null
             && $this->characterClasses->isNotEmpty()
             && $this->hasAllAbilityScores();
     }
@@ -272,7 +272,7 @@ class Character extends Model implements HasMedia
     {
         $missing = [];
 
-        if ($this->race_id === null) {
+        if ($this->race_slug === null) {
             $missing[] = 'race';
         }
 
@@ -345,7 +345,7 @@ class Character extends Model implements HasMedia
         $baseScores = $this->getAbilityScoresArray();
 
         // No race = return base scores
-        if (! $this->race_id) {
+        if (! $this->race_slug) {
             return $baseScores;
         }
 

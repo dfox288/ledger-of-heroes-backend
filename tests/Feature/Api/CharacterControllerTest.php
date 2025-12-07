@@ -85,7 +85,7 @@ class CharacterControllerTest extends TestCase
         $response = $this->postJson('/api/v1/characters', [
             'public_id' => 'brave-archer-zx78',
             'name' => 'Legolas',
-            'race_id' => $race->id,
+            'race_slug' => $race->full_slug,
             'class_id' => $class->id,
         ]);
 

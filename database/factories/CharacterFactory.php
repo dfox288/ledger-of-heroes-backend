@@ -53,8 +53,8 @@ class CharacterFactory extends Factory
             'user_id' => null,
             'experience_points' => 0,
             // All nullable for wizard-style creation
-            'race_id' => null,
-            'background_id' => null,
+            'race_slug' => null,
+            'background_slug' => null,
             'strength' => null,
             'dexterity' => null,
             'constitution' => null,
@@ -76,12 +76,12 @@ class CharacterFactory extends Factory
     public function complete(): static
     {
         return $this->state(function (array $attributes) {
-            $race = Race::whereNull('parent_race_id')->inRandomOrder()->first();
-            $background = Background::inRandomOrder()->first();
+            $race = Race::whereNull('parent_race_id')->whereNotNull('full_slug')->inRandomOrder()->first();
+            $background = Background::whereNotNull('full_slug')->inRandomOrder()->first();
 
             return [
-                'race_id' => $race?->id,
-                'background_id' => $background?->id,
+                'race_slug' => $race?->full_slug,
+                'background_slug' => $background?->full_slug,
                 'strength' => fake()->numberBetween(8, 18),
                 'dexterity' => fake()->numberBetween(8, 18),
                 'constitution' => fake()->numberBetween(8, 18),
@@ -90,11 +90,11 @@ class CharacterFactory extends Factory
                 'charisma' => fake()->numberBetween(8, 18),
             ];
         })->afterCreating(function (Character $character) {
-            $class = CharacterClass::whereNull('parent_class_id')->inRandomOrder()->first();
+            $class = CharacterClass::whereNull('parent_class_id')->whereNotNull('full_slug')->inRandomOrder()->first();
             if ($class) {
                 CharacterClassPivot::create([
                     'character_id' => $character->id,
-                    'class_id' => $class->id,
+                    'class_slug' => $class->full_slug,
                     'level' => 1,
                     'is_primary' => true,
                     'order' => 1,
@@ -122,12 +122,12 @@ class CharacterFactory extends Factory
     /**
      * Set character race.
      */
-    public function withRace(Race|int $race): static
+    public function withRace(Race|string $race): static
     {
-        $raceId = $race instanceof Race ? $race->id : $race;
+        $raceSlug = $race instanceof Race ? $race->full_slug : $race;
 
         return $this->state(fn (array $attributes) => [
-            'race_id' => $raceId,
+            'race_slug' => $raceSlug,
         ]);
     }
 
@@ -137,16 +137,16 @@ class CharacterFactory extends Factory
      * If level() was called before withClass(), uses that level.
      * Otherwise uses the $level parameter (default 1).
      */
-    public function withClass(CharacterClass|int $class, int $level = 1): static
+    public function withClass(CharacterClass|string $class, int $level = 1): static
     {
         return $this->afterCreating(function (Character $character) use ($class, $level) {
-            $classId = $class instanceof CharacterClass ? $class->id : $class;
+            $classSlug = $class instanceof CharacterClass ? $class->full_slug : $class;
             $isPrimary = $character->characterClasses()->count() === 0;
             $order = ($character->characterClasses()->max('order') ?? 0) + 1;
 
             CharacterClassPivot::create([
                 'character_id' => $character->id,
-                'class_id' => $classId,
+                'class_slug' => $classSlug,
                 'level' => $level,
                 'is_primary' => $isPrimary,
                 'order' => $order,
@@ -158,12 +158,12 @@ class CharacterFactory extends Factory
     /**
      * Set character background.
      */
-    public function withBackground(Background|int $background): static
+    public function withBackground(Background|string $background): static
     {
-        $backgroundId = $background instanceof Background ? $background->id : $background;
+        $backgroundSlug = $background instanceof Background ? $background->full_slug : $background;
 
         return $this->state(fn (array $attributes) => [
-            'background_id' => $backgroundId,
+            'background_slug' => $backgroundSlug,
         ]);
     }
 
@@ -238,7 +238,7 @@ class CharacterFactory extends Factory
                 $primaryClassPivot->update(['level' => $level]);
             } else {
                 // Create a class with the specified level
-                $class = CharacterClass::whereNull('parent_class_id')->first();
+                $class = CharacterClass::whereNull('parent_class_id')->whereNotNull('full_slug')->first();
 
                 // If no classes exist, create one
                 if (! $class) {
@@ -247,7 +247,7 @@ class CharacterFactory extends Factory
 
                 CharacterClassPivot::create([
                     'character_id' => $character->id,
-                    'class_id' => $class->id,
+                    'class_slug' => $class->full_slug,
                     'level' => $level,
                     'is_primary' => true,
                     'order' => 1,

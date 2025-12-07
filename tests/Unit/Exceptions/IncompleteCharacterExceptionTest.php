@@ -20,7 +20,7 @@ class IncompleteCharacterExceptionTest extends TestCase
         // Create incomplete character (no race/background set)
         $character = Character::factory()->create([
             'name' => 'Incomplete Hero',
-            'race_id' => null,
+            'race_slug' => null,
         ]);
 
         $exception = new IncompleteCharacterException($character);
@@ -46,7 +46,7 @@ class IncompleteCharacterExceptionTest extends TestCase
         // Create incomplete character (no race set = is_complete false)
         $character = Character::factory()->create([
             'name' => 'Unfinished Character',
-            'race_id' => null,
+            'race_slug' => null,
         ]);
 
         $exception = new IncompleteCharacterException($character);

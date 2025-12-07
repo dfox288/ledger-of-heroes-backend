@@ -164,7 +164,7 @@ class PrerequisiteCheckerServiceTest extends TestCase
     {
         $dragonborn = Race::factory()->create(['name' => 'Dragonborn', 'slug' => 'dragonborn']);
         $character = Character::factory()->create([
-            'race_id' => $dragonborn->id,
+            'race_slug' => $dragonborn->full_slug,
         ]);
 
         $feat = Feat::factory()->create();
@@ -187,7 +187,7 @@ class PrerequisiteCheckerServiceTest extends TestCase
         $human = Race::factory()->create(['name' => 'Human', 'slug' => 'human']);
 
         $character = Character::factory()->create([
-            'race_id' => $human->id,
+            'race_slug' => $human->full_slug,
         ]);
 
         $feat = Feat::factory()->create();
@@ -458,7 +458,7 @@ class PrerequisiteCheckerServiceTest extends TestCase
 
         // Character with no race
         $character = Character::factory()->create([
-            'race_id' => null,
+            'race_slug' => null,
         ]);
 
         $feat = Feat::factory()->create();

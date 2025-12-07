@@ -29,8 +29,8 @@ class FeatureSelection extends Model
 
     protected $fillable = [
         'character_id',
-        'optional_feature_id',
-        'class_id',
+        'optional_feature_slug',
+        'class_slug',
         'subclass_name',
         'level_acquired',
         'uses_remaining',
@@ -39,8 +39,6 @@ class FeatureSelection extends Model
 
     protected $casts = [
         'character_id' => 'integer',
-        'optional_feature_id' => 'integer',
-        'class_id' => 'integer',
         'level_acquired' => 'integer',
         'uses_remaining' => 'integer',
         'max_uses' => 'integer',
@@ -55,11 +53,11 @@ class FeatureSelection extends Model
 
     public function optionalFeature(): BelongsTo
     {
-        return $this->belongsTo(OptionalFeature::class);
+        return $this->belongsTo(OptionalFeature::class, 'optional_feature_slug', 'full_slug');
     }
 
     public function characterClass(): BelongsTo
     {
-        return $this->belongsTo(CharacterClass::class, 'class_id');
+        return $this->belongsTo(CharacterClass::class, 'class_slug', 'full_slug');
     }
 }

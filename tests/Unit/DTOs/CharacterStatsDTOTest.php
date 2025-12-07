@@ -261,7 +261,7 @@ class CharacterStatsDTOTest extends TestCase
             'swim_speed' => 30,
             'climb_speed' => 20,
         ]);
-        $character = Character::factory()->create(['race_id' => $race->id]);
+        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
 
         $dto = CharacterStatsDTO::fromCharacter($character, $this->calculator);
 

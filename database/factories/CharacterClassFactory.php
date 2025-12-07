@@ -23,9 +23,11 @@ class CharacterClassFactory extends Factory
     {
         $abilities = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
         $name = fake()->unique()->words(2, true);
+        $slug = Str::slug($name);
 
         return [
-            'slug' => Str::slug($name),
+            'slug' => $slug,
+            'full_slug' => 'test:'.$slug,
             'name' => $name,
             'parent_class_id' => null,
             'hit_die' => fake()->randomElement([6, 8, 10, 12]),
@@ -53,10 +55,12 @@ class CharacterClassFactory extends Factory
         return $this->state(function (array $attributes) use ($parentClass) {
             $parent = $parentClass ?? CharacterClass::factory()->create();
             $subclassName = $attributes['name'] ?? fake()->unique()->words(2, true);
+            $slug = Str::slug($parent->name.'-'.$subclassName);
 
             return [
                 'parent_class_id' => $parent->id,
-                'slug' => Str::slug($parent->name.'-'.$subclassName),
+                'slug' => $slug,
+                'full_slug' => 'test:'.$slug,
             ];
         });
     }

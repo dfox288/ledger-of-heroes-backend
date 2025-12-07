@@ -12,7 +12,7 @@ class CharacterCondition extends Model
 
     protected $fillable = [
         'character_id',
-        'condition_id',
+        'condition_slug',
         'level',
         'source',
         'duration',
@@ -29,6 +29,6 @@ class CharacterCondition extends Model
 
     public function condition(): BelongsTo
     {
-        return $this->belongsTo(Condition::class);
+        return $this->belongsTo(Condition::class, 'condition_slug', 'full_slug');
     }
 }

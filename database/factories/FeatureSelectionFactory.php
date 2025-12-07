@@ -19,8 +19,8 @@ class FeatureSelectionFactory extends Factory
     {
         return [
             'character_id' => Character::factory(),
-            'optional_feature_id' => OptionalFeature::factory(),
-            'class_id' => null,
+            'optional_feature_slug' => fn () => OptionalFeature::factory()->create()->full_slug,
+            'class_slug' => null,
             'subclass_name' => null,
             'level_acquired' => 1,
             'uses_remaining' => null,
@@ -31,10 +31,10 @@ class FeatureSelectionFactory extends Factory
     /**
      * Associate with a specific class.
      */
-    public function forClass(CharacterClass|int $class, ?string $subclassName = null): static
+    public function forClass(CharacterClass|string $class, ?string $subclassName = null): static
     {
         return $this->state(fn () => [
-            'class_id' => $class instanceof CharacterClass ? $class->id : $class,
+            'class_slug' => $class instanceof CharacterClass ? $class->full_slug : $class,
             'subclass_name' => $subclassName,
         ]);
     }
@@ -63,10 +63,10 @@ class FeatureSelectionFactory extends Factory
     /**
      * Use a specific optional feature.
      */
-    public function withFeature(OptionalFeature|int $feature): static
+    public function withFeature(OptionalFeature|string $feature): static
     {
         return $this->state(fn () => [
-            'optional_feature_id' => $feature instanceof OptionalFeature ? $feature->id : $feature,
+            'optional_feature_slug' => $feature instanceof OptionalFeature ? $feature->full_slug : $feature,
         ]);
     }
 }

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FeatureSelection\StoreFeatureSelectionRequest;
-use App\Http\Resources\ChoicesResource;
 use App\Http\Resources\FeatureSelectionResource;
 use App\Http\Resources\OptionalFeatureResource;
 use App\Models\Character;
@@ -136,66 +135,6 @@ class FeatureSelectionController extends Controller
     }
 
     /**
-     * Get pending feature selection choices
-     *
-     * @deprecated Use GET /api/v1/characters/{id}/pending-choices?type=feature_selection instead.
-     *             This endpoint will be removed in API v2 (June 2026).
-     *
-     * Shows which feature types the character can still select choices for,
-     * based on their class counter values. This helps track if a character
-     * has remaining maneuvers, invocations, metamagic, etc. to choose.
-     *
-     * @x-flow gameplay-level-up
-     *
-     * **Deprecation Notice:**
-     * This endpoint is superseded by the unified choice system. Use the new endpoints:
-     * - `GET /api/v1/characters/{id}/pending-choices?type=feature_selection` - List pending choices
-     * - `POST /api/v1/characters/{id}/choices/{choiceId}` - Resolve a choice
-     *
-     * **Examples:**
-     * ```
-     * GET /api/v1/characters/1/feature-selection-choices
-     * ```
-     *
-     * **Counter to Feature Type Mapping:**
-     * | Counter Name | Feature Type |
-     * |--------------|--------------|
-     * | Maneuvers Known | `maneuver` |
-     * | Metamagic Known | `metamagic` |
-     * | Infusions Known | `artificer_infusion` |
-     * | Fighting Styles Known | `fighting_style` |
-     * | Runes Known | `rune` |
-     * | Arcane Shots Known | `arcane_shot` |
-     * | Elemental Disciplines Known | `elemental_discipline` |
-     * | Eldritch Invocations Known | `eldritch_invocation` |
-     *
-     * **Response Structure:**
-     * Returns an array of choice slots, each containing:
-     * - `feature_type` - The type of feature (e.g., "maneuver")
-     * - `class_name` - Which class grants these choices
-     * - `subclass_name` - Subclass if applicable (null otherwise)
-     * - `allowed` - Total choices available at current level
-     * - `selected` - Number already chosen
-     * - `remaining` - Choices still available (allowed - selected)
-     *
-     * **Use Case:**
-     * A level 3 Battle Master Fighter gets 3 maneuvers. If they've selected 2,
-     * this endpoint shows: `{"feature_type": "maneuver", "allowed": 3, "selected": 2, "remaining": 1}`
-     */
-    public function choices(Character $character): \Illuminate\Http\JsonResponse
-    {
-        $choices = $this->calculatePendingChoices($character);
-
-        return (new ChoicesResource($choices))
-            ->response()
-            ->withHeaders([
-                'Deprecation' => 'true',
-                'Sunset' => 'Sat, 01 Jun 2026 00:00:00 GMT',
-                'Link' => '</api/v1/characters/'.$character->id.'/pending-choices?type=feature_selection>; rel="successor-version"',
-            ]);
-    }
-
-    /**
      * Add a feature selection
      *
      * Adds an invocation, maneuver, metamagic, fighting style, etc. to the character.
@@ -301,114 +240,5 @@ class FeatureSelectionController extends Controller
         }
 
         return response()->noContent();
-    }
-
-    /**
-     * Calculate pending feature selection choices for a character.
-     *
-     * Compares class counter values (e.g., "Maneuvers Known") against
-     * selected features to determine remaining choices.
-     *
-     * @return array<int, array{feature_type: string, class_name: string, subclass_name: ?string, allowed: int, selected: int, remaining: int}>
-     */
-    private function calculatePendingChoices(Character $character): array
-    {
-        $choices = [];
-
-        // Map counter names to feature types
-        $counterToFeatureType = [
-            'Maneuvers Known' => 'maneuver',
-            'Metamagic Known' => 'metamagic',
-            'Infusions Known' => 'artificer_infusion',
-            'Fighting Styles Known' => 'fighting_style',
-            'Runes Known' => 'rune',
-            'Arcane Shots Known' => 'arcane_shot',
-            'Elemental Disciplines Known' => 'elemental_discipline',
-            'Eldritch Invocations Known' => 'eldritch_invocation',
-        ];
-
-        // Get character's classes with their counters
-        $characterClasses = $character->characterClasses()
-            ->with(['characterClass.counters', 'subclass.counters'])
-            ->get();
-
-        foreach ($characterClasses as $charClass) {
-            $classLevel = $charClass->level;
-
-            // Check base class counters
-            $this->processClassCounters(
-                $charClass->characterClass->counters ?? collect(),
-                $classLevel,
-                $counterToFeatureType,
-                $charClass->characterClass->name,
-                null,
-                $choices
-            );
-
-            // Check subclass counters
-            if ($charClass->subclass) {
-                $this->processClassCounters(
-                    $charClass->subclass->counters ?? collect(),
-                    $classLevel,
-                    $counterToFeatureType,
-                    $charClass->characterClass->name,
-                    $charClass->subclass->name,
-                    $choices
-                );
-            }
-        }
-
-        // Count selected features by type
-        // Filter out orphaned records where optionalFeature was deleted
-        $selectedCounts = $character->featureSelections()
-            ->with('optionalFeature')
-            ->get()
-            ->filter(fn ($fs) => $fs->optionalFeature !== null)
-            ->groupBy(fn ($fs) => $fs->optionalFeature->feature_type?->value)
-            ->map(fn ($group) => $group->count());
-
-        // Calculate remaining choices
-        foreach ($choices as &$choice) {
-            $selected = $selectedCounts->get($choice['feature_type'], 0);
-            $choice['selected'] = $selected;
-            $choice['remaining'] = max(0, $choice['allowed'] - $selected);
-        }
-
-        return array_values($choices);
-    }
-
-    /**
-     * Process counters from a class/subclass to find choice allowances.
-     */
-    private function processClassCounters(
-        $counters,
-        int $classLevel,
-        array $counterToFeatureType,
-        string $className,
-        ?string $subclassName,
-        array &$choices
-    ): void {
-        foreach ($counterToFeatureType as $counterName => $featureType) {
-            // Find the highest counter value at or below the character's level
-            $relevantCounters = $counters
-                ->filter(fn ($c) => $c->counter_name === $counterName && $c->level <= $classLevel)
-                ->sortByDesc('level');
-
-            if ($relevantCounters->isEmpty()) {
-                continue;
-            }
-
-            $maxCounter = $relevantCounters->first();
-            $key = "{$className}:{$subclassName}:{$featureType}";
-
-            $choices[$key] = [
-                'feature_type' => $featureType,
-                'class_name' => $className,
-                'subclass_name' => $subclassName,
-                'allowed' => $maxCounter->counter_value,
-                'selected' => 0,
-                'remaining' => 0,
-            ];
-        }
     }
 }

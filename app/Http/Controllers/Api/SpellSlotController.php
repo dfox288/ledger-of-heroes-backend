@@ -19,52 +19,6 @@ class SpellSlotController extends Controller
     ) {}
 
     /**
-     * Get spell slots for a character
-     *
-     * @deprecated Use GET /api/v1/characters/{id}/spell-slots instead
-     *
-     * Returns spell slots grouped by type (standard and pact_magic), with each
-     * spell level showing max, used, and available counts.
-     *
-     * **Deprecation Notice:**
-     * This endpoint is deprecated and will be removed on 2026-06-01.
-     * Use GET /api/v1/characters/{id}/spell-slots for consolidated slot data
-     * that includes both slot maximums and tracked usage.
-     *
-     * **Examples:**
-     * ```
-     * GET /api/v1/characters/1/spell-slots/tracked
-     * ```
-     *
-     * **Response:**
-     * ```json
-     * {
-     *   "data": {
-     *     "standard": {
-     *       "1": { "max": 4, "used": 1, "available": 3 },
-     *       "2": { "max": 3, "used": 0, "available": 3 }
-     *     },
-     *     "pact_magic": {
-     *       "3": { "max": 2, "used": 1, "available": 1 }
-     *     }
-     *   }
-     * }
-     * ```
-     */
-    public function index(Character $character): JsonResponse
-    {
-        $slots = $this->spellSlotService->getSlots($character);
-
-        return (new SpellSlotsResource($slots))
-            ->response()
-            ->withHeaders([
-                'Deprecation' => 'true',
-                'Sunset' => 'Sat, 01 Jun 2026 00:00:00 GMT',
-                'Link' => '</api/v1/characters/'.$character->id.'/spell-slots>; rel="successor-version"',
-            ]);
-    }
-
-    /**
      * Use a spell slot
      *
      * Expends one spell slot of the specified level and type. Used when casting

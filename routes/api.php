@@ -263,8 +263,6 @@ Route::prefix('v1')->group(function () {
             ->name('spells.unprepare');
         Route::get('spell-slots', [\App\Http\Controllers\Api\CharacterSpellController::class, 'slots'])
             ->name('spell-slots');
-        Route::get('spell-slots/tracked', [\App\Http\Controllers\Api\SpellSlotController::class, 'index'])
-            ->name('spell-slots.index');
         Route::post('spell-slots/use', [\App\Http\Controllers\Api\SpellSlotController::class, 'use'])
             ->name('spell-slots.use');
 
@@ -291,24 +289,12 @@ Route::prefix('v1')->group(function () {
         // Character Proficiencies
         Route::get('proficiencies', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'index'])
             ->name('proficiencies.index');
-        // @deprecated - Use GET /pending-choices?type=proficiency (Sunset: June 2026)
-        Route::get('proficiency-choices', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'choices'])
-            ->name('proficiencies.choices');
-        // @deprecated - Use POST /choices/{choiceId} (Sunset: June 2026)
-        Route::post('proficiency-choices', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'storeChoice'])
-            ->name('proficiencies.storeChoice');
         Route::post('proficiencies/sync', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'sync'])
             ->name('proficiencies.sync');
 
         // Character Languages
         Route::get('languages', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'index'])
             ->name('languages.index');
-        // @deprecated - Use GET /pending-choices?type=language (Sunset: June 2026)
-        Route::get('language-choices', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'choices'])
-            ->name('languages.choices');
-        // @deprecated - Use POST /choices/{choiceId} (Sunset: June 2026)
-        Route::post('language-choices', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'storeChoice'])
-            ->name('languages.storeChoice');
         Route::post('languages/sync', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'sync'])
             ->name('languages.sync');
 
@@ -319,11 +305,6 @@ Route::prefix('v1')->group(function () {
             ->name('features.sync');
         Route::delete('features/{source}', [\App\Http\Controllers\Api\CharacterFeatureController::class, 'clear'])
             ->name('features.clear');
-
-        // Character Level-Up
-        // @deprecated - Use /classes/{class}/level-up instead
-        Route::post('level-up', \App\Http\Controllers\Api\CharacterLevelUpController::class)
-            ->name('level-up');
 
         // ASI Choice (Feat or Ability Score Increase)
         Route::post('asi-choice', \App\Http\Controllers\Api\AsiChoiceController::class)
@@ -382,9 +363,6 @@ Route::prefix('v1')->group(function () {
             ->name('feature-selections.index');
         Route::get('available-feature-selections', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'available'])
             ->name('feature-selections.available');
-        // @deprecated - Use GET /pending-choices?type=feature_selection (Sunset: June 2026)
-        Route::get('feature-selection-choices', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'choices'])
-            ->name('feature-selections.choices');
         Route::post('feature-selections', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'store'])
             ->name('feature-selections.store');
         Route::delete('feature-selections/{featureIdOrSlug}', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'destroy'])

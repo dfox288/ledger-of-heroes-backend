@@ -238,99 +238,6 @@ class FeatureSelectionApiTest extends TestCase
     }
 
     // ==========================================
-    // CHOICES ENDPOINT TESTS
-    // ==========================================
-
-    #[Test]
-    public function it_returns_pending_choices_based_on_class_counters(): void
-    {
-        // Create Fighter class with Battle Master subclass that has Maneuvers Known counter
-        $fighterClass = CharacterClass::factory()->create([
-            'name' => 'Fighter',
-            'slug' => 'fighter-choices-test',
-        ]);
-        $battleMaster = CharacterClass::factory()->create([
-            'name' => 'Battle Master',
-            'slug' => 'fighter-choices-test-battle-master',
-            'parent_class_id' => $fighterClass->id,
-        ]);
-
-        // Add "Maneuvers Known" counter to Battle Master at level 3 with value 3
-        $battleMaster->counters()->create([
-            'counter_name' => 'Maneuvers Known',
-            'level' => 3,
-            'counter_value' => 3,
-        ]);
-
-        $character = Character::factory()->create();
-        $character->characterClasses()->create([
-            'class_id' => $fighterClass->id,
-            'subclass_id' => $battleMaster->id,
-            'level' => 3,
-            'is_starting_class' => true,
-        ]);
-
-        $response = $this->getJson("/api/v1/characters/{$character->id}/feature-selection-choices");
-
-        $response->assertOk();
-
-        $choices = $response->json('data');
-        $maneuverChoice = collect($choices)->firstWhere('feature_type', 'maneuver');
-
-        $this->assertNotNull($maneuverChoice);
-        $this->assertEquals(3, $maneuverChoice['allowed']);
-        $this->assertEquals(0, $maneuverChoice['selected']);
-        $this->assertEquals(3, $maneuverChoice['remaining']);
-    }
-
-    #[Test]
-    public function it_calculates_remaining_choices_correctly(): void
-    {
-        $fighterClass = CharacterClass::factory()->create([
-            'name' => 'Fighter',
-            'slug' => 'fighter-remaining-test',
-        ]);
-        $battleMaster = CharacterClass::factory()->create([
-            'name' => 'Battle Master',
-            'slug' => 'fighter-remaining-test-battle-master',
-            'parent_class_id' => $fighterClass->id,
-        ]);
-
-        $battleMaster->counters()->create([
-            'counter_name' => 'Maneuvers Known',
-            'level' => 3,
-            'counter_value' => 3,
-        ]);
-
-        $character = Character::factory()->create();
-        $character->characterClasses()->create([
-            'class_id' => $fighterClass->id,
-            'subclass_id' => $battleMaster->id,
-            'level' => 3,
-            'is_starting_class' => true,
-        ]);
-
-        // Select 2 maneuvers
-        $maneuver1 = OptionalFeature::factory()->maneuver()->create();
-        $maneuver2 = OptionalFeature::factory()->maneuver()->create();
-
-        FeatureSelection::factory()->for($character)->withFeature($maneuver1)->create();
-        FeatureSelection::factory()->for($character)->withFeature($maneuver2)->create();
-
-        $response = $this->getJson("/api/v1/characters/{$character->id}/feature-selection-choices");
-
-        $response->assertOk();
-
-        $choices = $response->json('data');
-        $maneuverChoice = collect($choices)->firstWhere('feature_type', 'maneuver');
-
-        $this->assertNotNull($maneuverChoice);
-        $this->assertEquals(3, $maneuverChoice['allowed']);
-        $this->assertEquals(2, $maneuverChoice['selected']);
-        $this->assertEquals(1, $maneuverChoice['remaining']);
-    }
-
-    // ==========================================
     // STORE ENDPOINT TESTS
     // ==========================================
 
@@ -592,14 +499,6 @@ class FeatureSelectionApiTest extends TestCase
     public function it_returns_404_for_nonexistent_character_on_available(): void
     {
         $response = $this->getJson('/api/v1/characters/99999/available-feature-selections');
-
-        $response->assertNotFound();
-    }
-
-    #[Test]
-    public function it_returns_404_for_nonexistent_character_on_choices(): void
-    {
-        $response = $this->getJson('/api/v1/characters/99999/feature-selection-choices');
 
         $response->assertNotFound();
     }

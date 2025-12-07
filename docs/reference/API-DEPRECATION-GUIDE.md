@@ -1,244 +1,114 @@
 # API Deprecation Guide
 
-This document tracks deprecated API endpoints and provides migration paths for API consumers.
+This document tracks deprecated API endpoints that have been removed.
 
 **Last Updated:** December 2025
-**Target Removal:** API v2 (June 2026)
 
 ---
 
-## Summary
+## Removed Endpoints
 
-| Deprecated Endpoint | Sunset Date | Replacement |
-|---------------------|-------------|-------------|
-| `POST /characters/{id}/level-up` | June 1, 2026 | `POST /characters/{id}/classes/{class}/level-up` |
-| `GET /characters/{id}/spell-slots/tracked` | June 1, 2026 | `GET /characters/{id}/spell-slots` |
-| `GET /characters/{id}/proficiency-choices` | June 1, 2026 | `GET /characters/{id}/pending-choices?type=proficiency` |
-| `POST /characters/{id}/proficiency-choices` | June 1, 2026 | `POST /characters/{id}/choices/{choiceId}` |
-| `GET /characters/{id}/language-choices` | June 1, 2026 | `GET /characters/{id}/pending-choices?type=language` |
-| `POST /characters/{id}/language-choices` | June 1, 2026 | `POST /characters/{id}/choices/{choiceId}` |
-| `GET /characters/{id}/feature-selection-choices` | June 1, 2026 | `GET /characters/{id}/pending-choices?type=feature_selection` |
+The following endpoints were deprecated and have been **removed** as of December 2025.
+
+| Removed Endpoint | Replacement |
+|------------------|-------------|
+| `POST /characters/{id}/level-up` | `POST /characters/{id}/classes/{class}/level-up` |
+| `GET /characters/{id}/spell-slots/tracked` | `GET /characters/{id}/spell-slots` |
+| `GET /characters/{id}/proficiency-choices` | `GET /characters/{id}/pending-choices?type=proficiency` |
+| `POST /characters/{id}/proficiency-choices` | `POST /characters/{id}/choices/{choiceId}` |
+| `GET /characters/{id}/language-choices` | `GET /characters/{id}/pending-choices?type=language` |
+| `POST /characters/{id}/language-choices` | `POST /characters/{id}/choices/{choiceId}` |
+| `GET /characters/{id}/feature-selection-choices` | `GET /characters/{id}/pending-choices?type=feature_selection` |
 
 ---
 
-## Deprecated Endpoints
+## Migration Guide
 
 ### 1. Level-Up Endpoint
 
-**Deprecated:** `POST /api/v1/characters/{id}/level-up`
-**Replacement:** `POST /api/v1/characters/{id}/classes/{classIdOrSlug}/level-up`
+**Removed:** `POST /api/v1/characters/{id}/level-up`
+**Use Instead:** `POST /api/v1/characters/{id}/classes/{classIdOrSlug}/level-up`
 
-#### Why Deprecated?
-
-The old endpoint automatically leveled up the character's primary (first) class, creating ambiguity in multiclass builds. The new endpoint provides explicit control over which class gains a level.
-
-#### Migration
+The old endpoint automatically leveled up the character's primary class. The new endpoint provides explicit control over which class gains a level.
 
 ```diff
 - POST /api/v1/characters/123/level-up
 + POST /api/v1/characters/123/classes/fighter/level-up
 ```
 
-The request body remains the same (empty). The response structure is identical.
-
 ---
 
 ### 2. Spell Slots Tracked Endpoint
 
-**Deprecated:** `GET /api/v1/characters/{id}/spell-slots/tracked`
-**Replacement:** `GET /api/v1/characters/{id}/spell-slots`
+**Removed:** `GET /api/v1/characters/{id}/spell-slots/tracked`
+**Use Instead:** `GET /api/v1/characters/{id}/spell-slots`
 
-#### Why Deprecated?
-
-The `/spell-slots` endpoint now includes both slot maximums and tracked usage in a consolidated response.
-
-#### Migration
-
-```diff
-- GET /api/v1/characters/123/spell-slots/tracked
-+ GET /api/v1/characters/123/spell-slots
-```
+The consolidated `/spell-slots` endpoint includes both slot maximums and tracked usage.
 
 ---
 
-### 3. Proficiency Choices Endpoints
+### 3. Choice Endpoints (Proficiency, Language, Feature Selection)
 
-**Deprecated:**
-- `GET /api/v1/characters/{id}/proficiency-choices`
-- `POST /api/v1/characters/{id}/proficiency-choices`
+All legacy choice endpoints have been replaced by the **Unified Choice System**.
 
-**Replacement:** Unified Choice System
-- `GET /api/v1/characters/{id}/pending-choices?type=proficiency`
-- `POST /api/v1/characters/{id}/choices/{choiceId}`
-
-#### Why Deprecated?
-
-The unified choice system provides a consistent interface for all character choices (proficiencies, languages, feature selections, equipment, spells). This reduces the number of endpoints to learn and enables better choice tracking.
-
-#### Migration - Listing Choices
+#### Listing Pending Choices
 
 ```diff
 - GET /api/v1/characters/123/proficiency-choices
-+ GET /api/v1/characters/123/pending-choices?type=proficiency
-```
-
-**Old Response:**
-```json
-{
-  "data": {
-    "class": {
-      "skill_choice_1": {
-        "proficiency_type": "skill",
-        "quantity": 2,
-        "remaining": 2,
-        "options": [...]
-      }
-    }
-  }
-}
-```
-
-**New Response:**
-```json
-{
-  "data": {
-    "choices": [
-      {
-        "id": "proficiency:class:skill_choice_1",
-        "type": "proficiency",
-        "source": "class",
-        "quantity": 2,
-        "remaining": 2,
-        "options": [...]
-      }
-    ],
-    "summary": {
-      "total_pending": 1,
-      "by_type": {"proficiency": 1}
-    }
-  }
-}
-```
-
-#### Migration - Making a Choice
-
-```diff
-- POST /api/v1/characters/123/proficiency-choices
-- {
--   "source": "class",
--   "choice_group": "skill_choice_1",
--   "skill_ids": [1, 5]
-- }
-+ POST /api/v1/characters/123/choices/proficiency:class:skill_choice_1
-+ {
-+   "selections": [1, 5]
-+ }
-```
-
----
-
-### 4. Language Choices Endpoints
-
-**Deprecated:**
-- `GET /api/v1/characters/{id}/language-choices`
-- `POST /api/v1/characters/{id}/language-choices`
-
-**Replacement:** Unified Choice System
-- `GET /api/v1/characters/{id}/pending-choices?type=language`
-- `POST /api/v1/characters/{id}/choices/{choiceId}`
-
-#### Migration - Listing Choices
-
-```diff
 - GET /api/v1/characters/123/language-choices
-+ GET /api/v1/characters/123/pending-choices?type=language
-```
-
-#### Migration - Making a Choice
-
-```diff
-- POST /api/v1/characters/123/language-choices
-- {
--   "source": "race",
--   "language_ids": [3]
-- }
-+ POST /api/v1/characters/123/choices/language:race:choice_1
-+ {
-+   "selections": [3]
-+ }
-```
-
----
-
-### 5. Feature Selection Choices Endpoint
-
-**Deprecated:** `GET /api/v1/characters/{id}/feature-selection-choices`
-**Replacement:** `GET /api/v1/characters/{id}/pending-choices?type=feature_selection`
-
-#### Why Deprecated?
-
-Consolidated into the unified choice system for consistency.
-
-#### Migration
-
-```diff
 - GET /api/v1/characters/123/feature-selection-choices
++ GET /api/v1/characters/123/pending-choices
++ GET /api/v1/characters/123/pending-choices?type=proficiency
++ GET /api/v1/characters/123/pending-choices?type=language
 + GET /api/v1/characters/123/pending-choices?type=feature_selection
 ```
 
-**Note:** The `POST /characters/{id}/feature-selections` endpoint for adding feature selections remains active, as it handles direct feature management beyond the choice system.
+#### Resolving Choices
+
+```diff
+- POST /api/v1/characters/123/proficiency-choices
+- {"source": "class", "choice_group": "skill_choice_1", "skill_ids": [1, 5]}
++ POST /api/v1/characters/123/choices/proficiency:class:skill_choice_1
++ {"selections": [1, 5]}
+```
+
+```diff
+- POST /api/v1/characters/123/language-choices
+- {"source": "race", "language_ids": [3]}
++ POST /api/v1/characters/123/choices/language:race:choice_1
++ {"selections": [3]}
+```
 
 ---
 
-## Endpoints NOT Deprecated
+## Active Endpoints
 
-The following endpoints remain active and are NOT deprecated:
+The following endpoints remain active and are **not deprecated**:
 
-### Sync Endpoints (Still Required)
-- `POST /characters/{id}/proficiencies/sync` - Syncs fixed proficiencies from class/race/background
-- `POST /characters/{id}/languages/sync` - Syncs fixed languages from race/background
-- `POST /characters/{id}/features/sync` - Syncs features from various sources
+### Sync Endpoints
+- `POST /characters/{id}/proficiencies/sync` - Sync fixed proficiencies
+- `POST /characters/{id}/languages/sync` - Sync fixed languages
+- `POST /characters/{id}/features/sync` - Sync features from sources
 
-These sync endpoints serve a different purpose than choice resolution and remain necessary for character creation workflows.
-
-### CRUD Endpoints (Still Required)
+### CRUD Endpoints
 - `GET /characters/{id}/proficiencies` - List all proficiencies
 - `GET /characters/{id}/languages` - List all languages
 - `GET /characters/{id}/feature-selections` - List all feature selections
+- `GET /characters/{id}/available-feature-selections` - List available features
 - `POST /characters/{id}/feature-selections` - Add a feature selection
 - `DELETE /characters/{id}/feature-selections/{id}` - Remove a feature selection
 
-These endpoints provide direct data access and manipulation, separate from the choice workflow.
+### Unified Choice System (Current)
+- `GET /characters/{id}/pending-choices` - List all pending choices
+- `GET /characters/{id}/pending-choices/{choiceId}` - Get specific choice details
+- `POST /characters/{id}/choices/{choiceId}` - Resolve a choice
+- `DELETE /characters/{id}/choices/{choiceId}` - Undo a choice
 
-### ASI Choice Endpoint
+### Other Active Endpoints
 - `POST /characters/{id}/asi-choice` - Handle ASI/Feat selection
-
-This specialized endpoint handles ASI and Feat choices at level-up and may be integrated into the unified system in a future version.
-
----
-
-## HTTP Headers
-
-All deprecated endpoints return the following HTTP headers:
-
-```
-Deprecation: true
-Sunset: Sat, 01 Jun 2026 00:00:00 GMT
-Link: </api/v1/characters/{id}/new-endpoint>; rel="successor-version"
-```
-
-Your API client can check for the `Deprecation: true` header to identify deprecated endpoints and log warnings.
-
----
-
-## Timeline
-
-| Date | Action |
-|------|--------|
-| December 2025 | Deprecation headers added to all deprecated endpoints |
-| Q1 2026 | Monitor usage of deprecated endpoints |
-| Q2 2026 | Final deprecation warnings in API documentation |
-| June 1, 2026 | **Deprecated endpoints removed in API v2** |
+- `POST /characters/{id}/classes/{class}/level-up` - Level up in a specific class
+- `GET /characters/{id}/spell-slots` - Get consolidated spell slot data
+- `POST /characters/{id}/spell-slots/use` - Use a spell slot
 
 ---
 

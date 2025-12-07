@@ -7,15 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Deprecated
+### Removed
 
-- **API Endpoint Deprecation** (Sunset: June 1, 2026)
+- **Legacy Character API Endpoints** - Removed in favor of unified choice system
+  - `POST /characters/{id}/level-up` → Use `POST /characters/{id}/classes/{class}/level-up`
+  - `GET /characters/{id}/spell-slots/tracked` → Use `GET /characters/{id}/spell-slots`
   - `GET /characters/{id}/proficiency-choices` → Use `GET /characters/{id}/pending-choices?type=proficiency`
   - `POST /characters/{id}/proficiency-choices` → Use `POST /characters/{id}/choices/{choiceId}`
   - `GET /characters/{id}/language-choices` → Use `GET /characters/{id}/pending-choices?type=language`
   - `POST /characters/{id}/language-choices` → Use `POST /characters/{id}/choices/{choiceId}`
   - `GET /characters/{id}/feature-selection-choices` → Use `GET /characters/{id}/pending-choices?type=feature_selection`
-  - All deprecated endpoints now return `Deprecation` and `Sunset` HTTP headers
   - See `docs/reference/API-DEPRECATION-GUIDE.md` for migration details
 
 ### Added

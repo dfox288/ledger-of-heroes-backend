@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #295**: Add character export/import feature for portable JSON sharing
+  - `GET /api/v1/characters/{character}/export` - Export character as portable JSON with slugs
+  - `POST /api/v1/characters/import` - Import character from exported JSON
+  - `CharacterExportService` - Builds complete portable representation using slugs
+  - `CharacterImportService` - Creates character from export data with dangling reference detection
+  - Export format version 1.0 includes: ability scores, classes, spells, equipment, languages, proficiencies, conditions, feature selections, notes
+  - Custom equipment items preserved in export/import
+  - Round-trip export→import→export produces consistent data
+  - Warnings reported for references to entities not in database
+
 - **Issue #294**: Add character validation endpoint for dangling references
   - `GET /api/v1/characters/{character}/validate` - Validates single character's entity references
   - `GET /api/v1/characters/validate-all` - Bulk validation with summary statistics

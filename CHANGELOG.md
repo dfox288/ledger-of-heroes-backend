@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #345**: Keep pack items with nested contents for UI display
+  - Pack items (e.g., "Diplomat's Pack") now return with `contents[]` array
+  - Added `is_pack: true` flag to identify pack items
+  - Frontend can now show "Show contents" toggle for packs
+  - Resolution still grants individual pack contents to character equipment
+  - Pack contents now include `from_pack` in metadata (e.g., `"from_pack": "phb:diplomats-pack"`)
+
 - **Issue #344**: Grant fixed items alongside category selections in equipment choices
   - Options like "a martial weapon and a shield" now correctly grant both items
   - Added `is_fixed` flag to distinguish category items (user picks) from fixed items (always granted)

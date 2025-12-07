@@ -230,6 +230,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                 if ($item['is_fixed'] ?? false) {
                     return true;
                 }
+
                 // Include non-fixed items only if they're in item_selections
                 return in_array($item['full_slug'], $specificItems, true);
             });
@@ -248,13 +249,35 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
 
         // Grant each selected item
         foreach ($itemsToGrant as $item) {
-            CharacterEquipment::create([
-                'character_id' => $character->id,
-                'item_slug' => $item['full_slug'],
-                'quantity' => $item['quantity'],
-                'equipped' => false,
-                'custom_description' => $metadata,
-            ]);
+            // Pack items: grant the pack contents, not the pack itself
+            if (($item['is_pack'] ?? false) && ! empty($item['contents'])) {
+                // Add pack info to metadata for items from this pack
+                $packMetadata = json_encode([
+                    'source' => $source,
+                    'choice_group' => $choiceGroup,
+                    'selected_option' => $selectedOption,
+                    'from_pack' => $item['full_slug'],
+                ]);
+
+                foreach ($item['contents'] as $contentItem) {
+                    CharacterEquipment::create([
+                        'character_id' => $character->id,
+                        'item_slug' => $contentItem['full_slug'],
+                        'quantity' => $contentItem['quantity'],
+                        'equipped' => false,
+                        'custom_description' => $packMetadata,
+                    ]);
+                }
+            } else {
+                // Regular item
+                CharacterEquipment::create([
+                    'character_id' => $character->id,
+                    'item_slug' => $item['full_slug'],
+                    'quantity' => $item['quantity'],
+                    'equipped' => false,
+                    'custom_description' => $metadata,
+                ]);
+            }
         }
     }
 
@@ -319,25 +342,33 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                         ];
                     }
                 } elseif ($choiceItem->item) {
-                    // Pack item - expand contents (all contents are fixed)
+                    // Pack item - keep pack structure with nested contents for UI
                     if ($choiceItem->item->contents->isNotEmpty()) {
+                        $contents = [];
                         foreach ($choiceItem->item->contents as $content) {
                             if ($content->item) {
-                                $items[] = [
+                                $contents[] = [
                                     'full_slug' => $content->item->full_slug,
                                     'name' => $content->item->name,
                                     'quantity' => $content->quantity ?? 1,
-                                    'is_fixed' => true, // Pack contents are always granted
                                 ];
                             }
                         }
+                        $items[] = [
+                            'full_slug' => $choiceItem->item->full_slug,
+                            'name' => $choiceItem->item->name,
+                            'quantity' => $choiceItem->quantity ?? 1,
+                            'is_fixed' => true,
+                            'is_pack' => true,
+                            'contents' => $contents,
+                        ];
                     } else {
                         // Regular item - always granted when option selected
                         $items[] = [
                             'full_slug' => $choiceItem->item->full_slug,
                             'name' => $choiceItem->item->name,
                             'quantity' => $choiceItem->quantity ?? 1,
-                            'is_fixed' => true, // Fixed items are always granted
+                            'is_fixed' => true,
                         ];
                     }
                 }

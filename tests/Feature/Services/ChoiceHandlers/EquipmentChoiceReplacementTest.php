@@ -915,4 +915,135 @@ class EquipmentChoiceReplacementTest extends TestCase
         $arrowEquipment = $character->equipment->where('item_slug', 'phb:arrow')->first();
         expect($arrowEquipment->quantity)->toBe(20);
     }
+
+    #[Test]
+    public function resolving_pack_option_grants_pack_contents(): void
+    {
+        // When selecting a pack option (e.g., "a diplomat's pack"), the pack contents
+        // should be granted, not the pack item itself
+        $character = Character::factory()->create();
+
+        // Pack contents
+        $chest = Item::factory()->create(['name' => 'Chest', 'slug' => 'chest', 'full_slug' => 'phb:chest']);
+        $scrollCase = Item::factory()->create(['name' => 'Map or Scroll Case', 'slug' => 'scroll-case', 'full_slug' => 'phb:scroll-case']);
+        $fineClothes = Item::factory()->create(['name' => 'Fine Clothes', 'slug' => 'fine-clothes', 'full_slug' => 'phb:fine-clothes']);
+
+        // The pack itself (not granted, only for display)
+        $diplomatsPack = Item::factory()->create(['name' => "Diplomat's Pack", 'slug' => 'diplomats-pack', 'full_slug' => 'phb:diplomats-pack']);
+
+        $choice = new PendingChoice(
+            id: 'equipment|class|test:bard|1|choice_1',
+            type: 'equipment',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Bard',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [
+                [
+                    'option' => 'a',
+                    'label' => "a diplomat's pack",
+                    'items' => [
+                        [
+                            'full_slug' => $diplomatsPack->full_slug,
+                            'name' => "Diplomat's Pack",
+                            'quantity' => 1,
+                            'is_fixed' => true,
+                            'is_pack' => true,
+                            'contents' => [
+                                ['full_slug' => $chest->full_slug, 'name' => 'Chest', 'quantity' => 1],
+                                ['full_slug' => $scrollCase->full_slug, 'name' => 'Map or Scroll Case', 'quantity' => 2],
+                                ['full_slug' => $fineClothes->full_slug, 'name' => 'Fine Clothes', 'quantity' => 1],
+                            ],
+                        ],
+                    ],
+                    'is_category' => false,
+                ],
+            ],
+            optionsEndpoint: null,
+            metadata: ['choice_group' => 'choice_1'],
+        );
+
+        // Select the pack option
+        $this->handler->resolve($character, $choice, ['selected' => ['a']]);
+
+        $character->refresh();
+
+        // Should have pack CONTENTS, not the pack itself
+        expect($character->equipment)->toHaveCount(3);
+
+        $slugs = $character->equipment->pluck('item_slug')->sort()->values()->toArray();
+        expect($slugs)->toBe(['phb:chest', 'phb:fine-clothes', 'phb:scroll-case']);
+
+        // Pack itself should NOT be in equipment
+        expect($character->equipment->where('item_slug', 'phb:diplomats-pack')->count())->toBe(0);
+
+        // Verify quantities
+        $scrollCaseEquipment = $character->equipment->where('item_slug', 'phb:scroll-case')->first();
+        expect($scrollCaseEquipment->quantity)->toBe(2);
+
+        // Verify pack items have from_pack metadata
+        $chestEquipment = $character->equipment->where('item_slug', 'phb:chest')->first();
+        $metadata = json_decode($chestEquipment->custom_description, true);
+        expect($metadata)
+            ->toHaveKey('from_pack', 'phb:diplomats-pack')
+            ->toHaveKey('source', 'class')
+            ->toHaveKey('choice_group', 'choice_1');
+    }
+
+    #[Test]
+    public function pack_items_have_contents_array_for_ui(): void
+    {
+        // Verify the pack item structure includes contents array for frontend UI
+        $character = Character::factory()->create();
+
+        $chest = Item::factory()->create(['name' => 'Chest', 'slug' => 'chest', 'full_slug' => 'phb:chest']);
+        $diplomatsPack = Item::factory()->create(['name' => "Diplomat's Pack", 'slug' => 'diplomats-pack', 'full_slug' => 'phb:diplomats-pack']);
+
+        $choice = new PendingChoice(
+            id: 'equipment|class|test:bard|1|choice_1',
+            type: 'equipment',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Bard',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [
+                [
+                    'option' => 'a',
+                    'label' => "a diplomat's pack",
+                    'items' => [
+                        [
+                            'full_slug' => $diplomatsPack->full_slug,
+                            'name' => "Diplomat's Pack",
+                            'quantity' => 1,
+                            'is_fixed' => true,
+                            'is_pack' => true,
+                            'contents' => [
+                                ['full_slug' => $chest->full_slug, 'name' => 'Chest', 'quantity' => 1],
+                            ],
+                        ],
+                    ],
+                    'is_category' => false,
+                ],
+            ],
+            optionsEndpoint: null,
+            metadata: ['choice_group' => 'choice_1'],
+        );
+
+        // Verify structure has is_pack and contents
+        $packItem = $choice->options[0]['items'][0];
+        expect($packItem)
+            ->toHaveKey('is_pack', true)
+            ->toHaveKey('contents')
+            ->and($packItem['contents'])->toBeArray()
+            ->and($packItem['contents'])->toHaveCount(1)
+            ->and($packItem['contents'][0])->toHaveKey('full_slug', 'phb:chest');
+    }
 }

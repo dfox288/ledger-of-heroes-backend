@@ -263,8 +263,8 @@ class FightingStyleChoiceHandlerTest extends TestCase
             metadata: []
         );
 
-        // Mock selection
-        $selection = ['selected' => [$this->archery->id]];
+        // Mock selection - use full_slug, not ID
+        $selection = ['selected' => [$this->archery->full_slug]];
 
         $this->handler->resolve($character, $choice, $selection);
 

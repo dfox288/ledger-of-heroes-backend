@@ -78,7 +78,7 @@ class SpellChoiceHandlerTest extends TestCase
         $this->assertEquals([], $choice->selected);
         $this->assertStringContainsString('max_level=0', $choice->optionsEndpoint);
         $this->assertEquals(0, $choice->metadata['spell_level']);
-        $this->assertEquals('wizard', $choice->metadata['class_slug']);
+        $this->assertEquals($wizard->full_slug, $choice->metadata['class_slug']);
     }
 
     #[Test]
@@ -295,7 +295,7 @@ class SpellChoiceHandlerTest extends TestCase
             ]
         );
 
-        $this->handler->resolve($character, $choice, ['selected' => [$spell1->id, $spell2->id, $spell3->id]]);
+        $this->handler->resolve($character, $choice, ['selected' => [$spell1->full_slug, $spell2->full_slug, $spell3->full_slug]]);
 
         // Verify CharacterSpell records were created
         $this->assertEquals(3, CharacterSpell::where('character_id', $character->id)->count());
@@ -337,7 +337,7 @@ class SpellChoiceHandlerTest extends TestCase
             ]
         );
 
-        $this->handler->resolve($character, $choice, ['selected' => [$spell1->id, $spell2->id]]);
+        $this->handler->resolve($character, $choice, ['selected' => [$spell1->full_slug, $spell2->full_slug]]);
 
         // Verify CharacterSpell records were created
         $this->assertEquals(2, CharacterSpell::where('character_id', $character->id)->count());

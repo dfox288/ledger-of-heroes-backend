@@ -109,7 +109,7 @@ class CharacterSpellController extends Controller
      * **Request Body:**
      * | Field | Type | Required | Description |
      * |-------|------|----------|-------------|
-     * | `spell_id` | integer | Yes | ID of the spell to learn |
+     * | `spell_slug` | string | Yes | Full slug of the spell to learn |
      * | `source` | string | No | How spell was acquired: class, race, feat, item, other (default: class) |
      *
      * **Validation:**
@@ -121,11 +121,11 @@ class CharacterSpellController extends Controller
     public function store(Request $request, Character $character): JsonResponse
     {
         $validated = $request->validate([
-            'spell_id' => ['required', 'exists:spells,id'],
+            'spell_slug' => ['required', 'exists:spells,full_slug'],
             'source' => ['sometimes', 'string', 'in:class,race,feat,item,other'],
         ]);
 
-        $spell = Spell::findOrFail($validated['spell_id']);
+        $spell = Spell::where('full_slug', $validated['spell_slug'])->firstOrFail();
         $source = $validated['source'] ?? 'class';
 
         $characterSpell = $this->spellManager->learnSpell($character, $spell, $source);
@@ -158,7 +158,7 @@ class CharacterSpellController extends Controller
     {
         $spell = is_numeric($spellIdOrSlug)
             ? Spell::findOrFail($spellIdOrSlug)
-            : Spell::where('slug', $spellIdOrSlug)->firstOrFail();
+            : Spell::where('full_slug', $spellIdOrSlug)->orWhere('slug', $spellIdOrSlug)->firstOrFail();
 
         $this->spellManager->forgetSpell($character, $spell);
 
@@ -190,7 +190,7 @@ class CharacterSpellController extends Controller
     {
         $spell = is_numeric($spellIdOrSlug)
             ? Spell::findOrFail($spellIdOrSlug)
-            : Spell::where('slug', $spellIdOrSlug)->firstOrFail();
+            : Spell::where('full_slug', $spellIdOrSlug)->orWhere('slug', $spellIdOrSlug)->firstOrFail();
 
         $characterSpell = $this->spellManager->prepareSpell($character, $spell);
         $characterSpell->load('spell.spellSchool');
@@ -222,7 +222,7 @@ class CharacterSpellController extends Controller
     {
         $spell = is_numeric($spellIdOrSlug)
             ? Spell::findOrFail($spellIdOrSlug)
-            : Spell::where('slug', $spellIdOrSlug)->firstOrFail();
+            : Spell::where('full_slug', $spellIdOrSlug)->orWhere('slug', $spellIdOrSlug)->firstOrFail();
 
         $characterSpell = $this->spellManager->unprepareSpell($character, $spell);
         $characterSpell->load('spell.spellSchool');

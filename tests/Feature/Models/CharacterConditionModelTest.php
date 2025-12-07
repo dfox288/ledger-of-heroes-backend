@@ -35,10 +35,10 @@ class CharacterConditionModelTest extends TestCase
     {
         $exhaustion = Condition::firstOrCreate(
             ['slug' => 'exhaustion'],
-            ['name' => 'Exhaustion', 'description' => 'Exhaustion condition']
+            ['name' => 'Exhaustion', 'description' => 'Exhaustion condition', 'full_slug' => 'core:exhaustion']
         );
         $characterCondition = CharacterCondition::factory()->create([
-            'condition_id' => $exhaustion->id,
+            'condition_slug' => $exhaustion->full_slug,
             'level' => 3,
         ]);
 
@@ -53,14 +53,14 @@ class CharacterConditionModelTest extends TestCase
 
         CharacterCondition::factory()->create([
             'character_id' => $character->id,
-            'condition_id' => $condition->id,
+            'condition_slug' => $condition->full_slug,
         ]);
 
         $this->expectException(QueryException::class);
 
         CharacterCondition::factory()->create([
             'character_id' => $character->id,
-            'condition_id' => $condition->id,
+            'condition_slug' => $condition->full_slug,
         ]);
     }
 

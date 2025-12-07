@@ -46,8 +46,8 @@ class SpellManagerService
 
         // Exclude already known spells unless includeKnown is true
         if (! $includeKnown) {
-            $knownSpellIds = $character->spells()->pluck('spell_id');
-            $query->whereNotIn('spells.id', $knownSpellIds);
+            $knownSpellSlugs = $character->spells()->pluck('spell_slug');
+            $query->whereNotIn('spells.full_slug', $knownSpellSlugs);
         }
 
         if ($maxLevel !== null) {
@@ -82,7 +82,7 @@ class SpellManagerService
 
         return CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_id' => $spell->id,
+            'spell_slug' => $spell->full_slug,
             'preparation_status' => 'known',
             'source' => $source,
             'level_acquired' => $character->total_level,
@@ -97,7 +97,7 @@ class SpellManagerService
     public function forgetSpell(Character $character, Spell $spell): void
     {
         $characterSpell = $character->spells()
-            ->where('spell_id', $spell->id)
+            ->where('spell_slug', $spell->full_slug)
             ->first();
 
         if (! $characterSpell) {
@@ -115,7 +115,7 @@ class SpellManagerService
     public function prepareSpell(Character $character, Spell $spell): CharacterSpell
     {
         $characterSpell = $character->spells()
-            ->where('spell_id', $spell->id)
+            ->where('spell_slug', $spell->full_slug)
             ->first();
 
         if (! $characterSpell) {
@@ -148,7 +148,7 @@ class SpellManagerService
     public function unprepareSpell(Character $character, Spell $spell): CharacterSpell
     {
         $characterSpell = $character->spells()
-            ->where('spell_id', $spell->id)
+            ->where('spell_slug', $spell->full_slug)
             ->first();
 
         if (! $characterSpell) {
@@ -296,7 +296,7 @@ class SpellManagerService
      */
     private function characterKnowsSpell(Character $character, Spell $spell): bool
     {
-        return $character->spells()->where('spell_id', $spell->id)->exists();
+        return $character->spells()->where('spell_slug', $spell->full_slug)->exists();
     }
 
     /**

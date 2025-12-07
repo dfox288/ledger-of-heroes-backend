@@ -120,6 +120,7 @@ it('returns equipment choices for level 1 character', function () {
     $choice1Item1->shouldReceive('__get')->with('quantity')->andReturn(1);
     $choice1Item1->shouldReceive('__get')->with('proficiency_type_id')->andReturn(null);
     $choice1Item1->shouldReceive('__get')->with('proficiencyType')->andReturn(null);
+    $choice1Item1->shouldReceive('offsetExists')->andReturn(true);
 
     $choice1Item2 = Mockery::mock(EquipmentChoiceItem::class);
     $choice1Item2->shouldReceive('getAttribute')->with('item_id')->andReturn(456);
@@ -132,6 +133,7 @@ it('returns equipment choices for level 1 character', function () {
     $choice1Item2->shouldReceive('__get')->with('quantity')->andReturn(1);
     $choice1Item2->shouldReceive('__get')->with('proficiency_type_id')->andReturn(null);
     $choice1Item2->shouldReceive('__get')->with('proficiencyType')->andReturn(null);
+    $choice1Item2->shouldReceive('offsetExists')->andReturn(true);
 
     $entityItem1 = Mockery::mock(EntityItem::class);
     $entityItem1->shouldReceive('getAttribute')->with('is_choice')->andReturn(true);
@@ -215,21 +217,24 @@ it('returns equipment choices for level 1 character', function () {
         ->toHaveKey('option', 'a')
         ->toHaveKey('label', 'chain mail')
         ->toHaveKey('items')
+        ->toHaveKey('is_category')
+        ->toHaveKey('category_item_count')
         ->and($firstChoice->options[0]['items'])->toHaveCount(1)
         ->and($firstChoice->options[0]['items'][0])->toMatchArray([
-            'id' => 123,
             'name' => 'Chain Mail',
-            'slug' => 'chain-mail',
             'full_slug' => 'phb:chain-mail',
             'quantity' => 1,
-        ]);
+        ])
+        ->and($firstChoice->options[0]['is_category'])->toBeFalse()
+        ->and($firstChoice->options[0]['category_item_count'])->toBe(0);
 
     expect($firstChoice->options[1])
         ->toHaveKey('option', 'b')
         ->toHaveKey('label', 'leather armor, longbow, and arrows (20)')
         ->toHaveKey('items')
         ->and($firstChoice->options[1]['items'])->toHaveCount(1)
-        ->and($firstChoice->options[1]['items'][0])->toHaveKey('full_slug', 'phb:leather-armor');
+        ->and($firstChoice->options[1]['items'][0])->toHaveKey('full_slug', 'phb:leather-armor')
+        ->and($firstChoice->options[1]['is_category'])->toBeFalse();
 });
 
 // Note: Equipment choices at level 1 always show all options.

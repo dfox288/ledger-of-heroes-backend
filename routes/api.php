@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BackgroundController;
 use App\Http\Controllers\Api\CharacterChoiceController;
 use App\Http\Controllers\Api\CharacterController;
+use App\Http\Controllers\Api\CharacterValidationController;
 use App\Http\Controllers\Api\ClassController;
 use App\Http\Controllers\Api\ConditionController;
 use App\Http\Controllers\Api\DamageTypeController;
@@ -241,11 +242,17 @@ Route::prefix('v1')->group(function () {
     | - POST /characters/{id}/feature-selections        - Select invocations, etc.
     |
     */
+    // Character Validation (validate-all must come before apiResource to avoid {character} match)
+    Route::get('characters/validate-all', [CharacterValidationController::class, 'index'])
+        ->name('characters.validate-all');
+
     Route::apiResource('characters', CharacterController::class);
     Route::get('characters/{character}/stats', [CharacterController::class, 'stats'])
         ->name('characters.stats');
     Route::get('characters/{character}/summary', [CharacterController::class, 'summary'])
         ->name('characters.summary');
+    Route::get('characters/{character}/validate', [CharacterValidationController::class, 'show'])
+        ->name('characters.validate');
 
     // Character Spell Management
     Route::prefix('characters/{character}')->name('characters.')->group(function () {

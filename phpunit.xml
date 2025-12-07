@@ -108,6 +108,8 @@
             <file>tests/Feature/Api/CharacterSummaryTest.php</file>
             <!-- Feature Selection API tests -->
             <file>tests/Feature/Api/FeatureSelectionApiTest.php</file>
+            <!-- Character Validation API tests -->
+            <file>tests/Feature/Api/CharacterValidationApiTest.php</file>
         </testsuite>
 
         <!-- Feature-Search: Unified Meilisearch tests using fixture data (approx 120s) -->

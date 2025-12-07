@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -123,44 +124,99 @@ return new class extends Migration
         });
 
         // Character_conditions table: condition_id -> condition_slug
-        // Has: foreign key, unique [character_id, condition_id]
-        Schema::table('character_conditions', function (Blueprint $table) {
-            $table->dropForeign(['condition_id']);
-            $table->dropUnique(['character_id', 'condition_id']);
-        });
+        // Has: foreign keys on BOTH character_id and condition_id, unique [character_id, condition_id]
+        // MySQL uses the composite unique index as backing for FKs - must handle carefully
+        // SQLite can't drop FK columns - must recreate table
 
-        Schema::table('character_conditions', function (Blueprint $table) {
-            $table->dropColumn('condition_id');
-        });
+        if (DB::getDriverName() === 'mysql') {
+            // MySQL: Create temp indexes, drop FKs explicitly, then drop unique
+            Schema::table('character_conditions', function (Blueprint $table) {
+                $table->index('character_id', 'temp_character_id_idx');
+                $table->index('condition_id', 'temp_condition_id_idx');
+            });
 
-        Schema::table('character_conditions', function (Blueprint $table) {
-            $table->string('condition_slug', 150)->after('character_id');
-            $table->index('condition_slug');
-            $table->unique(['character_id', 'condition_slug']);
-        });
+            Schema::table('character_conditions', function (Blueprint $table) {
+                $table->dropForeign(['character_id']);
+                $table->dropForeign(['condition_id']);
+            });
+
+            Schema::table('character_conditions', function (Blueprint $table) {
+                $table->dropUnique(['character_id', 'condition_id']);
+                $table->dropIndex('temp_character_id_idx');
+                $table->dropIndex('temp_condition_id_idx');
+            });
+
+            Schema::table('character_conditions', function (Blueprint $table) {
+                $table->dropColumn('condition_id');
+            });
+
+            Schema::table('character_conditions', function (Blueprint $table) {
+                $table->string('condition_slug', 150)->after('character_id');
+                $table->index('condition_slug');
+                $table->unique(['character_id', 'condition_slug']);
+                $table->foreign('character_id')->references('id')->on('characters')->cascadeOnDelete();
+            });
+        } else {
+            // SQLite: Must drop and recreate table (SQLite can't alter FK columns)
+            Schema::dropIfExists('character_conditions');
+            Schema::create('character_conditions', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('character_id')->constrained()->cascadeOnDelete();
+                $table->string('condition_slug', 150);
+                $table->unsignedTinyInteger('level')->nullable();
+                $table->string('source')->nullable();
+                $table->string('duration')->nullable();
+                $table->timestamps();
+                $table->index('condition_slug');
+                $table->unique(['character_id', 'condition_slug']);
+            });
+        }
 
         // Feature_selections table: optional_feature_id, class_id -> optional_feature_slug, class_slug
         // Has: foreign keys, unique [character_id, optional_feature_id], index [character_id, class_id]
-        // Note: Table was renamed from character_optional_features, so index names use old table name
-        Schema::table('feature_selections', function (Blueprint $table) {
-            $table->dropForeign(['optional_feature_id']);
-            $table->dropForeign(['class_id']);
-            $table->dropUnique('char_opt_feature_unique');
-            // Index was created with old table name
-            $table->dropIndex('character_optional_features_character_id_class_id_index');
-        });
+        // IMPORTANT: Table was renamed from character_optional_features, so ALL constraint names use old table name
 
-        Schema::table('feature_selections', function (Blueprint $table) {
-            $table->dropColumn(['optional_feature_id', 'class_id']);
-        });
+        if (DB::getDriverName() === 'mysql') {
+            // MySQL: Must use explicit old table names for FK constraints
+            DB::statement('ALTER TABLE feature_selections DROP FOREIGN KEY character_optional_features_optional_feature_id_foreign');
+            DB::statement('ALTER TABLE feature_selections DROP FOREIGN KEY character_optional_features_class_id_foreign');
+            DB::statement('ALTER TABLE feature_selections DROP FOREIGN KEY character_optional_features_character_id_foreign');
 
-        Schema::table('feature_selections', function (Blueprint $table) {
-            $table->string('optional_feature_slug', 150)->after('character_id');
-            $table->string('class_slug', 150)->nullable()->after('optional_feature_slug');
-            $table->index('optional_feature_slug');
-            $table->index('class_slug');
-            $table->unique(['character_id', 'optional_feature_slug'], 'char_opt_feature_slug_unique');
-        });
+            Schema::table('feature_selections', function (Blueprint $table) {
+                $table->dropUnique('char_opt_feature_unique');
+                $table->dropIndex('character_optional_features_character_id_class_id_index');
+            });
+
+            Schema::table('feature_selections', function (Blueprint $table) {
+                $table->dropColumn(['optional_feature_id', 'class_id']);
+            });
+
+            Schema::table('feature_selections', function (Blueprint $table) {
+                $table->string('optional_feature_slug', 150)->after('character_id');
+                $table->string('class_slug', 150)->nullable()->after('optional_feature_slug');
+                $table->index('optional_feature_slug');
+                $table->index('class_slug');
+                $table->unique(['character_id', 'optional_feature_slug'], 'char_opt_feature_slug_unique');
+                $table->foreign('character_id')->references('id')->on('characters')->cascadeOnDelete();
+            });
+        } else {
+            // SQLite: Must drop and recreate table (SQLite can't alter FK columns)
+            Schema::dropIfExists('feature_selections');
+            Schema::create('feature_selections', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('character_id')->constrained()->cascadeOnDelete();
+                $table->string('optional_feature_slug', 150);
+                $table->string('class_slug', 150)->nullable();
+                $table->string('subclass_name')->nullable();
+                $table->unsignedTinyInteger('level_acquired')->default(1);
+                $table->unsignedTinyInteger('uses_remaining')->nullable();
+                $table->unsignedTinyInteger('max_uses')->nullable();
+                $table->timestamps();
+                $table->unique(['character_id', 'optional_feature_slug'], 'char_opt_feature_slug_unique');
+                $table->index('optional_feature_slug');
+                $table->index('class_slug');
+            });
+        }
     }
 
     /**

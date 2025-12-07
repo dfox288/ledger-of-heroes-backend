@@ -444,7 +444,7 @@ describe('CharacterChoiceService', function () {
 
     it('gets a specific choice by ID', function () {
         $choice = new PendingChoice(
-            id: 'proficiency:class:rogue:1:skills',
+            id: 'proficiency|class|rogue|1|skills',
             type: 'proficiency',
             subtype: 'skill',
             source: 'class',
@@ -484,11 +484,11 @@ describe('CharacterChoiceService', function () {
 
         $this->service->registerHandler($handler);
 
-        $retrieved = $this->service->getChoice($this->character, 'proficiency:class:rogue:1:skills');
+        $retrieved = $this->service->getChoice($this->character, 'proficiency|class|rogue|1|skills');
 
         expect($retrieved)
             ->toBeInstanceOf(PendingChoice::class)
-            ->and($retrieved->id)->toBe('proficiency:class:rogue:1:skills')
+            ->and($retrieved->id)->toBe('proficiency|class|rogue|1|skills')
             ->and($retrieved->type)->toBe('proficiency');
     });
 
@@ -499,7 +499,7 @@ describe('CharacterChoiceService', function () {
             ->andReturnUsing(fn ($callback) => $callback());
 
         $choice = new PendingChoice(
-            id: 'proficiency:class:rogue:1:skills',
+            id: 'proficiency|class|rogue|1|skills',
             type: 'proficiency',
             subtype: 'skill',
             source: 'class',
@@ -545,14 +545,14 @@ describe('CharacterChoiceService', function () {
         };
 
         $this->service->registerHandler($handler);
-        $this->service->resolveChoice($this->character, 'proficiency:class:rogue:1:skills', ['acrobatics']);
+        $this->service->resolveChoice($this->character, 'proficiency|class|rogue|1|skills', ['acrobatics']);
 
         expect($handler->resolved)->toBeTrue();
     });
 
     it('checks if a choice can be undone', function () {
         $choice = new PendingChoice(
-            id: 'proficiency:class:rogue:1:skills',
+            id: 'proficiency|class|rogue|1|skills',
             type: 'proficiency',
             subtype: 'skill',
             source: 'class',
@@ -592,13 +592,13 @@ describe('CharacterChoiceService', function () {
 
         $this->service->registerHandler($handler);
 
-        expect($this->service->canUndoChoice($this->character, 'proficiency:class:rogue:1:skills'))
+        expect($this->service->canUndoChoice($this->character, 'proficiency|class|rogue|1|skills'))
             ->toBeTrue();
     });
 
     it('undoes a choice when allowed', function () {
         $choice = new PendingChoice(
-            id: 'proficiency:class:rogue:1:skills',
+            id: 'proficiency|class|rogue|1|skills',
             type: 'proficiency',
             subtype: 'skill',
             source: 'class',
@@ -644,14 +644,14 @@ describe('CharacterChoiceService', function () {
         };
 
         $this->service->registerHandler($handler);
-        $this->service->undoChoice($this->character, 'proficiency:class:rogue:1:skills');
+        $this->service->undoChoice($this->character, 'proficiency|class|rogue|1|skills');
 
         expect($handler->undone)->toBeTrue();
     });
 
     it('throws ChoiceNotUndoableException when undo not allowed', function () {
         $choice = new PendingChoice(
-            id: 'proficiency:class:rogue:1:skills',
+            id: 'proficiency|class|rogue|1|skills',
             type: 'proficiency',
             subtype: 'skill',
             source: 'class',
@@ -691,7 +691,62 @@ describe('CharacterChoiceService', function () {
 
         $this->service->registerHandler($handler);
 
-        expect(fn () => $this->service->undoChoice($this->character, 'proficiency:class:rogue:1:skills'))
+        expect(fn () => $this->service->undoChoice($this->character, 'proficiency|class|rogue|1|skills'))
             ->toThrow(\App\Exceptions\ChoiceNotUndoableException::class);
+    });
+
+    it('parses choice ID with full_slug format containing colons', function () {
+        // Choice ID format: type|source|entity_slug|level|choice_group
+        // When entity_slug uses full_slug (e.g., "phb:bard"), the ID contains colons within the slug
+        $choiceId = 'proficiency|class|phb:bard|1|tool_choice_1';
+
+        $choice = new PendingChoice(
+            id: $choiceId,
+            type: 'proficiency',
+            subtype: 'tool',
+            source: 'class',
+            sourceName: 'Bard',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: ['core:lute', 'core:drum'],
+            optionsEndpoint: null
+        );
+
+        $handler = new class($choice) implements ChoiceTypeHandler
+        {
+            public function __construct(private PendingChoice $choice) {}
+
+            public function getType(): string
+            {
+                return 'proficiency';
+            }
+
+            public function getChoices(Character $character): Collection
+            {
+                return collect([$this->choice]);
+            }
+
+            public function resolve(Character $character, PendingChoice $choice, array $selection): void {}
+
+            public function canUndo(Character $character, PendingChoice $choice): bool
+            {
+                return false;
+            }
+
+            public function undo(Character $character, PendingChoice $choice): void {}
+        };
+
+        $this->service->registerHandler($handler);
+
+        // Should correctly parse "proficiency" as the type, not "proficiency|class|phb"
+        $retrieved = $this->service->getChoice($this->character, $choiceId);
+
+        expect($retrieved)
+            ->toBeInstanceOf(PendingChoice::class)
+            ->and($retrieved->id)->toBe($choiceId)
+            ->and($retrieved->type)->toBe('proficiency');
     });
 });

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Issue #319**: Populate `full_slug` on stub base races created by SubraceStrategy
+  - Base races auto-created when importing subraces now have `full_slug` (e.g., `phb:elf`)
+  - Uses source from subrace data with PHB fallback
+  - Required for frontend character wizard to save race selections
+
+- **Issue #320**: Fix choice ID parsing with `full_slug` format
+  - Choice IDs now correctly parse when entity slugs contain colons (e.g., `phb:bard`)
+  - Changed `parseChoiceType()` to split on `|` delimiter instead of `:`
+  - Format: `{type}|{source}|{entity_slug}|{level}|{group}`
+  - Updated test fixtures to use correct `|` delimiter format
+
 ### Added
 
 - **Issue #295**: Add character export/import feature for portable JSON sharing

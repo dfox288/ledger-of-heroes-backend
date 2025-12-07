@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed resolution code accessing missing `full_slug` key
   - Also added `full_slug` to pack contents and category items
 
+- **Issue #332**: Fix outdated `CharacterMulticlassApiTest` test file
+  - Updated tests to use `class_slug` column instead of removed `class_id`
+  - Updated API parameters from `class_id` to `class` (the correct parameter name)
+  - Updated subclass parameters from `subclass_id` to `subclass`
+  - The `force: true` parameter works correctly; tests were just outdated
+
 ### Added
 
 - **Issue #295**: Add character export/import feature for portable JSON sharing

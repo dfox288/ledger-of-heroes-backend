@@ -268,7 +268,7 @@ class AsiChoiceHandlerTest extends TestCase
 
         $this->handler->resolve($character, $choice, [
             'type' => 'feat',
-            'feat_id' => 42,
+            'feat_slug' => $feat->full_slug,
         ]);
 
         $this->assertTrue(true); // Assertion to avoid risky test warning
@@ -373,7 +373,7 @@ class AsiChoiceHandlerTest extends TestCase
     }
 
     /** @test */
-    public function it_throws_invalid_selection_exception_when_feat_id_is_missing_for_feat_type(): void
+    public function it_throws_invalid_selection_exception_when_feat_slug_is_missing_for_feat_type(): void
     {
         $this->expectException(InvalidSelectionException::class);
 

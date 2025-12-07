@@ -255,7 +255,7 @@ class CharacterMulticlassApiTest extends TestCase
             'order' => 2,
         ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/classes/{$wizard->slug}/level-up");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/classes/{$wizard->full_slug}/level-up");
 
         $response->assertOk()
             ->assertJsonPath('data.level', 4);
@@ -289,7 +289,7 @@ class CharacterMulticlassApiTest extends TestCase
             'order' => 2,
         ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/classes/{$wizard->slug}/level-up");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/classes/{$wizard->full_slug}/level-up");
 
         $response->assertUnprocessable()
             ->assertJsonPath('message', 'Character has reached maximum level (20)');
@@ -314,7 +314,7 @@ class CharacterMulticlassApiTest extends TestCase
             'order' => 1,
         ]);
 
-        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$fighter->slug}/subclass", [
+        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$fighter->full_slug}/subclass", [
             'subclass' => $champion->full_slug,
         ]);
 
@@ -347,7 +347,7 @@ class CharacterMulticlassApiTest extends TestCase
             'order' => 1,
         ]);
 
-        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$fighter->slug}/subclass", [
+        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$fighter->full_slug}/subclass", [
             'subclass' => $abjuration->full_slug,
         ]);
 
@@ -381,7 +381,7 @@ class CharacterMulticlassApiTest extends TestCase
             'order' => 1,
         ]);
 
-        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$fighter->slug}/subclass", [
+        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$fighter->full_slug}/subclass", [
             'subclass' => $champion->full_slug,
         ]);
 
@@ -417,7 +417,7 @@ class CharacterMulticlassApiTest extends TestCase
             'order' => 1,
         ]);
 
-        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$cleric->slug}/subclass", [
+        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$cleric->full_slug}/subclass", [
             'subclass' => $lifeDomain->full_slug,
         ]);
 
@@ -445,7 +445,7 @@ class CharacterMulticlassApiTest extends TestCase
             'order' => 1,
         ]);
 
-        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$wizard->slug}/subclass", [
+        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$wizard->full_slug}/subclass", [
             'subclass' => $abjuration->full_slug,
         ]);
 

@@ -387,16 +387,24 @@ class CharacterClassController extends Controller
      *
      * @param  SetSubclassRequest  $request  The validated request
      * @param  Character  $character  The character
-     * @param  string  $classIdOrSlug  Class ID or slug
+     * @param  string  $classSlugOrFullSlug  Class slug or full_slug
      *
      * @throws InvalidSubclassException If subclass doesn't belong to the class
      * @throws SubclassLevelRequirementException If character level is below requirement
      */
-    public function setSubclass(SetSubclassRequest $request, Character $character, string $classIdOrSlug): JsonResponse
+    public function setSubclass(SetSubclassRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {
-        $class = is_numeric($classIdOrSlug)
-            ? CharacterClass::findOrFail($classIdOrSlug)
-            : CharacterClass::where('slug', $classIdOrSlug)->firstOrFail();
+        // Accept either full_slug (phb:fighter) or simple slug (fighter)
+        $class = CharacterClass::where('full_slug', $classSlugOrFullSlug)
+            ->orWhere('slug', $classSlugOrFullSlug)
+            ->first();
+
+        if (! $class) {
+            return response()->json([
+                'message' => 'Class not found',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
         $pivot = $character->characterClasses()->where('class_slug', $class->full_slug)->first();
 
         if (! $pivot) {

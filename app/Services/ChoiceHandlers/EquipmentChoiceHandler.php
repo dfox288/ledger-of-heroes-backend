@@ -73,6 +73,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                                 'id' => $choiceItem->item->id,
                                 'name' => $choiceItem->item->name,
                                 'slug' => $choiceItem->item->slug,
+                                'full_slug' => $choiceItem->item->full_slug,
                                 'quantity' => $choiceItem->quantity,
                             ];
 
@@ -85,6 +86,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                                             'id' => $content->item->id,
                                             'name' => $content->item->name,
                                             'slug' => $content->item->slug,
+                                            'full_slug' => $content->item->full_slug,
                                         ] : null,
                                     ])
                                     ->filter(fn ($c) => $c['item'] !== null)
@@ -105,6 +107,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                                     'id' => $categoryItem->id,
                                     'name' => $categoryItem->name,
                                     'slug' => $categoryItem->slug,
+                                    'full_slug' => $categoryItem->full_slug,
                                     'quantity' => $choiceItem->quantity,
                                 ];
                             }
@@ -281,6 +284,6 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
         return Item::whereIn('slug', $slugs)
             ->where('is_magic', false)
             ->orderBy('name')
-            ->get(['id', 'name', 'slug']);
+            ->get(['id', 'name', 'slug', 'full_slug']);
     }
 }

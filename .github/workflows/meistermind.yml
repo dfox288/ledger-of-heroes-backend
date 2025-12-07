@@ -81,11 +81,12 @@ jobs:
           *Need help? Mention @meistermind*"
 
   # ══════════════════════════════════════════════════════════════════════════
-  # Respond to @meistermind mentions
+  # Respond to @meistermind mentions in issues and PR conversations
+  # Note: Inline PR review comments are handled by the review-pr job
   # ══════════════════════════════════════════════════════════════════════════
   respond-to-mention:
     if: |
-      (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') &&
+      github.event_name == 'issue_comment' &&
       contains(github.event.comment.body, '@meistermind') &&
       github.event.comment.user.login == 'dfox288'
     runs-on: [self-hosted, claude-code]
@@ -113,13 +114,13 @@ jobs:
         id: context
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # For issue_comment events, github.event.issue.number works for both issues and PRs
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          ISSUE_NUMBER="${{ github.event.issue.number }}"
-
           # Get issue/PR details
           gh issue view "$ISSUE_NUMBER" --json title,body,comments > /tmp/issue.json
 
-          # Check if it's a PR
+          # Check if it's a PR (github.event.issue.pull_request is truthy for PRs)
           if [ "${{ github.event.issue.pull_request }}" != "" ]; then
             echo "type=pr" >> $GITHUB_OUTPUT
             gh pr diff "$ISSUE_NUMBER" > /tmp/diff.txt 2>/dev/null || echo "" > /tmp/diff.txt
@@ -184,10 +185,15 @@ jobs:
           - The file will be uploaded as a downloadable artifact automatically
           EOF
 
-          claude -p "$(cat /tmp/prompt.txt)" \
+          # Run claude and capture both stdout and stderr
+          if claude -p "$(cat /tmp/prompt.txt)" \
             --max-turns 15 \
             --allowedTools "Read,Write,Edit,Bash(git:*),Bash(gh:*)" \
-            2>/dev/null > /tmp/response.txt || true
+            > /tmp/response.txt 2>&1; then
+            CLAUDE_SUCCESS=true
+          else
+            CLAUDE_SUCCESS=false
+          fi
 
           # If Claude created files but couldn't push (e.g., workflow files),
           # save them for artifact upload
@@ -202,13 +208,35 @@ jobs:
             done < /tmp/changed-files.txt
           fi
 
-          # Only post comment if we have a meaningful response (not empty, not just errors)
-          if [ -s /tmp/response.txt ] && ! grep -qE "^(Error|error|ERROR):" /tmp/response.txt; then
-            gh issue comment ${{ github.event.issue.number }} \
-              --body "$(cat /tmp/response.txt)
+          # Post response or error message
+          if [ -s /tmp/response.txt ]; then
+            # Check if response looks like an error
+            if grep -qE "^(Error|error|ERROR):" /tmp/response.txt; then
+              gh issue comment "$ISSUE_NUMBER" \
+                --body "🎲 **MeisterMind encountered an issue:**
+
+          \`\`\`
+          $(head -20 /tmp/response.txt)
+          \`\`\`
+
+          ---
+          *@meistermind*"
+            else
+              gh issue comment "$ISSUE_NUMBER" \
+                --body "$(cat /tmp/response.txt)
 
           ---
           *🎲 @meistermind*"
+            fi
+          else
+            # Response file is empty - something went wrong
+            gh issue comment "$ISSUE_NUMBER" \
+              --body "🎲 **MeisterMind couldn't process this request.** The response was empty.
+
+          Please try again or check the workflow logs.
+
+          ---
+          *@meistermind*"
           fi
 
       - name: Upload created files

@@ -19,18 +19,18 @@ class StoreFeatureSelectionRequest extends FormRequest
         $character = $this->route('character');
 
         return [
-            'optional_feature_id' => [
+            'optional_feature_slug' => [
                 'required',
-                'integer',
-                Rule::exists('optional_features', 'id'),
+                'string',
+                Rule::exists('optional_features', 'full_slug'),
                 // Ensure the character doesn't already have this feature
                 Rule::unique('feature_selections')
                     ->where('character_id', $character->id),
             ],
-            'class_id' => [
+            'class_slug' => [
                 'nullable',
-                'integer',
-                Rule::exists('classes', 'id'),
+                'string',
+                Rule::exists('classes', 'full_slug'),
             ],
             'subclass_name' => ['nullable', 'string', 'max:100'],
             'level_acquired' => ['sometimes', 'integer', 'min:1', 'max:20'],
@@ -46,7 +46,9 @@ class StoreFeatureSelectionRequest extends FormRequest
                 }
 
                 $character = $this->route('character');
-                $feature = OptionalFeature::with(['classes', 'classPivots'])->find($this->optional_feature_id);
+                $feature = OptionalFeature::with(['classes', 'classPivots'])
+                    ->where('full_slug', $this->optional_feature_slug)
+                    ->first();
 
                 if (! $feature) {
                     return;
@@ -55,7 +57,7 @@ class StoreFeatureSelectionRequest extends FormRequest
                 // Check level requirement
                 if ($feature->level_requirement && $character->total_level < $feature->level_requirement) {
                     $validator->errors()->add(
-                        'optional_feature_id',
+                        'optional_feature_slug',
                         "This feature requires level {$feature->level_requirement}. Character is level {$character->total_level}."
                     );
                 }
@@ -63,7 +65,7 @@ class StoreFeatureSelectionRequest extends FormRequest
                 // Check class eligibility
                 if (! $this->isClassEligible($character, $feature)) {
                     $validator->errors()->add(
-                        'optional_feature_id',
+                        'optional_feature_slug',
                         'This character does not have the required class or subclass for this feature.'
                     );
                 }
@@ -74,7 +76,7 @@ class StoreFeatureSelectionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'optional_feature_id.unique' => 'This character has already selected this feature.',
+            'optional_feature_slug.unique' => 'This character has already selected this feature.',
         ];
     }
 
@@ -95,10 +97,10 @@ class StoreFeatureSelectionRequest extends FormRequest
         // Check if any of the character's classes can use this feature
         foreach ($characterClasses as $charClass) {
             // Check base class eligibility
-            if ($feature->classes->contains('id', $charClass->class_id)) {
+            if ($feature->classes->contains('full_slug', $charClass->class_slug)) {
                 // Check if feature requires specific subclass
                 $subclassRequirements = $feature->classPivots
-                    ->where('class_id', $charClass->class_id)
+                    ->where('class_slug', $charClass->class_slug)
                     ->pluck('subclass_name')
                     ->filter();
 

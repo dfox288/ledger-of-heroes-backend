@@ -99,12 +99,14 @@ it('returns equipment choices for level 1 character', function () {
     $item1->id = 123;
     $item1->name = 'Chain Mail';
     $item1->slug = 'chain-mail';
+    $item1->full_slug = 'phb:chain-mail';
     $item1->contents = $emptyContents;
 
     $item2 = new \stdClass;
     $item2->id = 456;
     $item2->name = 'Leather Armor';
     $item2->slug = 'leather-armor';
+    $item2->full_slug = 'phb:leather-armor';
     $item2->contents = $emptyContents;
 
     $choice1Item1 = Mockery::mock(EquipmentChoiceItem::class);
@@ -210,6 +212,7 @@ it('returns equipment choices for level 1 character', function () {
             'id' => 123,
             'name' => 'Chain Mail',
             'slug' => 'chain-mail',
+            'full_slug' => 'phb:chain-mail',
             'quantity' => 1,
         ]);
 
@@ -217,7 +220,8 @@ it('returns equipment choices for level 1 character', function () {
         ->toHaveKey('option', 'b')
         ->toHaveKey('label', 'leather armor, longbow, and arrows (20)')
         ->toHaveKey('items')
-        ->and($firstChoice->options[1]['items'])->toHaveCount(1);
+        ->and($firstChoice->options[1]['items'])->toHaveCount(1)
+        ->and($firstChoice->options[1]['items'][0])->toHaveKey('full_slug', 'phb:leather-armor');
 });
 
 // Note: Equipment choices at level 1 always show all options.

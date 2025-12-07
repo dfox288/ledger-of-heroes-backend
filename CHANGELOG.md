@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Format: `{type}|{source}|{entity_slug}|{level}|{group}`
   - Updated test fixtures to use correct `|` delimiter format
 
+- **Issue #321**: Include `full_slug` in equipment choice item options
+  - Equipment choice options now include `full_slug` for items (e.g., `phb:rapier`)
+  - Fixed resolution code accessing missing `full_slug` key
+  - Also added `full_slug` to pack contents and category items
+
 ### Added
 
 - **Issue #295**: Add character export/import feature for portable JSON sharing

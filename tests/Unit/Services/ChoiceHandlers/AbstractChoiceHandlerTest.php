@@ -38,11 +38,11 @@ describe('AbstractChoiceHandler', function () {
             public function testGenerateChoiceId(
                 string $type,
                 string $source,
-                int $sourceId,
+                string $sourceSlug,
                 int $level,
                 string $group
             ): string {
-                return $this->generateChoiceId($type, $source, $sourceId, $level, $group);
+                return $this->generateChoiceId($type, $source, $sourceSlug, $level, $group);
             }
 
             public function testParseChoiceId(string $choiceId): array
@@ -57,42 +57,42 @@ describe('AbstractChoiceHandler', function () {
             $choiceId = $this->handler->testGenerateChoiceId(
                 'proficiency',
                 'class',
-                1,
+                'phb:fighter',
                 1,
                 'skills'
             );
 
-            expect($choiceId)->toBe('proficiency:class:1:1:skills');
+            expect($choiceId)->toBe('proficiency|class|phb:fighter|1|skills');
         });
 
         it('handles different types correctly', function () {
             $choiceId = $this->handler->testGenerateChoiceId(
                 'spell',
                 'race',
-                42,
+                'phb:high-elf',
                 3,
                 'cantrips'
             );
 
-            expect($choiceId)->toBe('spell:race:42:3:cantrips');
+            expect($choiceId)->toBe('spell|race|phb:high-elf|3|cantrips');
         });
 
-        it('handles zero values correctly', function () {
+        it('handles empty group correctly', function () {
             $choiceId = $this->handler->testGenerateChoiceId(
                 'language',
                 'background',
-                0,
+                'phb:sage',
                 0,
                 ''
             );
 
-            expect($choiceId)->toBe('language:background:0:0:');
+            expect($choiceId)->toBe('language|background|phb:sage|0|');
         });
 
         it('creates unique IDs for different parameters', function () {
-            $id1 = $this->handler->testGenerateChoiceId('proficiency', 'class', 1, 1, 'skills');
-            $id2 = $this->handler->testGenerateChoiceId('proficiency', 'class', 1, 1, 'tools');
-            $id3 = $this->handler->testGenerateChoiceId('proficiency', 'class', 1, 2, 'skills');
+            $id1 = $this->handler->testGenerateChoiceId('proficiency', 'class', 'phb:fighter', 1, 'skills');
+            $id2 = $this->handler->testGenerateChoiceId('proficiency', 'class', 'phb:fighter', 1, 'tools');
+            $id3 = $this->handler->testGenerateChoiceId('proficiency', 'class', 'phb:fighter', 2, 'skills');
 
             expect($id1)->not->toBe($id2);
             expect($id1)->not->toBe($id3);
@@ -102,42 +102,42 @@ describe('AbstractChoiceHandler', function () {
 
     describe('parseChoiceId', function () {
         it('correctly parses a valid choice ID', function () {
-            $parsed = $this->handler->testParseChoiceId('proficiency:class:1:1:skills');
+            $parsed = $this->handler->testParseChoiceId('proficiency|class|phb:fighter|1|skills');
 
             expect($parsed)->toBe([
                 'type' => 'proficiency',
                 'source' => 'class',
-                'sourceId' => 1,
+                'sourceSlug' => 'phb:fighter',
                 'level' => 1,
                 'group' => 'skills',
             ]);
         });
 
-        it('correctly parses numeric values', function () {
-            $parsed = $this->handler->testParseChoiceId('spell:race:42:3:cantrips');
+        it('correctly parses level as integer', function () {
+            $parsed = $this->handler->testParseChoiceId('spell|race|phb:high-elf|3|cantrips');
 
             expect($parsed)->toMatchArray([
-                'sourceId' => 42,
+                'sourceSlug' => 'phb:high-elf',
                 'level' => 3,
             ])
-                ->and($parsed['sourceId'])->toBeInt()
+                ->and($parsed['sourceSlug'])->toBeString()
                 ->and($parsed['level'])->toBeInt();
         });
 
         it('handles empty group correctly', function () {
-            $parsed = $this->handler->testParseChoiceId('language:background:5:0:');
+            $parsed = $this->handler->testParseChoiceId('language|background|phb:sage|0|');
 
             expect($parsed)->toMatchArray([
                 'type' => 'language',
                 'source' => 'background',
-                'sourceId' => 5,
+                'sourceSlug' => 'phb:sage',
                 'level' => 0,
                 'group' => '',
             ]);
         });
 
         it('throws exception for incomplete choice IDs', function () {
-            expect(fn () => $this->handler->testParseChoiceId('proficiency:class'))
+            expect(fn () => $this->handler->testParseChoiceId('proficiency|class'))
                 ->toThrow(\App\Exceptions\InvalidChoiceException::class);
         });
 
@@ -148,11 +148,11 @@ describe('AbstractChoiceHandler', function () {
 
         it('throws exception for choice ID with wrong segment count', function () {
             // Too few segments
-            expect(fn () => $this->handler->testParseChoiceId('a:b:c'))
+            expect(fn () => $this->handler->testParseChoiceId('a|b|c'))
                 ->toThrow(\App\Exceptions\InvalidChoiceException::class);
 
             // Too many segments
-            expect(fn () => $this->handler->testParseChoiceId('a:b:c:d:e:f'))
+            expect(fn () => $this->handler->testParseChoiceId('a|b|c|d|e|f'))
                 ->toThrow(\App\Exceptions\InvalidChoiceException::class);
         });
     });
@@ -162,7 +162,7 @@ describe('AbstractChoiceHandler', function () {
             $original = [
                 'type' => 'proficiency',
                 'source' => 'class',
-                'sourceId' => 1,
+                'sourceSlug' => 'phb:fighter',
                 'level' => 1,
                 'group' => 'skills',
             ];
@@ -170,7 +170,7 @@ describe('AbstractChoiceHandler', function () {
             $choiceId = $this->handler->testGenerateChoiceId(
                 $original['type'],
                 $original['source'],
-                $original['sourceId'],
+                $original['sourceSlug'],
                 $original['level'],
                 $original['group']
             );
@@ -182,19 +182,19 @@ describe('AbstractChoiceHandler', function () {
 
         it('maintains data integrity with various inputs', function () {
             $testCases = [
-                ['spell', 'race', 99, 20, 'level-9-spells'],
-                ['expertise', 'class', 3, 6, 'bard-expertise'],
-                ['fighting_style', 'class', 1, 1, 'fighter-style'],
+                ['spell', 'race', 'phb:high-elf', 20, 'level-9-spells'],
+                ['expertise', 'class', 'phb:bard', 6, 'bard-expertise'],
+                ['fighting_style', 'class', 'phb:fighter', 1, 'fighter-style'],
             ];
 
-            foreach ($testCases as [$type, $source, $sourceId, $level, $group]) {
-                $choiceId = $this->handler->testGenerateChoiceId($type, $source, $sourceId, $level, $group);
+            foreach ($testCases as [$type, $source, $sourceSlug, $level, $group]) {
+                $choiceId = $this->handler->testGenerateChoiceId($type, $source, $sourceSlug, $level, $group);
                 $parsed = $this->handler->testParseChoiceId($choiceId);
 
                 expect($parsed)->toBe([
                     'type' => $type,
                     'source' => $source,
-                    'sourceId' => $sourceId,
+                    'sourceSlug' => $sourceSlug,
                     'level' => $level,
                     'group' => $group,
                 ]);

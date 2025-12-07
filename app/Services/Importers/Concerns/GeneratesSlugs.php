@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
  * Handles:
  * - Simple slugs: "Hill Dwarf" -> "hill-dwarf"
  * - Hierarchical slugs: "Battle Master" (fighter) -> "fighter-battle-master"
+ * - Full slugs with source prefix: "phb:high-elf"
  * - Special characters and parentheses
  *
  * Used by: All importers
@@ -34,5 +35,43 @@ trait GeneratesSlugs
         }
 
         return $slug;
+    }
+
+    /**
+     * Generate a full slug with source prefix for an entity.
+     *
+     * Format: {source_code}:{slug} (e.g., "phb:high-elf")
+     *
+     * @param  string  $slug  The entity's slug
+     * @param  array  $sources  Array of source data with 'code' key
+     * @return string|null Full slug with source prefix, or null if no sources
+     */
+    protected function generateFullSlug(string $slug, array $sources): ?string
+    {
+        if (empty($sources)) {
+            return null;
+        }
+
+        // Use the first source's code as the prefix
+        $primarySourceCode = $sources[0]['code'] ?? null;
+
+        if (! $primarySourceCode) {
+            return null;
+        }
+
+        return strtolower($primarySourceCode).':'.$slug;
+    }
+
+    /**
+     * Generate a full slug for universal lookup entities without sources.
+     *
+     * Uses 'core:' prefix for entities like languages, skills, conditions.
+     *
+     * @param  string  $slug  The entity's slug
+     * @return string Full slug with 'core:' prefix
+     */
+    protected function generateCoreFullSlug(string $slug): string
+    {
+        return 'core:'.$slug;
     }
 }

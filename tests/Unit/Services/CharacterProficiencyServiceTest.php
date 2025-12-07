@@ -33,10 +33,12 @@ class CharacterProficiencyServiceTest extends TestCase
         );
 
         $uniqueId = uniqid();
+        $slug = strtolower($baseName).'-'.$uniqueId;
 
         return Skill::create([
             'name' => $baseName.' '.$uniqueId,
-            'slug' => strtolower($baseName).'-'.$uniqueId,
+            'slug' => $slug,
+            'full_slug' => 'test:'.$slug,
             'ability_score_id' => $abilityScore->id,
         ]);
     }
@@ -49,14 +51,18 @@ class CharacterProficiencyServiceTest extends TestCase
     public function it_populates_fixed_armor_proficiencies_from_class(): void
     {
         // Create proficiency types with unique slugs
+        $lightArmorSlug = 'light-armor-'.uniqid();
+        $heavyArmorSlug = 'heavy-armor-'.uniqid();
         $lightArmor = ProficiencyType::create([
             'name' => 'Light Armor',
-            'slug' => 'light-armor-'.uniqid(),
+            'slug' => $lightArmorSlug,
+            'full_slug' => 'test:'.$lightArmorSlug,
             'category' => 'armor',
         ]);
         $heavyArmor = ProficiencyType::create([
             'name' => 'Heavy Armor',
-            'slug' => 'heavy-armor-'.uniqid(),
+            'slug' => $heavyArmorSlug,
+            'full_slug' => 'test:'.$heavyArmorSlug,
             'category' => 'armor',
         ]);
 
@@ -75,8 +81,8 @@ class CharacterProficiencyServiceTest extends TestCase
 
         // Assert proficiencies were created
         $this->assertCount(2, $character->proficiencies);
-        $this->assertTrue($character->proficiencies->contains('proficiency_type_id', $lightArmor->id));
-        $this->assertTrue($character->proficiencies->contains('proficiency_type_id', $heavyArmor->id));
+        $this->assertTrue($character->proficiencies->contains('proficiency_type_slug', $lightArmor->full_slug));
+        $this->assertTrue($character->proficiencies->contains('proficiency_type_slug', $heavyArmor->full_slug));
         $this->assertTrue($character->proficiencies->every(fn ($p) => $p->source === 'class'));
     }
 
@@ -105,9 +111,11 @@ class CharacterProficiencyServiceTest extends TestCase
     #[Test]
     public function it_does_not_duplicate_proficiencies_on_repeated_calls(): void
     {
+        $lightArmorSlug = 'light-armor-'.uniqid();
         $lightArmor = ProficiencyType::create([
             'name' => 'Light Armor',
-            'slug' => 'light-armor-'.uniqid(),
+            'slug' => $lightArmorSlug,
+            'full_slug' => 'test:'.$lightArmorSlug,
             'category' => 'armor',
         ]);
         $fighterClass = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter-'.uniqid()]);
@@ -172,7 +180,7 @@ class CharacterProficiencyServiceTest extends TestCase
         // Character already chose athletics
         CharacterProficiency::create([
             'character_id' => $character->id,
-            'skill_id' => $athletics->id,
+            'skill_slug' => $athletics->full_slug,
             'source' => 'class',
             'choice_group' => 'skill_choice_1',
         ]);
@@ -187,10 +195,10 @@ class CharacterProficiencyServiceTest extends TestCase
         // Should still return ALL options (not filtered)
         $this->assertCount(2, $choiceData['options']);
 
-        // Should track selected skill ID in separate array
+        // Should track selected skill slug in separate array
         $this->assertArrayHasKey('selected_skills', $choiceData);
-        $this->assertContains($athletics->id, $choiceData['selected_skills']);
-        $this->assertNotContains($acrobatics->id, $choiceData['selected_skills']);
+        $this->assertContains($athletics->full_slug, $choiceData['selected_skills']);
+        $this->assertNotContains($acrobatics->full_slug, $choiceData['selected_skills']);
 
         // selected_proficiency_types should be empty
         $this->assertArrayHasKey('selected_proficiency_types', $choiceData);
@@ -217,11 +225,11 @@ class CharacterProficiencyServiceTest extends TestCase
 
         $character = Character::factory()->withClass($fighterClass)->create();
 
-        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$athletics->id, $acrobatics->id]);
+        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$athletics->full_slug, $acrobatics->full_slug]);
 
         $this->assertCount(2, $character->proficiencies);
-        $this->assertTrue($character->proficiencies->contains('skill_id', $athletics->id));
-        $this->assertTrue($character->proficiencies->contains('skill_id', $acrobatics->id));
+        $this->assertTrue($character->proficiencies->contains('skill_slug', $athletics->full_slug));
+        $this->assertTrue($character->proficiencies->contains('skill_slug', $acrobatics->full_slug));
     }
 
     #[Test]
@@ -243,7 +251,7 @@ class CharacterProficiencyServiceTest extends TestCase
 
         $this->expectException(\InvalidArgumentException::class);
 
-        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$stealth->id]);
+        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$stealth->full_slug]);
     }
 
     #[Test]
@@ -263,7 +271,7 @@ class CharacterProficiencyServiceTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         // Trying to choose only 1 when 2 are required
-        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$athletics->id]);
+        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$athletics->full_slug]);
     }
 
     #[Test]
@@ -285,22 +293,22 @@ class CharacterProficiencyServiceTest extends TestCase
         $character = Character::factory()->withClass($fighterClass)->create();
 
         // First choice: athletics and acrobatics
-        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$athletics->id, $acrobatics->id]);
+        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$athletics->full_slug, $acrobatics->full_slug]);
         $this->assertCount(2, $character->proficiencies);
-        $this->assertTrue($character->proficiencies->contains('skill_id', $athletics->id));
-        $this->assertTrue($character->proficiencies->contains('skill_id', $acrobatics->id));
+        $this->assertTrue($character->proficiencies->contains('skill_slug', $athletics->full_slug));
+        $this->assertTrue($character->proficiencies->contains('skill_slug', $acrobatics->full_slug));
 
         // Second choice (change of mind): perception and stealth
-        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$perception->id, $stealth->id]);
+        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$perception->full_slug, $stealth->full_slug]);
 
         // Should still have exactly 2 proficiencies, not 4
         $character->refresh();
         $this->assertCount(2, $character->proficiencies);
-        $this->assertTrue($character->proficiencies->contains('skill_id', $perception->id));
-        $this->assertTrue($character->proficiencies->contains('skill_id', $stealth->id));
+        $this->assertTrue($character->proficiencies->contains('skill_slug', $perception->full_slug));
+        $this->assertTrue($character->proficiencies->contains('skill_slug', $stealth->full_slug));
         // Old choices should be gone
-        $this->assertFalse($character->proficiencies->contains('skill_id', $athletics->id));
-        $this->assertFalse($character->proficiencies->contains('skill_id', $acrobatics->id));
+        $this->assertFalse($character->proficiencies->contains('skill_slug', $athletics->full_slug));
+        $this->assertFalse($character->proficiencies->contains('skill_slug', $acrobatics->full_slug));
     }
 
     #[Test]
@@ -326,22 +334,22 @@ class CharacterProficiencyServiceTest extends TestCase
         $character = Character::factory()->withClass($fighterClass)->create();
 
         // Choose athletics from group 1
-        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$athletics->id]);
+        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$athletics->full_slug]);
         $this->assertCount(1, $character->proficiencies);
 
         // Choose intimidation from group 2
-        $this->service->makeSkillChoice($character, 'class', 'skill_choice_2', [$intimidation->id]);
+        $this->service->makeSkillChoice($character, 'class', 'skill_choice_2', [$intimidation->full_slug]);
         $character->refresh();
         $this->assertCount(2, $character->proficiencies);
 
         // Now change group 1 to acrobatics - should NOT affect group 2's intimidation
-        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$acrobatics->id]);
+        $this->service->makeSkillChoice($character, 'class', 'skill_choice_1', [$acrobatics->full_slug]);
 
         $character->refresh();
         $this->assertCount(2, $character->proficiencies);
-        $this->assertTrue($character->proficiencies->contains('skill_id', $acrobatics->id));
-        $this->assertTrue($character->proficiencies->contains('skill_id', $intimidation->id));
+        $this->assertTrue($character->proficiencies->contains('skill_slug', $acrobatics->full_slug));
+        $this->assertTrue($character->proficiencies->contains('skill_slug', $intimidation->full_slug));
         // Athletics from group 1 should be gone
-        $this->assertFalse($character->proficiencies->contains('skill_id', $athletics->id));
+        $this->assertFalse($character->proficiencies->contains('skill_slug', $athletics->full_slug));
     }
 }

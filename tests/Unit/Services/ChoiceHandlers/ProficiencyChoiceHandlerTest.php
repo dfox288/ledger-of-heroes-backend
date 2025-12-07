@@ -3,7 +3,6 @@
 use App\DTOs\PendingChoice;
 use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
-use App\Models\Skill;
 use App\Services\CharacterProficiencyService;
 use App\Services\ChoiceHandlers\ProficiencyChoiceHandler;
 
@@ -22,8 +21,8 @@ it('returns correct type', function () {
 });
 
 it('transforms service output to PendingChoice objects for skill choices', function () {
-    // Mock character attributes
-    $primaryClass = (object) ['id' => 5, 'name' => 'Rogue'];
+    // Mock character attributes with full_slug
+    $primaryClass = (object) ['id' => 5, 'full_slug' => 'phb:rogue', 'name' => 'Rogue'];
     $this->character->shouldReceive('__get')
         ->with('primary_class')
         ->andReturn($primaryClass);
@@ -32,7 +31,7 @@ it('transforms service output to PendingChoice objects for skill choices', funct
         ->andReturn($primaryClass);
     $this->character->shouldReceive('offsetExists')->andReturn(true);
 
-    // Mock proficiency service response for skill choice
+    // Mock proficiency service response for skill choice with full_slug
     $this->proficiencyService->shouldReceive('getPendingChoices')
         ->with($this->character)
         ->andReturn([
@@ -42,23 +41,23 @@ it('transforms service output to PendingChoice objects for skill choices', funct
                     'proficiency_subcategory' => null,
                     'quantity' => 4,
                     'remaining' => 2,
-                    'selected_skills' => [1, 2],
-                    'selected_proficiency_types' => [],
+                    'selected_skill_slugs' => ['phb:acrobatics', 'phb:stealth'],
+                    'selected_proficiency_type_slugs' => [],
                     'options' => [
                         [
                             'type' => 'skill',
-                            'skill_id' => 1,
-                            'skill' => ['id' => 1, 'name' => 'Acrobatics', 'slug' => 'acrobatics'],
+                            'skill_slug' => 'phb:acrobatics',
+                            'skill' => ['full_slug' => 'phb:acrobatics', 'name' => 'Acrobatics', 'slug' => 'acrobatics'],
                         ],
                         [
                             'type' => 'skill',
-                            'skill_id' => 2,
-                            'skill' => ['id' => 2, 'name' => 'Stealth', 'slug' => 'stealth'],
+                            'skill_slug' => 'phb:stealth',
+                            'skill' => ['full_slug' => 'phb:stealth', 'name' => 'Stealth', 'slug' => 'stealth'],
                         ],
                         [
                             'type' => 'skill',
-                            'skill_id' => 3,
-                            'skill' => ['id' => 3, 'name' => 'Perception', 'slug' => 'perception'],
+                            'skill_slug' => 'phb:perception',
+                            'skill' => ['full_slug' => 'phb:perception', 'name' => 'Perception', 'slug' => 'perception'],
                         ],
                     ],
                 ],
@@ -76,20 +75,14 @@ it('transforms service output to PendingChoice objects for skill choices', funct
         ->first()->sourceName->toBe('Rogue')
         ->first()->quantity->toBe(4)
         ->first()->remaining->toBe(2)
-        ->first()->selected->toBe(['1', '2'])
+        ->first()->selected->toBe(['phb:acrobatics', 'phb:stealth'])
         ->first()->options->toHaveCount(3)
         ->first()->optionsEndpoint->toBeNull();
 });
 
 it('transforms service output to PendingChoice objects for proficiency type choices', function () {
-    // Mock character attributes
-    $background = (object) ['id' => 3, 'name' => 'Guild Artisan'];
-    $this->character->shouldReceive('__get')
-        ->with('background_id')
-        ->andReturn(3);
-    $this->character->shouldReceive('getAttribute')
-        ->with('background_id')
-        ->andReturn(3);
+    // Mock character attributes with full_slug
+    $background = (object) ['id' => 3, 'full_slug' => 'phb:guild-artisan', 'name' => 'Guild Artisan'];
     $this->character->shouldReceive('__get')
         ->with('background')
         ->andReturn($background);
@@ -101,12 +94,6 @@ it('transforms service output to PendingChoice objects for proficiency type choi
         ->andReturn(null);
     $this->character->shouldReceive('getAttribute')
         ->with('primary_class')
-        ->andReturn(null);
-    $this->character->shouldReceive('__get')
-        ->with('race_id')
-        ->andReturn(null);
-    $this->character->shouldReceive('getAttribute')
-        ->with('race_id')
         ->andReturn(null);
     $this->character->shouldReceive('__get')
         ->with('race')
@@ -126,18 +113,18 @@ it('transforms service output to PendingChoice objects for proficiency type choi
                     'proficiency_subcategory' => 'artisan',
                     'quantity' => 1,
                     'remaining' => 1,
-                    'selected_skills' => [],
-                    'selected_proficiency_types' => [],
+                    'selected_skill_slugs' => [],
+                    'selected_proficiency_type_slugs' => [],
                     'options' => [
                         [
                             'type' => 'proficiency_type',
-                            'proficiency_type_id' => 10,
-                            'proficiency_type' => ['id' => 10, 'name' => "Smith's Tools", 'slug' => 'smiths-tools'],
+                            'proficiency_type_slug' => 'phb:smiths-tools',
+                            'proficiency_type' => ['full_slug' => 'phb:smiths-tools', 'name' => "Smith's Tools", 'slug' => 'smiths-tools'],
                         ],
                         [
                             'type' => 'proficiency_type',
-                            'proficiency_type_id' => 11,
-                            'proficiency_type' => ['id' => 11, 'name' => "Carpenter's Tools", 'slug' => 'carpenters-tools'],
+                            'proficiency_type_slug' => 'phb:carpenters-tools',
+                            'proficiency_type' => ['full_slug' => 'phb:carpenters-tools', 'name' => "Carpenter's Tools", 'slug' => 'carpenters-tools'],
                         ],
                     ],
                 ],
@@ -161,9 +148,9 @@ it('transforms service output to PendingChoice objects for proficiency type choi
 });
 
 it('handles multiple choice groups from different sources', function () {
-    // Mock character attributes
-    $primaryClass = (object) ['id' => 5, 'name' => 'Rogue'];
-    $race = (object) ['id' => 2, 'name' => 'Half-Elf'];
+    // Mock character attributes with full_slug
+    $primaryClass = (object) ['id' => 5, 'full_slug' => 'phb:rogue', 'name' => 'Rogue'];
+    $race = (object) ['id' => 2, 'full_slug' => 'phb:half-elf', 'name' => 'Half-Elf'];
 
     $this->character->shouldReceive('__get')
         ->with('primary_class')
@@ -172,23 +159,11 @@ it('handles multiple choice groups from different sources', function () {
         ->with('primary_class')
         ->andReturn($primaryClass);
     $this->character->shouldReceive('__get')
-        ->with('race_id')
-        ->andReturn(2);
-    $this->character->shouldReceive('getAttribute')
-        ->with('race_id')
-        ->andReturn(2);
-    $this->character->shouldReceive('__get')
         ->with('race')
         ->andReturn($race);
     $this->character->shouldReceive('getAttribute')
         ->with('race')
         ->andReturn($race);
-    $this->character->shouldReceive('__get')
-        ->with('background_id')
-        ->andReturn(null);
-    $this->character->shouldReceive('getAttribute')
-        ->with('background_id')
-        ->andReturn(null);
     $this->character->shouldReceive('__get')
         ->with('background')
         ->andReturn(null);
@@ -206,10 +181,10 @@ it('handles multiple choice groups from different sources', function () {
                     'proficiency_subcategory' => null,
                     'quantity' => 4,
                     'remaining' => 4,
-                    'selected_skills' => [],
-                    'selected_proficiency_types' => [],
+                    'selected_skill_slugs' => [],
+                    'selected_proficiency_type_slugs' => [],
                     'options' => [
-                        ['type' => 'skill', 'skill_id' => 1, 'skill' => ['id' => 1, 'name' => 'Acrobatics', 'slug' => 'acrobatics']],
+                        ['type' => 'skill', 'skill_slug' => 'phb:acrobatics', 'skill' => ['full_slug' => 'phb:acrobatics', 'name' => 'Acrobatics', 'slug' => 'acrobatics']],
                     ],
                 ],
             ],
@@ -219,10 +194,10 @@ it('handles multiple choice groups from different sources', function () {
                     'proficiency_subcategory' => null,
                     'quantity' => 2,
                     'remaining' => 2,
-                    'selected_skills' => [],
-                    'selected_proficiency_types' => [],
+                    'selected_skill_slugs' => [],
+                    'selected_proficiency_type_slugs' => [],
                     'options' => [
-                        ['type' => 'skill', 'skill_id' => 3, 'skill' => ['id' => 3, 'name' => 'Perception', 'slug' => 'perception']],
+                        ['type' => 'skill', 'skill_slug' => 'phb:perception', 'skill' => ['full_slug' => 'phb:perception', 'name' => 'Perception', 'slug' => 'perception']],
                     ],
                 ],
             ],
@@ -240,7 +215,7 @@ it('handles multiple choice groups from different sources', function () {
 
 it('resolves skill choice by calling makeSkillChoice', function () {
     $choice = new PendingChoice(
-        id: 'proficiency:class:5:1:skills',
+        id: 'proficiency|class|phb:rogue|1|skills',
         type: 'proficiency',
         subtype: 'skill',
         source: 'class',
@@ -255,18 +230,18 @@ it('resolves skill choice by calling makeSkillChoice', function () {
         metadata: ['choice_group' => 'skills']
     );
 
-    $skillIds = [1, 2, 3, 4];
+    $skillSlugs = ['phb:acrobatics', 'phb:stealth', 'phb:perception', 'phb:insight'];
 
     $this->proficiencyService->shouldReceive('makeSkillChoice')
         ->once()
-        ->with($this->character, 'class', 'skills', $skillIds);
+        ->with($this->character, 'class', 'skills', $skillSlugs);
 
-    $this->handler->resolve($this->character, $choice, ['selected' => $skillIds]);
+    $this->handler->resolve($this->character, $choice, ['selected' => $skillSlugs]);
 });
 
 it('resolves proficiency type choice by calling makeProficiencyTypeChoice', function () {
     $choice = new PendingChoice(
-        id: 'proficiency:background:3:1:artisan_tools',
+        id: 'proficiency|background|phb:guild-artisan|1|artisan_tools',
         type: 'proficiency',
         subtype: 'tool',
         source: 'background',
@@ -281,72 +256,18 @@ it('resolves proficiency type choice by calling makeProficiencyTypeChoice', func
         metadata: ['choice_group' => 'artisan_tools', 'proficiency_subcategory' => 'artisan']
     );
 
-    $profTypeIds = [10];
+    $profTypeSlugs = ['phb:smiths-tools'];
 
     $this->proficiencyService->shouldReceive('makeProficiencyTypeChoice')
         ->once()
-        ->with($this->character, 'background', 'artisan_tools', $profTypeIds);
+        ->with($this->character, 'background', 'artisan_tools', $profTypeSlugs);
 
-    $this->handler->resolve($this->character, $choice, ['selected' => $profTypeIds]);
+    $this->handler->resolve($this->character, $choice, ['selected' => $profTypeSlugs]);
 });
-
-it('resolves skill choice by converting slugs to IDs', function () {
-    $choice = new PendingChoice(
-        id: 'proficiency:class:5:1:skills',
-        type: 'proficiency',
-        subtype: 'skill',
-        source: 'class',
-        sourceName: 'Rogue',
-        levelGranted: 1,
-        required: true,
-        quantity: 2,
-        remaining: 2,
-        selected: [],
-        options: [],
-        optionsEndpoint: null,
-        metadata: ['choice_group' => 'skills']
-    );
-
-    $this->proficiencyService->shouldReceive('makeSkillChoice')
-        ->once()
-        ->with($this->character, 'class', 'skills', Mockery::on(function ($arg) {
-            // Accept either IDs directly or slugs that will be resolved
-            return is_array($arg) && count($arg) === 2;
-        }));
-
-    $this->handler->resolve($this->character, $choice, ['selected' => [1, 2]]);
-})->skip('Requires database for Skill model queries');
-
-it('resolves proficiency type choice by converting slugs to IDs', function () {
-    $choice = new PendingChoice(
-        id: 'proficiency:background:3:1:artisan_tools',
-        type: 'proficiency',
-        subtype: 'tool',
-        source: 'background',
-        sourceName: 'Guild Artisan',
-        levelGranted: 1,
-        required: true,
-        quantity: 1,
-        remaining: 1,
-        selected: [],
-        options: [],
-        optionsEndpoint: '/api/v1/lookups/proficiency-types?category=tool&subcategory=artisan',
-        metadata: ['choice_group' => 'artisan_tools', 'proficiency_subcategory' => 'artisan']
-    );
-
-    $this->proficiencyService->shouldReceive('makeProficiencyTypeChoice')
-        ->once()
-        ->with($this->character, 'background', 'artisan_tools', Mockery::on(function ($arg) {
-            // Accept either IDs directly or slugs that will be resolved
-            return is_array($arg) && count($arg) === 1;
-        }));
-
-    $this->handler->resolve($this->character, $choice, ['selected' => [10]]);
-})->skip('Requires database for ProficiencyType model queries');
 
 it('throws exception when selection is empty', function () {
     $choice = new PendingChoice(
-        id: 'proficiency:class:5:1:skills',
+        id: 'proficiency|class|phb:rogue|1|skills',
         type: 'proficiency',
         subtype: 'skill',
         source: 'class',
@@ -367,7 +288,7 @@ it('throws exception when selection is empty', function () {
 
 it('returns true for canUndo', function () {
     $choice = new PendingChoice(
-        id: 'proficiency:class:5:1:skills',
+        id: 'proficiency|class|phb:rogue|1|skills',
         type: 'proficiency',
         subtype: 'skill',
         source: 'class',
@@ -376,7 +297,7 @@ it('returns true for canUndo', function () {
         required: true,
         quantity: 4,
         remaining: 0,
-        selected: [1, 2, 3, 4],
+        selected: ['phb:acrobatics', 'phb:stealth', 'phb:perception', 'phb:insight'],
         options: [],
         optionsEndpoint: null,
         metadata: ['choice_group' => 'skills']
@@ -387,7 +308,7 @@ it('returns true for canUndo', function () {
 
 it('undoes choice by clearing proficiencies', function () {
     $choice = new PendingChoice(
-        id: 'proficiency:class:5:1:skills',
+        id: 'proficiency|class|phb:rogue|1|skills',
         type: 'proficiency',
         subtype: 'skill',
         source: 'class',
@@ -396,13 +317,13 @@ it('undoes choice by clearing proficiencies', function () {
         required: true,
         quantity: 4,
         remaining: 0,
-        selected: [1, 2, 3, 4],
+        selected: ['phb:acrobatics', 'phb:stealth', 'phb:perception', 'phb:insight'],
         options: [],
         optionsEndpoint: null,
         metadata: ['choice_group' => 'skills']
     );
 
-    // Mock proficiencies relationship - use stdClass mock to avoid type hinting issues
+    // Mock proficiencies relationship
     $proficienciesQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
     $proficienciesQuery->shouldReceive('where')
         ->with('source', 'class')
@@ -426,7 +347,7 @@ it('undoes choice by clearing proficiencies', function () {
     $this->handler->undo($this->character, $choice);
 });
 
-it('skips choices with invalid source ID', function () {
+it('skips choices with invalid source slug', function () {
     // Mock character with no primary class
     $this->character->shouldReceive('__get')
         ->with('primary_class')
@@ -435,22 +356,10 @@ it('skips choices with invalid source ID', function () {
         ->with('primary_class')
         ->andReturn(null);
     $this->character->shouldReceive('__get')
-        ->with('race_id')
-        ->andReturn(null);
-    $this->character->shouldReceive('getAttribute')
-        ->with('race_id')
-        ->andReturn(null);
-    $this->character->shouldReceive('__get')
         ->with('race')
         ->andReturn(null);
     $this->character->shouldReceive('getAttribute')
         ->with('race')
-        ->andReturn(null);
-    $this->character->shouldReceive('__get')
-        ->with('background_id')
-        ->andReturn(null);
-    $this->character->shouldReceive('getAttribute')
-        ->with('background_id')
         ->andReturn(null);
     $this->character->shouldReceive('__get')
         ->with('background')
@@ -469,8 +378,8 @@ it('skips choices with invalid source ID', function () {
                     'proficiency_subcategory' => null,
                     'quantity' => 4,
                     'remaining' => 4,
-                    'selected_skills' => [],
-                    'selected_proficiency_types' => [],
+                    'selected_skill_slugs' => [],
+                    'selected_proficiency_type_slugs' => [],
                     'options' => [],
                 ],
             ],

@@ -53,7 +53,7 @@ class CharacterCreationFlowTest extends TestCase
 
         // Step 2: Choose race
         $response = $this->patchJson("/api/v1/characters/{$characterId}", [
-            'race_id' => $race->id,
+            'race_slug' => $race->full_slug,
         ]);
 
         $response->assertOk()
@@ -62,7 +62,7 @@ class CharacterCreationFlowTest extends TestCase
 
         // Step 3: Choose class
         $response = $this->patchJson("/api/v1/characters/{$characterId}", [
-            'class_id' => $wizardClass->id,
+            'class_slug' => $wizardClass->full_slug,
         ]);
 
         $response->assertOk()
@@ -87,7 +87,7 @@ class CharacterCreationFlowTest extends TestCase
 
         // Step 5: Optionally set background
         $response = $this->patchJson("/api/v1/characters/{$characterId}", [
-            'background_id' => $background->id,
+            'background_slug' => $background->full_slug,
         ]);
 
         $response->assertOk()
@@ -96,13 +96,13 @@ class CharacterCreationFlowTest extends TestCase
         // Step 6: Learn some spells
         foreach ($cantrips as $cantrip) {
             $this->postJson("/api/v1/characters/{$characterId}/spells", [
-                'spell_id' => $cantrip->id,
+                'spell_slug' => $cantrip->full_slug,
             ])->assertCreated();
         }
 
         foreach ($spells->take(6) as $spell) {
             $this->postJson("/api/v1/characters/{$characterId}/spells", [
-                'spell_id' => $spell->id,
+                'spell_slug' => $spell->full_slug,
             ])->assertCreated();
         }
 
@@ -155,7 +155,7 @@ class CharacterCreationFlowTest extends TestCase
 
         // Set background first (any order allowed)
         $this->patchJson("/api/v1/characters/{$characterId}", [
-            'background_id' => $background->id,
+            'background_slug' => $background->full_slug,
         ])->assertOk();
 
         // Then ability scores
@@ -166,12 +166,12 @@ class CharacterCreationFlowTest extends TestCase
 
         // Then class
         $this->patchJson("/api/v1/characters/{$characterId}", [
-            'class_id' => $class->id,
+            'class_slug' => $class->full_slug,
         ])->assertOk();
 
         // Then race last
         $response = $this->patchJson("/api/v1/characters/{$characterId}", [
-            'race_id' => $race->id,
+            'race_slug' => $race->full_slug,
         ]);
 
         $response->assertOk()
@@ -197,14 +197,14 @@ class CharacterCreationFlowTest extends TestCase
 
         // Add race: still missing class and abilities
         $response = $this->patchJson("/api/v1/characters/{$characterId}", [
-            'race_id' => $race->id,
+            'race_slug' => $race->full_slug,
         ]);
         $response->assertOk()
             ->assertJsonPath('data.validation_status.missing', ['class', 'ability_scores']);
 
         // Add class: still missing abilities
         $response = $this->patchJson("/api/v1/characters/{$characterId}", [
-            'class_id' => $class->id,
+            'class_slug' => $class->full_slug,
         ]);
         $response->assertOk()
             ->assertJsonPath('data.validation_status.missing', ['ability_scores']);
@@ -412,7 +412,7 @@ class CharacterCreationFlowTest extends TestCase
         foreach ($spells as $spell) {
             CharacterSpell::create([
                 'character_id' => $character->id,
-                'spell_id' => $spell->id,
+                'spell_slug' => $spell->full_slug,
                 'preparation_status' => 'known',
                 'source' => 'class',
             ]);

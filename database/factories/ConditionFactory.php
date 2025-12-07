@@ -21,10 +21,12 @@ class ConditionFactory extends Factory
     public function definition(): array
     {
         $name = fake()->unique()->words(2, true);
+        $slug = Str::slug($name);
 
         return [
             'name' => $name,
-            'slug' => Str::slug($name),
+            'slug' => $slug,
+            'full_slug' => 'test:'.$slug,
             'description' => fake()->paragraph(),
         ];
     }

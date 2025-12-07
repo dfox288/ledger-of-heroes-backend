@@ -26,7 +26,7 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
             $class = $characterClass->characterClass;
 
             // Skip if no class or already has subclass selected
-            if (! $class || $characterClass->subclass_id !== null) {
+            if (! $class || $characterClass->subclass_slug !== null) {
                 continue;
             }
 
@@ -57,7 +57,7 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
                     ->get();
 
                 return [
-                    'id' => $subclass->id,
+                    'full_slug' => $subclass->full_slug,
                     'name' => $subclass->name,
                     'slug' => $subclass->slug,
                     'description' => $subclass->description,
@@ -66,7 +66,7 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
             })->values()->all();
 
             $choice = new PendingChoice(
-                id: $this->generateChoiceId('subclass', 'class', $class->id, $subclassLevel, 'subclass'),
+                id: $this->generateChoiceId('subclass', 'class', $class->full_slug, $subclassLevel, 'subclass'),
                 type: 'subclass',
                 subtype: null,
                 source: 'class',
@@ -79,7 +79,7 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
                 options: $options,
                 optionsEndpoint: null,
                 metadata: [
-                    'class_id' => $class->id,
+                    'class_slug' => $class->full_slug,
                     'subclass_feature_name' => $this->getSubclassFeatureName($class),
                 ],
             );
@@ -93,30 +93,36 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
     public function resolve(Character $character, PendingChoice $choice, array $selection): void
     {
         $parsed = $this->parseChoiceId($choice->id);
-        $classId = $parsed['sourceId'];
-        $subclassId = $selection['subclass_id'] ?? null;
+        $classSlug = $parsed['sourceSlug'];
+        $subclassSlug = $selection['subclass_slug'] ?? null;
 
-        if ($subclassId === null) {
-            throw new InvalidSelectionException($choice->id, 'empty', 'Subclass ID is required');
+        if ($subclassSlug === null) {
+            throw new InvalidSelectionException($choice->id, 'empty', 'Subclass slug is required');
+        }
+
+        // Get the parent class
+        $parentClass = CharacterClass::where('full_slug', $classSlug)->first();
+        if (! $parentClass) {
+            throw new InvalidSelectionException($choice->id, 'invalid_class', "Class {$classSlug} not found");
         }
 
         // Validate subclass exists and belongs to this class
-        $subclass = CharacterClass::where('id', $subclassId)
-            ->where('parent_class_id', $classId)
+        $subclass = CharacterClass::where('full_slug', $subclassSlug)
+            ->where('parent_class_id', $parentClass->id)
             ->first();
 
         if (! $subclass) {
             throw new InvalidSelectionException(
                 $choice->id,
                 'invalid_subclass',
-                "Subclass {$subclassId} does not belong to class {$classId}"
+                "Subclass {$subclassSlug} does not belong to class {$classSlug}"
             );
         }
 
         // Update the character class pivot
         $character->characterClasses()
-            ->where('class_id', $classId)
-            ->update(['subclass_id' => $subclassId]);
+            ->where('class_slug', $classSlug)
+            ->update(['subclass_slug' => $subclassSlug]);
 
         // Reload the relationship
         $character->load('characterClasses.subclass');
@@ -125,11 +131,11 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
     public function canUndo(Character $character, PendingChoice $choice): bool
     {
         $parsed = $this->parseChoiceId($choice->id);
-        $classId = $parsed['sourceId'];
+        $classSlug = $parsed['sourceSlug'];
 
         // Get the character class
         $characterClass = $character->characterClasses()
-            ->where('class_id', $classId)
+            ->where('class_slug', $classSlug)
             ->first();
 
         if (! $characterClass) {
@@ -143,12 +149,12 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
     public function undo(Character $character, PendingChoice $choice): void
     {
         $parsed = $this->parseChoiceId($choice->id);
-        $classId = $parsed['sourceId'];
+        $classSlug = $parsed['sourceSlug'];
 
-        // Clear subclass_id on the pivot
+        // Clear subclass_slug on the pivot
         $character->characterClasses()
-            ->where('class_id', $classId)
-            ->update(['subclass_id' => null]);
+            ->where('class_slug', $classSlug)
+            ->update(['subclass_slug' => null]);
 
         // Reload the relationship
         $character->load('characterClasses');

@@ -40,6 +40,7 @@ class CharacterEquipmentApiTest extends TestCase
         $this->longsword = Item::create([
             'name' => 'Longsword',
             'slug' => 'longsword',
+            'full_slug' => 'test:longsword',
             'item_type_id' => $meleeWeaponType->id,
             'rarity' => 'common',
             'description' => 'A versatile sword.',
@@ -48,6 +49,7 @@ class CharacterEquipmentApiTest extends TestCase
         $this->leatherArmor = Item::create([
             'name' => 'Leather Armor',
             'slug' => 'leather-armor',
+            'full_slug' => 'test:leather-armor',
             'item_type_id' => $lightArmorType->id,
             'armor_class' => 11,
             'rarity' => 'common',
@@ -57,6 +59,7 @@ class CharacterEquipmentApiTest extends TestCase
         $this->shield = Item::create([
             'name' => 'Shield',
             'slug' => 'shield',
+            'full_slug' => 'test:shield',
             'item_type_id' => $shieldType->id,
             'armor_class' => 2,
             'rarity' => 'common',
@@ -113,7 +116,7 @@ class CharacterEquipmentApiTest extends TestCase
         $character = Character::factory()->create();
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/equipment", [
-            'item_id' => $this->longsword->id,
+            'item_slug' => $this->longsword->full_slug,
             'quantity' => 1,
         ]);
 
@@ -129,7 +132,7 @@ class CharacterEquipmentApiTest extends TestCase
         $character = Character::factory()->create();
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/equipment", [
-            'item_id' => $this->longsword->id,
+            'item_slug' => $this->longsword->full_slug,
         ]);
 
         $response->assertCreated()
@@ -142,22 +145,22 @@ class CharacterEquipmentApiTest extends TestCase
         $character = Character::factory()->create();
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/equipment", [
-            'item_id' => 999999,
+            'item_slug' => 'nonexistent:item',
         ]);
 
         $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['item_id']);
+            ->assertJsonValidationErrors(['item_slug']);
     }
 
     #[Test]
-    public function it_validates_item_id_is_required(): void
+    public function it_validates_item_slug_is_required(): void
     {
         $character = Character::factory()->create();
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/equipment", []);
 
         $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['item_id']);
+            ->assertJsonValidationErrors(['item_slug']);
     }
 
     // =============================
@@ -274,6 +277,7 @@ class CharacterEquipmentApiTest extends TestCase
         $potion = Item::create([
             'name' => 'Healing Potion',
             'slug' => 'healing-potion',
+            'full_slug' => 'test:healing-potion',
             'item_type_id' => $potionType->id,
             'rarity' => 'common',
             'description' => 'A potion that heals.',
@@ -329,7 +333,7 @@ class CharacterEquipmentApiTest extends TestCase
     }
 
     #[Test]
-    public function it_validates_either_item_id_or_custom_name_required(): void
+    public function it_validates_either_item_slug_or_custom_name_required(): void
     {
         $character = Character::factory()->create();
 
@@ -341,12 +345,12 @@ class CharacterEquipmentApiTest extends TestCase
     }
 
     #[Test]
-    public function it_validates_cannot_have_both_item_id_and_custom_name(): void
+    public function it_validates_cannot_have_both_item_slug_and_custom_name(): void
     {
         $character = Character::factory()->create();
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/equipment", [
-            'item_id' => $this->longsword->id,
+            'item_slug' => $this->longsword->full_slug,
             'custom_name' => 'My Special Sword',
         ]);
 
@@ -366,7 +370,7 @@ class CharacterEquipmentApiTest extends TestCase
         // Add custom item
         CharacterEquipment::create([
             'character_id' => $character->id,
-            'item_id' => null,
+            'item_slug' => null,
             'custom_name' => 'Mysterious Key',
             'custom_description' => 'A key that glows faintly in the dark.',
             'quantity' => 1,
@@ -395,7 +399,7 @@ class CharacterEquipmentApiTest extends TestCase
 
         $equipment = CharacterEquipment::create([
             'character_id' => $character->id,
-            'item_id' => null,
+            'item_slug' => null,
             'custom_name' => 'Decorative Ring',
             'quantity' => 1,
             'equipped' => false,
@@ -417,7 +421,7 @@ class CharacterEquipmentApiTest extends TestCase
 
         $equipment = CharacterEquipment::create([
             'character_id' => $character->id,
-            'item_id' => null,
+            'item_slug' => null,
             'custom_name' => 'Rations',
             'quantity' => 5,
             'equipped' => false,
@@ -441,7 +445,7 @@ class CharacterEquipmentApiTest extends TestCase
 
         $equipment = CharacterEquipment::create([
             'character_id' => $character->id,
-            'item_id' => null,
+            'item_slug' => null,
             'custom_name' => 'Old Map',
             'custom_description' => 'A weathered map of an unknown region.',
             'quantity' => 1,

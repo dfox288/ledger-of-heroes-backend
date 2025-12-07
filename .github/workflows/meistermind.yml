@@ -81,11 +81,12 @@ jobs:
           *Need help? Mention @meistermind*"
 
   # ══════════════════════════════════════════════════════════════════════════
-  # Respond to @meistermind mentions
+  # Respond to @meistermind mentions in issues and PR conversations
+  # Note: Inline PR review comments are handled by the review-pr job
   # ══════════════════════════════════════════════════════════════════════════
   respond-to-mention:
     if: |
-      (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') &&
+      github.event_name == 'issue_comment' &&
       contains(github.event.comment.body, '@meistermind') &&
       github.event.comment.user.login == 'dfox288'
     runs-on: [self-hosted, claude-code]
@@ -113,13 +114,13 @@ jobs:
         id: context
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # For issue_comment events, github.event.issue.number works for both issues and PRs
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          ISSUE_NUMBER="${{ github.event.issue.number }}"
-
           # Get issue/PR details
           gh issue view "$ISSUE_NUMBER" --json title,body,comments > /tmp/issue.json
 
-          # Check if it's a PR
+          # Check if it's a PR (github.event.issue.pull_request is truthy for PRs)
           if [ "${{ github.event.issue.pull_request }}" != "" ]; then
             echo "type=pr" >> $GITHUB_OUTPUT
             gh pr diff "$ISSUE_NUMBER" > /tmp/diff.txt 2>/dev/null || echo "" > /tmp/diff.txt

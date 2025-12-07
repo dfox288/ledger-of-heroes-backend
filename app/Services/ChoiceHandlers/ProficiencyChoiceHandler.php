@@ -5,8 +5,6 @@ namespace App\Services\ChoiceHandlers;
 use App\DTOs\PendingChoice;
 use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
-use App\Models\ProficiencyType;
-use App\Models\Skill;
 use App\Services\CharacterProficiencyService;
 use Illuminate\Support\Collection;
 
@@ -28,9 +26,9 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
 
         foreach ($pendingChoices as $source => $sourceChoices) {
             foreach ($sourceChoices as $choiceGroup => $choiceData) {
-                // Get source entity ID
-                $sourceId = $this->getSourceId($character, $source);
-                if ($sourceId === 0) {
+                // Get source entity slug
+                $sourceSlug = $this->getSourceSlug($character, $source);
+                if ($sourceSlug === '') {
                     continue;
                 }
 
@@ -42,11 +40,11 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
                 // Build options array
                 $options = $this->buildOptions($choiceData);
 
-                // Build selected array (skill slugs or proficiency type IDs)
+                // Build selected array (skill/proficiency type slugs)
                 $selected = $this->buildSelected($choiceData);
 
                 $choice = new PendingChoice(
-                    id: $this->generateChoiceId('proficiency', $source, $sourceId, 1, $choiceGroup),
+                    id: $this->generateChoiceId('proficiency', $source, $sourceSlug, 1, $choiceGroup),
                     type: 'proficiency',
                     subtype: $subtype,
                     source: $source,
@@ -84,13 +82,11 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
 
         // Determine if this is a skill choice or proficiency type choice
         if ($choice->subtype === 'skill') {
-            // Convert slugs to IDs if needed
-            $skillIds = $this->resolveSkillIds($selected);
-            $this->proficiencyService->makeSkillChoice($character, $source, $choiceGroup, $skillIds);
+            // Pass skill slugs directly to the service
+            $this->proficiencyService->makeSkillChoice($character, $source, $choiceGroup, $selected);
         } else {
-            // Proficiency type choice (tools, weapons, etc.)
-            $profTypeIds = $this->resolveProficiencyTypeIds($selected);
-            $this->proficiencyService->makeProficiencyTypeChoice($character, $source, $choiceGroup, $profTypeIds);
+            // Pass proficiency type slugs directly to the service
+            $this->proficiencyService->makeProficiencyTypeChoice($character, $source, $choiceGroup, $selected);
         }
     }
 
@@ -113,13 +109,13 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
         $character->load('proficiencies');
     }
 
-    private function getSourceId(Character $character, string $source): int
+    private function getSourceSlug(Character $character, string $source): string
     {
         return match ($source) {
-            'class' => $character->primary_class?->id ?? 0,
-            'race' => $character->race_id ?? 0,
-            'background' => $character->background_id ?? 0,
-            default => 0,
+            'class' => $character->primary_class?->full_slug ?? '',
+            'race' => $character->race?->full_slug ?? '',
+            'background' => $character->background?->full_slug ?? '',
+            default => '',
         };
     }
 
@@ -140,14 +136,14 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
                 if ($option['type'] === 'skill') {
                     return [
                         'type' => 'skill',
-                        'id' => $option['skill_id'],
+                        'full_slug' => $option['skill']['full_slug'] ?? $option['skill_slug'] ?? null,
                         'slug' => $option['skill']['slug'] ?? null,
                         'name' => $option['skill']['name'] ?? null,
                     ];
                 } else {
                     return [
                         'type' => 'proficiency_type',
-                        'id' => $option['proficiency_type_id'],
+                        'full_slug' => $option['proficiency_type']['full_slug'] ?? $option['proficiency_type_slug'] ?? null,
                         'slug' => $option['proficiency_type']['slug'] ?? null,
                         'name' => $option['proficiency_type']['name'] ?? null,
                     ];
@@ -159,14 +155,11 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
 
     private function buildSelected(array $choiceData): array
     {
-        $selectedSkills = $choiceData['selected_skills'] ?? [];
-        $selectedProfTypes = $choiceData['selected_proficiency_types'] ?? [];
+        // Return selected slugs
+        $selectedSkillSlugs = $choiceData['selected_skill_slugs'] ?? [];
+        $selectedProfTypeSlugs = $choiceData['selected_proficiency_type_slugs'] ?? [];
 
-        // Return IDs as strings for consistency
-        return array_merge(
-            array_map('strval', $selectedSkills),
-            array_map('strval', $selectedProfTypes)
-        );
+        return array_merge($selectedSkillSlugs, $selectedProfTypeSlugs);
     }
 
     private function buildOptionsEndpoint(array $choiceData): ?string
@@ -179,31 +172,5 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
         }
 
         return null;
-    }
-
-    private function resolveSkillIds(array $selected): array
-    {
-        // If already integers, return as-is
-        if (! empty($selected) && is_numeric($selected[0])) {
-            return array_map('intval', $selected);
-        }
-
-        // Otherwise resolve slugs to IDs
-        return Skill::whereIn('slug', $selected)
-            ->pluck('id')
-            ->all();
-    }
-
-    private function resolveProficiencyTypeIds(array $selected): array
-    {
-        // If already integers, return as-is
-        if (! empty($selected) && is_numeric($selected[0])) {
-            return array_map('intval', $selected);
-        }
-
-        // Otherwise resolve slugs to IDs
-        return ProficiencyType::whereIn('slug', $selected)
-            ->pluck('id')
-            ->all();
     }
 }

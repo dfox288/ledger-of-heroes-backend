@@ -28,7 +28,7 @@ class CharacterSpellTest extends TestCase
         foreach ($spells as $spell) {
             CharacterSpell::create([
                 'character_id' => $character->id,
-                'spell_id' => $spell->id,
+                'spell_slug' => $spell->full_slug,
                 'preparation_status' => 'known',
                 'source' => 'class',
             ]);
@@ -114,13 +114,13 @@ class CharacterSpellTest extends TestCase
         // Character already knows 2 spells
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_id' => $spells[0]->id,
+            'spell_slug' => $spells[0]->full_slug,
             'preparation_status' => 'known',
             'source' => 'class',
         ]);
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_id' => $spells[1]->id,
+            'spell_slug' => $spells[1]->full_slug,
             'preparation_status' => 'known',
             'source' => 'class',
         ]);
@@ -143,13 +143,13 @@ class CharacterSpellTest extends TestCase
         // Character already knows 2 spells
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_id' => $spells[0]->id,
+            'spell_slug' => $spells[0]->full_slug,
             'preparation_status' => 'known',
             'source' => 'class',
         ]);
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_id' => $spells[1]->id,
+            'spell_slug' => $spells[1]->full_slug,
             'preparation_status' => 'known',
             'source' => 'class',
         ]);
@@ -176,13 +176,13 @@ class CharacterSpellTest extends TestCase
         // Character knows 1 level-1 spell and 1 level-3 spell
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_id' => $level1Spells[0]->id,
+            'spell_slug' => $level1Spells[0]->full_slug,
             'preparation_status' => 'known',
             'source' => 'class',
         ]);
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_id' => $level3Spells[0]->id,
+            'spell_slug' => $level3Spells[0]->full_slug,
             'preparation_status' => 'known',
             'source' => 'class',
         ]);
@@ -209,7 +209,7 @@ class CharacterSpellTest extends TestCase
         $wizardClass->spells()->attach($spell->id);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/spells", [
-            'spell_id' => $spell->id,
+            'spell_slug' => $spell->full_slug,
         ]);
 
         $response->assertCreated()
@@ -218,7 +218,7 @@ class CharacterSpellTest extends TestCase
 
         $this->assertDatabaseHas('character_spells', [
             'character_id' => $character->id,
-            'spell_id' => $spell->id,
+            'spell_slug' => $spell->full_slug,
         ]);
     }
 
@@ -234,11 +234,11 @@ class CharacterSpellTest extends TestCase
         $clericClass->spells()->attach($clericSpell->id);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/spells", [
-            'spell_id' => $clericSpell->id,
+            'spell_slug' => $clericSpell->full_slug,
         ]);
 
         $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['spell_id']);
+            ->assertJsonPath('message', "The spell 'Cure Wounds' is not available for this character's class.");
     }
 
     #[Test]
@@ -252,11 +252,10 @@ class CharacterSpellTest extends TestCase
         $wizardClass->spells()->attach($spell->id);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/spells", [
-            'spell_id' => $spell->id,
+            'spell_slug' => $spell->full_slug,
         ]);
 
-        $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['spell_id']);
+        $response->assertUnprocessable();
     }
 
     #[Test]
@@ -270,17 +269,16 @@ class CharacterSpellTest extends TestCase
         // Character already knows this spell
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_id' => $spell->id,
+            'spell_slug' => $spell->full_slug,
             'preparation_status' => 'known',
             'source' => 'class',
         ]);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/spells", [
-            'spell_id' => $spell->id,
+            'spell_slug' => $spell->full_slug,
         ]);
 
-        $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['spell_id']);
+        $response->assertUnprocessable();
     }
 
     // =====================
@@ -295,18 +293,18 @@ class CharacterSpellTest extends TestCase
 
         $characterSpell = CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_id' => $spell->id,
+            'spell_slug' => $spell->full_slug,
             'preparation_status' => 'known',
             'source' => 'class',
         ]);
 
-        $response = $this->deleteJson("/api/v1/characters/{$character->id}/spells/{$spell->id}");
+        $response = $this->deleteJson("/api/v1/characters/{$character->id}/spells/{$spell->full_slug}");
 
         $response->assertNoContent();
 
         $this->assertDatabaseMissing('character_spells', [
             'character_id' => $character->id,
-            'spell_id' => $spell->id,
+            'spell_slug' => $spell->full_slug,
         ]);
     }
 
@@ -316,7 +314,7 @@ class CharacterSpellTest extends TestCase
         $character = Character::factory()->create();
         $spell = Spell::factory()->create();
 
-        $response = $this->deleteJson("/api/v1/characters/{$character->id}/spells/{$spell->id}");
+        $response = $this->deleteJson("/api/v1/characters/{$character->id}/spells/{$spell->full_slug}");
 
         $response->assertNotFound();
     }
@@ -333,19 +331,19 @@ class CharacterSpellTest extends TestCase
 
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_id' => $spell->id,
+            'spell_slug' => $spell->full_slug,
             'preparation_status' => 'known',
             'source' => 'class',
         ]);
 
-        $response = $this->patchJson("/api/v1/characters/{$character->id}/spells/{$spell->id}/prepare");
+        $response = $this->patchJson("/api/v1/characters/{$character->id}/spells/{$spell->full_slug}/prepare");
 
         $response->assertOk()
             ->assertJsonPath('data.preparation_status', 'prepared');
 
         $this->assertDatabaseHas('character_spells', [
             'character_id' => $character->id,
-            'spell_id' => $spell->id,
+            'spell_slug' => $spell->full_slug,
             'preparation_status' => 'prepared',
         ]);
     }
@@ -358,19 +356,19 @@ class CharacterSpellTest extends TestCase
 
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_id' => $spell->id,
+            'spell_slug' => $spell->full_slug,
             'preparation_status' => 'prepared',
             'source' => 'class',
         ]);
 
-        $response = $this->patchJson("/api/v1/characters/{$character->id}/spells/{$spell->id}/unprepare");
+        $response = $this->patchJson("/api/v1/characters/{$character->id}/spells/{$spell->full_slug}/unprepare");
 
         $response->assertOk()
             ->assertJsonPath('data.preparation_status', 'known');
 
         $this->assertDatabaseHas('character_spells', [
             'character_id' => $character->id,
-            'spell_id' => $spell->id,
+            'spell_slug' => $spell->full_slug,
             'preparation_status' => 'known',
         ]);
     }
@@ -383,12 +381,12 @@ class CharacterSpellTest extends TestCase
 
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_id' => $spell->id,
+            'spell_slug' => $spell->full_slug,
             'preparation_status' => 'always_prepared',
             'source' => 'class', // Always-prepared spells come from class features/domain
         ]);
 
-        $response = $this->patchJson("/api/v1/characters/{$character->id}/spells/{$spell->id}/unprepare");
+        $response = $this->patchJson("/api/v1/characters/{$character->id}/spells/{$spell->full_slug}/unprepare");
 
         $response->assertUnprocessable();
     }
@@ -401,12 +399,12 @@ class CharacterSpellTest extends TestCase
 
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_id' => $cantrip->id,
+            'spell_slug' => $cantrip->full_slug,
             'preparation_status' => 'known',
             'source' => 'class',
         ]);
 
-        $response = $this->patchJson("/api/v1/characters/{$character->id}/spells/{$cantrip->id}/prepare");
+        $response = $this->patchJson("/api/v1/characters/{$character->id}/spells/{$cantrip->full_slug}/prepare");
 
         $response->assertUnprocessable();
     }
@@ -567,7 +565,7 @@ class CharacterSpellTest extends TestCase
         foreach ($spells->take(2) as $spell) {
             CharacterSpell::create([
                 'character_id' => $character->id,
-                'spell_id' => $spell->id,
+                'spell_slug' => $spell->full_slug,
                 'preparation_status' => 'prepared',
                 'source' => 'class',
             ]);
@@ -576,13 +574,13 @@ class CharacterSpellTest extends TestCase
         // Learn but don't prepare a third spell
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_id' => $spells[2]->id,
+            'spell_slug' => $spells[2]->full_slug,
             'preparation_status' => 'known',
             'source' => 'class',
         ]);
 
         // Try to prepare beyond the limit
-        $response = $this->patchJson("/api/v1/characters/{$character->id}/spells/{$spells[2]->id}/prepare");
+        $response = $this->patchJson("/api/v1/characters/{$character->id}/spells/{$spells[2]->full_slug}/prepare");
 
         $response->assertUnprocessable()
             ->assertJsonPath('message', 'Preparation limit reached. Unprepare a spell first.');

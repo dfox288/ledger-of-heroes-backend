@@ -21,7 +21,7 @@ class StoreEquipmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'item_id' => ['nullable', 'integer', 'exists:items,id'],
+            'item_slug' => ['nullable', 'string', 'exists:items,full_slug'],
             'custom_name' => ['nullable', 'string', 'max:255'],
             'custom_description' => ['nullable', 'string', 'max:2000'],
             'quantity' => ['nullable', 'integer', 'min:1'],
@@ -34,15 +34,15 @@ class StoreEquipmentRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            $hasItemId = $this->filled('item_id');
+            $hasItemSlug = $this->filled('item_slug');
             $hasCustomName = $this->filled('custom_name');
 
-            if (! $hasItemId && ! $hasCustomName) {
-                $validator->errors()->add('item_id', 'Either item_id or custom_name is required.');
+            if (! $hasItemSlug && ! $hasCustomName) {
+                $validator->errors()->add('item_slug', 'Either item_slug or custom_name is required.');
             }
 
-            if ($hasItemId && $hasCustomName) {
-                $validator->errors()->add('item_id', 'Cannot specify both item_id and custom_name.');
+            if ($hasItemSlug && $hasCustomName) {
+                $validator->errors()->add('item_slug', 'Cannot specify both item_slug and custom_name.');
             }
         });
     }

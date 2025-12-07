@@ -46,4 +46,67 @@ class GeneratesSlugsTest extends TestCase
         $slug = $this->generateSlug('Very   Long    Name');
         $this->assertEquals('very-long-name', $slug);
     }
+
+    #[Test]
+    public function it_generates_full_slug_with_source_prefix()
+    {
+        $sources = [['code' => 'PHB', 'pages' => '123']];
+        $fullSlug = $this->generateFullSlug('high-elf', $sources);
+
+        $this->assertEquals('phb:high-elf', $fullSlug);
+    }
+
+    #[Test]
+    public function it_uses_first_source_for_full_slug()
+    {
+        $sources = [
+            ['code' => 'PHB', 'pages' => '123'],
+            ['code' => 'XGE', 'pages' => '45'],
+        ];
+        $fullSlug = $this->generateFullSlug('magic-missile', $sources);
+
+        $this->assertEquals('phb:magic-missile', $fullSlug);
+    }
+
+    #[Test]
+    public function it_lowercases_source_code_in_full_slug()
+    {
+        $sources = [['code' => 'XGE', 'pages' => '']];
+        $fullSlug = $this->generateFullSlug('shadow-blade', $sources);
+
+        $this->assertEquals('xge:shadow-blade', $fullSlug);
+    }
+
+    #[Test]
+    public function it_returns_null_for_empty_sources()
+    {
+        $fullSlug = $this->generateFullSlug('orphan-entity', []);
+
+        $this->assertNull($fullSlug);
+    }
+
+    #[Test]
+    public function it_returns_null_for_sources_without_code()
+    {
+        $sources = [['pages' => '123']]; // Missing 'code' key
+        $fullSlug = $this->generateFullSlug('invalid-entity', $sources);
+
+        $this->assertNull($fullSlug);
+    }
+
+    #[Test]
+    public function it_generates_core_full_slug_for_universal_entities()
+    {
+        $fullSlug = $this->generateCoreFullSlug('common');
+
+        $this->assertEquals('core:common', $fullSlug);
+    }
+
+    #[Test]
+    public function it_generates_core_full_slug_for_skill()
+    {
+        $fullSlug = $this->generateCoreFullSlug('athletics');
+
+        $this->assertEquals('core:athletics', $fullSlug);
+    }
 }

@@ -28,9 +28,9 @@ class CharacterStoreRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
 
             // Core choices (nullable for wizard-style creation)
-            'race_id' => ['sometimes', 'nullable', 'exists:races,id'],
-            'class_id' => ['sometimes', 'nullable', 'exists:classes,id'],
-            'background_id' => ['sometimes', 'nullable', 'exists:backgrounds,id'],
+            'race_slug' => ['sometimes', 'nullable', 'exists:races,full_slug'],
+            'class_slug' => ['sometimes', 'nullable', 'exists:classes,full_slug'],
+            'background_slug' => ['sometimes', 'nullable', 'exists:backgrounds,full_slug'],
 
             // Ability scores (manual entry, range 3-20)
             'strength' => ['sometimes', 'nullable', 'integer', 'min:3', 'max:20'],

@@ -10,6 +10,7 @@ class ProficiencyType extends BaseModel
     protected $fillable = [
         'name',
         'slug',
+        'full_slug',
         'category',
         'subcategory',
         'item_id',

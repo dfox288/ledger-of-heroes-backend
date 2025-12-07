@@ -47,8 +47,9 @@ class FightingStyleChoiceHandler extends AbstractChoiceHandler
         }
 
         // Get all fighting styles already taken
-        $takenStyleIds = $character->featureSelections
-            ->pluck('optional_feature_id')
+        $takenStyleSlugs = $character->featureSelections
+            ->pluck('optional_feature_slug')
+            ->filter()
             ->unique()
             ->all();
 
@@ -75,9 +76,9 @@ class FightingStyleChoiceHandler extends AbstractChoiceHandler
                 if ($classLevel >= $requiredLevel) {
                     // Check if already selected for this class
                     $hasSelection = $character->featureSelections
-                        ->where('class_id', $class->id)
+                        ->where('class_slug', $class->full_slug)
                         ->filter(function ($selection) use ($allStyles) {
-                            return $allStyles->contains('id', $selection->optional_feature_id);
+                            return $allStyles->contains('full_slug', $selection->optional_feature_slug);
                         })
                         ->isNotEmpty();
 
@@ -86,14 +87,14 @@ class FightingStyleChoiceHandler extends AbstractChoiceHandler
                             $class,
                             $requiredLevel,
                             $allStyles,
-                            $takenStyleIds
+                            $takenStyleSlugs
                         ));
                     }
                 }
             }
 
             // TODO: Check for subclass fighting style grants (Champion Fighter at level 10)
-            // This would require checking $classPivot->subclass_id and comparing against
+            // This would require checking $classPivot->subclass_slug and comparing against
             // FIGHTING_STYLE_SUBCLASSES, but that's for future implementation
         }
 
@@ -109,14 +110,14 @@ class FightingStyleChoiceHandler extends AbstractChoiceHandler
             throw new InvalidSelectionException($choice->id, 'empty', 'Selection cannot be empty');
         }
 
-        // Get the selected fighting style ID (should be exactly 1)
-        $optionalFeatureId = is_array($selected) ? (int) $selected[0] : (int) $selected;
+        // Get the selected fighting style slug (should be exactly 1)
+        $optionalFeatureSlug = is_array($selected) ? $selected[0] : $selected;
 
         // Create the feature selection
         FeatureSelection::create([
             'character_id' => $character->id,
-            'optional_feature_id' => $optionalFeatureId,
-            'class_id' => $parsed['sourceId'],
+            'optional_feature_slug' => $optionalFeatureSlug,
+            'class_slug' => $parsed['sourceSlug'],
             'subclass_name' => null,
             'level_acquired' => $parsed['level'],
         ]);
@@ -142,30 +143,30 @@ class FightingStyleChoiceHandler extends AbstractChoiceHandler
         $class,
         int $levelGranted,
         Collection $allStyles,
-        array $takenStyleIds
+        array $takenStyleSlugs
     ): PendingChoice {
         // Filter out already-taken styles
-        $availableStyles = $allStyles->filter(function ($style) use ($takenStyleIds) {
-            return ! in_array($style->id, $takenStyleIds);
+        $availableStyles = $allStyles->filter(function ($style) use ($takenStyleSlugs) {
+            return ! in_array($style->full_slug, $takenStyleSlugs);
         });
 
         // Build options array
         $options = $availableStyles->map(function ($style) {
             return [
                 'type' => 'optional_feature',
-                'id' => $style->id,
+                'full_slug' => $style->full_slug,
                 'slug' => $style->slug,
                 'name' => $style->name,
             ];
         })->values()->all();
 
         // Build metadata about excluded styles
-        $excludedStyles = $allStyles->filter(function ($style) use ($takenStyleIds) {
-            return in_array($style->id, $takenStyleIds);
+        $excludedStyles = $allStyles->filter(function ($style) use ($takenStyleSlugs) {
+            return in_array($style->full_slug, $takenStyleSlugs);
         })->pluck('name')->all();
 
         return new PendingChoice(
-            id: $this->generateChoiceId('fighting_style', 'class', $class->id, $levelGranted, 'fighting_style'),
+            id: $this->generateChoiceId('fighting_style', 'class', $class->full_slug, $levelGranted, 'fighting_style'),
             type: 'fighting_style',
             subtype: null,
             source: 'class',

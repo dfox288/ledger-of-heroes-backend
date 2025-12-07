@@ -212,11 +212,13 @@ class LanguageSeeder extends Seeder
         ];
 
         foreach ($languages as $language) {
+            $slug = Str::slug($language['name']);
             Language::updateOrCreate(
-                ['slug' => Str::slug($language['name'])],
+                ['slug' => $slug],
                 [
                     'name' => $language['name'],
-                    'slug' => Str::slug($language['name']),
+                    'slug' => $slug,
+                    'full_slug' => 'core:'.$slug,
                     'script' => $language['script'],
                     'typical_speakers' => $language['typical_speakers'],
                     'description' => $language['description'] ?? null,

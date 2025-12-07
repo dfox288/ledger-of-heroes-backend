@@ -132,6 +132,8 @@ class ProficiencyTypeSeeder extends Seeder
         foreach ($proficiencyTypes as $type) {
             // Auto-generate slug from name
             $type['slug'] = Str::slug($type['name']);
+            // Generate full_slug with core: prefix for universal lookup tables
+            $type['full_slug'] = 'core:'.$type['slug'];
 
             // Use slug as the unique key for updateOrCreate
             // This ensures we update existing records when category changes

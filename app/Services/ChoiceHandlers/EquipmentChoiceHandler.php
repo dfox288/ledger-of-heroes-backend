@@ -126,7 +126,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             $quantity = $options->first()->quantity ?? 1;
 
             $choice = new PendingChoice(
-                id: $this->generateChoiceId('equipment', 'class', $primaryClass->id, 1, $choiceGroup),
+                id: $this->generateChoiceId('equipment', 'class', $primaryClass->full_slug, 1, $choiceGroup),
                 type: 'equipment',
                 subtype: null,
                 source: 'class',
@@ -199,7 +199,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
         foreach ($foundOption['items'] as $item) {
             CharacterEquipment::create([
                 'character_id' => $character->id,
-                'item_id' => $item['id'],
+                'item_slug' => $item['full_slug'],
                 'quantity' => $item['quantity'],
                 'equipped' => false,
                 'custom_description' => $metadata,

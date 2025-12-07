@@ -15,10 +15,12 @@ class ItemFactory extends Factory
     public function definition(): array
     {
         $name = fake()->unique()->words(2, true);
+        $slug = Str::slug($name);
 
         return [
             'name' => ucwords($name),
-            'slug' => Str::slug($name),
+            'slug' => $slug,
+            'full_slug' => 'test:'.$slug,
             'item_type_id' => ItemType::where('code', 'G')->first()->id,
             'rarity' => 'common',
             'requires_attunement' => false,

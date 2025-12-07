@@ -14,8 +14,8 @@ class CharacterClassPivot extends Model
 
     protected $fillable = [
         'character_id',
-        'class_id',
-        'subclass_id',
+        'class_slug',
+        'subclass_slug',
         'level',
         'is_primary',
         'order',
@@ -24,8 +24,6 @@ class CharacterClassPivot extends Model
 
     protected $casts = [
         'character_id' => 'integer',
-        'class_id' => 'integer',
-        'subclass_id' => 'integer',
         'level' => 'integer',
         'is_primary' => 'boolean',
         'order' => 'integer',
@@ -39,12 +37,12 @@ class CharacterClassPivot extends Model
 
     public function characterClass(): BelongsTo
     {
-        return $this->belongsTo(CharacterClass::class, 'class_id');
+        return $this->belongsTo(CharacterClass::class, 'class_slug', 'full_slug');
     }
 
     public function subclass(): BelongsTo
     {
-        return $this->belongsTo(CharacterClass::class, 'subclass_id');
+        return $this->belongsTo(CharacterClass::class, 'subclass_slug', 'full_slug');
     }
 
     public function getMaxHitDiceAttribute(): int

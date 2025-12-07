@@ -51,6 +51,7 @@ class EquipmentManagerServiceTest extends TestCase
         $this->longsword = Item::create([
             'name' => 'Longsword',
             'slug' => 'longsword',
+            'full_slug' => 'test:longsword',
             'item_type_id' => $meleeWeaponType->id,
             'rarity' => 'common',
             'description' => 'A versatile sword.',
@@ -59,6 +60,7 @@ class EquipmentManagerServiceTest extends TestCase
         $this->arrow = Item::create([
             'name' => 'Arrow',
             'slug' => 'arrow',
+            'full_slug' => 'test:arrow',
             'item_type_id' => $ammoType->id,
             'rarity' => 'common',
             'description' => 'An arrow for a bow.',
@@ -67,6 +69,7 @@ class EquipmentManagerServiceTest extends TestCase
         $this->leatherArmor = Item::create([
             'name' => 'Leather Armor',
             'slug' => 'leather-armor',
+            'full_slug' => 'test:leather-armor',
             'item_type_id' => $lightArmorType->id,
             'armor_class' => 11,
             'rarity' => 'common',
@@ -76,6 +79,7 @@ class EquipmentManagerServiceTest extends TestCase
         $this->chainMail = Item::create([
             'name' => 'Chain Mail',
             'slug' => 'chain-mail',
+            'full_slug' => 'test:chain-mail',
             'item_type_id' => $heavyArmorType->id,
             'armor_class' => 16,
             'rarity' => 'common',
@@ -85,6 +89,7 @@ class EquipmentManagerServiceTest extends TestCase
         $this->shield = Item::create([
             'name' => 'Shield',
             'slug' => 'shield',
+            'full_slug' => 'test:shield',
             'item_type_id' => $shieldType->id,
             'armor_class' => 2,
             'rarity' => 'common',
@@ -105,7 +110,7 @@ class EquipmentManagerServiceTest extends TestCase
 
         $this->assertDatabaseHas('character_equipment', [
             'character_id' => $character->id,
-            'item_id' => $this->longsword->id,
+            'item_slug' => $this->longsword->full_slug,
             'quantity' => 1,
             'equipped' => false,
         ]);
@@ -130,7 +135,7 @@ class EquipmentManagerServiceTest extends TestCase
         $this->service->addItem($character, $this->arrow, 20);
         $this->service->addItem($character, $this->arrow, 10);
 
-        $equipment = $character->equipment()->where('item_id', $this->arrow->id)->first();
+        $equipment = $character->equipment()->where('item_slug', $this->arrow->full_slug)->first();
         $this->assertEquals(30, $equipment->quantity);
     }
 
@@ -146,7 +151,7 @@ class EquipmentManagerServiceTest extends TestCase
         // Add second item - should create new record
         $this->service->addItem($character, $this->longsword);
 
-        $this->assertEquals(2, $character->equipment()->where('item_id', $this->longsword->id)->count());
+        $this->assertEquals(2, $character->equipment()->where('item_slug', $this->longsword->full_slug)->count());
     }
 
     // =============================
@@ -209,6 +214,7 @@ class EquipmentManagerServiceTest extends TestCase
         $shield2 = Item::create([
             'name' => 'Tower Shield',
             'slug' => 'tower-shield',
+            'full_slug' => 'test:tower-shield',
             'item_type_id' => $shieldType->id,
             'armor_class' => 2,
             'rarity' => 'common',
@@ -305,6 +311,7 @@ class EquipmentManagerServiceTest extends TestCase
         $potion = Item::create([
             'name' => 'Healing Potion',
             'slug' => 'healing-potion',
+            'full_slug' => 'test:healing-potion',
             'item_type_id' => $potionType->id,
             'rarity' => 'common',
             'description' => 'A potion that heals.',

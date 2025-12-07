@@ -231,7 +231,7 @@ class CharacterAttributesTest extends TestCase
     #[Test]
     public function it_returns_null_speed_when_no_race(): void
     {
-        $character = Character::factory()->create(['race_id' => null]);
+        $character = Character::factory()->create(['race_slug' => null]);
 
         $response = $this->getJson("/api/v1/characters/{$character->id}");
 
@@ -242,7 +242,7 @@ class CharacterAttributesTest extends TestCase
     #[Test]
     public function it_returns_null_size_when_no_race(): void
     {
-        $character = Character::factory()->create(['race_id' => null]);
+        $character = Character::factory()->create(['race_slug' => null]);
 
         $response = $this->getJson("/api/v1/characters/{$character->id}");
 
@@ -253,7 +253,7 @@ class CharacterAttributesTest extends TestCase
     #[Test]
     public function it_returns_null_speeds_when_no_race(): void
     {
-        $character = Character::factory()->create(['race_id' => null]);
+        $character = Character::factory()->create(['race_slug' => null]);
 
         $response = $this->getJson("/api/v1/characters/{$character->id}");
 
@@ -312,7 +312,7 @@ class CharacterAttributesTest extends TestCase
 
         // Change race
         $response = $this->patchJson("/api/v1/characters/{$character->id}", [
-            'race_id' => $human->id,
+            'race_slug' => $human->full_slug,
         ]);
 
         $response->assertOk()

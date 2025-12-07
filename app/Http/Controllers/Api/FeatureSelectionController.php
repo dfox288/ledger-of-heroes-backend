@@ -92,21 +92,21 @@ class FeatureSelectionController extends Controller
             ->with(['characterClass', 'subclass'])
             ->get();
 
-        // Get already selected feature IDs
-        $selectedIds = $character->featureSelections()->pluck('optional_feature_id');
+        // Get already selected feature slugs
+        $selectedSlugs = $character->featureSelections()->pluck('optional_feature_slug');
 
         // Build query for available features
         $query = OptionalFeature::with(['classes', 'classPivots', 'sources.source'])
-            ->whereNotIn('id', $selectedIds);
+            ->whereNotIn('full_slug', $selectedSlugs);
 
         // Filter by classes character has
-        $classIds = $characterClasses->pluck('class_id')->toArray();
+        $classSlugs = $characterClasses->pluck('class_slug')->toArray();
         $subclassNames = $characterClasses->pluck('subclass.name')->filter()->toArray();
 
-        $query->where(function ($q) use ($classIds, $subclassNames) {
+        $query->where(function ($q) use ($classSlugs, $subclassNames) {
             // Features available to the character's base classes
-            $q->whereHas('classes', function ($classQuery) use ($classIds) {
-                $classQuery->whereIn('classes.id', $classIds);
+            $q->whereHas('classes', function ($classQuery) use ($classSlugs) {
+                $classQuery->whereIn('classes.full_slug', $classSlugs);
             });
 
             // Or features for specific subclasses the character has
@@ -147,20 +147,20 @@ class FeatureSelectionController extends Controller
      * POST /api/v1/characters/1/feature-selections
      *
      * # Select a Battle Master maneuver
-     * {"optional_feature_id": 123, "class_id": 5, "subclass_name": "Battle Master"}
+     * {"optional_feature_slug": "phb:trip-attack", "class_slug": "phb:fighter", "subclass_name": "Battle Master"}
      *
      * # Select a Warlock eldritch invocation (class/subclass optional if unambiguous)
-     * {"optional_feature_id": 456}
+     * {"optional_feature_slug": "phb:agonizing-blast"}
      *
      * # Select with specific level acquired
-     * {"optional_feature_id": 789, "level_acquired": 3}
+     * {"optional_feature_slug": "phb:riposte", "level_acquired": 3}
      * ```
      *
      * **Request Body:**
      * | Field | Type | Required | Description |
      * |-------|------|----------|-------------|
-     * | `optional_feature_id` | integer | Yes | ID of the optional feature to select |
-     * | `class_id` | integer | No | ID of the class granting this feature |
+     * | `optional_feature_slug` | string | Yes | Full slug of the optional feature to select |
+     * | `class_slug` | string | No | Full slug of the class granting this feature |
      * | `subclass_name` | string | No | Name of the subclass (max 100 chars) |
      * | `level_acquired` | integer | No | Level when acquired (1-20, defaults to current total level) |
      *
@@ -180,15 +180,15 @@ class FeatureSelectionController extends Controller
         $validated = $request->validated();
 
         // Get the optional feature to access its properties
-        $optionalFeature = OptionalFeature::findOrFail($validated['optional_feature_id']);
+        $optionalFeature = OptionalFeature::where('full_slug', $validated['optional_feature_slug'])->firstOrFail();
 
         // Set default level_acquired to character's current total level
         $levelAcquired = $validated['level_acquired'] ?? $character->total_level;
 
         $featureSelection = FeatureSelection::create([
             'character_id' => $character->id,
-            'optional_feature_id' => $optionalFeature->id,
-            'class_id' => $validated['class_id'] ?? null,
+            'optional_feature_slug' => $optionalFeature->full_slug,
+            'class_slug' => $validated['class_slug'] ?? null,
             'subclass_name' => $validated['subclass_name'] ?? null,
             'level_acquired' => max(1, $levelAcquired),
         ]);
@@ -229,10 +229,10 @@ class FeatureSelectionController extends Controller
     {
         $optionalFeature = is_numeric($featureIdOrSlug)
             ? OptionalFeature::findOrFail($featureIdOrSlug)
-            : OptionalFeature::where('slug', $featureIdOrSlug)->firstOrFail();
+            : OptionalFeature::where('full_slug', $featureIdOrSlug)->orWhere('slug', $featureIdOrSlug)->firstOrFail();
 
         $deleted = $character->featureSelections()
-            ->where('optional_feature_id', $optionalFeature->id)
+            ->where('optional_feature_slug', $optionalFeature->full_slug)
             ->delete();
 
         if ($deleted === 0) {

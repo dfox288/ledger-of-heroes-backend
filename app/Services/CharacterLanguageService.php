@@ -45,16 +45,16 @@ class CharacterLanguageService
      */
     public function getPendingChoices(Character $character): array
     {
-        // Get all languages the character already knows
-        $knownLanguageIds = $character->languages()->pluck('language_id')->toArray();
+        // Get all languages the character already knows (by slug)
+        $knownLanguageSlugs = $character->languages()->pluck('language_slug')->toArray();
 
         // Get all available languages for options
         $allLanguages = Language::orderBy('name')->get();
 
         $choices = [
-            'race' => $this->getChoicesFromEntity($character->race, 'race', $character, $knownLanguageIds, $allLanguages),
-            'background' => $this->getChoicesFromEntity($character->background, 'background', $character, $knownLanguageIds, $allLanguages),
-            'feat' => $this->getChoicesFromFeats($character, $knownLanguageIds, $allLanguages),
+            'race' => $this->getChoicesFromEntity($character->race, 'race', $character, $knownLanguageSlugs, $allLanguages),
+            'background' => $this->getChoicesFromEntity($character->background, 'background', $character, $knownLanguageSlugs, $allLanguages),
+            'feat' => $this->getChoicesFromFeats($character, $knownLanguageSlugs, $allLanguages),
         ];
 
         return $choices;
@@ -63,11 +63,11 @@ class CharacterLanguageService
     /**
      * Make a language choice for a character.
      *
-     * @param  array<int>  $languageIds  The language IDs the user chose
+     * @param  array<string>  $languageSlugs  The language full_slugs the user chose
      *
      * @throws InvalidArgumentException
      */
-    public function makeChoice(Character $character, string $source, array $languageIds): void
+    public function makeChoice(Character $character, string $source, array $languageSlugs): void
     {
         // Validate source using enum
         $validSources = CharacterSource::forLanguages();
@@ -84,39 +84,39 @@ class CharacterLanguageService
             throw new InvalidArgumentException("No language choices available for {$source}");
         }
 
-        if (count($languageIds) !== $expectedQuantity) {
+        if (count($languageSlugs) !== $expectedQuantity) {
             throw new InvalidArgumentException(
-                "Must choose exactly {$expectedQuantity} languages, got ".count($languageIds)
+                "Must choose exactly {$expectedQuantity} languages, got ".count($languageSlugs)
             );
         }
 
         // Validate languages exist
-        $languages = Language::whereIn('id', $languageIds)->get();
-        if ($languages->count() !== count($languageIds)) {
-            throw new InvalidArgumentException('One or more language IDs are invalid');
+        $languages = Language::whereIn('full_slug', $languageSlugs)->get();
+        if ($languages->count() !== count($languageSlugs)) {
+            throw new InvalidArgumentException('One or more language slugs are invalid');
         }
 
         // Clear existing choices for this source before validation
         // This makes the endpoint idempotent - re-submitting choices is allowed
-        $fixedLanguageIds = $this->getFixedLanguageIds($character, $source);
+        $fixedLanguageSlugs = $this->getFixedLanguageSlugs($character, $source);
         $character->languages()
             ->where('source', $source)
-            ->whereNotIn('language_id', $fixedLanguageIds)
+            ->whereNotIn('language_slug', $fixedLanguageSlugs)
             ->delete();
 
         // Validate languages are not already known (excluding the ones we just deleted)
-        $knownLanguageIds = $character->languages()->pluck('language_id')->toArray();
-        foreach ($languageIds as $languageId) {
-            if (in_array($languageId, $knownLanguageIds)) {
-                throw new InvalidArgumentException("Language ID {$languageId} is already known");
+        $knownLanguageSlugs = $character->languages()->pluck('language_slug')->toArray();
+        foreach ($languageSlugs as $languageSlug) {
+            if (in_array($languageSlug, $knownLanguageSlugs)) {
+                throw new InvalidArgumentException("Language {$languageSlug} is already known");
             }
         }
 
         // Create the language records
-        foreach ($languageIds as $languageId) {
+        foreach ($languageSlugs as $languageSlug) {
             CharacterLanguage::create([
                 'character_id' => $character->id,
-                'language_id' => $languageId,
+                'language_slug' => $languageSlug,
                 'source' => $source,
             ]);
         }
@@ -138,12 +138,18 @@ class CharacterLanguageService
         $fixedLanguages = $entity->languages()
             ->where('is_choice', false)
             ->whereNotNull('language_id')
+            ->with('language')
             ->get();
 
         foreach ($fixedLanguages as $entityLanguage) {
+            $languageSlug = $entityLanguage->language?->full_slug;
+            if (! $languageSlug) {
+                continue;
+            }
+
             // Check if character already knows this language from ANY source
             $exists = $character->languages()
-                ->where('language_id', $entityLanguage->language_id)
+                ->where('language_slug', $languageSlug)
                 ->exists();
 
             if ($exists) {
@@ -152,7 +158,7 @@ class CharacterLanguageService
 
             CharacterLanguage::create([
                 'character_id' => $character->id,
-                'language_id' => $entityLanguage->language_id,
+                'language_slug' => $languageSlug,
                 'source' => $source,
             ]);
         }
@@ -165,7 +171,7 @@ class CharacterLanguageService
      * Get choices from a single entity (race, background).
      * For subraces, includes inherited languages and choices from the parent race.
      */
-    private function getChoicesFromEntity($entity, string $source, Character $character, array $knownLanguageIds, $allLanguages): array
+    private function getChoicesFromEntity($entity, string $source, Character $character, array $knownLanguageSlugs, $allLanguages): array
     {
         if (! $entity) {
             return [
@@ -184,8 +190,9 @@ class CharacterLanguageService
             ->where('source', $source)
             ->with('language')
             ->get()
+            ->filter(fn ($cl) => $cl->language !== null)
             ->map(fn ($cl) => [
-                'id' => $cl->language->id,
+                'full_slug' => $cl->language->full_slug,
                 'name' => $cl->language->name,
                 'slug' => $cl->language->slug,
                 'script' => $cl->language->script,
@@ -209,20 +216,20 @@ class CharacterLanguageService
         }
 
         // Get selected choice languages (not fixed ones)
-        $fixedLanguageIds = $this->getFixedLanguageIds($character, $source, $entity);
+        $fixedLanguageSlugs = $this->getFixedLanguageSlugs($character, $source, $entity);
         $selectedFromSource = $character->languages()
             ->where('source', $source)
-            ->whereNotIn('language_id', $fixedLanguageIds)
-            ->pluck('language_id')
+            ->whereNotIn('language_slug', $fixedLanguageSlugs)
+            ->pluck('language_slug')
             ->toArray();
 
         $remaining = max(0, $quantity - count($selectedFromSource));
 
         // Build options (exclude already known languages)
         $options = $allLanguages
-            ->whereNotIn('id', $knownLanguageIds)
+            ->whereNotIn('full_slug', $knownLanguageSlugs)
             ->map(fn ($lang) => [
-                'id' => $lang->id,
+                'full_slug' => $lang->full_slug,
                 'name' => $lang->name,
                 'slug' => $lang->slug,
                 'script' => $lang->script,
@@ -244,7 +251,7 @@ class CharacterLanguageService
     /**
      * Get choices from feats.
      */
-    private function getChoicesFromFeats(Character $character, array $knownLanguageIds, $allLanguages): array
+    private function getChoicesFromFeats(Character $character, array $knownLanguageSlugs, $allLanguages): array
     {
         // Get feat IDs from character features (polymorphic)
         $featIds = $character->features()
@@ -269,8 +276,9 @@ class CharacterLanguageService
             ->where('source', 'feat')
             ->with('language')
             ->get()
+            ->filter(fn ($cl) => $cl->language !== null)
             ->map(fn ($cl) => [
-                'id' => $cl->language->id,
+                'full_slug' => $cl->language->full_slug,
                 'name' => $cl->language->name,
                 'slug' => $cl->language->slug,
                 'script' => $cl->language->script,
@@ -283,28 +291,31 @@ class CharacterLanguageService
             ->where('is_choice', true)
             ->sum('quantity');
 
-        // Get fixed language IDs from feats
-        $fixedLanguageIds = EntityLanguage::whereIn('reference_id', $featIds)
+        // Get fixed language slugs from feats
+        $fixedLanguageSlugs = EntityLanguage::whereIn('reference_id', $featIds)
             ->where('reference_type', Feat::class)
             ->where('is_choice', false)
             ->whereNotNull('language_id')
-            ->pluck('language_id')
+            ->with('language')
+            ->get()
+            ->filter(fn ($el) => $el->language !== null)
+            ->pluck('language.full_slug')
             ->toArray();
 
         // Get selected choice languages (not fixed ones)
         $selectedFromSource = $character->languages()
             ->where('source', 'feat')
-            ->whereNotIn('language_id', $fixedLanguageIds)
-            ->pluck('language_id')
+            ->whereNotIn('language_slug', $fixedLanguageSlugs)
+            ->pluck('language_slug')
             ->toArray();
 
         $remaining = max(0, $totalQuantity - count($selectedFromSource));
 
         // Build options (exclude already known languages)
         $options = $allLanguages
-            ->whereNotIn('id', $knownLanguageIds)
+            ->whereNotIn('full_slug', $knownLanguageSlugs)
             ->map(fn ($lang) => [
-                'id' => $lang->id,
+                'full_slug' => $lang->full_slug,
                 'name' => $lang->name,
                 'slug' => $lang->slug,
                 'script' => $lang->script,
@@ -366,10 +377,10 @@ class CharacterLanguageService
     }
 
     /**
-     * Get fixed language IDs from an entity.
+     * Get fixed language slugs from an entity.
      * For subraces, includes inherited fixed languages from the parent race.
      */
-    private function getFixedLanguageIds(Character $character, string $source, $entity = null): array
+    private function getFixedLanguageSlugs(Character $character, string $source, $entity = null): array
     {
         if ($source === 'feat') {
             $featIds = $character->features()
@@ -381,7 +392,10 @@ class CharacterLanguageService
                 ->where('reference_type', Feat::class)
                 ->where('is_choice', false)
                 ->whereNotNull('language_id')
-                ->pluck('language_id')
+                ->with('language')
+                ->get()
+                ->filter(fn ($el) => $el->language !== null)
+                ->pluck('language.full_slug')
                 ->toArray();
         }
 
@@ -397,23 +411,29 @@ class CharacterLanguageService
             return [];
         }
 
-        $fixedLanguageIds = $entity->languages()
+        $fixedLanguageSlugs = $entity->languages()
             ->where('is_choice', false)
             ->whereNotNull('language_id')
-            ->pluck('language_id')
+            ->with('language')
+            ->get()
+            ->filter(fn ($el) => $el->language !== null)
+            ->pluck('language.full_slug')
             ->toArray();
 
         // For subraces, also include parent race fixed languages
         if ($source === 'race' && $entity instanceof Race && $entity->is_subrace && $entity->parent) {
-            $parentFixedLanguageIds = $entity->parent->languages()
+            $parentFixedLanguageSlugs = $entity->parent->languages()
                 ->where('is_choice', false)
                 ->whereNotNull('language_id')
-                ->pluck('language_id')
+                ->with('language')
+                ->get()
+                ->filter(fn ($el) => $el->language !== null)
+                ->pluck('language.full_slug')
                 ->toArray();
 
-            $fixedLanguageIds = array_unique(array_merge($fixedLanguageIds, $parentFixedLanguageIds), SORT_NUMERIC);
+            $fixedLanguageSlugs = array_unique(array_merge($fixedLanguageSlugs, $parentFixedLanguageSlugs));
         }
 
-        return $fixedLanguageIds;
+        return $fixedLanguageSlugs;
     }
 }

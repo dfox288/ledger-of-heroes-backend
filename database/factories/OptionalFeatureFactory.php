@@ -26,10 +26,12 @@ class OptionalFeatureFactory extends Factory
     public function definition(): array
     {
         $name = fake()->unique()->words(3, true);
+        $slug = Str::slug($name);
 
         return [
             'name' => ucwords($name),
-            'slug' => Str::slug($name),
+            'slug' => $slug,
+            'full_slug' => 'test:'.$slug,
             'feature_type' => fake()->randomElement(OptionalFeatureType::cases()),
             'level_requirement' => fake()->boolean(50) ? fake()->numberBetween(1, 20) : null,
             'prerequisite_text' => fake()->boolean(30) ? fake()->sentence(4) : null,

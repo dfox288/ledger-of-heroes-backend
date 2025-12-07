@@ -29,6 +29,7 @@ class Race extends BaseModel
 
     protected $fillable = [
         'slug',
+        'full_slug',
         'name',
         'size_id',
         'speed',

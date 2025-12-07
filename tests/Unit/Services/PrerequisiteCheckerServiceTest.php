@@ -164,7 +164,7 @@ class PrerequisiteCheckerServiceTest extends TestCase
     {
         $dragonborn = Race::factory()->create(['name' => 'Dragonborn', 'slug' => 'dragonborn']);
         $character = Character::factory()->create([
-            'race_id' => $dragonborn->id,
+            'race_slug' => $dragonborn->full_slug,
         ]);
 
         $feat = Feat::factory()->create();
@@ -187,7 +187,7 @@ class PrerequisiteCheckerServiceTest extends TestCase
         $human = Race::factory()->create(['name' => 'Human', 'slug' => 'human']);
 
         $character = Character::factory()->create([
-            'race_id' => $human->id,
+            'race_slug' => $human->full_slug,
         ]);
 
         $feat = Feat::factory()->create();
@@ -212,12 +212,12 @@ class PrerequisiteCheckerServiceTest extends TestCase
     {
         $acrobatics = Skill::firstOrCreate(
             ['name' => 'Acrobatics'],
-            ['slug' => 'acrobatics', 'ability_score_id' => 1]
+            ['slug' => 'acrobatics', 'full_slug' => 'test:acrobatics', 'ability_score_id' => 1]
         );
 
         $character = Character::factory()->create();
         $character->proficiencies()->create([
-            'skill_id' => $acrobatics->id,
+            'skill_slug' => $acrobatics->full_slug,
             'source' => 'background',
         ]);
 
@@ -239,7 +239,7 @@ class PrerequisiteCheckerServiceTest extends TestCase
     {
         $acrobatics = Skill::firstOrCreate(
             ['name' => 'Acrobatics'],
-            ['slug' => 'acrobatics', 'ability_score_id' => 1]
+            ['slug' => 'acrobatics', 'full_slug' => 'test:acrobatics', 'ability_score_id' => 1]
         );
 
         $character = Character::factory()->create();
@@ -458,7 +458,7 @@ class PrerequisiteCheckerServiceTest extends TestCase
 
         // Character with no race
         $character = Character::factory()->create([
-            'race_id' => null,
+            'race_slug' => null,
         ]);
 
         $feat = Feat::factory()->create();

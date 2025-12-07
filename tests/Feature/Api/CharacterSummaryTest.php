@@ -95,7 +95,7 @@ class CharacterSummaryTest extends TestCase
     public function it_calculates_pending_proficiency_choices()
     {
         $race = Race::factory()->create();
-        $character = Character::factory()->withStandardArray()->create(['race_id' => $race->id]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
 
         // For now, just test that the proficiencies field exists and is numeric
         // The actual proficiency choice logic requires complex setup with EntitySkillChoice polymorphic table
@@ -112,7 +112,7 @@ class CharacterSummaryTest extends TestCase
     public function it_calculates_pending_language_choices()
     {
         $race = Race::factory()->create();
-        $character = Character::factory()->withStandardArray()->create(['race_id' => $race->id]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
 
         // Create languages first
         $common = Language::factory()->create(['slug' => 'common-test-'.uniqid()]);
@@ -130,7 +130,7 @@ class CharacterSummaryTest extends TestCase
         // Character has selected 1 out of 2 languages
         CharacterLanguage::factory()->create([
             'character_id' => $character->id,
-            'language_id' => $common->id,
+            'language_slug' => $common->full_slug,
             'source' => 'race',
         ]);
 
@@ -216,7 +216,7 @@ class CharacterSummaryTest extends TestCase
         $class = CharacterClass::factory()->create(['hit_die' => 'd8']);
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $class->id,
+            'class_slug' => $class->full_slug,
             'level' => 5,
             'hit_dice_spent' => 2,
             'is_primary' => true,
@@ -323,12 +323,12 @@ class CharacterSummaryTest extends TestCase
 
         CharacterCondition::factory()->create([
             'character_id' => $character->id,
-            'condition_id' => $poisoned->id,
+            'condition_slug' => $poisoned->full_slug,
         ]);
 
         CharacterCondition::factory()->create([
             'character_id' => $character->id,
-            'condition_id' => $blinded->id,
+            'condition_slug' => $blinded->full_slug,
         ]);
 
         $response = $this->getJson("/api/v1/characters/{$character->id}/summary");
@@ -393,7 +393,7 @@ class CharacterSummaryTest extends TestCase
     public function it_detects_incomplete_character_creation()
     {
         // Character missing race and ability scores
-        $character = Character::factory()->create(['race_id' => null]);
+        $character = Character::factory()->create(['race_slug' => null]);
 
         $response = $this->getJson("/api/v1/characters/{$character->id}/summary");
 
@@ -410,7 +410,7 @@ class CharacterSummaryTest extends TestCase
     public function it_detects_complete_character_creation()
     {
         $race = Race::factory()->create();
-        $character = Character::factory()->withStandardArray()->create(['race_id' => $race->id]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
             'level' => 1,
@@ -432,7 +432,7 @@ class CharacterSummaryTest extends TestCase
     public function it_shows_pending_choices_in_missing_required_when_incomplete()
     {
         $race = Race::factory()->create();
-        $character = Character::factory()->withStandardArray()->create(['race_id' => $race->id]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
 
         // Add language choice to race (2 choices)
         EntityLanguage::create([
@@ -446,7 +446,7 @@ class CharacterSummaryTest extends TestCase
         $class = CharacterClass::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $class->id,
+            'class_slug' => $class->full_slug,
             'level' => 1,
             'is_primary' => true,
         ]);

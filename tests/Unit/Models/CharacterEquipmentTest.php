@@ -22,7 +22,7 @@ class CharacterEquipmentTest extends TestCase
         $item = Item::factory()->create();
         $equipment = CharacterEquipment::factory()->create([
             'character_id' => $character->id,
-            'item_id' => $item->id,
+            'item_slug' => $item->full_slug,
         ]);
 
         $this->assertInstanceOf(Character::class, $equipment->character);
@@ -33,7 +33,7 @@ class CharacterEquipmentTest extends TestCase
     public function it_belongs_to_item(): void
     {
         $item = Item::factory()->create();
-        $equipment = CharacterEquipment::factory()->create(['item_id' => $item->id]);
+        $equipment = CharacterEquipment::factory()->create(['item_slug' => $item->full_slug]);
 
         $this->assertInstanceOf(Item::class, $equipment->item);
         $this->assertEquals($item->id, $equipment->item->id);
@@ -45,7 +45,7 @@ class CharacterEquipmentTest extends TestCase
         $item = Item::factory()->create();
         $equipment = CharacterEquipment::factory()->create([
             'equipped' => true,
-            'item_id' => $item->id,
+            'item_slug' => $item->full_slug,
         ]);
 
         $this->assertTrue($equipment->isEquipped());
@@ -57,7 +57,7 @@ class CharacterEquipmentTest extends TestCase
         $item = Item::factory()->create();
         $equipment = CharacterEquipment::factory()->create([
             'equipped' => false,
-            'item_id' => $item->id,
+            'item_slug' => $item->full_slug,
         ]);
 
         $this->assertFalse($equipment->isEquipped());
@@ -70,7 +70,7 @@ class CharacterEquipmentTest extends TestCase
         $equipment = CharacterEquipment::factory()->create([
             'equipped' => false,
             'location' => 'backpack',
-            'item_id' => $item->id,
+            'item_slug' => $item->full_slug,
         ]);
 
         $equipment->equip();
@@ -86,7 +86,7 @@ class CharacterEquipmentTest extends TestCase
         $equipment = CharacterEquipment::factory()->create([
             'equipped' => true,
             'location' => 'equipped',
-            'item_id' => $item->id,
+            'item_slug' => $item->full_slug,
         ]);
 
         $equipment->unequip();
@@ -99,9 +99,9 @@ class CharacterEquipmentTest extends TestCase
     public function scope_equipped_filters_only_equipped_items(): void
     {
         $item = Item::factory()->create();
-        CharacterEquipment::factory()->create(['equipped' => true, 'item_id' => $item->id]);
-        CharacterEquipment::factory()->create(['equipped' => false, 'item_id' => $item->id]);
-        CharacterEquipment::factory()->create(['equipped' => true, 'item_id' => $item->id]);
+        CharacterEquipment::factory()->create(['equipped' => true, 'item_slug' => $item->full_slug]);
+        CharacterEquipment::factory()->create(['equipped' => false, 'item_slug' => $item->full_slug]);
+        CharacterEquipment::factory()->create(['equipped' => true, 'item_slug' => $item->full_slug]);
 
         $equipped = CharacterEquipment::equipped()->get();
 
@@ -124,13 +124,13 @@ class CharacterEquipmentTest extends TestCase
         $armorItem = Item::factory()->create(['item_type_id' => $lightArmor->id]);
         $weaponItem = Item::factory()->create(['item_type_id' => $weapon->id]);
 
-        CharacterEquipment::factory()->create(['item_id' => $armorItem->id]);
-        CharacterEquipment::factory()->create(['item_id' => $weaponItem->id]);
+        CharacterEquipment::factory()->create(['item_slug' => $armorItem->full_slug]);
+        CharacterEquipment::factory()->create(['item_slug' => $weaponItem->full_slug]);
 
         $armor = CharacterEquipment::armor()->get();
 
         $this->assertCount(1, $armor);
-        $this->assertEquals($armorItem->id, $armor->first()->item_id);
+        $this->assertEquals($armorItem->full_slug, $armor->first()->item_slug);
     }
 
     #[Test]
@@ -148,13 +148,13 @@ class CharacterEquipmentTest extends TestCase
         $shieldItem = Item::factory()->create(['item_type_id' => $shield->id]);
         $armorItem = Item::factory()->create(['item_type_id' => $armor->id]);
 
-        CharacterEquipment::factory()->create(['item_id' => $shieldItem->id]);
-        CharacterEquipment::factory()->create(['item_id' => $armorItem->id]);
+        CharacterEquipment::factory()->create(['item_slug' => $shieldItem->full_slug]);
+        CharacterEquipment::factory()->create(['item_slug' => $armorItem->full_slug]);
 
         $shields = CharacterEquipment::shields()->get();
 
         $this->assertCount(1, $shields);
-        $this->assertEquals($shieldItem->id, $shields->first()->item_id);
+        $this->assertEquals($shieldItem->full_slug, $shields->first()->item_slug);
     }
 
     #[Test]
@@ -177,9 +177,9 @@ class CharacterEquipmentTest extends TestCase
         $rangedItem = Item::factory()->create(['item_type_id' => $ranged->id]);
         $armorItem = Item::factory()->create(['item_type_id' => $armor->id]);
 
-        CharacterEquipment::factory()->create(['item_id' => $meleeItem->id]);
-        CharacterEquipment::factory()->create(['item_id' => $rangedItem->id]);
-        CharacterEquipment::factory()->create(['item_id' => $armorItem->id]);
+        CharacterEquipment::factory()->create(['item_slug' => $meleeItem->full_slug]);
+        CharacterEquipment::factory()->create(['item_slug' => $rangedItem->full_slug]);
+        CharacterEquipment::factory()->create(['item_slug' => $armorItem->full_slug]);
 
         $weapons = CharacterEquipment::weapons()->get();
 
@@ -194,7 +194,7 @@ class CharacterEquipmentTest extends TestCase
             ['name' => 'Light Armor', 'description' => 'Light armor']
         );
         $item = Item::factory()->create(['item_type_id' => $lightArmor->id]);
-        $equipment = CharacterEquipment::factory()->create(['item_id' => $item->id]);
+        $equipment = CharacterEquipment::factory()->create(['item_slug' => $item->full_slug]);
 
         $this->assertTrue($equipment->isArmor());
     }
@@ -207,7 +207,7 @@ class CharacterEquipmentTest extends TestCase
             ['name' => 'Melee Weapon', 'description' => 'Melee weapon']
         );
         $item = Item::factory()->create(['item_type_id' => $weapon->id]);
-        $equipment = CharacterEquipment::factory()->create(['item_id' => $item->id]);
+        $equipment = CharacterEquipment::factory()->create(['item_slug' => $item->full_slug]);
 
         $this->assertFalse($equipment->isArmor());
     }
@@ -220,7 +220,7 @@ class CharacterEquipmentTest extends TestCase
             ['name' => 'Shield', 'description' => 'Shield']
         );
         $item = Item::factory()->create(['item_type_id' => $shield->id]);
-        $equipment = CharacterEquipment::factory()->create(['item_id' => $item->id]);
+        $equipment = CharacterEquipment::factory()->create(['item_slug' => $item->full_slug]);
 
         $this->assertTrue($equipment->isShield());
     }
@@ -233,7 +233,7 @@ class CharacterEquipmentTest extends TestCase
             ['name' => 'Light Armor', 'description' => 'Light armor']
         );
         $item = Item::factory()->create(['item_type_id' => $armor->id]);
-        $equipment = CharacterEquipment::factory()->create(['item_id' => $item->id]);
+        $equipment = CharacterEquipment::factory()->create(['item_slug' => $item->full_slug]);
 
         $this->assertFalse($equipment->isShield());
     }
@@ -246,7 +246,7 @@ class CharacterEquipmentTest extends TestCase
             ['name' => 'Melee Weapon', 'description' => 'Melee weapon']
         );
         $item = Item::factory()->create(['item_type_id' => $weapon->id]);
-        $equipment = CharacterEquipment::factory()->create(['item_id' => $item->id]);
+        $equipment = CharacterEquipment::factory()->create(['item_slug' => $item->full_slug]);
 
         $this->assertTrue($equipment->isWeapon());
     }
@@ -259,7 +259,7 @@ class CharacterEquipmentTest extends TestCase
             ['name' => 'Light Armor', 'description' => 'Light armor']
         );
         $item = Item::factory()->create(['item_type_id' => $armor->id]);
-        $equipment = CharacterEquipment::factory()->create(['item_id' => $item->id]);
+        $equipment = CharacterEquipment::factory()->create(['item_slug' => $item->full_slug]);
 
         $this->assertFalse($equipment->isWeapon());
     }
@@ -272,7 +272,7 @@ class CharacterEquipmentTest extends TestCase
             ['name' => 'Melee Weapon', 'description' => 'Melee weapon']
         );
         $item = Item::factory()->create(['item_type_id' => $weapon->id]);
-        $equipment = CharacterEquipment::factory()->create(['item_id' => $item->id]);
+        $equipment = CharacterEquipment::factory()->create(['item_slug' => $item->full_slug]);
 
         $this->assertTrue($equipment->isEquippable());
     }
@@ -285,7 +285,7 @@ class CharacterEquipmentTest extends TestCase
             ['name' => 'Adventuring Gear', 'description' => 'Adventuring gear']
         );
         $item = Item::factory()->create(['item_type_id' => $gear->id]);
-        $equipment = CharacterEquipment::factory()->create(['item_id' => $item->id]);
+        $equipment = CharacterEquipment::factory()->create(['item_slug' => $item->full_slug]);
 
         $this->assertFalse($equipment->isEquippable());
     }
@@ -294,7 +294,7 @@ class CharacterEquipmentTest extends TestCase
     public function is_equippable_returns_false_for_custom_items(): void
     {
         $equipment = CharacterEquipment::factory()->create([
-            'item_id' => null,
+            'item_slug' => null,
             'custom_name' => 'Custom Item',
         ]);
 
@@ -302,10 +302,10 @@ class CharacterEquipmentTest extends TestCase
     }
 
     #[Test]
-    public function is_custom_item_returns_true_when_no_item_id_and_has_custom_name(): void
+    public function is_custom_item_returns_true_when_no_item_slug_and_has_custom_name(): void
     {
         $equipment = CharacterEquipment::factory()->create([
-            'item_id' => null,
+            'item_slug' => null,
             'custom_name' => 'Custom Item',
         ]);
 
@@ -313,11 +313,11 @@ class CharacterEquipmentTest extends TestCase
     }
 
     #[Test]
-    public function is_custom_item_returns_false_when_has_item_id(): void
+    public function is_custom_item_returns_false_when_has_item_slug(): void
     {
         $item = Item::factory()->create();
         $equipment = CharacterEquipment::factory()->create([
-            'item_id' => $item->id,
+            'item_slug' => $item->full_slug,
             'custom_name' => null,
         ]);
 

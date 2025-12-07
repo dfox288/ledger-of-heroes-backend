@@ -27,11 +27,17 @@ class OptionalFeatureImporter extends BaseImporter
             $spellSchoolId = $this->lookupSpellSchool($data['spell_school_code']);
         }
 
+        // Generate slug and full_slug
+        $slug = $this->generateSlug($data['name']);
+        $sources = $data['sources'] ?? [];
+        $fullSlug = $this->generateFullSlug($slug, $sources);
+
         // 2. Upsert optional feature using slug as unique key
         $feature = OptionalFeature::updateOrCreate(
-            ['slug' => $this->generateSlug($data['name'])],
+            ['slug' => $slug],
             [
                 'name' => $data['name'],
+                'full_slug' => $fullSlug,
                 'feature_type' => $data['feature_type'],
                 'level_requirement' => $data['level_requirement'],
                 'prerequisite_text' => $data['prerequisite_text'],

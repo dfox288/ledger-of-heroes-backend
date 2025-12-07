@@ -14,7 +14,7 @@ class CharacterSpell extends Model
 
     protected $fillable = [
         'character_id',
-        'spell_id',
+        'spell_slug',
         'preparation_status',
         'source',
         'level_acquired',
@@ -34,7 +34,7 @@ class CharacterSpell extends Model
 
     public function spell(): BelongsTo
     {
-        return $this->belongsTo(Spell::class);
+        return $this->belongsTo(Spell::class, 'spell_slug', 'full_slug');
     }
 
     // Helper methods

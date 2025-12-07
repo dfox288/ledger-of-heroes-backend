@@ -14,8 +14,8 @@ class CharacterProficiency extends Model
 
     protected $fillable = [
         'character_id',
-        'proficiency_type_id',
-        'skill_id',
+        'proficiency_type_slug',
+        'skill_slug',
         'source',
         'choice_group',
         'expertise',
@@ -35,19 +35,19 @@ class CharacterProficiency extends Model
 
     public function proficiencyType(): BelongsTo
     {
-        return $this->belongsTo(ProficiencyType::class);
+        return $this->belongsTo(ProficiencyType::class, 'proficiency_type_slug', 'full_slug');
     }
 
     public function skill(): BelongsTo
     {
-        return $this->belongsTo(Skill::class);
+        return $this->belongsTo(Skill::class, 'skill_slug', 'full_slug');
     }
 
     // Helper methods
 
     public function isSkillProficiency(): bool
     {
-        return $this->skill_id !== null;
+        return $this->skill_slug !== null;
     }
 
     public function hasExpertise(): bool

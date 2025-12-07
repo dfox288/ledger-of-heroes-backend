@@ -85,8 +85,8 @@ class CharacterControllerTest extends TestCase
         $response = $this->postJson('/api/v1/characters', [
             'public_id' => 'brave-archer-zx78',
             'name' => 'Legolas',
-            'race_id' => $race->id,
-            'class_id' => $class->id,
+            'race_slug' => $race->full_slug,
+            'class_slug' => $class->full_slug,
         ]);
 
         $response->assertCreated()
@@ -127,11 +127,11 @@ class CharacterControllerTest extends TestCase
         $response = $this->postJson('/api/v1/characters', [
             'public_id' => 'test-hero-ef56',
             'name' => 'Test',
-            'race_id' => 99999, // Non-existent
+            'race_slug' => 'nonexistent:race', // Non-existent
         ]);
 
         $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['race_id']);
+            ->assertJsonValidationErrors(['race_slug']);
     }
 
     #[Test]
@@ -140,11 +140,11 @@ class CharacterControllerTest extends TestCase
         $response = $this->postJson('/api/v1/characters', [
             'public_id' => 'test-hero-gh78',
             'name' => 'Test',
-            'class_id' => 99999, // Non-existent
+            'class_slug' => 'nonexistent:class', // Non-existent
         ]);
 
         $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['class_id']);
+            ->assertJsonValidationErrors(['class_slug']);
     }
 
     // =====================

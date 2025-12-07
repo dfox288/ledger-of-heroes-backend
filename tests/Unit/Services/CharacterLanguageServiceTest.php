@@ -777,7 +777,7 @@ class CharacterLanguageServiceTest extends TestCase
     public function it_handles_character_without_race(): void
     {
         // Arrange
-        $character = Character::factory()->create(['race_id' => null]);
+        $character = Character::factory()->create(['race_slug' => null]);
 
         // Act
         $this->service->populateFixed($character);

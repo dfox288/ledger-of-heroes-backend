@@ -26,9 +26,11 @@ class SpellFactory extends Factory
         $school = SpellSchool::where('code', $schoolCode)->first();
 
         $name = fake()->unique()->words(3, true);
+        $slug = Str::slug($name);
 
         return [
-            'slug' => Str::slug($name),
+            'slug' => $slug,
+            'full_slug' => 'test:'.$slug,
             'name' => $name,
             'level' => fake()->numberBetween(0, 9),
             'spell_school_id' => $school->id,

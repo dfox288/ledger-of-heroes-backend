@@ -20,6 +20,7 @@ class Condition extends BaseModel
     protected $fillable = [
         'name',
         'slug',
+        'full_slug',
         'description',
     ];
 

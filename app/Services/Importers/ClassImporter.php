@@ -63,6 +63,17 @@ class ClassImporter extends BaseImporter
             $data['slug'] = $this->generateSlug($data['name']);
         }
 
+        // Generate full_slug with source prefix
+        // For classes, sources come from traits because the XML structure
+        // stores source references within trait elements rather than at the class level
+        $sources = [];
+        foreach ($data['traits'] ?? [] as $trait) {
+            if (! empty($trait['sources'])) {
+                $sources = array_merge($sources, $trait['sources']);
+            }
+        }
+        $fullSlug = $this->generateFullSlug($data['slug'], $sources);
+
         // Build description from traits if not directly provided
         $description = $data['description'] ?? null;
         if (empty($description) && ! empty($data['traits'])) {
@@ -74,6 +85,7 @@ class ClassImporter extends BaseImporter
             ['slug' => $data['slug']],
             [
                 'name' => $data['name'],
+                'full_slug' => $fullSlug,
                 'parent_class_id' => $data['parent_class_id'] ?? null,
                 'hit_die' => $data['hit_die'],
                 'description' => $description ?: 'No description available',

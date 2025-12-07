@@ -18,10 +18,18 @@ class BackgroundImporter extends BaseImporter
 
     protected function importEntity(array $data): Background
     {
+        // Generate slug and full_slug
+        $slug = $this->generateSlug($data['name']);
+        $sources = $data['sources'] ?? [];
+        $fullSlug = $this->generateFullSlug($slug, $sources);
+
         // 1. Upsert background using slug as unique key
         $background = Background::updateOrCreate(
-            ['slug' => $this->generateSlug($data['name'])],
-            ['name' => $data['name']]
+            ['slug' => $slug],
+            [
+                'name' => $data['name'],
+                'full_slug' => $fullSlug,
+            ]
         );
 
         // 2. Clear existing polymorphic relationships

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Issue #291**: Complete slug-based references migration for character tables
+  - Character API: `race_id` → `race_slug`, `class_id` → `class_slug`, `background_id` → `background_slug`
+  - CharacterEquipment API: `item_id` → `item_slug` in POST requests
+  - CharacterSpell API: Already uses `spell_slug` (verified)
+  - All requests now validate against `full_slug` fields in related tables
+  - Choice handlers updated to use slug-based item/spell references
+  - Test suites fully updated to use slug-based parameters
+
 ### Removed
 
 - **Legacy Character API Endpoints** - Removed in favor of unified choice system

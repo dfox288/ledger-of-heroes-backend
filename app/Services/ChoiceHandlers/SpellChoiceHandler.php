@@ -65,13 +65,13 @@ class SpellChoiceHandler extends AbstractChoiceHandler
             throw new InvalidSelectionException($choice->id, 'empty', 'Selection cannot be empty');
         }
 
-        // Validate spell IDs exist
-        $spells = Spell::whereIn('id', $selected)->get();
+        // Validate spell slugs exist
+        $spells = Spell::whereIn('full_slug', $selected)->get();
         if ($spells->count() !== count($selected)) {
             throw new InvalidSelectionException(
                 $choice->id,
-                'invalid_spell_ids',
-                'One or more spell IDs do not exist'
+                'invalid_spell_slugs',
+                'One or more spell slugs do not exist'
             );
         }
 
@@ -95,10 +95,10 @@ class SpellChoiceHandler extends AbstractChoiceHandler
             ->delete();
 
         // Create CharacterSpell records
-        foreach ($selected as $spellId) {
+        foreach ($selected as $spellSlug) {
             CharacterSpell::create([
                 'character_id' => $character->id,
-                'spell_id' => $spellId,
+                'spell_slug' => $spellSlug,
                 'source' => $parsed['source'],
                 'level_acquired' => $parsed['level'],
                 'preparation_status' => 'known',
@@ -163,11 +163,11 @@ class SpellChoiceHandler extends AbstractChoiceHandler
             ->get();
 
         $quantity = $progression->cantrips_known;
-        $selected = $knownCantrips->pluck('spell_id')->map(fn ($id) => (string) $id)->toArray();
+        $selected = $knownCantrips->pluck('spell_slug')->filter()->toArray();
         $remaining = $quantity - count($selected);
 
         return new PendingChoice(
-            id: $this->generateChoiceId('spell', 'class', $class->id, $pivot->level, 'cantrips'),
+            id: $this->generateChoiceId('spell', 'class', $class->full_slug, $pivot->level, 'cantrips'),
             type: 'spell',
             subtype: 'cantrip',
             source: 'class',
@@ -181,7 +181,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
             optionsEndpoint: "/api/v1/characters/{$character->id}/available-spells?max_level=0",
             metadata: [
                 'spell_level' => 0,
-                'class_slug' => $class->slug,
+                'class_slug' => $class->full_slug,
             ],
         );
     }
@@ -204,14 +204,14 @@ class SpellChoiceHandler extends AbstractChoiceHandler
             ->get();
 
         $quantity = $progression->spells_known;
-        $selected = $knownSpells->pluck('spell_id')->map(fn ($id) => (string) $id)->toArray();
+        $selected = $knownSpells->pluck('spell_slug')->filter()->toArray();
         $remaining = $quantity - count($selected);
 
         // Determine max spell level for this class level
         $maxSpellLevel = $this->getMaxSpellLevel($class, $pivot->level);
 
         return new PendingChoice(
-            id: $this->generateChoiceId('spell', 'class', $class->id, $pivot->level, 'spells_known'),
+            id: $this->generateChoiceId('spell', 'class', $class->full_slug, $pivot->level, 'spells_known'),
             type: 'spell',
             subtype: 'spells_known',
             source: 'class',
@@ -225,7 +225,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
             optionsEndpoint: "/api/v1/characters/{$character->id}/available-spells?max_level={$maxSpellLevel}",
             metadata: [
                 'spell_level' => $maxSpellLevel,
-                'class_slug' => $class->slug,
+                'class_slug' => $class->full_slug,
             ],
         );
     }

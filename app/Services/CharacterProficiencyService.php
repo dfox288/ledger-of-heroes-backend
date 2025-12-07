@@ -78,11 +78,11 @@ class CharacterProficiencyService
     /**
      * Make a skill choice for a character.
      *
-     * @param  array<int>  $skillIds  The skill IDs the user chose
+     * @param  array<string>  $skillSlugs  The skill full_slugs the user chose
      *
      * @throws InvalidArgumentException
      */
-    public function makeSkillChoice(Character $character, string $source, string $choiceGroup, array $skillIds): void
+    public function makeSkillChoice(Character $character, string $source, string $choiceGroup, array $skillSlugs): void
     {
         // Validate source using enum
         $sourceEnum = CharacterSource::tryFrom($source);
@@ -118,17 +118,17 @@ class CharacterProficiencyService
         // Get required quantity
         $quantity = $choiceOptions->first()->quantity ?? 1;
 
-        if (count($skillIds) !== $quantity) {
+        if (count($skillSlugs) !== $quantity) {
             throw new InvalidArgumentException(
-                "Must choose exactly {$quantity} skills, got ".count($skillIds)
+                "Must choose exactly {$quantity} skills, got ".count($skillSlugs)
             );
         }
 
         // Validate all selected skills are valid options
-        $validSkillIds = $choiceOptions->pluck('skill_id')->toArray();
-        foreach ($skillIds as $skillId) {
-            if (! in_array($skillId, $validSkillIds)) {
-                throw new InvalidArgumentException("Skill ID {$skillId} is not a valid option for this choice");
+        $validSkillSlugs = $choiceOptions->pluck('skill.full_slug')->filter()->toArray();
+        foreach ($skillSlugs as $skillSlug) {
+            if (! in_array($skillSlug, $validSkillSlugs)) {
+                throw new InvalidArgumentException("Skill slug {$skillSlug} is not a valid option for this choice");
             }
         }
 
@@ -140,10 +140,10 @@ class CharacterProficiencyService
             ->delete();
 
         // Create the proficiencies
-        foreach ($skillIds as $skillId) {
+        foreach ($skillSlugs as $skillSlug) {
             CharacterProficiency::create([
                 'character_id' => $character->id,
-                'skill_id' => $skillId,
+                'skill_slug' => $skillSlug,
                 'source' => $source,
                 'choice_group' => $choiceGroup,
             ]);
@@ -156,11 +156,11 @@ class CharacterProficiencyService
     /**
      * Make a proficiency type choice for a character (tools, weapons, armor, etc.).
      *
-     * @param  array<int>  $proficiencyTypeIds  The proficiency type IDs the user chose
+     * @param  array<string>  $proficiencyTypeSlugs  The proficiency type full_slugs the user chose
      *
      * @throws InvalidArgumentException
      */
-    public function makeProficiencyTypeChoice(Character $character, string $source, string $choiceGroup, array $proficiencyTypeIds): void
+    public function makeProficiencyTypeChoice(Character $character, string $source, string $choiceGroup, array $proficiencyTypeSlugs): void
     {
         // Validate source using enum
         $sourceEnum = CharacterSource::tryFrom($source);
@@ -197,32 +197,32 @@ class CharacterProficiencyService
         $proficiencyType = $firstOption->proficiency_type;
         $proficiencySubcategory = $firstOption->proficiency_subcategory;
 
-        if (count($proficiencyTypeIds) !== $quantity) {
+        if (count($proficiencyTypeSlugs) !== $quantity) {
             throw new InvalidArgumentException(
-                "Must choose exactly {$quantity} proficiency types, got ".count($proficiencyTypeIds)
+                "Must choose exactly {$quantity} proficiency types, got ".count($proficiencyTypeSlugs)
             );
         }
 
         // Validate selected proficiency types against choice constraints
         // For subcategory-based choices (e.g., "artisan tools"), validate against category/subcategory
         if ($proficiencySubcategory) {
-            // Lookup valid proficiency type IDs from ProficiencyType model
-            $validProficiencyTypeIds = \App\Models\ProficiencyType::where('category', $proficiencyType)
+            // Lookup valid proficiency type slugs from ProficiencyType model
+            $validProficiencyTypeSlugs = \App\Models\ProficiencyType::where('category', $proficiencyType)
                 ->where('subcategory', $proficiencySubcategory)
-                ->pluck('id')
+                ->pluck('full_slug')
                 ->toArray();
 
-            foreach ($proficiencyTypeIds as $proficiencyTypeId) {
-                if (! in_array($proficiencyTypeId, $validProficiencyTypeIds)) {
-                    throw new InvalidArgumentException("Proficiency type ID {$proficiencyTypeId} is not a valid option for this choice");
+            foreach ($proficiencyTypeSlugs as $proficiencyTypeSlug) {
+                if (! in_array($proficiencyTypeSlug, $validProficiencyTypeSlugs)) {
+                    throw new InvalidArgumentException("Proficiency type slug {$proficiencyTypeSlug} is not a valid option for this choice");
                 }
             }
         } else {
-            // For specific option choices, validate against the specific proficiency_type_ids in the choice
-            $validProficiencyTypeIds = $choiceOptions->pluck('proficiency_type_id')->filter()->toArray();
-            foreach ($proficiencyTypeIds as $proficiencyTypeId) {
-                if (! in_array($proficiencyTypeId, $validProficiencyTypeIds)) {
-                    throw new InvalidArgumentException("Proficiency type ID {$proficiencyTypeId} is not a valid option for this choice");
+            // For specific option choices, validate against the specific proficiency_type slugs in the choice
+            $validProficiencyTypeSlugs = $choiceOptions->pluck('proficiencyType.full_slug')->filter()->toArray();
+            foreach ($proficiencyTypeSlugs as $proficiencyTypeSlug) {
+                if (! in_array($proficiencyTypeSlug, $validProficiencyTypeSlugs)) {
+                    throw new InvalidArgumentException("Proficiency type slug {$proficiencyTypeSlug} is not a valid option for this choice");
                 }
             }
         }
@@ -234,10 +234,10 @@ class CharacterProficiencyService
             ->delete();
 
         // Create the proficiencies
-        foreach ($proficiencyTypeIds as $proficiencyTypeId) {
+        foreach ($proficiencyTypeSlugs as $proficiencyTypeSlug) {
             CharacterProficiency::create([
                 'character_id' => $character->id,
-                'proficiency_type_id' => $proficiencyTypeId,
+                'proficiency_type_slug' => $proficiencyTypeSlug,
                 'source' => $source,
                 'choice_group' => $choiceGroup,
             ]);
@@ -255,17 +255,21 @@ class CharacterProficiencyService
     {
         $fixedProficiencies = $entity->proficiencies()
             ->where('is_choice', false)
+            ->with(['skill', 'proficiencyType'])
             ->get();
 
         foreach ($fixedProficiencies as $proficiency) {
+            $skillSlug = $proficiency->skill?->full_slug;
+            $proficiencyTypeSlug = $proficiency->proficiencyType?->full_slug;
+
             // Skip if already exists
             $exists = $character->proficiencies()
                 ->where('source', $source)
-                ->where(function ($query) use ($proficiency) {
-                    if ($proficiency->skill_id) {
-                        $query->where('skill_id', $proficiency->skill_id);
-                    } elseif ($proficiency->proficiency_type_id) {
-                        $query->where('proficiency_type_id', $proficiency->proficiency_type_id);
+                ->where(function ($query) use ($skillSlug, $proficiencyTypeSlug) {
+                    if ($skillSlug) {
+                        $query->where('skill_slug', $skillSlug);
+                    } elseif ($proficiencyTypeSlug) {
+                        $query->where('proficiency_type_slug', $proficiencyTypeSlug);
                     }
                 })
                 ->exists();
@@ -276,8 +280,8 @@ class CharacterProficiencyService
 
             CharacterProficiency::create([
                 'character_id' => $character->id,
-                'proficiency_type_id' => $proficiency->proficiency_type_id,
-                'skill_id' => $proficiency->skill_id,
+                'proficiency_type_slug' => $proficiencyTypeSlug,
+                'skill_slug' => $skillSlug,
                 'source' => $source,
                 'expertise' => false,
             ]);
@@ -290,24 +294,11 @@ class CharacterProficiencyService
     /**
      * Get choice groups from an entity.
      *
-     * @return array<string, array{proficiency_type: string|null, proficiency_subcategory: string|null, quantity: int, remaining: int, selected_skills: array<int>, selected_proficiency_types: array<int>, options: array}>
+     * @return array<string, array{proficiency_type: string|null, proficiency_subcategory: string|null, quantity: int, remaining: int, selected_skills: array<string>, selected_proficiency_types: array<string>, options: array}>
      */
     private function getChoicesFromEntity($entity, Character $character, string $source): array
     {
         $choices = [];
-
-        // Get existing character proficiencies for this source
-        $existingSkillIds = $character->proficiencies()
-            ->where('source', $source)
-            ->whereNotNull('skill_id')
-            ->pluck('skill_id')
-            ->toArray();
-
-        $existingProfTypeIds = $character->proficiencies()
-            ->where('source', $source)
-            ->whereNotNull('proficiency_type_id')
-            ->pluck('proficiency_type_id')
-            ->toArray();
 
         $choiceProficiencies = $entity->proficiencies()
             ->where('is_choice', true)
@@ -337,57 +328,57 @@ class CharacterProficiencyService
             $proficiencySubcategory = $firstOption->proficiency_subcategory;
 
             // Get existing selections for THIS specific choice group
-            $existingSkillIdsForGroup = $character->proficiencies()
+            $existingSkillSlugsForGroup = $character->proficiencies()
                 ->where('source', $source)
                 ->where('choice_group', $groupName)
-                ->whereNotNull('skill_id')
-                ->pluck('skill_id')
+                ->whereNotNull('skill_slug')
+                ->pluck('skill_slug')
                 ->toArray();
 
-            $existingProfTypeIdsForGroup = $character->proficiencies()
+            $existingProfTypeSlugsForGroup = $character->proficiencies()
                 ->where('source', $source)
                 ->where('choice_group', $groupName)
-                ->whereNotNull('proficiency_type_id')
-                ->pluck('proficiency_type_id')
+                ->whereNotNull('proficiency_type_slug')
+                ->pluck('proficiency_type_slug')
                 ->toArray();
 
-            // Track selected IDs and count
-            $selectedSkillIds = [];
-            $selectedProfTypeIds = [];
+            // Track selected slugs and count
+            $selectedSkillSlugs = [];
+            $selectedProfTypeSlugs = [];
             $allOptions = [];
 
             foreach ($options as $option) {
-                if ($option->skill_id) {
+                if ($option->skill) {
                     // Always add to options (don't filter out selected)
                     $allOptions[] = [
                         'type' => 'skill',
-                        'skill_id' => $option->skill_id,
-                        'skill' => $option->skill ? [
-                            'id' => $option->skill->id,
+                        'skill_slug' => $option->skill->full_slug,
+                        'skill' => [
+                            'full_slug' => $option->skill->full_slug,
                             'name' => $option->skill->name,
                             'slug' => $option->skill->slug,
-                        ] : null,
+                        ],
                     ];
 
                     // Track if already selected in THIS choice group
-                    if (in_array($option->skill_id, $existingSkillIdsForGroup)) {
-                        $selectedSkillIds[] = $option->skill_id;
+                    if (in_array($option->skill->full_slug, $existingSkillSlugsForGroup)) {
+                        $selectedSkillSlugs[] = $option->skill->full_slug;
                     }
-                } elseif ($option->proficiency_type_id) {
+                } elseif ($option->proficiencyType) {
                     // Always add to options (don't filter out selected)
                     $allOptions[] = [
                         'type' => 'proficiency_type',
-                        'proficiency_type_id' => $option->proficiency_type_id,
-                        'proficiency_type' => $option->proficiencyType ? [
-                            'id' => $option->proficiencyType->id,
+                        'proficiency_type_slug' => $option->proficiencyType->full_slug,
+                        'proficiency_type' => [
+                            'full_slug' => $option->proficiencyType->full_slug,
                             'name' => $option->proficiencyType->name,
                             'slug' => $option->proficiencyType->slug,
-                        ] : null,
+                        ],
                     ];
 
                     // Track if already selected in THIS choice group
-                    if (in_array($option->proficiency_type_id, $existingProfTypeIdsForGroup)) {
-                        $selectedProfTypeIds[] = $option->proficiency_type_id;
+                    if (in_array($option->proficiencyType->full_slug, $existingProfTypeSlugsForGroup)) {
+                        $selectedProfTypeSlugs[] = $option->proficiencyType->full_slug;
                     }
                 }
             }
@@ -403,22 +394,22 @@ class CharacterProficiencyService
                 foreach ($lookupProficiencyTypes as $profType) {
                     $allOptions[] = [
                         'type' => 'proficiency_type',
-                        'proficiency_type_id' => $profType->id,
+                        'proficiency_type_slug' => $profType->full_slug,
                         'proficiency_type' => [
-                            'id' => $profType->id,
+                            'full_slug' => $profType->full_slug,
                             'name' => $profType->name,
                             'slug' => $profType->slug,
                         ],
                     ];
 
                     // Track if already selected in THIS choice group
-                    if (in_array($profType->id, $existingProfTypeIdsForGroup)) {
-                        $selectedProfTypeIds[] = $profType->id;
+                    if (in_array($profType->full_slug, $existingProfTypeSlugsForGroup)) {
+                        $selectedProfTypeSlugs[] = $profType->full_slug;
                     }
                 }
             }
 
-            $chosenCount = count($selectedSkillIds) + count($selectedProfTypeIds);
+            $chosenCount = count($selectedSkillSlugs) + count($selectedProfTypeSlugs);
             $remaining = max(0, $quantity - $chosenCount);
 
             $choices[$groupName] = [
@@ -426,8 +417,8 @@ class CharacterProficiencyService
                 'proficiency_subcategory' => $proficiencySubcategory,
                 'quantity' => $quantity,
                 'remaining' => $remaining,
-                'selected_skills' => $selectedSkillIds,
-                'selected_proficiency_types' => $selectedProfTypeIds,
+                'selected_skills' => $selectedSkillSlugs,
+                'selected_proficiency_types' => $selectedProfTypeSlugs,
                 'options' => $allOptions,
             ];
         }
@@ -530,8 +521,8 @@ class CharacterProficiencyService
             ->map(function ($proficiency) use ($source) {
                 // Create a CharacterProficiency-like object with null ID to indicate it's granted
                 $charProf = new CharacterProficiency([
-                    'proficiency_type_id' => $proficiency->proficiency_type_id,
-                    'skill_id' => $proficiency->skill_id,
+                    'proficiency_type_slug' => $proficiency->proficiencyType?->full_slug,
+                    'skill_slug' => $proficiency->skill?->full_slug,
                     'source' => $source,
                     'expertise' => false,
                 ]);
@@ -548,7 +539,7 @@ class CharacterProficiencyService
     }
 
     /**
-     * Merge stored and granted proficiencies, deduplicating by skill_id or proficiency_type_id.
+     * Merge stored and granted proficiencies, deduplicating by skill_slug or proficiency_type_slug.
      * Prefers stored proficiencies (which have an ID).
      *
      * @param  \Illuminate\Database\Eloquent\Collection  $stored
@@ -557,16 +548,16 @@ class CharacterProficiencyService
     private function mergeAndDeduplicate($stored, $granted): \Illuminate\Support\Collection
     {
         // Create lookup sets for stored proficiencies
-        $storedSkillIds = $stored->whereNotNull('skill_id')->pluck('skill_id')->toArray();
-        $storedProfTypeIds = $stored->whereNotNull('proficiency_type_id')->pluck('proficiency_type_id')->toArray();
+        $storedSkillSlugs = $stored->whereNotNull('skill_slug')->pluck('skill_slug')->toArray();
+        $storedProfTypeSlugs = $stored->whereNotNull('proficiency_type_slug')->pluck('proficiency_type_slug')->toArray();
 
         // Filter granted to exclude duplicates
-        $filteredGranted = $granted->filter(function ($prof) use ($storedSkillIds, $storedProfTypeIds) {
-            if ($prof->skill_id !== null) {
-                return ! in_array($prof->skill_id, $storedSkillIds);
+        $filteredGranted = $granted->filter(function ($prof) use ($storedSkillSlugs, $storedProfTypeSlugs) {
+            if ($prof->skill_slug !== null) {
+                return ! in_array($prof->skill_slug, $storedSkillSlugs);
             }
-            if ($prof->proficiency_type_id !== null) {
-                return ! in_array($prof->proficiency_type_id, $storedProfTypeIds);
+            if ($prof->proficiency_type_slug !== null) {
+                return ! in_array($prof->proficiency_type_slug, $storedProfTypeSlugs);
             }
 
             return true;

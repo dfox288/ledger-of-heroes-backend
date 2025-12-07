@@ -36,8 +36,8 @@ it('returns no choices when character has no classes', function () {
 });
 
 it('returns expertise choices for Rogue level 1', function () {
-    // Mock Rogue level 1
-    $class = (object) ['id' => 5, 'slug' => 'rogue', 'name' => 'Rogue'];
+    // Mock Rogue level 1 with full_slug
+    $class = (object) ['id' => 5, 'slug' => 'rogue', 'full_slug' => 'phb:rogue', 'name' => 'Rogue'];
     $characterClass = (object) ['level' => 1, 'characterClass' => $class, 'is_primary' => true];
     $characterClasses = collect([$characterClass]);
 
@@ -48,11 +48,11 @@ it('returns expertise choices for Rogue level 1', function () {
         ->with('characterClasses')
         ->andReturn($characterClasses);
 
-    // Mock proficiencies without expertise - need to add 'id' field
-    $proficiency1 = (object) ['id' => 1, 'skill_id' => 1, 'proficiency_type_id' => null, 'expertise' => false, 'skill' => (object) ['id' => 1, 'slug' => 'acrobatics', 'name' => 'Acrobatics']];
-    $proficiency2 = (object) ['id' => 2, 'skill_id' => 2, 'proficiency_type_id' => null, 'expertise' => false, 'skill' => (object) ['id' => 2, 'slug' => 'stealth', 'name' => 'Stealth']];
-    $proficiency3 = (object) ['id' => 3, 'skill_id' => 3, 'proficiency_type_id' => null, 'expertise' => false, 'skill' => (object) ['id' => 3, 'slug' => 'perception', 'name' => 'Perception']];
-    $proficiency4 = (object) ['id' => 4, 'skill_id' => null, 'proficiency_type_id' => 10, 'expertise' => false, 'proficiencyType' => (object) ['id' => 10, 'slug' => 'thieves-tools', 'name' => "Thieves' Tools"]];
+    // Mock proficiencies without expertise - using skill_slug instead of skill_id
+    $proficiency1 = (object) ['id' => 1, 'skill_slug' => 'phb:acrobatics', 'proficiency_type_slug' => null, 'expertise' => false, 'skill' => (object) ['slug' => 'acrobatics', 'name' => 'Acrobatics']];
+    $proficiency2 = (object) ['id' => 2, 'skill_slug' => 'phb:stealth', 'proficiency_type_slug' => null, 'expertise' => false, 'skill' => (object) ['slug' => 'stealth', 'name' => 'Stealth']];
+    $proficiency3 = (object) ['id' => 3, 'skill_slug' => 'phb:perception', 'proficiency_type_slug' => null, 'expertise' => false, 'skill' => (object) ['slug' => 'perception', 'name' => 'Perception']];
+    $proficiency4 = (object) ['id' => 4, 'skill_slug' => null, 'proficiency_type_slug' => 'phb:thieves-tools', 'expertise' => false, 'proficiencyType' => (object) ['slug' => 'thieves-tools', 'name' => "Thieves' Tools"]];
 
     $proficiencies = collect([$proficiency1, $proficiency2, $proficiency3, $proficiency4]);
 
@@ -94,7 +94,7 @@ it('returns expertise choices for Rogue level 1', function () {
 
 it('returns expertise choices for Rogue level 6 (second set)', function () {
     // Mock Rogue level 6
-    $class = (object) ['id' => 5, 'slug' => 'rogue', 'name' => 'Rogue'];
+    $class = (object) ['id' => 5, 'slug' => 'rogue', 'full_slug' => 'phb:rogue', 'name' => 'Rogue'];
     $characterClass = (object) ['level' => 6, 'characterClass' => $class, 'is_primary' => true];
     $characterClasses = collect([$characterClass]);
 
@@ -106,10 +106,10 @@ it('returns expertise choices for Rogue level 6 (second set)', function () {
         ->andReturn($characterClasses);
 
     // Mock proficiencies: 2 with expertise, 2 without
-    $proficiency1 = (object) ['id' => 1, 'skill_id' => 1, 'proficiency_type_id' => null, 'expertise' => true, 'skill' => (object) ['id' => 1, 'slug' => 'acrobatics', 'name' => 'Acrobatics']];
-    $proficiency2 = (object) ['id' => 2, 'skill_id' => 2, 'proficiency_type_id' => null, 'expertise' => true, 'skill' => (object) ['id' => 2, 'slug' => 'stealth', 'name' => 'Stealth']];
-    $proficiency3 = (object) ['id' => 3, 'skill_id' => 3, 'proficiency_type_id' => null, 'expertise' => false, 'skill' => (object) ['id' => 3, 'slug' => 'perception', 'name' => 'Perception']];
-    $proficiency4 = (object) ['id' => 4, 'skill_id' => 4, 'proficiency_type_id' => null, 'expertise' => false, 'skill' => (object) ['id' => 4, 'slug' => 'investigation', 'name' => 'Investigation']];
+    $proficiency1 = (object) ['id' => 1, 'skill_slug' => 'phb:acrobatics', 'proficiency_type_slug' => null, 'expertise' => true, 'skill' => (object) ['slug' => 'acrobatics', 'name' => 'Acrobatics']];
+    $proficiency2 = (object) ['id' => 2, 'skill_slug' => 'phb:stealth', 'proficiency_type_slug' => null, 'expertise' => true, 'skill' => (object) ['slug' => 'stealth', 'name' => 'Stealth']];
+    $proficiency3 = (object) ['id' => 3, 'skill_slug' => 'phb:perception', 'proficiency_type_slug' => null, 'expertise' => false, 'skill' => (object) ['slug' => 'perception', 'name' => 'Perception']];
+    $proficiency4 = (object) ['id' => 4, 'skill_slug' => 'phb:investigation', 'proficiency_type_slug' => null, 'expertise' => false, 'skill' => (object) ['slug' => 'investigation', 'name' => 'Investigation']];
 
     $proficiencies = collect([$proficiency1, $proficiency2, $proficiency3, $proficiency4]);
 
@@ -156,7 +156,7 @@ it('returns expertise choices for Rogue level 6 (second set)', function () {
 
 it('returns expertise choices for Bard level 3', function () {
     // Mock Bard level 3
-    $class = (object) ['id' => 1, 'slug' => 'bard', 'name' => 'Bard'];
+    $class = (object) ['id' => 1, 'slug' => 'bard', 'full_slug' => 'phb:bard', 'name' => 'Bard'];
     $characterClass = (object) ['level' => 3, 'characterClass' => $class, 'is_primary' => true];
     $characterClasses = collect([$characterClass]);
 
@@ -168,10 +168,10 @@ it('returns expertise choices for Bard level 3', function () {
         ->andReturn($characterClasses);
 
     // Mock proficiencies: 3 skills, 1 tool (Bards should only get skills as options)
-    $proficiency1 = (object) ['id' => 1, 'skill_id' => 1, 'proficiency_type_id' => null, 'expertise' => false, 'skill' => (object) ['id' => 1, 'slug' => 'acrobatics', 'name' => 'Acrobatics']];
-    $proficiency2 = (object) ['id' => 2, 'skill_id' => 2, 'proficiency_type_id' => null, 'expertise' => false, 'skill' => (object) ['id' => 2, 'slug' => 'performance', 'name' => 'Performance']];
-    $proficiency3 = (object) ['id' => 3, 'skill_id' => 3, 'proficiency_type_id' => null, 'expertise' => false, 'skill' => (object) ['id' => 3, 'slug' => 'persuasion', 'name' => 'Persuasion']];
-    $proficiency4 = (object) ['id' => 4, 'skill_id' => null, 'proficiency_type_id' => 10, 'expertise' => false, 'proficiencyType' => (object) ['id' => 10, 'slug' => 'lute', 'name' => 'Lute']];
+    $proficiency1 = (object) ['id' => 1, 'skill_slug' => 'phb:acrobatics', 'proficiency_type_slug' => null, 'expertise' => false, 'skill' => (object) ['slug' => 'acrobatics', 'name' => 'Acrobatics']];
+    $proficiency2 = (object) ['id' => 2, 'skill_slug' => 'phb:performance', 'proficiency_type_slug' => null, 'expertise' => false, 'skill' => (object) ['slug' => 'performance', 'name' => 'Performance']];
+    $proficiency3 = (object) ['id' => 3, 'skill_slug' => 'phb:persuasion', 'proficiency_type_slug' => null, 'expertise' => false, 'skill' => (object) ['slug' => 'persuasion', 'name' => 'Persuasion']];
+    $proficiency4 = (object) ['id' => 4, 'skill_slug' => null, 'proficiency_type_slug' => 'phb:lute', 'expertise' => false, 'proficiencyType' => (object) ['slug' => 'lute', 'name' => 'Lute']];
 
     $proficiencies = collect([$proficiency1, $proficiency2, $proficiency3, $proficiency4]);
 
@@ -209,7 +209,7 @@ it('returns expertise choices for Bard level 3', function () {
 
 it('returns no choices when all expertise selections are complete', function () {
     // Mock Rogue level 6 with all expertise choices made
-    $class = (object) ['id' => 5, 'slug' => 'rogue', 'name' => 'Rogue'];
+    $class = (object) ['id' => 5, 'slug' => 'rogue', 'full_slug' => 'phb:rogue', 'name' => 'Rogue'];
     $characterClass = (object) ['level' => 6, 'characterClass' => $class, 'is_primary' => true];
     $characterClasses = collect([$characterClass]);
 
@@ -221,10 +221,10 @@ it('returns no choices when all expertise selections are complete', function () 
         ->andReturn($characterClasses);
 
     // Mock proficiencies with expertise
-    $proficiency1 = (object) ['id' => 1, 'skill_id' => 1, 'proficiency_type_id' => null, 'expertise' => true];
-    $proficiency2 = (object) ['id' => 2, 'skill_id' => 2, 'proficiency_type_id' => null, 'expertise' => true];
-    $proficiency3 = (object) ['id' => 3, 'skill_id' => 3, 'proficiency_type_id' => null, 'expertise' => true];
-    $proficiency4 = (object) ['id' => 4, 'skill_id' => 4, 'proficiency_type_id' => null, 'expertise' => true];
+    $proficiency1 = (object) ['id' => 1, 'skill_slug' => 'phb:acrobatics', 'proficiency_type_slug' => null, 'expertise' => true];
+    $proficiency2 = (object) ['id' => 2, 'skill_slug' => 'phb:stealth', 'proficiency_type_slug' => null, 'expertise' => true];
+    $proficiency3 = (object) ['id' => 3, 'skill_slug' => 'phb:perception', 'proficiency_type_slug' => null, 'expertise' => true];
+    $proficiency4 = (object) ['id' => 4, 'skill_slug' => 'phb:investigation', 'proficiency_type_slug' => null, 'expertise' => true];
 
     // Mock both expertise choices complete
     $expertise1Query = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
@@ -258,7 +258,7 @@ it('returns no choices when all expertise selections are complete', function () 
 
 it('resolves expertise choice by updating expertise flag on proficiencies', function () {
     $choice = new PendingChoice(
-        id: 'expertise:class:5:1:expertise_1',
+        id: 'expertise|class|phb:rogue|1|expertise_1',
         type: 'expertise',
         subtype: null,
         source: 'class',
@@ -273,26 +273,25 @@ it('resolves expertise choice by updating expertise flag on proficiencies', func
         metadata: ['choice_group' => 'expertise_1']
     );
 
-    // Mock proficiencies query to find the proficiencies to update
+    // Mock proficiencies query to find the proficiencies to update by slug
     $proficiency1 = Mockery::mock(CharacterProficiency::class);
-    $proficiency1->shouldReceive('getAttribute')->with('id')->andReturn(1);
-    $proficiency1->shouldReceive('__get')->with('id')->andReturn(1);
+    $proficiency1->shouldReceive('getAttribute')->with('skill_slug')->andReturn('phb:acrobatics');
+    $proficiency1->shouldReceive('__get')->with('skill_slug')->andReturn('phb:acrobatics');
     $proficiency1->shouldReceive('update')
         ->once()
         ->with(['expertise' => true, 'source' => 'class', 'choice_group' => 'expertise_1'])
         ->andReturn(true);
 
     $proficiency2 = Mockery::mock(CharacterProficiency::class);
-    $proficiency2->shouldReceive('getAttribute')->with('id')->andReturn(2);
-    $proficiency2->shouldReceive('__get')->with('id')->andReturn(2);
+    $proficiency2->shouldReceive('getAttribute')->with('skill_slug')->andReturn('phb:stealth');
+    $proficiency2->shouldReceive('__get')->with('skill_slug')->andReturn('phb:stealth');
     $proficiency2->shouldReceive('update')
         ->once()
         ->with(['expertise' => true, 'source' => 'class', 'choice_group' => 'expertise_1'])
         ->andReturn(true);
 
     $proficienciesQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
-    $proficienciesQuery->shouldReceive('whereIn')
-        ->with('id', [1, 2])
+    $proficienciesQuery->shouldReceive('where')
         ->andReturnSelf();
     $proficienciesQuery->shouldReceive('get')
         ->andReturn(collect([$proficiency1, $proficiency2]));
@@ -305,12 +304,12 @@ it('resolves expertise choice by updating expertise flag on proficiencies', func
         ->with('proficiencies')
         ->andReturnSelf();
 
-    $this->handler->resolve($this->character, $choice, ['selected' => [1, 2]]);
+    $this->handler->resolve($this->character, $choice, ['selected' => ['phb:acrobatics', 'phb:stealth']]);
 });
 
 it('throws exception when selection is empty', function () {
     $choice = new PendingChoice(
-        id: 'expertise:class:5:1:expertise_1',
+        id: 'expertise|class|phb:rogue|1|expertise_1',
         type: 'expertise',
         subtype: null,
         source: 'class',
@@ -331,7 +330,7 @@ it('throws exception when selection is empty', function () {
 
 it('throws exception when selected proficiency does not exist', function () {
     $choice = new PendingChoice(
-        id: 'expertise:class:5:1:expertise_1',
+        id: 'expertise|class|phb:rogue|1|expertise_1',
         type: 'expertise',
         subtype: null,
         source: 'class',
@@ -348,8 +347,7 @@ it('throws exception when selected proficiency does not exist', function () {
 
     // Mock proficiencies query returning fewer items than selected
     $proficienciesQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
-    $proficienciesQuery->shouldReceive('whereIn')
-        ->with('id', [1, 2])
+    $proficienciesQuery->shouldReceive('where')
         ->andReturnSelf();
     $proficienciesQuery->shouldReceive('get')
         ->andReturn(collect([])); // No proficiencies found
@@ -357,13 +355,13 @@ it('throws exception when selected proficiency does not exist', function () {
     $this->character->shouldReceive('proficiencies')
         ->andReturn($proficienciesQuery);
 
-    expect(fn () => $this->handler->resolve($this->character, $choice, ['selected' => [1, 2]]))
+    expect(fn () => $this->handler->resolve($this->character, $choice, ['selected' => ['phb:acrobatics', 'phb:stealth']]))
         ->toThrow(InvalidSelectionException::class);
 });
 
 it('returns true for canUndo', function () {
     $choice = new PendingChoice(
-        id: 'expertise:class:5:1:expertise_1',
+        id: 'expertise|class|phb:rogue|1|expertise_1',
         type: 'expertise',
         subtype: null,
         source: 'class',
@@ -372,7 +370,7 @@ it('returns true for canUndo', function () {
         required: true,
         quantity: 2,
         remaining: 0,
-        selected: [1, 2],
+        selected: ['phb:acrobatics', 'phb:stealth'],
         options: [],
         optionsEndpoint: null,
         metadata: ['choice_group' => 'expertise_1']
@@ -383,7 +381,7 @@ it('returns true for canUndo', function () {
 
 it('undoes choice by clearing expertise flag', function () {
     $choice = new PendingChoice(
-        id: 'expertise:class:5:1:expertise_1',
+        id: 'expertise|class|phb:rogue|1|expertise_1',
         type: 'expertise',
         subtype: null,
         source: 'class',
@@ -392,7 +390,7 @@ it('undoes choice by clearing expertise flag', function () {
         required: true,
         quantity: 2,
         remaining: 0,
-        selected: [1, 2],
+        selected: ['phb:acrobatics', 'phb:stealth'],
         options: [],
         optionsEndpoint: null,
         metadata: ['choice_group' => 'expertise_1']

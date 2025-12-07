@@ -263,7 +263,7 @@ class CharacterStatsDTO
 
         // Use the already-loaded proficiencies relation (filtered in memory)
         $proficiencies = $character->proficiencies
-            ->filter(fn ($p) => $p->skill_id !== null);
+            ->filter(fn ($p) => $p->skill_slug !== null);
 
         foreach ($proficiencies as $proficiency) {
             if ($proficiency->skill) {

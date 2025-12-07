@@ -21,10 +21,12 @@ class LanguageFactory extends Factory
     public function definition(): array
     {
         $name = fake()->unique()->words(2, true);
+        $slug = Str::slug($name);
 
         return [
             'name' => ucwords($name),
-            'slug' => Str::slug($name),
+            'slug' => $slug,
+            'full_slug' => 'test:'.$slug,
             'script' => fake()->optional()->words(2, true),
             'typical_speakers' => fake()->optional()->words(3, true),
             'description' => fake()->optional()->sentence(),
@@ -36,9 +38,12 @@ class LanguageFactory extends Factory
      */
     public function withName(string $name): static
     {
+        $slug = Str::slug($name);
+
         return $this->state(fn (array $attributes) => [
             'name' => $name,
-            'slug' => Str::slug($name),
+            'slug' => $slug,
+            'full_slug' => 'test:'.$slug,
         ]);
     }
 

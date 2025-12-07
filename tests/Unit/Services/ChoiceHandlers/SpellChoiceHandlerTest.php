@@ -500,4 +500,45 @@ class SpellChoiceHandlerTest extends TestCase
 
         $this->assertCount(0, $choices);
     }
+
+    #[Test]
+    public function it_rejects_selection_exceeding_quantity_limit(): void
+    {
+        $character = Character::factory()->create();
+        $wizard = CharacterClass::factory()->create(['slug' => 'wizard']);
+
+        // Create 4 cantrips
+        $spell1 = Spell::factory()->create(['level' => 0]);
+        $spell2 = Spell::factory()->create(['level' => 0]);
+        $spell3 = Spell::factory()->create(['level' => 0]);
+        $spell4 = Spell::factory()->create(['level' => 0]);
+
+        // Choice allows only 2 cantrips
+        $choice = new PendingChoice(
+            id: "spell|class|{$wizard->full_slug}|1|cantrips",
+            type: 'spell',
+            subtype: 'cantrip',
+            source: 'class',
+            sourceName: 'Wizard',
+            levelGranted: 1,
+            required: true,
+            quantity: 2,
+            remaining: 2,
+            selected: [],
+            options: null,
+            optionsEndpoint: "/api/v1/characters/{$character->id}/available-spells?max_level=0",
+            metadata: [
+                'spell_level' => 0,
+                'class_slug' => 'wizard',
+            ]
+        );
+
+        // Attempt to select 4 cantrips when only 2 allowed
+        $this->expectException(InvalidSelectionException::class);
+        $this->expectExceptionMessage('exceeds');
+
+        $this->handler->resolve($character, $choice, [
+            'selected' => [$spell1->full_slug, $spell2->full_slug, $spell3->full_slug, $spell4->full_slug],
+        ]);
+    }
 }

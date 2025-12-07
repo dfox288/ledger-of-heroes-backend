@@ -65,6 +65,15 @@ class SpellChoiceHandler extends AbstractChoiceHandler
             throw new InvalidSelectionException($choice->id, 'empty', 'Selection cannot be empty');
         }
 
+        // Validate selection doesn't exceed quantity limit
+        if (count($selected) > $choice->quantity) {
+            throw new InvalidSelectionException(
+                $choice->id,
+                'exceeds_limit',
+                'Selection of '.count($selected)." exceeds limit of {$choice->quantity}"
+            );
+        }
+
         // Validate spell slugs exist
         $spells = Spell::whereIn('full_slug', $selected)->get();
         if ($spells->count() !== count($selected)) {

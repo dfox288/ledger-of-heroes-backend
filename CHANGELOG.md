@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Previously, features were only populated via explicit `/features/sync` API call
   - Race and background features were already auto-populated; now class features are too
 
+- **Issue #348**: Reject spell selections exceeding quantity limit
+  - `SpellChoiceHandler.resolve()` now validates `count(selected) <= quantity`
+  - Attempting to select more spells/cantrips than allowed throws `InvalidSelectionException`
+  - Prevents over-selection that caused negative `remaining` values
+  - See #351 for follow-up: `is_complete` should also verify all required choices resolved
+
 - **Issue #347**: Set `custom_name` for description-only equipment items
   - Equipment without `item_slug` (description-only items) now have `custom_name` set
   - Frontend can display `custom_name` instead of parsing JSON from `custom_description`

@@ -49,8 +49,8 @@ class ExpertiseChoiceHandler extends AbstractChoiceHandler
                     continue;
                 }
 
-                // Get selected expertise for this choice group
-                $selected = $existingExpertise->pluck('id')->map('strval')->all();
+                // Get selected expertise for this choice group (using skill/proficiency_type slugs)
+                $selected = $existingExpertise->map(fn ($p) => $p->skill_slug ?? $p->proficiency_type_slug)->filter()->values()->all();
 
                 $choice = new PendingChoice(
                     id: $this->generateChoiceId('expertise', 'class', $class->full_slug, $expertiseLevel, $choiceGroup),
@@ -88,9 +88,12 @@ class ExpertiseChoiceHandler extends AbstractChoiceHandler
             throw new InvalidSelectionException($choice->id, 'empty', 'Selection cannot be empty');
         }
 
-        // Find the proficiencies to update
+        // Find the proficiencies by skill_slug or proficiency_type_slug
         $proficiencies = $character->proficiencies()
-            ->whereIn('id', $selected)
+            ->where(function ($query) use ($selected) {
+                $query->whereIn('skill_slug', $selected)
+                    ->orWhereIn('proficiency_type_slug', $selected);
+            })
             ->get();
 
         if ($proficiencies->count() !== count($selected)) {
@@ -183,28 +186,26 @@ class ExpertiseChoiceHandler extends AbstractChoiceHandler
 
             // For Bards, only allow skills
             if ($classSlug === 'bard') {
-                return $proficiency->skill_id !== null;
+                return $proficiency->skill_slug !== null;
             }
 
             // For Rogues, allow both skills and tools
-            return $proficiency->skill_id !== null || $proficiency->proficiency_type_id !== null;
+            return $proficiency->skill_slug !== null || $proficiency->proficiency_type_slug !== null;
         });
 
-        // Map to option format
+        // Map to option format using full_slug
         return $available->map(function ($proficiency) {
-            if ($proficiency->skill_id !== null) {
+            if ($proficiency->skill_slug !== null) {
                 return [
                     'type' => 'skill',
-                    'id' => $proficiency->id,
-                    'skill_id' => $proficiency->skill_id,
+                    'full_slug' => $proficiency->skill_slug,
                     'slug' => $proficiency->skill->slug ?? null,
                     'name' => $proficiency->skill->name ?? null,
                 ];
             } else {
                 return [
                     'type' => 'proficiency_type',
-                    'id' => $proficiency->id,
-                    'proficiency_type_id' => $proficiency->proficiency_type_id,
+                    'full_slug' => $proficiency->proficiency_type_slug,
                     'slug' => $proficiency->proficiencyType->slug ?? null,
                     'name' => $proficiency->proficiencyType->name ?? null,
                 ];

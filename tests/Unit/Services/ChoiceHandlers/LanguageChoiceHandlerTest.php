@@ -22,30 +22,28 @@ it('returns correct type', function () {
 });
 
 it('transforms service output to PendingChoice objects for race language choice', function () {
-    // Mock character attributes
-    $this->character->shouldReceive('getAttribute')->with('race_id')->andReturn(1);
+    // Mock character attributes with full_slug
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn((object) [
-        'id' => 1,
+        'full_slug' => 'phb:high-elf',
         'name' => 'High Elf',
     ]);
-    $this->character->shouldReceive('getAttribute')->with('background_id')->andReturn(null);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn(null);
 
-    // Mock language service response
+    // Mock language service response with full_slug
     $this->languageService->shouldReceive('getPendingChoices')
         ->with($this->character)
         ->andReturn([
             'race' => [
                 'known' => [
-                    ['id' => 1, 'name' => 'Elvish', 'slug' => 'elvish', 'script' => 'Elvish'],
+                    ['full_slug' => 'phb:elvish', 'name' => 'Elvish', 'slug' => 'elvish', 'script' => 'Elvish'],
                 ],
                 'choices' => [
                     'quantity' => 1,
                     'remaining' => 1,
                     'selected' => [],
                     'options' => [
-                        ['id' => 2, 'name' => 'Common', 'slug' => 'common', 'script' => 'Common'],
-                        ['id' => 3, 'name' => 'Dwarvish', 'slug' => 'dwarvish', 'script' => 'Dwarvish'],
+                        ['full_slug' => 'phb:common', 'name' => 'Common', 'slug' => 'common', 'script' => 'Common'],
+                        ['full_slug' => 'phb:dwarvish', 'name' => 'Dwarvish', 'slug' => 'dwarvish', 'script' => 'Dwarvish'],
                     ],
                 ],
             ],
@@ -89,9 +87,7 @@ it('transforms service output to PendingChoice objects for race language choice'
 });
 
 it('skips sources with no choices', function () {
-    $this->character->shouldReceive('getAttribute')->with('race_id')->andReturn(null);
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn(null);
-    $this->character->shouldReceive('getAttribute')->with('background_id')->andReturn(null);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn(null);
 
     $this->languageService->shouldReceive('getPendingChoices')
@@ -132,12 +128,10 @@ it('skips sources with no choices', function () {
 });
 
 it('includes selected languages in the choice', function () {
-    $this->character->shouldReceive('getAttribute')->with('race_id')->andReturn(1);
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn((object) [
-        'id' => 1,
+        'full_slug' => 'phb:human',
         'name' => 'Human',
     ]);
-    $this->character->shouldReceive('getAttribute')->with('background_id')->andReturn(null);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn(null);
 
     $this->languageService->shouldReceive('getPendingChoices')
@@ -145,12 +139,12 @@ it('includes selected languages in the choice', function () {
         ->andReturn([
             'race' => [
                 'known' => [
-                    ['id' => 1, 'name' => 'Common', 'slug' => 'common', 'script' => 'Common'],
+                    ['full_slug' => 'phb:common', 'name' => 'Common', 'slug' => 'common', 'script' => 'Common'],
                 ],
                 'choices' => [
                     'quantity' => 1,
                     'remaining' => 0,
-                    'selected' => [2],
+                    'selected' => ['phb:dwarvish'],
                     'options' => [],
                 ],
             ],
@@ -178,19 +172,17 @@ it('includes selected languages in the choice', function () {
 
     expect($choices)
         ->toHaveCount(1)
-        ->first()->selected->toBe(['2'])
+        ->first()->selected->toBe(['phb:dwarvish'])
         ->first()->remaining->toBe(0);
 });
 
 it('handles multiple sources with choices', function () {
-    $this->character->shouldReceive('getAttribute')->with('race_id')->andReturn(1);
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn((object) [
-        'id' => 1,
+        'full_slug' => 'phb:half-elf',
         'name' => 'Half-Elf',
     ]);
-    $this->character->shouldReceive('getAttribute')->with('background_id')->andReturn(2);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn((object) [
-        'id' => 2,
+        'full_slug' => 'phb:sage',
         'name' => 'Sage',
     ]);
 
@@ -204,7 +196,7 @@ it('handles multiple sources with choices', function () {
                     'remaining' => 2,
                     'selected' => [],
                     'options' => [
-                        ['id' => 1, 'name' => 'Common', 'slug' => 'common', 'script' => 'Common'],
+                        ['full_slug' => 'phb:common', 'name' => 'Common', 'slug' => 'common', 'script' => 'Common'],
                     ],
                 ],
             ],
@@ -215,7 +207,7 @@ it('handles multiple sources with choices', function () {
                     'remaining' => 1,
                     'selected' => [],
                     'options' => [
-                        ['id' => 2, 'name' => 'Dwarvish', 'slug' => 'dwarvish', 'script' => 'Dwarvish'],
+                        ['full_slug' => 'phb:dwarvish', 'name' => 'Dwarvish', 'slug' => 'dwarvish', 'script' => 'Dwarvish'],
                     ],
                 ],
             ],
@@ -237,9 +229,7 @@ it('handles multiple sources with choices', function () {
 });
 
 it('handles feat source correctly', function () {
-    $this->character->shouldReceive('getAttribute')->with('race_id')->andReturn(null);
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn(null);
-    $this->character->shouldReceive('getAttribute')->with('background_id')->andReturn(null);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn(null);
 
     $this->languageService->shouldReceive('getPendingChoices')
@@ -270,7 +260,7 @@ it('handles feat source correctly', function () {
                     'remaining' => 1,
                     'selected' => [],
                     'options' => [
-                        ['id' => 1, 'name' => 'Dwarvish', 'slug' => 'dwarvish', 'script' => 'Dwarvish'],
+                        ['full_slug' => 'phb:dwarvish', 'name' => 'Dwarvish', 'slug' => 'dwarvish', 'script' => 'Dwarvish'],
                     ],
                 ],
             ],
@@ -283,12 +273,12 @@ it('handles feat source correctly', function () {
     $featChoice = $choices->first();
     expect($featChoice->source)->toBe('feat');
     expect($featChoice->sourceName)->toBe('Feat');
-    expect($featChoice->id)->toBe('language:feat:1:1:language_choice');
+    expect($featChoice->id)->toBe('language|feat|feat|1|language_choice');
 });
 
 it('resolves choices by calling the language service', function () {
     $choice = new PendingChoice(
-        id: 'language:race:1:1:language_choice',
+        id: 'language|race|phb:high-elf|1|language_choice',
         type: 'language',
         subtype: null,
         source: 'race',
@@ -298,22 +288,23 @@ it('resolves choices by calling the language service', function () {
         quantity: 1,
         remaining: 1,
         selected: [],
-        options: [['id' => 2, 'name' => 'Common', 'slug' => 'common']],
+        options: [['full_slug' => 'phb:common', 'name' => 'Common', 'slug' => 'common']],
         optionsEndpoint: null,
         metadata: [],
     );
 
+    // Now expects slugs to be passed
     $this->languageService
         ->shouldReceive('makeChoice')
-        ->with($this->character, 'race', [2])
+        ->with($this->character, 'race', ['phb:common'])
         ->once();
 
-    $this->handler->resolve($this->character, $choice, ['selected' => [2]]);
+    $this->handler->resolve($this->character, $choice, ['selected' => ['phb:common']]);
 });
 
 it('throws exception when selection is empty', function () {
     $choice = new PendingChoice(
-        id: 'language:race:1:1:language_choice',
+        id: 'language|race|phb:high-elf|1|language_choice',
         type: 'language',
         subtype: null,
         source: 'race',
@@ -334,7 +325,7 @@ it('throws exception when selection is empty', function () {
 
 it('can undo language choices', function () {
     $choice = new PendingChoice(
-        id: 'language:race:1:1:language_choice',
+        id: 'language|race|phb:high-elf|1|language_choice',
         type: 'language',
         subtype: null,
         source: 'race',
@@ -343,7 +334,7 @@ it('can undo language choices', function () {
         required: true,
         quantity: 1,
         remaining: 0,
-        selected: [2],
+        selected: ['phb:common'],
         options: [],
         optionsEndpoint: null,
         metadata: [],
@@ -353,14 +344,12 @@ it('can undo language choices', function () {
 });
 
 it('generates correct choice IDs for different sources', function () {
-    $this->character->shouldReceive('getAttribute')->with('race_id')->andReturn(5);
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn((object) [
-        'id' => 5,
+        'full_slug' => 'phb:elf',
         'name' => 'Elf',
     ]);
-    $this->character->shouldReceive('getAttribute')->with('background_id')->andReturn(3);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn((object) [
-        'id' => 3,
+        'full_slug' => 'phb:sage',
         'name' => 'Sage',
     ]);
 
@@ -374,7 +363,7 @@ it('generates correct choice IDs for different sources', function () {
                     'remaining' => 1,
                     'selected' => [],
                     'options' => [
-                        ['id' => 1, 'name' => 'Common', 'slug' => 'common', 'script' => 'Common'],
+                        ['full_slug' => 'phb:common', 'name' => 'Common', 'slug' => 'common', 'script' => 'Common'],
                     ],
                 ],
             ],
@@ -385,7 +374,7 @@ it('generates correct choice IDs for different sources', function () {
                     'remaining' => 1,
                     'selected' => [],
                     'options' => [
-                        ['id' => 2, 'name' => 'Dwarvish', 'slug' => 'dwarvish', 'script' => 'Dwarvish'],
+                        ['full_slug' => 'phb:dwarvish', 'name' => 'Dwarvish', 'slug' => 'dwarvish', 'script' => 'Dwarvish'],
                     ],
                 ],
             ],
@@ -407,13 +396,13 @@ it('generates correct choice IDs for different sources', function () {
     $raceChoice = $choices->first(fn ($c) => $c->source === 'race');
     $backgroundChoice = $choices->first(fn ($c) => $c->source === 'background');
 
-    expect($raceChoice->id)->toBe('language:race:5:1:language_choice');
-    expect($backgroundChoice->id)->toBe('language:background:3:1:language_choice');
+    expect($raceChoice->id)->toBe('language|race|phb:elf|1|language_choice');
+    expect($backgroundChoice->id)->toBe('language|background|phb:sage|1|language_choice');
 });
 
-it('resolves numeric IDs without database lookup', function () {
+it('resolves slugs via language service', function () {
     $choice = new PendingChoice(
-        id: 'language:race:1:1:language_choice',
+        id: 'language|race|phb:high-elf|1|language_choice',
         type: 'language',
         subtype: null,
         source: 'race',
@@ -428,11 +417,11 @@ it('resolves numeric IDs without database lookup', function () {
         metadata: [],
     );
 
-    // When selection contains numeric IDs, they should be passed directly
+    // Selection contains slugs
     $this->languageService
         ->shouldReceive('makeChoice')
-        ->with($this->character, 'race', [1, 2])
+        ->with($this->character, 'race', ['phb:common', 'phb:dwarvish'])
         ->once();
 
-    $this->handler->resolve($this->character, $choice, ['selected' => [1, 2]]);
+    $this->handler->resolve($this->character, $choice, ['selected' => ['phb:common', 'phb:dwarvish']]);
 });

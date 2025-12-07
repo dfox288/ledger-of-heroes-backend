@@ -9,7 +9,6 @@ use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
 use App\Models\EntityLanguage;
 use App\Models\Feat;
-use App\Models\Language;
 use App\Models\Race;
 use App\Services\CharacterLanguageService;
 use Illuminate\Support\Collection;
@@ -38,17 +37,17 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
                 continue;
             }
 
-            $sourceId = $this->getSourceId($character, $source);
-            if ($sourceId === 0) {
+            $sourceSlug = $this->getSourceSlug($character, $source);
+            if ($sourceSlug === '') {
                 continue;
             }
 
             $sourceName = $this->getSourceName($character, $source);
 
-            // Build options with consistent structure
+            // Build options with consistent structure using full_slug
             $options = collect($choiceData['options'] ?? [])
                 ->map(fn ($opt) => [
-                    'id' => $opt['id'],
+                    'full_slug' => $opt['full_slug'] ?? $opt['slug'],
                     'slug' => $opt['slug'],
                     'name' => $opt['name'],
                     'script' => $opt['script'] ?? null,
@@ -56,11 +55,11 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
                 ->values()
                 ->all();
 
-            // Selected are language IDs
-            $selected = array_map('strval', $choiceData['selected'] ?? []);
+            // Selected are language full_slugs
+            $selected = $choiceData['selected'] ?? [];
 
             $choice = new PendingChoice(
-                id: $this->generateChoiceId('language', $source, $sourceId, 1, 'language_choice'),
+                id: $this->generateChoiceId('language', $source, $sourceSlug, 1, 'language_choice'),
                 type: 'language',
                 subtype: null,
                 source: $source,
@@ -93,10 +92,8 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
             throw new InvalidSelectionException($choice->id, 'empty', 'Selection cannot be empty');
         }
 
-        // Resolve language IDs (handle both IDs and slugs)
-        $languageIds = $this->resolveLanguageIds($selected);
-
-        $this->languageService->makeChoice($character, $source, $languageIds);
+        // Pass language slugs directly to the service (validation is done there)
+        $this->languageService->makeChoice($character, $source, $selected);
     }
 
     public function canUndo(Character $character, PendingChoice $choice): bool
@@ -110,25 +107,25 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
         $parsed = $this->parseChoiceId($choice->id);
         $source = $parsed['source'];
 
-        // Get fixed language IDs to preserve them
-        $fixedLanguageIds = $this->getFixedLanguageIds($character, $source);
+        // Get fixed language slugs to preserve them
+        $fixedLanguageSlugs = $this->getFixedLanguageSlugs($character, $source);
 
         // Delete choice languages (not fixed ones)
         $character->languages()
             ->where('source', $source)
-            ->whereNotIn('language_id', $fixedLanguageIds)
+            ->whereNotIn('language_slug', $fixedLanguageSlugs)
             ->delete();
 
         $character->load('languages');
     }
 
-    private function getSourceId(Character $character, string $source): int
+    private function getSourceSlug(Character $character, string $source): string
     {
         return match ($source) {
-            'race' => $character->getAttribute('race_id') ?? 0,
-            'background' => $character->getAttribute('background_id') ?? 0,
-            'feat' => 1, // Feats don't have a single ID, use 1 as placeholder
-            default => 0,
+            'race' => $character->getAttribute('race')?->full_slug ?? '',
+            'background' => $character->getAttribute('background')?->full_slug ?? '',
+            'feat' => 'feat', // Feats don't have a single slug, use 'feat' as placeholder
+            default => '',
         };
     }
 
@@ -142,22 +139,9 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
         };
     }
 
-    private function resolveLanguageIds(array $selected): array
+    private function getFixedLanguageSlugs(Character $character, string $source): array
     {
-        // If already integers, return as-is
-        if (! empty($selected) && is_numeric($selected[0])) {
-            return array_map('intval', $selected);
-        }
-
-        // Otherwise resolve slugs to IDs
-        return Language::whereIn('slug', $selected)
-            ->pluck('id')
-            ->all();
-    }
-
-    private function getFixedLanguageIds(Character $character, string $source): array
-    {
-        // This mirrors the logic in CharacterLanguageService::getFixedLanguageIds
+        // This mirrors the logic in CharacterLanguageService::getFixedLanguageSlugs
         if ($source === 'feat') {
             $featIds = $character->features()
                 ->where('feature_type', Feat::class)
@@ -168,7 +152,10 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
                 ->where('reference_type', Feat::class)
                 ->where('is_choice', false)
                 ->whereNotNull('language_id')
-                ->pluck('language_id')
+                ->with('language')
+                ->get()
+                ->filter(fn ($el) => $el->language !== null)
+                ->pluck('language.full_slug')
                 ->toArray();
         }
 
@@ -182,23 +169,29 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
             return [];
         }
 
-        $fixedLanguageIds = $entity->languages()
+        $fixedLanguageSlugs = $entity->languages()
             ->where('is_choice', false)
             ->whereNotNull('language_id')
-            ->pluck('language_id')
+            ->with('language')
+            ->get()
+            ->filter(fn ($el) => $el->language !== null)
+            ->pluck('language.full_slug')
             ->toArray();
 
         // For subraces, also include parent race fixed languages
         if ($source === 'race' && $entity->is_subrace && $entity->parent) {
-            $parentFixedLanguageIds = $entity->parent->languages()
+            $parentFixedLanguageSlugs = $entity->parent->languages()
                 ->where('is_choice', false)
                 ->whereNotNull('language_id')
-                ->pluck('language_id')
+                ->with('language')
+                ->get()
+                ->filter(fn ($el) => $el->language !== null)
+                ->pluck('language.full_slug')
                 ->toArray();
 
-            $fixedLanguageIds = array_unique(array_merge($fixedLanguageIds, $parentFixedLanguageIds));
+            $fixedLanguageSlugs = array_unique(array_merge($fixedLanguageSlugs, $parentFixedLanguageSlugs));
         }
 
-        return $fixedLanguageIds;
+        return $fixedLanguageSlugs;
     }
 }

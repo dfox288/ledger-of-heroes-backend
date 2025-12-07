@@ -64,8 +64,10 @@ it('returns equipment choices for level 1 character', function () {
     $primaryClass = Mockery::mock(CharacterClass::class);
     $primaryClass->shouldReceive('getAttribute')->with('id')->andReturn(5);
     $primaryClass->shouldReceive('getAttribute')->with('name')->andReturn('Fighter');
+    $primaryClass->shouldReceive('getAttribute')->with('full_slug')->andReturn('phb:fighter');
     $primaryClass->shouldReceive('__get')->with('id')->andReturn(5);
     $primaryClass->shouldReceive('__get')->with('name')->andReturn('Fighter');
+    $primaryClass->shouldReceive('__get')->with('full_slug')->andReturn('phb:fighter');
 
     $characterClassPivot = Mockery::mock(CharacterClassPivot::class);
     $characterClassPivot->shouldReceive('getAttribute')->with('is_primary')->andReturn(true);
@@ -224,7 +226,7 @@ it('returns equipment choices for level 1 character', function () {
 
 it('resolves equipment choice by creating CharacterEquipment records', function () {
     $choice = new PendingChoice(
-        id: 'equipment:class:5:1:equipment_choice_1',
+        id: 'equipment|class|phb:rogue|1|equipment_choice_1',
         type: 'equipment',
         subtype: null,
         source: 'class',
@@ -286,7 +288,7 @@ it('resolves equipment choice by creating CharacterEquipment records', function 
 
 it('resolves equipment choice with multiple items', function () {
     $choice = new PendingChoice(
-        id: 'equipment:class:5:1:equipment_choice_2',
+        id: 'equipment|class|phb:rogue|1|equipment_choice_2',
         type: 'equipment',
         subtype: null,
         source: 'class',
@@ -342,7 +344,7 @@ it('resolves equipment choice with multiple items', function () {
 
 it('throws exception when selected option is invalid', function () {
     $choice = new PendingChoice(
-        id: 'equipment:class:5:1:equipment_choice_1',
+        id: 'equipment|class|phb:rogue|1|equipment_choice_1',
         type: 'equipment',
         subtype: null,
         source: 'class',
@@ -366,7 +368,7 @@ it('throws exception when selected option is invalid', function () {
 
 it('throws exception when selection is empty', function () {
     $choice = new PendingChoice(
-        id: 'equipment:class:5:1:equipment_choice_1',
+        id: 'equipment|class|phb:rogue|1|equipment_choice_1',
         type: 'equipment',
         subtype: null,
         source: 'class',
@@ -389,7 +391,7 @@ it('throws exception when selection is empty', function () {
 
 it('returns false for canUndo when character is not level 1', function () {
     $choice = new PendingChoice(
-        id: 'equipment:class:5:1:equipment_choice_1',
+        id: 'equipment|class|phb:rogue|1|equipment_choice_1',
         type: 'equipment',
         subtype: null,
         source: 'class',
@@ -421,7 +423,7 @@ it('returns false for canUndo when character is not level 1', function () {
 
 it('returns true for canUndo when character is level 1', function () {
     $choice = new PendingChoice(
-        id: 'equipment:class:5:1:equipment_choice_1',
+        id: 'equipment|class|phb:rogue|1|equipment_choice_1',
         type: 'equipment',
         subtype: null,
         source: 'class',
@@ -453,7 +455,7 @@ it('returns true for canUndo when character is level 1', function () {
 
 it('undoes choice by deleting CharacterEquipment records', function () {
     $choice = new PendingChoice(
-        id: 'equipment:class:5:1:equipment_choice_1',
+        id: 'equipment|class|phb:rogue|1|equipment_choice_1',
         type: 'equipment',
         subtype: null,
         source: 'class',

@@ -173,6 +173,41 @@ class AddClassServiceTest extends TestCase
         $this->service->addClass($character->fresh(), $wizard);
     }
 
+    #[Test]
+    public function it_populates_class_features_when_adding_class(): void
+    {
+        $character = Character::factory()->create();
+        $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'parent_class_id' => null]);
+
+        // Create mandatory features at level 1 for the class
+        $secondWind = \App\Models\ClassFeature::factory()
+            ->forClass($fighter)
+            ->atLevel(1)
+            ->create(['feature_name' => 'Second Wind', 'is_optional' => false]);
+
+        $fightingStyle = \App\Models\ClassFeature::factory()
+            ->forClass($fighter)
+            ->atLevel(1)
+            ->optional()
+            ->create(['feature_name' => 'Fighting Style']);
+
+        $actionSurge = \App\Models\ClassFeature::factory()
+            ->forClass($fighter)
+            ->atLevel(2)
+            ->create(['feature_name' => 'Action Surge', 'is_optional' => false]);
+
+        $pivot = $this->service->addClass($character, $fighter);
+
+        $character->refresh();
+
+        // Should have Second Wind (level 1, mandatory)
+        // Should NOT have Fighting Style (optional)
+        // Should NOT have Action Surge (level 2, character is level 1)
+        $this->assertCount(1, $character->features);
+        $this->assertEquals('Second Wind', $character->features->first()->feature->feature_name);
+        $this->assertEquals('class', $character->features->first()->source);
+    }
+
     private function seedAbilityScores(): void
     {
         $abilities = [

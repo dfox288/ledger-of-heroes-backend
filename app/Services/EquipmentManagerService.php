@@ -254,6 +254,7 @@ class EquipmentManagerService
         CharacterEquipment::create([
             'character_id' => $character->id,
             'item_slug' => null,
+            'custom_name' => $description,
             'quantity' => $entityItem->quantity ?? 1,
             'equipped' => false,
             'custom_description' => json_encode([

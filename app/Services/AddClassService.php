@@ -17,6 +17,7 @@ class AddClassService
         private MulticlassValidationService $validator,
         private SpellSlotService $spellSlotService,
         private EquipmentManagerService $equipmentService,
+        private CharacterFeatureService $featureService,
     ) {}
 
     /**
@@ -92,6 +93,9 @@ class AddClassService
             if ($isPrimary) {
                 $this->equipmentService->populateFromClass($character);
             }
+
+            // Populate class features for the new class
+            $this->featureService->populateFromClass($character);
 
             return $pivot;
         });

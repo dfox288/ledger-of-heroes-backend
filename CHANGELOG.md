@@ -19,6 +19,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #346**: Auto-populate class features when class is assigned
+  - `AddClassService` now calls `CharacterFeatureService::populateFromClass()` when adding a class
+  - Non-optional class features at level 1 are automatically granted
+  - Previously, features were only populated via explicit `/features/sync` API call
+  - Race and background features were already auto-populated; now class features are too
+
+- **Issue #347**: Set `custom_name` for description-only equipment items
+  - Equipment without `item_slug` (description-only items) now have `custom_name` set
+  - Frontend can display `custom_name` instead of parsing JSON from `custom_description`
+  - Examples: "A holy symbol (a gift...)" now appears in `custom_name` field
+  - The `custom_description` JSON metadata is preserved for internal tracking
+
 - **Issue #345**: Keep pack items with nested contents for UI display
   - Pack items (e.g., "Diplomat's Pack") now return with `contents[]` array
   - Added `is_pack: true` flag to identify pack items

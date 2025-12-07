@@ -652,6 +652,40 @@ class EquipmentManagerServiceTest extends TestCase
     }
 
     #[Test]
+    public function description_only_equipment_sets_custom_name(): void
+    {
+        $acolyte = Background::factory()->create([
+            'name' => 'Acolyte',
+            'slug' => 'acolyte',
+            'full_slug' => 'phb:acolyte',
+        ]);
+
+        // Description-only item (no item_id)
+        EntityItem::create([
+            'reference_type' => Background::class,
+            'reference_id' => $acolyte->id,
+            'item_id' => null,
+            'description' => 'A holy symbol (a gift to you when you entered the priesthood)',
+            'quantity' => 1,
+            'is_choice' => false,
+        ]);
+
+        $character = Character::factory()->create([
+            'background_slug' => $acolyte->full_slug,
+        ]);
+
+        $this->service->populateFromBackground($character);
+
+        $equipment = $character->fresh()->equipment->first();
+
+        // custom_name should be set to the description for display purposes
+        $this->assertEquals(
+            'A holy symbol (a gift to you when you entered the priesthood)',
+            $equipment->custom_name
+        );
+    }
+
+    #[Test]
     public function populate_grants_both_item_and_description_equipment(): void
     {
         $pouch = Item::factory()->create([

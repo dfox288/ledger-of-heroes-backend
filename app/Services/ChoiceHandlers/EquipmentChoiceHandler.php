@@ -251,9 +251,23 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
         // Otherwise grant all items from the option (for fixed options like "a rapier")
         $itemsToGrant = $foundOption['items'];
         if ($specificItems !== null && is_array($specificItems)) {
+            // Get valid item slugs from the option
+            $validSlugs = array_column($foundOption['items'], 'full_slug');
+
+            // Filter to only items that exist in the option
             $itemsToGrant = array_filter($foundOption['items'], function ($item) use ($specificItems) {
                 return in_array($item['full_slug'], $specificItems, true);
             });
+
+            // Validate that at least one specified item exists in the option
+            if (empty($itemsToGrant)) {
+                $invalidSlugs = array_diff($specificItems, $validSlugs);
+                throw new InvalidSelectionException(
+                    $choice->id,
+                    implode(', ', $invalidSlugs),
+                    "None of the specified items exist in option '{$selectedOption}'"
+                );
+            }
         }
 
         // Grant each selected item

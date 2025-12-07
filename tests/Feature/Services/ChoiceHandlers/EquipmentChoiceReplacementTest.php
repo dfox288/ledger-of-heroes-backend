@@ -365,4 +365,90 @@ class EquipmentChoiceReplacementTest extends TestCase
             ->and($metadata)->toHaveKey('choice_group', 'equipment_choice_1')
             ->and($metadata)->toHaveKey('selected_option', 'a');
     }
+
+    #[Test]
+    public function throws_exception_when_item_selections_contains_invalid_slugs(): void
+    {
+        $character = Character::factory()->create();
+
+        // Create items for the choice
+        $drum = Item::factory()->create(['name' => 'Drum', 'slug' => 'drum', 'full_slug' => 'phb:drum']);
+
+        $choice = new PendingChoice(
+            id: 'equipment|class|test:bard|1|choice_3',
+            type: 'equipment',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Bard',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [
+                [
+                    'option' => 'b',
+                    'label' => 'any musical instrument',
+                    'items' => [
+                        ['full_slug' => $drum->full_slug, 'name' => 'Drum', 'slug' => 'drum', 'quantity' => 1],
+                    ],
+                ],
+            ],
+            optionsEndpoint: null,
+            metadata: ['choice_group' => 'choice_3'],
+        );
+
+        // Try to select an item that doesn't exist in the option
+        expect(fn () => $this->handler->resolve($character, $choice, [
+            'selected' => ['b'],
+            'item_selections' => ['b' => ['phb:nonexistent-item']],
+        ]))->toThrow(\App\Exceptions\InvalidSelectionException::class);
+    }
+
+    #[Test]
+    public function grants_valid_items_even_when_some_slugs_are_invalid(): void
+    {
+        $character = Character::factory()->create();
+
+        // Create items for the choice
+        $drum = Item::factory()->create(['name' => 'Drum', 'slug' => 'drum', 'full_slug' => 'phb:drum']);
+        $flute = Item::factory()->create(['name' => 'Flute', 'slug' => 'flute', 'full_slug' => 'phb:flute']);
+
+        $choice = new PendingChoice(
+            id: 'equipment|class|test:bard|1|choice_3',
+            type: 'equipment',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Bard',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [
+                [
+                    'option' => 'b',
+                    'label' => 'any musical instrument',
+                    'items' => [
+                        ['full_slug' => $drum->full_slug, 'name' => 'Drum', 'slug' => 'drum', 'quantity' => 1],
+                        ['full_slug' => $flute->full_slug, 'name' => 'Flute', 'slug' => 'flute', 'quantity' => 1],
+                    ],
+                ],
+            ],
+            optionsEndpoint: null,
+            metadata: ['choice_group' => 'choice_3'],
+        );
+
+        // Select one valid and one invalid item - should grant the valid one
+        $this->handler->resolve($character, $choice, [
+            'selected' => ['b'],
+            'item_selections' => ['b' => ['phb:drum', 'phb:nonexistent']],
+        ]);
+
+        $character->refresh();
+
+        // Should only have the drum (valid item)
+        expect($character->equipment)->toHaveCount(1);
+        expect($character->equipment->first()->item_slug)->toBe('phb:drum');
+    }
 }

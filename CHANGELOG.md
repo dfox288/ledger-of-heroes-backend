@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Issue #294**: Add character validation endpoint for dangling references
+  - `GET /api/v1/characters/{character}/validate` - Validates single character's entity references
+  - `GET /api/v1/characters/validate-all` - Bulk validation with summary statistics
+  - `CharacterValidationService` - Checks race, background, classes, subclasses, spells, items, languages, conditions
+  - `CharacterValidationResult` DTO with validity status, dangling references list, and counts
+  - `CharacterValidationResource` for consistent API response format
+  - Detects slugs that don't resolve to entities (e.g., after sourcebook reimport)
+
 ### Changed
 
 - **Issue #293**: Update service layer for slug-based character references

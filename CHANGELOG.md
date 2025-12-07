@@ -7,13 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
+### Changed (Breaking)
 
 - **Issue #342**: Require `item_selections` for category equipment options
-  - Category options (e.g., "any simple weapon") now require `item_selections` parameter
-  - Bundle options (e.g., "a longbow and arrows") still grant all items without `item_selections`
-  - Added `is_category` flag to equipment choice options to distinguish the two
-  - Returns 422 error if category option is missing `item_selections`
+  - **Breaking**: Category options (e.g., "any simple weapon") now require `item_selections` parameter
+  - Previously, selecting a category option without `item_selections` granted ALL items from that category
+  - Now returns 422 error if category option is missing `item_selections`
+  - Bundle options (e.g., "a longbow and arrows") are unaffected - they still grant all items without `item_selections`
+  - Added `is_category` and `category_item_count` flags to help clients distinguish option types
+  - Use `is_category: true` to determine when `item_selections` is required
+
+### Fixed
 
 - **Issue #340**: Equipment choice resolution now persists items correctly
   - Added `item_selections` parameter to `ResolveChoiceRequest` for category-based choices

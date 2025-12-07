@@ -4,6 +4,10 @@ namespace Tests\Feature\Services\ChoiceHandlers;
 
 use App\DTOs\PendingChoice;
 use App\Models\Character;
+use App\Models\CharacterClass;
+use App\Models\CharacterClassPivot;
+use App\Models\EntityItem;
+use App\Models\EquipmentChoiceItem;
 use App\Models\Item;
 use App\Services\ChoiceHandlers\EquipmentChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -593,5 +597,206 @@ class EquipmentChoiceReplacementTest extends TestCase
 
         $slugs = $character->equipment->pluck('item_slug')->sort()->values()->toArray();
         expect($slugs)->toBe(['phb:arrow', 'phb:longbow']);
+    }
+
+    #[Test]
+    public function get_choices_builds_options_from_database_relationships(): void
+    {
+        // Create items
+        $rapier = Item::factory()->create(['name' => 'Rapier', 'slug' => 'rapier', 'full_slug' => 'phb:rapier']);
+        $longsword = Item::factory()->create(['name' => 'Longsword', 'slug' => 'longsword', 'full_slug' => 'phb:longsword']);
+        $bow = Item::factory()->create(['name' => 'Longbow', 'slug' => 'longbow', 'full_slug' => 'phb:longbow']);
+        $arrows = Item::factory()->create(['name' => 'Arrows', 'slug' => 'arrow', 'full_slug' => 'phb:arrow']);
+
+        // Create a character class with equipment choices
+        $class = CharacterClass::factory()->create([
+            'name' => 'Test Fighter',
+            'slug' => 'test-fighter',
+            'full_slug' => 'test:test-fighter',
+        ]);
+
+        // Create equipment choice group 1 with two options:
+        // Option A: a rapier (single item)
+        // Option B: a longsword (single item)
+        $entityItemA = EntityItem::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'is_choice' => true,
+            'choice_group' => 'choice_1',
+            'choice_option' => 1,
+            'description' => 'a rapier',
+            'quantity' => 1,
+        ]);
+        EquipmentChoiceItem::create([
+            'entity_item_id' => $entityItemA->id,
+            'item_id' => $rapier->id,
+            'quantity' => 1,
+            'sort_order' => 0,
+        ]);
+
+        $entityItemB = EntityItem::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'is_choice' => true,
+            'choice_group' => 'choice_1',
+            'choice_option' => 2,
+            'description' => 'a longsword',
+            'quantity' => 1,
+        ]);
+        EquipmentChoiceItem::create([
+            'entity_item_id' => $entityItemB->id,
+            'item_id' => $longsword->id,
+            'quantity' => 1,
+            'sort_order' => 0,
+        ]);
+
+        // Create equipment choice group 2 with a bundle option:
+        // Option A: a longbow and 20 arrows (bundle - grants all)
+        $entityItemBundle = EntityItem::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'is_choice' => true,
+            'choice_group' => 'choice_2',
+            'choice_option' => 1,
+            'description' => 'a longbow and 20 arrows',
+            'quantity' => 1,
+        ]);
+        EquipmentChoiceItem::create([
+            'entity_item_id' => $entityItemBundle->id,
+            'item_id' => $bow->id,
+            'quantity' => 1,
+            'sort_order' => 0,
+        ]);
+        EquipmentChoiceItem::create([
+            'entity_item_id' => $entityItemBundle->id,
+            'item_id' => $arrows->id,
+            'quantity' => 20,
+            'sort_order' => 1,
+        ]);
+
+        // Create a level 1 character with this class
+        $character = Character::factory()->create();
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+        $character->load('characterClasses.characterClass');
+
+        // Get choices via the handler
+        $choices = $this->handler->getChoices($character);
+
+        // Should have 2 choice groups
+        expect($choices)->toHaveCount(2);
+
+        // First choice group: rapier vs longsword
+        $choice1 = $choices->first();
+        expect($choice1->id)->toContain('choice_1')
+            ->and($choice1->options)->toHaveCount(2)
+            ->and($choice1->options[0]['option'])->toBe('a')
+            ->and($choice1->options[0]['label'])->toBe('a rapier')
+            ->and($choice1->options[0]['items'])->toHaveCount(1)
+            ->and($choice1->options[0]['items'][0]['full_slug'])->toBe('phb:rapier')
+            ->and($choice1->options[0]['is_category'])->toBeFalse()
+            ->and($choice1->options[1]['option'])->toBe('b')
+            ->and($choice1->options[1]['label'])->toBe('a longsword')
+            ->and($choice1->options[1]['items'][0]['full_slug'])->toBe('phb:longsword');
+
+        // Second choice group: longbow bundle
+        $choice2 = $choices->last();
+        expect($choice2->id)->toContain('choice_2')
+            ->and($choice2->options)->toHaveCount(1)
+            ->and($choice2->options[0]['option'])->toBe('a')
+            ->and($choice2->options[0]['items'])->toHaveCount(2)
+            ->and($choice2->options[0]['is_category'])->toBeFalse();
+
+        // Verify bundle item quantities
+        $bundleItems = collect($choice2->options[0]['items']);
+        $bowItem = $bundleItems->firstWhere('full_slug', 'phb:longbow');
+        $arrowItem = $bundleItems->firstWhere('full_slug', 'phb:arrow');
+        expect($bowItem['quantity'])->toBe(1)
+            ->and($arrowItem['quantity'])->toBe(20);
+    }
+
+    #[Test]
+    public function full_flow_with_database_relationships(): void
+    {
+        // Create items
+        $rapier = Item::factory()->create(['name' => 'Rapier', 'slug' => 'rapier', 'full_slug' => 'test:rapier']);
+        $longsword = Item::factory()->create(['name' => 'Longsword', 'slug' => 'longsword', 'full_slug' => 'test:longsword']);
+
+        // Create class with equipment choices
+        $class = CharacterClass::factory()->create([
+            'name' => 'Test Warrior',
+            'slug' => 'test-warrior',
+            'full_slug' => 'test:test-warrior',
+        ]);
+
+        // Option A: rapier, Option B: longsword
+        $entityItemA = EntityItem::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'is_choice' => true,
+            'choice_group' => 'weapon_choice',
+            'choice_option' => 1,
+            'description' => 'a rapier',
+            'quantity' => 1,
+        ]);
+        EquipmentChoiceItem::create([
+            'entity_item_id' => $entityItemA->id,
+            'item_id' => $rapier->id,
+            'quantity' => 1,
+            'sort_order' => 0,
+        ]);
+
+        $entityItemB = EntityItem::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'is_choice' => true,
+            'choice_group' => 'weapon_choice',
+            'choice_option' => 2,
+            'description' => 'a longsword',
+            'quantity' => 1,
+        ]);
+        EquipmentChoiceItem::create([
+            'entity_item_id' => $entityItemB->id,
+            'item_id' => $longsword->id,
+            'quantity' => 1,
+            'sort_order' => 0,
+        ]);
+
+        // Create character
+        $character = Character::factory()->create();
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+        $character->load('characterClasses.characterClass');
+
+        // Get choices
+        $choices = $this->handler->getChoices($character);
+        expect($choices)->toHaveCount(1);
+
+        $choice = $choices->first();
+        expect($choice->remaining)->toBe(1)
+            ->and($choice->selected)->toBe([]);
+
+        // Resolve with option 'a' (rapier)
+        $this->handler->resolve($character, $choice, ['selected' => ['a']]);
+        $character->refresh();
+
+        expect($character->equipment)->toHaveCount(1)
+            ->and($character->equipment->first()->item_slug)->toBe('test:rapier');
+
+        // Get choices again - should show remaining=0 and selected=['a']
+        $character->load('characterClasses.characterClass');
+        $choicesAfter = $this->handler->getChoices($character);
+        $choiceAfter = $choicesAfter->first();
+
+        expect($choiceAfter->remaining)->toBe(0)
+            ->and($choiceAfter->selected)->toBe(['a']);
     }
 }

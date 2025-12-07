@@ -311,4 +311,55 @@ class MonsterImporterTest extends TestCase
         $this->assertNotNull($darkvision);
         $this->assertEquals(60, $darkvision->range_feet);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_populates_full_slug_when_source_is_present(): void
+    {
+        // Create a test source
+        \App\Models\Source::firstOrCreate(
+            ['code' => 'MM'],
+            ['name' => 'Monster Manual', 'publication_date' => '2014-09-19']
+        );
+
+        // Import monster with source in description
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+  <monster>
+    <name>Test Goblin</name>
+    <size>S</size>
+    <type>humanoid</type>
+    <alignment>Neutral Evil</alignment>
+    <ac>15</ac>
+    <hp>7 (2d6)</hp>
+    <speed>walk 30 ft.</speed>
+    <str>8</str>
+    <dex>14</dex>
+    <con>10</con>
+    <int>10</int>
+    <wis>8</wis>
+    <cha>8</cha>
+    <save></save>
+    <skill></skill>
+    <passive>9</passive>
+    <languages>Common, Goblin</languages>
+    <cr>1/4</cr>
+    <senses>darkvision 60 ft.</senses>
+    <description>A small, green-skinned humanoid.
+
+Source: Monster Manual p. 166</description>
+  </monster>
+</compendium>
+XML;
+
+        $parser = $this->importer->getParser();
+        $monsters = $parser->parse($xml);
+
+        $this->importer->import($monsters[0]);
+
+        $goblin = \App\Models\Monster::where('slug', 'test-goblin')->first();
+
+        $this->assertNotNull($goblin);
+        $this->assertEquals('mm:test-goblin', $goblin->full_slug);
+    }
 }

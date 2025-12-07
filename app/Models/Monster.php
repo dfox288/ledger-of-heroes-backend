@@ -19,6 +19,7 @@ class Monster extends BaseModel
     protected $fillable = [
         'name',
         'slug',
+        'full_slug',
         'sort_name',
         'size_id',
         'type',

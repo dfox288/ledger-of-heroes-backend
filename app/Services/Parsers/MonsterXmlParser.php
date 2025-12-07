@@ -91,6 +91,9 @@ class MonsterXmlParser
             'description' => $this->parseDescription($xml->description),
             'environment' => (string) $xml->environment ?: null,
 
+            // Source citations (from description field)
+            'sources' => $this->extractSources($xml->description),
+
             // Related data (arrays)
             'traits' => $this->parseTraits($xml->trait),
             'actions' => $this->parseActions($xml->action),
@@ -359,6 +362,27 @@ class MonsterXmlParser
         }
 
         return (string) $description;
+    }
+
+    /**
+     * Extract source citations from monster description.
+     *
+     * Parses source information from the description field which may contain
+     * citations like "Source: Monster Manual p. 123".
+     *
+     * @param  mixed  $description  Description element
+     * @return array Array of source data with 'code' and 'pages' keys
+     */
+    protected function extractSources($description): array
+    {
+        if (empty($description)) {
+            return [];
+        }
+
+        $descriptionText = (string) $description;
+
+        // Use the ParsesSourceCitations trait to extract sources
+        return $this->parseSourceCitations($descriptionText);
     }
 
     /**

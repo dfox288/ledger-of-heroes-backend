@@ -799,4 +799,120 @@ class EquipmentChoiceReplacementTest extends TestCase
         expect($choiceAfter->remaining)->toBe(0)
             ->and($choiceAfter->selected)->toBe(['a']);
     }
+
+    #[Test]
+    public function grants_fixed_items_alongside_category_selection(): void
+    {
+        // Fighter's choice: "a martial weapon and a shield"
+        // User picks longsword (from category), shield is fixed
+        $character = Character::factory()->create();
+
+        $longsword = Item::factory()->create(['name' => 'Longsword', 'slug' => 'longsword', 'full_slug' => 'phb:longsword']);
+        $greatsword = Item::factory()->create(['name' => 'Greatsword', 'slug' => 'greatsword', 'full_slug' => 'phb:greatsword']);
+        $shield = Item::factory()->create(['name' => 'Shield', 'slug' => 'shield', 'full_slug' => 'phb:shield']);
+
+        // Option 'a' has both category items (martial weapons) and a fixed item (shield)
+        $choice = new PendingChoice(
+            id: 'equipment|class|test:fighter|1|choice_2',
+            type: 'equipment',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Fighter',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [
+                [
+                    'option' => 'a',
+                    'label' => 'a martial weapon and a shield',
+                    'items' => [
+                        // Category items (user picks one)
+                        ['full_slug' => $longsword->full_slug, 'name' => 'Longsword', 'quantity' => 1, 'is_fixed' => false],
+                        ['full_slug' => $greatsword->full_slug, 'name' => 'Greatsword', 'quantity' => 1, 'is_fixed' => false],
+                        // Fixed item (always granted with this option)
+                        ['full_slug' => $shield->full_slug, 'name' => 'Shield', 'quantity' => 1, 'is_fixed' => true],
+                    ],
+                    'is_category' => true,
+                ],
+            ],
+            optionsEndpoint: null,
+            metadata: ['choice_group' => 'choice_2'],
+        );
+
+        // User selects option 'a' and picks longsword from the category
+        $this->handler->resolve($character, $choice, [
+            'selected' => ['a'],
+            'item_selections' => ['a' => ['phb:longsword']],
+        ]);
+
+        $character->refresh();
+
+        // Should have BOTH: the selected longsword AND the fixed shield
+        expect($character->equipment)->toHaveCount(2);
+
+        $slugs = $character->equipment->pluck('item_slug')->sort()->values()->toArray();
+        expect($slugs)->toBe(['phb:longsword', 'phb:shield']);
+    }
+
+    #[Test]
+    public function grants_multiple_fixed_items_with_category_selection(): void
+    {
+        // Option with category + multiple fixed items (e.g., "any simple weapon, a shield, and 20 arrows")
+        $character = Character::factory()->create();
+
+        $dagger = Item::factory()->create(['name' => 'Dagger', 'slug' => 'dagger', 'full_slug' => 'phb:dagger']);
+        $club = Item::factory()->create(['name' => 'Club', 'slug' => 'club', 'full_slug' => 'phb:club']);
+        $shield = Item::factory()->create(['name' => 'Shield', 'slug' => 'shield', 'full_slug' => 'phb:shield']);
+        $arrows = Item::factory()->create(['name' => 'Arrows', 'slug' => 'arrow', 'full_slug' => 'phb:arrow']);
+
+        $choice = new PendingChoice(
+            id: 'equipment|class|test:fighter|1|choice_3',
+            type: 'equipment',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Fighter',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [
+                [
+                    'option' => 'a',
+                    'label' => 'a simple weapon, a shield, and 20 arrows',
+                    'items' => [
+                        // Category items
+                        ['full_slug' => $dagger->full_slug, 'name' => 'Dagger', 'quantity' => 1, 'is_fixed' => false],
+                        ['full_slug' => $club->full_slug, 'name' => 'Club', 'quantity' => 1, 'is_fixed' => false],
+                        // Fixed items
+                        ['full_slug' => $shield->full_slug, 'name' => 'Shield', 'quantity' => 1, 'is_fixed' => true],
+                        ['full_slug' => $arrows->full_slug, 'name' => 'Arrows', 'quantity' => 20, 'is_fixed' => true],
+                    ],
+                    'is_category' => true,
+                ],
+            ],
+            optionsEndpoint: null,
+            metadata: ['choice_group' => 'choice_3'],
+        );
+
+        // User picks dagger from category
+        $this->handler->resolve($character, $choice, [
+            'selected' => ['a'],
+            'item_selections' => ['a' => ['phb:dagger']],
+        ]);
+
+        $character->refresh();
+
+        // Should have: dagger (selected) + shield (fixed) + arrows (fixed)
+        expect($character->equipment)->toHaveCount(3);
+
+        $slugs = $character->equipment->pluck('item_slug')->sort()->values()->toArray();
+        expect($slugs)->toBe(['phb:arrow', 'phb:dagger', 'phb:shield']);
+
+        // Verify arrows have correct quantity
+        $arrowEquipment = $character->equipment->where('item_slug', 'phb:arrow')->first();
+        expect($arrowEquipment->quantity)->toBe(20);
+    }
 }

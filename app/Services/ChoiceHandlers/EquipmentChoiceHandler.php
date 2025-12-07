@@ -215,20 +215,28 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
         // Determine which items to grant
         // ($itemSelections and $specificItems already defined above for validation)
 
-        // If item_selections is provided for this option, only grant those specific items
-        // Otherwise grant all items from the option (for fixed options like "a rapier")
+        // Build list of items to grant based on selection type:
+        // - If item_selections provided: grant selected items + all fixed items
+        // - Otherwise: grant all items (for pure fixed options like "a rapier")
         $itemsToGrant = $foundOption['items'];
         if ($specificItems !== null && is_array($specificItems)) {
-            // Get valid item slugs from the option
-            $validSlugs = array_column($foundOption['items'], 'full_slug');
+            // Get valid non-fixed item slugs from the option (for validation)
+            $nonFixedItems = array_filter($foundOption['items'], fn ($item) => ! ($item['is_fixed'] ?? false));
+            $validSlugs = array_column($nonFixedItems, 'full_slug');
 
-            // Filter to only items that exist in the option
+            // Grant: selected items from category + all fixed items
             $itemsToGrant = array_filter($foundOption['items'], function ($item) use ($specificItems) {
+                // Always include fixed items (e.g., shield in "martial weapon and shield")
+                if ($item['is_fixed'] ?? false) {
+                    return true;
+                }
+                // Include non-fixed items only if they're in item_selections
                 return in_array($item['full_slug'], $specificItems, true);
             });
 
-            // Validate that at least one specified item exists in the option
-            if (empty($itemsToGrant)) {
+            // Validate that at least one specified item exists in the non-fixed options
+            $selectedNonFixed = array_filter($itemsToGrant, fn ($item) => ! ($item['is_fixed'] ?? false));
+            if (empty($selectedNonFixed)) {
                 $invalidSlugs = array_diff($specificItems, $validSlugs);
                 throw new InvalidSelectionException(
                     $choice->id,
@@ -277,9 +285,13 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
      * Build the items array for an equipment option.
      *
      * Handles three types of items via EquipmentChoiceItem:
-     * - Category items (proficiency_type_id set): "any simple weapon" - returns all matching items
-     * - Pack items (item with contents): "explorer's pack" - expands to show pack contents
-     * - Regular items (item_id set): "a rapier" - returns the single item
+     * - Category items (proficiency_type_id set): "any simple weapon" - user picks one, is_fixed=false
+     * - Pack items (item with contents): "explorer's pack" - expands to contents, is_fixed=true
+     * - Regular items (item_id set): "a shield" - always granted with option, is_fixed=true
+     *
+     * The is_fixed flag determines behavior during resolution:
+     * - is_fixed=false: User must select via item_selections
+     * - is_fixed=true: Always granted when option is selected
      *
      * @return array{items: array, is_category: bool, category_item_count: int}
      */
@@ -292,7 +304,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
         foreach ($optionItems as $entityItem) {
             // Process choice items (EquipmentChoiceItem records)
             foreach ($entityItem->choiceItems as $choiceItem) {
-                // Category choice (e.g., "any simple weapon")
+                // Category choice (e.g., "any simple weapon") - user picks one
                 if ($choiceItem->proficiency_type_id && $choiceItem->proficiencyType) {
                     $categoryItems = $this->getItemsForProficiencyType($choiceItem->proficiencyType);
                     $isCategory = true;
@@ -303,10 +315,11 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                             'full_slug' => $item->full_slug,
                             'name' => $item->name,
                             'quantity' => $choiceItem->quantity ?? 1,
+                            'is_fixed' => false, // User must select from category
                         ];
                     }
                 } elseif ($choiceItem->item) {
-                    // Pack item - expand contents
+                    // Pack item - expand contents (all contents are fixed)
                     if ($choiceItem->item->contents->isNotEmpty()) {
                         foreach ($choiceItem->item->contents as $content) {
                             if ($content->item) {
@@ -314,15 +327,17 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                                     'full_slug' => $content->item->full_slug,
                                     'name' => $content->item->name,
                                     'quantity' => $content->quantity ?? 1,
+                                    'is_fixed' => true, // Pack contents are always granted
                                 ];
                             }
                         }
                     } else {
-                        // Regular item
+                        // Regular item - always granted when option selected
                         $items[] = [
                             'full_slug' => $choiceItem->item->full_slug,
                             'name' => $choiceItem->item->name,
                             'quantity' => $choiceItem->quantity ?? 1,
+                            'is_fixed' => true, // Fixed items are always granted
                         ];
                     }
                 }

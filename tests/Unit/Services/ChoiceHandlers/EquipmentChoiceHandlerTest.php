@@ -224,6 +224,7 @@ it('returns equipment choices for level 1 character', function () {
             'name' => 'Chain Mail',
             'full_slug' => 'phb:chain-mail',
             'quantity' => 1,
+            'is_fixed' => true, // Regular items are fixed (always granted)
         ])
         ->and($firstChoice->options[0]['is_category'])->toBeFalse()
         ->and($firstChoice->options[0]['category_item_count'])->toBe(0);
@@ -234,6 +235,7 @@ it('returns equipment choices for level 1 character', function () {
         ->toHaveKey('items')
         ->and($firstChoice->options[1]['items'])->toHaveCount(1)
         ->and($firstChoice->options[1]['items'][0])->toHaveKey('full_slug', 'phb:leather-armor')
+        ->and($firstChoice->options[1]['items'][0])->toHaveKey('is_fixed', true)
         ->and($firstChoice->options[1]['is_category'])->toBeFalse();
 });
 

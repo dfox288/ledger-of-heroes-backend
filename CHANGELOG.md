@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #344**: Grant fixed items alongside category selections in equipment choices
+  - Options like "a martial weapon and a shield" now correctly grant both items
+  - Added `is_fixed` flag to distinguish category items (user picks) from fixed items (always granted)
+  - Fixed items are automatically granted when the option is selected
+  - Category items still require `item_selections` to specify user's choice
+
 - **Issue #343**: Description-only equipment now saved when class/background assigned
   - Equipment entries with only `description` (no `item_id`) are now stored in `character_equipment`
   - Stored with `item_slug = null` and description in `custom_description` JSON

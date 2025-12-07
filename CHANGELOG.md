@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Issue #293**: Update service layer for slug-based character references
+  - `AddClassService`: Uses `class_slug` for duplicate detection and pivot creation
+  - `ReplaceClassService`: Uses `class_slug` for source lookup and new class creation
+  - `AsiChoiceService`: Uses `spell_slug` for feat spells and `proficiency_type_slug`/`skill_slug` for feat proficiencies
+  - `AsiChoiceHandler`: Accepts `feat_slug` instead of `feat_id` in selection input
+  - `OptionalFeatureChoiceHandler`: Uses `class_slug` and `optional_feature_slug` throughout
+
 - **Issue #291**: Complete slug-based references migration for character tables
   - Character API: `race_id` → `race_slug`, `class_id` → `class_slug`, `background_id` → `background_slug`
   - CharacterEquipment API: `item_id` → `item_slug` in POST requests

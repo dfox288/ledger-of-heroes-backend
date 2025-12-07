@@ -43,7 +43,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
         foreach ($characterClasses as $charClass) {
             $classLevel = $charClass->level;
             $className = $charClass->characterClass->name;
-            $classId = $charClass->class_id;
+            $classSlug = $charClass->class_slug;
             $subclassName = $charClass->subclass?->name;
 
             // Check base class counters
@@ -51,7 +51,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
                 $charClass->characterClass->counters ?? collect(),
                 $classLevel,
                 $className,
-                $classId,
+                $classSlug,
                 null,
                 $character,
                 $choices
@@ -63,7 +63,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
                     $charClass->subclass->counters ?? collect(),
                     $classLevel,
                     $className,
-                    $classId,
+                    $classSlug,
                     $subclassName,
                     $character,
                     $choices
@@ -76,34 +76,36 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
 
     public function resolve(Character $character, PendingChoice $choice, array $selection): void
     {
-        $optionalFeatureId = $selection['optional_feature_id'] ?? null;
+        $optionalFeatureSlug = $selection['optional_feature_slug'] ?? null;
 
-        if (! $optionalFeatureId) {
+        if (! $optionalFeatureSlug) {
             throw new InvalidSelectionException(
                 $choice->id,
                 'missing',
-                'optional_feature_id is required'
+                'optional_feature_slug is required'
             );
         }
 
         // Validate optional feature exists
-        $optionalFeature = OptionalFeature::find($optionalFeatureId);
+        $optionalFeature = OptionalFeature::where('full_slug', $optionalFeatureSlug)
+            ->orWhere('slug', $optionalFeatureSlug)
+            ->first();
         if (! $optionalFeature) {
             throw new InvalidSelectionException(
                 $choice->id,
                 'invalid',
-                "Optional feature {$optionalFeatureId} not found"
+                "Optional feature {$optionalFeatureSlug} not found"
             );
         }
 
-        // Get class_id from metadata or parse from choice id
+        // Get class_slug from metadata or parse from choice id
         $parsed = $this->parseChoiceId($choice->id);
-        $classId = $choice->metadata['class_id'] ?? $parsed['sourceId'];
+        $classSlug = $choice->metadata['class_slug'] ?? $parsed['sourceId'];
 
         // Create the feature selection record
         $character->featureSelections()->create([
-            'optional_feature_id' => $optionalFeatureId,
-            'class_id' => $classId,
+            'optional_feature_slug' => $optionalFeature->full_slug,
+            'class_slug' => $classSlug,
             'subclass_name' => $choice->metadata['subclass_name'] ?? null,
             'level_acquired' => $parsed['level'] ?? $character->total_level,
         ]);
@@ -117,15 +119,15 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
 
     public function undo(Character $character, PendingChoice $choice): void
     {
-        $optionalFeatureId = $choice->metadata['optional_feature_id'] ?? null;
+        $optionalFeatureSlug = $choice->metadata['optional_feature_slug'] ?? null;
 
-        if (! $optionalFeatureId) {
+        if (! $optionalFeatureSlug) {
             return;
         }
 
         // Delete the feature selection record
         $character->featureSelections()
-            ->where('optional_feature_id', $optionalFeatureId)
+            ->where('optional_feature_slug', $optionalFeatureSlug)
             ->delete();
 
         $character->load('featureSelections');
@@ -138,7 +140,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
         Collection $counters,
         int $classLevel,
         string $className,
-        int $classId,
+        string $classSlug,
         ?string $subclassName,
         Character $character,
         Collection &$choices
@@ -169,7 +171,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
             $choiceId = $this->generateChoiceId(
                 'optional_feature',
                 'class',
-                $classId,
+                $classSlug,
                 $maxCounter->level,
                 "{$featureType}_1"
             );
@@ -188,7 +190,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
                 options: [],
                 optionsEndpoint: $optionsEndpoint,
                 metadata: [
-                    'class_id' => $classId,
+                    'class_slug' => $classSlug,
                     'subclass_name' => $subclassName,
                     'counter_name' => $counterName,
                 ],

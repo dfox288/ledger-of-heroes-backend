@@ -241,9 +241,13 @@ class AsiChoiceService
         $granted = [];
 
         foreach ($feat->proficiencies as $proficiency) {
+            // Load related entities for slug lookup
+            $proficiency->loadMissing(['proficiencyType', 'skill']);
+
             CharacterProficiency::create([
                 'character_id' => $character->id,
-                'proficiency_type_id' => null, // Entity proficiencies don't have type_id
+                'proficiency_type_slug' => $proficiency->proficiencyType?->full_slug,
+                'skill_slug' => $proficiency->skill?->full_slug,
                 'source' => 'feat',
             ]);
 
@@ -256,7 +260,7 @@ class AsiChoiceService
     /**
      * Grant spells from a feat.
      *
-     * @return array<array{id: int, name: string, slug: string}>
+     * @return array<array{slug: string, name: string}>
      */
     private function grantFeatSpells(Character $character, Feat $feat): array
     {
@@ -266,7 +270,7 @@ class AsiChoiceService
             CharacterSpell::firstOrCreate(
                 [
                     'character_id' => $character->id,
-                    'spell_id' => $spell->id,
+                    'spell_slug' => $spell->full_slug,
                 ],
                 [
                     'source' => 'feat',
@@ -276,9 +280,8 @@ class AsiChoiceService
             );
 
             $granted[] = [
-                'id' => $spell->id,
+                'slug' => $spell->full_slug,
                 'name' => $spell->name,
-                'slug' => $spell->slug,
             ];
         }
 

@@ -45,7 +45,7 @@ class AsiChoiceHandler extends AbstractChoiceHandler
         $feats = Feat::orderBy('name')
             ->get()
             ->map(fn ($feat) => [
-                'id' => $feat->id,
+                'full_slug' => $feat->full_slug,
                 'slug' => $feat->slug,
                 'name' => $feat->name,
             ])
@@ -105,13 +105,15 @@ class AsiChoiceHandler extends AbstractChoiceHandler
         $type = $selection['type'] ?? null;
 
         if ($type === 'feat') {
-            $featId = $selection['feat_id'] ?? null;
-            if (! $featId) {
-                throw new InvalidSelectionException($choice->id, 'null', 'Feat ID is required when type is feat');
+            $featSlug = $selection['feat_slug'] ?? null;
+            if (! $featSlug) {
+                throw new InvalidSelectionException($choice->id, 'null', 'Feat slug is required when type is feat');
             }
 
-            // Load the feat model
-            $feat = Feat::findOrFail($featId);
+            // Load the feat model by slug
+            $feat = Feat::where('full_slug', $featSlug)
+                ->orWhere('slug', $featSlug)
+                ->firstOrFail();
             $this->asiService->applyFeatChoice($character, $feat);
         } elseif ($type === 'asi') {
             $increases = $selection['increases'] ?? [];

@@ -40,7 +40,7 @@ class AddClassService
             $existingClasses = $character->characterClasses()->lockForUpdate()->get();
 
             // Check for duplicate
-            if ($existingClasses->where('class_id', $class->id)->isNotEmpty()) {
+            if ($existingClasses->where('class_slug', $class->full_slug)->isNotEmpty()) {
                 throw new DuplicateClassException($class->name, $character->id, $character->name);
             }
 
@@ -63,7 +63,7 @@ class AddClassService
                 Log::info('Forced multiclass addition (DM override)', [
                     'character_id' => $character->id,
                     'character_name' => $character->name,
-                    'class_id' => $class->id,
+                    'class_slug' => $class->full_slug,
                     'class_name' => $class->name,
                 ]);
             }
@@ -74,7 +74,7 @@ class AddClassService
 
             $pivot = CharacterClassPivot::create([
                 'character_id' => $character->id,
-                'class_id' => $class->id,
+                'class_slug' => $class->full_slug,
                 'level' => 1,
                 'is_primary' => $isPrimary,
                 'order' => $order,

@@ -40,7 +40,7 @@ class ReplaceClassService
             $existingClasses = $character->characterClasses()->lockForUpdate()->get();
 
             // Find the source class pivot
-            $sourcePivot = $existingClasses->where('class_id', $sourceClass->id)->first();
+            $sourcePivot = $existingClasses->where('class_slug', $sourceClass->full_slug)->first();
             if (! $sourcePivot) {
                 throw ClassReplacementException::classNotFoundOnCharacter($sourceClass->name);
             }
@@ -56,7 +56,7 @@ class ReplaceClassService
             }
 
             // Validate: target class must be different from source
-            if ($sourceClass->id === $targetClass->id) {
+            if ($sourceClass->full_slug === $targetClass->full_slug) {
                 throw ClassReplacementException::sameClass();
             }
 
@@ -69,9 +69,9 @@ class ReplaceClassService
             Log::info('Class replacement', [
                 'character_id' => $character->id,
                 'character_name' => $character->name,
-                'from_class_id' => $sourceClass->id,
+                'from_class_slug' => $sourceClass->full_slug,
                 'from_class_name' => $sourceClass->name,
-                'to_class_id' => $targetClass->id,
+                'to_class_slug' => $targetClass->full_slug,
                 'to_class_name' => $targetClass->name,
                 'force' => $force,
             ]);
@@ -89,8 +89,8 @@ class ReplaceClassService
             // Create the new class pivot
             $newPivot = CharacterClassPivot::create([
                 'character_id' => $character->id,
-                'class_id' => $targetClass->id,
-                'subclass_id' => null, // Clear subclass
+                'class_slug' => $targetClass->full_slug,
+                'subclass_slug' => null, // Clear subclass
                 'level' => 1,
                 'is_primary' => $isPrimary,
                 'order' => $order,

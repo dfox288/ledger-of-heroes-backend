@@ -148,10 +148,13 @@ class CharacterChoiceService
 
     /**
      * Parse the choice type from a choice ID.
+     *
+     * Choice ID format: {type}|{source}|{sourceSlug}|{level}|{group}
+     * Uses pipe separator to avoid conflicts with colons in full_slug values (e.g., 'phb:wizard').
      */
     private function parseChoiceType(string $choiceId): string
     {
-        $parts = explode(':', $choiceId);
+        $parts = explode('|', $choiceId);
 
         return $parts[0] ?? '';
     }

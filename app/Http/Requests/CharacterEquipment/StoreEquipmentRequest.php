@@ -33,10 +33,18 @@ class StoreEquipmentRequest extends FormRequest
         return [
             // Accept 'item' as API param, mapped to item_slug
             // No exists validation - dangling references allowed per #288
-            'item_slug' => ['nullable', 'string', 'max:150'],
+            // Format: source:slug (e.g., phb:longsword)
+            'item_slug' => ['nullable', 'string', 'max:150', 'regex:/^[a-z0-9-]+:[a-z0-9-]+$/i'],
             'custom_name' => ['nullable', 'string', 'max:255'],
             'custom_description' => ['nullable', 'string', 'max:2000'],
             'quantity' => ['nullable', 'integer', 'min:1'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'item_slug.regex' => 'The item slug must be in format source:slug (e.g., phb:longsword).',
         ];
     }
 

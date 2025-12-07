@@ -147,14 +147,12 @@ class CharacterResource extends JsonResource
     private function getRelationships(): array
     {
         return [
-            'race' => $this->when(
-                $this->relationLoaded('race') || $this->race_slug,
-                fn () => $this->formatEntity($this->race)
-            ),
-            'background' => $this->when(
-                $this->relationLoaded('background') || $this->background_slug,
-                fn () => $this->formatEntity($this->background)
-            ),
+            'race' => $this->formatEntity($this->race),
+            'race_slug' => $this->race_slug,
+            'race_is_dangling' => $this->race_slug !== null && $this->race === null,
+            'background' => $this->formatEntity($this->background),
+            'background_slug' => $this->background_slug,
+            'background_is_dangling' => $this->background_slug !== null && $this->background === null,
             /** @var array{id: int, name: string, slug: string, equipment: array}|null Primary class with equipment */
             'class' => $this->getPrimaryClassData(),
         ];

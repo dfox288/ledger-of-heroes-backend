@@ -113,6 +113,8 @@ class CharacterEquipmentController extends Controller
                     'equipped' => false,
                     'location' => 'backpack',
                 ]);
+                // Load relationship for consistent resource behavior (will be null)
+                $equipment->load('item.itemType');
             }
         } else {
             // Custom/freetext item

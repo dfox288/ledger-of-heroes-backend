@@ -168,6 +168,10 @@ class EquipmentManagerService
     /**
      * Populate fixed equipment from an entity (class or background).
      *
+     * Handles two types of equipment:
+     * - Items with item_id: Creates entry with item_slug from the related Item
+     * - Description-only items: Creates entry with item_slug=null and description in custom_description
+     *
      * @param  Character  $character  The character to populate
      * @param  mixed  $entity  The source entity (CharacterClass or Background)
      * @param  string  $source  The source identifier ('class' or 'background')
@@ -181,39 +185,81 @@ class EquipmentManagerService
             ->get();
 
         foreach ($fixedEquipment as $entityItem) {
-            if (! $entityItem->item) {
-                Log::warning('EntityItem references missing item', [
+            if ($entityItem->item) {
+                // Standard item with item_id
+                $this->createEquipmentFromItem($character, $entityItem, $source);
+            } elseif ($entityItem->description) {
+                // Description-only item (e.g., "holy symbol (a gift...)")
+                $this->createEquipmentFromDescription($character, $entityItem, $source);
+            } else {
+                Log::warning('EntityItem has neither item nor description', [
                     'entity_item_id' => $entityItem->id,
                     'entity_type' => get_class($entity),
                     'entity_id' => $entity->id,
-                    'item_id' => $entityItem->item_id,
                 ]);
-
-                continue;
             }
-
-            $itemSlug = $entityItem->item->full_slug;
-
-            // Skip if this item already exists from this source (use whereJsonContains for robustness)
-            $exists = $character->equipment()
-                ->where('item_slug', $itemSlug)
-                ->whereJsonContains('custom_description->source', $source)
-                ->exists();
-
-            if ($exists) {
-                continue;
-            }
-
-            CharacterEquipment::create([
-                'character_id' => $character->id,
-                'item_slug' => $itemSlug,
-                'quantity' => $entityItem->quantity ?? 1,
-                'equipped' => false,
-                'custom_description' => json_encode(['source' => $source]),
-            ]);
         }
 
         // Refresh the relationship
         $character->load('equipment');
+    }
+
+    /**
+     * Create equipment entry from an EntityItem with a linked Item.
+     */
+    private function createEquipmentFromItem(Character $character, $entityItem, string $source): void
+    {
+        $itemSlug = $entityItem->item->full_slug;
+
+        // Skip if this item already exists from this source
+        $exists = $character->equipment()
+            ->where('item_slug', $itemSlug)
+            ->whereJsonContains('custom_description->source', $source)
+            ->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => $itemSlug,
+            'quantity' => $entityItem->quantity ?? 1,
+            'equipped' => false,
+            'custom_description' => json_encode(['source' => $source]),
+        ]);
+    }
+
+    /**
+     * Create equipment entry from a description-only EntityItem.
+     *
+     * These are items like "holy symbol (a gift...)" or "5 sticks of incense"
+     * that don't have a corresponding Item in the database.
+     */
+    private function createEquipmentFromDescription(Character $character, $entityItem, string $source): void
+    {
+        $description = $entityItem->description;
+
+        // Skip if this description-only item already exists from this source
+        $exists = $character->equipment()
+            ->whereNull('item_slug')
+            ->whereJsonContains('custom_description->source', $source)
+            ->whereJsonContains('custom_description->description', $description)
+            ->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => null,
+            'quantity' => $entityItem->quantity ?? 1,
+            'equipped' => false,
+            'custom_description' => json_encode([
+                'source' => $source,
+                'description' => $description,
+            ]),
+        ]);
     }
 }

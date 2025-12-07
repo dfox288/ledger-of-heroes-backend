@@ -541,7 +541,7 @@ class EquipmentManagerServiceTest extends TestCase
     }
 
     #[Test]
-    public function populate_skips_equipment_with_missing_item_reference(): void
+    public function populate_skips_equipment_with_neither_item_nor_description(): void
     {
         $validItem = Item::factory()->create([
             'name' => 'Dagger',
@@ -564,11 +564,12 @@ class EquipmentManagerServiceTest extends TestCase
             'is_choice' => false,
         ]);
 
-        // Create EntityItem with null item_id (simulates orphaned record)
+        // Create EntityItem with null item_id AND null description (orphaned record)
         EntityItem::create([
             'reference_type' => CharacterClass::class,
             'reference_id' => $rogue->id,
-            'item_id' => null, // Missing item reference
+            'item_id' => null,
+            'description' => null,
             'quantity' => 1,
             'is_choice' => false,
         ]);
@@ -582,11 +583,192 @@ class EquipmentManagerServiceTest extends TestCase
             'order' => 1,
         ]);
 
-        // Should not throw, should skip missing item and grant valid one
+        // Should not throw, should skip empty record and grant valid one
         $this->service->populateFromClass($character->fresh());
 
         $equipment = $character->fresh()->equipment;
         $this->assertCount(1, $equipment);
         $this->assertEquals('phb:dagger', $equipment->first()->item_slug);
+    }
+
+    #[Test]
+    public function populate_from_background_grants_description_only_equipment(): void
+    {
+        // Acolyte background has description-only items like "holy symbol (a gift...)"
+        $acolyte = Background::factory()->create([
+            'name' => 'Acolyte',
+            'slug' => 'acolyte',
+            'full_slug' => 'phb:acolyte',
+        ]);
+
+        // Description-only item (no item_id)
+        EntityItem::create([
+            'reference_type' => Background::class,
+            'reference_id' => $acolyte->id,
+            'item_id' => null,
+            'description' => 'A holy symbol (a gift to you when you entered the priesthood)',
+            'quantity' => 1,
+            'is_choice' => false,
+        ]);
+
+        EntityItem::create([
+            'reference_type' => Background::class,
+            'reference_id' => $acolyte->id,
+            'item_id' => null,
+            'description' => '5 sticks of incense',
+            'quantity' => 5,
+            'is_choice' => false,
+        ]);
+
+        $character = Character::factory()->create([
+            'background_slug' => $acolyte->full_slug,
+        ]);
+
+        $this->service->populateFromBackground($character);
+
+        $equipment = $character->fresh()->equipment;
+        $this->assertCount(2, $equipment);
+
+        // Verify description-only items have null item_slug
+        $descriptionItems = $equipment->whereNull('item_slug');
+        $this->assertCount(2, $descriptionItems);
+
+        // Verify metadata contains the description
+        $holySymbol = $equipment->first(function ($item) {
+            $meta = json_decode($item->custom_description, true);
+
+            return str_contains($meta['description'] ?? '', 'holy symbol');
+        });
+        $this->assertNotNull($holySymbol);
+        $this->assertEquals(1, $holySymbol->quantity);
+
+        $incense = $equipment->first(function ($item) {
+            $meta = json_decode($item->custom_description, true);
+
+            return str_contains($meta['description'] ?? '', 'incense');
+        });
+        $this->assertNotNull($incense);
+        $this->assertEquals(5, $incense->quantity);
+    }
+
+    #[Test]
+    public function populate_grants_both_item_and_description_equipment(): void
+    {
+        $pouch = Item::factory()->create([
+            'name' => 'Pouch',
+            'slug' => 'pouch',
+            'full_slug' => 'phb:pouch',
+        ]);
+
+        $acolyte = Background::factory()->create([
+            'name' => 'Acolyte',
+            'slug' => 'acolyte',
+            'full_slug' => 'phb:acolyte',
+        ]);
+
+        // Item with item_id
+        EntityItem::create([
+            'reference_type' => Background::class,
+            'reference_id' => $acolyte->id,
+            'item_id' => $pouch->id,
+            'quantity' => 1,
+            'is_choice' => false,
+        ]);
+
+        // Description-only item
+        EntityItem::create([
+            'reference_type' => Background::class,
+            'reference_id' => $acolyte->id,
+            'item_id' => null,
+            'description' => 'A prayer book or prayer wheel',
+            'quantity' => 1,
+            'is_choice' => false,
+        ]);
+
+        $character = Character::factory()->create([
+            'background_slug' => $acolyte->full_slug,
+        ]);
+
+        $this->service->populateFromBackground($character);
+
+        $equipment = $character->fresh()->equipment;
+        $this->assertCount(2, $equipment);
+
+        // One with item_slug, one without
+        $this->assertEquals(1, $equipment->whereNotNull('item_slug')->count());
+        $this->assertEquals(1, $equipment->whereNull('item_slug')->count());
+    }
+
+    #[Test]
+    public function populate_description_only_does_not_duplicate(): void
+    {
+        $acolyte = Background::factory()->create([
+            'name' => 'Acolyte',
+            'slug' => 'acolyte',
+            'full_slug' => 'phb:acolyte',
+        ]);
+
+        EntityItem::create([
+            'reference_type' => Background::class,
+            'reference_id' => $acolyte->id,
+            'item_id' => null,
+            'description' => 'A holy symbol (a gift)',
+            'quantity' => 1,
+            'is_choice' => false,
+        ]);
+
+        $character = Character::factory()->create([
+            'background_slug' => $acolyte->full_slug,
+        ]);
+
+        // Manually add the description-only item first
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => null,
+            'quantity' => 1,
+            'equipped' => false,
+            'custom_description' => json_encode([
+                'source' => 'background',
+                'description' => 'A holy symbol (a gift)',
+            ]),
+        ]);
+
+        // Populate again - should not duplicate
+        $this->service->populateFromBackground($character->fresh());
+
+        $this->assertCount(1, $character->fresh()->equipment);
+    }
+
+    #[Test]
+    public function description_only_equipment_stores_correct_metadata(): void
+    {
+        $acolyte = Background::factory()->create([
+            'name' => 'Acolyte',
+            'slug' => 'acolyte',
+            'full_slug' => 'phb:acolyte',
+        ]);
+
+        EntityItem::create([
+            'reference_type' => Background::class,
+            'reference_id' => $acolyte->id,
+            'item_id' => null,
+            'description' => 'Vestments',
+            'quantity' => 1,
+            'is_choice' => false,
+        ]);
+
+        $character = Character::factory()->create([
+            'background_slug' => $acolyte->full_slug,
+        ]);
+
+        $this->service->populateFromBackground($character);
+
+        $equipment = $character->fresh()->equipment->first();
+        $metadata = json_decode($equipment->custom_description, true);
+
+        $this->assertArrayHasKey('source', $metadata);
+        $this->assertArrayHasKey('description', $metadata);
+        $this->assertEquals('background', $metadata['source']);
+        $this->assertEquals('Vestments', $metadata['description']);
     }
 }

@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #343**: Description-only equipment now saved when class/background assigned
+  - Equipment entries with only `description` (no `item_id`) are now stored in `character_equipment`
+  - Stored with `item_slug = null` and description in `custom_description` JSON
+  - Examples: "holy symbol (a gift...)", "5 sticks of incense", "prayer book or prayer wheel"
+  - Duplicate detection works for description-only items
+  - Added `createEquipmentFromDescription` helper in `EquipmentManagerService`
+
 - **Issue #340**: Equipment choice resolution now persists items correctly
   - Added `item_selections` parameter to `ResolveChoiceRequest` for category-based choices
   - Category options (e.g., "any musical instrument") now grant only the selected item(s)

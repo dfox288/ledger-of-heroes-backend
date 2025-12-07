@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All requests now validate against `full_slug` fields in related tables
   - Choice handlers updated to use slug-based item/spell references
   - Test suites fully updated to use slug-based parameters
+  - **Dangling references allowed**: Per #288, characters can now reference entities that don't exist in the database (portable character data)
+  - API Resources gracefully handle null relationships with `is_dangling` flag
+  - CharacterClassPivotResource, CharacterEquipmentResource, CharacterResource updated for null-safe access
 
 ### Removed
 

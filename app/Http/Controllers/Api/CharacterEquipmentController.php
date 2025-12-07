@@ -94,14 +94,28 @@ class CharacterEquipmentController extends Controller
     public function store(StoreEquipmentRequest $request, Character $character): JsonResponse
     {
         if ($request->item_slug) {
-            // Database item
-            $item = Item::where('full_slug', $request->item_slug)->firstOrFail();
-            $equipment = $this->equipmentManager->addItem(
-                $character,
-                $item,
-                $request->quantity ?? 1
-            );
-            $equipment->load('item.itemType');
+            // Database item - may be a dangling reference per #288
+            $item = Item::where('full_slug', $request->item_slug)->first();
+
+            if ($item) {
+                // Item exists - use equipment manager for proper handling
+                $equipment = $this->equipmentManager->addItem(
+                    $character,
+                    $item,
+                    $request->quantity ?? 1
+                );
+                $equipment->load('item.itemType');
+            } else {
+                // Dangling reference - create with slug only
+                $equipment = $character->equipment()->create([
+                    'item_slug' => $request->item_slug,
+                    'quantity' => $request->quantity ?? 1,
+                    'equipped' => false,
+                    'location' => 'backpack',
+                ]);
+                // Load relationship for consistent resource behavior (will be null)
+                $equipment->load('item.itemType');
+            }
         } else {
             // Custom/freetext item
             $equipment = $character->equipment()->create([

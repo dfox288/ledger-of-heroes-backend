@@ -23,18 +23,23 @@ class CharacterEquipmentResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'item' => $this->when($this->item_slug !== null, fn () => $this->formatEntityWith(
-                $this->item,
-                ['id', 'name', 'slug', 'armor_class', 'damage_dice', 'weight'],
-                ['item_type' => fn ($item) => $item->itemType?->name]
-            )),
+            'item' => $this->when($this->item_slug !== null, fn () => $this->item
+                ? $this->formatEntityWith(
+                    $this->item,
+                    ['id', 'name', 'slug', 'armor_class', 'damage_dice', 'weight'],
+                    ['item_type' => fn ($item) => $item->itemType?->name]
+                )
+                : null  // Dangling reference - item_slug set but item doesn't exist
+            ),
+            'item_slug' => $this->item_slug,
+            'is_dangling' => $this->item_slug !== null && $this->item === null,
             'custom_name' => $this->custom_name,
             'custom_description' => $this->custom_description,
             'quantity' => $this->quantity,
             'equipped' => $this->equipped,
             'location' => $this->location,
             'proficiency_status' => $this->when(
-                $this->equipped && $this->item_slug !== null,
+                $this->equipped && $this->item !== null,
                 fn () => $this->getProficiencyStatus()
             ),
         ];

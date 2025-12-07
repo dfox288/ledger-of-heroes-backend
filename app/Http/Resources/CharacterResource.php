@@ -147,14 +147,12 @@ class CharacterResource extends JsonResource
     private function getRelationships(): array
     {
         return [
-            'race' => $this->when(
-                $this->relationLoaded('race') || $this->race_id,
-                fn () => $this->formatEntity($this->race)
-            ),
-            'background' => $this->when(
-                $this->relationLoaded('background') || $this->background_id,
-                fn () => $this->formatEntity($this->background)
-            ),
+            'race' => $this->formatEntity($this->race),
+            'race_slug' => $this->race_slug,
+            'race_is_dangling' => $this->race_slug !== null && $this->race === null,
+            'background' => $this->formatEntity($this->background),
+            'background_slug' => $this->background_slug,
+            'background_is_dangling' => $this->background_slug !== null && $this->background === null,
             /** @var array{id: int, name: string, slug: string, equipment: array}|null Primary class with equipment */
             'class' => $this->getPrimaryClassData(),
         ];
@@ -203,23 +201,25 @@ class CharacterResource extends JsonResource
         return [
             'conditions' => $this->whenLoaded('conditions', function () {
                 return $this->conditions->map(fn ($cc) => [
-                    'id' => $cc->condition->id,
-                    'name' => $cc->condition->name,
-                    'slug' => $cc->condition->slug,
+                    'id' => $cc->condition?->id,
+                    'name' => $cc->condition?->name,
+                    'slug' => $cc->condition_slug,
                     'level' => $cc->level,
                     'source' => $cc->source,
                     'duration' => $cc->duration,
+                    'is_dangling' => $cc->condition === null,
                 ]);
             }),
             'optional_features' => $this->whenLoaded('optionalFeatures', function () {
                 return $this->optionalFeatures->map(fn ($cof) => [
-                    'id' => $cof->optionalFeature->id,
-                    'name' => $cof->optionalFeature->name,
-                    'slug' => $cof->optionalFeature->slug,
-                    'feature_type' => $cof->optionalFeature->feature_type?->value,
+                    'id' => $cof->optionalFeature?->id,
+                    'name' => $cof->optionalFeature?->name,
+                    'slug' => $cof->optional_feature_slug,
+                    'feature_type' => $cof->optionalFeature?->feature_type?->value,
                     'level_acquired' => $cof->level_acquired,
                     'class_name' => $cof->characterClass?->name,
                     'subclass_name' => $cof->subclass_name,
+                    'is_dangling' => $cof->optionalFeature === null,
                 ]);
             }),
         ];

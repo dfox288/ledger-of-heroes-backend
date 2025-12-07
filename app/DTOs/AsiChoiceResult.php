@@ -11,9 +11,9 @@ final readonly class AsiChoiceResult
      * @param  int  $asiChoicesRemaining  Remaining ASI choices after this one
      * @param  array<string, int>  $abilityIncreases  Ability score increases applied (e.g., ['CON' => 1])
      * @param  array<string, int>  $newAbilityScores  All 6 ability scores after changes
-     * @param  array{id: int, name: string, slug: string}|null  $feat  Feat taken, or null if ability increase
+     * @param  array{slug: string, name: string}|null  $feat  Feat taken, or null if ability increase
      * @param  array<string>  $proficienciesGained  Names of proficiencies granted by feat
-     * @param  array<array{id: int, name: string, slug: string}>  $spellsGained  Spells granted by feat
+     * @param  array<array{slug: string, name: string}>  $spellsGained  Spells granted by feat
      */
     public function __construct(
         public string $choiceType,

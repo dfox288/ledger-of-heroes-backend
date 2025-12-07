@@ -19,6 +19,7 @@ class CharacterFeature extends Model
         'character_id',
         'feature_type',
         'feature_id',
+        'feature_slug',
         'source',
         'level_acquired',
         'uses_remaining',

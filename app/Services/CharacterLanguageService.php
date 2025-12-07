@@ -253,11 +253,8 @@ class CharacterLanguageService
      */
     private function getChoicesFromFeats(Character $character, array $knownLanguageSlugs, $allLanguages): array
     {
-        // Get feat IDs from character features (polymorphic)
-        $featIds = $character->features()
-            ->where('feature_type', Feat::class)
-            ->pluck('feature_id')
-            ->toArray();
+        // Get feat IDs via feature_slug lookup
+        $featIds = $this->getCharacterFeatIds($character);
 
         if (empty($featIds)) {
             return [
@@ -341,10 +338,11 @@ class CharacterLanguageService
     private function getChoiceQuantity(Character $character, string $source): int
     {
         if ($source === 'feat') {
-            $featIds = $character->features()
-                ->where('feature_type', Feat::class)
-                ->pluck('feature_id')
-                ->toArray();
+            $featIds = $this->getCharacterFeatIds($character);
+
+            if (empty($featIds)) {
+                return 0;
+            }
 
             return EntityLanguage::whereIn('reference_id', $featIds)
                 ->where('reference_type', Feat::class)
@@ -377,16 +375,40 @@ class CharacterLanguageService
     }
 
     /**
+     * Get feat IDs for a character by looking up feature_slugs.
+     *
+     * This bridges the gap between slug-based CharacterFeature lookups
+     * and ID-based EntityLanguage queries until EntityLanguage is migrated.
+     *
+     * @return array<int>
+     */
+    private function getCharacterFeatIds(Character $character): array
+    {
+        $featSlugs = $character->features()
+            ->where('feature_type', Feat::class)
+            ->whereNotNull('feature_slug')
+            ->pluck('feature_slug')
+            ->toArray();
+
+        if (empty($featSlugs)) {
+            return [];
+        }
+
+        return Feat::whereIn('full_slug', $featSlugs)->pluck('id')->toArray();
+    }
+
+    /**
      * Get fixed language slugs from an entity.
      * For subraces, includes inherited fixed languages from the parent race.
      */
     private function getFixedLanguageSlugs(Character $character, string $source, $entity = null): array
     {
         if ($source === 'feat') {
-            $featIds = $character->features()
-                ->where('feature_type', Feat::class)
-                ->pluck('feature_id')
-                ->toArray();
+            $featIds = $this->getCharacterFeatIds($character);
+
+            if (empty($featIds)) {
+                return [];
+            }
 
             return EntityLanguage::whereIn('reference_id', $featIds)
                 ->where('reference_type', Feat::class)

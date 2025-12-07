@@ -98,9 +98,10 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
             );
         }
 
-        // Get class_slug from metadata or parse from choice id
+        // Get class_slug from metadata (preferred) or parse from choice id
+        // Choice IDs are generated with slug-based sourceSlug since the slug migration
         $parsed = $this->parseChoiceId($choice->id);
-        $classSlug = $choice->metadata['class_slug'] ?? $parsed['sourceId'];
+        $classSlug = $choice->metadata['class_slug'] ?? $parsed['sourceSlug'];
 
         // Create the feature selection record
         $character->featureSelections()->create([

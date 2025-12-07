@@ -57,18 +57,19 @@ trait PopulatesFromEntity
      */
     public function populateFromFeats(Character $character): void
     {
-        // Get feat IDs from character features (polymorphic)
-        $featIds = $character->features()
+        // Get feat slugs from character features (polymorphic)
+        $featSlugs = $character->features()
             ->where('feature_type', Feat::class)
-            ->pluck('feature_id')
+            ->whereNotNull('feature_slug')
+            ->pluck('feature_slug')
             ->toArray();
 
-        if (empty($featIds)) {
+        if (empty($featSlugs)) {
             return;
         }
 
         // Load all feats in one query to avoid N+1
-        $feats = Feat::whereIn('id', $featIds)->get();
+        $feats = Feat::whereIn('full_slug', $featSlugs)->get();
 
         foreach ($feats as $feat) {
             $this->populateFromEntity($character, $feat, 'feat');

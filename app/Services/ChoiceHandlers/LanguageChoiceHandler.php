@@ -143,10 +143,18 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
     {
         // This mirrors the logic in CharacterLanguageService::getFixedLanguageSlugs
         if ($source === 'feat') {
-            $featIds = $character->features()
+            // Get feat IDs via feature_slug lookup
+            $featSlugs = $character->features()
                 ->where('feature_type', Feat::class)
-                ->pluck('feature_id')
+                ->whereNotNull('feature_slug')
+                ->pluck('feature_slug')
                 ->toArray();
+
+            if (empty($featSlugs)) {
+                return [];
+            }
+
+            $featIds = Feat::whereIn('full_slug', $featSlugs)->pluck('id')->toArray();
 
             return EntityLanguage::whereIn('reference_id', $featIds)
                 ->where('reference_type', Feat::class)

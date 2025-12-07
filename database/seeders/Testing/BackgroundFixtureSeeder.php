@@ -24,10 +24,18 @@ class BackgroundFixtureSeeder extends FixtureSeeder
 
     protected function createFromFixture(array $item): void
     {
+        // Generate full_slug from source (if available)
+        $fullSlug = null;
+        if (! empty($item['source'])) {
+            $sourceCode = strtolower($item['source']);
+            $fullSlug = $sourceCode.':'.$item['slug'];
+        }
+
         // Create background
         $background = Background::create([
             'name' => $item['name'],
             'slug' => $item['slug'],
+            'full_slug' => $fullSlug,
         ]);
 
         // Handle skill proficiencies

@@ -79,7 +79,7 @@ class CharacterClassController extends Controller
      * **Request Body:**
      * | Field | Type | Required | Description |
      * |-------|------|----------|-------------|
-     * | `class_id` | integer | Yes | ID of the class to add |
+     * | `class` | string | Yes | Full slug of the class (e.g., "phb:fighter") |
      * | `force` | boolean | No | Bypass multiclass prerequisites (default: false) |
      *
      * **Multiclass Prerequisites (D&D 5e):**
@@ -95,7 +95,16 @@ class CharacterClassController extends Controller
      */
     public function store(AddCharacterClassRequest $request, Character $character): JsonResponse
     {
-        $class = CharacterClass::findOrFail($request->validated('class_id'));
+        $classSlug = $request->validated('class_slug');
+        $class = CharacterClass::where('full_slug', $classSlug)->first();
+
+        if (! $class) {
+            return response()->json([
+                'message' => 'Class not found',
+                'errors' => ['class' => ["No class found with slug '{$classSlug}'"]],
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         $force = $request->validated('force', false);
 
         try {
@@ -108,7 +117,7 @@ class CharacterClassController extends Controller
         } catch (MulticlassPrerequisiteException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
-                'errors' => ['class_id' => $e->errors],
+                'errors' => ['class' => $e->errors],
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (DuplicateClassException|MaxLevelReachedException $e) {
             return response()->json([
@@ -142,17 +151,24 @@ class CharacterClassController extends Controller
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  Class ID or slug
      */
-    public function destroy(Character $character, string $classIdOrSlug): JsonResponse
+    public function destroy(Character $character, string $classSlugOrFullSlug): JsonResponse
     {
-        $class = is_numeric($classIdOrSlug)
-            ? CharacterClass::findOrFail($classIdOrSlug)
-            : CharacterClass::where('slug', $classIdOrSlug)->firstOrFail();
+        // Accept either full_slug (phb:fighter) or simple slug (fighter)
+        $class = CharacterClass::where('full_slug', $classSlugOrFullSlug)
+            ->orWhere('slug', $classSlugOrFullSlug)
+            ->first();
+
+        if (! $class) {
+            return response()->json([
+                'message' => 'Class not found',
+            ], Response::HTTP_NOT_FOUND);
+        }
 
         return DB::transaction(function () use ($character, $class) {
             // Lock the character's class rows to prevent concurrent modifications
             $classCount = $character->characterClasses()->lockForUpdate()->count();
 
-            $pivot = $character->characterClasses()->where('class_id', $class->id)->first();
+            $pivot = $character->characterClasses()->where('class_slug', $class->full_slug)->first();
 
             if (! $pivot) {
                 return response()->json([
@@ -208,17 +224,24 @@ class CharacterClassController extends Controller
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  Class ID or slug
      */
-    public function levelUp(Character $character, string $classIdOrSlug): JsonResponse
+    public function levelUp(Character $character, string $classSlugOrFullSlug): JsonResponse
     {
-        $class = is_numeric($classIdOrSlug)
-            ? CharacterClass::findOrFail($classIdOrSlug)
-            : CharacterClass::where('slug', $classIdOrSlug)->firstOrFail();
+        // Accept either full_slug (phb:fighter) or simple slug (fighter)
+        $class = CharacterClass::where('full_slug', $classSlugOrFullSlug)
+            ->orWhere('slug', $classSlugOrFullSlug)
+            ->first();
+
+        if (! $class) {
+            return response()->json([
+                'message' => 'Class not found',
+            ], Response::HTTP_NOT_FOUND);
+        }
 
         return DB::transaction(function () use ($character, $class) {
             // Lock the character's class rows to prevent concurrent modifications
             $existingClasses = $character->characterClasses()->lockForUpdate()->get();
 
-            $pivot = $existingClasses->where('class_id', $class->id)->first();
+            $pivot = $existingClasses->where('class_slug', $class->full_slug)->first();
 
             if (! $pivot) {
                 return response()->json([
@@ -287,13 +310,29 @@ class CharacterClassController extends Controller
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  The class ID or slug to replace
      */
-    public function replace(ReplaceCharacterClassRequest $request, Character $character, string $classIdOrSlug): JsonResponse
+    public function replace(ReplaceCharacterClassRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {
-        $sourceClass = is_numeric($classIdOrSlug)
-            ? CharacterClass::findOrFail($classIdOrSlug)
-            : CharacterClass::where('slug', $classIdOrSlug)->firstOrFail();
+        // Accept either full_slug (phb:fighter) or simple slug (fighter)
+        $sourceClass = CharacterClass::where('full_slug', $classSlugOrFullSlug)
+            ->orWhere('slug', $classSlugOrFullSlug)
+            ->first();
 
-        $targetClass = CharacterClass::findOrFail($request->validated('class_id'));
+        if (! $sourceClass) {
+            return response()->json([
+                'message' => 'Source class not found',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $targetClassSlug = $request->validated('class_slug');
+        $targetClass = CharacterClass::where('full_slug', $targetClassSlug)->first();
+
+        if (! $targetClass) {
+            return response()->json([
+                'message' => 'Target class not found',
+                'errors' => ['class' => ["No class found with slug '{$targetClassSlug}'"]],
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         $force = $request->validated('force', false);
 
         try {

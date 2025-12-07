@@ -24,9 +24,9 @@ use Illuminate\Validation\Rule;
  *
  * **Feat Choice**:
  * ```json
- * {"type": "feat", "feat_id": 42}
+ * {"type": "feat", "feat": "phb:alert"}
  * ```
- * The `feat_id` is the ID of the chosen feat.
+ * The `feat` is the full_slug of the chosen feat.
  */
 class ResolveChoiceRequest extends FormRequest
 {
@@ -36,16 +36,28 @@ class ResolveChoiceRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Map API field names to internal database column names.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('feat')) {
+            $this->merge(['feat_slug' => $this->input('feat')]);
+        }
+    }
+
     public function rules(): array
     {
         return [
-            // Generic selection (array of IDs or slugs)
+            // Generic selection (array of slugs)
             'selected' => ['sometimes', 'array'],
             'selected.*' => ['required_with:selected', 'string'],
 
             // ASI/Feat specific fields
             'type' => ['sometimes', 'string', Rule::in(['asi', 'feat'])],
-            'feat_id' => ['required_if:type,feat', 'integer', 'exists:feats,id'],
+            // Accept 'feat' as API param, mapped to feat_slug
+            // No exists validation - dangling references allowed per #288
+            'feat_slug' => ['required_if:type,feat', 'string', 'max:150'],
             'increases' => ['required_if:type,asi', 'array'],
             'increases.*' => ['integer', 'min:1', 'max:2'],
         ];
@@ -56,8 +68,7 @@ class ResolveChoiceRequest extends FormRequest
         return [
             'selected.array' => 'Selection must be an array of choices.',
             'type.in' => 'Type must be either "asi" or "feat".',
-            'feat_id.required_if' => 'Feat ID is required when type is "feat".',
-            'feat_id.exists' => 'The selected feat does not exist.',
+            'feat_slug.required_if' => 'Feat slug is required when type is "feat".',
             'increases.required_if' => 'Ability score increases are required when type is "asi".',
             'increases.*.min' => 'Each ability increase must be at least 1.',
             'increases.*.max' => 'Each ability increase cannot exceed 2.',

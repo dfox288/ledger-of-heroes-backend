@@ -12,6 +12,24 @@ class CharacterStoreRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Map API field names to internal database column names.
+     */
+    protected function prepareForValidation(): void
+    {
+        $mappings = [
+            'race' => 'race_slug',
+            'class' => 'class_slug',
+            'background' => 'background_slug',
+        ];
+
+        foreach ($mappings as $api => $db) {
+            if ($this->has($api)) {
+                $this->merge([$db => $this->input($api)]);
+            }
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -28,9 +46,11 @@ class CharacterStoreRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
 
             // Core choices (nullable for wizard-style creation)
-            'race_slug' => ['sometimes', 'nullable', 'exists:races,full_slug'],
-            'class_slug' => ['sometimes', 'nullable', 'exists:classes,full_slug'],
-            'background_slug' => ['sometimes', 'nullable', 'exists:backgrounds,full_slug'],
+            // Accept API names (race, class, background) mapped to *_slug columns
+            // No exists validation - dangling references allowed per #288
+            'race_slug' => ['sometimes', 'nullable', 'string', 'max:150'],
+            'class_slug' => ['sometimes', 'nullable', 'string', 'max:150'],
+            'background_slug' => ['sometimes', 'nullable', 'string', 'max:150'],
 
             // Ability scores (manual entry, range 3-20)
             'strength' => ['sometimes', 'nullable', 'integer', 'min:3', 'max:20'],

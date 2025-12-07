@@ -13,10 +13,22 @@ class StoreCharacterConditionRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Map API field names to internal database column names.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('condition')) {
+            $this->merge(['condition_slug' => $this->input('condition')]);
+        }
+    }
+
     public function rules(): array
     {
         return [
-            'condition_id' => ['required', 'integer', Rule::exists('conditions', 'id')],
+            // Accept 'condition' as API param, mapped to condition_slug
+            // No exists validation - dangling references allowed per #288
+            'condition_slug' => ['required', 'string', 'max:150'],
             'level' => [
                 'nullable',
                 'integer',
@@ -38,11 +50,12 @@ class StoreCharacterConditionRequest extends FormRequest
 
     private function isNotExhaustion(): bool
     {
-        if (! $this->condition_id) {
+        $conditionSlug = $this->input('condition_slug');
+        if (! $conditionSlug) {
             return false;
         }
 
-        $condition = Condition::find($this->condition_id);
+        $condition = Condition::where('full_slug', $conditionSlug)->first();
 
         return $condition && $condition->slug !== 'exhaustion';
     }

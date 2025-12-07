@@ -233,9 +233,18 @@ class ClassImporter extends BaseImporter
     public function importSubclass(CharacterClass $parentClass, array $subclassData): CharacterClass
     {
         // 1. Generate hierarchical slug: "fighter-battle-master"
-        $fullSlug = $this->generateSlug($subclassData['name'], $parentClass->slug);
+        $slug = $this->generateSlug($subclassData['name'], $parentClass->slug);
 
-        // 2. Determine spellcasting ability
+        // 2. Extract sources from features and generate full_slug
+        $sources = [];
+        foreach ($subclassData['features'] ?? [] as $feature) {
+            if (! empty($feature['sources'])) {
+                $sources = array_merge($sources, $feature['sources']);
+            }
+        }
+        $fullSlug = $this->generateFullSlug($slug, $sources);
+
+        // 3. Determine spellcasting ability
         // Use subclass-specific ability if present (e.g., Arcane Trickster, Eldritch Knight)
         // Otherwise inherit from parent
         $spellcastingAbilityId = $parentClass->spellcasting_ability_id;
@@ -244,7 +253,7 @@ class ClassImporter extends BaseImporter
             $spellcastingAbilityId = $ability?->id;
         }
 
-        // 3. Extract description from first feature (intro feature has the subclass lore)
+        // 4. Extract description from first feature (intro feature has the subclass lore)
         $description = "Subclass of {$parentClass->name}";
         if (! empty($subclassData['features'])) {
             $firstFeature = $subclassData['features'][0];
@@ -253,11 +262,12 @@ class ClassImporter extends BaseImporter
             }
         }
 
-        // 4. Create or update subclass
+        // 5. Create or update subclass
         $subclass = CharacterClass::updateOrCreate(
-            ['slug' => $fullSlug],
+            ['slug' => $slug],
             [
                 'name' => $subclassData['name'],
+                'full_slug' => $fullSlug,
                 'parent_class_id' => $parentClass->id,
                 'hit_die' => $parentClass->hit_die, // Inherit from parent
                 'description' => $description,
@@ -265,30 +275,24 @@ class ClassImporter extends BaseImporter
             ]
         );
 
-        // 5. Clear existing relationships
+        // 6. Clear existing relationships
         $subclass->features()->delete();
         $subclass->counters()->delete();
         $subclass->levelProgression()->delete();
 
-        // 6. Import subclass-specific features
+        // 7. Import subclass-specific features
         if (! empty($subclassData['features'])) {
             $this->importFeatures($subclass, $subclassData['features']);
 
-            // 6a. Extract and import sources from features (Issue #141)
-            $sources = [];
-            foreach ($subclassData['features'] as $feature) {
-                if (! empty($feature['sources'])) {
-                    $sources = array_merge($sources, $feature['sources']);
-                }
-            }
-
+            // 7a. Extract and import sources from features (Issue #141)
+            // Note: sources are already extracted above for full_slug generation
             if (! empty($sources)) {
                 // Use deduplicate=true to merge page numbers (e.g., PHB p.74, 75)
                 $this->importEntitySources($subclass, $sources, deduplicate: true);
             }
         }
 
-        // 7. Import subclass-specific counters
+        // 8. Import subclass-specific counters
         if (! empty($subclassData['counters'])) {
             foreach ($subclassData['counters'] as $counterData) {
                 // Convert reset_timing back to single character for database
@@ -314,7 +318,7 @@ class ClassImporter extends BaseImporter
             }
         }
 
-        // 8. Import subclass-specific spell progression (e.g., Arcane Trickster, Eldritch Knight)
+        // 9. Import subclass-specific spell progression (e.g., Arcane Trickster, Eldritch Knight)
         if (! empty($subclassData['spell_progression'])) {
             $this->importSpellProgression($subclass, $subclassData['spell_progression']);
         }

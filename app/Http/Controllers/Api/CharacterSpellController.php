@@ -131,6 +131,14 @@ class CharacterSpellController extends Controller
         $spell = Spell::where('full_slug', $spellSlug)->first();
         $source = $validated['source'] ?? 'class';
 
+        // Check for duplicates (works with or without spell entity)
+        if ($character->spells()->where('spell_slug', $spellSlug)->exists()) {
+            return response()->json([
+                'message' => 'Character already knows this spell.',
+                'errors' => ['spell' => ['Character already knows this spell.']],
+            ], 422);
+        }
+
         if ($spell) {
             // Spell exists - use spell manager for proper validation
             $characterSpell = $this->spellManager->learnSpell($character, $spell, $source);

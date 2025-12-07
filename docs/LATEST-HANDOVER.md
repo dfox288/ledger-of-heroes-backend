@@ -1,1 +1,1 @@
-../../dnd-rulebook-project/docs/backend/handovers/SESSION-HANDOVER-2025-12-03-1430-equipment-choice-items.md
+../../dnd-rulebook-project/docs/backend/handovers/SESSION-HANDOVER-2025-12-07-slug-based-references.md

@@ -17,6 +17,7 @@ use App\Models\CharacterClassPivot;
 use App\Services\CharacterLanguageService;
 use App\Services\CharacterProficiencyService;
 use App\Services\CharacterStatCalculator;
+use App\Services\EquipmentManagerService;
 use App\Services\HitDiceService;
 use App\Services\SpellSlotService;
 use Illuminate\Http\JsonResponse;
@@ -31,7 +32,8 @@ class CharacterController extends Controller
         private CharacterProficiencyService $proficiencyService,
         private CharacterLanguageService $languageService,
         private SpellSlotService $spellSlotService,
-        private HitDiceService $hitDiceService
+        private HitDiceService $hitDiceService,
+        private EquipmentManagerService $equipmentService
     ) {}
 
     /**
@@ -90,19 +92,32 @@ class CharacterController extends Controller
         $classSlug = $validated['class_slug'] ?? null;
         unset($validated['class_slug']);
 
-        $character = Character::create($validated);
+        // Use transaction to ensure character and equipment are created atomically
+        $character = DB::transaction(function () use ($validated, $classSlug) {
+            $character = Character::create($validated);
 
-        // Add class via junction table if provided
-        if ($classSlug) {
-            CharacterClassPivot::create([
-                'character_id' => $character->id,
-                'class_slug' => $classSlug,
-                'level' => 1,
-                'is_primary' => true,
-                'order' => 1,
-                'hit_dice_spent' => 0,
-            ]);
-        }
+            // Add class via junction table if provided
+            if ($classSlug) {
+                CharacterClassPivot::create([
+                    'character_id' => $character->id,
+                    'class_slug' => $classSlug,
+                    'level' => 1,
+                    'is_primary' => true,
+                    'order' => 1,
+                    'hit_dice_spent' => 0,
+                ]);
+
+                // Grant fixed equipment from primary class
+                $this->equipmentService->populateFromClass($character);
+            }
+
+            // Grant fixed equipment from background if provided
+            if ($character->background_slug) {
+                $this->equipmentService->populateFromBackground($character);
+            }
+
+            return $character;
+        });
 
         $character->load([
             'race',
@@ -178,8 +193,13 @@ class CharacterController extends Controller
         $level = $validated['level'] ?? null;
         unset($validated['class_slug'], $validated['level']);
 
+        // Track if background is being assigned (for fixed equipment granting)
+        $previousBackgroundSlug = $character->background_slug;
+        $newBackgroundSlug = $validated['background_slug'] ?? null;
+        $backgroundAssigned = $newBackgroundSlug && $newBackgroundSlug !== $previousBackgroundSlug;
+
         // Use transaction with pessimistic locking for all operations
-        DB::transaction(function () use ($character, &$validated, $classSlug, $level) {
+        DB::transaction(function () use ($character, &$validated, $classSlug, $level, $backgroundAssigned) {
             // Lock character row first for HP/death save consistency
             $character->lockForUpdate()->first();
 
@@ -192,6 +212,7 @@ class CharacterController extends Controller
             }
 
             // Handle class_slug - add via junction table if provided
+            $primaryClassAssigned = false;
             if ($classSlug) {
                 // Lock the character's class rows to prevent concurrent modifications
                 $existingClasses = $character->characterClasses()->lockForUpdate()->get();
@@ -209,6 +230,8 @@ class CharacterController extends Controller
                         'order' => $order,
                         'hit_dice_spent' => 0,
                     ]);
+
+                    $primaryClassAssigned = $isPrimary;
                 }
             }
 
@@ -221,6 +244,14 @@ class CharacterController extends Controller
             }
 
             $character->update($validated);
+
+            // Grant fixed equipment within transaction for consistency
+            if ($primaryClassAssigned) {
+                $this->equipmentService->populateFromClass($character);
+            }
+            if ($backgroundAssigned) {
+                $this->equipmentService->populateFromBackground($character);
+            }
         });
 
         $character->load([

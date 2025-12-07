@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #339**: Auto-grant fixed equipment when class/background is assigned
+  - Fixed equipment (`is_choice: false`) is now automatically added to character inventory
+  - Applies when primary class is assigned (not multiclass)
+  - Applies when background is assigned or changed
+  - Equipment tracked with source metadata (class/background)
+  - Added `populateFromClass`, `populateFromBackground`, `populateAll` methods to `EquipmentManagerService`
+  - Integrated into `AddClassService` and `CharacterController`
+
 - **Issue #335**: Normalize `material_consumed` to explicit boolean
   - Returns `false` instead of `null` when spells have no material components
   - Consistent boolean type for all spells (true/false only)

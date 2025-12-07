@@ -188,11 +188,17 @@ class MonsterImporter extends BaseImporter
         // Lookup size
         $size = $this->cachedFind(\App\Models\Size::class, 'code', strtoupper($monsterData['size']));
 
+        // Generate slug and full_slug
+        $slug = $this->generateSlug($monsterData['name']);
+        $sources = $monsterData['sources'] ?? [];
+        $fullSlug = $this->generateFullSlug($slug, $sources);
+
         // Create/update monster
         $monster = Monster::updateOrCreate(
-            ['slug' => $this->generateSlug($monsterData['name'])],
+            ['slug' => $slug],
             [
                 'name' => $monsterData['name'],
+                'full_slug' => $fullSlug,
                 'size_id' => $size->id,
                 'type' => $monsterData['type'],
                 'alignment' => $monsterData['alignment'],
@@ -228,6 +234,11 @@ class MonsterImporter extends BaseImporter
         $this->importMonsterLegendaryActions($monster, $monsterData['legendary']);
         $this->importMonsterModifiers($monster, $monsterData);
         $this->importEntitySenses($monster, $monsterData['senses']);
+
+        // Import sources
+        if (isset($monsterData['sources']) && is_array($monsterData['sources'])) {
+            $this->importEntitySources($monster, $monsterData['sources']);
+        }
 
         return $monster;
     }

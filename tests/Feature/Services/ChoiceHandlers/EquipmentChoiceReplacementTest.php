@@ -451,4 +451,147 @@ class EquipmentChoiceReplacementTest extends TestCase
         expect($character->equipment)->toHaveCount(1);
         expect($character->equipment->first()->item_slug)->toBe('phb:drum');
     }
+
+    #[Test]
+    public function throws_exception_when_category_option_missing_item_selections(): void
+    {
+        $character = Character::factory()->create();
+
+        // Create multiple items for the choice
+        $drum = Item::factory()->create(['name' => 'Drum', 'slug' => 'drum', 'full_slug' => 'phb:drum']);
+        $flute = Item::factory()->create(['name' => 'Flute', 'slug' => 'flute', 'full_slug' => 'phb:flute']);
+        $lute = Item::factory()->create(['name' => 'Lute', 'slug' => 'lute', 'full_slug' => 'phb:lute']);
+
+        $choice = new PendingChoice(
+            id: 'equipment|class|test:bard|1|choice_3',
+            type: 'equipment',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Bard',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [
+                [
+                    'option' => 'b',
+                    'label' => 'any musical instrument',
+                    'items' => [
+                        ['full_slug' => $drum->full_slug, 'name' => 'Drum', 'slug' => 'drum', 'quantity' => 1],
+                        ['full_slug' => $flute->full_slug, 'name' => 'Flute', 'slug' => 'flute', 'quantity' => 1],
+                        ['full_slug' => $lute->full_slug, 'name' => 'Lute', 'slug' => 'lute', 'quantity' => 1],
+                    ],
+                    'is_category' => true, // This is a category choice - user must pick one
+                ],
+            ],
+            optionsEndpoint: null,
+            metadata: ['choice_group' => 'choice_3'],
+        );
+
+        // Try to resolve category option without item_selections - should fail
+        expect(fn () => $this->handler->resolve($character, $choice, [
+            'selected' => ['b'],
+            // No item_selections provided
+        ]))->toThrow(\App\Exceptions\InvalidSelectionException::class, 'has 3 items to choose from');
+
+        // Verify no equipment was granted
+        expect($character->fresh()->equipment)->toHaveCount(0);
+    }
+
+    #[Test]
+    public function allows_single_item_option_without_item_selections(): void
+    {
+        $character = Character::factory()->create();
+
+        // Create single item for the choice
+        $rapier = Item::factory()->create(['name' => 'Rapier', 'slug' => 'rapier', 'full_slug' => 'phb:rapier']);
+
+        $choice = new PendingChoice(
+            id: 'equipment|class|test:bard|1|choice_1',
+            type: 'equipment',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Bard',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [
+                [
+                    'option' => 'a',
+                    'label' => 'a rapier',
+                    'items' => [
+                        ['full_slug' => $rapier->full_slug, 'name' => 'Rapier', 'slug' => 'rapier', 'quantity' => 1],
+                    ],
+                    'is_category' => false, // Fixed item, not a category
+                ],
+            ],
+            optionsEndpoint: null,
+            metadata: ['choice_group' => 'choice_1'],
+        );
+
+        // Resolve single-item option without item_selections - should succeed
+        $this->handler->resolve($character, $choice, [
+            'selected' => ['a'],
+            // No item_selections needed for single-item option
+        ]);
+
+        $character->refresh();
+
+        // Should have the rapier
+        expect($character->equipment)->toHaveCount(1);
+        expect($character->equipment->first()->item_slug)->toBe('phb:rapier');
+    }
+
+    #[Test]
+    public function allows_bundle_option_without_item_selections(): void
+    {
+        $character = Character::factory()->create();
+
+        // Create multiple items for a bundle (not category)
+        $bow = Item::factory()->create(['name' => 'Longbow', 'slug' => 'longbow', 'full_slug' => 'phb:longbow']);
+        $arrows = Item::factory()->create(['name' => 'Arrows', 'slug' => 'arrow', 'full_slug' => 'phb:arrow']);
+
+        $choice = new PendingChoice(
+            id: 'equipment|class|test:fighter|1|choice_1',
+            type: 'equipment',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Fighter',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [
+                [
+                    'option' => 'b',
+                    'label' => 'a longbow and 20 arrows',
+                    'items' => [
+                        ['full_slug' => $bow->full_slug, 'name' => 'Longbow', 'slug' => 'longbow', 'quantity' => 1],
+                        ['full_slug' => $arrows->full_slug, 'name' => 'Arrows', 'slug' => 'arrow', 'quantity' => 20],
+                    ],
+                    'is_category' => false, // This is a bundle - you get ALL items
+                ],
+            ],
+            optionsEndpoint: null,
+            metadata: ['choice_group' => 'choice_1'],
+        );
+
+        // Resolve bundle option without item_selections - should grant ALL items
+        $this->handler->resolve($character, $choice, [
+            'selected' => ['b'],
+            // No item_selections needed for bundle options
+        ]);
+
+        $character->refresh();
+
+        // Should have BOTH items from the bundle
+        expect($character->equipment)->toHaveCount(2);
+
+        $slugs = $character->equipment->pluck('item_slug')->sort()->values()->toArray();
+        expect($slugs)->toBe(['phb:arrow', 'phb:longbow']);
+    }
 }

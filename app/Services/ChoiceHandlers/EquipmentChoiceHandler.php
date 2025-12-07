@@ -67,6 +67,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
 
                 // Get items for this option from choiceItems relationship
                 $items = [];
+                $isCategory = false; // Track if this option is a category choice
 
                 foreach ($optionItems as $optionItem) {
                     foreach ($optionItem->choiceItems as $choiceItem) {
@@ -103,7 +104,8 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                             $items[] = $itemData;
                         } elseif ($choiceItem->proficiencyType) {
                             // Category-based choice (e.g., "any simple weapon")
-                            // Fetch all matching items and add them to the items array
+                            // User must pick ONE item from this category
+                            $isCategory = true;
                             $categoryItems = $this->getItemsForProficiencyType($choiceItem->proficiencyType);
                             foreach ($categoryItems as $categoryItem) {
                                 $items[] = [
@@ -125,6 +127,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                     'option' => $optionLetter,
                     'label' => $label,
                     'items' => $items,
+                    'is_category' => $isCategory, // True if user must pick specific item(s)
                 ];
             }
 
@@ -229,6 +232,22 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             );
         }
 
+        // Check if item_selections is required for this option
+        $itemSelections = $selection['item_selections'] ?? [];
+        $specificItems = $itemSelections[$selectedOption] ?? null;
+        $isCategory = $foundOption['is_category'] ?? false;
+        $optionItemCount = count($foundOption['items'] ?? []);
+
+        // Category options (e.g., "any simple weapon") require item_selections
+        // Bundle options (e.g., "a longbow and arrows") grant all items without item_selections
+        if ($isCategory && $specificItems === null) {
+            throw new InvalidSelectionException(
+                $choice->id,
+                $selectedOption,
+                "Option '{$selectedOption}' has {$optionItemCount} items to choose from. Use item_selections to specify which item(s) you want."
+            );
+        }
+
         // Create metadata JSON to track the source, choice_group, and selected option
         $metadata = json_encode([
             'source' => $source,
@@ -244,8 +263,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             ->delete();
 
         // Determine which items to grant
-        $itemSelections = $selection['item_selections'] ?? [];
-        $specificItems = $itemSelections[$selectedOption] ?? null;
+        // ($itemSelections and $specificItems already defined above for validation)
 
         // If item_selections is provided for this option, only grant those specific items
         // Otherwise grant all items from the option (for fixed options like "a rapier")

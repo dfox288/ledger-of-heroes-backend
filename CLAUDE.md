@@ -12,10 +12,45 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 
 **Essential Docs:**
 - `docs/PROJECT-STATUS.md` - Metrics and current status
-- `docs/LATEST-HANDOVER.md` - Latest session handover
-- `docs/reference/XML-SOURCE-PATHS.md` - XML source path mappings
+- `docs/LATEST-HANDOVER.md` - Latest session handover (symlink to wrapper)
 
 **Tasks & Issues:** [GitHub Issues](https://github.com/dfox288/dnd-rulebook-project/issues) (shared with frontend)
+
+---
+
+## Documentation Locations
+
+**All documentation (plans, handovers, proposals, reference) lives in the wrapper repo:**
+
+```
+../dnd-rulebook-project/docs/backend/
+├── handovers/   # Session handovers
+├── plans/       # Implementation plans
+├── proposals/   # API enhancement proposals
+├── reference/   # Stable reference docs (XML-SOURCE-PATHS.md, etc.)
+├── archive/     # Old handovers
+└── DND-FEATURES.md  # D&D feature roadmap
+```
+
+| Doc Type | Write To |
+|----------|----------|
+| **Plans** | `../dnd-rulebook-project/docs/backend/plans/YYYY-MM-DD-topic-design.md` |
+| **Handovers** | `../dnd-rulebook-project/docs/backend/handovers/SESSION-HANDOVER-YYYY-MM-DD-topic.md` |
+| **Proposals** | `../dnd-rulebook-project/docs/backend/proposals/` |
+| **Reference** | `../dnd-rulebook-project/docs/backend/reference/` |
+
+**Stays local:** `docs/PROJECT-STATUS.md`, `docs/LATEST-HANDOVER.md` (symlink), `docs/README.md`
+
+### Session Handover Workflow
+
+1. Write handover to wrapper: `../dnd-rulebook-project/docs/backend/handovers/SESSION-HANDOVER-YYYY-MM-DD-topic.md`
+2. Update symlink:
+   ```bash
+   ln -sf ../../dnd-rulebook-project/docs/backend/handovers/SESSION-HANDOVER-YYYY-MM-DD-topic.md docs/LATEST-HANDOVER.md
+   ```
+3. Commit to BOTH repos:
+   - Wrapper repo: the new handover file
+   - This repo: the updated symlink (if changed)
 
 ---
 
@@ -111,7 +146,7 @@ git checkout -b chore/issue-13-api-documentation
 - Document in Controller PHPDoc
 
 ### For Major Features (Additional)
-- Create session handover in `docs/handovers/`
+- Create session handover in `../dnd-rulebook-project/docs/backend/handovers/`
 
 ---
 
@@ -251,7 +286,7 @@ GET /api/v1/spells?classes=bard
 
 - Filterable fields defined in model's `searchableOptions()`
 - Data indexed via `toSearchableArray()`
-- See `docs/reference/MEILISEARCH-FILTERS.md` for syntax
+- See `../dnd-rulebook-project/docs/backend/reference/MEILISEARCH-FILTERS.md` for syntax
 
 ---
 
@@ -287,7 +322,7 @@ The importer reads from 9 source directories configured in `config/import.php`:
 
 **Env variable:** `XML_SOURCE_PATH=/var/www/fightclub_forked/Sources/PHB2014/WizardsOfTheCoast`
 
-**See:** `docs/reference/XML-SOURCE-PATHS.md` for complete documentation
+**See:** `../dnd-rulebook-project/docs/backend/reference/XML-SOURCE-PATHS.md` for complete documentation
 
 ---
 
@@ -408,23 +443,18 @@ gh pr create --title "feat: Add feature" --body "Closes #42"
 
 ---
 
-## Documentation
+## Local Documentation
 
 ```
 docs/
 ├── PROJECT-STATUS.md      # Metrics (single source of truth)
-├── LATEST-HANDOVER.md     # Symlink to recent handover
-├── reference/             # Stable docs (search, filters, API)
-├── plans/                 # Active plans only
-├── handovers/             # Recent (last 7 days)
-└── archive/               # Historical by month
+├── LATEST-HANDOVER.md     # Symlink → wrapper repo handover
+└── README.md              # Points to wrapper for all other docs
+
+# All other docs in: ../dnd-rulebook-project/docs/backend/
 ```
 
 **Tasks:** Use [GitHub Issues](https://github.com/dfox288/dnd-rulebook-project/issues) for all task tracking.
-
-**Naming:** `SESSION-HANDOVER-YYYY-MM-DD-HHMM-topic.md`
-
-Run `/organize-docs` to archive old handovers.
 
 ---
 

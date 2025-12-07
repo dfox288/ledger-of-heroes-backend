@@ -30,14 +30,14 @@ class CharacterMulticlassApiTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $wizard->id,
+            'class_slug' => $wizard->full_slug,
             'level' => 3,
             'is_primary' => false,
             'order' => 2,
@@ -67,7 +67,7 @@ class CharacterMulticlassApiTest extends TestCase
         // Add primary class first
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -76,7 +76,7 @@ class CharacterMulticlassApiTest extends TestCase
         $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'parent_class_id' => null]);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/classes", [
-            'class_id' => $wizard->id,
+            'class' => $wizard->full_slug,
         ]);
 
         $response->assertCreated()
@@ -86,7 +86,7 @@ class CharacterMulticlassApiTest extends TestCase
 
         $this->assertDatabaseHas('character_classes', [
             'character_id' => $character->id,
-            'class_id' => $wizard->id,
+            'class_slug' => $wizard->full_slug,
             'level' => 1,
         ]);
     }
@@ -99,7 +99,7 @@ class CharacterMulticlassApiTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -118,7 +118,7 @@ class CharacterMulticlassApiTest extends TestCase
         ]);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/classes", [
-            'class_id' => $bard->id,
+            'class' => $bard->full_slug,
         ]);
 
         $response->assertUnprocessable()
@@ -133,7 +133,7 @@ class CharacterMulticlassApiTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -152,7 +152,7 @@ class CharacterMulticlassApiTest extends TestCase
         ]);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/classes", [
-            'class_id' => $bard->id,
+            'class' => $bard->full_slug,
             'force' => true,
         ]);
 
@@ -167,14 +167,14 @@ class CharacterMulticlassApiTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/classes", [
-            'class_id' => $fighter->id,
+            'class' => $fighter->full_slug,
         ]);
 
         $response->assertUnprocessable()
@@ -190,26 +190,26 @@ class CharacterMulticlassApiTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $wizard->id,
+            'class_slug' => $wizard->full_slug,
             'level' => 3,
             'is_primary' => false,
             'order' => 2,
         ]);
 
-        $response = $this->deleteJson("/api/v1/characters/{$character->id}/classes/{$wizard->id}");
+        $response = $this->deleteJson("/api/v1/characters/{$character->id}/classes/{$wizard->full_slug}");
 
         $response->assertNoContent();
 
         $this->assertDatabaseMissing('character_classes', [
             'character_id' => $character->id,
-            'class_id' => $wizard->id,
+            'class_slug' => $wizard->full_slug,
         ]);
     }
 
@@ -221,13 +221,13 @@ class CharacterMulticlassApiTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
 
-        $response = $this->deleteJson("/api/v1/characters/{$character->id}/classes/{$fighter->id}");
+        $response = $this->deleteJson("/api/v1/characters/{$character->id}/classes/{$fighter->full_slug}");
 
         $response->assertUnprocessable()
             ->assertJsonPath('message', 'Cannot remove the only class');
@@ -242,27 +242,27 @@ class CharacterMulticlassApiTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $wizard->id,
+            'class_slug' => $wizard->full_slug,
             'level' => 3,
             'is_primary' => false,
             'order' => 2,
         ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/classes/{$wizard->id}/level-up");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/classes/{$wizard->full_slug}/level-up");
 
         $response->assertOk()
             ->assertJsonPath('data.level', 4);
 
         $this->assertDatabaseHas('character_classes', [
             'character_id' => $character->id,
-            'class_id' => $wizard->id,
+            'class_slug' => $wizard->full_slug,
             'level' => 4,
         ]);
     }
@@ -276,20 +276,20 @@ class CharacterMulticlassApiTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 15,
             'is_primary' => true,
             'order' => 1,
         ]);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $wizard->id,
+            'class_slug' => $wizard->full_slug,
             'level' => 5,
             'is_primary' => false,
             'order' => 2,
         ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/classes/{$wizard->id}/level-up");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/classes/{$wizard->full_slug}/level-up");
 
         $response->assertUnprocessable()
             ->assertJsonPath('message', 'Character has reached maximum level (20)');
@@ -308,14 +308,14 @@ class CharacterMulticlassApiTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 3, // Level 3 required for subclass
             'is_primary' => true,
             'order' => 1,
         ]);
 
-        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$fighter->id}/subclass", [
-            'subclass_id' => $champion->id,
+        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$fighter->full_slug}/subclass", [
+            'subclass' => $champion->full_slug,
         ]);
 
         $response->assertOk()
@@ -323,8 +323,8 @@ class CharacterMulticlassApiTest extends TestCase
 
         $this->assertDatabaseHas('character_classes', [
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
-            'subclass_id' => $champion->id,
+            'class_slug' => $fighter->full_slug,
+            'subclass_slug' => $champion->full_slug,
         ]);
     }
 
@@ -341,14 +341,14 @@ class CharacterMulticlassApiTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
         ]);
 
-        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$fighter->id}/subclass", [
-            'subclass_id' => $abjuration->id,
+        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$fighter->full_slug}/subclass", [
+            'subclass' => $abjuration->full_slug,
         ]);
 
         $response->assertUnprocessable()
@@ -375,14 +375,14 @@ class CharacterMulticlassApiTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 2, // Below required level 3
             'is_primary' => true,
             'order' => 1,
         ]);
 
-        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$fighter->id}/subclass", [
-            'subclass_id' => $champion->id,
+        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$fighter->full_slug}/subclass", [
+            'subclass' => $champion->full_slug,
         ]);
 
         $response->assertUnprocessable()
@@ -411,14 +411,14 @@ class CharacterMulticlassApiTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $cleric->id,
+            'class_slug' => $cleric->full_slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
         ]);
 
-        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$cleric->id}/subclass", [
-            'subclass_id' => $lifeDomain->id,
+        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$cleric->full_slug}/subclass", [
+            'subclass' => $lifeDomain->full_slug,
         ]);
 
         $response->assertOk()
@@ -439,14 +439,14 @@ class CharacterMulticlassApiTest extends TestCase
         // Character only has Fighter, not Wizard
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
         ]);
 
-        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$wizard->id}/subclass", [
-            'subclass_id' => $abjuration->id,
+        $response = $this->putJson("/api/v1/characters/{$character->id}/classes/{$wizard->full_slug}/subclass", [
+            'subclass' => $abjuration->full_slug,
         ]);
 
         $response->assertNotFound()

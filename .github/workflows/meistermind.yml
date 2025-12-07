@@ -331,7 +331,7 @@ jobs:
           EOF
 
           claude -p "$(cat /tmp/review-prompt.txt)" \
-            --max-turns 5 \
+            --max-turns 12 \
             --allowedTools "Read,Bash(git diff:*),Bash(git show:*)" \
             > /tmp/review.txt 2>&1
 
@@ -408,7 +408,7 @@ jobs:
           EOF
 
           claude -p "$(cat /tmp/review-prompt.txt)" \
-            --max-turns 5 \
+            --max-turns 12 \
             --allowedTools "Read,Bash(git diff:*),Bash(git show:*)" \
             > /tmp/review.txt 2>&1
 

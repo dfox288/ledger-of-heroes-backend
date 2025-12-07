@@ -265,4 +265,32 @@ class SubraceStrategyTest extends TestCase
         $this->assertNotNull($baseRace->full_slug, 'Stub base race should have full_slug populated');
         $this->assertEquals("phb:{$uniqueRaceSlug}", $baseRace->full_slug);
     }
+
+    #[Test]
+    public function it_defaults_to_phb_source_when_sources_empty(): void
+    {
+        $this->seedSizes();
+
+        // Use a unique race name to avoid fixture conflicts
+        $uniqueRaceName = 'EmptySourceRace'.time();
+        $uniqueRaceSlug = \Illuminate\Support\Str::slug($uniqueRaceName);
+
+        $this->assertDatabaseMissing('races', ['slug' => $uniqueRaceSlug]);
+
+        $data = [
+            'name' => 'Mountain '.$uniqueRaceName,
+            'base_race_name' => $uniqueRaceName,
+            'size_code' => 'M',
+            'speed' => 25,
+            'sources' => [], // Empty array, not null
+        ];
+
+        $result = $this->strategy->enhance($data);
+
+        // The stub base race should have full_slug with PHB prefix (fallback)
+        $baseRace = Race::where('slug', $uniqueRaceSlug)->first();
+        $this->assertNotNull($baseRace);
+        $this->assertNotNull($baseRace->full_slug, 'Stub base race should have full_slug populated');
+        $this->assertEquals("phb:{$uniqueRaceSlug}", $baseRace->full_slug);
+    }
 }

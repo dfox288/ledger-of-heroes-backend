@@ -133,8 +133,10 @@ class SubraceStrategy extends AbstractImportStrategy
         $slug = Str::slug($name);
 
         // Generate full_slug with source prefix
-        // Use sources from subrace data, fallback to PHB if not provided
-        $sources = $subraceData['sources'] ?? [['code' => 'PHB', 'pages' => '']];
+        // Use sources from subrace data, fallback to PHB if not provided or empty
+        $sources = ! empty($subraceData['sources'])
+            ? $subraceData['sources']
+            : [['code' => 'PHB', 'pages' => '']];
         $fullSlug = $this->generateFullSlug($slug, $sources);
 
         // Calculate base race ability points to determine if subraces are required

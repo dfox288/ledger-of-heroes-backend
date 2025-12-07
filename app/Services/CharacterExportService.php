@@ -19,10 +19,10 @@ class CharacterExportService
      */
     public function export(Character $character): array
     {
-        // Eager load all relationships
+        // Eager load relationships needed for export
+        // Note: We use pivot slug columns directly, not the related models
         $character->loadMissing([
-            'characterClasses.characterClass',
-            'characterClasses.subclass',
+            'characterClasses',
             'spells',
             'equipment',
             'languages',
@@ -148,13 +148,14 @@ class CharacterExportService
                     'source' => $prof->source,
                     'expertise' => $prof->expertise,
                 ];
-            } else {
+            } elseif ($prof->proficiency_type_slug) {
                 $types[] = [
                     'type' => $prof->proficiency_type_slug,
                     'source' => $prof->source,
                     'expertise' => $prof->expertise,
                 ];
             }
+            // Skip proficiencies with neither skill_slug nor proficiency_type_slug
         }
 
         return [

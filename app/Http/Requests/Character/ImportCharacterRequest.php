@@ -112,4 +112,34 @@ class ImportCharacterRequest extends FormRequest
             'character.required' => 'Character data is required.',
         ];
     }
+
+    /**
+     * Add custom validation to ensure proficiency fields are mutually exclusive.
+     */
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $validator->after(function (\Illuminate\Validation\Validator $validator) {
+            $proficiencies = $this->input('character.proficiencies', []);
+
+            // Skill proficiencies should not have a 'type' field
+            foreach ($proficiencies['skills'] ?? [] as $index => $skill) {
+                if (isset($skill['type'])) {
+                    $validator->errors()->add(
+                        "character.proficiencies.skills.{$index}.type",
+                        'Skill proficiencies should not have a type field.'
+                    );
+                }
+            }
+
+            // Type proficiencies should not have a 'skill' field
+            foreach ($proficiencies['types'] ?? [] as $index => $type) {
+                if (isset($type['skill'])) {
+                    $validator->errors()->add(
+                        "character.proficiencies.types.{$index}.skill",
+                        'Type proficiencies should not have a skill field.'
+                    );
+                }
+            }
+        });
+    }
 }

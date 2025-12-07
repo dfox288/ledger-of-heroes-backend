@@ -323,7 +323,14 @@ class CharacterImportService
             'flame', 'fury', 'guardian', 'hawk', 'herald', 'hunter', 'knight',
         ];
 
+        $attempts = 0;
+        $maxAttempts = 100;
+
         do {
+            if (++$attempts > $maxAttempts) {
+                throw new \RuntimeException("Unable to generate unique public_id after {$maxAttempts} attempts");
+            }
+
             $adjective = $adjectives[array_rand($adjectives)];
             $noun = $nouns[array_rand($nouns)];
             $suffix = $this->generateSuffix();

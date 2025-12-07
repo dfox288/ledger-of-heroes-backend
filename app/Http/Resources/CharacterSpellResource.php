@@ -16,7 +16,7 @@ class CharacterSpellResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'spell' => [
+            'spell' => $this->spell ? [
                 'id' => $this->spell->id,
                 'name' => $this->spell->name,
                 'slug' => $this->spell->slug,
@@ -28,12 +28,14 @@ class CharacterSpellResource extends JsonResource
                 'duration' => $this->spell->duration,
                 'concentration' => $this->spell->needs_concentration,
                 'ritual' => $this->spell->is_ritual,
-            ],
+            ] : null,
+            'spell_slug' => $this->spell_slug,
+            'is_dangling' => $this->spell === null,
             'preparation_status' => $this->preparation_status,
             'source' => $this->source,
             'level_acquired' => $this->level_acquired,
-            'is_prepared' => $this->isPrepared(),
-            'is_always_prepared' => $this->isAlwaysPrepared(),
+            'is_prepared' => $this->spell ? $this->isPrepared() : false,
+            'is_always_prepared' => $this->spell ? $this->isAlwaysPrepared() : false,
         ];
     }
 }

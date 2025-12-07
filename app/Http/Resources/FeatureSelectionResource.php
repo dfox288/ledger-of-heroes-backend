@@ -11,7 +11,7 @@ class FeatureSelectionResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'optional_feature' => [
+            'optional_feature' => $this->optionalFeature ? [
                 'id' => $this->optionalFeature->id,
                 'slug' => $this->optionalFeature->slug,
                 'name' => $this->optionalFeature->name,
@@ -21,16 +21,19 @@ class FeatureSelectionResource extends JsonResource
                 'prerequisite_text' => $this->optionalFeature->prerequisite_text,
                 'resource_type' => $this->optionalFeature->resource_type?->value,
                 'resource_cost' => $this->optionalFeature->resource_cost,
-            ],
+            ] : null,
+            'optional_feature_slug' => $this->optional_feature_slug,
             'class' => $this->when($this->characterClass, [
                 'id' => $this->characterClass?->id,
                 'name' => $this->characterClass?->name,
             ]),
+            'class_slug' => $this->class_slug,
+            'is_dangling' => $this->optionalFeature === null,
             'subclass_name' => $this->subclass_name,
             'level_acquired' => $this->level_acquired,
             'uses_remaining' => $this->uses_remaining,
             'max_uses' => $this->max_uses,
-            'has_limited_uses' => $this->hasLimitedUses(),
+            'has_limited_uses' => $this->optionalFeature ? $this->hasLimitedUses() : false,
         ];
     }
 }

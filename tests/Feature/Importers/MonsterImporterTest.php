@@ -362,4 +362,195 @@ XML;
         $this->assertNotNull($goblin);
         $this->assertEquals('mm:test-goblin', $goblin->full_slug);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_falls_back_to_default_source_when_no_source_in_description(): void
+    {
+        // Import monster without source citation in description
+        // The parser falls back to PHB (configured default) when no source is found
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+  <monster>
+    <name>Sourceless Creature</name>
+    <size>M</size>
+    <type>beast</type>
+    <alignment>Unaligned</alignment>
+    <ac>10</ac>
+    <hp>4 (1d8)</hp>
+    <speed>walk 30 ft.</speed>
+    <str>10</str>
+    <dex>10</dex>
+    <con>10</con>
+    <int>2</int>
+    <wis>10</wis>
+    <cha>4</cha>
+    <save></save>
+    <skill></skill>
+    <passive>10</passive>
+    <languages></languages>
+    <cr>0</cr>
+    <senses></senses>
+    <description>A mysterious creature with no known origin.</description>
+  </monster>
+</compendium>
+XML;
+
+        $parser = $this->importer->getParser();
+        $monsters = $parser->parse($xml);
+
+        $this->importer->import($monsters[0]);
+
+        $creature = \App\Models\Monster::where('slug', 'sourceless-creature')->first();
+
+        $this->assertNotNull($creature);
+        // Falls back to PHB when no source citation is found in description
+        $this->assertEquals('phb:sourceless-creature', $creature->full_slug);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_uses_first_source_for_full_slug_when_multiple_sources_present(): void
+    {
+        // Create test sources
+        \App\Models\Source::firstOrCreate(
+            ['code' => 'PHB'],
+            ['name' => 'Players Handbook', 'publication_date' => '2014-08-19']
+        );
+        \App\Models\Source::firstOrCreate(
+            ['code' => 'DMG'],
+            ['name' => 'Dungeon Masters Guide', 'publication_date' => '2014-12-09']
+        );
+
+        // Import monster with multiple sources in description
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+  <monster>
+    <name>Multi Source Beast</name>
+    <size>M</size>
+    <type>beast</type>
+    <alignment>Unaligned</alignment>
+    <ac>12</ac>
+    <hp>11 (2d8+2)</hp>
+    <speed>walk 40 ft.</speed>
+    <str>12</str>
+    <dex>15</dex>
+    <con>12</con>
+    <int>3</int>
+    <wis>12</wis>
+    <cha>6</cha>
+    <save></save>
+    <skill></skill>
+    <passive>11</passive>
+    <languages></languages>
+    <cr>1/4</cr>
+    <senses></senses>
+    <description>A beast found in multiple sourcebooks.
+
+Source: Player's Handbook p. 304,
+        Dungeon Master's Guide p. 302</description>
+  </monster>
+</compendium>
+XML;
+
+        $parser = $this->importer->getParser();
+        $monsters = $parser->parse($xml);
+
+        $this->importer->import($monsters[0]);
+
+        $beast = \App\Models\Monster::where('slug', 'multi-source-beast')->first();
+
+        $this->assertNotNull($beast);
+        // Should use PHB as it appears first in the source citation
+        $this->assertEquals('phb:multi-source-beast', $beast->full_slug);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_updates_full_slug_when_reimporting_with_different_source(): void
+    {
+        // Create test sources
+        \App\Models\Source::firstOrCreate(
+            ['code' => 'PHB'],
+            ['name' => 'Players Handbook', 'publication_date' => '2014-08-19']
+        );
+        \App\Models\Source::firstOrCreate(
+            ['code' => 'XGE'],
+            ['name' => 'Xanathars Guide to Everything', 'publication_date' => '2017-11-21']
+        );
+
+        // First import with PHB source
+        $xmlV1 = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+  <monster>
+    <name>Reimport Test Monster</name>
+    <size>M</size>
+    <type>humanoid</type>
+    <alignment>Neutral</alignment>
+    <ac>11</ac>
+    <hp>9 (2d8)</hp>
+    <speed>walk 30 ft.</speed>
+    <str>10</str>
+    <dex>12</dex>
+    <con>10</con>
+    <int>10</int>
+    <wis>10</wis>
+    <cha>10</cha>
+    <save></save>
+    <skill></skill>
+    <passive>10</passive>
+    <languages>Common</languages>
+    <cr>1/8</cr>
+    <senses></senses>
+    <description>A test monster.
+
+Source: Player's Handbook p. 100</description>
+  </monster>
+</compendium>
+XML;
+
+        $parser = $this->importer->getParser();
+        $monsters = $parser->parse($xmlV1);
+        $this->importer->import($monsters[0]);
+
+        $monster = \App\Models\Monster::where('slug', 'reimport-test-monster')->first();
+        $this->assertEquals('phb:reimport-test-monster', $monster->full_slug);
+
+        // Reimport with XGE source (simulating updated sourcebook)
+        $xmlV2 = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+  <monster>
+    <name>Reimport Test Monster</name>
+    <size>M</size>
+    <type>humanoid</type>
+    <alignment>Neutral</alignment>
+    <ac>11</ac>
+    <hp>9 (2d8)</hp>
+    <speed>walk 30 ft.</speed>
+    <str>10</str>
+    <dex>12</dex>
+    <con>10</con>
+    <int>10</int>
+    <wis>10</wis>
+    <cha>10</cha>
+    <save></save>
+    <skill></skill>
+    <passive>10</passive>
+    <languages>Common</languages>
+    <cr>1/8</cr>
+    <senses></senses>
+    <description>A test monster.
+
+Source: Xanathar's Guide to Everything p. 50</description>
+  </monster>
+</compendium>
+XML;
+
+        $monsters = $parser->parse($xmlV2);
+        $this->importer->import($monsters[0]);
+
+        $monster->refresh();
+        $this->assertEquals('xge:reimport-test-monster', $monster->full_slug);
+    }
 }

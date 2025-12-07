@@ -476,4 +476,117 @@ class EquipmentManagerServiceTest extends TestCase
         $itemSlugs = $equipment->pluck('item_slug')->sort()->values()->toArray();
         $this->assertEquals(['phb:dagger', 'phb:holy-symbol'], $itemSlugs);
     }
+
+    #[Test]
+    public function changing_background_keeps_equipment_from_both_backgrounds(): void
+    {
+        $holySymbol = Item::factory()->create([
+            'name' => 'Holy Symbol',
+            'slug' => 'holy-symbol',
+            'full_slug' => 'phb:holy-symbol',
+        ]);
+        $thievesTools = Item::factory()->create([
+            'name' => "Thieves' Tools",
+            'slug' => 'thieves-tools',
+            'full_slug' => 'phb:thieves-tools',
+        ]);
+
+        $acolyte = Background::factory()->create([
+            'name' => 'Acolyte',
+            'slug' => 'acolyte',
+            'full_slug' => 'phb:acolyte',
+        ]);
+        $criminal = Background::factory()->create([
+            'name' => 'Criminal',
+            'slug' => 'criminal',
+            'full_slug' => 'phb:criminal',
+        ]);
+
+        EntityItem::create([
+            'reference_type' => Background::class,
+            'reference_id' => $acolyte->id,
+            'item_id' => $holySymbol->id,
+            'quantity' => 1,
+            'is_choice' => false,
+        ]);
+        EntityItem::create([
+            'reference_type' => Background::class,
+            'reference_id' => $criminal->id,
+            'item_id' => $thievesTools->id,
+            'quantity' => 1,
+            'is_choice' => false,
+        ]);
+
+        // Create character with first background
+        $character = Character::factory()->create([
+            'background_slug' => $acolyte->full_slug,
+        ]);
+
+        // Grant equipment from first background
+        $this->service->populateFromBackground($character);
+        $this->assertCount(1, $character->fresh()->equipment);
+
+        // Change to second background
+        $character->update(['background_slug' => $criminal->full_slug]);
+
+        // Grant equipment from second background
+        $this->service->populateFromBackground($character->fresh());
+
+        // Should have equipment from BOTH backgrounds (no removal)
+        $equipment = $character->fresh()->equipment;
+        $this->assertCount(2, $equipment);
+
+        $itemSlugs = $equipment->pluck('item_slug')->sort()->values()->toArray();
+        $this->assertEquals(['phb:holy-symbol', 'phb:thieves-tools'], $itemSlugs);
+    }
+
+    #[Test]
+    public function populate_skips_equipment_with_missing_item_reference(): void
+    {
+        $validItem = Item::factory()->create([
+            'name' => 'Dagger',
+            'slug' => 'dagger',
+            'full_slug' => 'phb:dagger',
+        ]);
+
+        $rogue = CharacterClass::factory()->create([
+            'name' => 'Rogue',
+            'slug' => 'rogue',
+            'full_slug' => 'phb:rogue',
+        ]);
+
+        // Create EntityItem with valid item
+        EntityItem::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $rogue->id,
+            'item_id' => $validItem->id,
+            'quantity' => 1,
+            'is_choice' => false,
+        ]);
+
+        // Create EntityItem with null item_id (simulates orphaned record)
+        EntityItem::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $rogue->id,
+            'item_id' => null, // Missing item reference
+            'quantity' => 1,
+            'is_choice' => false,
+        ]);
+
+        $character = Character::factory()->create();
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $rogue->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Should not throw, should skip missing item and grant valid one
+        $this->service->populateFromClass($character->fresh());
+
+        $equipment = $character->fresh()->equipment;
+        $this->assertCount(1, $equipment);
+        $this->assertEquals('phb:dagger', $equipment->first()->item_slug);
+    }
 }

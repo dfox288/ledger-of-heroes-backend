@@ -7,6 +7,7 @@ use App\Exceptions\ItemNotEquippableException;
 use App\Models\Character;
 use App\Models\CharacterEquipment;
 use App\Models\Item;
+use Illuminate\Support\Facades\Log;
 
 class EquipmentManagerService
 {
@@ -142,7 +143,17 @@ class EquipmentManagerService
             return;
         }
 
-        $this->populateFromEntity($character, $character->background, 'background');
+        $background = $character->background;
+        if (! $background) {
+            Log::warning('Character has background_slug but background relationship is null', [
+                'character_id' => $character->id,
+                'background_slug' => $character->background_slug,
+            ]);
+
+            return;
+        }
+
+        $this->populateFromEntity($character, $background, 'background');
     }
 
     /**
@@ -171,15 +182,22 @@ class EquipmentManagerService
 
         foreach ($fixedEquipment as $entityItem) {
             if (! $entityItem->item) {
+                Log::warning('EntityItem references missing item', [
+                    'entity_item_id' => $entityItem->id,
+                    'entity_type' => get_class($entity),
+                    'entity_id' => $entity->id,
+                    'item_id' => $entityItem->item_id,
+                ]);
+
                 continue;
             }
 
             $itemSlug = $entityItem->item->full_slug;
 
-            // Skip if this item already exists from this source
+            // Skip if this item already exists from this source (use whereJsonContains for robustness)
             $exists = $character->equipment()
                 ->where('item_slug', $itemSlug)
-                ->where('custom_description', json_encode(['source' => $source]))
+                ->whereJsonContains('custom_description->source', $source)
                 ->exists();
 
             if ($exists) {

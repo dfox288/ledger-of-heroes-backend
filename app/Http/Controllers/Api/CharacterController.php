@@ -92,27 +92,32 @@ class CharacterController extends Controller
         $classSlug = $validated['class_slug'] ?? null;
         unset($validated['class_slug']);
 
-        $character = Character::create($validated);
+        // Use transaction to ensure character and equipment are created atomically
+        $character = DB::transaction(function () use ($validated, $classSlug) {
+            $character = Character::create($validated);
 
-        // Add class via junction table if provided
-        if ($classSlug) {
-            CharacterClassPivot::create([
-                'character_id' => $character->id,
-                'class_slug' => $classSlug,
-                'level' => 1,
-                'is_primary' => true,
-                'order' => 1,
-                'hit_dice_spent' => 0,
-            ]);
+            // Add class via junction table if provided
+            if ($classSlug) {
+                CharacterClassPivot::create([
+                    'character_id' => $character->id,
+                    'class_slug' => $classSlug,
+                    'level' => 1,
+                    'is_primary' => true,
+                    'order' => 1,
+                    'hit_dice_spent' => 0,
+                ]);
 
-            // Grant fixed equipment from primary class
-            $this->equipmentService->populateFromClass($character->fresh());
-        }
+                // Grant fixed equipment from primary class
+                $this->equipmentService->populateFromClass($character);
+            }
 
-        // Grant fixed equipment from background if provided
-        if ($character->background_slug) {
-            $this->equipmentService->populateFromBackground($character->fresh());
-        }
+            // Grant fixed equipment from background if provided
+            if ($character->background_slug) {
+                $this->equipmentService->populateFromBackground($character);
+            }
+
+            return $character;
+        });
 
         $character->load([
             'race',
@@ -193,11 +198,8 @@ class CharacterController extends Controller
         $newBackgroundSlug = $validated['background_slug'] ?? null;
         $backgroundAssigned = $newBackgroundSlug && $newBackgroundSlug !== $previousBackgroundSlug;
 
-        // Track if primary class is being assigned
-        $primaryClassAssigned = false;
-
         // Use transaction with pessimistic locking for all operations
-        DB::transaction(function () use ($character, &$validated, $classSlug, $level, &$primaryClassAssigned) {
+        DB::transaction(function () use ($character, &$validated, $classSlug, $level, $backgroundAssigned) {
             // Lock character row first for HP/death save consistency
             $character->lockForUpdate()->first();
 
@@ -210,6 +212,7 @@ class CharacterController extends Controller
             }
 
             // Handle class_slug - add via junction table if provided
+            $primaryClassAssigned = false;
             if ($classSlug) {
                 // Lock the character's class rows to prevent concurrent modifications
                 $existingClasses = $character->characterClasses()->lockForUpdate()->get();
@@ -228,7 +231,6 @@ class CharacterController extends Controller
                         'hit_dice_spent' => 0,
                     ]);
 
-                    // Track if we assigned a primary class (for equipment granting)
                     $primaryClassAssigned = $isPrimary;
                 }
             }
@@ -242,17 +244,15 @@ class CharacterController extends Controller
             }
 
             $character->update($validated);
+
+            // Grant fixed equipment within transaction for consistency
+            if ($primaryClassAssigned) {
+                $this->equipmentService->populateFromClass($character);
+            }
+            if ($backgroundAssigned) {
+                $this->equipmentService->populateFromBackground($character);
+            }
         });
-
-        // Grant fixed equipment when primary class is assigned
-        if ($primaryClassAssigned) {
-            $this->equipmentService->populateFromClass($character->fresh());
-        }
-
-        // Grant fixed equipment when background is assigned
-        if ($backgroundAssigned) {
-            $this->equipmentService->populateFromBackground($character->fresh());
-        }
 
         $character->load([
             'race',

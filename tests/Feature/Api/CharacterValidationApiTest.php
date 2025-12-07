@@ -315,4 +315,28 @@ describe('Bulk Character Validation', function () {
         expect($characters[0])->toHaveKey('dangling_references')
             ->and($characters[0]['dangling_references']['race'])->toBe('phb:missing-race');
     });
+
+    it('validates many characters efficiently with eager loading', function () {
+        $race = Race::factory()->create(['full_slug' => 'phb:human']);
+
+        // Create 50 characters - should use eager loading, not N+1 queries
+        Character::factory()->count(50)->create([
+            'race_slug' => 'phb:human',
+        ]);
+
+        // Enable query logging
+        \Illuminate\Support\Facades\DB::enableQueryLog();
+
+        $response = $this->getJson('/api/v1/characters/validate-all');
+
+        $queryCount = count(\Illuminate\Support\Facades\DB::getQueryLog());
+
+        $response->assertOk()
+            ->assertJsonPath('data.total', 50)
+            ->assertJsonPath('data.valid', 50);
+
+        // With proper eager loading, should be ~15 queries (1 for characters + 7 for relations + some lookups)
+        // Without eager loading, would be 50 * 8 = 400+ queries
+        expect($queryCount)->toBeLessThan(30);
+    });
 });

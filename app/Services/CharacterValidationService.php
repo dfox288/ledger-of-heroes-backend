@@ -26,6 +26,17 @@ class CharacterValidationService
      */
     public function validate(Character $character): CharacterValidationResult
     {
+        // Eager load all relationships needed for validation to avoid N+1
+        $character->loadMissing([
+            'race',
+            'background',
+            'characterClasses',
+            'spells',
+            'equipment',
+            'languages',
+            'conditions',
+        ]);
+
         $dangling = [];
         $totalRefs = 0;
 
@@ -45,8 +56,7 @@ class CharacterValidationService
             }
         }
 
-        // Classes
-        $character->load('characterClasses');
+        // Classes (already loaded above)
         $classSlugs = $character->characterClasses->pluck('class_slug')->filter()->unique();
         $subclassSlugs = $character->characterClasses->pluck('subclass_slug')->filter()->unique();
 
@@ -68,8 +78,7 @@ class CharacterValidationService
             }
         }
 
-        // Spells
-        $character->load('spells');
+        // Spells (already loaded above)
         $spellSlugs = $character->spells->pluck('spell_slug')->filter()->unique();
         $totalRefs += $spellSlugs->count();
 
@@ -81,8 +90,7 @@ class CharacterValidationService
             }
         }
 
-        // Equipment
-        $character->load('equipment');
+        // Equipment (already loaded above)
         $itemSlugs = $character->equipment->pluck('item_slug')->filter()->unique();
         $totalRefs += $itemSlugs->count();
 
@@ -94,8 +102,7 @@ class CharacterValidationService
             }
         }
 
-        // Languages
-        $character->load('languages');
+        // Languages (already loaded above)
         $languageSlugs = $character->languages->pluck('language_slug')->filter()->unique();
         $totalRefs += $languageSlugs->count();
 
@@ -107,8 +114,7 @@ class CharacterValidationService
             }
         }
 
-        // Conditions
-        $character->load('conditions');
+        // Conditions (already loaded above)
         $conditionSlugs = $character->conditions->pluck('condition_slug')->filter()->unique();
         $totalRefs += $conditionSlugs->count();
 
@@ -130,7 +136,17 @@ class CharacterValidationService
      */
     public function validateAll(): array
     {
-        $characters = Character::all();
+        // Eager load all relationships to avoid N+1 queries
+        $characters = Character::with([
+            'race',
+            'background',
+            'characterClasses',
+            'spells',
+            'equipment',
+            'languages',
+            'conditions',
+        ])->get();
+
         $invalidCharacters = collect();
 
         foreach ($characters as $character) {

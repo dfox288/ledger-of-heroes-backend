@@ -22,9 +22,12 @@ class FeatFactory extends Factory
     {
         $name = fake()->unique()->words(2, true);
 
+        $slug = Str::slug($name);
+
         return [
             'name' => ucwords($name),
-            'slug' => Str::slug($name),
+            'slug' => $slug,
+            'full_slug' => 'phb:'.$slug,
             'prerequisites_text' => fake()->boolean(30) ? fake()->sentence(4) : null,
             'description' => fake()->paragraphs(3, true),
         ];

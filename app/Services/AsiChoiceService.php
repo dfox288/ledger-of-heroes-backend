@@ -42,8 +42,13 @@ class AsiChoiceService
             $this->validateFeatNotTaken($character, $feat);
             $this->validatePrerequisitesMet($character, $feat);
 
-            // Load feat relationships
-            $feat->loadMissing(['modifiers.abilityScore', 'proficiencies', 'spells']);
+            // Load feat relationships with nested relations to avoid N+1 queries
+            $feat->loadMissing([
+                'modifiers.abilityScore',
+                'proficiencies.proficiencyType',
+                'proficiencies.skill',
+                'spells',
+            ]);
 
             // Validate ability increases won't exceed cap
             $abilityIncreases = $this->getFeatAbilityIncreases($feat);
@@ -64,9 +69,8 @@ class AsiChoiceService
                 abilityIncreases: $abilityIncreases,
                 newAbilityScores: $this->getAbilityScores($character),
                 feat: [
-                    'id' => $feat->id,
+                    'slug' => $feat->full_slug,
                     'name' => $feat->name,
-                    'slug' => $feat->slug,
                 ],
                 proficienciesGained: $proficienciesGained,
                 spellsGained: $spellsGained,
@@ -128,7 +132,7 @@ class AsiChoiceService
     {
         $exists = CharacterFeature::where('character_id', $character->id)
             ->where('feature_type', Feat::class)
-            ->where('feature_id', $feat->id)
+            ->where('feature_slug', $feat->full_slug)
             ->exists();
 
         if ($exists) {
@@ -225,9 +229,9 @@ class AsiChoiceService
         CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => Feat::class,
-            'feature_id' => $feat->id,
+            'feature_slug' => $feat->full_slug,
             'source' => 'feat',
-            'level_acquired' => $character->level,
+            'level_acquired' => $character->total_level ?: 1,
         ]);
     }
 
@@ -241,9 +245,19 @@ class AsiChoiceService
         $granted = [];
 
         foreach ($feat->proficiencies as $proficiency) {
+            // Relations already eager-loaded above
+            $proficiencyTypeSlug = $proficiency->proficiencyType?->full_slug;
+            $skillSlug = $proficiency->skill?->full_slug;
+
+            // Skip if neither proficiency type nor skill is set (defensive check)
+            if ($proficiencyTypeSlug === null && $skillSlug === null) {
+                continue;
+            }
+
             CharacterProficiency::create([
                 'character_id' => $character->id,
-                'proficiency_type_id' => null, // Entity proficiencies don't have type_id
+                'proficiency_type_slug' => $proficiencyTypeSlug,
+                'skill_slug' => $skillSlug,
                 'source' => 'feat',
             ]);
 
@@ -256,7 +270,7 @@ class AsiChoiceService
     /**
      * Grant spells from a feat.
      *
-     * @return array<array{id: int, name: string, slug: string}>
+     * @return array<array{slug: string, name: string}>
      */
     private function grantFeatSpells(Character $character, Feat $feat): array
     {
@@ -266,7 +280,7 @@ class AsiChoiceService
             CharacterSpell::firstOrCreate(
                 [
                     'character_id' => $character->id,
-                    'spell_id' => $spell->id,
+                    'spell_slug' => $spell->full_slug,
                 ],
                 [
                     'source' => 'feat',
@@ -276,9 +290,8 @@ class AsiChoiceService
             );
 
             $granted[] = [
-                'id' => $spell->id,
+                'slug' => $spell->full_slug,
                 'name' => $spell->name,
-                'slug' => $spell->slug,
             ];
         }
 

@@ -15,6 +15,7 @@ use App\Models\EntityPrerequisite;
 use App\Models\Feat;
 use App\Models\Modifier;
 use App\Models\Proficiency;
+use App\Models\ProficiencyType;
 use App\Models\Spell;
 use App\Services\AsiChoiceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -62,12 +63,13 @@ class AsiChoiceServiceTest extends TestCase
         ]);
         $feat = Feat::factory()->create();
 
-        // Character already has this feat
+        // Character already has this feat (using slug-based lookup)
         CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => Feat::class,
-            'feature_id' => $feat->id,
+            'feature_slug' => $feat->full_slug,
             'source' => 'feat',
+            'level_acquired' => 1,
         ]);
 
         $this->expectException(FeatAlreadyTakenException::class);
@@ -151,7 +153,7 @@ class AsiChoiceServiceTest extends TestCase
         $this->assertDatabaseHas('character_features', [
             'character_id' => $character->id,
             'feature_type' => Feat::class,
-            'feature_id' => $feat->id,
+            'feature_slug' => $feat->full_slug,
             'source' => 'feat',
         ]);
     }
@@ -189,10 +191,17 @@ class AsiChoiceServiceTest extends TestCase
             'asi_choices_remaining' => 1,
         ]);
 
+        // Create a proficiency type with full_slug
+        $proficiencyType = ProficiencyType::firstOrCreate(
+            ['slug' => 'saving-throw'],
+            ['name' => 'Saving Throw', 'full_slug' => 'phb:saving-throw', 'category' => 'saving_throw']
+        );
+
         $feat = Feat::factory()->create();
         Proficiency::create([
             'reference_type' => Feat::class,
             'reference_id' => $feat->id,
+            'proficiency_type_id' => $proficiencyType->id,
             'proficiency_type' => 'saving_throw',
             'proficiency_name' => 'Constitution Saves',
         ]);
@@ -201,6 +210,7 @@ class AsiChoiceServiceTest extends TestCase
 
         $this->assertDatabaseHas('character_proficiencies', [
             'character_id' => $character->id,
+            'proficiency_type_slug' => 'phb:saving-throw',
             'source' => 'feat',
         ]);
         $this->assertContains('Constitution Saves', $result->proficienciesGained);
@@ -213,7 +223,7 @@ class AsiChoiceServiceTest extends TestCase
             'asi_choices_remaining' => 1,
         ]);
 
-        $spell = Spell::factory()->create(['name' => 'Firebolt', 'slug' => 'firebolt']);
+        $spell = Spell::factory()->create(['name' => 'Firebolt', 'slug' => 'firebolt', 'full_slug' => 'phb:firebolt']);
         $feat = Feat::factory()->create();
         $feat->spells()->attach($spell->id);
 
@@ -221,11 +231,12 @@ class AsiChoiceServiceTest extends TestCase
 
         $this->assertDatabaseHas('character_spells', [
             'character_id' => $character->id,
-            'spell_id' => $spell->id,
+            'spell_slug' => $spell->full_slug,
             'source' => 'feat',
         ]);
         $this->assertCount(1, $result->spellsGained);
         $this->assertEquals('Firebolt', $result->spellsGained[0]['name']);
+        $this->assertEquals('phb:firebolt', $result->spellsGained[0]['slug']);
     }
 
     #[Test]
@@ -237,14 +248,14 @@ class AsiChoiceServiceTest extends TestCase
         $feat = Feat::factory()->create([
             'name' => 'Alert',
             'slug' => 'alert',
+            'full_slug' => 'phb:alert',
         ]);
 
         $result = $this->service->applyFeatChoice($character, $feat);
 
         $this->assertEquals('feat', $result->choiceType);
-        $this->assertEquals($feat->id, $result->feat['id']);
+        $this->assertEquals('phb:alert', $result->feat['slug']);
         $this->assertEquals('Alert', $result->feat['name']);
-        $this->assertEquals('alert', $result->feat['slug']);
     }
 
     #[Test]

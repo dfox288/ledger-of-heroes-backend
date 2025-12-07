@@ -55,7 +55,7 @@ class AddClassServiceTest extends TestCase
         // Add first class
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -78,7 +78,7 @@ class AddClassServiceTest extends TestCase
         // Give character a class first (multiclassing requires existing class)
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -111,7 +111,7 @@ class AddClassServiceTest extends TestCase
         // Give character a class first
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -142,7 +142,7 @@ class AddClassServiceTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -162,7 +162,7 @@ class AddClassServiceTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 20,
             'is_primary' => true,
             'order' => 1,

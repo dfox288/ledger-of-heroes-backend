@@ -52,6 +52,9 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
         // Group by choice_group
         $grouped = $equipmentChoices->groupBy('choice_group');
 
+        // Pre-fetch existing equipment selections for this character from class
+        $existingSelections = $this->getExistingSelections($character, 'class');
+
         $choices = collect();
 
         foreach ($grouped as $choiceGroup => $options) {
@@ -128,6 +131,11 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             // Quantity is always 1 for equipment choices (pick one option)
             $quantity = $options->first()->quantity ?? 1;
 
+            // Calculate remaining and selected from existing equipment
+            $selection = $existingSelections[$choiceGroup] ?? null;
+            $remaining = $selection ? 0 : $quantity;
+            $selected = $selection ? [$selection['option']] : [];
+
             $choice = new PendingChoice(
                 id: $this->generateChoiceId('equipment', 'class', $primaryClass->full_slug, 1, $choiceGroup),
                 type: 'equipment',
@@ -137,8 +145,8 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                 levelGranted: 1,
                 required: true,
                 quantity: $quantity,
-                remaining: $quantity, // For equipment, always show as pending since we can't easily check without DB columns
-                selected: [],
+                remaining: $remaining,
+                selected: $selected,
                 options: $builtOptions,
                 optionsEndpoint: null,
                 metadata: [
@@ -150,6 +158,41 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
         }
 
         return $choices;
+    }
+
+    /**
+     * Get existing equipment selections for a character from a specific source.
+     *
+     * Returns an array keyed by choice_group with the selected option and item slugs.
+     */
+    private function getExistingSelections(Character $character, string $source): array
+    {
+        $equipment = $character->equipment()
+            ->whereJsonContains('custom_description->source', $source)
+            ->whereNotNull('custom_description')
+            ->get();
+
+        $selections = [];
+        foreach ($equipment as $item) {
+            $metadata = json_decode($item->custom_description, true);
+            if (! $metadata || ! isset($metadata['choice_group'])) {
+                continue;
+            }
+
+            $choiceGroup = $metadata['choice_group'];
+            $selectedOption = $metadata['selected_option'] ?? null;
+
+            if (! isset($selections[$choiceGroup])) {
+                $selections[$choiceGroup] = [
+                    'option' => $selectedOption,
+                    'items' => [],
+                ];
+            }
+
+            $selections[$choiceGroup]['items'][] = $item->item_slug;
+        }
+
+        return $selections;
     }
 
     public function resolve(Character $character, PendingChoice $choice, array $selection): void
@@ -186,20 +229,35 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             );
         }
 
-        // Create metadata JSON to track the source and choice_group
+        // Create metadata JSON to track the source, choice_group, and selected option
         $metadata = json_encode([
             'source' => $source,
             'choice_group' => $choiceGroup,
+            'selected_option' => $selectedOption,
         ]);
 
         // Clear existing equipment from this choice_group before adding new ones
         // This ensures re-submitting replaces rather than duplicates
         $character->equipment()
-            ->where('custom_description', $metadata)
+            ->whereJsonContains('custom_description->source', $source)
+            ->whereJsonContains('custom_description->choice_group', $choiceGroup)
             ->delete();
 
-        // Grant each item in the selected option
-        foreach ($foundOption['items'] as $item) {
+        // Determine which items to grant
+        $itemSelections = $selection['item_selections'] ?? [];
+        $specificItems = $itemSelections[$selectedOption] ?? null;
+
+        // If item_selections is provided for this option, only grant those specific items
+        // Otherwise grant all items from the option (for fixed options like "a rapier")
+        $itemsToGrant = $foundOption['items'];
+        if ($specificItems !== null && is_array($specificItems)) {
+            $itemsToGrant = array_filter($foundOption['items'], function ($item) use ($specificItems) {
+                return in_array($item['full_slug'], $specificItems, true);
+            });
+        }
+
+        // Grant each selected item
+        foreach ($itemsToGrant as $item) {
             CharacterEquipment::create([
                 'character_id' => $character->id,
                 'item_slug' => $item['full_slug'],
@@ -224,15 +282,10 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
         $choiceGroup = $parsed['group'];
         $source = $parsed['source'];
 
-        // Build metadata JSON to find items from this choice
-        $metadata = json_encode([
-            'source' => $source,
-            'choice_group' => $choiceGroup,
-        ]);
-
-        // Delete equipment records that match this metadata
+        // Delete equipment records that match this choice (use whereJsonContains for robustness)
         $character->equipment()
-            ->where('custom_description', $metadata)
+            ->whereJsonContains('custom_description->source', $source)
+            ->whereJsonContains('custom_description->choice_group', $choiceGroup)
             ->delete();
 
         $character->load('equipment');

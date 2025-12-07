@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #340**: Equipment choice resolution now persists items correctly
+  - Added `item_selections` parameter to `ResolveChoiceRequest` for category-based choices
+  - Category options (e.g., "any musical instrument") now grant only the selected item(s)
+  - Fixed `getChoices()` to calculate `remaining` and `selected` from database
+  - Choices now correctly show as resolved (`remaining: 0`) after selection
+  - Metadata includes `selected_option` for tracking which option was chosen
+
 - **Issue #339**: Auto-grant fixed equipment when class/background is assigned
   - Fixed equipment (`is_choice: false`) is now automatically added to character inventory
   - Applies when primary class is assigned (not multiclass)
@@ -16,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Equipment tracked with source metadata (class/background)
   - Added `populateFromClass`, `populateFromBackground`, `populateAll` methods to `EquipmentManagerService`
   - Integrated into `AddClassService` and `CharacterController`
+  - Fixed ClassImporter to match fixed equipment descriptions to Item records (data fix)
 
 - **Issue #335**: Normalize `material_consumed` to explicit boolean
   - Returns `false` instead of `null` when spells have no material components

@@ -16,6 +16,13 @@ use Illuminate\Validation\Rule;
  * ```
  * The `selected` array contains IDs or slugs of the chosen options.
  *
+ * **Equipment Choice with Category Options**:
+ * ```json
+ * {"selected": ["b"], "item_selections": {"b": ["phb:drum"]}}
+ * ```
+ * When an equipment option is a category (e.g., "any musical instrument"),
+ * use `item_selections` to specify which item(s) from that category.
+ *
  * **ASI Choice** (Ability Score Improvement):
  * ```json
  * {"type": "asi", "increases": {"strength": 2, "dexterity": 1}}
@@ -52,6 +59,12 @@ class ResolveChoiceRequest extends FormRequest
             // Generic selection (array of slugs)
             'selected' => ['sometimes', 'array'],
             'selected.*' => ['required_with:selected', 'string'],
+
+            // Equipment choice: specific item selections for category options
+            // Maps option letter to array of item slugs: {"b": ["phb:drum"]}
+            'item_selections' => ['sometimes', 'array'],
+            'item_selections.*' => ['array'],
+            'item_selections.*.*' => ['string', 'max:150'],
 
             // ASI/Feat specific fields
             'type' => ['sometimes', 'string', Rule::in(['asi', 'feat'])],

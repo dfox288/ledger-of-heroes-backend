@@ -187,6 +187,14 @@ it('returns equipment choices for level 1 character', function () {
 
     $primaryClass->shouldReceive('equipment')->andReturn($equipmentRelation);
 
+    // Mock character equipment relationship for getExistingSelections
+    $characterEquipmentQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $characterEquipmentQuery->shouldReceive('whereJsonContains')->andReturnSelf();
+    $characterEquipmentQuery->shouldReceive('whereNotNull')->andReturnSelf();
+    $characterEquipmentQuery->shouldReceive('get')->andReturn(new EloquentCollection([]));
+
+    $this->character->shouldReceive('equipment')->andReturn($characterEquipmentQuery);
+
     $choices = $this->handler->getChoices($this->character);
 
     expect($choices)
@@ -474,12 +482,13 @@ it('undoes choice by deleting CharacterEquipment records', function () {
         metadata: ['choice_group' => 'equipment_choice_1']
     );
 
-    // Mock equipment relationship - search for items with matching metadata
-    $metadata = json_encode(['source' => 'class', 'choice_group' => 'equipment_choice_1']);
-
+    // Mock equipment relationship - uses whereJsonContains for deletion
     $equipmentQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
-    $equipmentQuery->shouldReceive('where')
-        ->with('custom_description', $metadata)
+    $equipmentQuery->shouldReceive('whereJsonContains')
+        ->with('custom_description->source', 'class')
+        ->andReturnSelf();
+    $equipmentQuery->shouldReceive('whereJsonContains')
+        ->with('custom_description->choice_group', 'equipment_choice_1')
         ->andReturnSelf();
     $equipmentQuery->shouldReceive('delete')
         ->once()

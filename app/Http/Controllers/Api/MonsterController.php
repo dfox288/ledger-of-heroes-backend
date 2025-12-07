@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\DTOs\MonsterSearchDTO;
+use App\Http\Controllers\Api\Concerns\AddsSearchableOptions;
 use App\Http\Controllers\Api\Concerns\CachesEntityShow;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MonsterIndexRequest;
@@ -17,6 +18,7 @@ use MeiliSearch\Client;
 
 class MonsterController extends Controller
 {
+    use AddsSearchableOptions;
     use CachesEntityShow;
 
     /**
@@ -222,7 +224,10 @@ class MonsterController extends Controller
             $monsters = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 
-        return MonsterResource::collection($monsters);
+        return $this->withSearchableOptions(
+            MonsterResource::collection($monsters),
+            Monster::class
+        );
     }
 
     /**

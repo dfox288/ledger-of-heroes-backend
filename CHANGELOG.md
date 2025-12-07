@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #335**: Normalize `material_consumed` to explicit boolean
+  - Returns `false` instead of `null` when spells have no material components
+  - Consistent boolean type for all spells (true/false only)
+
+- **Issue #336**: Support `full_slug` format in route binding
+  - Routes now accept `source:slug` format (e.g., `/api/v1/monsters/mm:aboleth`)
+  - ID, slug, and full_slug all work for entity detail endpoints
+  - Applied to: spells, monsters, races, classes, items, feats, backgrounds
+
+- **Issue #337**: Fix `spellcasting_type` showing "unknown" for subclasses
+  - Subclasses now inherit spellcasting type from parent class
+  - Added `parentClass.levelProgression` to eager loading for list endpoints
+
+### Added
+
+- **Issue #338**: Add `searchable_options` to pagination meta
+  - List endpoints now include filterable and sortable attributes in meta
+  - API consumers can discover available filters without reading docs
+  - Applied to 8 searchable entities: spells, monsters, classes, races, items, feats, backgrounds, optional-features
+  - New trait: `AddsSearchableOptions` for consistent implementation
+
+### Fixed
+
 - **Issue #319**: Populate `full_slug` on stub base races created by SubraceStrategy
   - Base races auto-created when importing subraces now have `full_slug` (e.g., `phb:elf`)
   - Uses source from subrace data with PHB fallback

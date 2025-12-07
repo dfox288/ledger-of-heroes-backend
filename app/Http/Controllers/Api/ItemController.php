@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\DTOs\ItemSearchDTO;
+use App\Http\Controllers\Api\Concerns\AddsSearchableOptions;
 use App\Http\Controllers\Api\Concerns\CachesEntityShow;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ItemIndexRequest;
@@ -16,6 +17,7 @@ use MeiliSearch\Client;
 
 class ItemController extends Controller
 {
+    use AddsSearchableOptions;
     use CachesEntityShow;
 
     /**
@@ -157,7 +159,10 @@ class ItemController extends Controller
             $items = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 
-        return ItemResource::collection($items);
+        return $this->withSearchableOptions(
+            ItemResource::collection($items),
+            Item::class
+        );
     }
 
     /**

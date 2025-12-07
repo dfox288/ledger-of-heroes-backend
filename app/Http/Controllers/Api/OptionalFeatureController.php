@@ -15,6 +15,8 @@ use MeiliSearch\Client;
 
 class OptionalFeatureController extends Controller
 {
+    use Concerns\AddsSearchableOptions;
+
     /**
      * List all optional features
      *
@@ -99,7 +101,10 @@ class OptionalFeatureController extends Controller
             $features = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 
-        return OptionalFeatureResource::collection($features);
+        return $this->withSearchableOptions(
+            OptionalFeatureResource::collection($features),
+            OptionalFeature::class
+        );
     }
 
     /**

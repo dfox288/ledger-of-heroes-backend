@@ -24,11 +24,17 @@ class SpellImporter extends BaseImporter
         // Lookup spell school by code
         $spellSchool = SpellSchool::where('code', $spellData['school'])->firstOrFail();
 
+        // Generate slug and full_slug
+        $slug = $this->generateSlug($spellData['name']);
+        $sources = $spellData['sources'] ?? [];
+        $fullSlug = $this->generateFullSlug($slug, $sources);
+
         // Create or update spell using slug as unique key
         $spell = Spell::updateOrCreate(
-            ['slug' => $this->generateSlug($spellData['name'])],
+            ['slug' => $slug],
             [
                 'name' => $spellData['name'],
+                'full_slug' => $fullSlug,
                 'level' => $spellData['level'],
                 'spell_school_id' => $spellSchool->id,
                 'casting_time' => $spellData['casting_time'],

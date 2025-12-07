@@ -18,6 +18,7 @@ class Spell extends BaseModel
 
     protected $fillable = [
         'slug',
+        'full_slug',
         'name',
         'level',
         'spell_school_id',

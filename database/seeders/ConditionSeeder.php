@@ -91,6 +91,7 @@ class ConditionSeeder extends Seeder
         ];
 
         foreach ($conditions as $condition) {
+            $condition['full_slug'] = 'core:'.$condition['slug'];
             Condition::updateOrCreate(
                 ['slug' => $condition['slug']],
                 $condition

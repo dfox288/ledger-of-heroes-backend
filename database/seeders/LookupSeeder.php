@@ -32,6 +32,7 @@ class LookupSeeder extends Seeder
             ConditionSeeder::class,
             ProficiencyTypeSeeder::class,
             LanguageSeeder::class,
+            SenseSeeder::class,
             MulticlassSpellSlotSeeder::class,
         ]);
     }

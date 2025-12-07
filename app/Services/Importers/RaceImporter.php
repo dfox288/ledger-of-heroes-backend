@@ -63,6 +63,10 @@ class RaceImporter extends BaseImporter
             $raceData['slug'] = $this->generateSlug($raceData['name']);
         }
 
+        // Generate full_slug with source prefix
+        $sources = $raceData['sources'] ?? [];
+        $fullSlug = $this->generateFullSlug($raceData['slug'], $sources);
+
         // Extract alternate movement speeds from ALL trait sources
         // For subraces, strategies may have replaced 'traits' with 'subrace_traits' (empty for some)
         // but the speeds typically come from base_traits (e.g., Aarakocra's Flight trait)
@@ -90,6 +94,7 @@ class RaceImporter extends BaseImporter
             ['slug' => $raceData['slug']],
             [
                 'name' => $raceData['name'],
+                'full_slug' => $fullSlug,
                 'parent_race_id' => $raceData['parent_race_id'] ?? null,
                 'size_id' => $size->id,
                 'speed' => $raceData['speed'],

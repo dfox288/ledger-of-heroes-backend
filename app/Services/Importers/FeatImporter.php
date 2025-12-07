@@ -25,11 +25,17 @@ class FeatImporter extends BaseImporter
      */
     protected function importEntity(array $data): Feat
     {
+        // Generate slug and full_slug
+        $slug = $this->generateSlug($data['name']);
+        $sources = $data['sources'] ?? [];
+        $fullSlug = $this->generateFullSlug($slug, $sources);
+
         // 1. Upsert feat using slug as unique key
         $feat = Feat::updateOrCreate(
-            ['slug' => $this->generateSlug($data['name'])],
+            ['slug' => $slug],
             [
                 'name' => $data['name'],
+                'full_slug' => $fullSlug,
                 'prerequisites_text' => $data['prerequisites'] ?? null,
                 'description' => $data['description'],
                 'resets_on' => $data['resets_on'] ?? null,

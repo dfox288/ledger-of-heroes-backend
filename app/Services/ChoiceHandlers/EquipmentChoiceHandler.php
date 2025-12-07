@@ -199,7 +199,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
         foreach ($foundOption['items'] as $item) {
             CharacterEquipment::create([
                 'character_id' => $character->id,
-                'item_id' => $item['id'],
+                'item_slug' => $item['full_slug'],
                 'quantity' => $item['quantity'],
                 'equipped' => false,
                 'custom_description' => $metadata,

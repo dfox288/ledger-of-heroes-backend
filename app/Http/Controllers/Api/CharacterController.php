@@ -72,31 +72,31 @@ class CharacterController extends Controller
      *
      * **Examples:**
      * ```
-     * POST /api/v1/characters {"name": "Gandalf"}                                    # Draft character
-     * POST /api/v1/characters {"name": "Legolas", "race_id": 1, "class_id": 2}      # With race/class
-     * POST /api/v1/characters {"name": "Conan", "strength": 18, "constitution": 16} # With ability scores
+     * POST /api/v1/characters {"name": "Gandalf"}                                          # Draft character
+     * POST /api/v1/characters {"name": "Legolas", "race_slug": "phb:elf", "class_slug": "phb:ranger"}  # With race/class
+     * POST /api/v1/characters {"name": "Conan", "strength": 18, "constitution": 16}        # With ability scores
      * ```
      *
      * **Validation:**
      * - `name` (required): Character name
-     * - `race_id`, `class_id`, `background_id`: Must exist if provided
+     * - `race_slug`, `class_slug`, `background_id`: Must exist if provided
      * - Ability scores (STR, DEX, etc.): Must be 3-20 if provided
      */
     public function store(CharacterStoreRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
-        // Extract class_id before creating - we'll add it via junction table
-        $classId = $validated['class_id'] ?? null;
-        unset($validated['class_id']);
+        // Extract class_slug before creating - we'll add it via junction table
+        $classSlug = $validated['class_slug'] ?? null;
+        unset($validated['class_slug']);
 
         $character = Character::create($validated);
 
         // Add class via junction table if provided
-        if ($classId) {
+        if ($classSlug) {
             CharacterClassPivot::create([
                 'character_id' => $character->id,
-                'class_id' => $classId,
+                'class_slug' => $classSlug,
                 'level' => 1,
                 'is_primary' => true,
                 'order' => 1,
@@ -161,25 +161,25 @@ class CharacterController extends Controller
      * **Examples:**
      * ```
      * PATCH /api/v1/characters/1 {"name": "NewName"}
-     * PATCH /api/v1/characters/1 {"race_id": 5}
+     * PATCH /api/v1/characters/1 {"race_slug": "phb:elf"}
      * PATCH /api/v1/characters/1 {"strength": 18, "dexterity": 14}
      * ```
      *
      * **Validation:**
      * - Ability scores must be 3-20
-     * - IDs (race_id, class_id, background_id) must exist
+     * - Slugs (race_slug, class_slug) and IDs (background_id) must exist
      */
     public function update(CharacterUpdateRequest $request, Character $character): CharacterResource
     {
         $validated = $request->validated();
 
-        // Extract class_id and level before transaction
-        $classId = $validated['class_id'] ?? null;
+        // Extract class_slug and level before transaction
+        $classSlug = $validated['class_slug'] ?? null;
         $level = $validated['level'] ?? null;
-        unset($validated['class_id'], $validated['level']);
+        unset($validated['class_slug'], $validated['level']);
 
         // Use transaction with pessimistic locking for all operations
-        DB::transaction(function () use ($character, &$validated, $classId, $level) {
+        DB::transaction(function () use ($character, &$validated, $classSlug, $level) {
             // Lock character row first for HP/death save consistency
             $character->lockForUpdate()->first();
 
@@ -191,19 +191,19 @@ class CharacterController extends Controller
                 $validated['death_save_failures'] = 0;
             }
 
-            // Handle class_id - add via junction table if provided
-            if ($classId) {
+            // Handle class_slug - add via junction table if provided
+            if ($classSlug) {
                 // Lock the character's class rows to prevent concurrent modifications
                 $existingClasses = $character->characterClasses()->lockForUpdate()->get();
 
                 // Only add if character doesn't already have this class
-                if (! $existingClasses->where('class_id', $classId)->first()) {
+                if (! $existingClasses->where('class_slug', $classSlug)->first()) {
                     $isPrimary = $existingClasses->isEmpty();
                     $order = ($existingClasses->max('order') ?? 0) + 1;
 
                     CharacterClassPivot::create([
                         'character_id' => $character->id,
-                        'class_id' => $classId,
+                        'class_slug' => $classSlug,
                         'level' => 1,
                         'is_primary' => $isPrimary,
                         'order' => $order,

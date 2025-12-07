@@ -55,17 +55,17 @@ class CharacterEquipmentController extends Controller
      * Add item to character inventory
      *
      * Adds a database item or custom freetext item to the character's inventory.
-     * Must provide either `item_id` (database item) or `custom_name` (freetext item), but not both.
+     * Must provide either `item_slug` (database item) or `custom_name` (freetext item), but not both.
      *
      * **Examples:**
      * ```
      * POST /api/v1/characters/1/equipment
      *
      * # Add a database item (e.g., Longsword)
-     * {"item_id": 123, "quantity": 1}
+     * {"item_slug": "phb:longsword", "quantity": 1}
      *
      * # Add multiple of same item (e.g., 50 gold pieces)
-     * {"item_id": 456, "quantity": 50}
+     * {"item_slug": "phb:gold-piece", "quantity": 50}
      *
      * # Add a custom/homebrew item
      * {"custom_name": "Ring of Plot Convenience", "custom_description": "A mysterious ring from the DM"}
@@ -77,15 +77,15 @@ class CharacterEquipmentController extends Controller
      * **Request Body:**
      * | Field | Type | Required | Description |
      * |-------|------|----------|-------------|
-     * | `item_id` | integer | Conditional | ID of database item (from /items endpoint) |
+     * | `item_slug` | string | Conditional | Full slug of database item (from /items endpoint) |
      * | `custom_name` | string | Conditional | Name for freetext item (max 255 chars) |
      * | `custom_description` | string | No | Description for freetext item (max 2000 chars) |
      * | `quantity` | integer | No | Number of items (default: 1, min: 1) |
      *
      * **Validation Rules:**
-     * - Must provide either `item_id` OR `custom_name` (not both, not neither)
-     * - `item_id` must reference an existing item in the database
-     * - Stackable items with same `item_id` may be consolidated
+     * - Must provide either `item_slug` OR `custom_name` (not both, not neither)
+     * - `item_slug` must reference an existing item in the database
+     * - Stackable items with same `item_slug` may be consolidated
      *
      * **New items default to:**
      * - `equipped`: false
@@ -93,9 +93,9 @@ class CharacterEquipmentController extends Controller
      */
     public function store(StoreEquipmentRequest $request, Character $character): JsonResponse
     {
-        if ($request->item_id) {
+        if ($request->item_slug) {
             // Database item
-            $item = Item::findOrFail($request->item_id);
+            $item = Item::where('full_slug', $request->item_slug)->firstOrFail();
             $equipment = $this->equipmentManager->addItem(
                 $character,
                 $item,
@@ -105,7 +105,7 @@ class CharacterEquipmentController extends Controller
         } else {
             // Custom/freetext item
             $equipment = $character->equipment()->create([
-                'item_id' => null,
+                'item_slug' => null,
                 'custom_name' => $request->custom_name,
                 'custom_description' => $request->custom_description,
                 'quantity' => $request->quantity ?? 1,
@@ -188,7 +188,7 @@ class CharacterEquipmentController extends Controller
             $equipment->update(['quantity' => $request->quantity]);
         }
 
-        if ($equipment->item_id) {
+        if ($equipment->item_slug) {
             $equipment->load('item.itemType');
         }
 

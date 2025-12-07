@@ -31,12 +31,12 @@ class EquipmentChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
 
         // Create test items
-        $chainMail = Item::factory()->create(['name' => 'Chain Mail', 'slug' => 'chain-mail']);
-        $leatherArmor = Item::factory()->create(['name' => 'Leather Armor', 'slug' => 'leather-armor']);
+        $chainMail = Item::factory()->create(['name' => 'Test Chain Mail', 'slug' => 'test-chain-mail-1', 'full_slug' => 'test:test-chain-mail-1']);
+        $leatherArmor = Item::factory()->create(['name' => 'Test Leather Armor', 'slug' => 'test-leather-armor-1', 'full_slug' => 'test:test-leather-armor-1']);
 
         // Create a pending choice with two options
         $choice = new PendingChoice(
-            id: 'equipment:class:1:1:equipment_choice_1',
+            id: 'equipment|class|test:fighter|1|equipment_choice_1',
             type: 'equipment',
             subtype: null,
             source: 'class',
@@ -51,14 +51,14 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'a',
                     'label' => 'chain mail',
                     'items' => [
-                        ['id' => $chainMail->id, 'name' => 'Chain Mail', 'slug' => 'chain-mail', 'quantity' => 1],
+                        ['full_slug' => $chainMail->full_slug, 'name' => 'Test Chain Mail', 'slug' => 'test-chain-mail-1', 'quantity' => 1],
                     ],
                 ],
                 [
                     'option' => 'b',
                     'label' => 'leather armor',
                     'items' => [
-                        ['id' => $leatherArmor->id, 'name' => 'Leather Armor', 'slug' => 'leather-armor', 'quantity' => 1],
+                        ['full_slug' => $leatherArmor->full_slug, 'name' => 'Test Leather Armor', 'slug' => 'test-leather-armor-1', 'quantity' => 1],
                     ],
                 ],
             ],
@@ -72,7 +72,7 @@ class EquipmentChoiceReplacementTest extends TestCase
         // Verify character has Chain Mail
         $character->refresh();
         expect($character->equipment)->toHaveCount(1);
-        expect($character->equipment->first()->item_id)->toBe($chainMail->id);
+        expect($character->equipment->first()->item_slug)->toBe($chainMail->full_slug);
 
         // Second resolution: change to option 'b' (Leather Armor)
         $this->handler->resolve($character, $choice, ['selected' => 'b']);
@@ -80,7 +80,7 @@ class EquipmentChoiceReplacementTest extends TestCase
         // Verify character now has ONLY Leather Armor (Chain Mail should be replaced)
         $character->refresh();
         expect($character->equipment)->toHaveCount(1)
-            ->and($character->equipment->first()->item_id)->toBe($leatherArmor->id);
+            ->and($character->equipment->first()->item_slug)->toBe($leatherArmor->full_slug);
     }
 
     #[Test]
@@ -88,12 +88,12 @@ class EquipmentChoiceReplacementTest extends TestCase
     {
         $character = Character::factory()->create();
 
-        $sword = Item::factory()->create(['name' => 'Longsword', 'slug' => 'longsword']);
-        $bow = Item::factory()->create(['name' => 'Longbow', 'slug' => 'longbow']);
-        $arrows = Item::factory()->create(['name' => 'Arrows', 'slug' => 'arrow']);
+        $sword = Item::factory()->create(['name' => 'Test Longsword', 'slug' => 'test-longsword-2', 'full_slug' => 'test:test-longsword-2']);
+        $bow = Item::factory()->create(['name' => 'Test Longbow', 'slug' => 'test-longbow-2', 'full_slug' => 'test:test-longbow-2']);
+        $arrows = Item::factory()->create(['name' => 'Test Arrows', 'slug' => 'test-arrow-2', 'full_slug' => 'test:test-arrow-2']);
 
         $choice = new PendingChoice(
-            id: 'equipment:class:1:1:equipment_choice_2',
+            id: 'equipment|class|test:fighter|1|equipment_choice_2',
             type: 'equipment',
             subtype: null,
             source: 'class',
@@ -108,15 +108,15 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'a',
                     'label' => 'a longsword',
                     'items' => [
-                        ['id' => $sword->id, 'name' => 'Longsword', 'slug' => 'longsword', 'quantity' => 1],
+                        ['full_slug' => $sword->full_slug, 'name' => 'Test Longsword', 'slug' => 'test-longsword-2', 'quantity' => 1],
                     ],
                 ],
                 [
                     'option' => 'b',
                     'label' => 'a longbow and arrows',
                     'items' => [
-                        ['id' => $bow->id, 'name' => 'Longbow', 'slug' => 'longbow', 'quantity' => 1],
-                        ['id' => $arrows->id, 'name' => 'Arrows', 'slug' => 'arrow', 'quantity' => 20],
+                        ['full_slug' => $bow->full_slug, 'name' => 'Test Longbow', 'slug' => 'test-longbow-2', 'quantity' => 1],
+                        ['full_slug' => $arrows->full_slug, 'name' => 'Test Arrows', 'slug' => 'test-arrow-2', 'quantity' => 20],
                     ],
                 ],
             ],
@@ -135,7 +135,7 @@ class EquipmentChoiceReplacementTest extends TestCase
 
         // Should have ONLY the sword now
         expect($character->equipment)->toHaveCount(1)
-            ->and($character->equipment->first()->item_id)->toBe($sword->id);
+            ->and($character->equipment->first()->item_slug)->toBe($sword->full_slug);
     }
 
     #[Test]
@@ -143,12 +143,12 @@ class EquipmentChoiceReplacementTest extends TestCase
     {
         $character = Character::factory()->create();
 
-        $armor = Item::factory()->create(['name' => 'Chain Mail', 'slug' => 'chain-mail']);
-        $weapon = Item::factory()->create(['name' => 'Longsword', 'slug' => 'longsword']);
+        $armor = Item::factory()->create(['name' => 'Test Chain Mail', 'slug' => 'test-chain-mail-3', 'full_slug' => 'test:test-chain-mail-3']);
+        $weapon = Item::factory()->create(['name' => 'Test Longsword', 'slug' => 'test-longsword-3', 'full_slug' => 'test:test-longsword-3']);
 
         // Choice 1: Armor choice
         $armorChoice = new PendingChoice(
-            id: 'equipment:class:1:1:equipment_choice_1',
+            id: 'equipment|class|test:fighter|1|equipment_choice_1',
             type: 'equipment',
             subtype: null,
             source: 'class',
@@ -163,7 +163,7 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'a',
                     'label' => 'chain mail',
                     'items' => [
-                        ['id' => $armor->id, 'name' => 'Chain Mail', 'slug' => 'chain-mail', 'quantity' => 1],
+                        ['full_slug' => $armor->full_slug, 'name' => 'Test Chain Mail', 'slug' => 'test-chain-mail-3', 'quantity' => 1],
                     ],
                 ],
             ],
@@ -173,7 +173,7 @@ class EquipmentChoiceReplacementTest extends TestCase
 
         // Choice 2: Weapon choice (different choice_group)
         $weaponChoice = new PendingChoice(
-            id: 'equipment:class:1:1:equipment_choice_2',
+            id: 'equipment|class|test:fighter|1|equipment_choice_2',
             type: 'equipment',
             subtype: null,
             source: 'class',
@@ -188,7 +188,7 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'a',
                     'label' => 'a longsword',
                     'items' => [
-                        ['id' => $weapon->id, 'name' => 'Longsword', 'slug' => 'longsword', 'quantity' => 1],
+                        ['full_slug' => $weapon->full_slug, 'name' => 'Test Longsword', 'slug' => 'test-longsword-3', 'quantity' => 1],
                     ],
                 ],
             ],
@@ -207,8 +207,8 @@ class EquipmentChoiceReplacementTest extends TestCase
 
         // Should have BOTH items (different choice groups)
         expect($character->equipment)->toHaveCount(2);
-        $itemIds = $character->equipment->pluck('item_id')->toArray();
-        expect($itemIds)->toContain($armor->id)
-            ->and($itemIds)->toContain($weapon->id);
+        $itemSlugs = $character->equipment->pluck('item_slug')->toArray();
+        expect($itemSlugs)->toContain($armor->full_slug)
+            ->and($itemSlugs)->toContain($weapon->full_slug);
     }
 }

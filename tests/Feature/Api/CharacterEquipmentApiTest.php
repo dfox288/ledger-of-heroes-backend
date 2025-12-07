@@ -140,16 +140,19 @@ class CharacterEquipmentApiTest extends TestCase
     }
 
     #[Test]
-    public function it_validates_item_exists(): void
+    public function it_allows_dangling_item_reference(): void
     {
+        // Per #288, dangling references are allowed for portable character data
         $character = Character::factory()->create();
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/equipment", [
             'item_slug' => 'nonexistent:item',
         ]);
 
-        $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['item_slug']);
+        $response->assertCreated()
+            ->assertJsonPath('data.item_slug', 'nonexistent:item')
+            ->assertJsonPath('data.item', null)
+            ->assertJsonPath('data.is_dangling', true);
     }
 
     #[Test]

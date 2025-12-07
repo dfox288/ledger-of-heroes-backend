@@ -122,29 +122,33 @@ class CharacterControllerTest extends TestCase
     }
 
     #[Test]
-    public function it_validates_race_exists(): void
+    public function it_allows_dangling_race_reference(): void
     {
+        // Per #288, dangling references are allowed for portable character data
         $response = $this->postJson('/api/v1/characters', [
             'public_id' => 'test-hero-ef56',
             'name' => 'Test',
-            'race_slug' => 'nonexistent:race', // Non-existent
+            'race_slug' => 'nonexistent:race',
         ]);
 
-        $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['race_slug']);
+        $response->assertCreated()
+            ->assertJsonPath('data.name', 'Test')
+            ->assertJsonPath('data.race', null); // Race is null because it doesn't exist
     }
 
     #[Test]
-    public function it_validates_class_exists(): void
+    public function it_allows_dangling_class_reference(): void
     {
+        // Per #288, dangling references are allowed for portable character data
         $response = $this->postJson('/api/v1/characters', [
             'public_id' => 'test-hero-gh78',
             'name' => 'Test',
-            'class_slug' => 'nonexistent:class', // Non-existent
+            'class_slug' => 'nonexistent:class',
         ]);
 
-        $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['class_slug']);
+        $response->assertCreated()
+            ->assertJsonPath('data.name', 'Test')
+            ->assertJsonPath('data.class', null); // Class is null because it doesn't exist
     }
 
     // =====================

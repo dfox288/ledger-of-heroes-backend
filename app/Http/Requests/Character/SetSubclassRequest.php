@@ -11,10 +11,22 @@ class SetSubclassRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Map API field names to internal database column names.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('subclass')) {
+            $this->merge(['subclass_slug' => $this->input('subclass')]);
+        }
+    }
+
     public function rules(): array
     {
         return [
-            'subclass_id' => ['required', 'integer', 'exists:classes,id'],
+            // Accept 'subclass' as API param, mapped to subclass_slug
+            // No exists validation - dangling references allowed per #288
+            'subclass_slug' => ['required', 'string', 'max:150'],
         ];
     }
 }

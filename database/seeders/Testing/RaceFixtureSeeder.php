@@ -50,10 +50,18 @@ class RaceFixtureSeeder extends FixtureSeeder
         $hasCompleteAbilityScores = $totalAbilityPoints >= self::COMPLETE_RACE_ABILITY_THRESHOLD;
         $subraceRequired = ! $isSubrace && ! $hasCompleteAbilityScores;
 
+        // Generate full_slug from source (if available)
+        $fullSlug = null;
+        if (! empty($item['source'])) {
+            $sourceCode = strtolower($item['source']);
+            $fullSlug = $sourceCode.':'.$item['slug'];
+        }
+
         // Create race
         $race = Race::create([
             'name' => $item['name'],
             'slug' => $item['slug'],
+            'full_slug' => $fullSlug,
             'size_id' => $size?->id,
             'speed' => $item['speed'],
             'parent_race_id' => $parentRace?->id,

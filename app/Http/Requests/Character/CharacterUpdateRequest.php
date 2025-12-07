@@ -16,6 +16,24 @@ class CharacterUpdateRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Map API field names to internal database column names.
+     */
+    protected function prepareForValidation(): void
+    {
+        $mappings = [
+            'race' => 'race_slug',
+            'class' => 'class_slug',
+            'background' => 'background_slug',
+        ];
+
+        foreach ($mappings as $api => $db) {
+            if ($this->has($api)) {
+                $this->merge([$db => $this->input($api)]);
+            }
+        }
+    }
+
     public function rules(): array
     {
         $method = $this->getAbilityScoreMethod();
@@ -23,10 +41,11 @@ class CharacterUpdateRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
 
-            // Core choices
-            'race_slug' => ['sometimes', 'nullable', 'exists:races,full_slug'],
-            'class_slug' => ['sometimes', 'nullable', 'exists:classes,full_slug'],
-            'background_slug' => ['sometimes', 'nullable', 'exists:backgrounds,full_slug'],
+            // Core choices - accept API names (race, class, background) mapped to *_slug columns
+            // No exists validation - dangling references allowed per #288
+            'race_slug' => ['sometimes', 'nullable', 'string', 'max:150'],
+            'class_slug' => ['sometimes', 'nullable', 'string', 'max:150'],
+            'background_slug' => ['sometimes', 'nullable', 'string', 'max:150'],
 
             // Ability score method
             'ability_score_method' => ['sometimes', Rule::enum(AbilityScoreMethod::class)],

@@ -11,10 +11,22 @@ class ReplaceCharacterClassRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Map API field names to internal database column names.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('class')) {
+            $this->merge(['class_slug' => $this->input('class')]);
+        }
+    }
+
     public function rules(): array
     {
         return [
-            'class_id' => ['required', 'integer', 'exists:classes,id'],
+            // Accept 'class' as API param, mapped to class_slug
+            // No exists validation - dangling references allowed per #288
+            'class_slug' => ['required', 'string', 'max:150'],
             'force' => ['sometimes', 'boolean'],
         ];
     }

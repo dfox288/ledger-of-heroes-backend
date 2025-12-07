@@ -409,4 +409,71 @@ class ClassImporterTest extends TestCase
         $this->assertStringContainsString('74', $eldritchKnightSource->pages, 'Eldritch Knight should include page 74');
         $this->assertStringContainsString('75', $eldritchKnightSource->pages, 'Eldritch Knight should include page 75');
     }
+
+    #[Test]
+    public function it_populates_full_slug_for_subclasses()
+    {
+        // Issue #305: Subclasses should have full_slug populated with source prefix
+        // Parse the Fighter XML
+        $xmlPath = base_path('import-files/class-fighter-phb.xml');
+        $xmlContent = file_get_contents($xmlPath);
+        $parser = new ClassXmlParser;
+        $classes = $parser->parse($xmlContent);
+        $fighterData = $classes[0];
+
+        // Import the base Fighter class (which also imports subclasses)
+        $fighter = $this->importer->import($fighterData);
+
+        // Import subclasses and verify they have full_slug
+        foreach ($fighterData['subclasses'] as $subclassData) {
+            $subclass = $this->importer->importSubclass($fighter, $subclassData);
+
+            // Assert subclass has full_slug populated
+            $this->assertNotNull(
+                $subclass->full_slug,
+                "Subclass {$subclass->name} should have full_slug populated"
+            );
+
+            // Assert full_slug format: {source_code}:{slug}
+            $this->assertStringContainsString(
+                ':',
+                $subclass->full_slug,
+                "Subclass {$subclass->name} full_slug should contain colon separator"
+            );
+
+            // Assert full_slug starts with lowercase source code
+            $this->assertStringStartsWith(
+                'phb:',
+                $subclass->full_slug,
+                "Subclass {$subclass->name} full_slug should start with 'phb:'"
+            );
+        }
+
+        // Specifically check Battle Master
+        $battleMaster = CharacterClass::where('slug', 'fighter-battle-master')->first();
+        $this->assertNotNull($battleMaster);
+        $this->assertEquals(
+            'phb:fighter-battle-master',
+            $battleMaster->full_slug,
+            'Battle Master should have full_slug phb:fighter-battle-master'
+        );
+
+        // Specifically check Champion
+        $champion = CharacterClass::where('slug', 'fighter-champion')->first();
+        $this->assertNotNull($champion);
+        $this->assertEquals(
+            'phb:fighter-champion',
+            $champion->full_slug,
+            'Champion should have full_slug phb:fighter-champion'
+        );
+
+        // Specifically check Eldritch Knight
+        $eldritchKnight = CharacterClass::where('slug', 'fighter-eldritch-knight')->first();
+        $this->assertNotNull($eldritchKnight);
+        $this->assertEquals(
+            'phb:fighter-eldritch-knight',
+            $eldritchKnight->full_slug,
+            'Eldritch Knight should have full_slug phb:fighter-eldritch-knight'
+        );
+    }
 }

@@ -16,12 +16,24 @@ class StoreEquipmentRequest extends FormRequest
     }
 
     /**
+     * Map API field names to internal database column names.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('item')) {
+            $this->merge(['item_slug' => $this->input('item')]);
+        }
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function rules(): array
     {
         return [
-            'item_slug' => ['nullable', 'string', 'exists:items,full_slug'],
+            // Accept 'item' as API param, mapped to item_slug
+            // No exists validation - dangling references allowed per #288
+            'item_slug' => ['nullable', 'string', 'max:150'],
             'custom_name' => ['nullable', 'string', 'max:255'],
             'custom_description' => ['nullable', 'string', 'max:2000'],
             'quantity' => ['nullable', 'integer', 'min:1'],

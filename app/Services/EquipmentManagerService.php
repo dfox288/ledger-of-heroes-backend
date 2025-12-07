@@ -116,4 +116,86 @@ class EquipmentManagerService
     {
         return in_array($item->itemType?->code, ItemTypeCode::equippableCodes());
     }
+
+    /**
+     * Populate fixed (non-choice) equipment from the character's primary class.
+     *
+     * Only the primary class grants starting equipment.
+     * Multiclass additions do not grant additional equipment.
+     */
+    public function populateFromClass(Character $character): void
+    {
+        $primaryClass = $character->primary_class;
+        if (! $primaryClass) {
+            return;
+        }
+
+        $this->populateFromEntity($character, $primaryClass, 'class');
+    }
+
+    /**
+     * Populate fixed equipment from the character's background.
+     */
+    public function populateFromBackground(Character $character): void
+    {
+        if (! $character->background_slug) {
+            return;
+        }
+
+        $this->populateFromEntity($character, $character->background, 'background');
+    }
+
+    /**
+     * Populate all fixed equipment from class and background.
+     */
+    public function populateAll(Character $character): void
+    {
+        $this->populateFromClass($character);
+        $this->populateFromBackground($character);
+    }
+
+    /**
+     * Populate fixed equipment from an entity (class or background).
+     *
+     * @param  Character  $character  The character to populate
+     * @param  mixed  $entity  The source entity (CharacterClass or Background)
+     * @param  string  $source  The source identifier ('class' or 'background')
+     */
+    protected function populateFromEntity(Character $character, $entity, string $source): void
+    {
+        // Get fixed equipment (is_choice = false) with item relationship
+        $fixedEquipment = $entity->equipment()
+            ->where('is_choice', false)
+            ->with('item')
+            ->get();
+
+        foreach ($fixedEquipment as $entityItem) {
+            if (! $entityItem->item) {
+                continue;
+            }
+
+            $itemSlug = $entityItem->item->full_slug;
+
+            // Skip if this item already exists from this source
+            $exists = $character->equipment()
+                ->where('item_slug', $itemSlug)
+                ->where('custom_description', json_encode(['source' => $source]))
+                ->exists();
+
+            if ($exists) {
+                continue;
+            }
+
+            CharacterEquipment::create([
+                'character_id' => $character->id,
+                'item_slug' => $itemSlug,
+                'quantity' => $entityItem->quantity ?? 1,
+                'equipped' => false,
+                'custom_description' => json_encode(['source' => $source]),
+            ]);
+        }
+
+        // Refresh the relationship
+        $character->load('equipment');
+    }
 }

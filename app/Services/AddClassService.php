@@ -16,6 +16,7 @@ class AddClassService
     public function __construct(
         private MulticlassValidationService $validator,
         private SpellSlotService $spellSlotService,
+        private EquipmentManagerService $equipmentService,
     ) {}
 
     /**
@@ -83,6 +84,11 @@ class AddClassService
 
             // Recalculate spell slots when adding a new class (may gain spellcasting)
             $this->spellSlotService->recalculateMaxSlots($character->fresh());
+
+            // Grant fixed equipment for primary class only (multiclass doesn't get starting equipment)
+            if ($isPrimary) {
+                $this->equipmentService->populateFromClass($character->fresh());
+            }
 
             return $pivot;
         });

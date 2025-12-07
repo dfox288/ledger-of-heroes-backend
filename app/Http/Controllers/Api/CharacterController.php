@@ -17,6 +17,7 @@ use App\Models\CharacterClassPivot;
 use App\Services\CharacterLanguageService;
 use App\Services\CharacterProficiencyService;
 use App\Services\CharacterStatCalculator;
+use App\Services\EquipmentManagerService;
 use App\Services\HitDiceService;
 use App\Services\SpellSlotService;
 use Illuminate\Http\JsonResponse;
@@ -31,7 +32,8 @@ class CharacterController extends Controller
         private CharacterProficiencyService $proficiencyService,
         private CharacterLanguageService $languageService,
         private SpellSlotService $spellSlotService,
-        private HitDiceService $hitDiceService
+        private HitDiceService $hitDiceService,
+        private EquipmentManagerService $equipmentService
     ) {}
 
     /**
@@ -102,6 +104,14 @@ class CharacterController extends Controller
                 'order' => 1,
                 'hit_dice_spent' => 0,
             ]);
+
+            // Grant fixed equipment from primary class
+            $this->equipmentService->populateFromClass($character->fresh());
+        }
+
+        // Grant fixed equipment from background if provided
+        if ($character->background_slug) {
+            $this->equipmentService->populateFromBackground($character->fresh());
         }
 
         $character->load([
@@ -178,8 +188,16 @@ class CharacterController extends Controller
         $level = $validated['level'] ?? null;
         unset($validated['class_slug'], $validated['level']);
 
+        // Track if background is being assigned (for fixed equipment granting)
+        $previousBackgroundSlug = $character->background_slug;
+        $newBackgroundSlug = $validated['background_slug'] ?? null;
+        $backgroundAssigned = $newBackgroundSlug && $newBackgroundSlug !== $previousBackgroundSlug;
+
+        // Track if primary class is being assigned
+        $primaryClassAssigned = false;
+
         // Use transaction with pessimistic locking for all operations
-        DB::transaction(function () use ($character, &$validated, $classSlug, $level) {
+        DB::transaction(function () use ($character, &$validated, $classSlug, $level, &$primaryClassAssigned) {
             // Lock character row first for HP/death save consistency
             $character->lockForUpdate()->first();
 
@@ -209,6 +227,9 @@ class CharacterController extends Controller
                         'order' => $order,
                         'hit_dice_spent' => 0,
                     ]);
+
+                    // Track if we assigned a primary class (for equipment granting)
+                    $primaryClassAssigned = $isPrimary;
                 }
             }
 
@@ -222,6 +243,16 @@ class CharacterController extends Controller
 
             $character->update($validated);
         });
+
+        // Grant fixed equipment when primary class is assigned
+        if ($primaryClassAssigned) {
+            $this->equipmentService->populateFromClass($character->fresh());
+        }
+
+        // Grant fixed equipment when background is assigned
+        if ($backgroundAssigned) {
+            $this->equipmentService->populateFromBackground($character->fresh());
+        }
 
         $character->load([
             'race',

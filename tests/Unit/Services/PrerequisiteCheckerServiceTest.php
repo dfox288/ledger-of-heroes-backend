@@ -212,12 +212,12 @@ class PrerequisiteCheckerServiceTest extends TestCase
     {
         $acrobatics = Skill::firstOrCreate(
             ['name' => 'Acrobatics'],
-            ['slug' => 'acrobatics', 'ability_score_id' => 1]
+            ['slug' => 'acrobatics', 'full_slug' => 'test:acrobatics', 'ability_score_id' => 1]
         );
 
         $character = Character::factory()->create();
         $character->proficiencies()->create([
-            'skill_id' => $acrobatics->id,
+            'skill_slug' => $acrobatics->full_slug,
             'source' => 'background',
         ]);
 
@@ -239,7 +239,7 @@ class PrerequisiteCheckerServiceTest extends TestCase
     {
         $acrobatics = Skill::firstOrCreate(
             ['name' => 'Acrobatics'],
-            ['slug' => 'acrobatics', 'ability_score_id' => 1]
+            ['slug' => 'acrobatics', 'full_slug' => 'test:acrobatics', 'ability_score_id' => 1]
         );
 
         $character = Character::factory()->create();

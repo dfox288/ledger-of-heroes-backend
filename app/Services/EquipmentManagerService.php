@@ -17,7 +17,7 @@ class EquipmentManagerService
     {
         // Check for existing unequipped stack
         $existing = $character->equipment()
-            ->where('item_id', $item->id)
+            ->where('item_slug', $item->full_slug)
             ->where('equipped', false)
             ->first();
 
@@ -28,7 +28,7 @@ class EquipmentManagerService
         }
 
         return $character->equipment()->create([
-            'item_id' => $item->id,
+            'item_slug' => $item->full_slug,
             'quantity' => $quantity,
             'equipped' => false,
             'location' => 'backpack',

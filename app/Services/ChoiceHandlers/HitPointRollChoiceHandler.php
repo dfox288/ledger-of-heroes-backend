@@ -62,7 +62,7 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
             $averageResult = max(1, $average + $conModifier);
 
             $choice = new PendingChoice(
-                id: $this->generateChoiceId('hit_points', 'levelup', $character->id, $level, 'hp'),
+                id: $this->generateChoiceId('hit_points', 'levelup', (string) $character->id, $level, 'hp'),
                 type: 'hit_points',
                 subtype: null,
                 source: 'level_up',

@@ -73,7 +73,7 @@ class AsiChoiceHandler extends AbstractChoiceHandler
             $level = $asiLevels[$asiIndex] ?? ($asiIndex + 1) * 4;
 
             $choice = new PendingChoice(
-                id: $this->generateChoiceId('asi_or_feat', 'class', $primaryClass->id, $level, 'asi_'.($asiIndex + 1)),
+                id: $this->generateChoiceId('asi_or_feat', 'class', $primaryClass->full_slug, $level, 'asi_'.($asiIndex + 1)),
                 type: 'asi_or_feat',
                 subtype: null,
                 source: 'class',

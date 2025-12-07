@@ -126,7 +126,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             $quantity = $options->first()->quantity ?? 1;
 
             $choice = new PendingChoice(
-                id: $this->generateChoiceId('equipment', 'class', $primaryClass->id, 1, $choiceGroup),
+                id: $this->generateChoiceId('equipment', 'class', $primaryClass->full_slug, 1, $choiceGroup),
                 type: 'equipment',
                 subtype: null,
                 source: 'class',

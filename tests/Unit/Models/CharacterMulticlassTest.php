@@ -22,14 +22,14 @@ class CharacterMulticlassTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $wizard->id,
+            'class_slug' => $wizard->full_slug,
             'level' => 3,
             'is_primary' => false,
             'order' => 2,
@@ -48,14 +48,14 @@ class CharacterMulticlassTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $wizard->id,
+            'class_slug' => $wizard->full_slug,
             'level' => 3,
             'is_primary' => false,
             'order' => 2,
@@ -73,14 +73,14 @@ class CharacterMulticlassTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $wizard->id,
+            'class_slug' => $wizard->full_slug,
             'level' => 3,
             'is_primary' => false,
             'order' => 2,
@@ -97,7 +97,7 @@ class CharacterMulticlassTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -108,7 +108,7 @@ class CharacterMulticlassTest extends TestCase
         $wizard = CharacterClass::factory()->create(['parent_class_id' => null]);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $wizard->id,
+            'class_slug' => $wizard->full_slug,
             'level' => 1,
             'is_primary' => false,
             'order' => 2,
@@ -128,21 +128,21 @@ class CharacterMulticlassTest extends TestCase
         // Create in non-sequential order
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $cleric->id,
+            'class_slug' => $cleric->full_slug,
             'level' => 1,
             'is_primary' => false,
             'order' => 3,
         ]);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $wizard->id,
+            'class_slug' => $wizard->full_slug,
             'level' => 2,
             'is_primary' => false,
             'order' => 2,

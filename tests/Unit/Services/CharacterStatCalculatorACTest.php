@@ -47,6 +47,7 @@ class CharacterStatCalculatorACTest extends TestCase
         $this->leatherArmor = Item::create([
             'name' => 'Leather Armor',
             'slug' => 'leather-armor',
+            'full_slug' => 'test:leather-armor',
             'item_type_id' => $lightArmorType->id,
             'armor_class' => 11,
             'rarity' => 'common',
@@ -56,6 +57,7 @@ class CharacterStatCalculatorACTest extends TestCase
         $this->halfPlate = Item::create([
             'name' => 'Half Plate Armor',
             'slug' => 'half-plate-armor',
+            'full_slug' => 'test:half-plate-armor',
             'item_type_id' => $mediumArmorType->id,
             'armor_class' => 15,
             'rarity' => 'common',
@@ -65,6 +67,7 @@ class CharacterStatCalculatorACTest extends TestCase
         $this->plateArmor = Item::create([
             'name' => 'Plate Armor',
             'slug' => 'plate-armor',
+            'full_slug' => 'test:plate-armor',
             'item_type_id' => $heavyArmorType->id,
             'armor_class' => 18,
             'rarity' => 'common',
@@ -74,6 +77,7 @@ class CharacterStatCalculatorACTest extends TestCase
         $this->shield = Item::create([
             'name' => 'Shield',
             'slug' => 'shield',
+            'full_slug' => 'test:shield',
             'item_type_id' => $shieldType->id,
             'armor_class' => 2,
             'rarity' => 'common',

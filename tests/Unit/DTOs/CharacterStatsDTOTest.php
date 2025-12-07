@@ -51,7 +51,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         $character->characterClasses()->create([
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 1,
             'order' => 1,
             'is_primary' => true,
@@ -88,7 +88,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         $character->characterClasses()->create([
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 5, // +3 proficiency bonus
             'order' => 1,
             'is_primary' => true,
@@ -153,14 +153,14 @@ class CharacterStatsDTOTest extends TestCase
         $this->assertNotNull($stealthSkill, 'Stealth skill must exist');
 
         $character->proficiencies()->create([
-            'skill_id' => $stealthSkill->id,
+            'skill_slug' => $stealthSkill->full_slug,
             'expertise' => false,
         ]);
 
         // Need to set level for proficiency bonus
         $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter']);
         $character->characterClasses()->create([
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 1, // +2 proficiency bonus
             'order' => 1,
             'is_primary' => true,
@@ -188,13 +188,13 @@ class CharacterStatsDTOTest extends TestCase
         // Add Stealth expertise
         $stealthSkill = Skill::where('slug', 'stealth')->first();
         $character->proficiencies()->create([
-            'skill_id' => $stealthSkill->id,
+            'skill_slug' => $stealthSkill->full_slug,
             'expertise' => true,
         ]);
 
         $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter']);
         $character->characterClasses()->create([
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->full_slug,
             'level' => 1, // +2 proficiency bonus
             'order' => 1,
             'is_primary' => true,

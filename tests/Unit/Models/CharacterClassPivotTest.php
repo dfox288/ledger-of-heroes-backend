@@ -21,7 +21,7 @@ class CharacterClassPivotTest extends TestCase
 
         $pivot = CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $class->id,
+            'class_slug' => $class->full_slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -38,7 +38,7 @@ class CharacterClassPivotTest extends TestCase
 
         $pivot = CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $class->id,
+            'class_slug' => $class->full_slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
@@ -56,8 +56,8 @@ class CharacterClassPivotTest extends TestCase
 
         $pivot = CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $baseClass->id,
-            'subclass_id' => $subclass->id,
+            'class_slug' => $baseClass->full_slug,
+            'subclass_slug' => $subclass->full_slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
@@ -74,7 +74,7 @@ class CharacterClassPivotTest extends TestCase
 
         $pivot = CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $class->id,
+            'class_slug' => $class->full_slug,
             'level' => 5,
             'hit_dice_spent' => 2,
             'is_primary' => true,
@@ -93,7 +93,7 @@ class CharacterClassPivotTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $class->id,
+            'class_slug' => $class->full_slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -103,7 +103,7 @@ class CharacterClassPivotTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $class->id,
+            'class_slug' => $class->full_slug,
             'level' => 1,
             'is_primary' => false,
             'order' => 2,

@@ -182,7 +182,7 @@ class PrerequisiteCheckerService
         $character->loadMissing('proficiencies');
 
         $hasProficiency = $character->proficiencies
-            ->where('skill_id', $skill->id)
+            ->where('skill_slug', $skill->full_slug)
             ->isNotEmpty();
 
         return [

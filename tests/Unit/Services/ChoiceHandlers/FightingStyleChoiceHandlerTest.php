@@ -87,7 +87,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $this->fighter->id,
+            'class_slug' => $this->fighter->full_slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -118,7 +118,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $this->paladin->id,
+            'class_slug' => $this->paladin->full_slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -138,7 +138,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $this->ranger->id,
+            'class_slug' => $this->ranger->full_slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -158,7 +158,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $this->fighter->id,
+            'class_slug' => $this->fighter->full_slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -166,8 +166,8 @@ class FightingStyleChoiceHandlerTest extends TestCase
         // Create existing feature selection (Defense already taken by this Fighter)
         FeatureSelection::factory()->create([
             'character_id' => $character->id,
-            'optional_feature_id' => $this->defense->id,
-            'class_id' => $this->fighter->id,
+            'optional_feature_slug' => $this->defense->full_slug,
+            'class_slug' => $this->fighter->full_slug,
             'level_acquired' => 1,
         ]);
 
@@ -187,7 +187,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         // Fighter level 3 (gets fighting style at level 1)
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $this->fighter->id,
+            'class_slug' => $this->fighter->full_slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
@@ -196,7 +196,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         // Paladin level 2 (gets fighting style at level 2)
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $this->paladin->id,
+            'class_slug' => $this->paladin->full_slug,
             'level' => 2,
             'is_primary' => false,
             'order' => 2,
@@ -205,8 +205,8 @@ class FightingStyleChoiceHandlerTest extends TestCase
         // Fighter already has Archery
         FeatureSelection::factory()->create([
             'character_id' => $character->id,
-            'optional_feature_id' => $this->archery->id,
-            'class_id' => $this->fighter->id,
+            'optional_feature_slug' => $this->archery->full_slug,
+            'class_slug' => $this->fighter->full_slug,
             'level_acquired' => 1,
         ]);
 
@@ -229,7 +229,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $this->fighter->id,
+            'class_slug' => $this->fighter->full_slug,
             'level' => 0,  // Not yet level 1
             'is_primary' => true,
         ]);
@@ -248,7 +248,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
 
         // Create a pending choice
         $choice = new PendingChoice(
-            id: 'fighting_style:class:'.$this->fighter->id.':1:fighting_style',
+            id: 'fighting_style|class|'.$this->fighter->full_slug.'|1|fighting_style',
             type: 'fighting_style',
             subtype: null,
             source: 'class',
@@ -271,8 +271,8 @@ class FightingStyleChoiceHandlerTest extends TestCase
         // Verify feature selection was created
         $this->assertDatabaseHas('feature_selections', [
             'character_id' => $character->id,
-            'optional_feature_id' => $this->archery->id,
-            'class_id' => $this->fighter->id,
+            'optional_feature_slug' => $this->archery->full_slug,
+            'class_slug' => $this->fighter->full_slug,
             'level_acquired' => 1,
         ]);
     }
@@ -286,7 +286,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
 
         $choice = new PendingChoice(
-            id: 'fighting_style:class:'.$this->fighter->id.':1:fighting_style',
+            id: 'fighting_style|class|'.$this->fighter->full_slug.'|1|fighting_style',
             type: 'fighting_style',
             subtype: null,
             source: 'class',
@@ -312,7 +312,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
 
         $choice = new PendingChoice(
-            id: 'fighting_style:class:'.$this->fighter->id.':1:fighting_style',
+            id: 'fighting_style|class|'.$this->fighter->full_slug.'|1|fighting_style',
             type: 'fighting_style',
             subtype: null,
             source: 'class',
@@ -339,7 +339,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
 
         $choice = new PendingChoice(
-            id: 'fighting_style:class:'.$this->fighter->id.':1:fighting_style',
+            id: 'fighting_style|class|'.$this->fighter->full_slug.'|1|fighting_style',
             type: 'fighting_style',
             subtype: null,
             source: 'class',

@@ -53,7 +53,7 @@ class ExpertiseChoiceHandler extends AbstractChoiceHandler
                 $selected = $existingExpertise->pluck('id')->map('strval')->all();
 
                 $choice = new PendingChoice(
-                    id: $this->generateChoiceId('expertise', 'class', $class->id, $expertiseLevel, $choiceGroup),
+                    id: $this->generateChoiceId('expertise', 'class', $class->full_slug, $expertiseLevel, $choiceGroup),
                     type: 'expertise',
                     subtype: null,
                     source: 'class',

@@ -130,7 +130,7 @@ class CharacterSummaryTest extends TestCase
         // Character has selected 1 out of 2 languages
         CharacterLanguage::factory()->create([
             'character_id' => $character->id,
-            'language_id' => $common->id,
+            'language_slug' => $common->full_slug,
             'source' => 'race',
         ]);
 
@@ -216,7 +216,7 @@ class CharacterSummaryTest extends TestCase
         $class = CharacterClass::factory()->create(['hit_die' => 'd8']);
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $class->id,
+            'class_slug' => $class->full_slug,
             'level' => 5,
             'hit_dice_spent' => 2,
             'is_primary' => true,
@@ -323,12 +323,12 @@ class CharacterSummaryTest extends TestCase
 
         CharacterCondition::factory()->create([
             'character_id' => $character->id,
-            'condition_id' => $poisoned->id,
+            'condition_slug' => $poisoned->full_slug,
         ]);
 
         CharacterCondition::factory()->create([
             'character_id' => $character->id,
-            'condition_id' => $blinded->id,
+            'condition_slug' => $blinded->full_slug,
         ]);
 
         $response = $this->getJson("/api/v1/characters/{$character->id}/summary");
@@ -446,7 +446,7 @@ class CharacterSummaryTest extends TestCase
         $class = CharacterClass::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $class->id,
+            'class_slug' => $class->full_slug,
             'level' => 1,
             'is_primary' => true,
         ]);

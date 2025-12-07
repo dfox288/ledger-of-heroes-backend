@@ -26,10 +26,18 @@ class MonsterFixtureSeeder extends FixtureSeeder
         // Resolve size by code
         $size = Size::where('code', $item['size'])->first();
 
+        // Generate full_slug from source (if available)
+        $fullSlug = null;
+        if (! empty($item['source'])) {
+            $sourceCode = strtolower($item['source']);
+            $fullSlug = $sourceCode.':'.$item['slug'];
+        }
+
         // Create monster
         $monster = Monster::create([
             'name' => $item['name'],
             'slug' => $item['slug'],
+            'full_slug' => $fullSlug,
             'size_id' => $size?->id,
             'type' => $item['type'],
             'alignment' => $item['alignment'],

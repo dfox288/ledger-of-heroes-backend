@@ -184,10 +184,16 @@ jobs:
           - The file will be uploaded as a downloadable artifact automatically
           EOF
 
-          claude -p "$(cat /tmp/prompt.txt)" \
+          # Run claude and capture both stdout and stderr
+          if claude -p "$(cat /tmp/prompt.txt)" \
             --max-turns 15 \
             --allowedTools "Read,Write,Edit,Bash(git:*),Bash(gh:*)" \
-            2>/dev/null > /tmp/response.txt || true
+            > /tmp/response.txt 2>&1; then
+            CLAUDE_SUCCESS=true
+          else
+            CLAUDE_SUCCESS=false
+            echo "Claude command failed with exit code $?" >> /tmp/response.txt
+          fi
 
           # If Claude created files but couldn't push (e.g., workflow files),
           # save them for artifact upload
@@ -202,13 +208,40 @@ jobs:
             done < /tmp/changed-files.txt
           fi
 
-          # Only post comment if we have a meaningful response (not empty, not just errors)
-          if [ -s /tmp/response.txt ] && ! grep -qE "^(Error|error|ERROR):" /tmp/response.txt; then
-            gh issue comment ${{ github.event.issue.number }} \
-              --body "$(cat /tmp/response.txt)
+          # Always post a response - helps debug issues
+          if [ -s /tmp/response.txt ]; then
+            # Check if response looks like an error
+            if grep -qE "^(Error|error|ERROR):" /tmp/response.txt || [ "$CLAUDE_SUCCESS" = "false" ]; then
+              gh issue comment "$ISSUE_NUMBER" \
+                --body "🎲 **MeisterMind encountered an issue:**
+
+          \`\`\`
+          $(head -30 /tmp/response.txt)
+          \`\`\`
+
+          ---
+          *@meistermind*"
+            else
+              gh issue comment "$ISSUE_NUMBER" \
+                --body "$(cat /tmp/response.txt)
 
           ---
           *🎲 @meistermind*"
+            fi
+          else
+            # Response file is empty - something went wrong
+            gh issue comment "$ISSUE_NUMBER" \
+              --body "🎲 **MeisterMind couldn't process this request.** The response was empty.
+
+          This usually means:
+          - Claude CLI is not properly configured on the runner
+          - API authentication issue
+          - Rate limiting
+
+          Please check the workflow logs for details.
+
+          ---
+          *@meistermind*"
           fi
 
       - name: Upload created files

@@ -132,10 +132,13 @@ trait ParsesSourceCitations
             $source = $this->sourcesCache->get($sourceName);
         }
 
-        // If still not found, try fuzzy matching (case-insensitive)
+        // If still not found, try fuzzy matching (case-insensitive, ignoring year suffixes)
         if (! $source) {
             $source = $this->sourcesCache->first(function ($src) use ($normalizedName) {
-                return strcasecmp($src->name, $normalizedName) === 0;
+                // Normalize the DB source name too (remove year suffix like "(2014)")
+                $dbName = preg_replace('/\s*\(\d{4}\)\s*$/', '', $src->name);
+
+                return strcasecmp(trim($dbName), $normalizedName) === 0;
             });
         }
 

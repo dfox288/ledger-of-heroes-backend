@@ -79,7 +79,7 @@ class CharacterController extends Controller
      *
      * **Validation:**
      * - `name` (required): Character name
-     * - `race_slug`, `class_slug`, `background_id`: Must exist if provided
+     * - `race_slug`, `class_slug`, `background_slug`: Dangling references allowed per #288
      * - Ability scores (STR, DEX, etc.): Must be 3-20 if provided
      */
     public function store(CharacterStoreRequest $request): JsonResponse
@@ -167,7 +167,7 @@ class CharacterController extends Controller
      *
      * **Validation:**
      * - Ability scores must be 3-20
-     * - Slugs (race_slug, class_slug) and IDs (background_id) must exist
+     * - Slugs (race_slug, class_slug) and IDs (background_slug) must exist
      */
     public function update(CharacterUpdateRequest $request, Character $character): CharacterResource
     {

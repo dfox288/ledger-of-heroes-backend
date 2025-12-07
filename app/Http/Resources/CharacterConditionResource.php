@@ -9,15 +9,17 @@ class CharacterConditionResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $isExhaustion = $this->condition->slug === 'exhaustion';
+        $isExhaustion = $this->condition?->slug === 'exhaustion';
 
         return [
             'id' => $this->id,
-            'condition' => [
+            'condition' => $this->condition ? [
                 'id' => $this->condition->id,
                 'name' => $this->condition->name,
                 'slug' => $this->condition->slug,
-            ],
+            ] : null,
+            'condition_slug' => $this->condition_slug,
+            'is_dangling' => $this->condition === null,
             'level' => $this->level,
             'source' => $this->source,
             'duration' => $this->duration,

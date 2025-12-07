@@ -41,7 +41,7 @@ class CharacterClassController extends Controller
      * ```
      *
      * **Response includes:**
-     * - `class_id` and class details (name, slug, hit_die)
+     * - `class_slug` and class details (name, slug, hit_die)
      * - `level` in this class
      * - `subclass` (if selected, includes full subclass details)
      * - `is_primary` flag for the character's main class
@@ -70,10 +70,10 @@ class CharacterClassController extends Controller
      * POST /api/v1/characters/1/classes
      *
      * # Add Fighter class
-     * {"class_id": 5}
+     * {"class": "phb:fighter"}
      *
      * # Force add class (bypass prerequisites)
-     * {"class_id": 5, "force": true}
+     * {"class": "phb:fighter", "force": true}
      * ```
      *
      * **Request Body:**
@@ -280,16 +280,16 @@ class CharacterClassController extends Controller
      * PUT /api/v1/characters/1/classes/fighter     # Replace by slug
      *
      * # Request body
-     * {"class_id": 7}
+     * {"class": "phb:wizard"}
      *
      * # With force flag
-     * {"class_id": 7, "force": true}
+     * {"class": "phb:wizard", "force": true}
      * ```
      *
      * **Request Body:**
      * | Field | Type | Required | Description |
      * |-------|------|----------|-------------|
-     * | `class_id` | integer | Yes | ID of the new class |
+     * | `class` | string | Yes | Full slug of the new class (e.g., "phb:wizard") |
      * | `force` | boolean | No | Reserved for future DM override (default: false) |
      *
      * **Validation:**
@@ -364,16 +364,15 @@ class CharacterClassController extends Controller
      * PUT /api/v1/characters/1/classes/fighter/subclass     # Set by slug
      *
      * # Set Battle Master subclass for Fighter
-     * {"subclass_id": 42}
+     * {"subclass": "phb:battle-master"}
      *
-     * # Clear subclass (set to null)
-     * {"subclass_id": null}
+     * # Clear subclass (set to null) - not currently supported
      * ```
      *
      * **Request Body:**
      * | Field | Type | Required | Description |
      * |-------|------|----------|-------------|
-     * | `subclass_id` | integer\|null | Yes | ID of subclass, or null to clear |
+     * | `subclass` | string | Yes | Full slug of subclass (e.g., phb:battle-master) |
      *
      * **Subclass Level Requirements (by class):**
      * - Level 1: Cleric (Domain), Sorcerer (Origin), Warlock (Patron)
@@ -381,9 +380,10 @@ class CharacterClassController extends Controller
      * - Level 3: Most other classes (Fighter, Rogue, Ranger, etc.)
      *
      * **Validation:**
-     * - Subclass must belong to the specified class
+     * - Subclass must belong to the specified class (if it exists)
      * - Character must meet the class's subclass level requirement
      * - Class must exist on the character
+     * - Dangling references allowed per #288
      *
      * @param  SetSubclassRequest  $request  The validated request
      * @param  Character  $character  The character
@@ -397,7 +397,7 @@ class CharacterClassController extends Controller
         $class = is_numeric($classIdOrSlug)
             ? CharacterClass::findOrFail($classIdOrSlug)
             : CharacterClass::where('slug', $classIdOrSlug)->firstOrFail();
-        $pivot = $character->characterClasses()->where('class_id', $class->id)->first();
+        $pivot = $character->characterClasses()->where('class_slug', $class->full_slug)->first();
 
         if (! $pivot) {
             return response()->json([
@@ -405,10 +405,10 @@ class CharacterClassController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        $subclassId = $request->validated('subclass_id');
-        $subclass = CharacterClass::find($subclassId);
+        $subclassSlug = $request->validated('subclass_slug');
+        $subclass = CharacterClass::where('full_slug', $subclassSlug)->first();
 
-        // Validate subclass belongs to this class
+        // Validate subclass belongs to this class (only if subclass exists)
         if ($subclass && $subclass->parent_class_id !== $class->id) {
             throw new InvalidSubclassException($subclass->name, $class->name);
         }
@@ -421,7 +421,7 @@ class CharacterClassController extends Controller
             throw new SubclassLevelRequirementException($class->name, $pivot->level, $requiredLevel);
         }
 
-        $pivot->subclass_id = $subclassId;
+        $pivot->subclass_slug = $subclassSlug;
         $pivot->save();
         $pivot->load('characterClass', 'subclass');
 

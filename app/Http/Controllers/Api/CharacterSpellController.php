@@ -97,38 +97,59 @@ class CharacterSpellController extends Controller
      * POST /api/v1/characters/1/spells
      *
      * # Learn from class spell list
-     * {"spell_id": 123}
+     * {"spell": "phb:fireball"}
      *
      * # Learn from a feat
-     * {"spell_id": 123, "source": "feat"}
+     * {"spell": "phb:magic-missile", "source": "feat"}
      *
      * # Learn from racial trait
-     * {"spell_id": 456, "source": "race"}
+     * {"spell": "phb:dancing-lights", "source": "race"}
      * ```
      *
      * **Request Body:**
      * | Field | Type | Required | Description |
      * |-------|------|----------|-------------|
-     * | `spell_slug` | string | Yes | Full slug of the spell to learn |
+     * | `spell` | string | Yes | Full slug of the spell to learn (e.g., "phb:fireball") |
      * | `source` | string | No | How spell was acquired: class, race, feat, item, other (default: class) |
      *
      * **Validation:**
-     * - Spell must exist in database
      * - Spell must be on the character's class spell list (for class source)
      * - Spell level must be accessible at character's level
      * - Spell must not already be known by character
+     * - Dangling references allowed per #288
      */
     public function store(Request $request, Character $character): JsonResponse
     {
+        // Accept both 'spell' (new API) and 'spell_slug' (backwards compat)
         $validated = $request->validate([
-            'spell_slug' => ['required', 'exists:spells,full_slug'],
+            'spell' => ['required_without:spell_slug', 'string', 'max:150'],
+            'spell_slug' => ['required_without:spell', 'string', 'max:150'],
             'source' => ['sometimes', 'string', 'in:class,race,feat,item,other'],
         ]);
 
-        $spell = Spell::where('full_slug', $validated['spell_slug'])->firstOrFail();
+        $spellSlug = $validated['spell'] ?? $validated['spell_slug'];
+        $spell = Spell::where('full_slug', $spellSlug)->first();
         $source = $validated['source'] ?? 'class';
 
-        $characterSpell = $this->spellManager->learnSpell($character, $spell, $source);
+        // Check for duplicates (works with or without spell entity)
+        if ($character->spells()->where('spell_slug', $spellSlug)->exists()) {
+            return response()->json([
+                'message' => 'Character already knows this spell.',
+                'errors' => ['spell' => ['Character already knows this spell.']],
+            ], 422);
+        }
+
+        if ($spell) {
+            // Spell exists - use spell manager for proper validation
+            $characterSpell = $this->spellManager->learnSpell($character, $spell, $source);
+        } else {
+            // Dangling reference - create with slug only per #288
+            $characterSpell = $character->spells()->create([
+                'spell_slug' => $spellSlug,
+                'source' => $source,
+            ]);
+        }
+
         $characterSpell->load('spell.spellSchool');
 
         return (new CharacterSpellResource($characterSpell))

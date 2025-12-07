@@ -23,6 +23,8 @@ class CharacterLanguageResource extends JsonResource
                 'slug' => $this->language->slug,
                 'script' => $this->language->script,
             ] : null,
+            'language_slug' => $this->language_slug,
+            'is_dangling' => $this->language === null,
         ];
     }
 }

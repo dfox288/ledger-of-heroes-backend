@@ -20,7 +20,7 @@ class CharacterProficiencyResource extends JsonResource
             'expertise' => $this->expertise,
 
             // Skill proficiency
-            'skill' => $this->when($this->skill_id, function () {
+            'skill' => $this->when($this->skill_slug, function () {
                 return $this->skill ? [
                     'id' => $this->skill->id,
                     'name' => $this->skill->name,
@@ -28,9 +28,10 @@ class CharacterProficiencyResource extends JsonResource
                     'ability_code' => $this->skill->abilityScore?->code,
                 ] : null;
             }),
+            'skill_slug' => $this->skill_slug,
 
             // Equipment/tool proficiency
-            'proficiency_type' => $this->when($this->proficiency_type_id, function () {
+            'proficiency_type' => $this->when($this->proficiency_type_slug, function () {
                 return $this->proficiencyType ? [
                     'id' => $this->proficiencyType->id,
                     'name' => $this->proficiencyType->name,
@@ -38,6 +39,11 @@ class CharacterProficiencyResource extends JsonResource
                     'category' => $this->proficiencyType->category,
                 ] : null;
             }),
+            'proficiency_type_slug' => $this->proficiency_type_slug,
+
+            // Dangling reference detection
+            'is_dangling' => ($this->skill_slug !== null && $this->skill === null)
+                || ($this->proficiency_type_slug !== null && $this->proficiencyType === null),
         ];
     }
 }

@@ -18,6 +18,7 @@ class ConditionResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
+            'full_slug' => $this->full_slug,
             'description' => $this->description,
             /** @var int|null Number of monsters that inflict this condition */
             'monster_count' => $this->monsters_count ?? null,

@@ -21,6 +21,7 @@ class RaceResource extends JsonResource
         return [
             'id' => $this->id,
             'slug' => $this->slug,
+            'full_slug' => $this->full_slug,
             'name' => $this->name,
             'size' => new SizeResource($this->whenLoaded('size')),
             'speed' => $this->speed,

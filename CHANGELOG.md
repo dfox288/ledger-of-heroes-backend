@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `CharacterValidationResource` for consistent API response format
   - Detects slugs that don't resolve to entities (e.g., after sourcebook reimport)
 
+- **Issue #318**: Add `full_slug` to all entity API responses
+  - Added to: Race, Class, Background, Spell, Item, Feat, Monster, Language, Condition, OptionalFeature
+  - CharacterClassPivotResource now includes `full_slug` in nested class/subclass objects
+  - Required for frontend to use slug-based character references
+
 ### Changed
 
 - **Issue #293**: Update service layer for slug-based character references

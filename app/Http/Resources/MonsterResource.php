@@ -12,6 +12,7 @@ class MonsterResource extends JsonResource
         return [
             'id' => $this->id,
             'slug' => $this->slug,
+            'full_slug' => $this->full_slug,
             'name' => $this->name,
             'sort_name' => $this->sort_name,
             'size' => new SizeResource($this->whenLoaded('size')),

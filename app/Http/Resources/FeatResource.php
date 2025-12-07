@@ -17,6 +17,7 @@ class FeatResource extends JsonResource
         return [
             'id' => $this->id,
             'slug' => $this->slug,
+            'full_slug' => $this->full_slug,
             'name' => $this->name,
             'prerequisites_text' => $this->prerequisites_text,
             'prerequisites' => EntityPrerequisiteResource::collection($this->whenLoaded('prerequisites')),

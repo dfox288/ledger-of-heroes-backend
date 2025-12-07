@@ -17,6 +17,7 @@ class OptionalFeatureResource extends JsonResource
         return [
             'id' => $this->id,
             'slug' => $this->slug,
+            'full_slug' => $this->full_slug,
             'name' => $this->name,
             'feature_type' => $this->feature_type?->value,
             'feature_type_label' => $this->feature_type?->label(),

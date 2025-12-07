@@ -186,13 +186,21 @@ jobs:
           EOF
 
           # Run claude and capture both stdout and stderr
-          if claude -p "$(cat /tmp/prompt.txt)" \
+          # Use subshell to capture exit code without failing the step
+          set +e
+          claude -p "$(cat /tmp/prompt.txt)" \
             --max-turns 15 \
             --allowedTools "Read,Write,Edit,Bash(git:*),Bash(gh:*)" \
-            > /tmp/response.txt 2>&1; then
+            > /tmp/response.txt 2>&1
+          CLAUDE_EXIT_CODE=$?
+          set -e
+
+          if [ $CLAUDE_EXIT_CODE -eq 0 ]; then
             CLAUDE_SUCCESS=true
           else
             CLAUDE_SUCCESS=false
+            echo "" >> /tmp/response.txt
+            echo "--- Claude command failed with exit code $CLAUDE_EXIT_CODE ---" >> /tmp/response.txt
           fi
 
           # If Claude created files but couldn't push (e.g., workflow files),
@@ -208,32 +216,38 @@ jobs:
             done < /tmp/changed-files.txt
           fi
 
-          # Post response or error message
+          # Always post a response - helps debug issues
           if [ -s /tmp/response.txt ]; then
-            # Check if response looks like an error
-            if grep -qE "^(Error|error|ERROR):" /tmp/response.txt; then
-              gh issue comment "$ISSUE_NUMBER" \
-                --body "🎲 **MeisterMind encountered an issue:**
-
-          \`\`\`
-          $(head -20 /tmp/response.txt)
-          \`\`\`
-
-          ---
-          *@meistermind*"
-            else
+            if [ "$CLAUDE_SUCCESS" = "true" ]; then
+              # Success - post normal response
               gh issue comment "$ISSUE_NUMBER" \
                 --body "$(cat /tmp/response.txt)
 
           ---
           *🎲 @meistermind*"
+            else
+              # Claude failed - show error details
+              gh issue comment "$ISSUE_NUMBER" \
+                --body "🎲 **MeisterMind encountered an issue:**
+
+          \`\`\`
+          $(head -50 /tmp/response.txt)
+          \`\`\`
+
+          ---
+          *@meistermind*"
             fi
           else
             # Response file is empty - something went wrong
             gh issue comment "$ISSUE_NUMBER" \
               --body "🎲 **MeisterMind couldn't process this request.** The response was empty.
 
-          Please try again or check the workflow logs.
+          This usually means:
+          - Claude CLI is not properly configured on the runner
+          - API authentication issue
+          - Rate limiting
+
+          Please check the workflow logs for details.
 
           ---
           *@meistermind*"

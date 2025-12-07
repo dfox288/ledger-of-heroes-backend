@@ -678,8 +678,7 @@ class ClassImporter extends BaseImporter
         $class->equipment()->delete();
 
         foreach ($equipmentData['items'] as $itemData) {
-            // Create container entity_item
-            $entityItem = $class->equipment()->create([
+            $entityItemData = [
                 'description' => $itemData['description'],
                 'is_choice' => $itemData['is_choice'],
                 'choice_group' => $itemData['choice_group'] ?? null,
@@ -688,7 +687,16 @@ class ClassImporter extends BaseImporter
                 'choice_description' => $itemData['is_choice']
                     ? 'Starting equipment choice'
                     : null,
-            ]);
+            ];
+
+            // For fixed equipment (is_choice = false), match description to item
+            if (! $itemData['is_choice']) {
+                $item = $this->matchItemByDescription($itemData['description']);
+                $entityItemData['item_id'] = $item?->id;
+            }
+
+            // Create container entity_item
+            $entityItem = $class->equipment()->create($entityItemData);
 
             // Import structured choice_items if present
             if (! empty($itemData['choice_items'])) {

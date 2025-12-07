@@ -138,4 +138,40 @@ class CharacterChoiceApiTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    #[Test]
+    public function it_validates_item_selections_keys_must_be_in_selected(): void
+    {
+        $character = Character::factory()->create();
+
+        // item_selections key 'z' is not in selected array ['a']
+        $response = $this->postJson(
+            "/api/v1/characters/{$character->id}/choices/equipment|class|phb:bard|1|choice_1",
+            [
+                'selected' => ['a'],
+                'item_selections' => ['z' => ['phb:drum']],
+            ]
+        );
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['item_selections.z']);
+    }
+
+    #[Test]
+    public function it_validates_item_selections_cannot_be_empty_array(): void
+    {
+        $character = Character::factory()->create();
+
+        // item_selections for 'b' is an empty array
+        $response = $this->postJson(
+            "/api/v1/characters/{$character->id}/choices/equipment|class|phb:bard|1|choice_1",
+            [
+                'selected' => ['b'],
+                'item_selections' => ['b' => []],
+            ]
+        );
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['item_selections.b']);
+    }
 }

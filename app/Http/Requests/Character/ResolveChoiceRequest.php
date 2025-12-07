@@ -16,6 +16,13 @@ use Illuminate\Validation\Rule;
  * ```
  * The `selected` array contains IDs or slugs of the chosen options.
  *
+ * **Equipment Choice with Category Options**:
+ * ```json
+ * {"selected": ["b"], "item_selections": {"b": ["phb:drum"]}}
+ * ```
+ * When an equipment option is a category (e.g., "any musical instrument"),
+ * use `item_selections` to specify which item(s) from that category.
+ *
  * **ASI Choice** (Ability Score Improvement):
  * ```json
  * {"type": "asi", "increases": {"strength": 2, "dexterity": 1}}
@@ -48,10 +55,28 @@ class ResolveChoiceRequest extends FormRequest
 
     public function rules(): array
     {
+        $selected = $this->input('selected', []);
+
         return [
             // Generic selection (array of slugs)
             'selected' => ['sometimes', 'array'],
             'selected.*' => ['required_with:selected', 'string'],
+
+            // Equipment choice: specific item selections for category options
+            // Maps option letter to array of item slugs: {"b": ["phb:drum"]}
+            'item_selections' => ['sometimes', 'array'],
+            'item_selections.*' => [
+                'array',
+                'min:1', // Cannot be empty array
+                function ($attribute, $value, $fail) use ($selected) {
+                    // Extract option key from attribute (e.g., "item_selections.b" -> "b")
+                    $optionKey = str_replace('item_selections.', '', $attribute);
+                    if (! in_array($optionKey, $selected, true)) {
+                        $fail("The item_selections key '{$optionKey}' must be in the selected array.");
+                    }
+                },
+            ],
+            'item_selections.*.*' => ['string', 'max:150'],
 
             // ASI/Feat specific fields
             'type' => ['sometimes', 'string', Rule::in(['asi', 'feat'])],
@@ -67,6 +92,7 @@ class ResolveChoiceRequest extends FormRequest
     {
         return [
             'selected.array' => 'Selection must be an array of choices.',
+            'item_selections.*.min' => 'Each item_selections entry must contain at least one item slug.',
             'type.in' => 'Type must be either "asi" or "feat".',
             'feat_slug.required_if' => 'Feat slug is required when type is "feat".',
             'increases.required_if' => 'Ability score increases are required when type is "asi".',

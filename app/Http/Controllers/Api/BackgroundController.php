@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\DTOs\BackgroundSearchDTO;
+use App\Http\Controllers\Api\Concerns\AddsSearchableOptions;
 use App\Http\Controllers\Api\Concerns\CachesEntityShow;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BackgroundIndexRequest;
@@ -16,6 +17,7 @@ use MeiliSearch\Client;
 
 class BackgroundController extends Controller
 {
+    use AddsSearchableOptions;
     use CachesEntityShow;
 
     /**
@@ -111,7 +113,10 @@ class BackgroundController extends Controller
             $backgrounds = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 
-        return BackgroundResource::collection($backgrounds);
+        return $this->withSearchableOptions(
+            BackgroundResource::collection($backgrounds),
+            Background::class
+        );
     }
 
     /**

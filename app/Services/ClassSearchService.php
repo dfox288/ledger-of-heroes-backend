@@ -27,6 +27,7 @@ final class ClassSearchService
         'subclasses.counters',
         'tags',
         'parentClass',
+        'parentClass.levelProgression', // For subclass spellcasting_type
     ];
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\DTOs\ClassSearchDTO;
+use App\Http\Controllers\Api\Concerns\AddsSearchableOptions;
 use App\Http\Controllers\Api\Concerns\CachesEntityShow;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ClassIndexRequest;
@@ -20,6 +21,7 @@ use MeiliSearch\Client;
 
 class ClassController extends Controller
 {
+    use AddsSearchableOptions;
     use CachesEntityShow;
 
     /**
@@ -351,7 +353,10 @@ class ClassController extends Controller
             $classes = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 
-        return ClassResource::collection($classes);
+        return $this->withSearchableOptions(
+            ClassResource::collection($classes),
+            CharacterClass::class
+        );
     }
 
     /**

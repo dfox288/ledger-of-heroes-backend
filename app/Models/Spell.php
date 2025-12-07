@@ -105,18 +105,17 @@ class Spell extends BaseModel
      * Check if material components are consumed by the spell.
      *
      * Returns:
-     * - true if materials are consumed
-     * - false if materials exist but are not consumed
-     * - null if spell has no material components
+     * - true if materials are consumed (text contains "consume")
+     * - false if materials are not consumed or spell has no materials
      *
      * Note: Handles ~90% of cases. Edge cases with unusual formatting may not parse correctly.
      */
-    public function getMaterialConsumedAttribute(): ?bool
+    public function getMaterialConsumedAttribute(): bool
     {
         $materials = $this->material_components;
 
         if (empty($materials)) {
-            return null;
+            return false;
         }
 
         $materialsLower = strtolower($materials);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\DTOs\SpellSearchDTO;
+use App\Http\Controllers\Api\Concerns\AddsSearchableOptions;
 use App\Http\Controllers\Api\Concerns\CachesEntityShow;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SpellIndexRequest;
@@ -20,6 +21,7 @@ use MeiliSearch\Client;
 
 class SpellController extends Controller
 {
+    use AddsSearchableOptions;
     use CachesEntityShow;
 
     /**
@@ -129,7 +131,10 @@ class SpellController extends Controller
             $spells = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 
-        return SpellResource::collection($spells);
+        return $this->withSearchableOptions(
+            SpellResource::collection($spells),
+            Spell::class
+        );
     }
 
     /**

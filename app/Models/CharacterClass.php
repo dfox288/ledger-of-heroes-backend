@@ -211,13 +211,26 @@ class CharacterClass extends BaseModel
         }
 
         // Determine from max spell level if levelProgression is loaded
+        // For subclasses, check parent's progression if own is empty
+        $progression = null;
+
         if ($this->relationLoaded('levelProgression') && $this->levelProgression->isNotEmpty()) {
+            $progression = $this->levelProgression;
+        } elseif ($this->parent_class_id !== null
+            && $this->relationLoaded('parentClass')
+            && $this->parentClass
+            && $this->parentClass->relationLoaded('levelProgression')
+            && $this->parentClass->levelProgression->isNotEmpty()) {
+            $progression = $this->parentClass->levelProgression;
+        }
+
+        if ($progression !== null) {
             $ordinals = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
             $maxLevel = 0;
 
             for ($i = 1; $i <= 9; $i++) {
                 $column = "spell_slots_{$ordinals[$i - 1]}";
-                if ($this->levelProgression->max($column) > 0) {
+                if ($progression->max($column) > 0) {
                     $maxLevel = $i;
                 }
             }

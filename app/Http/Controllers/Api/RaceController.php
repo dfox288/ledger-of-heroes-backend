@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\DTOs\RaceSearchDTO;
+use App\Http\Controllers\Api\Concerns\AddsSearchableOptions;
 use App\Http\Controllers\Api\Concerns\CachesEntityShow;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RaceIndexRequest;
@@ -17,6 +18,7 @@ use MeiliSearch\Client as MeilisearchClient;
 
 class RaceController extends Controller
 {
+    use AddsSearchableOptions;
     use CachesEntityShow;
 
     /**
@@ -118,7 +120,10 @@ class RaceController extends Controller
             $races = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 
-        return RaceResource::collection($races);
+        return $this->withSearchableOptions(
+            RaceResource::collection($races),
+            Race::class
+        );
     }
 
     /**

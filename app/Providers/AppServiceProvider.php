@@ -86,47 +86,82 @@ class AppServiceProvider extends ServiceProvider
             PopulateCharacterAbilities::class
         );
 
-        // Custom route model binding that supports both ID and slug
+        // Custom route model binding that supports ID, slug, and full_slug
         Route::bind('spell', function ($value) {
-            return is_numeric($value)
-                ? Spell::findOrFail($value)
-                : Spell::where('slug', $value)->firstOrFail();
+            if (is_numeric($value)) {
+                return Spell::findOrFail($value);
+            }
+            if (str_contains($value, ':')) {
+                return Spell::where('full_slug', $value)->firstOrFail();
+            }
+
+            return Spell::where('slug', $value)->firstOrFail();
         });
 
         Route::bind('race', function ($value) {
-            return is_numeric($value)
-                ? Race::findOrFail($value)
-                : Race::where('slug', $value)->firstOrFail();
+            if (is_numeric($value)) {
+                return Race::findOrFail($value);
+            }
+            if (str_contains($value, ':')) {
+                return Race::where('full_slug', $value)->firstOrFail();
+            }
+
+            return Race::where('slug', $value)->firstOrFail();
         });
 
         Route::bind('background', function ($value) {
-            return is_numeric($value)
-                ? Background::findOrFail($value)
-                : Background::where('slug', $value)->firstOrFail();
+            if (is_numeric($value)) {
+                return Background::findOrFail($value);
+            }
+            if (str_contains($value, ':')) {
+                return Background::where('full_slug', $value)->firstOrFail();
+            }
+
+            return Background::where('slug', $value)->firstOrFail();
         });
 
         Route::bind('class', function ($value) {
-            return is_numeric($value)
-                ? CharacterClass::findOrFail($value)
-                : CharacterClass::where('slug', $value)->firstOrFail();
+            if (is_numeric($value)) {
+                return CharacterClass::findOrFail($value);
+            }
+            if (str_contains($value, ':')) {
+                return CharacterClass::where('full_slug', $value)->firstOrFail();
+            }
+
+            return CharacterClass::where('slug', $value)->firstOrFail();
         });
 
         Route::bind('item', function ($value) {
-            return is_numeric($value)
-                ? Item::findOrFail($value)
-                : Item::where('slug', $value)->firstOrFail();
+            if (is_numeric($value)) {
+                return Item::findOrFail($value);
+            }
+            if (str_contains($value, ':')) {
+                return Item::where('full_slug', $value)->firstOrFail();
+            }
+
+            return Item::where('slug', $value)->firstOrFail();
         });
 
         Route::bind('feat', function ($value) {
-            return is_numeric($value)
-                ? Feat::findOrFail($value)
-                : Feat::where('slug', $value)->firstOrFail();
+            if (is_numeric($value)) {
+                return Feat::findOrFail($value);
+            }
+            if (str_contains($value, ':')) {
+                return Feat::where('full_slug', $value)->firstOrFail();
+            }
+
+            return Feat::where('slug', $value)->firstOrFail();
         });
 
         Route::bind('monster', function ($value) {
-            return is_numeric($value)
-                ? Monster::findOrFail($value)
-                : Monster::where('slug', $value)->firstOrFail();
+            if (is_numeric($value)) {
+                return Monster::findOrFail($value);
+            }
+            if (str_contains($value, ':')) {
+                return Monster::where('full_slug', $value)->firstOrFail();
+            }
+
+            return Monster::where('slug', $value)->firstOrFail();
         });
 
         Route::bind('condition', function ($value) {

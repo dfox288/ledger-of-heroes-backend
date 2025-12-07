@@ -15,6 +15,8 @@ use MeiliSearch\Client;
 
 class FeatController extends Controller
 {
+    use Concerns\AddsSearchableOptions;
+
     /**
      * List all feats
      *
@@ -128,7 +130,10 @@ class FeatController extends Controller
             $feats = $service->buildDatabaseQuery($dto)->paginate($dto->perPage);
         }
 
-        return FeatResource::collection($feats);
+        return $this->withSearchableOptions(
+            FeatResource::collection($feats),
+            Feat::class
+        );
     }
 
     /**

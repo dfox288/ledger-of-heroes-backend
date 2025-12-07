@@ -138,25 +138,25 @@ class SpellAccessorsTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_returns_null_consumed_for_null_materials(): void
+    public function it_returns_false_consumed_for_null_materials(): void
     {
         $spell = Spell::factory()->create([
             'name' => 'Magic Missile',
             'material_components' => null,
         ]);
 
-        $this->assertNull($spell->material_consumed);
+        $this->assertFalse($spell->material_consumed);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_returns_null_consumed_for_empty_materials(): void
+    public function it_returns_false_consumed_for_empty_materials(): void
     {
         $spell = Spell::factory()->create([
             'name' => 'Fire Bolt',
             'material_components' => '',
         ]);
 
-        $this->assertNull($spell->material_consumed);
+        $this->assertFalse($spell->material_consumed);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

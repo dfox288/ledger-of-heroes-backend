@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BackgroundController;
 use App\Http\Controllers\Api\CharacterChoiceController;
 use App\Http\Controllers\Api\CharacterController;
+use App\Http\Controllers\Api\CharacterExportController;
 use App\Http\Controllers\Api\CharacterValidationController;
 use App\Http\Controllers\Api\ClassController;
 use App\Http\Controllers\Api\ConditionController;
@@ -246,6 +247,10 @@ Route::prefix('v1')->group(function () {
     Route::get('characters/validate-all', [CharacterValidationController::class, 'index'])
         ->name('characters.validate-all');
 
+    // Character Import (must come before apiResource to avoid {character} match)
+    Route::post('characters/import', [CharacterExportController::class, 'import'])
+        ->name('characters.import');
+
     Route::apiResource('characters', CharacterController::class);
     Route::get('characters/{character}/stats', [CharacterController::class, 'stats'])
         ->name('characters.stats');
@@ -253,6 +258,8 @@ Route::prefix('v1')->group(function () {
         ->name('characters.summary');
     Route::get('characters/{character}/validate', [CharacterValidationController::class, 'show'])
         ->name('characters.validate');
+    Route::get('characters/{character}/export', [CharacterExportController::class, 'export'])
+        ->name('characters.export');
 
     // Character Spell Management
     Route::prefix('characters/{character}')->name('characters.')->group(function () {

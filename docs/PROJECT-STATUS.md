@@ -10,7 +10,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 2,857+ passing (~11,500 assertions) - All test suites |
+| **Tests** | 2,880+ passing (~11,600 assertions) - All test suites |
 | **Test Coverage** | ~23% (Unit suites combined) - ongoing improvements |
 | **Test Files** | 310+ |
 | **Filter Tests** | 151 operator tests (2,750+ assertions) - 100% coverage |
@@ -26,11 +26,24 @@
 | **Search** | 3,600+ documents indexed (Scout + Meilisearch) |
 | **Code Quality** | Laravel Pint formatted |
 | **Enums** | 3 (AbilityScoreMethod, ItemTypeCode, CharacterSource) |
-| **DTOs** | 5 (AsiChoiceResult, PrerequisiteResult, ProficiencyStatus, LevelUpResult, + 1 existing) |
+| **DTOs** | 6 (AsiChoiceResult, PrerequisiteResult, ProficiencyStatus, LevelUpResult, CharacterImportResult, + 1 existing) |
 
 ---
 
 ## 🚀 Recent Milestones
+
+### Character Export/Import Feature ✅ COMPLETE (2025-12-07)
+- **Issues:** #295 (Export/Import), #297 (Quality Gates)
+- **New Endpoints:**
+  - `GET /api/v1/characters/{character}/export` - Export character as portable JSON
+  - `POST /api/v1/characters/import` - Import character from JSON
+- **New Services:**
+  - `CharacterExportService` - Builds complete portable representation
+  - `CharacterImportService` - Creates character with dangling reference detection
+- **New Resources:** `CharacterExportResource`, `CharacterImportResultResource`
+- **New Factories:** `SkillFactory`, `CharacterProficiencyFactory`
+- **Tests:** 19 new tests (111 assertions) in CharacterExportApiTest
+- **Documentation:** Migration guide added to `docs/backend/reference/`
 
 ### GitHub Issues Audit & Coverage Sprint Closure ✅ COMPLETE (2025-12-07)
 - **Issues Closed:** #232 (LevelUpService), #233 (Multiclass services)

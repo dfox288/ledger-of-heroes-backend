@@ -65,58 +65,8 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             foreach ($optionsByNumber as $optionNumber => $optionItems) {
                 $optionLetter = chr(96 + (int) $optionNumber); // 1 => 'a', 2 => 'b', etc.
 
-                // Get items for this option from choiceItems relationship
-                $items = [];
-
-                foreach ($optionItems as $optionItem) {
-                    foreach ($optionItem->choiceItems as $choiceItem) {
-                        if ($choiceItem->item) {
-                            // Build item data with optional contents for packs
-                            $itemData = [
-                                'id' => $choiceItem->item->id,
-                                'name' => $choiceItem->item->name,
-                                'slug' => $choiceItem->item->slug,
-                                'full_slug' => $choiceItem->item->full_slug,
-                                'quantity' => $choiceItem->quantity,
-                            ];
-
-                            // Include pack contents if available (filter out orphaned records)
-                            if ($choiceItem->item->contents && $choiceItem->item->contents->isNotEmpty()) {
-                                $contents = $choiceItem->item->contents
-                                    ->map(fn ($content) => [
-                                        'quantity' => $content->quantity,
-                                        'item' => $content->item ? [
-                                            'id' => $content->item->id,
-                                            'name' => $content->item->name,
-                                            'slug' => $content->item->slug,
-                                            'full_slug' => $content->item->full_slug,
-                                        ] : null,
-                                    ])
-                                    ->filter(fn ($c) => $c['item'] !== null)
-                                    ->values();
-
-                                if ($contents->isNotEmpty()) {
-                                    $itemData['contents'] = $contents->all();
-                                }
-                            }
-
-                            $items[] = $itemData;
-                        } elseif ($choiceItem->proficiencyType) {
-                            // Category-based choice (e.g., "any simple weapon")
-                            // Fetch all matching items and add them to the items array
-                            $categoryItems = $this->getItemsForProficiencyType($choiceItem->proficiencyType);
-                            foreach ($categoryItems as $categoryItem) {
-                                $items[] = [
-                                    'id' => $categoryItem->id,
-                                    'name' => $categoryItem->name,
-                                    'slug' => $categoryItem->slug,
-                                    'full_slug' => $categoryItem->full_slug,
-                                    'quantity' => $choiceItem->quantity,
-                                ];
-                            }
-                        }
-                    }
-                }
+                // Build items for this option using helper method
+                $optionData = $this->buildOptionItems($optionItems);
 
                 // Get label from EntityItem description field (e.g., "a rapier")
                 $label = $optionItems->first()?->description ?? '';
@@ -124,7 +74,9 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                 $builtOptions[] = [
                     'option' => $optionLetter,
                     'label' => $label,
-                    'items' => $items,
+                    'items' => $optionData['items'],
+                    'is_category' => $optionData['is_category'],
+                    'category_item_count' => $optionData['category_item_count'],
                 ];
             }
 
@@ -229,6 +181,23 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             );
         }
 
+        // Check if item_selections is required for this option
+        $itemSelections = $selection['item_selections'] ?? [];
+        $specificItems = $itemSelections[$selectedOption] ?? null;
+        $isCategory = $foundOption['is_category'] ?? false;
+        $optionItemCount = count($foundOption['items'] ?? []);
+
+        // Category options (e.g., "any simple weapon") require item_selections
+        // Bundle options (e.g., "a longbow and arrows") grant all items without item_selections
+        if ($isCategory && $specificItems === null) {
+            $itemWord = $optionItemCount === 1 ? 'item' : 'items';
+            throw new InvalidSelectionException(
+                $choice->id,
+                $selectedOption,
+                "Option '{$selectedOption}' has {$optionItemCount} {$itemWord} to choose from. Use item_selections to specify which item(s) you want."
+            );
+        }
+
         // Create metadata JSON to track the source, choice_group, and selected option
         $metadata = json_encode([
             'source' => $source,
@@ -244,8 +213,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             ->delete();
 
         // Determine which items to grant
-        $itemSelections = $selection['item_selections'] ?? [];
-        $specificItems = $itemSelections[$selectedOption] ?? null;
+        // ($itemSelections and $specificItems already defined above for validation)
 
         // If item_selections is provided for this option, only grant those specific items
         // Otherwise grant all items from the option (for fixed options like "a rapier")
@@ -303,6 +271,69 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             ->delete();
 
         $character->load('equipment');
+    }
+
+    /**
+     * Build the items array for an equipment option.
+     *
+     * Handles three types of items via EquipmentChoiceItem:
+     * - Category items (proficiency_type_id set): "any simple weapon" - returns all matching items
+     * - Pack items (item with contents): "explorer's pack" - expands to show pack contents
+     * - Regular items (item_id set): "a rapier" - returns the single item
+     *
+     * @return array{items: array, is_category: bool, category_item_count: int}
+     */
+    private function buildOptionItems(Collection $optionItems): array
+    {
+        $items = [];
+        $isCategory = false;
+        $categoryItemCount = 0;
+
+        foreach ($optionItems as $entityItem) {
+            // Process choice items (EquipmentChoiceItem records)
+            foreach ($entityItem->choiceItems as $choiceItem) {
+                // Category choice (e.g., "any simple weapon")
+                if ($choiceItem->proficiency_type_id && $choiceItem->proficiencyType) {
+                    $categoryItems = $this->getItemsForProficiencyType($choiceItem->proficiencyType);
+                    $isCategory = true;
+                    $categoryItemCount = $categoryItems->count();
+
+                    foreach ($categoryItems as $item) {
+                        $items[] = [
+                            'full_slug' => $item->full_slug,
+                            'name' => $item->name,
+                            'quantity' => $choiceItem->quantity ?? 1,
+                        ];
+                    }
+                } elseif ($choiceItem->item) {
+                    // Pack item - expand contents
+                    if ($choiceItem->item->contents->isNotEmpty()) {
+                        foreach ($choiceItem->item->contents as $content) {
+                            if ($content->item) {
+                                $items[] = [
+                                    'full_slug' => $content->item->full_slug,
+                                    'name' => $content->item->name,
+                                    'quantity' => $content->quantity ?? 1,
+                                ];
+                            }
+                        }
+                    } else {
+                        // Regular item
+                        $items[] = [
+                            'full_slug' => $choiceItem->item->full_slug,
+                            'name' => $choiceItem->item->name,
+                            'quantity' => $choiceItem->quantity ?? 1,
+                        ];
+                    }
+                }
+            }
+        }
+
+        return [
+            'items' => $items,
+            'is_category' => $isCategory,
+            'category_item_count' => $categoryItemCount,
+        ];
     }
 
     /**

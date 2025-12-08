@@ -107,4 +107,72 @@ class LanguageApiTest extends TestCase
             ])
             ->assertJsonPath('meta.per_page', 5);
     }
+
+    #[Test]
+    public function it_includes_is_learnable_field_in_response(): void
+    {
+        $response = $this->getJson('/api/v1/lookups/languages');
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => ['id', 'name', 'slug', 'is_learnable'],
+                ],
+            ]);
+    }
+
+    #[Test]
+    public function thieves_cant_is_not_learnable(): void
+    {
+        $language = Language::where('slug', 'thieves-cant')->first();
+
+        $this->assertNotNull($language, "Thieves' Cant should exist in seeded data");
+        $this->assertFalse($language->is_learnable);
+
+        $response = $this->getJson("/api/v1/lookups/languages/{$language->id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.is_learnable', false);
+    }
+
+    #[Test]
+    public function druidic_is_not_learnable(): void
+    {
+        $language = Language::where('slug', 'druidic')->first();
+
+        $this->assertNotNull($language, 'Druidic should exist in seeded data');
+        $this->assertFalse($language->is_learnable);
+
+        $response = $this->getJson("/api/v1/lookups/languages/{$language->id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.is_learnable', false);
+    }
+
+    #[Test]
+    public function common_is_learnable(): void
+    {
+        $language = Language::where('slug', 'common')->first();
+
+        $this->assertNotNull($language, 'Common should exist in seeded data');
+        $this->assertTrue($language->is_learnable);
+
+        $response = $this->getJson("/api/v1/lookups/languages/{$language->id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.is_learnable', true);
+    }
+
+    #[Test]
+    public function most_languages_are_learnable_by_default(): void
+    {
+        $learnableCount = Language::where('is_learnable', true)->count();
+        $notLearnableCount = Language::where('is_learnable', false)->count();
+
+        // Most languages should be learnable
+        $this->assertGreaterThan($notLearnableCount, $learnableCount);
+
+        // Only Thieves' Cant and Druidic should be non-learnable
+        $this->assertEquals(2, $notLearnableCount);
+    }
 }

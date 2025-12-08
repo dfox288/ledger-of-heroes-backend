@@ -23,6 +23,11 @@ class Language extends BaseModel
         'script',
         'typical_speakers',
         'description',
+        'is_learnable',
+    ];
+
+    protected $casts = [
+        'is_learnable' => 'boolean',
     ];
 
     public function entityLanguages(): HasMany

@@ -53,8 +53,8 @@ class RaceIndexRequestTest extends TestCase
         $response = $this->getJson('/api/v1/races?per_page=25&page=1');
         $response->assertOk();
 
-        // Invalid per_page (too high)
-        $response = $this->getJson('/api/v1/races?per_page=150');
+        // Invalid per_page (too high - max is 200)
+        $response = $this->getJson('/api/v1/races?per_page=250');
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('per_page');
 

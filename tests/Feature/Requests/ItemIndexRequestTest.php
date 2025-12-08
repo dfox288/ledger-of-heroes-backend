@@ -21,9 +21,9 @@ class ItemIndexRequestTest extends TestCase
         );
         $this->assertFalse($validator->fails());
 
-        // Per_page exceeds maximum
+        // Per_page exceeds maximum (max is 200)
         $validator = Validator::make(
-            ['per_page' => 150],
+            ['per_page' => 250],
             $request->rules()
         );
         $this->assertTrue($validator->fails());

@@ -74,7 +74,8 @@ class CharacterResource extends JsonResource
      */
     private function getAbilityScoresData(): array
     {
-        $abilityScores = $this->getAbilityScoresArray();
+        // Use getFinalAbilityScoresArray() to include racial bonuses (both fixed and chosen)
+        $abilityScores = $this->resource->getFinalAbilityScoresArray();
         $modifiers = $this->calculateModifiers($abilityScores);
         $proficiencyBonus = $this->calculator->proficiencyBonus($this->total_level);
 
@@ -295,21 +296,6 @@ class CharacterResource extends JsonResource
         }
 
         return null;
-    }
-
-    /**
-     * Get ability scores as keyed array.
-     */
-    private function getAbilityScoresArray(): array
-    {
-        return [
-            'STR' => $this->strength,
-            'DEX' => $this->dexterity,
-            'CON' => $this->constitution,
-            'INT' => $this->intelligence,
-            'WIS' => $this->wisdom,
-            'CHA' => $this->charisma,
-        ];
     }
 
     /**

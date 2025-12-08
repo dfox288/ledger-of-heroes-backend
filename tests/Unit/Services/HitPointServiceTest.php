@@ -551,6 +551,42 @@ class HitPointServiceTest extends TestCase
     }
 
     #[Test]
+    public function it_inherits_parent_race_hp_bonus_when_subrace_has_none(): void
+    {
+        // Create Dwarf parent race with HP modifier
+        $dwarf = Race::factory()->create([
+            'slug' => 'dwarf',
+            'full_slug' => 'dwarf',
+            'name' => 'Dwarf',
+            'parent_race_id' => null,
+        ]);
+
+        // Parent race gives +1 HP per level
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $dwarf->id,
+            'modifier_category' => 'hp',
+            'value' => 1,
+        ]);
+
+        // Create Mountain Dwarf subrace (NO HP modifier of its own)
+        $mountainDwarf = Race::factory()->create([
+            'slug' => 'dwarf-mountain',
+            'full_slug' => 'dwarf-mountain',
+            'name' => 'Mountain Dwarf',
+            'parent_race_id' => $dwarf->id,
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => $mountainDwarf->full_slug,
+        ]);
+
+        $bonus = $this->service->getRaceHpBonus($character);
+
+        $this->assertEquals(1, $bonus); // Should inherit parent's +1 HP
+    }
+
+    #[Test]
     public function it_combines_parent_and_subrace_hp_modifiers(): void
     {
         // Hypothetical scenario: both parent and subrace have HP modifiers

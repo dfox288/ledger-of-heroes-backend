@@ -161,30 +161,14 @@ class HitPointService
      */
     public function getRaceHpBonus(Character $character): int
     {
-        $race = $character->race;
-
-        if (! $race) {
-            return 0;
-        }
-
-        // Collect race IDs to check (current race + parent race if exists)
-        $raceIds = [$race->id];
-        if ($race->parent_race_id) {
-            $raceIds[] = $race->parent_race_id;
-        }
-
-        // Sum all hp modifiers from those races
-        return (int) Modifier::where('reference_type', Race::class)
-            ->whereIn('reference_id', $raceIds)
-            ->where('modifier_category', 'hp')
-            ->sum('value');
+        return $this->getRaceHpBonusBySlug($character->race_slug);
     }
 
     /**
      * Get the HP per level bonus for a specific race (by slug).
      *
-     * Helper method for recalculateForRaceChange() that can look up
-     * HP bonus for a race that may not be the character's current race.
+     * Looks up hp modifiers for a race and its parent race (if subrace).
+     * Used by getRaceHpBonus() and recalculateForRaceChange().
      */
     private function getRaceHpBonusBySlug(?string $raceSlug): int
     {
@@ -220,6 +204,15 @@ class HitPointService
         ?string $oldRaceSlug,
         ?string $newRaceSlug
     ): array {
+        // Guard: no adjustment if character has no levels
+        if ($character->total_level === 0) {
+            return [
+                'adjustment' => 0,
+                'new_max_hp' => $character->max_hit_points ?? 0,
+                'new_current_hp' => $character->current_hit_points ?? 0,
+            ];
+        }
+
         $oldBonus = $this->getRaceHpBonusBySlug($oldRaceSlug);
         $newBonus = $this->getRaceHpBonusBySlug($newRaceSlug);
         $diff = $newBonus - $oldBonus;

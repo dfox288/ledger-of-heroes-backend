@@ -64,12 +64,22 @@ class ClassImporter extends BaseImporter
         }
 
         // Generate full_slug with source prefix
-        // For classes, sources come from traits because the XML structure
-        // stores source references within trait elements rather than at the class level
+        // For classes, sources typically come from traits because the XML structure
+        // stores source references within trait elements rather than at the class level.
+        // However, some classes (e.g., Sidekick classes) have no traits but DO have
+        // features with source info - fall back to features in that case.
         $sources = [];
         foreach ($data['traits'] ?? [] as $trait) {
             if (! empty($trait['sources'])) {
                 $sources = array_merge($sources, $trait['sources']);
+            }
+        }
+        // Fall back to features if no sources found in traits
+        if (empty($sources)) {
+            foreach ($data['features'] ?? [] as $feature) {
+                if (! empty($feature['sources'])) {
+                    $sources = array_merge($sources, $feature['sources']);
+                }
             }
         }
         $fullSlug = $this->generateFullSlug($data['slug'], $sources);
@@ -130,6 +140,25 @@ class ClassImporter extends BaseImporter
 
             if (! empty($sources)) {
                 $this->importEntitySources($class, $sources);
+            }
+        } elseif (! empty($data['features'])) {
+            // For classes without traits (e.g., Sidekick classes), extract sources from features
+            $sources = [];
+            foreach ($data['features'] as $feature) {
+                if (! empty($feature['sources'])) {
+                    $sources = array_merge($sources, $feature['sources']);
+                }
+            }
+
+            // Remove duplicates based on code
+            $uniqueSources = [];
+            foreach ($sources as $source) {
+                $uniqueSources[$source['code']] = $source;
+            }
+            $sources = array_values($uniqueSources);
+
+            if (! empty($sources)) {
+                $this->importEntitySources($class, $sources, deduplicate: true);
             }
         }
 

@@ -23,7 +23,7 @@ abstract class BaseIndexRequest extends FormRequest
     {
         return array_merge([
             // Pagination
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:200'],
             'page' => ['sometimes', 'integer', 'min:1'],
 
             // Sorting

@@ -476,4 +476,71 @@ class ClassImporterTest extends TestCase
             'Eldritch Knight should have full_slug phb:fighter-eldritch-knight'
         );
     }
+
+    #[Test]
+    public function it_extracts_sources_from_features_for_base_classes_without_traits()
+    {
+        // Issue: Sidekick classes (Expert, Spellcaster, Warrior) have no traits
+        // but DO have features with source text. Sources should be extracted
+        // from features when no traits are present.
+
+        // Create test data simulating a Sidekick-style class (features only, no traits)
+        $testData = [
+            'name' => 'Test Sidekick',
+            'hit_die' => 8,
+            'traits' => [], // No traits - like Sidekick classes
+            'proficiencies' => [],
+            'features' => [
+                [
+                    'name' => 'Starting Test Sidekick',
+                    'level' => 1,
+                    'sort_order' => 1,
+                    'description' => 'This is a test sidekick class. Source: Tasha\'s Cauldron of Everything p. 142',
+                    'is_optional' => false,
+                    'sources' => [
+                        ['code' => 'TCE', 'page' => '142'],
+                    ],
+                ],
+                [
+                    'name' => 'Bonus Feature',
+                    'level' => 2,
+                    'sort_order' => 2,
+                    'description' => 'Another feature. Source: Tasha\'s Cauldron of Everything p. 143',
+                    'is_optional' => false,
+                    'sources' => [
+                        ['code' => 'TCE', 'page' => '143'],
+                    ],
+                ],
+            ],
+        ];
+
+        // Import the class
+        $class = $this->importer->import($testData);
+
+        // Assert class was created
+        $this->assertInstanceOf(CharacterClass::class, $class);
+        $this->assertEquals('Test Sidekick', $class->name);
+        $this->assertEquals('test-sidekick', $class->slug);
+
+        // Assert features were imported
+        $this->assertEquals(2, $class->features()->count(), 'Should have 2 features');
+
+        // Assert sources were extracted from features (the key test)
+        $this->assertGreaterThan(
+            0,
+            $class->sources()->count(),
+            'Base class with no traits should extract sources from features'
+        );
+
+        // Assert TCE is among the sources
+        $sourceCodes = $class->sources->pluck('source.code')->toArray();
+        $this->assertContains('TCE', $sourceCodes, 'Should have TCE source from features');
+
+        // Assert full_slug was generated with source prefix
+        $this->assertEquals(
+            'tce:test-sidekick',
+            $class->full_slug,
+            'Should have full_slug with TCE prefix'
+        );
+    }
 }

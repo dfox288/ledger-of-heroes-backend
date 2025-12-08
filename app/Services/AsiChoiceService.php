@@ -63,12 +63,14 @@ class AsiChoiceService
             // Apply changes
             $character->asi_choices_remaining--;
             $this->applyAbilityChanges($character, $abilityIncreases);
-            $character->save();
 
             $this->createCharacterFeature($character, $feat);
             $proficienciesGained = $this->grantFeatProficiencies($character, $feat);
             $spellsGained = $this->grantFeatSpells($character, $feat);
             $hpBonus = $this->applyRetroactiveHpBonus($character, $feat);
+
+            // Save all character changes once at end of transaction
+            $character->save();
 
             return new AsiChoiceResult(
                 choiceType: 'feat',
@@ -330,10 +332,9 @@ class AsiChoiceService
         $totalLevel = $character->total_level ?: 1;
         $hpBonus = $hpPerLevel * $totalLevel;
 
-        // Apply retroactive HP bonus
+        // Apply retroactive HP bonus (saved by caller)
         $character->max_hit_points = ($character->max_hit_points ?? 0) + $hpBonus;
         $character->current_hit_points = ($character->current_hit_points ?? 0) + $hpBonus;
-        $character->save();
 
         return $hpBonus;
     }

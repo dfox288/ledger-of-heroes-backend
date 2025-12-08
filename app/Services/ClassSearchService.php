@@ -25,6 +25,7 @@ final class ClassSearchService
         'counters',
         'subclasses.features',
         'subclasses.counters',
+        'subclasses.sources.source',
         'tags',
         'parentClass',
         'parentClass.levelProgression', // For subclass spellcasting_type
@@ -74,6 +75,7 @@ final class ClassSearchService
         'subclasses.features.childFeatures',
         'subclasses.features.spells',
         'subclasses.counters',
+        'subclasses.sources.source',
         'tags',
         'multiclassRequirements.abilityScore',
         'parentClass.multiclassRequirements.abilityScore',

@@ -22,6 +22,7 @@ class LanguageResource extends JsonResource
             'script' => $this->script,
             'typical_speakers' => $this->typical_speakers,
             'description' => $this->description,
+            'is_learnable' => $this->is_learnable,
         ];
     }
 }

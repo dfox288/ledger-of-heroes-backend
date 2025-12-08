@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #381**: Add 'is_learnable' flag to languages table
+  - New `is_learnable` boolean column on `languages` table (default: true)
+  - Thieves' Cant and Druidic marked as non-learnable (class features only)
+  - LanguageResource now includes `is_learnable` field in API responses
+  - Frontend can filter language selectors to exclude non-learnable languages
+  - 5 new tests for is_learnable functionality
+
 - **Issue #377**: Parse Bonus Feat Grants for Races
   - RaceXmlParser now detects "Feat" traits and creates `bonus_feat` modifier
   - Variant Human and Custom Lineage now have `bonus_feat` modifier with value 1

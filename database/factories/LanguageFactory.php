@@ -30,6 +30,7 @@ class LanguageFactory extends Factory
             'script' => fake()->optional()->words(2, true),
             'typical_speakers' => fake()->optional()->words(3, true),
             'description' => fake()->optional()->sentence(),
+            'is_learnable' => true,
         ];
     }
 
@@ -64,6 +65,16 @@ class LanguageFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'typical_speakers' => $speakers,
+        ]);
+    }
+
+    /**
+     * Create a non-learnable language (like Thieves' Cant or Druidic).
+     */
+    public function notLearnable(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_learnable' => false,
         ]);
     }
 }

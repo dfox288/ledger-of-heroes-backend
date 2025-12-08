@@ -140,18 +140,20 @@ class LanguageSeeder extends Seeder
                 'description' => 'The dialect of Primordial spoken by earth elementals',
             ],
 
-            // Secret Languages
+            // Secret Languages (not learnable - only granted by class features)
             [
                 'name' => 'Druidic',
                 'script' => 'Druidic',
                 'typical_speakers' => 'Druids',
                 'description' => 'The secret language of druids, forbidden to non-druids',
+                'is_learnable' => false,
             ],
             [
                 'name' => "Thieves' Cant",
                 'script' => null,
                 'typical_speakers' => 'Rogues',
                 'description' => 'A secret mix of dialect, jargon, and code used by rogues',
+                'is_learnable' => false,
             ],
 
             // Eberron Languages
@@ -222,6 +224,7 @@ class LanguageSeeder extends Seeder
                     'script' => $language['script'],
                     'typical_speakers' => $language['typical_speakers'],
                     'description' => $language['description'] ?? null,
+                    'is_learnable' => $language['is_learnable'] ?? true,
                 ]
             );
         }

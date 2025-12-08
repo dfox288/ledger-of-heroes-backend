@@ -33,8 +33,8 @@ class FeatIndexRequestTest extends TestCase
         $response = $this->getJson('/api/v1/feats?per_page=25&page=2');
         $response->assertStatus(200);
 
-        // Invalid per_page (too high)
-        $response = $this->getJson('/api/v1/feats?per_page=200');
+        // Invalid per_page (too high - max is 200)
+        $response = $this->getJson('/api/v1/feats?per_page=250');
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['per_page']);
 

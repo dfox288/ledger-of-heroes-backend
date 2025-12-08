@@ -45,19 +45,28 @@ class CharacterController extends Controller
      * ```
      * GET /api/v1/characters               # All characters
      * GET /api/v1/characters?per_page=10   # Custom page size
+     * GET /api/v1/characters?q=gandalf     # Search by name
      * ```
      */
     public function index(CharacterIndexRequest $request)
     {
         $perPage = $request->validated('per_page', 15);
 
-        $characters = Character::with([
+        $query = Character::with([
             'race',
             'background',
             'characterClasses.characterClass.levelProgression',
             'characterClasses.subclass',
             'media',
-        ])->paginate($perPage);
+        ]);
+
+        // Filter by name when q parameter is provided
+        if ($request->has('q')) {
+            $search = $request->validated('q');
+            $query->where('name', 'LIKE', "%{$search}%");
+        }
+
+        $characters = $query->paginate($perPage);
 
         return CharacterResource::collection($characters);
     }

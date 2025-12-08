@@ -43,6 +43,74 @@ class CharacterControllerTest extends TestCase
             ->assertJsonCount(0, 'data');
     }
 
+    #[Test]
+    public function it_filters_characters_by_name_with_q_parameter(): void
+    {
+        Character::factory()->create(['name' => 'Gandalf the Grey']);
+        Character::factory()->create(['name' => 'Legolas']);
+        Character::factory()->create(['name' => 'Aragorn']);
+
+        $response = $this->getJson('/api/v1/characters?q=gandalf');
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'Gandalf the Grey');
+    }
+
+    #[Test]
+    public function it_returns_all_characters_when_q_is_not_provided(): void
+    {
+        Character::factory()->count(3)->create();
+
+        $response = $this->getJson('/api/v1/characters');
+
+        $response->assertOk()
+            ->assertJsonCount(3, 'data');
+    }
+
+    #[Test]
+    public function it_searches_characters_case_insensitively(): void
+    {
+        Character::factory()->create(['name' => 'Gandalf']);
+        Character::factory()->create(['name' => 'GANDALF']);
+        Character::factory()->create(['name' => 'Other']);
+
+        $response = $this->getJson('/api/v1/characters?q=gandalf');
+
+        $response->assertOk()
+            ->assertJsonCount(2, 'data');
+    }
+
+    #[Test]
+    public function it_supports_partial_name_matching(): void
+    {
+        Character::factory()->create(['name' => 'Gandalf the Grey']);
+        Character::factory()->create(['name' => 'Gandalf the White']);
+        Character::factory()->create(['name' => 'Legolas']);
+
+        $response = $this->getJson('/api/v1/characters?q=the');
+
+        $response->assertOk()
+            ->assertJsonCount(2, 'data');
+    }
+
+    #[Test]
+    public function it_paginates_search_results(): void
+    {
+        // Create 5 characters with "Test" in name
+        for ($i = 1; $i <= 5; $i++) {
+            Character::factory()->create(['name' => "Test Character $i"]);
+        }
+        Character::factory()->create(['name' => 'Other']);
+
+        $response = $this->getJson('/api/v1/characters?q=Test&per_page=2');
+
+        $response->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('meta.total', 5)
+            ->assertJsonPath('meta.per_page', 2);
+    }
+
     // =====================
     // Store Tests (Create)
     // =====================

@@ -12,6 +12,11 @@ use Illuminate\Support\Collection;
 
 class HitPointRollChoiceHandler extends AbstractChoiceHandler
 {
+    /**
+     * Level 1 HP is automatic (max hit die + CON modifier), no choice needed.
+     */
+    private const AUTOMATIC_HP_LEVEL = 1;
+
     public function getType(): string
     {
         return 'hit_points';
@@ -130,6 +135,12 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
         // Update character HP
         $character->max_hit_points = ($character->max_hit_points ?? 0) + $hpGained;
         $character->current_hit_points = ($character->current_hit_points ?? 0) + $hpGained;
+
+        // Mark this level's HP as resolved
+        $resolvedLevels = $character->hp_levels_resolved ?? [];
+        $resolvedLevels[] = $choice->levelGranted;
+        $character->hp_levels_resolved = array_unique($resolvedLevels);
+
         $character->save();
     }
 
@@ -158,18 +169,24 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
     /**
      * Check if character has a pending HP choice for the given level
      *
-     * For now, this always returns true for levels > 1
-     * In production, this would check against tracked HP choices or a pending_hp_level column
+     * Checks the hp_levels_resolved JSON column to see if this level's HP has been resolved.
+     * Level 1 HP is automatic (max hit die + CON), so only levels 2+ need choices.
      */
     private function hasPendingHpChoice(Character $character, int $level): bool
     {
-        // Simple implementation: assume pending if level > 1
-        // Real implementation would track which levels have had HP choices resolved
-        // This could be via:
-        // - A pending_hp_level column on characters table
-        // - A separate hp_choices table tracking resolved levels
-        // - Comparing expected HP to actual HP based on level
+        // Level 1 HP is automatic - no choice needed
+        if ($level <= self::AUTOMATIC_HP_LEVEL) {
+            return false;
+        }
 
-        return $level > 1;
+        // Check if this level has been resolved
+        $resolvedLevels = $character->hp_levels_resolved ?? [];
+
+        // Validate it's actually an array (guard against corrupted JSON)
+        if (! is_array($resolvedLevels)) {
+            $resolvedLevels = [];
+        }
+
+        return ! in_array($level, $resolvedLevels, true);
     }
 }

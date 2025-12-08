@@ -42,6 +42,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #354**: Refactor LevelUpService to use CharacterClassPivot
+  - LevelUpService now correctly reads `total_level` accessor and increments level on `CharacterClassPivot`
+  - Added multiclass support: `levelUp($character, $classSlug)` to level a specific class
+  - HP is no longer auto-applied; deferred to `HitPointRollChoiceHandler` for roll/average choice
+  - `HitPointRollChoiceHandler` now uses `hp_levels_resolved` JSON column to track resolved HP choices
+  - Resolving HP choice now marks the level in `hp_levels_resolved` array
+  - Added `hp_levels_resolved` column to `characters` table migration
+
 - **Issue #279**: Extract speed values from race traits
   - Parser now correctly extracts `fly_speed`, `swim_speed`, and `climb_speed` from trait descriptions
   - Added support for "equal to your walking speed" patterns (e.g., Fairy, Dhampir)

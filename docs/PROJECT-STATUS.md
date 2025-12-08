@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated:** 2025-12-07
+**Last Updated:** 2025-12-08
 **Branch:** main
 **Status:** ✅ Refactoring & Test Coverage Complete
 
@@ -22,7 +22,7 @@
 | **Import Commands** | 12 (10 standardized with BaseImportCommand) |
 | **Monster Strategies** | 12 (95%+ coverage) |
 | **Importer Traits** | 19 reusable (~400 lines eliminated) |
-| **Parser Traits** | 16 reusable (~150 lines eliminated) |
+| **Parser Traits** | 17 reusable (~150 lines eliminated) |
 | **Search** | 3,600+ documents indexed (Scout + Meilisearch) |
 | **Code Quality** | Laravel Pint formatted |
 | **Enums** | 3 (AbilityScoreMethod, ItemTypeCode, CharacterSource) |
@@ -31,6 +31,25 @@
 ---
 
 ## 🚀 Recent Milestones
+
+### Spell Scaling Increment Parsing ✅ COMPLETE (2025-12-08)
+- **Issue:** #198
+- **PR:** #99
+- **Scope:** Parse `scaling_increment` values from spell "At Higher Levels" text
+
+**Features Implemented:**
+- New `ParsesScalingIncrement` trait with regex patterns for dice (1d6, 3d6) and flat (5) values
+- Integrated into `SpellXmlParser` - applies scaling to damage AND healing effects
+- `scaling_increment` field now populated for 485 spell effects after import
+
+**Data Impact:**
+| Effect Type | Count |
+|-------------|-------|
+| Damage effects with scaling | 437 |
+| Healing effects with scaling | 48 |
+| **Total** | **485** |
+
+**Tests:** 11 new tests (8 unit, 2 parser integration, 1 import integration)
 
 ### Character Export/Import Feature ✅ COMPLETE (2025-12-07)
 - **Issues:** #295 (Export/Import), #297 (Quality Gates)
@@ -627,6 +646,7 @@ All controllers now have consistent error response documentation with HTTP statu
 - Parser Improvements (Issues #279, #280)
 
 ### Recently Completed
+- ✅ Spell Scaling Increment Parsing (Issue #198) - PR #99 merged
 - ✅ Coverage issues #231, #232, #233, #234, #237, #238 - All closed
 - ✅ Character Builder API Documentation (Issue #155) - PR #48 merged
 - ✅ OpenAPI Type Annotations (Issues #157, #158, #159) - PR #47 merged
@@ -709,8 +729,8 @@ docker compose exec php php artisan search:configure-indexes
 
 ---
 
-**Last Updated:** 2025-12-07
-**Next Session:** Slug-Based Character References (Epic #288), Character HP (#254), or Feature Uses Tracking (#256)
+**Last Updated:** 2025-12-08
+**Next Session:** Feature Uses Tracking (#256), Test Coverage (#240), or XP-Based Leveling (#95)
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

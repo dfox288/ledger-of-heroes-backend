@@ -136,15 +136,20 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
                 );
             }
 
-            if (! is_int($rollResult) && ! is_numeric($rollResult)) {
+            // Strict integer validation - reject floats and non-integer strings
+            if (is_int($rollResult)) {
+                // Already an integer, good
+            } elseif (is_string($rollResult) && ctype_digit($rollResult)) {
+                // String containing only digits (e.g., "7"), cast to int
+                $rollResult = (int) $rollResult;
+            } else {
+                // Reject floats (7.5), float strings ("7.5"), and non-numeric values
                 throw new InvalidSelectionException(
                     $choice->id,
                     'manual',
                     'roll_result must be an integer'
                 );
             }
-
-            $rollResult = (int) $rollResult;
 
             if ($rollResult < 1 || $rollResult > $hitDie) {
                 throw new InvalidSelectionException(

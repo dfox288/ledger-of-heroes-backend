@@ -819,6 +819,39 @@ class HitPointRollChoiceHandlerTest extends TestCase
     }
 
     /** @test */
+    public function it_throws_exception_when_roll_result_is_float(): void
+    {
+        $this->expectException(InvalidSelectionException::class);
+        $this->expectExceptionMessage('roll_result must be an integer');
+
+        $character = Character::factory()->create();
+
+        $choice = new PendingChoice(
+            id: 'hit_points:levelup:1:2',
+            type: 'hit_points',
+            subtype: null,
+            source: 'level_up',
+            sourceName: 'Level 2',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: [
+                'hit_die' => 'd10',
+                'con_modifier' => 0,
+            ],
+        );
+
+        $this->handler->resolve($character, $choice, [
+            'selected' => 'manual',
+            'roll_result' => 7.5,
+        ]);
+    }
+
+    /** @test */
     public function it_enforces_minimum_1_hp_on_manual_roll_with_negative_con(): void
     {
         $class = CharacterClass::factory()->create([

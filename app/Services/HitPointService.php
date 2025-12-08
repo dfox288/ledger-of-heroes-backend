@@ -6,6 +6,8 @@ namespace App\Services;
 
 use App\Models\Character;
 use App\Models\CharacterClass;
+use App\Models\Feat;
+use App\Models\Modifier;
 use InvalidArgumentException;
 
 class HitPointService
@@ -123,5 +125,30 @@ class HitPointService
 
         // Fallback to primary class
         return $character->primaryClass?->hit_die ?? 8;
+    }
+
+    /**
+     * Get the HP per level bonus from feats.
+     *
+     * Sums all hit_points_per_level modifiers from feats the character has.
+     * Used for feats like Tough that grant +2 HP per level.
+     */
+    public function getFeatHpBonus(Character $character): int
+    {
+        // Get all feat IDs the character has
+        $featIds = $character->features()
+            ->where('feature_type', Feat::class)
+            ->pluck('feature_id')
+            ->toArray();
+
+        if (empty($featIds)) {
+            return 0;
+        }
+
+        // Sum all hit_points_per_level modifiers from those feats
+        return (int) Modifier::where('reference_type', Feat::class)
+            ->whereIn('reference_id', $featIds)
+            ->where('modifier_category', 'hit_points_per_level')
+            ->sum('value');
     }
 }

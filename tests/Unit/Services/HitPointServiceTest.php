@@ -7,6 +7,9 @@ namespace Tests\Unit\Services;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
+use App\Models\CharacterFeature;
+use App\Models\Feat;
+use App\Models\Modifier;
 use App\Services\CharacterStatCalculator;
 use App\Services\HitPointService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -334,5 +337,119 @@ class HitPointServiceTest extends TestCase
         // Levels 4-5 are Wizard (d6)
         $this->assertEquals(6, $this->service->getHitDieForLevel($character, 4));
         $this->assertEquals(6, $this->service->getHitDieForLevel($character, 5));
+    }
+
+    // =====================
+    // getFeatHpBonus Tests
+    // =====================
+
+    #[Test]
+    public function it_returns_hp_bonus_from_feat_with_hp_modifier(): void
+    {
+        $character = Character::factory()->create();
+
+        // Create Tough feat with hit_points_per_level modifier
+        $toughFeat = Feat::factory()->create([
+            'slug' => 'tough',
+            'name' => 'Tough',
+        ]);
+
+        Modifier::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $toughFeat->id,
+            'modifier_category' => 'hit_points_per_level',
+            'value' => 2,
+        ]);
+
+        // Grant the feat to the character
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $toughFeat->id,
+            'feature_slug' => $toughFeat->full_slug,
+            'source' => 'asi_choice',
+        ]);
+
+        $bonus = $this->service->getFeatHpBonus($character);
+
+        $this->assertEquals(2, $bonus);
+    }
+
+    #[Test]
+    public function it_returns_zero_when_no_feats_with_hp_modifiers(): void
+    {
+        $character = Character::factory()->create();
+
+        // Create a feat without HP modifier
+        $alertFeat = Feat::factory()->create([
+            'slug' => 'alert',
+            'name' => 'Alert',
+        ]);
+
+        // Grant the feat to the character
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $alertFeat->id,
+            'feature_slug' => $alertFeat->full_slug,
+            'source' => 'asi_choice',
+        ]);
+
+        $bonus = $this->service->getFeatHpBonus($character);
+
+        $this->assertEquals(0, $bonus);
+    }
+
+    #[Test]
+    public function it_sums_hp_bonuses_from_multiple_feats(): void
+    {
+        $character = Character::factory()->create();
+
+        // Create first feat with HP modifier
+        $toughFeat = Feat::factory()->create([
+            'slug' => 'tough',
+            'name' => 'Tough',
+        ]);
+
+        Modifier::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $toughFeat->id,
+            'modifier_category' => 'hit_points_per_level',
+            'value' => 2,
+        ]);
+
+        // Create second hypothetical feat with HP modifier
+        $durabilitFeat = Feat::factory()->create([
+            'slug' => 'durability',
+            'name' => 'Durability',
+        ]);
+
+        Modifier::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $durabilitFeat->id,
+            'modifier_category' => 'hit_points_per_level',
+            'value' => 1,
+        ]);
+
+        // Grant both feats to the character
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $toughFeat->id,
+            'feature_slug' => $toughFeat->full_slug,
+            'source' => 'asi_choice',
+        ]);
+
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $durabilitFeat->id,
+            'feature_slug' => $durabilitFeat->full_slug,
+            'source' => 'asi_choice',
+        ]);
+
+        $bonus = $this->service->getFeatHpBonus($character);
+
+        $this->assertEquals(3, $bonus); // 2 + 1
     }
 }

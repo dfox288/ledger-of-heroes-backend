@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #356**: Tough Feat HP Bonus Implementation
+  - FeatXmlParser now detects `hit_points_per_level` modifier from feat descriptions
+  - Tough feat (and similar feats) grants +N HP per character level
+  - Retroactive HP bonus when selecting Tough via ASI choice (value × total_level)
+  - Level-up HP calculations now include feat HP bonuses
+  - New `HitPointService.getFeatHpBonus()` method
+  - `AsiChoiceResult` DTO now includes `hpBonus` field
+  - 6 new unit tests covering parser, service, and level-up integration
+
 - **Issue #357**: HP Validation for Calculated Characters
   - Manual roll option for HP choices (physical dice support via `selected: 'manual'` with `roll_result`)
   - Form Request validation prevents direct `max_hit_points` modification when using calculated mode

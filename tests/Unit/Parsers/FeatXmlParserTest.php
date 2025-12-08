@@ -955,4 +955,36 @@ XML;
         $this->assertArrayHasKey('languages', $feats[0]);
         $this->assertEmpty($feats[0]['languages']);
     }
+
+    #[Test]
+    public function it_parses_hit_point_per_level_modifier_from_tough_feat()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Tough</name>
+        <text>Your hit point maximum increases by an amount equal to twice your level when you gain this feat. Whenever you gain a level thereafter, your hit point maximum increases by an additional 2 hit points.
+
+Source:	Player's Handbook (2014) p. 170</text>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('modifiers', $feats[0]);
+
+        // Should have exactly one modifier for HP per level
+        $hpModifiers = array_filter(
+            $feats[0]['modifiers'],
+            fn ($m) => ($m['modifier_category'] ?? '') === 'hit_points_per_level'
+        );
+        $this->assertCount(1, $hpModifiers);
+
+        $hpModifier = array_values($hpModifiers)[0];
+        $this->assertEquals('hit_points_per_level', $hpModifier['modifier_category']);
+        $this->assertEquals(2, $hpModifier['value']);
+    }
 }

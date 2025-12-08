@@ -8,10 +8,18 @@ use App\DTOs\PendingChoice;
 use App\Exceptions\ChoiceNotUndoableException;
 use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
+use App\Services\HitPointService;
 use Illuminate\Support\Collection;
 
 class HitPointRollChoiceHandler extends AbstractChoiceHandler
 {
+    private HitPointService $hitPointService;
+
+    public function __construct(?HitPointService $hitPointService = null)
+    {
+        $this->hitPointService = $hitPointService ?? app(HitPointService::class);
+    }
+
     /**
      * Level 1 HP is automatic (max hit die + CON modifier), no choice needed.
      */
@@ -169,6 +177,10 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
             $average = (int) floor($hitDie / 2) + 1;
             $hpGained = max(1, $average + $conModifier);
         }
+
+        // Add feat HP bonus (e.g., Tough feat grants +2 HP per level)
+        $featHpBonus = $this->hitPointService->getFeatHpBonus($character);
+        $hpGained += $featHpBonus;
 
         // Update character HP
         $character->max_hit_points = ($character->max_hit_points ?? 0) + $hpGained;

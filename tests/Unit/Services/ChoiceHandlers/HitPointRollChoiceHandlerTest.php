@@ -549,4 +549,118 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $this->handler->undo($character, $choice);
     }
+
+    // =====================
+    // New HP Tracking Tests
+    // =====================
+
+    /** @test */
+    public function it_returns_no_choices_when_all_levels_have_hp_resolved(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+        ]);
+
+        $character = Character::factory()->create([
+            'constitution' => 14,
+            'hp_levels_resolved' => [1, 2, 3], // All levels resolved
+        ]);
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 3,
+            'is_primary' => true,
+        ]);
+        $pivot->setRelation('characterClass', $class);
+        $character->setRelation('characterClasses', collect([$pivot]));
+
+        $choices = $this->handler->getChoices($character);
+
+        $this->assertEmpty($choices);
+    }
+
+    /** @test */
+    public function it_returns_choices_only_for_unresolved_levels(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+        ]);
+
+        $character = Character::factory()->create([
+            'constitution' => 14,
+            'hp_levels_resolved' => [1, 2], // Only levels 1 and 2 resolved
+        ]);
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 4,
+            'is_primary' => true,
+        ]);
+        $pivot->setRelation('characterClass', $class);
+        $character->setRelation('characterClasses', collect([$pivot]));
+
+        $choices = $this->handler->getChoices($character);
+
+        // Should have choices for levels 3 and 4 (level 1 is auto, levels 2 is resolved)
+        $this->assertCount(2, $choices);
+
+        $levels = $choices->pluck('levelGranted')->toArray();
+        $this->assertEquals([3, 4], $levels);
+    }
+
+    /** @test */
+    public function it_marks_level_as_resolved_after_choice(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+        ]);
+
+        $character = Character::factory()->create([
+            'constitution' => 14,
+            'max_hit_points' => 12,
+            'current_hit_points' => 12,
+            'hp_levels_resolved' => [1], // Only level 1 resolved
+        ]);
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+        $pivot->setRelation('characterClass', $class);
+
+        $choice = new PendingChoice(
+            id: 'hit_points:levelup:'.$character->id.':2:hp',
+            type: 'hit_points',
+            subtype: null,
+            source: 'level_up',
+            sourceName: 'Level 2',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: [
+                'hit_die' => 'd10',
+                'con_modifier' => 2,
+                'class_slug' => 'fighter',
+            ],
+        );
+
+        $this->handler->resolve($character, $choice, ['selected' => 'average']);
+
+        $character->refresh();
+
+        // Level 2 should now be marked as resolved
+        $this->assertEquals([1, 2], $character->hp_levels_resolved);
+        $this->assertTrue($character->hasResolvedHpForLevel(2));
+    }
 }

@@ -75,7 +75,7 @@ class RaceImporter extends BaseImporter
             $raceData['subrace_traits'] ?? [],
             $raceData['traits'] ?? []
         );
-        $extractedSpeeds = $this->extractSpeedsFromTraits($allTraitsForExtraction);
+        $extractedSpeeds = $this->extractSpeedsFromTraits($allTraitsForExtraction, $raceData['speed']);
 
         // Determine subrace_required value:
         // - Subraces (has parent_race_id): always false (no nested subraces in D&D 5e)
@@ -212,10 +212,21 @@ class RaceImporter extends BaseImporter
         $sensesData = $this->extractSensesFromTraits($baseRaceData['traits'] ?? []);
         $this->importEntitySenses($baseRace, $sensesData);
 
+        // Extract and update alternate movement speeds from base traits
+        $extractedSpeeds = $this->extractSpeedsFromTraits($baseRaceData['traits'] ?? [], $baseRace->speed);
+        if ($extractedSpeeds['fly_speed'] !== null || $extractedSpeeds['swim_speed'] !== null || $extractedSpeeds['climb_speed'] !== null) {
+            $baseRace->update([
+                'fly_speed' => $extractedSpeeds['fly_speed'],
+                'swim_speed' => $extractedSpeeds['swim_speed'],
+                'climb_speed' => $extractedSpeeds['climb_speed'],
+            ]);
+        }
+
         Log::channel('import-strategy')->info('Populated base race', [
             'base_race' => $baseRace->name,
             'traits_count' => count($createdTraits),
             'proficiencies_count' => count($baseRaceData['proficiencies'] ?? []),
+            'speeds' => $extractedSpeeds,
         ]);
     }
 
@@ -488,12 +499,15 @@ class RaceImporter extends BaseImporter
      * Extract alternate movement speeds from race traits.
      *
      * Looks for traits like "Flight", "Swim Speed", or "Cat's Claws" and extracts
-     * the speed value from the description text.
+     * the speed value from the description text. Handles both explicit speed values
+     * (e.g., "flying speed of 50 feet") and relative values (e.g., "flying speed
+     * equal to your walking speed").
      *
      * @param  array  $traits  Array of trait data from parser
+     * @param  int  $walkingSpeed  The race's base walking speed (used for "equal to walking speed" patterns)
      * @return array Array with 'fly_speed', 'swim_speed', and 'climb_speed' keys (nullable)
      */
-    private function extractSpeedsFromTraits(array $traits): array
+    private function extractSpeedsFromTraits(array $traits, int $walkingSpeed): array
     {
         $speeds = [
             'fly_speed' => null,
@@ -509,19 +523,28 @@ class RaceImporter extends BaseImporter
             if (preg_match('/flight|flying|winged/i', $name)) {
                 if (preg_match('/flying speed of (\d+) feet/i', $description, $matches)) {
                     $speeds['fly_speed'] = (int) $matches[1];
+                } elseif (preg_match('/flying speed equal to your walking speed/i', $description)) {
+                    $speeds['fly_speed'] = $walkingSpeed;
                 }
             }
 
-            // Check for Swim Speed trait
-            if (stripos($name, 'swim') !== false) {
+            // Check for Swim Speed in any trait description (not just traits named "swim")
+            // This catches patterns like "Variant: Aquatic" trait for Aquatic Elf Ancestry
+            if ($speeds['swim_speed'] === null) {
                 if (preg_match('/swimming speed of (\d+) feet/i', $description, $matches)) {
                     $speeds['swim_speed'] = (int) $matches[1];
+                } elseif (preg_match('/swimming speed equal to your walking speed/i', $description)) {
+                    $speeds['swim_speed'] = $walkingSpeed;
                 }
             }
 
-            // Check for Climb Speed trait (e.g., Tabaxi's Cat's Claws)
-            if (preg_match('/climbing speed of (\d+) feet/i', $description, $matches)) {
-                $speeds['climb_speed'] = (int) $matches[1];
+            // Check for Climb Speed in any trait description
+            if ($speeds['climb_speed'] === null) {
+                if (preg_match('/climbing speed of (\d+) feet/i', $description, $matches)) {
+                    $speeds['climb_speed'] = (int) $matches[1];
+                } elseif (preg_match('/climbing speed equal to your walking speed/i', $description)) {
+                    $speeds['climb_speed'] = $walkingSpeed;
+                }
             }
         }
 

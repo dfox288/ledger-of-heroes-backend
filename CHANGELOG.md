@@ -37,6 +37,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #279**: Extract speed values from race traits
+  - Parser now correctly extracts `fly_speed`, `swim_speed`, and `climb_speed` from trait descriptions
+  - Added support for "equal to your walking speed" patterns (e.g., Fairy, Dhampir)
+  - Fixed swim speed detection to check all traits, not just traits named "Swim"
+  - Fixed base race speed population when created via SubraceStrategy
+  - Affected races: Aarakocra (50 fly), Fairy (30 fly), Tabaxi (20 climb), Triton (30 swim), Dhampir (35 climb), Bullywug (40 swim), Aquatic Elf Ancestry (30 swim)
+
 - **Issue #346**: Auto-populate class features when class is assigned
   - `AddClassService` now calls `CharacterFeatureService::populateFromClass()` when adding a class
   - Non-optional class features at level 1 are automatically granted

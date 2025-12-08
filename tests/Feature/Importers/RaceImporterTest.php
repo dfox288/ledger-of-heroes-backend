@@ -1088,6 +1088,131 @@ XML;
     }
 
     #[Test]
+    public function it_extracts_fly_speed_equal_to_walking_speed()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Fairy</name>
+        <size>S</size>
+        <speed>30</speed>
+        <trait>
+            <name>Flight</name>
+            <text>Because of your wings, you have a flying speed equal to your walking speed. You can't use this flying speed if you're wearing medium or heavy armor.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $race = Race::where('name', 'Fairy')->first();
+
+        $this->assertNotNull($race);
+        $this->assertEquals(30, $race->fly_speed); // Should equal walking speed
+    }
+
+    #[Test]
+    public function it_extracts_swim_speed_equal_to_walking_speed()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Grung</name>
+        <size>S</size>
+        <speed>25</speed>
+        <trait>
+            <name>Speed</name>
+            <text>Your walking speed is 25 feet, and you have a swimming speed equal to your walking speed.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $race = Race::where('name', 'Grung')->first();
+
+        $this->assertNotNull($race);
+        $this->assertEquals(25, $race->swim_speed); // Should equal walking speed
+    }
+
+    #[Test]
+    public function it_extracts_climb_speed_equal_to_walking_speed()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Dhampir</name>
+        <size>M</size>
+        <speed>35</speed>
+        <trait>
+            <name>Spider Climb</name>
+            <text>You have a climbing speed equal to your walking speed. In addition, at 3rd level, you can move up, down, and across vertical surfaces.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $race = Race::where('name', 'Dhampir')->first();
+
+        $this->assertNotNull($race);
+        $this->assertEquals(35, $race->climb_speed); // Should equal walking speed
+    }
+
+    #[Test]
+    public function it_extracts_swim_speed_from_non_swim_named_trait()
+    {
+        // Aquatic Elf Ancestry has swim speed in a "Variant: Aquatic" trait
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <race>
+        <name>Half-Elf (Aquatic Elf Ancestry)</name>
+        <size>M</size>
+        <speed>30</speed>
+        <trait>
+            <name>Variant: Aquatic</name>
+            <text>You have a swimming speed of 30 feet.</text>
+        </trait>
+    </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $race = Race::where('name', 'Half-Elf (Aquatic Elf Ancestry)')->first();
+
+        $this->assertNotNull($race);
+        $this->assertEquals(30, $race->swim_speed);
+    }
+
+    #[Test]
     public function it_expands_tiefling_variants_into_separate_subraces()
     {
         // First create the base Tiefling race (from PHB)

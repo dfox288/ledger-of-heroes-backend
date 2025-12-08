@@ -96,6 +96,7 @@ class Character extends Model implements HasMedia
         'death_save_failures',
         'armor_class_override',
         'asi_choices_remaining',
+        'hp_levels_resolved',
         'portrait_url',
     ];
 
@@ -117,6 +118,7 @@ class Character extends Model implements HasMedia
         'death_save_failures' => 'integer',
         'armor_class_override' => 'integer',
         'asi_choices_remaining' => 'integer',
+        'hp_levels_resolved' => 'array',
     ];
 
     protected $appends = [

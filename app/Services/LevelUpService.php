@@ -8,6 +8,8 @@ use App\DTOs\LevelUpResult;
 use App\Exceptions\IncompleteCharacterException;
 use App\Exceptions\MaxLevelReachedException;
 use App\Models\Character;
+use App\Models\CharacterClass;
+use App\Models\CharacterClassPivot;
 use App\Models\CharacterFeature;
 use App\Models\ClassFeature;
 use Illuminate\Support\Facades\DB;
@@ -37,41 +39,51 @@ class LevelUpService
     /**
      * Level up a character by one level.
      *
+     * @param  string|null  $classSlug  Optional class to level (for multiclass). Defaults to primary class.
+     *
      * @throws MaxLevelReachedException
      * @throws IncompleteCharacterException
      */
-    public function levelUp(Character $character): LevelUpResult
+    public function levelUp(Character $character, ?string $classSlug = null): LevelUpResult
     {
         $this->validateCanLevelUp($character);
 
-        return DB::transaction(function () use ($character) {
-            $previousLevel = $character->level;
-            $newLevel = $previousLevel + 1;
+        return DB::transaction(function () use ($character, $classSlug) {
+            // Get the class pivot to level up
+            $classPivot = $this->getClassPivotToLevel($character, $classSlug);
+            $class = $classPivot->characterClass;
 
-            $hpIncrease = $this->calculateHpIncrease($character);
-            $featuresGained = $this->grantClassFeatures($character, $newLevel);
-            $asiPending = $this->isAsiLevel($character, $newLevel);
+            $previousLevel = $character->total_level;
 
-            $character->level = $newLevel;
-            $character->max_hit_points += $hpIncrease;
-            $character->current_hit_points += $hpIncrease;
+            // Increment level on the class pivot
+            $classPivot->increment('level');
+            $character->refresh();
+
+            $newLevel = $character->total_level;
+            $classLevel = $classPivot->level;
+
+            // Grant class features for the new class level
+            $featuresGained = $this->grantClassFeatures($character, $class, $classLevel);
+
+            // Check if this class level grants an ASI
+            $asiPending = $this->isAsiLevel($class->slug ?? '', $classLevel);
 
             if ($asiPending) {
                 $character->asi_choices_remaining++;
+                $character->save();
             }
-
-            $character->save();
 
             // Recalculate spell slots when leveling up
             $this->spellSlotService->recalculateMaxSlots($character);
 
             $spellSlots = $this->getSpellSlots($character);
 
+            // HP is NOT modified here - it's handled by HitPointRollChoiceHandler
             return new LevelUpResult(
                 previousLevel: $previousLevel,
                 newLevel: $newLevel,
-                hpIncrease: $hpIncrease,
-                newMaxHp: $character->max_hit_points,
+                hpIncrease: 0,
+                newMaxHp: $character->max_hit_points ?? 0,
                 featuresGained: $featuresGained,
                 spellSlots: $spellSlots,
                 asiPending: $asiPending,
@@ -80,48 +92,45 @@ class LevelUpService
     }
 
     /**
-     * Calculate HP increase for level up.
+     * Get the class pivot to level up.
      *
-     * Uses average hit die + CON modifier (minimum 1 HP).
-     * D&D 5e average formula: (hitDie / 2) rounded down + 1
-     * Examples: d6=4, d8=5, d10=6, d12=7
-     *
-     * Uses the primary class's hit die for the calculation.
+     * If classSlug is provided, finds that class. Otherwise uses primary class.
      */
-    public function calculateHpIncrease(Character $character): int
+    private function getClassPivotToLevel(Character $character, ?string $classSlug): CharacterClassPivot
     {
-        $primaryClass = $character->primaryClass;
-        if (! $primaryClass) {
-            // Default to d8 if no class (shouldn't happen in practice)
-            $hitDie = 8;
-        } else {
-            $hitDie = $primaryClass->effective_hit_die ?? $primaryClass->hit_die;
+        if ($classSlug !== null) {
+            $pivot = $character->characterClasses()->where('class_slug', $classSlug)->first();
+            if ($pivot === null) {
+                throw new \InvalidArgumentException("Character does not have class: {$classSlug}");
+            }
+
+            return $pivot;
         }
 
-        // D&D 5e average: (hitDie / 2) rounded down + 1
-        $averageRoll = (int) floor($hitDie / 2) + 1;
-        $conModifier = $this->calculator->abilityModifier($character->constitution ?? 10);
+        // Default to primary class
+        $pivot = $character->characterClasses()->where('is_primary', true)->first();
+        if ($pivot === null) {
+            throw new \InvalidArgumentException('Character has no primary class');
+        }
 
-        return max(1, $averageRoll + $conModifier);
+        return $pivot;
     }
 
     /**
      * Grant class features for the new level.
      *
      * Uses firstOrCreate to prevent duplicate features if level-up is called multiple times.
-     * Grants features from the primary class for the new level.
      *
      * @return array<array{id: int, name: string, description: string|null}>
      */
-    private function grantClassFeatures(Character $character, int $newLevel): array
+    private function grantClassFeatures(Character $character, ?CharacterClass $class, int $classLevel): array
     {
-        $primaryClass = $character->primaryClass;
-        if (! $primaryClass) {
+        if ($class === null) {
             return [];
         }
 
-        $features = $primaryClass->features()
-            ->where('level', $newLevel)
+        $features = $class->features()
+            ->where('level', $classLevel)
             ->where('is_optional', false)
             ->get();
 
@@ -135,7 +144,7 @@ class LevelUpService
                     'source' => 'class',
                 ],
                 [
-                    'level_acquired' => $newLevel,
+                    'level_acquired' => $classLevel,
                 ]
             );
 
@@ -150,28 +159,29 @@ class LevelUpService
     }
 
     /**
-     * Check if the new level grants an Ability Score Improvement.
+     * Check if the class level grants an Ability Score Improvement.
      *
-     * Uses the primary class to determine ASI levels (Fighter and Rogue get extra ASIs).
+     * ASI levels vary by class (Fighter and Rogue get extra ASIs).
      */
-    private function isAsiLevel(Character $character, int $level): bool
+    private function isAsiLevel(string $classSlug, int $classLevel): bool
     {
-        $primaryClass = $character->primaryClass;
-        $classSlug = strtolower($primaryClass->slug ?? '');
+        if (empty($classSlug)) {
+            return in_array($classLevel, self::ASI_LEVELS_STANDARD);
+        }
 
-        $asiLevels = match ($classSlug) {
+        $slug = strtolower($classSlug);
+
+        $asiLevels = match ($slug) {
             'fighter' => self::ASI_LEVELS_FIGHTER,
             'rogue' => self::ASI_LEVELS_ROGUE,
             default => self::ASI_LEVELS_STANDARD,
         };
 
-        return in_array($level, $asiLevels);
+        return in_array($classLevel, $asiLevels);
     }
 
     /**
-     * Get current spell slots for the character's class and level.
-     *
-     * Uses the primary class for spell slot calculation.
+     * Get current spell slots for the character.
      *
      * @return array<int, int>
      */
@@ -180,7 +190,7 @@ class LevelUpService
         $primaryClass = $character->primaryClass;
         $classSlug = $primaryClass->slug ?? '';
 
-        return $this->calculator->getSpellSlots($classSlug, $character->level);
+        return $this->calculator->getSpellSlots($classSlug, $character->total_level);
     }
 
     /**
@@ -191,7 +201,7 @@ class LevelUpService
      */
     private function validateCanLevelUp(Character $character): void
     {
-        if ($character->level >= self::MAX_LEVEL) {
+        if ($character->total_level >= self::MAX_LEVEL) {
             throw new MaxLevelReachedException($character);
         }
 

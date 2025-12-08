@@ -37,6 +37,7 @@ return new class extends Migration
             $table->tinyInteger('death_save_failures')->unsigned()->default(0);
             $table->tinyInteger('armor_class_override')->unsigned()->nullable();
             $table->tinyInteger('asi_choices_remaining')->unsigned()->default(0);
+            $table->json('hp_levels_resolved')->nullable();
             $table->string('portrait_url', 2048)->nullable();
             $table->timestamps();
 

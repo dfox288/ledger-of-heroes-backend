@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `CharacterObserver` detects CON changes and recalculates HP
   - Character model helpers: `hasResolvedHpForLevel()`, `markHpResolvedForLevel()`, `getPendingHpLevels()`, `usesCalculatedHp()`
 
+- **Issue #353**: Add search support to characters endpoint
+  - `GET /characters?q=gandalf` now filters characters by name (case-insensitive, partial match)
+  - Pagination continues to work with search parameter
+  - Supports frontend character list search UI (PR #32)
+
 - **Issue #351**: Character completion now verifies required choices are resolved
   - `is_complete` attribute now checks `hasAllRequiredChoicesResolved()` in addition to race, class, and ability scores
   - `validation_status.missing` includes `'pending_choices'` when required choices remain
@@ -48,6 +53,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Use `is_category: true` to determine when `item_selections` is required
 
 ### Fixed
+
+- **Issue #354**: Refactor LevelUpService to use CharacterClassPivot
+  - LevelUpService now correctly reads `total_level` accessor and increments level on `CharacterClassPivot`
+  - Added multiclass support: `levelUp($character, $classSlug)` to level a specific class
+  - HP is no longer auto-applied; deferred to `HitPointRollChoiceHandler` for roll/average choice
+  - `HitPointRollChoiceHandler` now uses `hp_levels_resolved` JSON column to track resolved HP choices
+  - Resolving HP choice now marks the level in `hp_levels_resolved` array
+  - Added `hp_levels_resolved` column to `characters` table migration
 
 - **Issue #279**: Extract speed values from race traits
   - Parser now correctly extracts `fly_speed`, `swim_speed`, and `climb_speed` from trait descriptions

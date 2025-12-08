@@ -12,6 +12,11 @@ use Illuminate\Support\Collection;
 
 class HitPointRollChoiceHandler extends AbstractChoiceHandler
 {
+    /**
+     * Level 1 HP is automatic (max hit die + CON modifier), no choice needed.
+     */
+    private const AUTOMATIC_HP_LEVEL = 1;
+
     public function getType(): string
     {
         return 'hit_points';
@@ -126,6 +131,12 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
         // Update character HP
         $character->max_hit_points = ($character->max_hit_points ?? 0) + $hpGained;
         $character->current_hit_points = ($character->current_hit_points ?? 0) + $hpGained;
+
+        // Mark this level's HP as resolved
+        $resolvedLevels = $character->hp_levels_resolved ?? [];
+        $resolvedLevels[] = $choice->levelGranted;
+        $character->hp_levels_resolved = array_unique($resolvedLevels);
+
         $character->save();
 
         // Mark this level's HP as resolved
@@ -161,11 +172,11 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
     private function hasPendingHpChoice(Character $character, int $level): bool
     {
         // Level 1 HP is automatic (hit die max + CON)
-        if ($level === 1) {
+        if ($level <= self::AUTOMATIC_HP_LEVEL) {
             return false;
         }
 
-        // Check if this level's HP has been resolved
+        // Check if this level's HP has been resolved (uses model helper)
         return ! $character->hasResolvedHpForLevel($level);
     }
 }

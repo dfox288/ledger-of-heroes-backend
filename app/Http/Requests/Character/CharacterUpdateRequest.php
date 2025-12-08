@@ -59,8 +59,38 @@ class CharacterUpdateRequest extends FormRequest
             // Experience points
             'experience_points' => ['sometimes', 'integer', 'min:0'],
 
-            // Hit points
-            'max_hit_points' => ['sometimes', 'nullable', 'integer', 'min:1'],
+            // HP calculation method
+            'hp_calculation_method' => ['sometimes', 'string', 'in:calculated,manual'],
+
+            // Hit points - protected when using calculated mode
+            'max_hit_points' => [
+                'sometimes',
+                'nullable',
+                'integer',
+                'min:1',
+                Rule::prohibitedIf(function () {
+                    // Check if we're trying to keep calculated mode
+                    $newMethod = $this->input('hp_calculation_method');
+
+                    // If switching to manual in same request, allow HP update
+                    if ($newMethod === 'manual') {
+                        return false;
+                    }
+
+                    // If explicitly setting to calculated, prohibit
+                    if ($newMethod === 'calculated') {
+                        return true;
+                    }
+
+                    // Check current character's mode
+                    $character = $this->route('character');
+                    if ($character && $character->hp_calculation_method === 'calculated') {
+                        return true;
+                    }
+
+                    return false;
+                }),
+            ],
             'current_hit_points' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'temp_hit_points' => ['sometimes', 'integer', 'min:0'],
 
@@ -246,6 +276,7 @@ class CharacterUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'max_hit_points.prohibited' => 'Cannot modify max_hit_points when using calculated HP mode. Switch to manual mode or use HP choices.',
             'strength.required' => 'Strength is required for this ability score method.',
             'strength.min' => 'Strength must be at least :min.',
             'strength.max' => 'Strength cannot exceed :max.',

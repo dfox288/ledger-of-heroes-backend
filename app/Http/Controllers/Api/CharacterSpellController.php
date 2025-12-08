@@ -81,6 +81,12 @@ class CharacterSpellController extends Controller
 
         $minLevel = $validated['min_level'] ?? null;
         $maxLevel = $validated['max_level'] ?? null;
+
+        // Validate min_level <= max_level when both are provided
+        if ($minLevel !== null && $maxLevel !== null && $minLevel > $maxLevel) {
+            abort(422, 'min_level cannot be greater than max_level');
+        }
+
         $includeKnown = filter_var($validated['include_known'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         $spells = $this->spellManager->getAvailableSpells($character, $minLevel, $maxLevel, $includeKnown);

@@ -653,6 +653,8 @@ class Character extends Model implements HasMedia
      * Currency is derived from equipment items with specific slugs.
      * Each coin type quantity is summed from the character's inventory.
      *
+     * @note When using in collection responses, eager-load 'equipment' to avoid N+1 queries
+     *
      * @return array{pp: int, gp: int, ep: int, sp: int, cp: int}
      */
     public function getCurrencyAttribute(): array

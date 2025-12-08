@@ -487,4 +487,29 @@ class CharacterControllerTest extends TestCase
             ->assertJsonPath('data.currency.sp', 0)
             ->assertJsonPath('data.currency.cp', 0);
     }
+
+    #[Test]
+    public function it_sums_multiple_stacks_of_same_coin_type(): void
+    {
+        $character = Character::factory()->create();
+
+        Item::factory()->create(['full_slug' => 'phb:gold-gp', 'name' => 'Gold (gp)']);
+
+        // Two separate stacks of gold (e.g., from different loot sources)
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'phb:gold-gp',
+            'quantity' => 25,
+        ]);
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'phb:gold-gp',
+            'quantity' => 30,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.currency.gp', 55); // 25 + 30
+    }
 }

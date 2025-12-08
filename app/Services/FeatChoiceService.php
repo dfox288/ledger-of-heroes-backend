@@ -215,7 +215,8 @@ class FeatChoiceService
             'feature_type' => Feat::class,
             'feature_slug' => $feat->full_slug,
             'source' => $source,
-            'level_acquired' => $character->total_level ?: 1,
+            // Bonus feats from race/background are always acquired at character creation (level 1)
+            'level_acquired' => 1,
         ]);
     }
 
@@ -331,10 +332,16 @@ class FeatChoiceService
 
     /**
      * Undo a feat choice.
+     *
+     * Removes the feat and all granted resources (proficiencies, spells, ability scores).
+     * Note: HP bonuses from feats like Tough are NOT automatically reversed here.
+     * Those require recalculation via the HitPointService.
      */
     public function undoChoice(Character $character, string $source, string $featSlug): void
     {
-        DB::transaction(function () use ($character, $source, $featSlug) {
+        $feat = Feat::where('full_slug', $featSlug)->first();
+
+        DB::transaction(function () use ($character, $source, $featSlug, $feat) {
             // Remove the character feature
             CharacterFeature::where('character_id', $character->id)
                 ->where('feature_type', Feat::class)
@@ -342,12 +349,39 @@ class FeatChoiceService
                 ->where('source', $source)
                 ->delete();
 
-            // Remove proficiencies granted by this source (we don't track per-feat, so remove all from source)
-            // Note: This is a simplification - a more complex implementation would track which profs came from which feat
-            // For now, this is acceptable since undoing a feat is rare
+            // Remove proficiencies granted by this source
+            CharacterProficiency::where('character_id', $character->id)
+                ->where('source', $source)
+                ->delete();
 
-            // Remove spells granted from this source with this feat's slug pattern
-            // Similar simplification applies here
+            // Remove spells granted by this source
+            CharacterSpell::where('character_id', $character->id)
+                ->where('source', $source)
+                ->delete();
+
+            // Reverse ability score increases if feat exists
+            if ($feat) {
+                $this->reverseAbilityIncreases($character, $feat);
+                $character->save();
+            }
         });
+    }
+
+    /**
+     * Reverse ability score increases from a feat.
+     */
+    private function reverseAbilityIncreases(Character $character, Feat $feat): void
+    {
+        foreach ($feat->modifiers as $modifier) {
+            if ($modifier->modifier_category === 'ability_score' && $modifier->abilityScore) {
+                $code = $modifier->abilityScore->code;
+                $value = (int) $modifier->value;
+                $column = Character::ABILITY_SCORES[$code] ?? null;
+
+                if ($column) {
+                    $character->{$column} = max(1, ($character->{$column} ?? 10) - $value);
+                }
+            }
+        }
     }
 }

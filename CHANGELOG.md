@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Issue #352**: Racial ability score choice support
+  - New `ability_score` pending choice type for races with chooseable ability bonuses (e.g., Half-Elf)
+  - `GET /characters/{id}/pending-choices` now includes ability score choices from race modifiers where `is_choice: true`
+  - `POST /characters/{id}/choices/{choiceId}` resolves ability score selections with validation
+  - Supports `choice_count` (number to pick) and `choice_constraint: 'different'` (no duplicate abilities)
+  - New `character_ability_scores` table stores resolved choices with source tracking
+  - `getFinalAbilityScoresArray()` now applies both fixed and chosen racial bonuses
+  - Unblocks frontend issue #219
+
 ### Changed (Breaking)
 
 - **Issue #342**: Require `item_selections` for category equipment options

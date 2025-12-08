@@ -229,6 +229,14 @@ class Character extends Model implements HasMedia
         return $this->hasMany(CharacterLanguage::class);
     }
 
+    /**
+     * Get chosen racial ability score bonuses.
+     */
+    public function abilityScores(): HasMany
+    {
+        return $this->hasMany(CharacterAbilityScore::class);
+    }
+
     // Computed Accessors
 
     /**
@@ -335,8 +343,8 @@ class Character extends Model implements HasMedia
     /**
      * Get final ability scores with racial bonuses applied.
      *
-     * Returns ability scores with fixed racial and subrace modifiers applied.
-     * Does NOT include choice-based modifiers (those require user selection).
+     * Returns ability scores with fixed racial and subrace modifiers applied,
+     * plus any chosen ability score bonuses (from character_ability_scores).
      *
      * @return array<string, int|null> Ability scores keyed by code (STR, DEX, etc.)
      */
@@ -357,10 +365,16 @@ class Character extends Model implements HasMedia
         // Get fixed ability score bonuses from race
         $racialBonuses = $this->getRacialAbilityBonuses();
 
-        // Apply bonuses to base scores
+        // Get chosen ability score bonuses (from character_ability_scores)
+        $chosenBonuses = $this->getChosenAbilityBonuses();
+
+        // Apply all bonuses to base scores
         foreach ($baseScores as $code => $baseScore) {
-            if ($baseScore !== null && isset($racialBonuses[$code])) {
-                $baseScores[$code] = $baseScore + $racialBonuses[$code];
+            if ($baseScore !== null) {
+                $total = ($racialBonuses[$code] ?? 0) + ($chosenBonuses[$code] ?? 0);
+                if ($total > 0) {
+                    $baseScores[$code] = $baseScore + $total;
+                }
             }
         }
 
@@ -410,6 +424,26 @@ class Character extends Model implements HasMedia
                     $bonuses[$code] = ($bonuses[$code] ?? 0) + (int) $modifier->value;
                 }
             }
+        }
+
+        return $bonuses;
+    }
+
+    /**
+     * Get chosen racial ability score bonuses (from character_ability_scores).
+     *
+     * @return array<string, int> Bonuses keyed by ability code
+     */
+    private function getChosenAbilityBonuses(): array
+    {
+        if (! $this->relationLoaded('abilityScores')) {
+            $this->load('abilityScores');
+        }
+
+        $bonuses = [];
+        foreach ($this->abilityScores as $choice) {
+            $bonuses[$choice->ability_score_code] =
+                ($bonuses[$choice->ability_score_code] ?? 0) + $choice->bonus;
         }
 
         return $bonuses;

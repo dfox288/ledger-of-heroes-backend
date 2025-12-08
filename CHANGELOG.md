@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #357**: HP Validation for Calculated Characters
+  - Manual roll option for HP choices (physical dice support via `selected: 'manual'` with `roll_result`)
+  - Form Request validation prevents direct `max_hit_points` modification when using calculated mode
+  - Mode switching between 'calculated' and 'manual' HP modes via PATCH
+  - Allows HP update when switching to manual mode in same request
+  - 7 new feature tests, 6 new unit tests
+
 - **Issue #254**: Character HP Auto-Initialization and Level-Up
   - Auto-set starting HP when first class is added (hit die max + CON modifier)
   - HP choice (roll/average) system for level-ups (levels 2+)

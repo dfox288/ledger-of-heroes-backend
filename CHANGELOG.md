@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #375**: Chosen Racial Ability Bonuses Not Applied
+  - CharacterResource now uses `getFinalAbilityScoresArray()` instead of raw base scores
+  - Half-Elf +1 to chosen abilities (and similar racial choices) now correctly reflected
+  - Removed redundant `getAbilityScoresArray()` method from CharacterResource
+  - 1 new test for chosen racial bonuses
+
 - **Issue #373**: Spell Slots Data Missing
   - Root cause: `multiclass_spell_slots` table was not seeded
   - Fix: Run `php artisan db:seed --class=MulticlassSpellSlotSeeder`

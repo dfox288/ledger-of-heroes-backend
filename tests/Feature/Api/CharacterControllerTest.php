@@ -2,11 +2,14 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\AbilityScore;
 use App\Models\Background;
 use App\Models\Character;
+use App\Models\CharacterAbilityScore;
 use App\Models\CharacterClass;
 use App\Models\CharacterEquipment;
 use App\Models\Item;
+use App\Models\Modifier;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -279,6 +282,64 @@ class CharacterControllerTest extends TestCase
             ->assertJsonPath('data.modifiers.STR', 4)  // (18-10)/2 = 4
             ->assertJsonPath('data.modifiers.DEX', 2)  // (14-10)/2 = 2
             ->assertJsonPath('data.modifiers.CHA', -1); // (8-10)/2 = -1
+    }
+
+    #[Test]
+    public function it_includes_chosen_racial_ability_bonuses_in_show(): void
+    {
+        // Seed ability scores lookup
+        $str = AbilityScore::firstOrCreate(['code' => 'STR'], ['name' => 'Strength']);
+        $dex = AbilityScore::firstOrCreate(['code' => 'DEX'], ['name' => 'Dexterity']);
+        $con = AbilityScore::firstOrCreate(['code' => 'CON'], ['name' => 'Constitution']);
+
+        $race = Race::factory()->create(['name' => 'Half-Elf']);
+
+        $character = Character::factory()
+            ->withRace($race)
+            ->withAbilityScores([
+                'strength' => 10,
+                'dexterity' => 10,
+                'constitution' => 10,
+                'intelligence' => 10,
+                'wisdom' => 10,
+                'charisma' => 10,
+            ])
+            ->create();
+
+        // Create a racial modifier for the choice (e.g., Half-Elf's +1 to two chosen abilities)
+        $modifier = Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => null, // Choice-based, not fixed
+            'value' => '1',
+            'choice_count' => 2,
+        ]);
+
+        // Simulate the player's choice: +1 STR, +1 DEX
+        CharacterAbilityScore::create([
+            'character_id' => $character->id,
+            'ability_score_code' => 'STR',
+            'bonus' => 1,
+            'source' => 'race',
+            'modifier_id' => $modifier->id,
+        ]);
+        CharacterAbilityScore::create([
+            'character_id' => $character->id,
+            'ability_score_code' => 'DEX',
+            'bonus' => 1,
+            'source' => 'race',
+            'modifier_id' => $modifier->id,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.ability_scores.STR', 11) // 10 base + 1 chosen
+            ->assertJsonPath('data.ability_scores.DEX', 11) // 10 base + 1 chosen
+            ->assertJsonPath('data.ability_scores.CON', 10) // unchanged
+            ->assertJsonPath('data.modifiers.STR', 0)  // (11-10)/2 = 0
+            ->assertJsonPath('data.modifiers.DEX', 0); // (11-10)/2 = 0
     }
 
     #[Test]

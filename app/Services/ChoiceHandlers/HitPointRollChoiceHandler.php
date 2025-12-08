@@ -26,37 +26,33 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
     {
         $choices = collect();
 
-        // Get primary class
+        // Get all pending HP levels
+        $pendingLevels = $character->getPendingHpLevels();
+
+        // Filter to only levels 2+ (level 1 is auto-set)
+        $pendingLevels = array_filter($pendingLevels, fn ($level) => $level > 1);
+
+        if (empty($pendingLevels)) {
+            return $choices;
+        }
+
+        // Get primary class for hit die (used for all single-class characters)
+        // For multiclass, we'll use the class that granted each level
         $primaryClass = $character->primary_class;
         if (! $primaryClass) {
             return $choices;
         }
 
-        // Get character's class pivot to check level
-        $classPivot = $character->characterClasses->firstWhere('is_primary', true);
-        if (! $classPivot) {
-            return $choices;
-        }
+        $conModifier = $this->calculateConModifier($character->constitution ?? 10);
 
-        $level = $classPivot->level;
-
-        // No HP choice at level 1 (automatic max HP)
-        if ($level <= 1) {
-            return $choices;
-        }
-
-        // Check if character has pending HP for current level
-        // This would be set by level-up system
-        // For now, we assume there's a pending choice if:
-        // - Character is level 2+ in their primary class
-        // - max_hit_points hasn't been set for this level yet
-        // In production, this would check a pending_hp_level column or similar
-
-        // For this implementation, we'll assume any level > 1 has a pending HP choice
-        // The actual integration with level-up system will determine when to show this
-        if ($this->hasPendingHpChoice($character, $level)) {
-            $conModifier = $this->calculateConModifier($character->constitution ?? 10);
+        // Generate a choice for each pending level
+        foreach ($pendingLevels as $level) {
+            // For multiclass support, we'd need to determine which class granted each level
+            // For now, use primary class hit die (this works for single-class characters)
+            // TODO: Support multiclass by tracking which class each level belongs to
             $hitDie = $primaryClass->effective_hit_die;
+            $classSlug = $primaryClass->slug;
+
             $average = (int) floor($hitDie / 2) + 1;
 
             // Calculate min/max results for roll
@@ -96,7 +92,7 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
                 metadata: [
                     'hit_die' => "d{$hitDie}",
                     'con_modifier' => $conModifier,
-                    'class_slug' => $primaryClass->slug,
+                    'class_slug' => $classSlug,
                 ],
             );
 
@@ -142,6 +138,9 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
         $character->hp_levels_resolved = array_unique($resolvedLevels);
 
         $character->save();
+
+        // Mark this level's HP as resolved
+        $character->markHpResolvedForLevel($choice->levelGranted);
     }
 
     public function canUndo(Character $character, PendingChoice $choice): bool
@@ -167,26 +166,17 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
     }
 
     /**
-     * Check if character has a pending HP choice for the given level
-     *
-     * Checks the hp_levels_resolved JSON column to see if this level's HP has been resolved.
-     * Level 1 HP is automatic (max hit die + CON), so only levels 2+ need choices.
+     * Check if character has a pending HP choice for the given level.
+     * Level 1 HP is auto-set when first class is added, so no choice needed.
      */
     private function hasPendingHpChoice(Character $character, int $level): bool
     {
-        // Level 1 HP is automatic - no choice needed
+        // Level 1 HP is automatic (hit die max + CON)
         if ($level <= self::AUTOMATIC_HP_LEVEL) {
             return false;
         }
 
-        // Check if this level has been resolved
-        $resolvedLevels = $character->hp_levels_resolved ?? [];
-
-        // Validate it's actually an array (guard against corrupted JSON)
-        if (! is_array($resolvedLevels)) {
-            $resolvedLevels = [];
-        }
-
-        return ! in_array($level, $resolvedLevels, true);
+        // Check if this level's HP has been resolved (uses model helper)
+        return ! $character->hasResolvedHpForLevel($level);
     }
 }

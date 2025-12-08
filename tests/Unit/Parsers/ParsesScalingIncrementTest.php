@@ -22,7 +22,7 @@ class ParsesScalingIncrementTest extends \Tests\TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->parser = new ParsesScalingIncrementTestClass();
+        $this->parser = new ParsesScalingIncrementTestClass;
     }
 
     #[Test]

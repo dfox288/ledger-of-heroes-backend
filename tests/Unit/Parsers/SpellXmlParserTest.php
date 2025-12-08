@@ -415,4 +415,60 @@ XML;
         $this->assertArrayHasKey('effects', $spells[0]);
         $this->assertCount(0, $spells[0]['effects']);
     }
+
+    public function test_parses_scaling_increment_for_damage_effects(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <spell>
+        <name>Test Spell</name>
+        <level>3</level>
+        <school>EV</school>
+        <time>1 action</time>
+        <range>150 feet</range>
+        <components>V, S, M (a tiny ball of bat guano)</components>
+        <duration>Instantaneous</duration>
+        <roll description="Fire Damage">8d6</roll>
+        <text>A bright streak flashes from your finger.</text>
+        <text>At Higher Levels: When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for each slot level above 3rd.</text>
+    </spell>
+</compendium>
+XML;
+
+        $parser = new SpellXmlParser;
+        $spells = $parser->parse($xml);
+
+        $this->assertCount(1, $spells);
+        $this->assertCount(1, $spells[0]['effects']);
+        $this->assertEquals('1d6', $spells[0]['effects'][0]['scaling_increment']);
+    }
+
+    public function test_does_not_apply_scaling_increment_to_healing_effects(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <spell>
+        <name>Cure Wounds</name>
+        <level>1</level>
+        <school>EV</school>
+        <time>1 action</time>
+        <range>Touch</range>
+        <components>V, S</components>
+        <duration>Instantaneous</duration>
+        <roll description="Healing">1d8</roll>
+        <text>A creature you touch regains hit points.</text>
+        <text>At Higher Levels: When you cast this spell using a spell slot of 2nd level or higher, the healing increases by 1d8 for each slot level above 1st.</text>
+    </spell>
+</compendium>
+XML;
+
+        $parser = new SpellXmlParser;
+        $spells = $parser->parse($xml);
+
+        $this->assertCount(1, $spells);
+        $this->assertEquals('healing', $spells[0]['effects'][0]['effect_type']);
+        $this->assertNull($spells[0]['effects'][0]['scaling_increment']);
+    }
 }

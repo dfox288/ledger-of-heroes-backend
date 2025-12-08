@@ -101,6 +101,8 @@ class AddClassService
             // Auto-initialize HP for first class (level 1) if using calculated HP
             if ($isPrimary && $character->usesCalculatedHp()) {
                 $startingHp = $this->hitPointService->calculateStartingHp($character, $class);
+                // Add race HP bonus (e.g., Hill Dwarf Dwarven Toughness grants +1 HP per level)
+                $startingHp += $this->hitPointService->getRaceHpBonus($character);
                 $character->update([
                     'max_hit_points' => $startingHp,
                     'current_hit_points' => $startingHp,

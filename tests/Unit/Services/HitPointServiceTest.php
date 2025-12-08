@@ -10,6 +10,7 @@ use App\Models\CharacterClassPivot;
 use App\Models\CharacterFeature;
 use App\Models\Feat;
 use App\Models\Modifier;
+use App\Models\Race;
 use App\Services\CharacterStatCalculator;
 use App\Services\HitPointService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -451,5 +452,396 @@ class HitPointServiceTest extends TestCase
         $bonus = $this->service->getFeatHpBonus($character);
 
         $this->assertEquals(3, $bonus); // 2 + 1
+    }
+
+    // =====================
+    // getRaceHpBonus Tests
+    // =====================
+
+    #[Test]
+    public function it_returns_hp_bonus_from_race_with_hp_modifier(): void
+    {
+        // Create Hill Dwarf race with HP modifier
+        $hillDwarf = Race::factory()->create([
+            'slug' => 'dwarf-hill',
+            'full_slug' => 'dwarf-hill',
+            'name' => 'Hill Dwarf',
+        ]);
+
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $hillDwarf->id,
+            'modifier_category' => 'hp',
+            'value' => 1,
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => $hillDwarf->full_slug,
+        ]);
+
+        $bonus = $this->service->getRaceHpBonus($character);
+
+        $this->assertEquals(1, $bonus);
+    }
+
+    #[Test]
+    public function it_returns_zero_when_race_has_no_hp_modifier(): void
+    {
+        $human = Race::factory()->create([
+            'slug' => 'human',
+            'full_slug' => 'human',
+            'name' => 'Human',
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => $human->full_slug,
+        ]);
+
+        $bonus = $this->service->getRaceHpBonus($character);
+
+        $this->assertEquals(0, $bonus);
+    }
+
+    #[Test]
+    public function it_returns_zero_when_character_has_no_race(): void
+    {
+        $character = Character::factory()->create([
+            'race_slug' => null,
+        ]);
+
+        $bonus = $this->service->getRaceHpBonus($character);
+
+        $this->assertEquals(0, $bonus);
+    }
+
+    #[Test]
+    public function it_includes_parent_race_hp_modifiers_for_subraces(): void
+    {
+        // Create base Dwarf race (no HP modifier)
+        $dwarf = Race::factory()->create([
+            'slug' => 'dwarf',
+            'full_slug' => 'dwarf',
+            'name' => 'Dwarf',
+            'parent_race_id' => null,
+        ]);
+
+        // Create Hill Dwarf subrace with HP modifier
+        $hillDwarf = Race::factory()->create([
+            'slug' => 'dwarf-hill',
+            'full_slug' => 'dwarf-hill',
+            'name' => 'Hill Dwarf',
+            'parent_race_id' => $dwarf->id,
+        ]);
+
+        // Hill Dwarf gets +1 HP per level
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $hillDwarf->id,
+            'modifier_category' => 'hp',
+            'value' => 1,
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => $hillDwarf->full_slug,
+        ]);
+
+        $bonus = $this->service->getRaceHpBonus($character);
+
+        $this->assertEquals(1, $bonus);
+    }
+
+    #[Test]
+    public function it_inherits_parent_race_hp_bonus_when_subrace_has_none(): void
+    {
+        // Create Dwarf parent race with HP modifier
+        $dwarf = Race::factory()->create([
+            'slug' => 'dwarf',
+            'full_slug' => 'dwarf',
+            'name' => 'Dwarf',
+            'parent_race_id' => null,
+        ]);
+
+        // Parent race gives +1 HP per level
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $dwarf->id,
+            'modifier_category' => 'hp',
+            'value' => 1,
+        ]);
+
+        // Create Mountain Dwarf subrace (NO HP modifier of its own)
+        $mountainDwarf = Race::factory()->create([
+            'slug' => 'dwarf-mountain',
+            'full_slug' => 'dwarf-mountain',
+            'name' => 'Mountain Dwarf',
+            'parent_race_id' => $dwarf->id,
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => $mountainDwarf->full_slug,
+        ]);
+
+        $bonus = $this->service->getRaceHpBonus($character);
+
+        $this->assertEquals(1, $bonus); // Should inherit parent's +1 HP
+    }
+
+    #[Test]
+    public function it_combines_parent_and_subrace_hp_modifiers(): void
+    {
+        // Hypothetical scenario: both parent and subrace have HP modifiers
+        $baseRace = Race::factory()->create([
+            'slug' => 'hardy-folk',
+            'full_slug' => 'hardy-folk',
+            'name' => 'Hardy Folk',
+            'parent_race_id' => null,
+        ]);
+
+        // Parent race gives +1 HP per level
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $baseRace->id,
+            'modifier_category' => 'hp',
+            'value' => 1,
+        ]);
+
+        $subrace = Race::factory()->create([
+            'slug' => 'hardy-folk-mountain',
+            'full_slug' => 'hardy-folk-mountain',
+            'name' => 'Mountain Hardy Folk',
+            'parent_race_id' => $baseRace->id,
+        ]);
+
+        // Subrace adds another +1 HP per level
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $subrace->id,
+            'modifier_category' => 'hp',
+            'value' => 1,
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => $subrace->full_slug,
+        ]);
+
+        $bonus = $this->service->getRaceHpBonus($character);
+
+        $this->assertEquals(2, $bonus); // 1 + 1 from parent and subrace
+    }
+
+    // =====================
+    // recalculateForRaceChange Tests
+    // =====================
+
+    #[Test]
+    public function it_increases_hp_when_changing_to_race_with_hp_bonus(): void
+    {
+        // Create Human (no HP bonus)
+        $human = Race::factory()->create([
+            'slug' => 'human',
+            'full_slug' => 'human',
+            'name' => 'Human',
+        ]);
+
+        // Create Hill Dwarf (with HP bonus)
+        $hillDwarf = Race::factory()->create([
+            'slug' => 'dwarf-hill',
+            'full_slug' => 'dwarf-hill',
+            'name' => 'Hill Dwarf',
+        ]);
+
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $hillDwarf->id,
+            'modifier_category' => 'hp',
+            'value' => 1,
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => $human->full_slug,
+            'max_hit_points' => 50,
+            'current_hit_points' => 50,
+        ]);
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $this->fighter->full_slug,
+            'level' => 5,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Human (0) -> Hill Dwarf (+1 per level) = +5 HP
+        $result = $this->service->recalculateForRaceChange($character, $human->full_slug, $hillDwarf->full_slug);
+
+        $this->assertEquals(5, $result['adjustment']); // +1 per level × 5 levels
+        $this->assertEquals(55, $result['new_max_hp']);
+        $this->assertEquals(55, $result['new_current_hp']);
+    }
+
+    #[Test]
+    public function it_decreases_hp_when_changing_from_race_with_hp_bonus(): void
+    {
+        // Create Human (no HP bonus)
+        $human = Race::factory()->create([
+            'slug' => 'human',
+            'full_slug' => 'human',
+            'name' => 'Human',
+        ]);
+
+        // Create Hill Dwarf (with HP bonus)
+        $hillDwarf = Race::factory()->create([
+            'slug' => 'dwarf-hill',
+            'full_slug' => 'dwarf-hill',
+            'name' => 'Hill Dwarf',
+        ]);
+
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $hillDwarf->id,
+            'modifier_category' => 'hp',
+            'value' => 1,
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => $hillDwarf->full_slug,
+            'max_hit_points' => 55, // Includes +5 from Hill Dwarf
+            'current_hit_points' => 55,
+        ]);
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $this->fighter->full_slug,
+            'level' => 5,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Hill Dwarf (+1) -> Human (0) = -5 HP
+        $result = $this->service->recalculateForRaceChange($character, $hillDwarf->full_slug, $human->full_slug);
+
+        $this->assertEquals(-5, $result['adjustment']);
+        $this->assertEquals(50, $result['new_max_hp']);
+        $this->assertEquals(50, $result['new_current_hp']);
+    }
+
+    #[Test]
+    public function it_returns_no_change_when_switching_races_with_same_hp_bonus(): void
+    {
+        // Create two races with no HP bonus
+        $human = Race::factory()->create([
+            'slug' => 'human',
+            'full_slug' => 'human',
+            'name' => 'Human',
+        ]);
+
+        $elf = Race::factory()->create([
+            'slug' => 'elf',
+            'full_slug' => 'elf',
+            'name' => 'Elf',
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => $human->full_slug,
+            'max_hit_points' => 50,
+            'current_hit_points' => 50,
+        ]);
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $this->fighter->full_slug,
+            'level' => 5,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        $result = $this->service->recalculateForRaceChange($character, $human->full_slug, $elf->full_slug);
+
+        $this->assertEquals(0, $result['adjustment']);
+        $this->assertEquals(50, $result['new_max_hp']);
+        $this->assertEquals(50, $result['new_current_hp']);
+    }
+
+    #[Test]
+    public function it_caps_current_hp_at_new_max_when_race_hp_decreases(): void
+    {
+        // Create Human (no HP bonus)
+        $human = Race::factory()->create([
+            'slug' => 'human',
+            'full_slug' => 'human',
+            'name' => 'Human',
+        ]);
+
+        // Create Hill Dwarf (with HP bonus)
+        $hillDwarf = Race::factory()->create([
+            'slug' => 'dwarf-hill',
+            'full_slug' => 'dwarf-hill',
+            'name' => 'Hill Dwarf',
+        ]);
+
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $hillDwarf->id,
+            'modifier_category' => 'hp',
+            'value' => 1,
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => $hillDwarf->full_slug,
+            'max_hit_points' => 55,
+            'current_hit_points' => 30, // Already damaged
+        ]);
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $this->fighter->full_slug,
+            'level' => 5,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        $result = $this->service->recalculateForRaceChange($character, $hillDwarf->full_slug, $human->full_slug);
+
+        $this->assertEquals(50, $result['new_max_hp']);
+        $this->assertEquals(30, $result['new_current_hp']); // Stays at 30 (below new max)
+    }
+
+    #[Test]
+    public function it_handles_changing_from_no_race_to_race_with_hp_bonus(): void
+    {
+        // Create Hill Dwarf (with HP bonus)
+        $hillDwarf = Race::factory()->create([
+            'slug' => 'dwarf-hill',
+            'full_slug' => 'dwarf-hill',
+            'name' => 'Hill Dwarf',
+        ]);
+
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $hillDwarf->id,
+            'modifier_category' => 'hp',
+            'value' => 1,
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => null,
+            'max_hit_points' => 50,
+            'current_hit_points' => 50,
+        ]);
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $this->fighter->full_slug,
+            'level' => 5,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // No race (0) -> Hill Dwarf (+1 per level) = +5 HP
+        $result = $this->service->recalculateForRaceChange($character, null, $hillDwarf->full_slug);
+
+        $this->assertEquals(5, $result['adjustment']);
+        $this->assertEquals(55, $result['new_max_hp']);
+        $this->assertEquals(55, $result['new_current_hp']);
     }
 }

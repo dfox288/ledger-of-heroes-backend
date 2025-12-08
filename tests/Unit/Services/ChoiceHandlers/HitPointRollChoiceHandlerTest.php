@@ -11,6 +11,7 @@ use App\Models\CharacterClassPivot;
 use App\Models\CharacterFeature;
 use App\Models\Feat;
 use App\Models\Modifier;
+use App\Models\Race;
 use App\Services\ChoiceHandlers\HitPointRollChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -1019,5 +1020,170 @@ class HitPointRollChoiceHandlerTest extends TestCase
         // - Total: 10 HP gained
         $this->assertEquals(22, $character->max_hit_points); // 12 + 10
         $this->assertEquals(22, $character->current_hit_points);
+    }
+
+    // =====================
+    // Race HP Bonus Tests (Hill Dwarf)
+    // =====================
+
+    /** @test */
+    public function it_adds_race_hp_bonus_on_level_up(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+        ]);
+
+        // Create Hill Dwarf race with HP modifier
+        $hillDwarf = Race::factory()->create([
+            'slug' => 'dwarf-hill',
+            'full_slug' => 'dwarf-hill',
+            'name' => 'Hill Dwarf',
+        ]);
+
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $hillDwarf->id,
+            'modifier_category' => 'hp',
+            'value' => 1,
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => $hillDwarf->full_slug,
+            'constitution' => 14, // +2 modifier
+            'max_hit_points' => 13, // Level 1 HP (10 + 2 CON + 1 race)
+            'current_hit_points' => 13,
+        ]);
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+        $pivot->setRelation('characterClass', $class);
+
+        $choice = new PendingChoice(
+            id: 'hit_points:levelup:'.$character->id.':2',
+            type: 'hit_points',
+            subtype: null,
+            source: 'level_up',
+            sourceName: 'Level 2',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: [
+                'hit_die' => 'd10',
+                'con_modifier' => 2,
+                'class_slug' => 'fighter',
+            ],
+        );
+
+        $this->handler->resolve($character, $choice, ['selected' => 'average']);
+
+        $character->refresh();
+
+        // HP should be increased by:
+        // - 6 (average d10) + 2 (CON) = 8 base HP gain
+        // - + 1 (Hill Dwarf race bonus per level)
+        // - Total: 9 HP gained
+        $this->assertEquals(22, $character->max_hit_points); // 13 + 9
+        $this->assertEquals(22, $character->current_hit_points);
+    }
+
+    /** @test */
+    public function it_combines_race_and_feat_hp_bonuses_on_level_up(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+        ]);
+
+        // Create Hill Dwarf race with HP modifier
+        $hillDwarf = Race::factory()->create([
+            'slug' => 'dwarf-hill',
+            'full_slug' => 'dwarf-hill',
+            'name' => 'Hill Dwarf',
+        ]);
+
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $hillDwarf->id,
+            'modifier_category' => 'hp',
+            'value' => 1,
+        ]);
+
+        // Create Tough feat with hit_points_per_level modifier
+        $toughFeat = Feat::factory()->create([
+            'slug' => 'tough',
+            'name' => 'Tough',
+        ]);
+
+        Modifier::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $toughFeat->id,
+            'modifier_category' => 'hit_points_per_level',
+            'value' => 2,
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => $hillDwarf->full_slug,
+            'constitution' => 14, // +2 modifier
+            'max_hit_points' => 13, // Level 1 HP
+            'current_hit_points' => 13,
+        ]);
+
+        // Grant the Tough feat to the character
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $toughFeat->id,
+            'feature_slug' => $toughFeat->full_slug,
+            'source' => 'asi_choice',
+        ]);
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+        $pivot->setRelation('characterClass', $class);
+
+        $choice = new PendingChoice(
+            id: 'hit_points:levelup:'.$character->id.':2',
+            type: 'hit_points',
+            subtype: null,
+            source: 'level_up',
+            sourceName: 'Level 2',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: [
+                'hit_die' => 'd10',
+                'con_modifier' => 2,
+                'class_slug' => 'fighter',
+            ],
+        );
+
+        $this->handler->resolve($character, $choice, ['selected' => 'average']);
+
+        $character->refresh();
+
+        // HP should be increased by:
+        // - 6 (average d10) + 2 (CON) = 8 base HP gain
+        // - + 1 (Hill Dwarf race bonus per level)
+        // - + 2 (Tough feat bonus per level)
+        // - Total: 11 HP gained
+        $this->assertEquals(24, $character->max_hit_points); // 13 + 11
+        $this->assertEquals(24, $character->current_hit_points);
     }
 }

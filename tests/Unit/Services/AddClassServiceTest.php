@@ -9,7 +9,9 @@ use App\Models\AbilityScore;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
+use App\Models\Modifier;
 use App\Models\Proficiency;
+use App\Models\Race;
 use App\Services\AddClassService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -206,6 +208,108 @@ class AddClassServiceTest extends TestCase
         $this->assertCount(1, $character->features);
         $this->assertEquals('Second Wind', $character->features->first()->feature->feature_name);
         $this->assertEquals('class', $character->features->first()->source);
+    }
+
+    // =====================
+    // Starting HP with Race Bonus Tests
+    // =====================
+
+    #[Test]
+    public function it_initializes_starting_hp_with_race_bonus_for_calculated_characters(): void
+    {
+        // Create Hill Dwarf race with HP modifier
+        $hillDwarf = Race::factory()->create([
+            'slug' => 'dwarf-hill',
+            'full_slug' => 'dwarf-hill',
+            'name' => 'Hill Dwarf',
+        ]);
+
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $hillDwarf->id,
+            'modifier_category' => 'hp',
+            'value' => 1,
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => $hillDwarf->full_slug,
+            'constitution' => 14, // +2 modifier
+            'hp_calculation_method' => 'calculated',
+            'max_hit_points' => null,
+            'current_hit_points' => null,
+        ]);
+
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+            'parent_class_id' => null,
+        ]);
+
+        $this->service->addClass($character, $fighter);
+
+        $character->refresh();
+
+        // Starting HP should be: hit die max (10) + CON mod (+2) + race bonus (+1) = 13
+        $this->assertEquals(13, $character->max_hit_points);
+        $this->assertEquals(13, $character->current_hit_points);
+    }
+
+    #[Test]
+    public function it_initializes_starting_hp_without_race_bonus_when_no_race(): void
+    {
+        $character = Character::factory()->create([
+            'race_slug' => null,
+            'constitution' => 14, // +2 modifier
+            'hp_calculation_method' => 'calculated',
+            'max_hit_points' => null,
+            'current_hit_points' => null,
+        ]);
+
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+            'parent_class_id' => null,
+        ]);
+
+        $this->service->addClass($character, $fighter);
+
+        $character->refresh();
+
+        // Starting HP should be: hit die max (10) + CON mod (+2) = 12 (no race bonus)
+        $this->assertEquals(12, $character->max_hit_points);
+        $this->assertEquals(12, $character->current_hit_points);
+    }
+
+    #[Test]
+    public function it_initializes_starting_hp_without_race_bonus_when_race_has_no_hp_modifier(): void
+    {
+        $human = Race::factory()->create([
+            'slug' => 'human',
+            'full_slug' => 'human',
+            'name' => 'Human',
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => $human->full_slug,
+            'constitution' => 14, // +2 modifier
+            'hp_calculation_method' => 'calculated',
+            'max_hit_points' => null,
+            'current_hit_points' => null,
+        ]);
+
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+            'parent_class_id' => null,
+        ]);
+
+        $this->service->addClass($character, $fighter);
+
+        $character->refresh();
+
+        // Starting HP should be: hit die max (10) + CON mod (+2) = 12 (no race bonus)
+        $this->assertEquals(12, $character->max_hit_points);
+        $this->assertEquals(12, $character->current_hit_points);
     }
 
     private function seedAbilityScores(): void

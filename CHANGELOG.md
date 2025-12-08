@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #366**: Race HP Modifier Support (Hill Dwarf Dwarven Toughness)
+  - Race HP modifiers (modifier_category: 'hp') now applied to character HP
+  - Starting HP includes race bonus when first class is added
+  - Level-up HP gains include race bonus per level
+  - Retroactive HP adjustment when race is changed (bonus × total_level)
+  - New `HitPointService.getRaceHpBonus()` method
+  - New `HitPointService.recalculateForRaceChange()` method
+  - CharacterController update handles race change HP retroactively
+  - 15 new tests covering service methods and integration
+
 - **Issue #356**: Tough Feat HP Bonus Implementation
   - FeatXmlParser now detects `hit_points_per_level` modifier from feat descriptions
   - Tough feat (and similar feats) grants +N HP per character level

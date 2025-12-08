@@ -19,6 +19,7 @@ use App\Services\CharacterProficiencyService;
 use App\Services\CharacterStatCalculator;
 use App\Services\EquipmentManagerService;
 use App\Services\HitDiceService;
+use App\Services\HitPointService;
 use App\Services\SpellSlotService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -33,7 +34,8 @@ class CharacterController extends Controller
         private CharacterLanguageService $languageService,
         private SpellSlotService $spellSlotService,
         private HitDiceService $hitDiceService,
-        private EquipmentManagerService $equipmentService
+        private EquipmentManagerService $equipmentService,
+        private HitPointService $hitPointService
     ) {}
 
     /**
@@ -207,8 +209,13 @@ class CharacterController extends Controller
         $newBackgroundSlug = $validated['background_slug'] ?? null;
         $backgroundAssigned = $newBackgroundSlug && $newBackgroundSlug !== $previousBackgroundSlug;
 
+        // Track if race is being changed (for retroactive HP adjustment)
+        $previousRaceSlug = $character->race_slug;
+        $newRaceSlug = $validated['race_slug'] ?? null;
+        $raceChanged = array_key_exists('race_slug', $validated) && $newRaceSlug !== $previousRaceSlug;
+
         // Use transaction with pessimistic locking for all operations
-        DB::transaction(function () use ($character, &$validated, $classSlug, $level, $backgroundAssigned) {
+        DB::transaction(function () use ($character, &$validated, $classSlug, $level, $backgroundAssigned, $raceChanged, $previousRaceSlug, $newRaceSlug) {
             // Lock character row first for HP/death save consistency
             $character->lockForUpdate()->first();
 
@@ -253,6 +260,21 @@ class CharacterController extends Controller
             }
 
             $character->update($validated);
+
+            // Adjust HP retroactively if race changed (must happen after update so race_slug is set)
+            if ($raceChanged && $character->usesCalculatedHp() && $character->total_level > 0) {
+                $hpResult = $this->hitPointService->recalculateForRaceChange(
+                    $character,
+                    $previousRaceSlug,
+                    $newRaceSlug
+                );
+                if ($hpResult['adjustment'] !== 0) {
+                    $character->update([
+                        'max_hit_points' => $hpResult['new_max_hp'],
+                        'current_hit_points' => $hpResult['new_current_hp'],
+                    ]);
+                }
+            }
 
             // Grant fixed equipment within transaction for consistency
             if ($primaryClassAssigned) {

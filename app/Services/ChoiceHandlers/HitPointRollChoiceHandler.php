@@ -182,6 +182,10 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
         $featHpBonus = $this->hitPointService->getFeatHpBonus($character);
         $hpGained += $featHpBonus;
 
+        // Add race HP bonus (e.g., Hill Dwarf Dwarven Toughness grants +1 HP per level)
+        $raceHpBonus = $this->hitPointService->getRaceHpBonus($character);
+        $hpGained += $raceHpBonus;
+
         // Update character HP
         $character->max_hit_points = ($character->max_hit_points ?? 0) + $hpGained;
         $character->current_hit_points = ($character->current_hit_points ?? 0) + $hpGained;

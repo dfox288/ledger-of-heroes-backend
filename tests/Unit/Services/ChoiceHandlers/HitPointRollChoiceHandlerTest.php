@@ -129,7 +129,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $choices = $this->handler->getChoices($character);
         $choice = $choices->first();
 
-        $this->assertCount(2, $choice->options);
+        $this->assertCount(3, $choice->options);
 
         // Roll option
         $rollOption = collect($choice->options)->firstWhere('id', 'roll');
@@ -870,5 +870,38 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $this->assertEquals(3, $character->max_hit_points); // 2 + 1 (min)
         $this->assertEquals(3, $character->current_hit_points);
+    }
+
+    /** @test */
+    public function it_includes_manual_option_in_hp_choices(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+        ]);
+
+        $character = Character::factory()->create([
+            'constitution' => 16, // +3 modifier
+        ]);
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+        $pivot->setRelation('characterClass', $class);
+        $character->setRelation('characterClasses', collect([$pivot]));
+
+        $choices = $this->handler->getChoices($character);
+        $choice = $choices->first();
+
+        $this->assertCount(3, $choice->options);
+
+        $manualOption = collect($choice->options)->firstWhere('id', 'manual');
+        $this->assertNotNull($manualOption);
+        $this->assertEquals('Manual Roll', $manualOption['name']);
+        $this->assertEquals(1, $manualOption['min_roll']);
+        $this->assertEquals(10, $manualOption['max_roll']);
     }
 }

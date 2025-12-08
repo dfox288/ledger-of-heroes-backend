@@ -87,6 +87,13 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
                         'description' => "Take {$average}".($conModifier >= 0 ? ' + ' : ' - ').abs($conModifier)." (CON mod) = {$averageResult} HP",
                         'fixed_result' => $averageResult,
                     ],
+                    [
+                        'id' => 'manual',
+                        'name' => 'Manual Roll',
+                        'description' => "Enter your own d{$hitDie} roll result (for physical dice)",
+                        'min_roll' => 1,
+                        'max_roll' => $hitDie,
+                    ],
                 ],
                 optionsEndpoint: null,
                 metadata: [

@@ -28,10 +28,11 @@ class SpellManagerService
      *
      * Filters by:
      * - Class spell list (from primary class)
+     * - Min spell level (optional) - use 1 to exclude cantrips
      * - Max spell level (optional)
      * - Excludes already known spells (unless includeKnown is true)
      */
-    public function getAvailableSpells(Character $character, ?int $maxLevel = null, bool $includeKnown = false): Collection
+    public function getAvailableSpells(Character $character, ?int $minLevel = null, ?int $maxLevel = null, bool $includeKnown = false): Collection
     {
         $class = $character->primary_class;
 
@@ -48,6 +49,10 @@ class SpellManagerService
         if (! $includeKnown) {
             $knownSpellSlugs = $character->spells()->pluck('spell_slug');
             $query->whereNotIn('spells.full_slug', $knownSpellSlugs);
+        }
+
+        if ($minLevel !== null) {
+            $query->where('level', '>=', $minLevel);
         }
 
         if ($maxLevel !== null) {

@@ -37,6 +37,7 @@ class CharacterResource extends JsonResource
             ...$this->getCharacterAttributes(),
             ...$this->getRaceAttributes(),
             ...$this->getEquipmentData(),
+            ...$this->getCurrencyData(),
             ...$this->getRelationships(),
             ...$this->getMulticlassData(),
             ...$this->getFeaturesAndConditions(),
@@ -138,6 +139,21 @@ class CharacterResource extends JsonResource
         return [
             'equipped' => $this->getEquippedSummary(),
             'proficiency_penalties' => $this->getProficiencyPenalties(),
+        ];
+    }
+
+    /**
+     * Get currency data from character's inventory.
+     *
+     * Currency is derived from equipment items with coin slugs.
+     *
+     * @return array{currency: array{pp: int, gp: int, ep: int, sp: int, cp: int}}
+     */
+    private function getCurrencyData(): array
+    {
+        return [
+            /** @var array{pp: int, gp: int, ep: int, sp: int, cp: int} Currency from inventory */
+            'currency' => $this->currency,
         ];
     }
 

@@ -161,6 +161,71 @@ class CharacterSpellTest extends TestCase
     }
 
     #[Test]
+    public function it_filters_available_spells_by_min_level(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()->withClass($wizardClass)->level(5)->create();
+
+        // Cantrips (level 0)
+        $cantrips = Spell::factory()->count(2)->create(['level' => 0]);
+        // Level 1 spells
+        $level1Spells = Spell::factory()->count(3)->create(['level' => 1]);
+        // Level 2 spells
+        $level2Spells = Spell::factory()->count(2)->create(['level' => 2]);
+
+        $wizardClass->spells()->attach(
+            $cantrips->pluck('id')
+                ->merge($level1Spells->pluck('id'))
+                ->merge($level2Spells->pluck('id'))
+        );
+
+        // min_level=1 should exclude cantrips (level 0)
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-spells?min_level=1");
+
+        $response->assertOk()
+            ->assertJsonCount(5, 'data'); // 3 level-1 + 2 level-2, no cantrips
+
+        // Verify no cantrips in response
+        $slugs = collect($response->json('data'))->pluck('full_slug');
+        foreach ($cantrips as $cantrip) {
+            $this->assertNotContains($cantrip->full_slug, $slugs);
+        }
+    }
+
+    #[Test]
+    public function it_filters_available_spells_by_min_and_max_level(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()->withClass($wizardClass)->level(5)->create();
+
+        // Cantrips (level 0)
+        $cantrips = Spell::factory()->count(2)->create(['level' => 0]);
+        // Level 1 spells
+        $level1Spells = Spell::factory()->count(3)->create(['level' => 1]);
+        // Level 2 spells
+        $level2Spells = Spell::factory()->count(2)->create(['level' => 2]);
+        // Level 3 spells
+        $level3Spells = Spell::factory()->count(2)->create(['level' => 3]);
+
+        $wizardClass->spells()->attach(
+            $cantrips->pluck('id')
+                ->merge($level1Spells->pluck('id'))
+                ->merge($level2Spells->pluck('id'))
+                ->merge($level3Spells->pluck('id'))
+        );
+
+        // min_level=1 max_level=2 should return only level 1-2 spells
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-spells?min_level=1&max_level=2");
+
+        $response->assertOk()
+            ->assertJsonCount(5, 'data'); // 3 level-1 + 2 level-2
+
+        // Verify levels in response
+        $levels = collect($response->json('data'))->pluck('level')->unique()->values();
+        $this->assertEquals([1, 2], $levels->sort()->values()->all());
+    }
+
+    #[Test]
     public function it_combines_max_level_and_include_known_parameters(): void
     {
         $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);

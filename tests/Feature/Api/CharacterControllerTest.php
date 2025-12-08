@@ -5,6 +5,8 @@ namespace Tests\Feature\Api;
 use App\Models\Background;
 use App\Models\Character;
 use App\Models\CharacterClass;
+use App\Models\CharacterEquipment;
+use App\Models\Item;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -428,5 +430,86 @@ class CharacterControllerTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.background.id', $background->id)
             ->assertJsonPath('data.background.name', $background->name);
+    }
+
+    // =====================
+    // Currency Tests
+    // =====================
+
+    #[Test]
+    public function it_returns_currency_from_inventory_items(): void
+    {
+        $character = Character::factory()->create();
+
+        // Create currency items
+        $gold = Item::factory()->create(['full_slug' => 'phb:gold-gp', 'name' => 'Gold (gp)']);
+        $silver = Item::factory()->create(['full_slug' => 'phb:silver-sp', 'name' => 'Silver (sp)']);
+        $copper = Item::factory()->create(['full_slug' => 'phb:copper-cp', 'name' => 'Copper (cp)']);
+
+        // Add currency to character's inventory
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'phb:gold-gp',
+            'quantity' => 25,
+        ]);
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'phb:silver-sp',
+            'quantity' => 50,
+        ]);
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'phb:copper-cp',
+            'quantity' => 100,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.currency.pp', 0)
+            ->assertJsonPath('data.currency.gp', 25)
+            ->assertJsonPath('data.currency.ep', 0)
+            ->assertJsonPath('data.currency.sp', 50)
+            ->assertJsonPath('data.currency.cp', 100);
+    }
+
+    #[Test]
+    public function it_returns_zero_currency_when_no_coins_in_inventory(): void
+    {
+        $character = Character::factory()->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.currency.pp', 0)
+            ->assertJsonPath('data.currency.gp', 0)
+            ->assertJsonPath('data.currency.ep', 0)
+            ->assertJsonPath('data.currency.sp', 0)
+            ->assertJsonPath('data.currency.cp', 0);
+    }
+
+    #[Test]
+    public function it_sums_multiple_stacks_of_same_coin_type(): void
+    {
+        $character = Character::factory()->create();
+
+        Item::factory()->create(['full_slug' => 'phb:gold-gp', 'name' => 'Gold (gp)']);
+
+        // Two separate stacks of gold (e.g., from different loot sources)
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'phb:gold-gp',
+            'quantity' => 25,
+        ]);
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'phb:gold-gp',
+            'quantity' => 30,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.currency.gp', 55); // 25 + 30
     }
 }

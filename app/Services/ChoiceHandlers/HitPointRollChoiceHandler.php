@@ -110,15 +110,45 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
             throw new InvalidSelectionException($choice->id, 'null', 'Selection is required for hit point choice');
         }
 
-        if (! in_array($selected, ['roll', 'average'])) {
-            throw new InvalidSelectionException($choice->id, $selected, 'Selection must be "roll" or "average"');
+        if (! in_array($selected, ['roll', 'average', 'manual'])) {
+            throw new InvalidSelectionException($choice->id, $selected, 'Selection must be "roll", "average", or "manual"');
         }
 
         $conModifier = $choice->metadata['con_modifier'] ?? 0;
         $hitDieString = $choice->metadata['hit_die'] ?? 'd8';
         $hitDie = (int) str_replace('d', '', $hitDieString);
 
-        if ($selected === 'roll') {
+        if ($selected === 'manual') {
+            $rollResult = $selection['roll_result'] ?? null;
+
+            if ($rollResult === null) {
+                throw new InvalidSelectionException(
+                    $choice->id,
+                    'manual',
+                    'roll_result is required when using manual selection'
+                );
+            }
+
+            if (! is_int($rollResult) && ! is_numeric($rollResult)) {
+                throw new InvalidSelectionException(
+                    $choice->id,
+                    'manual',
+                    'roll_result must be an integer'
+                );
+            }
+
+            $rollResult = (int) $rollResult;
+
+            if ($rollResult < 1 || $rollResult > $hitDie) {
+                throw new InvalidSelectionException(
+                    $choice->id,
+                    'manual',
+                    "roll_result must be between 1 and {$hitDie}"
+                );
+            }
+
+            $hpGained = max(1, $rollResult + $conModifier);
+        } elseif ($selected === 'roll') {
             // Server-side roll - NEVER trust client
             $roll = random_int(1, $hitDie);
             $hpGained = max(1, $roll + $conModifier);

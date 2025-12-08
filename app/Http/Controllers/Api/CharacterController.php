@@ -61,8 +61,9 @@ class CharacterController extends Controller
         ]);
 
         // Filter by name when q parameter is provided
-        if ($q = $request->validated('q')) {
-            $query->where('name', 'like', "%{$q}%");
+        if ($request->has('q')) {
+            $search = $request->validated('q');
+            $query->where('name', 'LIKE', "%{$search}%");
         }
 
         $characters = $query->paginate($perPage);

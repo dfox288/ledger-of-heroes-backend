@@ -8,6 +8,7 @@ use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\Feat;
 use App\Models\Modifier;
+use App\Models\Race;
 use InvalidArgumentException;
 
 class HitPointService
@@ -150,5 +151,104 @@ class HitPointService
             ->whereIn('reference_id', $featIds)
             ->where('modifier_category', 'hit_points_per_level')
             ->sum('value');
+    }
+
+    /**
+     * Get the HP per level bonus from race.
+     *
+     * Sums all hp modifiers from the character's race and parent race (if subrace).
+     * Used for races like Hill Dwarf that grant +1 HP per level (Dwarven Toughness).
+     */
+    public function getRaceHpBonus(Character $character): int
+    {
+        $race = $character->race;
+
+        if (! $race) {
+            return 0;
+        }
+
+        // Collect race IDs to check (current race + parent race if exists)
+        $raceIds = [$race->id];
+        if ($race->parent_race_id) {
+            $raceIds[] = $race->parent_race_id;
+        }
+
+        // Sum all hp modifiers from those races
+        return (int) Modifier::where('reference_type', Race::class)
+            ->whereIn('reference_id', $raceIds)
+            ->where('modifier_category', 'hp')
+            ->sum('value');
+    }
+
+    /**
+     * Get the HP per level bonus for a specific race (by slug).
+     *
+     * Helper method for recalculateForRaceChange() that can look up
+     * HP bonus for a race that may not be the character's current race.
+     */
+    private function getRaceHpBonusBySlug(?string $raceSlug): int
+    {
+        if (! $raceSlug) {
+            return 0;
+        }
+
+        $race = Race::where('full_slug', $raceSlug)->first();
+        if (! $race) {
+            return 0;
+        }
+
+        // Collect race IDs to check (race + parent race if exists)
+        $raceIds = [$race->id];
+        if ($race->parent_race_id) {
+            $raceIds[] = $race->parent_race_id;
+        }
+
+        return (int) Modifier::where('reference_type', Race::class)
+            ->whereIn('reference_id', $raceIds)
+            ->where('modifier_category', 'hp')
+            ->sum('value');
+    }
+
+    /**
+     * Recalculate HP after race change.
+     * Adjusts HP by (new race bonus - old race bonus) * total level.
+     *
+     * @return array{adjustment: int, new_max_hp: int, new_current_hp: int}
+     */
+    public function recalculateForRaceChange(
+        Character $character,
+        ?string $oldRaceSlug,
+        ?string $newRaceSlug
+    ): array {
+        $oldBonus = $this->getRaceHpBonusBySlug($oldRaceSlug);
+        $newBonus = $this->getRaceHpBonusBySlug($newRaceSlug);
+        $diff = $newBonus - $oldBonus;
+
+        if ($diff === 0) {
+            return [
+                'adjustment' => 0,
+                'new_max_hp' => $character->max_hit_points ?? 0,
+                'new_current_hp' => $character->current_hit_points ?? 0,
+            ];
+        }
+
+        $adjustment = $diff * $character->total_level;
+        $newMaxHp = max(1, ($character->max_hit_points ?? 0) + $adjustment);
+
+        // Current HP adjusts but caps at new max
+        $newCurrentHp = $character->current_hit_points ?? 0;
+        if ($adjustment > 0) {
+            // Race bonus increased: gain HP
+            $newCurrentHp += $adjustment;
+        } else {
+            // Race bonus decreased: lose HP but cap at new max and min 1
+            $newCurrentHp = max(1, min($newCurrentHp, $newMaxHp));
+        }
+
+        return [
+            'adjustment' => $adjustment,
+            'new_max_hp' => $newMaxHp,
+            'new_current_hp' => $newCurrentHp,
+        ];
     }
 }

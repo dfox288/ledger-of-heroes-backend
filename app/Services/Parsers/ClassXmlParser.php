@@ -5,6 +5,7 @@ namespace App\Services\Parsers;
 use App\Services\Parsers\Concerns\ConvertsWordNumbers;
 use App\Services\Parsers\Concerns\LoadsLookupData;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
+use App\Services\Parsers\Concerns\MatchesLanguages;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesFeatureChoiceProgressions;
 use App\Services\Parsers\Concerns\ParsesModifiers;
@@ -16,7 +17,7 @@ use SimpleXMLElement;
 
 class ClassXmlParser
 {
-    use ConvertsWordNumbers, LoadsLookupData, MapsAbilityCodes, MatchesProficiencyTypes, ParsesFeatureChoiceProgressions, ParsesModifiers, ParsesRestTiming, ParsesRolls, ParsesSourceCitations, ParsesTraits;
+    use ConvertsWordNumbers, LoadsLookupData, MapsAbilityCodes, MatchesLanguages, MatchesProficiencyTypes, ParsesFeatureChoiceProgressions, ParsesModifiers, ParsesRestTiming, ParsesRolls, ParsesSourceCitations, ParsesTraits;
 
     /**
      * Parse classes from XML string.
@@ -114,7 +115,51 @@ class ClassXmlParser
         // Parse starting equipment
         $data['equipment'] = $this->parseEquipment($element);
 
+        // Parse language grants from features (e.g., Thieves' Cant, Druidic)
+        $data['languages'] = $this->parseLanguageGrants($data['features']);
+
         return $data;
+    }
+
+    /**
+     * Parse language grants from class features.
+     *
+     * Detects features that grant languages (Thieves' Cant, Druidic) by:
+     * 1. Feature name matching a known language name
+     * 2. Feature description containing "you learned [language]" or "you know [language]"
+     *
+     * @param  array<int, array<string, mixed>>  $features
+     * @return array<int, array{slug: string, is_choice: bool, level: int}>
+     */
+    private function parseLanguageGrants(array $features): array
+    {
+        $languages = [];
+
+        // Known language-granting features (feature name → language slug)
+        $knownLanguageFeatures = [
+            "Thieves' Cant" => 'thieves-cant',
+            'Thieves\' Cant' => 'thieves-cant',  // Escaped apostrophe variant
+            'Druidic' => 'druidic',
+        ];
+
+        foreach ($features as $feature) {
+            $featureName = $feature['name'] ?? '';
+            $featureLevel = $feature['level'] ?? 1;
+
+            // Check if feature name matches a known language-granting feature
+            foreach ($knownLanguageFeatures as $name => $slug) {
+                if (strcasecmp($featureName, $name) === 0) {
+                    $languages[] = [
+                        'slug' => $slug,
+                        'is_choice' => false,
+                        'level' => $featureLevel,
+                    ];
+                    break;
+                }
+            }
+        }
+
+        return $languages;
     }
 
     /**

@@ -18,6 +18,7 @@ class AddClassService
         private SpellSlotService $spellSlotService,
         private EquipmentManagerService $equipmentService,
         private CharacterFeatureService $featureService,
+        private HitPointService $hitPointService,
     ) {}
 
     /**
@@ -96,6 +97,16 @@ class AddClassService
 
             // Populate class features for the new class
             $this->featureService->populateFromClass($character);
+
+            // Auto-initialize HP for first class (level 1) if using calculated HP
+            if ($isPrimary && $character->usesCalculatedHp()) {
+                $startingHp = $this->hitPointService->calculateStartingHp($character, $class);
+                $character->update([
+                    'max_hit_points' => $startingHp,
+                    'current_hit_points' => $startingHp,
+                    'hp_levels_resolved' => [1],
+                ]);
+            }
 
             return $pivot;
         });

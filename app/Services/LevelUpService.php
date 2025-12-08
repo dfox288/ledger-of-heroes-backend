@@ -8,6 +8,7 @@ use App\DTOs\LevelUpResult;
 use App\Exceptions\IncompleteCharacterException;
 use App\Exceptions\MaxLevelReachedException;
 use App\Models\Character;
+use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
 use App\Models\CharacterFeature;
 use App\Models\ClassFeature;
@@ -122,7 +123,7 @@ class LevelUpService
      *
      * @return array<array{id: int, name: string, description: string|null}>
      */
-    private function grantClassFeatures(Character $character, $class, int $classLevel): array
+    private function grantClassFeatures(Character $character, ?CharacterClass $class, int $classLevel): array
     {
         if ($class === null) {
             return [];
@@ -164,6 +165,10 @@ class LevelUpService
      */
     private function isAsiLevel(string $classSlug, int $classLevel): bool
     {
+        if (empty($classSlug)) {
+            return in_array($classLevel, self::ASI_LEVELS_STANDARD);
+        }
+
         $slug = strtolower($classSlug);
 
         $asiLevels = match ($slug) {

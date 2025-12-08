@@ -71,12 +71,15 @@ class FeatXmlParser
         // Parse skill-based advantages from description text
         $skillAdvantageModifiers = $this->parseSkillAdvantages($description);
 
+        // Parse HP per level modifiers from description text (e.g., Tough feat)
+        $hpPerLevelModifiers = $this->parseHitPointPerLevelModifiers($description);
+
         return [
             'name' => (string) $element->name,
             'prerequisites' => isset($element->prerequisite) ? (string) $element->prerequisite : null,
             'description' => trim($description),
             'sources' => $sources,
-            'modifiers' => array_merge(array_values($modifiersFromXml), $passiveScoreModifiers, $skillAdvantageModifiers),
+            'modifiers' => array_merge(array_values($modifiersFromXml), $passiveScoreModifiers, $skillAdvantageModifiers, $hpPerLevelModifiers),
             'proficiencies' => array_merge($proficienciesFromXml, $proficienciesFromText),
             'conditions' => $this->parseConditions($description),
             'spells' => $this->parseSpells($description),
@@ -980,6 +983,28 @@ class FeatXmlParser
                 'language_id' => null,
                 'is_choice' => true,
                 'quantity' => $this->wordToNumber($match[1]),
+            ]];
+        }
+
+        return [];
+    }
+
+    /**
+     * Parse hit point per level modifiers from feat description text.
+     *
+     * Handles patterns like "hit point maximum increases by an additional N hit points"
+     * which indicates a per-level HP bonus (e.g., Tough feat).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function parseHitPointPerLevelModifiers(string $text): array
+    {
+        // Pattern: "hit point maximum increases by an additional N hit points"
+        // This pattern appears in the Tough feat
+        if (preg_match('/hit point maximum increases by an additional (\d+) hit points?/i', $text, $match)) {
+            return [[
+                'modifier_category' => 'hit_points_per_level',
+                'value' => (int) $match[1],
             ]];
         }
 

@@ -14,6 +14,7 @@ use App\Models\CharacterFeature;
 use App\Models\CharacterProficiency;
 use App\Models\CharacterSpell;
 use App\Models\Feat;
+use App\Models\Modifier;
 use Illuminate\Support\Facades\DB;
 
 class AsiChoiceService
@@ -22,9 +23,14 @@ class AsiChoiceService
 
     private PrerequisiteCheckerService $prerequisiteChecker;
 
-    public function __construct(?PrerequisiteCheckerService $prerequisiteChecker = null)
-    {
+    private HitPointService $hitPointService;
+
+    public function __construct(
+        ?PrerequisiteCheckerService $prerequisiteChecker = null,
+        ?HitPointService $hitPointService = null
+    ) {
         $this->prerequisiteChecker = $prerequisiteChecker ?? new PrerequisiteCheckerService;
+        $this->hitPointService = $hitPointService ?? app(HitPointService::class);
     }
 
     /**
@@ -57,11 +63,14 @@ class AsiChoiceService
             // Apply changes
             $character->asi_choices_remaining--;
             $this->applyAbilityChanges($character, $abilityIncreases);
-            $character->save();
 
             $this->createCharacterFeature($character, $feat);
             $proficienciesGained = $this->grantFeatProficiencies($character, $feat);
             $spellsGained = $this->grantFeatSpells($character, $feat);
+            $hpBonus = $this->applyRetroactiveHpBonus($character, $feat);
+
+            // Save all character changes once at end of transaction
+            $character->save();
 
             return new AsiChoiceResult(
                 choiceType: 'feat',
@@ -74,6 +83,7 @@ class AsiChoiceService
                 ],
                 proficienciesGained: $proficienciesGained,
                 spellsGained: $spellsGained,
+                hpBonus: $hpBonus,
             );
         });
     }
@@ -296,6 +306,37 @@ class AsiChoiceService
         }
 
         return $granted;
+    }
+
+    /**
+     * Apply retroactive HP bonus from feat (e.g., Tough).
+     *
+     * If the feat has a hit_points_per_level modifier, adds (value × total_level)
+     * to both max HP and current HP.
+     *
+     * @return int The HP bonus applied (0 if no HP modifier)
+     */
+    private function applyRetroactiveHpBonus(Character $character, Feat $feat): int
+    {
+        // Check for hit_points_per_level modifier on this feat
+        $hpModifier = Modifier::where('reference_type', Feat::class)
+            ->where('reference_id', $feat->id)
+            ->where('modifier_category', 'hit_points_per_level')
+            ->first();
+
+        if (! $hpModifier) {
+            return 0;
+        }
+
+        $hpPerLevel = (int) $hpModifier->value;
+        $totalLevel = $character->total_level ?: 1;
+        $hpBonus = $hpPerLevel * $totalLevel;
+
+        // Apply retroactive HP bonus (saved by caller)
+        $character->max_hit_points = ($character->max_hit_points ?? 0) + $hpBonus;
+        $character->current_hit_points = ($character->current_hit_points ?? 0) + $hpBonus;
+
+        return $hpBonus;
     }
 
     /**

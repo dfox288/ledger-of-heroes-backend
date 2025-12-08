@@ -14,6 +14,7 @@ final readonly class AsiChoiceResult
      * @param  array{slug: string, name: string}|null  $feat  Feat taken, or null if ability increase
      * @param  array<string>  $proficienciesGained  Names of proficiencies granted by feat
      * @param  array<array{slug: string, name: string}>  $spellsGained  Spells granted by feat
+     * @param  int  $hpBonus  Retroactive HP bonus from feat (e.g., Tough feat)
      */
     public function __construct(
         public string $choiceType,
@@ -23,6 +24,7 @@ final readonly class AsiChoiceResult
         public ?array $feat,
         public array $proficienciesGained,
         public array $spellsGained,
+        public int $hpBonus = 0,
     ) {}
 
     /**
@@ -38,6 +40,7 @@ final readonly class AsiChoiceResult
                 'ability_increases' => $this->abilityIncreases,
                 'proficiencies_gained' => $this->proficienciesGained,
                 'spells_gained' => $this->spellsGained,
+                'hp_bonus' => $this->hpBonus,
             ],
             'new_ability_scores' => $this->newAbilityScores,
         ];

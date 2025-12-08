@@ -10,6 +10,8 @@ use App\Exceptions\NoAsiChoicesRemainingException;
 use App\Exceptions\PrerequisitesNotMetException;
 use App\Models\AbilityScore;
 use App\Models\Character;
+use App\Models\CharacterClass;
+use App\Models\CharacterClassPivot;
 use App\Models\CharacterFeature;
 use App\Models\EntityPrerequisite;
 use App\Models\Feat;
@@ -393,5 +395,92 @@ class AsiChoiceServiceTest extends TestCase
             'WIS' => 16,
             'CHA' => 11,
         ], $result->newAbilityScores);
+    }
+
+    // =========================================================================
+    // Retroactive HP Bonus Tests (Tough Feat)
+    // =========================================================================
+
+    #[Test]
+    public function it_applies_retroactive_hp_when_granting_tough_feat(): void
+    {
+        // Create level 5 character
+        $class = CharacterClass::factory()->create([
+            'slug' => 'fighter',
+            'hit_die' => 10,
+        ]);
+
+        $character = Character::factory()->create([
+            'asi_choices_remaining' => 1,
+            'max_hit_points' => 50,
+            'current_hit_points' => 50,
+        ]);
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 5,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Create Tough feat with hit_points_per_level modifier
+        $toughFeat = Feat::factory()->create([
+            'slug' => 'tough',
+            'name' => 'Tough',
+        ]);
+
+        Modifier::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $toughFeat->id,
+            'modifier_category' => 'hit_points_per_level',
+            'value' => 2,
+        ]);
+
+        $result = $this->service->applyFeatChoice($character, $toughFeat->fresh());
+
+        $character->refresh();
+        // HP should increase by 2 × 5 levels = 10 HP
+        $this->assertEquals(60, $character->max_hit_points);
+        $this->assertEquals(60, $character->current_hit_points);
+        $this->assertEquals(10, $result->hpBonus);
+    }
+
+    #[Test]
+    public function it_does_not_change_hp_for_feats_without_hp_modifier(): void
+    {
+        // Create level 4 character
+        $class = CharacterClass::factory()->create([
+            'slug' => 'rogue',
+            'hit_die' => 8,
+        ]);
+
+        $character = Character::factory()->create([
+            'asi_choices_remaining' => 1,
+            'max_hit_points' => 32,
+            'current_hit_points' => 32,
+        ]);
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 4,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Create Alert feat (no HP modifier)
+        $alertFeat = Feat::factory()->create([
+            'slug' => 'alert',
+            'name' => 'Alert',
+        ]);
+
+        $result = $this->service->applyFeatChoice($character, $alertFeat);
+
+        $character->refresh();
+        // HP should remain unchanged
+        $this->assertEquals(32, $character->max_hit_points);
+        $this->assertEquals(32, $character->current_hit_points);
+        $this->assertEquals(0, $result->hpBonus);
     }
 }

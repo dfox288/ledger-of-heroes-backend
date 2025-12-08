@@ -8,6 +8,9 @@ use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
+use App\Models\CharacterFeature;
+use App\Models\Feat;
+use App\Models\Modifier;
 use App\Services\ChoiceHandlers\HitPointRollChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -936,5 +939,85 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEquals('Manual Roll', $manualOption['name']);
         $this->assertEquals(1, $manualOption['min_roll']);
         $this->assertEquals(10, $manualOption['max_roll']);
+    }
+
+    // =====================
+    // Feat HP Bonus Tests (Tough Feat)
+    // =====================
+
+    /** @test */
+    public function it_adds_feat_hp_bonus_on_level_up(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+        ]);
+
+        $character = Character::factory()->create([
+            'constitution' => 14, // +2 modifier
+            'max_hit_points' => 12, // Level 1 HP
+            'current_hit_points' => 12,
+        ]);
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+        $pivot->setRelation('characterClass', $class);
+
+        // Create Tough feat with hit_points_per_level modifier
+        $toughFeat = Feat::factory()->create([
+            'slug' => 'tough',
+            'name' => 'Tough',
+        ]);
+
+        Modifier::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $toughFeat->id,
+            'modifier_category' => 'hit_points_per_level',
+            'value' => 2,
+        ]);
+
+        // Grant the Tough feat to the character
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $toughFeat->id,
+            'feature_slug' => $toughFeat->full_slug,
+            'source' => 'asi_choice',
+        ]);
+
+        $choice = new PendingChoice(
+            id: 'hit_points:levelup:'.$character->id.':2',
+            type: 'hit_points',
+            subtype: null,
+            source: 'level_up',
+            sourceName: 'Level 2',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: [
+                'hit_die' => 'd10',
+                'con_modifier' => 2,
+                'class_slug' => 'fighter',
+            ],
+        );
+
+        $this->handler->resolve($character, $choice, ['selected' => 'average']);
+
+        $character->refresh();
+
+        // HP should be increased by:
+        // - 6 (average d10) + 2 (CON) = 8 base HP gain
+        // - + 2 (Tough feat bonus per level)
+        // - Total: 10 HP gained
+        $this->assertEquals(22, $character->max_hit_points); // 12 + 10
+        $this->assertEquals(22, $character->current_hit_points);
     }
 }

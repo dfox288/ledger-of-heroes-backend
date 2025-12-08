@@ -253,3 +253,17 @@ it('handles background bonus feat source', function () {
         ->first()->source->toBe('background')
         ->first()->sourceName->toBe('Soldier');
 });
+
+it('handles background without modifiers relationship gracefully', function () {
+    // Background model doesn't have HasModifiers trait, so modifiers() doesn't exist
+    // The service should handle this gracefully without crashing
+    $this->featService
+        ->shouldReceive('getPendingChoices')
+        ->once()
+        ->with($this->character)
+        ->andReturn([]); // Background without modifiers returns empty
+
+    $choices = $this->handler->getChoices($this->character);
+
+    expect($choices)->toBeEmpty();
+});

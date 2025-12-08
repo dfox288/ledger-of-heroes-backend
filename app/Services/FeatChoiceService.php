@@ -65,6 +65,11 @@ class FeatChoiceService
      */
     private function getChoicesFromEntity(mixed $entity, Character $character, string $source): array
     {
+        // Check if entity has modifiers relationship (Background doesn't have HasModifiers trait)
+        if (! method_exists($entity, 'modifiers')) {
+            return ['quantity' => 0, 'remaining' => 0, 'selected' => []];
+        }
+
         // Look for bonus_feat modifier
         $bonusFeatModifier = $entity->modifiers()
             ->where('modifier_category', 'bonus_feat')

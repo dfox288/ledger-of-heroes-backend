@@ -56,13 +56,13 @@ class CharacterObserver
      */
     public function updated(Character $character): void
     {
-        // Check if race_id changed and is not null
-        if ($character->wasChanged('race_id') && $character->race_id) {
+        // Check if race_slug changed and is not null
+        if ($character->wasChanged('race_slug') && $character->race_slug) {
             $this->languageService->populateFromRace($character);
         }
 
-        // Check if background_id changed and is not null
-        if ($character->wasChanged('background_id') && $character->background_id) {
+        // Check if background_slug changed and is not null
+        if ($character->wasChanged('background_slug') && $character->background_slug) {
             $this->languageService->populateFromBackground($character);
         }
     }

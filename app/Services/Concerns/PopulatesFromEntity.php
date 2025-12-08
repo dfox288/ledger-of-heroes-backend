@@ -24,7 +24,7 @@ trait PopulatesFromEntity
      */
     public function populateFromRace(Character $character): void
     {
-        if (! $character->race_id) {
+        if (! $character->race_slug) {
             return;
         }
 
@@ -44,7 +44,7 @@ trait PopulatesFromEntity
      */
     public function populateFromBackground(Character $character): void
     {
-        if (! $character->background_id) {
+        if (! $character->background_slug) {
             return;
         }
 

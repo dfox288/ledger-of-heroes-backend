@@ -108,6 +108,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Previously, features were only populated via explicit `/features/sync` API call
   - Race and background features were already auto-populated; now class features are too
 
+- **Issue #371**: Fix character languages endpoint not including fixed race languages
+  - CharacterObserver was checking wrong column names (`race_id`/`background_id` instead of `race_slug`/`background_slug`)
+  - PopulatesFromEntity trait had same column name issues
+  - Fixed languages from race (e.g., Dwarf's Common + Dwarvish) now auto-populate when race is set
+  - GET `/characters/{id}/languages` returns correct fixed languages immediately after character creation
+
 - **Issue #348**: Reject spell selections exceeding quantity limit
   - `SpellChoiceHandler.resolve()` now validates `count(selected) <= quantity`
   - Attempting to select more spells/cantrips than allowed throws `InvalidSelectionException`

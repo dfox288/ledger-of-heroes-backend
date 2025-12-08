@@ -47,24 +47,28 @@ class CharacterLanguageApiTest extends TestCase
         $this->common = Language::create([
             'name' => 'Common '.$uniqueId,
             'slug' => 'common-'.$uniqueId,
+            'full_slug' => 'test:common-'.$uniqueId,
             'script' => 'Common',
         ]);
 
         $this->elvish = Language::create([
             'name' => 'Elvish '.$uniqueId,
             'slug' => 'elvish-'.$uniqueId,
+            'full_slug' => 'test:elvish-'.$uniqueId,
             'script' => 'Elvish',
         ]);
 
         $this->dwarvish = Language::create([
             'name' => 'Dwarvish '.$uniqueId,
             'slug' => 'dwarvish-'.$uniqueId,
+            'full_slug' => 'test:dwarvish-'.$uniqueId,
             'script' => 'Dwarvish',
         ]);
 
         $this->draconic = Language::create([
             'name' => 'Draconic '.$uniqueId,
             'slug' => 'draconic-'.$uniqueId,
+            'full_slug' => 'test:draconic-'.$uniqueId,
             'script' => 'Draconic',
         ]);
 
@@ -653,6 +657,7 @@ class CharacterLanguageApiTest extends TestCase
         $character->features()->create([
             'feature_type' => Feat::class,
             'feature_id' => $dragonFearFeat->id,
+            'feature_slug' => $dragonFearFeat->full_slug,
             'source' => 'feat',
         ]);
 
@@ -1025,9 +1030,9 @@ class CharacterLanguageApiTest extends TestCase
 
         // Should now have fixed languages auto-populated
         $this->assertCount(2, $character->languages);
-        $languageIds = $character->languages->pluck('language_id')->toArray();
-        $this->assertContains($this->common->id, $languageIds);
-        $this->assertContains($this->elvish->id, $languageIds);
+        $languageSlugs = $character->languages->pluck('language_slug')->toArray();
+        $this->assertContains($this->common->full_slug, $languageSlugs);
+        $this->assertContains($this->elvish->full_slug, $languageSlugs);
     }
 
     #[Test]
@@ -1050,7 +1055,7 @@ class CharacterLanguageApiTest extends TestCase
         // Create character without background
         $character = Character::factory()
             ->withRace($this->elfRace)
-            ->create(['background_id' => null]);
+            ->create(['background_slug' => null]);
 
         // Populate race languages first
         $this->postJson("/api/v1/characters/{$character->id}/languages/sync");
@@ -1058,13 +1063,13 @@ class CharacterLanguageApiTest extends TestCase
         $initialCount = $character->languages->count();
 
         // Set the background
-        $character->update(['background_id' => $hermitBackground->id]);
+        $character->update(['background_slug' => $hermitBackground->full_slug]);
         $character->refresh();
 
         // Should now have background language added
         $this->assertGreaterThan($initialCount, $character->languages->count());
-        $languageIds = $character->languages->pluck('language_id')->toArray();
-        $this->assertContains($this->draconic->id, $languageIds);
+        $languageSlugs = $character->languages->pluck('language_slug')->toArray();
+        $this->assertContains($this->draconic->full_slug, $languageSlugs);
     }
 
     #[Test]
@@ -1105,11 +1110,11 @@ class CharacterLanguageApiTest extends TestCase
         $character->refresh();
 
         // Should not duplicate Common
-        $languageIds = $character->languages->pluck('language_id')->toArray();
-        $commonCount = collect($languageIds)->filter(fn ($id) => $id === $this->common->id)->count();
+        $languageSlugs = $character->languages->pluck('language_slug')->toArray();
+        $commonCount = collect($languageSlugs)->filter(fn ($slug) => $slug === $this->common->full_slug)->count();
         $this->assertEquals(1, $commonCount);
 
         // Should have added Elvish
-        $this->assertContains($this->elvish->id, $languageIds);
+        $this->assertContains($this->elvish->full_slug, $languageSlugs);
     }
 }

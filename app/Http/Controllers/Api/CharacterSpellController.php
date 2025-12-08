@@ -52,7 +52,7 @@ class CharacterSpellController extends Controller
      * List spells available for the character to learn.
      *
      * Returns spells on the character's class spell list that they haven't learned yet.
-     * Optionally filter by maximum spell level.
+     * Optionally filter by spell level range using min_level and max_level.
      * Use include_known=true to include already-learned spells (useful for UI highlighting
      * when user navigates back to spell selection screen).
      *
@@ -64,21 +64,26 @@ class CharacterSpellController extends Controller
      * ```
      * GET /api/v1/characters/1/available-spells
      * GET /api/v1/characters/1/available-spells?max_level=3
+     * GET /api/v1/characters/1/available-spells?min_level=1&max_level=3
      * GET /api/v1/characters/1/available-spells?include_known=true
-     * GET /api/v1/characters/1/available-spells?max_level=1&include_known=true
+     * GET /api/v1/characters/1/available-spells?min_level=1&max_level=1&include_known=true
      * ```
+     *
+     * **Use min_level=1 to exclude cantrips when selecting leveled spells.**
      */
     public function available(Request $request, Character $character): AnonymousResourceCollection
     {
         $validated = $request->validate([
+            'min_level' => ['sometimes', 'integer', 'min:0', 'max:9'],
             'max_level' => ['sometimes', 'integer', 'min:0', 'max:9'],
             'include_known' => ['sometimes', 'in:true,false,1,0'],
         ]);
 
+        $minLevel = $validated['min_level'] ?? null;
         $maxLevel = $validated['max_level'] ?? null;
         $includeKnown = filter_var($validated['include_known'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        $spells = $this->spellManager->getAvailableSpells($character, $maxLevel, $includeKnown);
+        $spells = $this->spellManager->getAvailableSpells($character, $minLevel, $maxLevel, $includeKnown);
 
         return SpellResource::collection($spells);
     }

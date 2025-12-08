@@ -634,6 +634,54 @@ class Character extends Model implements HasMedia
         ];
     }
 
+    // Currency (derived from equipment)
+
+    /**
+     * Currency item slugs (PHB coins).
+     */
+    private const CURRENCY_SLUGS = [
+        'pp' => 'phb:platinum-pp',
+        'gp' => 'phb:gold-gp',
+        'ep' => 'phb:electrum-ep',
+        'sp' => 'phb:silver-sp',
+        'cp' => 'phb:copper-cp',
+    ];
+
+    /**
+     * Get character's currency from inventory items.
+     *
+     * Currency is derived from equipment items with specific slugs.
+     * Each coin type quantity is summed from the character's inventory.
+     *
+     * @return array{pp: int, gp: int, ep: int, sp: int, cp: int}
+     */
+    public function getCurrencyAttribute(): array
+    {
+        // Load equipment if not already loaded
+        if (! $this->relationLoaded('equipment')) {
+            $this->load('equipment');
+        }
+
+        $currency = [
+            'pp' => 0,
+            'gp' => 0,
+            'ep' => 0,
+            'sp' => 0,
+            'cp' => 0,
+        ];
+
+        foreach ($this->equipment as $item) {
+            foreach (self::CURRENCY_SLUGS as $type => $slug) {
+                if ($item->item_slug === $slug) {
+                    $currency[$type] += $item->quantity;
+                    break;
+                }
+            }
+        }
+
+        return $currency;
+    }
+
     // Media Collections
 
     /**

@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #374**: Currency Accessor from Inventory
+  - Character `currency` attribute derived from equipment items (no migration needed)
+  - Sums coin quantities from `phb:platinum-pp`, `phb:gold-gp`, `phb:electrum-ep`, `phb:silver-sp`, `phb:copper-cp`
+  - Returns `{pp, gp, ep, sp, cp}` object with integer counts (defaults to 0)
+  - CharacterResource includes currency data in API responses
+  - 2 new tests for currency from inventory and empty currency
+
+- **Issue #372**: Available Spells min_level Parameter
+  - Added `min_level` query parameter to `/characters/{id}/available-spells` endpoint
+  - Allows excluding cantrips (level 0) when selecting leveled spells: `?min_level=1&max_level=1`
+  - SpellManagerService now accepts both `minLevel` and `maxLevel` for flexible level range filtering
+  - 2 new tests for min_level filtering
+
+### Fixed
+
+- **Issue #373**: Spell Slots Data Missing
+  - Root cause: `multiclass_spell_slots` table was not seeded
+  - Fix: Run `php artisan db:seed --class=MulticlassSpellSlotSeeder`
+  - This is a setup issue, not a code bug
+
 - **Issue #198**: Spell Scaling Increment Parsing
   - New `ParsesScalingIncrement` trait extracts dice/flat values from "At Higher Levels" text
   - `scaling_increment` field now populated for ~79 damage-scaling spells

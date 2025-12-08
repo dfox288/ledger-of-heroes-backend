@@ -129,7 +129,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $choices = $this->handler->getChoices($character);
         $choice = $choices->first();
 
-        $this->assertCount(2, $choice->options);
+        $this->assertCount(3, $choice->options);
 
         // Roll option
         $rollOption = collect($choice->options)->firstWhere('id', 'roll');
@@ -662,5 +662,279 @@ class HitPointRollChoiceHandlerTest extends TestCase
         // Level 2 should now be marked as resolved
         $this->assertEquals([1, 2], $character->hp_levels_resolved);
         $this->assertTrue($character->hasResolvedHpForLevel(2));
+    }
+
+    // ==================
+    // Manual Roll Tests
+    // ==================
+
+    /** @test */
+    public function it_resolves_manual_roll_with_valid_roll_result(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+        ]);
+
+        $character = Character::factory()->create([
+            'constitution' => 14, // +2 modifier
+            'max_hit_points' => 12,
+            'current_hit_points' => 12,
+        ]);
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+        $pivot->setRelation('characterClass', $class);
+
+        $choice = new PendingChoice(
+            id: 'hit_points:levelup:'.$character->id.':2',
+            type: 'hit_points',
+            subtype: null,
+            source: 'level_up',
+            sourceName: 'Level 2',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: [
+                'hit_die' => 'd10',
+                'con_modifier' => 2,
+                'class_slug' => 'fighter',
+            ],
+        );
+
+        $this->handler->resolve($character, $choice, [
+            'selected' => 'manual',
+            'roll_result' => 7,
+        ]);
+
+        $character->refresh();
+
+        // HP should be increased by exactly 9 (7 roll + 2 CON)
+        $this->assertEquals(21, $character->max_hit_points); // 12 + 9
+        $this->assertEquals(21, $character->current_hit_points);
+    }
+
+    /** @test */
+    public function it_throws_exception_when_manual_roll_missing_roll_result(): void
+    {
+        $this->expectException(InvalidSelectionException::class);
+        $this->expectExceptionMessage('roll_result is required');
+
+        $character = Character::factory()->create();
+
+        $choice = new PendingChoice(
+            id: 'hit_points:levelup:1:2',
+            type: 'hit_points',
+            subtype: null,
+            source: 'level_up',
+            sourceName: 'Level 2',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: [
+                'hit_die' => 'd10',
+                'con_modifier' => 0,
+            ],
+        );
+
+        $this->handler->resolve($character, $choice, ['selected' => 'manual']);
+    }
+
+    /** @test */
+    public function it_throws_exception_when_roll_result_below_1(): void
+    {
+        $this->expectException(InvalidSelectionException::class);
+        $this->expectExceptionMessage('roll_result must be between 1 and 10');
+
+        $character = Character::factory()->create();
+
+        $choice = new PendingChoice(
+            id: 'hit_points:levelup:1:2',
+            type: 'hit_points',
+            subtype: null,
+            source: 'level_up',
+            sourceName: 'Level 2',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: [
+                'hit_die' => 'd10',
+                'con_modifier' => 0,
+            ],
+        );
+
+        $this->handler->resolve($character, $choice, [
+            'selected' => 'manual',
+            'roll_result' => 0,
+        ]);
+    }
+
+    /** @test */
+    public function it_throws_exception_when_roll_result_above_hit_die(): void
+    {
+        $this->expectException(InvalidSelectionException::class);
+        $this->expectExceptionMessage('roll_result must be between 1 and 6');
+
+        $character = Character::factory()->create();
+
+        $choice = new PendingChoice(
+            id: 'hit_points:levelup:1:2',
+            type: 'hit_points',
+            subtype: null,
+            source: 'level_up',
+            sourceName: 'Level 2',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: [
+                'hit_die' => 'd6',
+                'con_modifier' => 0,
+            ],
+        );
+
+        $this->handler->resolve($character, $choice, [
+            'selected' => 'manual',
+            'roll_result' => 7,
+        ]);
+    }
+
+    /** @test */
+    public function it_throws_exception_when_roll_result_is_float(): void
+    {
+        $this->expectException(InvalidSelectionException::class);
+        $this->expectExceptionMessage('roll_result must be an integer');
+
+        $character = Character::factory()->create();
+
+        $choice = new PendingChoice(
+            id: 'hit_points:levelup:1:2',
+            type: 'hit_points',
+            subtype: null,
+            source: 'level_up',
+            sourceName: 'Level 2',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: [
+                'hit_die' => 'd10',
+                'con_modifier' => 0,
+            ],
+        );
+
+        $this->handler->resolve($character, $choice, [
+            'selected' => 'manual',
+            'roll_result' => 7.5,
+        ]);
+    }
+
+    /** @test */
+    public function it_enforces_minimum_1_hp_on_manual_roll_with_negative_con(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Wizard',
+            'hit_die' => 6,
+        ]);
+
+        $character = Character::factory()->create([
+            'constitution' => 3, // -4 modifier
+            'max_hit_points' => 2,
+            'current_hit_points' => 2,
+        ]);
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+        $pivot->setRelation('characterClass', $class);
+
+        $choice = new PendingChoice(
+            id: 'hit_points:levelup:'.$character->id.':2',
+            type: 'hit_points',
+            subtype: null,
+            source: 'level_up',
+            sourceName: 'Level 2',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: [
+                'hit_die' => 'd6',
+                'con_modifier' => -4,
+                'class_slug' => 'wizard',
+            ],
+        );
+
+        // Roll of 1 with -4 CON = -3, but min is 1
+        $this->handler->resolve($character, $choice, [
+            'selected' => 'manual',
+            'roll_result' => 1,
+        ]);
+
+        $character->refresh();
+
+        $this->assertEquals(3, $character->max_hit_points); // 2 + 1 (min)
+        $this->assertEquals(3, $character->current_hit_points);
+    }
+
+    /** @test */
+    public function it_includes_manual_option_in_hp_choices(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+        ]);
+
+        $character = Character::factory()->create([
+            'constitution' => 16, // +3 modifier
+        ]);
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+        $pivot->setRelation('characterClass', $class);
+        $character->setRelation('characterClasses', collect([$pivot]));
+
+        $choices = $this->handler->getChoices($character);
+        $choice = $choices->first();
+
+        $this->assertCount(3, $choice->options);
+
+        $manualOption = collect($choice->options)->firstWhere('id', 'manual');
+        $this->assertNotNull($manualOption);
+        $this->assertEquals('Manual Roll', $manualOption['name']);
+        $this->assertEquals(1, $manualOption['min_roll']);
+        $this->assertEquals(10, $manualOption['max_roll']);
     }
 }

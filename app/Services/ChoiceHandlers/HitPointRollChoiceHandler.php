@@ -87,6 +87,13 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
                         'description' => "Take {$average}".($conModifier >= 0 ? ' + ' : ' - ').abs($conModifier)." (CON mod) = {$averageResult} HP",
                         'fixed_result' => $averageResult,
                     ],
+                    [
+                        'id' => 'manual',
+                        'name' => 'Manual Roll',
+                        'description' => "Enter your own d{$hitDie} roll result (for physical dice)",
+                        'min_roll' => 1,
+                        'max_roll' => $hitDie,
+                    ],
                 ],
                 optionsEndpoint: null,
                 metadata: [
@@ -110,15 +117,50 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
             throw new InvalidSelectionException($choice->id, 'null', 'Selection is required for hit point choice');
         }
 
-        if (! in_array($selected, ['roll', 'average'])) {
-            throw new InvalidSelectionException($choice->id, $selected, 'Selection must be "roll" or "average"');
+        if (! in_array($selected, ['roll', 'average', 'manual'])) {
+            throw new InvalidSelectionException($choice->id, $selected, 'Selection must be "roll", "average", or "manual"');
         }
 
         $conModifier = $choice->metadata['con_modifier'] ?? 0;
         $hitDieString = $choice->metadata['hit_die'] ?? 'd8';
         $hitDie = (int) str_replace('d', '', $hitDieString);
 
-        if ($selected === 'roll') {
+        if ($selected === 'manual') {
+            $rollResult = $selection['roll_result'] ?? null;
+
+            if ($rollResult === null) {
+                throw new InvalidSelectionException(
+                    $choice->id,
+                    'manual',
+                    'roll_result is required when using manual selection'
+                );
+            }
+
+            // Strict integer validation - reject floats and non-integer strings
+            if (is_int($rollResult)) {
+                // Already an integer, good
+            } elseif (is_string($rollResult) && ctype_digit($rollResult)) {
+                // String containing only digits (e.g., "7"), cast to int
+                $rollResult = (int) $rollResult;
+            } else {
+                // Reject floats (7.5), float strings ("7.5"), and non-numeric values
+                throw new InvalidSelectionException(
+                    $choice->id,
+                    'manual',
+                    'roll_result must be an integer'
+                );
+            }
+
+            if ($rollResult < 1 || $rollResult > $hitDie) {
+                throw new InvalidSelectionException(
+                    $choice->id,
+                    'manual',
+                    "roll_result must be between 1 and {$hitDie}"
+                );
+            }
+
+            $hpGained = max(1, $rollResult + $conModifier);
+        } elseif ($selected === 'roll') {
             // Server-side roll - NEVER trust client
             $roll = random_int(1, $hitDie);
             $hpGained = max(1, $roll + $conModifier);

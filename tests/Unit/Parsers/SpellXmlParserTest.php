@@ -444,7 +444,7 @@ XML;
         $this->assertEquals('1d6', $spells[0]['effects'][0]['scaling_increment']);
     }
 
-    public function test_does_not_apply_scaling_increment_to_healing_effects(): void
+    public function test_applies_scaling_increment_to_healing_effects(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -469,6 +469,6 @@ XML;
 
         $this->assertCount(1, $spells);
         $this->assertEquals('healing', $spells[0]['effects'][0]['effect_type']);
-        $this->assertNull($spells[0]['effects'][0]['scaling_increment']);
+        $this->assertEquals('1d8', $spells[0]['effects'][0]['scaling_increment']);
     }
 }

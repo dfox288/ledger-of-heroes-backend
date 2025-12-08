@@ -200,20 +200,20 @@ class SpellXmlParser
                 'scaling_type' => $scalingType,
                 'min_character_level' => $minCharacterLevel,
                 'min_spell_slot' => $minSpellSlot,
-                'scaling_increment' => null, // Will be set below for damage effects
+                'scaling_increment' => null, // Will be set below for damage/healing effects
             ];
         }
 
-        // Apply scaling increment to damage effects
+        // Apply scaling increment to damage and healing effects
         $scalingIncrement = $this->parseScalingIncrement($higherLevels);
 
         if ($scalingIncrement !== null) {
             foreach ($effects as &$effect) {
-                if ($effect['effect_type'] === 'damage') {
+                if (in_array($effect['effect_type'], ['damage', 'healing'])) {
                     $effect['scaling_increment'] = $scalingIncrement;
                 }
             }
-            unset($effect); // Break reference
+            unset($effect); // Break reference to prevent unintended mutations
         }
 
         return $effects;

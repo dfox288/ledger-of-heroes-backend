@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #353**: Add search support to characters endpoint
+  - `GET /characters?q=gandalf` now filters characters by name (case-insensitive, partial match)
+  - Pagination continues to work with search parameter
+  - Supports frontend character list search UI (PR #32)
+
 - **Issue #351**: Character completion now verifies required choices are resolved
   - `is_complete` attribute now checks `hasAllRequiredChoicesResolved()` in addition to race, class, and ability scores
   - `validation_status.missing` includes `'pending_choices'` when required choices remain

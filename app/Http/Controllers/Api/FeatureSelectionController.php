@@ -48,6 +48,7 @@ class FeatureSelectionController extends Controller
     {
         $featureSelections = $character->featureSelections()
             ->with(['optionalFeature', 'characterClass'])
+            ->orderBy('id')
             ->get();
 
         return FeatureSelectionResource::collection($featureSelections);

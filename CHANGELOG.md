@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #351**: Character completion now verifies required choices are resolved
+  - `is_complete` attribute now checks `hasAllRequiredChoicesResolved()` in addition to race, class, and ability scores
+  - `validation_status.missing` includes `'pending_choices'` when required choices remain
+  - New `hasAllRequiredChoicesResolved()` method on Character model
+  - Characters with dangling references (non-existent race/class slugs) skip choice validation
+  - Without this check, characters could be marked complete with missing spell/equipment selections
+
 - **Issue #352**: Racial ability score choice support
   - New `ability_score` pending choice type for races with chooseable ability bonuses (e.g., Half-Elf)
   - `GET /characters/{id}/pending-choices` now includes ability score choices from race modifiers where `is_choice: true`

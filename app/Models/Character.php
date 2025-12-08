@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\AbilityScoreMethod;
 use App\Enums\ItemTypeCode;
 use App\Events\CharacterUpdated;
+use App\Services\CharacterChoiceService;
 use App\Services\CharacterStatCalculator;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -270,7 +271,36 @@ class Character extends Model implements HasMedia
     {
         return $this->race_slug !== null
             && $this->characterClasses->isNotEmpty()
-            && $this->hasAllAbilityScores();
+            && $this->hasAllAbilityScores()
+            && $this->hasAllRequiredChoicesResolved();
+    }
+
+    /**
+     * Check if all required pending choices have been resolved.
+     *
+     * Returns true early if the character has dangling references (race_slug
+     * or class_slug pointing to non-existent entities), since the choice
+     * system requires valid relationships to function.
+     */
+    public function hasAllRequiredChoicesResolved(): bool
+    {
+        // Guard: If race_slug is set but race relationship is null (dangling reference),
+        // skip choice validation since choice handlers require valid entities
+        if ($this->race_slug !== null && $this->race === null) {
+            return true;
+        }
+
+        // Guard: If we have class pivots but any point to non-existent classes, skip
+        foreach ($this->characterClasses as $classPivot) {
+            if ($classPivot->characterClass === null) {
+                return true;
+            }
+        }
+
+        $choiceService = app(CharacterChoiceService::class);
+        $summary = $choiceService->getSummary($this);
+
+        return $summary['required_pending'] === 0;
     }
 
     /**
@@ -290,6 +320,10 @@ class Character extends Model implements HasMedia
 
         if (! $this->hasAllAbilityScores()) {
             $missing[] = 'ability_scores';
+        }
+
+        if (! $this->hasAllRequiredChoicesResolved()) {
+            $missing[] = 'pending_choices';
         }
 
         return [

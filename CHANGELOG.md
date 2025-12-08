@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #377**: Parse Bonus Feat Grants for Races
+  - RaceXmlParser now detects "Feat" traits and creates `bonus_feat` modifier
+  - Variant Human and Custom Lineage now have `bonus_feat` modifier with value 1
+  - FeatChoiceHandler and FeatChoiceService implemented for pending feat choices
+  - Characters with bonus feat races show pending `feat` choice in character creation
+  - 5 new parser unit tests, 2 importer integration tests, 10 handler unit tests
+
 - **Issue #374**: Currency Accessor from Inventory
   - Character `currency` attribute derived from equipment items (no migration needed)
   - Sums coin quantities from `phb:platinum-pp`, `phb:gold-gp`, `phb:electrum-ep`, `phb:silver-sp`, `phb:copper-cp`

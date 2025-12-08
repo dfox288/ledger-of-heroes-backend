@@ -1648,4 +1648,103 @@ XML;
             'Race with exactly 3 ability points should have subrace_required=false'
         );
     }
+
+    #[Test]
+    public function it_imports_bonus_feat_modifier_from_feat_trait()
+    {
+        // Variant Human grants a bonus feat
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Human, Variant</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait>
+      <name>Ability Score Increases</name>
+      <text>Two different ability scores of your choice increase by 1.</text>
+    </trait>
+    <trait>
+      <name>Feat</name>
+      <text>You gain one feat of your choice.</text>
+    </trait>
+    <trait category="description">
+      <name>Description</name>
+      <text>Variant humans are versatile and adaptable.
+Source: Player's Handbook (2014) p. 31</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        // Should create 2 races: base "Human" + subrace "Variant"
+        $subrace = Race::where('name', 'Variant')
+            ->whereNotNull('parent_race_id')
+            ->first();
+
+        $this->assertNotNull($subrace, 'Variant subrace should exist');
+
+        // Check for bonus_feat modifier on the subrace
+        $bonusFeatModifier = $subrace->modifiers()
+            ->where('modifier_category', 'bonus_feat')
+            ->first();
+
+        $this->assertNotNull($bonusFeatModifier, 'Variant Human should have a bonus_feat modifier');
+        $this->assertEquals(1, $bonusFeatModifier->value, 'Bonus feat value should be 1');
+    }
+
+    #[Test]
+    public function it_imports_bonus_feat_modifier_from_custom_lineage()
+    {
+        // Custom Lineage grants a bonus feat with qualifying requirements
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Custom Lineage</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait>
+      <name>Ability Score Increase</name>
+      <text>One ability score of your choice increases by 2.</text>
+    </trait>
+    <trait>
+      <name>Feat</name>
+      <text>You gain one feat of your choice for which you qualify.</text>
+    </trait>
+    <trait category="description">
+      <name>Description</name>
+      <text>Instead of choosing one of the game's races for your character at 1st level, you can use the following traits to represent your character's lineage.
+Source: Tasha's Cauldron of Everything p. 8</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $customLineage = Race::where('name', 'Custom Lineage')->first();
+
+        $this->assertNotNull($customLineage, 'Custom Lineage race should exist');
+
+        // Check for bonus_feat modifier
+        $bonusFeatModifier = $customLineage->modifiers()
+            ->where('modifier_category', 'bonus_feat')
+            ->first();
+
+        $this->assertNotNull($bonusFeatModifier, 'Custom Lineage should have a bonus_feat modifier');
+        $this->assertEquals(1, $bonusFeatModifier->value, 'Bonus feat value should be 1');
+    }
 }

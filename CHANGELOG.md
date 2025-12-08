@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #198**: Spell Scaling Increment Parsing
+  - New `ParsesScalingIncrement` trait extracts dice/flat values from "At Higher Levels" text
+  - `scaling_increment` field now populated for ~79 damage-scaling spells
+  - Supports dice notation (1d6, 3d6) and flat values (5)
+  - Applied to damage effects only during spell import
+  - 11 new tests (8 unit, 2 parser integration, 1 import integration)
+
 - **Issue #366**: Race HP Modifier Support (Hill Dwarf Dwarven Toughness)
   - Race HP modifiers (modifier_category: 'hp') now applied to character HP
   - Starting HP includes race bonus when first class is added

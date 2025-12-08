@@ -6,6 +6,7 @@ use App\Services\Parsers\Concerns\LoadsLookupData;
 use App\Services\Parsers\Concerns\ParsesDataTables;
 use App\Services\Parsers\Concerns\ParsesProjectileScaling;
 use App\Services\Parsers\Concerns\ParsesSavingThrows;
+use App\Services\Parsers\Concerns\ParsesScalingIncrement;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use SimpleXMLElement;
 
@@ -15,6 +16,7 @@ class SpellXmlParser
     use ParsesDataTables;
     use ParsesProjectileScaling;
     use ParsesSavingThrows;
+    use ParsesScalingIncrement;
     use ParsesSourceCitations;
 
     public function parse(string $xmlContent): array
@@ -103,7 +105,7 @@ class SpellXmlParser
         }
 
         // Parse roll elements for spell effects
-        $effects = $this->parseRollElements($element);
+        $effects = $this->parseRollElements($element, $higherLevels);
 
         // Parse projectile scaling from higher_levels text and apply to first damage effect
         $projectileScaling = $this->parseProjectileScaling($higherLevels, (int) $element->level);
@@ -153,7 +155,7 @@ class SpellXmlParser
         ];
     }
 
-    private function parseRollElements(SimpleXMLElement $element): array
+    private function parseRollElements(SimpleXMLElement $element, ?string $higherLevels = null): array
     {
         $effects = [];
         $spellLevel = (int) $element->level;
@@ -198,8 +200,20 @@ class SpellXmlParser
                 'scaling_type' => $scalingType,
                 'min_character_level' => $minCharacterLevel,
                 'min_spell_slot' => $minSpellSlot,
-                'scaling_increment' => null, // See GitHub Issue #198 for parsing implementation
+                'scaling_increment' => null, // Will be set below for damage/healing effects
             ];
+        }
+
+        // Apply scaling increment to damage and healing effects
+        $scalingIncrement = $this->parseScalingIncrement($higherLevels);
+
+        if ($scalingIncrement !== null) {
+            foreach ($effects as &$effect) {
+                if (in_array($effect['effect_type'], ['damage', 'healing'])) {
+                    $effect['scaling_increment'] = $scalingIncrement;
+                }
+            }
+            unset($effect); // Break reference to prevent unintended mutations
         }
 
         return $effects;

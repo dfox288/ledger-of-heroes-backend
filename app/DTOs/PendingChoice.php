@@ -8,7 +8,7 @@ final readonly class PendingChoice
 {
     /**
      * @param  string  $id  Deterministic choice ID: {type}:{source}:{sourceId}:{level}:{group}
-     * @param  string  $type  proficiency, language, equipment, spell, asi_or_feat, subclass, optional_feature, expertise, fighting_style
+     * @param  string  $type  proficiency, language, equipment, spell, asi_or_feat, subclass, optional_feature, expertise, fighting_style, feat, hit_point_roll, ability_score
      * @param  string|null  $subtype  skill, tool, cantrip, invocation, etc.
      * @param  string  $source  class, race, background, feat
      * @param  string  $sourceName  Human-readable: "Rogue", "High Elf", etc.

@@ -1031,4 +1031,98 @@ XML;
         $this->assertEquals(1, $skillChoice['quantity']);
         $this->assertTrue($skillChoice['is_choice']);
     }
+
+    #[Test]
+    public function it_parses_bonus_feat_from_feat_trait()
+    {
+        // Test case: Variant Human - "You gain one feat of your choice"
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <race>
+    <name>Human, Variant</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait>
+      <name>Feat</name>
+      <text>You gain one feat of your choice.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races);
+        $this->assertArrayHasKey('modifiers', $races[0]);
+
+        // Should have a bonus_feat modifier with value 1
+        $bonusFeatModifier = collect($races[0]['modifiers'])
+            ->firstWhere('modifier_category', 'bonus_feat');
+
+        $this->assertNotNull($bonusFeatModifier, 'Should parse bonus_feat modifier from Feat trait');
+        $this->assertEquals(1, $bonusFeatModifier['value']);
+    }
+
+    #[Test]
+    public function it_parses_bonus_feat_from_custom_lineage()
+    {
+        // Test case: Custom Lineage - "You gain one feat of your choice for which you qualify"
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <race>
+    <name>Custom Lineage</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait>
+      <name>Feat</name>
+      <text>You gain one feat of your choice for which you qualify.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races);
+        $this->assertArrayHasKey('modifiers', $races[0]);
+
+        // Should have a bonus_feat modifier with value 1
+        $bonusFeatModifier = collect($races[0]['modifiers'])
+            ->firstWhere('modifier_category', 'bonus_feat');
+
+        $this->assertNotNull($bonusFeatModifier, 'Should parse bonus_feat modifier from Feat trait');
+        $this->assertEquals(1, $bonusFeatModifier['value']);
+    }
+
+    #[Test]
+    public function it_does_not_parse_bonus_feat_from_non_feat_trait()
+    {
+        // Make sure we don't accidentally parse "feat" from other trait text
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <race>
+    <name>Human</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait>
+      <name>Description</name>
+      <text>Humans are versatile and can accomplish great feats.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races);
+
+        // Should NOT have a bonus_feat modifier
+        $bonusFeatModifier = collect($races[0]['modifiers'] ?? [])
+            ->firstWhere('modifier_category', 'bonus_feat');
+
+        $this->assertNull($bonusFeatModifier, 'Should not parse bonus_feat from non-Feat traits');
+    }
 }

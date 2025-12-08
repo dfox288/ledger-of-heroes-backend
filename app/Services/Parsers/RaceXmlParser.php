@@ -119,8 +119,12 @@ class RaceXmlParser
         // Parse resistances
         $resistances = $this->parseResistances($element);
 
-        // Parse modifiers
+        // Parse modifiers from XML elements
         $modifiers = $this->parseModifiers($element);
+
+        // Parse bonus feats from trait text and merge with modifiers
+        $bonusFeatModifiers = $this->parseBonusFeatFromTraits($traits);
+        $modifiers = array_merge($modifiers, $bonusFeatModifiers);
 
         return [
             'name' => $raceName,
@@ -544,6 +548,44 @@ class RaceXmlParser
         }
 
         return $choices;
+    }
+
+    /**
+     * Parse bonus feat grants from trait text.
+     *
+     * Detects traits named "Feat" that grant a bonus feat.
+     * Pattern examples:
+     * - Variant Human: "You gain one feat of your choice."
+     * - Custom Lineage: "You gain one feat of your choice for which you qualify."
+     *
+     * @param  array  $traits  Parsed traits array
+     * @return array<int, array<string, mixed>> Array of modifier data
+     */
+    private function parseBonusFeatFromTraits(array $traits): array
+    {
+        $modifiers = [];
+
+        foreach ($traits as $trait) {
+            // Only check traits named "Feat"
+            if (strtolower($trait['name']) !== 'feat') {
+                continue;
+            }
+
+            $text = strtolower($trait['description']);
+
+            // Pattern: "you gain one feat of your choice" (with optional qualifiers)
+            // Matches:
+            // - "You gain one feat of your choice."
+            // - "You gain one feat of your choice for which you qualify."
+            if (preg_match('/you gain (?:one|a) feat of your choice/i', $text)) {
+                $modifiers[] = [
+                    'modifier_category' => 'bonus_feat',
+                    'value' => 1,
+                ];
+            }
+        }
+
+        return $modifiers;
     }
 
     /**

@@ -482,4 +482,48 @@ XML;
         $this->assertCount(1, $spell->tags);
         $this->assertEquals('Touch Spells', $spell->tags->first()->name);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_imports_scaling_increment_for_fireball(): void
+    {
+        // Create required base classes
+        $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter']);
+        $cleric = CharacterClass::factory()->create(['name' => 'Cleric', 'slug' => 'cleric']);
+        $warlock = CharacterClass::factory()->create(['name' => 'Warlock', 'slug' => 'warlock']);
+        CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'sorcerer']);
+        CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);
+
+        // Create required subclasses
+        CharacterClass::factory()->create([
+            'name' => 'Eldritch Knight',
+            'slug' => 'eldritch-knight',
+            'parent_class_id' => $fighter->id,
+        ]);
+        CharacterClass::factory()->create([
+            'name' => 'Light Domain',
+            'slug' => 'light-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+        CharacterClass::factory()->create([
+            'name' => 'The Fiend',
+            'slug' => 'the-fiend',
+            'parent_class_id' => $warlock->id,
+        ]);
+
+        // This test uses actual XML import from PHB
+        $xmlPath = config('import.xml_source_path').'/'.config('import.source_directories.phb').'/spells-phb.xml';
+
+        $this->artisan('import:spells', ['file' => $xmlPath])
+            ->assertSuccessful();
+
+        $fireball = Spell::where('slug', 'fireball')->first();
+
+        $this->assertNotNull($fireball, 'Fireball spell should exist');
+        $this->assertNotNull($fireball->higher_levels, 'Fireball should have higher_levels text');
+
+        $damageEffect = $fireball->effects->firstWhere('effect_type', 'damage');
+
+        $this->assertNotNull($damageEffect, 'Fireball should have a damage effect');
+        $this->assertEquals('1d6', $damageEffect->scaling_increment);
+    }
 }

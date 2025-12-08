@@ -21,7 +21,8 @@ return new class extends Migration
             $table->unsignedBigInteger('modifier_id')->nullable();
             $table->timestamp('created_at')->nullable();
 
-            $table->unique(['character_id', 'ability_score_code', 'source'], 'char_ability_score_unique');
+            // Include modifier_id to allow same ability from different modifiers (e.g., fixed +2 CHA and choice +1 CHA)
+            $table->unique(['character_id', 'ability_score_code', 'modifier_id'], 'char_ability_score_unique');
             $table->index('ability_score_code');
         });
     }

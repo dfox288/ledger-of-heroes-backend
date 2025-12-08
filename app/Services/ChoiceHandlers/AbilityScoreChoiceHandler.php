@@ -31,6 +31,11 @@ class AbilityScoreChoiceHandler extends AbstractChoiceHandler
             $character->load('race.modifiers.abilityScore', 'race.parent.modifiers.abilityScore');
         }
 
+        // Verify race was loaded (slug exists but race record might not)
+        if (! $character->race) {
+            return $choices;
+        }
+
         // Get choice modifiers from race (and parent race if subrace)
         $modifiers = $this->getChoiceModifiers($character);
 

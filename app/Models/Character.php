@@ -90,6 +90,8 @@ class Character extends Model implements HasMedia
         'max_hit_points',
         'current_hit_points',
         'temp_hit_points',
+        'hp_levels_resolved',
+        'hp_calculation_method',
         'death_save_successes',
         'death_save_failures',
         'armor_class_override',
@@ -110,6 +112,7 @@ class Character extends Model implements HasMedia
         'max_hit_points' => 'integer',
         'current_hit_points' => 'integer',
         'temp_hit_points' => 'integer',
+        'hp_levels_resolved' => 'array',
         'death_save_successes' => 'integer',
         'death_save_failures' => 'integer',
         'armor_class_override' => 'integer',
@@ -357,6 +360,56 @@ class Character extends Model implements HasMedia
             && $this->intelligence !== null
             && $this->wisdom !== null
             && $this->charisma !== null;
+    }
+
+    // HP Tracking Methods
+
+    /**
+     * Check if HP has been resolved for a specific level.
+     */
+    public function hasResolvedHpForLevel(int $level): bool
+    {
+        return in_array($level, $this->hp_levels_resolved ?? [], true);
+    }
+
+    /**
+     * Mark HP as resolved for a specific level.
+     */
+    public function markHpResolvedForLevel(int $level): void
+    {
+        $resolved = $this->hp_levels_resolved ?? [];
+        if (! in_array($level, $resolved, true)) {
+            $resolved[] = $level;
+            sort($resolved);
+            $this->hp_levels_resolved = $resolved;
+            $this->save();
+        }
+    }
+
+    /**
+     * Get all levels that still need HP choices resolved.
+     */
+    public function getPendingHpLevels(): array
+    {
+        $totalLevel = $this->total_level;
+        $resolved = $this->hp_levels_resolved ?? [];
+
+        $pending = [];
+        for ($level = 1; $level <= $totalLevel; $level++) {
+            if (! in_array($level, $resolved, true)) {
+                $pending[] = $level;
+            }
+        }
+
+        return $pending;
+    }
+
+    /**
+     * Check if this character uses calculated HP (vs manual).
+     */
+    public function usesCalculatedHp(): bool
+    {
+        return ($this->hp_calculation_method ?? 'calculated') === 'calculated';
     }
 
     /**

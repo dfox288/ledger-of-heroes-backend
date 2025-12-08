@@ -397,6 +397,7 @@ class LevelUpServiceTest extends TestCase
             ],
             spellSlots: [1 => 4, 2 => 3],
             asiPending: true,
+            hpChoicePending: true,
         );
 
         $array = $result->toArray();
@@ -411,6 +412,7 @@ class LevelUpServiceTest extends TestCase
             ],
             'spell_slots' => [1 => 4, 2 => 3],
             'asi_pending' => true,
+            'hp_choice_pending' => true,
         ], $array);
     }
 }

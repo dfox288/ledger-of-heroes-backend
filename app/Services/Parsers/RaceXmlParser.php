@@ -126,10 +126,14 @@ class RaceXmlParser
         $bonusFeatModifiers = $this->parseBonusFeatFromTraits($traits);
         $modifiers = array_merge($modifiers, $bonusFeatModifiers);
 
+        // Parse size choice from trait text (e.g., "Small or Medium (your choice)")
+        $hasSizeChoice = $this->parseSizeChoiceFromTraits($traits);
+
         return [
             'name' => $raceName,
             'base_race_name' => $baseRaceName,
             'size_code' => (string) $element->size,
+            'has_size_choice' => $hasSizeChoice,
             'speed' => (int) $element->speed,
             'traits' => $traits,
             'base_traits' => $baseTraits,           // species, description, general traits
@@ -586,6 +590,36 @@ class RaceXmlParser
         }
 
         return $modifiers;
+    }
+
+    /**
+     * Parse size choice from trait text.
+     *
+     * Detects patterns like "You are Small or Medium (your choice)"
+     * which indicate the race allows selecting between sizes.
+     */
+    private function parseSizeChoiceFromTraits(array $traits): bool
+    {
+        foreach ($traits as $trait) {
+            // Only check traits named "Size"
+            if (strtolower($trait['name']) !== 'size') {
+                continue;
+            }
+
+            $text = strtolower($trait['description']);
+
+            // Pattern: "Small or Medium (your choice)" or similar
+            if (preg_match('/small or medium.*(?:your choice|you choose)/i', $text)) {
+                return true;
+            }
+
+            // Also check reverse order just in case
+            if (preg_match('/medium or small.*(?:your choice|you choose)/i', $text)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

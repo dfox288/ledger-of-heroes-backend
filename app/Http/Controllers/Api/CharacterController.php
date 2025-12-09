@@ -18,6 +18,7 @@ use App\Services\CharacterLanguageService;
 use App\Services\CharacterProficiencyService;
 use App\Services\CharacterStatCalculator;
 use App\Services\EquipmentManagerService;
+use App\Services\FeatChoiceService;
 use App\Services\HitDiceService;
 use App\Services\HitPointService;
 use App\Services\SpellSlotService;
@@ -35,7 +36,8 @@ class CharacterController extends Controller
         private SpellSlotService $spellSlotService,
         private HitDiceService $hitDiceService,
         private EquipmentManagerService $equipmentService,
-        private HitPointService $hitPointService
+        private HitPointService $hitPointService,
+        private FeatChoiceService $featChoiceService
     ) {}
 
     /**
@@ -367,7 +369,7 @@ class CharacterController extends Controller
      *
      * **Response includes:**
      * - Basic character info (id, name, level)
-     * - Pending choices (proficiencies, languages, spells, optional features, ASI)
+     * - Pending choices (proficiencies, languages, spells, optional features, ASI, size, feats)
      * - Resources (hit points, hit dice, spell slots, feature uses)
      * - Combat state (conditions, death saves, consciousness)
      * - Creation status (complete/incomplete, missing requirements)
@@ -379,7 +381,8 @@ class CharacterController extends Controller
             $this->proficiencyService,
             $this->languageService,
             $this->spellSlotService,
-            $this->hitDiceService
+            $this->hitDiceService,
+            $this->featChoiceService
         );
 
         return new CharacterSummaryResource($summary);

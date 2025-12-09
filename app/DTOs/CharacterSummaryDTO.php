@@ -5,6 +5,7 @@ namespace App\DTOs;
 use App\Models\Character;
 use App\Services\CharacterLanguageService;
 use App\Services\CharacterProficiencyService;
+use App\Services\FeatChoiceService;
 use App\Services\HitDiceService;
 use App\Services\SpellSlotService;
 
@@ -13,7 +14,7 @@ use App\Services\SpellSlotService;
  *
  * Provides a comprehensive snapshot of character state including:
  * - Basic character info
- * - Pending choices (proficiencies, languages, spells, optional features, ASI)
+ * - Pending choices (proficiencies, languages, spells, optional features, ASI, size, feats)
  * - Resources (HP, hit dice, spell slots, feature uses)
  * - Combat state (conditions, death saves, consciousness)
  * - Creation completeness status
@@ -37,7 +38,8 @@ class CharacterSummaryDTO
         CharacterProficiencyService $proficiencyService,
         CharacterLanguageService $languageService,
         SpellSlotService $spellSlotService,
-        HitDiceService $hitDiceService
+        HitDiceService $hitDiceService,
+        FeatChoiceService $featChoiceService
     ): self {
         // Ensure relationships are loaded
         $character->load([
@@ -59,7 +61,8 @@ class CharacterSummaryDTO
         $pendingChoices = self::calculatePendingChoices(
             $character,
             $proficiencyService,
-            $languageService
+            $languageService,
+            $featChoiceService
         );
 
         // Get resource states
@@ -94,7 +97,8 @@ class CharacterSummaryDTO
     private static function calculatePendingChoices(
         Character $character,
         CharacterProficiencyService $proficiencyService,
-        CharacterLanguageService $languageService
+        CharacterLanguageService $languageService,
+        FeatChoiceService $featChoiceService
     ): array {
         // Get proficiency choices
         $proficiencyChoices = $proficiencyService->getPendingChoices($character);
@@ -116,12 +120,28 @@ class CharacterSummaryDTO
             }
         }
 
+        // Get size choices (races with has_size_choice like Custom Lineage)
+        $sizeRemaining = 0;
+        $race = $character->race;
+        if ($race && $race->has_size_choice && $character->size_id === null) {
+            $sizeRemaining = 1;
+        }
+
+        // Get feat choices (races/backgrounds with bonus_feat modifier)
+        $featsRemaining = 0;
+        $featChoices = $featChoiceService->getPendingChoices($character);
+        foreach ($featChoices as $sourceData) {
+            $featsRemaining += $sourceData['remaining'];
+        }
+
         return [
             'proficiencies' => $proficienciesRemaining,
             'languages' => $languagesRemaining,
             'spells' => 0, // Placeholder - complex logic deferred to Phase 2
             'optional_features' => 0, // Placeholder - requires optional feature choice system
             'asi' => $character->asi_choices_remaining ?? 0,
+            'size' => $sizeRemaining,
+            'feats' => $featsRemaining,
         ];
     }
 
@@ -221,6 +241,16 @@ class CharacterSummaryDTO
         // Check for pending optional feature choices
         if ($pendingChoices['optional_features'] > 0) {
             $missing[] = 'optional_feature_choices';
+        }
+
+        // Check for pending size choice (races like Custom Lineage)
+        if ($pendingChoices['size'] > 0) {
+            $missing[] = 'size_choice';
+        }
+
+        // Check for pending feat choices (races like Variant Human)
+        if ($pendingChoices['feats'] > 0) {
+            $missing[] = 'feat_choices';
         }
 
         $isComplete = empty($missing);

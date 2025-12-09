@@ -77,6 +77,7 @@ class Character extends Model implements HasMedia
         'name',
         'experience_points',
         'race_slug',
+        'size_id',
         'background_slug',
         'strength',
         'dexterity',
@@ -119,6 +120,7 @@ class Character extends Model implements HasMedia
         'armor_class_override' => 'integer',
         'asi_choices_remaining' => 'integer',
         'hp_levels_resolved' => 'array',
+        'size_id' => 'integer',
     ];
 
     protected $appends = [
@@ -163,6 +165,17 @@ class Character extends Model implements HasMedia
     public function race(): BelongsTo
     {
         return $this->belongsTo(Race::class, 'race_slug', 'full_slug');
+    }
+
+    /**
+     * Get the character's size (for races with size choice like Custom Lineage).
+     *
+     * Returns the explicitly chosen size if set, otherwise null.
+     * Use the `size` accessor for the effective size (chosen or race default).
+     */
+    public function sizeChoice(): BelongsTo
+    {
+        return $this->belongsTo(Size::class, 'size_id');
     }
 
     public function background(): BelongsTo
@@ -608,10 +621,21 @@ class Character extends Model implements HasMedia
     }
 
     /**
-     * Get size name from race.
+     * Get the character's effective size.
+     *
+     * Priority:
+     * 1. Character's chosen size (for races with size choice like Custom Lineage)
+     * 2. Race's default size
+     * 3. null if no race
      */
     public function getSizeAttribute(): ?string
     {
+        // If character has explicitly chosen a size, use it
+        if ($this->size_id !== null) {
+            return $this->sizeChoice?->name;
+        }
+
+        // Otherwise, fall back to race's default size
         return $this->race?->size?->name;
     }
 

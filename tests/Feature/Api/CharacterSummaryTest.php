@@ -12,7 +12,9 @@ use App\Models\CharacterSpellSlot;
 use App\Models\Condition;
 use App\Models\EntityLanguage;
 use App\Models\Language;
+use App\Models\Modifier;
 use App\Models\Race;
+use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -46,6 +48,8 @@ class CharacterSummaryTest extends TestCase
                         'spells',
                         'optional_features',
                         'asi',
+                        'size',
+                        'feats',
                     ],
                     'resources' => [
                         'hit_points' => ['current', 'max', 'temp'],
@@ -459,5 +463,194 @@ class CharacterSummaryTest extends TestCase
         $data = $response->json('data');
         $this->assertFalse($data['creation_complete']);
         $this->assertContains('language_choices', $data['missing_required']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_returns_size_choices_for_race_with_has_size_choice()
+    {
+        $race = Race::factory()->create(['has_size_choice' => true]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+
+        // Ensure sizes exist
+        Size::firstOrCreate(['code' => 'S', 'name' => 'Small']);
+        Size::firstOrCreate(['code' => 'M', 'name' => 'Medium']);
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/summary");
+
+        $response->assertOk()
+            ->assertJsonPath('data.pending_choices.size', 1);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_returns_zero_size_choices_when_race_has_no_size_choice()
+    {
+        $race = Race::factory()->create(['has_size_choice' => false]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/summary");
+
+        $response->assertOk()
+            ->assertJsonPath('data.pending_choices.size', 0);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_returns_zero_size_choices_when_size_already_selected()
+    {
+        $race = Race::factory()->create(['has_size_choice' => true]);
+
+        // Ensure sizes exist
+        $smallSize = Size::firstOrCreate(['code' => 'S', 'name' => 'Small']);
+        Size::firstOrCreate(['code' => 'M', 'name' => 'Medium']);
+
+        $character = Character::factory()->withStandardArray()->create([
+            'race_slug' => $race->full_slug,
+            'size_id' => $smallSize->id,
+        ]);
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/summary");
+
+        $response->assertOk()
+            ->assertJsonPath('data.pending_choices.size', 0);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_includes_size_choice_in_missing_required_when_pending()
+    {
+        $race = Race::factory()->create(['has_size_choice' => true]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+
+        // Ensure sizes exist
+        Size::firstOrCreate(['code' => 'S', 'name' => 'Small']);
+        Size::firstOrCreate(['code' => 'M', 'name' => 'Medium']);
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/summary");
+
+        $response->assertOk();
+
+        $data = $response->json('data');
+        $this->assertFalse($data['creation_complete']);
+        $this->assertContains('size_choice', $data['missing_required']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_returns_feats_choices_for_race_with_bonus_feat()
+    {
+        $race = Race::factory()->create();
+
+        // Add bonus_feat modifier to race (like Variant Human)
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'modifier_category' => 'bonus_feat',
+            'value' => '1',
+        ]);
+
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/summary");
+
+        $response->assertOk()
+            ->assertJsonPath('data.pending_choices.feats', 1);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_returns_zero_feats_choices_when_race_has_no_bonus_feat()
+    {
+        $race = Race::factory()->create();
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/summary");
+
+        $response->assertOk()
+            ->assertJsonPath('data.pending_choices.feats', 0);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_includes_feat_choices_in_missing_required_when_pending()
+    {
+        $race = Race::factory()->create();
+
+        // Add bonus_feat modifier
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'modifier_category' => 'bonus_feat',
+            'value' => '1',
+        ]);
+
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/summary");
+
+        $response->assertOk();
+
+        $data = $response->json('data');
+        $this->assertFalse($data['creation_complete']);
+        $this->assertContains('feat_choices', $data['missing_required']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_includes_size_in_pending_choices_structure()
+    {
+        $character = Character::factory()->withStandardArray()->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/summary");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'pending_choices' => [
+                        'proficiencies',
+                        'languages',
+                        'spells',
+                        'optional_features',
+                        'asi',
+                        'size',
+                        'feats',
+                    ],
+                ],
+            ]);
     }
 }

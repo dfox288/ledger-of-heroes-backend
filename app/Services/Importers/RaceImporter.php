@@ -97,6 +97,7 @@ class RaceImporter extends BaseImporter
                 'full_slug' => $fullSlug,
                 'parent_race_id' => $raceData['parent_race_id'] ?? null,
                 'size_id' => $size->id,
+                'has_size_choice' => $raceData['has_size_choice'] ?? false,
                 'speed' => $raceData['speed'],
                 'fly_speed' => $extractedSpeeds['fly_speed'],
                 'swim_speed' => $extractedSpeeds['swim_speed'],

@@ -59,6 +59,7 @@ class AppServiceProvider extends ServiceProvider
             $service->registerHandler($app->make(\App\Services\ChoiceHandlers\HitPointRollChoiceHandler::class));
             $service->registerHandler($app->make(\App\Services\ChoiceHandlers\AbilityScoreChoiceHandler::class));
             $service->registerHandler($app->make(\App\Services\ChoiceHandlers\FeatChoiceHandler::class));
+            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\SizeChoiceHandler::class));
 
             return $service;
         });

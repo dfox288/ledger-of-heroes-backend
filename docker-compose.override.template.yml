@@ -1,0 +1,43 @@
+# =============================================================================
+# Docker Compose Override Template for Worktree Environments
+# =============================================================================
+#
+# This file is used by scripts/create-agent-worktree.sh to generate
+# environment-specific overrides that allow multiple backend instances
+# to run simultaneously without port/container conflicts.
+#
+# DO NOT use this file directly. Run the setup script instead:
+#   ./scripts/create-agent-worktree.sh <instance-number> <branch-name>
+#
+# Placeholders replaced by setup script:
+#   {{INSTANCE_ID}}  - Unique instance number (1, 2, 3, etc.)
+#   {{NGINX_PORT}}   - Nginx port (8091, 8092, etc.)
+#
+# Shared services (MySQL, Meilisearch, Redis) are NOT included here.
+# They run from the main backend directory and are shared via:
+#   - Different database names (DB_DATABASE in .env)
+#   - Different index prefixes (SCOUT_PREFIX in .env)
+#   - Different Redis DB numbers (REDIS_DB in .env)
+#
+# NOTE: The !override tag tells Docker Compose to REPLACE arrays instead of merging.
+# =============================================================================
+
+services:
+  # Override PHP container name to avoid conflicts
+  php:
+    container_name: loh_backend_php_{{INSTANCE_ID}}
+    # Connect to shared services running in main backend
+    # The network is shared, so we can reach mysql, meilisearch, redis by name
+    depends_on: !override
+      - nginx  # Remove dependency on mysql/redis since they're external
+
+  # Override Nginx with unique port and container name
+  nginx:
+    container_name: loh_backend_nginx_{{INSTANCE_ID}}
+    ports: !override
+      - "{{NGINX_PORT}}:80"
+    depends_on: !override
+      - php
+
+# Don't create local volumes - we use the shared services
+volumes: !override {}

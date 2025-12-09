@@ -370,6 +370,77 @@ class CharacterStatsDTO
     }
 
     /**
+     * Extract defensive traits from an entity (Race or Feat) that uses HasConditions and HasModifiers traits.
+     *
+     * @param  \App\Models\Race|\App\Models\Feat  $entity
+     */
+    private static function extractDefensiveTraitsFromEntity(
+        $entity,
+        string $sourceName,
+        array &$damageResistances,
+        array &$damageImmunities,
+        array &$damageVulnerabilities,
+        array &$conditionAdvantages,
+        array &$conditionDisadvantages,
+        array &$conditionImmunities
+    ): void {
+        // Defensive: controller should eager-load, but load if called directly (e.g., tests)
+        if (! $entity->relationLoaded('modifiers')) {
+            $entity->load('modifiers.damageType');
+        }
+
+        // Process damage modifiers
+        foreach ($entity->modifiers as $modifier) {
+            $category = $modifier->modifier_category;
+
+            if (in_array($category, ['damage_resistance', 'damage_immunity', 'damage_vulnerability'])) {
+                // Determine type from damage_type relationship or condition field
+                $type = $modifier->damageType?->name ?? $modifier->condition;
+
+                if ($type) {
+                    $entry = [
+                        'type' => $type,
+                        'condition' => $modifier->damageType ? $modifier->condition : null,
+                        'source' => $sourceName,
+                    ];
+
+                    match ($category) {
+                        'damage_resistance' => $damageResistances[] = $entry,
+                        'damage_immunity' => $damageImmunities[] = $entry,
+                        'damage_vulnerability' => $damageVulnerabilities[] = $entry,
+                        default => null,
+                    };
+                }
+            }
+        }
+
+        // Defensive: controller should eager-load, but load if called directly (e.g., tests)
+        if (! $entity->relationLoaded('conditions')) {
+            $entity->load('conditions.condition');
+        }
+
+        // Process condition effects
+        foreach ($entity->conditions as $entityCondition) {
+            if (! $entityCondition->condition) {
+                continue;
+            }
+
+            $entry = [
+                'condition' => $entityCondition->condition->name,
+                'effect' => $entityCondition->effect_type,
+                'source' => $sourceName,
+            ];
+
+            match ($entityCondition->effect_type) {
+                'advantage' => $conditionAdvantages[] = $entry,
+                'disadvantage' => $conditionDisadvantages[] = $entry,
+                'immunity' => $conditionImmunities[] = $entry,
+                default => null,
+            };
+        }
+    }
+
+    /**
      * Build defensive traits from character's race and feats.
      *
      * Aggregates damage resistances/immunities/vulnerabilities and condition effects
@@ -394,62 +465,17 @@ class CharacterStatsDTO
         $conditionImmunities = [];
 
         // Process race defensive traits
-        if ($character->race) {
-            $race = $character->race;
-            $sourceName = $race->name;
-
-            // Load race modifiers with damageType relationship
-            if (! $race->relationLoaded('modifiers')) {
-                $race->load('modifiers.damageType');
-            }
-
-            // Process damage modifiers from race
-            foreach ($race->modifiers as $modifier) {
-                $category = $modifier->modifier_category;
-
-                if (in_array($category, ['damage_resistance', 'damage_immunity', 'damage_vulnerability'])) {
-                    // Determine type from damage_type relationship or condition field
-                    $type = $modifier->damageType?->name ?? $modifier->condition;
-
-                    if ($type) {
-                        $entry = [
-                            'type' => $type,
-                            'condition' => $modifier->damageType ? $modifier->condition : null,
-                            'source' => $sourceName,
-                        ];
-
-                        match ($category) {
-                            'damage_resistance' => $damageResistances[] = $entry,
-                            'damage_immunity' => $damageImmunities[] = $entry,
-                            'damage_vulnerability' => $damageVulnerabilities[] = $entry,
-                            default => null,
-                        };
-                    }
-                }
-            }
-
-            // Load race conditions with condition relationship
-            if (! $race->relationLoaded('conditions')) {
-                $race->load('conditions.condition');
-            }
-
-            // Process condition effects from race
-            foreach ($race->conditions as $entityCondition) {
-                if ($entityCondition->condition) {
-                    $entry = [
-                        'condition' => $entityCondition->condition->name,
-                        'effect' => $entityCondition->effect_type,
-                        'source' => $sourceName,
-                    ];
-
-                    match ($entityCondition->effect_type) {
-                        'advantage' => $conditionAdvantages[] = $entry,
-                        'disadvantage' => $conditionDisadvantages[] = $entry,
-                        'immunity' => $conditionImmunities[] = $entry,
-                        default => null,
-                    };
-                }
-            }
+        if ($race = $character->race) {
+            self::extractDefensiveTraitsFromEntity(
+                $race,
+                $race->name,
+                $damageResistances,
+                $damageImmunities,
+                $damageVulnerabilities,
+                $conditionAdvantages,
+                $conditionDisadvantages,
+                $conditionImmunities
+            );
         }
 
         // Process feats defensive traits
@@ -458,69 +484,34 @@ class CharacterStatsDTO
         }
 
         // Get feats from character features
-        $featFeatures = $character->features->where('feature_type', 'App\Models\Feat');
+        $featFeatures = $character->features->filter(
+            fn ($f) => $f->feature_type === \App\Models\Feat::class
+        );
 
         foreach ($featFeatures as $characterFeature) {
+            // Defensive: controller should eager-load via features.feature
+            if (! $characterFeature->relationLoaded('feature')) {
+                $characterFeature->load('feature');
+            }
+
             $feat = $characterFeature->feature;
 
             if (! $feat) {
+                \Log::warning("Character {$character->id} has orphaned feature record: {$characterFeature->id}");
+
                 continue;
             }
 
-            $sourceName = $feat->name;
-
-            // Load feat modifiers with damageType relationship
-            if (! $feat->relationLoaded('modifiers')) {
-                $feat->load('modifiers.damageType');
-            }
-
-            // Process damage modifiers from feat
-            foreach ($feat->modifiers as $modifier) {
-                $category = $modifier->modifier_category;
-
-                if (in_array($category, ['damage_resistance', 'damage_immunity', 'damage_vulnerability'])) {
-                    // Determine type from damage_type relationship or condition field
-                    $type = $modifier->damageType?->name ?? $modifier->condition;
-
-                    if ($type) {
-                        $entry = [
-                            'type' => $type,
-                            'condition' => $modifier->damageType ? $modifier->condition : null,
-                            'source' => $sourceName,
-                        ];
-
-                        match ($category) {
-                            'damage_resistance' => $damageResistances[] = $entry,
-                            'damage_immunity' => $damageImmunities[] = $entry,
-                            'damage_vulnerability' => $damageVulnerabilities[] = $entry,
-                            default => null,
-                        };
-                    }
-                }
-            }
-
-            // Load feat conditions with condition relationship
-            if (! $feat->relationLoaded('conditions')) {
-                $feat->load('conditions.condition');
-            }
-
-            // Process condition effects from feat
-            foreach ($feat->conditions as $entityCondition) {
-                if ($entityCondition->condition) {
-                    $entry = [
-                        'condition' => $entityCondition->condition->name,
-                        'effect' => $entityCondition->effect_type,
-                        'source' => $sourceName,
-                    ];
-
-                    match ($entityCondition->effect_type) {
-                        'advantage' => $conditionAdvantages[] = $entry,
-                        'disadvantage' => $conditionDisadvantages[] = $entry,
-                        'immunity' => $conditionImmunities[] = $entry,
-                        default => null,
-                    };
-                }
-            }
+            self::extractDefensiveTraitsFromEntity(
+                $feat,
+                $feat->name,
+                $damageResistances,
+                $damageImmunities,
+                $damageVulnerabilities,
+                $conditionAdvantages,
+                $conditionDisadvantages,
+                $conditionImmunities
+            );
         }
 
         return [

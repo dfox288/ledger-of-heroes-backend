@@ -388,7 +388,8 @@ class CharacterStatsDTO
         array &$conditionImmunities,
         array &$skillAdvantages
     ): void {
-        // Defensive: controller should eager-load, but load if called directly (e.g., tests)
+        // Defensive: controller should eager-load modifiers.damageType and modifiers.skill,
+        // but load if called directly (e.g., tests)
         if (! $entity->relationLoaded('modifiers')) {
             $entity->load(['modifiers.damageType', 'modifiers.skill']);
         }

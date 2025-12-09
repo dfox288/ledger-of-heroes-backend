@@ -31,7 +31,8 @@ trait ParsesSkillAdvantages
 
         // Pattern: "advantage on Ability (Skill) checks" with optional second skill and condition
         // Captures: skill names in parentheses, and the conditional text after "when/while/related to/made to"
-        $pattern = '/advantage on\s+(?:[A-Z][a-z]+)\s*\(([^)]+)\)(?:\s+and\s+(?:[A-Z][a-z]+)\s*\(([^)]+)\))?\s+checks?\s*(?:(when|while|related to|made to)\s+(.+?))?(?:\.|$)/i';
+        // Uses [^.]+ instead of .+? to capture full condition text until sentence end
+        $pattern = '/advantage on\s+(?:[A-Z][a-z]+)\s*\(([^)]+)\)(?:\s+and\s+(?:[A-Z][a-z]+)\s*\(([^)]+)\))?\s+checks?\s*(?:(when|while|related to|made to)\s+([^.]+))?(?:\.|$)/i';
 
         if (preg_match($pattern, $text, $match)) {
             $skills = [];

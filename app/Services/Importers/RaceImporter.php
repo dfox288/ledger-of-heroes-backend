@@ -333,7 +333,7 @@ class RaceImporter extends BaseImporter
                 'category' => $skillAdvantage['modifier_category'],
                 'skill_name' => $skillAdvantage['skill_name'],
                 'value' => $skillAdvantage['value'],
-                'condition' => $skillAdvantage['condition'],
+                'condition' => $skillAdvantage['condition'] ?? null,
             ];
         }
 

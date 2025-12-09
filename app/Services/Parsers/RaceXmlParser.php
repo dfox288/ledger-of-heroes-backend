@@ -611,6 +611,10 @@ class RaceXmlParser
         $modifiers = [];
 
         foreach ($traits as $trait) {
+            if (empty($trait['description'])) {
+                continue;
+            }
+
             $skillAdvantages = $this->parseSkillAdvantages($trait['description']);
             foreach ($skillAdvantages as $advantage) {
                 $modifiers[] = $advantage;

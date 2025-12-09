@@ -156,14 +156,14 @@ class CharacterEquipmentApiTest extends TestCase
     }
 
     #[Test]
-    public function it_validates_item_slug_is_required(): void
+    public function it_validates_item_or_custom_name_is_required(): void
     {
         $character = Character::factory()->create();
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/equipment", []);
 
         $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['item_slug']);
+            ->assertJsonValidationErrors(['item']);
     }
 
     // =============================

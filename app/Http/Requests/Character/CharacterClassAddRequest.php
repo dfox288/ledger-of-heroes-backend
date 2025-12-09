@@ -26,9 +26,14 @@ class CharacterClassAddRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Accept 'class' as API param, mapped to class_slug
-            // No exists validation - dangling references allowed per #288
-            'class_slug' => ['required', 'string', 'max:150'],
+            // Preferred API field name. Mapped to class_slug before validation.
+            // @example phb:wizard
+            'class' => ['required_without:class_slug', 'string', 'max:150'],
+
+            // Internal field name (also accepted for backwards compatibility).
+            // @deprecated Use 'class' instead
+            'class_slug' => ['required_without:class', 'string', 'max:150'],
+
             'force' => ['sometimes', 'boolean'],
         ];
     }

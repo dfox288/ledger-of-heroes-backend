@@ -28,9 +28,13 @@ class CharacterConditionStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Accept 'condition' as API param, mapped to condition_slug
-            // No exists validation - dangling references allowed per #288
-            'condition_slug' => ['required', 'string', 'max:150'],
+            // Preferred API field name. Mapped to condition_slug before validation.
+            // @example phb:poisoned
+            'condition' => ['required_without:condition_slug', 'string', 'max:150'],
+
+            // Internal field name (also accepted for backwards compatibility).
+            // @deprecated Use 'condition' instead
+            'condition_slug' => ['required_without:condition', 'string', 'max:150'],
             'level' => [
                 'nullable',
                 'integer',

@@ -235,6 +235,7 @@ class CharacterLanguageService
                 'name' => $lang->name,
                 'slug' => $lang->slug,
                 'script' => $lang->script,
+                // Always true after filter, included for API documentation consistency
                 'is_learnable' => $lang->is_learnable,
             ])
             ->values()
@@ -321,6 +322,7 @@ class CharacterLanguageService
                 'name' => $lang->name,
                 'slug' => $lang->slug,
                 'script' => $lang->script,
+                // Always true after filter, included for API documentation consistency
                 'is_learnable' => $lang->is_learnable,
             ])
             ->values()

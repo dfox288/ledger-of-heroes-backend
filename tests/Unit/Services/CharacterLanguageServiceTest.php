@@ -896,6 +896,10 @@ class CharacterLanguageServiceTest extends TestCase
         $this->assertNotContains('thieves-cant', $optionSlugs);
         $this->assertNotContains('druidic', $optionSlugs);
 
+        // Verify known learnable languages ARE included
+        $this->assertContains('common', $optionSlugs, 'Common should be in learnable options');
+        $this->assertContains('elvish', $optionSlugs, 'Elvish should be in learnable options');
+
         // Verify all options have is_learnable = true
         foreach ($options as $option) {
             $this->assertArrayHasKey('is_learnable', $option);

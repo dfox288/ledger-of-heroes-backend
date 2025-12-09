@@ -53,6 +53,8 @@ class ClassFixtureSeeder extends FixtureSeeder
             'primary_ability' => $item['primary_ability'],
             'spellcasting_ability_id' => $spellcastingAbility?->id,
             'parent_class_id' => $parentClass?->id,
+            'starting_wealth_dice' => $item['starting_wealth_dice'] ?? null,
+            'starting_wealth_multiplier' => $item['starting_wealth_multiplier'] ?? null,
         ]);
 
         // Create proficiencies

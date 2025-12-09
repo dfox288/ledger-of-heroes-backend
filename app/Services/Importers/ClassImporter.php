@@ -92,6 +92,18 @@ class ClassImporter extends BaseImporter
             $description = $data['traits'][0]['description'] ?? '';
         }
 
+        // Parse starting wealth from equipment data (e.g., "5d4x10" -> dice="5d4", multiplier=10)
+        $startingWealthDice = null;
+        $startingWealthMultiplier = null;
+        if (! empty($data['equipment']['wealth'])) {
+            $wealth = $data['equipment']['wealth'];
+            // Format: "5d4x10" or "5d4" (no multiplier means ×1)
+            if (preg_match('/^(\d+d\d+)(?:x(\d+))?$/i', $wealth, $matches)) {
+                $startingWealthDice = strtolower($matches[1]);
+                $startingWealthMultiplier = isset($matches[2]) ? (int) $matches[2] : 1;
+            }
+        }
+
         // Create or update class using slug as unique key
         $class = CharacterClass::updateOrCreate(
             ['slug' => $data['slug']],
@@ -103,6 +115,8 @@ class ClassImporter extends BaseImporter
                 'description' => $description ?: 'No description available',
                 'archetype' => $data['archetype'] ?? null,
                 'spellcasting_ability_id' => $data['spellcasting_ability_id'] ?? null,
+                'starting_wealth_dice' => $startingWealthDice,
+                'starting_wealth_multiplier' => $startingWealthMultiplier,
             ]
         );
 
@@ -438,6 +452,15 @@ class ClassImporter extends BaseImporter
 
         if (! empty($supplementData['spellcasting_ability_id']) && $existingClass->spellcasting_ability_id === null) {
             $updates['spellcasting_ability_id'] = $supplementData['spellcasting_ability_id'];
+        }
+
+        // Update starting wealth if incoming data has valid values and existing has none
+        if (! empty($supplementData['equipment']['wealth']) && $existingClass->starting_wealth_dice === null) {
+            $wealth = $supplementData['equipment']['wealth'];
+            if (preg_match('/^(\d+d\d+)(?:x(\d+))?$/i', $wealth, $matches)) {
+                $updates['starting_wealth_dice'] = strtolower($matches[1]);
+                $updates['starting_wealth_multiplier'] = isset($matches[2]) ? (int) $matches[2] : 1;
+            }
         }
 
         // Update description if existing is a stub ("No description available")

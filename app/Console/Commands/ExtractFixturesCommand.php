@@ -364,6 +364,8 @@ class ExtractFixturesCommand extends Command
             'primary_ability' => $class->primary_ability,
             'spellcasting_ability' => $class->spellcastingAbility?->code,
             'parent_class_slug' => $class->parentClass?->slug,
+            'starting_wealth_dice' => $class->starting_wealth_dice,
+            'starting_wealth_multiplier' => $class->starting_wealth_multiplier,
             'proficiencies' => $class->proficiencies->map(function ($prof) {
                 return [
                     'proficiency_type' => $prof->proficiency_type,

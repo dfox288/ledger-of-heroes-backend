@@ -59,6 +59,16 @@ class ClassResource extends JsonResource
             /** @var int|null Number of spells available to this class */
             'spell_count' => $this->spells_count ?? null,
 
+            // === STARTING WEALTH (Gold Alternative) ===
+            /**
+             * Pre-computed starting wealth data for the gold alternative to starting equipment.
+             * D&D 5e allows players to choose starting gold instead of fixed equipment.
+             * Returns null for subclasses (they don't have separate starting wealth).
+             *
+             * @var array{dice: string, multiplier: int, average: int, formula: string, description: string}|null
+             */
+            'starting_wealth' => $this->when($this->is_base_class, fn () => $this->starting_wealth),
+
             // === MULTICLASS REQUIREMENTS ===
             'multiclass_requirements' => $this->when(
                 $this->relationLoaded('multiclassRequirements'),

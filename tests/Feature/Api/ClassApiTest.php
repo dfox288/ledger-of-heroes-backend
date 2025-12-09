@@ -323,4 +323,57 @@ class ClassApiTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('data.subclass_level', null);
     }
+
+    #[Test]
+    public function base_class_includes_starting_wealth()
+    {
+        // Fighter should have starting wealth data (5d4 × 10 gp)
+        $response = $this->getJson('/api/v1/classes/fighter');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    'starting_wealth' => [
+                        'dice',
+                        'multiplier',
+                        'average',
+                        'formula',
+                        'description',
+                    ],
+                ],
+            ]);
+
+        // Verify the values
+        $startingWealth = $response->json('data.starting_wealth');
+        $this->assertEquals('5d4', $startingWealth['dice']);
+        $this->assertEquals(10, $startingWealth['multiplier']);
+        $this->assertEquals(125, $startingWealth['average']);
+        $this->assertStringContainsString('5d4', $startingWealth['formula']);
+    }
+
+    #[Test]
+    public function subclass_has_null_starting_wealth()
+    {
+        // Subclasses should not have their own starting wealth
+        $response = $this->getJson('/api/v1/classes/fighter-champion');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.starting_wealth', null);
+    }
+
+    #[Test]
+    public function monk_has_starting_wealth_without_multiplier()
+    {
+        // Monk has "5d4" without a multiplier (effectively ×1)
+        $response = $this->getJson('/api/v1/classes/monk');
+
+        $response->assertStatus(200);
+
+        $startingWealth = $response->json('data.starting_wealth');
+        $this->assertNotNull($startingWealth);
+        $this->assertEquals('5d4', $startingWealth['dice']);
+        $this->assertEquals(1, $startingWealth['multiplier']);
+        $this->assertEquals(12, $startingWealth['average']); // 5 * 2.5 * 1 = 12.5, truncated
+        $this->assertEquals('5d4 gp', $startingWealth['formula']);
+    }
 }

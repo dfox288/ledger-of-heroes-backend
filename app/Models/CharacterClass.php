@@ -41,12 +41,15 @@ class CharacterClass extends BaseModel
         'archetype',
         'primary_ability',
         'spellcasting_ability_id',
+        'starting_wealth_dice',
+        'starting_wealth_multiplier',
     ];
 
     protected $casts = [
         'hit_die' => 'integer',
         'parent_class_id' => 'integer',
         'spellcasting_ability_id' => 'integer',
+        'starting_wealth_multiplier' => 'integer',
     ];
 
     protected $appends = [
@@ -314,6 +317,57 @@ class CharacterClass extends BaseModel
                 'average' => $average,
                 'description' => "1d{$hitDie} (or {$average}) + your Constitution modifier per {$className} level after 1st",
             ],
+        ];
+    }
+
+    /**
+     * Get pre-computed starting wealth data for display.
+     *
+     * D&D 5e allows players to choose starting gold instead of equipment.
+     * This accessor calculates the average from the dice formula.
+     *
+     * @return array{
+     *   dice: string,
+     *   multiplier: int,
+     *   average: int,
+     *   formula: string,
+     *   description: string
+     * }|null
+     */
+    public function getStartingWealthAttribute(): ?array
+    {
+        if (! $this->starting_wealth_dice) {
+            return null;
+        }
+
+        $dice = $this->starting_wealth_dice;
+        $multiplier = $this->starting_wealth_multiplier ?? 1;
+
+        // Parse dice formula (e.g., "5d4" -> count=5, sides=4)
+        if (! preg_match('/^(\d+)d(\d+)$/i', $dice, $matches)) {
+            return null;
+        }
+
+        $diceCount = (int) $matches[1];
+        $diceSides = (int) $matches[2];
+
+        // Average roll for XdY = X * (Y + 1) / 2
+        $averageRoll = $diceCount * ($diceSides + 1) / 2;
+        $average = (int) ($averageRoll * $multiplier);
+
+        // Build formula string (e.g., "5d4 × 10 gp")
+        $formula = $dice;
+        if ($multiplier > 1) {
+            $formula .= " × {$multiplier}";
+        }
+        $formula .= ' gp';
+
+        return [
+            'dice' => $dice,
+            'multiplier' => $multiplier,
+            'average' => $average,
+            'formula' => $formula,
+            'description' => "Roll {$dice}".($multiplier > 1 ? " and multiply by {$multiplier}" : '').' for starting gold',
         ];
     }
 

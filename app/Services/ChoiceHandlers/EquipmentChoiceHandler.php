@@ -14,6 +14,8 @@ use Illuminate\Support\Collection;
 
 class EquipmentChoiceHandler extends AbstractChoiceHandler
 {
+    use ChecksEquipmentMode;
+
     public function getType(): string
     {
         return 'equipment';
@@ -24,6 +26,11 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
         // Equipment choices only available at level 1
         $totalLevel = $character->characterClasses->sum('level');
         if ($totalLevel !== 1) {
+            return collect();
+        }
+
+        // Check if gold mode was selected - skip equipment choices if so
+        if ($this->isGoldModeSelected($character)) {
             return collect();
         }
 

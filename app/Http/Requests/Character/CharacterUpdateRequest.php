@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Character;
 
 use App\Enums\AbilityScoreMethod;
+use App\Http\Requests\Concerns\MapsApiFields;
 use App\Models\Character;
 use App\Services\AbilityScoreValidatorService;
 use Illuminate\Foundation\Http\FormRequest;
@@ -11,27 +12,22 @@ use Illuminate\Validation\Validator;
 
 class CharacterUpdateRequest extends FormRequest
 {
+    use MapsApiFields;
+
+    protected array $fieldMappings = [
+        'race' => 'race_slug',
+        'class' => 'class_slug',
+        'background' => 'background_slug',
+    ];
+
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Map API field names to internal database column names.
-     */
     protected function prepareForValidation(): void
     {
-        $mappings = [
-            'race' => 'race_slug',
-            'class' => 'class_slug',
-            'background' => 'background_slug',
-        ];
-
-        foreach ($mappings as $api => $db) {
-            if ($this->has($api)) {
-                $this->merge([$db => $this->input($api)]);
-            }
-        }
+        $this->mapApiFields();
     }
 
     public function rules(): array

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Character\AvailableSpellsRequest;
+use App\Http\Requests\Character\CharacterSpellStoreRequest;
 use App\Http\Resources\CharacterSpellResource;
 use App\Http\Resources\SpellResource;
 use App\Http\Resources\SpellSlotsResource;
@@ -10,7 +12,6 @@ use App\Models\Character;
 use App\Models\Spell;
 use App\Services\SpellManagerService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
@@ -71,22 +72,12 @@ class CharacterSpellController extends Controller
      *
      * **Use min_level=1 to exclude cantrips when selecting leveled spells.**
      */
-    public function available(Request $request, Character $character): AnonymousResourceCollection
+    public function available(AvailableSpellsRequest $request, Character $character): AnonymousResourceCollection
     {
-        $validated = $request->validate([
-            'min_level' => ['sometimes', 'integer', 'min:0', 'max:9'],
-            'max_level' => ['sometimes', 'integer', 'min:0', 'max:9'],
-            'include_known' => ['sometimes', 'in:true,false,1,0'],
-        ]);
+        $validated = $request->validated();
 
         $minLevel = $validated['min_level'] ?? null;
         $maxLevel = $validated['max_level'] ?? null;
-
-        // Validate min_level <= max_level when both are provided
-        if ($minLevel !== null && $maxLevel !== null && $minLevel > $maxLevel) {
-            abort(422, 'min_level cannot be greater than max_level');
-        }
-
         $includeKnown = filter_var($validated['include_known'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         $spells = $this->spellManager->getAvailableSpells($character, $minLevel, $maxLevel, $includeKnown);
@@ -129,16 +120,12 @@ class CharacterSpellController extends Controller
      * - Spell must not already be known by character
      * - Dangling references allowed per #288
      */
-    public function store(Request $request, Character $character): JsonResponse
+    public function store(CharacterSpellStoreRequest $request, Character $character): JsonResponse
     {
-        // Accept both 'spell' (new API) and 'spell_slug' (backwards compat)
-        $validated = $request->validate([
-            'spell' => ['required_without:spell_slug', 'string', 'max:150'],
-            'spell_slug' => ['required_without:spell', 'string', 'max:150'],
-            'source' => ['sometimes', 'string', 'in:class,race,feat,item,other'],
-        ]);
+        $validated = $request->validated();
 
-        $spellSlug = $validated['spell'] ?? $validated['spell_slug'];
+        // Use spell_slug (from mapping or direct backwards-compat input)
+        $spellSlug = $validated['spell_slug'] ?? $validated['spell'];
         $spell = Spell::where('full_slug', $spellSlug)->first();
         $source = $validated['source'] ?? 'class';
 

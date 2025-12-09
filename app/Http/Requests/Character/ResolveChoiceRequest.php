@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Character;
 
+use App\Http\Requests\Concerns\MapsApiFields;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -37,20 +38,21 @@ use Illuminate\Validation\Rule;
  */
 class ResolveChoiceRequest extends FormRequest
 {
+    use MapsApiFields;
+
+    protected array $fieldMappings = [
+        'feat' => 'feat_slug',
+    ];
+
     public function authorize(): bool
     {
         // Authorization handled in controller via policy
         return true;
     }
 
-    /**
-     * Map API field names to internal database column names.
-     */
     protected function prepareForValidation(): void
     {
-        if ($this->has('feat')) {
-            $this->merge(['feat_slug' => $this->input('feat')]);
-        }
+        $this->mapApiFields();
     }
 
     public function rules(): array

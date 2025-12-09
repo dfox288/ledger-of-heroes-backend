@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #409**: Add dedicated form requests for `CharacterSpellController`
+  - New `AvailableSpellsRequest` for `/available-spells` endpoint (validates min_level, max_level, include_known)
+  - New `CharacterSpellStoreRequest` for `POST /spells` endpoint (validates spell, source)
+  - Moves inline validation from controller to form request classes for consistency
+
+- **Issue #413**: Add `MapsApiFields` trait for form request field mapping
+  - New `App\Http\Requests\Concerns\MapsApiFields` trait
+  - Standardizes API-to-database field mapping (e.g., `class` → `class_slug`)
+  - Applied to 9 form requests, reducing duplicate mapping code
+  - Each request defines `$fieldMappings` array and calls `$this->mapApiFields()` in `prepareForValidation()`
+
+### Changed
+
+- **Issue #407**: `CharacterClassController::replace()` now uses `AddCharacterClassRequest`
+  - Removed duplicate `ReplaceCharacterClassRequest` (identical to `AddCharacterClassRequest`)
+
+- **Issue #408**: `CharacterController::show()` no longer uses a form request
+  - Removed empty `CharacterShowRequest` class (had no validation rules)
+
+### Removed
+
+- `ReplaceCharacterClassRequest` (duplicate of `AddCharacterClassRequest`)
+- `CharacterShowRequest` (empty form request with no validation)
+
+### Internal
+
 - **Issue #403**: Add `/characters/{id}/ability-bonuses` endpoint
   - Returns all ability score bonuses from race (fixed and choice) and feats
   - Includes metadata: `source_type`, `source_name`, `source_slug`, `is_choice`, `choice_resolved`, `modifier_id`

@@ -10,7 +10,6 @@ use App\Exceptions\MulticlassPrerequisiteException;
 use App\Exceptions\SubclassLevelRequirementException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Character\AddCharacterClassRequest;
-use App\Http\Requests\Character\ReplaceCharacterClassRequest;
 use App\Http\Requests\Character\SetSubclassRequest;
 use App\Http\Resources\CharacterClassPivotResource;
 use App\Models\Character;
@@ -306,11 +305,11 @@ class CharacterClassController extends Controller
      * - Spell slots are recalculated
      * - `is_primary` and `order` are preserved
      *
-     * @param  ReplaceCharacterClassRequest  $request  The validated request
+     * @param  AddCharacterClassRequest  $request  The validated request
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  The class ID or slug to replace
      */
-    public function replace(ReplaceCharacterClassRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
+    public function replace(AddCharacterClassRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {
         // Accept either full_slug (phb:fighter) or simple slug (fighter)
         $sourceClass = CharacterClass::where('full_slug', $classSlugOrFullSlug)

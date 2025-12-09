@@ -36,10 +36,6 @@ class FeatChoiceHandler extends AbstractChoiceHandler
         $choices = collect();
 
         foreach ($pendingChoices as $source => $choiceData) {
-            if ($choiceData['remaining'] <= 0) {
-                continue;
-            }
-
             $sourceSlug = $this->getSourceSlug($character, $source);
             if ($sourceSlug === '') {
                 continue;

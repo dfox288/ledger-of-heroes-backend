@@ -43,6 +43,13 @@ class CharacterStatsDTO
         public readonly array $skills,
         public readonly array $speed,
         public readonly array $passive,
+        // Issue #417: Defensive traits
+        public readonly array $damageResistances,
+        public readonly array $damageImmunities,
+        public readonly array $damageVulnerabilities,
+        public readonly array $conditionAdvantages,
+        public readonly array $conditionDisadvantages,
+        public readonly array $conditionImmunities,
     ) {}
 
     /**
@@ -173,6 +180,9 @@ class CharacterStatsDTO
         // Build speed array
         $speed = self::buildSpeed($character);
 
+        // Build defensive traits
+        $defensiveTraits = self::buildDefensiveTraits($character);
+
         return new self(
             characterId: $character->id,
             level: $level,
@@ -198,6 +208,12 @@ class CharacterStatsDTO
             skills: $skills,
             speed: $speed,
             passive: $passive,
+            damageResistances: $defensiveTraits['damage_resistances'],
+            damageImmunities: $defensiveTraits['damage_immunities'],
+            damageVulnerabilities: $defensiveTraits['damage_vulnerabilities'],
+            conditionAdvantages: $defensiveTraits['condition_advantages'],
+            conditionDisadvantages: $defensiveTraits['condition_disadvantages'],
+            conditionImmunities: $defensiveTraits['condition_immunities'],
         );
     }
 
@@ -350,6 +366,170 @@ class CharacterStatsDTO
             'swim' => $race?->swim_speed,
             'climb' => $race?->climb_speed,
             'burrow' => null, // Not currently tracked on races
+        ];
+    }
+
+    /**
+     * Build defensive traits from character's race and feats.
+     *
+     * Aggregates damage resistances/immunities/vulnerabilities and condition effects
+     * from both race and feats into categorized arrays.
+     *
+     * @return array{
+     *   damage_resistances: array,
+     *   damage_immunities: array,
+     *   damage_vulnerabilities: array,
+     *   condition_advantages: array,
+     *   condition_disadvantages: array,
+     *   condition_immunities: array
+     * }
+     */
+    private static function buildDefensiveTraits(Character $character): array
+    {
+        $damageResistances = [];
+        $damageImmunities = [];
+        $damageVulnerabilities = [];
+        $conditionAdvantages = [];
+        $conditionDisadvantages = [];
+        $conditionImmunities = [];
+
+        // Process race defensive traits
+        if ($character->race) {
+            $race = $character->race;
+            $sourceName = $race->name;
+
+            // Load race modifiers with damageType relationship
+            if (! $race->relationLoaded('modifiers')) {
+                $race->load('modifiers.damageType');
+            }
+
+            // Process damage modifiers from race
+            foreach ($race->modifiers as $modifier) {
+                $category = $modifier->modifier_category;
+
+                if (in_array($category, ['damage_resistance', 'damage_immunity', 'damage_vulnerability'])) {
+                    // Determine type from damage_type relationship or condition field
+                    $type = $modifier->damageType?->name ?? $modifier->condition;
+
+                    if ($type) {
+                        $entry = [
+                            'type' => $type,
+                            'condition' => $modifier->damageType ? $modifier->condition : null,
+                            'source' => $sourceName,
+                        ];
+
+                        match ($category) {
+                            'damage_resistance' => $damageResistances[] = $entry,
+                            'damage_immunity' => $damageImmunities[] = $entry,
+                            'damage_vulnerability' => $damageVulnerabilities[] = $entry,
+                            default => null,
+                        };
+                    }
+                }
+            }
+
+            // Load race conditions with condition relationship
+            if (! $race->relationLoaded('conditions')) {
+                $race->load('conditions.condition');
+            }
+
+            // Process condition effects from race
+            foreach ($race->conditions as $entityCondition) {
+                if ($entityCondition->condition) {
+                    $entry = [
+                        'condition' => $entityCondition->condition->name,
+                        'effect' => $entityCondition->effect_type,
+                        'source' => $sourceName,
+                    ];
+
+                    match ($entityCondition->effect_type) {
+                        'advantage' => $conditionAdvantages[] = $entry,
+                        'disadvantage' => $conditionDisadvantages[] = $entry,
+                        'immunity' => $conditionImmunities[] = $entry,
+                        default => null,
+                    };
+                }
+            }
+        }
+
+        // Process feats defensive traits
+        if (! $character->relationLoaded('features')) {
+            $character->load('features');
+        }
+
+        // Get feats from character features
+        $featFeatures = $character->features->where('feature_type', 'App\Models\Feat');
+
+        foreach ($featFeatures as $characterFeature) {
+            $feat = $characterFeature->feature;
+
+            if (! $feat) {
+                continue;
+            }
+
+            $sourceName = $feat->name;
+
+            // Load feat modifiers with damageType relationship
+            if (! $feat->relationLoaded('modifiers')) {
+                $feat->load('modifiers.damageType');
+            }
+
+            // Process damage modifiers from feat
+            foreach ($feat->modifiers as $modifier) {
+                $category = $modifier->modifier_category;
+
+                if (in_array($category, ['damage_resistance', 'damage_immunity', 'damage_vulnerability'])) {
+                    // Determine type from damage_type relationship or condition field
+                    $type = $modifier->damageType?->name ?? $modifier->condition;
+
+                    if ($type) {
+                        $entry = [
+                            'type' => $type,
+                            'condition' => $modifier->damageType ? $modifier->condition : null,
+                            'source' => $sourceName,
+                        ];
+
+                        match ($category) {
+                            'damage_resistance' => $damageResistances[] = $entry,
+                            'damage_immunity' => $damageImmunities[] = $entry,
+                            'damage_vulnerability' => $damageVulnerabilities[] = $entry,
+                            default => null,
+                        };
+                    }
+                }
+            }
+
+            // Load feat conditions with condition relationship
+            if (! $feat->relationLoaded('conditions')) {
+                $feat->load('conditions.condition');
+            }
+
+            // Process condition effects from feat
+            foreach ($feat->conditions as $entityCondition) {
+                if ($entityCondition->condition) {
+                    $entry = [
+                        'condition' => $entityCondition->condition->name,
+                        'effect' => $entityCondition->effect_type,
+                        'source' => $sourceName,
+                    ];
+
+                    match ($entityCondition->effect_type) {
+                        'advantage' => $conditionAdvantages[] = $entry,
+                        'disadvantage' => $conditionDisadvantages[] = $entry,
+                        'immunity' => $conditionImmunities[] = $entry,
+                        default => null,
+                    };
+                }
+            }
+        }
+
+        return [
+            'damage_resistances' => $damageResistances,
+            'damage_immunities' => $damageImmunities,
+            'damage_vulnerabilities' => $damageVulnerabilities,
+            'condition_advantages' => $conditionAdvantages,
+            'condition_disadvantages' => $conditionDisadvantages,
+            'condition_immunities' => $conditionImmunities,
         ];
     }
 }

@@ -64,6 +64,20 @@ class CharacterStatsResource extends JsonResource
             'speed' => $this->resource->speed,
             /** @var array{perception: int|null, investigation: int|null, insight: int|null} Grouped passive scores */
             'passive' => $this->resource->passive,
+
+            // Issue #417: Defensive traits
+            /** @var array<int, array{type: string, condition: string|null, source: string}> Damage resistances from race and feats */
+            'damage_resistances' => $this->resource->damageResistances,
+            /** @var array<int, array{type: string, condition: string|null, source: string}> Damage immunities from race and feats */
+            'damage_immunities' => $this->resource->damageImmunities,
+            /** @var array<int, array{type: string, condition: string|null, source: string}> Damage vulnerabilities from race and feats */
+            'damage_vulnerabilities' => $this->resource->damageVulnerabilities,
+            /** @var array<int, array{condition: string, effect: string, source: string}> Condition advantages from race and feats */
+            'condition_advantages' => $this->resource->conditionAdvantages,
+            /** @var array<int, array{condition: string, effect: string, source: string}> Condition disadvantages from race and feats */
+            'condition_disadvantages' => $this->resource->conditionDisadvantages,
+            /** @var array<int, array{condition: string, effect: string, source: string}> Condition immunities from race and feats */
+            'condition_immunities' => $this->resource->conditionImmunities,
         ];
     }
 

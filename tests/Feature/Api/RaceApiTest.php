@@ -416,4 +416,43 @@ class RaceApiTest extends TestCase
                 ],
             ]);
     }
+
+    #[Test]
+    public function it_includes_sources_in_subraces_response()
+    {
+        // Use imported Human base race which has subraces (Variant, Mark of Finding, etc.)
+        $baseRace = Race::where('name', 'Human')->whereNull('parent_race_id')->first();
+        $this->assertNotNull($baseRace, 'Human base race should exist in imported data');
+
+        $response = $this->getJson("/api/v1/races/{$baseRace->id}");
+
+        $response->assertStatus(200);
+        $subraces = $response->json('data.subraces');
+        $this->assertGreaterThan(0, count($subraces), 'Human should have subraces');
+
+        // Find the Variant Human subrace
+        $variantHuman = collect($subraces)->first(fn ($s) => $s['name'] === 'Variant');
+        $this->assertNotNull($variantHuman, 'Variant Human subrace should be included');
+
+        // Regression test for GitHub issue #399: subraces should have sources populated
+        $this->assertNotNull($variantHuman['sources'], 'Subrace sources should not be null');
+        $this->assertIsArray($variantHuman['sources'], 'Subrace sources should be an array');
+        $this->assertGreaterThan(0, count($variantHuman['sources']), 'Variant Human should have at least one source');
+
+        // Verify source structure
+        $response->assertJsonStructure([
+            'data' => [
+                'subraces' => [
+                    '*' => [
+                        'id',
+                        'name',
+                        'slug',
+                        'sources' => [
+                            '*' => ['code', 'name', 'pages'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
 }

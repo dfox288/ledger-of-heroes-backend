@@ -185,7 +185,6 @@ class RaceApiTest extends TestCase
     }
 
     #[Test]
-    #[Test]
     public function race_modifiers_include_ability_score_resource()
     {
         // Use imported Dragonborn which has STR modifier

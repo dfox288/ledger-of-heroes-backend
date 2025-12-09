@@ -1,1 +1,1 @@
-../../dnd-rulebook-project/docs/backend/handovers/SESSION-HANDOVER-2025-12-07-slug-based-references-continued.md
+../../wrapper/docs/backend/handovers/SESSION-HANDOVER-2025-12-07-slug-based-references-continued.md

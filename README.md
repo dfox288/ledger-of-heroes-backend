@@ -63,7 +63,7 @@ Laravel-based REST API for D&D 5th Edition content with XML import capability. F
 1. **Clone and navigate:**
 ```bash
 git clone <repository-url>
-cd importer
+cd backend
 ```
 
 2. **Build and start containers:**

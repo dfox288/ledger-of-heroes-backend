@@ -7,13 +7,13 @@ Check for open issues assigned to this team (backend).
 Run this command to check your inbox:
 
 ```bash
-gh issue list --repo dfox288/dnd-rulebook-project --label "backend" --state open
+gh issue list --repo dfox288/ledger-of-heroes --label "backend" --state open
 ```
 
 Also check issues assigned to "both" teams:
 
 ```bash
-gh issue list --repo dfox288/dnd-rulebook-project --label "both" --state open
+gh issue list --repo dfox288/ledger-of-heroes --label "both" --state open
 ```
 
 Summarize:

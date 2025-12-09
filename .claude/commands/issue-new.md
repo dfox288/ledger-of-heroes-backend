@@ -17,7 +17,7 @@ $ARGUMENTS - Description of the issue (optional, will prompt if not provided)
 3. Create the issue:
 
 ```bash
-gh issue create --repo dfox288/dnd-rulebook-project \
+gh issue create --repo dfox288/ledger-of-heroes \
   --title "[TITLE]" \
   --label "[ASSIGNEE],[TYPE],from:backend" \
   --body "[DETAILS]"

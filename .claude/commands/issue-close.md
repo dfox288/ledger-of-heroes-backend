@@ -13,7 +13,7 @@ $ARGUMENTS - Issue number and optional comment
 3. Close the issue:
 
 ```bash
-gh issue close [NUMBER] --repo dfox288/dnd-rulebook-project \
+gh issue close [NUMBER] --repo dfox288/ledger-of-heroes \
   --comment "[RESOLUTION COMMENT]"
 ```
 

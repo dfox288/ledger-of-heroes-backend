@@ -4,35 +4,35 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: dnd_importer_php
+    container_name: loh_backend_php
     volumes:
       - ./:/var/www/html
       - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
       # Mount fightclub_forked repository for XML imports
-      - ../fightclub_forked:/var/www/fightclub_forked:ro
+      - ../fightclub-xml-data:/var/www/fightclub_forked:ro
     networks:
-      - dnd_network
+      - loh_network
     depends_on:
       - mysql
 
   # Nginx Service
   nginx:
     image: nginx:alpine
-    container_name: dnd_importer_nginx
+    container_name: loh_backend_nginx
     ports:
       - "8080:80"
     volumes:
       - ./:/var/www/html
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     networks:
-      - dnd_network
+      - loh_network
     depends_on:
       - php
 
   # MySQL Service
   mysql:
     image: mysql:8.0
-    container_name: dnd_importer_mysql
+    container_name: loh_backend_mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: dnd_compendium
@@ -43,13 +43,13 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - dnd_network
+      - loh_network
     command: --default-authentication-plugin=mysql_native_password
 
   # Meilisearch Service
   meilisearch:
     image: 'getmeili/meilisearch:v1.10'
-    container_name: dnd_importer_meilisearch
+    container_name: loh_backend_meilisearch
     ports:
       - '${FORWARD_MEILISEARCH_PORT:-7700}:7701'
     environment:
@@ -61,7 +61,7 @@ services:
     volumes:
       - 'meilisearch_data:/meili_data'
     networks:
-      - dnd_network
+      - loh_network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--spider", "http://localhost:7700/health"]
       retries: 3
@@ -70,11 +70,11 @@ services:
   # Redis Service
   redis:
     image: redis:7-alpine
-    container_name: dnd_importer_redis
+    container_name: loh_backend_redis
     volumes:
       - redis_data:/data
     networks:
-      - dnd_network
+      - loh_network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       retries: 3
@@ -82,7 +82,7 @@ services:
     command: redis-server --appendonly yes
 
 networks:
-  dnd_network:
+  loh_network:
     driver: bridge
 
 volumes:

@@ -14,7 +14,7 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 - `docs/PROJECT-STATUS.md` - Metrics and current status
 - `docs/LATEST-HANDOVER.md` - Latest session handover (symlink to wrapper)
 
-**Tasks & Issues:** [GitHub Issues](https://github.com/dfox288/dnd-rulebook-project/issues) (shared with frontend)
+**Tasks & Issues:** [GitHub Issues](https://github.com/dfox288/ledger-of-heroes/issues) (shared with frontend)
 
 ---
 
@@ -23,7 +23,7 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 **All documentation (plans, handovers, proposals, reference) lives in the wrapper repo:**
 
 ```
-../dnd-rulebook-project/docs/backend/
+../wrapper/docs/backend/
 ├── handovers/   # Session handovers
 ├── plans/       # Implementation plans
 ├── proposals/   # API enhancement proposals
@@ -34,19 +34,19 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 
 | Doc Type | Write To |
 |----------|----------|
-| **Plans** | `../dnd-rulebook-project/docs/backend/plans/YYYY-MM-DD-topic-design.md` |
-| **Handovers** | `../dnd-rulebook-project/docs/backend/handovers/SESSION-HANDOVER-YYYY-MM-DD-topic.md` |
-| **Proposals** | `../dnd-rulebook-project/docs/backend/proposals/` |
-| **Reference** | `../dnd-rulebook-project/docs/backend/reference/` |
+| **Plans** | `../wrapper/docs/backend/plans/YYYY-MM-DD-topic-design.md` |
+| **Handovers** | `../wrapper/docs/backend/handovers/SESSION-HANDOVER-YYYY-MM-DD-topic.md` |
+| **Proposals** | `../wrapper/docs/backend/proposals/` |
+| **Reference** | `../wrapper/docs/backend/reference/` |
 
 **Stays local:** `docs/PROJECT-STATUS.md`, `docs/LATEST-HANDOVER.md` (symlink), `docs/README.md`
 
 ### Session Handover Workflow
 
-1. Write handover to wrapper: `../dnd-rulebook-project/docs/backend/handovers/SESSION-HANDOVER-YYYY-MM-DD-topic.md`
+1. Write handover to wrapper: `../wrapper/docs/backend/handovers/SESSION-HANDOVER-YYYY-MM-DD-topic.md`
 2. Update symlink:
    ```bash
-   ln -sf ../../dnd-rulebook-project/docs/backend/handovers/SESSION-HANDOVER-YYYY-MM-DD-topic.md docs/LATEST-HANDOVER.md
+   ln -sf ../../wrapper/docs/backend/handovers/SESSION-HANDOVER-YYYY-MM-DD-topic.md docs/LATEST-HANDOVER.md
    ```
 3. Commit to BOTH repos:
    - Wrapper repo: the new handover file
@@ -56,19 +56,19 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 
 ## Cross-Project Coordination
 
-Use GitHub Issues in `dfox288/dnd-rulebook-project` for bugs, API issues, and cross-cutting concerns.
+Use GitHub Issues in `dfox288/ledger-of-heroes` for bugs, API issues, and cross-cutting concerns.
 
 ### Check Your Inbox (do this at session start)
 
 ```bash
-gh issue list --repo dfox288/dnd-rulebook-project --label "backend" --state open
+gh issue list --repo dfox288/ledger-of-heroes --label "backend" --state open
 ```
 
 ### Create an Issue
 
 ```bash
 # IMPORTANT: Use single-line commands (backslash continuations break auto-approval)
-gh issue create --repo dfox288/dnd-rulebook-project --title "Brief description" --label "frontend,bug,from:backend" --body "Details here"
+gh issue create --repo dfox288/ledger-of-heroes --title "Brief description" --label "frontend,bug,from:backend" --body "Details here"
 ```
 
 ### Labels to Use
@@ -82,7 +82,7 @@ gh issue create --repo dfox288/dnd-rulebook-project --title "Brief description" 
 Issues close automatically when PR merges if the PR body contains `Closes #N`. For manual closure:
 
 ```bash
-gh issue close 42 --repo dfox288/dnd-rulebook-project --comment "Fixed in PR #123"
+gh issue close 42 --repo dfox288/ledger-of-heroes --comment "Fixed in PR #123"
 ```
 
 ---
@@ -164,7 +164,7 @@ git checkout -b chore/issue-13-api-documentation
 - Document in Controller PHPDoc
 
 ### For Major Features (Additional)
-- Create session handover in `../dnd-rulebook-project/docs/backend/handovers/`
+- Create session handover in `../wrapper/docs/backend/handovers/`
 
 ---
 
@@ -304,7 +304,7 @@ GET /api/v1/spells?classes=bard
 
 - Filterable fields defined in model's `searchableOptions()`
 - Data indexed via `toSearchableArray()`
-- See `../dnd-rulebook-project/docs/backend/reference/MEILISEARCH-FILTERS.md` for syntax
+- See `../wrapper/docs/backend/reference/MEILISEARCH-FILTERS.md` for syntax
 
 ---
 
@@ -340,7 +340,7 @@ The importer reads from 9 source directories configured in `config/import.php`:
 
 **Env variable:** `XML_SOURCE_PATH=/var/www/fightclub_forked/Sources/PHB2014/WizardsOfTheCoast`
 
-**See:** `../dnd-rulebook-project/docs/backend/reference/XML-SOURCE-PATHS.md` for complete documentation
+**See:** `../wrapper/docs/backend/reference/XML-SOURCE-PATHS.md` for complete documentation
 
 ---
 
@@ -467,10 +467,10 @@ docs/
 ├── LATEST-HANDOVER.md     # Symlink → wrapper repo handover
 └── README.md              # Points to wrapper for all other docs
 
-# All other docs in: ../dnd-rulebook-project/docs/backend/
+# All other docs in: ../wrapper/docs/backend/
 ```
 
-**Tasks:** Use [GitHub Issues](https://github.com/dfox288/dnd-rulebook-project/issues) for all task tracking.
+**Tasks:** Use [GitHub Issues](https://github.com/dfox288/ledger-of-heroes/issues) for all task tracking.
 
 ---
 

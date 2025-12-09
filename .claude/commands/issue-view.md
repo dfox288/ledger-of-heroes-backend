@@ -9,7 +9,7 @@ $ARGUMENTS - Issue number
 ## Instructions
 
 ```bash
-gh issue view [NUMBER] --repo dfox288/dnd-rulebook-project
+gh issue view [NUMBER] --repo dfox288/ledger-of-heroes
 ```
 
 Display the issue details in a readable format.

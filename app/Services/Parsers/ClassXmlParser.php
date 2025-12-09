@@ -124,38 +124,30 @@ class ClassXmlParser
     /**
      * Parse language grants from class features.
      *
-     * Detects features that grant languages (Thieves' Cant, Druidic) by:
-     * 1. Feature name matching a known language name
-     * 2. Feature description containing "you learned [language]" or "you know [language]"
+     * Detects features that grant languages by matching feature names against
+     * the languages table. Currently grants: Thieves' Cant (Rogue), Druidic (Druid).
+     *
+     * Uses the MatchesLanguages trait to dynamically match against database records,
+     * so any new languages added to the database will automatically be detected.
      *
      * @param  array<int, array<string, mixed>>  $features
-     * @return array<int, array{slug: string, is_choice: bool, level: int}>
+     * @return array<int, array{slug: string, is_choice: bool}>
      */
     private function parseLanguageGrants(array $features): array
     {
         $languages = [];
 
-        // Known language-granting features (feature name → language slug)
-        $knownLanguageFeatures = [
-            "Thieves' Cant" => 'thieves-cant',
-            'Thieves\' Cant' => 'thieves-cant',  // Escaped apostrophe variant
-            'Druidic' => 'druidic',
-        ];
-
         foreach ($features as $feature) {
             $featureName = $feature['name'] ?? '';
-            $featureLevel = $feature['level'] ?? 1;
 
-            // Check if feature name matches a known language-granting feature
-            foreach ($knownLanguageFeatures as $name => $slug) {
-                if (strcasecmp($featureName, $name) === 0) {
-                    $languages[] = [
-                        'slug' => $slug,
-                        'is_choice' => false,
-                        'level' => $featureLevel,
-                    ];
-                    break;
-                }
+            // Try to match feature name against known languages in database
+            $language = $this->matchLanguage($featureName);
+
+            if ($language !== null) {
+                $languages[] = [
+                    'slug' => $language->slug,
+                    'is_choice' => false,
+                ];
             }
         }
 

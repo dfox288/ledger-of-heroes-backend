@@ -420,6 +420,9 @@ class CharacterController extends Controller
      */
     public function abilityBonuses(Character $character): AbilityBonusCollectionResource
     {
+        // Eager-load race and parent race to avoid N+1 queries in service
+        $character->loadMissing(['race.parent', 'race.modifiers.abilityScore', 'race.parent.modifiers.abilityScore']);
+
         $result = $this->abilityBonusService->getBonuses($character);
 
         return new AbilityBonusCollectionResource($result);

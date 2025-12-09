@@ -120,6 +120,27 @@ gh issue close 42 --repo dfox288/dnd-rulebook-project --comment "Fixed in PR #12
 12. Close GitHub Issue      → Closes automatically via PR merge (or manual close)
 ```
 
+### Bug Fix Workflow (When Tests Already Exist)
+
+When fixing bugs in code that has existing tests:
+
+```
+1. Reproduce the bug      → Understand what's broken
+2. Check existing tests   → Do they test the buggy behavior?
+3. UPDATE TESTS FIRST     → Write/modify tests for CORRECT behavior
+4. Watch tests FAIL       → Confirms test catches the bug
+5. Fix the code           → Make tests pass
+6. Run test suite         → Verify no regressions
+7. Commit + Push          → Include "fix:" prefix
+```
+
+**Critical:** When fixing bugs, do NOT just make existing tests pass. If tests pass with buggy code, the tests are wrong. Update tests to verify the correct behavior BEFORE fixing the code.
+
+**Anti-pattern to avoid:**
+- ❌ Code doesn't match tests → Rewrite code to match tests
+- ❌ Tests pass but behavior is wrong → "Tests pass, ship it"
+- ✅ Code doesn't match tests → Determine correct behavior → Update tests → Fix code
+
 ### Branch Naming Convention
 
 ```bash

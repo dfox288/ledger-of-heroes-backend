@@ -19,6 +19,7 @@ class AddClassService
         private EquipmentManagerService $equipmentService,
         private CharacterFeatureService $featureService,
         private HitPointService $hitPointService,
+        private CharacterLanguageService $languageService,
     ) {}
 
     /**
@@ -93,6 +94,11 @@ class AddClassService
             // Grant fixed equipment for primary class only (multiclass doesn't get starting equipment)
             if ($isPrimary) {
                 $this->equipmentService->populateFromClass($character);
+            }
+
+            // Grant fixed class languages for primary class only (e.g., Druid gets Druidic)
+            if ($isPrimary) {
+                $this->languageService->populateFromClass($character);
             }
 
             // Populate class features for the new class

@@ -60,14 +60,16 @@ it('transforms service output to PendingChoice objects for race bonus feat', fun
         ->first()->optionsEndpoint->toBe('/api/v1/feats');
 });
 
-it('skips sources with no remaining choices', function () {
+it('includes completed choices with remaining zero', function () {
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn((object) [
         'full_slug' => 'phb:variant-human',
         'name' => 'Variant Human',
     ]);
+    $this->character->shouldReceive('offsetExists')->with('race')->andReturn(true);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn(null);
+    $this->character->shouldReceive('offsetExists')->with('background')->andReturn(false);
 
-    // Already selected a feat
+    // Already selected a feat - should still appear with remaining: 0
     $this->featService->shouldReceive('getPendingChoices')
         ->with($this->character)
         ->andReturn([
@@ -80,7 +82,11 @@ it('skips sources with no remaining choices', function () {
 
     $choices = $this->handler->getChoices($this->character);
 
-    expect($choices)->toHaveCount(0);
+    // Regression test for #400: completed choices must remain visible
+    expect($choices)
+        ->toHaveCount(1)
+        ->first()->remaining->toBe(0)
+        ->first()->selected->toBe(['phb:alert']);
 });
 
 it('returns empty collection when no bonus feats available', function () {

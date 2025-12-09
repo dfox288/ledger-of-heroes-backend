@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #400**: Feat choices disappear from pending-choices after resolution
+  - FeatChoiceHandler now includes completed choices with `remaining: 0`
+  - Users can see their selected feat and change it if needed
+  - Matches behavior of other choice types (language, proficiency, etc.)
+
 - **Issue #399**: Subraces missing source information in API response
   - RaceSearchService now eager-loads `subraces.sources.source` relationship
   - Nested subraces in race response now include proper source book information

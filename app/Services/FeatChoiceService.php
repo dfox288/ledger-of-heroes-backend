@@ -125,9 +125,12 @@ class FeatChoiceService
             throw new InvalidArgumentException("Character has no {$source} assigned");
         }
 
-        // Verify there are remaining choices
+        // Check if user is replacing an existing selection
         $choiceData = $this->getChoicesFromEntity($entity, $character, $source);
-        if ($choiceData['remaining'] <= 0) {
+        $isReplacement = ! empty($choiceData['selected']);
+
+        // Verify there are remaining choices (unless this is a replacement)
+        if (! $isReplacement && $choiceData['remaining'] <= 0) {
             throw new InvalidArgumentException("No remaining feat choices from {$source}");
         }
 
@@ -140,7 +143,19 @@ class FeatChoiceService
             throw new InvalidSelectionException("feat:{$source}", $featSlug, "Feat not found: {$featSlug}");
         }
 
-        return DB::transaction(function () use ($character, $feat, $source) {
+        return DB::transaction(function () use ($character, $feat, $featSlug, $source, $isReplacement, $choiceData) {
+            // If replacing an existing selection, undo the old one first
+            if ($isReplacement) {
+                $oldFeatSlug = $choiceData['selected'][0];
+
+                // If trying to select the same feat, throw an error
+                if ($oldFeatSlug === $featSlug || $oldFeatSlug === $feat->full_slug) {
+                    throw new FeatAlreadyTakenException($character, $feat);
+                }
+
+                $this->undoChoice($character, $source, $oldFeatSlug);
+            }
+
             // Validate feat not already taken (from any source)
             $this->validateFeatNotTaken($character, $feat);
 

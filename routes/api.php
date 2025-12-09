@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AlignmentController;
 use App\Http\Controllers\Api\ArmorTypeController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BackgroundController;
+use App\Http\Controllers\Api\CharacterAvailableFeatsController;
 use App\Http\Controllers\Api\CharacterChoiceController;
 use App\Http\Controllers\Api\CharacterController;
 use App\Http\Controllers\Api\CharacterExportController;
@@ -238,6 +239,7 @@ Route::prefix('v1')->group(function () {
     | Level Up:
     | - POST /characters/{id}/classes/{class}/level-up  - Gain level in class
     | - PUT /characters/{id}/classes/{class}/subclass   - Choose subclass (level 3)
+    | - GET /characters/{id}/available-feats  - View feats character qualifies for
     | - POST /characters/{id}/asi-choice       - ASI or feat selection
     | - GET /characters/{id}/feature-selection-choices  - Check new choices
     | - POST /characters/{id}/feature-selections        - Select invocations, etc.
@@ -267,6 +269,8 @@ Route::prefix('v1')->group(function () {
             ->name('spells.index');
         Route::get('available-spells', [\App\Http\Controllers\Api\CharacterSpellController::class, 'available'])
             ->name('spells.available');
+        Route::get('available-feats', CharacterAvailableFeatsController::class)
+            ->name('feats.available');
         Route::post('spells', [\App\Http\Controllers\Api\CharacterSpellController::class, 'store'])
             ->name('spells.store');
         Route::delete('spells/{spellIdOrSlug}', [\App\Http\Controllers\Api\CharacterSpellController::class, 'destroy'])

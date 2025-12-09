@@ -7,7 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Issue #402**: Add `/characters/{id}/available-feats` endpoint
+  - New endpoint returns feats the character qualifies for based on prerequisites
+  - Supports `?source=race` parameter for Variant Human/Custom Lineage feat selection
+    - Excludes feats with ability score prerequisites (can't meet before scores assigned)
+    - This is RAW compliant and matches D&D Beyond behavior
+  - Supports `?source=asi` parameter for level 4+ ASI feat selection
+    - Checks all prerequisites including ability scores against current stats
+  - Filters by race prerequisites (including parent race for subraces)
+  - Filters by ability score prerequisites (ASI source only)
+  - Filters by proficiency prerequisites (skills and proficiency types)
+  - Filters by class prerequisites
+  - Supports OR group logic (same group_id = any one satisfies)
+  - Supports AND logic (different group_ids = all must be satisfied)
+  - Feats without prerequisites are always included
+  - AvailableFeatsService handles all prerequisite checking logic
+  - 22 tests for available feats endpoint with 55 assertions
+
 ### Fixed
+
+- **Issue #401**: Re-selecting feat choice fails with "No remaining feat choices"
+  - FeatChoiceService now supports replacing existing feat selections
+  - When user changes their feat selection, old feat is removed before new one is added
+  - Old feat benefits (ability scores, proficiencies, spells) are properly reversed
+  - Still prevents selecting the same feat twice (would be pointless)
+  - 3 new tests for feat reselection with 13 assertions
 
 - **Issue #400**: Feat choices disappear from pending-choices after resolution
   - FeatChoiceHandler now includes completed choices with `remaining: 0`

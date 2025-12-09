@@ -391,4 +391,62 @@ class AbilityBonusServiceTest extends TestCase
             'CHA' => 0,
         ], $result['totals']);
     }
+
+    #[Test]
+    public function it_returns_feat_bonuses_when_feat_selected_via_feat_choice_service(): void
+    {
+        // Create a race with a bonus feat modifier (like Custom Lineage)
+        $race = Race::factory()->create([
+            'slug' => 'custom-lineage',
+            'full_slug' => 'tce:custom-lineage',
+            'name' => 'Custom Lineage',
+        ]);
+
+        Modifier::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'modifier_category' => 'bonus_feat',
+            'value' => '1',
+            'is_choice' => false,
+        ]);
+
+        // Create Actor feat with +1 CHA
+        $feat = Feat::factory()->create([
+            'slug' => 'actor',
+            'full_slug' => 'phb:actor',
+            'name' => 'Actor',
+        ]);
+
+        $chaAbility = AbilityScore::where('code', 'CHA')->first();
+
+        Modifier::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $feat->id,
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $chaAbility->id,
+            'value' => '1',
+            'is_choice' => false,
+        ]);
+
+        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+
+        // Select the feat via the FeatChoiceService (simulates the real workflow)
+        $featChoiceService = app(\App\Services\FeatChoiceService::class);
+        $featChoiceService->makeChoice($character, 'race', $feat->full_slug);
+
+        // Verify the feat bonus appears
+        $result = $this->service->getBonuses($character);
+
+        $featBonuses = $result['bonuses']->where('source_type', 'feat');
+        $this->assertCount(1, $featBonuses);
+
+        $bonus = $featBonuses->first();
+        $this->assertEquals('feat', $bonus['source_type']);
+        $this->assertEquals('Actor', $bonus['source_name']);
+        $this->assertEquals('phb:actor', $bonus['source_slug']);
+        $this->assertEquals('CHA', $bonus['ability_code']);
+        $this->assertEquals(1, $bonus['value']);
+
+        $this->assertEquals(1, $result['totals']['CHA']);
+    }
 }

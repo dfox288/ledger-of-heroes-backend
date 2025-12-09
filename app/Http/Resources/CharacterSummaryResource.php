@@ -18,7 +18,7 @@ class CharacterSummaryResource extends JsonResource
      *
      * @return array{
      *     character: array{id: int, name: string, total_level: int},
-     *     pending_choices: array{proficiencies: int, languages: int, spells: int, optional_features: int, asi: int},
+     *     pending_choices: array{proficiencies: int, languages: int, spells: int, optional_features: int, asi: int, size: int, feats: int},
      *     resources: array{hit_points: array{current: int|null, max: int|null, temp: int}, hit_dice: array{available: int, max: int}, spell_slots: array, features_with_uses: array},
      *     combat_state: array{conditions: array<string>, death_saves: array{successes: int, failures: int}, is_conscious: bool},
      *     creation_complete: bool,
@@ -30,7 +30,7 @@ class CharacterSummaryResource extends JsonResource
         return [
             /** @var array{id: int, name: string, total_level: int} Basic character info */
             'character' => $this->resource->character,
-            /** @var array{proficiencies: int, languages: int, spells: int, optional_features: int, asi: int} Pending choices requiring user input */
+            /** @var array{proficiencies: int, languages: int, spells: int, optional_features: int, asi: int, size: int, feats: int} Pending choices requiring user input */
             'pending_choices' => $this->resource->pendingChoices,
             /** @var array{hit_points: array{current: int|null, max: int|null, temp: int}, hit_dice: array{available: int, max: int}, spell_slots: array, features_with_uses: array} Current resource states */
             'resources' => $this->resource->resources,

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #394**: Add `size` and `feats` to character summary `pending_choices`
+  - Character summary endpoint now includes `size` count (for races with `has_size_choice`)
+  - Character summary endpoint now includes `feats` count (for races/backgrounds with bonus feats)
+  - `size_choice` and `feat_choices` added to `missing_required` when pending
+  - Frontend can now detect when size choice or feat selection is needed
+  - 8 new tests for size and feats in character summary
+
 - **Issue #386/#392**: Size choice for Custom Lineage
   - New `has_size_choice` column on races table for races allowing size selection
   - New `size_id` column on characters table for chosen size override

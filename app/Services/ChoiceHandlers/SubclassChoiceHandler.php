@@ -8,10 +8,15 @@ use App\DTOs\PendingChoice;
 use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
 use App\Models\CharacterClass;
+use App\Services\CharacterFeatureService;
 use Illuminate\Support\Collection;
 
 class SubclassChoiceHandler extends AbstractChoiceHandler
 {
+    public function __construct(
+        private CharacterFeatureService $featureService
+    ) {}
+
     public function getType(): string
     {
         return 'subclass';
@@ -126,6 +131,9 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
 
         // Reload the relationship
         $character->load('characterClasses.subclass');
+
+        // Assign subclass features to the character
+        $this->featureService->populateFromSubclass($character, $classSlug, $subclassSlug);
     }
 
     public function canUndo(Character $character, PendingChoice $choice): bool
@@ -151,10 +159,18 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
         $parsed = $this->parseChoiceId($choice->id);
         $classSlug = $parsed['sourceSlug'];
 
-        // Clear subclass_slug on the pivot
-        $character->characterClasses()
+        // Get the current subclass slug before clearing it
+        $characterClass = $character->characterClasses()
             ->where('class_slug', $classSlug)
-            ->update(['subclass_slug' => null]);
+            ->first();
+
+        if ($characterClass && $characterClass->subclass_slug) {
+            // Remove subclass features from the character (only for this subclass)
+            $this->featureService->clearSubclassFeatures($character, $characterClass->subclass_slug);
+
+            // Clear subclass_slug on the pivot
+            $characterClass->update(['subclass_slug' => null]);
+        }
 
         // Reload the relationship
         $character->load('characterClasses');

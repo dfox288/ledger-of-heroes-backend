@@ -28,6 +28,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #390**: Level 1 subclass features not assigned to character on subclass selection
+  - SubclassChoiceHandler now assigns subclass features when resolving choice
+  - CharacterFeatureService gains `populateFromSubclass()` method for subclass features
+  - Features are assigned with `source='subclass'` to distinguish from base class features
+  - Undo removes subclass features via `clearSubclassFeatures()`
+  - Affects Cleric, Warlock, Sorcerer (classes with subclass_level=1)
+  - 2 new tests for subclass feature assignment
+
 - **Issue #401**: Re-selecting feat choice fails with "No remaining feat choices"
   - FeatChoiceService now supports replacing existing feat selections
   - When user changes their feat selection, old feat is removed before new one is added

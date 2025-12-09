@@ -41,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - This caused the polymorphic `feature()` relationship to return null
   - AbilityBonusService could not load feat modifiers without this relationship
   - Both services now set `feature_id` alongside `feature_slug` for proper polymorphic resolution
+  - Added slug-based fallback in AbilityBonusService for existing records with null `feature_id`
+  - Fixed `/stats` endpoint returning stale cached values after choice resolution
+  - `CharacterChoiceController` now invalidates stats cache on resolve/undo
 
 - **Issue #390**: Level 1 subclass features not assigned to character on subclass selection
   - SubclassChoiceHandler now assigns subclass features when resolving choice

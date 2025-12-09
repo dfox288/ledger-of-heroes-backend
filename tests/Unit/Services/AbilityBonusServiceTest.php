@@ -449,4 +449,52 @@ class AbilityBonusServiceTest extends TestCase
 
         $this->assertEquals(1, $result['totals']['CHA']);
     }
+
+    #[Test]
+    public function it_returns_feat_bonuses_when_feature_id_is_null_but_slug_exists(): void
+    {
+        // This tests the bug from issue #406 - existing CharacterFeature records
+        // created before the fix have null feature_id, so we need to fall back
+        // to looking up the feat by slug.
+        $feat = Feat::factory()->create([
+            'slug' => 'actor',
+            'full_slug' => 'phb:actor',
+            'name' => 'Actor',
+        ]);
+
+        $chaAbility = AbilityScore::where('code', 'CHA')->first();
+
+        Modifier::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $feat->id,
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $chaAbility->id,
+            'value' => '1',
+            'is_choice' => false,
+        ]);
+
+        $character = Character::factory()->create();
+
+        // Manually create CharacterFeature WITHOUT feature_id (simulates legacy data)
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => null, // This is the bug - missing feature_id
+            'feature_slug' => $feat->full_slug,
+            'source' => 'race',
+            'level_acquired' => 1,
+        ]);
+
+        $result = $this->service->getBonuses($character);
+
+        // Should still return the feat bonus by looking up via slug
+        $this->assertCount(1, $result['bonuses']);
+        $bonus = $result['bonuses']->first();
+        $this->assertEquals('feat', $bonus['source_type']);
+        $this->assertEquals('Actor', $bonus['source_name']);
+        $this->assertEquals('CHA', $bonus['ability_code']);
+        $this->assertEquals(1, $bonus['value']);
+
+        $this->assertEquals(1, $result['totals']['CHA']);
+    }
 }

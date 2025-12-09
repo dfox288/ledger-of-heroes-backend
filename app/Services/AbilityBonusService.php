@@ -126,6 +126,16 @@ class AbilityBonusService
 
         foreach ($featFeatures as $characterFeature) {
             $feat = $characterFeature->feature;
+
+            // Fallback: If feature_id is null but slug exists (legacy data),
+            // look up the feat by slug. This handles CharacterFeature records
+            // created before the fix that populated feature_id.
+            if (! $feat && $characterFeature->feature_slug) {
+                $feat = Feat::where('full_slug', $characterFeature->feature_slug)
+                    ->with('modifiers.abilityScore')
+                    ->first();
+            }
+
             if (! $feat) {
                 continue;
             }

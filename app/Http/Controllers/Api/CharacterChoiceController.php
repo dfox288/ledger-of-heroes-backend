@@ -10,6 +10,7 @@ use App\Http\Resources\PendingChoicesResource;
 use App\Models\Character;
 use App\Services\CharacterChoiceService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class CharacterChoiceController extends Controller
 {
@@ -57,6 +58,9 @@ class CharacterChoiceController extends Controller
     {
         $this->choiceService->resolveChoice($character, $choiceId, $request->validated());
 
+        // Invalidate stats cache - choices can affect computed stats
+        Cache::forget("character:{$character->id}:stats");
+
         return new ChoiceResultResource([
             'message' => 'Choice resolved successfully',
             'choice_id' => $choiceId,
@@ -71,6 +75,9 @@ class CharacterChoiceController extends Controller
     public function undo(Character $character, string $choiceId): ChoiceResultResource
     {
         $this->choiceService->undoChoice($character, $choiceId);
+
+        // Invalidate stats cache - choices can affect computed stats
+        Cache::forget("character:{$character->id}:stats");
 
         return new ChoiceResultResource([
             'message' => 'Choice undone successfully',

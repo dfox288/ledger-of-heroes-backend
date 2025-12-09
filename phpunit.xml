@@ -54,6 +54,7 @@
             <file>tests/Unit/Services/CharacterProficiencyServiceTest.php</file>
             <file>tests/Unit/Services/PrerequisiteCheckerServiceTest.php</file>
             <file>tests/Unit/Services/CharacterLanguageServiceTest.php</file>
+            <file>tests/Unit/Services/AbilityBonusServiceTest.php</file>
             <directory>tests/Unit/Services/ChoiceHandlers</directory>
             <!-- Feature tests that use RefreshDatabase (not fixture data) -->
             <file>tests/Feature/Services/AddClassServiceHpTest.php</file>

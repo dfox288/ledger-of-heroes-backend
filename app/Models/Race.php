@@ -32,6 +32,7 @@ class Race extends BaseModel
         'full_slug',
         'name',
         'size_id',
+        'has_size_choice',
         'speed',
         'fly_speed',
         'swim_speed',
@@ -42,6 +43,7 @@ class Race extends BaseModel
 
     protected $casts = [
         'size_id' => 'integer',
+        'has_size_choice' => 'boolean',
         'speed' => 'integer',
         'fly_speed' => 'integer',
         'swim_speed' => 'integer',

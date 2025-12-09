@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #386/#392**: Size choice for Custom Lineage
+  - New `has_size_choice` column on races table for races allowing size selection
+  - New `size_id` column on characters table for chosen size override
+  - SizeChoiceHandler generates pending `size` choice with Small/Medium options
+  - Character.size accessor prioritizes chosen size over race default
+  - Custom Lineage race updated to `has_size_choice = true`
+  - 12 new tests for size choice functionality
+
 - **Class language auto-population**: Fixed languages from class now granted when adding primary class
   - CharacterLanguageService.populateFromClass() grants class languages (Druidic, Thieves' Cant)
   - AddClassService now calls populateFromClass() for primary class

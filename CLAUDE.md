@@ -67,11 +67,8 @@ gh issue list --repo dfox288/dnd-rulebook-project --label "backend" --state open
 ### Create an Issue
 
 ```bash
-# When you discover a frontend issue or cross-cutting bug
-gh issue create --repo dfox288/dnd-rulebook-project \
-  --title "Brief description" \
-  --label "frontend,bug,from:backend" \
-  --body "Details here"
+# IMPORTANT: Use single-line commands (backslash continuations break auto-approval)
+gh issue create --repo dfox288/dnd-rulebook-project --title "Brief description" --label "frontend,bug,from:backend" --body "Details here"
 ```
 
 ### Labels to Use
@@ -510,6 +507,7 @@ Before creating a PR:
 - **New issues:** Use `/issue:new` to create issues for bugs/features
 - **Docs cleanup:** Run `/organize-docs` periodically
 - **Gold standards:** Reference `Spell*` classes for patterns
+- **gh commands:** Use single-line format (backslash `\` continuations break auto-approval)
 
 ---
 

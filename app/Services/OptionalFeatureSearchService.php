@@ -31,7 +31,7 @@ final class OptionalFeatureSearchService
         'sources.source',
         'spellSchool',
         'tags',
-        'prerequisites',
+        'prerequisites.prerequisite',
         'rolls',
     ];
 

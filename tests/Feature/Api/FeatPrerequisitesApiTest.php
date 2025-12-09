@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api;
 
 use App\Models\AbilityScore;
+use App\Models\CharacterClass;
 use App\Models\Feat;
 use App\Models\Race;
 use App\Models\Skill;
@@ -248,6 +249,77 @@ class FeatPrerequisitesApiTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('data.prerequisites.0.ability_score.code', 'STR')
+            // The generic "prerequisite" field should NOT be present
+            ->assertJsonMissingPath('data.prerequisites.0.prerequisite');
+    }
+
+    #[Test]
+    public function class_prerequisite_includes_class_resource_in_response()
+    {
+        // Create a feat with a class prerequisite (e.g., spellcasting feat)
+        $feat = Feat::factory()->create([
+            'name' => 'Eldritch Adept',
+            'prerequisites_text' => 'Spellcasting or Pact Magic feature',
+        ]);
+
+        $warlock = CharacterClass::factory()->create([
+            'name' => 'Warlock',
+            'slug' => 'warlock',
+        ]);
+
+        $feat->prerequisites()->create([
+            'prerequisite_type' => CharacterClass::class,
+            'prerequisite_id' => $warlock->id,
+            'description' => 'Warlock (Pact Magic feature)',
+        ]);
+
+        $response = $this->getJson("/api/v1/feats/{$feat->id}");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'name',
+                    'prerequisites' => [
+                        '*' => [
+                            'id',
+                            'prerequisite_type',
+                            'prerequisite_id',
+                            'description',
+                            'group_id',
+                            'class',
+                        ],
+                    ],
+                ],
+            ])
+            ->assertJsonPath('data.prerequisites.0.prerequisite_type', CharacterClass::class)
+            ->assertJsonPath('data.prerequisites.0.description', 'Warlock (Pact Magic feature)')
+            ->assertJsonPath('data.prerequisites.0.class.name', 'Warlock')
+            ->assertJsonPath('data.prerequisites.0.class.slug', 'warlock');
+    }
+
+    #[Test]
+    public function class_prerequisite_does_not_include_redundant_prerequisite_field()
+    {
+        $feat = Feat::factory()->create([
+            'name' => 'Test Class Feat',
+            'prerequisites_text' => 'Monk class',
+        ]);
+
+        $monk = CharacterClass::factory()->create([
+            'name' => 'Monk',
+            'slug' => 'monk',
+        ]);
+
+        $feat->prerequisites()->create([
+            'prerequisite_type' => CharacterClass::class,
+            'prerequisite_id' => $monk->id,
+        ]);
+
+        $response = $this->getJson("/api/v1/feats/{$feat->id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.prerequisites.0.class.name', 'Monk')
             // The generic "prerequisite" field should NOT be present
             ->assertJsonMissingPath('data.prerequisites.0.prerequisite');
     }

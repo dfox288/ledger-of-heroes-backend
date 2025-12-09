@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\AbilityScore;
+use App\Models\CharacterClass;
 use App\Models\ProficiencyType;
 use App\Models\Race;
 use App\Models\Skill;
@@ -43,6 +44,10 @@ class EntityPrerequisiteResource extends JsonResource
             'proficiency_type' => $this->when(
                 $this->prerequisite_type === ProficiencyType::class,
                 fn () => new ProficiencyTypeResource($this->whenLoaded('prerequisite'))
+            ),
+            'class' => $this->when(
+                $this->prerequisite_type === CharacterClass::class,
+                fn () => new ClassResource($this->whenLoaded('prerequisite'))
             ),
         ];
     }

@@ -38,6 +38,7 @@ class OptionalFeatureResource extends JsonResource
             'classes' => ClassResource::collection($this->whenLoaded('classes')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
+            'prerequisites' => EntityPrerequisiteResource::collection($this->whenLoaded('prerequisites')),
         ];
     }
 }

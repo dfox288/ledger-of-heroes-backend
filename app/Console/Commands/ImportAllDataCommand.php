@@ -108,6 +108,13 @@ class ImportAllDataCommand extends Command
             $this->importAdditiveSpellFiles();
         }
 
+        // Step 6a: Link subclass spells (domain spells, circle spells, etc.)
+        // Must run after spells are imported since classes are imported first
+        if (! $onlyTypes || in_array('classes', $onlyTypes)) {
+            $this->step('Linking subclass spells (STEP 5a/10)');
+            $this->linkSubclassSpells();
+        }
+
         // Step 7: Import races
         if (! $onlyTypes || in_array('races', $onlyTypes)) {
             $this->step('Importing races (STEP 6/10)');
@@ -335,6 +342,56 @@ class ImportAllDataCommand extends Command
         ];
 
         $this->newLine();
+    }
+
+    /**
+     * Link subclass spells (domain spells, circle spells, expanded spells).
+     *
+     * This must run AFTER spells are imported because classes are imported first
+     * (before spells exist). We re-process class features that have spell tables
+     * to create the entity_spells associations.
+     */
+    private function linkSubclassSpells(): void
+    {
+        $importer = new \App\Services\Importers\ClassImporter;
+
+        // Get all subclasses (classes with parent_class_id)
+        $subclasses = \App\Models\CharacterClass::whereNotNull('parent_class_id')->get();
+
+        $linkedCount = 0;
+        $totalSpells = 0;
+
+        foreach ($subclasses as $subclass) {
+            // Get features that might have spell tables
+            $features = $subclass->features()
+                ->where('level', 1)
+                ->where('feature_name', 'like', '%Domain%')
+                ->orWhere('feature_name', 'like', '%Circle%')
+                ->orWhere('feature_name', 'like', '%Expanded Spells%')
+                ->orWhere('feature_name', 'like', '%Patron%')
+                ->get();
+
+            foreach ($features as $feature) {
+                if ($importer->hasSubclassSpellTable($feature->description)) {
+                    $beforeCount = \App\Models\EntitySpell::where('reference_type', \App\Models\ClassFeature::class)
+                        ->where('reference_id', $feature->id)
+                        ->count();
+
+                    $importer->importSubclassSpells($feature, $feature->description);
+
+                    $afterCount = \App\Models\EntitySpell::where('reference_type', \App\Models\ClassFeature::class)
+                        ->where('reference_id', $feature->id)
+                        ->count();
+
+                    if ($afterCount > $beforeCount) {
+                        $linkedCount++;
+                        $totalSpells += $afterCount;
+                    }
+                }
+            }
+        }
+
+        $this->info("  ✓ Linked spells for {$linkedCount} subclass feature(s) ({$totalSpells} spell associations)");
     }
 
     /**

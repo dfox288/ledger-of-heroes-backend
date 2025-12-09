@@ -68,7 +68,7 @@ trait ParsesSubclassSpellTables
     /**
      * Check if text contains a subclass spell table.
      */
-    protected function hasSubclassSpellTable(string $text): bool
+    public function hasSubclassSpellTable(string $text): bool
     {
         return preg_match('/(?:Artificer Level|Cleric Level|Druid Level|Paladin Level|Ranger Level|Sorcerer Level|Spell Level)\s*\|\s*(?:Circle )?Spells?/i', $text) === 1;
     }

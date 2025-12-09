@@ -345,7 +345,13 @@ class CharacterController extends Controller
      */
     public function stats(Character $character): CharacterStatsResource
     {
-        $character->load(['characterClasses.characterClass.parentClass', 'characterClasses.characterClass.spellcastingAbility']);
+        $character->load([
+            'characterClasses.characterClass.parentClass',
+            'characterClasses.characterClass.spellcastingAbility',
+            'race.modifiers.damageType',
+            'race.conditions.condition',
+            'features.feature',
+        ]);
 
         $stats = Cache::remember(
             "character:{$character->id}:stats",

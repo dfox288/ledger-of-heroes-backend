@@ -5,12 +5,12 @@ namespace App\Http\Requests\Character;
 use App\Http\Requests\Concerns\MapsApiFields;
 use Illuminate\Foundation\Http\FormRequest;
 
-class SetSubclassRequest extends FormRequest
+class CharacterClassAddRequest extends FormRequest
 {
     use MapsApiFields;
 
     protected array $fieldMappings = [
-        'subclass' => 'subclass_slug',
+        'class' => 'class_slug',
     ];
 
     public function authorize(): bool
@@ -26,9 +26,10 @@ class SetSubclassRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Accept 'subclass' as API param, mapped to subclass_slug
+            // Accept 'class' as API param, mapped to class_slug
             // No exists validation - dangling references allowed per #288
-            'subclass_slug' => ['required', 'string', 'max:150'],
+            'class_slug' => ['required', 'string', 'max:150'],
+            'force' => ['sometimes', 'boolean'],
         ];
     }
 }

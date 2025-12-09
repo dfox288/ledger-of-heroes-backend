@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Character\DeathSaveRequest;
+use App\Http\Requests\Character\CharacterDeathSaveRequest;
 use App\Http\Resources\DeathSaveResultResource;
 use App\Http\Resources\DeathSaveStatusResource;
 use App\Models\Character;
@@ -72,7 +72,7 @@ class CharacterDeathSaveController extends Controller
      * - `is_stable`: True if 3+ successes
      * - `is_dead`: True if 3+ failures
      */
-    public function store(DeathSaveRequest $request, Character $character): DeathSaveResultResource
+    public function store(CharacterDeathSaveRequest $request, Character $character): DeathSaveResultResource
     {
         $result = null;
         $outcome = null;

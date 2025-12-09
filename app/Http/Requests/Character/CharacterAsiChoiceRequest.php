@@ -6,7 +6,7 @@ use App\Models\Character;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class AsiChoiceRequest extends FormRequest
+class CharacterAsiChoiceRequest extends FormRequest
 {
     public function authorize(): bool
     {

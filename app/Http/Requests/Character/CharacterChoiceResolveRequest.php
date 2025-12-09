@@ -36,7 +36,7 @@ use Illuminate\Validation\Rule;
  * ```
  * The `feat` is the full_slug of the chosen feat.
  */
-class ResolveChoiceRequest extends FormRequest
+class CharacterChoiceResolveRequest extends FormRequest
 {
     use MapsApiFields;
 

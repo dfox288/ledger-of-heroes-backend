@@ -7,7 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 /**
  * Validate character import request data.
  */
-class ImportCharacterRequest extends FormRequest
+class CharacterImportRequest extends FormRequest
 {
     public function authorize(): bool
     {

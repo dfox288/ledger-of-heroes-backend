@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CharacterEquipment\StoreEquipmentRequest;
-use App\Http\Requests\CharacterEquipment\UpdateEquipmentRequest;
+use App\Http\Requests\CharacterEquipment\CharacterEquipmentStoreRequest;
+use App\Http\Requests\CharacterEquipment\CharacterEquipmentUpdateRequest;
 use App\Http\Resources\CharacterEquipmentResource;
 use App\Models\Character;
 use App\Models\CharacterEquipment;
@@ -91,7 +91,7 @@ class CharacterEquipmentController extends Controller
      * - `equipped`: false
      * - `location`: "backpack"
      */
-    public function store(StoreEquipmentRequest $request, Character $character): JsonResponse
+    public function store(CharacterEquipmentStoreRequest $request, Character $character): JsonResponse
     {
         if ($request->item_slug) {
             // Database item - may be a dangling reference per #288
@@ -177,7 +177,7 @@ class CharacterEquipmentController extends Controller
      * - Unequipping always succeeds
      */
     public function update(
-        UpdateEquipmentRequest $request,
+        CharacterEquipmentUpdateRequest $request,
         Character $character,
         CharacterEquipment $equipment
     ): CharacterEquipmentResource {

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #417**: Character stats API now includes defensive traits
+  - `damage_resistances`, `damage_immunities`, `damage_vulnerabilities` arrays
+  - `condition_advantages`, `condition_disadvantages`, `condition_immunities` arrays
+  - Aggregates from character's race and feats
+  - Each entry includes `source` field showing origin (race/feat name)
+  - Supports conditional text (e.g., "from nonmagical attacks")
+
 - **Issue #409**: Add dedicated form requests for `CharacterSpellController`
   - New `AvailableSpellsRequest` for `/available-spells` endpoint (validates min_level, max_level, include_known)
   - New `CharacterSpellStoreRequest` for `POST /spells` endpoint (validates spell, source)

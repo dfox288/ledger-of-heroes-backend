@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Character;
+use App\Models\CharacterClass;
 use App\Models\CharacterFeature;
 use App\Models\CharacterTrait;
 use App\Models\ClassFeature;
@@ -108,6 +109,62 @@ class CharacterFeatureService
         }
 
         $character->load('features');
+    }
+
+    /**
+     * Populate subclass features for a character up to their current level in that class.
+     *
+     * Called when a subclass is selected via the choice system.
+     *
+     * @param  string  $classSlug  The base class slug (to find the character's level in that class)
+     * @param  string  $subclassSlug  The selected subclass slug
+     */
+    public function populateFromSubclass(Character $character, string $classSlug, string $subclassSlug): void
+    {
+        // Get the character's level in this class
+        $characterClass = $character->characterClasses()
+            ->where('class_slug', $classSlug)
+            ->first();
+
+        if (! $characterClass) {
+            return;
+        }
+
+        // Load the subclass
+        $subclass = CharacterClass::where('full_slug', $subclassSlug)->first();
+
+        if (! $subclass) {
+            return;
+        }
+
+        // Get non-optional subclass features up to character's level in this class
+        $features = $subclass->features()
+            ->where('is_optional', false)
+            ->where('level', '<=', $characterClass->level)
+            ->whereNull('parent_feature_id') // Exclude child features (choice options)
+            ->get();
+
+        foreach ($features as $feature) {
+            $this->createFeatureIfNotExists(
+                $character,
+                ClassFeature::class,
+                $feature->id,
+                'subclass',
+                $feature->level
+            );
+        }
+
+        $character->load('features');
+    }
+
+    /**
+     * Remove all subclass features from a character.
+     *
+     * Called when a subclass choice is undone.
+     */
+    public function clearSubclassFeatures(Character $character): void
+    {
+        $this->clearFeatures($character, 'subclass');
     }
 
     /**

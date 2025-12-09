@@ -500,7 +500,7 @@ XML;
         // NEW: Verify damage_type_id is set (not NULL)
         $this->assertNotNull($effect->damage_type_id, 'Damage type FK should be populated');
         $this->assertEquals('Force', $effect->damageType->name);
-        $this->assertEquals('Fc', $effect->damageType->code);
+        $this->assertEquals('FC', $effect->damageType->code);
     }
 
     #[Test]

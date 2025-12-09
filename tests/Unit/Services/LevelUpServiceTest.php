@@ -12,6 +12,7 @@ use App\Models\ClassFeature;
 use App\Models\Race;
 use App\Services\LevelUpService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class LevelUpServiceTest extends TestCase
@@ -39,7 +40,7 @@ class LevelUpServiceTest extends TestCase
         return range(2, $level);
     }
 
-    /** @test */
+    #[Test]
     public function it_increases_character_level_by_one(): void
     {
         $class = CharacterClass::factory()->create(['hit_die' => 8]);
@@ -58,7 +59,7 @@ class LevelUpServiceTest extends TestCase
         $this->assertEquals(2, $character->fresh()->total_level);
     }
 
-    /** @test */
+    #[Test]
     public function it_increments_level_on_primary_class_pivot(): void
     {
         $class = CharacterClass::factory()->create(['hit_die' => 8]);
@@ -77,7 +78,7 @@ class LevelUpServiceTest extends TestCase
         $this->assertEquals(2, $pivot->level);
     }
 
-    /** @test */
+    #[Test]
     public function it_does_not_modify_hp_directly(): void
     {
         $class = CharacterClass::factory()->create(['hit_die' => 8]);
@@ -97,7 +98,7 @@ class LevelUpServiceTest extends TestCase
         $this->assertEquals(10, $character->current_hit_points);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_zero_hp_increase_in_result(): void
     {
         $class = CharacterClass::factory()->create(['hit_die' => 8]);
@@ -116,7 +117,7 @@ class LevelUpServiceTest extends TestCase
         $this->assertEquals(10, $result->newMaxHp);
     }
 
-    /** @test */
+    #[Test]
     public function it_grants_class_features_for_new_level(): void
     {
         $class = CharacterClass::factory()->create(['hit_die' => 8]);
@@ -159,7 +160,7 @@ class LevelUpServiceTest extends TestCase
         $this->assertEquals(2, $characterFeatures->first()->level_acquired);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_updated_spell_slots_for_casters(): void
     {
         $class = CharacterClass::factory()->create([
@@ -182,7 +183,7 @@ class LevelUpServiceTest extends TestCase
         $this->assertEquals(3, $result->spellSlots[1]); // Level 2 wizard: 3 1st-level slots
     }
 
-    /** @test */
+    #[Test]
     public function it_sets_asi_pending_at_level_4(): void
     {
         // Use generic slug to avoid triggering FightingStyleChoiceHandler
@@ -207,7 +208,7 @@ class LevelUpServiceTest extends TestCase
         $this->assertEquals(1, $character->fresh()->asi_choices_remaining);
     }
 
-    /** @test */
+    #[Test]
     public function it_sets_asi_pending_at_fighter_level_6(): void
     {
         // Fighter gets ASI at level 6 (extra ASI compared to other classes)
@@ -246,7 +247,7 @@ class LevelUpServiceTest extends TestCase
         $this->assertEquals(1, $character->fresh()->asi_choices_remaining);
     }
 
-    /** @test */
+    #[Test]
     public function it_sets_asi_pending_at_rogue_level_10(): void
     {
         $class = CharacterClass::factory()->create([
@@ -270,7 +271,7 @@ class LevelUpServiceTest extends TestCase
         $this->assertEquals(1, $character->fresh()->asi_choices_remaining);
     }
 
-    /** @test */
+    #[Test]
     public function it_does_not_set_asi_at_non_asi_level(): void
     {
         $class = CharacterClass::factory()->create([
@@ -294,7 +295,7 @@ class LevelUpServiceTest extends TestCase
         $this->assertEquals(0, $character->fresh()->asi_choices_remaining);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_at_max_level(): void
     {
         $class = CharacterClass::factory()->create(['hit_die' => 8]);
@@ -314,7 +315,7 @@ class LevelUpServiceTest extends TestCase
         $this->service->levelUp($character);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_for_incomplete_character(): void
     {
         // Character without class
@@ -328,7 +329,7 @@ class LevelUpServiceTest extends TestCase
         $this->service->levelUp($character);
     }
 
-    /** @test */
+    #[Test]
     public function it_increments_asi_choices_remaining(): void
     {
         // Use generic slug to avoid triggering FightingStyleChoiceHandler
@@ -355,7 +356,7 @@ class LevelUpServiceTest extends TestCase
         $this->assertEquals(2, $character->fresh()->asi_choices_remaining);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_level_up_specific_class_for_multiclass(): void
     {
         // Use generic slugs to avoid triggering FightingStyleChoiceHandler
@@ -396,7 +397,7 @@ class LevelUpServiceTest extends TestCase
         $this->assertEquals(6, $result->newLevel);
     }
 
-    /** @test */
+    #[Test]
     public function it_defaults_to_primary_class_when_no_class_specified(): void
     {
         // Use generic slugs to avoid triggering FightingStyleChoiceHandler
@@ -433,7 +434,7 @@ class LevelUpServiceTest extends TestCase
         $this->assertEquals(2, $wizardPivot->level);
     }
 
-    /** @test */
+    #[Test]
     public function level_up_result_dto_converts_to_array(): void
     {
         $result = new LevelUpResult(

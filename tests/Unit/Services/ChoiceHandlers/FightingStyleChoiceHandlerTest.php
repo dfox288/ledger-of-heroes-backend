@@ -13,6 +13,7 @@ use App\Models\FeatureSelection;
 use App\Models\OptionalFeature;
 use App\Services\ChoiceHandlers\FightingStyleChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class FightingStyleChoiceHandlerTest extends TestCase
@@ -75,13 +76,13 @@ class FightingStyleChoiceHandlerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_correct_type(): void
     {
         $this->assertEquals('fighting_style', $this->handler->getType());
     }
 
-    /** @test */
+    #[Test]
     public function it_generates_pending_choice_for_fighter_level_1(): void
     {
         $character = Character::factory()->create();
@@ -112,7 +113,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $this->assertEquals('/api/v1/lookups/optional-features?feature_type=fighting_style', $choice->optionsEndpoint);
     }
 
-    /** @test */
+    #[Test]
     public function it_generates_pending_choice_for_paladin_level_2(): void
     {
         $character = Character::factory()->create();
@@ -132,7 +133,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $this->assertEquals(2, $choices->first()->levelGranted);
     }
 
-    /** @test */
+    #[Test]
     public function it_generates_pending_choice_for_ranger_level_2(): void
     {
         $character = Character::factory()->create();
@@ -152,7 +153,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $this->assertEquals(2, $choices->first()->levelGranted);
     }
 
-    /** @test */
+    #[Test]
     public function it_does_not_generate_choice_if_already_selected_for_class(): void
     {
         $character = Character::factory()->create();
@@ -179,7 +180,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $this->assertCount(0, $choices);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_multiclass_character_with_multiple_fighting_style_sources(): void
     {
         $character = Character::factory()->create();
@@ -223,7 +224,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $this->assertNotContains($this->archery->id, $optionIds);
     }
 
-    /** @test */
+    #[Test]
     public function it_does_not_generate_choice_if_level_requirement_not_met(): void
     {
         $character = Character::factory()->create();
@@ -241,7 +242,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $this->assertEmpty($choices);
     }
 
-    /** @test */
+    #[Test]
     public function it_resolves_choice_by_creating_feature_selection_record(): void
     {
         $character = Character::factory()->create();
@@ -277,7 +278,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_resolving_with_empty_selection(): void
     {
         $this->expectException(InvalidSelectionException::class);
@@ -306,7 +307,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $this->handler->resolve($character, $choice, $selection);
     }
 
-    /** @test */
+    #[Test]
     public function it_indicates_choices_cannot_be_undone(): void
     {
         $character = Character::factory()->create();
@@ -330,7 +331,7 @@ class FightingStyleChoiceHandlerTest extends TestCase
         $this->assertFalse($this->handler->canUndo($character, $choice));
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_attempting_to_undo(): void
     {
         $this->expectException(ChoiceNotUndoableException::class);

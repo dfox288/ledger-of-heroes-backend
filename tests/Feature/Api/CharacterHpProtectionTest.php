@@ -4,13 +4,14 @@ namespace Tests\Feature\Api;
 
 use App\Models\Character;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CharacterHpProtectionTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function it_rejects_max_hit_points_update_for_calculated_mode(): void
     {
         $character = Character::factory()->create([
@@ -31,7 +32,7 @@ class CharacterHpProtectionTest extends TestCase
         $this->assertEquals(10, $character->max_hit_points);
     }
 
-    /** @test */
+    #[Test]
     public function it_allows_max_hit_points_update_for_manual_mode(): void
     {
         $character = Character::factory()->create([
@@ -50,7 +51,7 @@ class CharacterHpProtectionTest extends TestCase
         $this->assertEquals(50, $character->max_hit_points);
     }
 
-    /** @test */
+    #[Test]
     public function it_allows_switching_from_calculated_to_manual_mode(): void
     {
         $character = Character::factory()->create([
@@ -68,7 +69,7 @@ class CharacterHpProtectionTest extends TestCase
         $this->assertEquals('manual', $character->hp_calculation_method);
     }
 
-    /** @test */
+    #[Test]
     public function it_allows_max_hit_points_when_switching_to_manual_in_same_request(): void
     {
         $character = Character::factory()->create([
@@ -89,7 +90,7 @@ class CharacterHpProtectionTest extends TestCase
         $this->assertEquals(50, $character->max_hit_points);
     }
 
-    /** @test */
+    #[Test]
     public function it_allows_switching_from_manual_to_calculated_mode(): void
     {
         $character = Character::factory()->create([
@@ -109,7 +110,7 @@ class CharacterHpProtectionTest extends TestCase
         $this->assertEquals(50, $character->max_hit_points);
     }
 
-    /** @test */
+    #[Test]
     public function it_rejects_invalid_hp_calculation_method(): void
     {
         $character = Character::factory()->create([
@@ -124,7 +125,7 @@ class CharacterHpProtectionTest extends TestCase
             ->assertJsonValidationErrors(['hp_calculation_method']);
     }
 
-    /** @test */
+    #[Test]
     public function it_rejects_max_hit_points_when_switching_to_calculated_mode(): void
     {
         $character = Character::factory()->create([

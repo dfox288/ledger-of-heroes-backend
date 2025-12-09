@@ -14,6 +14,7 @@ use App\Models\Modifier;
 use App\Models\Race;
 use App\Services\ChoiceHandlers\HitPointRollChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class HitPointRollChoiceHandlerTest extends TestCase
@@ -29,13 +30,13 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->handler = new HitPointRollChoiceHandler;
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_hit_points_as_type(): void
     {
         $this->assertEquals('hit_points', $this->handler->getType());
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_empty_collection_when_character_has_no_classes(): void
     {
         $character = Character::factory()->create();
@@ -47,7 +48,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEmpty($choices);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_empty_collection_when_primary_class_is_level_1(): void
     {
         $class = CharacterClass::factory()->create([
@@ -73,7 +74,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEmpty($choices);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_pending_choice_when_character_levels_to_2(): void
     {
         $class = CharacterClass::factory()->create([
@@ -109,7 +110,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEquals(1, $choice->remaining);
     }
 
-    /** @test */
+    #[Test]
     public function it_includes_roll_and_average_options(): void
     {
         $class = CharacterClass::factory()->create([
@@ -149,7 +150,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEquals(9, $averageOption['fixed_result']); // 6 + 3 (CON)
     }
 
-    /** @test */
+    #[Test]
     public function it_includes_metadata_with_hit_die_and_con_modifier(): void
     {
         $class = CharacterClass::factory()->create([
@@ -179,7 +180,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEquals('fighter', $choice->metadata['class_slug']);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_different_hit_dice_correctly(): void
     {
         // Test d6 (Wizard)
@@ -213,7 +214,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEquals(6, $averageOption['fixed_result']); // 4 + 2 (CON)
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_negative_con_modifier_with_minimum_1_hp(): void
     {
         $class = CharacterClass::factory()->create([
@@ -246,7 +247,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEquals(2, $averageOption['fixed_result']); // max(4 - 2, 1) = 2
     }
 
-    /** @test */
+    #[Test]
     public function it_resolves_roll_choice_with_random_hp(): void
     {
         $class = CharacterClass::factory()->create([
@@ -299,7 +300,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEquals($character->max_hit_points, $character->current_hit_points);
     }
 
-    /** @test */
+    #[Test]
     public function it_resolves_average_choice_with_fixed_hp(): void
     {
         $class = CharacterClass::factory()->create([
@@ -350,7 +351,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEquals(20, $character->current_hit_points);
     }
 
-    /** @test */
+    #[Test]
     public function it_enforces_minimum_1_hp_gained_on_roll_with_negative_con(): void
     {
         $class = CharacterClass::factory()->create([
@@ -401,7 +402,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $hpGained);
     }
 
-    /** @test */
+    #[Test]
     public function it_enforces_minimum_1_hp_gained_on_average_with_negative_con(): void
     {
         $class = CharacterClass::factory()->create([
@@ -452,7 +453,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEquals(3, $character->current_hit_points);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_invalid_selection_exception_when_selected_is_missing(): void
     {
         $this->expectException(InvalidSelectionException::class);
@@ -478,7 +479,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->handler->resolve($character, $choice, []);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_invalid_selection_exception_when_selected_is_invalid(): void
     {
         $this->expectException(InvalidSelectionException::class);
@@ -504,7 +505,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->handler->resolve($character, $choice, ['selected' => 'invalid']);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_false_for_can_undo(): void
     {
         $character = Character::factory()->create();
@@ -528,7 +529,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertFalse($this->handler->canUndo($character, $choice));
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_choice_not_undoable_exception_for_undo(): void
     {
         $this->expectException(ChoiceNotUndoableException::class);
@@ -558,7 +559,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
     // New HP Tracking Tests
     // =====================
 
-    /** @test */
+    #[Test]
     public function it_returns_no_choices_when_all_levels_have_hp_resolved(): void
     {
         $class = CharacterClass::factory()->create([
@@ -585,7 +586,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEmpty($choices);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_choices_only_for_unresolved_levels(): void
     {
         $class = CharacterClass::factory()->create([
@@ -616,7 +617,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEquals([3, 4], $levels);
     }
 
-    /** @test */
+    #[Test]
     public function it_marks_level_as_resolved_after_choice(): void
     {
         $class = CharacterClass::factory()->create([
@@ -672,7 +673,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
     // Manual Roll Tests
     // ==================
 
-    /** @test */
+    #[Test]
     public function it_resolves_manual_roll_with_valid_roll_result(): void
     {
         $class = CharacterClass::factory()->create([
@@ -726,7 +727,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEquals(21, $character->current_hit_points);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_manual_roll_missing_roll_result(): void
     {
         $this->expectException(InvalidSelectionException::class);
@@ -756,7 +757,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->handler->resolve($character, $choice, ['selected' => 'manual']);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_roll_result_below_1(): void
     {
         $this->expectException(InvalidSelectionException::class);
@@ -789,7 +790,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_roll_result_above_hit_die(): void
     {
         $this->expectException(InvalidSelectionException::class);
@@ -822,7 +823,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_roll_result_is_float(): void
     {
         $this->expectException(InvalidSelectionException::class);
@@ -855,7 +856,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_enforces_minimum_1_hp_on_manual_roll_with_negative_con(): void
     {
         $class = CharacterClass::factory()->create([
@@ -909,7 +910,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEquals(3, $character->current_hit_points);
     }
 
-    /** @test */
+    #[Test]
     public function it_includes_manual_option_in_hp_choices(): void
     {
         $class = CharacterClass::factory()->create([
@@ -946,7 +947,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
     // Feat HP Bonus Tests (Tough Feat)
     // =====================
 
-    /** @test */
+    #[Test]
     public function it_adds_feat_hp_bonus_on_level_up(): void
     {
         $class = CharacterClass::factory()->create([
@@ -1026,7 +1027,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
     // Race HP Bonus Tests (Hill Dwarf)
     // =====================
 
-    /** @test */
+    #[Test]
     public function it_adds_race_hp_bonus_on_level_up(): void
     {
         $class = CharacterClass::factory()->create([
@@ -1095,7 +1096,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEquals(22, $character->current_hit_points);
     }
 
-    /** @test */
+    #[Test]
     public function it_combines_race_and_feat_hp_bonuses_on_level_up(): void
     {
         $class = CharacterClass::factory()->create([

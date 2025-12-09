@@ -15,6 +15,7 @@ use App\Services\AsiChoiceService;
 use App\Services\ChoiceHandlers\AsiChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class AsiChoiceHandlerTest extends TestCase
@@ -51,13 +52,13 @@ class AsiChoiceHandlerTest extends TestCase
         parent::tearDown();
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_asi_or_feat_as_type(): void
     {
         $this->assertEquals('asi_or_feat', $this->handler->getType());
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_empty_collection_when_no_asi_choices_remaining(): void
     {
         $character = Character::factory()->make([
@@ -71,7 +72,7 @@ class AsiChoiceHandlerTest extends TestCase
         $this->assertEmpty($choices);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_empty_collection_when_no_primary_class(): void
     {
         $character = Character::factory()->make([
@@ -87,7 +88,7 @@ class AsiChoiceHandlerTest extends TestCase
         $this->assertEmpty($choices);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_one_choice_when_one_asi_remaining(): void
     {
         $class = CharacterClass::factory()->make([
@@ -125,7 +126,7 @@ class AsiChoiceHandlerTest extends TestCase
         $this->assertEquals(1, $choices->first()->remaining);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_multiple_choices_when_multiple_asis_remaining(): void
     {
         $class = CharacterClass::factory()->make([
@@ -159,7 +160,7 @@ class AsiChoiceHandlerTest extends TestCase
         $this->assertTrue($choices->every(fn ($choice) => $choice->type === 'asi_or_feat'));
     }
 
-    /** @test */
+    #[Test]
     public function it_includes_ability_scores_in_metadata(): void
     {
         $class = CharacterClass::factory()->make([
@@ -196,7 +197,7 @@ class AsiChoiceHandlerTest extends TestCase
         $this->assertEquals(20, $choice->metadata['max_ability_score']);
     }
 
-    /** @test */
+    #[Test]
     public function it_includes_options_endpoint_for_feats(): void
     {
         $class = CharacterClass::factory()->make([
@@ -229,7 +230,7 @@ class AsiChoiceHandlerTest extends TestCase
         $this->assertEquals('/api/v1/feats', $choice->optionsEndpoint);
     }
 
-    /** @test */
+    #[Test]
     public function it_calls_apply_feat_choice_when_type_is_feat(): void
     {
         $character = Character::factory()->create(['id' => 1]);
@@ -274,7 +275,7 @@ class AsiChoiceHandlerTest extends TestCase
         $this->assertTrue(true); // Assertion to avoid risky test warning
     }
 
-    /** @test */
+    #[Test]
     public function it_calls_apply_ability_increase_when_type_is_asi(): void
     {
         $character = Character::factory()->create(['id' => 1]);
@@ -320,7 +321,7 @@ class AsiChoiceHandlerTest extends TestCase
         $this->assertTrue(true); // Assertion to avoid risky test warning
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_invalid_selection_exception_when_type_is_missing(): void
     {
         $this->expectException(InvalidSelectionException::class);
@@ -346,7 +347,7 @@ class AsiChoiceHandlerTest extends TestCase
         $this->handler->resolve($character, $choice, []);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_invalid_selection_exception_when_type_is_invalid(): void
     {
         $this->expectException(InvalidSelectionException::class);
@@ -372,7 +373,7 @@ class AsiChoiceHandlerTest extends TestCase
         $this->handler->resolve($character, $choice, ['type' => 'invalid']);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_invalid_selection_exception_when_feat_slug_is_missing_for_feat_type(): void
     {
         $this->expectException(InvalidSelectionException::class);
@@ -398,7 +399,7 @@ class AsiChoiceHandlerTest extends TestCase
         $this->handler->resolve($character, $choice, ['type' => 'feat']);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_invalid_selection_exception_when_increases_is_missing_for_asi_type(): void
     {
         $this->expectException(InvalidSelectionException::class);
@@ -424,7 +425,7 @@ class AsiChoiceHandlerTest extends TestCase
         $this->handler->resolve($character, $choice, ['type' => 'asi']);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_invalid_selection_exception_when_increases_is_empty_for_asi_type(): void
     {
         $this->expectException(InvalidSelectionException::class);
@@ -453,7 +454,7 @@ class AsiChoiceHandlerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_false_for_can_undo(): void
     {
         $character = Character::factory()->make(['id' => 1]);
@@ -477,7 +478,7 @@ class AsiChoiceHandlerTest extends TestCase
         $this->assertFalse($this->handler->canUndo($character, $choice));
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_choice_not_undoable_exception_for_undo(): void
     {
         $this->expectException(ChoiceNotUndoableException::class);

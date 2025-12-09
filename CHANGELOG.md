@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Class language auto-population**: Fixed languages from class now granted when adding primary class
+  - CharacterLanguageService.populateFromClass() grants class languages (Druidic, Thieves' Cant)
+  - AddClassService now calls populateFromClass() for primary class
+  - Only primary class grants languages (multiclass doesn't get class languages per D&D rules)
+  - 4 new tests for class language population
+
 - **Issue #385**: Filter non-learnable languages from pending-choices
   - CharacterLanguageService now excludes non-learnable languages from options
   - Language options include `is_learnable` field for API documentation

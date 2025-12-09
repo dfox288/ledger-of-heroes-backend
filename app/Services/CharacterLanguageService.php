@@ -29,13 +29,28 @@ class CharacterLanguageService
     }
 
     /**
-     * Populate fixed (non-choice) languages from race, background, and feats.
+     * Populate fixed (non-choice) languages from class, race, background, and feats.
      */
     public function populateFixed(Character $character): void
     {
+        $this->populateFromClass($character);
         $this->populateFromRace($character);
         $this->populateFromBackground($character);
         $this->populateFromFeats($character);
+    }
+
+    /**
+     * Populate fixed (non-choice) languages from the character's primary class.
+     * For example, Druids get Druidic and Rogues get Thieves' Cant.
+     */
+    public function populateFromClass(Character $character): void
+    {
+        $primaryClass = $character->primary_class;
+        if (! $primaryClass) {
+            return;
+        }
+
+        $this->populateFromEntity($character, $primaryClass, 'class');
     }
 
     /**

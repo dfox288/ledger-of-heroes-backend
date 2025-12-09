@@ -4,6 +4,7 @@ namespace Tests\Unit\Services;
 
 use App\Models\Background;
 use App\Models\Character;
+use App\Models\CharacterClass;
 use App\Models\CharacterFeature;
 use App\Models\CharacterLanguage;
 use App\Models\EntityLanguage;
@@ -937,5 +938,98 @@ class CharacterLanguageServiceTest extends TestCase
             $this->assertArrayHasKey('is_learnable', $option);
             $this->assertIsBool($option['is_learnable']);
         }
+    }
+
+    // =====================
+    // populateFromClass() Tests
+    // =====================
+
+    #[Test]
+    public function it_populates_fixed_languages_from_class(): void
+    {
+        // Arrange - Create a class with a fixed language (like Druid with Druidic)
+        $class = CharacterClass::factory()->create(['name' => 'Druid-'.uniqid(), 'slug' => 'druid-'.uniqid()]);
+        $druidic = Language::factory()->create(['name' => 'Druidic-'.uniqid(), 'slug' => 'druidic-'.uniqid()]);
+
+        EntityLanguage::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'language_id' => $druidic->id,
+            'is_choice' => false,
+        ]);
+
+        $character = Character::factory()->withClass($class)->create();
+
+        // Act
+        $this->service->populateFromClass($character);
+
+        // Assert
+        $character->refresh();
+        $this->assertCount(1, $character->languages);
+        $this->assertEquals('class', $character->languages->first()->source);
+        $this->assertEquals($druidic->full_slug, $character->languages->first()->language_slug);
+    }
+
+    #[Test]
+    public function it_does_not_populate_class_languages_if_no_class(): void
+    {
+        // Arrange - Character without a class
+        $character = Character::factory()->create();
+
+        // Act
+        $this->service->populateFromClass($character);
+
+        // Assert
+        $character->refresh();
+        $this->assertCount(0, $character->languages);
+    }
+
+    #[Test]
+    public function it_does_not_duplicate_class_languages(): void
+    {
+        // Arrange
+        $class = CharacterClass::factory()->create(['name' => 'Rogue-'.uniqid(), 'slug' => 'rogue-'.uniqid()]);
+        $thievesCant = Language::factory()->create(['name' => 'Thieves Cant-'.uniqid(), 'slug' => 'thieves-cant-'.uniqid()]);
+
+        EntityLanguage::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'language_id' => $thievesCant->id,
+            'is_choice' => false,
+        ]);
+
+        $character = Character::factory()->withClass($class)->create();
+
+        // Act - call twice
+        $this->service->populateFromClass($character);
+        $this->service->populateFromClass($character);
+
+        // Assert - should still only have one language
+        $character->refresh();
+        $this->assertCount(1, $character->languages);
+    }
+
+    #[Test]
+    public function it_does_not_populate_class_language_choices(): void
+    {
+        // Arrange - Class with a language CHOICE (not fixed)
+        $class = CharacterClass::factory()->create(['name' => 'Test-'.uniqid(), 'slug' => 'test-'.uniqid()]);
+
+        EntityLanguage::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'language_id' => null, // Choice - no specific language
+            'is_choice' => true,
+            'quantity' => 1,
+        ]);
+
+        $character = Character::factory()->withClass($class)->create();
+
+        // Act
+        $this->service->populateFromClass($character);
+
+        // Assert - No languages should be auto-populated (choices require user input)
+        $character->refresh();
+        $this->assertCount(0, $character->languages);
     }
 }

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CharacterNote\CharacterNoteStoreRequest;
-use App\Http\Requests\CharacterNote\CharacterNoteUpdateRequest;
+use App\Http\Requests\Character\Note\CharacterNoteStoreRequest;
+use App\Http\Requests\Character\Note\CharacterNoteUpdateRequest;
 use App\Http\Resources\CharacterNoteResource;
 use App\Http\Resources\CharacterNotesGroupedResource;
 use App\Models\Character;

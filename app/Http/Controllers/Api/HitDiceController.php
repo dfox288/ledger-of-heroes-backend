@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Exceptions\InsufficientHitDiceException;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\HitDice\RecoverHitDiceRequest;
-use App\Http\Requests\HitDice\SpendHitDiceRequest;
+use App\Http\Requests\Character\Combat\RecoverHitDiceRequest;
+use App\Http\Requests\Character\Combat\SpendHitDiceRequest;
 use App\Http\Resources\HitDiceResource;
 use App\Models\Character;
 use App\Services\HitDiceService;

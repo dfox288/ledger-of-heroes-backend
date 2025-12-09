@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\CharacterEquipment;
+namespace App\Http\Requests\Character\Equipment;
 
 use Illuminate\Foundation\Http\FormRequest;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\CharacterNote;
+namespace App\Http\Requests\Character\Note;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;

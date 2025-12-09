@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\FeatureSelection\StoreFeatureSelectionRequest;
+use App\Http\Requests\Character\Choice\StoreFeatureSelectionRequest;
 use App\Http\Resources\FeatureSelectionResource;
 use App\Http\Resources\OptionalFeatureResource;
 use App\Models\Character;

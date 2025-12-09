@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\FeatureSelection;
+namespace App\Http\Requests\Character\Choice;
 
 use App\Models\OptionalFeature;
 use Illuminate\Foundation\Http\FormRequest;

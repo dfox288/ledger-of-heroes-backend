@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\SpellSlot;
+namespace App\Http\Requests\Character\Combat;
 
 use Illuminate\Foundation\Http\FormRequest;
 

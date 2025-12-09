@@ -84,6 +84,7 @@ class ClassResource extends JsonResource
             'spells' => SpellResource::collection($this->whenLoaded('spells')),
             'optional_features' => OptionalFeatureResource::collection($this->whenLoaded('optionalFeatures')),
             'equipment' => EntityItemResource::collection($this->whenLoaded('equipment')),
+            'languages' => EntityLanguageResource::collection($this->whenLoaded('languages')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
 

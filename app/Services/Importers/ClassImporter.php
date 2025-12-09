@@ -9,6 +9,7 @@ use App\Services\Importers\Concerns\ImportsClassCounters;
 use App\Services\Importers\Concerns\ImportsClassFeatures;
 use App\Services\Importers\Concerns\ImportsDataTablesFromText;
 use App\Services\Importers\Concerns\ImportsEntityItems;
+use App\Services\Importers\Concerns\ImportsLanguages;
 use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Importers\Concerns\ImportsSpellProgression;
 use App\Services\Importers\Concerns\MatchesProficiencyCategories;
@@ -23,6 +24,7 @@ class ClassImporter extends BaseImporter
     use ImportsClassFeatures;
     use ImportsDataTablesFromText;
     use ImportsEntityItems;
+    use ImportsLanguages;
     use ImportsModifiers;
     use ImportsSpellProgression;
     use MatchesProficiencyCategories;
@@ -198,6 +200,11 @@ class ClassImporter extends BaseImporter
             $this->importEquipment($class, $data['equipment']);
         }
 
+        // Import language grants (Thieves' Cant, Druidic) - only for base classes
+        if (empty($data['parent_class_id']) && ! empty($data['languages'])) {
+            $this->importEntityLanguages($class, $data['languages']);
+        }
+
         // Refresh to load all relationships created during import
         $class->refresh();
 
@@ -231,6 +238,9 @@ class ClassImporter extends BaseImporter
 
         // Clear equipment (starting equipment choices)
         $class->equipment()->delete();
+
+        // Clear languages (Thieves' Cant, Druidic)
+        $class->languages()->delete();
 
         // Clear traits (sources are preserved via entity_sources polymorphic table)
         $class->traits()->delete();

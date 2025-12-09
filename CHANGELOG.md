@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #384**: Parse class language grants (Thieves' Cant, Druidic)
+  - ClassXmlParser detects language-granting features (Thieves' Cant, Druidic)
+  - CharacterClass model now has `languages()` relationship via HasEntityLanguages trait
+  - ClassImporter persists language grants to `entity_languages` table
+  - ClassResource exposes `languages` array in API responses
+  - ClassSearchService eager-loads languages for show endpoint
+  - Rogue grants Thieves' Cant at level 1, Druid grants Druidic at level 1
+  - 5 parser tests, 4 API tests for class language functionality
+
 - **Issue #381**: Add 'is_learnable' flag to languages table
   - New `is_learnable` boolean column on `languages` table (default: true)
   - Thieves' Cant and Druidic marked as non-learnable (class features only)

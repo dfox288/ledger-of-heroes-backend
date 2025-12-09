@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasEntityLanguages;
 use App\Models\Concerns\HasEntityTraits;
 use App\Models\Concerns\HasModifiers;
 use App\Models\Concerns\HasProficiencies;
@@ -26,7 +27,7 @@ use Spatie\Tags\HasTags;
  */
 class CharacterClass extends BaseModel
 {
-    use HasEntityTraits, HasModifiers, HasProficiencies, HasProficiencyScopes, HasSearchableHelpers, HasSources, HasTags, Searchable;
+    use HasEntityLanguages, HasEntityTraits, HasModifiers, HasProficiencies, HasProficiencyScopes, HasSearchableHelpers, HasSources, HasTags, Searchable;
 
     protected $table = 'classes';
 

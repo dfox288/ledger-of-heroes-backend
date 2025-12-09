@@ -5,6 +5,7 @@ namespace App\Services\Parsers;
 use App\Services\Parsers\Concerns\ConvertsWordNumbers;
 use App\Services\Parsers\Concerns\LoadsLookupData;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
+use App\Services\Parsers\Concerns\MatchesLanguages;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesFeatureChoiceProgressions;
 use App\Services\Parsers\Concerns\ParsesModifiers;
@@ -16,7 +17,7 @@ use SimpleXMLElement;
 
 class ClassXmlParser
 {
-    use ConvertsWordNumbers, LoadsLookupData, MapsAbilityCodes, MatchesProficiencyTypes, ParsesFeatureChoiceProgressions, ParsesModifiers, ParsesRestTiming, ParsesRolls, ParsesSourceCitations, ParsesTraits;
+    use ConvertsWordNumbers, LoadsLookupData, MapsAbilityCodes, MatchesLanguages, MatchesProficiencyTypes, ParsesFeatureChoiceProgressions, ParsesModifiers, ParsesRestTiming, ParsesRolls, ParsesSourceCitations, ParsesTraits;
 
     /**
      * Parse classes from XML string.
@@ -114,7 +115,43 @@ class ClassXmlParser
         // Parse starting equipment
         $data['equipment'] = $this->parseEquipment($element);
 
+        // Parse language grants from features (e.g., Thieves' Cant, Druidic)
+        $data['languages'] = $this->parseLanguageGrants($data['features']);
+
         return $data;
+    }
+
+    /**
+     * Parse language grants from class features.
+     *
+     * Detects features that grant languages by matching feature names against
+     * the languages table. Currently grants: Thieves' Cant (Rogue), Druidic (Druid).
+     *
+     * Uses the MatchesLanguages trait to dynamically match against database records,
+     * so any new languages added to the database will automatically be detected.
+     *
+     * @param  array<int, array<string, mixed>>  $features
+     * @return array<int, array{slug: string, is_choice: bool}>
+     */
+    private function parseLanguageGrants(array $features): array
+    {
+        $languages = [];
+
+        foreach ($features as $feature) {
+            $featureName = $feature['name'] ?? '';
+
+            // Try to match feature name against known languages in database
+            $language = $this->matchLanguage($featureName);
+
+            if ($language !== null) {
+                $languages[] = [
+                    'slug' => $language->slug,
+                    'is_choice' => false,
+                ];
+            }
+        }
+
+        return $languages;
     }
 
     /**

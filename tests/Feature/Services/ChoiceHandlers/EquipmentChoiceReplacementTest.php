@@ -1046,4 +1046,121 @@ class EquipmentChoiceReplacementTest extends TestCase
             ->and($packItem['contents'])->toHaveCount(1)
             ->and($packItem['contents'][0])->toHaveKey('full_slug', 'phb:chest');
     }
+
+    #[Test]
+    public function returns_empty_collection_when_gold_mode_selected(): void
+    {
+        // Create class with equipment choices
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'fighter',
+            'full_slug' => 'test:fighter',
+            'starting_wealth_dice' => '5d4',
+            'starting_wealth_multiplier' => 10,
+        ]);
+
+        $item = Item::factory()->create();
+        $entityItem = EntityItem::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'is_choice' => true,
+            'choice_group' => 'choice_1',
+            'choice_option' => 1,
+            'description' => 'chain mail',
+            'quantity' => 1,
+        ]);
+        EquipmentChoiceItem::create([
+            'entity_item_id' => $entityItem->id,
+            'item_id' => $item->id,
+            'quantity' => 1,
+            'sort_order' => 0,
+        ]);
+
+        // Create character with gold mode selected
+        $character = Character::factory()->create();
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Create gold mode marker
+        \App\Models\CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'equipment_mode_marker',
+            'quantity' => 0,
+            'equipped' => false,
+            'custom_description' => json_encode([
+                'source' => 'class',
+                'equipment_mode' => 'gold',
+                'gold_amount' => 125,
+            ]),
+        ]);
+
+        $character->load(['characterClasses.characterClass', 'equipment']);
+
+        $choices = $this->handler->getChoices($character);
+
+        // Should return empty - gold mode skips equipment choices
+        expect($choices)->toHaveCount(0);
+    }
+
+    #[Test]
+    public function returns_equipment_choices_when_equipment_mode_selected(): void
+    {
+        // Create class with equipment choices
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'fighter',
+            'full_slug' => 'test:fighter2',
+            'starting_wealth_dice' => '5d4',
+            'starting_wealth_multiplier' => 10,
+        ]);
+
+        $item = Item::factory()->create();
+        $entityItem = EntityItem::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'is_choice' => true,
+            'choice_group' => 'choice_1',
+            'choice_option' => 1,
+            'description' => 'chain mail',
+            'quantity' => 1,
+        ]);
+        EquipmentChoiceItem::create([
+            'entity_item_id' => $entityItem->id,
+            'item_id' => $item->id,
+            'quantity' => 1,
+            'sort_order' => 0,
+        ]);
+
+        // Create character with equipment mode selected
+        $character = Character::factory()->create();
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Create equipment mode marker
+        \App\Models\CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'equipment_mode_marker',
+            'quantity' => 0,
+            'equipped' => false,
+            'custom_description' => json_encode([
+                'source' => 'class',
+                'equipment_mode' => 'equipment',
+            ]),
+        ]);
+
+        $character->load(['characterClasses.characterClass', 'equipment']);
+
+        $choices = $this->handler->getChoices($character);
+
+        // Should return equipment choices - equipment mode was selected
+        expect($choices)->toHaveCount(1);
+    }
 }

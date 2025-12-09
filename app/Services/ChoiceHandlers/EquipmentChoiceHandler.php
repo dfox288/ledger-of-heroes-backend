@@ -27,6 +27,11 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             return collect();
         }
 
+        // Check if gold mode was selected - skip equipment choices if so
+        if ($this->isGoldModeSelected($character)) {
+            return collect();
+        }
+
         // Get primary class
         $primaryClass = $character->characterClasses
             ->where('is_primary', true)
@@ -429,5 +434,30 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             ->where('is_magic', false)
             ->orderBy('name')
             ->get(['id', 'name', 'slug', 'full_slug']);
+    }
+
+    /**
+     * Check if the character has selected gold mode for starting equipment.
+     *
+     * When gold mode is selected, equipment choices should be skipped.
+     */
+    private function isGoldModeSelected(Character $character): bool
+    {
+        // Load equipment if not already loaded
+        if (! $character->relationLoaded('equipment')) {
+            $character->load('equipment');
+        }
+
+        $marker = $character->equipment
+            ->where('item_slug', 'equipment_mode_marker')
+            ->first();
+
+        if (! $marker || ! $marker->custom_description) {
+            return false;
+        }
+
+        $metadata = json_decode($marker->custom_description, true);
+
+        return ($metadata['equipment_mode'] ?? null) === 'gold';
     }
 }

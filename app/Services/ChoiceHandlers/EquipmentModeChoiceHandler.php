@@ -140,9 +140,19 @@ class EquipmentModeChoiceHandler extends AbstractChoiceHandler
         $this->clearExistingSelection($character, $source);
         $character->load('equipment');
 
+        $goldAmount = null;
         if ($selectedMode === 'gold') {
             // Get gold amount from selection or use average from metadata
             $goldAmount = (int) ($selection['gold_amount'] ?? ($choice->metadata['starting_wealth']['average'] ?? 0));
+
+            // Guard against invalid gold amount (shouldn't happen with validation, but be defensive)
+            if ($goldAmount <= 0) {
+                throw new InvalidSelectionException(
+                    $choice->id,
+                    'gold',
+                    'Gold amount must be greater than zero'
+                );
+            }
 
             // Add gold to existing inventory entry (merge with background gold, etc.)
             $this->addGoldToInventory($character, $goldAmount);
@@ -157,7 +167,7 @@ class EquipmentModeChoiceHandler extends AbstractChoiceHandler
             'custom_description' => json_encode([
                 'source' => $source,
                 'equipment_mode' => $selectedMode,
-                'gold_amount' => $selectedMode === 'gold' ? ($selection['gold_amount'] ?? ($choice->metadata['starting_wealth']['average'] ?? 0)) : null,
+                'gold_amount' => $goldAmount,
             ]),
         ]);
     }

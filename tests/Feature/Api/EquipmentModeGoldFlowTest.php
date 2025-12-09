@@ -439,4 +439,134 @@ class EquipmentModeGoldFlowTest extends TestCase
         $this->assertEquals(['gold'], $resolvedChoice['selected'], 'Selected should show gold');
         $this->assertEquals(130, $resolvedChoice['metadata']['gold_amount'], 'Metadata should include gold_amount for re-entry');
     }
+
+    #[Test]
+    public function it_validates_gold_amount_cannot_exceed_maximum(): void
+    {
+        $choicesResponse = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment_mode");
+        $choiceId = $choicesResponse->json('data.choices.0.id');
+
+        // Try with excessive gold (max is 500)
+        $response = $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
+            [
+                'selected' => ['gold'],
+                'gold_amount' => 999999,
+            ]
+        );
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['gold_amount']);
+    }
+
+    #[Test]
+    public function it_validates_gold_amount_cannot_be_zero(): void
+    {
+        $choicesResponse = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment_mode");
+        $choiceId = $choicesResponse->json('data.choices.0.id');
+
+        // Try with zero gold
+        $response = $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
+            [
+                'selected' => ['gold'],
+                'gold_amount' => 0,
+            ]
+        );
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['gold_amount']);
+    }
+
+    #[Test]
+    public function it_can_switch_from_gold_to_equipment_mode(): void
+    {
+        $choicesResponse = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment_mode");
+        $choiceId = $choicesResponse->json('data.choices.0.id');
+
+        // Step 1: Select gold mode
+        $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
+            [
+                'selected' => ['gold'],
+                'gold_amount' => 130,
+            ]
+        )->assertOk();
+
+        // Verify gold was added
+        $this->character->refresh();
+        $this->assertEquals(130, $this->character->equipment()->where('item_slug', 'phb:gold-gp')->first()->quantity);
+
+        // Step 2: Undo the gold choice
+        $this->deleteJson("/api/v1/characters/{$this->character->id}/choices/{$choiceId}")
+            ->assertOk();
+
+        // Verify gold was removed
+        $this->character->refresh();
+        $this->assertNull($this->character->equipment()->where('item_slug', 'phb:gold-gp')->first());
+
+        // Step 3: Select equipment mode instead
+        $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
+            ['selected' => ['equipment']]
+        )->assertOk();
+
+        // Verify marker shows equipment mode
+        $this->character->refresh();
+        $marker = $this->character->equipment()->where('item_slug', 'equipment_mode_marker')->first();
+        $this->assertNotNull($marker);
+        $metadata = json_decode($marker->custom_description, true);
+        $this->assertEquals('equipment', $metadata['equipment_mode']);
+        $this->assertNull($metadata['gold_amount']);
+
+        // Step 4: Equipment choices should now be available
+        $equipmentChoices = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment");
+        $this->assertGreaterThan(0, count($equipmentChoices->json('data.choices')));
+    }
+
+    #[Test]
+    public function it_can_switch_from_equipment_to_gold_mode(): void
+    {
+        $choicesResponse = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment_mode");
+        $choiceId = $choicesResponse->json('data.choices.0.id');
+
+        // Step 1: Select equipment mode
+        $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
+            ['selected' => ['equipment']]
+        )->assertOk();
+
+        // Verify marker shows equipment mode
+        $this->character->refresh();
+        $marker = $this->character->equipment()->where('item_slug', 'equipment_mode_marker')->first();
+        $metadata = json_decode($marker->custom_description, true);
+        $this->assertEquals('equipment', $metadata['equipment_mode']);
+
+        // Step 2: Undo and switch to gold
+        $this->deleteJson("/api/v1/characters/{$this->character->id}/choices/{$choiceId}")
+            ->assertOk();
+
+        $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
+            [
+                'selected' => ['gold'],
+                'gold_amount' => 150,
+            ]
+        )->assertOk();
+
+        // Verify gold was added and marker updated
+        $this->character->refresh();
+        $gold = $this->character->equipment()->where('item_slug', 'phb:gold-gp')->first();
+        $this->assertNotNull($gold);
+        $this->assertEquals(150, $gold->quantity);
+
+        $marker = $this->character->equipment()->where('item_slug', 'equipment_mode_marker')->first();
+        $metadata = json_decode($marker->custom_description, true);
+        $this->assertEquals('gold', $metadata['equipment_mode']);
+        $this->assertEquals(150, $metadata['gold_amount']);
+
+        // Equipment choices should be hidden
+        $equipmentChoices = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment");
+        $this->assertCount(0, $equipmentChoices->json('data.choices'));
+    }
 }

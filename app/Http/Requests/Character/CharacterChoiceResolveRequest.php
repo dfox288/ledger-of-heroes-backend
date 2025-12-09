@@ -81,7 +81,8 @@ class CharacterChoiceResolveRequest extends FormRequest
             'item_selections.*.*' => ['string', 'max:150'],
 
             // Equipment mode gold amount (when selecting gold instead of equipment)
-            'gold_amount' => ['sometimes', 'integer', 'min:1'],
+            // Max 500 covers highest possible roll: 5d4 * 10 = 200 max, with buffer for edge cases
+            'gold_amount' => ['sometimes', 'integer', 'min:1', 'max:500'],
 
             // ASI/Feat specific fields
             'type' => ['sometimes', 'string', Rule::in(['asi', 'feat'])],

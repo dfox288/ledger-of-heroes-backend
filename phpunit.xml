@@ -53,7 +53,12 @@
             <file>tests/Unit/Services/EquipmentManagerServiceTest.php</file>
             <file>tests/Unit/Services/CharacterProficiencyServiceTest.php</file>
             <file>tests/Unit/Services/PrerequisiteCheckerServiceTest.php</file>
+            <file>tests/Unit/Services/CharacterLanguageServiceTest.php</file>
             <directory>tests/Unit/Services/ChoiceHandlers</directory>
+            <!-- Feature tests that use RefreshDatabase (not fixture data) -->
+            <file>tests/Feature/Services/AddClassServiceHpTest.php</file>
+            <file>tests/Feature/Services/EquipmentManagerServiceTest.php</file>
+            <directory>tests/Feature/Services/ChoiceHandlers</directory>
         </testsuite>
 
         <!-- Feature-DB: API/Model tests without Meilisearch (approx 30s) -->
@@ -154,8 +159,15 @@
             <file>tests/Feature/Requests/SourceIndexRequestTest.php</file>
             <file>tests/Feature/Requests/SpellSchoolIndexRequestTest.php</file>
             <file>tests/Feature/Requests/ProficiencyTypeIndexRequestTest.php</file>
-            <!-- Search Service tests -->
-            <directory>tests/Feature/Services</directory>
+            <!-- Search Service tests (only search services, not RefreshDatabase tests) -->
+            <file>tests/Feature/Services/BackgroundSearchServiceTest.php</file>
+            <file>tests/Feature/Services/ClassSearchServiceTest.php</file>
+            <file>tests/Feature/Services/FeatSearchServiceTest.php</file>
+            <file>tests/Feature/Services/ItemSearchServiceTest.php</file>
+            <file>tests/Feature/Services/MonsterSearchServiceTest.php</file>
+            <file>tests/Feature/Services/OptionalFeatureSearchServiceTest.php</file>
+            <file>tests/Feature/Services/RaceSearchServiceTest.php</file>
+            <file>tests/Feature/Services/SpellSearchServiceTest.php</file>
         </testsuite>
 
         <!-- Importers: XML import command tests (approx 90s) -->

@@ -43,13 +43,13 @@ class CharacterLanguageServiceTest extends TestCase
 
         CharacterLanguage::create([
             'character_id' => $character->id,
-            'language_id' => $common->id,
+            'language_slug' => $common->full_slug,
             'source' => 'race',
         ]);
 
         CharacterLanguage::create([
             'character_id' => $character->id,
-            'language_id' => $elvish->id,
+            'language_slug' => $elvish->full_slug,
             'source' => 'background',
         ]);
 
@@ -135,7 +135,7 @@ class CharacterLanguageServiceTest extends TestCase
         $character->refresh();
         $this->assertCount(1, $character->languages);
         $this->assertEquals('background', $character->languages->first()->source);
-        $this->assertEquals($draconic->id, $character->languages->first()->language_id);
+        $this->assertEquals($draconic->full_slug, $character->languages->first()->language_slug);
     }
 
     #[Test]
@@ -151,6 +151,7 @@ class CharacterLanguageServiceTest extends TestCase
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat->id,
+            'feature_slug' => $feat->full_slug,
             'source' => 'feat',
             'level_acquired' => 1,
         ]);
@@ -170,7 +171,7 @@ class CharacterLanguageServiceTest extends TestCase
         $character->refresh();
         $this->assertCount(1, $character->languages);
         $this->assertEquals('feat', $character->languages->first()->source);
-        $this->assertEquals($dwarvish->id, $character->languages->first()->language_id);
+        $this->assertEquals($dwarvish->full_slug, $character->languages->first()->language_slug);
     }
 
     #[Test]
@@ -218,6 +219,7 @@ class CharacterLanguageServiceTest extends TestCase
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat->id,
+            'feature_slug' => $feat->full_slug,
             'source' => 'feat',
             'level_acquired' => 1,
         ]);
@@ -289,7 +291,7 @@ class CharacterLanguageServiceTest extends TestCase
         // Assert - only fixed language should be added
         $character->refresh();
         $this->assertCount(1, $character->languages);
-        $this->assertEquals($common->id, $character->languages->first()->language_id);
+        $this->assertEquals($common->full_slug, $character->languages->first()->language_slug);
     }
 
     // =====================
@@ -363,7 +365,7 @@ class CharacterLanguageServiceTest extends TestCase
         // Make the choice
         CharacterLanguage::create([
             'character_id' => $character->id,
-            'language_id' => $elvish->id,
+            'language_slug' => $elvish->full_slug,
             'source' => 'race',
         ]);
 
@@ -411,6 +413,7 @@ class CharacterLanguageServiceTest extends TestCase
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat->id,
+            'feature_slug' => $feat->full_slug,
             'source' => 'feat',
             'level_acquired' => 1,
         ]);
@@ -463,10 +466,10 @@ class CharacterLanguageServiceTest extends TestCase
         $choices = $this->service->getPendingChoices($character);
 
         // Assert - Common should NOT be in options (already known)
-        $optionIds = collect($choices['race']['choices']['options'])->pluck('id')->toArray();
-        $this->assertNotContains($common->id, $optionIds);
-        $this->assertContains($elvish->id, $optionIds);
-        $this->assertContains($dwarvish->id, $optionIds);
+        $optionSlugs = collect($choices['race']['choices']['options'])->pluck('full_slug')->toArray();
+        $this->assertNotContains($common->full_slug, $optionSlugs);
+        $this->assertContains($elvish->full_slug, $optionSlugs);
+        $this->assertContains($dwarvish->full_slug, $optionSlugs);
     }
 
     #[Test]
@@ -555,12 +558,12 @@ class CharacterLanguageServiceTest extends TestCase
         $this->service->populateFixed($character);
 
         // Act
-        $this->service->makeChoice($character, 'race', [$elvish->id]);
+        $this->service->makeChoice($character, 'race', [$elvish->full_slug]);
 
         // Assert
         $character->refresh();
         $this->assertCount(2, $character->languages); // Common + Elvish
-        $this->assertTrue($character->languages->pluck('language_id')->contains($elvish->id));
+        $this->assertTrue($character->languages->pluck('language_slug')->contains($elvish->full_slug));
     }
 
     #[Test]
@@ -582,7 +585,7 @@ class CharacterLanguageServiceTest extends TestCase
         $character = Character::factory()->withBackground($background)->create();
 
         // Act
-        $this->service->makeChoice($character, 'background', [$draconic->id, $infernal->id]);
+        $this->service->makeChoice($character, 'background', [$draconic->full_slug, $infernal->full_slug]);
 
         // Assert
         $character->refresh();
@@ -602,6 +605,7 @@ class CharacterLanguageServiceTest extends TestCase
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat->id,
+            'feature_slug' => $feat->full_slug,
             'source' => 'feat',
             'level_acquired' => 1,
         ]);
@@ -615,7 +619,7 @@ class CharacterLanguageServiceTest extends TestCase
         ]);
 
         // Act
-        $this->service->makeChoice($character, 'feat', [$dwarvish->id]);
+        $this->service->makeChoice($character, 'feat', [$dwarvish->full_slug]);
 
         // Assert
         $character->refresh();
@@ -634,7 +638,7 @@ class CharacterLanguageServiceTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid source: invalid_source');
 
-        $this->service->makeChoice($character, 'invalid_source', [$language->id]);
+        $this->service->makeChoice($character, 'invalid_source', [$language->full_slug]);
     }
 
     #[Test]
@@ -659,7 +663,7 @@ class CharacterLanguageServiceTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Must choose exactly 1 languages, got 2');
 
-        $this->service->makeChoice($character, 'race', [$elvish->id, $dwarvish->id]);
+        $this->service->makeChoice($character, 'race', [$elvish->full_slug, $dwarvish->full_slug]);
     }
 
     #[Test]
@@ -680,9 +684,9 @@ class CharacterLanguageServiceTest extends TestCase
 
         // Assert & Act
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('One or more language IDs are invalid');
+        $this->expectExceptionMessage('One or more language slugs are invalid');
 
-        $this->service->makeChoice($character, 'race', [99999]); // Non-existent ID
+        $this->service->makeChoice($character, 'race', ['nonexistent:language']); // Non-existent slug
     }
 
     #[Test]
@@ -712,9 +716,9 @@ class CharacterLanguageServiceTest extends TestCase
 
         // Assert & Act - trying to choose Common which is already known
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage("Language ID {$common->id} is already known");
+        $this->expectExceptionMessage("Language {$common->full_slug} is already known");
 
-        $this->service->makeChoice($character, 'race', [$common->id]);
+        $this->service->makeChoice($character, 'race', [$common->full_slug]);
     }
 
     #[Test]
@@ -738,7 +742,7 @@ class CharacterLanguageServiceTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('No language choices available for race');
 
-        $this->service->makeChoice($character, 'race', [$language->id]);
+        $this->service->makeChoice($character, 'race', [$language->full_slug]);
     }
 
     #[Test]
@@ -760,18 +764,18 @@ class CharacterLanguageServiceTest extends TestCase
         $character = Character::factory()->withRace($race)->create();
 
         // Act - make first choice
-        $this->service->makeChoice($character, 'race', [$elvish->id]);
+        $this->service->makeChoice($character, 'race', [$elvish->full_slug]);
         $character->refresh();
         $this->assertCount(1, $character->languages);
-        $this->assertEquals($elvish->id, $character->languages->first()->language_id);
+        $this->assertEquals($elvish->full_slug, $character->languages->first()->language_slug);
 
         // Act - change choice to different language
-        $this->service->makeChoice($character, 'race', [$dwarvish->id]);
+        $this->service->makeChoice($character, 'race', [$dwarvish->full_slug]);
         $character->refresh();
 
         // Assert - should have replaced, not added
         $this->assertCount(1, $character->languages);
-        $this->assertEquals($dwarvish->id, $character->languages->first()->language_id);
+        $this->assertEquals($dwarvish->full_slug, $character->languages->first()->language_slug);
     }
 
     #[Test]
@@ -792,7 +796,7 @@ class CharacterLanguageServiceTest extends TestCase
     public function it_handles_character_without_background(): void
     {
         // Arrange
-        $character = Character::factory()->create(['background_id' => null]);
+        $character = Character::factory()->create(['background_slug' => null]);
 
         // Act
         $this->service->populateFixed($character);
@@ -829,6 +833,7 @@ class CharacterLanguageServiceTest extends TestCase
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat1->id,
+            'feature_slug' => $feat1->full_slug,
             'source' => 'feat',
             'level_acquired' => 1,
         ]);
@@ -837,6 +842,7 @@ class CharacterLanguageServiceTest extends TestCase
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat2->id,
+            'feature_slug' => $feat2->full_slug,
             'source' => 'feat',
             'level_acquired' => 4,
         ]);

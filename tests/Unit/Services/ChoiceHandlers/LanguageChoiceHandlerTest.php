@@ -425,3 +425,47 @@ it('resolves slugs via language service', function () {
 
     $this->handler->resolve($this->character, $choice, ['selected' => ['phb:common', 'phb:dwarvish']]);
 });
+
+it('includes is_learnable field in language options', function () {
+    $this->character->shouldReceive('getAttribute')->with('race')->andReturn((object) [
+        'full_slug' => 'phb:high-elf',
+        'name' => 'High Elf',
+    ]);
+    $this->character->shouldReceive('getAttribute')->with('background')->andReturn(null);
+
+    // Mock language service response with is_learnable field
+    $this->languageService->shouldReceive('getPendingChoices')
+        ->with($this->character)
+        ->andReturn([
+            'race' => [
+                'known' => [],
+                'choices' => [
+                    'quantity' => 1,
+                    'remaining' => 1,
+                    'selected' => [],
+                    'options' => [
+                        ['full_slug' => 'phb:common', 'name' => 'Common', 'slug' => 'common', 'script' => 'Common', 'is_learnable' => true],
+                        ['full_slug' => 'phb:dwarvish', 'name' => 'Dwarvish', 'slug' => 'dwarvish', 'script' => 'Dwarvish', 'is_learnable' => true],
+                    ],
+                ],
+            ],
+            'background' => [
+                'known' => [],
+                'choices' => ['quantity' => 0, 'remaining' => 0, 'selected' => [], 'options' => []],
+            ],
+            'feat' => [
+                'known' => [],
+                'choices' => ['quantity' => 0, 'remaining' => 0, 'selected' => [], 'options' => []],
+            ],
+        ]);
+
+    $choices = $this->handler->getChoices($this->character);
+    $options = $choices->first()->options;
+
+    // Verify is_learnable is included in each option
+    expect($options)->toHaveCount(2);
+    expect($options[0])->toHaveKey('is_learnable');
+    expect($options[0]['is_learnable'])->toBeTrue();
+    expect($options[1])->toHaveKey('is_learnable');
+    expect($options[1]['is_learnable'])->toBeTrue();
+});

@@ -225,14 +225,17 @@ class CharacterLanguageService
 
         $remaining = max(0, $quantity - count($selectedFromSource));
 
-        // Build options (exclude already known languages)
+        // Build options (exclude already known languages and non-learnable languages)
+        // Non-learnable languages (Thieves' Cant, Druidic) can only be granted by class features
         $options = $allLanguages
             ->whereNotIn('full_slug', $knownLanguageSlugs)
+            ->where('is_learnable', true)
             ->map(fn ($lang) => [
                 'full_slug' => $lang->full_slug,
                 'name' => $lang->name,
                 'slug' => $lang->slug,
                 'script' => $lang->script,
+                'is_learnable' => $lang->is_learnable,
             ])
             ->values()
             ->toArray();
@@ -308,14 +311,17 @@ class CharacterLanguageService
 
         $remaining = max(0, $totalQuantity - count($selectedFromSource));
 
-        // Build options (exclude already known languages)
+        // Build options (exclude already known languages and non-learnable languages)
+        // Non-learnable languages (Thieves' Cant, Druidic) can only be granted by class features
         $options = $allLanguages
             ->whereNotIn('full_slug', $knownLanguageSlugs)
+            ->where('is_learnable', true)
             ->map(fn ($lang) => [
                 'full_slug' => $lang->full_slug,
                 'name' => $lang->name,
                 'slug' => $lang->slug,
                 'script' => $lang->script,
+                'is_learnable' => $lang->is_learnable,
             ])
             ->values()
             ->toArray();

@@ -45,12 +45,14 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
             $sourceName = $this->getSourceName($character, $source);
 
             // Build options with consistent structure using full_slug
+            // is_learnable is included for API documentation purposes (pre-filtered by service)
             $options = collect($choiceData['options'] ?? [])
                 ->map(fn ($opt) => [
                     'full_slug' => $opt['full_slug'] ?? $opt['slug'],
                     'slug' => $opt['slug'],
                     'name' => $opt['name'],
                     'script' => $opt['script'] ?? null,
+                    'is_learnable' => $opt['is_learnable'] ?? true,
                 ])
                 ->values()
                 ->all();

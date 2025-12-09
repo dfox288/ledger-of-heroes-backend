@@ -50,7 +50,7 @@ final class RaceSearchService extends AbstractSearchService
         'parent.entitySpellRecords.characterClass',
         'parent.senses.sense',
         'parent.tags',
-        'subraces',
+        'subraces.sources.source',
         'proficiencies.skill.abilityScore',
         'proficiencies.item',
         'proficiencies.abilityScore',

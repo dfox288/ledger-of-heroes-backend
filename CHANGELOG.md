@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Issue #399**: Subraces missing source information in API response
+  - RaceSearchService now eager-loads `subraces.sources.source` relationship
+  - Nested subraces in race response now include proper source book information
+  - Frontend can now filter subraces by source book correctly
+
 ### Added
 
 - **Issue #394**: Add `size` and `feats` to character summary `pending_choices`

@@ -60,6 +60,20 @@ it('returns empty collection when character has no class', function () {
 });
 
 it('returns equipment choices for level 1 character', function () {
+    // Mock equipment mode check - equipment relation not loaded, will be loaded
+    $this->character->shouldReceive('relationLoaded')
+        ->with('equipment')
+        ->andReturn(true);
+
+    // Mock equipment collection for gold mode check (empty = equipment mode, not gold)
+    $emptyEquipment = new EloquentCollection([]);
+    $this->character->shouldReceive('getAttribute')
+        ->with('equipment')
+        ->andReturn($emptyEquipment);
+    $this->character->shouldReceive('__get')
+        ->with('equipment')
+        ->andReturn($emptyEquipment);
+
     // Mock level 1 character with Fighter class
     $primaryClass = Mockery::mock(CharacterClass::class);
     $primaryClass->shouldReceive('getAttribute')->with('id')->andReturn(5);

@@ -9,11 +9,13 @@ use App\Http\Requests\Character\CharacterIndexRequest;
 use App\Http\Requests\Character\CharacterShowRequest;
 use App\Http\Requests\Character\CharacterStoreRequest;
 use App\Http\Requests\Character\CharacterUpdateRequest;
+use App\Http\Resources\AbilityBonusCollectionResource;
 use App\Http\Resources\CharacterResource;
 use App\Http\Resources\CharacterStatsResource;
 use App\Http\Resources\CharacterSummaryResource;
 use App\Models\Character;
 use App\Models\CharacterClassPivot;
+use App\Services\AbilityBonusService;
 use App\Services\CharacterLanguageService;
 use App\Services\CharacterProficiencyService;
 use App\Services\CharacterStatCalculator;
@@ -37,7 +39,8 @@ class CharacterController extends Controller
         private HitDiceService $hitDiceService,
         private EquipmentManagerService $equipmentService,
         private HitPointService $hitPointService,
-        private FeatChoiceService $featChoiceService
+        private FeatChoiceService $featChoiceService,
+        private AbilityBonusService $abilityBonusService
     ) {}
 
     /**
@@ -386,5 +389,42 @@ class CharacterController extends Controller
         );
 
         return new CharacterSummaryResource($summary);
+    }
+
+    /**
+     * Get all ability score bonuses for a character
+     *
+     * Returns bonuses from race (fixed and choice) and feats,
+     * with metadata about source and whether the bonus can be changed.
+     *
+     * Use this endpoint to display ability score bonuses in a character sheet
+     * or to show the source of each bonus for transparency.
+     *
+     * @operationId getCharacterAbilityBonuses
+     *
+     * @tags Characters
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/characters/1/ability-bonuses
+     * ```
+     *
+     * **Response includes:**
+     * - Total bonuses by ability (STR, DEX, CON, INT, WIS, CHA)
+     * - Individual bonus entries with:
+     *   - Ability name and value
+     *   - Source (race name or feat name)
+     *   - Source type (race or feat)
+     *   - Whether bonus can be changed
+     *   - Entity ID for tracking
+     */
+    public function abilityBonuses(Character $character): AbilityBonusCollectionResource
+    {
+        // Eager-load race and parent race to avoid N+1 queries in service
+        $character->loadMissing(['race.parent', 'race.modifiers.abilityScore', 'race.parent.modifiers.abilityScore']);
+
+        $result = $this->abilityBonusService->getBonuses($character);
+
+        return new AbilityBonusCollectionResource($result);
     }
 }

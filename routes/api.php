@@ -258,6 +258,8 @@ Route::prefix('v1')->group(function () {
         ->name('characters.stats');
     Route::get('characters/{character}/summary', [CharacterController::class, 'summary'])
         ->name('characters.summary');
+    Route::get('characters/{character}/ability-bonuses', [CharacterController::class, 'abilityBonuses'])
+        ->name('characters.ability-bonuses');
     Route::get('characters/{character}/validate', [CharacterValidationController::class, 'show'])
         ->name('characters.validate');
     Route::get('characters/{character}/export', [CharacterExportController::class, 'export'])

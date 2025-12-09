@@ -54,6 +54,7 @@
             <file>tests/Unit/Services/CharacterProficiencyServiceTest.php</file>
             <file>tests/Unit/Services/PrerequisiteCheckerServiceTest.php</file>
             <file>tests/Unit/Services/CharacterLanguageServiceTest.php</file>
+            <file>tests/Unit/Services/AbilityBonusServiceTest.php</file>
             <directory>tests/Unit/Services/ChoiceHandlers</directory>
             <!-- Feature tests that use RefreshDatabase (not fixture data) -->
             <file>tests/Feature/Services/AddClassServiceHpTest.php</file>
@@ -115,6 +116,8 @@
             <file>tests/Feature/Api/FeatureSelectionApiTest.php</file>
             <!-- Character Validation API tests -->
             <file>tests/Feature/Api/CharacterValidationApiTest.php</file>
+            <!-- Character Ability Bonuses API tests -->
+            <file>tests/Feature/Api/CharacterAbilityBonusesApiTest.php</file>
         </testsuite>
 
         <!-- Feature-Search: Unified Meilisearch tests using fixture data (approx 120s) -->

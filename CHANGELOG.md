@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #403**: Add `/characters/{id}/ability-bonuses` endpoint
+  - Returns all ability score bonuses from race (fixed and choice) and feats
+  - Includes metadata: `source_type`, `source_name`, `source_slug`, `is_choice`, `choice_resolved`, `modifier_id`
+  - Calculates totals per ability (only resolved bonuses counted)
+  - Handles subrace inheritance (parent race + subrace modifiers)
+  - Simplifies frontend by centralizing bonus aggregation (previously required multiple API calls)
+
 - **Issue #402**: Add `/characters/{id}/available-feats` endpoint
   - New endpoint returns feats the character qualifies for based on prerequisites
   - Supports `?source=race` parameter for Variant Human/Custom Lineage feat selection

@@ -369,6 +369,68 @@ class EquipmentModeChoiceHandlerTest extends TestCase
     }
 
     #[Test]
+    public function choice_metadata_includes_gold_amount_when_gold_was_selected(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'full_slug' => 'phb:fighter',
+            'starting_wealth_dice' => '5d4',
+            'starting_wealth_multiplier' => 10,
+        ]);
+
+        // Create equipment choice
+        $item = Item::factory()->create();
+        $entityItem = EntityItem::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'is_choice' => true,
+            'choice_group' => 'choice_1',
+            'choice_option' => 1,
+            'description' => 'chain mail',
+            'quantity' => 1,
+        ]);
+        EquipmentChoiceItem::create([
+            'entity_item_id' => $entityItem->id,
+            'item_id' => $item->id,
+            'quantity' => 1,
+            'sort_order' => 0,
+        ]);
+
+        $character = Character::factory()->create();
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Create existing equipment_mode marker with gold mode and gold_amount
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'equipment_mode_marker',
+            'quantity' => 0,
+            'equipped' => false,
+            'custom_description' => json_encode([
+                'source' => 'class',
+                'equipment_mode' => 'gold',
+                'gold_amount' => 130,
+            ]),
+        ]);
+
+        $character->load(['characterClasses.characterClass', 'equipment']);
+
+        $choices = $this->handler->getChoices($character);
+
+        expect($choices)->toHaveCount(1);
+
+        $choice = $choices->first();
+        expect($choice->remaining)->toBe(0)
+            ->and($choice->selected)->toBe(['gold'])
+            ->and($choice->metadata)->toHaveKey('gold_amount')
+            ->and($choice->metadata['gold_amount'])->toBe(130);
+    }
+
+    #[Test]
     public function can_undo_equipment_mode_choice_at_level_1(): void
     {
         $character = Character::factory()->create();
@@ -441,20 +503,15 @@ class EquipmentModeChoiceHandlerTest extends TestCase
             'is_primary' => true,
         ]);
 
-        // Create gold equipment from previous gold choice
+        // Create gold equipment (merged entry - no custom_description with equipment_mode)
         CharacterEquipment::create([
             'character_id' => $character->id,
             'item_slug' => 'phb:gold-gp',
             'quantity' => 125,
             'equipped' => false,
-            'custom_description' => json_encode([
-                'source' => 'class',
-                'equipment_mode' => 'gold',
-                'gold_amount' => 125,
-            ]),
         ]);
 
-        // Create marker
+        // Create marker (tracks the gold_amount for undo)
         CharacterEquipment::create([
             'character_id' => $character->id,
             'item_slug' => 'equipment_mode_marker',
@@ -489,11 +546,138 @@ class EquipmentModeChoiceHandlerTest extends TestCase
 
         $character->refresh();
 
-        // Gold should be removed
+        // Gold should be removed (was only starting wealth, no background gold)
         expect($character->equipment->where('item_slug', 'phb:gold-gp')->count())->toBe(0);
 
         // Marker should be removed
         expect($character->equipment->where('item_slug', 'equipment_mode_marker')->count())->toBe(0);
+    }
+
+    #[Test]
+    public function undoing_gold_choice_subtracts_from_merged_gold(): void
+    {
+        $character = Character::factory()->create();
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => 'phb:fighter',
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Create merged gold entry (10 from background + 125 from starting wealth = 135)
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'phb:gold-gp',
+            'quantity' => 135,
+            'equipped' => false,
+        ]);
+
+        // Create marker that tracks the starting wealth amount
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'equipment_mode_marker',
+            'quantity' => 0,
+            'equipped' => false,
+            'custom_description' => json_encode([
+                'source' => 'class',
+                'equipment_mode' => 'gold',
+                'gold_amount' => 125,
+            ]),
+        ]);
+
+        $character->load(['characterClasses', 'equipment']);
+
+        $choice = new PendingChoice(
+            id: 'equipment_mode|class|phb:fighter|1|starting_equipment',
+            type: 'equipment_mode',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Fighter',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 0,
+            selected: ['gold'],
+            options: [],
+            optionsEndpoint: null,
+            metadata: [],
+        );
+
+        $this->handler->undo($character, $choice);
+
+        $character->refresh();
+
+        // Gold should be reduced to background amount only (135 - 125 = 10)
+        $goldEntry = $character->equipment->where('item_slug', 'phb:gold-gp')->first();
+        expect($goldEntry)->not->toBeNull()
+            ->and($goldEntry->quantity)->toBe(10);
+
+        // Marker should be removed
+        expect($character->equipment->where('item_slug', 'equipment_mode_marker')->count())->toBe(0);
+    }
+
+    #[Test]
+    public function resolving_with_gold_merges_with_existing_background_gold(): void
+    {
+        Item::factory()->create([
+            'name' => 'Gold (gp)',
+            'slug' => 'gold-gp',
+            'full_slug' => 'phb:gold-gp',
+        ]);
+
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'full_slug' => 'phb:fighter',
+            'starting_wealth_dice' => '5d4',
+            'starting_wealth_multiplier' => 10,
+        ]);
+
+        $character = Character::factory()->create();
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Existing background gold
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'phb:gold-gp',
+            'quantity' => 15,
+            'equipped' => false,
+            'custom_description' => json_encode(['source' => 'background']),
+        ]);
+
+        $character->load('equipment');
+
+        $choice = new PendingChoice(
+            id: 'equipment_mode|class|phb:fighter|1|starting_equipment',
+            type: 'equipment_mode',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Fighter',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [
+                ['value' => 'equipment', 'label' => 'Take Starting Equipment'],
+                ['value' => 'gold', 'label' => 'Take Starting Gold'],
+            ],
+            optionsEndpoint: null,
+            metadata: ['starting_wealth' => ['dice' => '5d4', 'multiplier' => 10, 'average' => 125]],
+        );
+
+        $this->handler->resolve($character, $choice, ['selected' => ['gold'], 'gold_amount' => 130]);
+
+        $character->refresh();
+
+        // Should have single merged gold entry (15 + 130 = 145)
+        $goldEntries = $character->equipment->where('item_slug', 'phb:gold-gp');
+        expect($goldEntries)->toHaveCount(1);
+        expect($goldEntries->first()->quantity)->toBe(145);
     }
 
     #[Test]

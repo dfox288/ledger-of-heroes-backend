@@ -68,9 +68,18 @@ class EquipmentModeChoiceHandler extends AbstractChoiceHandler
         }
 
         // Check if already resolved (uses trait method)
-        $existingSelection = $this->getEquipmentModeSelection($character);
+        $existingMetadata = $this->getEquipmentModeMetadata($character);
+        $existingSelection = $existingMetadata['equipment_mode'] ?? null;
         $selected = $existingSelection ? [$existingSelection] : [];
         $remaining = $existingSelection ? 0 : 1;
+
+        // Build metadata - include gold_amount if choice was resolved with gold mode
+        $metadata = [
+            'starting_wealth' => $startingWealth,
+        ];
+        if ($existingSelection === 'gold' && isset($existingMetadata['gold_amount'])) {
+            $metadata['gold_amount'] = $existingMetadata['gold_amount'];
+        }
 
         $choice = new PendingChoice(
             id: $this->generateChoiceId('equipment_mode', 'class', $primaryClass->full_slug, 1, 'starting_equipment'),
@@ -96,9 +105,7 @@ class EquipmentModeChoiceHandler extends AbstractChoiceHandler
                 ],
             ],
             optionsEndpoint: null,
-            metadata: [
-                'starting_wealth' => $startingWealth,
-            ],
+            metadata: $metadata,
         );
 
         return collect([$choice]);
@@ -135,20 +142,10 @@ class EquipmentModeChoiceHandler extends AbstractChoiceHandler
 
         if ($selectedMode === 'gold') {
             // Get gold amount from selection or use average from metadata
-            $goldAmount = $selection['gold_amount'] ?? ($choice->metadata['starting_wealth']['average'] ?? 0);
+            $goldAmount = (int) ($selection['gold_amount'] ?? ($choice->metadata['starting_wealth']['average'] ?? 0));
 
-            // Add gold to inventory
-            CharacterEquipment::create([
-                'character_id' => $character->id,
-                'item_slug' => self::GOLD_ITEM_SLUG,
-                'quantity' => (int) $goldAmount,
-                'equipped' => false,
-                'custom_description' => json_encode([
-                    'source' => $source,
-                    'equipment_mode' => 'gold',
-                    'gold_amount' => (int) $goldAmount,
-                ]),
-            ]);
+            // Add gold to existing inventory entry (merge with background gold, etc.)
+            $this->addGoldToInventory($character, $goldAmount);
         }
 
         // Store marker to track the choice
@@ -188,17 +185,66 @@ class EquipmentModeChoiceHandler extends AbstractChoiceHandler
      */
     private function clearExistingSelection(Character $character, string $source): void
     {
-        // Remove marker
-        $character->equipment()
+        // Get existing marker to find gold_amount to subtract
+        $marker = $character->equipment()
             ->where('item_slug', self::EQUIPMENT_MODE_MARKER)
             ->whereJsonContains('custom_description->source', $source)
-            ->delete();
+            ->first();
 
-        // Remove gold from equipment_mode choice (if gold was selected)
-        $character->equipment()
+        if ($marker) {
+            $metadata = json_decode($marker->custom_description, true);
+
+            // If gold mode was selected, subtract that amount from inventory
+            if (($metadata['equipment_mode'] ?? null) === 'gold' && isset($metadata['gold_amount'])) {
+                $this->subtractGoldFromInventory($character, (int) $metadata['gold_amount']);
+            }
+
+            // Remove marker
+            $marker->delete();
+        }
+    }
+
+    /**
+     * Add gold to the character's inventory (merges with existing gold entry).
+     */
+    private function addGoldToInventory(Character $character, int $amount): void
+    {
+        $existing = $character->equipment()
             ->where('item_slug', self::GOLD_ITEM_SLUG)
-            ->whereJsonContains('custom_description->equipment_mode', 'gold')
-            ->whereJsonContains('custom_description->source', $source)
-            ->delete();
+            ->first();
+
+        if ($existing) {
+            $existing->increment('quantity', $amount);
+        } else {
+            CharacterEquipment::create([
+                'character_id' => $character->id,
+                'item_slug' => self::GOLD_ITEM_SLUG,
+                'quantity' => $amount,
+                'equipped' => false,
+            ]);
+        }
+    }
+
+    /**
+     * Subtract gold from the character's inventory.
+     * Deletes the entry if quantity reaches zero or below.
+     */
+    private function subtractGoldFromInventory(Character $character, int $amount): void
+    {
+        $existing = $character->equipment()
+            ->where('item_slug', self::GOLD_ITEM_SLUG)
+            ->first();
+
+        if (! $existing) {
+            return;
+        }
+
+        $newQuantity = $existing->quantity - $amount;
+
+        if ($newQuantity <= 0) {
+            $existing->delete();
+        } else {
+            $existing->update(['quantity' => $newQuantity]);
+        }
     }
 }

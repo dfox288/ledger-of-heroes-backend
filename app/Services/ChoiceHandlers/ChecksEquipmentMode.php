@@ -36,6 +36,18 @@ trait ChecksEquipmentMode
      */
     protected function getEquipmentModeSelection(Character $character): ?string
     {
+        $metadata = $this->getEquipmentModeMetadata($character);
+
+        return $metadata['equipment_mode'] ?? null;
+    }
+
+    /**
+     * Get the full equipment mode metadata from the marker.
+     *
+     * @return array{equipment_mode?: string, source?: string, gold_amount?: int}|null
+     */
+    protected function getEquipmentModeMetadata(Character $character): ?array
+    {
         // Load equipment if not already loaded
         if (! $character->relationLoaded('equipment')) {
             $character->load('equipment');
@@ -54,6 +66,6 @@ trait ChecksEquipmentMode
             return null;
         }
 
-        return $metadata['equipment_mode'] ?? null;
+        return $metadata;
     }
 }

@@ -21,7 +21,7 @@ use Illuminate\Support\Collection;
  */
 class EquipmentModeChoiceHandler extends AbstractChoiceHandler
 {
-    private const EQUIPMENT_MODE_MARKER = 'equipment_mode_marker';
+    use ChecksEquipmentMode;
 
     private const GOLD_ITEM_SLUG = 'phb:gold-gp';
 
@@ -67,8 +67,8 @@ class EquipmentModeChoiceHandler extends AbstractChoiceHandler
             return collect();
         }
 
-        // Check if already resolved
-        $existingSelection = $this->getExistingSelection($character);
+        // Check if already resolved (uses trait method)
+        $existingSelection = $this->getEquipmentModeSelection($character);
         $selected = $existingSelection ? [$existingSelection] : [];
         $remaining = $existingSelection ? 0 : 1;
 
@@ -129,8 +129,9 @@ class EquipmentModeChoiceHandler extends AbstractChoiceHandler
         $parsed = $this->parseChoiceId($choice->id);
         $source = $parsed['source'];
 
-        // Clear any existing equipment mode selection
+        // Clear any existing equipment mode selection and refresh collection
         $this->clearExistingSelection($character, $source);
+        $character->load('equipment');
 
         if ($selectedMode === 'gold') {
             // Get gold amount from selection or use average from metadata
@@ -180,24 +181,6 @@ class EquipmentModeChoiceHandler extends AbstractChoiceHandler
         $this->clearExistingSelection($character, $source);
 
         $character->load('equipment');
-    }
-
-    /**
-     * Get the existing equipment mode selection for a character.
-     */
-    private function getExistingSelection(Character $character): ?string
-    {
-        $marker = $character->equipment
-            ->where('item_slug', self::EQUIPMENT_MODE_MARKER)
-            ->first();
-
-        if (! $marker || ! $marker->custom_description) {
-            return null;
-        }
-
-        $metadata = json_decode($marker->custom_description, true);
-
-        return $metadata['equipment_mode'] ?? null;
     }
 
     /**

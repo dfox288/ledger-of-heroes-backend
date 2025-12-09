@@ -34,11 +34,14 @@ trait MapsApiFields
      *
      * Call this method from prepareForValidation() to apply mappings.
      * Requires $fieldMappings property to be defined in the using class.
+     *
+     * Note: Does not overwrite if the database field is already present
+     * (allows backwards-compatible APIs where clients may send either field).
      */
     protected function mapApiFields(): void
     {
         foreach ($this->fieldMappings as $apiField => $dbColumn) {
-            if ($this->has($apiField)) {
+            if ($this->has($apiField) && ! $this->has($dbColumn)) {
                 $this->merge([$dbColumn => $this->input($apiField)]);
             }
         }

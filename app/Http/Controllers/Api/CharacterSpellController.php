@@ -124,7 +124,8 @@ class CharacterSpellController extends Controller
     {
         $validated = $request->validated();
 
-        $spellSlug = $validated['spell_slug'];
+        // Use spell_slug (from mapping or direct backwards-compat input)
+        $spellSlug = $validated['spell_slug'] ?? $validated['spell'];
         $spell = Spell::where('full_slug', $spellSlug)->first();
         $source = $validated['source'] ?? 'class';
 

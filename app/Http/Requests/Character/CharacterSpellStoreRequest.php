@@ -26,9 +26,10 @@ class CharacterSpellStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Accept 'spell' (preferred) or 'spell_slug' (backwards compat)
+            // Accept 'spell' (preferred, mapped to spell_slug) or 'spell_slug' (backwards compat)
             // No exists validation - dangling references allowed per #288
-            'spell_slug' => ['required', 'string', 'max:150'],
+            'spell' => ['required_without:spell_slug', 'string', 'max:150'],
+            'spell_slug' => ['required_without:spell', 'string', 'max:150'],
             'source' => ['sometimes', 'string', 'in:class,race,feat,item,other'],
         ];
     }

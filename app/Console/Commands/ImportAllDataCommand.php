@@ -358,39 +358,35 @@ class ImportAllDataCommand extends Command
         // Get all subclasses (classes with parent_class_id)
         $subclasses = \App\Models\CharacterClass::whereNotNull('parent_class_id')->get();
 
-        $linkedCount = 0;
-        $totalSpells = 0;
+        $linkedFeatureIds = [];
 
         foreach ($subclasses as $subclass) {
-            // Get features that might have spell tables
+            // Get level 1 features that might have spell tables (domain spells, circle spells, etc.)
+            // Must group OR conditions to ensure level constraint applies to all
             $features = $subclass->features()
                 ->where('level', 1)
-                ->where('feature_name', 'like', '%Domain%')
-                ->orWhere('feature_name', 'like', '%Circle%')
-                ->orWhere('feature_name', 'like', '%Expanded Spells%')
-                ->orWhere('feature_name', 'like', '%Patron%')
+                ->where(function ($query) {
+                    $query->where('feature_name', 'like', '%Domain%')
+                        ->orWhere('feature_name', 'like', '%Circle%')
+                        ->orWhere('feature_name', 'like', '%Expanded Spells%')
+                        ->orWhere('feature_name', 'like', '%Patron%');
+                })
                 ->get();
 
             foreach ($features as $feature) {
                 if ($importer->hasSubclassSpellTable($feature->description)) {
-                    $beforeCount = \App\Models\EntitySpell::where('reference_type', \App\Models\ClassFeature::class)
-                        ->where('reference_id', $feature->id)
-                        ->count();
-
                     $importer->importSubclassSpells($feature, $feature->description);
-
-                    $afterCount = \App\Models\EntitySpell::where('reference_type', \App\Models\ClassFeature::class)
-                        ->where('reference_id', $feature->id)
-                        ->count();
-
-                    if ($afterCount > $beforeCount) {
-                        $linkedCount++;
-                        $totalSpells += $afterCount;
-                    }
+                    $linkedFeatureIds[] = $feature->id;
                 }
             }
         }
 
+        // Single query for total count instead of per-feature queries
+        $totalSpells = \App\Models\EntitySpell::whereIn('reference_id', $linkedFeatureIds)
+            ->where('reference_type', \App\Models\ClassFeature::class)
+            ->count();
+
+        $linkedCount = count($linkedFeatureIds);
         $this->info("  ✓ Linked spells for {$linkedCount} subclass feature(s) ({$totalSpells} spell associations)");
     }
 

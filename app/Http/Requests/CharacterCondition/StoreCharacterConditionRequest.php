@@ -2,25 +2,27 @@
 
 namespace App\Http\Requests\CharacterCondition;
 
+use App\Http\Requests\Concerns\MapsApiFields;
 use App\Models\Condition;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreCharacterConditionRequest extends FormRequest
 {
+    use MapsApiFields;
+
+    protected array $fieldMappings = [
+        'condition' => 'condition_slug',
+    ];
+
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Map API field names to internal database column names.
-     */
     protected function prepareForValidation(): void
     {
-        if ($this->has('condition')) {
-            $this->merge(['condition_slug' => $this->input('condition')]);
-        }
+        $this->mapApiFields();
     }
 
     public function rules(): array

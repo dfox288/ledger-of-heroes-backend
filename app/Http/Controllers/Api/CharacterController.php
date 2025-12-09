@@ -6,7 +6,6 @@ use App\DTOs\CharacterStatsDTO;
 use App\DTOs\CharacterSummaryDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Character\CharacterIndexRequest;
-use App\Http\Requests\Character\CharacterShowRequest;
 use App\Http\Requests\Character\CharacterStoreRequest;
 use App\Http\Requests\Character\CharacterUpdateRequest;
 use App\Http\Resources\AbilityBonusCollectionResource;
@@ -166,7 +165,7 @@ class CharacterController extends Controller
      * - Relationships: race, class, background
      * - Validation status: is_complete, missing fields
      */
-    public function show(CharacterShowRequest $request, Character $character): CharacterResource
+    public function show(Character $character): CharacterResource
     {
         $character->load([
             'race',

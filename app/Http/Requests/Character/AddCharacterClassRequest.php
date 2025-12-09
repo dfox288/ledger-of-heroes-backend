@@ -2,23 +2,25 @@
 
 namespace App\Http\Requests\Character;
 
+use App\Http\Requests\Concerns\MapsApiFields;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AddCharacterClassRequest extends FormRequest
 {
+    use MapsApiFields;
+
+    protected array $fieldMappings = [
+        'class' => 'class_slug',
+    ];
+
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Map API field names to internal database column names.
-     */
     protected function prepareForValidation(): void
     {
-        if ($this->has('class')) {
-            $this->merge(['class_slug' => $this->input('class')]);
-        }
+        $this->mapApiFields();
     }
 
     public function rules(): array

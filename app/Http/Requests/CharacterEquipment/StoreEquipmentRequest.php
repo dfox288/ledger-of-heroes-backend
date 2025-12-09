@@ -2,27 +2,26 @@
 
 namespace App\Http\Requests\CharacterEquipment;
 
+use App\Http\Requests\Concerns\MapsApiFields;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
 class StoreEquipmentRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    use MapsApiFields;
+
+    protected array $fieldMappings = [
+        'item' => 'item_slug',
+    ];
+
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Map API field names to internal database column names.
-     */
     protected function prepareForValidation(): void
     {
-        if ($this->has('item')) {
-            $this->merge(['item_slug' => $this->input('item')]);
-        }
+        $this->mapApiFields();
     }
 
     /**

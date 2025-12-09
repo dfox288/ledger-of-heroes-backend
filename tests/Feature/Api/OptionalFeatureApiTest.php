@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\CharacterClass;
 use App\Models\OptionalFeature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -241,5 +242,74 @@ class OptionalFeatureApiTest extends TestCase
 
         $response->assertOk();
         $this->assertGreaterThan(0, $response->json('meta.total'), 'Should find results matching search term');
+    }
+
+    #[Test]
+    public function optional_feature_includes_prerequisites_in_response(): void
+    {
+        $feature = OptionalFeature::whereHas('prerequisites')->first();
+
+        if (! $feature) {
+            $this->markTestSkipped('No optional features with prerequisites in fixture data');
+        }
+
+        $response = $this->getJson("/api/v1/optional-features/{$feature->slug}");
+
+        $response->assertOk();
+        $response->assertJsonStructure([
+            'data' => [
+                'prerequisites' => [
+                    '*' => [
+                        'id',
+                        'prerequisite_type',
+                        'prerequisite_id',
+                        'minimum_value',
+                        'description',
+                        'group_id',
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    #[Test]
+    public function optional_feature_with_class_prerequisite_includes_class_resource(): void
+    {
+        $feature = OptionalFeature::whereHas('prerequisites', function ($query) {
+            $query->where('prerequisite_type', CharacterClass::class);
+        })->first();
+
+        if (! $feature) {
+            $this->markTestSkipped('No optional features with class prerequisites in fixture data');
+        }
+
+        $response = $this->getJson("/api/v1/optional-features/{$feature->slug}");
+
+        $response->assertOk();
+
+        // Find the class prerequisite in the response
+        $classPrereq = collect($response->json('data.prerequisites'))
+            ->firstWhere('prerequisite_type', CharacterClass::class);
+
+        $this->assertNotNull($classPrereq, 'Should have class prerequisite');
+        $this->assertArrayHasKey('class', $classPrereq, 'Class prerequisite should include class resource');
+        $this->assertArrayHasKey('slug', $classPrereq['class'], 'Class resource should have slug');
+        $this->assertArrayHasKey('full_slug', $classPrereq['class'], 'Class resource should have full_slug');
+        $this->assertArrayHasKey('name', $classPrereq['class'], 'Class resource should have name');
+    }
+
+    #[Test]
+    public function optional_feature_without_prerequisites_returns_empty_array(): void
+    {
+        $feature = OptionalFeature::whereDoesntHave('prerequisites')->first();
+
+        if (! $feature) {
+            $this->markTestSkipped('All optional features have prerequisites in fixture data');
+        }
+
+        $response = $this->getJson("/api/v1/optional-features/{$feature->slug}");
+
+        $response->assertOk();
+        $response->assertJsonPath('data.prerequisites', []);
     }
 }

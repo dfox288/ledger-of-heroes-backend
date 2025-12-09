@@ -621,10 +621,12 @@ class Character extends Model implements HasMedia
     }
 
     /**
-     * Get size name - prioritizes character's chosen size over race default.
+     * Get the character's effective size.
      *
-     * For races with size choice (like Custom Lineage), returns the chosen size.
-     * Otherwise, returns the race's default size.
+     * Priority:
+     * 1. Character's chosen size (for races with size choice like Custom Lineage)
+     * 2. Race's default size
+     * 3. null if no race
      */
     public function getSizeAttribute(): ?string
     {

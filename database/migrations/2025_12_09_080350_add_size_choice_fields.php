@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -21,6 +22,11 @@ return new class extends Migration
             // Nullable size override - when set, overrides the race's default size
             $table->foreignId('size_id')->nullable()->after('race_slug')->constrained('sizes');
         });
+
+        // Update Custom Lineage if it exists (allows Small/Medium choice per Tasha's)
+        DB::table('races')
+            ->where('full_slug', 'tce:custom-lineage')
+            ->update(['has_size_choice' => true]);
     }
 
     /**

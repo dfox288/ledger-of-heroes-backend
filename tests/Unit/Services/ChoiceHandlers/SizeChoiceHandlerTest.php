@@ -86,6 +86,24 @@ class SizeChoiceHandlerTest extends TestCase
     }
 
     #[Test]
+    public function it_includes_complete_size_option_structure(): void
+    {
+        $race = Race::factory()->create(['has_size_choice' => true]);
+        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+
+        $choices = $this->handler->getChoices($character);
+        $options = $choices->first()->options;
+
+        $this->assertCount(2, $options);
+        foreach ($options as $option) {
+            $this->assertArrayHasKey('code', $option);
+            $this->assertArrayHasKey('name', $option);
+            $this->assertArrayHasKey('id', $option);
+            $this->assertContains($option['code'], ['S', 'M']);
+        }
+    }
+
+    #[Test]
     public function it_shows_remaining_0_when_size_already_selected(): void
     {
         $race = Race::factory()->create(['has_size_choice' => true]);

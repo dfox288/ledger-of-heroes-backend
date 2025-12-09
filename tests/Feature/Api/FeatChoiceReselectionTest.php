@@ -173,7 +173,7 @@ class FeatChoiceReselectionTest extends TestCase
     }
 
     #[Test]
-    public function it_still_prevents_selecting_same_feat_twice(): void
+    public function it_is_idempotent_when_selecting_same_feat(): void
     {
         $choiceId = 'feat|race|phb:variant-human|1|bonus_feat';
 
@@ -184,12 +184,29 @@ class FeatChoiceReselectionTest extends TestCase
 
         $response->assertOk();
 
-        // Try to "replace" with Alert again (same feat) - should fail with "already taken"
+        // Try to "replace" with Alert again (same feat) - should succeed (idempotent, like language choices)
         $response = $this->postJson("/api/v1/characters/{$this->character->id}/choices/{$choiceId}", [
             'feat' => 'phb:alert',
         ]);
 
-        $response->assertStatus(422)
-            ->assertJsonPath('message', 'Character has already taken this feat.');
+        // Should succeed without error (idempotent behavior)
+        $response->assertOk()
+            ->assertJsonPath('data.message', 'Choice resolved successfully');
+
+        // Verify only one feat record exists (not duplicated)
+        $featCount = CharacterFeature::where('character_id', $this->character->id)
+            ->where('feature_type', Feat::class)
+            ->where('source', 'race')
+            ->count();
+
+        $this->assertEquals(1, $featCount);
+
+        // Verify the correct feat is still selected
+        $this->assertDatabaseHas('character_features', [
+            'character_id' => $this->character->id,
+            'feature_type' => Feat::class,
+            'feature_slug' => 'phb:alert',
+            'source' => 'race',
+        ]);
     }
 }

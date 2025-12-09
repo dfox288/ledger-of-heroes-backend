@@ -144,13 +144,25 @@ class FeatChoiceService
         }
 
         return DB::transaction(function () use ($character, $feat, $featSlug, $source, $isReplacement, $choiceData) {
-            // If replacing an existing selection, undo the old one first
+            // If replacing an existing selection, check if it's the same feat
             if ($isReplacement) {
                 $oldFeatSlug = $choiceData['selected'][0];
 
-                // If trying to select the same feat, throw an error
+                // If selecting the same feat, return early (idempotent - same as language choices)
                 if ($oldFeatSlug === $featSlug || $oldFeatSlug === $feat->full_slug) {
-                    throw new FeatAlreadyTakenException($character, $feat);
+                    return [
+                        'feat' => [
+                            'full_slug' => $feat->full_slug,
+                            'slug' => $feat->slug,
+                            'name' => $feat->name,
+                        ],
+                        'source' => $source,
+                        'proficiencies_gained' => [],
+                        'spells_gained' => [],
+                        'hp_bonus' => 0,
+                        'ability_increases' => [],
+                        'unchanged' => true,
+                    ];
                 }
 
                 $this->undoChoice($character, $source, $oldFeatSlug);

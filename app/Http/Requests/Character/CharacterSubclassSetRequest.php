@@ -26,9 +26,13 @@ class CharacterSubclassSetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Accept 'subclass' as API param, mapped to subclass_slug
-            // No exists validation - dangling references allowed per #288
-            'subclass_slug' => ['required', 'string', 'max:150'],
+            // Preferred API field name. Mapped to subclass_slug before validation.
+            // @example phb:champion
+            'subclass' => ['required_without:subclass_slug', 'string', 'max:150'],
+
+            // Internal field name (also accepted for backwards compatibility).
+            // @deprecated Use 'subclass' instead
+            'subclass_slug' => ['required_without:subclass', 'string', 'max:150'],
         ];
     }
 }

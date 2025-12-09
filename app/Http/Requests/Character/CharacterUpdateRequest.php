@@ -37,10 +37,21 @@ class CharacterUpdateRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
 
-            // Core choices - accept API names (race, class, background) mapped to *_slug columns
-            // No exists validation - dangling references allowed per #288
+            // Preferred API field names for entity references.
+            // These are mapped to *_slug fields before validation.
+            // @example phb:elf
+            'race' => ['sometimes', 'nullable', 'string', 'max:150'],
+            // @example phb:wizard
+            'class' => ['sometimes', 'nullable', 'string', 'max:150'],
+            // @example phb:sage
+            'background' => ['sometimes', 'nullable', 'string', 'max:150'],
+
+            // Internal field names (also accepted for backwards compatibility).
+            // @deprecated Use 'race' instead
             'race_slug' => ['sometimes', 'nullable', 'string', 'max:150'],
+            // @deprecated Use 'class' instead
             'class_slug' => ['sometimes', 'nullable', 'string', 'max:150'],
+            // @deprecated Use 'background' instead
             'background_slug' => ['sometimes', 'nullable', 'string', 'max:150'],
 
             // Ability score method

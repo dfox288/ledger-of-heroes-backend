@@ -82,8 +82,16 @@ class CharacterChoiceResolveRequest extends FormRequest
 
             // ASI/Feat specific fields
             'type' => ['sometimes', 'string', Rule::in(['asi', 'feat'])],
-            // Accept 'feat' as API param, mapped to feat_slug
-            // No exists validation - dangling references allowed per #288
+
+            // Preferred API field name for feat selection. Mapped to feat_slug before validation.
+            // Only relevant when type='feat'. The mapping happens before validation,
+            // so feat becomes feat_slug which is then validated by required_if below.
+            // @example phb:alert
+            'feat' => ['sometimes', 'string', 'max:150'],
+
+            // Internal field name (validated when type='feat').
+            // If user sends 'feat', it's mapped to 'feat_slug' before this rule runs.
+            // @deprecated Use 'feat' instead
             'feat_slug' => ['required_if:type,feat', 'string', 'max:150'],
             'increases' => ['required_if:type,asi', 'array'],
             'increases.*' => ['integer', 'min:1', 'max:2'],

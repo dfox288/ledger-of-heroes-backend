@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\AbilityScore;
 use App\Models\Character;
 use App\Models\Feat;
 use App\Models\Modifier;
@@ -60,12 +61,15 @@ class AbilityBonusService
             ->get()
             ->groupBy('modifier_id');
 
+        // Pre-load all ability scores to avoid N+1 queries
+        $abilityScores = AbilityScore::all()->keyBy('code');
+
         foreach ($raceModifiers as $modifier) {
             if ($modifier->is_choice) {
                 // Handle choice modifiers
                 $resolved = $resolvedChoices->get($modifier->id, collect());
                 foreach ($resolved as $choice) {
-                    $abilityScore = \App\Models\AbilityScore::where('code', $choice->ability_score_code)->first();
+                    $abilityScore = $abilityScores->get($choice->ability_score_code);
                     if (! $abilityScore) {
                         continue;
                     }

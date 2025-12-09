@@ -22,8 +22,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Issue #407**: `CharacterClassController::replace()` now uses `AddCharacterClassRequest`
-  - Removed duplicate `ReplaceCharacterClassRequest` (identical to `AddCharacterClassRequest`)
+- **Issue #412**: Standardize character form request naming to `Character{Entity}{Action}Request`
+  - `AddCharacterClassRequest` → `CharacterClassAddRequest`
+  - `SetSubclassRequest` → `CharacterSubclassSetRequest`
+  - `StoreEquipmentRequest` → `CharacterEquipmentStoreRequest`
+  - `UpdateEquipmentRequest` → `CharacterEquipmentUpdateRequest`
+  - `StoreCharacterConditionRequest` → `CharacterConditionStoreRequest`
+  - `DeathSaveRequest` → `CharacterDeathSaveRequest`
+  - `AsiChoiceRequest` → `CharacterAsiChoiceRequest`
+  - `ResolveChoiceRequest` → `CharacterChoiceResolveRequest`
+  - `ImportCharacterRequest` → `CharacterImportRequest`
+
+- **Issue #407**: `CharacterClassController::replace()` now uses `CharacterClassAddRequest`
+  - Removed duplicate `ReplaceCharacterClassRequest` (identical to `CharacterClassAddRequest`)
 
 - **Issue #408**: `CharacterController::show()` no longer uses a form request
   - Removed empty `CharacterShowRequest` class (had no validation rules)

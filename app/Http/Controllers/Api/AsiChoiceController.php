@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Character\AsiChoiceRequest;
+use App\Http\Requests\Character\CharacterAsiChoiceRequest;
 use App\Http\Resources\AsiChoiceResource;
 use App\Models\Character;
 use App\Models\Feat;
@@ -32,7 +32,7 @@ class AsiChoiceController extends Controller
      * @bodyParam feat_id integer Feat ID (required if choice_type is feat). Example: 42
      * @bodyParam ability_increases object Ability increases (required if choice_type is ability_increase). Example: {"STR": 2}
      */
-    public function __invoke(AsiChoiceRequest $request, Character $character): AsiChoiceResource
+    public function __invoke(CharacterAsiChoiceRequest $request, Character $character): AsiChoiceResource
     {
         $choiceType = $request->validated('choice_type');
 

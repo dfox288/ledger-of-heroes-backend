@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Character\ResolveChoiceRequest;
+use App\Http\Requests\Character\CharacterChoiceResolveRequest;
 use App\Http\Resources\ChoiceResultResource;
 use App\Http\Resources\PendingChoiceResource;
 use App\Http\Resources\PendingChoicesResource;
@@ -54,7 +54,7 @@ class CharacterChoiceController extends Controller
      *
      * Submit the user's selection to resolve a choice. The request format varies by choice type.
      */
-    public function resolve(ResolveChoiceRequest $request, Character $character, string $choiceId): ChoiceResultResource
+    public function resolve(CharacterChoiceResolveRequest $request, Character $character, string $choiceId): ChoiceResultResource
     {
         $this->choiceService->resolveChoice($character, $choiceId, $request->validated());
 

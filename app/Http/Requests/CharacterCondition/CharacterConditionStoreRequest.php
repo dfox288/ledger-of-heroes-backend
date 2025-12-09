@@ -7,7 +7,7 @@ use App\Models\Condition;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreCharacterConditionRequest extends FormRequest
+class CharacterConditionStoreRequest extends FormRequest
 {
     use MapsApiFields;
 

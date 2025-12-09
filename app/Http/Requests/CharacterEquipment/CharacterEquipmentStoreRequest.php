@@ -6,7 +6,7 @@ use App\Http\Requests\Concerns\MapsApiFields;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
-class StoreEquipmentRequest extends FormRequest
+class CharacterEquipmentStoreRequest extends FormRequest
 {
     use MapsApiFields;
 

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Character\ImportCharacterRequest;
+use App\Http\Requests\Character\CharacterImportRequest;
 use App\Http\Resources\CharacterExportResource;
 use App\Http\Resources\CharacterImportResultResource;
 use App\Models\Character;
@@ -114,7 +114,7 @@ class CharacterExportController extends Controller
      *     errors: array<string, array<string>>
      * }
      */
-    public function import(ImportCharacterRequest $request): JsonResponse
+    public function import(CharacterImportRequest $request): JsonResponse
     {
         $result = $this->importService->import($request->validated());
 

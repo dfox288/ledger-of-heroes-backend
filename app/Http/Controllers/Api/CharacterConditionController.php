@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CharacterCondition\StoreCharacterConditionRequest;
+use App\Http\Requests\CharacterCondition\CharacterConditionStoreRequest;
 use App\Http\Resources\CharacterConditionResource;
 use App\Models\Character;
 use App\Models\CharacterCondition;
@@ -111,7 +111,7 @@ class CharacterConditionController extends Controller
      * - `"Environmental"` - From environmental hazard
      * - `"Forced march"`, `"No food"`, `"No water"` - Common exhaustion sources
      */
-    public function store(StoreCharacterConditionRequest $request, Character $character): CharacterConditionResource
+    public function store(CharacterConditionStoreRequest $request, Character $character): CharacterConditionResource
     {
         $condition = Condition::findOrFail($request->condition_id);
         $isExhaustion = $condition->slug === 'exhaustion';

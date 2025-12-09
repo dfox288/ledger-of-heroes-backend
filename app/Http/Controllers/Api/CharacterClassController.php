@@ -9,8 +9,8 @@ use App\Exceptions\MaxLevelReachedException;
 use App\Exceptions\MulticlassPrerequisiteException;
 use App\Exceptions\SubclassLevelRequirementException;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Character\AddCharacterClassRequest;
-use App\Http\Requests\Character\SetSubclassRequest;
+use App\Http\Requests\Character\CharacterClassAddRequest;
+use App\Http\Requests\Character\CharacterSubclassSetRequest;
 use App\Http\Resources\CharacterClassPivotResource;
 use App\Models\Character;
 use App\Models\CharacterClass;
@@ -92,7 +92,7 @@ class CharacterClassController extends Controller
      * - Character's total level cannot exceed 20
      * - Must meet multiclass prerequisites (unless force=true)
      */
-    public function store(AddCharacterClassRequest $request, Character $character): JsonResponse
+    public function store(CharacterClassAddRequest $request, Character $character): JsonResponse
     {
         $classSlug = $request->validated('class_slug');
         $class = CharacterClass::where('full_slug', $classSlug)->first();
@@ -305,11 +305,11 @@ class CharacterClassController extends Controller
      * - Spell slots are recalculated
      * - `is_primary` and `order` are preserved
      *
-     * @param  AddCharacterClassRequest  $request  The validated request
+     * @param  CharacterClassAddRequest  $request  The validated request
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  The class ID or slug to replace
      */
-    public function replace(AddCharacterClassRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
+    public function replace(CharacterClassAddRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {
         // Accept either full_slug (phb:fighter) or simple slug (fighter)
         $sourceClass = CharacterClass::where('full_slug', $classSlugOrFullSlug)
@@ -384,14 +384,14 @@ class CharacterClassController extends Controller
      * - Class must exist on the character
      * - Dangling references allowed per #288
      *
-     * @param  SetSubclassRequest  $request  The validated request
+     * @param  CharacterSubclassSetRequest  $request  The validated request
      * @param  Character  $character  The character
      * @param  string  $classSlugOrFullSlug  Class slug or full_slug
      *
      * @throws InvalidSubclassException If subclass doesn't belong to the class
      * @throws SubclassLevelRequirementException If character level is below requirement
      */
-    public function setSubclass(SetSubclassRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
+    public function setSubclass(CharacterSubclassSetRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {
         // Accept either full_slug (phb:fighter) or simple slug (fighter)
         $class = CharacterClass::where('full_slug', $classSlugOrFullSlug)

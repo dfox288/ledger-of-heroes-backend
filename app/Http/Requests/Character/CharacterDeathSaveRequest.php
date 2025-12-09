@@ -6,7 +6,7 @@ use App\Models\Character;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
-class DeathSaveRequest extends FormRequest
+class CharacterDeathSaveRequest extends FormRequest
 {
     public function authorize(): bool
     {

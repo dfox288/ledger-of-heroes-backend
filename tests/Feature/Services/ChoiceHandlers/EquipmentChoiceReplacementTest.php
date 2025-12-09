@@ -25,7 +25,7 @@ class EquipmentChoiceReplacementTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->handler = new EquipmentChoiceHandler;
+        $this->handler = app(EquipmentChoiceHandler::class);
     }
 
     #[Test]
@@ -1085,20 +1085,10 @@ class EquipmentChoiceReplacementTest extends TestCase
             'is_primary' => true,
         ]);
 
-        // Create gold mode marker
-        \App\Models\CharacterEquipment::create([
-            'character_id' => $character->id,
-            'item_slug' => 'equipment_mode_marker',
-            'quantity' => 0,
-            'equipped' => false,
-            'custom_description' => json_encode([
-                'source' => 'class',
-                'equipment_mode' => 'gold',
-                'gold_amount' => 125,
-            ]),
-        ]);
+        // Set gold mode on character
+        $character->update(['equipment_mode' => 'gold']);
 
-        $character->load(['characterClasses.characterClass', 'equipment']);
+        $character->load(['characterClasses.characterClass']);
 
         $choices = $this->handler->getChoices($character);
 
@@ -1144,19 +1134,10 @@ class EquipmentChoiceReplacementTest extends TestCase
             'is_primary' => true,
         ]);
 
-        // Create equipment mode marker
-        \App\Models\CharacterEquipment::create([
-            'character_id' => $character->id,
-            'item_slug' => 'equipment_mode_marker',
-            'quantity' => 0,
-            'equipped' => false,
-            'custom_description' => json_encode([
-                'source' => 'class',
-                'equipment_mode' => 'equipment',
-            ]),
-        ]);
+        // Set equipment mode on character
+        $character->update(['equipment_mode' => 'equipment']);
 
-        $character->load(['characterClasses.characterClass', 'equipment']);
+        $character->load(['characterClasses.characterClass']);
 
         $choices = $this->handler->getChoices($character);
 

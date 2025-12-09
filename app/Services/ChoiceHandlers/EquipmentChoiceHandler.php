@@ -10,11 +10,16 @@ use App\Models\Character;
 use App\Models\CharacterEquipment;
 use App\Models\Item;
 use App\Models\ProficiencyType;
+use App\Services\EquipmentManagerService;
 use Illuminate\Support\Collection;
 
 class EquipmentChoiceHandler extends AbstractChoiceHandler
 {
     use ChecksEquipmentMode;
+
+    public function __construct(
+        private EquipmentManagerService $equipmentService
+    ) {}
 
     public function getType(): string
     {
@@ -286,6 +291,10 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                 ]);
             }
         }
+
+        // After resolving this equipment choice, try to populate fixed equipment.
+        // This will only succeed if all equipment choices have been resolved.
+        $this->equipmentService->populateFromClass($character);
     }
 
     public function canUndo(Character $character, PendingChoice $choice): bool

@@ -26,7 +26,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->handler = new EquipmentModeChoiceHandler;
+        $this->handler = app(EquipmentModeChoiceHandler::class);
     }
 
     #[Test]
@@ -145,7 +145,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
     }
 
     #[Test]
-    public function resolving_with_equipment_stores_equipment_mode_marker(): void
+    public function resolving_with_equipment_sets_equipment_mode_column(): void
     {
         $class = CharacterClass::factory()->create([
             'name' => 'Fighter',
@@ -183,14 +183,9 @@ class EquipmentModeChoiceHandlerTest extends TestCase
 
         $this->handler->resolve($character, $choice, ['selected' => ['equipment']]);
 
-        // Check marker was created
-        $marker = CharacterEquipment::where('character_id', $character->id)
-            ->whereJsonContains('custom_description->equipment_mode', 'equipment')
-            ->first();
-
-        expect($marker)->not->toBeNull()
-            ->and($marker->item_slug)->toBe('equipment_mode_marker')
-            ->and($marker->quantity)->toBe(0);
+        // Check equipment_mode column was set
+        $character->refresh();
+        expect($character->equipment_mode)->toBe('equipment');
     }
 
     #[Test]
@@ -246,15 +241,8 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         expect($goldEquipment)->not->toBeNull()
             ->and($goldEquipment->quantity)->toBe(130);
 
-        // Check marker was created with gold mode
-        $marker = $character->equipment
-            ->where('item_slug', 'equipment_mode_marker')
-            ->first();
-        expect($marker)->not->toBeNull();
-
-        $metadata = json_decode($marker->custom_description, true);
-        expect($metadata['equipment_mode'])->toBe('gold')
-            ->and($metadata['gold_amount'])->toBe(130);
+        // Check equipment_mode column was set
+        expect($character->equipment_mode)->toBe('gold');
     }
 
     #[Test]
@@ -345,19 +333,10 @@ class EquipmentModeChoiceHandlerTest extends TestCase
             'is_primary' => true,
         ]);
 
-        // Create existing equipment_mode marker
-        CharacterEquipment::create([
-            'character_id' => $character->id,
-            'item_slug' => 'equipment_mode_marker',
-            'quantity' => 0,
-            'equipped' => false,
-            'custom_description' => json_encode([
-                'source' => 'class',
-                'equipment_mode' => 'equipment',
-            ]),
-        ]);
+        // Set equipment_mode on character
+        $character->update(['equipment_mode' => 'equipment']);
 
-        $character->load(['characterClasses.characterClass', 'equipment']);
+        $character->load(['characterClasses.characterClass']);
 
         $choices = $this->handler->getChoices($character);
 
@@ -369,7 +348,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
     }
 
     #[Test]
-    public function choice_metadata_includes_gold_amount_when_gold_was_selected(): void
+    public function choice_shows_gold_selected_when_gold_mode_was_chosen(): void
     {
         $class = CharacterClass::factory()->create([
             'name' => 'Fighter',
@@ -396,7 +375,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
             'sort_order' => 0,
         ]);
 
-        $character = Character::factory()->create();
+        $character = Character::factory()->create(['equipment_mode' => 'gold']);
         CharacterClassPivot::create([
             'character_id' => $character->id,
             'class_slug' => $class->full_slug,
@@ -404,20 +383,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
             'is_primary' => true,
         ]);
 
-        // Create existing equipment_mode marker with gold mode and gold_amount
-        CharacterEquipment::create([
-            'character_id' => $character->id,
-            'item_slug' => 'equipment_mode_marker',
-            'quantity' => 0,
-            'equipped' => false,
-            'custom_description' => json_encode([
-                'source' => 'class',
-                'equipment_mode' => 'gold',
-                'gold_amount' => 130,
-            ]),
-        ]);
-
-        $character->load(['characterClasses.characterClass', 'equipment']);
+        $character->load(['characterClasses.characterClass']);
 
         $choices = $this->handler->getChoices($character);
 
@@ -425,9 +391,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
 
         $choice = $choices->first();
         expect($choice->remaining)->toBe(0)
-            ->and($choice->selected)->toBe(['gold'])
-            ->and($choice->metadata)->toHaveKey('gold_amount')
-            ->and($choice->metadata['gold_amount'])->toBe(130);
+            ->and($choice->selected)->toBe(['gold']);
     }
 
     #[Test]
@@ -493,17 +457,25 @@ class EquipmentModeChoiceHandlerTest extends TestCase
     }
 
     #[Test]
-    public function undoing_gold_choice_removes_gold_and_marker(): void
+    public function undoing_gold_choice_removes_gold_and_resets_mode(): void
     {
-        $character = Character::factory()->create();
+        // Create class with known starting wealth average
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'full_slug' => 'phb:fighter',
+            'starting_wealth_dice' => '5d4',
+            'starting_wealth_multiplier' => 10,
+        ]);
+
+        $character = Character::factory()->create(['equipment_mode' => 'gold']);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => 'phb:fighter',
+            'class_slug' => $class->full_slug,
             'level' => 1,
             'is_primary' => true,
         ]);
 
-        // Create gold equipment (merged entry - no custom_description with equipment_mode)
+        // Create gold equipment (from starting wealth choice - average is 125)
         CharacterEquipment::create([
             'character_id' => $character->id,
             'item_slug' => 'phb:gold-gp',
@@ -511,20 +483,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
             'equipped' => false,
         ]);
 
-        // Create marker (tracks the gold_amount for undo)
-        CharacterEquipment::create([
-            'character_id' => $character->id,
-            'item_slug' => 'equipment_mode_marker',
-            'quantity' => 0,
-            'equipped' => false,
-            'custom_description' => json_encode([
-                'source' => 'class',
-                'equipment_mode' => 'gold',
-                'gold_amount' => 125,
-            ]),
-        ]);
-
-        $character->load(['characterClasses', 'equipment']);
+        $character->load(['characterClasses.characterClass', 'equipment']);
 
         $choice = new PendingChoice(
             id: 'equipment_mode|class|phb:fighter|1|starting_equipment',
@@ -549,43 +508,48 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         // Gold should be removed (was only starting wealth, no background gold)
         expect($character->equipment->where('item_slug', 'phb:gold-gp')->count())->toBe(0);
 
-        // Marker should be removed
-        expect($character->equipment->where('item_slug', 'equipment_mode_marker')->count())->toBe(0);
+        // equipment_mode should be reset to null
+        expect($character->equipment_mode)->toBeNull();
     }
 
     #[Test]
-    public function undoing_gold_choice_subtracts_from_merged_gold(): void
+    public function undoing_gold_choice_preserves_background_gold(): void
     {
-        $character = Character::factory()->create();
+        // Create class with known starting wealth average (125)
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'full_slug' => 'phb:fighter',
+            'starting_wealth_dice' => '5d4',
+            'starting_wealth_multiplier' => 10,
+        ]);
+
+        $character = Character::factory()->create(['equipment_mode' => 'gold']);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => 'phb:fighter',
+            'class_slug' => $class->full_slug,
             'level' => 1,
             'is_primary' => true,
         ]);
 
-        // Create merged gold entry (10 from background + 125 from starting wealth = 135)
+        // Create background gold entry (10 gp)
         CharacterEquipment::create([
             'character_id' => $character->id,
             'item_slug' => 'phb:gold-gp',
-            'quantity' => 135,
+            'quantity' => 10,
             'equipped' => false,
+            'custom_description' => json_encode(['source' => 'background']),
         ]);
 
-        // Create marker that tracks the starting wealth amount
+        // Create starting wealth gold entry (125 gp)
         CharacterEquipment::create([
             'character_id' => $character->id,
-            'item_slug' => 'equipment_mode_marker',
-            'quantity' => 0,
+            'item_slug' => 'phb:gold-gp',
+            'quantity' => 125,
             'equipped' => false,
-            'custom_description' => json_encode([
-                'source' => 'class',
-                'equipment_mode' => 'gold',
-                'gold_amount' => 125,
-            ]),
+            'custom_description' => json_encode(['source' => 'starting_wealth']),
         ]);
 
-        $character->load(['characterClasses', 'equipment']);
+        $character->load(['characterClasses.characterClass', 'equipment']);
 
         $choice = new PendingChoice(
             id: 'equipment_mode|class|phb:fighter|1|starting_equipment',
@@ -607,17 +571,16 @@ class EquipmentModeChoiceHandlerTest extends TestCase
 
         $character->refresh();
 
-        // Gold should be reduced to background amount only (135 - 125 = 10)
-        $goldEntry = $character->equipment->where('item_slug', 'phb:gold-gp')->first();
-        expect($goldEntry)->not->toBeNull()
-            ->and($goldEntry->quantity)->toBe(10);
+        // Only background gold (10 gp) should remain
+        $totalGold = $character->equipment->where('item_slug', 'phb:gold-gp')->sum('quantity');
+        expect($totalGold)->toBe(10);
 
-        // Marker should be removed
-        expect($character->equipment->where('item_slug', 'equipment_mode_marker')->count())->toBe(0);
+        // equipment_mode should be reset to null
+        expect($character->equipment_mode)->toBeNull();
     }
 
     #[Test]
-    public function resolving_with_gold_merges_with_existing_background_gold(): void
+    public function resolving_with_gold_tracks_gold_separately_from_background(): void
     {
         Item::factory()->create([
             'name' => 'Gold (gp)',
@@ -674,10 +637,15 @@ class EquipmentModeChoiceHandlerTest extends TestCase
 
         $character->refresh();
 
-        // Should have single merged gold entry (15 + 130 = 145)
+        // Gold from different sources is tracked separately (15 background + 130 starting wealth)
         $goldEntries = $character->equipment->where('item_slug', 'phb:gold-gp');
-        expect($goldEntries)->toHaveCount(1);
-        expect($goldEntries->first()->quantity)->toBe(145);
+        expect($goldEntries)->toHaveCount(2);
+
+        // Total gold should be 145 (15 + 130)
+        expect($goldEntries->sum('quantity'))->toBe(145);
+
+        // Currency accessor should sum both entries
+        expect($character->currency['gp'])->toBe(145);
     }
 
     #[Test]

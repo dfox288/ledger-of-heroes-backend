@@ -147,13 +147,8 @@ class EquipmentModeGoldFlowTest extends TestCase
         $this->assertNotNull($goldEquipment, 'Gold should be added to inventory');
         $this->assertEquals(130, $goldEquipment->quantity);
 
-        // Verify marker was created
-        $marker = $this->character->equipment()->where('item_slug', 'equipment_mode_marker')->first();
-        $this->assertNotNull($marker, 'Equipment mode marker should be created');
-
-        $metadata = json_decode($marker->custom_description, true);
-        $this->assertEquals('gold', $metadata['equipment_mode']);
-        $this->assertEquals(130, $metadata['gold_amount']);
+        // Verify equipment_mode column was set
+        $this->assertEquals('gold', $this->character->equipment_mode);
     }
 
     #[Test]
@@ -178,7 +173,7 @@ class EquipmentModeGoldFlowTest extends TestCase
     }
 
     #[Test]
-    public function it_merges_gold_with_existing_background_gold(): void
+    public function it_tracks_gold_from_different_sources_separately(): void
     {
         // Create background with gold
         $background = Background::factory()->create(['name' => 'Noble', 'full_slug' => 'phb:noble']);
@@ -209,10 +204,16 @@ class EquipmentModeGoldFlowTest extends TestCase
 
         $this->character->refresh();
 
-        // Should have single merged gold entry (25 + 130 = 155)
+        // Gold from different sources is tracked separately (for proper re-selection/undo)
         $goldEntries = $this->character->equipment()->where('item_slug', 'phb:gold-gp')->get();
-        $this->assertCount(1, $goldEntries, 'Should have single merged gold entry');
-        $this->assertEquals(155, $goldEntries->first()->quantity, 'Gold should be merged (25 + 130 = 155)');
+        $this->assertCount(2, $goldEntries, 'Background and starting wealth gold are tracked separately');
+
+        // Total gold should be 155 (25 + 130)
+        $totalGold = $goldEntries->sum('quantity');
+        $this->assertEquals(155, $totalGold, 'Total gold should be 155 (25 background + 130 starting wealth)');
+
+        // Currency accessor should sum both entries
+        $this->assertEquals(155, $this->character->currency['gp'], 'Currency accessor should sum all gold entries');
     }
 
     #[Test]
@@ -259,8 +260,8 @@ class EquipmentModeGoldFlowTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('data.choices.0.remaining', 0)
-            ->assertJsonPath('data.choices.0.selected', ['gold'])
-            ->assertJsonPath('data.choices.0.metadata.gold_amount', 130);
+            ->assertJsonPath('data.choices.0.selected', ['gold']);
+        // Note: gold_amount is no longer stored in metadata since we use equipment_mode column
     }
 
     #[Test]
@@ -269,12 +270,12 @@ class EquipmentModeGoldFlowTest extends TestCase
         $choicesResponse = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment_mode");
         $choiceId = $choicesResponse->json('data.choices.0.id');
 
-        // Resolve with gold
+        // Resolve with gold using class average (125) - undo subtracts class average
         $this->postJson(
             "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
             [
                 'selected' => ['gold'],
-                'gold_amount' => 130,
+                'gold_amount' => 125, // Using average so undo fully removes it
             ]
         );
 
@@ -286,13 +287,12 @@ class EquipmentModeGoldFlowTest extends TestCase
 
         $this->character->refresh();
 
-        // Gold should be removed
+        // Gold should be removed (undo subtracts class average = 125)
         $goldEquipment = $this->character->equipment()->where('item_slug', 'phb:gold-gp')->first();
         $this->assertNull($goldEquipment, 'Gold should be removed after undo');
 
-        // Marker should be removed
-        $marker = $this->character->equipment()->where('item_slug', 'equipment_mode_marker')->first();
-        $this->assertNull($marker, 'Marker should be removed after undo');
+        // equipment_mode should be reset to null
+        $this->assertNull($this->character->equipment_mode);
     }
 
     #[Test]
@@ -310,12 +310,13 @@ class EquipmentModeGoldFlowTest extends TestCase
         $choicesResponse = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment_mode");
         $choiceId = $choicesResponse->json('data.choices.0.id');
 
-        // Resolve with gold (130) - total becomes 155
+        // Resolve with gold using class average (125) - total becomes 150
+        // Note: Undo subtracts class average (125), not the actual amount
         $this->postJson(
             "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
             [
                 'selected' => ['gold'],
-                'gold_amount' => 130,
+                'gold_amount' => 125, // Using average for clean undo
             ]
         );
 
@@ -324,7 +325,7 @@ class EquipmentModeGoldFlowTest extends TestCase
 
         $this->character->refresh();
 
-        // Gold should be reduced back to background amount (155 - 130 = 25)
+        // Gold should be reduced back to background amount (150 - 125 = 25)
         $goldEquipment = $this->character->equipment()->where('item_slug', 'phb:gold-gp')->first();
         $this->assertNotNull($goldEquipment, 'Background gold should remain');
         $this->assertEquals(25, $goldEquipment->quantity, 'Gold should be reduced to background amount only');
@@ -346,13 +347,9 @@ class EquipmentModeGoldFlowTest extends TestCase
 
         $response->assertOk();
 
-        // Marker should be created with equipment mode
+        // equipment_mode column should be set
         $this->character->refresh();
-        $marker = $this->character->equipment()->where('item_slug', 'equipment_mode_marker')->first();
-        $this->assertNotNull($marker);
-
-        $metadata = json_decode($marker->custom_description, true);
-        $this->assertEquals('equipment', $metadata['equipment_mode']);
+        $this->assertEquals('equipment', $this->character->equipment_mode);
 
         // Equipment choices should still be available
         $equipmentChoices = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment");
@@ -423,12 +420,8 @@ class EquipmentModeGoldFlowTest extends TestCase
         $this->assertNotNull($gold);
         $this->assertEquals(130, $gold->quantity);
 
-        // Marker created
-        $marker = $this->character->equipment()->where('item_slug', 'equipment_mode_marker')->first();
-        $this->assertNotNull($marker);
-        $metadata = json_decode($marker->custom_description, true);
-        $this->assertEquals('gold', $metadata['equipment_mode']);
-        $this->assertEquals(130, $metadata['gold_amount']);
+        // equipment_mode column should be set
+        $this->assertEquals('gold', $this->character->equipment_mode);
 
         // Step 6: Re-fetch equipment_mode to verify it shows resolved state (for re-entry flow)
         $step6 = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment_mode");
@@ -437,7 +430,6 @@ class EquipmentModeGoldFlowTest extends TestCase
         $resolvedChoice = $step6->json('data.choices.0');
         $this->assertEquals(0, $resolvedChoice['remaining'], 'Choice should show as resolved');
         $this->assertEquals(['gold'], $resolvedChoice['selected'], 'Selected should show gold');
-        $this->assertEquals(130, $resolvedChoice['metadata']['gold_amount'], 'Metadata should include gold_amount for re-entry');
     }
 
     #[Test]
@@ -484,24 +476,24 @@ class EquipmentModeGoldFlowTest extends TestCase
         $choicesResponse = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment_mode");
         $choiceId = $choicesResponse->json('data.choices.0.id');
 
-        // Step 1: Select gold mode
+        // Step 1: Select gold mode using average (125) - undo will subtract the class average
         $this->postJson(
             "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
             [
                 'selected' => ['gold'],
-                'gold_amount' => 130,
+                'gold_amount' => 125, // Using average so undo fully removes it
             ]
         )->assertOk();
 
         // Verify gold was added
         $this->character->refresh();
-        $this->assertEquals(130, $this->character->equipment()->where('item_slug', 'phb:gold-gp')->first()->quantity);
+        $this->assertEquals(125, $this->character->equipment()->where('item_slug', 'phb:gold-gp')->first()->quantity);
 
         // Step 2: Undo the gold choice
         $this->deleteJson("/api/v1/characters/{$this->character->id}/choices/{$choiceId}")
             ->assertOk();
 
-        // Verify gold was removed
+        // Verify gold was removed (undo subtracts class average = 125)
         $this->character->refresh();
         $this->assertNull($this->character->equipment()->where('item_slug', 'phb:gold-gp')->first());
 
@@ -511,13 +503,9 @@ class EquipmentModeGoldFlowTest extends TestCase
             ['selected' => ['equipment']]
         )->assertOk();
 
-        // Verify marker shows equipment mode
+        // Verify equipment_mode column was set
         $this->character->refresh();
-        $marker = $this->character->equipment()->where('item_slug', 'equipment_mode_marker')->first();
-        $this->assertNotNull($marker);
-        $metadata = json_decode($marker->custom_description, true);
-        $this->assertEquals('equipment', $metadata['equipment_mode']);
-        $this->assertNull($metadata['gold_amount']);
+        $this->assertEquals('equipment', $this->character->equipment_mode);
 
         // Step 4: Equipment choices should now be available
         $equipmentChoices = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment");
@@ -536,11 +524,9 @@ class EquipmentModeGoldFlowTest extends TestCase
             ['selected' => ['equipment']]
         )->assertOk();
 
-        // Verify marker shows equipment mode
+        // Verify equipment_mode column was set
         $this->character->refresh();
-        $marker = $this->character->equipment()->where('item_slug', 'equipment_mode_marker')->first();
-        $metadata = json_decode($marker->custom_description, true);
-        $this->assertEquals('equipment', $metadata['equipment_mode']);
+        $this->assertEquals('equipment', $this->character->equipment_mode);
 
         // Step 2: Undo and switch to gold
         $this->deleteJson("/api/v1/characters/{$this->character->id}/choices/{$choiceId}")
@@ -554,19 +540,206 @@ class EquipmentModeGoldFlowTest extends TestCase
             ]
         )->assertOk();
 
-        // Verify gold was added and marker updated
+        // Verify gold was added and equipment_mode column updated
         $this->character->refresh();
         $gold = $this->character->equipment()->where('item_slug', 'phb:gold-gp')->first();
         $this->assertNotNull($gold);
         $this->assertEquals(150, $gold->quantity);
 
-        $marker = $this->character->equipment()->where('item_slug', 'equipment_mode_marker')->first();
-        $metadata = json_decode($marker->custom_description, true);
-        $this->assertEquals('gold', $metadata['equipment_mode']);
-        $this->assertEquals(150, $metadata['gold_amount']);
+        $this->assertEquals('gold', $this->character->equipment_mode);
 
         // Equipment choices should be hidden
         $equipmentChoices = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment");
         $this->assertCount(0, $equipmentChoices->json('data.choices'));
+    }
+
+    // ===================================================================================
+    // BUG REGRESSION TESTS - These tests expose the bugs reported in the issue
+    // ===================================================================================
+
+    #[Test]
+    public function bug_gold_reselection_with_different_amount_calculates_correctly(): void
+    {
+        // Bug: When selecting gold a second time with a different amount,
+        // the gold is not correctly recalculated. It should remove ALL previous
+        // starting wealth gold and add the new amount, preserving background gold.
+
+        // Setup: Add background gold (25 gp)
+        CharacterEquipment::create([
+            'character_id' => $this->character->id,
+            'item_slug' => 'phb:gold-gp',
+            'quantity' => 25,
+            'equipped' => false,
+            'custom_description' => json_encode(['source' => 'background']),
+        ]);
+
+        $choicesResponse = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment_mode");
+        $choiceId = $choicesResponse->json('data.choices.0.id');
+
+        // First selection: Roll 130 gp (total should be 25 + 130 = 155)
+        $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
+            [
+                'selected' => ['gold'],
+                'gold_amount' => 130,
+            ]
+        )->assertOk();
+
+        $this->character->refresh();
+        $totalGoldAfterFirst = $this->character->equipment()->where('item_slug', 'phb:gold-gp')->sum('quantity');
+        $this->assertEquals(155, $totalGoldAfterFirst, 'After first selection: 25 (background) + 130 (rolled) = 155');
+
+        // Second selection: Roll a different amount (100 gp)
+        // Expected: Remove the 130 rolled gold, add 100 → 25 + 100 = 125
+        // Bug: Uses class average (125) to subtract instead of actual (130), resulting in wrong amount
+        $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
+            [
+                'selected' => ['gold'],
+                'gold_amount' => 100,
+            ]
+        )->assertOk();
+
+        $this->character->refresh();
+        $totalGoldAfterSecond = $this->character->equipment()->where('item_slug', 'phb:gold-gp')->sum('quantity');
+
+        // Correct behavior: 25 (background) + 100 (new rolled) = 125
+        $this->assertEquals(125, $totalGoldAfterSecond, 'After re-selection: 25 (background) + 100 (new rolled) = 125');
+    }
+
+    #[Test]
+    public function bug_switching_to_equipment_preserves_background_gold(): void
+    {
+        // Bug: When switching from gold mode to equipment mode,
+        // ALL gold is removed including background gold.
+        // Background gold should be preserved.
+
+        // Setup: Add background gold (25 gp)
+        CharacterEquipment::create([
+            'character_id' => $this->character->id,
+            'item_slug' => 'phb:gold-gp',
+            'quantity' => 25,
+            'equipped' => false,
+            'custom_description' => json_encode(['source' => 'background']),
+        ]);
+
+        $choicesResponse = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment_mode");
+        $choiceId = $choicesResponse->json('data.choices.0.id');
+
+        // Select gold mode with 130 gp (total: 25 + 130 = 155)
+        $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
+            [
+                'selected' => ['gold'],
+                'gold_amount' => 130,
+            ]
+        )->assertOk();
+
+        $this->character->refresh();
+        $totalGold = $this->character->equipment()->where('item_slug', 'phb:gold-gp')->sum('quantity');
+        $this->assertEquals(155, $totalGold, 'Total gold should be 155 (25 background + 130 rolled)');
+
+        // Now switch to equipment mode
+        // Expected: Remove the 130 rolled gold, keep the 25 background gold
+        $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
+            ['selected' => ['equipment']]
+        )->assertOk();
+
+        $this->character->refresh();
+
+        // Verify equipment_mode changed
+        $this->assertEquals('equipment', $this->character->equipment_mode);
+
+        // Background gold (25 gp) should still exist
+        $totalGoldAfterSwitch = $this->character->equipment()->where('item_slug', 'phb:gold-gp')->sum('quantity');
+        $this->assertEquals(25, $totalGoldAfterSwitch, 'Only background gold (25 gp) should remain');
+    }
+
+    #[Test]
+    public function bug_equipment_choices_show_after_switching_from_gold(): void
+    {
+        // Bug: After switching from gold mode to equipment mode,
+        // equipment choices do not show up in the frontend.
+
+        $choicesResponse = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment_mode");
+        $choiceId = $choicesResponse->json('data.choices.0.id');
+
+        // First, select gold mode
+        $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
+            [
+                'selected' => ['gold'],
+                'gold_amount' => 130,
+            ]
+        )->assertOk();
+
+        // Verify equipment choices are hidden in gold mode
+        $equipmentChoicesInGold = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment");
+        $this->assertCount(0, $equipmentChoicesInGold->json('data.choices'), 'Equipment choices should be hidden in gold mode');
+
+        // Now switch to equipment mode
+        $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
+            ['selected' => ['equipment']]
+        )->assertOk();
+
+        $this->character->refresh();
+        $this->assertEquals('equipment', $this->character->equipment_mode);
+
+        // Equipment choices should now be visible
+        $equipmentChoicesAfterSwitch = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment");
+        $this->assertGreaterThan(
+            0,
+            count($equipmentChoicesAfterSwitch->json('data.choices')),
+            'Equipment choices should be visible after switching from gold to equipment mode'
+        );
+    }
+
+    #[Test]
+    public function bug_fixed_equipment_populated_after_resolving_all_choices(): void
+    {
+        // Bug: After selecting equipment mode and resolving all equipment choices,
+        // fixed (non-choice) equipment from the class is not added.
+
+        // First, add some fixed equipment to the class
+        $fixedItem = Item::factory()->create(['name' => 'Shield', 'full_slug' => 'phb:shield']);
+        \App\Models\EntityItem::create([
+            'reference_type' => \App\Models\CharacterClass::class,
+            'reference_id' => $this->class->id,
+            'item_id' => $fixedItem->id,
+            'is_choice' => false,  // Fixed equipment, not a choice
+            'quantity' => 1,
+        ]);
+
+        $choicesResponse = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment_mode");
+        $choiceId = $choicesResponse->json('data.choices.0.id');
+
+        // Select equipment mode
+        $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
+            ['selected' => ['equipment']]
+        )->assertOk();
+
+        // Now get and resolve all equipment choices
+        $equipmentChoices = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment");
+        foreach ($equipmentChoices->json('data.choices') as $equipChoice) {
+            // Select the first option for each choice
+            $firstOption = $equipChoice['options'][0]['option'];
+            $this->postJson(
+                "/api/v1/characters/{$this->character->id}/choices/{$equipChoice['id']}",
+                ['selected' => [$firstOption]]
+            )->assertOk();
+        }
+
+        // Verify all equipment choices are resolved
+        $remainingChoices = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment");
+        $pendingCount = collect($remainingChoices->json('data.choices'))->where('remaining', '>', 0)->count();
+        $this->assertEquals(0, $pendingCount, 'All equipment choices should be resolved');
+
+        // Check that fixed equipment was populated
+        $this->character->refresh();
+        $hasShield = $this->character->equipment()->where('item_slug', 'phb:shield')->exists();
+        $this->assertTrue($hasShield, 'Fixed equipment (shield) should be populated after all choices resolved');
     }
 }

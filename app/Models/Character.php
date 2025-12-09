@@ -79,6 +79,7 @@ class Character extends Model implements HasMedia
         'race_slug',
         'size_id',
         'background_slug',
+        'equipment_mode',
         'strength',
         'dexterity',
         'constitution',

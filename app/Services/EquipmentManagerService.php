@@ -123,6 +123,11 @@ class EquipmentManagerService
      *
      * Only the primary class grants starting equipment.
      * Multiclass additions do not grant additional equipment.
+     *
+     * Important: This method checks if the equipment mode choice has been made.
+     * - If not made yet: Does not populate (user must choose equipment vs gold first)
+     * - If "gold" selected: Does not populate (user gets gold instead)
+     * - If "equipment" selected: Populates fixed equipment
      */
     public function populateFromClass(Character $character): void
     {
@@ -131,7 +136,82 @@ class EquipmentManagerService
             return;
         }
 
+        // Check if the equipment mode choice exists and was resolved as "equipment"
+        // If not yet resolved, or resolved as "gold", skip populating class equipment
+        if (! $this->shouldPopulateClassEquipment($character)) {
+            return;
+        }
+
         $this->populateFromEntity($character, $primaryClass, 'class');
+    }
+
+    /**
+     * Check if class equipment should be populated based on equipment mode selection
+     * and equipment choice resolution status.
+     *
+     * Returns true only if:
+     * - The class has no equipment choices (so no equipment_mode choice is presented), OR
+     * - The equipment_mode choice was resolved with "equipment" selection AND
+     *   all equipment choices have been resolved
+     *
+     * Returns false if:
+     * - The equipment_mode choice exists but hasn't been resolved yet, OR
+     * - The equipment_mode choice was resolved with "gold" selection, OR
+     * - There are still unresolved equipment choices
+     */
+    private function shouldPopulateClassEquipment(Character $character): bool
+    {
+        $primaryClass = $character->primary_class;
+        if (! $primaryClass) {
+            return false;
+        }
+
+        // Check if class has starting wealth (required for equipment_mode choice)
+        $hasStartingWealth = $primaryClass->starting_wealth !== null;
+
+        // Check if class has equipment choices
+        $equipmentChoices = $primaryClass->equipment()
+            ->where('is_choice', true)
+            ->get();
+        $hasEquipmentChoices = $equipmentChoices->isNotEmpty();
+
+        // If class has no starting wealth or no equipment choices, there's no equipment_mode choice
+        // In this case, we can safely populate any fixed equipment
+        if (! $hasStartingWealth || ! $hasEquipmentChoices) {
+            return true;
+        }
+
+        // Class has both starting wealth and equipment choices, so equipment_mode choice exists
+        // Check if it was resolved and what the selection was
+        if ($character->equipment_mode === null) {
+            // Choice hasn't been made yet - don't populate
+            return false;
+        }
+
+        // If "gold" was selected, don't populate equipment
+        if ($character->equipment_mode !== 'equipment') {
+            return false;
+        }
+
+        // "equipment" was selected - now check if all equipment choices are resolved
+        // Group equipment choices by choice_group
+        $choiceGroups = $equipmentChoices->pluck('choice_group')->unique();
+
+        // Check if each choice group has been resolved (equipment from that choice exists)
+        foreach ($choiceGroups as $choiceGroup) {
+            $hasSelection = $character->equipment()
+                ->whereJsonContains('custom_description->source', 'class')
+                ->whereJsonContains('custom_description->choice_group', $choiceGroup)
+                ->exists();
+
+            if (! $hasSelection) {
+                // This choice group hasn't been resolved yet
+                return false;
+            }
+        }
+
+        // All checks passed - equipment mode is "equipment" and all choices resolved
+        return true;
     }
 
     /**

@@ -15,6 +15,7 @@ use App\Http\Resources\CharacterSummaryResource;
 use App\Models\Character;
 use App\Models\CharacterClassPivot;
 use App\Services\AbilityBonusService;
+use App\Services\CharacterFeatureService;
 use App\Services\CharacterLanguageService;
 use App\Services\CharacterProficiencyService;
 use App\Services\CharacterStatCalculator;
@@ -34,6 +35,7 @@ class CharacterController extends Controller
         private CharacterStatCalculator $statCalculator,
         private CharacterProficiencyService $proficiencyService,
         private CharacterLanguageService $languageService,
+        private CharacterFeatureService $featureService,
         private SpellSlotService $spellSlotService,
         private HitDiceService $hitDiceService,
         private EquipmentManagerService $equipmentService,
@@ -107,7 +109,7 @@ class CharacterController extends Controller
         $classSlug = $validated['class_slug'] ?? null;
         unset($validated['class_slug']);
 
-        // Use transaction to ensure character and equipment are created atomically
+        // Use transaction to ensure character and all grants are created atomically
         $character = DB::transaction(function () use ($validated, $classSlug) {
             $character = Character::create($validated);
 
@@ -122,13 +124,26 @@ class CharacterController extends Controller
                     'hit_dice_spent' => 0,
                 ]);
 
-                // Grant fixed equipment from primary class
+                // Grant fixed items from primary class
                 $this->equipmentService->populateFromClass($character);
+                $this->proficiencyService->populateFromClass($character);
+                $this->languageService->populateFromClass($character);
+                $this->featureService->populateFromClass($character);
             }
 
-            // Grant fixed equipment from background if provided
-            if ($character->background_slug) {
+            // Grant fixed items from race if provided (and not dangling)
+            if ($character->race_slug && $character->race) {
+                $this->proficiencyService->populateFromRace($character);
+                $this->languageService->populateFromRace($character);
+                $this->featureService->populateFromRace($character);
+            }
+
+            // Grant fixed items from background if provided (and not dangling)
+            if ($character->background_slug && $character->background) {
                 $this->equipmentService->populateFromBackground($character);
+                $this->proficiencyService->populateFromBackground($character);
+                $this->languageService->populateFromBackground($character);
+                $this->featureService->populateFromBackground($character);
             }
 
             return $character;
@@ -208,18 +223,18 @@ class CharacterController extends Controller
         $level = $validated['level'] ?? null;
         unset($validated['class_slug'], $validated['level']);
 
-        // Track if background is being assigned (for fixed equipment granting)
+        // Track if background is being assigned (for fixed grants)
         $previousBackgroundSlug = $character->background_slug;
         $newBackgroundSlug = $validated['background_slug'] ?? null;
         $backgroundAssigned = $newBackgroundSlug && $newBackgroundSlug !== $previousBackgroundSlug;
 
-        // Track if race is being changed (for retroactive HP adjustment)
+        // Track if race is being assigned (for fixed grants and HP adjustment)
         $previousRaceSlug = $character->race_slug;
         $newRaceSlug = $validated['race_slug'] ?? null;
-        $raceChanged = array_key_exists('race_slug', $validated) && $newRaceSlug !== $previousRaceSlug;
+        $raceAssigned = array_key_exists('race_slug', $validated) && $newRaceSlug !== $previousRaceSlug;
 
         // Use transaction with pessimistic locking for all operations
-        DB::transaction(function () use ($character, &$validated, $classSlug, $level, $backgroundAssigned, $raceChanged, $previousRaceSlug, $newRaceSlug) {
+        DB::transaction(function () use ($character, &$validated, $classSlug, $level, $backgroundAssigned, $raceAssigned, $previousRaceSlug, $newRaceSlug) {
             // Lock character row first for HP/death save consistency
             $character->lockForUpdate()->first();
 
@@ -266,7 +281,7 @@ class CharacterController extends Controller
             $character->update($validated);
 
             // Adjust HP retroactively if race changed (must happen after update so race_slug is set)
-            if ($raceChanged && $character->usesCalculatedHp() && $character->total_level > 0) {
+            if ($raceAssigned && $character->usesCalculatedHp() && $character->total_level > 0) {
                 $hpResult = $this->hitPointService->recalculateForRaceChange(
                     $character,
                     $previousRaceSlug,
@@ -280,12 +295,31 @@ class CharacterController extends Controller
                 }
             }
 
-            // Grant fixed equipment within transaction for consistency
+            // Grant fixed items within transaction for consistency
             if ($primaryClassAssigned) {
                 $this->equipmentService->populateFromClass($character);
+                $this->proficiencyService->populateFromClass($character);
+                $this->languageService->populateFromClass($character);
+                $this->featureService->populateFromClass($character);
             }
-            if ($backgroundAssigned) {
+
+            // Grant fixed items from race if assigned (and not dangling)
+            // Refresh race relationship after update to check for dangling
+            $character->load('race');
+            if ($raceAssigned && $character->race) {
+                $this->proficiencyService->populateFromRace($character);
+                $this->languageService->populateFromRace($character);
+                $this->featureService->populateFromRace($character);
+            }
+
+            // Grant fixed items from background if assigned (and not dangling)
+            // Refresh background relationship after update to check for dangling
+            $character->load('background');
+            if ($backgroundAssigned && $character->background) {
                 $this->equipmentService->populateFromBackground($character);
+                $this->proficiencyService->populateFromBackground($character);
+                $this->languageService->populateFromBackground($character);
+                $this->featureService->populateFromBackground($character);
             }
         });
 

@@ -8,7 +8,9 @@ use App\Models\Character;
 use App\Models\CharacterAbilityScore;
 use App\Models\CharacterClass;
 use App\Models\CharacterEquipment;
+use App\Models\EntityLanguage;
 use App\Models\Item;
+use App\Models\Language;
 use App\Models\Modifier;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -572,5 +574,128 @@ class CharacterControllerTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('data.currency.gp', 55); // 25 + 30
+    }
+
+    // =====================
+    // Auto-Population Tests
+    // =====================
+
+    #[Test]
+    public function it_auto_populates_languages_when_creating_character_with_race(): void
+    {
+        // Create a race with a fixed language grant
+        $race = Race::factory()->create();
+        $language = Language::factory()->create();
+
+        // Add a fixed language grant to the race
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'language_id' => $language->id,
+            'is_choice' => false,
+            'quantity' => 1,
+        ]);
+
+        $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'test-char-ab12',
+            'name' => 'Test Character',
+            'race' => $race->full_slug,
+        ]);
+
+        $response->assertCreated();
+
+        // Check that the character has the language
+        $character = Character::where('public_id', 'test-char-ab12')->first();
+        $this->assertDatabaseHas('character_languages', [
+            'character_id' => $character->id,
+            'language_slug' => $language->full_slug,
+            'source' => 'race',
+        ]);
+    }
+
+    #[Test]
+    public function it_auto_populates_languages_when_updating_character_with_race(): void
+    {
+        // Create a character without a race
+        $character = Character::factory()->create();
+
+        // Create a race with a fixed language grant
+        $race = Race::factory()->create();
+        $language = Language::factory()->create();
+
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'language_id' => $language->id,
+            'is_choice' => false,
+            'quantity' => 1,
+        ]);
+
+        // Update character with race
+        $response = $this->patchJson("/api/v1/characters/{$character->public_id}", [
+            'race' => $race->full_slug,
+        ]);
+
+        $response->assertOk();
+
+        // Check that the character has the language
+        $this->assertDatabaseHas('character_languages', [
+            'character_id' => $character->id,
+            'language_slug' => $language->full_slug,
+            'source' => 'race',
+        ]);
+    }
+
+    #[Test]
+    public function it_does_not_duplicate_languages_when_called_multiple_times(): void
+    {
+        // Create a race with a fixed language grant
+        $race = Race::factory()->create();
+        $language = Language::factory()->create();
+
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'language_id' => $language->id,
+            'is_choice' => false,
+            'quantity' => 1,
+        ]);
+
+        // Create character with race
+        $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'test-char-cd34',
+            'name' => 'Test Character',
+            'race' => $race->full_slug,
+        ]);
+
+        $response->assertCreated();
+
+        $character = Character::where('public_id', 'test-char-cd34')->first();
+
+        // Call sync endpoint (should not create duplicates)
+        $this->postJson("/api/v1/characters/{$character->public_id}/languages/sync");
+
+        // Verify only one language entry exists
+        $languageCount = $character->languages()->where('language_slug', $language->full_slug)->count();
+        $this->assertEquals(1, $languageCount);
+    }
+
+    #[Test]
+    public function it_does_not_auto_populate_for_dangling_race_reference(): void
+    {
+        // Create character with a non-existent race slug (dangling reference)
+        $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'test-char-ef56',
+            'name' => 'Test Character',
+            'race' => 'nonexistent:race',
+        ]);
+
+        $response->assertCreated();
+
+        // Verify no languages were added
+        $character = Character::where('public_id', 'test-char-ef56')->first();
+        $this->assertDatabaseMissing('character_languages', [
+            'character_id' => $character->id,
+        ]);
     }
 }

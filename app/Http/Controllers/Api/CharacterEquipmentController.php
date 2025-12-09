@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CharacterEquipment\CharacterEquipmentStoreRequest;
-use App\Http\Requests\CharacterEquipment\CharacterEquipmentUpdateRequest;
+use App\Http\Requests\Character\Equipment\CharacterEquipmentStoreRequest;
+use App\Http\Requests\Character\Equipment\CharacterEquipmentUpdateRequest;
 use App\Http\Resources\CharacterEquipmentResource;
 use App\Models\Character;
 use App\Models\CharacterEquipment;

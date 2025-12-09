@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\HitDice;
+namespace App\Http\Requests\Character\Combat;
 
 use Illuminate\Foundation\Http\FormRequest;
 

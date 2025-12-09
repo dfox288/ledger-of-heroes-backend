@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CharacterCondition\CharacterConditionStoreRequest;
+use App\Http\Requests\Character\Condition\CharacterConditionStoreRequest;
 use App\Http\Resources\CharacterConditionResource;
 use App\Models\Character;
 use App\Models\CharacterCondition;

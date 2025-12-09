@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\SpellSlotType;
 use App\Exceptions\InsufficientSpellSlotsException;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\SpellSlot\UseSpellSlotRequest;
+use App\Http\Requests\Character\Combat\UseSpellSlotRequest;
 use App\Http\Resources\SpellSlotsResource;
 use App\Models\Character;
 use App\Services\SpellSlotService;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\CharacterCondition;
+namespace App\Http\Requests\Character\Condition;
 
 use App\Http\Requests\Concerns\MapsApiFields;
 use App\Models\Condition;

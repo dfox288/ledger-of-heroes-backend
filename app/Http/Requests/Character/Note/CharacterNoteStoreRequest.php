@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\CharacterNote;
+namespace App\Http\Requests\Character\Note;
 
 use App\Enums\NoteCategory;
 use Illuminate\Foundation\Http\FormRequest;

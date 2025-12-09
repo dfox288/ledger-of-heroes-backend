@@ -6,6 +6,7 @@ use App\Models\EntitySource;
 use App\Models\Source;
 use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('feature-db')]
@@ -13,7 +14,8 @@ class EntitySourceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_entity_source_belongs_to_source(): void
+    #[Test]
+    public function entity_source_belongs_to_source(): void
     {
         $source = Source::where('code', 'PHB')->first();
 
@@ -36,7 +38,8 @@ class EntitySourceTest extends TestCase
         $this->assertInstanceOf(EntitySource::class, $spell->sources->first());
     }
 
-    public function test_entity_source_has_polymorphic_reference(): void
+    #[Test]
+    public function entity_source_has_polymorphic_reference(): void
     {
         $source = Source::where('code', 'PHB')->first();
 
@@ -54,7 +57,8 @@ class EntitySourceTest extends TestCase
         $this->assertEquals($spell->id, $entitySource->reference_id);
     }
 
-    public function test_entity_source_does_not_use_timestamps(): void
+    #[Test]
+    public function entity_source_does_not_use_timestamps(): void
     {
         $entitySource = new EntitySource;
         $this->assertFalse($entitySource->timestamps);

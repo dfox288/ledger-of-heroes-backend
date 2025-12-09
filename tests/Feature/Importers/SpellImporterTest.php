@@ -11,6 +11,7 @@ use App\Models\SpellSchool;
 use App\Services\Importers\SpellImporter;
 use App\Services\Parsers\SpellXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('importers')]
@@ -18,7 +19,8 @@ class SpellImporterTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_imports_spell_from_parsed_data(): void
+    #[Test]
+    public function imports_spell_from_parsed_data(): void
     {
         // Create required classes for spell associations
         CharacterClass::factory()->create(['name' => 'Wizard', 'slug' => 'wizard']);

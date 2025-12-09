@@ -5,6 +5,7 @@ namespace Tests\Feature\Models;
 use App\Models\CharacterTrait;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('feature-db')]
@@ -12,7 +13,8 @@ class TraitModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_trait_belongs_to_race_via_polymorphic(): void
+    #[Test]
+    public function trait_belongs_to_race_via_polymorphic(): void
     {
         $race = Race::factory()->create();
 
@@ -27,7 +29,8 @@ class TraitModelTest extends TestCase
         $this->assertInstanceOf(Race::class, $trait->reference);
     }
 
-    public function test_race_has_many_traits(): void
+    #[Test]
+    public function race_has_many_traits(): void
     {
         $race = Race::factory()->create();
 

@@ -4,6 +4,7 @@ namespace Tests\Feature\Models;
 
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('feature-db')]
@@ -11,7 +12,8 @@ class RaceModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_race_can_have_parent_race(): void
+    #[Test]
+    public function race_can_have_parent_race(): void
     {
         // Arrange: Create base race and subrace
         $baseRace = Race::factory()->create([
@@ -35,7 +37,8 @@ class RaceModelTest extends TestCase
         $this->assertEquals('Hill', $baseRace->subraces->first()->name);
     }
 
-    public function test_base_race_has_null_parent(): void
+    #[Test]
+    public function base_race_has_null_parent(): void
     {
         $baseRace = Race::factory()->create([
             'name' => 'Dragonborn',
@@ -47,7 +50,8 @@ class RaceModelTest extends TestCase
         $this->assertCount(0, $baseRace->subraces);
     }
 
-    public function test_race_has_conditions_relationship(): void
+    #[Test]
+    public function race_has_conditions_relationship(): void
     {
         $race = Race::factory()->create();
         $condition = \App\Models\Condition::firstOrCreate(
@@ -66,7 +70,8 @@ class RaceModelTest extends TestCase
         $this->assertCount(1, $race->fresh()->conditions);
     }
 
-    public function test_race_has_spells_relationship(): void
+    #[Test]
+    public function race_has_spells_relationship(): void
     {
         $race = Race::factory()->create();
         $spell = \App\Models\Spell::factory()->create();

@@ -3,13 +3,15 @@
 namespace Tests\Unit\Parsers;
 
 use App\Services\Parsers\SpellXmlParser;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('unit-pure')]
 
 class SpellXmlParserTest extends TestCase
 {
-    public function test_parses_basic_spell_data(): void
+    #[Test]
+    public function parses_basic_spell_data(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -51,7 +53,8 @@ XML;
         $this->assertEquals('241', $spells[0]['sources'][0]['pages']);
     }
 
-    public function test_detects_concentration(): void
+    #[Test]
+    public function detects_concentration(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -77,7 +80,8 @@ XML;
         $this->assertTrue($spells[0]['needs_concentration']);
     }
 
-    public function test_detects_ritual(): void
+    #[Test]
+    public function detects_ritual(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -104,7 +108,8 @@ XML;
         $this->assertTrue($spells[0]['is_ritual']);
     }
 
-    public function test_parses_source_with_year(): void
+    #[Test]
+    public function parses_source_with_year(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -134,7 +139,8 @@ XML;
         $this->assertEquals('211', $spells[0]['sources'][0]['pages']);
     }
 
-    public function test_strips_school_prefix_from_classes(): void
+    #[Test]
+    public function strips_school_prefix_from_classes(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -161,7 +167,8 @@ XML;
         $this->assertNotContains('School: Abjuration', $spells[0]['classes']);
     }
 
-    public function test_parses_description_from_combined_text_element(): void
+    #[Test]
+    public function parses_description_from_combined_text_element(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -197,7 +204,8 @@ XML;
         $this->assertEquals('211', $spells[0]['sources'][0]['pages']);
     }
 
-    public function test_parses_description_with_separate_text_elements(): void
+    #[Test]
+    public function parses_description_with_separate_text_elements(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -229,7 +237,8 @@ XML;
         $this->assertEquals('241', $spells[0]['sources'][0]['pages']);
     }
 
-    public function test_parses_cantrip_roll_elements_with_character_level_scaling(): void
+    #[Test]
+    public function parses_cantrip_roll_elements_with_character_level_scaling(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -281,7 +290,8 @@ XML;
         $this->assertEquals(17, $spells[0]['effects'][3]['min_character_level']);
     }
 
-    public function test_parses_spell_roll_elements_with_spell_slot_scaling(): void
+    #[Test]
+    public function parses_spell_roll_elements_with_spell_slot_scaling(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -326,7 +336,8 @@ XML;
         $this->assertEquals(3, $spells[0]['effects'][2]['min_spell_slot']);
     }
 
-    public function test_parses_roll_elements_without_level_attribute(): void
+    #[Test]
+    public function parses_roll_elements_without_level_attribute(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -360,7 +371,8 @@ XML;
         $this->assertNull($spells[0]['effects'][0]['min_spell_slot']);
     }
 
-    public function test_parses_healing_effect_type(): void
+    #[Test]
+    public function parses_healing_effect_type(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -389,7 +401,8 @@ XML;
         $this->assertEquals('Regain Hit Points', $spells[0]['effects'][0]['description']);
     }
 
-    public function test_spell_without_roll_elements_returns_empty_effects_array(): void
+    #[Test]
+    public function spell_without_roll_elements_returns_empty_effects_array(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -416,7 +429,8 @@ XML;
         $this->assertCount(0, $spells[0]['effects']);
     }
 
-    public function test_parses_scaling_increment_for_damage_effects(): void
+    #[Test]
+    public function parses_scaling_increment_for_damage_effects(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -444,7 +458,8 @@ XML;
         $this->assertEquals('1d6', $spells[0]['effects'][0]['scaling_increment']);
     }
 
-    public function test_applies_scaling_increment_to_healing_effects(): void
+    #[Test]
+    public function applies_scaling_increment_to_healing_effects(): void
     {
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>

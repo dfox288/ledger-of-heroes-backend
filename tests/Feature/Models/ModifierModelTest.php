@@ -6,6 +6,7 @@ use App\Models\AbilityScore;
 use App\Models\Modifier;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('feature-db')]
@@ -13,7 +14,8 @@ class ModifierModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_modifier_belongs_to_race_via_polymorphic(): void
+    #[Test]
+    public function modifier_belongs_to_race_via_polymorphic(): void
     {
         $race = Race::factory()->create();
         $abilityScore = AbilityScore::where('code', 'STR')->first();
@@ -28,7 +30,8 @@ class ModifierModelTest extends TestCase
         $this->assertInstanceOf(Race::class, $modifier->reference);
     }
 
-    public function test_race_has_many_modifiers(): void
+    #[Test]
+    public function race_has_many_modifiers(): void
     {
         $race = Race::factory()->create();
         $str = AbilityScore::where('code', 'STR')->first();
@@ -49,7 +52,8 @@ class ModifierModelTest extends TestCase
         $this->assertCount(2, $race->modifiers);
     }
 
-    public function test_modifier_supports_choice_fields(): void
+    #[Test]
+    public function modifier_supports_choice_fields(): void
     {
         $race = Race::factory()->create();
 

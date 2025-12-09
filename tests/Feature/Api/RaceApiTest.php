@@ -185,7 +185,8 @@ class RaceApiTest extends TestCase
     }
 
     #[Test]
-    public function test_race_modifiers_include_ability_score_resource()
+    #[Test]
+    public function race_modifiers_include_ability_score_resource()
     {
         // Use imported Dragonborn which has STR modifier
         $race = Race::where('name', 'Dragonborn')->first();
@@ -219,7 +220,8 @@ class RaceApiTest extends TestCase
     }
 
     #[Test]
-    public function test_race_proficiencies_include_skill_resource()
+    #[Test]
+    public function race_proficiencies_include_skill_resource()
     {
         // Find a race with skill proficiencies
         $race = Race::whereHas('proficiencies', function ($q) {
@@ -255,7 +257,8 @@ class RaceApiTest extends TestCase
     }
 
     #[Test]
-    public function test_race_traits_with_data_tables_include_entry_resource()
+    #[Test]
+    public function race_traits_with_data_tables_include_entry_resource()
     {
         // Find a race with traits that have data tables
         $race = Race::whereHas('traits.dataTables')->first();
@@ -279,7 +282,8 @@ class RaceApiTest extends TestCase
     }
 
     #[Test]
-    public function test_modifier_includes_skill_when_present()
+    #[Test]
+    public function modifier_includes_skill_when_present()
     {
         // Find a race with skill modifiers
         $race = Race::whereHas('modifiers', function ($q) {
@@ -305,7 +309,8 @@ class RaceApiTest extends TestCase
     }
 
     #[Test]
-    public function test_proficiency_includes_ability_score_when_present()
+    #[Test]
+    public function proficiency_includes_ability_score_when_present()
     {
         // Find a race with saving throw proficiencies
         $race = Race::whereHas('proficiencies', function ($q) {

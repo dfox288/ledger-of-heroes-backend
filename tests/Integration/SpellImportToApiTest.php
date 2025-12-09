@@ -4,6 +4,7 @@ namespace Tests\Integration;
 
 use App\Services\Importers\SpellImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('feature-search')]
@@ -14,7 +15,8 @@ class SpellImportToApiTest extends TestCase
 
     protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
 
-    public function test_spell_import_to_api_pipeline(): void
+    #[Test]
+    public function spell_import_to_api_pipeline(): void
     {
         // Import from actual XML file
         $importer = new SpellImporter;

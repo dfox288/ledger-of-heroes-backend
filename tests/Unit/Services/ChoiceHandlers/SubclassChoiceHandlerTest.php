@@ -12,6 +12,7 @@ use App\Models\CharacterClassPivot;
 use App\Models\ClassFeature;
 use App\Services\ChoiceHandlers\SubclassChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SubclassChoiceHandlerTest extends TestCase
@@ -26,12 +27,14 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->handler = app(SubclassChoiceHandler::class);
     }
 
-    public function test_get_type_returns_subclass(): void
+    #[Test]
+    public function get_type_returns_subclass(): void
     {
         $this->assertSame('subclass', $this->handler->getType());
     }
 
-    public function test_returns_subclass_choice_for_cleric_at_level_1(): void
+    #[Test]
+    public function returns_subclass_choice_for_cleric_at_level_1(): void
     {
         // Cleric gets Divine Domain at level 1
         $cleric = CharacterClass::factory()->create([
@@ -95,7 +98,8 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertSame($cleric->full_slug, $choice->metadata['class_slug']);
     }
 
-    public function test_does_not_return_choice_for_fighter_at_level_1(): void
+    #[Test]
+    public function does_not_return_choice_for_fighter_at_level_1(): void
     {
         // Fighter gets Martial Archetype at level 3
         $fighter = CharacterClass::factory()->create([
@@ -135,7 +139,8 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertCount(0, $choices);
     }
 
-    public function test_returns_choice_for_fighter_at_level_3(): void
+    #[Test]
+    public function returns_choice_for_fighter_at_level_3(): void
     {
         // Fighter gets Martial Archetype at level 3
         $fighter = CharacterClass::factory()->create([
@@ -193,7 +198,8 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertCount(2, $choice->options);
     }
 
-    public function test_does_not_return_choice_if_subclass_already_selected(): void
+    #[Test]
+    public function does_not_return_choice_if_subclass_already_selected(): void
     {
         $cleric = CharacterClass::factory()->create([
             'name' => 'Cleric',
@@ -230,7 +236,8 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertCount(0, $choices);
     }
 
-    public function test_resolve_sets_subclass_on_character_class_pivot(): void
+    #[Test]
+    public function resolve_sets_subclass_on_character_class_pivot(): void
     {
         $cleric = CharacterClass::factory()->create([
             'name' => 'Cleric',
@@ -278,7 +285,8 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertSame($lifeDomain->full_slug, $pivot->subclass_slug);
     }
 
-    public function test_resolve_throws_exception_if_subclass_slug_not_provided(): void
+    #[Test]
+    public function resolve_throws_exception_if_subclass_slug_not_provided(): void
     {
         $this->expectException(InvalidSelectionException::class);
 
@@ -317,7 +325,8 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->handler->resolve($character, $choice, []);
     }
 
-    public function test_resolve_throws_exception_if_subclass_does_not_belong_to_class(): void
+    #[Test]
+    public function resolve_throws_exception_if_subclass_does_not_belong_to_class(): void
     {
         $this->expectException(InvalidSelectionException::class);
 
@@ -370,7 +379,8 @@ class SubclassChoiceHandlerTest extends TestCase
         ]);
     }
 
-    public function test_can_undo_returns_true_at_creation_level(): void
+    #[Test]
+    public function can_undo_returns_true_at_creation_level(): void
     {
         $cleric = CharacterClass::factory()->create([
             'name' => 'Cleric',
@@ -421,7 +431,8 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertTrue($this->handler->canUndo($character, $choice));
     }
 
-    public function test_can_undo_returns_false_after_leveling_beyond_subclass_level(): void
+    #[Test]
+    public function can_undo_returns_false_after_leveling_beyond_subclass_level(): void
     {
         $cleric = CharacterClass::factory()->create([
             'name' => 'Cleric',
@@ -472,7 +483,8 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertFalse($this->handler->canUndo($character, $choice));
     }
 
-    public function test_undo_clears_subclass_slug_on_pivot(): void
+    #[Test]
+    public function undo_clears_subclass_slug_on_pivot(): void
     {
         $cleric = CharacterClass::factory()->create([
             'name' => 'Cleric',
@@ -518,7 +530,8 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertNull($pivot->subclass_slug);
     }
 
-    public function test_generates_correct_choice_id(): void
+    #[Test]
+    public function generates_correct_choice_id(): void
     {
         $cleric = CharacterClass::factory()->create([
             'name' => 'Cleric',
@@ -556,7 +569,8 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertSame("subclass|class|{$cleric->full_slug}|1|subclass", $choice->id);
     }
 
-    public function test_includes_subclass_details_in_options(): void
+    #[Test]
+    public function includes_subclass_details_in_options(): void
     {
         $cleric = CharacterClass::factory()->create([
             'name' => 'Cleric',
@@ -611,7 +625,8 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertContains('Disciple of Life', $option['features_preview']);
     }
 
-    public function test_resolve_assigns_subclass_features_to_character(): void
+    #[Test]
+    public function resolve_assigns_subclass_features_to_character(): void
     {
         $cleric = CharacterClass::factory()->create([
             'name' => 'Cleric',
@@ -695,7 +710,8 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertTrue($features->every(fn ($f) => $f->level_acquired === 1));
     }
 
-    public function test_undo_removes_subclass_features_from_character(): void
+    #[Test]
+    public function undo_removes_subclass_features_from_character(): void
     {
         $cleric = CharacterClass::factory()->create([
             'name' => 'Cleric',
@@ -763,7 +779,8 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertNull($pivot->subclass_slug);
     }
 
-    public function test_undo_only_removes_features_for_specific_subclass_multiclass(): void
+    #[Test]
+    public function undo_only_removes_features_for_specific_subclass_multiclass(): void
     {
         // Test multiclass scenario: Cleric/Warlock - undoing Cleric subclass
         // should NOT remove Warlock subclass features

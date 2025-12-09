@@ -7,6 +7,7 @@ use App\Models\EntitySpell;
 use App\Models\Race;
 use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('feature-db')]
@@ -23,7 +24,8 @@ class EntitySpellModelTest extends TestCase
         }
     }
 
-    public function test_entity_spell_belongs_to_spell(): void
+    #[Test]
+    public function entity_spell_belongs_to_spell(): void
     {
         $spell = Spell::factory()->create();
         $race = Race::factory()->create();
@@ -39,7 +41,8 @@ class EntitySpellModelTest extends TestCase
         $this->assertEquals($spell->id, $entitySpell->spell->id);
     }
 
-    public function test_entity_spell_belongs_to_ability_score(): void
+    #[Test]
+    public function entity_spell_belongs_to_ability_score(): void
     {
         $spell = Spell::factory()->create();
         $race = Race::factory()->create();
@@ -58,7 +61,8 @@ class EntitySpellModelTest extends TestCase
         $this->assertEquals('CHA', $entitySpell->abilityScore->code);
     }
 
-    public function test_entity_spell_has_polymorphic_reference(): void
+    #[Test]
+    public function entity_spell_has_polymorphic_reference(): void
     {
         $spell = Spell::factory()->create();
         $race = Race::factory()->create();

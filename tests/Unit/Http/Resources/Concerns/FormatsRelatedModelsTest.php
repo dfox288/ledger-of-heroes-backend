@@ -24,17 +24,20 @@ class FormatsRelatedModelsTest extends TestCase
             use FormatsRelatedModels;
 
             // Expose protected methods for testing
-            public function test_format_entity($entity, array $fields = ['id', 'name', 'slug']): ?array
+            #[Test]
+            public function format_entity($entity, array $fields = ['id', 'name', 'slug']): ?array
             {
                 return $this->formatEntity($entity, $fields);
             }
 
-            public function test_format_entity_with($entity, array $fields, array $computed): ?array
+            #[Test]
+            public function format_entity_with($entity, array $fields, array $computed): ?array
             {
                 return $this->formatEntityWith($entity, $fields, $computed);
             }
 
-            public function test_format_entity_with_extra($entity, array $extraFields): ?array
+            #[Test]
+            public function format_entity_with_extra($entity, array $extraFields): ?array
             {
                 return $this->formatEntityWithExtra($entity, $extraFields);
             }

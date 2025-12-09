@@ -7,6 +7,7 @@ use App\Models\EntityDataTable;
 use App\Models\EntityDataTableEntry;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('feature-db')]
@@ -14,7 +15,8 @@ class EntityDataTableModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_data_table_belongs_to_race_via_polymorphic(): void
+    #[Test]
+    public function data_table_belongs_to_race_via_polymorphic(): void
     {
         $race = Race::factory()->create();
 
@@ -28,7 +30,8 @@ class EntityDataTableModelTest extends TestCase
         $this->assertInstanceOf(Race::class, $table->reference);
     }
 
-    public function test_data_table_has_many_entries(): void
+    #[Test]
+    public function data_table_has_many_entries(): void
     {
         $race = Race::factory()->create();
 
@@ -56,7 +59,8 @@ class EntityDataTableModelTest extends TestCase
         $this->assertCount(2, $table->entries);
     }
 
-    public function test_data_table_has_table_type(): void
+    #[Test]
+    public function data_table_has_table_type(): void
     {
         $race = Race::factory()->create();
 

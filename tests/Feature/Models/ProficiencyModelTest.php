@@ -6,6 +6,7 @@ use App\Models\Proficiency;
 use App\Models\Race;
 use App\Models\Skill;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[\PHPUnit\Framework\Attributes\Group('feature-db')]
@@ -13,7 +14,8 @@ class ProficiencyModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_proficiency_belongs_to_race_via_polymorphic(): void
+    #[Test]
+    public function proficiency_belongs_to_race_via_polymorphic(): void
     {
         $race = Race::factory()->create();
         $skill = Skill::where('name', 'Perception')->first();
@@ -27,7 +29,8 @@ class ProficiencyModelTest extends TestCase
         $this->assertInstanceOf(Race::class, $proficiency->reference);
     }
 
-    public function test_race_has_many_proficiencies(): void
+    #[Test]
+    public function race_has_many_proficiencies(): void
     {
         $race = Race::factory()->create();
         $skill = Skill::where('name', 'Perception')->first();

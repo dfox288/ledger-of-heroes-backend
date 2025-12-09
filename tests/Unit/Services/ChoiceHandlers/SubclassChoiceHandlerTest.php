@@ -762,4 +762,118 @@ class SubclassChoiceHandlerTest extends TestCase
         $pivot->refresh();
         $this->assertNull($pivot->subclass_slug);
     }
+
+    public function test_undo_only_removes_features_for_specific_subclass_multiclass(): void
+    {
+        // Test multiclass scenario: Cleric/Warlock - undoing Cleric subclass
+        // should NOT remove Warlock subclass features
+
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        $lifeDomain = CharacterClass::factory()->create([
+            'name' => 'Life Domain',
+            'slug' => 'life-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        $warlock = CharacterClass::factory()->create([
+            'name' => 'Warlock',
+            'slug' => 'warlock',
+            'parent_class_id' => null,
+        ]);
+
+        $fiendPatron = CharacterClass::factory()->create([
+            'name' => 'The Fiend',
+            'slug' => 'the-fiend',
+            'parent_class_id' => $warlock->id,
+        ]);
+
+        // Create features for each subclass
+        $clericFeature = ClassFeature::factory()->create([
+            'class_id' => $lifeDomain->id,
+            'feature_name' => 'Disciple of Life',
+            'level' => 1,
+            'is_optional' => false,
+        ]);
+
+        $warlockFeature = ClassFeature::factory()->create([
+            'class_id' => $fiendPatron->id,
+            'feature_name' => "Dark One's Blessing",
+            'level' => 1,
+            'is_optional' => false,
+        ]);
+
+        $character = Character::factory()->create();
+
+        // Add both classes with subclasses
+        $clericPivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $cleric->full_slug,
+            'subclass_slug' => $lifeDomain->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $warlock->full_slug,
+            'subclass_slug' => $fiendPatron->full_slug,
+            'level' => 1,
+            'is_primary' => false,
+            'order' => 2,
+        ]);
+
+        // Add both subclass features to character
+        $character->features()->create([
+            'feature_type' => ClassFeature::class,
+            'feature_id' => $clericFeature->id,
+            'source' => 'subclass',
+            'level_acquired' => 1,
+        ]);
+
+        $character->features()->create([
+            'feature_type' => ClassFeature::class,
+            'feature_id' => $warlockFeature->id,
+            'source' => 'subclass',
+            'level_acquired' => 1,
+        ]);
+
+        $this->assertCount(2, $character->features);
+
+        // Undo the CLERIC subclass choice
+        $choice = new PendingChoice(
+            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Cleric',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 0,
+            selected: [(string) $lifeDomain->id],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_slug' => $cleric->full_slug],
+        );
+
+        $this->handler->undo($character, $choice);
+
+        // Verify only Cleric subclass features were removed
+        $character->refresh();
+        $this->assertCount(1, $character->features);
+
+        // The remaining feature should be the Warlock feature
+        $remainingFeature = $character->features->first();
+        $this->assertSame($warlockFeature->id, $remainingFeature->feature_id);
+
+        // Verify Cleric pivot was cleared but Warlock wasn't touched
+        $clericPivot->refresh();
+        $this->assertNull($clericPivot->subclass_slug);
+    }
 }

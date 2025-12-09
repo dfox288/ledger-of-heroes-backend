@@ -158,13 +158,37 @@ class CharacterFeatureService
     }
 
     /**
-     * Remove all subclass features from a character.
+     * Remove subclass features from a character for a specific subclass.
      *
-     * Called when a subclass choice is undone.
+     * Called when a subclass choice is undone. Only removes features belonging
+     * to the specified subclass, preserving other subclass features (multiclass support).
+     *
+     * @param  string  $subclassSlug  The subclass whose features should be removed
      */
-    public function clearSubclassFeatures(Character $character): void
+    public function clearSubclassFeatures(Character $character, string $subclassSlug): void
     {
-        $this->clearFeatures($character, 'subclass');
+        // Load the subclass to get its feature IDs
+        $subclass = CharacterClass::where('full_slug', $subclassSlug)->first();
+
+        if (! $subclass) {
+            return;
+        }
+
+        // Get all feature IDs for this subclass
+        $subclassFeatureIds = $subclass->features()->pluck('id')->toArray();
+
+        if (empty($subclassFeatureIds)) {
+            return;
+        }
+
+        // Delete only features from this specific subclass
+        $character->features()
+            ->where('source', 'subclass')
+            ->where('feature_type', ClassFeature::class)
+            ->whereIn('feature_id', $subclassFeatureIds)
+            ->delete();
+
+        $character->load('features');
     }
 
     /**

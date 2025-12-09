@@ -159,13 +159,18 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
         $parsed = $this->parseChoiceId($choice->id);
         $classSlug = $parsed['sourceSlug'];
 
-        // Remove subclass features from the character
-        $this->featureService->clearSubclassFeatures($character);
-
-        // Clear subclass_slug on the pivot
-        $character->characterClasses()
+        // Get the current subclass slug before clearing it
+        $characterClass = $character->characterClasses()
             ->where('class_slug', $classSlug)
-            ->update(['subclass_slug' => null]);
+            ->first();
+
+        if ($characterClass && $characterClass->subclass_slug) {
+            // Remove subclass features from the character (only for this subclass)
+            $this->featureService->clearSubclassFeatures($character, $characterClass->subclass_slug);
+
+            // Clear subclass_slug on the pivot
+            $characterClass->update(['subclass_slug' => null]);
+        }
 
         // Reload the relationship
         $character->load('characterClasses');

@@ -1177,4 +1177,67 @@ XML;
         $this->assertArrayHasKey('has_size_choice', $races[0]);
         $this->assertFalse($races[0]['has_size_choice'], 'Should not detect size choice for fixed-size races');
     }
+
+    #[Test]
+    public function it_parses_skill_advantages_from_trait_descriptions()
+    {
+        // Stonecunning trait from Dwarf race (without Source to avoid DB lookup)
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <race>
+    <name>Dwarf</name>
+    <size>M</size>
+    <speed>25</speed>
+    <ability>Con +2</ability>
+    <trait category="description">
+      <name>Description</name>
+      <text>Dwarves are solid and enduring like the mountains.</text>
+    </trait>
+    <trait>
+      <name>Stonecunning</name>
+      <text>Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check, instead of your normal proficiency bonus. You have advantage on Intelligence (History) checks related to the origin of stonework.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races);
+        $this->assertArrayHasKey('skill_advantage_modifiers', $races[0]);
+        $this->assertCount(1, $races[0]['skill_advantage_modifiers']);
+
+        $modifier = $races[0]['skill_advantage_modifiers'][0];
+        $this->assertEquals('skill_advantage', $modifier['modifier_category']);
+        $this->assertEquals('History', $modifier['skill_name']);
+        $this->assertEquals('advantage', $modifier['value']);
+        $this->assertEquals('the origin of stonework', $modifier['condition']);
+    }
+
+    #[Test]
+    public function it_returns_empty_skill_advantages_when_none_found()
+    {
+        // Minimal race without traits that would trigger DB lookups
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <race>
+    <name>Custom Race</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait category="description">
+      <name>Description</name>
+      <text>A custom race with no skill advantages.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races);
+        $this->assertArrayHasKey('skill_advantage_modifiers', $races[0]);
+        $this->assertCount(0, $races[0]['skill_advantage_modifiers']);
+    }
 }

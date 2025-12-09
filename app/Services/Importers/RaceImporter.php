@@ -120,13 +120,14 @@ class RaceImporter extends BaseImporter
             }
         }
 
-        // Import all modifiers (ability bonuses, choices, resistances, and trait modifiers)
+        // Import all modifiers (ability bonuses, choices, resistances, trait modifiers, and skill advantages)
         $this->importAllModifiers(
             $race,
             $raceData['ability_bonuses'] ?? [],
             $raceData['ability_choices'] ?? [],
             $raceData['resistances'] ?? [],
-            $raceData['modifiers'] ?? []
+            $raceData['modifiers'] ?? [],
+            $raceData['skill_advantage_modifiers'] ?? []
         );
 
         // For subraces, don't duplicate proficiencies that belong to base race
@@ -188,13 +189,14 @@ class RaceImporter extends BaseImporter
             }
         }
 
-        // Import modifiers (ability bonuses, resistances)
+        // Import modifiers (ability bonuses, resistances, skill advantages)
         $this->importAllModifiers(
             $baseRace,
             $baseRaceData['ability_bonuses'] ?? [],
             [], // No ability choices for base races typically
             $baseRaceData['resistances'] ?? [],
-            []  // No trait modifiers for base races
+            [], // No trait modifiers for base races
+            $baseRaceData['skill_advantage_modifiers'] ?? []
         );
 
         // Import proficiencies
@@ -248,7 +250,7 @@ class RaceImporter extends BaseImporter
     }
 
     /**
-     * Import all modifiers at once (ability bonuses, choices, resistances, and trait modifiers).
+     * Import all modifiers at once (ability bonuses, choices, resistances, trait modifiers, and skill advantages).
      * This ensures we don't clear modifiers between multiple imports.
      */
     private function importAllModifiers(
@@ -256,7 +258,8 @@ class RaceImporter extends BaseImporter
         array $bonusesData,
         array $choicesData,
         array $resistancesData,
-        array $traitModifiersData
+        array $traitModifiersData,
+        array $skillAdvantageModifiers = []
     ): void {
         $modifiersData = [];
 
@@ -322,6 +325,16 @@ class RaceImporter extends BaseImporter
             }
 
             $modifiersData[] = $modifier;
+        }
+
+        // Add skill advantage modifiers (from parseSkillAdvantagesFromTraits)
+        foreach ($skillAdvantageModifiers as $skillAdvantage) {
+            $modifiersData[] = [
+                'category' => $skillAdvantage['modifier_category'],
+                'skill_name' => $skillAdvantage['skill_name'],
+                'value' => $skillAdvantage['value'],
+                'condition' => $skillAdvantage['condition'],
+            ];
         }
 
         // Use trait to import all modifiers at once

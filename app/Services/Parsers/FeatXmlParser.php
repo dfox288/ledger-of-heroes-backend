@@ -6,13 +6,14 @@ use App\Services\Parsers\Concerns\ConvertsWordNumbers;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\ParsesModifiers;
 use App\Services\Parsers\Concerns\ParsesRestTiming;
+use App\Services\Parsers\Concerns\ParsesSkillAdvantages;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use App\Services\Parsers\Concerns\StripsSourceCitations;
 use SimpleXMLElement;
 
 class FeatXmlParser
 {
-    use ConvertsWordNumbers, MapsAbilityCodes, ParsesModifiers, ParsesRestTiming, ParsesSourceCitations, StripsSourceCitations;
+    use ConvertsWordNumbers, MapsAbilityCodes, ParsesModifiers, ParsesRestTiming, ParsesSkillAdvantages, ParsesSourceCitations, StripsSourceCitations;
 
     /**
      * Parse feats from XML string.
@@ -242,55 +243,6 @@ class FeatXmlParser
         }
 
         return $conditions;
-    }
-
-    /**
-     * Parse skill-based advantages from description text.
-     *
-     * Detects patterns like:
-     * - "advantage on Charisma (Deception) and Charisma (Performance) checks when..."
-     * - "advantage on Wisdom (Perception) checks while..."
-     *
-     * These are routed to modifiers (not conditions) because they're skill check
-     * modifiers, not D&D Condition interactions.
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    private function parseSkillAdvantages(string $text): array
-    {
-        $modifiers = [];
-
-        // Pattern: "advantage on Ability (Skill) checks" with optional second skill and condition
-        // Captures: skill names in parentheses, and the conditional text after "when/while"
-        $pattern = '/advantage on\s+(?:[A-Z][a-z]+)\s*\(([^)]+)\)(?:\s+and\s+(?:[A-Z][a-z]+)\s*\(([^)]+)\))?\s+checks?\s*(?:(when|while)\s+(.+?))?(?:\.|$)/i';
-
-        if (preg_match($pattern, $text, $match)) {
-            $skills = [];
-
-            // First skill
-            if (! empty($match[1])) {
-                $skills[] = trim($match[1]);
-            }
-
-            // Second skill (if "and" pattern)
-            if (! empty($match[2])) {
-                $skills[] = trim($match[2]);
-            }
-
-            // Condition text (after "when" or "while")
-            $conditionText = ! empty($match[4]) ? trim($match[4]) : null;
-
-            foreach ($skills as $skillName) {
-                $modifiers[] = [
-                    'modifier_category' => 'skill_advantage',
-                    'skill_name' => $skillName,
-                    'value' => 'advantage',  // Type of check modifier (advantage/disadvantage)
-                    'condition' => $conditionText,
-                ];
-            }
-        }
-
-        return $modifiers;
     }
 
     /**

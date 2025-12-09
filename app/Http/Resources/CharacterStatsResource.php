@@ -78,6 +78,9 @@ class CharacterStatsResource extends JsonResource
             'condition_disadvantages' => $this->resource->conditionDisadvantages,
             /** @var array<int, array{condition: string, effect: string, source: string}> Condition immunities from race and feats */
             'condition_immunities' => $this->resource->conditionImmunities,
+            // Issue #429: Skill check advantages
+            /** @var array<int, array{skill: string, skill_slug: string, condition: string|null, source: string}> Skill check advantages from race and feats */
+            'skill_advantages' => $this->resource->skillAdvantages,
         ];
     }
 

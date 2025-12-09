@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #429**: Parse and expose skill check advantages from traits
+  - New `ParsesSkillAdvantages` trait for shared parsing logic
+  - `RaceXmlParser` now parses skill advantages from trait descriptions (e.g., Stonecunning)
+  - Character stats API includes `skill_advantages` array with structure:
+    - `skill`: Skill name (e.g., "History")
+    - `skill_slug`: Slug for linking (e.g., "history")
+    - `condition`: Optional conditional text (e.g., "related to the origin of stonework")
+    - `source`: Source entity name (e.g., "Dwarf", "Actor")
+  - `RaceImporter` imports parsed skill advantages to `entity_modifiers` table
+
 - **Issue #417**: Character stats API now includes defensive traits
   - `damage_resistances`, `damage_immunities`, `damage_vulnerabilities` arrays
   - `condition_advantages`, `condition_disadvantages`, `condition_immunities` arrays

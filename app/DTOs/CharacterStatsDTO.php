@@ -50,6 +50,8 @@ class CharacterStatsDTO
         public readonly array $conditionAdvantages,
         public readonly array $conditionDisadvantages,
         public readonly array $conditionImmunities,
+        // Issue #429: Skill check advantages
+        public readonly array $skillAdvantages,
     ) {}
 
     /**
@@ -214,6 +216,7 @@ class CharacterStatsDTO
             conditionAdvantages: $defensiveTraits['condition_advantages'],
             conditionDisadvantages: $defensiveTraits['condition_disadvantages'],
             conditionImmunities: $defensiveTraits['condition_immunities'],
+            skillAdvantages: $defensiveTraits['skill_advantages'],
         );
     }
 
@@ -382,14 +385,15 @@ class CharacterStatsDTO
         array &$damageVulnerabilities,
         array &$conditionAdvantages,
         array &$conditionDisadvantages,
-        array &$conditionImmunities
+        array &$conditionImmunities,
+        array &$skillAdvantages
     ): void {
         // Defensive: controller should eager-load, but load if called directly (e.g., tests)
         if (! $entity->relationLoaded('modifiers')) {
-            $entity->load('modifiers.damageType');
+            $entity->load(['modifiers.damageType', 'modifiers.skill']);
         }
 
-        // Process damage modifiers
+        // Process damage modifiers and skill advantages
         foreach ($entity->modifiers as $modifier) {
             $category = $modifier->modifier_category;
 
@@ -411,6 +415,16 @@ class CharacterStatsDTO
                         default => null,
                     };
                 }
+            }
+
+            // Issue #429: Extract skill check advantages
+            if ($category === 'skill_advantage' && $modifier->skill) {
+                $skillAdvantages[] = [
+                    'skill' => $modifier->skill->name,
+                    'skill_slug' => $modifier->skill->slug,
+                    'condition' => $modifier->condition,
+                    'source' => $sourceName,
+                ];
             }
         }
 
@@ -443,8 +457,8 @@ class CharacterStatsDTO
     /**
      * Build defensive traits from character's race and feats.
      *
-     * Aggregates damage resistances/immunities/vulnerabilities and condition effects
-     * from both race and feats into categorized arrays.
+     * Aggregates damage resistances/immunities/vulnerabilities, condition effects,
+     * and skill check advantages from both race and feats into categorized arrays.
      *
      * @return array{
      *   damage_resistances: array,
@@ -452,7 +466,8 @@ class CharacterStatsDTO
      *   damage_vulnerabilities: array,
      *   condition_advantages: array,
      *   condition_disadvantages: array,
-     *   condition_immunities: array
+     *   condition_immunities: array,
+     *   skill_advantages: array
      * }
      */
     private static function buildDefensiveTraits(Character $character): array
@@ -463,6 +478,7 @@ class CharacterStatsDTO
         $conditionAdvantages = [];
         $conditionDisadvantages = [];
         $conditionImmunities = [];
+        $skillAdvantages = [];
 
         // Process race defensive traits
         if ($race = $character->race) {
@@ -474,7 +490,8 @@ class CharacterStatsDTO
                 $damageVulnerabilities,
                 $conditionAdvantages,
                 $conditionDisadvantages,
-                $conditionImmunities
+                $conditionImmunities,
+                $skillAdvantages
             );
         }
 
@@ -510,7 +527,8 @@ class CharacterStatsDTO
                 $damageVulnerabilities,
                 $conditionAdvantages,
                 $conditionDisadvantages,
-                $conditionImmunities
+                $conditionImmunities,
+                $skillAdvantages
             );
         }
 
@@ -521,6 +539,7 @@ class CharacterStatsDTO
             'condition_advantages' => $conditionAdvantages,
             'condition_disadvantages' => $conditionDisadvantages,
             'condition_immunities' => $conditionImmunities,
+            'skill_advantages' => $skillAdvantages,
         ];
     }
 }

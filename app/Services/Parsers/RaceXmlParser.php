@@ -7,13 +7,14 @@ use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\MatchesLanguages;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesModifiers;
+use App\Services\Parsers\Concerns\ParsesSkillAdvantages;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use App\Services\Parsers\Concerns\ParsesTraits;
 use SimpleXMLElement;
 
 class RaceXmlParser
 {
-    use ConvertsWordNumbers, MapsAbilityCodes, MatchesLanguages, MatchesProficiencyTypes, ParsesModifiers, ParsesSourceCitations, ParsesTraits;
+    use ConvertsWordNumbers, MapsAbilityCodes, MatchesLanguages, MatchesProficiencyTypes, ParsesModifiers, ParsesSkillAdvantages, ParsesSourceCitations, ParsesTraits;
 
     public function parse(string $xmlContent): array
     {
@@ -129,6 +130,9 @@ class RaceXmlParser
         // Parse size choice from trait text (e.g., "Small or Medium (your choice)")
         $hasSizeChoice = $this->parseSizeChoiceFromTraits($traits);
 
+        // Parse skill check advantages from trait descriptions (e.g., Stonecunning)
+        $skillAdvantageModifiers = $this->parseSkillAdvantagesFromTraits($traits);
+
         return [
             'name' => $raceName,
             'base_race_name' => $baseRaceName,
@@ -147,6 +151,7 @@ class RaceXmlParser
             'spellcasting' => $spellcasting,
             'resistances' => $resistances,
             'modifiers' => $modifiers,
+            'skill_advantage_modifiers' => $skillAdvantageModifiers,
         ];
     }
 
@@ -586,6 +591,29 @@ class RaceXmlParser
                     'modifier_category' => 'bonus_feat',
                     'value' => 1,
                 ];
+            }
+        }
+
+        return $modifiers;
+    }
+
+    /**
+     * Parse skill check advantages from trait descriptions.
+     *
+     * Scans all trait descriptions for patterns like:
+     * - "advantage on Intelligence (History) checks related to stonework"
+     *
+     * @param  array  $traits  Parsed traits array
+     * @return array<int, array{modifier_category: string, skill_name: string, value: string, condition: string|null}>
+     */
+    private function parseSkillAdvantagesFromTraits(array $traits): array
+    {
+        $modifiers = [];
+
+        foreach ($traits as $trait) {
+            $skillAdvantages = $this->parseSkillAdvantages($trait['description']);
+            foreach ($skillAdvantages as $advantage) {
+                $modifiers[] = $advantage;
             }
         }
 

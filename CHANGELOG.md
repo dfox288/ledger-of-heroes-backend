@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #385**: Filter non-learnable languages from pending-choices
+  - CharacterLanguageService now excludes non-learnable languages from options
+  - Language options include `is_learnable` field for API documentation
+  - Thieves' Cant and Druidic no longer appear as selectable language choices
+  - Backend pre-filters the list, frontend filtering no longer needed
+  - 3 new tests for is_learnable filtering
+
 - **Issue #384**: Parse class language grants (Thieves' Cant, Druidic)
   - ClassXmlParser detects language-granting features (Thieves' Cant, Druidic)
   - CharacterClass model now has `languages()` relationship via HasEntityLanguages trait

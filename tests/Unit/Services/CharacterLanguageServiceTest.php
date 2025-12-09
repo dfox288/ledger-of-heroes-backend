@@ -865,4 +865,77 @@ class CharacterLanguageServiceTest extends TestCase
         $this->assertEquals(4, $choices['feat']['choices']['quantity']);
         $this->assertEquals(4, $choices['feat']['choices']['remaining']);
     }
+
+    #[Test]
+    public function it_excludes_non_learnable_languages_from_options(): void
+    {
+        // Arrange - Create race with language choice
+        $race = Race::factory()->create();
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'language_id' => null,
+            'is_choice' => true,
+            'quantity' => 1,
+        ]);
+
+        $character = Character::factory()->withRace($race)->create();
+
+        // Get all languages count and non-learnable count
+        $totalLanguages = Language::count();
+        $nonLearnableCount = Language::where('is_learnable', false)->count();
+
+        // Act
+        $choices = $this->service->getPendingChoices($character);
+
+        // Assert - Options should not include non-learnable languages
+        $options = $choices['race']['choices']['options'];
+        $optionSlugs = array_column($options, 'slug');
+
+        // Verify Thieves' Cant and Druidic are NOT in options
+        $this->assertNotContains('thieves-cant', $optionSlugs);
+        $this->assertNotContains('druidic', $optionSlugs);
+
+        // Verify known learnable languages ARE included
+        $this->assertContains('common', $optionSlugs, 'Common should be in learnable options');
+        $this->assertContains('elvish', $optionSlugs, 'Elvish should be in learnable options');
+
+        // Verify all options have is_learnable = true
+        foreach ($options as $option) {
+            $this->assertArrayHasKey('is_learnable', $option);
+            $this->assertTrue($option['is_learnable']);
+        }
+
+        // Verify we got the expected number of options (total - non-learnable)
+        $expectedCount = $totalLanguages - $nonLearnableCount;
+        $this->assertCount($expectedCount, $options);
+    }
+
+    #[Test]
+    public function it_includes_is_learnable_field_in_language_options(): void
+    {
+        // Arrange - Create race with language choice
+        $race = Race::factory()->create();
+        EntityLanguage::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'language_id' => null,
+            'is_choice' => true,
+            'quantity' => 1,
+        ]);
+
+        $character = Character::factory()->withRace($race)->create();
+
+        // Act
+        $choices = $this->service->getPendingChoices($character);
+
+        // Assert - Each option should have is_learnable field
+        $options = $choices['race']['choices']['options'];
+        $this->assertNotEmpty($options);
+
+        foreach ($options as $option) {
+            $this->assertArrayHasKey('is_learnable', $option);
+            $this->assertIsBool($option['is_learnable']);
+        }
+    }
 }

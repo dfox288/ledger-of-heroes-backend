@@ -60,9 +60,9 @@ class CharacterAvailableFeatsController extends Controller
     {
         $source = $request->query('source');
 
-        // Validate source parameter
+        // Validate source parameter - return 400 for invalid values
         if ($source !== null && ! in_array($source, ['race', 'asi'], true)) {
-            $source = null; // Default to ASI behavior for invalid values
+            abort(400, 'Invalid source parameter. Must be "race" or "asi".');
         }
 
         $feats = $this->availableFeatsService->getAvailableFeats($character, $source);

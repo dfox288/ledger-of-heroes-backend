@@ -79,8 +79,8 @@ class AvailableFeatsService
 
         foreach ($groups as $groupId => $groupPrerequisites) {
             // For this group, at least ONE prerequisite must be satisfied (OR logic within group)
-            $groupSatisfied = $groupPrerequisites->contains(function ($prerequisite) use ($character, $source) {
-                return $this->checkPrerequisite($character, $prerequisite, $source);
+            $groupSatisfied = $groupPrerequisites->contains(function ($prerequisite) use ($character) {
+                return $this->checkPrerequisite($character, $prerequisite);
             });
 
             // If any group fails, character doesn't qualify (AND logic between groups)
@@ -94,10 +94,8 @@ class AvailableFeatsService
 
     /**
      * Check if a character meets a single prerequisite.
-     *
-     * @param  string|null  $source  'race' skips ability score checks (handled at feat level)
      */
-    protected function checkPrerequisite(Character $character, $prerequisite, ?string $source = null): bool
+    protected function checkPrerequisite(Character $character, $prerequisite): bool
     {
         return match ($prerequisite->prerequisite_type) {
             AbilityScore::class => $this->checkAbilityScorePrerequisite($character, $prerequisite),
@@ -132,6 +130,12 @@ class AvailableFeatsService
 
     /**
      * Check race prerequisite (including parent race for subraces).
+     *
+     * Logic: A subrace character qualifies for feats requiring their parent race.
+     * Example: High Elf qualifies for feats requiring "Elf".
+     *
+     * Note: The reverse is NOT true - a parent race does not qualify for
+     * feats requiring a specific subrace. This is intentional per D&D 5e rules.
      */
     protected function checkRacePrerequisite(Character $character, $prerequisite): bool
     {
@@ -145,12 +149,13 @@ class AvailableFeatsService
             return false;
         }
 
-        // Check if character's race matches
+        // Check if character's race matches exactly
         if ($character->race->id === $requiredRace->id) {
             return true;
         }
 
-        // Check if character's parent race matches (for subraces)
+        // Check if character's parent race matches (subrace qualifies for parent race feats)
+        // Example: High Elf (subrace) qualifies for Elf (parent race) feats
         if ($character->race->parent_race_id === $requiredRace->id) {
             return true;
         }

@@ -609,4 +609,102 @@ class CharacterAvailableFeatsTest extends TestCase
         $response->assertOk()
             ->assertJsonFragment(['name' => 'Grappler']);
     }
+
+    #[Test]
+    public function invalid_source_parameter_returns_400()
+    {
+        $character = Character::factory()->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-feats?source=invalid");
+
+        $response->assertStatus(400);
+    }
+
+    #[Test]
+    public function character_must_satisfy_all_prerequisite_groups_and_logic()
+    {
+        // Test AND logic between groups: (STR 13+ OR DEX 13+) AND Medium Armor proficiency
+        // Character has STR 14 but no armor proficiency -> should NOT qualify
+        $character = Character::factory()->create([
+            'strength' => 14,
+            'dexterity' => 10,
+        ]);
+
+        $strength = AbilityScore::where('code', 'STR')->first();
+        $dexterity = AbilityScore::where('code', 'DEX')->first();
+        $mediumArmor = ProficiencyType::where('slug', 'medium-armor')->first();
+
+        // Create feat with mixed prerequisites in different groups
+        $feat = Feat::factory()->create(['name' => 'Complex Feat']);
+
+        // Group 1: STR 13+ OR DEX 13+ (character has STR 14, satisfies this group)
+        $feat->prerequisites()->create([
+            'prerequisite_type' => AbilityScore::class,
+            'prerequisite_id' => $strength->id,
+            'minimum_value' => 13,
+            'group_id' => 1,
+        ]);
+        $feat->prerequisites()->create([
+            'prerequisite_type' => AbilityScore::class,
+            'prerequisite_id' => $dexterity->id,
+            'minimum_value' => 13,
+            'group_id' => 1,
+        ]);
+
+        // Group 2: Medium Armor proficiency (character doesn't have this)
+        $feat->prerequisites()->create([
+            'prerequisite_type' => ProficiencyType::class,
+            'prerequisite_id' => $mediumArmor->id,
+            'group_id' => 2,
+        ]);
+
+        // Character satisfies Group 1 (STR 14 >= 13) but NOT Group 2 (no armor proficiency)
+        // AND logic means both groups must be satisfied -> should NOT qualify
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-feats?source=asi");
+
+        $response->assertOk()
+            ->assertJsonMissing(['name' => 'Complex Feat']);
+    }
+
+    #[Test]
+    public function character_qualifies_when_all_prerequisite_groups_satisfied()
+    {
+        // Test AND logic: Character satisfies ALL groups
+        $character = Character::factory()->create([
+            'strength' => 14,
+        ]);
+
+        $strength = AbilityScore::where('code', 'STR')->first();
+        $mediumArmor = ProficiencyType::where('slug', 'medium-armor')->first();
+
+        // Grant character medium armor proficiency
+        $character->proficiencies()->create([
+            'proficiency_type_slug' => $mediumArmor->full_slug,
+            'source' => 'class',
+        ]);
+
+        // Create feat with prerequisites in different groups
+        $feat = Feat::factory()->create(['name' => 'Complex Feat']);
+
+        // Group 1: STR 13+
+        $feat->prerequisites()->create([
+            'prerequisite_type' => AbilityScore::class,
+            'prerequisite_id' => $strength->id,
+            'minimum_value' => 13,
+            'group_id' => 1,
+        ]);
+
+        // Group 2: Medium Armor proficiency
+        $feat->prerequisites()->create([
+            'prerequisite_type' => ProficiencyType::class,
+            'prerequisite_id' => $mediumArmor->id,
+            'group_id' => 2,
+        ]);
+
+        // Character satisfies BOTH groups -> should qualify
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-feats?source=asi");
+
+        $response->assertOk()
+            ->assertJsonFragment(['name' => 'Complex Feat']);
+    }
 }

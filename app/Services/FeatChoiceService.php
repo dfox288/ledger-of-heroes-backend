@@ -245,6 +245,7 @@ class FeatChoiceService
         CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => Feat::class,
+            'feature_id' => $feat->id,
             'feature_slug' => $feat->full_slug,
             'source' => $source,
             // Bonus feats from race/background are always acquired at character creation (level 1)

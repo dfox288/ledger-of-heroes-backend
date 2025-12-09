@@ -239,6 +239,7 @@ class AsiChoiceService
         CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => Feat::class,
+            'feature_id' => $feat->id,
             'feature_slug' => $feat->full_slug,
             'source' => 'feat',
             'level_acquired' => $character->total_level ?: 1,

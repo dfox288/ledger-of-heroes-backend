@@ -483,4 +483,32 @@ class AsiChoiceServiceTest extends TestCase
         $this->assertEquals(32, $character->current_hit_points);
         $this->assertEquals(0, $result->hpBonus);
     }
+
+    #[Test]
+    public function it_sets_feature_id_for_polymorphic_relationship(): void
+    {
+        $character = Character::factory()->create([
+            'asi_choices_remaining' => 1,
+        ]);
+        $feat = Feat::factory()->create([
+            'slug' => 'actor',
+            'full_slug' => 'phb:actor',
+            'name' => 'Actor',
+        ]);
+
+        $this->service->applyFeatChoice($character, $feat);
+
+        $characterFeature = CharacterFeature::where('character_id', $character->id)
+            ->where('feature_slug', $feat->full_slug)
+            ->first();
+
+        // Verify feature_id is set
+        $this->assertNotNull($characterFeature->feature_id);
+        $this->assertEquals($feat->id, $characterFeature->feature_id);
+
+        // Verify polymorphic relationship resolves correctly
+        $this->assertNotNull($characterFeature->feature);
+        $this->assertInstanceOf(Feat::class, $characterFeature->feature);
+        $this->assertEquals($feat->id, $characterFeature->feature->id);
+    }
 }

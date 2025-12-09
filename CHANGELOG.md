@@ -35,6 +35,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #406**: Ability-bonuses endpoint missing feat bonuses from pending choices
+  - `FeatChoiceService` was not setting `feature_id` when creating CharacterFeature records
+  - `AsiChoiceService` had the same bug (feats chosen via level 4+ ASI)
+  - This caused the polymorphic `feature()` relationship to return null
+  - AbilityBonusService could not load feat modifiers without this relationship
+  - Both services now set `feature_id` alongside `feature_slug` for proper polymorphic resolution
+
 - **Issue #390**: Level 1 subclass features not assigned to character on subclass selection
   - SubclassChoiceHandler now assigns subclass features when resolving choice
   - CharacterFeatureService gains `populateFromSubclass()` method for subclass features

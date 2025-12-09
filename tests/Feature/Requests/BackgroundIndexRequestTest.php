@@ -58,8 +58,8 @@ class BackgroundIndexRequestTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['per_page']);
 
-        // per_page must not exceed 100
-        $response = $this->getJson('/api/v1/backgrounds?per_page=101');
+        // per_page must not exceed 200
+        $response = $this->getJson('/api/v1/backgrounds?per_page=201');
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['per_page']);
 

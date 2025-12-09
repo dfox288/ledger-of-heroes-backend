@@ -22,7 +22,7 @@ class ClassSpellListRequest extends FormRequest
     {
         return [
             // Pagination
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:200'],
             'page' => ['sometimes', 'integer', 'min:1'],
 
             // Search

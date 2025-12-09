@@ -44,7 +44,7 @@ class SourceIndexRequestTest extends TestCase
     #[Test]
     public function it_validates_per_page_limit()
     {
-        $response = $this->getJson('/api/v1/lookups/sources?per_page=101');
+        $response = $this->getJson('/api/v1/lookups/sources?per_page=201');
         $response->assertUnprocessable();
         $response->assertJsonValidationErrors(['per_page']);
     }

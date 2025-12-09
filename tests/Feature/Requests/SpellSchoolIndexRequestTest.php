@@ -51,8 +51,8 @@ class SpellSchoolIndexRequestTest extends TestCase
         $response = $this->getJson('/api/v1/lookups/spell-schools?per_page=50');
         $response->assertStatus(200);
 
-        // Invalid: 101 (exceeds max of 100)
-        $response = $this->getJson('/api/v1/lookups/spell-schools?per_page=101');
+        // Invalid: 201 (exceeds max of 200)
+        $response = $this->getJson('/api/v1/lookups/spell-schools?per_page=201');
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['per_page']);
     }

@@ -65,8 +65,8 @@ class ClassIndexRequestTest extends TestCase
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('per_page');
 
-        // Invalid: too high
-        $response = $this->getJson('/api/v1/classes?per_page=101');
+        // Invalid: too high (exceeds max of 200)
+        $response = $this->getJson('/api/v1/classes?per_page=201');
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('per_page');
     }

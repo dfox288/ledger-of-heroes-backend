@@ -1125,4 +1125,56 @@ XML;
 
         $this->assertNull($bonusFeatModifier, 'Should not parse bonus_feat from non-Feat traits');
     }
+
+    #[Test]
+    public function it_parses_size_choice_from_custom_lineage()
+    {
+        // Test case: Custom Lineage - "You are Small or Medium (your choice)"
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <race>
+    <name>Custom Lineage</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait>
+      <name>Size</name>
+      <text>You are Small or Medium (your choice).</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races);
+        $this->assertArrayHasKey('has_size_choice', $races[0]);
+        $this->assertTrue($races[0]['has_size_choice'], 'Should detect size choice from Size trait');
+    }
+
+    #[Test]
+    public function it_does_not_parse_size_choice_from_fixed_size()
+    {
+        // Standard races have fixed size, not a choice
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <race>
+    <name>Human</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait>
+      <name>Size</name>
+      <text>Humans vary widely in height and build. Your size is Medium.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races);
+        $this->assertArrayHasKey('has_size_choice', $races[0]);
+        $this->assertFalse($races[0]['has_size_choice'], 'Should not detect size choice for fixed-size races');
+    }
 }

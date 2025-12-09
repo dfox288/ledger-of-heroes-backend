@@ -451,13 +451,11 @@ git checkout -b chore/issue-13-docs-update
 # Commit convention
 feat|fix|refactor|test|docs|perf: description
 
-# Always include in commit message
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-Co-Authored-By: Claude <noreply@anthropic.com>
-
 # Create PR when ready
 gh pr create --title "feat: Add feature" --body "Closes #42"
 ```
+
+**NEVER use Claude or Anthropic bylines** in commits, PRs, or GitHub issues. No `Co-Authored-By: Claude`, no `Generated with Claude Code`, no AI attribution.
 
 ---
 

@@ -1,12 +1,12 @@
-# D&D 5e Compendium API
+# Ledger of Heroes - Backend API
 
-Laravel-based REST API for D&D 5th Edition content with XML import capability. Full-featured API with search, filtering, and comprehensive test coverage.
+Laravel-based REST API for D&D 5th Edition character building and content management. Full-featured API with search, filtering, and comprehensive test coverage.
 
 ## 🎯 Project Status
 
 **Current Version:** 1.0.0 (Production Ready)
-- ✅ **7 Entity APIs Complete:** Spells, Items, Classes, Feats, Backgrounds, Races, Monsters (full REST APIs)
 - ✅ **Character Builder API:** Full character creation with equipment, spells, level-up, and ASI/Feat choices
+- ✅ **7 Entity APIs Complete:** Spells, Items, Classes, Feats, Backgrounds, Races, Monsters (full REST APIs)
 - ✅ **2,857+ Tests Passing** (~11,500 assertions) - All test suites
 - ✅ **151 Filter Operator Tests** (2,750+ assertions) - 100% coverage across all entities
 - ✅ **Performance Optimized:** Redis caching (93.7% improvement, 16.6x faster, <0.2ms response time)

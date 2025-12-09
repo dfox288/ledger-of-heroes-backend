@@ -1,4 +1,4 @@
-# Project Status
+# Ledger of Heroes - Backend Project Status
 
 **Last Updated:** 2025-12-08
 **Branch:** main

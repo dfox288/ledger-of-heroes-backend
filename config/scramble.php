@@ -29,7 +29,7 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => 'D&D 5th Edition Compendium API - Access spells, races, backgrounds, items, and more from D&D sourcebooks.',
+        'description' => 'Ledger of Heroes API - A D&D 5th Edition character builder and compendium. Access spells, races, backgrounds, items, classes, monsters, and more.',
     ],
 
     /*
@@ -39,7 +39,7 @@ return [
         /*
          * Define the title of the documentation's website. App name is used when this config is `null`.
          */
-        'title' => 'D&D Compendium API',
+        'title' => 'Ledger of Heroes API',
 
         /*
          * Define the theme of the documentation. Available options are `light`, `dark`, and `system`.

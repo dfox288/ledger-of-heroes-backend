@@ -318,6 +318,7 @@ class ClassImporter extends BaseImporter
         $subclass->features()->delete();
         $subclass->counters()->delete();
         $subclass->levelProgression()->delete();
+        $subclass->proficiencies()->delete(); // Clear bonus proficiencies from features
 
         // 7. Import subclass-specific features
         if (! empty($subclassData['features'])) {
@@ -423,7 +424,6 @@ class ClassImporter extends BaseImporter
     private function mergeSupplementData(CharacterClass $existingClass, array $supplementData): CharacterClass
     {
         $mergedSubclasses = 0;
-        $skippedSubclasses = 0;
         $baseClassUpdated = false;
         $baseClassRelationshipsImported = false;
 
@@ -472,28 +472,13 @@ class ClassImporter extends BaseImporter
             $baseClassRelationshipsImported = $this->importBaseClassRelationships($existingClass, $supplementData);
         }
 
-        // Get existing subclass names to prevent duplicates
-        $existingSubclassNames = $existingClass->subclasses()
-            ->pluck('name')
-            ->map(fn ($name) => strtolower(trim($name)))
-            ->toArray();
-
-        // Merge subclasses
+        // Merge subclasses - update existing ones, create new ones
+        // This ensures subclass data (features, proficiencies, spells) is always current
         if (! empty($supplementData['subclasses'])) {
             foreach ($supplementData['subclasses'] as $subclassData) {
-                $normalizedName = strtolower(trim($subclassData['name']));
-
-                if (in_array($normalizedName, $existingSubclassNames)) {
-                    $skippedSubclasses++;
-                    Log::channel('import-strategy')->debug('Skipped duplicate subclass', [
-                        'class' => $existingClass->name,
-                        'subclass' => $subclassData['name'],
-                    ]);
-
-                    continue;
-                }
-
-                // Import new subclass
+                // importSubclass uses updateOrCreate internally, so it will:
+                // - Update existing subclass with new data
+                // - Create new subclass if it doesn't exist
                 $this->importSubclass($existingClass, $subclassData);
                 $mergedSubclasses++;
             }
@@ -522,7 +507,6 @@ class ClassImporter extends BaseImporter
             'base_class_updated' => $baseClassUpdated,
             'base_relationships_imported' => $baseClassRelationshipsImported,
             'subclasses_merged' => $mergedSubclasses,
-            'subclasses_skipped' => $skippedSubclasses,
             'features_merged' => $mergedFeatures,
             'counters_merged' => $mergedCounters,
         ]);

@@ -25,7 +25,7 @@ trait ImportsSubclassSpells
      * @param  ClassFeature  $feature  The subclass feature (e.g., "Divine Domain: Life Domain")
      * @param  string  $description  The feature description containing the spell table
      */
-    protected function importSubclassSpells(ClassFeature $feature, string $description): void
+    public function importSubclassSpells(ClassFeature $feature, string $description): void
     {
         // Clear existing spell associations for this feature
         EntitySpell::where('reference_type', ClassFeature::class)

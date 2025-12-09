@@ -88,8 +88,9 @@ trait ImportsClassFeatures
                 );
             }
 
-            // Detect Bonus Proficiencies and create proficiency records
-            if (stripos($featureData['name'], 'Bonus Proficiencies') !== false) {
+            // Detect Bonus Proficiency/Proficiencies and create proficiency records
+            // Match both singular (Life Domain, Nature Domain) and plural (War Domain, Tempest Domain)
+            if (stripos($featureData['name'], 'Bonus Proficienc') !== false) {
                 $this->importBonusProficiencies($class, $featureData);
             }
 

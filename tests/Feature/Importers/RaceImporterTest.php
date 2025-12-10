@@ -1701,6 +1701,78 @@ XML;
     }
 
     #[Test]
+    public function it_imports_level_scaling_rolls_as_progression_table_with_entries()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Dragonborn</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait category="species">
+      <name>Breath Weapon</name>
+      <text>You can exhale destructive energy. The damage increases as you gain levels.</text>
+      <roll description="Damage" level="1">2d6</roll>
+      <roll description="Damage" level="6">3d6</roll>
+      <roll description="Damage" level="11">4d6</roll>
+      <roll description="Damage" level="16">5d6</roll>
+      <roll description="Saving Throw">8+%3+%8</roll>
+    </trait>
+    <trait category="description">
+      <name>Description</name>
+      <text>Born of dragons.
+Source: Player's Handbook (2014) p. 32</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $race = Race::where('name', 'Dragonborn')->first();
+        $breathWeaponTrait = $race->traits->where('name', 'Breath Weapon')->first();
+
+        $this->assertNotNull($breathWeaponTrait, 'Breath Weapon trait should exist');
+
+        // Should have 2 data tables: one PROGRESSION for "Damage", one RANDOM for "Saving Throw"
+        $dataTables = $breathWeaponTrait->dataTables;
+        $this->assertCount(2, $dataTables, 'Should have 2 data tables (Damage progression + Saving Throw)');
+
+        // Check the Damage progression table
+        $damageTable = $dataTables->where('table_name', 'Damage')->first();
+        $this->assertNotNull($damageTable, 'Damage table should exist');
+        $this->assertEquals(\App\Enums\DataTableType::PROGRESSION, $damageTable->table_type);
+
+        // Check the level entries
+        $entries = $damageTable->entries()->orderBy('level')->get();
+        $this->assertCount(4, $entries, 'Should have 4 level entries for Damage');
+
+        $this->assertEquals(1, $entries[0]->level);
+        $this->assertEquals('2d6', $entries[0]->result_text);
+
+        $this->assertEquals(6, $entries[1]->level);
+        $this->assertEquals('3d6', $entries[1]->result_text);
+
+        $this->assertEquals(11, $entries[2]->level);
+        $this->assertEquals('4d6', $entries[2]->result_text);
+
+        $this->assertEquals(16, $entries[3]->level);
+        $this->assertEquals('5d6', $entries[3]->result_text);
+
+        // Check the Saving Throw table (no level = RANDOM type)
+        $savingThrowTable = $dataTables->where('table_name', 'Saving Throw')->first();
+        $this->assertNotNull($savingThrowTable, 'Saving Throw table should exist');
+        $this->assertEquals(\App\Enums\DataTableType::RANDOM, $savingThrowTable->table_type);
+        $this->assertEquals('8+%3+%8', $savingThrowTable->dice_type);
+    }
+
+    #[Test]
     public function it_imports_bonus_feat_modifier_from_custom_lineage()
     {
         // Custom Lineage grants a bonus feat with qualifying requirements

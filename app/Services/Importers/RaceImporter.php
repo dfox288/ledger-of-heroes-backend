@@ -401,26 +401,64 @@ class RaceImporter extends BaseImporter
             // Clear existing data tables for this trait
             $trait->dataTables()->delete();
 
+            // Group rolls by description to detect level-scaling progressions
+            $rollsByDescription = [];
             foreach ($traitData['rolls'] as $roll) {
                 if (empty($roll['description']) || empty($roll['formula'])) {
                     continue;
                 }
+                $rollsByDescription[$roll['description']][] = $roll;
+            }
 
-                // Create a data table for this roll, referencing the TRAIT
-                $dataTable = \App\Models\EntityDataTable::create([
-                    'reference_type' => \App\Models\CharacterTrait::class,
-                    'reference_id' => $trait->id,
-                    'table_name' => $roll['description'],
-                    'dice_type' => $roll['formula'],
-                    'table_type' => \App\Enums\DataTableType::RANDOM,
-                    'description' => "From trait: {$traitData['name']}",
-                ]);
+            $firstDataTableId = null;
 
-                // Update the trait to link back to this data table
-                $trait->update(['entity_data_table_id' => $dataTable->id]);
+            foreach ($rollsByDescription as $description => $rolls) {
+                // Check if any roll in this group has a level attribute
+                $hasLevelScaling = collect($rolls)->contains(fn ($r) => $r['level'] !== null);
 
-                // Note: Data table entries are embedded in the trait text as formatted tables
-                // and will need to be parsed separately if needed in the future
+                if ($hasLevelScaling && count($rolls) > 1) {
+                    // Level-scaling progression: create ONE table with entries per level
+                    $dataTable = \App\Models\EntityDataTable::create([
+                        'reference_type' => \App\Models\CharacterTrait::class,
+                        'reference_id' => $trait->id,
+                        'table_name' => $description,
+                        'dice_type' => null, // Dice stored in entries for progressions
+                        'table_type' => \App\Enums\DataTableType::PROGRESSION,
+                        'description' => "From trait: {$traitData['name']}",
+                    ]);
+
+                    // Create entries for each level tier
+                    foreach ($rolls as $sortOrder => $roll) {
+                        \App\Models\EntityDataTableEntry::create([
+                            'entity_data_table_id' => $dataTable->id,
+                            'level' => $roll['level'],
+                            'result_text' => $roll['formula'],
+                            'sort_order' => $sortOrder,
+                        ]);
+                    }
+                } else {
+                    // Non-leveled roll(s): create individual table(s) as before
+                    foreach ($rolls as $roll) {
+                        $dataTable = \App\Models\EntityDataTable::create([
+                            'reference_type' => \App\Models\CharacterTrait::class,
+                            'reference_id' => $trait->id,
+                            'table_name' => $description,
+                            'dice_type' => $roll['formula'],
+                            'table_type' => \App\Enums\DataTableType::RANDOM,
+                            'description' => "From trait: {$traitData['name']}",
+                        ]);
+                    }
+                }
+
+                // Track first data table for trait linkage
+                if ($firstDataTableId === null) {
+                    $firstDataTableId = $dataTable->id;
+                }
+            }
+
+            // Update the trait to link to the first data table
+            if ($firstDataTableId !== null) {
+                $trait->update(['entity_data_table_id' => $firstDataTableId]);
             }
         }
     }

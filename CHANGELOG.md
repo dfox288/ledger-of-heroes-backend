@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #450**: Parse level-scaling rolls from trait XML
+  - `RaceImporter::importDataTablesFromRolls()` now groups rolls by description
+  - Level-scaling rolls (e.g., Dragonborn Breath Weapon damage) create PROGRESSION tables
+  - Each level tier stored as `EntityDataTableEntry` with `level` and `result_text` (formula)
+  - Non-leveled rolls continue to create RANDOM tables as before
+  - Affected features: Dragonborn Breath Weapon, Aasimar abilities, etc.
+
 - **Issue #451**: Parse expertise/double proficiency from trait text
   - New `ParsesExpertise` trait for shared parsing logic
   - `RaceXmlParser` now parses expertise patterns from trait descriptions

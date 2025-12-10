@@ -50,14 +50,10 @@ describe('Single Character Validation', function () {
         $response = $this->getJson("/api/v1/characters/{$character->public_id}/validate");
 
         $response->assertOk()
-            ->assertJson([
-                'data' => [
-                    'valid' => false,
-                    'dangling_references' => [
-                        'race' => 'phb:nonexistent-race',
-                    ],
-                ],
-            ]);
+            ->assertJsonPath('data.valid', false)
+            ->assertJsonPath('data.dangling_references.race.0.reference', 'phb:nonexistent-race')
+            ->assertJsonPath('data.dangling_references.race.0.type', 'race')
+            ->assertJsonPath('data.dangling_references.race.0.message', 'Race "phb:nonexistent-race" not found');
     });
 
     it('detects dangling background reference', function () {
@@ -70,14 +66,10 @@ describe('Single Character Validation', function () {
         $response = $this->getJson("/api/v1/characters/{$character->public_id}/validate");
 
         $response->assertOk()
-            ->assertJson([
-                'data' => [
-                    'valid' => false,
-                    'dangling_references' => [
-                        'background' => 'phb:nonexistent-background',
-                    ],
-                ],
-            ]);
+            ->assertJsonPath('data.valid', false)
+            ->assertJsonPath('data.dangling_references.background.0.reference', 'phb:nonexistent-background')
+            ->assertJsonPath('data.dangling_references.background.0.type', 'background')
+            ->assertJsonPath('data.dangling_references.background.0.message', 'Background "phb:nonexistent-background" not found');
     });
 
     it('detects dangling class references', function () {
@@ -96,7 +88,9 @@ describe('Single Character Validation', function () {
 
         $response->assertOk()
             ->assertJsonPath('data.valid', false)
-            ->assertJsonPath('data.dangling_references.classes.0', 'phb:nonexistent-class');
+            ->assertJsonPath('data.dangling_references.classes.0.reference', 'phb:nonexistent-class')
+            ->assertJsonPath('data.dangling_references.classes.0.type', 'class')
+            ->assertJsonPath('data.dangling_references.classes.0.message', 'Class "phb:nonexistent-class" not found');
     });
 
     it('detects dangling subclass references', function () {
@@ -113,7 +107,9 @@ describe('Single Character Validation', function () {
 
         $response->assertOk()
             ->assertJsonPath('data.valid', false)
-            ->assertJsonPath('data.dangling_references.subclasses.0', 'phb:nonexistent-subclass');
+            ->assertJsonPath('data.dangling_references.subclasses.0.reference', 'phb:nonexistent-subclass')
+            ->assertJsonPath('data.dangling_references.subclasses.0.type', 'subclass')
+            ->assertJsonPath('data.dangling_references.subclasses.0.message', 'Subclass "phb:nonexistent-subclass" not found');
     });
 
     it('detects dangling spell references', function () {
@@ -129,7 +125,9 @@ describe('Single Character Validation', function () {
 
         $response->assertOk()
             ->assertJsonPath('data.valid', false)
-            ->assertJsonPath('data.dangling_references.spells.0', 'phb:nonexistent-spell');
+            ->assertJsonPath('data.dangling_references.spells.0.reference', 'phb:nonexistent-spell')
+            ->assertJsonPath('data.dangling_references.spells.0.type', 'spell')
+            ->assertJsonPath('data.dangling_references.spells.0.message', 'Spell "phb:nonexistent-spell" not found');
     });
 
     it('detects dangling item references', function () {
@@ -144,7 +142,9 @@ describe('Single Character Validation', function () {
 
         $response->assertOk()
             ->assertJsonPath('data.valid', false)
-            ->assertJsonPath('data.dangling_references.items.0', 'phb:nonexistent-item');
+            ->assertJsonPath('data.dangling_references.items.0.reference', 'phb:nonexistent-item')
+            ->assertJsonPath('data.dangling_references.items.0.type', 'item')
+            ->assertJsonPath('data.dangling_references.items.0.message', 'Item "phb:nonexistent-item" not found');
     });
 
     it('detects dangling language references', function () {
@@ -159,7 +159,9 @@ describe('Single Character Validation', function () {
 
         $response->assertOk()
             ->assertJsonPath('data.valid', false)
-            ->assertJsonPath('data.dangling_references.languages.0', 'phb:nonexistent-language');
+            ->assertJsonPath('data.dangling_references.languages.0.reference', 'phb:nonexistent-language')
+            ->assertJsonPath('data.dangling_references.languages.0.type', 'language')
+            ->assertJsonPath('data.dangling_references.languages.0.message', 'Language "phb:nonexistent-language" not found');
     });
 
     it('detects dangling condition references', function () {
@@ -174,7 +176,9 @@ describe('Single Character Validation', function () {
 
         $response->assertOk()
             ->assertJsonPath('data.valid', false)
-            ->assertJsonPath('data.dangling_references.conditions.0', 'phb:nonexistent-condition');
+            ->assertJsonPath('data.dangling_references.conditions.0.reference', 'phb:nonexistent-condition')
+            ->assertJsonPath('data.dangling_references.conditions.0.type', 'condition')
+            ->assertJsonPath('data.dangling_references.conditions.0.message', 'Condition "phb:nonexistent-condition" not found');
     });
 
     it('detects multiple dangling references at once', function () {
@@ -313,7 +317,9 @@ describe('Bulk Character Validation', function () {
 
         $characters = $response->json('data.characters');
         expect($characters[0])->toHaveKey('dangling_references')
-            ->and($characters[0]['dangling_references']['race'])->toBe('phb:missing-race');
+            ->and($characters[0]['dangling_references']['race'][0]['reference'])->toBe('phb:missing-race')
+            ->and($characters[0]['dangling_references']['race'][0]['type'])->toBe('race')
+            ->and($characters[0]['dangling_references']['race'][0]['message'])->toBe('Race "phb:missing-race" not found');
     });
 
     it('validates many characters efficiently with eager loading', function () {

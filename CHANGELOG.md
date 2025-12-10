@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Issue #436**: Enhanced character validation endpoint with human-readable messages
+  - Dangling references now return structured objects with `reference`, `type`, and `message` fields
+  - Example: `{"reference": "phb:nonexistent-race", "type": "race", "message": "Race \"phb:nonexistent-race\" not found"}`
+  - New `DanglingReference` DTO for consistent response structure
+  - Better UX for frontend error display
+
 ### Added
 
 - **Issue #429**: Parse and expose skill check advantages from traits

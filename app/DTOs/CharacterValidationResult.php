@@ -34,12 +34,9 @@ class CharacterValidationResult
     private static function countDanglingReferences(array $dangling): int
     {
         $count = 0;
-        foreach ($dangling as $value) {
-            if (is_array($value)) {
-                $count += count($value);
-            } else {
-                $count++;
-            }
+        foreach ($dangling as $references) {
+            // Each category now contains an array of DanglingReference objects
+            $count += count($references);
         }
 
         return $count;

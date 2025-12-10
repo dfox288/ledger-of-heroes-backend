@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\DTOs\CharacterValidationResult;
+use App\DTOs\DanglingReference;
 use App\Models\Background;
 use App\Models\Character;
 use App\Models\CharacterClass;
@@ -44,7 +45,7 @@ class CharacterValidationService
         if ($character->race_slug) {
             $totalRefs++;
             if (! $character->race) {
-                $dangling['race'] = $character->race_slug;
+                $dangling['race'] = [DanglingReference::create($character->race_slug, 'race')];
             }
         }
 
@@ -52,7 +53,7 @@ class CharacterValidationService
         if ($character->background_slug) {
             $totalRefs++;
             if (! $character->background) {
-                $dangling['background'] = $character->background_slug;
+                $dangling['background'] = [DanglingReference::create($character->background_slug, 'background')];
             }
         }
 
@@ -66,7 +67,10 @@ class CharacterValidationService
             $existingClasses = CharacterClass::whereIn('full_slug', $classSlugs)->pluck('full_slug');
             $missingClasses = $classSlugs->diff($existingClasses)->values()->all();
             if (! empty($missingClasses)) {
-                $dangling['classes'] = $missingClasses;
+                $dangling['classes'] = array_map(
+                    fn ($slug) => DanglingReference::create($slug, 'class'),
+                    $missingClasses
+                );
             }
         }
 
@@ -74,7 +78,10 @@ class CharacterValidationService
             $existingSubclasses = CharacterClass::whereIn('full_slug', $subclassSlugs)->pluck('full_slug');
             $missingSubclasses = $subclassSlugs->diff($existingSubclasses)->values()->all();
             if (! empty($missingSubclasses)) {
-                $dangling['subclasses'] = $missingSubclasses;
+                $dangling['subclasses'] = array_map(
+                    fn ($slug) => DanglingReference::create($slug, 'subclass'),
+                    $missingSubclasses
+                );
             }
         }
 
@@ -86,7 +93,10 @@ class CharacterValidationService
             $existingSpells = Spell::whereIn('full_slug', $spellSlugs)->pluck('full_slug');
             $missingSpells = $spellSlugs->diff($existingSpells)->values()->all();
             if (! empty($missingSpells)) {
-                $dangling['spells'] = $missingSpells;
+                $dangling['spells'] = array_map(
+                    fn ($slug) => DanglingReference::create($slug, 'spell'),
+                    $missingSpells
+                );
             }
         }
 
@@ -98,7 +108,10 @@ class CharacterValidationService
             $existingItems = Item::whereIn('full_slug', $itemSlugs)->pluck('full_slug');
             $missingItems = $itemSlugs->diff($existingItems)->values()->all();
             if (! empty($missingItems)) {
-                $dangling['items'] = $missingItems;
+                $dangling['items'] = array_map(
+                    fn ($slug) => DanglingReference::create($slug, 'item'),
+                    $missingItems
+                );
             }
         }
 
@@ -110,7 +123,10 @@ class CharacterValidationService
             $existingLanguages = Language::whereIn('full_slug', $languageSlugs)->pluck('full_slug');
             $missingLanguages = $languageSlugs->diff($existingLanguages)->values()->all();
             if (! empty($missingLanguages)) {
-                $dangling['languages'] = $missingLanguages;
+                $dangling['languages'] = array_map(
+                    fn ($slug) => DanglingReference::create($slug, 'language'),
+                    $missingLanguages
+                );
             }
         }
 
@@ -122,7 +138,10 @@ class CharacterValidationService
             $existingConditions = Condition::whereIn('full_slug', $conditionSlugs)->pluck('full_slug');
             $missingConditions = $conditionSlugs->diff($existingConditions)->values()->all();
             if (! empty($missingConditions)) {
-                $dangling['conditions'] = $missingConditions;
+                $dangling['conditions'] = array_map(
+                    fn ($slug) => DanglingReference::create($slug, 'condition'),
+                    $missingConditions
+                );
             }
         }
 

@@ -267,6 +267,10 @@ class FlowExecutor
 
         $lastResponse = null;
 
+        // Track already-selected values to avoid collisions between choices
+        // (e.g., selecting the same language for both race and background)
+        $alreadySelected = [];
+
         foreach ($choices as $choice) {
             $choiceId = $choice['id'];
             $options = $choice['options'] ?? [];
@@ -304,12 +308,16 @@ class FlowExecutor
                 // Proficiencies and languages use 'slug' or 'full_slug'
                 $slugs = array_map(fn ($o) => $o['full_slug'] ?? $o['slug'] ?? '', $options);
                 $slugs = array_filter($slugs);
-                $selected = $randomizer->pickRandom($slugs, min($count, count($slugs)));
+                // Exclude already-selected values to avoid duplicates across choices
+                $slugs = array_diff($slugs, $alreadySelected);
+                $selected = $randomizer->pickRandom(array_values($slugs), min($count, count($slugs)));
             } elseif ($choiceType === 'spell') {
                 // Spells use 'full_slug'
                 $slugs = array_map(fn ($o) => $o['full_slug'] ?? $o['slug'] ?? '', $options);
                 $slugs = array_filter($slugs);
-                $selected = $randomizer->pickRandom($slugs, min($count, count($slugs)));
+                // Exclude already-selected spells to avoid duplicates
+                $slugs = array_diff($slugs, $alreadySelected);
+                $selected = $randomizer->pickRandom(array_values($slugs), min($count, count($slugs)));
             } else {
                 // Generic fallback
                 $slugs = array_map(fn ($o) => $o['slug'] ?? $o['value'] ?? '', $options);
@@ -319,6 +327,11 @@ class FlowExecutor
 
             if (empty($selected)) {
                 continue;
+            }
+
+            // Track what we selected to avoid duplicates in subsequent choices
+            foreach ((array) $selected as $sel) {
+                $alreadySelected[] = $sel;
             }
 
             $lastResponse = $this->makeRequest('POST', "/api/v1/characters/{$characterId}/choices/{$choiceId}", [

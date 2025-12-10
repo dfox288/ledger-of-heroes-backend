@@ -71,10 +71,35 @@ class FeatImporter extends BaseImporter
         // 9. Import languages granted by feat
         $this->importEntityLanguages($feat, $data['languages'] ?? []);
 
-        // 10. Refresh to load all relationships created during import
+        // 10. Import movement modifiers
+        $this->importMovementModifiers($feat, $data['movement_modifiers'] ?? []);
+
+        // 11. Refresh to load all relationships created during import
         $feat->refresh();
 
         return $feat;
+    }
+
+    /**
+     * Import movement cost modifiers for a feat.
+     *
+     * @param  array<int, array<string, mixed>>  $movementModifiers
+     */
+    private function importMovementModifiers(Feat $feat, array $movementModifiers): void
+    {
+        foreach ($movementModifiers as $modData) {
+            // Store movement modifiers using modifier_category with activity suffix
+            // This ensures each activity type is stored separately
+            $category = 'movement_cost_'.$modData['activity'];
+
+            // The 'value' field stores the cost
+            $value = is_int($modData['cost']) ? (string) $modData['cost'] : $modData['cost'];
+
+            $this->importModifier($feat, $category, [
+                'value' => $value,
+                'condition' => $modData['condition'],
+            ]);
+        }
     }
 
     /**

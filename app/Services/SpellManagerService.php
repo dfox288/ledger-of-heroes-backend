@@ -81,9 +81,10 @@ class SpellManagerService
             $maxLevel
         );
 
-        // Merge and deduplicate by spell ID
+        // Merge, deduplicate, and sort alphabetically
         return $baseSpells->merge($expandedSpells)
             ->unique('id')
+            ->sortBy('name')
             ->values();
     }
 

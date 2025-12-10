@@ -31,10 +31,18 @@ class FlowExecutor
 
     private ?string $equipmentMode = null;
 
+    private ?string $previousEquipmentMode = null;
+
+    private EquipmentValidator $equipmentValidator;
+
+    /** @var array<string, array<string>> Equipment selections by choice_group */
+    private array $equipmentSelections = [];
+
     public function __construct()
     {
         $this->snapshot = new StateSnapshot;
         $this->validator = new SwitchValidator;
+        $this->equipmentValidator = new EquipmentValidator;
     }
 
     /**
@@ -50,9 +58,9 @@ class FlowExecutor
 
         foreach ($flow as $step) {
             try {
-                // Capture state before if this is a switch
+                // Capture state before if this is a switch or equipment-related step
                 $snapshotBefore = null;
-                if ($this->isSwitch($step) && $characterId) {
+                if ($characterId && ($this->isSwitch($step) || $this->shouldValidateEquipment($step))) {
                     $snapshotBefore = $this->snapshot->capture($characterId);
                 }
 
@@ -98,6 +106,18 @@ class FlowExecutor
                         $result->addFailure($step, $validation, $snapshotBefore, $snapshotAfter);
 
                         continue; // Continue to find more issues
+                    }
+                }
+
+                // Validate equipment after mode selection or equipment choices
+                if ($snapshotAfter && $this->shouldValidateEquipment($step)) {
+                    $equipmentValidation = $this->validateEquipmentAfterStep($step, $snapshotBefore, $snapshotAfter);
+
+                    if ($equipmentValidation && ! $equipmentValidation->passed) {
+                        $result->addStep($step, 'fail', $snapshotAfter, $response);
+                        $result->addFailure($step, $equipmentValidation, $snapshotBefore, $snapshotAfter);
+
+                        continue;
                     }
                 }
 
@@ -294,16 +314,80 @@ class FlowExecutor
 
             if ($choiceType === 'equipment') {
                 // Equipment uses 'option' field (a, b, c, etc.)
-                // Prefer non-category options (fixed items) to avoid item_selections complexity
-                $nonCategoryOptions = array_filter($options, fn ($o) => ! ($o['is_category'] ?? false));
-                if (! empty($nonCategoryOptions)) {
-                    $optionValues = array_column($nonCategoryOptions, 'option');
-                    $selected = $randomizer->pickRandom($optionValues, 1);
-                } else {
-                    // All options are categories - skip this choice for now
-                    // TODO: Handle category equipment choices with item_selections
-                    continue;
+                // Pick a random option (could be fixed items or category)
+                $optionValues = array_column($options, 'option');
+                $selected = $randomizer->pickRandom($optionValues, 1);
+
+                // Find the selected option to check if it's a category
+                $selectedOption = $selected[0] ?? null;
+                $foundOption = null;
+                foreach ($options as $opt) {
+                    if (($opt['option'] ?? '') === $selectedOption) {
+                        $foundOption = $opt;
+                        break;
+                    }
                 }
+
+                // Track what items we expect to get from this choice
+                $choiceGroup = $choice['metadata']['choice_group'] ?? $choiceId;
+                $expectedItems = [];
+
+                // If it's a category option, we need to provide item_selections
+                $itemSelections = null;
+                if ($foundOption && ($foundOption['is_category'] ?? false)) {
+                    // Get non-fixed items (the ones user must choose from)
+                    $selectableItems = array_filter(
+                        $foundOption['items'] ?? [],
+                        fn ($item) => ! ($item['is_fixed'] ?? false)
+                    );
+
+                    if (! empty($selectableItems)) {
+                        // Pick one random item from the category
+                        $itemSlugs = array_column($selectableItems, 'full_slug');
+                        $pickedItem = $randomizer->pickRandom($itemSlugs, 1);
+                        $itemSelections = [$selectedOption => $pickedItem];
+                        $expectedItems = array_merge($expectedItems, $pickedItem);
+                    }
+
+                    // Also include fixed items that come with this option
+                    $fixedItems = array_filter(
+                        $foundOption['items'] ?? [],
+                        fn ($item) => ($item['is_fixed'] ?? false) && ! ($item['is_pack'] ?? false)
+                    );
+                    foreach ($fixedItems as $item) {
+                        $expectedItems[] = $item['full_slug'];
+                    }
+                } else {
+                    // Non-category option: all items are granted
+                    foreach ($foundOption['items'] ?? [] as $item) {
+                        if (! ($item['is_pack'] ?? false)) {
+                            $expectedItems[] = $item['full_slug'];
+                        }
+                        // For packs, add the contents
+                        if (($item['is_pack'] ?? false) && ! empty($item['contents'])) {
+                            foreach ($item['contents'] as $content) {
+                                $expectedItems[] = $content['full_slug'];
+                            }
+                        }
+                    }
+                }
+
+                // Track the selections for validation
+                $this->equipmentSelections[$choiceGroup] = $expectedItems;
+
+                // Build the request payload
+                $payload = ['selected' => $selected];
+                if ($itemSelections !== null) {
+                    $payload['item_selections'] = $itemSelections;
+                }
+
+                $lastResponse = $this->makeRequest('POST', "/api/v1/characters/{$characterId}/choices/{$choiceId}", $payload);
+
+                if (isset($lastResponse['error']) && $lastResponse['error']) {
+                    return $lastResponse;
+                }
+
+                continue; // Skip the generic POST below since we already made the request
             } elseif ($choiceType === 'proficiency' || $choiceType === 'language') {
                 // Proficiencies and languages use 'slug' or 'full_slug'
                 $slugs = array_map(fn ($o) => $o['full_slug'] ?? $o['slug'] ?? '', $options);
@@ -348,6 +432,8 @@ class FlowExecutor
 
     private function setEquipmentMode(int $characterId, CharacterRandomizer $randomizer): ?array
     {
+        // Track previous mode for validation
+        $this->previousEquipmentMode = $this->equipmentMode;
         $this->equipmentMode = $randomizer->randomEquipmentMode();
 
         // Check if there's an equipment mode choice pending
@@ -361,6 +447,9 @@ class FlowExecutor
         }
 
         $choice = array_values($choices)[0];
+
+        // Clear equipment selections when switching modes (they'll be re-made if equipment mode)
+        $this->equipmentSelections = [];
 
         return $this->makeRequest('POST', "/api/v1/characters/{$characterId}/choices/{$choice['id']}", [
             'selected' => [$this->equipmentMode],
@@ -490,5 +579,91 @@ class FlowExecutor
         $this->currentClass = null;
         $this->currentBackground = null;
         $this->equipmentMode = null;
+        $this->previousEquipmentMode = null;
+        $this->equipmentSelections = [];
+    }
+
+    /**
+     * Determine if equipment should be validated after this step.
+     */
+    private function shouldValidateEquipment(array $step): bool
+    {
+        $action = $step['action'];
+
+        return in_array($action, [
+            'set_equipment_mode',
+            'resolve_equipment_choices',
+        ], true);
+    }
+
+    /**
+     * Validate equipment state after a step.
+     */
+    private function validateEquipmentAfterStep(array $step, ?array $before, array $after): ?ValidationResult
+    {
+        $action = $step['action'];
+
+        // Get class and background slugs
+        $classSlug = $this->currentClass?->full_slug;
+        $backgroundSlug = $this->currentBackground?->full_slug;
+
+        if ($action === 'set_equipment_mode') {
+            // Validate mode switch if switching between modes
+            if ($this->previousEquipmentMode !== null && $this->previousEquipmentMode !== $this->equipmentMode && $before) {
+                $modeSwitchValidation = $this->equipmentValidator->validateModeSwitch(
+                    $before,
+                    $after,
+                    $this->previousEquipmentMode,
+                    $this->equipmentMode
+                );
+
+                if (! $modeSwitchValidation->passed) {
+                    return $modeSwitchValidation;
+                }
+            }
+
+            // If switching to equipment mode, validate choices are available
+            if ($this->equipmentMode === 'equipment') {
+                $pendingChoices = $after['pending_choices']['data']['choices'] ?? [];
+
+                return $this->equipmentValidator->validateEquipmentChoicesAvailable(
+                    $pendingChoices,
+                    $classSlug
+                );
+            }
+
+            // If gold mode, validate gold state
+            if ($this->equipmentMode === 'gold') {
+                return $this->equipmentValidator->validateEquipmentState(
+                    $after,
+                    'gold',
+                    [],
+                    $classSlug,
+                    $backgroundSlug
+                );
+            }
+        }
+
+        if ($action === 'resolve_equipment_choices') {
+            // Check if all equipment choices are resolved (no more pending)
+            $pendingChoices = $after['pending_choices']['data']['choices'] ?? [];
+            $pendingEquipmentChoices = array_filter(
+                $pendingChoices,
+                fn ($c) => ($c['type'] ?? '') === 'equipment'
+            );
+            $allChoicesResolved = empty($pendingEquipmentChoices);
+
+            // Validate equipment state after resolving choices
+            return $this->equipmentValidator->validateEquipmentState(
+                $after,
+                $this->equipmentMode ?? 'equipment',
+                $this->equipmentSelections,
+                $classSlug,
+                $backgroundSlug,
+                $allChoicesResolved
+            );
+        }
+
+        return null;
     }
 }

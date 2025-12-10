@@ -165,6 +165,77 @@ Source: Player's Handbook (2014) p. 61</text>
 XML;
     }
 
+    #[Test]
+    public function imports_cantrip_with_learn_pattern(): void
+    {
+        // Warlock uses "you learn the X cantrip" instead of "you gain"
+        Spell::factory()->create([
+            'name' => 'Spare the Dying',
+            'slug' => 'spare-the-dying',
+            'level' => 0,
+        ]);
+
+        $xml = $this->getUndyingWarlockXml();
+
+        $classes = $this->parser->parse($xml);
+        $this->importer->import($classes[0]);
+
+        $undying = CharacterClass::where('name', 'The Undying')->first();
+        $this->assertNotNull($undying);
+
+        $feature = ClassFeature::where('class_id', $undying->id)
+            ->where('feature_name', 'Among the Dead (The Undying)')
+            ->first();
+        $this->assertNotNull($feature);
+
+        $grantedSpell = EntitySpell::where('reference_type', ClassFeature::class)
+            ->where('reference_id', $feature->id)
+            ->first();
+
+        $this->assertNotNull($grantedSpell, 'Spare the Dying cantrip should be linked');
+        $this->assertEquals('Spare the Dying', $grantedSpell->spell->name);
+    }
+
+    #[Test]
+    public function imports_multiple_cantrips_from_single_feature(): void
+    {
+        // The Celestial grants "sacred flame and light cantrips"
+        Spell::factory()->create([
+            'name' => 'Sacred Flame',
+            'slug' => 'sacred-flame',
+            'level' => 0,
+        ]);
+        Spell::factory()->create([
+            'name' => 'Light',
+            'slug' => 'light',
+            'level' => 0,
+        ]);
+
+        $xml = $this->getCelestialWarlockXml();
+
+        $classes = $this->parser->parse($xml);
+        $this->importer->import($classes[0]);
+
+        $celestial = CharacterClass::where('name', 'The Celestial')->first();
+        $this->assertNotNull($celestial);
+
+        $feature = ClassFeature::where('class_id', $celestial->id)
+            ->where('feature_name', 'Bonus Cantrips (The Celestial)')
+            ->first();
+        $this->assertNotNull($feature);
+
+        $grantedSpells = EntitySpell::where('reference_type', ClassFeature::class)
+            ->where('reference_id', $feature->id)
+            ->with('spell')
+            ->get();
+
+        $this->assertCount(2, $grantedSpells, 'Should have 2 cantrips linked');
+
+        $spellNames = $grantedSpells->pluck('spell.name')->toArray();
+        $this->assertContains('Sacred Flame', $spellNames);
+        $this->assertContains('Light', $spellNames);
+    }
+
     private function getTrickeryDomainXml(): string
     {
         return <<<'XML'
@@ -192,6 +263,68 @@ Source: Player's Handbook (2014) p. 63</text>
         <text>Starting when you choose this domain at 1st level, you gain the minor illusion cantrip. You can also use your action to touch a willing creature.
 
 Source: Player's Handbook (2014) p. 63</text>
+      </feature>
+    </autolevel>
+  </class>
+</compendium>
+XML;
+    }
+
+    private function getUndyingWarlockXml(): string
+    {
+        return <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <class>
+    <name>Warlock</name>
+    <hd>8</hd>
+    <proficiency>Wisdom, Charisma</proficiency>
+    <spellAbility>Charisma</spellAbility>
+    <autolevel level="1">
+      <feature optional="YES">
+        <name>Otherworldly Patron: The Undying</name>
+        <text>Death holds no sway over your patron.
+
+Source: Sword Coast Adventurer's Guide p. 139</text>
+      </feature>
+    </autolevel>
+    <autolevel level="1">
+      <feature optional="YES">
+        <name>Among the Dead (The Undying)</name>
+        <text>Starting at 1st level, you learn the spare the dying cantrip, which counts as a warlock cantrip for you.
+
+Source: Sword Coast Adventurer's Guide p. 139</text>
+      </feature>
+    </autolevel>
+  </class>
+</compendium>
+XML;
+    }
+
+    private function getCelestialWarlockXml(): string
+    {
+        return <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <class>
+    <name>Warlock</name>
+    <hd>8</hd>
+    <proficiency>Wisdom, Charisma</proficiency>
+    <spellAbility>Charisma</spellAbility>
+    <autolevel level="1">
+      <feature optional="YES">
+        <name>Otherworldly Patron: The Celestial</name>
+        <text>Your patron is a powerful being of the Upper Planes.
+
+Source: Xanathar's Guide to Everything p. 54</text>
+      </feature>
+    </autolevel>
+    <autolevel level="1">
+      <feature optional="YES">
+        <name>Bonus Cantrips (The Celestial)</name>
+        <text>At 1st level, you learn the sacred flame and light cantrips. They count as warlock cantrips for you.
+
+Source: Xanathar's Guide to Everything p. 54</text>
       </feature>
     </autolevel>
   </class>

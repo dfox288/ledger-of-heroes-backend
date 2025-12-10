@@ -400,40 +400,50 @@ trait ImportsClassFeatures
      *
      * Detects patterns like:
      * - "you gain the light cantrip"
-     * - "you gain the minor illusion cantrip"
+     * - "you learn the spare the dying cantrip"
+     * - "you learn the sacred flame and light cantrips" (multiple)
      *
-     * Creates entity_spells record linking the feature to the granted cantrip.
+     * Creates entity_spells record linking the feature to each granted cantrip.
      */
     protected function importBonusCantrips(ClassFeature $feature, string $text): void
     {
-        // Pattern: "you gain the X cantrip" - capture spell name (may be multi-word)
-        if (! preg_match('/you gain the ([a-z][a-z\s]+?) cantrip/i', $text, $matches)) {
+        // Pattern: "you (gain|learn) the X cantrip(s)" - capture spell name(s)
+        // Handles both singular and plural, and "gain" or "learn"
+        if (! preg_match('/you (?:gain|learn) the ([a-z][a-z\s]+?) cantrips?/i', $text, $matches)) {
             return;
         }
 
-        $spellName = trim($matches[1]);
+        $spellNamesText = trim($matches[1]);
 
-        // Look up the spell by name (case-insensitive)
-        $spell = \App\Models\Spell::whereRaw('LOWER(name) = ?', [strtolower($spellName)])->first();
+        // Parse multiple cantrips: "sacred flame and light" -> ["sacred flame", "light"]
+        // Split by " and " to handle "X and Y" patterns
+        $spellNames = preg_split('/\s+and\s+/', $spellNamesText);
+        $spellNames = array_map('trim', $spellNames);
+        $spellNames = array_filter($spellNames);
 
-        if (! $spell) {
-            // Spell not found - skip silently (spell may not be imported yet)
-            return;
+        foreach ($spellNames as $spellName) {
+            // Look up the spell by name (case-insensitive)
+            $spell = \App\Models\Spell::whereRaw('LOWER(name) = ?', [strtolower($spellName)])->first();
+
+            if (! $spell) {
+                // Spell not found - skip silently (spell may not be imported yet)
+                continue;
+            }
+
+            // Use updateOrCreate to prevent duplicates on re-import
+            \App\Models\EntitySpell::updateOrCreate(
+                [
+                    'reference_type' => ClassFeature::class,
+                    'reference_id' => $feature->id,
+                    'spell_id' => $spell->id,
+                ],
+                [
+                    'is_cantrip' => true,
+                    'is_choice' => false,
+                    'level_requirement' => null,
+                ]
+            );
         }
-
-        // Use updateOrCreate to prevent duplicates on re-import
-        \App\Models\EntitySpell::updateOrCreate(
-            [
-                'reference_type' => ClassFeature::class,
-                'reference_id' => $feature->id,
-                'spell_id' => $spell->id,
-            ],
-            [
-                'is_cantrip' => true,
-                'is_choice' => false,
-                'level_requirement' => null,
-            ]
-        );
     }
 
     /**

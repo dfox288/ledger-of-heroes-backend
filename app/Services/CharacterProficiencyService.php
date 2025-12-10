@@ -524,6 +524,7 @@ class CharacterProficiencyService
     {
         return $entity->proficiencies()
             ->where('is_choice', false)
+            ->whereNotIn('proficiency_type', ['saving_throw', 'multiclass_requirement'])
             ->with(['skill', 'proficiencyType'])
             ->get()
             ->map(function ($proficiency) use ($source) {

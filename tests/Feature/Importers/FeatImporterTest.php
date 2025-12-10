@@ -485,4 +485,120 @@ class FeatImporterTest extends TestCase
         $this->assertNull($resistance->damage_type_id, 'All damage types should have null damage_type_id');
         $this->assertEquals('the damage dealt by traps', $resistance->condition);
     }
+
+    #[Test]
+    public function it_imports_feat_with_movement_cost_modifiers()
+    {
+        $featData = [
+            'name' => 'Athlete (Dexterity)',
+            'prerequisites' => null,
+            'description' => 'You have undergone extensive physical training.',
+            'sources' => [
+                ['code' => 'PHB', 'pages' => '165'],
+            ],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+            'movement_modifiers' => [
+                [
+                    'type' => 'movement_cost',
+                    'activity' => 'climbing',
+                    'cost' => 'normal',
+                    'condition' => null,
+                ],
+                [
+                    'type' => 'movement_cost',
+                    'activity' => 'standing_from_prone',
+                    'cost' => 5,
+                    'condition' => null,
+                ],
+            ],
+        ];
+
+        $feat = $this->importer->import($featData);
+
+        // Check that movement cost modifiers were imported
+        $climbingMod = $feat->modifiers->where('modifier_category', 'movement_cost_climbing')->first();
+        $standingMod = $feat->modifiers->where('modifier_category', 'movement_cost_standing_from_prone')->first();
+
+        $this->assertNotNull($climbingMod, 'Should have climbing movement cost modifier');
+        $this->assertEquals('normal', $climbingMod->value);
+
+        $this->assertNotNull($standingMod, 'Should have standing from prone movement cost modifier');
+        $this->assertEquals('5', $standingMod->value);
+    }
+
+    #[Test]
+    public function it_imports_feat_with_speed_bonus_modifiers()
+    {
+        $featData = [
+            'name' => 'Mobile',
+            'prerequisites' => null,
+            'description' => 'You are exceptionally speedy and agile.',
+            'sources' => [
+                ['code' => 'PHB', 'pages' => '168'],
+            ],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+            'movement_modifiers' => [
+                [
+                    'type' => 'speed_bonus',
+                    'value' => 10,
+                    'movement_type' => 'walk',
+                ],
+            ],
+        ];
+
+        $feat = $this->importer->import($featData);
+
+        // Check that speed bonus modifier was imported
+        $speedMod = $feat->modifiers->where('modifier_category', 'speed_bonus_walk')->first();
+
+        $this->assertNotNull($speedMod, 'Should have speed bonus modifier');
+        $this->assertEquals('10', $speedMod->value);
+    }
+
+    #[Test]
+    public function it_imports_feat_with_mixed_movement_modifiers()
+    {
+        // Mobile feat has both speed bonus and movement cost modifiers
+        $featData = [
+            'name' => 'Mobile',
+            'prerequisites' => null,
+            'description' => 'You are exceptionally speedy and agile.',
+            'sources' => [
+                ['code' => 'PHB', 'pages' => '168'],
+            ],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+            'movement_modifiers' => [
+                [
+                    'type' => 'speed_bonus',
+                    'value' => 10,
+                    'movement_type' => 'walk',
+                ],
+                [
+                    'type' => 'movement_cost',
+                    'activity' => 'difficult_terrain',
+                    'cost' => 'normal',
+                    'condition' => 'When you use the Dash action',
+                ],
+            ],
+        ];
+
+        $feat = $this->importer->import($featData);
+
+        // Check that both modifier types were imported
+        $speedMod = $feat->modifiers->where('modifier_category', 'speed_bonus_walk')->first();
+        $terrainMod = $feat->modifiers->where('modifier_category', 'movement_cost_difficult_terrain')->first();
+
+        $this->assertNotNull($speedMod, 'Should have speed bonus modifier');
+        $this->assertEquals('10', $speedMod->value);
+
+        $this->assertNotNull($terrainMod, 'Should have difficult terrain movement cost modifier');
+        $this->assertEquals('normal', $terrainMod->value);
+        $this->assertEquals('When you use the Dash action', $terrainMod->condition);
+    }
 }

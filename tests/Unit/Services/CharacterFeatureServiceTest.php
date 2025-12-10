@@ -351,4 +351,149 @@ class CharacterFeatureServiceTest extends TestCase
         $this->assertNotNull($features->first()->feature);
         $this->assertEquals('Second Wind', $features->first()->feature->feature_name);
     }
+
+    // =====================
+    // Subclass Feature Population Tests
+    // =====================
+
+    #[Test]
+    public function it_assigns_bonus_cantrip_with_null_level_requirement_from_subclass(): void
+    {
+        // Create Cleric base class
+        $clericClass = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'full_slug' => 'phb:cleric',
+        ]);
+
+        // Create Light Domain subclass
+        $lightDomain = CharacterClass::factory()->create([
+            'name' => 'Light Domain',
+            'slug' => 'cleric-light-domain',
+            'full_slug' => 'phb:cleric-light-domain',
+            'parent_class_id' => $clericClass->id,
+        ]);
+
+        // Create a Bonus Cantrip feature for Light Domain (level 1, always prepared)
+        $bonusCantrip = ClassFeature::create([
+            'class_id' => $lightDomain->id,
+            'level' => 1,
+            'feature_name' => 'Bonus Cantrip (Light Domain)',
+            'description' => 'You gain the light cantrip.',
+            'is_optional' => false,
+            'is_always_prepared' => true,
+        ]);
+
+        // Create the Light spell
+        $lightSpell = \App\Models\Spell::factory()->create([
+            'name' => 'Light',
+            'slug' => 'light',
+            'full_slug' => 'phb:light',
+            'level' => 0,
+        ]);
+
+        // Attach the Light spell to the Bonus Cantrip feature with NULL level_requirement
+        // This simulates the bug: bonus cantrips have level_requirement=NULL
+        $bonusCantrip->spells()->attach($lightSpell->id, [
+            'level_requirement' => null, // NULL means available immediately
+            'is_cantrip' => true,
+        ]);
+
+        // Create a level 1 Cleric character
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $clericClass->slug,
+            'level' => 1,
+        ]);
+
+        // Populate subclass features (should include the Light cantrip)
+        $this->service->populateFromSubclass($character, $clericClass->slug, $lightDomain->full_slug);
+
+        // Verify the Light cantrip was assigned
+        $character->refresh();
+        $lightSpellAssigned = $character->spells()->where('spell_slug', 'phb:light')->first();
+
+        $this->assertNotNull($lightSpellAssigned, 'Light cantrip should be assigned to character');
+        $this->assertEquals('subclass', $lightSpellAssigned->source);
+        $this->assertEquals('always_prepared', $lightSpellAssigned->preparation_status);
+    }
+
+    #[Test]
+    public function it_does_not_assign_spells_with_level_requirement_above_character_level(): void
+    {
+        // Create Cleric base class
+        $clericClass = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'full_slug' => 'phb:cleric',
+        ]);
+
+        // Create Light Domain subclass
+        $lightDomain = CharacterClass::factory()->create([
+            'name' => 'Light Domain',
+            'slug' => 'cleric-light-domain',
+            'full_slug' => 'phb:cleric-light-domain',
+            'parent_class_id' => $clericClass->id,
+        ]);
+
+        // Create a Domain Spells feature
+        $domainSpells = ClassFeature::create([
+            'class_id' => $lightDomain->id,
+            'level' => 1,
+            'feature_name' => 'Domain Spells (Light Domain)',
+            'description' => 'Domain spells at various levels.',
+            'is_optional' => false,
+            'is_always_prepared' => true,
+        ]);
+
+        // Create spells at various level requirements
+        $burningHands = \App\Models\Spell::factory()->create([
+            'name' => 'Burning Hands',
+            'slug' => 'burning-hands',
+            'full_slug' => 'phb:burning-hands',
+            'level' => 1,
+        ]);
+
+        $scorchingRay = \App\Models\Spell::factory()->create([
+            'name' => 'Scorching Ray',
+            'slug' => 'scorching-ray',
+            'full_slug' => 'phb:scorching-ray',
+            'level' => 2,
+        ]);
+
+        $fireball = \App\Models\Spell::factory()->create([
+            'name' => 'Fireball',
+            'slug' => 'fireball',
+            'full_slug' => 'phb:fireball',
+            'level' => 3,
+        ]);
+
+        // Attach spells with different level requirements
+        $domainSpells->spells()->attach($burningHands->id, ['level_requirement' => 1, 'is_cantrip' => false]);
+        $domainSpells->spells()->attach($scorchingRay->id, ['level_requirement' => 3, 'is_cantrip' => false]);
+        $domainSpells->spells()->attach($fireball->id, ['level_requirement' => 5, 'is_cantrip' => false]);
+
+        // Create a level 3 Cleric character
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $clericClass->slug,
+            'level' => 3,
+        ]);
+
+        // Populate subclass features
+        $this->service->populateFromSubclass($character, $clericClass->slug, $lightDomain->full_slug);
+
+        // Verify spells at or below character level are assigned
+        $character->refresh();
+
+        $burningHandsAssigned = $character->spells()->where('spell_slug', 'phb:burning-hands')->first();
+        $this->assertNotNull($burningHandsAssigned, 'Burning Hands (level_req=1) should be assigned to level 3 character');
+
+        $scorchingRayAssigned = $character->spells()->where('spell_slug', 'phb:scorching-ray')->first();
+        $this->assertNotNull($scorchingRayAssigned, 'Scorching Ray (level_req=3) should be assigned to level 3 character');
+
+        // Verify spell above character level is NOT assigned
+        $fireballAssigned = $character->spells()->where('spell_slug', 'phb:fireball')->first();
+        $this->assertNull($fireballAssigned, 'Fireball (level_req=5) should NOT be assigned to level 3 character');
+    }
 }

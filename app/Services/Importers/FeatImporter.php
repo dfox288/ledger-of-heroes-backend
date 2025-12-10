@@ -85,25 +85,44 @@ class FeatImporter extends BaseImporter
     }
 
     /**
-     * Import movement cost modifiers for a feat.
+     * Import movement modifiers for a feat.
+     *
+     * Handles two types of movement modifiers:
+     * - movement_cost: Changes to how movement costs are calculated (e.g., climbing, standing from prone)
+     * - speed_bonus: Direct bonuses to movement speed (e.g., +10 feet walking speed)
      *
      * @param  array<int, array<string, mixed>>  $movementModifiers
      */
     private function importMovementModifiers(Feat $feat, array $movementModifiers): void
     {
         foreach ($movementModifiers as $modData) {
-            // Store movement modifiers using modifier_category with activity suffix
-            // This ensures each activity type is stored separately
-            $category = 'movement_cost_'.$modData['activity'];
+            $type = $modData['type'] ?? 'movement_cost';
 
-            // Convert all cost values to strings for consistent database storage
-            // Cost can be 'normal' (no extra movement) or a number like 5 (feet)
-            $value = is_int($modData['cost']) ? (string) $modData['cost'] : $modData['cost'];
+            if ($type === 'speed_bonus') {
+                // Speed bonus: "Your speed increases by X feet"
+                // Category format: speed_bonus_{movement_type} (e.g., speed_bonus_walk)
+                $movementType = $modData['movement_type'] ?? 'walk';
+                $category = 'speed_bonus_'.$movementType;
+                $value = (string) $modData['value'];
 
-            $this->importModifier($feat, $category, [
-                'value' => $value,
-                'condition' => $modData['condition'],
-            ]);
+                $this->importModifier($feat, $category, [
+                    'value' => $value,
+                    'condition' => $modData['condition'] ?? null,
+                ]);
+            } else {
+                // Movement cost: "Climbing doesn't cost extra movement"
+                // Category format: movement_cost_{activity} (e.g., movement_cost_climbing)
+                $category = 'movement_cost_'.$modData['activity'];
+
+                // Convert all cost values to strings for consistent database storage
+                // Cost can be 'normal' (no extra movement) or a number like 5 (feet)
+                $value = is_int($modData['cost']) ? (string) $modData['cost'] : $modData['cost'];
+
+                $this->importModifier($feat, $category, [
+                    'value' => $value,
+                    'condition' => $modData['condition'],
+                ]);
+            }
         }
     }
 

@@ -10,6 +10,7 @@ enum CharacterSource: string
     case RACE = 'race';
     case BACKGROUND = 'background';
     case CHARACTER_CLASS = 'class';
+    case SUBCLASS_FEATURE = 'subclass_feature';
     case FEAT = 'feat';
     case ITEM = 'item';
     case OTHER = 'other';
@@ -20,6 +21,7 @@ enum CharacterSource: string
             self::RACE => 'Race',
             self::BACKGROUND => 'Background',
             self::CHARACTER_CLASS => 'Class',
+            self::SUBCLASS_FEATURE => 'Subclass Feature',
             self::FEAT => 'Feat',
             self::ITEM => 'Item',
             self::OTHER => 'Other',
@@ -43,7 +45,7 @@ enum CharacterSource: string
      */
     public static function forProficiencies(): array
     {
-        return [self::CHARACTER_CLASS, self::RACE, self::BACKGROUND];
+        return [self::CHARACTER_CLASS, self::SUBCLASS_FEATURE, self::RACE, self::BACKGROUND];
     }
 
     /**
@@ -53,7 +55,7 @@ enum CharacterSource: string
      */
     public static function forSpells(): array
     {
-        return [self::CHARACTER_CLASS, self::RACE, self::FEAT, self::ITEM, self::OTHER];
+        return [self::CHARACTER_CLASS, self::SUBCLASS_FEATURE, self::RACE, self::FEAT, self::ITEM, self::OTHER];
     }
 
     /**

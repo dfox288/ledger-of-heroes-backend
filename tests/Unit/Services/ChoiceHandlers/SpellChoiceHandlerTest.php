@@ -541,4 +541,80 @@ class SpellChoiceHandlerTest extends TestCase
             'selected' => [$spell1->full_slug, $spell2->full_slug, $spell3->full_slug, $spell4->full_slug],
         ]);
     }
+
+    #[Test]
+    public function it_generates_spell_choice_for_subclass_feature_nature_domain_druid_cantrip(): void
+    {
+        // Create cleric class and nature domain subclass
+        $cleric = CharacterClass::factory()->create([
+            'slug' => 'cleric',
+            'name' => 'Cleric',
+            'spellcasting_ability_id' => 5, // WIS
+        ]);
+
+        $natureDomain = CharacterClass::factory()->create([
+            'slug' => 'nature-domain',
+            'name' => 'Nature Domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        // Create a subclass feature for Nature Domain at level 1
+        $feature = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $natureDomain->id,
+            'level' => 1,
+            'feature_name' => 'Acolyte of Nature',
+        ]);
+
+        // Create a druid class for the spell choice filter
+        $druid = CharacterClass::factory()->create([
+            'slug' => 'druid',
+            'name' => 'Druid',
+        ]);
+
+        // Create spell choice record for the feature (1 druid cantrip)
+        \App\Models\EntitySpell::create([
+            'reference_type' => \App\Models\ClassFeature::class,
+            'reference_id' => $feature->id,
+            'spell_id' => null,
+            'is_choice' => true,
+            'choice_count' => 1,
+            'is_cantrip' => true,
+            'max_level' => 0,
+            'class_id' => $druid->id,
+        ]);
+
+        // Create character with cleric and nature domain subclass
+        $character = Character::factory()->create();
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $cleric->full_slug,
+            'subclass_slug' => $natureDomain->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Load relationships
+        $character->load(['characterClasses.characterClass', 'characterClasses.subclass.features']);
+
+        $choices = $this->handler->getChoices($character);
+
+        // Should have the subclass feature spell choice
+        $subclassChoice = $choices->firstWhere('source', 'subclass_feature');
+        $this->assertNotNull($subclassChoice);
+        $this->assertInstanceOf(PendingChoice::class, $subclassChoice);
+        $this->assertEquals('spell', $subclassChoice->type);
+        $this->assertEquals('cantrip', $subclassChoice->subtype);
+        $this->assertEquals('subclass_feature', $subclassChoice->source);
+        $this->assertEquals('Acolyte of Nature', $subclassChoice->sourceName);
+        $this->assertEquals(1, $subclassChoice->levelGranted);
+        $this->assertEquals(1, $subclassChoice->quantity);
+        $this->assertEquals(1, $subclassChoice->remaining);
+        $this->assertEquals([], $subclassChoice->selected);
+        $this->assertStringContainsString('max_level=0', $subclassChoice->optionsEndpoint);
+        $this->assertStringContainsString("class={$druid->full_slug}", $subclassChoice->optionsEndpoint);
+        $this->assertEquals(0, $subclassChoice->metadata['spell_level']);
+        $this->assertEquals($druid->full_slug, $subclassChoice->metadata['class_slug']);
+        $this->assertEquals($feature->id, $subclassChoice->metadata['feature_id']);
+    }
 }

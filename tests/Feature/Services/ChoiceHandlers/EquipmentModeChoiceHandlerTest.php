@@ -395,6 +395,70 @@ class EquipmentModeChoiceHandlerTest extends TestCase
     }
 
     #[Test]
+    public function choice_metadata_includes_gold_amount_when_gold_mode_was_chosen(): void
+    {
+        Item::factory()->create([
+            'name' => 'Gold (gp)',
+            'slug' => 'gold-gp',
+            'full_slug' => 'phb:gold-gp',
+        ]);
+
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'full_slug' => 'phb:fighter',
+            'starting_wealth_dice' => '5d4',
+            'starting_wealth_multiplier' => 10,
+        ]);
+
+        // Create equipment choice
+        $item = Item::factory()->create();
+        $entityItem = EntityItem::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'is_choice' => true,
+            'choice_group' => 'choice_1',
+            'choice_option' => 1,
+            'description' => 'chain mail',
+            'quantity' => 1,
+        ]);
+        EquipmentChoiceItem::create([
+            'entity_item_id' => $entityItem->id,
+            'item_id' => $item->id,
+            'quantity' => 1,
+            'sort_order' => 0,
+        ]);
+
+        $character = Character::factory()->create(['equipment_mode' => 'gold']);
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Add gold to equipment (simulating what resolve() does)
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'phb:gold-gp',
+            'quantity' => 150,
+            'equipped' => false,
+            'custom_description' => json_encode(['source' => 'starting_wealth']),
+        ]);
+
+        $character->load(['characterClasses.characterClass', 'equipment']);
+
+        $choices = $this->handler->getChoices($character);
+
+        expect($choices)->toHaveCount(1);
+
+        $choice = $choices->first();
+        expect($choice->remaining)->toBe(0)
+            ->and($choice->selected)->toBe(['gold'])
+            ->and($choice->metadata)->toHaveKey('gold_amount')
+            ->and($choice->metadata['gold_amount'])->toBe(150);
+    }
+
+    #[Test]
     public function can_undo_equipment_mode_choice_at_level_1(): void
     {
         $character = Character::factory()->create();

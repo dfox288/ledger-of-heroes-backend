@@ -77,6 +77,18 @@ class EquipmentModeChoiceHandler extends AbstractChoiceHandler
             'starting_wealth' => $startingWealth,
         ];
 
+        // If gold mode was selected, include the stored gold amount for re-entry
+        if ($existingSelection === 'gold') {
+            $storedGold = $character->equipment()
+                ->where('item_slug', self::GOLD_ITEM_SLUG)
+                ->whereJsonContains('custom_description->source', 'starting_wealth')
+                ->first();
+
+            if ($storedGold) {
+                $metadata['gold_amount'] = $storedGold->quantity;
+            }
+        }
+
         $choice = new PendingChoice(
             id: $this->generateChoiceId('equipment_mode', 'class', $primaryClass->full_slug, 1, 'starting_equipment'),
             type: 'equipment_mode',

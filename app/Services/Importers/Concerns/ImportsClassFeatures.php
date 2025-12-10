@@ -102,6 +102,10 @@ trait ImportsClassFeatures
             // Pattern: "proficiency in one of the following skills of your choice: X, Y, or Z"
             $this->importFeatureSkillChoices($feature, $featureData['description']);
 
+            // Detect bonus cantrip/spell choices from feature description
+            // Pattern: "one druid cantrip of your choice", "one wizard cantrip of your choice"
+            $this->importBonusSpellChoices($feature, $featureData['description']);
+
             // Import random tables from <roll> XML elements
             if (! empty($featureData['rolls'])) {
                 $this->importFeatureRolls($feature, $featureData['rolls']);
@@ -489,6 +493,57 @@ trait ImportsClassFeatures
 
             $optionNumber++;
         }
+    }
+
+    /**
+     * Import bonus spell/cantrip choices from feature description text.
+     *
+     * Detects patterns like:
+     * - "you learn one druid cantrip of your choice"
+     * - "you know one wizard cantrip of your choice"
+     * - "one cleric spell of your choice"
+     *
+     * Creates entity_spells record with is_choice=true and class_id pointing
+     * to the class whose spell list to choose from.
+     */
+    protected function importBonusSpellChoices(ClassFeature $feature, string $text): void
+    {
+        // Pattern: "(you learn|you know|learn) one {class} (cantrip|spell) of your choice"
+        // Also handles: "one {class} cantrip of your choice" without prefix
+        if (! preg_match('/(?:you\s+(?:learn|know|gain)\s+)?one\s+(\w+)\s+(cantrip|spell)\s+of\s+your\s+choice/i', $text, $matches)) {
+            return;
+        }
+
+        $className = ucfirst(strtolower($matches[1]));
+        $spellType = strtolower($matches[2]); // 'cantrip' or 'spell'
+        $isCantrip = $spellType === 'cantrip';
+
+        // Find the class by name (base class only, not subclass)
+        $spellListClass = CharacterClass::where('name', $className)
+            ->whereNull('parent_class_id')
+            ->first();
+
+        if (! $spellListClass) {
+            // Class not found - skip silently
+            return;
+        }
+
+        // Use updateOrCreate to prevent duplicates on re-import
+        \App\Models\EntitySpell::updateOrCreate(
+            [
+                'reference_type' => ClassFeature::class,
+                'reference_id' => $feature->id,
+                'is_choice' => true,
+                'class_id' => $spellListClass->id,
+            ],
+            [
+                'spell_id' => null, // No specific spell - it's a choice
+                'is_cantrip' => $isCantrip,
+                'choice_count' => 1,
+                'max_level' => $isCantrip ? 0 : null, // 0 for cantrips, null for spells
+                'choice_group' => 'feature_spell_choice',
+            ]
+        );
     }
 
     /**

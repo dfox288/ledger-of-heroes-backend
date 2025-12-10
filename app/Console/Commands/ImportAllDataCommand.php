@@ -368,7 +368,7 @@ class ImportAllDataCommand extends Command
                 ->where(function ($query) {
                     $query->where('feature_name', 'like', '%Domain%')
                         ->orWhere('feature_name', 'like', '%Circle%')
-                        ->orWhere('feature_name', 'like', '%Expanded Spells%')
+                        ->orWhere('feature_name', 'like', '%Expanded Spell%') // Matches "Expanded Spell List" (Warlock) and "Expanded Spells"
                         ->orWhere('feature_name', 'like', '%Patron%');
                 })
                 ->get();

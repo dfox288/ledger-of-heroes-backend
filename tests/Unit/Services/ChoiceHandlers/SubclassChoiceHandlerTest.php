@@ -9,9 +9,12 @@ use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
+use App\Models\CharacterSpell;
 use App\Models\ClassFeature;
+use App\Models\Spell;
 use App\Services\ChoiceHandlers\SubclassChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -892,5 +895,707 @@ class SubclassChoiceHandlerTest extends TestCase
         // Verify Cleric pivot was cleared but Warlock wasn't touched
         $clericPivot->refresh();
         $this->assertNull($clericPivot->subclass_slug);
+    }
+
+    // =====================
+    // Subclass Spell Assignment Tests
+    // =====================
+
+    #[Test]
+    public function resolve_assigns_domain_spells_to_character_as_always_prepared(): void
+    {
+        // Create Cleric class (domain spells are always prepared for clerics)
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        $lightDomain = CharacterClass::factory()->create([
+            'name' => 'Light Domain',
+            'slug' => 'light-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        // Create domain spells feature
+        // Note: is_always_prepared is a computed accessor based on parent class name
+        // (Cleric, Druid, Paladin = true; Warlock = false)
+        $domainSpellsFeature = ClassFeature::factory()->create([
+            'class_id' => $lightDomain->id,
+            'feature_name' => 'Domain Spells',
+            'level' => 1,
+            'is_optional' => false,
+        ]);
+
+        // Create spells and link them to the feature
+        $faerieFire = Spell::factory()->create([
+            'name' => 'Faerie Fire',
+            'slug' => 'faerie-fire',
+            'full_slug' => 'test:faerie-fire',
+            'level' => 1,
+        ]);
+
+        $burningHands = Spell::factory()->create([
+            'name' => 'Burning Hands',
+            'slug' => 'burning-hands',
+            'full_slug' => 'test:burning-hands',
+            'level' => 1,
+        ]);
+
+        // Link spells to feature via entity_spells
+        DB::table('entity_spells')->insert([
+            [
+                'reference_type' => ClassFeature::class,
+                'reference_id' => $domainSpellsFeature->id,
+                'spell_id' => $faerieFire->id,
+                'level_requirement' => 1,
+                'is_cantrip' => false,
+            ],
+            [
+                'reference_type' => ClassFeature::class,
+                'reference_id' => $domainSpellsFeature->id,
+                'spell_id' => $burningHands->id,
+                'level_requirement' => 1,
+                'is_cantrip' => false,
+            ],
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $cleric->full_slug,
+            'subclass_slug' => null,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $choice = new PendingChoice(
+            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Cleric',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_slug' => $cleric->full_slug],
+        );
+
+        $this->handler->resolve($character, $choice, [
+            'subclass_slug' => $lightDomain->full_slug,
+        ]);
+
+        // Verify spells were assigned to character
+        $character->refresh();
+        $characterSpells = $character->spells;
+
+        $this->assertCount(2, $characterSpells);
+
+        // Verify spell slugs
+        $spellSlugs = $characterSpells->pluck('spell_slug')->toArray();
+        $this->assertContains('test:faerie-fire', $spellSlugs);
+        $this->assertContains('test:burning-hands', $spellSlugs);
+
+        // Verify preparation status is 'always_prepared' for Cleric
+        $this->assertTrue($characterSpells->every(fn ($s) => $s->preparation_status === 'always_prepared'));
+
+        // Verify source is 'subclass'
+        $this->assertTrue($characterSpells->every(fn ($s) => $s->source === 'subclass'));
+
+        // Verify level_acquired is correct
+        $this->assertTrue($characterSpells->every(fn ($s) => $s->level_acquired === 1));
+    }
+
+    #[Test]
+    public function resolve_does_not_assign_warlock_expanded_spells_to_character_spells(): void
+    {
+        // Warlock expanded spells are NOT auto-assigned - they just expand the available
+        // spell pool. The player must still choose them via SpellManagerService::getAvailableSpells()
+        $warlock = CharacterClass::factory()->create([
+            'name' => 'Warlock',
+            'slug' => 'warlock',
+            'parent_class_id' => null,
+        ]);
+
+        $fiendPatron = CharacterClass::factory()->create([
+            'name' => 'The Fiend',
+            'slug' => 'the-fiend',
+            'parent_class_id' => $warlock->id,
+        ]);
+
+        // Create expanded spells feature
+        // Note: is_always_prepared is computed based on parent class name - Warlock = false
+        $expandedSpellsFeature = ClassFeature::factory()->create([
+            'class_id' => $fiendPatron->id,
+            'feature_name' => 'Expanded Spell List',
+            'level' => 1,
+            'is_optional' => false,
+        ]);
+
+        // Create spell and link to feature
+        $burningHands = Spell::factory()->create([
+            'name' => 'Burning Hands',
+            'slug' => 'burning-hands',
+            'full_slug' => 'test:burning-hands-warlock',
+            'level' => 1,
+        ]);
+
+        DB::table('entity_spells')->insert([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $expandedSpellsFeature->id,
+            'spell_id' => $burningHands->id,
+            'level_requirement' => 1,
+            'is_cantrip' => false,
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $warlock->full_slug,
+            'subclass_slug' => null,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $choice = new PendingChoice(
+            id: "subclass|class|{$warlock->full_slug}|1|subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Warlock',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_slug' => $warlock->full_slug],
+        );
+
+        $this->handler->resolve($character, $choice, [
+            'subclass_slug' => $fiendPatron->full_slug,
+        ]);
+
+        // Verify NO spells were assigned to character_spells
+        // (expanded spells just expand the pool, handled by SpellManagerService)
+        $character->refresh();
+        $this->assertCount(0, $character->spells);
+    }
+
+    #[Test]
+    public function resolve_only_assigns_spells_at_or_below_character_level(): void
+    {
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        $lightDomain = CharacterClass::factory()->create([
+            'name' => 'Light Domain',
+            'slug' => 'light-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        $domainSpellsFeature = ClassFeature::factory()->create([
+            'class_id' => $lightDomain->id,
+            'feature_name' => 'Domain Spells',
+            'level' => 1,
+            'is_optional' => false,
+        ]);
+
+        // Create spells at different level requirements
+        $faerieFire = Spell::factory()->create([
+            'name' => 'Faerie Fire',
+            'slug' => 'faerie-fire',
+            'full_slug' => 'test:faerie-fire-level',
+            'level' => 1,
+        ]);
+
+        $scorchingRay = Spell::factory()->create([
+            'name' => 'Scorching Ray',
+            'slug' => 'scorching-ray',
+            'full_slug' => 'test:scorching-ray',
+            'level' => 2,
+        ]);
+
+        // Link spells with different level requirements
+        DB::table('entity_spells')->insert([
+            [
+                'reference_type' => ClassFeature::class,
+                'reference_id' => $domainSpellsFeature->id,
+                'spell_id' => $faerieFire->id,
+                'level_requirement' => 1, // Available at level 1
+                'is_cantrip' => false,
+            ],
+            [
+                'reference_type' => ClassFeature::class,
+                'reference_id' => $domainSpellsFeature->id,
+                'spell_id' => $scorchingRay->id,
+                'level_requirement' => 3, // Only available at level 3+
+                'is_cantrip' => false,
+            ],
+        ]);
+
+        $character = Character::factory()->create();
+
+        // Character is level 1 in Cleric
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $cleric->full_slug,
+            'subclass_slug' => null,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $choice = new PendingChoice(
+            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Cleric',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_slug' => $cleric->full_slug],
+        );
+
+        $this->handler->resolve($character, $choice, [
+            'subclass_slug' => $lightDomain->full_slug,
+        ]);
+
+        // Verify only level 1 spell was assigned
+        $character->refresh();
+        $characterSpells = $character->spells;
+
+        $this->assertCount(1, $characterSpells);
+        $this->assertEquals('test:faerie-fire-level', $characterSpells->first()->spell_slug);
+    }
+
+    #[Test]
+    public function resolve_assigns_bonus_cantrips_from_subclass_features(): void
+    {
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        $lightDomain = CharacterClass::factory()->create([
+            'name' => 'Light Domain',
+            'slug' => 'light-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        // Create bonus cantrip feature
+        $bonusCantripFeature = ClassFeature::factory()->create([
+            'class_id' => $lightDomain->id,
+            'feature_name' => 'Bonus Cantrip',
+            'level' => 1,
+            'is_optional' => false,
+        ]);
+
+        // Create Light cantrip
+        $lightCantrip = Spell::factory()->cantrip()->create([
+            'name' => 'Light',
+            'slug' => 'light',
+            'full_slug' => 'test:light',
+        ]);
+
+        // Link cantrip to feature
+        DB::table('entity_spells')->insert([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $bonusCantripFeature->id,
+            'spell_id' => $lightCantrip->id,
+            'level_requirement' => 1,
+            'is_cantrip' => true,
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $cleric->full_slug,
+            'subclass_slug' => null,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $choice = new PendingChoice(
+            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Cleric',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_slug' => $cleric->full_slug],
+        );
+
+        $this->handler->resolve($character, $choice, [
+            'subclass_slug' => $lightDomain->full_slug,
+        ]);
+
+        // Verify cantrip was assigned
+        $character->refresh();
+        $characterSpells = $character->spells;
+
+        $this->assertCount(1, $characterSpells);
+        $this->assertEquals('test:light', $characterSpells->first()->spell_slug);
+        $this->assertEquals('always_prepared', $characterSpells->first()->preparation_status);
+    }
+
+    #[Test]
+    public function undo_removes_subclass_spells_from_character(): void
+    {
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        $lightDomain = CharacterClass::factory()->create([
+            'name' => 'Light Domain',
+            'slug' => 'light-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        $domainSpellsFeature = ClassFeature::factory()->create([
+            'class_id' => $lightDomain->id,
+            'feature_name' => 'Domain Spells',
+            'level' => 1,
+            'is_optional' => false,
+        ]);
+
+        $faerieFire = Spell::factory()->create([
+            'name' => 'Faerie Fire',
+            'slug' => 'faerie-fire',
+            'full_slug' => 'test:faerie-fire-undo',
+            'level' => 1,
+        ]);
+
+        DB::table('entity_spells')->insert([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $domainSpellsFeature->id,
+            'spell_id' => $faerieFire->id,
+            'level_requirement' => 1,
+            'is_cantrip' => false,
+        ]);
+
+        $character = Character::factory()->create();
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $cleric->full_slug,
+            'subclass_slug' => $lightDomain->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Add subclass feature
+        $character->features()->create([
+            'feature_type' => ClassFeature::class,
+            'feature_id' => $domainSpellsFeature->id,
+            'source' => 'subclass',
+            'level_acquired' => 1,
+        ]);
+
+        // Add subclass spell
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => 'test:faerie-fire-undo',
+            'source' => 'subclass',
+            'level_acquired' => 1,
+            'preparation_status' => 'always_prepared',
+        ]);
+
+        $this->assertCount(1, $character->spells);
+
+        $choice = new PendingChoice(
+            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Cleric',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 0,
+            selected: [(string) $lightDomain->id],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_slug' => $cleric->full_slug],
+        );
+
+        $this->handler->undo($character, $choice);
+
+        // Verify spells were removed
+        $character->refresh();
+        $this->assertCount(0, $character->spells);
+
+        // Verify features were also removed
+        $this->assertCount(0, $character->features);
+    }
+
+    #[Test]
+    public function undo_only_removes_spells_for_specific_subclass_multiclass(): void
+    {
+        // Test multiclass scenario: Cleric/Paladin - undoing Cleric subclass
+        // should NOT remove Paladin subclass spells
+        // (Using Paladin instead of Warlock because Warlock expanded spells
+        // don't get added to character_spells - they just expand the pool)
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        $lightDomain = CharacterClass::factory()->create([
+            'name' => 'Light Domain',
+            'slug' => 'light-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        $paladin = CharacterClass::factory()->create([
+            'name' => 'Paladin',
+            'slug' => 'paladin',
+            'parent_class_id' => null,
+        ]);
+
+        $devotionOath = CharacterClass::factory()->create([
+            'name' => 'Oath of Devotion',
+            'slug' => 'oath-of-devotion',
+            'parent_class_id' => $paladin->id,
+        ]);
+
+        // Create features for each subclass
+        // Note: is_always_prepared is computed - Cleric and Paladin both return true
+        $clericFeature = ClassFeature::factory()->create([
+            'class_id' => $lightDomain->id,
+            'feature_name' => 'Domain Spells',
+            'level' => 1,
+        ]);
+
+        $paladinFeature = ClassFeature::factory()->create([
+            'class_id' => $devotionOath->id,
+            'feature_name' => 'Oath Spells',
+            'level' => 1,
+        ]);
+
+        // Create spells for each subclass
+        $clericSpell = Spell::factory()->create([
+            'name' => 'Faerie Fire',
+            'slug' => 'faerie-fire-cleric',
+            'full_slug' => 'test:faerie-fire-cleric',
+            'level' => 1,
+        ]);
+
+        $paladinSpell = Spell::factory()->create([
+            'name' => 'Protection from Evil and Good',
+            'slug' => 'protection-from-evil-and-good',
+            'full_slug' => 'test:protection-from-evil-and-good',
+            'level' => 1,
+        ]);
+
+        // Link spells to features via entity_spells (required for undo to work)
+        DB::table('entity_spells')->insert([
+            [
+                'reference_type' => ClassFeature::class,
+                'reference_id' => $clericFeature->id,
+                'spell_id' => $clericSpell->id,
+                'level_requirement' => 1,
+                'is_cantrip' => false,
+            ],
+            [
+                'reference_type' => ClassFeature::class,
+                'reference_id' => $paladinFeature->id,
+                'spell_id' => $paladinSpell->id,
+                'level_requirement' => 1,
+                'is_cantrip' => false,
+            ],
+        ]);
+
+        $character = Character::factory()->create();
+
+        // Add both classes with subclasses
+        $clericPivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $cleric->full_slug,
+            'subclass_slug' => $lightDomain->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $paladin->full_slug,
+            'subclass_slug' => $devotionOath->full_slug,
+            'level' => 1,
+            'is_primary' => false,
+            'order' => 2,
+        ]);
+
+        // Add both subclass features
+        $character->features()->create([
+            'feature_type' => ClassFeature::class,
+            'feature_id' => $clericFeature->id,
+            'source' => 'subclass',
+            'level_acquired' => 1,
+        ]);
+
+        $character->features()->create([
+            'feature_type' => ClassFeature::class,
+            'feature_id' => $paladinFeature->id,
+            'source' => 'subclass',
+            'level_acquired' => 1,
+        ]);
+
+        // Add spells from both subclasses (both always_prepared since both are domain/oath spells)
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => 'test:faerie-fire-cleric',
+            'source' => 'subclass',
+            'level_acquired' => 1,
+            'preparation_status' => 'always_prepared',
+        ]);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => 'test:protection-from-evil-and-good',
+            'source' => 'subclass',
+            'level_acquired' => 1,
+            'preparation_status' => 'always_prepared',
+        ]);
+
+        $this->assertCount(2, $character->spells);
+
+        // Undo the CLERIC subclass choice
+        $choice = new PendingChoice(
+            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Cleric',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 0,
+            selected: [(string) $lightDomain->id],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_slug' => $cleric->full_slug],
+        );
+
+        $this->handler->undo($character, $choice);
+
+        // Verify only Cleric subclass spells were removed
+        $character->refresh();
+
+        // Only paladin spell should remain
+        $this->assertCount(1, $character->spells);
+        $this->assertEquals('test:protection-from-evil-and-good', $character->spells->first()->spell_slug);
+
+        // Only paladin feature should remain
+        $this->assertCount(1, $character->features);
+        $this->assertEquals($paladinFeature->id, $character->features->first()->feature_id);
+    }
+
+    #[Test]
+    public function resolve_does_not_duplicate_spells_on_repeated_calls(): void
+    {
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'parent_class_id' => null,
+        ]);
+
+        $lightDomain = CharacterClass::factory()->create([
+            'name' => 'Light Domain',
+            'slug' => 'light-domain',
+            'parent_class_id' => $cleric->id,
+        ]);
+
+        $domainSpellsFeature = ClassFeature::factory()->create([
+            'class_id' => $lightDomain->id,
+            'feature_name' => 'Domain Spells',
+            'level' => 1,
+            'is_optional' => false,
+        ]);
+
+        $faerieFire = Spell::factory()->create([
+            'name' => 'Faerie Fire',
+            'slug' => 'faerie-fire',
+            'full_slug' => 'test:faerie-fire-dup',
+            'level' => 1,
+        ]);
+
+        DB::table('entity_spells')->insert([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $domainSpellsFeature->id,
+            'spell_id' => $faerieFire->id,
+            'level_requirement' => 1,
+            'is_cantrip' => false,
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $cleric->full_slug,
+            'subclass_slug' => null,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $choice = new PendingChoice(
+            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Cleric',
+            levelGranted: 1,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_slug' => $cleric->full_slug],
+        );
+
+        // Resolve twice (simulating idempotency check)
+        $this->handler->resolve($character, $choice, [
+            'subclass_slug' => $lightDomain->full_slug,
+        ]);
+
+        // Reset the subclass_slug to test re-resolve
+        CharacterClassPivot::where('character_id', $character->id)
+            ->where('class_slug', $cleric->full_slug)
+            ->update(['subclass_slug' => null]);
+
+        $this->handler->resolve($character, $choice, [
+            'subclass_slug' => $lightDomain->full_slug,
+        ]);
+
+        // Should still only have 1 spell (no duplicates)
+        $character->refresh();
+        $this->assertCount(1, $character->spells);
     }
 }

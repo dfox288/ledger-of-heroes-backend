@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterFeature;
+use App\Models\CharacterSpell;
 use App\Models\CharacterTrait;
 use App\Models\ClassFeature;
 
@@ -115,6 +116,7 @@ class CharacterFeatureService
      * Populate subclass features for a character up to their current level in that class.
      *
      * Called when a subclass is selected via the choice system.
+     * Also assigns any spells granted by subclass features.
      *
      * @param  string  $classSlug  The base class slug (to find the character's level in that class)
      * @param  string  $subclassSlug  The selected subclass slug
@@ -137,11 +139,13 @@ class CharacterFeatureService
             return;
         }
 
+        $characterLevel = $characterClass->level;
+
         // Get subclass features up to character's level in this class
         // Note: Subclass features have is_optional=true because they're only available
         // IF you choose that subclass. But once chosen, they are automatically granted.
         $features = $subclass->features()
-            ->where('level', '<=', $characterClass->level)
+            ->where('level', '<=', $characterLevel)
             ->whereNull('parent_feature_id') // Exclude child features (choice options)
             ->get();
 
@@ -153,15 +157,89 @@ class CharacterFeatureService
                 'subclass',
                 $feature->level
             );
+
+            // Assign spells granted by this feature
+            $this->assignSpellsFromFeature($character, $feature, $characterLevel);
         }
 
-        $character->load('features');
+        $character->load(['features', 'spells']);
     }
 
     /**
-     * Remove subclass features from a character for a specific subclass.
+     * Assign spells granted by a class feature to the character.
      *
-     * Called when a subclass choice is undone. Only removes features belonging
+     * Only assigns spells when the feature has is_always_prepared=true (e.g., Cleric
+     * Domain Spells, Paladin Oath Spells). Features with is_always_prepared=false
+     * (e.g., Warlock Expanded Spell List) only expand the available spell pool -
+     * those spells are handled by SpellManagerService::getAvailableSpells() and
+     * the player must still choose them.
+     *
+     * Respects level_requirement from the entity_spells pivot, so higher-level
+     * domain spells aren't assigned until the character reaches that level.
+     */
+    private function assignSpellsFromFeature(Character $character, ClassFeature $feature, int $characterLevel): void
+    {
+        // Only auto-assign spells for "always prepared" features (Cleric domains, Paladin oaths, etc.)
+        // Warlock expanded spells (is_always_prepared=false) just expand the available pool
+        // and are handled by SpellManagerService::getAvailableSpells()
+        if (! $feature->is_always_prepared) {
+            return;
+        }
+
+        // Load spells with pivot data (level_requirement, is_cantrip)
+        $featureSpells = $feature->spells()
+            ->wherePivot('level_requirement', '<=', $characterLevel)
+            ->get();
+
+        if ($featureSpells->isEmpty()) {
+            return;
+        }
+
+        foreach ($featureSpells as $spell) {
+            $levelAcquired = $spell->pivot->level_requirement ?? $feature->level;
+
+            $this->createSpellIfNotExists(
+                $character,
+                $spell->full_slug,
+                'subclass',
+                $levelAcquired,
+                'always_prepared'
+            );
+        }
+    }
+
+    /**
+     * Create a character spell if it doesn't already exist.
+     */
+    private function createSpellIfNotExists(
+        Character $character,
+        string $spellSlug,
+        string $source,
+        int $levelAcquired,
+        string $preparationStatus
+    ): void {
+        $exists = $character->spells()
+            ->where('spell_slug', $spellSlug)
+            ->where('source', $source)
+            ->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $spellSlug,
+            'source' => $source,
+            'level_acquired' => $levelAcquired,
+            'preparation_status' => $preparationStatus,
+        ]);
+    }
+
+    /**
+     * Remove subclass features and their spells from a character for a specific subclass.
+     *
+     * Called when a subclass choice is undone. Only removes features and spells belonging
      * to the specified subclass, preserving other subclass features (multiclass support).
      *
      * @param  string  $subclassSlug  The subclass whose features should be removed
@@ -175,11 +253,27 @@ class CharacterFeatureService
             return;
         }
 
-        // Get all feature IDs for this subclass
-        $subclassFeatureIds = $subclass->features()->pluck('id')->toArray();
+        // Get all features for this subclass
+        $subclassFeatures = $subclass->features()->with('spells')->get();
 
-        if (empty($subclassFeatureIds)) {
+        if ($subclassFeatures->isEmpty()) {
             return;
+        }
+
+        $subclassFeatureIds = $subclassFeatures->pluck('id')->toArray();
+
+        // Collect all spell slugs granted by this subclass's features
+        $spellSlugs = $subclassFeatures
+            ->flatMap(fn ($feature) => $feature->spells->pluck('full_slug'))
+            ->unique()
+            ->toArray();
+
+        // Delete spells from this specific subclass
+        if (! empty($spellSlugs)) {
+            $character->spells()
+                ->where('source', 'subclass')
+                ->whereIn('spell_slug', $spellSlugs)
+                ->delete();
         }
 
         // Delete only features from this specific subclass
@@ -189,7 +283,7 @@ class CharacterFeatureService
             ->whereIn('feature_id', $subclassFeatureIds)
             ->delete();
 
-        $character->load('features');
+        $character->load(['features', 'spells']);
     }
 
     /**

@@ -94,6 +94,10 @@ trait ImportsClassFeatures
                 $this->importBonusProficiencies($class, $featureData);
             }
 
+            // Parse proficiencies from feature description text (e.g., "You gain proficiency with X")
+            // Links to ClassFeature, not CharacterClass - important for subclass features like Hexblade
+            $this->importFeatureProficiencies($feature, $featureData['description']);
+
             // Detect bonus cantrip grants from feature description
             // Pattern: "you gain the X cantrip" (e.g., Light Domain grants light cantrip)
             $this->importBonusCantrips($feature, $featureData['description']);
@@ -393,6 +397,53 @@ trait ImportsClassFeatures
 
         // Default to tool for unknown types
         return 'tool';
+    }
+
+    /**
+     * Import proficiencies from feature description text.
+     *
+     * Parses patterns like "You gain proficiency with X, Y, and Z" from feature descriptions
+     * and links them to the ClassFeature (not CharacterClass). This is important for
+     * subclass features like Hexblade's "Hex Warrior" which grants medium armor, shields,
+     * and martial weapons.
+     */
+    protected function importFeatureProficiencies(ClassFeature $feature, string $description): void
+    {
+        // Pattern: "You gain proficiency with X, Y, and Z"
+        // Must start with "You gain" to avoid matching prerequisite text like "requires proficiency with"
+        if (! preg_match('/You gain proficiency with (.+?)(?:\.|$)/i', $description, $matches)) {
+            return;
+        }
+
+        $proficienciesText = $matches[1];
+
+        // Split by commas and "and"
+        $proficiencies = preg_split('/,\s*(?:and\s+)?|\s+and\s+/', $proficienciesText);
+
+        foreach ($proficiencies as $profName) {
+            $profName = trim($profName);
+            if (empty($profName)) {
+                continue;
+            }
+
+            // Determine proficiency type based on keywords
+            $profType = $this->determineProficiencyType($profName);
+
+            // Use updateOrCreate to prevent duplicates on re-import
+            // Link to ClassFeature, not CharacterClass
+            Proficiency::updateOrCreate(
+                [
+                    'reference_type' => ClassFeature::class,
+                    'reference_id' => $feature->id,
+                    'proficiency_type' => $profType,
+                    'proficiency_name' => $profName,
+                ],
+                [
+                    'grants' => true,
+                    'is_choice' => false,
+                ]
+            );
+        }
     }
 
     /**

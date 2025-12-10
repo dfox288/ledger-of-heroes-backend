@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\SpellManagementException;
 use App\Models\Character;
 use App\Models\CharacterSpell;
+use App\Models\ClassFeature;
 use App\Models\Spell;
 use Illuminate\Support\Collection;
 
@@ -28,13 +29,20 @@ class SpellManagerService
      *
      * Filters by:
      * - Class spell list (from primary class)
+     * - Subclass expanded spells (if a subclass is selected)
      * - Min spell level (optional) - use 1 to exclude cantrips
      * - Max spell level (optional)
      * - Excludes already known spells (unless includeKnown is true)
      */
     public function getAvailableSpells(Character $character, ?int $minLevel = null, ?int $maxLevel = null, bool $includeKnown = false): Collection
     {
-        $class = $character->primary_class;
+        $classPivot = $character->characterClasses()->where('is_primary', true)->first();
+
+        if (! $classPivot) {
+            return collect();
+        }
+
+        $class = $classPivot->characterClass;
 
         if (! $class) {
             return collect();
@@ -43,11 +51,15 @@ class SpellManagerService
         // Get the base class (for subclasses, we need the parent's spell list)
         $baseClass = $class->parent_class_id ? $class->parentClass : $class;
 
+        // Get known spell slugs to exclude (if needed)
+        $knownSpellSlugs = $includeKnown
+            ? collect()
+            : $character->spells()->pluck('spell_slug');
+
+        // Get base class spells
         $query = $baseClass->spells();
 
-        // Exclude already known spells unless includeKnown is true
-        if (! $includeKnown) {
-            $knownSpellSlugs = $character->spells()->pluck('spell_slug');
+        if (! $includeKnown && $knownSpellSlugs->isNotEmpty()) {
             $query->whereNotIn('spells.full_slug', $knownSpellSlugs);
         }
 
@@ -57,6 +69,81 @@ class SpellManagerService
 
         if ($maxLevel !== null) {
             $query->where('level', '<=', $maxLevel);
+        }
+
+        $baseSpells = $query->with('spellSchool')->get();
+
+        // Get expanded spells from subclass features (if subclass selected)
+        $expandedSpells = $this->getExpandedSpellsFromSubclass(
+            $classPivot,
+            $knownSpellSlugs,
+            $minLevel,
+            $maxLevel
+        );
+
+        // Merge and deduplicate by spell ID
+        return $baseSpells->merge($expandedSpells)
+            ->unique('id')
+            ->values();
+    }
+
+    /**
+     * Get expanded spells from subclass features.
+     *
+     * These are spells granted via features like "Expanded Spell List (The Hexblade)"
+     * that add to the character's available spell choices.
+     */
+    private function getExpandedSpellsFromSubclass(
+        $classPivot,
+        Collection $knownSpellSlugs,
+        ?int $minLevel,
+        ?int $maxLevel
+    ): Collection {
+        // No subclass selected
+        if (! $classPivot->subclass_slug) {
+            return collect();
+        }
+
+        $subclass = $classPivot->subclass;
+
+        if (! $subclass) {
+            return collect();
+        }
+
+        $characterLevel = $classPivot->level;
+
+        // Get features from the subclass that might have spell lists
+        // These are typically "Expanded Spell List", "Domain Spells", etc.
+        $features = $subclass->features()
+            ->where('level', '<=', $characterLevel)
+            ->whereNull('parent_feature_id')
+            ->get();
+
+        if ($features->isEmpty()) {
+            return collect();
+        }
+
+        $featureIds = $features->pluck('id')->toArray();
+
+        // Query spells linked to these features via entity_spells
+        $query = Spell::query()
+            ->join('entity_spells', 'spells.id', '=', 'entity_spells.spell_id')
+            ->where('entity_spells.reference_type', ClassFeature::class)
+            ->whereIn('entity_spells.reference_id', $featureIds)
+            ->where('entity_spells.level_requirement', '<=', $characterLevel)
+            ->select('spells.*');
+
+        // Exclude already known spells
+        if ($knownSpellSlugs->isNotEmpty()) {
+            $query->whereNotIn('spells.full_slug', $knownSpellSlugs);
+        }
+
+        if ($minLevel !== null) {
+            $query->where('spells.level', '>=', $minLevel);
+        }
+
+        if ($maxLevel !== null) {
+            $query->where('spells.level', '<=', $maxLevel);
         }
 
         return $query->with('spellSchool')->get();
@@ -267,11 +354,17 @@ class SpellManagerService
     }
 
     /**
-     * Check if a spell is on the character's class spell list.
+     * Check if a spell is on the character's class spell list or expanded spell list.
      */
     private function isSpellOnClassList(Character $character, Spell $spell): bool
     {
-        $class = $character->primary_class;
+        $classPivot = $character->characterClasses()->where('is_primary', true)->first();
+
+        if (! $classPivot) {
+            return false;
+        }
+
+        $class = $classPivot->characterClass;
 
         if (! $class) {
             return false;
@@ -280,7 +373,41 @@ class SpellManagerService
         // Get the base class (for subclasses)
         $baseClass = $class->parent_class_id ? $class->parentClass : $class;
 
-        return $baseClass->spells()->where('spells.id', $spell->id)->exists();
+        // Check base class spell list
+        if ($baseClass->spells()->where('spells.id', $spell->id)->exists()) {
+            return true;
+        }
+
+        // Check subclass expanded spell list
+        if ($classPivot->subclass_slug) {
+            $subclass = $classPivot->subclass;
+
+            if ($subclass) {
+                $characterLevel = $classPivot->level;
+
+                $featureIds = $subclass->features()
+                    ->where('level', '<=', $characterLevel)
+                    ->whereNull('parent_feature_id')
+                    ->pluck('id')
+                    ->toArray();
+
+                if (! empty($featureIds)) {
+                    $exists = Spell::query()
+                        ->join('entity_spells', 'spells.id', '=', 'entity_spells.spell_id')
+                        ->where('entity_spells.reference_type', ClassFeature::class)
+                        ->whereIn('entity_spells.reference_id', $featureIds)
+                        ->where('entity_spells.level_requirement', '<=', $characterLevel)
+                        ->where('spells.id', $spell->id)
+                        ->exists();
+
+                    if ($exists) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

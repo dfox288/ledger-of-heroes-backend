@@ -98,6 +98,10 @@ trait ImportsClassFeatures
             // Pattern: "you gain the X cantrip" (e.g., Light Domain grants light cantrip)
             $this->importBonusCantrips($feature, $featureData['description']);
 
+            // Detect skill choices from feature description
+            // Pattern: "proficiency in one of the following skills of your choice: X, Y, or Z"
+            $this->importFeatureSkillChoices($feature, $featureData['description']);
+
             // Import random tables from <roll> XML elements
             if (! empty($featureData['rolls'])) {
                 $this->importFeatureRolls($feature, $featureData['rolls']);
@@ -426,6 +430,65 @@ trait ImportsClassFeatures
                 'level_requirement' => null,
             ]
         );
+    }
+
+    /**
+     * Import skill choices from feature description text.
+     *
+     * Detects pattern: "proficiency in one of the following skills of your choice: X, Y, or Z"
+     *
+     * Creates entity_proficiencies records linking the feature to each skill option.
+     * Each skill is stored as a separate choice option within the same choice_group.
+     */
+    protected function importFeatureSkillChoices(ClassFeature $feature, string $text): void
+    {
+        // Pattern: "proficiency in one of the following skills of your choice: X, Y, or Z"
+        // Also handles: "proficiency in one of the following skills ... : X, Y, or Z"
+        if (! preg_match('/proficiency in one of the following skills[^:]*:\s*([^.]+)/i', $text, $matches)) {
+            return;
+        }
+
+        $skillListText = trim($matches[1]);
+
+        // Parse skill names: "Animal Handling, Nature, or Survival"
+        // Split by comma and "or", then clean up
+        $skillNames = preg_split('/,\s*(?:or\s+)?|\s+or\s+/', $skillListText);
+        $skillNames = array_map('trim', $skillNames);
+        $skillNames = array_filter($skillNames);
+
+        if (empty($skillNames)) {
+            return;
+        }
+
+        // Clear existing skill choices for this feature before importing
+        Proficiency::where('reference_type', ClassFeature::class)
+            ->where('reference_id', $feature->id)
+            ->where('proficiency_type', 'skill')
+            ->where('is_choice', true)
+            ->delete();
+
+        $choiceGroup = 'feature_skill_choice_1';
+        $optionNumber = 1;
+
+        foreach ($skillNames as $skillName) {
+            // Look up the skill to get its ID
+            $skill = \App\Models\Skill::whereRaw('LOWER(name) = ?', [strtolower($skillName)])->first();
+
+            Proficiency::create([
+                'reference_type' => ClassFeature::class,
+                'reference_id' => $feature->id,
+                'proficiency_type' => 'skill',
+                'proficiency_name' => $skillName,
+                'skill_id' => $skill?->id,
+                'grants' => true,
+                'is_choice' => true,
+                'choice_group' => $choiceGroup,
+                'choice_option' => $optionNumber,
+                'quantity' => 1, // Pick 1 skill from the list
+            ]);
+
+            $optionNumber++;
+        }
     }
 
     /**

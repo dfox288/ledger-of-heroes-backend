@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * Trait HasProficiencies
  *
  * Provides the polymorphic proficiencies relationship for entities that grant proficiencies.
- * Used by: CharacterClass, Race, Background, Feat, Item
+ * Used by: CharacterClass, ClassFeature, Race, Background, Feat, Item
  */
 trait HasProficiencies
 {

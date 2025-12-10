@@ -182,13 +182,26 @@ class EquipmentModeChoiceHandler extends AbstractChoiceHandler
     /**
      * Clear existing equipment mode selection effects.
      *
-     * If gold mode was selected, removes all gold and re-adds background gold.
+     * - If switching FROM gold mode: removes starting_wealth gold, preserves background gold
+     * - If switching FROM equipment mode: removes all class equipment
      */
     private function clearExistingSelection(Character $character): void
     {
         if ($character->equipment_mode === 'gold') {
             $this->resetGoldToBackgroundOnly($character);
+        } elseif ($character->equipment_mode === 'equipment') {
+            $this->clearClassEquipment($character);
         }
+    }
+
+    /**
+     * Clear all equipment granted from class (both fixed and choice-based).
+     */
+    private function clearClassEquipment(Character $character): void
+    {
+        $character->equipment()
+            ->whereJsonContains('custom_description->source', 'class')
+            ->delete();
     }
 
     /**

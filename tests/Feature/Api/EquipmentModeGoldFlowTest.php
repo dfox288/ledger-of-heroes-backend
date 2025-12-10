@@ -742,4 +742,61 @@ class EquipmentModeGoldFlowTest extends TestCase
         $hasShield = $this->character->equipment()->where('item_slug', 'phb:shield')->exists();
         $this->assertTrue($hasShield, 'Fixed equipment (shield) should be populated after all choices resolved');
     }
+
+    #[Test]
+    public function bug_switching_to_gold_clears_class_equipment(): void
+    {
+        // Bug: When switching from equipment mode to gold mode,
+        // class equipment that was previously added should be deleted.
+
+        $choicesResponse = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment_mode");
+        $choiceId = $choicesResponse->json('data.choices.0.id');
+
+        // Step 1: Select equipment mode
+        $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
+            ['selected' => ['equipment']]
+        )->assertOk();
+
+        // Step 2: Resolve an equipment choice (adds class equipment)
+        $equipmentChoices = $this->getJson("/api/v1/characters/{$this->character->id}/pending-choices?type=equipment");
+        $firstEquipChoice = $equipmentChoices->json('data.choices.0');
+        $firstOption = $firstEquipChoice['options'][0]['option'];
+
+        $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$firstEquipChoice['id']}",
+            ['selected' => [$firstOption]]
+        )->assertOk();
+
+        // Verify class equipment was added
+        $this->character->refresh();
+        $classEquipmentCount = $this->character->equipment()
+            ->whereJsonContains('custom_description->source', 'class')
+            ->count();
+        $this->assertGreaterThan(0, $classEquipmentCount, 'Class equipment should be added after resolving equipment choice');
+
+        // Step 3: Switch to gold mode
+        $this->postJson(
+            "/api/v1/characters/{$this->character->id}/choices/{$choiceId}",
+            [
+                'selected' => ['gold'],
+                'gold_amount' => 100,
+            ]
+        )->assertOk();
+
+        // Verify class equipment was deleted
+        $this->character->refresh();
+        $classEquipmentCountAfter = $this->character->equipment()
+            ->whereJsonContains('custom_description->source', 'class')
+            ->count();
+        $this->assertEquals(0, $classEquipmentCountAfter, 'Class equipment should be deleted when switching to gold mode');
+
+        // Verify gold was added
+        $gold = $this->character->equipment()
+            ->where('item_slug', 'phb:gold-gp')
+            ->whereJsonContains('custom_description->source', 'starting_wealth')
+            ->first();
+        $this->assertNotNull($gold);
+        $this->assertEquals(100, $gold->quantity);
+    }
 }

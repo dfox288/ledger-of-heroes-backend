@@ -92,7 +92,8 @@ class FeatImporter extends BaseImporter
             // This ensures each activity type is stored separately
             $category = 'movement_cost_'.$modData['activity'];
 
-            // The 'value' field stores the cost
+            // Convert all cost values to strings for consistent database storage
+            // Cost can be 'normal' (no extra movement) or a number like 5 (feet)
             $value = is_int($modData['cost']) ? (string) $modData['cost'] : $modData['cost'];
 
             $this->importModifier($feat, $category, [

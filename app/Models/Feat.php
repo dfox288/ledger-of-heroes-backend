@@ -12,6 +12,7 @@ use App\Models\Concerns\HasProficiencies;
 use App\Models\Concerns\HasProficiencyScopes;
 use App\Models\Concerns\HasSearchableHelpers;
 use App\Models\Concerns\HasSources;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
@@ -165,5 +166,20 @@ class Feat extends BaseModel
                 'sources',
             ],
         ];
+    }
+
+    // =========================================================================
+    // Relationships
+    // =========================================================================
+
+    /**
+     * Get the counters (usage limits) for this feat.
+     *
+     * Feats with limited uses (like Lucky with 3 luck points) have
+     * counter records storing the base uses and reset timing.
+     */
+    public function counters(): HasMany
+    {
+        return $this->hasMany(ClassCounter::class);
     }
 }

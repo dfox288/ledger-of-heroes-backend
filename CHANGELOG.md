@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #449**: Parse limited-use ability counters from feat text
+  - Extended `class_counters` table to support feat-based counters via nullable `feat_id`
+  - New `ParsesUsageLimits` trait extracts use counts from feat descriptions
+  - Patterns matched: "You have N points", "N times", "once per rest", "gain one die"
+  - 52 feats now have counter data (Lucky: 3 luck points, Magic Initiate: 1 spell cast, etc.)
+  - `Feat` model now has `counters()` relationship to `ClassCounter`
+
 - **Issue #256**: Feature uses tracking for limited-use abilities
   - New `FeatureUseService` for tracking and managing limited-use class features (Rage, Action Surge, Ki Points, etc.)
   - New API endpoints: `GET /characters/{id}/feature-uses`, `POST /characters/{id}/features/{featureId}/use`, `POST /characters/{id}/features/{featureId}/reset`

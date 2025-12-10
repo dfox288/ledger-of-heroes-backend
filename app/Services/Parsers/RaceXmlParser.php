@@ -8,6 +8,7 @@ use App\Services\Parsers\Concerns\MatchesLanguages;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesExpertise;
 use App\Services\Parsers\Concerns\ParsesModifiers;
+use App\Services\Parsers\Concerns\ParsesMovementSpeeds;
 use App\Services\Parsers\Concerns\ParsesSkillAdvantages;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use App\Services\Parsers\Concerns\ParsesTraits;
@@ -15,7 +16,7 @@ use SimpleXMLElement;
 
 class RaceXmlParser
 {
-    use ConvertsWordNumbers, MapsAbilityCodes, MatchesLanguages, MatchesProficiencyTypes, ParsesExpertise, ParsesModifiers, ParsesSkillAdvantages, ParsesSourceCitations, ParsesTraits;
+    use ConvertsWordNumbers, MapsAbilityCodes, MatchesLanguages, MatchesProficiencyTypes, ParsesExpertise, ParsesModifiers, ParsesMovementSpeeds, ParsesSkillAdvantages, ParsesSourceCitations, ParsesTraits;
 
     public function parse(string $xmlContent): array
     {
@@ -137,12 +138,19 @@ class RaceXmlParser
         // Parse expertise/double proficiency from trait descriptions (e.g., Stonecunning, Artificer's Lore)
         $expertiseModifiers = $this->parseExpertiseFromTraits($traits);
 
+        // Parse alternative movement speeds (fly, swim, climb) from trait descriptions
+        $walkingSpeed = (int) $element->speed;
+        $alternativeSpeeds = $this->parseMovementSpeedsFromTraits($traits, $walkingSpeed);
+
         return [
             'name' => $raceName,
             'base_race_name' => $baseRaceName,
             'size_code' => (string) $element->size,
             'has_size_choice' => $hasSizeChoice,
-            'speed' => (int) $element->speed,
+            'speed' => $walkingSpeed,
+            'fly_speed' => $alternativeSpeeds['fly_speed'],
+            'swim_speed' => $alternativeSpeeds['swim_speed'],
+            'climb_speed' => $alternativeSpeeds['climb_speed'],
             'traits' => $traits,
             'base_traits' => $baseTraits,           // species, description, general traits
             'subrace_traits' => $subraceTraits,     // subspecies traits only
@@ -831,10 +839,16 @@ class RaceXmlParser
         }
 
         // Parse common data that all variants share
+        $walkingSpeed = (int) $element->speed;
+        $alternativeSpeeds = $this->parseMovementSpeedsFromTraits($allTraits, $walkingSpeed);
+
         $commonData = [
             'base_race_name' => $baseRaceName,
             'size_code' => (string) $element->size,
-            'speed' => (int) $element->speed,
+            'speed' => $walkingSpeed,
+            'fly_speed' => $alternativeSpeeds['fly_speed'],
+            'swim_speed' => $alternativeSpeeds['swim_speed'],
+            'climb_speed' => $alternativeSpeeds['climb_speed'],
             'ability_bonuses' => $this->parseAbilityBonuses($element),
             'proficiencies' => $this->parseProficiencies($element),
             'resistances' => $this->parseResistances($element),

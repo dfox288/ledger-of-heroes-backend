@@ -378,6 +378,14 @@ Route::prefix('v1')->group(function () {
         Route::post('long-rest', [\App\Http\Controllers\Api\RestController::class, 'longRest'])
             ->name('long-rest');
 
+        // Feature Uses (Limited-Use Abilities)
+        Route::get('feature-uses', [\App\Http\Controllers\Api\FeatureUseController::class, 'index'])
+            ->name('feature-uses.index');
+        Route::post('features/{characterFeatureId}/use', [\App\Http\Controllers\Api\FeatureUseController::class, 'use'])
+            ->name('features.use');
+        Route::post('features/{characterFeatureId}/reset', [\App\Http\Controllers\Api\FeatureUseController::class, 'reset'])
+            ->name('features.reset');
+
         // Feature Selections (Invocations, Maneuvers, Metamagic, etc.)
         Route::get('feature-selections', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'index'])
             ->name('feature-selections.index');

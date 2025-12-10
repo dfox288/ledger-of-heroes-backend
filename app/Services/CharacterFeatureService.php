@@ -11,6 +11,10 @@ use App\Models\ClassFeature;
 
 class CharacterFeatureService
 {
+    public function __construct(
+        private readonly FeatureUseService $featureUseService
+    ) {}
+
     /**
      * Populate class features for the character up to their current level.
      *
@@ -44,7 +48,8 @@ class CharacterFeatureService
                     ClassFeature::class,
                     $feature->id,
                     'class',
-                    $feature->level
+                    $feature->level,
+                    $charClass->level // Pass class level for uses initialization
                 );
             }
         }
@@ -155,7 +160,8 @@ class CharacterFeatureService
                 ClassFeature::class,
                 $feature->id,
                 'subclass',
-                $feature->level
+                $feature->level,
+                $characterLevel // Pass class level for uses initialization
             );
 
             // Assign spells granted by this feature
@@ -327,13 +333,15 @@ class CharacterFeatureService
 
     /**
      * Create a character feature if it doesn't already exist.
+     * If classLevel is provided, initializes feature uses from class counters.
      */
     private function createFeatureIfNotExists(
         Character $character,
         string $featureType,
         int $featureId,
         string $source,
-        int $levelAcquired
+        int $levelAcquired,
+        ?int $classLevel = null
     ): void {
         $exists = $character->features()
             ->where('feature_type', $featureType)
@@ -345,12 +353,17 @@ class CharacterFeatureService
             return;
         }
 
-        CharacterFeature::create([
+        $characterFeature = CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => $featureType,
             'feature_id' => $featureId,
             'source' => $source,
             'level_acquired' => $levelAcquired,
         ]);
+
+        // Initialize feature uses if this is a class feature with a counter
+        if ($featureType === ClassFeature::class && $classLevel !== null) {
+            $this->featureUseService->initializeUsesForFeature($characterFeature, $classLevel);
+        }
     }
 }

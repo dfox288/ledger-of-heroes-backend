@@ -10,7 +10,8 @@ class RestService
 {
     public function __construct(
         private readonly SpellSlotService $spellSlotService,
-        private readonly HitDiceService $hitDiceService
+        private readonly HitDiceService $hitDiceService,
+        private readonly FeatureUseService $featureUseService
     ) {}
 
     /**
@@ -21,7 +22,7 @@ class RestService
      * - Reset features with SHORT_REST reset timing
      * - (Character can spend hit dice - handled separately via HitDiceService)
      *
-     * @return array{pact_magic_reset: bool, features_reset: array<string>}
+     * @return array{pact_magic_reset: bool, features_reset: array<string>, features_reset_count: int}
      */
     public function shortRest(Character $character): array
     {
@@ -40,8 +41,12 @@ class RestService
         }
 
         // Reset features with short_rest timing
-        // See GitHub Issue #196 for feature usage tracking implementation
-        // For now, just identify which features WOULD reset
+        $featuresResetCount = $this->featureUseService->resetByRechargeType(
+            $character,
+            ResetTiming::SHORT_REST
+        );
+
+        // Collect feature names for response
         $character->loadMissing('characterClasses.characterClass.features');
         foreach ($character->characterClasses as $classPivot) {
             $class = $classPivot->characterClass;
@@ -58,6 +63,7 @@ class RestService
         return [
             'pact_magic_reset' => $pactMagicReset,
             'features_reset' => $featuresReset,
+            'features_reset_count' => $featuresResetCount,
         ];
     }
 
@@ -71,7 +77,7 @@ class RestService
      * - Clear death saves
      * - Reset features with LONG_REST, SHORT_REST, or DAWN timing
      *
-     * @return array{hp_restored: int, hit_dice_recovered: int, spell_slots_reset: bool, death_saves_cleared: bool, features_reset: array<string>}
+     * @return array{hp_restored: int, hit_dice_recovered: int, spell_slots_reset: bool, death_saves_cleared: bool, features_reset: array<string>, features_reset_count: int}
      */
     public function longRest(Character $character): array
     {
@@ -112,6 +118,14 @@ class RestService
 
         // Reset features with long_rest, short_rest, or dawn timing
         // (Long rest encompasses all reset timings)
+        $featuresResetCount = $this->featureUseService->resetByRechargeType(
+            $character,
+            ResetTiming::SHORT_REST,
+            ResetTiming::LONG_REST,
+            ResetTiming::DAWN
+        );
+
+        // Collect feature names for response
         foreach ($character->characterClasses as $classPivot) {
             $class = $classPivot->characterClass;
             $features = $class->features()
@@ -134,6 +148,7 @@ class RestService
             'spell_slots_reset' => $spellSlotsReset || ! $hasSpellSlots,
             'death_saves_cleared' => $deathSavesCleared,
             'features_reset' => array_values(array_unique($featuresReset)),
+            'features_reset_count' => $featuresResetCount,
         ];
     }
 }

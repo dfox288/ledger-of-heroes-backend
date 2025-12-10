@@ -21,6 +21,7 @@ use App\Services\CharacterProficiencyService;
 use App\Services\CharacterStatCalculator;
 use App\Services\EquipmentManagerService;
 use App\Services\FeatChoiceService;
+use App\Services\FeatureUseService;
 use App\Services\HitDiceService;
 use App\Services\HitPointService;
 use App\Services\SpellSlotService;
@@ -41,7 +42,8 @@ class CharacterController extends Controller
         private EquipmentManagerService $equipmentService,
         private HitPointService $hitPointService,
         private FeatChoiceService $featChoiceService,
-        private AbilityBonusService $abilityBonusService
+        private AbilityBonusService $abilityBonusService,
+        private FeatureUseService $featureUseService
     ) {}
 
     /**
@@ -424,7 +426,8 @@ class CharacterController extends Controller
             $this->languageService,
             $this->spellSlotService,
             $this->hitDiceService,
-            $this->featChoiceService
+            $this->featChoiceService,
+            $this->featureUseService
         );
 
         return new CharacterSummaryResource($summary);

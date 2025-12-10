@@ -5,6 +5,7 @@ namespace App\Services\Parsers;
 use App\Services\Parsers\Concerns\ConvertsWordNumbers;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\ParsesModifiers;
+use App\Services\Parsers\Concerns\ParsesMovementModifiers;
 use App\Services\Parsers\Concerns\ParsesRestTiming;
 use App\Services\Parsers\Concerns\ParsesSkillAdvantages;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
@@ -13,7 +14,7 @@ use SimpleXMLElement;
 
 class FeatXmlParser
 {
-    use ConvertsWordNumbers, MapsAbilityCodes, ParsesModifiers, ParsesRestTiming, ParsesSkillAdvantages, ParsesSourceCitations, StripsSourceCitations;
+    use ConvertsWordNumbers, MapsAbilityCodes, ParsesModifiers, ParsesMovementModifiers, ParsesRestTiming, ParsesSkillAdvantages, ParsesSourceCitations, StripsSourceCitations;
 
     /**
      * Parse feats from XML string.
@@ -86,6 +87,7 @@ class FeatXmlParser
             'spells' => $this->parseSpells($description),
             'languages' => $this->parseLanguages($description),
             'resets_on' => $this->parseResetTiming($description),
+            'movement_modifiers' => $this->parseMovementModifiers($description),
         ];
     }
 

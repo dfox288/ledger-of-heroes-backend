@@ -94,6 +94,10 @@ trait ImportsClassFeatures
                 $this->importBonusProficiencies($class, $featureData);
             }
 
+            // Detect bonus cantrip grants from feature description
+            // Pattern: "you gain the X cantrip" (e.g., Light Domain grants light cantrip)
+            $this->importBonusCantrips($feature, $featureData['description']);
+
             // Import random tables from <roll> XML elements
             if (! empty($featureData['rolls'])) {
                 $this->importFeatureRolls($feature, $featureData['rolls']);
@@ -381,6 +385,47 @@ trait ImportsClassFeatures
 
         // Default to tool for unknown types
         return 'tool';
+    }
+
+    /**
+     * Import bonus cantrips from feature description text.
+     *
+     * Detects patterns like:
+     * - "you gain the light cantrip"
+     * - "you gain the minor illusion cantrip"
+     *
+     * Creates entity_spells record linking the feature to the granted cantrip.
+     */
+    protected function importBonusCantrips(ClassFeature $feature, string $text): void
+    {
+        // Pattern: "you gain the X cantrip" - capture spell name (may be multi-word)
+        if (! preg_match('/you gain the ([a-z][a-z\s]+?) cantrip/i', $text, $matches)) {
+            return;
+        }
+
+        $spellName = trim($matches[1]);
+
+        // Look up the spell by name (case-insensitive)
+        $spell = \App\Models\Spell::whereRaw('LOWER(name) = ?', [strtolower($spellName)])->first();
+
+        if (! $spell) {
+            // Spell not found - skip silently (spell may not be imported yet)
+            return;
+        }
+
+        // Use updateOrCreate to prevent duplicates on re-import
+        \App\Models\EntitySpell::updateOrCreate(
+            [
+                'reference_type' => ClassFeature::class,
+                'reference_id' => $feature->id,
+                'spell_id' => $spell->id,
+            ],
+            [
+                'is_cantrip' => true,
+                'is_choice' => false,
+                'level_requirement' => null,
+            ]
+        );
     }
 
     /**

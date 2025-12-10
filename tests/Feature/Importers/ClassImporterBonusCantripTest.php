@@ -1,0 +1,201 @@
+<?php
+
+namespace Tests\Feature\Importers;
+
+use App\Models\CharacterClass;
+use App\Models\ClassFeature;
+use App\Models\EntitySpell;
+use App\Models\Spell;
+use App\Services\Importers\ClassImporter;
+use App\Services\Parsers\ClassXmlParser;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
+
+#[Group('importers')]
+class ClassImporterBonusCantripTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected $seeder = \Database\Seeders\LookupSeeder::class;
+
+    private ClassImporter $importer;
+
+    private ClassXmlParser $parser;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->importer = app(ClassImporter::class);
+        $this->parser = app(ClassXmlParser::class);
+    }
+
+    #[Test]
+    public function imports_bonus_cantrip_from_feature_text(): void
+    {
+        // Create the spell that will be granted
+        $lightSpell = Spell::factory()->create([
+            'name' => 'Light',
+            'slug' => 'light',
+            'level' => 0,
+        ]);
+
+        $xml = $this->getLightDomainXml();
+
+        $classes = $this->parser->parse($xml);
+        $this->importer->import($classes[0]);
+
+        // Find the Light Domain subclass
+        $lightDomain = CharacterClass::where('name', 'Light Domain')->first();
+        $this->assertNotNull($lightDomain, 'Light Domain subclass should exist');
+
+        // Find the Bonus Cantrip feature
+        $bonusCantripFeature = ClassFeature::where('class_id', $lightDomain->id)
+            ->where('feature_name', 'Bonus Cantrip (Light Domain)')
+            ->first();
+        $this->assertNotNull($bonusCantripFeature, 'Bonus Cantrip feature should exist');
+
+        // Check that the light cantrip is linked to this feature
+        $grantedSpell = EntitySpell::where('reference_type', ClassFeature::class)
+            ->where('reference_id', $bonusCantripFeature->id)
+            ->where('spell_id', $lightSpell->id)
+            ->first();
+
+        $this->assertNotNull($grantedSpell, 'Light cantrip should be linked to the feature');
+        $this->assertTrue((bool) $grantedSpell->is_cantrip, 'Should be marked as cantrip');
+        $this->assertFalse((bool) $grantedSpell->is_choice, 'Should not be a choice');
+    }
+
+    #[Test]
+    public function handles_multi_word_cantrip_names(): void
+    {
+        // Create the spell with multi-word name
+        $minorIllusionSpell = Spell::factory()->create([
+            'name' => 'Minor Illusion',
+            'slug' => 'minor-illusion',
+            'level' => 0,
+        ]);
+
+        $xml = $this->getTrickeryDomainXml();
+
+        $classes = $this->parser->parse($xml);
+        $this->importer->import($classes[0]);
+
+        // Find the Trickery Domain subclass
+        $trickeryDomain = CharacterClass::where('name', 'Trickery Domain')->first();
+        $this->assertNotNull($trickeryDomain);
+
+        // Find the feature that grants the cantrip
+        $feature = ClassFeature::where('class_id', $trickeryDomain->id)
+            ->where('feature_name', 'Blessing of the Trickster (Trickery Domain)')
+            ->first();
+        $this->assertNotNull($feature, 'Blessing of the Trickster feature should exist');
+
+        // Check that minor illusion is linked
+        $grantedSpell = EntitySpell::where('reference_type', ClassFeature::class)
+            ->where('reference_id', $feature->id)
+            ->where('spell_id', $minorIllusionSpell->id)
+            ->first();
+
+        $this->assertNotNull($grantedSpell, 'Minor Illusion cantrip should be linked');
+    }
+
+    #[Test]
+    public function does_not_create_duplicate_cantrip_on_reimport(): void
+    {
+        $lightSpell = Spell::factory()->create([
+            'name' => 'Light',
+            'slug' => 'light',
+            'level' => 0,
+        ]);
+
+        $xml = $this->getLightDomainXml();
+        $classes = $this->parser->parse($xml);
+
+        // Import twice
+        $this->importer->import($classes[0]);
+        $this->importer->import($classes[0]);
+
+        $lightDomain = CharacterClass::where('name', 'Light Domain')->first();
+        $bonusCantripFeature = ClassFeature::where('class_id', $lightDomain->id)
+            ->where('feature_name', 'Bonus Cantrip (Light Domain)')
+            ->first();
+
+        // Should only have one entity_spell record
+        $count = EntitySpell::where('reference_type', ClassFeature::class)
+            ->where('reference_id', $bonusCantripFeature->id)
+            ->where('spell_id', $lightSpell->id)
+            ->count();
+
+        $this->assertEquals(1, $count, 'Should not create duplicate cantrip grants on reimport');
+    }
+
+    private function getLightDomainXml(): string
+    {
+        return <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <class>
+    <name>Cleric</name>
+    <hd>8</hd>
+    <proficiency>Wisdom, Charisma</proficiency>
+    <spellAbility>Wisdom</spellAbility>
+    <autolevel level="1">
+      <slots>3,2</slots>
+    </autolevel>
+    <autolevel level="1">
+      <feature optional="YES">
+        <name>Divine Domain: Light Domain</name>
+        <text>The Light domain focuses on the divine fire.
+
+Source: Player's Handbook (2014) p. 61</text>
+      </feature>
+    </autolevel>
+    <autolevel level="1">
+      <feature optional="YES">
+        <name>Bonus Cantrip (Light Domain)</name>
+        <text>When you choose this domain at 1st level, you gain the light cantrip if you don't already know it.
+
+Source: Player's Handbook (2014) p. 61</text>
+      </feature>
+    </autolevel>
+  </class>
+</compendium>
+XML;
+    }
+
+    private function getTrickeryDomainXml(): string
+    {
+        return <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <class>
+    <name>Cleric</name>
+    <hd>8</hd>
+    <proficiency>Wisdom, Charisma</proficiency>
+    <spellAbility>Wisdom</spellAbility>
+    <autolevel level="1">
+      <slots>3,2</slots>
+    </autolevel>
+    <autolevel level="1">
+      <feature optional="YES">
+        <name>Divine Domain: Trickery Domain</name>
+        <text>Gods of trickery are mischief-makers.
+
+Source: Player's Handbook (2014) p. 63</text>
+      </feature>
+    </autolevel>
+    <autolevel level="1">
+      <feature optional="YES">
+        <name>Blessing of the Trickster (Trickery Domain)</name>
+        <text>Starting when you choose this domain at 1st level, you gain the minor illusion cantrip. You can also use your action to touch a willing creature.
+
+Source: Player's Handbook (2014) p. 63</text>
+      </feature>
+    </autolevel>
+  </class>
+</compendium>
+XML;
+    }
+}

@@ -158,8 +158,8 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
     private function buildSelected(array $choiceData): array
     {
         // Return selected slugs
-        $selectedSkillSlugs = $choiceData['selected_skill_slugs'] ?? [];
-        $selectedProfTypeSlugs = $choiceData['selected_proficiency_type_slugs'] ?? [];
+        $selectedSkillSlugs = $choiceData['selected_skills'] ?? [];
+        $selectedProfTypeSlugs = $choiceData['selected_proficiency_types'] ?? [];
 
         return array_merge($selectedSkillSlugs, $selectedProfTypeSlugs);
     }

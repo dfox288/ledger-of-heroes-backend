@@ -41,8 +41,8 @@ it('transforms service output to PendingChoice objects for skill choices', funct
                     'proficiency_subcategory' => null,
                     'quantity' => 4,
                     'remaining' => 2,
-                    'selected_skill_slugs' => ['phb:acrobatics', 'phb:stealth'],
-                    'selected_proficiency_type_slugs' => [],
+                    'selected_skills' => ['phb:acrobatics', 'phb:stealth'],
+                    'selected_proficiency_types' => [],
                     'options' => [
                         [
                             'type' => 'skill',
@@ -113,8 +113,8 @@ it('transforms service output to PendingChoice objects for proficiency type choi
                     'proficiency_subcategory' => 'artisan',
                     'quantity' => 1,
                     'remaining' => 1,
-                    'selected_skill_slugs' => [],
-                    'selected_proficiency_type_slugs' => [],
+                    'selected_skills' => [],
+                    'selected_proficiency_types' => [],
                     'options' => [
                         [
                             'type' => 'proficiency_type',
@@ -181,8 +181,8 @@ it('handles multiple choice groups from different sources', function () {
                     'proficiency_subcategory' => null,
                     'quantity' => 4,
                     'remaining' => 4,
-                    'selected_skill_slugs' => [],
-                    'selected_proficiency_type_slugs' => [],
+                    'selected_skills' => [],
+                    'selected_proficiency_types' => [],
                     'options' => [
                         ['type' => 'skill', 'skill_slug' => 'phb:acrobatics', 'skill' => ['full_slug' => 'phb:acrobatics', 'name' => 'Acrobatics', 'slug' => 'acrobatics']],
                     ],
@@ -194,8 +194,8 @@ it('handles multiple choice groups from different sources', function () {
                     'proficiency_subcategory' => null,
                     'quantity' => 2,
                     'remaining' => 2,
-                    'selected_skill_slugs' => [],
-                    'selected_proficiency_type_slugs' => [],
+                    'selected_skills' => [],
+                    'selected_proficiency_types' => [],
                     'options' => [
                         ['type' => 'skill', 'skill_slug' => 'phb:perception', 'skill' => ['full_slug' => 'phb:perception', 'name' => 'Perception', 'slug' => 'perception']],
                     ],
@@ -378,8 +378,8 @@ it('skips choices with invalid source slug', function () {
                     'proficiency_subcategory' => null,
                     'quantity' => 4,
                     'remaining' => 4,
-                    'selected_skill_slugs' => [],
-                    'selected_proficiency_type_slugs' => [],
+                    'selected_skills' => [],
+                    'selected_proficiency_types' => [],
                     'options' => [],
                 ],
             ],
@@ -421,8 +421,8 @@ it('transforms service output for subclass_feature source', function () {
                     'proficiency_subcategory' => null,
                     'quantity' => 1,
                     'remaining' => 1,
-                    'selected_skill_slugs' => [],
-                    'selected_proficiency_type_slugs' => [],
+                    'selected_skills' => [],
+                    'selected_proficiency_types' => [],
                     'options' => [
                         [
                             'type' => 'skill',

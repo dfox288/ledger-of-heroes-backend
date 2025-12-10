@@ -106,7 +106,7 @@ class CharacterSummaryDTO
         // Get proficiency choices
         $proficiencyChoices = $proficiencyService->getPendingChoices($character);
         $proficienciesRemaining = 0;
-        foreach (['class', 'race', 'background'] as $source) {
+        foreach (['class', 'race', 'background', 'subclass_feature'] as $source) {
             if (isset($proficiencyChoices[$source])) {
                 foreach ($proficiencyChoices[$source] as $choiceGroup) {
                     $proficienciesRemaining += $choiceGroup['remaining'];

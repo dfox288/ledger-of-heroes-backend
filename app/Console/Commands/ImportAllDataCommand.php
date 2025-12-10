@@ -94,6 +94,12 @@ class ImportAllDataCommand extends Command
         if (! $onlyTypes || in_array('classes', $onlyTypes)) {
             $this->step('Importing classes (STEP 3/10) - with multi-file merge');
             $this->importClassesBatch();
+
+            // Link bonus spell choices (must run after all classes exist)
+            // Features like Nature Domain's "Acolyte of Nature" reference other class spell lists
+            // (e.g., druid cantrips) which may not exist when the feature is first imported
+            $this->info('  Linking bonus spell choices...');
+            $this->linkBonusSpellChoices();
         }
 
         // Step 5: Import main spell files
@@ -388,6 +394,72 @@ class ImportAllDataCommand extends Command
 
         $linkedCount = count($linkedFeatureIds);
         $this->info("  ✓ Linked spells for {$linkedCount} subclass feature(s) ({$totalSpells} spell associations)");
+    }
+
+    /**
+     * Link bonus spell choices for features that reference other class spell lists.
+     *
+     * Features like Nature Domain's "Acolyte of Nature" grant "one druid cantrip of your choice".
+     * During initial import, the referenced class (Druid) may not exist yet due to alphabetical
+     * ordering (Cleric imports before Druid). This postprocessing step ensures all cross-class
+     * spell choices are properly linked after all classes exist.
+     */
+    private function linkBonusSpellChoices(): void
+    {
+        // Pattern for features that might grant spell choices from other class lists
+        $pattern = '/(?:you\s+(?:learn|know|gain)\s+)?one\s+(\w+)\s+(cantrip|spell)\s+of\s+your\s+choice/i';
+
+        // Get all class features with descriptions matching the pattern
+        // Use LIKE for SQLite compatibility (tests use SQLite)
+        $features = \App\Models\ClassFeature::where('description', 'like', '%cantrip of your choice%')
+            ->orWhere('description', 'like', '%spell of your choice%')
+            ->get();
+
+        $linkedCount = 0;
+        $skippedCount = 0;
+
+        foreach ($features as $feature) {
+            // Check if this feature already has a spell choice
+            $existingChoice = \App\Models\EntitySpell::where('reference_type', \App\Models\ClassFeature::class)
+                ->where('reference_id', $feature->id)
+                ->where('is_choice', true)
+                ->exists();
+
+            if ($existingChoice) {
+                $skippedCount++;
+
+                continue;
+            }
+
+            // Try to parse and link the spell choice
+            if (preg_match($pattern, $feature->description, $matches)) {
+                $className = ucfirst(strtolower($matches[1]));
+                $spellType = strtolower($matches[2]);
+                $isCantrip = $spellType === 'cantrip';
+
+                // Find the class by name (base class only)
+                $spellListClass = \App\Models\CharacterClass::where('name', $className)
+                    ->whereNull('parent_class_id')
+                    ->first();
+
+                if ($spellListClass) {
+                    \App\Models\EntitySpell::create([
+                        'reference_type' => \App\Models\ClassFeature::class,
+                        'reference_id' => $feature->id,
+                        'spell_id' => null,
+                        'is_choice' => true,
+                        'is_cantrip' => $isCantrip,
+                        'choice_count' => 1,
+                        'max_level' => $isCantrip ? 0 : null,
+                        'choice_group' => 'feature_spell_choice',
+                        'class_id' => $spellListClass->id,
+                    ]);
+                    $linkedCount++;
+                }
+            }
+        }
+
+        $this->info("  ✓ Linked {$linkedCount} bonus spell choice(s) ({$skippedCount} already existed)");
     }
 
     /**

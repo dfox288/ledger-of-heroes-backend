@@ -17,6 +17,7 @@ class AvailableSpellsRequest extends FormRequest
             'min_level' => ['sometimes', 'integer', 'min:0', 'max:9'],
             'max_level' => ['sometimes', 'integer', 'min:0', 'max:9'],
             'include_known' => ['sometimes', 'in:true,false,1,0'],
+            'class' => ['sometimes', 'string'], // Optional: override class spell list (e.g., "phb:druid")
         ];
     }
 

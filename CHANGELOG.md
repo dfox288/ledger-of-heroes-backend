@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Issue #477, #478**: Fix bonus spell choices from other class lists not being imported
+  - Root cause: Alphabetical import order meant Cleric imported before Druid, so Nature Domain's "Acolyte of Nature" druid cantrip choice was skipped
+  - Added postprocessing step `linkBonusSpellChoices()` in `ImportAllDataCommand` that runs after all classes exist
+  - Pattern matches "you learn one [class] cantrip of your choice" and creates entity_spells with `is_choice=true`
+  - Added `class` query parameter to `/characters/{id}/available-spells` endpoint to fetch spells from a different class's spell list
+  - Affects: Nature Domain (druid cantrip), and any future features granting spells from other class lists
+
 ### Added
 
 - **Issue #256**: Feature uses tracking for limited-use abilities

@@ -150,6 +150,103 @@ class ClassImporterBonusSpellChoiceTest extends TestCase
         $this->assertEquals(0, $count, 'Should not create spell choice when class not found');
     }
 
+    #[Test]
+    public function postprocessing_links_spell_choices_when_class_imported_later(): void
+    {
+        // Simulate alphabetical import order: Cleric (with Nature Domain) imports BEFORE Druid exists
+        // This is the real-world scenario where class-cleric-phb.xml comes before class-druid-phb.xml
+
+        // First, remove the Druid class that setUp created
+        CharacterClass::where('name', 'Druid')->delete();
+
+        // Import Cleric/Nature Domain when Druid doesn't exist
+        $xml = $this->getNatureDomainXml();
+        $classes = $this->parser->parse($xml);
+        $this->importer->import($classes[0]);
+
+        // Verify no spell choice was created (because Druid didn't exist)
+        $natureDomain = CharacterClass::where('name', 'Nature Domain')->first();
+        $feature = ClassFeature::where('class_id', $natureDomain->id)
+            ->where('feature_name', 'Acolyte of Nature (Nature Domain)')
+            ->first();
+
+        $initialCount = EntitySpell::where('reference_type', ClassFeature::class)
+            ->where('reference_id', $feature->id)
+            ->where('is_choice', true)
+            ->count();
+
+        $this->assertEquals(0, $initialCount, 'No spell choice should exist before Druid is imported');
+
+        // Now create the Druid class (simulating later alphabetical import)
+        $druid = CharacterClass::factory()->create([
+            'name' => 'Druid',
+            'slug' => 'druid',
+            'full_slug' => 'phb:druid',
+            'parent_class_id' => null,
+        ]);
+
+        // Run the postprocessing logic directly (same as linkBonusSpellChoices in ImportAllDataCommand)
+        $this->runBonusSpellChoicePostprocessing();
+
+        // Now verify the spell choice was linked by postprocessing
+        $spellChoice = EntitySpell::where('reference_type', ClassFeature::class)
+            ->where('reference_id', $feature->id)
+            ->where('is_choice', true)
+            ->first();
+
+        $this->assertNotNull($spellChoice, 'Postprocessing should have linked the spell choice');
+        $this->assertEquals($druid->id, $spellChoice->class_id, 'Should reference Druid spell list');
+        $this->assertTrue((bool) $spellChoice->is_cantrip, 'Should be marked as cantrip');
+        $this->assertEquals(1, $spellChoice->choice_count, 'Should choose 1 cantrip');
+    }
+
+    /**
+     * Run the same postprocessing logic as ImportAllDataCommand::linkBonusSpellChoices().
+     */
+    private function runBonusSpellChoicePostprocessing(): void
+    {
+        $pattern = '/(?:you\s+(?:learn|know|gain)\s+)?one\s+(\w+)\s+(cantrip|spell)\s+of\s+your\s+choice/i';
+
+        $features = ClassFeature::where('description', 'like', '%cantrip of your choice%')
+            ->orWhere('description', 'like', '%spell of your choice%')
+            ->get();
+
+        foreach ($features as $feature) {
+            $existingChoice = EntitySpell::where('reference_type', ClassFeature::class)
+                ->where('reference_id', $feature->id)
+                ->where('is_choice', true)
+                ->exists();
+
+            if ($existingChoice) {
+                continue;
+            }
+
+            if (preg_match($pattern, $feature->description, $matches)) {
+                $className = ucfirst(strtolower($matches[1]));
+                $spellType = strtolower($matches[2]);
+                $isCantrip = $spellType === 'cantrip';
+
+                $spellListClass = CharacterClass::where('name', $className)
+                    ->whereNull('parent_class_id')
+                    ->first();
+
+                if ($spellListClass) {
+                    EntitySpell::create([
+                        'reference_type' => ClassFeature::class,
+                        'reference_id' => $feature->id,
+                        'spell_id' => null,
+                        'is_choice' => true,
+                        'is_cantrip' => $isCantrip,
+                        'choice_count' => 1,
+                        'max_level' => $isCantrip ? 0 : null,
+                        'choice_group' => 'feature_spell_choice',
+                        'class_id' => $spellListClass->id,
+                    ]);
+                }
+            }
+        }
+    }
+
     private function getNatureDomainXml(): string
     {
         return <<<'XML'

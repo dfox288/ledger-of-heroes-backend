@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\SpellManagementException;
 use App\Models\Character;
+use App\Models\CharacterClass;
 use App\Models\CharacterSpell;
 use App\Models\ClassFeature;
 use App\Models\Spell;
@@ -28,14 +29,22 @@ class SpellManagerService
      * Get spells available for a character to learn.
      *
      * Filters by:
-     * - Class spell list (from primary class)
-     * - Subclass expanded spells (if a subclass is selected)
+     * - Class spell list (from primary class, or override with $classSlug)
+     * - Subclass expanded spells (if a subclass is selected and no override)
      * - Min spell level (optional) - use 1 to exclude cantrips
      * - Max spell level (optional)
      * - Excludes already known spells (unless includeKnown is true)
+     *
+     * @param  string|null  $classSlug  Optional class to get spells from instead of character's class
+     *                                  (e.g., "phb:druid" for Nature Domain's druid cantrip choice)
      */
-    public function getAvailableSpells(Character $character, ?int $minLevel = null, ?int $maxLevel = null, bool $includeKnown = false): Collection
+    public function getAvailableSpells(Character $character, ?int $minLevel = null, ?int $maxLevel = null, bool $includeKnown = false, ?string $classSlug = null): Collection
     {
+        // If a specific class is requested (e.g., for subclass features granting spells from other lists)
+        if ($classSlug) {
+            return $this->getSpellsFromClass($character, $classSlug, $minLevel, $maxLevel, $includeKnown);
+        }
+
         $classPivot = $character->characterClasses()->where('is_primary', true)->first();
 
         if (! $classPivot) {
@@ -148,6 +157,53 @@ class SpellManagerService
         }
 
         return $query->with('spellSchool')->get();
+    }
+
+    /**
+     * Get spells from a specific class's spell list.
+     *
+     * Used when a feature grants spell choices from a different class's list
+     * (e.g., Nature Domain's "Acolyte of Nature" grants a druid cantrip).
+     */
+    private function getSpellsFromClass(
+        Character $character,
+        string $classSlug,
+        ?int $minLevel,
+        ?int $maxLevel,
+        bool $includeKnown
+    ): Collection {
+        // Find the class by full_slug or slug
+        $class = CharacterClass::where('full_slug', $classSlug)
+            ->orWhere('slug', $classSlug)
+            ->whereNull('parent_class_id') // Only base classes have spell lists
+            ->first();
+
+        if (! $class) {
+            return collect();
+        }
+
+        // Get known spell slugs to exclude (if needed)
+        $knownSpellSlugs = $includeKnown
+            ? collect()
+            : $character->spells()->pluck('spell_slug');
+
+        $query = $class->spells();
+
+        if (! $includeKnown && $knownSpellSlugs->isNotEmpty()) {
+            $query->whereNotIn('spells.full_slug', $knownSpellSlugs);
+        }
+
+        if ($minLevel !== null) {
+            $query->where('level', '>=', $minLevel);
+        }
+
+        if ($maxLevel !== null) {
+            $query->where('level', '<=', $maxLevel);
+        }
+
+        return $query->with('spellSchool')
+            ->orderBy('name')
+            ->get();
     }
 
     /**

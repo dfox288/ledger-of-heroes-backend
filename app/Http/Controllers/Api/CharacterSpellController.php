@@ -79,8 +79,9 @@ class CharacterSpellController extends Controller
         $minLevel = $validated['min_level'] ?? null;
         $maxLevel = $validated['max_level'] ?? null;
         $includeKnown = filter_var($validated['include_known'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $classSlug = $validated['class'] ?? null;
 
-        $spells = $this->spellManager->getAvailableSpells($character, $minLevel, $maxLevel, $includeKnown);
+        $spells = $this->spellManager->getAvailableSpells($character, $minLevel, $maxLevel, $includeKnown, $classSlug);
 
         return SpellResource::collection($spells);
     }

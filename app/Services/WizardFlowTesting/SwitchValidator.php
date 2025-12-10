@@ -46,8 +46,9 @@ class SwitchValidator
         }
 
         // 2. Racial spells should be cleared
-        $beforeRacialSpells = $before['derived']['spells_by_source']['race'] ?? [];
-        $afterRacialSpells = $after['derived']['spells_by_source']['race'] ?? [];
+        // Filter out null placeholders before comparison to avoid false positives
+        $beforeRacialSpells = array_filter($before['derived']['spells_by_source']['race'] ?? []);
+        $afterRacialSpells = array_filter($after['derived']['spells_by_source']['race'] ?? []);
 
         // Old racial spells should not persist
         $persistingRacialSpells = array_intersect($beforeRacialSpells, $afterRacialSpells);
@@ -57,8 +58,9 @@ class SwitchValidator
         }
 
         // 3. Racial features should be cleared
-        $beforeRacialFeatures = $before['derived']['features_by_source']['race'] ?? [];
-        $afterRacialFeatures = $after['derived']['features_by_source']['race'] ?? [];
+        // Filter out null placeholders before comparison to avoid false positives
+        $beforeRacialFeatures = array_filter($before['derived']['features_by_source']['race'] ?? []);
+        $afterRacialFeatures = array_filter($after['derived']['features_by_source']['race'] ?? []);
 
         $persistingRacialFeatures = array_intersect($beforeRacialFeatures, $afterRacialFeatures);
         if (! empty($persistingRacialFeatures)) {
@@ -121,8 +123,9 @@ class SwitchValidator
         }
 
         // 2. Background features should be cleared
-        $beforeBgFeatures = $before['derived']['features_by_source']['background'] ?? [];
-        $afterBgFeatures = $after['derived']['features_by_source']['background'] ?? [];
+        // Filter out null placeholders before comparison to avoid false positives
+        $beforeBgFeatures = array_filter($before['derived']['features_by_source']['background'] ?? []);
+        $afterBgFeatures = array_filter($after['derived']['features_by_source']['background'] ?? []);
 
         $persistingBgFeatures = array_intersect($beforeBgFeatures, $afterBgFeatures);
         if (! empty($persistingBgFeatures)) {
@@ -183,8 +186,9 @@ class SwitchValidator
         }
 
         // 2. Class spells should be cleared
-        $beforeClassSpells = $before['derived']['spells_by_source']['class'] ?? [];
-        $afterClassSpells = $after['derived']['spells_by_source']['class'] ?? [];
+        // Filter out null placeholders before comparison to avoid false positives
+        $beforeClassSpells = array_filter($before['derived']['spells_by_source']['class'] ?? []);
+        $afterClassSpells = array_filter($after['derived']['spells_by_source']['class'] ?? []);
 
         $persistingClassSpells = array_intersect($beforeClassSpells, $afterClassSpells);
         if (! empty($persistingClassSpells)) {
@@ -193,8 +197,9 @@ class SwitchValidator
         }
 
         // 3. Class features should be cleared
-        $beforeClassFeatures = $before['derived']['features_by_source']['class'] ?? [];
-        $afterClassFeatures = $after['derived']['features_by_source']['class'] ?? [];
+        // Filter out null placeholders before comparison to avoid false positives
+        $beforeClassFeatures = array_filter($before['derived']['features_by_source']['class'] ?? []);
+        $afterClassFeatures = array_filter($after['derived']['features_by_source']['class'] ?? []);
 
         $persistingClassFeatures = array_intersect($beforeClassFeatures, $afterClassFeatures);
         if (! empty($persistingClassFeatures)) {

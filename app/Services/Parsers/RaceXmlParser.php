@@ -6,6 +6,7 @@ use App\Services\Parsers\Concerns\ConvertsWordNumbers;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\MatchesLanguages;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
+use App\Services\Parsers\Concerns\ParsesExpertise;
 use App\Services\Parsers\Concerns\ParsesModifiers;
 use App\Services\Parsers\Concerns\ParsesSkillAdvantages;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
@@ -14,7 +15,7 @@ use SimpleXMLElement;
 
 class RaceXmlParser
 {
-    use ConvertsWordNumbers, MapsAbilityCodes, MatchesLanguages, MatchesProficiencyTypes, ParsesModifiers, ParsesSkillAdvantages, ParsesSourceCitations, ParsesTraits;
+    use ConvertsWordNumbers, MapsAbilityCodes, MatchesLanguages, MatchesProficiencyTypes, ParsesExpertise, ParsesModifiers, ParsesSkillAdvantages, ParsesSourceCitations, ParsesTraits;
 
     public function parse(string $xmlContent): array
     {
@@ -133,6 +134,9 @@ class RaceXmlParser
         // Parse skill check advantages from trait descriptions (e.g., Stonecunning)
         $skillAdvantageModifiers = $this->parseSkillAdvantagesFromTraits($traits);
 
+        // Parse expertise/double proficiency from trait descriptions (e.g., Stonecunning, Artificer's Lore)
+        $expertiseModifiers = $this->parseExpertiseFromTraits($traits);
+
         return [
             'name' => $raceName,
             'base_race_name' => $baseRaceName,
@@ -152,6 +156,7 @@ class RaceXmlParser
             'resistances' => $resistances,
             'modifiers' => $modifiers,
             'skill_advantage_modifiers' => $skillAdvantageModifiers,
+            'expertise_modifiers' => $expertiseModifiers,
         ];
     }
 
@@ -618,6 +623,34 @@ class RaceXmlParser
             $skillAdvantages = $this->parseSkillAdvantages($trait['description']);
             foreach ($skillAdvantages as $advantage) {
                 $modifiers[] = $advantage;
+            }
+        }
+
+        return $modifiers;
+    }
+
+    /**
+     * Parse expertise/double proficiency from trait descriptions.
+     *
+     * Scans all trait descriptions for patterns like:
+     * - "add double your proficiency bonus" (Stonecunning)
+     * - "add twice your proficiency bonus" (Artificer's Lore)
+     *
+     * @param  array  $traits  Parsed traits array
+     * @return array<int, array{modifier_category: string, skill_name: string|null, tool_name: string|null, ability_score_name: string|null, grants_proficiency: bool, condition: string|null}>
+     */
+    private function parseExpertiseFromTraits(array $traits): array
+    {
+        $modifiers = [];
+
+        foreach ($traits as $trait) {
+            if (empty($trait['description'])) {
+                continue;
+            }
+
+            $expertiseResults = $this->parseExpertise($trait['description']);
+            foreach ($expertiseResults as $expertise) {
+                $modifiers[] = $expertise;
             }
         }
 

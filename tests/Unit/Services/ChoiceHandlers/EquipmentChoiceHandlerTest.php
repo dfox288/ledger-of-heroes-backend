@@ -9,11 +9,13 @@ use App\Models\CharacterEquipment;
 use App\Models\EntityItem;
 use App\Models\EquipmentChoiceItem;
 use App\Services\ChoiceHandlers\EquipmentChoiceHandler;
+use App\Services\EquipmentManagerService;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 beforeEach(function () {
-    $this->handler = new EquipmentChoiceHandler;
+    $this->equipmentService = Mockery::mock(EquipmentManagerService::class);
+    $this->handler = new EquipmentChoiceHandler($this->equipmentService);
     $this->character = Mockery::mock(Character::class);
 });
 
@@ -60,19 +62,13 @@ it('returns empty collection when character has no class', function () {
 });
 
 it('returns equipment choices for level 1 character', function () {
-    // Mock equipment mode check - equipment relation not loaded, will be loaded
-    $this->character->shouldReceive('relationLoaded')
-        ->with('equipment')
-        ->andReturn(true);
-
-    // Mock equipment collection for gold mode check (empty = equipment mode, not gold)
-    $emptyEquipment = new EloquentCollection([]);
+    // Mock equipment_mode - null or 'equipment' means equipment mode (not gold)
     $this->character->shouldReceive('getAttribute')
-        ->with('equipment')
-        ->andReturn($emptyEquipment);
+        ->with('equipment_mode')
+        ->andReturn('equipment');
     $this->character->shouldReceive('__get')
-        ->with('equipment')
-        ->andReturn($emptyEquipment);
+        ->with('equipment_mode')
+        ->andReturn('equipment');
 
     // Mock level 1 character with Fighter class
     $primaryClass = Mockery::mock(CharacterClass::class);

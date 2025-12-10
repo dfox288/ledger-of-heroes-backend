@@ -1331,4 +1331,71 @@ XML;
         $this->assertArrayHasKey('expertise_modifiers', $races[0]);
         $this->assertCount(0, $races[0]['expertise_modifiers']);
     }
+
+    // ==================== DISADVANTAGE PARSING TESTS ====================
+
+    #[Test]
+    public function it_parses_sunlight_sensitivity_as_disadvantage()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <race>
+    <name>Elf, Drow</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait category="subspecies">
+      <name>Sunlight Sensitivity</name>
+      <text>You have disadvantage on attack rolls and on Wisdom (Perception) checks that rely on sight when you, the target of your attack, or whatever you are trying to perceive is in direct sunlight.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races);
+        $this->assertArrayHasKey('conditions', $races[0]);
+
+        // Should parse disadvantage condition
+        $disadvantages = collect($races[0]['conditions'])
+            ->where('effect_type', 'disadvantage')
+            ->values();
+
+        $this->assertGreaterThanOrEqual(1, $disadvantages->count(), 'Should parse at least one disadvantage from Sunlight Sensitivity');
+
+        $disadvantage = $disadvantages->first();
+        $this->assertEquals('disadvantage', $disadvantage['effect_type']);
+        $this->assertStringContainsString('attack rolls', $disadvantage['description']);
+    }
+
+    #[Test]
+    public function it_returns_empty_disadvantages_for_race_without_disadvantages()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <race>
+    <name>Human</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait>
+      <name>Description</name>
+      <text>Humans are adaptable and ambitious.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races);
+        $this->assertArrayHasKey('conditions', $races[0]);
+
+        $disadvantages = collect($races[0]['conditions'])
+            ->where('effect_type', 'disadvantage')
+            ->values();
+
+        $this->assertCount(0, $disadvantages, 'Should not parse disadvantage for races without it');
+    }
 }

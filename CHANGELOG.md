@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #430**: Parse condition disadvantages from racial traits
+  - `RaceXmlParser` now parses "You have disadvantage on..." patterns (e.g., Sunlight Sensitivity)
+  - Stores as `entity_conditions` with `effect_type = 'disadvantage'`
+  - Affected races: Drow, Kobold, and any others with disadvantage traits
+  - Note: FeatXmlParser already supports `negates_disadvantage` for Crossbow Expert, Sharpshooter, etc.
+
 - **Issue #450**: Parse level-scaling rolls from trait XML
   - `RaceImporter::importDataTablesFromRolls()` now groups rolls by description
   - Level-scaling rolls (e.g., Dragonborn Breath Weapon damage) create PROGRESSION tables

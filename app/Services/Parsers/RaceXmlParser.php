@@ -291,6 +291,16 @@ class RaceXmlParser
                     'effect_type' => 'advantage',
                 ];
             }
+
+            // Pattern: "You have disadvantage on..." (e.g., Sunlight Sensitivity)
+            if (preg_match_all('/you have disadvantage on ([^.]+)/i', $text, $matches)) {
+                foreach ($matches[1] as $match) {
+                    $conditions[] = [
+                        'effect_type' => 'disadvantage',
+                        'description' => trim($match),
+                    ];
+                }
+            }
         }
 
         return $conditions;

@@ -89,11 +89,12 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                     'items' => $optionData['items'],
                     'is_category' => $optionData['is_category'],
                     'category_item_count' => $optionData['category_item_count'],
+                    'select_count' => $optionData['select_count'],
                 ];
             }
 
-            // Quantity is always 1 for equipment choices (pick one option)
-            $quantity = $options->first()->quantity ?? 1;
+            // Quantity is always 1 for equipment choices (pick one option from a, b, c, etc.)
+            $quantity = 1;
 
             // Calculate remaining and selected from existing equipment
             $selection = $existingSelections[$choiceGroup] ?? null;
@@ -332,28 +333,31 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
      * - is_fixed=false: User must select via item_selections
      * - is_fixed=true: Always granted when option is selected
      *
-     * @return array{items: array, is_category: bool, category_item_count: int}
+     * @return array{items: array, is_category: bool, category_item_count: int, select_count: int}
      */
     private function buildOptionItems(Collection $optionItems): array
     {
         $items = [];
         $isCategory = false;
         $categoryItemCount = 0;
+        $selectCount = 1; // Default: select 1 item from category
 
         foreach ($optionItems as $entityItem) {
             // Process choice items (EquipmentChoiceItem records)
             foreach ($entityItem->choiceItems as $choiceItem) {
-                // Category choice (e.g., "any simple weapon") - user picks one
+                // Category choice (e.g., "any simple weapon") - user picks from list
                 if ($choiceItem->proficiency_type_id && $choiceItem->proficiencyType) {
                     $categoryItems = $this->getItemsForProficiencyType($choiceItem->proficiencyType);
                     $isCategory = true;
                     $categoryItemCount = $categoryItems->count();
+                    // The choiceItem quantity indicates how many selections to make from this category
+                    $selectCount = $choiceItem->quantity ?? 1;
 
                     foreach ($categoryItems as $item) {
                         $items[] = [
                             'full_slug' => $item->full_slug,
                             'name' => $item->name,
-                            'quantity' => $choiceItem->quantity ?? 1,
+                            'quantity' => 1, // Each selection grants 1 of the chosen item
                             'is_fixed' => false, // User must select from category
                         ];
                     }
@@ -395,6 +399,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             'items' => $items,
             'is_category' => $isCategory,
             'category_item_count' => $categoryItemCount,
+            'select_count' => $selectCount,
         ];
     }
 

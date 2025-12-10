@@ -214,20 +214,16 @@ class CharacterLanguageService
             ])
             ->toArray();
 
-        // Get choice info from entity
-        $choiceRecord = $entity->languages()
-            ->where('is_choice', true)
-            ->first();
-
-        $quantity = $choiceRecord?->quantity ?? 0;
+        // Get choice quantity from entity using the grouped choice calculation
+        $quantity = $this->calculateChoiceQuantityFromQuery(
+            $entity->languages()->where('is_choice', true)
+        );
 
         // For subraces, also check parent race for language choices
         if ($source === 'race' && $entity instanceof Race && $entity->is_subrace && $entity->parent) {
-            $parentChoiceRecord = $entity->parent->languages()
-                ->where('is_choice', true)
-                ->first();
-
-            $quantity += $parentChoiceRecord?->quantity ?? 0;
+            $quantity += $this->calculateChoiceQuantityFromQuery(
+                $entity->parent->languages()->where('is_choice', true)
+            );
         }
 
         // Get selected choice languages (not fixed ones)
@@ -301,11 +297,12 @@ class CharacterLanguageService
             ])
             ->toArray();
 
-        // Sum up all feat language choices
-        $totalQuantity = EntityLanguage::whereIn('reference_id', $featIds)
-            ->where('reference_type', Feat::class)
-            ->where('is_choice', true)
-            ->sum('quantity');
+        // Calculate feat language choices using grouped choice calculation
+        $totalQuantity = $this->calculateChoiceQuantityFromQuery(
+            EntityLanguage::whereIn('reference_id', $featIds)
+                ->where('reference_type', Feat::class)
+                ->where('is_choice', true)
+        );
 
         // Get fixed language slugs from feats
         $fixedLanguageSlugs = EntityLanguage::whereIn('reference_id', $featIds)
@@ -367,10 +364,11 @@ class CharacterLanguageService
                 return 0;
             }
 
-            return EntityLanguage::whereIn('reference_id', $featIds)
-                ->where('reference_type', Feat::class)
-                ->where('is_choice', true)
-                ->sum('quantity');
+            return $this->calculateChoiceQuantityFromQuery(
+                EntityLanguage::whereIn('reference_id', $featIds)
+                    ->where('reference_type', Feat::class)
+                    ->where('is_choice', true)
+            );
         }
 
         $entity = match ($source) {
@@ -383,18 +381,48 @@ class CharacterLanguageService
             return 0;
         }
 
-        $quantity = $entity->languages()
-            ->where('is_choice', true)
-            ->sum('quantity');
+        $quantity = $this->calculateChoiceQuantityFromQuery(
+            $entity->languages()->where('is_choice', true)
+        );
 
         // For subraces, also include parent race language choices
         if ($source === 'race' && $entity instanceof Race && $entity->is_subrace && $entity->parent) {
-            $quantity += $entity->parent->languages()
-                ->where('is_choice', true)
-                ->sum('quantity');
+            $quantity += $this->calculateChoiceQuantityFromQuery(
+                $entity->parent->languages()->where('is_choice', true)
+            );
         }
 
         return $quantity;
+    }
+
+    /**
+     * Calculate the actual number of choices from a query of entity_languages records.
+     *
+     * Handles two patterns:
+     * 1. Standard: Single record with choice_group=NULL, quantity=N (choose N from any)
+     * 2. Grouped: Multiple records with same choice_group (choose 1 from specific options)
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Relations\MorphMany  $query
+     */
+    private function calculateChoiceQuantityFromQuery($query): int
+    {
+        $records = $query->get();
+
+        if ($records->isEmpty()) {
+            return 0;
+        }
+
+        // Separate records by whether they have a choice_group
+        $ungrouped = $records->whereNull('choice_group');
+        $grouped = $records->whereNotNull('choice_group');
+
+        // Ungrouped records: sum their quantities (standard pattern)
+        $ungroupedQuantity = $ungrouped->sum('quantity');
+
+        // Grouped records: count distinct groups (each group = 1 choice)
+        $groupedQuantity = $grouped->pluck('choice_group')->unique()->count();
+
+        return $ungroupedQuantity + $groupedQuantity;
     }
 
     /**

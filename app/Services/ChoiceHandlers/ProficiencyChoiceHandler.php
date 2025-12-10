@@ -178,6 +178,19 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
 
     private function getSubclassFeatureSourceName(Character $character, string $choiceGroup): string
     {
+        // Choice group format for subclass_feature is "Feature Name (Subclass):base_choice_group"
+        // Extract the feature name directly from the choice group
+        if (str_contains($choiceGroup, ':')) {
+            $featureName = substr($choiceGroup, 0, strrpos($choiceGroup, ':'));
+            // Remove subclass suffix in parentheses if present, e.g., "Acolyte of Nature (Nature Domain)" -> "Acolyte of Nature"
+            if (preg_match('/^(.+?)\s*\([^)]+\)$/', $featureName, $matches)) {
+                return $matches[1];
+            }
+
+            return $featureName;
+        }
+
+        // Fallback to database lookup
         $subclass = $character->characterClasses->first()?->subclass;
         if (! $subclass) {
             return 'Unknown Feature';

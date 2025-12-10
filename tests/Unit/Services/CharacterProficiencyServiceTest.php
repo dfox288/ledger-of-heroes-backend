@@ -597,4 +597,68 @@ class CharacterProficiencyServiceTest extends TestCase
         $this->assertEquals('subclass_feature', $character->proficiencies->first()->source);
         $this->assertEquals('feature_skill_choice_1', $character->proficiencies->first()->choice_group);
     }
+
+    /**
+     * Issue #476 fix: Test that makeSkillChoice works with full choice_group format
+     * (e.g., "Acolyte of Nature (Nature Domain):feature_skill_choice_1")
+     */
+    #[Test]
+    public function it_can_make_skill_choice_from_subclass_feature_with_full_choice_group_format(): void
+    {
+        // Create skills
+        $animalHandling = $this->createSkill('Animal Handling');
+        $nature = $this->createSkill('Nature');
+        $survival = $this->createSkill('Survival');
+
+        // Create Cleric class
+        $clericClass = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric-'.uniqid(),
+        ]);
+
+        // Create Nature Domain subclass
+        $natureDomainSlug = 'cleric-nature-domain-'.uniqid();
+        $natureDomain = CharacterClass::factory()->create([
+            'name' => 'Nature Domain',
+            'slug' => $natureDomainSlug,
+            'parent_class_id' => $clericClass->id,
+        ]);
+
+        // Create "Acolyte of Nature" feature with skill choice
+        $acolyteFeature = $natureDomain->features()->create([
+            'feature_name' => 'Acolyte of Nature (Nature Domain)',
+            'level' => 1,
+            'is_optional' => false,
+            'description' => 'Choose one skill from Animal Handling, Nature, or Survival.',
+        ]);
+
+        // Add skill choices to the feature
+        $acolyteFeature->proficiencies()->createMany([
+            ['proficiency_type' => 'skill', 'skill_id' => $animalHandling->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1', 'quantity' => 1],
+            ['proficiency_type' => 'skill', 'skill_id' => $nature->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
+            ['proficiency_type' => 'skill', 'skill_id' => $survival->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
+        ]);
+
+        // Create character with Cleric + Nature Domain subclass
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $clericClass->full_slug,
+            'subclass_slug' => $natureDomain->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Make the skill choice using the FULL choice_group format (as received from frontend)
+        // This is the format returned by getPendingChoices: "FeatureName:base_choice_group"
+        $fullChoiceGroup = 'Acolyte of Nature (Nature Domain):feature_skill_choice_1';
+        $this->service->makeSkillChoice($character, 'subclass_feature', $fullChoiceGroup, [$nature->full_slug]);
+
+        // Assert proficiency was created
+        $this->assertCount(1, $character->proficiencies);
+        $this->assertTrue($character->proficiencies->contains('skill_slug', $nature->full_slug));
+        $this->assertEquals('subclass_feature', $character->proficiencies->first()->source);
+        // Note: The choice_group stored in DB is the full format
+        $this->assertEquals($fullChoiceGroup, $character->proficiencies->first()->choice_group);
+    }
 }

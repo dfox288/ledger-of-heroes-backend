@@ -1187,4 +1187,167 @@ class HitPointRollChoiceHandlerTest extends TestCase
         $this->assertEquals(24, $character->max_hit_points); // 13 + 11
         $this->assertEquals(24, $character->current_hit_points);
     }
+
+    // =====================
+    // Array Format Tests (Issue #481)
+    // Form validation normalizes 'selected' to array format
+    // =====================
+
+    #[Test]
+    public function it_resolves_roll_choice_when_selected_is_array(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+        ]);
+
+        $character = Character::factory()->create([
+            'constitution' => 14, // +2 modifier
+            'max_hit_points' => 12,
+            'current_hit_points' => 12,
+        ]);
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+        $pivot->setRelation('characterClass', $class);
+
+        $choice = new PendingChoice(
+            id: 'hit_points:levelup:'.$character->id.':2',
+            type: 'hit_points',
+            subtype: null,
+            source: 'level_up',
+            sourceName: 'Level 2',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: [
+                'hit_die' => 'd10',
+                'con_modifier' => 2,
+                'class_slug' => 'fighter',
+            ],
+        );
+
+        // API sends selected as array (via form validation)
+        $this->handler->resolve($character, $choice, ['selected' => ['roll']]);
+
+        $character->refresh();
+
+        // HP should be increased (same as scalar 'roll' test)
+        $hpGained = $character->max_hit_points - 12;
+        $this->assertGreaterThanOrEqual(3, $hpGained);
+        $this->assertLessThanOrEqual(12, $hpGained);
+    }
+
+    #[Test]
+    public function it_resolves_average_choice_when_selected_is_array(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+        ]);
+
+        $character = Character::factory()->create([
+            'constitution' => 14, // +2 modifier
+            'max_hit_points' => 12,
+            'current_hit_points' => 12,
+        ]);
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+        $pivot->setRelation('characterClass', $class);
+
+        $choice = new PendingChoice(
+            id: 'hit_points:levelup:'.$character->id.':2',
+            type: 'hit_points',
+            subtype: null,
+            source: 'level_up',
+            sourceName: 'Level 2',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: [
+                'hit_die' => 'd10',
+                'con_modifier' => 2,
+                'class_slug' => 'fighter',
+            ],
+        );
+
+        // API sends selected as array (via form validation)
+        $this->handler->resolve($character, $choice, ['selected' => ['average']]);
+
+        $character->refresh();
+
+        // HP should be increased by exactly 8 (6 average + 2 CON)
+        $this->assertEquals(20, $character->max_hit_points);
+    }
+
+    #[Test]
+    public function it_resolves_manual_choice_when_selected_is_array(): void
+    {
+        $class = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+        ]);
+
+        $character = Character::factory()->create([
+            'constitution' => 14, // +2 modifier
+            'max_hit_points' => 12,
+            'current_hit_points' => 12,
+        ]);
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $class->full_slug,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+        $pivot->setRelation('characterClass', $class);
+
+        $choice = new PendingChoice(
+            id: 'hit_points:levelup:'.$character->id.':2',
+            type: 'hit_points',
+            subtype: null,
+            source: 'level_up',
+            sourceName: 'Level 2',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: [
+                'hit_die' => 'd10',
+                'con_modifier' => 2,
+                'class_slug' => 'fighter',
+            ],
+        );
+
+        // API sends selected as array (via form validation)
+        $this->handler->resolve($character, $choice, [
+            'selected' => ['manual'],
+            'roll_result' => 7,
+        ]);
+
+        $character->refresh();
+
+        // HP should be increased by exactly 9 (7 roll + 2 CON)
+        $this->assertEquals(21, $character->max_hit_points);
+    }
 }

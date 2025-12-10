@@ -121,6 +121,12 @@ class HitPointRollChoiceHandler extends AbstractChoiceHandler
     {
         $selected = $selection['selected'] ?? null;
 
+        // Form validation normalizes selected to array format (e.g., ['roll'] instead of 'roll')
+        // Extract first element if it's an array
+        if (is_array($selected)) {
+            $selected = $selected[0] ?? null;
+        }
+
         if (! $selected) {
             throw new InvalidSelectionException($choice->id, 'null', 'Selection is required for hit point choice');
         }

@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #481**: Fix HP choice resolution returning 500 error during level-up
+  - Root cause: Form validation normalizes `selected` to array format (`["roll"]`), but `HitPointRollChoiceHandler` expected a scalar string (`"roll"`)
+  - Handler now extracts first element from array if `selected` is passed as array
+  - Enables frontend level-up wizard to complete HP choices successfully
+
 - **Issue #477, #478**: Fix bonus spell choices from other class lists not being imported
   - Root cause: Alphabetical import order meant Cleric imported before Druid, so Nature Domain's "Acolyte of Nature" druid cantrip choice was skipped
   - Added postprocessing step `linkBonusSpellChoices()` in `ImportAllDataCommand` that runs after all classes exist

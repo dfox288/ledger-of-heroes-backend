@@ -9,6 +9,7 @@ use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use App\Services\Parsers\Concerns\ParsesExpertise;
 use App\Services\Parsers\Concerns\ParsesModifiers;
 use App\Services\Parsers\Concerns\ParsesMovementSpeeds;
+use App\Services\Parsers\Concerns\ParsesNaturalWeapons;
 use App\Services\Parsers\Concerns\ParsesSkillAdvantages;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use App\Services\Parsers\Concerns\ParsesTraits;
@@ -16,7 +17,7 @@ use SimpleXMLElement;
 
 class RaceXmlParser
 {
-    use ConvertsWordNumbers, MapsAbilityCodes, MatchesLanguages, MatchesProficiencyTypes, ParsesExpertise, ParsesModifiers, ParsesMovementSpeeds, ParsesSkillAdvantages, ParsesSourceCitations, ParsesTraits;
+    use ConvertsWordNumbers, MapsAbilityCodes, MatchesLanguages, MatchesProficiencyTypes, ParsesExpertise, ParsesModifiers, ParsesMovementSpeeds, ParsesNaturalWeapons, ParsesSkillAdvantages, ParsesSourceCitations, ParsesTraits;
 
     public function parse(string $xmlContent): array
     {
@@ -142,6 +143,9 @@ class RaceXmlParser
         $walkingSpeed = (int) $element->speed;
         $alternativeSpeeds = $this->parseMovementSpeedsFromTraits($traits, $walkingSpeed);
 
+        // Parse natural weapons (claws, fangs, bite) from trait descriptions
+        $naturalWeapons = $this->parseNaturalWeaponsFromTraits($traits);
+
         return [
             'name' => $raceName,
             'base_race_name' => $baseRaceName,
@@ -165,6 +169,7 @@ class RaceXmlParser
             'modifiers' => $modifiers,
             'skill_advantage_modifiers' => $skillAdvantageModifiers,
             'expertise_modifiers' => $expertiseModifiers,
+            'natural_weapons' => $naturalWeapons,
         ];
     }
 
@@ -841,6 +846,7 @@ class RaceXmlParser
         // Parse common data that all variants share
         $walkingSpeed = (int) $element->speed;
         $alternativeSpeeds = $this->parseMovementSpeedsFromTraits($allTraits, $walkingSpeed);
+        $naturalWeapons = $this->parseNaturalWeaponsFromTraits($allTraits);
 
         $commonData = [
             'base_race_name' => $baseRaceName,
@@ -853,6 +859,7 @@ class RaceXmlParser
             'proficiencies' => $this->parseProficiencies($element),
             'resistances' => $this->parseResistances($element),
             'modifiers' => $this->parseModifiers($element),
+            'natural_weapons' => $naturalWeapons,
         ];
 
         // Extract sources from description trait

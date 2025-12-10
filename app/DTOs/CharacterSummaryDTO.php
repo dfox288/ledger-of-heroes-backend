@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Services\CharacterLanguageService;
 use App\Services\CharacterProficiencyService;
 use App\Services\FeatChoiceService;
+use App\Services\FeatureUseService;
 use App\Services\HitDiceService;
 use App\Services\SpellSlotService;
 
@@ -39,7 +40,8 @@ class CharacterSummaryDTO
         CharacterLanguageService $languageService,
         SpellSlotService $spellSlotService,
         HitDiceService $hitDiceService,
-        FeatChoiceService $featChoiceService
+        FeatChoiceService $featChoiceService,
+        FeatureUseService $featureUseService
     ): self {
         // Ensure relationships are loaded
         $character->load([
@@ -69,7 +71,8 @@ class CharacterSummaryDTO
         $resources = self::getResources(
             $character,
             $spellSlotService,
-            $hitDiceService
+            $hitDiceService,
+            $featureUseService
         );
 
         // Get combat state
@@ -151,7 +154,8 @@ class CharacterSummaryDTO
     private static function getResources(
         Character $character,
         SpellSlotService $spellSlotService,
-        HitDiceService $hitDiceService
+        HitDiceService $hitDiceService,
+        FeatureUseService $featureUseService
     ): array {
         // Hit points
         $hitPoints = [
@@ -170,8 +174,10 @@ class CharacterSummaryDTO
         // Spell slots
         $spellSlots = $spellSlotService->getSlots($character);
 
-        // Features with uses (placeholder for future implementation)
-        $featuresWithUses = [];
+        // Features with uses
+        $featuresWithUses = $featureUseService->getFeaturesWithUses($character)
+            ->values()
+            ->all();
 
         return [
             'hit_points' => $hitPoints,

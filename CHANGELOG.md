@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #256**: Feature uses tracking for limited-use abilities
+  - New `FeatureUseService` for tracking and managing limited-use class features (Rage, Action Surge, Ki Points, etc.)
+  - New API endpoints: `GET /characters/{id}/feature-uses`, `POST /characters/{id}/features/{featureId}/use`, `POST /characters/{id}/features/{featureId}/reset`
+  - Features now initialized with `max_uses` from class counters when granted
+  - Short rest resets features with `SHORT_REST` recharge timing
+  - Long rest resets all limited-use features (`SHORT_REST`, `LONG_REST`, `DAWN`)
+  - Character summary now includes `features_with_uses` in resources section
+  - Level-up recalculates `max_uses` for scaling features (Ki, Rage, etc.)
+
 - **Issue #465**: Surface subclass feature choices in pending-choices API
   - Fixed bonus cantrip auto-grant bug: spells with NULL `level_requirement` now correctly granted
   - Added `SUBCLASS_FEATURE` to `CharacterSource` enum for tracking proficiency/spell sources

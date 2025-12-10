@@ -27,6 +27,8 @@ class FlowExecutor
 
     private ?CharacterClass $currentClass = null;
 
+    private ?CharacterClass $currentSubclass = null;
+
     private ?Background $currentBackground = null;
 
     private ?string $equipmentMode = null;
@@ -34,6 +36,8 @@ class FlowExecutor
     private ?string $previousEquipmentMode = null;
 
     private EquipmentValidator $equipmentValidator;
+
+    private SubclassValidator $subclassValidator;
 
     /** @var array<string, array<string>> Equipment selections by choice_group */
     private array $equipmentSelections = [];
@@ -43,6 +47,7 @@ class FlowExecutor
         $this->snapshot = new StateSnapshot;
         $this->validator = new SwitchValidator;
         $this->equipmentValidator = new EquipmentValidator;
+        $this->subclassValidator = new SubclassValidator;
     }
 
     /**
@@ -58,9 +63,9 @@ class FlowExecutor
 
         foreach ($flow as $step) {
             try {
-                // Capture state before if this is a switch or equipment-related step
+                // Capture state before if this is a switch, equipment-related, or subclass step
                 $snapshotBefore = null;
-                if ($characterId && ($this->isSwitch($step) || $this->shouldValidateEquipment($step))) {
+                if ($characterId && ($this->isSwitch($step) || $this->shouldValidateEquipment($step) || $this->shouldValidateSubclass($step))) {
                     $snapshotBefore = $this->snapshot->capture($characterId);
                 }
 
@@ -116,6 +121,22 @@ class FlowExecutor
                     if ($equipmentValidation && ! $equipmentValidation->passed) {
                         $result->addStep($step, 'fail', $snapshotAfter, $response);
                         $result->addFailure($step, $equipmentValidation, $snapshotBefore, $snapshotAfter);
+
+                        continue;
+                    }
+                }
+
+                // Validate subclass features after subclass selection
+                if ($snapshotAfter && $this->shouldValidateSubclass($step) && $this->currentSubclass) {
+                    $subclassValidation = $this->subclassValidator->validateSubclassFeatures(
+                        $snapshotAfter,
+                        $this->currentSubclass,
+                        1 // Level 1 for now
+                    );
+
+                    if (! $subclassValidation->passed) {
+                        $result->addStep($step, 'fail', $snapshotAfter, $response);
+                        $result->addFailure($step, $subclassValidation, $snapshotBefore, $snapshotAfter);
 
                         continue;
                     }
@@ -245,6 +266,7 @@ class FlowExecutor
         }
 
         $subclass = $subclasses[$randomizer->randomInt(0, $subclasses->count() - 1)];
+        $this->currentSubclass = $subclass;
 
         return $this->makeRequest(
             'PUT',
@@ -577,6 +599,7 @@ class FlowExecutor
         $this->currentRace = null;
         $this->currentSubrace = null;
         $this->currentClass = null;
+        $this->currentSubclass = null;
         $this->currentBackground = null;
         $this->equipmentMode = null;
         $this->previousEquipmentMode = null;
@@ -594,6 +617,14 @@ class FlowExecutor
             'set_equipment_mode',
             'resolve_equipment_choices',
         ], true);
+    }
+
+    /**
+     * Determine if subclass features should be validated after this step.
+     */
+    private function shouldValidateSubclass(array $step): bool
+    {
+        return $step['action'] === 'set_subclass';
     }
 
     /**

@@ -137,9 +137,10 @@ class CharacterFeatureService
             return;
         }
 
-        // Get non-optional subclass features up to character's level in this class
+        // Get subclass features up to character's level in this class
+        // Note: Subclass features have is_optional=true because they're only available
+        // IF you choose that subclass. But once chosen, they are automatically granted.
         $features = $subclass->features()
-            ->where('is_optional', false)
             ->where('level', '<=', $characterClass->level)
             ->whereNull('parent_feature_id') // Exclude child features (choice options)
             ->get();

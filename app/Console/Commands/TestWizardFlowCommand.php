@@ -30,6 +30,7 @@ class TestWizardFlowCommand extends Command
         {--all-races : Test every race with chaos flow}
         {--equipment-modes : Test equipment mode switching}
         {--class-types= : Test class type switching (spellcaster,martial)}
+        {--force-class= : Force a specific class (e.g., phb:cleric)}
         {--min-switches=1 : Minimum switches in chaos mode}
         {--max-switches=3 : Maximum switches in chaos mode}
         {--cleanup : Delete test characters after run (default: keep)}
@@ -141,7 +142,7 @@ class TestWizardFlowCommand extends Command
 
     private function generateFlow(FlowGenerator $generator, CharacterRandomizer $randomizer, string $flowType): array
     {
-        return match ($flowType) {
+        $flow = match ($flowType) {
             'chaos' => $generator->chaos(
                 $randomizer,
                 (int) $this->option('min-switches'),
@@ -155,6 +156,18 @@ class TestWizardFlowCommand extends Command
             'linear' => $generator->linear(),
             default => $generator->linear(),
         };
+
+        // Apply --force-class option to set_class step
+        if ($forceClass = $this->option('force-class')) {
+            foreach ($flow as &$step) {
+                if ($step['action'] === 'set_class') {
+                    $step['force_class'] = $forceClass;
+                    break;
+                }
+            }
+        }
+
+        return $flow;
     }
 
     private function generateClassTypeSwitchFlow(FlowGenerator $generator): array
@@ -172,6 +185,7 @@ class TestWizardFlowCommand extends Command
             'all_races' => $this->option('all-races'),
             'equipment_modes' => $this->option('equipment-modes'),
             'class_types' => $this->option('class-types'),
+            'force_class' => $this->option('force-class'),
             'min_switches' => $this->option('min-switches'),
             'max_switches' => $this->option('max-switches'),
         ];

@@ -15,6 +15,7 @@ use App\Http\Resources\CharacterClassPivotResource;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Services\AddClassService;
+use App\Services\CharacterFeatureService;
 use App\Services\ReplaceClassService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -26,6 +27,7 @@ class CharacterClassController extends Controller
     public function __construct(
         private AddClassService $addClassService,
         private ReplaceClassService $replaceClassService,
+        private CharacterFeatureService $featureService,
     ) {}
 
     /**
@@ -431,6 +433,11 @@ class CharacterClassController extends Controller
         $pivot->subclass_slug = $subclassSlug;
         $pivot->save();
         $pivot->load('characterClass', 'subclass');
+
+        // Assign subclass features to the character
+        if ($subclass) {
+            $this->featureService->populateFromSubclass($character, $class->full_slug, $subclassSlug);
+        }
 
         return (new CharacterClassPivotResource($pivot))
             ->response()

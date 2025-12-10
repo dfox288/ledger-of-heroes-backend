@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #451**: Parse expertise/double proficiency from trait text
+  - New `ParsesExpertise` trait for shared parsing logic
+  - `RaceXmlParser` now parses expertise patterns from trait descriptions
+  - Detects patterns like "add double your proficiency bonus" (Stonecunning) and "add twice your proficiency bonus" (Artificer's Lore)
+  - Extracts: skill name, ability score, condition, and whether it grants proficiency
+  - Returns `expertise_modifiers` array in parsed race data
+
 - **Issue #429**: Parse and expose skill check advantages from traits
   - New `ParsesSkillAdvantages` trait for shared parsing logic
   - `RaceXmlParser` now parses skill advantages from trait descriptions (e.g., Stonecunning)

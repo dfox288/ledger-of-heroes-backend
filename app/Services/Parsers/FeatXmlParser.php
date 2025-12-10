@@ -88,6 +88,7 @@ class FeatXmlParser
             'languages' => $this->parseLanguages($description),
             'resets_on' => $this->parseResetTiming($description),
             'movement_modifiers' => $this->parseMovementModifiers($description),
+            'resistances' => $this->parseDamageResistances($description),
         ];
     }
 
@@ -245,6 +246,54 @@ class FeatXmlParser
         }
 
         return $conditions;
+    }
+
+    /**
+     * Parse damage resistance/immunity from feat description text.
+     *
+     * Patterns supported:
+     * - "You have resistance to [type] and [type] damage." (Infernal Constitution)
+     * - "You have resistance to [type] damage." (single type)
+     * - "You have resistance to the damage dealt by [source]." (conditional, like traps)
+     *
+     * @return array<int, array{damage_type: string, condition: string|null}>
+     */
+    private function parseDamageResistances(string $text): array
+    {
+        $resistances = [];
+
+        // Pattern 1: "You have resistance to the damage dealt by [source]" (conditional)
+        // Matches: "resistance to the damage dealt by traps"
+        // Check this FIRST because it's more specific
+        if (preg_match('/you have resistance to (the damage dealt by [^.]+)/i', $text, $match)) {
+            $resistances[] = [
+                'damage_type' => 'all',
+                'condition' => trim($match[1]),
+            ];
+
+            return $resistances; // Don't continue parsing - this is the specific pattern
+        }
+
+        // Pattern 2: "You have resistance to [types] damage"
+        // Matches: "resistance to cold and poison damage", "resistance to fire damage"
+        if (preg_match('/you have resistance to ([^.]+) damage/i', $text, $match)) {
+            $typesString = trim($match[1]);
+
+            // Split on " and " to handle multiple types
+            $types = preg_split('/\s+and\s+/i', $typesString);
+
+            foreach ($types as $type) {
+                $type = trim($type);
+                if (! empty($type)) {
+                    $resistances[] = [
+                        'damage_type' => strtolower($type),
+                        'condition' => null,
+                    ];
+                }
+            }
+        }
+
+        return $resistances;
     }
 
     /**

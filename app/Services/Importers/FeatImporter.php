@@ -3,6 +3,7 @@
 namespace App\Services\Importers;
 
 use App\Models\AbilityScore;
+use App\Models\DamageType;
 use App\Models\Feat;
 use App\Models\Proficiency;
 use App\Services\Importers\Concerns\ImportsConditions;
@@ -74,7 +75,10 @@ class FeatImporter extends BaseImporter
         // 10. Import movement modifiers
         $this->importMovementModifiers($feat, $data['movement_modifiers'] ?? []);
 
-        // 11. Refresh to load all relationships created during import
+        // 11. Import damage resistances as modifiers
+        $this->importDamageResistances($feat, $data['resistances'] ?? []);
+
+        // 12. Refresh to load all relationships created during import
         $feat->refresh();
 
         return $feat;
@@ -203,5 +207,36 @@ class FeatImporter extends BaseImporter
     public function getParser(): object
     {
         return new FeatXmlParser;
+    }
+
+    /**
+     * Import damage resistances as modifiers for a feat.
+     *
+     * @param  array<int, array{damage_type: string, condition: string|null}>  $resistances
+     */
+    private function importDamageResistances(Feat $feat, array $resistances): void
+    {
+        foreach ($resistances as $resistanceData) {
+            $damageTypeId = null;
+
+            // For specific damage types, look up the DamageType model
+            if ($resistanceData['damage_type'] !== 'all') {
+                $damageType = DamageType::whereRaw('LOWER(name) = ?', [strtolower($resistanceData['damage_type'])])->first();
+
+                if ($damageType) {
+                    $damageTypeId = $damageType->id;
+                } else {
+                    // Skip if damage type not found (unless it's 'all')
+                    continue;
+                }
+            }
+
+            // Use the importModifier method from ImportsModifiers trait
+            $this->importModifier($feat, 'damage_resistance', [
+                'value' => 'resistance',
+                'damage_type_id' => $damageTypeId,
+                'condition' => $resistanceData['condition'] ?? null,
+            ]);
+        }
     }
 }

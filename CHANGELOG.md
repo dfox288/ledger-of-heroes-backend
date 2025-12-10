@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #460**: Parse damage resistance/immunity from feat text
+  - `FeatXmlParser` now parses "You have resistance to [type] damage" patterns
+  - Supports multiple damage types: "resistance to cold and poison damage" (Infernal Constitution)
+  - Supports conditional resistance: "resistance to the damage dealt by traps" (Dungeon Delver)
+  - `FeatImporter` stores resistances as `entity_modifiers` with `modifier_category = 'damage_resistance'`
+  - Conditional resistances stored with `condition` field
+
 - **Issue #430**: Parse condition disadvantages from racial traits
   - `RaceXmlParser` now parses "You have disadvantage on..." patterns (e.g., Sunlight Sensitivity)
   - Stores as `entity_conditions` with `effect_type = 'disadvantage'`

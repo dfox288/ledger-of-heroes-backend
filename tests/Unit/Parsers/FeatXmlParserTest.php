@@ -987,4 +987,96 @@ XML;
         $this->assertEquals('hit_points_per_level', $hpModifier['modifier_category']);
         $this->assertEquals(2, $hpModifier['value']);
     }
+
+    // ==================== DAMAGE RESISTANCE PARSING TESTS ====================
+
+    #[Test]
+    public function it_parses_multiple_damage_resistances_from_infernal_constitution()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Infernal Constitution</name>
+        <prerequisite>Tiefling</prerequisite>
+        <text>Fiendish blood runs strong in you, unlocking a resilience akin to that possessed by some fiends. You gain the following benefits:
+
+	• Increase your Constitution score by 1, to a maximum of 20.
+
+	• You have resistance to cold and poison damage.
+
+	• You have advantage on saving throws against being poisoned.
+
+Source:	Xanathar's Guide to Everything p. 75</text>
+        <modifier category="ability score">constitution +1</modifier>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('resistances', $feats[0]);
+        $this->assertCount(2, $feats[0]['resistances'], 'Should parse cold and poison resistances');
+
+        $damageTypes = array_column($feats[0]['resistances'], 'damage_type');
+        $this->assertContains('cold', $damageTypes);
+        $this->assertContains('poison', $damageTypes);
+    }
+
+    #[Test]
+    public function it_parses_conditional_damage_resistance_from_dungeon_delver()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Dungeon Delver</name>
+        <text>Alert to the hidden traps and secret doors found in many dungeons, you gain the following benefits:
+
+	• You have advantage on Wisdom (Perception) and Intelligence (Investigation) checks made to detect the presence of secret doors.
+
+	• You have advantage on saving throws made to avoid or resist traps.
+
+	• You have resistance to the damage dealt by traps.
+
+	• Traveling at a fast pace doesn't impose the normal -5 penalty on your passive Wisdom (Perception) score.
+
+Source:	Player's Handbook (2014) p. 166</text>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('resistances', $feats[0]);
+        $this->assertCount(1, $feats[0]['resistances'], 'Should parse trap damage resistance');
+
+        $resistance = $feats[0]['resistances'][0];
+        $this->assertEquals('all', $resistance['damage_type']);
+        $this->assertEquals('the damage dealt by traps', $resistance['condition']);
+    }
+
+    #[Test]
+    public function it_returns_empty_resistances_for_feat_without_resistances()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Alert</name>
+        <text>Always on the lookout for danger, you gain the following benefits.
+
+Source:	Player's Handbook (2014) p. 165</text>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('resistances', $feats[0]);
+        $this->assertEmpty($feats[0]['resistances']);
+    }
 }

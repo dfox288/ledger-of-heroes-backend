@@ -414,4 +414,75 @@ class FeatImporterTest extends TestCase
         $this->assertCount(1, $feat->languages);
         $this->assertEquals(2, $feat->languages->first()->quantity);
     }
+
+    #[Test]
+    public function it_imports_feat_with_damage_resistances()
+    {
+        // Get damage types that exist in the database (seeded or from import)
+        $cold = \App\Models\DamageType::whereRaw('LOWER(name) = ?', ['cold'])->first();
+        $poison = \App\Models\DamageType::whereRaw('LOWER(name) = ?', ['poison'])->first();
+
+        // Skip test if damage types not available
+        if (! $cold || ! $poison) {
+            $this->markTestSkipped('Damage types not available in test database');
+        }
+
+        $featData = [
+            'name' => 'Infernal Constitution',
+            'prerequisites' => 'Tiefling',
+            'description' => 'You have resistance to cold and poison damage.',
+            'sources' => [
+                ['code' => 'XGE', 'pages' => '75'],
+            ],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+            'languages' => [],
+            'resistances' => [
+                ['damage_type' => 'cold', 'condition' => null],
+                ['damage_type' => 'poison', 'condition' => null],
+            ],
+        ];
+
+        $feat = $this->importer->import($featData);
+
+        // Check that resistances were imported as modifiers
+        $resistanceModifiers = $feat->modifiers->where('modifier_category', 'damage_resistance');
+        $this->assertCount(2, $resistanceModifiers, 'Should have 2 damage resistance modifiers');
+
+        // Verify the damage types
+        $damageTypeIds = $resistanceModifiers->pluck('damage_type_id')->sort()->values();
+        $this->assertContains($cold->id, $damageTypeIds);
+        $this->assertContains($poison->id, $damageTypeIds);
+    }
+
+    #[Test]
+    public function it_imports_feat_with_conditional_damage_resistance()
+    {
+        $featData = [
+            'name' => 'Dungeon Delver',
+            'prerequisites' => null,
+            'description' => 'You have resistance to the damage dealt by traps.',
+            'sources' => [
+                ['code' => 'PHB', 'pages' => '166'],
+            ],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+            'languages' => [],
+            'resistances' => [
+                ['damage_type' => 'all', 'condition' => 'the damage dealt by traps'],
+            ],
+        ];
+
+        $feat = $this->importer->import($featData);
+
+        // Check that resistance was imported as modifier
+        $resistanceModifiers = $feat->modifiers->where('modifier_category', 'damage_resistance');
+        $this->assertCount(1, $resistanceModifiers, 'Should have 1 damage resistance modifier');
+
+        $resistance = $resistanceModifiers->first();
+        $this->assertNull($resistance->damage_type_id, 'All damage types should have null damage_type_id');
+        $this->assertEquals('the damage dealt by traps', $resistance->condition);
+    }
 }

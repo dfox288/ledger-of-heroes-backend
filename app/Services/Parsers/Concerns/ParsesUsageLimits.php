@@ -59,10 +59,9 @@ trait ParsesUsageLimits
             return $this->wordToNumber($match[1]);
         }
 
-        // Pattern 6: "Once you [verb]...finish a rest" implies 1 use
-        // This is a weaker pattern, so check it after explicit counts
-        if (preg_match('/once you (cast|use)/i', $lowerText) &&
-            preg_match('/finish a (short|long) rest/i', $lowerText)) {
+        // Pattern 6: "Once you [verb]...must finish a rest" implies 1 use
+        // Tightened to require "must" or "before" to connect the clauses
+        if (preg_match('/once you (cast|use).*?(must|before).*?finish a (short|long) rest/is', $text)) {
             return 1;
         }
 
@@ -85,6 +84,35 @@ trait ParsesUsageLimits
         // Pattern: "times equal to [ability] modifier"
         if (preg_match('/times equal to (?:your )?(\w+) modifier/i', $text, $match)) {
             return 'ability_modifier';
+        }
+
+        return null;
+    }
+
+    /**
+     * Parse counter name from feature description.
+     *
+     * Extracts names like "luck points" or "superiority die" from text.
+     * Falls back to null if no specific name found.
+     *
+     * @param  string  $text  Feature description
+     * @return string|null Extracted counter name (e.g., "Luck Points")
+     */
+    protected function parseCounterName(string $text): ?string
+    {
+        // Pattern: "You have N [word] points" → extract "word points"
+        if (preg_match('/you have \d+ (\w+ points?)/i', $text, $match)) {
+            return ucwords($match[1]);
+        }
+
+        // Pattern: "You gain one superiority die/dice"
+        if (preg_match('/you gain (?:one|two|\d+) (superiority di(?:ce|e))/i', $text, $match)) {
+            return ucwords($match[1]);
+        }
+
+        // Pattern: "You gain N sorcery points"
+        if (preg_match('/you gain (?:one|two|\d+) (sorcery points?)/i', $text, $match)) {
+            return ucwords($match[1]);
         }
 
         return null;

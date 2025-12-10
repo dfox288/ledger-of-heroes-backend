@@ -90,6 +90,7 @@ class FeatXmlParser
             'resets_on' => $this->parseResetTiming($description),
             'base_uses' => $this->parseBaseUses($description),
             'uses_formula' => $this->parseUsesFormula($description),
+            'counter_name' => $this->parseCounterName($description),
             'movement_modifiers' => $this->parseMovementModifiers($description),
             'resistances' => $this->parseDamageResistances($description),
         ];

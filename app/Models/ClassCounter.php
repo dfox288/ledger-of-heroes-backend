@@ -24,6 +24,23 @@ class ClassCounter extends BaseModel
         'counter_value' => 'integer',
     ];
 
+    // Boot method for validation
+
+    protected static function booted(): void
+    {
+        static::saving(function (ClassCounter $counter) {
+            $hasClass = $counter->class_id !== null;
+            $hasFeat = $counter->feat_id !== null;
+
+            // XOR: exactly one must be set
+            if ($hasClass === $hasFeat) {
+                throw new \InvalidArgumentException(
+                    'ClassCounter must belong to exactly one of: class_id or feat_id (not both, not neither)'
+                );
+            }
+        });
+    }
+
     // Relationships
 
     public function characterClass(): BelongsTo

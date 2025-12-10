@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ClassCounter;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -35,6 +36,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        // Delete feat counters before restoring class_id constraint
+        // Without this, rollback would fail with integrity constraint violation
+        ClassCounter::whereNotNull('feat_id')->delete();
+
         Schema::table('class_counters', function (Blueprint $table) {
             $table->dropForeign(['feat_id']);
             $table->dropIndex(['feat_id']);

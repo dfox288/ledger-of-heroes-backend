@@ -261,8 +261,8 @@ class FeatImporter extends BaseImporter
             };
         }
 
-        // Derive counter name from feat name
-        $counterName = $feat->name.' Uses';
+        // Use parsed counter name if available, otherwise derive from feat name
+        $counterName = $data['counter_name'] ?? $feat->name.' Uses';
 
         ClassCounter::updateOrCreate(
             [

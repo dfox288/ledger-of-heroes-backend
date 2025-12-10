@@ -219,7 +219,6 @@ class RaceApiTest extends TestCase
     }
 
     #[Test]
-    #[Test]
     public function race_proficiencies_include_skill_resource()
     {
         // Find a race with skill proficiencies
@@ -256,7 +255,6 @@ class RaceApiTest extends TestCase
     }
 
     #[Test]
-    #[Test]
     public function race_traits_with_data_tables_include_entry_resource()
     {
         // Find a race with traits that have data tables
@@ -280,7 +278,6 @@ class RaceApiTest extends TestCase
         }
     }
 
-    #[Test]
     #[Test]
     public function modifier_includes_skill_when_present()
     {
@@ -307,7 +304,6 @@ class RaceApiTest extends TestCase
         }
     }
 
-    #[Test]
     #[Test]
     public function proficiency_includes_ability_score_when_present()
     {

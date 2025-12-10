@@ -139,7 +139,8 @@ class ParentRelationshipTest extends TestCase
         $subclass = CharacterClass::whereNotNull('parent_class_id')->first();
         $this->assertNotNull($subclass, 'Should have subclasses in imported data');
 
-        $response = $this->getJson('/api/v1/classes');
+        // Use per_page to ensure we get all classes including subclasses
+        $response = $this->getJson('/api/v1/classes?per_page=200');
 
         $response->assertOk();
 

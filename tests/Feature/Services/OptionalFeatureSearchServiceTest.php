@@ -51,7 +51,7 @@ class OptionalFeatureSearchServiceTest extends TestCase
         $this->assertContains('sources.source', $relationships);
         $this->assertContains('spellSchool', $relationships);
         $this->assertContains('tags', $relationships);
-        $this->assertContains('prerequisites', $relationships);
+        $this->assertContains('prerequisites.prerequisite', $relationships);
         $this->assertContains('rolls', $relationships);
     }
 

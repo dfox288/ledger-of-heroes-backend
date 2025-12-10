@@ -51,11 +51,11 @@ class RaceSearchServiceTest extends TestCase
 
         $this->assertIsArray($relationships);
         $this->assertContains('size', $relationships);
-        $this->assertContains('subraces', $relationships);
+        $this->assertContains('subraces.sources.source', $relationships);
         $this->assertContains('parent.size', $relationships);
-        $this->assertContains('languages.language', $relationships);
-        $this->assertContains('entitySpellRecords.spell', $relationships);
-        $this->assertContains('tags', $relationships);
+        $this->assertContains('parent.languages.language', $relationships);
+        $this->assertContains('parent.entitySpellRecords.spell', $relationships);
+        $this->assertContains('parent.tags', $relationships);
     }
 
     #[Test]

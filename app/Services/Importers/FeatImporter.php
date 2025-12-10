@@ -2,7 +2,9 @@
 
 namespace App\Services\Importers;
 
+use App\Enums\ResetTiming;
 use App\Models\AbilityScore;
+use App\Models\ClassCounter;
 use App\Models\DamageType;
 use App\Models\Feat;
 use App\Models\Proficiency;
@@ -78,7 +80,10 @@ class FeatImporter extends BaseImporter
         // 11. Import damage resistances as modifiers
         $this->importDamageResistances($feat, $data['resistances'] ?? []);
 
-        // 12. Refresh to load all relationships created during import
+        // 12. Import feat counter if it has usage limits
+        $this->importFeatCounter($feat, $data);
+
+        // 13. Refresh to load all relationships created during import
         $feat->refresh();
 
         return $feat;
@@ -226,6 +231,51 @@ class FeatImporter extends BaseImporter
     public function getParser(): object
     {
         return new FeatXmlParser;
+    }
+
+    /**
+     * Import feat counter if it has usage limits.
+     *
+     * Creates a ClassCounter record linked to the feat (not a class).
+     * Feats don't have level progression, so level is always 1.
+     *
+     * @param  array<string, mixed>  $data  Parsed feat data with base_uses and resets_on
+     */
+    private function importFeatCounter(Feat $feat, array $data): void
+    {
+        $baseUses = $data['base_uses'] ?? null;
+        $resetsOn = $data['resets_on'] ?? null;
+
+        // Only create counter if feat has usage limits
+        if ($baseUses === null) {
+            return;
+        }
+
+        // Convert ResetTiming enum to single-char code for storage
+        $resetTiming = null;
+        if ($resetsOn instanceof ResetTiming) {
+            $resetTiming = match ($resetsOn) {
+                ResetTiming::SHORT_REST => 'S',
+                ResetTiming::LONG_REST => 'L',
+                ResetTiming::DAWN => 'D',
+            };
+        }
+
+        // Derive counter name from feat name
+        $counterName = $feat->name.' Uses';
+
+        ClassCounter::updateOrCreate(
+            [
+                'feat_id' => $feat->id,
+                'counter_name' => $counterName,
+            ],
+            [
+                'class_id' => null,
+                'level' => 1, // Feats don't have level progression
+                'counter_value' => $baseUses,
+                'reset_timing' => $resetTiming,
+            ]
+        );
     }
 
     /**

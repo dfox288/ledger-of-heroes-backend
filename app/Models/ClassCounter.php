@@ -10,6 +10,7 @@ class ClassCounter extends BaseModel
 
     protected $fillable = [
         'class_id',
+        'feat_id',
         'level',
         'counter_name',
         'counter_value',
@@ -18,13 +19,20 @@ class ClassCounter extends BaseModel
 
     protected $casts = [
         'class_id' => 'integer',
+        'feat_id' => 'integer',
         'level' => 'integer',
         'counter_value' => 'integer',
     ];
 
     // Relationships
+
     public function characterClass(): BelongsTo
     {
         return $this->belongsTo(CharacterClass::class, 'class_id');
+    }
+
+    public function feat(): BelongsTo
+    {
+        return $this->belongsTo(Feat::class);
     }
 }

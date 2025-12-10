@@ -136,6 +136,19 @@ class CharacterClass extends BaseModel
         return $this->hasMany(ClassFeature::class, 'class_id');
     }
 
+    /**
+     * Find a feature by its proficiency choice group.
+     *
+     * Used to look up which feature owns a particular proficiency choice
+     * (e.g., finding "Acolyte of Nature" by choice_group "feature_skill_choice_1").
+     */
+    public function getFeatureByProficiencyChoiceGroup(string $choiceGroup): ?ClassFeature
+    {
+        return $this->features()
+            ->whereHas('proficiencies', fn ($q) => $q->where('is_choice', true)->where('choice_group', $choiceGroup))
+            ->first();
+    }
+
     public function levelProgression(): HasMany
     {
         return $this->hasMany(ClassLevelProgression::class, 'class_id');

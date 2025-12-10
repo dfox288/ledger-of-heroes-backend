@@ -183,10 +183,7 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
             return 'Unknown Feature';
         }
 
-        $feature = $subclass->features()
-            ->whereHas('proficiencies', fn ($q) => $q->where('is_choice', true)->where('choice_group', $choiceGroup)
-            )
-            ->first();
+        $feature = $subclass->getFeatureByProficiencyChoiceGroup($choiceGroup);
 
         return $feature?->feature_name ?? 'Unknown Feature';
     }

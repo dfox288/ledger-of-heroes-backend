@@ -58,14 +58,22 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         }
 
         // Check subclass feature spell choices (e.g., Nature Domain druid cantrip)
+        // Eager load subclass features to avoid N+1 queries
+        $character->loadMissing('characterClasses.subclass.features');
+
         foreach ($character->characterClasses as $pivot) {
             $subclass = $pivot->subclass;
             if (! $subclass) {
                 continue;
             }
 
+            $featureIds = $subclass->features->pluck('id');
+            if ($featureIds->isEmpty()) {
+                continue;
+            }
+
             $spellChoices = EntitySpell::where('reference_type', ClassFeature::class)
-                ->whereIn('reference_id', $subclass->features->pluck('id'))
+                ->whereIn('reference_id', $featureIds)
                 ->where('is_choice', true)
                 ->with(['characterClass', 'reference'])
                 ->get();
@@ -113,7 +121,8 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         // Clear existing spells for this choice before adding new ones
         // This ensures re-submitting replaces rather than duplicates
         // Use the group (cantrips vs spells_known) to determine spell level filter
-        $isCantrip = $parsed['group'] === 'cantrips' || $parsed['group'] === 'feature_cantrip';
+        $group = $parsed['group'] ?? '';
+        $isCantrip = in_array($group, ['cantrips', 'feature_cantrip'], true);
 
         $query = $character->spells()
             ->where('source', $parsed['source']);
@@ -157,7 +166,8 @@ class SpellChoiceHandler extends AbstractChoiceHandler
 
         // Delete CharacterSpell records for this specific choice
         // Use the group (cantrips vs spells_known) to determine spell level filter
-        $isCantrip = $parsed['group'] === 'cantrips' || $parsed['group'] === 'feature_cantrip';
+        $group = $parsed['group'] ?? '';
+        $isCantrip = in_array($group, ['cantrips', 'feature_cantrip'], true);
 
         $query = $character->spells()
             ->where('source', $parsed['source']);

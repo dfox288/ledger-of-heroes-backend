@@ -75,8 +75,10 @@ class CharacterProficiencyService
         // Check subclass feature choices
         $primaryClassPivot = $character->characterClasses->first();
         if ($primaryClassPivot && $primaryClassPivot->subclass) {
+            // Eager load features with proficiencies to avoid N+1 queries
+            $subclass = $primaryClassPivot->subclass->load('features.proficiencies.skill', 'features.proficiencies.proficiencyType');
             $subclassChoices = [];
-            foreach ($primaryClassPivot->subclass->features as $feature) {
+            foreach ($subclass->features as $feature) {
                 $featureChoices = $this->getChoicesFromEntity(
                     $feature,
                     $character,
@@ -323,10 +325,7 @@ class CharacterProficiencyService
             return null;
         }
 
-        return $subclass->features()
-            ->whereHas('proficiencies', fn ($q) => $q->where('is_choice', true)->where('choice_group', $choiceGroup)
-            )
-            ->first();
+        return $subclass->getFeatureByProficiencyChoiceGroup($choiceGroup);
     }
 
     /**

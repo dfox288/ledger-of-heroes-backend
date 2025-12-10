@@ -395,19 +395,13 @@ it('transforms service output for subclass_feature source', function () {
     $feature = Mockery::mock(\stdClass::class);
     $feature->feature_name = 'Acolyte of Nature (Nature Domain)';
 
-    $featuresQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
-    $featuresQuery->shouldReceive('whereHas')
-        ->with('proficiencies', Mockery::any())
-        ->andReturnSelf();
-    $featuresQuery->shouldReceive('first')
-        ->andReturn($feature);
-
     $subclass = Mockery::mock(\stdClass::class);
     $subclass->id = 15;
     $subclass->full_slug = 'phb:cleric-nature-domain';
     $subclass->name = 'Nature Domain';
-    $subclass->shouldReceive('features')
-        ->andReturn($featuresQuery);
+    $subclass->shouldReceive('getFeatureByProficiencyChoiceGroup')
+        ->with('feature_skill_choice_1')
+        ->andReturn($feature);
 
     $characterClassPivot = Mockery::mock(\stdClass::class);
     $characterClassPivot->subclass = $subclass;

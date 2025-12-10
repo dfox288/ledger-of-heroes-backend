@@ -652,13 +652,92 @@ class CharacterProficiencyServiceTest extends TestCase
         // Make the skill choice using the FULL choice_group format (as received from frontend)
         // This is the format returned by getPendingChoices: "FeatureName:base_choice_group"
         $fullChoiceGroup = 'Acolyte of Nature (Nature Domain):feature_skill_choice_1';
+        $baseChoiceGroup = 'feature_skill_choice_1';
         $this->service->makeSkillChoice($character, 'subclass_feature', $fullChoiceGroup, [$nature->full_slug]);
 
         // Assert proficiency was created
         $this->assertCount(1, $character->proficiencies);
         $this->assertTrue($character->proficiencies->contains('skill_slug', $nature->full_slug));
         $this->assertEquals('subclass_feature', $character->proficiencies->first()->source);
-        // Note: The choice_group stored in DB is the full format
-        $this->assertEquals($fullChoiceGroup, $character->proficiencies->first()->choice_group);
+        // Note: For subclass_feature, the choice_group stored in DB is the BASE format
+        // This ensures consistency with read queries in getChoicesFromEntity which use base names
+        $this->assertEquals($baseChoiceGroup, $character->proficiencies->first()->choice_group);
+    }
+
+    /**
+     * Issue #479 fix: Test that subclass_feature selections are returned correctly in getPendingChoices
+     * This is the round-trip test: make a choice, then verify it shows up in selected array
+     */
+    #[Test]
+    public function it_returns_selected_skills_for_subclass_feature_after_making_choice(): void
+    {
+        // Create skills
+        $animalHandling = $this->createSkill('Animal Handling');
+        $nature = $this->createSkill('Nature');
+        $survival = $this->createSkill('Survival');
+
+        // Create Cleric class
+        $clericClass = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric-'.uniqid(),
+        ]);
+
+        // Create Nature Domain subclass
+        $natureDomainSlug = 'cleric-nature-domain-'.uniqid();
+        $natureDomain = CharacterClass::factory()->create([
+            'name' => 'Nature Domain',
+            'slug' => $natureDomainSlug,
+            'parent_class_id' => $clericClass->id,
+        ]);
+
+        // Create "Acolyte of Nature" feature with skill choice
+        $acolyteFeature = $natureDomain->features()->create([
+            'feature_name' => 'Acolyte of Nature (Nature Domain)',
+            'level' => 1,
+            'is_optional' => false,
+            'description' => 'Choose one skill from Animal Handling, Nature, or Survival.',
+        ]);
+
+        // Add skill choices to the feature
+        $acolyteFeature->proficiencies()->createMany([
+            ['proficiency_type' => 'skill', 'skill_id' => $animalHandling->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1', 'quantity' => 1],
+            ['proficiency_type' => 'skill', 'skill_id' => $nature->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
+            ['proficiency_type' => 'skill', 'skill_id' => $survival->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
+        ]);
+
+        // Create character with Cleric + Nature Domain subclass
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $clericClass->full_slug,
+            'subclass_slug' => $natureDomain->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Step 1: Get pending choices BEFORE making any selection
+        $choicesBefore = $this->service->getPendingChoices($character);
+        $this->assertArrayHasKey('subclass_feature', $choicesBefore);
+        $this->assertArrayHasKey('Acolyte of Nature (Nature Domain):feature_skill_choice_1', $choicesBefore['subclass_feature']);
+        $choiceBefore = $choicesBefore['subclass_feature']['Acolyte of Nature (Nature Domain):feature_skill_choice_1'];
+        $this->assertEquals(1, $choiceBefore['quantity']);
+        $this->assertEquals(1, $choiceBefore['remaining']);
+        $this->assertEmpty($choiceBefore['selected_skills']);
+
+        // Step 2: Make the skill choice using full choice_group format (as frontend does)
+        $fullChoiceGroup = 'Acolyte of Nature (Nature Domain):feature_skill_choice_1';
+        $this->service->makeSkillChoice($character, 'subclass_feature', $fullChoiceGroup, [$nature->full_slug]);
+
+        // Step 3: Get pending choices AFTER making selection - THIS is what was broken in #479
+        $character->refresh();
+        $choicesAfter = $this->service->getPendingChoices($character);
+        $this->assertArrayHasKey('subclass_feature', $choicesAfter);
+        $this->assertArrayHasKey('Acolyte of Nature (Nature Domain):feature_skill_choice_1', $choicesAfter['subclass_feature']);
+        $choiceAfter = $choicesAfter['subclass_feature']['Acolyte of Nature (Nature Domain):feature_skill_choice_1'];
+
+        // Verify the choice now shows as resolved
+        $this->assertEquals(1, $choiceAfter['quantity']);
+        $this->assertEquals(0, $choiceAfter['remaining'], 'remaining should be 0 after selection');
+        $this->assertContains($nature->full_slug, $choiceAfter['selected_skills'], 'selected_skills should contain the chosen skill');
     }
 }

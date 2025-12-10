@@ -161,11 +161,17 @@ class CharacterProficiencyService
             }
         }
 
+        // For subclass_feature, use base choice group for storage to match read queries
+        // Other sources use the choice group as-is
+        $storageChoiceGroup = $sourceEnum === CharacterSource::SUBCLASS_FEATURE
+            ? $lookupChoiceGroup
+            : $choiceGroup;
+
         // Clear existing choices for this source + choice_group before adding new ones
         // This ensures re-submitting replaces rather than adds
         $character->proficiencies()
             ->where('source', $source)
-            ->where('choice_group', $choiceGroup)
+            ->where('choice_group', $storageChoiceGroup)
             ->delete();
 
         // Create the proficiencies
@@ -174,7 +180,7 @@ class CharacterProficiencyService
                 'character_id' => $character->id,
                 'skill_slug' => $skillSlug,
                 'source' => $source,
-                'choice_group' => $choiceGroup,
+                'choice_group' => $storageChoiceGroup,
             ]);
         }
 
@@ -263,10 +269,16 @@ class CharacterProficiencyService
             }
         }
 
+        // For subclass_feature, use base choice group for storage to match read queries
+        // Other sources use the choice group as-is
+        $storageChoiceGroup = $sourceEnum === CharacterSource::SUBCLASS_FEATURE
+            ? $lookupChoiceGroup
+            : $choiceGroup;
+
         // Clear existing choices for this source + choice_group before adding new ones
         $character->proficiencies()
             ->where('source', $source)
-            ->where('choice_group', $choiceGroup)
+            ->where('choice_group', $storageChoiceGroup)
             ->delete();
 
         // Create the proficiencies
@@ -275,7 +287,7 @@ class CharacterProficiencyService
                 'character_id' => $character->id,
                 'proficiency_type_slug' => $proficiencyTypeSlug,
                 'source' => $source,
-                'choice_group' => $choiceGroup,
+                'choice_group' => $storageChoiceGroup,
             ]);
         }
 

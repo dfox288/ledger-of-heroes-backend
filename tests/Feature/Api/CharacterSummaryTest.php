@@ -653,4 +653,164 @@ class CharacterSummaryTest extends TestCase
                 ],
             ]);
     }
+
+    /**
+     * Helper to create a skill with required ability score.
+     */
+    private function createSkill(string $baseName): \App\Models\Skill
+    {
+        $abilityScore = \App\Models\AbilityScore::firstOrCreate(
+            ['code' => 'WIS'],
+            ['name' => 'Wisdom', 'slug' => 'wisdom']
+        );
+
+        $uniqueId = uniqid();
+        $slug = strtolower(str_replace(' ', '-', $baseName)).'-'.$uniqueId;
+
+        return \App\Models\Skill::create([
+            'name' => $baseName.' '.$uniqueId,
+            'slug' => $slug,
+            'full_slug' => 'test:'.$slug,
+            'ability_score_id' => $abilityScore->id,
+        ]);
+    }
+
+    /**
+     * Issue #480 fix: Verify subclass_feature proficiencies are counted in summary
+     */
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_counts_subclass_feature_proficiencies_in_summary()
+    {
+        // Create skill for choices
+        $nature = $this->createSkill('Nature');
+
+        // Create Cleric class
+        $clericClass = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric-'.uniqid(),
+        ]);
+
+        // Create Nature Domain subclass
+        $natureDomain = CharacterClass::factory()->create([
+            'name' => 'Nature Domain',
+            'slug' => 'cleric-nature-domain-'.uniqid(),
+            'parent_class_id' => $clericClass->id,
+        ]);
+
+        // Create "Acolyte of Nature" feature with skill choice
+        $acolyteFeature = $natureDomain->features()->create([
+            'feature_name' => 'Acolyte of Nature',
+            'level' => 1,
+            'is_optional' => false,
+            'description' => 'Choose one skill.',
+        ]);
+
+        // Add skill choice to the feature (1 skill from Nature)
+        $acolyteFeature->proficiencies()->create([
+            'proficiency_type' => 'skill',
+            'skill_id' => $nature->id,
+            'is_choice' => true,
+            'choice_group' => 'feature_skill_choice_1',
+            'quantity' => 1,
+        ]);
+
+        // Create character with Cleric + Nature Domain subclass
+        $character = Character::factory()->withStandardArray()->create();
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $clericClass->full_slug,
+            'subclass_slug' => $natureDomain->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Get summary - should show 1 pending proficiency from subclass_feature
+        $response = $this->getJson("/api/v1/characters/{$character->id}/summary");
+
+        $response->assertOk()
+            ->assertJson([
+                'data' => [
+                    'pending_choices' => [
+                        'proficiencies' => 1, // 1 from subclass_feature
+                    ],
+                ],
+            ]);
+    }
+
+    /**
+     * Issue #479/#480 fix: Verify subclass_feature proficiency resolves correctly and shows 0 after selection.
+     *
+     * This test uses the CharacterProficiencyService directly instead of the HTTP API
+     * to avoid URL encoding issues with the choice ID (which contains colons and pipes).
+     */
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_shows_zero_proficiencies_after_subclass_feature_choice_is_resolved()
+    {
+        // Create skill for choices
+        $nature = $this->createSkill('Nature');
+
+        // Create Cleric class
+        $clericClass = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric-'.uniqid(),
+        ]);
+
+        // Create Nature Domain subclass
+        $natureDomain = CharacterClass::factory()->create([
+            'name' => 'Nature Domain',
+            'slug' => 'cleric-nature-domain-'.uniqid(),
+            'parent_class_id' => $clericClass->id,
+        ]);
+
+        // Create "Acolyte of Nature" feature with skill choice
+        $acolyteFeature = $natureDomain->features()->create([
+            'feature_name' => 'Acolyte of Nature',
+            'level' => 1,
+            'is_optional' => false,
+            'description' => 'Choose one skill.',
+        ]);
+
+        // Add skill choice to the feature
+        $acolyteFeature->proficiencies()->create([
+            'proficiency_type' => 'skill',
+            'skill_id' => $nature->id,
+            'is_choice' => true,
+            'choice_group' => 'feature_skill_choice_1',
+            'quantity' => 1,
+        ]);
+
+        // Create character with Cleric + Nature Domain subclass
+        $character = Character::factory()->withStandardArray()->create();
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $clericClass->full_slug,
+            'subclass_slug' => $natureDomain->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Verify pending before resolution via summary API
+        $responseBefore = $this->getJson("/api/v1/characters/{$character->id}/summary");
+        $responseBefore->assertOk()
+            ->assertJson(['data' => ['pending_choices' => ['proficiencies' => 1]]]);
+
+        // Resolve the choice using the service directly (avoid URL encoding issues)
+        $proficiencyService = app(\App\Services\CharacterProficiencyService::class);
+        $fullChoiceGroup = 'Acolyte of Nature:feature_skill_choice_1';
+        $proficiencyService->makeSkillChoice($character, 'subclass_feature', $fullChoiceGroup, [$nature->full_slug]);
+
+        // Verify pending after resolution via summary API - should be 0
+        $character->refresh();
+        $responseAfter = $this->getJson("/api/v1/characters/{$character->id}/summary");
+        $responseAfter->assertOk()
+            ->assertJson([
+                'data' => [
+                    'pending_choices' => [
+                        'proficiencies' => 0, // Should be 0 after resolution
+                    ],
+                ],
+            ]);
+    }
 }

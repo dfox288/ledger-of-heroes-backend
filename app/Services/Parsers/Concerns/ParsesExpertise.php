@@ -12,10 +12,46 @@ namespace App\Services\Parsers\Concerns;
  * - "add twice your proficiency bonus"
  * - "proficiency bonus is doubled"
  *
- * Stores in entity_modifiers with modifier_category = 'skill_expertise'.
+ * Stores in entity_modifiers with modifier_category = 'expertise'.
  */
 trait ParsesExpertise
 {
+    private const EXPERTISE_MODIFIER_CATEGORY = 'expertise';
+
+    /**
+     * Build an expertise modifier array with consistent structure.
+     */
+    private function buildExpertiseModifier(
+        ?string $skillName,
+        ?string $toolName,
+        ?string $abilityScoreName,
+        bool $grantsProficiency,
+        ?string $condition
+    ): array {
+        return [
+            'modifier_category' => self::EXPERTISE_MODIFIER_CATEGORY,
+            'skill_name' => $skillName ?: null,
+            'tool_name' => $toolName,
+            'ability_score_name' => $abilityScoreName ? trim($abilityScoreName) : null,
+            'grants_proficiency' => $grantsProficiency,
+            'condition' => $condition,
+        ];
+    }
+
+    /**
+     * Check if a modifier with the same skill already exists.
+     *
+     * Note: We only check skill_name, not condition, because later patterns (without
+     * condition extraction) might match the same skill. The first pattern match
+     * (with condition) is preferred as it has more specific information.
+     */
+    private function expertiseModifierExists(array $modifiers, ?string $skillName, ?string $condition = null): bool
+    {
+        return collect($modifiers)->contains(function ($m) use ($skillName) {
+            return $m['skill_name'] === $skillName;
+        });
+    }
+
     /**
      * Parse expertise/double proficiency patterns from description text.
      *
@@ -64,14 +100,13 @@ trait ParsesExpertise
                     $condition = strtolower($conditionType).' '.trim($conditionText);
                 }
 
-                $modifiers[] = [
-                    'modifier_category' => 'expertise',
-                    'skill_name' => $skillName ?: null,
-                    'tool_name' => null,
-                    'ability_score_name' => $abilityScore,
-                    'grants_proficiency' => $grantsProficiency,
-                    'condition' => $condition,
-                ];
+                $modifiers[] = $this->buildExpertiseModifier(
+                    $skillName,
+                    null,
+                    $abilityScore,
+                    $grantsProficiency,
+                    $condition
+                );
             }
         }
 
@@ -84,17 +119,14 @@ trait ParsesExpertise
                 $abilityScore = $match[1] ?? null;
                 $skillName = trim($match[2] ?? '');
 
-                // Check we haven't already added this skill
-                $exists = collect($modifiers)->contains(fn ($m) => $m['skill_name'] === $skillName);
-                if (! $exists) {
-                    $modifiers[] = [
-                        'modifier_category' => 'expertise',
-                        'skill_name' => $skillName ?: null,
-                        'tool_name' => null,
-                        'ability_score_name' => $abilityScore,
-                        'grants_proficiency' => $grantsProficiency,
-                        'condition' => null,
-                    ];
+                if (! $this->expertiseModifierExists($modifiers, $skillName)) {
+                    $modifiers[] = $this->buildExpertiseModifier(
+                        $skillName,
+                        null,
+                        $abilityScore,
+                        $grantsProficiency,
+                        null
+                    );
                 }
             }
         }
@@ -106,16 +138,14 @@ trait ParsesExpertise
             foreach ($matches as $match) {
                 $skillName = trim($match[1]);
 
-                $exists = collect($modifiers)->contains(fn ($m) => $m['skill_name'] === $skillName);
-                if (! $exists) {
-                    $modifiers[] = [
-                        'modifier_category' => 'expertise',
-                        'skill_name' => $skillName,
-                        'tool_name' => null,
-                        'ability_score_name' => null,
-                        'grants_proficiency' => true,
-                        'condition' => null,
-                    ];
+                if (! $this->expertiseModifierExists($modifiers, $skillName)) {
+                    $modifiers[] = $this->buildExpertiseModifier(
+                        $skillName,
+                        null,
+                        null,
+                        true,
+                        null
+                    );
                 }
             }
         }
@@ -127,16 +157,14 @@ trait ParsesExpertise
             foreach ($matches as $match) {
                 $skillName = trim($match[1]);
 
-                $exists = collect($modifiers)->contains(fn ($m) => $m['skill_name'] === $skillName);
-                if (! $exists) {
-                    $modifiers[] = [
-                        'modifier_category' => 'expertise',
-                        'skill_name' => $skillName,
-                        'tool_name' => null,
-                        'ability_score_name' => null,
-                        'grants_proficiency' => false,
-                        'condition' => null,
-                    ];
+                if (! $this->expertiseModifierExists($modifiers, $skillName)) {
+                    $modifiers[] = $this->buildExpertiseModifier(
+                        $skillName,
+                        null,
+                        null,
+                        false,
+                        null
+                    );
                 }
             }
         }
@@ -148,16 +176,14 @@ trait ParsesExpertise
             foreach ($matches as $match) {
                 $skillName = trim($match[1]);
 
-                $exists = collect($modifiers)->contains(fn ($m) => $m['skill_name'] === $skillName);
-                if (! $exists) {
-                    $modifiers[] = [
-                        'modifier_category' => 'expertise',
-                        'skill_name' => $skillName,
-                        'tool_name' => null,
-                        'ability_score_name' => null,
-                        'grants_proficiency' => false,
-                        'condition' => null,
-                    ];
+                if (! $this->expertiseModifierExists($modifiers, $skillName)) {
+                    $modifiers[] = $this->buildExpertiseModifier(
+                        $skillName,
+                        null,
+                        null,
+                        false,
+                        null
+                    );
                 }
             }
         }
@@ -167,16 +193,15 @@ trait ParsesExpertise
 
         if (preg_match_all($toolPattern, $text, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
-                $toolName = strtolower(trim($match[1]));
+                $toolName = trim($match[1]);
 
-                $modifiers[] = [
-                    'modifier_category' => 'expertise',
-                    'skill_name' => null,
-                    'tool_name' => $toolName,
-                    'ability_score_name' => null,
-                    'grants_proficiency' => false,
-                    'condition' => null,
-                ];
+                $modifiers[] = $this->buildExpertiseModifier(
+                    null,
+                    $toolName,
+                    null,
+                    false,
+                    null
+                );
             }
         }
 

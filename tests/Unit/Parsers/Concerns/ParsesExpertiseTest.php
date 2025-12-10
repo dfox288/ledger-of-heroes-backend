@@ -130,7 +130,7 @@ class ParsesExpertiseTest extends TestCase
     public function it_parses_tool_expertise_pattern()
     {
         // Artificer's Lore style for tools
-        $text = 'Whenever you make an ability check with thieves\' tools, you can add double your proficiency bonus to the check.';
+        $text = "Whenever you make an ability check with thieves' tools, you can add double your proficiency bonus to the check.";
 
         $result = $this->parseExpertise($text);
 

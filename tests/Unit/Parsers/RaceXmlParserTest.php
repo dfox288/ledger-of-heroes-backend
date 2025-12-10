@@ -1240,4 +1240,95 @@ XML;
         $this->assertArrayHasKey('skill_advantage_modifiers', $races[0]);
         $this->assertCount(0, $races[0]['skill_advantage_modifiers']);
     }
+
+    // ==================== EXPERTISE PARSING TESTS ====================
+
+    #[Test]
+    public function it_parses_stonecunning_expertise_from_trait()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <race>
+    <name>Dwarf (Hill)</name>
+    <size>M</size>
+    <speed>25</speed>
+    <trait category="species">
+      <name>Stonecunning</name>
+      <text>Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check, instead of your normal proficiency bonus.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races);
+        $this->assertArrayHasKey('expertise_modifiers', $races[0]);
+        $this->assertCount(1, $races[0]['expertise_modifiers']);
+
+        $expertise = $races[0]['expertise_modifiers'][0];
+        $this->assertEquals('expertise', $expertise['modifier_category']);
+        $this->assertEquals('History', $expertise['skill_name']);
+        $this->assertEquals('Intelligence', $expertise['ability_score_name']);
+        $this->assertTrue($expertise['grants_proficiency']);
+        $this->assertEquals('related to the origin of stonework', $expertise['condition']);
+    }
+
+    #[Test]
+    public function it_parses_artificers_lore_expertise_from_trait()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <race>
+    <name>Gnome (Rock)</name>
+    <size>S</size>
+    <speed>25</speed>
+    <trait>
+      <name>Artificer's Lore</name>
+      <text>Whenever you make an Intelligence (History) check related to magic items, alchemical objects, or technological devices, you can add twice your proficiency bonus, instead of any proficiency bonus you normally apply.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races);
+        $this->assertArrayHasKey('expertise_modifiers', $races[0]);
+        $this->assertCount(1, $races[0]['expertise_modifiers']);
+
+        $expertise = $races[0]['expertise_modifiers'][0];
+        $this->assertEquals('expertise', $expertise['modifier_category']);
+        $this->assertEquals('History', $expertise['skill_name']);
+        $this->assertEquals('Intelligence', $expertise['ability_score_name']);
+        $this->assertFalse($expertise['grants_proficiency']);
+        $this->assertEquals('related to magic items, alchemical objects, or technological devices', $expertise['condition']);
+    }
+
+    #[Test]
+    public function it_returns_empty_expertise_modifiers_for_race_without_expertise()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <race>
+    <name>Human</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait>
+      <name>Description</name>
+      <text>Humans are the most adaptable folk in the multiverse.</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $races = $this->parser->parse($xml);
+
+        $this->assertCount(1, $races);
+        $this->assertArrayHasKey('expertise_modifiers', $races[0]);
+        $this->assertCount(0, $races[0]['expertise_modifiers']);
+    }
 }

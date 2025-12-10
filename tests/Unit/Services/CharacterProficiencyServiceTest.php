@@ -474,4 +474,127 @@ class CharacterProficiencyServiceTest extends TestCase
         $this->assertCount(1, $proficiencies);
         $this->assertTrue($proficiencies->contains('proficiency_type_slug', $heavyArmor->full_slug));
     }
+
+    #[Test]
+    public function it_returns_pending_choices_from_subclass_features(): void
+    {
+        // Create skills
+        $animalHandling = $this->createSkill('Animal Handling');
+        $nature = $this->createSkill('Nature');
+        $survival = $this->createSkill('Survival');
+
+        // Create Cleric class
+        $clericClass = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric-'.uniqid(),
+        ]);
+
+        // Create Nature Domain subclass
+        $natureDomainSlug = 'cleric-nature-domain-'.uniqid();
+        $natureDomain = CharacterClass::factory()->create([
+            'name' => 'Nature Domain',
+            'slug' => $natureDomainSlug,
+            'parent_class_id' => $clericClass->id,
+        ]);
+
+        // Create "Acolyte of Nature" feature with skill choice
+        $acolyteFeature = $natureDomain->features()->create([
+            'feature_name' => 'Acolyte of Nature',
+            'level' => 1,
+            'is_optional' => false,
+            'description' => 'Choose one skill from Animal Handling, Nature, or Survival.',
+        ]);
+
+        // Add skill choices to the feature
+        $acolyteFeature->proficiencies()->createMany([
+            ['proficiency_type' => 'skill', 'skill_id' => $animalHandling->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1', 'quantity' => 1],
+            ['proficiency_type' => 'skill', 'skill_id' => $nature->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
+            ['proficiency_type' => 'skill', 'skill_id' => $survival->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
+        ]);
+
+        // Create character with Cleric + Nature Domain subclass
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $clericClass->full_slug,
+            'subclass_slug' => $natureDomain->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Call getPendingChoices
+        $choices = $this->service->getPendingChoices($character);
+
+        // Assert that subclass_feature choices are returned
+        $this->assertArrayHasKey('subclass_feature', $choices);
+        $this->assertArrayHasKey('Acolyte of Nature:feature_skill_choice_1', $choices['subclass_feature']);
+
+        $choiceData = $choices['subclass_feature']['Acolyte of Nature:feature_skill_choice_1'];
+        $this->assertEquals(1, $choiceData['quantity']);
+        $this->assertEquals(1, $choiceData['remaining']);
+        $this->assertCount(3, $choiceData['options']);
+
+        // Verify options include the three skills
+        $skillSlugs = collect($choiceData['options'])->pluck('skill_slug')->filter();
+        $this->assertContains($animalHandling->full_slug, $skillSlugs);
+        $this->assertContains($nature->full_slug, $skillSlugs);
+        $this->assertContains($survival->full_slug, $skillSlugs);
+    }
+
+    #[Test]
+    public function it_can_make_skill_choice_from_subclass_feature(): void
+    {
+        // Create skills
+        $animalHandling = $this->createSkill('Animal Handling');
+        $nature = $this->createSkill('Nature');
+        $survival = $this->createSkill('Survival');
+
+        // Create Cleric class
+        $clericClass = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric-'.uniqid(),
+        ]);
+
+        // Create Nature Domain subclass
+        $natureDomainSlug = 'cleric-nature-domain-'.uniqid();
+        $natureDomain = CharacterClass::factory()->create([
+            'name' => 'Nature Domain',
+            'slug' => $natureDomainSlug,
+            'parent_class_id' => $clericClass->id,
+        ]);
+
+        // Create "Acolyte of Nature" feature with skill choice
+        $acolyteFeature = $natureDomain->features()->create([
+            'feature_name' => 'Acolyte of Nature',
+            'level' => 1,
+            'is_optional' => false,
+            'description' => 'Choose one skill from Animal Handling, Nature, or Survival.',
+        ]);
+
+        // Add skill choices to the feature
+        $acolyteFeature->proficiencies()->createMany([
+            ['proficiency_type' => 'skill', 'skill_id' => $animalHandling->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1', 'quantity' => 1],
+            ['proficiency_type' => 'skill', 'skill_id' => $nature->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
+            ['proficiency_type' => 'skill', 'skill_id' => $survival->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
+        ]);
+
+        // Create character with Cleric + Nature Domain subclass
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $clericClass->full_slug,
+            'subclass_slug' => $natureDomain->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Make the skill choice
+        $this->service->makeSkillChoice($character, 'subclass_feature', 'feature_skill_choice_1', [$nature->full_slug]);
+
+        // Assert proficiency was created
+        $this->assertCount(1, $character->proficiencies);
+        $this->assertTrue($character->proficiencies->contains('skill_slug', $nature->full_slug));
+        $this->assertEquals('subclass_feature', $character->proficiencies->first()->source);
+        $this->assertEquals('feature_skill_choice_1', $character->proficiencies->first()->choice_group);
+    }
 }

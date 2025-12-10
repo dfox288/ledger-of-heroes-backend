@@ -32,7 +32,7 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
                     continue;
                 }
 
-                $sourceName = $this->getSourceName($character, $source);
+                $sourceName = $this->getSourceName($character, $source, $choiceGroup);
 
                 // Determine subtype from proficiency_type
                 $subtype = $choiceData['proficiency_type'] ?? 'skill';
@@ -115,16 +115,18 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
             'class' => $character->primary_class?->full_slug ?? '',
             'race' => $character->race?->full_slug ?? '',
             'background' => $character->background?->full_slug ?? '',
+            'subclass_feature' => $character->characterClasses->first()?->subclass?->full_slug ?? '',
             default => '',
         };
     }
 
-    private function getSourceName(Character $character, string $source): string
+    private function getSourceName(Character $character, string $source, string $choiceGroup = ''): string
     {
         return match ($source) {
             'class' => $character->primary_class?->name ?? 'Unknown Class',
             'race' => $character->race?->name ?? 'Unknown Race',
             'background' => $character->background?->name ?? 'Unknown Background',
+            'subclass_feature' => $this->getSubclassFeatureSourceName($character, $choiceGroup),
             default => 'Unknown',
         };
     }
@@ -172,5 +174,20 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
         }
 
         return null;
+    }
+
+    private function getSubclassFeatureSourceName(Character $character, string $choiceGroup): string
+    {
+        $subclass = $character->characterClasses->first()?->subclass;
+        if (! $subclass) {
+            return 'Unknown Feature';
+        }
+
+        $feature = $subclass->features()
+            ->whereHas('proficiencies', fn ($q) => $q->where('is_choice', true)->where('choice_group', $choiceGroup)
+            )
+            ->first();
+
+        return $feature?->feature_name ?? 'Unknown Feature';
     }
 }

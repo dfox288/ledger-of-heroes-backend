@@ -176,6 +176,7 @@ class CharacterFeatureService
      *
      * Respects level_requirement from the entity_spells pivot, so higher-level
      * domain spells aren't assigned until the character reaches that level.
+     * Spells with NULL level_requirement are granted immediately (e.g., bonus cantrips).
      */
     private function assignSpellsFromFeature(Character $character, ClassFeature $feature, int $characterLevel): void
     {
@@ -187,8 +188,12 @@ class CharacterFeatureService
         }
 
         // Load spells with pivot data (level_requirement, is_cantrip)
+        // Include spells where level_requirement <= character level OR level_requirement is NULL
         $featureSpells = $feature->spells()
-            ->wherePivot('level_requirement', '<=', $characterLevel)
+            ->where(function ($query) use ($characterLevel) {
+                $query->where('entity_spells.level_requirement', '<=', $characterLevel)
+                    ->orWhereNull('entity_spells.level_requirement');
+            })
             ->get();
 
         if ($featureSpells->isEmpty()) {

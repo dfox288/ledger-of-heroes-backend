@@ -389,3 +389,88 @@ it('skips choices with invalid source slug', function () {
 
     expect($choices)->toHaveCount(0);
 });
+
+it('transforms service output for subclass_feature source', function () {
+    // Mock character with cleric class and nature domain subclass
+    $feature = Mockery::mock(\stdClass::class);
+    $feature->feature_name = 'Acolyte of Nature (Nature Domain)';
+
+    $featuresQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $featuresQuery->shouldReceive('whereHas')
+        ->with('proficiencies', Mockery::any())
+        ->andReturnSelf();
+    $featuresQuery->shouldReceive('first')
+        ->andReturn($feature);
+
+    $subclass = Mockery::mock(\stdClass::class);
+    $subclass->id = 15;
+    $subclass->full_slug = 'phb:cleric-nature-domain';
+    $subclass->name = 'Nature Domain';
+    $subclass->shouldReceive('features')
+        ->andReturn($featuresQuery);
+
+    $characterClassPivot = Mockery::mock(\stdClass::class);
+    $characterClassPivot->subclass = $subclass;
+
+    $characterClasses = collect([$characterClassPivot]);
+
+    $this->character->shouldReceive('__get')
+        ->with('characterClasses')
+        ->andReturn($characterClasses);
+    $this->character->shouldReceive('getAttribute')
+        ->with('characterClasses')
+        ->andReturn($characterClasses);
+    $this->character->shouldReceive('offsetExists')->andReturn(true);
+
+    // Mock proficiency service response for subclass_feature
+    $this->proficiencyService->shouldReceive('getPendingChoices')
+        ->with($this->character)
+        ->andReturn([
+            'subclass_feature' => [
+                'feature_skill_choice_1' => [
+                    'proficiency_type' => 'skill',
+                    'proficiency_subcategory' => null,
+                    'quantity' => 1,
+                    'remaining' => 1,
+                    'selected_skill_slugs' => [],
+                    'selected_proficiency_type_slugs' => [],
+                    'options' => [
+                        [
+                            'type' => 'skill',
+                            'skill_slug' => 'core:animal-handling',
+                            'skill' => ['full_slug' => 'core:animal-handling', 'name' => 'Animal Handling', 'slug' => 'animal-handling'],
+                        ],
+                        [
+                            'type' => 'skill',
+                            'skill_slug' => 'core:nature',
+                            'skill' => ['full_slug' => 'core:nature', 'name' => 'Nature', 'slug' => 'nature'],
+                        ],
+                        [
+                            'type' => 'skill',
+                            'skill_slug' => 'core:survival',
+                            'skill' => ['full_slug' => 'core:survival', 'name' => 'Survival', 'slug' => 'survival'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+    $choices = $this->handler->getChoices($this->character);
+
+    expect($choices)
+        ->toHaveCount(1)
+        ->first()->toBeInstanceOf(PendingChoice::class)
+        ->first()->type->toBe('proficiency')
+        ->first()->subtype->toBe('skill')
+        ->first()->source->toBe('subclass_feature')
+        ->first()->sourceName->toContain('Acolyte of Nature')
+        ->first()->quantity->toBe(1)
+        ->first()->remaining->toBe(1)
+        ->first()->selected->toBe([])
+        ->first()->options->toHaveCount(3);
+
+    // Verify options contain the expected skills
+    $firstChoice = $choices->first();
+    $optionSlugs = collect($firstChoice->options)->pluck('full_slug')->all();
+    expect($optionSlugs)->toContain('core:animal-handling', 'core:nature', 'core:survival');
+});

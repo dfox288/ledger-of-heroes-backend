@@ -351,4 +351,70 @@ class CharacterFeatureServiceTest extends TestCase
         $this->assertNotNull($features->first()->feature);
         $this->assertEquals('Second Wind', $features->first()->feature->feature_name);
     }
+
+    // =====================
+    // Subclass Feature Population Tests
+    // =====================
+
+    #[Test]
+    public function it_assigns_bonus_cantrip_with_null_level_requirement_from_subclass(): void
+    {
+        // Create Cleric base class
+        $clericClass = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric',
+            'full_slug' => 'phb:cleric',
+        ]);
+
+        // Create Light Domain subclass
+        $lightDomain = CharacterClass::factory()->create([
+            'name' => 'Light Domain',
+            'slug' => 'cleric-light-domain',
+            'full_slug' => 'phb:cleric-light-domain',
+            'parent_class_id' => $clericClass->id,
+        ]);
+
+        // Create a Bonus Cantrip feature for Light Domain (level 1, always prepared)
+        $bonusCantrip = ClassFeature::create([
+            'class_id' => $lightDomain->id,
+            'level' => 1,
+            'feature_name' => 'Bonus Cantrip (Light Domain)',
+            'description' => 'You gain the light cantrip.',
+            'is_optional' => false,
+            'is_always_prepared' => true,
+        ]);
+
+        // Create the Light spell
+        $lightSpell = \App\Models\Spell::factory()->create([
+            'name' => 'Light',
+            'slug' => 'light',
+            'full_slug' => 'phb:light',
+            'level' => 0,
+        ]);
+
+        // Attach the Light spell to the Bonus Cantrip feature with NULL level_requirement
+        // This simulates the bug: bonus cantrips have level_requirement=NULL
+        $bonusCantrip->spells()->attach($lightSpell->id, [
+            'level_requirement' => null, // NULL means available immediately
+            'is_cantrip' => true,
+        ]);
+
+        // Create a level 1 Cleric character
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $clericClass->slug,
+            'level' => 1,
+        ]);
+
+        // Populate subclass features (should include the Light cantrip)
+        $this->service->populateFromSubclass($character, $clericClass->slug, $lightDomain->full_slug);
+
+        // Verify the Light cantrip was assigned
+        $character->refresh();
+        $lightSpellAssigned = $character->spells()->where('spell_slug', 'phb:light')->first();
+
+        $this->assertNotNull($lightSpellAssigned, 'Light cantrip should be assigned to character');
+        $this->assertEquals('subclass', $lightSpellAssigned->source);
+        $this->assertEquals('always_prepared', $lightSpellAssigned->preparation_status);
+    }
 }

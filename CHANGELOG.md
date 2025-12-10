@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Issue #465**: Surface subclass feature choices in pending-choices API
+  - Fixed bonus cantrip auto-grant bug: spells with NULL `level_requirement` now correctly granted
+  - Added `SUBCLASS_FEATURE` to `CharacterSource` enum for tracking proficiency/spell sources
+  - Extended `CharacterProficiencyService::getPendingChoices()` to include subclass feature choices
+  - Extended `ProficiencyChoiceHandler` to handle `subclass_feature` source type
+  - Extended `SpellChoiceHandler` to surface spell choices from subclass features (e.g., Nature Domain's druid cantrip)
+  - Nature Domain's Acolyte of Nature skill choice now appears in pending-choices
+  - Light Domain's bonus `light` cantrip now auto-assigned when subclass selected
+
 ### Changed
 
 - **Issue #436**: Enhanced character validation endpoint with human-readable messages

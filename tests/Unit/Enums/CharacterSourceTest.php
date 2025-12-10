@@ -14,6 +14,7 @@ class CharacterSourceTest extends TestCase
         $this->assertSame('race', CharacterSource::RACE->value);
         $this->assertSame('background', CharacterSource::BACKGROUND->value);
         $this->assertSame('class', CharacterSource::CHARACTER_CLASS->value);
+        $this->assertSame('subclass_feature', CharacterSource::SUBCLASS_FEATURE->value);
         $this->assertSame('feat', CharacterSource::FEAT->value);
         $this->assertSame('item', CharacterSource::ITEM->value);
         $this->assertSame('other', CharacterSource::OTHER->value);
@@ -25,6 +26,7 @@ class CharacterSourceTest extends TestCase
         $this->assertSame('Race', CharacterSource::RACE->label());
         $this->assertSame('Background', CharacterSource::BACKGROUND->label());
         $this->assertSame('Class', CharacterSource::CHARACTER_CLASS->label());
+        $this->assertSame('Subclass Feature', CharacterSource::SUBCLASS_FEATURE->label());
         $this->assertSame('Feat', CharacterSource::FEAT->label());
         $this->assertSame('Item', CharacterSource::ITEM->label());
         $this->assertSame('Other', CharacterSource::OTHER->label());
@@ -59,8 +61,9 @@ class CharacterSourceTest extends TestCase
     {
         $sources = CharacterSource::forProficiencies();
 
-        $this->assertCount(3, $sources);
+        $this->assertCount(4, $sources);
         $this->assertContains(CharacterSource::CHARACTER_CLASS, $sources);
+        $this->assertContains(CharacterSource::SUBCLASS_FEATURE, $sources);
         $this->assertContains(CharacterSource::RACE, $sources);
         $this->assertContains(CharacterSource::BACKGROUND, $sources);
     }
@@ -70,8 +73,9 @@ class CharacterSourceTest extends TestCase
     {
         $sources = CharacterSource::forSpells();
 
-        $this->assertCount(5, $sources);
+        $this->assertCount(6, $sources);
         $this->assertContains(CharacterSource::CHARACTER_CLASS, $sources);
+        $this->assertContains(CharacterSource::SUBCLASS_FEATURE, $sources);
         $this->assertContains(CharacterSource::RACE, $sources);
         $this->assertContains(CharacterSource::FEAT, $sources);
         $this->assertContains(CharacterSource::ITEM, $sources);

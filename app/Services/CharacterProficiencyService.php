@@ -72,6 +72,26 @@ class CharacterProficiencyService
             );
         }
 
+        // Check subclass feature choices
+        $primaryClassPivot = $character->characterClasses->first();
+        if ($primaryClassPivot && $primaryClassPivot->subclass) {
+            $subclassChoices = [];
+            foreach ($primaryClassPivot->subclass->features as $feature) {
+                $featureChoices = $this->getChoicesFromEntity(
+                    $feature,
+                    $character,
+                    'subclass_feature'
+                );
+                foreach ($featureChoices as $group => $data) {
+                    $key = $feature->feature_name.':'.$group;
+                    $subclassChoices[$key] = $data;
+                }
+            }
+            if (! empty($subclassChoices)) {
+                $choices['subclass_feature'] = $subclassChoices;
+            }
+        }
+
         return $choices;
     }
 
@@ -97,6 +117,7 @@ class CharacterProficiencyService
             CharacterSource::CHARACTER_CLASS => $character->primary_class,
             CharacterSource::RACE => $character->race,
             CharacterSource::BACKGROUND => $character->background,
+            CharacterSource::SUBCLASS_FEATURE => $this->getSubclassFeatureEntity($character, $choiceGroup),
             default => null,
         };
 
@@ -175,6 +196,7 @@ class CharacterProficiencyService
             CharacterSource::CHARACTER_CLASS => $character->primary_class,
             CharacterSource::RACE => $character->race,
             CharacterSource::BACKGROUND => $character->background,
+            CharacterSource::SUBCLASS_FEATURE => $this->getSubclassFeatureEntity($character, $choiceGroup),
             default => null,
         };
 
@@ -289,6 +311,22 @@ class CharacterProficiencyService
 
         // Refresh the relationship
         $character->load('proficiencies');
+    }
+
+    /**
+     * Get subclass feature entity by choice group.
+     */
+    private function getSubclassFeatureEntity(Character $character, string $choiceGroup): ?\App\Models\ClassFeature
+    {
+        $subclass = $character->characterClasses->first()?->subclass;
+        if (! $subclass) {
+            return null;
+        }
+
+        return $subclass->features()
+            ->whereHas('proficiencies', fn ($q) => $q->where('is_choice', true)->where('choice_group', $choiceGroup)
+            )
+            ->first();
     }
 
     /**

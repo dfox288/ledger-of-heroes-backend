@@ -7,6 +7,8 @@ use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
 use App\Models\CharacterClassPivot;
 use App\Models\CharacterSpell;
+use App\Models\ClassFeature;
+use App\Models\EntitySpell;
 use App\Models\Spell;
 use Illuminate\Support\Collection;
 
@@ -55,6 +57,28 @@ class SpellChoiceHandler extends AbstractChoiceHandler
             }
         }
 
+        // Check subclass feature spell choices (e.g., Nature Domain druid cantrip)
+        foreach ($character->characterClasses as $pivot) {
+            $subclass = $pivot->subclass;
+            if (! $subclass) {
+                continue;
+            }
+
+            $spellChoices = EntitySpell::where('reference_type', ClassFeature::class)
+                ->whereIn('reference_id', $subclass->features->pluck('id'))
+                ->where('is_choice', true)
+                ->with(['characterClass', 'reference'])
+                ->get();
+
+            foreach ($spellChoices as $spellChoice) {
+                $feature = $spellChoice->reference;
+                $choice = $this->buildFeatureSpellChoice($character, $pivot, $feature, $spellChoice);
+                if ($choice) {
+                    $choices->push($choice);
+                }
+            }
+        }
+
         return $choices;
     }
 
@@ -89,19 +113,23 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         // Clear existing spells for this choice before adding new ones
         // This ensures re-submitting replaces rather than duplicates
         // Use the group (cantrips vs spells_known) to determine spell level filter
-        $isCantrip = $parsed['group'] === 'cantrips';
+        $isCantrip = $parsed['group'] === 'cantrips' || $parsed['group'] === 'feature_cantrip';
 
-        $character->spells()
-            ->where('source', $parsed['source'])
-            ->where('level_acquired', $parsed['level'])
-            ->whereHas('spell', function ($query) use ($isCantrip) {
-                if ($isCantrip) {
-                    $query->where('level', 0);
-                } else {
-                    $query->where('level', '>', 0);
-                }
-            })
-            ->delete();
+        $query = $character->spells()
+            ->where('source', $parsed['source']);
+
+        // Only filter by level_acquired for class source, not subclass_feature
+        if ($parsed['source'] === 'class') {
+            $query->where('level_acquired', $parsed['level']);
+        }
+
+        $query->whereHas('spell', function ($query) use ($isCantrip) {
+            if ($isCantrip) {
+                $query->where('level', 0);
+            } else {
+                $query->where('level', '>', 0);
+            }
+        })->delete();
 
         // Create CharacterSpell records
         foreach ($selected as $spellSlug) {
@@ -129,19 +157,23 @@ class SpellChoiceHandler extends AbstractChoiceHandler
 
         // Delete CharacterSpell records for this specific choice
         // Use the group (cantrips vs spells_known) to determine spell level filter
-        $isCantrip = $parsed['group'] === 'cantrips';
+        $isCantrip = $parsed['group'] === 'cantrips' || $parsed['group'] === 'feature_cantrip';
 
-        $character->spells()
-            ->where('source', $parsed['source'])
-            ->where('level_acquired', $parsed['level'])
-            ->whereHas('spell', function ($query) use ($isCantrip) {
-                if ($isCantrip) {
-                    $query->where('level', 0);
-                } else {
-                    $query->where('level', '>', 0);
-                }
-            })
-            ->delete();
+        $query = $character->spells()
+            ->where('source', $parsed['source']);
+
+        // Only filter by level_acquired for class source, not subclass_feature
+        if ($parsed['source'] === 'class') {
+            $query->where('level_acquired', $parsed['level']);
+        }
+
+        $query->whereHas('spell', function ($query) use ($isCantrip) {
+            if ($isCantrip) {
+                $query->where('level', 0);
+            } else {
+                $query->where('level', '>', 0);
+            }
+        })->delete();
 
         $character->load('spells.spell');
     }
@@ -266,5 +298,55 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         }
 
         return max(1, $maxLevel);
+    }
+
+    /**
+     * Build a pending choice for a subclass feature spell choice
+     */
+    private function buildFeatureSpellChoice(
+        Character $character,
+        CharacterClassPivot $pivot,
+        ClassFeature $feature,
+        EntitySpell $spellChoice
+    ): ?PendingChoice {
+        $isCantrip = $spellChoice->is_cantrip || $spellChoice->max_level === 0;
+        $maxLevel = $spellChoice->max_level ?? ($isCantrip ? 0 : 1);
+        $quantity = $spellChoice->choice_count ?? 1;
+
+        // Get already selected spells for this feature
+        $selectedSpells = $character->spells()
+            ->where('source', 'subclass_feature')
+            ->whereHas('spell', fn ($q) => $isCantrip ? $q->where('level', 0) : $q->where('level', '>', 0))
+            ->get();
+
+        $selected = $selectedSpells->pluck('spell_slug')->filter()->toArray();
+        $remaining = $quantity - count($selected);
+
+        // Build options endpoint with class filter
+        $classSlug = $spellChoice->characterClass?->full_slug;
+        $endpoint = "/api/v1/characters/{$character->id}/available-spells?max_level={$maxLevel}";
+        if ($classSlug) {
+            $endpoint .= "&class={$classSlug}";
+        }
+
+        return new PendingChoice(
+            id: $this->generateChoiceId('spell', 'subclass_feature', $feature->characterClass->full_slug, $feature->level, 'feature_cantrip'),
+            type: 'spell',
+            subtype: $isCantrip ? 'cantrip' : 'spell',
+            source: 'subclass_feature',
+            sourceName: $feature->feature_name,
+            levelGranted: $feature->level,
+            required: true,
+            quantity: $quantity,
+            remaining: $remaining,
+            selected: $selected,
+            options: null,
+            optionsEndpoint: $endpoint,
+            metadata: [
+                'spell_level' => $maxLevel,
+                'class_slug' => $classSlug,
+                'feature_id' => $feature->id,
+            ],
+        );
     }
 }

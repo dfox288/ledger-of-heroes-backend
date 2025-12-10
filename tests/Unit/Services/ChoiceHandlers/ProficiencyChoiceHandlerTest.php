@@ -392,16 +392,10 @@ it('skips choices with invalid source slug', function () {
 
 it('transforms service output for subclass_feature source', function () {
     // Mock character with cleric class and nature domain subclass
-    $feature = Mockery::mock(\stdClass::class);
-    $feature->feature_name = 'Acolyte of Nature (Nature Domain)';
-
     $subclass = Mockery::mock(\stdClass::class);
     $subclass->id = 15;
     $subclass->full_slug = 'phb:cleric-nature-domain';
     $subclass->name = 'Nature Domain';
-    $subclass->shouldReceive('getFeatureByProficiencyChoiceGroup')
-        ->with('feature_skill_choice_1')
-        ->andReturn($feature);
 
     $characterClassPivot = Mockery::mock(\stdClass::class);
     $characterClassPivot->subclass = $subclass;
@@ -417,11 +411,12 @@ it('transforms service output for subclass_feature source', function () {
     $this->character->shouldReceive('offsetExists')->andReturn(true);
 
     // Mock proficiency service response for subclass_feature
+    // Note: Choice group key includes feature name prefix like "FeatureName (Subclass):base_group"
     $this->proficiencyService->shouldReceive('getPendingChoices')
         ->with($this->character)
         ->andReturn([
             'subclass_feature' => [
-                'feature_skill_choice_1' => [
+                'Acolyte of Nature (Nature Domain):feature_skill_choice_1' => [
                     'proficiency_type' => 'skill',
                     'proficiency_subcategory' => null,
                     'quantity' => 1,
@@ -457,7 +452,8 @@ it('transforms service output for subclass_feature source', function () {
         ->first()->type->toBe('proficiency')
         ->first()->subtype->toBe('skill')
         ->first()->source->toBe('subclass_feature')
-        ->first()->sourceName->toContain('Acolyte of Nature')
+        // Issue #475 fix: source_name should be the feature name, not "Unknown Feature"
+        ->first()->sourceName->toBe('Acolyte of Nature')
         ->first()->quantity->toBe(1)
         ->first()->remaining->toBe(1)
         ->first()->selected->toBe([])
@@ -467,4 +463,7 @@ it('transforms service output for subclass_feature source', function () {
     $firstChoice = $choices->first();
     $optionSlugs = collect($firstChoice->options)->pluck('full_slug')->all();
     expect($optionSlugs)->toContain('core:animal-handling', 'core:nature', 'core:survival');
+
+    // Verify the choice_group in metadata retains the full key
+    expect($firstChoice->metadata['choice_group'])->toBe('Acolyte of Nature (Nature Domain):feature_skill_choice_1');
 });

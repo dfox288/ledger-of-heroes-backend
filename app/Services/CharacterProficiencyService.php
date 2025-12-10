@@ -127,10 +127,16 @@ class CharacterProficiencyService
             throw new InvalidArgumentException("Character has no {$source} assigned");
         }
 
+        // For subclass_feature, extract base choice group for DB lookup
+        // (choice_group in DB is "feature_skill_choice_1", not "FeatureName:feature_skill_choice_1")
+        $lookupChoiceGroup = $sourceEnum === CharacterSource::SUBCLASS_FEATURE
+            ? $this->extractBaseChoiceGroup($choiceGroup)
+            : $choiceGroup;
+
         // Get the choice options from the entity
         $choiceOptions = $entity->proficiencies()
             ->where('is_choice', true)
-            ->where('choice_group', $choiceGroup)
+            ->where('choice_group', $lookupChoiceGroup)
             ->where('proficiency_type', 'skill')
             ->get();
 
@@ -206,10 +212,16 @@ class CharacterProficiencyService
             throw new InvalidArgumentException("Character has no {$source} assigned");
         }
 
+        // For subclass_feature, extract base choice group for DB lookup
+        // (choice_group in DB is "feature_skill_choice_1", not "FeatureName:feature_skill_choice_1")
+        $lookupChoiceGroup = $sourceEnum === CharacterSource::SUBCLASS_FEATURE
+            ? $this->extractBaseChoiceGroup($choiceGroup)
+            : $choiceGroup;
+
         // Get the choice definition from the entity
         $choiceOptions = $entity->proficiencies()
             ->where('is_choice', true)
-            ->where('choice_group', $choiceGroup)
+            ->where('choice_group', $lookupChoiceGroup)
             ->get();
 
         if ($choiceOptions->isEmpty()) {
@@ -317,6 +329,9 @@ class CharacterProficiencyService
 
     /**
      * Get subclass feature entity by choice group.
+     *
+     * The choice group for subclass_feature is formatted as "FeatureName (Subclass):base_choice_group"
+     * We need to extract just the base_choice_group for the lookup.
      */
     private function getSubclassFeatureEntity(Character $character, string $choiceGroup): ?\App\Models\ClassFeature
     {
@@ -325,7 +340,24 @@ class CharacterProficiencyService
             return null;
         }
 
-        return $subclass->getFeatureByProficiencyChoiceGroup($choiceGroup);
+        $baseChoiceGroup = $this->extractBaseChoiceGroup($choiceGroup);
+
+        return $subclass->getFeatureByProficiencyChoiceGroup($baseChoiceGroup);
+    }
+
+    /**
+     * Extract the base choice group from a potentially prefixed choice group.
+     *
+     * For subclass_feature, choice groups are formatted as "FeatureName (Subclass):base_choice_group"
+     * This extracts just the "base_choice_group" part.
+     */
+    private function extractBaseChoiceGroup(string $choiceGroup): string
+    {
+        if (str_contains($choiceGroup, ':')) {
+            return substr($choiceGroup, strrpos($choiceGroup, ':') + 1);
+        }
+
+        return $choiceGroup;
     }
 
     /**

@@ -128,7 +128,7 @@ XML;
         $this->assertArrayHasKey('movement_modifiers', $feats[0]);
 
         $movementMods = $feats[0]['movement_modifiers'];
-        $difficultTerrainMod = array_values(array_filter($movementMods, fn ($m) => $m['activity'] === 'difficult_terrain'));
+        $difficultTerrainMod = array_values(array_filter($movementMods, fn ($m) => ($m['activity'] ?? null) === 'difficult_terrain'));
 
         $this->assertNotEmpty($difficultTerrainMod, 'Should have difficult terrain movement modifier');
         $difficultTerrainMod = $difficultTerrainMod[0];
@@ -265,5 +265,77 @@ XML;
         $this->assertEquals('movement_cost', $jumpMod['type']);
         $this->assertEquals('running_jump', $jumpMod['activity']);
         $this->assertEquals(5, $jumpMod['cost']);
+    }
+
+    #[Test]
+    public function it_parses_speed_increase_bonus()
+    {
+        // Mobile feat: "Your speed increases by 10 feet."
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Mobile</name>
+        <text>You are exceptionally speedy and agile. You gain the following benefits:
+
+	• Your speed increases by 10 feet.
+
+	• When you use the Dash action, difficult terrain doesn't cost you extra movement on that turn.
+
+Source:	Player's Handbook (2014) p. 168</text>
+        <modifier category="bonus">speed +10</modifier>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('movement_modifiers', $feats[0]);
+
+        $movementMods = $feats[0]['movement_modifiers'];
+        $speedBonus = array_values(array_filter($movementMods, fn ($m) => $m['type'] === 'speed_bonus'));
+
+        $this->assertNotEmpty($speedBonus, 'Should have speed bonus modifier');
+        $speedBonus = $speedBonus[0];
+        $this->assertEquals('speed_bonus', $speedBonus['type']);
+        $this->assertEquals(10, $speedBonus['value']);
+        $this->assertEquals('walk', $speedBonus['movement_type']);
+    }
+
+    #[Test]
+    public function it_parses_walking_speed_increase()
+    {
+        // Squat Nimbleness: "Increase your walking speed by 5 feet."
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <feat>
+        <name>Squat Nimbleness (Dexterity)</name>
+        <text>You are uncommonly nimble for your race. You gain the following benefits:
+
+	• Increase your Strength or Dexterity score by 1, to a maximum of 20.
+
+	• Increase your walking speed by 5 feet.
+
+Source:	Xanathar's Guide to Everything p. 75</text>
+        <modifier category="ability score">dexterity +1</modifier>
+    </feat>
+</compendium>
+XML;
+
+        $feats = $this->parser->parse($xml);
+
+        $this->assertCount(1, $feats);
+        $this->assertArrayHasKey('movement_modifiers', $feats[0]);
+
+        $movementMods = $feats[0]['movement_modifiers'];
+        $speedBonus = array_values(array_filter($movementMods, fn ($m) => $m['type'] === 'speed_bonus'));
+
+        $this->assertNotEmpty($speedBonus, 'Should have speed bonus modifier');
+        $speedBonus = $speedBonus[0];
+        $this->assertEquals('speed_bonus', $speedBonus['type']);
+        $this->assertEquals(5, $speedBonus['value']);
+        $this->assertEquals('walk', $speedBonus['movement_type']);
     }
 }

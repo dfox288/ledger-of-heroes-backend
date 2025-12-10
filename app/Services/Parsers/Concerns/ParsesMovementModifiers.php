@@ -3,7 +3,7 @@
 namespace App\Services\Parsers\Concerns;
 
 /**
- * Parses movement cost modifiers from description text.
+ * Parses movement modifiers from description text.
  *
  * Handles patterns like:
  * - "Climbing doesn't cost you extra movement"
@@ -11,17 +11,22 @@ namespace App\Services\Parsers\Concerns;
  * - "When you are prone, standing up uses only 5 feet of your movement"
  * - "difficult terrain doesn't cost you extra movement"
  * - "running long jump or a running high jump after moving only 5 feet"
+ * - "Your speed increases by 10 feet"
+ * - "Increase your walking speed by 5 feet"
  */
 trait ParsesMovementModifiers
 {
     /**
-     * Parse movement cost modifiers from description text.
+     * Parse movement modifiers from description text.
      *
      * @return array<int, array<string, mixed>>
      */
     protected function parseMovementModifiers(string $text): array
     {
         $modifiers = [];
+
+        // Parse speed bonuses first
+        $modifiers = array_merge($modifiers, $this->parseSpeedBonuses($text));
 
         // Pattern 1: "Climbing/Swimming doesn't cost you extra movement"
         if (preg_match_all('/(climbing|swimming)\s+(?:doesn\'t|does not)\s+cost\s+(?:you\s+)?extra\s+movement/i', $text, $matches)) {
@@ -67,6 +72,40 @@ trait ParsesMovementModifiers
                 'activity' => 'running_jump',
                 'cost' => (int) $match[1],
                 'condition' => null,
+            ];
+        }
+
+        return $modifiers;
+    }
+
+    /**
+     * Parse speed bonus modifiers from description text.
+     *
+     * Handles patterns like:
+     * - "Your speed increases by 10 feet"
+     * - "Increase your walking speed by 5 feet"
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function parseSpeedBonuses(string $text): array
+    {
+        $modifiers = [];
+
+        // Pattern 1: "Your speed increases by X feet"
+        if (preg_match('/your speed increases by (\d+) feet/i', $text, $match)) {
+            $modifiers[] = [
+                'type' => 'speed_bonus',
+                'value' => (int) $match[1],
+                'movement_type' => 'walk',
+            ];
+        }
+
+        // Pattern 2: "Increase your walking speed by X feet"
+        if (preg_match('/increase your walking speed by (\d+) feet/i', $text, $match)) {
+            $modifiers[] = [
+                'type' => 'speed_bonus',
+                'value' => (int) $match[1],
+                'movement_type' => 'walk',
             ];
         }
 

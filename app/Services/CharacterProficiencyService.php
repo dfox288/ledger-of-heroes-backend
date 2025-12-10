@@ -469,7 +469,7 @@ class CharacterProficiencyService
     }
 
     /**
-     * Collect granted (fixed) proficiencies from class, race, and background.
+     * Collect granted (fixed) proficiencies from class, subclass, race, and background.
      */
     private function collectGrantedProficiencies(Character $character): \Illuminate\Support\Collection
     {
@@ -480,6 +480,14 @@ class CharacterProficiencyService
         if ($primaryClass) {
             $proficiencies = $proficiencies->merge(
                 $this->getEntityGrantedProficiencies($primaryClass, 'class')
+            );
+        }
+
+        // From subclass (e.g., Life Domain grants heavy armor)
+        $primaryClassPivot = $character->characterClasses->first();
+        if ($primaryClassPivot && $primaryClassPivot->subclass) {
+            $proficiencies = $proficiencies->merge(
+                $this->getEntityGrantedProficiencies($primaryClassPivot->subclass, 'class')
             );
         }
 
@@ -519,9 +527,20 @@ class CharacterProficiencyService
             ->with(['skill', 'proficiencyType'])
             ->get()
             ->map(function ($proficiency) use ($source) {
+                // Get proficiency type - either from relationship or by looking up by name
+                $proficiencyType = $proficiency->proficiencyType;
+                $proficiencyTypeSlug = $proficiencyType?->full_slug;
+
+                // If no linked proficiency type but we have a name, look it up
+                // This handles imported data that uses proficiency_name text instead of proficiency_type_id FK
+                if (! $proficiencyTypeSlug && $proficiency->proficiency_name) {
+                    $proficiencyType = \App\Models\ProficiencyType::where('name', 'like', $proficiency->proficiency_name)->first();
+                    $proficiencyTypeSlug = $proficiencyType?->full_slug;
+                }
+
                 // Create a CharacterProficiency-like object with null ID to indicate it's granted
                 $charProf = new CharacterProficiency([
-                    'proficiency_type_slug' => $proficiency->proficiencyType?->full_slug,
+                    'proficiency_type_slug' => $proficiencyTypeSlug,
                     'skill_slug' => $proficiency->skill?->full_slug,
                     'source' => $source,
                     'expertise' => false,
@@ -531,7 +550,7 @@ class CharacterProficiencyService
                 // Copy relationships
                 $charProf->setRelations([
                     'skill' => $proficiency->skill,
-                    'proficiencyType' => $proficiency->proficiencyType,
+                    'proficiencyType' => $proficiencyType,
                 ]);
 
                 return $charProf;
@@ -551,13 +570,28 @@ class CharacterProficiencyService
         $storedSkillSlugs = $stored->whereNotNull('skill_slug')->pluck('skill_slug')->toArray();
         $storedProfTypeSlugs = $stored->whereNotNull('proficiency_type_slug')->pluck('proficiency_type_slug')->toArray();
 
-        // Filter granted to exclude duplicates
-        $filteredGranted = $granted->filter(function ($prof) use ($storedSkillSlugs, $storedProfTypeSlugs) {
+        // Track already-seen slugs within granted proficiencies to deduplicate
+        // (e.g., when class and subclass both grant heavy armor)
+        $seenSkillSlugs = $storedSkillSlugs;
+        $seenProfTypeSlugs = $storedProfTypeSlugs;
+
+        // Filter granted to exclude duplicates (from stored AND from earlier granted)
+        $filteredGranted = $granted->filter(function ($prof) use (&$seenSkillSlugs, &$seenProfTypeSlugs) {
             if ($prof->skill_slug !== null) {
-                return ! in_array($prof->skill_slug, $storedSkillSlugs);
+                if (in_array($prof->skill_slug, $seenSkillSlugs)) {
+                    return false;
+                }
+                $seenSkillSlugs[] = $prof->skill_slug;
+
+                return true;
             }
             if ($prof->proficiency_type_slug !== null) {
-                return ! in_array($prof->proficiency_type_slug, $storedProfTypeSlugs);
+                if (in_array($prof->proficiency_type_slug, $seenProfTypeSlugs)) {
+                    return false;
+                }
+                $seenProfTypeSlugs[] = $prof->proficiency_type_slug;
+
+                return true;
             }
 
             return true;

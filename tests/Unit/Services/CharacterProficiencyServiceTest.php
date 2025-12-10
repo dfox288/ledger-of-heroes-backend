@@ -352,4 +352,126 @@ class CharacterProficiencyServiceTest extends TestCase
         // Athletics from group 1 should be gone
         $this->assertFalse($character->proficiencies->contains('skill_slug', $athletics->full_slug));
     }
+
+    // =====================
+    // Subclass Proficiency Tests
+    // =====================
+
+    #[Test]
+    public function it_includes_subclass_proficiencies_in_character_proficiencies(): void
+    {
+        // Create proficiency types
+        $mediumArmorSlug = 'medium-armor-'.uniqid();
+        $heavyArmorSlug = 'heavy-armor-'.uniqid();
+        $mediumArmor = ProficiencyType::create([
+            'name' => 'Medium Armor',
+            'slug' => $mediumArmorSlug,
+            'full_slug' => 'test:'.$mediumArmorSlug,
+            'category' => 'armor',
+        ]);
+        $heavyArmor = ProficiencyType::create([
+            'name' => 'Heavy Armor',
+            'slug' => $heavyArmorSlug,
+            'full_slug' => 'test:'.$heavyArmorSlug,
+            'category' => 'armor',
+        ]);
+
+        // Create base class (Cleric) with medium armor
+        $clericClass = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'cleric-'.uniqid(),
+        ]);
+        $clericClass->proficiencies()->create([
+            'proficiency_type' => 'armor',
+            'proficiency_type_id' => $mediumArmor->id,
+            'is_choice' => false,
+        ]);
+
+        // Create subclass (Life Domain) with heavy armor bonus proficiency
+        $lifeDomainSlug = 'cleric-life-domain-'.uniqid();
+        $lifeDomain = CharacterClass::factory()->create([
+            'name' => 'Life Domain',
+            'slug' => $lifeDomainSlug,
+            'parent_class_id' => $clericClass->id,
+        ]);
+        $lifeDomain->proficiencies()->create([
+            'proficiency_type' => 'armor',
+            'proficiency_type_id' => $heavyArmor->id,
+            'proficiency_name' => 'heavy armor',
+            'is_choice' => false,
+            'level' => 1,
+        ]);
+
+        // Create character with Cleric + Life Domain subclass
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $clericClass->full_slug,
+            'subclass_slug' => $lifeDomain->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Get character proficiencies
+        $proficiencies = $this->service->getCharacterProficiencies($character);
+
+        // Should include BOTH base class AND subclass proficiencies
+        $this->assertCount(2, $proficiencies);
+        $this->assertTrue($proficiencies->contains('proficiency_type_slug', $mediumArmor->full_slug));
+        $this->assertTrue($proficiencies->contains('proficiency_type_slug', $heavyArmor->full_slug));
+    }
+
+    #[Test]
+    public function it_deduplicates_proficiencies_from_class_and_subclass(): void
+    {
+        // Create proficiency type
+        $heavyArmorSlug = 'heavy-armor-'.uniqid();
+        $heavyArmor = ProficiencyType::create([
+            'name' => 'Heavy Armor',
+            'slug' => $heavyArmorSlug,
+            'full_slug' => 'test:'.$heavyArmorSlug,
+            'category' => 'armor',
+        ]);
+
+        // Create base class with heavy armor
+        $fighterClass = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'fighter-'.uniqid(),
+        ]);
+        $fighterClass->proficiencies()->create([
+            'proficiency_type' => 'armor',
+            'proficiency_type_id' => $heavyArmor->id,
+            'is_choice' => false,
+        ]);
+
+        // Create subclass that ALSO grants heavy armor (hypothetical)
+        $championSlug = 'fighter-champion-'.uniqid();
+        $champion = CharacterClass::factory()->create([
+            'name' => 'Champion',
+            'slug' => $championSlug,
+            'parent_class_id' => $fighterClass->id,
+        ]);
+        $champion->proficiencies()->create([
+            'proficiency_type' => 'armor',
+            'proficiency_type_id' => $heavyArmor->id,
+            'is_choice' => false,
+        ]);
+
+        // Create character with Fighter + Champion subclass
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $fighterClass->full_slug,
+            'subclass_slug' => $champion->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Get character proficiencies
+        $proficiencies = $this->service->getCharacterProficiencies($character);
+
+        // Should only have ONE heavy armor proficiency, not duplicated
+        $this->assertCount(1, $proficiencies);
+        $this->assertTrue($proficiencies->contains('proficiency_type_slug', $heavyArmor->full_slug));
+    }
 }

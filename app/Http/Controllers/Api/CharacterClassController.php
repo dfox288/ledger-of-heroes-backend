@@ -97,6 +97,8 @@ class CharacterClassController extends Controller
      * - Character cannot have the same class twice (use levelUp instead)
      * - Character's total level cannot exceed 20
      * - Must meet multiclass prerequisites (unless force=true)
+     *
+     * @response 201 array{data: array{class: array{id: int, name: string, slug: string, full_slug: string}|null, class_slug: string, is_dangling: bool, subclass: array{id: int, name: string, slug: string, full_slug: string}|null, subclass_slug: string|null, level: int, is_primary: bool, order: int, hit_dice: array{die: string, max: int, spent: int, available: int}|null}}
      */
     public function store(CharacterClassAddRequest $request, Character $character): JsonResponse
     {
@@ -324,6 +326,8 @@ class CharacterClassController extends Controller
      * @param  CharacterClassAddRequest  $request  The validated request
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  The class ID or slug to replace
+     *
+     * @response array{data: array{class: array{id: int, name: string, slug: string, full_slug: string}|null, class_slug: string, is_dangling: bool, subclass: array{id: int, name: string, slug: string, full_slug: string}|null, subclass_slug: string|null, level: int, is_primary: bool, order: int, hit_dice: array{die: string, max: int, spent: int, available: int}|null}}
      */
     public function replace(CharacterClassAddRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {
@@ -406,6 +410,8 @@ class CharacterClassController extends Controller
      *
      * @throws InvalidSubclassException If subclass doesn't belong to the class
      * @throws SubclassLevelRequirementException If character level is below requirement
+     *
+     * @response array{data: array{class: array{id: int, name: string, slug: string, full_slug: string}|null, class_slug: string, is_dangling: bool, subclass: array{id: int, name: string, slug: string, full_slug: string}|null, subclass_slug: string|null, level: int, is_primary: bool, order: int, hit_dice: array{die: string, max: int, spent: int, available: int}|null}}
      */
     public function setSubclass(CharacterSubclassSetRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {

@@ -31,6 +31,8 @@ class FeatureUseController extends Controller
      * Use a feature (decrement uses).
      *
      * POST /api/v1/characters/{character}/features/{characterFeatureId}/use
+     *
+     * @response array{success: bool, uses_remaining: int, max_uses: int}
      */
     public function use(Character $character, int $characterFeatureId): JsonResponse
     {
@@ -63,6 +65,8 @@ class FeatureUseController extends Controller
      * Reset a feature's uses (for manual override/DM fiat).
      *
      * POST /api/v1/characters/{character}/features/{characterFeatureId}/reset
+     *
+     * @response array{success: bool, uses_remaining: int, max_uses: int}
      */
     public function reset(Character $character, int $characterFeatureId): JsonResponse
     {

@@ -2203,7 +2203,10 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "integer",
+                                    "enum": [
+                                        201
+                                    ]
                                 }
                             }
                         }
@@ -2301,7 +2304,127 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "class": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "slug": {
+                                                            "type": "string"
+                                                        },
+                                                        "full_slug": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name",
+                                                        "slug",
+                                                        "full_slug"
+                                                    ]
+                                                },
+                                                "class_slug": {
+                                                    "type": "string"
+                                                },
+                                                "is_dangling": {
+                                                    "type": "boolean"
+                                                },
+                                                "subclass": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "slug": {
+                                                            "type": "string"
+                                                        },
+                                                        "full_slug": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name",
+                                                        "slug",
+                                                        "full_slug"
+                                                    ]
+                                                },
+                                                "subclass_slug": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "level": {
+                                                    "type": "integer"
+                                                },
+                                                "is_primary": {
+                                                    "type": "boolean"
+                                                },
+                                                "order": {
+                                                    "type": "integer"
+                                                },
+                                                "hit_dice": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "die": {
+                                                            "type": "string"
+                                                        },
+                                                        "max": {
+                                                            "type": "integer"
+                                                        },
+                                                        "spent": {
+                                                            "type": "integer"
+                                                        },
+                                                        "available": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "die",
+                                                        "max",
+                                                        "spent",
+                                                        "available"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "class",
+                                                "class_slug",
+                                                "is_dangling",
+                                                "subclass",
+                                                "subclass_slug",
+                                                "level",
+                                                "is_primary",
+                                                "order",
+                                                "hit_dice"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
                                 }
                             }
                         }
@@ -2505,7 +2628,127 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "class": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "slug": {
+                                                            "type": "string"
+                                                        },
+                                                        "full_slug": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name",
+                                                        "slug",
+                                                        "full_slug"
+                                                    ]
+                                                },
+                                                "class_slug": {
+                                                    "type": "string"
+                                                },
+                                                "is_dangling": {
+                                                    "type": "boolean"
+                                                },
+                                                "subclass": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "slug": {
+                                                            "type": "string"
+                                                        },
+                                                        "full_slug": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name",
+                                                        "slug",
+                                                        "full_slug"
+                                                    ]
+                                                },
+                                                "subclass_slug": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "level": {
+                                                    "type": "integer"
+                                                },
+                                                "is_primary": {
+                                                    "type": "boolean"
+                                                },
+                                                "order": {
+                                                    "type": "integer"
+                                                },
+                                                "hit_dice": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "die": {
+                                                            "type": "string"
+                                                        },
+                                                        "max": {
+                                                            "type": "integer"
+                                                        },
+                                                        "spent": {
+                                                            "type": "integer"
+                                                        },
+                                                        "available": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "die",
+                                                        "max",
+                                                        "spent",
+                                                        "available"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "class",
+                                                "class_slug",
+                                                "is_dangling",
+                                                "subclass",
+                                                "subclass_slug",
+                                                "level",
+                                                "is_primary",
+                                                "order",
+                                                "hit_dice"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
                                 }
                             }
                         }
@@ -3635,7 +3878,10 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "integer",
+                                    "enum": [
+                                        201
+                                    ]
                                 }
                             }
                         }
@@ -6094,7 +6340,23 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "uses_remaining": {
+                                            "type": "integer"
+                                        },
+                                        "max_uses": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "uses_remaining",
+                                        "max_uses"
+                                    ]
                                 }
                             }
                         }
@@ -6138,7 +6400,23 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "uses_remaining": {
+                                            "type": "integer"
+                                        },
+                                        "max_uses": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "uses_remaining",
+                                        "max_uses"
+                                    ]
                                 }
                             }
                         }

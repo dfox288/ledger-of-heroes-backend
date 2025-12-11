@@ -120,6 +120,8 @@ class CharacterSpellController extends Controller
      * - Spell level must be accessible at character's level
      * - Spell must not already be known by character
      * - Dangling references allowed per #288
+     *
+     * @response 201 array{data: array{id: int, spell: array{id: int, name: string, slug: string, level: int, school: string|null, casting_time: string, range: string, components: string, duration: string, concentration: bool, ritual: bool}|null, spell_slug: string, is_dangling: bool, preparation_status: string, source: string, level_acquired: int|null, is_prepared: bool, is_always_prepared: bool}}
      */
     public function store(CharacterSpellStoreRequest $request, Character $character): JsonResponse
     {

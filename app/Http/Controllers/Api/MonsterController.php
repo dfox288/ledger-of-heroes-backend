@@ -276,7 +276,7 @@ class MonsterController extends Controller
      * Powered by SpellcasterStrategy which syncs 1,098 spell relationships
      * across 129 spellcasting monsters with 100% match rate.
      *
-     * @response AnonymousResourceCollection<SpellResource>
+     * @response array{data: array<int, array{id: int, slug: string, full_slug: string, name: string, level: int, school: array{id: int, name: string, code: string}|null}>}
      */
     public function spells(Monster $monster)
     {

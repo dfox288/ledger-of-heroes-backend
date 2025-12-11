@@ -53,9 +53,7 @@ class SizeController extends Controller
      * - **Mount Planning:** "My Small Halfling needs a Medium mount - what are the options?" (Pony, Wolf, Mastiff)
      * - **Dungeon Navigation:** "Will a Large PC fit through standard 5ft doors?" (Yes, but squeezing)
      *
-     * @response AnonymousResourceCollection<SizeResource>
-     *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @response array{data: array<int, array{id: int, code: string, name: string}>}
      */
     #[QueryParameter('q', description: 'Search by name', example: 'medium')]
     public function index(SizeIndexRequest $request, LookupCacheService $cache)

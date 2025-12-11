@@ -52,9 +52,7 @@ class ProficiencyTypeController extends Controller
      * - **Character Building:** Find which proficiencies your race/class/background grants
      * - **Equipment Shopping:** Browse weapon proficiencies to know what you can use effectively
      *
-     * @response AnonymousResourceCollection<ProficiencyTypeResource>
-     *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @response array{data: array<int, array{id: int, slug: string, name: string, category: string, subcategory: string|null}>}
      */
     #[QueryParameter('q', description: 'Search proficiencies by name', example: 'longsword')]
     #[QueryParameter('category', description: 'Filter by category (weapon, armor, tool, language, skill, saving-throw)', example: 'weapon')]
@@ -187,9 +185,7 @@ class ProficiencyTypeController extends Controller
      * - Includes base classes AND subclasses (e.g., Eldritch Knight Fighter counts separately)
      * - Check `parent_class_id` in response to distinguish base vs subclass
      *
-     * @response AnonymousResourceCollection<ClassResource>
-     *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @response array{data: array<int, array{id: int, slug: string, full_slug: string, name: string, hit_die: int, description: string|null, archetype: string|null, parent_class_id: int|null, is_base_class: bool}>}
      */
     public function classes(ProficiencyTypeShowRequest $request, ProficiencyType $proficiencyType): JsonResponse
     {
@@ -252,9 +248,7 @@ class ProficiencyTypeController extends Controller
      * - Check `parent_race_id` in response to distinguish base race vs subrace
      * - Results alphabetically sorted for consistent browsing
      *
-     * @response AnonymousResourceCollection<RaceResource>
-     *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @response array{data: array<int, array{id: int, slug: string, full_slug: string, name: string, speed: int|null, is_subrace: bool}>}
      */
     public function races(ProficiencyTypeShowRequest $request, ProficiencyType $proficiencyType): JsonResponse
     {
@@ -324,9 +318,7 @@ class ProficiencyTypeController extends Controller
      * - All backgrounds are base-level (no "sub-backgrounds" like races/classes have)
      * - Check background description for thematic fit beyond mechanical proficiencies
      *
-     * @response AnonymousResourceCollection<BackgroundResource>
-     *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @response array{data: array<int, array{id: int, slug: string, full_slug: string, name: string, feature_name: string|null, feature_description: string|null}>}
      */
     public function backgrounds(ProficiencyTypeShowRequest $request, ProficiencyType $proficiencyType): JsonResponse
     {

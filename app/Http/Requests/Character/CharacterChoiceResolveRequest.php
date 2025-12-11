@@ -34,7 +34,7 @@ use Illuminate\Validation\Rule;
  * ```json
  * {"type": "feat", "feat": "phb:alert"}
  * ```
- * The `feat` is the full_slug of the chosen feat.
+ * The `feat` is the slug of the chosen feat.
  */
 class CharacterChoiceResolveRequest extends FormRequest
 {

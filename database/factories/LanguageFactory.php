@@ -25,8 +25,7 @@ class LanguageFactory extends Factory
 
         return [
             'name' => ucwords($name),
-            'slug' => $slug,
-            'full_slug' => 'test:'.$slug,
+            'slug' => 'test:'.$slug,
             'script' => fake()->optional()->words(2, true),
             'typical_speakers' => fake()->optional()->words(3, true),
             'description' => fake()->optional()->sentence(),
@@ -43,8 +42,7 @@ class LanguageFactory extends Factory
 
         return $this->state(fn (array $attributes) => [
             'name' => $name,
-            'slug' => $slug,
-            'full_slug' => 'test:'.$slug,
+            'slug' => 'test:'.$slug,
         ]);
     }
 

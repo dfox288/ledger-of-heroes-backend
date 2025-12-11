@@ -90,7 +90,7 @@ class EquipmentModeChoiceHandler extends AbstractChoiceHandler
         }
 
         $choice = new PendingChoice(
-            id: $this->generateChoiceId('equipment_mode', 'class', $primaryClass->full_slug, 1, 'starting_equipment'),
+            id: $this->generateChoiceId('equipment_mode', 'class', $primaryClass->slug, 1, 'starting_equipment'),
             type: 'equipment_mode',
             subtype: null,
             source: 'class',

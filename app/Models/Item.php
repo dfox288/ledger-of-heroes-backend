@@ -24,7 +24,6 @@ class Item extends BaseModel
     protected $fillable = [
         'name',
         'slug',
-        'full_slug',
         'item_type_id',
         'detail',
         'rarity',

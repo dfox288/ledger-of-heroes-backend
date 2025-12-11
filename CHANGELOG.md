@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING - Issue #506**: Consolidated `full_slug` column into `slug` across all entity tables
+  - The `slug` column now contains source-prefixed values (e.g., `phb:acid-splash` instead of `acid-splash`)
+  - Removed `full_slug` field from all API responses
+  - Affected entities: Spells, Races, Classes, Backgrounds, Feats, Items, Monsters, Optional Features, Languages, Conditions, Senses, Skills, Proficiency Types
+  - Route model bindings updated to lookup by prefixed slug
+  - Frontend must update all slug references to use the prefixed format
+
 ### Fixed
 
 - **Issue #492**: Fix ability score double-counting when editing characters

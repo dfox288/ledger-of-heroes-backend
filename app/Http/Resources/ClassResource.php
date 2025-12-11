@@ -40,7 +40,6 @@ class ClassResource extends JsonResource
             // inherit from parent class for subclasses (see class docblock)
             'id' => $this->id,
             'slug' => $this->slug,
-            'full_slug' => $this->full_slug,
             'name' => $this->name,
             /** @var int Hit die value (e.g., 8, 10, 12) - inherits from parent for subclasses */
             'hit_die' => $this->effective_hit_die,

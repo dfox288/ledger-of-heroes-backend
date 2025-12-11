@@ -35,12 +35,12 @@ class CharacterProficiency extends Model
 
     public function proficiencyType(): BelongsTo
     {
-        return $this->belongsTo(ProficiencyType::class, 'proficiency_type_slug', 'full_slug');
+        return $this->belongsTo(ProficiencyType::class, 'proficiency_type_slug', 'slug');
     }
 
     public function skill(): BelongsTo
     {
-        return $this->belongsTo(Skill::class, 'skill_slug', 'full_slug');
+        return $this->belongsTo(Skill::class, 'skill_slug', 'slug');
     }
 
     // Helper methods

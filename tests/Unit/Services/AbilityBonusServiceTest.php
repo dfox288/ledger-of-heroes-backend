@@ -56,7 +56,6 @@ class AbilityBonusServiceTest extends TestCase
         // Create race with fixed ability score bonus
         $race = Race::factory()->create([
             'slug' => 'dwarf',
-            'full_slug' => 'phb:dwarf',
             'name' => 'Dwarf',
         ]);
 
@@ -71,7 +70,7 @@ class AbilityBonusServiceTest extends TestCase
             'is_choice' => false,
         ]);
 
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         $result = $this->service->getBonuses($character);
 
@@ -79,7 +78,7 @@ class AbilityBonusServiceTest extends TestCase
         $bonus = $result['bonuses']->first();
         $this->assertEquals('race', $bonus['source_type']);
         $this->assertEquals('Dwarf', $bonus['source_name']);
-        $this->assertEquals('phb:dwarf', $bonus['source_slug']);
+        $this->assertEquals('dwarf', $bonus['source_slug']);
         $this->assertEquals('CON', $bonus['ability_code']);
         $this->assertEquals('Constitution', $bonus['ability_name']);
         $this->assertEquals(2, $bonus['value']);
@@ -93,7 +92,6 @@ class AbilityBonusServiceTest extends TestCase
     {
         $race = Race::factory()->create([
             'slug' => 'half-elf',
-            'full_slug' => 'phb:half-elf',
             'name' => 'Half-Elf',
         ]);
 
@@ -119,7 +117,7 @@ class AbilityBonusServiceTest extends TestCase
             'choice_count' => 2,
         ]);
 
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         // Resolve choices: +1 STR, +1 DEX
         CharacterAbilityScore::create([
@@ -169,7 +167,6 @@ class AbilityBonusServiceTest extends TestCase
         // Create parent race (Elf) with +2 DEX
         $parentRace = Race::factory()->create([
             'slug' => 'elf',
-            'full_slug' => 'phb:elf',
             'name' => 'Elf',
         ]);
 
@@ -186,7 +183,6 @@ class AbilityBonusServiceTest extends TestCase
         // Create subrace (High Elf) with +1 INT
         $subrace = Race::factory()->create([
             'slug' => 'high-elf',
-            'full_slug' => 'phb:high-elf',
             'name' => 'High Elf',
             'parent_race_id' => $parentRace->id,
         ]);
@@ -201,7 +197,7 @@ class AbilityBonusServiceTest extends TestCase
             'is_choice' => false,
         ]);
 
-        $character = Character::factory()->create(['race_slug' => $subrace->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $subrace->slug]);
 
         $result = $this->service->getBonuses($character);
 
@@ -231,7 +227,6 @@ class AbilityBonusServiceTest extends TestCase
     {
         $feat = Feat::factory()->create([
             'slug' => 'actor',
-            'full_slug' => 'phb:actor',
             'name' => 'Actor',
         ]);
 
@@ -252,7 +247,7 @@ class AbilityBonusServiceTest extends TestCase
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat->id,
-            'feature_slug' => $feat->full_slug,
+            'feature_slug' => $feat->slug,
             'source' => 'feat',
             'level_acquired' => 1,
         ]);
@@ -263,7 +258,7 @@ class AbilityBonusServiceTest extends TestCase
         $bonus = $result['bonuses']->first();
         $this->assertEquals('feat', $bonus['source_type']);
         $this->assertEquals('Actor', $bonus['source_name']);
-        $this->assertEquals('phb:actor', $bonus['source_slug']);
+        $this->assertEquals('actor', $bonus['source_slug']);
         $this->assertEquals('CHA', $bonus['ability_code']);
         $this->assertEquals('Charisma', $bonus['ability_name']);
         $this->assertEquals(1, $bonus['value']);
@@ -278,7 +273,6 @@ class AbilityBonusServiceTest extends TestCase
         // Create race with +2 CHA
         $race = Race::factory()->create([
             'slug' => 'tiefling',
-            'full_slug' => 'phb:tiefling',
             'name' => 'Tiefling',
         ]);
 
@@ -295,7 +289,6 @@ class AbilityBonusServiceTest extends TestCase
         // Create feat with +1 CHA (Actor)
         $feat = Feat::factory()->create([
             'slug' => 'actor',
-            'full_slug' => 'phb:actor',
             'name' => 'Actor',
         ]);
 
@@ -308,13 +301,13 @@ class AbilityBonusServiceTest extends TestCase
             'is_choice' => false,
         ]);
 
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat->id,
-            'feature_slug' => $feat->full_slug,
+            'feature_slug' => $feat->slug,
             'source' => 'feat',
             'level_acquired' => 1,
         ]);
@@ -353,7 +346,7 @@ class AbilityBonusServiceTest extends TestCase
             'is_choice' => false,
         ]);
 
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         $result = $this->service->getBonuses($character);
 
@@ -376,7 +369,7 @@ class AbilityBonusServiceTest extends TestCase
             'choice_count' => 2,
         ]);
 
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         $result = $this->service->getBonuses($character);
 
@@ -398,7 +391,6 @@ class AbilityBonusServiceTest extends TestCase
         // Create a race with a bonus feat modifier (like Custom Lineage)
         $race = Race::factory()->create([
             'slug' => 'custom-lineage',
-            'full_slug' => 'tce:custom-lineage',
             'name' => 'Custom Lineage',
         ]);
 
@@ -413,7 +405,6 @@ class AbilityBonusServiceTest extends TestCase
         // Create Actor feat with +1 CHA
         $feat = Feat::factory()->create([
             'slug' => 'actor',
-            'full_slug' => 'phb:actor',
             'name' => 'Actor',
         ]);
 
@@ -428,11 +419,11 @@ class AbilityBonusServiceTest extends TestCase
             'is_choice' => false,
         ]);
 
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         // Select the feat via the FeatChoiceService (simulates the real workflow)
         $featChoiceService = app(\App\Services\FeatChoiceService::class);
-        $featChoiceService->makeChoice($character, 'race', $feat->full_slug);
+        $featChoiceService->makeChoice($character, 'race', $feat->slug);
 
         // Verify the feat bonus appears
         $result = $this->service->getBonuses($character);
@@ -443,7 +434,7 @@ class AbilityBonusServiceTest extends TestCase
         $bonus = $featBonuses->first();
         $this->assertEquals('feat', $bonus['source_type']);
         $this->assertEquals('Actor', $bonus['source_name']);
-        $this->assertEquals('phb:actor', $bonus['source_slug']);
+        $this->assertEquals('actor', $bonus['source_slug']);
         $this->assertEquals('CHA', $bonus['ability_code']);
         $this->assertEquals(1, $bonus['value']);
 
@@ -458,7 +449,6 @@ class AbilityBonusServiceTest extends TestCase
         // to looking up the feat by slug.
         $feat = Feat::factory()->create([
             'slug' => 'actor',
-            'full_slug' => 'phb:actor',
             'name' => 'Actor',
         ]);
 
@@ -480,7 +470,7 @@ class AbilityBonusServiceTest extends TestCase
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => null, // This is the bug - missing feature_id
-            'feature_slug' => $feat->full_slug,
+            'feature_slug' => $feat->slug,
             'source' => 'race',
             'level_acquired' => 1,
         ]);

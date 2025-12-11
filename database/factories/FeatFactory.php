@@ -26,8 +26,7 @@ class FeatFactory extends Factory
 
         return [
             'name' => ucwords($name),
-            'slug' => $slug,
-            'full_slug' => 'phb:'.$slug,
+            'slug' => 'test:'.$slug,
             'prerequisites_text' => fake()->boolean(30) ? fake()->sentence(4) : null,
             'description' => fake()->paragraphs(3, true),
         ];

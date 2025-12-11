@@ -100,7 +100,7 @@ class FeatChoiceService
     /**
      * Make a feat choice for a character.
      *
-     * @param  string  $featSlug  The feat full_slug or slug to select
+     * @param  string  $featSlug  The feat slug to select
      *
      * @throws InvalidArgumentException
      * @throws FeatAlreadyTakenException
@@ -135,8 +135,7 @@ class FeatChoiceService
         }
 
         // Find the feat
-        $feat = Feat::where('full_slug', $featSlug)
-            ->orWhere('slug', $featSlug)
+        $feat = Feat::where('slug', $featSlug)
             ->first();
 
         if (! $feat) {
@@ -149,10 +148,9 @@ class FeatChoiceService
                 $oldFeatSlug = $choiceData['selected'][0];
 
                 // If selecting the same feat, return early (idempotent - same as language choices)
-                if ($oldFeatSlug === $featSlug || $oldFeatSlug === $feat->full_slug) {
+                if ($oldFeatSlug === $featSlug || $oldFeatSlug === $feat->slug) {
                     return [
                         'feat' => [
-                            'full_slug' => $feat->full_slug,
                             'slug' => $feat->slug,
                             'name' => $feat->name,
                         ],
@@ -193,7 +191,6 @@ class FeatChoiceService
 
             return [
                 'feat' => [
-                    'full_slug' => $feat->full_slug,
                     'slug' => $feat->slug,
                     'name' => $feat->name,
                 ],
@@ -215,7 +212,7 @@ class FeatChoiceService
     {
         $exists = CharacterFeature::where('character_id', $character->id)
             ->where('feature_type', Feat::class)
-            ->where('feature_slug', $feat->full_slug)
+            ->where('feature_slug', $feat->slug)
             ->exists();
 
         if ($exists) {
@@ -246,7 +243,7 @@ class FeatChoiceService
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat->id,
-            'feature_slug' => $feat->full_slug,
+            'feature_slug' => $feat->slug,
             'source' => $source,
             // Bonus feats from race/background are always acquired at character creation (level 1)
             'level_acquired' => 1,
@@ -263,8 +260,8 @@ class FeatChoiceService
         $granted = [];
 
         foreach ($feat->proficiencies as $proficiency) {
-            $proficiencyTypeSlug = $proficiency->proficiencyType?->full_slug;
-            $skillSlug = $proficiency->skill?->full_slug;
+            $proficiencyTypeSlug = $proficiency->proficiencyType?->slug;
+            $skillSlug = $proficiency->skill?->slug;
 
             if ($proficiencyTypeSlug === null && $skillSlug === null) {
                 continue;
@@ -296,7 +293,7 @@ class FeatChoiceService
             CharacterSpell::firstOrCreate(
                 [
                     'character_id' => $character->id,
-                    'spell_slug' => $spell->full_slug,
+                    'spell_slug' => $spell->slug,
                 ],
                 [
                     'source' => $source,
@@ -306,7 +303,7 @@ class FeatChoiceService
             );
 
             $granted[] = [
-                'slug' => $spell->full_slug,
+                'slug' => $spell->slug,
                 'name' => $spell->name,
             ];
         }
@@ -372,7 +369,7 @@ class FeatChoiceService
      */
     public function undoChoice(Character $character, string $source, string $featSlug): void
     {
-        $feat = Feat::where('full_slug', $featSlug)->first();
+        $feat = Feat::where('slug', $featSlug)->first();
 
         DB::transaction(function () use ($character, $source, $featSlug, $feat) {
             // Remove the character feature

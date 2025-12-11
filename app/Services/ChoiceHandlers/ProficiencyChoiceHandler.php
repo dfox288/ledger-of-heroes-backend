@@ -112,10 +112,10 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
     private function getSourceSlug(Character $character, string $source): string
     {
         return match ($source) {
-            'class' => $character->primary_class?->full_slug ?? '',
-            'race' => $character->race?->full_slug ?? '',
-            'background' => $character->background?->full_slug ?? '',
-            'subclass_feature' => $character->characterClasses->first()?->subclass?->full_slug ?? '',
+            'class' => $character->primary_class?->slug ?? '',
+            'race' => $character->race?->slug ?? '',
+            'background' => $character->background?->slug ?? '',
+            'subclass_feature' => $character->characterClasses->first()?->subclass?->slug ?? '',
             default => '',
         };
     }
@@ -138,15 +138,13 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
                 if ($option['type'] === 'skill') {
                     return [
                         'type' => 'skill',
-                        'full_slug' => $option['skill']['full_slug'] ?? $option['skill_slug'] ?? null,
-                        'slug' => $option['skill']['slug'] ?? null,
+                        'slug' => $option['skill']['slug'] ?? $option['skill_slug'] ?? null,
                         'name' => $option['skill']['name'] ?? null,
                     ];
                 } else {
                     return [
                         'type' => 'proficiency_type',
-                        'full_slug' => $option['proficiency_type']['full_slug'] ?? $option['proficiency_type_slug'] ?? null,
-                        'slug' => $option['proficiency_type']['slug'] ?? null,
+                        'slug' => $option['proficiency_type']['slug'] ?? $option['proficiency_type_slug'] ?? null,
                         'name' => $option['proficiency_type']['name'] ?? null,
                     ];
                 }

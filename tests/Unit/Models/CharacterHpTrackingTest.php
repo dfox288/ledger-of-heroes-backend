@@ -126,7 +126,7 @@ class CharacterHpTrackingTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
@@ -144,7 +144,7 @@ class CharacterHpTrackingTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 2,
             'is_primary' => true,
             'order' => 1,
@@ -162,7 +162,7 @@ class CharacterHpTrackingTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
@@ -203,7 +203,7 @@ class CharacterHpTrackingTest extends TestCase
         // Fighter 2 / Wizard 1 = total level 3
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 2,
             'is_primary' => true,
             'order' => 1,
@@ -211,7 +211,7 @@ class CharacterHpTrackingTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->wizard->full_slug,
+            'class_slug' => $this->wizard->slug,
             'level' => 1,
             'is_primary' => false,
             'order' => 2,

@@ -69,7 +69,7 @@ trait PopulatesFromEntity
         }
 
         // Load all feats in one query to avoid N+1
-        $feats = Feat::whereIn('full_slug', $featSlugs)->get();
+        $feats = Feat::whereIn('slug', $featSlugs)->get();
 
         foreach ($feats as $feat) {
             $this->populateFromEntity($character, $feat, 'feat');

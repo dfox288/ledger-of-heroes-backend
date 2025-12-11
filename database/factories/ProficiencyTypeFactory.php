@@ -34,8 +34,7 @@ class ProficiencyTypeFactory extends Factory
 
         return [
             'name' => $name,
-            'slug' => $slug,
-            'full_slug' => 'test:'.$slug,
+            'slug' => 'test:'.$slug,
             'category' => $category,
             'subcategory' => isset($subcategories[$category]) ? fake()->randomElement($subcategories[$category]) : null,
             'item_id' => null,

@@ -33,7 +33,6 @@ class CharacterClass extends BaseModel
 
     protected $fillable = [
         'slug',
-        'full_slug',
         'name',
         'parent_class_id',
         'hit_die',

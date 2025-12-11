@@ -160,8 +160,8 @@ class CharacterControllerTest extends TestCase
         $response = $this->postJson('/api/v1/characters', [
             'public_id' => 'brave-archer-zx78',
             'name' => 'Legolas',
-            'race_slug' => $race->full_slug,
-            'class_slug' => $class->full_slug,
+            'race_slug' => $race->slug,
+            'class_slug' => $class->slug,
         ]);
 
         $response->assertCreated()
@@ -505,9 +505,9 @@ class CharacterControllerTest extends TestCase
         $character = Character::factory()->create();
 
         // Create currency items
-        $gold = Item::factory()->create(['full_slug' => 'phb:gold-gp', 'name' => 'Gold (gp)']);
-        $silver = Item::factory()->create(['full_slug' => 'phb:silver-sp', 'name' => 'Silver (sp)']);
-        $copper = Item::factory()->create(['full_slug' => 'phb:copper-cp', 'name' => 'Copper (cp)']);
+        $gold = Item::factory()->create(['slug' => 'phb:gold-gp', 'name' => 'Gold (gp)']);
+        $silver = Item::factory()->create(['slug' => 'phb:silver-sp', 'name' => 'Silver (sp)']);
+        $copper = Item::factory()->create(['slug' => 'phb:copper-cp', 'name' => 'Copper (cp)']);
 
         // Add currency to character's inventory
         CharacterEquipment::create([
@@ -556,7 +556,7 @@ class CharacterControllerTest extends TestCase
     {
         $character = Character::factory()->create();
 
-        Item::factory()->create(['full_slug' => 'phb:gold-gp', 'name' => 'Gold (gp)']);
+        Item::factory()->create(['slug' => 'phb:gold-gp', 'name' => 'Gold (gp)']);
 
         // Two separate stacks of gold (e.g., from different loot sources)
         CharacterEquipment::create([
@@ -599,7 +599,7 @@ class CharacterControllerTest extends TestCase
         $response = $this->postJson('/api/v1/characters', [
             'public_id' => 'test-char-ab12',
             'name' => 'Test Character',
-            'race' => $race->full_slug,
+            'race' => $race->slug,
         ]);
 
         $response->assertCreated();
@@ -608,7 +608,7 @@ class CharacterControllerTest extends TestCase
         $character = Character::where('public_id', 'test-char-ab12')->first();
         $this->assertDatabaseHas('character_languages', [
             'character_id' => $character->id,
-            'language_slug' => $language->full_slug,
+            'language_slug' => $language->slug,
             'source' => 'race',
         ]);
     }
@@ -633,7 +633,7 @@ class CharacterControllerTest extends TestCase
 
         // Update character with race
         $response = $this->patchJson("/api/v1/characters/{$character->public_id}", [
-            'race' => $race->full_slug,
+            'race' => $race->slug,
         ]);
 
         $response->assertOk();
@@ -641,7 +641,7 @@ class CharacterControllerTest extends TestCase
         // Check that the character has the language
         $this->assertDatabaseHas('character_languages', [
             'character_id' => $character->id,
-            'language_slug' => $language->full_slug,
+            'language_slug' => $language->slug,
             'source' => 'race',
         ]);
     }
@@ -665,7 +665,7 @@ class CharacterControllerTest extends TestCase
         $response = $this->postJson('/api/v1/characters', [
             'public_id' => 'test-char-cd34',
             'name' => 'Test Character',
-            'race' => $race->full_slug,
+            'race' => $race->slug,
         ]);
 
         $response->assertCreated();
@@ -676,7 +676,7 @@ class CharacterControllerTest extends TestCase
         $this->postJson("/api/v1/characters/{$character->public_id}/languages/sync");
 
         // Verify only one language entry exists
-        $languageCount = $character->languages()->where('language_slug', $language->full_slug)->count();
+        $languageCount = $character->languages()->where('language_slug', $language->slug)->count();
         $this->assertEquals(1, $languageCount);
     }
 

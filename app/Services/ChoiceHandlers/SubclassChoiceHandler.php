@@ -62,16 +62,15 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
                     ->get();
 
                 return [
-                    'full_slug' => $subclass->full_slug,
-                    'name' => $subclass->name,
                     'slug' => $subclass->slug,
+                    'name' => $subclass->name,
                     'description' => $subclass->description,
                     'features_preview' => $features->pluck('feature_name')->values()->all(),
                 ];
             })->values()->all();
 
             $choice = new PendingChoice(
-                id: $this->generateChoiceId('subclass', 'class', $class->full_slug, $subclassLevel, 'subclass'),
+                id: $this->generateChoiceId('subclass', 'class', $class->slug, $subclassLevel, 'subclass'),
                 type: 'subclass',
                 subtype: null,
                 source: 'class',
@@ -84,7 +83,7 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
                 options: $options,
                 optionsEndpoint: null,
                 metadata: [
-                    'class_slug' => $class->full_slug,
+                    'class_slug' => $class->slug,
                     'subclass_feature_name' => $this->getSubclassFeatureName($class),
                 ],
             );
@@ -106,13 +105,13 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
         }
 
         // Get the parent class
-        $parentClass = CharacterClass::where('full_slug', $classSlug)->first();
+        $parentClass = CharacterClass::where('slug', $classSlug)->first();
         if (! $parentClass) {
             throw new InvalidSelectionException($choice->id, 'invalid_class', "Class {$classSlug} not found");
         }
 
         // Validate subclass exists and belongs to this class
-        $subclass = CharacterClass::where('full_slug', $subclassSlug)
+        $subclass = CharacterClass::where('slug', $subclassSlug)
             ->where('parent_class_id', $parentClass->id)
             ->first();
 

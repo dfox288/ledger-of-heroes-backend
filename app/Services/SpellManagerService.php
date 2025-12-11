@@ -69,7 +69,7 @@ class SpellManagerService
         $query = $baseClass->spells();
 
         if (! $includeKnown && $knownSpellSlugs->isNotEmpty()) {
-            $query->whereNotIn('spells.full_slug', $knownSpellSlugs);
+            $query->whereNotIn('spells.slug', $knownSpellSlugs);
         }
 
         if ($minLevel !== null) {
@@ -145,7 +145,7 @@ class SpellManagerService
 
         // Exclude already known spells
         if ($knownSpellSlugs->isNotEmpty()) {
-            $query->whereNotIn('spells.full_slug', $knownSpellSlugs);
+            $query->whereNotIn('spells.slug', $knownSpellSlugs);
         }
 
         if ($minLevel !== null) {
@@ -172,9 +172,8 @@ class SpellManagerService
         ?int $maxLevel,
         bool $includeKnown
     ): Collection {
-        // Find the class by full_slug or slug
-        $class = CharacterClass::where('full_slug', $classSlug)
-            ->orWhere('slug', $classSlug)
+        // Find the class by slug
+        $class = CharacterClass::where('slug', $classSlug)
             ->whereNull('parent_class_id') // Only base classes have spell lists
             ->first();
 
@@ -190,7 +189,7 @@ class SpellManagerService
         $query = $class->spells();
 
         if (! $includeKnown && $knownSpellSlugs->isNotEmpty()) {
-            $query->whereNotIn('spells.full_slug', $knownSpellSlugs);
+            $query->whereNotIn('spells.slug', $knownSpellSlugs);
         }
 
         if ($minLevel !== null) {
@@ -231,7 +230,7 @@ class SpellManagerService
 
         return CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_slug' => $spell->full_slug,
+            'spell_slug' => $spell->slug,
             'preparation_status' => 'known',
             'source' => $source,
             'level_acquired' => $character->total_level,
@@ -246,7 +245,7 @@ class SpellManagerService
     public function forgetSpell(Character $character, Spell $spell): void
     {
         $characterSpell = $character->spells()
-            ->where('spell_slug', $spell->full_slug)
+            ->where('spell_slug', $spell->slug)
             ->first();
 
         if (! $characterSpell) {
@@ -264,7 +263,7 @@ class SpellManagerService
     public function prepareSpell(Character $character, Spell $spell): CharacterSpell
     {
         $characterSpell = $character->spells()
-            ->where('spell_slug', $spell->full_slug)
+            ->where('spell_slug', $spell->slug)
             ->first();
 
         if (! $characterSpell) {
@@ -297,7 +296,7 @@ class SpellManagerService
     public function unprepareSpell(Character $character, Spell $spell): CharacterSpell
     {
         $characterSpell = $character->spells()
-            ->where('spell_slug', $spell->full_slug)
+            ->where('spell_slug', $spell->slug)
             ->first();
 
         if (! $characterSpell) {
@@ -485,7 +484,7 @@ class SpellManagerService
      */
     private function characterKnowsSpell(Character $character, Spell $spell): bool
     {
-        return $character->spells()->where('spell_slug', $spell->full_slug)->exists();
+        return $character->spells()->where('spell_slug', $spell->slug)->exists();
     }
 
     /**

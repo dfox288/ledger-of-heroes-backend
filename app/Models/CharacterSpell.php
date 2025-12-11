@@ -34,7 +34,7 @@ class CharacterSpell extends Model
 
     public function spell(): BelongsTo
     {
-        return $this->belongsTo(Spell::class, 'spell_slug', 'full_slug');
+        return $this->belongsTo(Spell::class, 'spell_slug', 'slug');
     }
 
     // Helper methods

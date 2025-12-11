@@ -76,12 +76,12 @@ class CharacterImportService
         }
 
         // Check for dangling race reference
-        if ($data['race'] && ! Race::where('full_slug', $data['race'])->exists()) {
+        if ($data['race'] && ! Race::where('slug', $data['race'])->exists()) {
             $this->warnings[] = "Race '{$data['race']}' not found in database - reference preserved but may not resolve";
         }
 
         // Check for dangling background reference
-        if ($data['background'] && ! Background::where('full_slug', $data['background'])->exists()) {
+        if ($data['background'] && ! Background::where('slug', $data['background'])->exists()) {
             $this->warnings[] = "Background '{$data['background']}' not found in database - reference preserved but may not resolve";
         }
 
@@ -120,12 +120,12 @@ class CharacterImportService
             $subclassSlug = $classData['subclass'] ?? null;
 
             // Check for dangling class reference
-            if ($classSlug && ! CharacterClass::where('full_slug', $classSlug)->exists()) {
+            if ($classSlug && ! CharacterClass::where('slug', $classSlug)->exists()) {
                 $this->warnings[] = "Class '{$classSlug}' not found in database - reference preserved but may not resolve";
             }
 
             // Check for dangling subclass reference
-            if ($subclassSlug && ! CharacterClass::where('full_slug', $subclassSlug)->exists()) {
+            if ($subclassSlug && ! CharacterClass::where('slug', $subclassSlug)->exists()) {
                 $this->warnings[] = "Subclass '{$subclassSlug}' not found in database - reference preserved but may not resolve";
             }
 
@@ -149,7 +149,7 @@ class CharacterImportService
             $spellSlug = $spellData['spell'];
 
             // Check for dangling spell reference
-            if ($spellSlug && ! Spell::where('full_slug', $spellSlug)->exists()) {
+            if ($spellSlug && ! Spell::where('slug', $spellSlug)->exists()) {
                 $this->warnings[] = "Spell '{$spellSlug}' not found in database - reference preserved but may not resolve";
             }
 
@@ -169,7 +169,7 @@ class CharacterImportService
             $itemSlug = $itemData['item'] ?? null;
 
             // Check for dangling item reference (only for non-custom items)
-            if ($itemSlug && ! Item::where('full_slug', $itemSlug)->exists()) {
+            if ($itemSlug && ! Item::where('slug', $itemSlug)->exists()) {
                 $this->warnings[] = "Item '{$itemSlug}' not found in database - reference preserved but may not resolve";
             }
 
@@ -191,7 +191,7 @@ class CharacterImportService
             $languageSlug = $langData['language'];
 
             // Check for dangling language reference
-            if ($languageSlug && ! Language::where('full_slug', $languageSlug)->exists()) {
+            if ($languageSlug && ! Language::where('slug', $languageSlug)->exists()) {
                 $this->warnings[] = "Language '{$languageSlug}' not found in database - reference preserved but may not resolve";
             }
 
@@ -210,7 +210,7 @@ class CharacterImportService
             $skillSlug = $skillData['skill'];
 
             // Check for dangling skill reference
-            if ($skillSlug && ! Skill::where('full_slug', $skillSlug)->exists()) {
+            if ($skillSlug && ! Skill::where('slug', $skillSlug)->exists()) {
                 $this->warnings[] = "Skill '{$skillSlug}' not found in database - reference preserved but may not resolve";
             }
 
@@ -228,7 +228,7 @@ class CharacterImportService
             $typeSlug = $typeData['type'];
 
             // Check for dangling proficiency type reference
-            if ($typeSlug && ! ProficiencyType::where('full_slug', $typeSlug)->exists()) {
+            if ($typeSlug && ! ProficiencyType::where('slug', $typeSlug)->exists()) {
                 $this->warnings[] = "Proficiency type '{$typeSlug}' not found in database - reference preserved but may not resolve";
             }
 
@@ -248,7 +248,7 @@ class CharacterImportService
             $conditionSlug = $condData['condition'];
 
             // Check for dangling condition reference
-            if ($conditionSlug && ! Condition::where('full_slug', $conditionSlug)->exists()) {
+            if ($conditionSlug && ! Condition::where('slug', $conditionSlug)->exists()) {
                 $this->warnings[] = "Condition '{$conditionSlug}' not found in database - reference preserved but may not resolve";
             }
 
@@ -269,12 +269,12 @@ class CharacterImportService
             $classSlug = $fsData['class'] ?? null;
 
             // Check for dangling feature reference
-            if ($featureSlug && ! OptionalFeature::where('full_slug', $featureSlug)->exists()) {
+            if ($featureSlug && ! OptionalFeature::where('slug', $featureSlug)->exists()) {
                 $this->warnings[] = "Optional feature '{$featureSlug}' not found in database - reference preserved but may not resolve";
             }
 
             // Check for dangling class reference
-            if ($classSlug && ! CharacterClass::where('full_slug', $classSlug)->exists()) {
+            if ($classSlug && ! CharacterClass::where('slug', $classSlug)->exists()) {
                 $this->warnings[] = "Class '{$classSlug}' not found in database - reference preserved but may not resolve";
             }
 

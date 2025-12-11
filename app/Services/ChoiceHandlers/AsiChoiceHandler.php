@@ -45,7 +45,6 @@ class AsiChoiceHandler extends AbstractChoiceHandler
         $feats = Feat::orderBy('name')
             ->get()
             ->map(fn ($feat) => [
-                'full_slug' => $feat->full_slug,
                 'slug' => $feat->slug,
                 'name' => $feat->name,
             ])
@@ -73,7 +72,7 @@ class AsiChoiceHandler extends AbstractChoiceHandler
             $level = $asiLevels[$asiIndex] ?? ($asiIndex + 1) * 4;
 
             $choice = new PendingChoice(
-                id: $this->generateChoiceId('asi_or_feat', 'class', $primaryClass->full_slug, $level, 'asi_'.($asiIndex + 1)),
+                id: $this->generateChoiceId('asi_or_feat', 'class', $primaryClass->slug, $level, 'asi_'.($asiIndex + 1)),
                 type: 'asi_or_feat',
                 subtype: null,
                 source: 'class',
@@ -111,8 +110,7 @@ class AsiChoiceHandler extends AbstractChoiceHandler
             }
 
             // Load the feat model by slug
-            $feat = Feat::where('full_slug', $featSlug)
-                ->orWhere('slug', $featSlug)
+            $feat = Feat::where('slug', $featSlug)
                 ->firstOrFail();
             $this->asiService->applyFeatChoice($character, $feat);
         } elseif ($type === 'asi') {

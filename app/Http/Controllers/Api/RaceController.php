@@ -164,7 +164,7 @@ class RaceController extends Controller
      * - High Elf: 1 wizard cantrip (player's choice)
      * - Forest Gnome: Minor Illusion (0)
      *
-     * @response array{data: array<int, array{id: int, slug: string, full_slug: string, name: string, level: int, school: array{id: int, name: string, code: string}|null}>}
+     * @response array{data: array<int, array{id: int, slug: string, name: string, level: int, school: array{id: int, name: string, code: string}|null}>}
      */
     public function spells(Race $race)
     {

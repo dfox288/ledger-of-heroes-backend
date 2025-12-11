@@ -198,7 +198,7 @@ class FlowExecutor
     private function setRace(int $characterId, CharacterRandomizer $randomizer, ?string $forceRace = null): array
     {
         if ($forceRace) {
-            $race = Race::where('full_slug', $forceRace)->firstOrFail();
+            $race = Race::where('slug', $forceRace)->firstOrFail();
         } else {
             $race = $randomizer->randomRace();
         }
@@ -207,7 +207,7 @@ class FlowExecutor
         $this->currentSubrace = null;
 
         return $this->makeRequest('PATCH', "/api/v1/characters/{$characterId}", [
-            'race_slug' => $race->full_slug,
+            'race_slug' => $race->slug,
         ]);
     }
 
@@ -225,14 +225,14 @@ class FlowExecutor
         $this->currentSubrace = $subrace;
 
         return $this->makeRequest('PATCH', "/api/v1/characters/{$characterId}", [
-            'race_slug' => $subrace->full_slug,
+            'race_slug' => $subrace->slug,
         ]);
     }
 
     private function setClass(int $characterId, CharacterRandomizer $randomizer, ?string $forceClass = null): array
     {
         if ($forceClass) {
-            $class = CharacterClass::where('full_slug', $forceClass)->firstOrFail();
+            $class = CharacterClass::where('slug', $forceClass)->firstOrFail();
         } else {
             $class = $randomizer->randomClass();
         }
@@ -244,11 +244,11 @@ class FlowExecutor
             $currentClassSlug = $this->getCurrentClassSlug($characterId);
 
             return $this->makeRequest('PUT', "/api/v1/characters/{$characterId}/classes/{$currentClassSlug}", [
-                'class_slug' => $class->full_slug,
+                'class_slug' => $class->slug,
             ]);
         } else {
             return $this->makeRequest('POST', "/api/v1/characters/{$characterId}/classes", [
-                'class_slug' => $class->full_slug,
+                'class_slug' => $class->slug,
                 'force' => true,
             ]);
         }
@@ -270,8 +270,8 @@ class FlowExecutor
 
         return $this->makeRequest(
             'PUT',
-            "/api/v1/characters/{$characterId}/classes/{$this->currentClass->full_slug}/subclass",
-            ['subclass_slug' => $subclass->full_slug]
+            "/api/v1/characters/{$characterId}/classes/{$this->currentClass->slug}/subclass",
+            ['subclass_slug' => $subclass->slug]
         );
     }
 
@@ -281,7 +281,7 @@ class FlowExecutor
         $this->currentBackground = $background;
 
         return $this->makeRequest('PATCH', "/api/v1/characters/{$characterId}", [
-            'background_slug' => $background->full_slug,
+            'background_slug' => $background->slug,
         ]);
     }
 
@@ -365,7 +365,7 @@ class FlowExecutor
 
                     if (! empty($selectableItems)) {
                         // Pick one random item from the category
-                        $itemSlugs = array_column($selectableItems, 'full_slug');
+                        $itemSlugs = array_column($selectableItems, 'slug');
                         $pickedItem = $randomizer->pickRandom($itemSlugs, 1);
                         $itemSelections = [$selectedOption => $pickedItem];
                         $expectedItems = array_merge($expectedItems, $pickedItem);
@@ -377,18 +377,18 @@ class FlowExecutor
                         fn ($item) => ($item['is_fixed'] ?? false) && ! ($item['is_pack'] ?? false)
                     );
                     foreach ($fixedItems as $item) {
-                        $expectedItems[] = $item['full_slug'];
+                        $expectedItems[] = $item['slug'];
                     }
                 } else {
                     // Non-category option: all items are granted
                     foreach ($foundOption['items'] ?? [] as $item) {
                         if (! ($item['is_pack'] ?? false)) {
-                            $expectedItems[] = $item['full_slug'];
+                            $expectedItems[] = $item['slug'];
                         }
                         // For packs, add the contents
                         if (($item['is_pack'] ?? false) && ! empty($item['contents'])) {
                             foreach ($item['contents'] as $content) {
-                                $expectedItems[] = $content['full_slug'];
+                                $expectedItems[] = $content['slug'];
                             }
                         }
                     }
@@ -411,15 +411,15 @@ class FlowExecutor
 
                 continue; // Skip the generic POST below since we already made the request
             } elseif ($choiceType === 'proficiency' || $choiceType === 'language') {
-                // Proficiencies and languages use 'slug' or 'full_slug'
-                $slugs = array_map(fn ($o) => $o['full_slug'] ?? $o['slug'] ?? '', $options);
+                // Proficiencies and languages use 'slug'
+                $slugs = array_map(fn ($o) => $o['slug'] ?? '', $options);
                 $slugs = array_filter($slugs);
                 // Exclude already-selected values to avoid duplicates across choices
                 $slugs = array_diff($slugs, $alreadySelected);
                 $selected = $randomizer->pickRandom(array_values($slugs), min($count, count($slugs)));
             } elseif ($choiceType === 'spell') {
-                // Spells use 'full_slug'
-                $slugs = array_map(fn ($o) => $o['full_slug'] ?? $o['slug'] ?? '', $options);
+                // Spells use 'slug'
+                $slugs = array_map(fn ($o) => $o['slug'] ?? '', $options);
                 $slugs = array_filter($slugs);
                 // Exclude already-selected spells to avoid duplicates
                 $slugs = array_diff($slugs, $alreadySelected);
@@ -504,7 +504,7 @@ class FlowExecutor
         $this->currentSubrace = null;
 
         return $this->makeRequest('PATCH', "/api/v1/characters/{$characterId}", [
-            'race_slug' => $newRace->full_slug,
+            'race_slug' => $newRace->slug,
         ]);
     }
 
@@ -514,7 +514,7 @@ class FlowExecutor
         $this->currentBackground = $newBackground;
 
         return $this->makeRequest('PATCH', "/api/v1/characters/{$characterId}", [
-            'background_slug' => $newBackground->full_slug,
+            'background_slug' => $newBackground->slug,
         ]);
     }
 
@@ -526,11 +526,11 @@ class FlowExecutor
         }
 
         $newClass = $randomizer->differentClass($this->currentClass, $spellcaster);
-        $oldClassSlug = $this->currentClass->full_slug;
+        $oldClassSlug = $this->currentClass->slug;
         $this->currentClass = $newClass;
 
         return $this->makeRequest('PUT', "/api/v1/characters/{$characterId}/classes/{$oldClassSlug}", [
-            'class_slug' => $newClass->full_slug,
+            'class_slug' => $newClass->slug,
         ]);
     }
 
@@ -635,8 +635,8 @@ class FlowExecutor
         $action = $step['action'];
 
         // Get class and background slugs
-        $classSlug = $this->currentClass?->full_slug;
-        $backgroundSlug = $this->currentBackground?->full_slug;
+        $classSlug = $this->currentClass?->slug;
+        $backgroundSlug = $this->currentBackground?->slug;
 
         if ($action === 'set_equipment_mode') {
             // Validate mode switch if switching between modes

@@ -60,12 +60,7 @@ class ClassImporter extends BaseImporter
             }
         }
 
-        // If slug not set by strategy, generate from name
-        if (! isset($data['slug'])) {
-            $data['slug'] = $this->generateSlug($data['name']);
-        }
-
-        // Generate full_slug with source prefix
+        // Extract sources from traits or features for slug generation
         // For classes, sources typically come from traits because the XML structure
         // stores source references within trait elements rather than at the class level.
         // However, some classes (e.g., Sidekick classes) have no traits but DO have
@@ -84,7 +79,11 @@ class ClassImporter extends BaseImporter
                 }
             }
         }
-        $fullSlug = $this->generateFullSlug($data['slug'], $sources);
+
+        // Generate source-prefixed slug if not set by strategy
+        if (! isset($data['slug'])) {
+            $data['slug'] = $this->generateSlug($data['name'], $sources);
+        }
 
         // Build description from traits if not directly provided
         $description = $data['description'] ?? null;
@@ -109,7 +108,6 @@ class ClassImporter extends BaseImporter
             ['slug' => $data['slug']],
             [
                 'name' => $data['name'],
-                'full_slug' => $fullSlug,
                 'parent_class_id' => $data['parent_class_id'] ?? null,
                 'hit_die' => $data['hit_die'],
                 'description' => $description ?: 'No description available',
@@ -285,17 +283,16 @@ class ClassImporter extends BaseImporter
      */
     public function importSubclass(CharacterClass $parentClass, array $subclassData): CharacterClass
     {
-        // 1. Generate hierarchical slug: "fighter-battle-master"
-        $slug = $this->generateSlug($subclassData['name'], $parentClass->slug);
-
-        // 2. Extract sources from features and generate full_slug
+        // 1. Extract sources from features for slug generation
         $sources = [];
         foreach ($subclassData['features'] ?? [] as $feature) {
             if (! empty($feature['sources'])) {
                 $sources = array_merge($sources, $feature['sources']);
             }
         }
-        $fullSlug = $this->generateFullSlug($slug, $sources);
+
+        // 2. Generate hierarchical source-prefixed slug: "phb:fighter-battle-master"
+        $slug = $this->generateSlug($subclassData['name'], $sources, $parentClass->slug);
 
         // 3. Determine spellcasting ability
         // Use subclass-specific ability if present (e.g., Arcane Trickster, Eldritch Knight)
@@ -320,7 +317,6 @@ class ClassImporter extends BaseImporter
             ['slug' => $slug],
             [
                 'name' => $subclassData['name'],
-                'full_slug' => $fullSlug,
                 'parent_class_id' => $parentClass->id,
                 'hit_die' => $parentClass->hit_die, // Inherit from parent
                 'description' => $description,
@@ -339,7 +335,7 @@ class ClassImporter extends BaseImporter
             $this->importFeatures($subclass, $subclassData['features']);
 
             // 7a. Extract and import sources from features (Issue #141)
-            // Note: sources are already extracted above for full_slug generation
+            // Note: sources are already extracted above for slug generation
             if (! empty($sources)) {
                 // Use deduplicate=true to merge page numbers (e.g., PHB p.74, 75)
                 $this->importEntitySources($subclass, $sources, deduplicate: true);
@@ -401,7 +397,22 @@ class ClassImporter extends BaseImporter
             }
         }
 
-        $slug = $this->generateSlug($data['name']);
+        // Extract sources for slug generation (same logic as importEntity)
+        $sources = [];
+        foreach ($data['traits'] ?? [] as $trait) {
+            if (! empty($trait['sources'])) {
+                $sources = array_merge($sources, $trait['sources']);
+            }
+        }
+        if (empty($sources)) {
+            foreach ($data['features'] ?? [] as $feature) {
+                if (! empty($feature['sources'])) {
+                    $sources = array_merge($sources, $feature['sources']);
+                }
+            }
+        }
+
+        $slug = $this->generateSlug($data['name'], $sources);
         $existingClass = CharacterClass::where('slug', $slug)->first();
 
         // Handle SKIP_IF_EXISTS mode

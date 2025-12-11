@@ -204,7 +204,7 @@ class CharacterChoiceApiTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $fighter->full_slug,
+            'class_slug' => $fighter->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -273,8 +273,8 @@ class CharacterChoiceApiTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $fighter->full_slug,
-            'subclass_slug' => $champion->full_slug,
+            'class_slug' => $fighter->slug,
+            'subclass_slug' => $champion->slug,
             'level' => 10,
             'is_primary' => true,
         ]);

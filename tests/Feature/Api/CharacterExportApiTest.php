@@ -28,10 +28,10 @@ uses(TestCase::class, RefreshDatabase::class);
 
 describe('Character Export', function () {
     it('exports a complete character as portable JSON', function () {
-        $race = Race::factory()->create(['full_slug' => 'phb:human', 'name' => 'Human']);
-        $background = Background::factory()->create(['full_slug' => 'phb:sage', 'name' => 'Sage']);
-        $class = CharacterClass::factory()->create(['full_slug' => 'phb:wizard', 'name' => 'Wizard']);
-        $subclass = CharacterClass::factory()->create(['full_slug' => 'phb:school-of-evocation', 'name' => 'School of Evocation']);
+        $race = Race::factory()->create(['slug' => 'phb:human', 'name' => 'Human']);
+        $background = Background::factory()->create(['slug' => 'phb:sage', 'name' => 'Sage']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:wizard', 'name' => 'Wizard']);
+        $subclass = CharacterClass::factory()->create(['slug' => 'phb:school-of-evocation', 'name' => 'School of Evocation']);
 
         $character = Character::factory()->create([
             'public_id' => 'brave-wizard-x7k2',
@@ -89,7 +89,7 @@ describe('Character Export', function () {
 
     it('exports character spells with preparation status', function () {
         $character = Character::factory()->create();
-        $spell = Spell::factory()->create(['full_slug' => 'phb:fireball']);
+        $spell = Spell::factory()->create(['slug' => 'phb:fireball']);
 
         CharacterSpell::create([
             'character_id' => $character->id,
@@ -110,7 +110,7 @@ describe('Character Export', function () {
 
     it('exports character equipment including custom items', function () {
         $character = Character::factory()->create();
-        $item = Item::factory()->create(['full_slug' => 'dmg:staff-of-power', 'name' => 'Staff of Power']);
+        $item = Item::factory()->create(['slug' => 'dmg:staff-of-power', 'name' => 'Staff of Power']);
 
         // Standard item
         CharacterEquipment::factory()->create([
@@ -152,7 +152,7 @@ describe('Character Export', function () {
     it('exports character languages with source', function () {
         $character = Character::factory()->create();
         // Use seeded language (core:common from LanguageSeeder)
-        $language = Language::where('full_slug', 'core:common')->first();
+        $language = Language::where('slug', 'core:common')->first();
         expect($language)->not->toBeNull('Common language should be seeded');
 
         CharacterLanguage::factory()->create([
@@ -173,7 +173,7 @@ describe('Character Export', function () {
     it('exports character proficiencies', function () {
         $character = Character::factory()->create();
         // Use seeded skill (core:arcana from SkillSeeder)
-        $skill = Skill::where('full_slug', 'core:arcana')->first();
+        $skill = Skill::where('slug', 'core:arcana')->first();
         expect($skill)->not->toBeNull('Arcana skill should be seeded');
 
         // Use seeded proficiency type
@@ -193,7 +193,7 @@ describe('Character Export', function () {
         CharacterProficiency::factory()->create([
             'character_id' => $character->id,
             'skill_slug' => null,
-            'proficiency_type_slug' => $profType->full_slug,
+            'proficiency_type_slug' => $profType->slug,
             'source' => 'class',
             'expertise' => false,
         ]);
@@ -206,12 +206,12 @@ describe('Character Export', function () {
         expect($proficiencies['skills'])->toHaveCount(1)
             ->and($proficiencies['skills'][0]['skill'])->toBe('core:arcana')
             ->and($proficiencies['types'])->toHaveCount(1)
-            ->and($proficiencies['types'][0]['type'])->toBe($profType->full_slug);
+            ->and($proficiencies['types'][0]['type'])->toBe($profType->slug);
     });
 
     it('exports character conditions', function () {
         $character = Character::factory()->create();
-        $condition = Condition::factory()->create(['full_slug' => 'phb:frightened', 'name' => 'Frightened']);
+        $condition = Condition::factory()->create(['slug' => 'phb:frightened', 'name' => 'Frightened']);
 
         CharacterCondition::factory()->create([
             'character_id' => $character->id,
@@ -250,8 +250,8 @@ describe('Character Export', function () {
 
     it('exports feature selections', function () {
         $character = Character::factory()->create();
-        $class = CharacterClass::factory()->create(['full_slug' => 'phb:warlock', 'name' => 'Warlock']);
-        $feature = OptionalFeature::factory()->create(['full_slug' => 'xge:eldritch-smite', 'name' => 'Eldritch Smite']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:warlock', 'name' => 'Warlock']);
+        $feature = OptionalFeature::factory()->create(['slug' => 'xge:eldritch-smite', 'name' => 'Eldritch Smite']);
 
         FeatureSelection::factory()->create([
             'character_id' => $character->id,
@@ -300,9 +300,9 @@ describe('Character Import', function () {
     it('imports a character from valid export JSON', function () {
         $user = User::factory()->create();
 
-        $race = Race::factory()->create(['full_slug' => 'phb:human']);
-        $background = Background::factory()->create(['full_slug' => 'phb:sage']);
-        $class = CharacterClass::factory()->create(['full_slug' => 'phb:wizard']);
+        $race = Race::factory()->create(['slug' => 'phb:human']);
+        $background = Background::factory()->create(['slug' => 'phb:sage']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:wizard']);
 
         $exportData = [
             'format_version' => '1.0',
@@ -350,9 +350,9 @@ describe('Character Import', function () {
     });
 
     it('imports character with spells', function () {
-        $race = Race::factory()->create(['full_slug' => 'phb:elf']);
-        $class = CharacterClass::factory()->create(['full_slug' => 'phb:wizard']);
-        $spell = Spell::factory()->create(['full_slug' => 'phb:magic-missile']);
+        $race = Race::factory()->create(['slug' => 'phb:elf']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:wizard']);
+        $spell = Spell::factory()->create(['slug' => 'phb:magic-missile']);
 
         $exportData = [
             'format_version' => '1.0',
@@ -395,8 +395,8 @@ describe('Character Import', function () {
     });
 
     it('imports character with custom equipment', function () {
-        $race = Race::factory()->create(['full_slug' => 'phb:dwarf']);
-        $class = CharacterClass::factory()->create(['full_slug' => 'phb:fighter']);
+        $race = Race::factory()->create(['slug' => 'phb:dwarf']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:fighter']);
 
         $exportData = [
             'format_version' => '1.0',
@@ -441,8 +441,8 @@ describe('Character Import', function () {
     });
 
     it('reports warnings for dangling references during import', function () {
-        $race = Race::factory()->create(['full_slug' => 'phb:human']);
-        $class = CharacterClass::factory()->create(['full_slug' => 'phb:wizard']);
+        $race = Race::factory()->create(['slug' => 'phb:human']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:wizard']);
 
         $exportData = [
             'format_version' => '1.0',
@@ -491,8 +491,8 @@ describe('Character Import', function () {
     });
 
     it('generates new public_id on conflict', function () {
-        $race = Race::factory()->create(['full_slug' => 'phb:halfling']);
-        $class = CharacterClass::factory()->create(['full_slug' => 'phb:rogue']);
+        $race = Race::factory()->create(['slug' => 'phb:halfling']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:rogue']);
 
         // Create existing character with the same public_id
         Character::factory()->create(['public_id' => 'existing-char-123']);
@@ -586,8 +586,8 @@ describe('Character Import', function () {
     });
 
     it('imports character notes', function () {
-        $race = Race::factory()->create(['full_slug' => 'phb:tiefling']);
-        $class = CharacterClass::factory()->create(['full_slug' => 'phb:sorcerer']);
+        $race = Race::factory()->create(['slug' => 'phb:tiefling']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:sorcerer']);
 
         $exportData = [
             'format_version' => '1.0',
@@ -633,12 +633,12 @@ describe('Character Import', function () {
 describe('Round-trip Export/Import', function () {
     it('produces identical export after import', function () {
         // Create a complete character
-        $race = Race::factory()->create(['full_slug' => 'phb:elf', 'name' => 'Elf']);
-        $background = Background::factory()->create(['full_slug' => 'phb:noble', 'name' => 'Noble']);
-        $class = CharacterClass::factory()->create(['full_slug' => 'phb:bard', 'name' => 'Bard']);
-        $spell = Spell::factory()->create(['full_slug' => 'phb:cure-wounds', 'name' => 'Cure Wounds']);
+        $race = Race::factory()->create(['slug' => 'phb:elf', 'name' => 'Elf']);
+        $background = Background::factory()->create(['slug' => 'phb:noble', 'name' => 'Noble']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:bard', 'name' => 'Bard']);
+        $spell = Spell::factory()->create(['slug' => 'phb:cure-wounds', 'name' => 'Cure Wounds']);
         // Use seeded language (core:elvish from LanguageSeeder)
-        $language = Language::where('full_slug', 'core:elvish')->first();
+        $language = Language::where('slug', 'core:elvish')->first();
         expect($language)->not->toBeNull('Elvish language should be seeded');
 
         $character = Character::factory()->create([

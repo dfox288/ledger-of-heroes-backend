@@ -16,9 +16,9 @@ uses(TestCase::class, RefreshDatabase::class);
 
 describe('Single Character Validation', function () {
     it('returns valid for character with all references resolved', function () {
-        $race = Race::factory()->create(['full_slug' => 'phb:human']);
-        $background = Background::factory()->create(['full_slug' => 'phb:acolyte']);
-        $class = CharacterClass::factory()->create(['full_slug' => 'phb:fighter']);
+        $race = Race::factory()->create(['slug' => 'phb:human']);
+        $background = Background::factory()->create(['slug' => 'phb:acolyte']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:fighter']);
 
         $character = Character::factory()->create([
             'race_slug' => 'phb:human',
@@ -57,7 +57,7 @@ describe('Single Character Validation', function () {
     });
 
     it('detects dangling background reference', function () {
-        $race = Race::factory()->create(['full_slug' => 'phb:elf']);
+        $race = Race::factory()->create(['slug' => 'phb:elf']);
         $character = Character::factory()->create([
             'race_slug' => 'phb:elf',
             'background_slug' => 'phb:nonexistent-background',
@@ -94,7 +94,7 @@ describe('Single Character Validation', function () {
     });
 
     it('detects dangling subclass references', function () {
-        $class = CharacterClass::factory()->create(['full_slug' => 'phb:wizard']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:wizard']);
         $character = Character::factory()->create();
 
         CharacterClassPivot::factory()->create([
@@ -217,7 +217,7 @@ describe('Single Character Validation', function () {
     });
 
     it('includes summary statistics in response', function () {
-        $race = Race::factory()->create(['full_slug' => 'phb:dwarf']);
+        $race = Race::factory()->create(['slug' => 'phb:dwarf']);
         $character = Character::factory()->create([
             'race_slug' => 'phb:dwarf',
         ]);
@@ -245,7 +245,7 @@ describe('Single Character Validation', function () {
 
 describe('Bulk Character Validation', function () {
     it('returns validation status for all characters', function () {
-        $race = Race::factory()->create(['full_slug' => 'phb:halfling']);
+        $race = Race::factory()->create(['slug' => 'phb:halfling']);
 
         // Valid character
         $validCharacter = Character::factory()->create([
@@ -278,7 +278,7 @@ describe('Bulk Character Validation', function () {
     });
 
     it('only includes invalid characters in the characters array', function () {
-        $race = Race::factory()->create(['full_slug' => 'phb:gnome']);
+        $race = Race::factory()->create(['slug' => 'phb:gnome']);
 
         $validCharacter = Character::factory()->create([
             'race_slug' => 'phb:gnome',
@@ -296,7 +296,7 @@ describe('Bulk Character Validation', function () {
     });
 
     it('returns empty characters array when all are valid', function () {
-        $race = Race::factory()->create(['full_slug' => 'phb:tiefling']);
+        $race = Race::factory()->create(['slug' => 'phb:tiefling']);
 
         Character::factory()->create(['race_slug' => 'phb:tiefling']);
         Character::factory()->create(['race_slug' => 'phb:tiefling']);
@@ -323,7 +323,7 @@ describe('Bulk Character Validation', function () {
     });
 
     it('validates many characters efficiently with eager loading', function () {
-        $race = Race::factory()->create(['full_slug' => 'phb:human']);
+        $race = Race::factory()->create(['slug' => 'phb:human']);
 
         // Create 50 characters - should use eager loading, not N+1 queries
         Character::factory()->count(50)->create([

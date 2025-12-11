@@ -107,7 +107,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         }
 
         // Validate spell slugs exist
-        $spells = Spell::whereIn('full_slug', $selected)->get();
+        $spells = Spell::whereIn('slug', $selected)->get();
         if ($spells->count() !== count($selected)) {
             throw new InvalidSelectionException(
                 $choice->id,
@@ -218,7 +218,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         $remaining = $quantity - count($selected);
 
         return new PendingChoice(
-            id: $this->generateChoiceId('spell', 'class', $class->full_slug, $pivot->level, 'cantrips'),
+            id: $this->generateChoiceId('spell', 'class', $class->slug, $pivot->level, 'cantrips'),
             type: 'spell',
             subtype: 'cantrip',
             source: 'class',
@@ -232,7 +232,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
             optionsEndpoint: "/api/v1/characters/{$character->id}/available-spells?max_level=0",
             metadata: [
                 'spell_level' => 0,
-                'class_slug' => $class->full_slug,
+                'class_slug' => $class->slug,
             ],
         );
     }
@@ -262,7 +262,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         $maxSpellLevel = $this->getMaxSpellLevel($class, $pivot->level);
 
         return new PendingChoice(
-            id: $this->generateChoiceId('spell', 'class', $class->full_slug, $pivot->level, 'spells_known'),
+            id: $this->generateChoiceId('spell', 'class', $class->slug, $pivot->level, 'spells_known'),
             type: 'spell',
             subtype: 'spells_known',
             source: 'class',
@@ -276,7 +276,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
             optionsEndpoint: "/api/v1/characters/{$character->id}/available-spells?max_level={$maxSpellLevel}",
             metadata: [
                 'spell_level' => $maxSpellLevel,
-                'class_slug' => $class->full_slug,
+                'class_slug' => $class->slug,
             ],
         );
     }
@@ -333,14 +333,14 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         $remaining = $quantity - count($selected);
 
         // Build options endpoint with class filter
-        $classSlug = $spellChoice->characterClass?->full_slug;
+        $classSlug = $spellChoice->characterClass?->slug;
         $endpoint = "/api/v1/characters/{$character->id}/available-spells?max_level={$maxLevel}";
         if ($classSlug) {
             $endpoint .= "&class={$classSlug}";
         }
 
         return new PendingChoice(
-            id: $this->generateChoiceId('spell', 'subclass_feature', $feature->characterClass->full_slug, $feature->level, 'feature_cantrip'),
+            id: $this->generateChoiceId('spell', 'subclass_feature', $feature->characterClass->slug, $feature->level, 'feature_cantrip'),
             type: 'spell',
             subtype: $isCantrip ? 'cantrip' : 'spell',
             source: 'subclass_feature',

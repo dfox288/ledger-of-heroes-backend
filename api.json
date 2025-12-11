@@ -2326,16 +2326,12 @@
                                                         },
                                                         "slug": {
                                                             "type": "string"
-                                                        },
-                                                        "full_slug": {
-                                                            "type": "string"
                                                         }
                                                     },
                                                     "required": [
                                                         "id",
                                                         "name",
-                                                        "slug",
-                                                        "full_slug"
+                                                        "slug"
                                                     ]
                                                 },
                                                 "class_slug": {
@@ -2358,16 +2354,12 @@
                                                         },
                                                         "slug": {
                                                             "type": "string"
-                                                        },
-                                                        "full_slug": {
-                                                            "type": "string"
                                                         }
                                                     },
                                                     "required": [
                                                         "id",
                                                         "name",
-                                                        "slug",
-                                                        "full_slug"
+                                                        "slug"
                                                     ]
                                                 },
                                                 "subclass_slug": {
@@ -2610,7 +2602,7 @@
                         "name": "classSlugOrFullSlug",
                         "in": "path",
                         "required": true,
-                        "description": "Class slug or full_slug",
+                        "description": "Class slug",
                         "schema": {
                             "type": "string"
                         }
@@ -2650,16 +2642,12 @@
                                                         },
                                                         "slug": {
                                                             "type": "string"
-                                                        },
-                                                        "full_slug": {
-                                                            "type": "string"
                                                         }
                                                     },
                                                     "required": [
                                                         "id",
                                                         "name",
-                                                        "slug",
-                                                        "full_slug"
+                                                        "slug"
                                                     ]
                                                 },
                                                 "class_slug": {
@@ -2682,16 +2670,12 @@
                                                         },
                                                         "slug": {
                                                             "type": "string"
-                                                        },
-                                                        "full_slug": {
-                                                            "type": "string"
                                                         }
                                                     },
                                                     "required": [
                                                         "id",
                                                         "name",
-                                                        "slug",
-                                                        "full_slug"
+                                                        "slug"
                                                     ]
                                                 },
                                                 "subclass_slug": {
@@ -8415,9 +8399,6 @@
                                                     "slug": {
                                                         "type": "string"
                                                     },
-                                                    "full_slug": {
-                                                        "type": "string"
-                                                    },
                                                     "name": {
                                                         "type": "string"
                                                     },
@@ -8450,7 +8431,6 @@
                                                 "required": [
                                                     "id",
                                                     "slug",
-                                                    "full_slug",
                                                     "name",
                                                     "level",
                                                     "school"
@@ -8917,9 +8897,6 @@
                                                     "slug": {
                                                         "type": "string"
                                                     },
-                                                    "full_slug": {
-                                                        "type": "string"
-                                                    },
                                                     "name": {
                                                         "type": "string"
                                                     },
@@ -8951,7 +8928,6 @@
                                                 "required": [
                                                     "id",
                                                     "slug",
-                                                    "full_slug",
                                                     "name",
                                                     "hit_die",
                                                     "description",
@@ -9025,9 +9001,6 @@
                                                     "slug": {
                                                         "type": "string"
                                                     },
-                                                    "full_slug": {
-                                                        "type": "string"
-                                                    },
                                                     "name": {
                                                         "type": "string"
                                                     },
@@ -9044,7 +9017,6 @@
                                                 "required": [
                                                     "id",
                                                     "slug",
-                                                    "full_slug",
                                                     "name",
                                                     "speed",
                                                     "is_subrace"
@@ -9115,9 +9087,6 @@
                                                     "slug": {
                                                         "type": "string"
                                                     },
-                                                    "full_slug": {
-                                                        "type": "string"
-                                                    },
                                                     "name": {
                                                         "type": "string"
                                                     },
@@ -9137,7 +9106,6 @@
                                                 "required": [
                                                     "id",
                                                     "slug",
-                                                    "full_slug",
                                                     "name",
                                                     "feature_name",
                                                     "feature_description"
@@ -9397,9 +9365,6 @@
                                                     "slug": {
                                                         "type": "string"
                                                     },
-                                                    "full_slug": {
-                                                        "type": "string"
-                                                    },
                                                     "name": {
                                                         "type": "string"
                                                     },
@@ -9432,7 +9397,6 @@
                                                 "required": [
                                                     "id",
                                                     "slug",
-                                                    "full_slug",
                                                     "name",
                                                     "level",
                                                     "school"
@@ -10846,9 +10810,6 @@
                                                     "slug": {
                                                         "type": "string"
                                                     },
-                                                    "full_slug": {
-                                                        "type": "string"
-                                                    },
                                                     "name": {
                                                         "type": "string"
                                                     },
@@ -10862,7 +10823,6 @@
                                                 "required": [
                                                     "id",
                                                     "slug",
-                                                    "full_slug",
                                                     "name",
                                                     "hit_die",
                                                     "is_base_class"
@@ -10921,9 +10881,6 @@
                                                     "slug": {
                                                         "type": "string"
                                                     },
-                                                    "full_slug": {
-                                                        "type": "string"
-                                                    },
                                                     "name": {
                                                         "type": "string"
                                                     },
@@ -10943,7 +10900,6 @@
                                                 "required": [
                                                     "id",
                                                     "slug",
-                                                    "full_slug",
                                                     "name",
                                                     "challenge_rating",
                                                     "type"
@@ -11002,9 +10958,6 @@
                                                     "slug": {
                                                         "type": "string"
                                                     },
-                                                    "full_slug": {
-                                                        "type": "string"
-                                                    },
                                                     "name": {
                                                         "type": "string"
                                                     },
@@ -11024,7 +10977,6 @@
                                                 "required": [
                                                     "id",
                                                     "slug",
-                                                    "full_slug",
                                                     "name",
                                                     "type",
                                                     "rarity"
@@ -11083,9 +11035,6 @@
                                                     "slug": {
                                                         "type": "string"
                                                     },
-                                                    "full_slug": {
-                                                        "type": "string"
-                                                    },
                                                     "name": {
                                                         "type": "string"
                                                     },
@@ -11102,7 +11051,6 @@
                                                 "required": [
                                                     "id",
                                                     "slug",
-                                                    "full_slug",
                                                     "name",
                                                     "speed",
                                                     "is_subrace"
@@ -11827,12 +11775,6 @@
                     "slug": {
                         "type": "string"
                     },
-                    "full_slug": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
                     "name": {
                         "type": "string"
                     },
@@ -11892,7 +11834,6 @@
                 "required": [
                     "id",
                     "slug",
-                    "full_slug",
                     "name",
                     "feature_name",
                     "feature_description"
@@ -11937,7 +11878,7 @@
             },
             "CharacterChoiceResolveRequest": {
                 "type": "object",
-                "description": "Resolve a pending character choice.\n\nThis request supports multiple formats depending on the choice type:\n\n**Generic Selection** (most choice types):\n```json\n{\"selected\": [\"option1\", \"option2\"]}\n```\nThe `selected` array contains IDs or slugs of the chosen options.\n\n**Equipment Choice with Category Options**:\n```json\n{\"selected\": [\"b\"], \"item_selections\": {\"b\": [\"phb:drum\"]}}\n```\nWhen an equipment option is a category (e.g., \"any musical instrument\"),\nuse `item_selections` to specify which item(s) from that category.\n\n**ASI Choice** (Ability Score Improvement):\n```json\n{\"type\": \"asi\", \"increases\": {\"strength\": 2, \"dexterity\": 1}}\n```\nThe `increases` object maps ability names to increase amounts (1 or 2).\n\n**Feat Choice**:\n```json\n{\"type\": \"feat\", \"feat\": \"phb:alert\"}\n```\nThe `feat` is the full_slug of the chosen feat.",
+                "description": "Resolve a pending character choice.\n\nThis request supports multiple formats depending on the choice type:\n\n**Generic Selection** (most choice types):\n```json\n{\"selected\": [\"option1\", \"option2\"]}\n```\nThe `selected` array contains IDs or slugs of the chosen options.\n\n**Equipment Choice with Category Options**:\n```json\n{\"selected\": [\"b\"], \"item_selections\": {\"b\": [\"phb:drum\"]}}\n```\nWhen an equipment option is a category (e.g., \"any musical instrument\"),\nuse `item_selections` to specify which item(s) from that category.\n\n**ASI Choice** (Ability Score Improvement):\n```json\n{\"type\": \"asi\", \"increases\": {\"strength\": 2, \"dexterity\": 1}}\n```\nThe `increases` object maps ability names to increase amounts (1 or 2).\n\n**Feat Choice**:\n```json\n{\"type\": \"feat\", \"feat\": \"phb:alert\"}\n```\nThe `feat` is the slug of the chosen feat.",
                 "properties": {
                     "gold_amount": {
                         "type": "integer",
@@ -12031,19 +11972,12 @@
                             },
                             "slug": {
                                 "type": "string"
-                            },
-                            "full_slug": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
                             }
                         },
                         "required": [
                             "id",
                             "name",
-                            "slug",
-                            "full_slug"
+                            "slug"
                         ]
                     },
                     "class_slug": {
@@ -12066,19 +12000,12 @@
                             },
                             "slug": {
                                 "type": "string"
-                            },
-                            "full_slug": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
                             }
                         },
                         "required": [
                             "id",
                             "name",
-                            "slug",
-                            "full_slug"
+                            "slug"
                         ]
                     },
                     "subclass_slug": {
@@ -13317,6 +13244,57 @@
                     },
                     "ability_scores": {
                         "type": "object",
+                        "description": "Final ability scores with racial bonuses applied",
+                        "properties": {
+                            "STR": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "DEX": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "CON": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "INT": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "WIS": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "CHA": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "STR",
+                            "DEX",
+                            "CON",
+                            "INT",
+                            "WIS",
+                            "CHA"
+                        ]
+                    },
+                    "base_ability_scores": {
+                        "type": "object",
+                        "description": "Base ability scores before any bonuses",
                         "properties": {
                             "STR": {
                                 "type": [
@@ -13842,6 +13820,7 @@
                     "validation_status",
                     "ability_score_method",
                     "ability_scores",
+                    "base_ability_scores",
                     "modifiers",
                     "proficiency_bonus",
                     "max_hit_points",
@@ -15309,12 +15288,6 @@
                     "slug": {
                         "type": "string"
                     },
-                    "full_slug": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
                     "name": {
                         "type": "string"
                     },
@@ -15642,7 +15615,6 @@
                 "required": [
                     "id",
                     "slug",
-                    "full_slug",
                     "name",
                     "hit_die",
                     "description",
@@ -15668,12 +15640,6 @@
                     "slug": {
                         "type": "string"
                     },
-                    "full_slug": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
                     "description": {
                         "type": "string"
                     },
@@ -15696,7 +15662,6 @@
                     "id",
                     "name",
                     "slug",
-                    "full_slug",
                     "description",
                     "monster_count",
                     "spell_count"
@@ -16302,12 +16267,6 @@
                     "slug": {
                         "type": "string"
                     },
-                    "full_slug": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
                     "name": {
                         "type": "string"
                     },
@@ -16390,7 +16349,6 @@
                 "required": [
                     "id",
                     "slug",
-                    "full_slug",
                     "name",
                     "prerequisites_text",
                     "description",
@@ -16731,12 +16689,6 @@
                     "slug": {
                         "type": "string"
                     },
-                    "full_slug": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
                     "item_type_id": {
                         "type": "integer"
                     },
@@ -16922,7 +16874,6 @@
                     "id",
                     "name",
                     "slug",
-                    "full_slug",
                     "item_type_id",
                     "detail",
                     "rarity",
@@ -17035,12 +16986,6 @@
                     "slug": {
                         "type": "string"
                     },
-                    "full_slug": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
                     "script": {
                         "type": [
                             "string",
@@ -17067,7 +17012,6 @@
                     "id",
                     "name",
                     "slug",
-                    "full_slug",
                     "script",
                     "typical_speakers",
                     "description",
@@ -17435,12 +17379,6 @@
                     "slug": {
                         "type": "string"
                     },
-                    "full_slug": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
                     "name": {
                         "type": "string"
                     },
@@ -17628,7 +17566,6 @@
                 "required": [
                     "id",
                     "slug",
-                    "full_slug",
                     "name",
                     "sort_name",
                     "type",
@@ -17752,12 +17689,6 @@
                     "slug": {
                         "type": "string"
                     },
-                    "full_slug": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
                     "name": {
                         "type": "string"
                     },
@@ -17847,7 +17778,6 @@
                 "required": [
                     "id",
                     "slug",
-                    "full_slug",
                     "name",
                     "feature_type",
                     "feature_type_label",
@@ -18365,12 +18295,6 @@
                     "slug": {
                         "type": "string"
                     },
-                    "full_slug": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
                     "name": {
                         "type": "string"
                     },
@@ -18545,7 +18469,6 @@
                 "required": [
                     "id",
                     "slug",
-                    "full_slug",
                     "name",
                     "speed",
                     "fly_speed",
@@ -19065,12 +18988,6 @@
                     "slug": {
                         "type": "string"
                     },
-                    "full_slug": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
                     "name": {
                         "type": "string"
                     },
@@ -19176,7 +19093,6 @@
                 "required": [
                     "id",
                     "slug",
-                    "full_slug",
                     "name",
                     "level",
                     "casting_time",

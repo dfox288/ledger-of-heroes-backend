@@ -13,7 +13,6 @@ class ItemResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'full_slug' => $this->full_slug,
             'item_type_id' => $this->item_type_id,
             'detail' => $this->detail,
             'rarity' => $this->rarity,

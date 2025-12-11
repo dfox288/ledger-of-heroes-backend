@@ -29,8 +29,7 @@ class SpellFactory extends Factory
         $slug = Str::slug($name);
 
         return [
-            'slug' => $slug,
-            'full_slug' => 'test:'.$slug,
+            'slug' => 'test:'.$slug,
             'name' => $name,
             'level' => fake()->numberBetween(0, 9),
             'spell_school_id' => $school->id,

@@ -185,7 +185,7 @@ class ProficiencyTypeController extends Controller
      * - Includes base classes AND subclasses (e.g., Eldritch Knight Fighter counts separately)
      * - Check `parent_class_id` in response to distinguish base vs subclass
      *
-     * @response array{data: array<int, array{id: int, slug: string, full_slug: string, name: string, hit_die: int, description: string|null, archetype: string|null, parent_class_id: int|null, is_base_class: bool}>}
+     * @response array{data: array<int, array{id: int, slug: string, name: string, hit_die: int, description: string|null, archetype: string|null, parent_class_id: int|null, is_base_class: bool}>}
      */
     public function classes(ProficiencyTypeShowRequest $request, ProficiencyType $proficiencyType): JsonResponse
     {
@@ -248,7 +248,7 @@ class ProficiencyTypeController extends Controller
      * - Check `parent_race_id` in response to distinguish base race vs subrace
      * - Results alphabetically sorted for consistent browsing
      *
-     * @response array{data: array<int, array{id: int, slug: string, full_slug: string, name: string, speed: int|null, is_subrace: bool}>}
+     * @response array{data: array<int, array{id: int, slug: string, name: string, speed: int|null, is_subrace: bool}>}
      */
     public function races(ProficiencyTypeShowRequest $request, ProficiencyType $proficiencyType): JsonResponse
     {
@@ -318,7 +318,7 @@ class ProficiencyTypeController extends Controller
      * - All backgrounds are base-level (no "sub-backgrounds" like races/classes have)
      * - Check background description for thematic fit beyond mechanical proficiencies
      *
-     * @response array{data: array<int, array{id: int, slug: string, full_slug: string, name: string, feature_name: string|null, feature_description: string|null}>}
+     * @response array{data: array<int, array{id: int, slug: string, name: string, feature_name: string|null, feature_description: string|null}>}
      */
     public function backgrounds(ProficiencyTypeShowRequest $request, ProficiencyType $proficiencyType): JsonResponse
     {

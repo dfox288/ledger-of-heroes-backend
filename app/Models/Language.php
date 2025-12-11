@@ -19,7 +19,6 @@ class Language extends BaseModel
     protected $fillable = [
         'name',
         'slug',
-        'full_slug',
         'script',
         'typical_speakers',
         'description',

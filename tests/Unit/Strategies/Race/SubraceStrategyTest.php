@@ -88,7 +88,7 @@ class SubraceStrategyTest extends TestCase
         $uniqueRaceName = 'TestRace'.time();
         $uniqueRaceSlug = \Illuminate\Support\Str::slug($uniqueRaceName);
 
-        $this->assertDatabaseMissing('races', ['slug' => $uniqueRaceSlug]);
+        $this->assertDatabaseMissing('races', ['slug' => "phb:{$uniqueRaceSlug}"]);
 
         $data = [
             'name' => 'Mountain '.$uniqueRaceName,
@@ -100,11 +100,11 @@ class SubraceStrategyTest extends TestCase
         $result = $this->strategy->enhance($data);
 
         $this->assertDatabaseHas('races', [
-            'slug' => $uniqueRaceSlug,
+            'slug' => "phb:{$uniqueRaceSlug}",
             'name' => $uniqueRaceName,
         ]);
 
-        $baseRace = Race::where('slug', $uniqueRaceSlug)->first();
+        $baseRace = Race::where('slug', "phb:{$uniqueRaceSlug}")->first();
         $this->assertEquals($baseRace->id, $result['parent_race_id']);
     }
 
@@ -120,7 +120,7 @@ class SubraceStrategyTest extends TestCase
 
         $result = $this->strategy->enhance($data);
 
-        $this->assertEquals('elf-high-elf', $result['slug']);
+        $this->assertEquals('phb:elf-high-elf', $result['slug']);
     }
 
     #[Test]
@@ -239,7 +239,7 @@ class SubraceStrategyTest extends TestCase
     }
 
     #[Test]
-    public function it_sets_full_slug_on_stub_base_race(): void
+    public function it_sets_slug_on_stub_base_race(): void
     {
         $this->seedSizes();
 
@@ -247,7 +247,7 @@ class SubraceStrategyTest extends TestCase
         $uniqueRaceName = 'FullSlugTestRace'.time();
         $uniqueRaceSlug = \Illuminate\Support\Str::slug($uniqueRaceName);
 
-        $this->assertDatabaseMissing('races', ['slug' => $uniqueRaceSlug]);
+        $this->assertDatabaseMissing('races', ['slug' => "phb:{$uniqueRaceSlug}"]);
 
         $data = [
             'name' => 'Mountain '.$uniqueRaceName,
@@ -259,11 +259,11 @@ class SubraceStrategyTest extends TestCase
 
         $result = $this->strategy->enhance($data);
 
-        // The stub base race should have full_slug populated
-        $baseRace = Race::where('slug', $uniqueRaceSlug)->first();
-        $this->assertNotNull($baseRace);
-        $this->assertNotNull($baseRace->full_slug, 'Stub base race should have full_slug populated');
-        $this->assertEquals("phb:{$uniqueRaceSlug}", $baseRace->full_slug);
+        // The stub base race should have slug populated (with PHB prefix)
+        $baseRace = Race::where('slug', "phb:{$uniqueRaceSlug}")->first();
+        $this->assertNotNull($baseRace, "Expected base race with slug 'phb:{$uniqueRaceSlug}' to exist");
+        $this->assertNotNull($baseRace->slug, 'Stub base race should have slug populated');
+        $this->assertEquals("phb:{$uniqueRaceSlug}", $baseRace->slug);
     }
 
     #[Test]
@@ -275,7 +275,7 @@ class SubraceStrategyTest extends TestCase
         $uniqueRaceName = 'EmptySourceRace'.time();
         $uniqueRaceSlug = \Illuminate\Support\Str::slug($uniqueRaceName);
 
-        $this->assertDatabaseMissing('races', ['slug' => $uniqueRaceSlug]);
+        $this->assertDatabaseMissing('races', ['slug' => "phb:{$uniqueRaceSlug}"]);
 
         $data = [
             'name' => 'Mountain '.$uniqueRaceName,
@@ -287,10 +287,10 @@ class SubraceStrategyTest extends TestCase
 
         $result = $this->strategy->enhance($data);
 
-        // The stub base race should have full_slug with PHB prefix (fallback)
-        $baseRace = Race::where('slug', $uniqueRaceSlug)->first();
+        // The stub base race should have slug with PHB prefix (fallback)
+        $baseRace = Race::where('slug', "phb:{$uniqueRaceSlug}")->first();
         $this->assertNotNull($baseRace);
-        $this->assertNotNull($baseRace->full_slug, 'Stub base race should have full_slug populated');
-        $this->assertEquals("phb:{$uniqueRaceSlug}", $baseRace->full_slug);
+        $this->assertNotNull($baseRace->slug, 'Stub base race should have slug populated');
+        $this->assertEquals("phb:{$uniqueRaceSlug}", $baseRace->slug);
     }
 }

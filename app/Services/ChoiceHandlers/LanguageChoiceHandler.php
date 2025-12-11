@@ -44,11 +44,10 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
 
             $sourceName = $this->getSourceName($character, $source);
 
-            // Build options with consistent structure using full_slug
+            // Build options with consistent structure using slug
             // is_learnable is included for API documentation purposes (pre-filtered by service)
             $options = collect($choiceData['options'] ?? [])
                 ->map(fn ($opt) => [
-                    'full_slug' => $opt['full_slug'] ?? $opt['slug'],
                     'slug' => $opt['slug'],
                     'name' => $opt['name'],
                     'script' => $opt['script'] ?? null,
@@ -57,7 +56,7 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
                 ->values()
                 ->all();
 
-            // Selected are language full_slugs
+            // Selected are language slugs
             $selected = $choiceData['selected'] ?? [];
 
             $choice = new PendingChoice(
@@ -124,8 +123,8 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
     private function getSourceSlug(Character $character, string $source): string
     {
         return match ($source) {
-            'race' => $character->getAttribute('race')?->full_slug ?? '',
-            'background' => $character->getAttribute('background')?->full_slug ?? '',
+            'race' => $character->getAttribute('race')?->slug ?? '',
+            'background' => $character->getAttribute('background')?->slug ?? '',
             'feat' => 'feat', // Feats don't have a single slug, use 'feat' as placeholder
             default => '',
         };
@@ -156,7 +155,7 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
                 return [];
             }
 
-            $featIds = Feat::whereIn('full_slug', $featSlugs)->pluck('id')->toArray();
+            $featIds = Feat::whereIn('slug', $featSlugs)->pluck('id')->toArray();
 
             return EntityLanguage::whereIn('reference_id', $featIds)
                 ->where('reference_type', Feat::class)
@@ -165,7 +164,7 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
                 ->with('language')
                 ->get()
                 ->filter(fn ($el) => $el->language !== null)
-                ->pluck('language.full_slug')
+                ->pluck('language.slug')
                 ->toArray();
         }
 
@@ -185,7 +184,7 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
             ->with('language')
             ->get()
             ->filter(fn ($el) => $el->language !== null)
-            ->pluck('language.full_slug')
+            ->pluck('language.slug')
             ->toArray();
 
         // For subraces, also include parent race fixed languages
@@ -196,7 +195,7 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
                 ->with('language')
                 ->get()
                 ->filter(fn ($el) => $el->language !== null)
-                ->pluck('language.full_slug')
+                ->pluck('language.slug')
                 ->toArray();
 
             $fixedLanguageSlugs = array_unique(array_merge($fixedLanguageSlugs, $parentFixedLanguageSlugs));

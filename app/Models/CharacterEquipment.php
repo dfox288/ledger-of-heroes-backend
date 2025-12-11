@@ -41,7 +41,7 @@ class CharacterEquipment extends Model
 
     public function item(): BelongsTo
     {
-        return $this->belongsTo(Item::class, 'item_slug', 'full_slug');
+        return $this->belongsTo(Item::class, 'item_slug', 'slug');
     }
 
     // Helper methods

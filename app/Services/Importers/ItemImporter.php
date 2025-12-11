@@ -45,17 +45,15 @@ class ItemImporter extends BaseImporter
             ? $this->cachedFindId(DamageType::class, 'code', $itemData['damage_type_code'])
             : null;
 
-        // Generate slug and full_slug
-        $slug = $this->generateSlug($itemData['name']);
+        // Generate source-prefixed slug
         $sources = $itemData['sources'] ?? [];
-        $fullSlug = $this->generateFullSlug($slug, $sources);
+        $slug = $this->generateSlug($itemData['name'], $sources);
 
         // Create or update item
         $item = Item::updateOrCreate(
             ['slug' => $slug],
             [
                 'name' => $itemData['name'],
-                'full_slug' => $fullSlug,
                 'item_type_id' => $itemTypeId,
                 'detail' => $itemData['detail'] ?? null,
                 'rarity' => $itemData['rarity'],

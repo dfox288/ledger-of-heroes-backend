@@ -23,7 +23,7 @@ it('returns correct type', function () {
 it('transforms service output to PendingChoice objects for race bonus feat', function () {
     // Mock character with race
     $race = (object) [
-        'full_slug' => 'phb:variant-human',
+        'slug' => 'phb:variant-human',
         'name' => 'Variant Human',
     ];
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn($race);
@@ -62,7 +62,7 @@ it('transforms service output to PendingChoice objects for race bonus feat', fun
 
 it('includes completed choices with remaining zero', function () {
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn((object) [
-        'full_slug' => 'phb:variant-human',
+        'slug' => 'phb:variant-human',
         'name' => 'Variant Human',
     ]);
     $this->character->shouldReceive('offsetExists')->with('race')->andReturn(true);
@@ -91,7 +91,7 @@ it('includes completed choices with remaining zero', function () {
 
 it('returns empty collection when no bonus feats available', function () {
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn((object) [
-        'full_slug' => 'phb:high-elf',
+        'slug' => 'phb:high-elf',
         'name' => 'High Elf',
     ]);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn(null);
@@ -126,7 +126,7 @@ it('resolves choice by calling feat service', function () {
         ->once()
         ->with($this->character, 'race', 'phb:alert')
         ->andReturn([
-            'feat' => ['full_slug' => 'phb:alert', 'slug' => 'alert', 'name' => 'Alert'],
+            'feat' => ['slug' => 'phb:alert', 'name' => 'Alert'],
             'source' => 'race',
             'proficiencies_gained' => [],
             'spells_gained' => [],
@@ -158,7 +158,7 @@ it('resolves choice with selected array format', function () {
         ->once()
         ->with($this->character, 'race', 'phb:lucky')
         ->andReturn([
-            'feat' => ['full_slug' => 'phb:lucky', 'slug' => 'lucky', 'name' => 'Lucky'],
+            'feat' => ['slug' => 'phb:lucky', 'name' => 'Lucky'],
             'source' => 'race',
             'proficiencies_gained' => [],
             'spells_gained' => [],
@@ -234,7 +234,7 @@ it('undoes choice by calling feat service', function () {
 
 it('handles background bonus feat source', function () {
     $background = (object) [
-        'full_slug' => 'phb:soldier',
+        'slug' => 'phb:soldier',
         'name' => 'Soldier',
     ];
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn(null);

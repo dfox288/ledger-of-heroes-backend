@@ -695,9 +695,9 @@ describe('CharacterChoiceService', function () {
             ->toThrow(\App\Exceptions\ChoiceNotUndoableException::class);
     });
 
-    it('parses choice ID with full_slug format containing colons', function () {
+    it('parses choice ID with slug format containing colons', function () {
         // Choice ID format: type|source|entity_slug|level|choice_group
-        // When entity_slug uses full_slug (e.g., "phb:bard"), the ID contains colons within the slug
+        // When entity_slug uses prefixed slug (e.g., "phb:bard"), the ID contains colons within the slug
         $choiceId = 'proficiency|class|phb:bard|1|tool_choice_1';
 
         $choice = new PendingChoice(

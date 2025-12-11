@@ -98,12 +98,12 @@ class CharacterClassController extends Controller
      * - Character's total level cannot exceed 20
      * - Must meet multiclass prerequisites (unless force=true)
      *
-     * @response 201 array{data: array{class: array{id: int, name: string, slug: string, full_slug: string}|null, class_slug: string, is_dangling: bool, subclass: array{id: int, name: string, slug: string, full_slug: string}|null, subclass_slug: string|null, level: int, is_primary: bool, order: int, hit_dice: array{die: string, max: int, spent: int, available: int}|null}}
+     * @response 201 array{data: array{class: array{id: int, name: string, slug: string}|null, class_slug: string, is_dangling: bool, subclass: array{id: int, name: string, slug: string}|null, subclass_slug: string|null, level: int, is_primary: bool, order: int, hit_dice: array{die: string, max: int, spent: int, available: int}|null}}
      */
     public function store(CharacterClassAddRequest $request, Character $character): JsonResponse
     {
         $classSlug = $request->validated('class_slug');
-        $class = CharacterClass::where('full_slug', $classSlug)->first();
+        $class = CharacterClass::where('slug', $classSlug)->first();
 
         if (! $class) {
             return response()->json([
@@ -162,9 +162,8 @@ class CharacterClassController extends Controller
      */
     public function destroy(Character $character, string $classSlugOrFullSlug): JsonResponse
     {
-        // Accept either full_slug (phb:fighter) or simple slug (fighter)
-        $class = CharacterClass::where('full_slug', $classSlugOrFullSlug)
-            ->orWhere('slug', $classSlugOrFullSlug)
+        // Accept either slug (phb:fighter) or simple slug (fighter)
+        $class = CharacterClass::where('slug', $classSlugOrFullSlug)
             ->first();
 
         if (! $class) {
@@ -177,7 +176,7 @@ class CharacterClassController extends Controller
             // Lock the character's class rows to prevent concurrent modifications
             $classCount = $character->characterClasses()->lockForUpdate()->count();
 
-            $pivot = $character->characterClasses()->where('class_slug', $class->full_slug)->first();
+            $pivot = $character->characterClasses()->where('class_slug', $class->slug)->first();
 
             if (! $pivot) {
                 return response()->json([
@@ -248,9 +247,8 @@ class CharacterClassController extends Controller
      */
     public function levelUp(Character $character, string $classSlugOrFullSlug): JsonResponse
     {
-        // Accept either full_slug (phb:fighter) or simple slug (fighter)
-        $class = CharacterClass::where('full_slug', $classSlugOrFullSlug)
-            ->orWhere('slug', $classSlugOrFullSlug)
+        // Accept either slug (phb:fighter) or simple slug (fighter)
+        $class = CharacterClass::where('slug', $classSlugOrFullSlug)
             ->first();
 
         if (! $class) {
@@ -260,7 +258,7 @@ class CharacterClassController extends Controller
         }
 
         // Verify class exists on character before attempting level-up
-        $pivot = $character->characterClasses()->where('class_slug', $class->full_slug)->first();
+        $pivot = $character->characterClasses()->where('class_slug', $class->slug)->first();
         if (! $pivot) {
             return response()->json([
                 'message' => 'Class not found on character',
@@ -268,7 +266,7 @@ class CharacterClassController extends Controller
         }
 
         try {
-            $result = $this->levelUpService->levelUp($character, $class->full_slug);
+            $result = $this->levelUpService->levelUp($character, $class->slug);
 
             return (new LevelUpResource($result))
                 ->response()
@@ -329,13 +327,12 @@ class CharacterClassController extends Controller
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  The class ID or slug to replace
      *
-     * @response array{data: array{class: array{id: int, name: string, slug: string, full_slug: string}|null, class_slug: string, is_dangling: bool, subclass: array{id: int, name: string, slug: string, full_slug: string}|null, subclass_slug: string|null, level: int, is_primary: bool, order: int, hit_dice: array{die: string, max: int, spent: int, available: int}|null}}
+     * @response array{data: array{class: array{id: int, name: string, slug: string}|null, class_slug: string, is_dangling: bool, subclass: array{id: int, name: string, slug: string}|null, subclass_slug: string|null, level: int, is_primary: bool, order: int, hit_dice: array{die: string, max: int, spent: int, available: int}|null}}
      */
     public function replace(CharacterClassAddRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {
-        // Accept either full_slug (phb:fighter) or simple slug (fighter)
-        $sourceClass = CharacterClass::where('full_slug', $classSlugOrFullSlug)
-            ->orWhere('slug', $classSlugOrFullSlug)
+        // Accept either slug (phb:fighter) or simple slug (fighter)
+        $sourceClass = CharacterClass::where('slug', $classSlugOrFullSlug)
             ->first();
 
         if (! $sourceClass) {
@@ -345,7 +342,7 @@ class CharacterClassController extends Controller
         }
 
         $targetClassSlug = $request->validated('class_slug');
-        $targetClass = CharacterClass::where('full_slug', $targetClassSlug)->first();
+        $targetClass = CharacterClass::where('slug', $targetClassSlug)->first();
 
         if (! $targetClass) {
             return response()->json([
@@ -408,18 +405,17 @@ class CharacterClassController extends Controller
      *
      * @param  CharacterSubclassSetRequest  $request  The validated request
      * @param  Character  $character  The character
-     * @param  string  $classSlugOrFullSlug  Class slug or full_slug
+     * @param  string  $classSlugOrFullSlug  Class slug
      *
      * @throws InvalidSubclassException If subclass doesn't belong to the class
      * @throws SubclassLevelRequirementException If character level is below requirement
      *
-     * @response array{data: array{class: array{id: int, name: string, slug: string, full_slug: string}|null, class_slug: string, is_dangling: bool, subclass: array{id: int, name: string, slug: string, full_slug: string}|null, subclass_slug: string|null, level: int, is_primary: bool, order: int, hit_dice: array{die: string, max: int, spent: int, available: int}|null}}
+     * @response array{data: array{class: array{id: int, name: string, slug: string}|null, class_slug: string, is_dangling: bool, subclass: array{id: int, name: string, slug: string}|null, subclass_slug: string|null, level: int, is_primary: bool, order: int, hit_dice: array{die: string, max: int, spent: int, available: int}|null}}
      */
     public function setSubclass(CharacterSubclassSetRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {
-        // Accept either full_slug (phb:fighter) or simple slug (fighter)
-        $class = CharacterClass::where('full_slug', $classSlugOrFullSlug)
-            ->orWhere('slug', $classSlugOrFullSlug)
+        // Accept either slug (phb:fighter) or simple slug (fighter)
+        $class = CharacterClass::where('slug', $classSlugOrFullSlug)
             ->first();
 
         if (! $class) {
@@ -428,7 +424,7 @@ class CharacterClassController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        $pivot = $character->characterClasses()->where('class_slug', $class->full_slug)->first();
+        $pivot = $character->characterClasses()->where('class_slug', $class->slug)->first();
 
         if (! $pivot) {
             return response()->json([
@@ -437,7 +433,7 @@ class CharacterClassController extends Controller
         }
 
         $subclassSlug = $request->validated('subclass_slug');
-        $subclass = CharacterClass::where('full_slug', $subclassSlug)->first();
+        $subclass = CharacterClass::where('slug', $subclassSlug)->first();
 
         // Validate subclass belongs to this class (only if subclass exists)
         if ($subclass && $subclass->parent_class_id !== $class->id) {
@@ -458,7 +454,7 @@ class CharacterClassController extends Controller
 
         // Assign subclass features to the character
         if ($subclass) {
-            $this->featureService->populateFromSubclass($character, $class->full_slug, $subclassSlug);
+            $this->featureService->populateFromSubclass($character, $class->slug, $subclassSlug);
         }
 
         return (new CharacterClassPivotResource($pivot))

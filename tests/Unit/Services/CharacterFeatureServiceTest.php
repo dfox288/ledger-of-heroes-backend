@@ -363,14 +363,12 @@ class CharacterFeatureServiceTest extends TestCase
         $clericClass = CharacterClass::factory()->create([
             'name' => 'Cleric',
             'slug' => 'cleric',
-            'full_slug' => 'phb:cleric',
         ]);
 
         // Create Light Domain subclass
         $lightDomain = CharacterClass::factory()->create([
             'name' => 'Light Domain',
             'slug' => 'cleric-light-domain',
-            'full_slug' => 'phb:cleric-light-domain',
             'parent_class_id' => $clericClass->id,
         ]);
 
@@ -388,7 +386,6 @@ class CharacterFeatureServiceTest extends TestCase
         $lightSpell = \App\Models\Spell::factory()->create([
             'name' => 'Light',
             'slug' => 'light',
-            'full_slug' => 'phb:light',
             'level' => 0,
         ]);
 
@@ -407,11 +404,11 @@ class CharacterFeatureServiceTest extends TestCase
         ]);
 
         // Populate subclass features (should include the Light cantrip)
-        $this->service->populateFromSubclass($character, $clericClass->slug, $lightDomain->full_slug);
+        $this->service->populateFromSubclass($character, $clericClass->slug, $lightDomain->slug);
 
         // Verify the Light cantrip was assigned
         $character->refresh();
-        $lightSpellAssigned = $character->spells()->where('spell_slug', 'phb:light')->first();
+        $lightSpellAssigned = $character->spells()->where('spell_slug', 'light')->first();
 
         $this->assertNotNull($lightSpellAssigned, 'Light cantrip should be assigned to character');
         $this->assertEquals('subclass', $lightSpellAssigned->source);
@@ -425,14 +422,12 @@ class CharacterFeatureServiceTest extends TestCase
         $clericClass = CharacterClass::factory()->create([
             'name' => 'Cleric',
             'slug' => 'cleric',
-            'full_slug' => 'phb:cleric',
         ]);
 
         // Create Light Domain subclass
         $lightDomain = CharacterClass::factory()->create([
             'name' => 'Light Domain',
             'slug' => 'cleric-light-domain',
-            'full_slug' => 'phb:cleric-light-domain',
             'parent_class_id' => $clericClass->id,
         ]);
 
@@ -450,21 +445,18 @@ class CharacterFeatureServiceTest extends TestCase
         $burningHands = \App\Models\Spell::factory()->create([
             'name' => 'Burning Hands',
             'slug' => 'burning-hands',
-            'full_slug' => 'phb:burning-hands',
             'level' => 1,
         ]);
 
         $scorchingRay = \App\Models\Spell::factory()->create([
             'name' => 'Scorching Ray',
             'slug' => 'scorching-ray',
-            'full_slug' => 'phb:scorching-ray',
             'level' => 2,
         ]);
 
         $fireball = \App\Models\Spell::factory()->create([
             'name' => 'Fireball',
             'slug' => 'fireball',
-            'full_slug' => 'phb:fireball',
             'level' => 3,
         ]);
 
@@ -481,7 +473,7 @@ class CharacterFeatureServiceTest extends TestCase
         ]);
 
         // Populate subclass features
-        $this->service->populateFromSubclass($character, $clericClass->slug, $lightDomain->full_slug);
+        $this->service->populateFromSubclass($character, $clericClass->slug, $lightDomain->slug);
 
         // Verify spells at or below character level are assigned
         $character->refresh();

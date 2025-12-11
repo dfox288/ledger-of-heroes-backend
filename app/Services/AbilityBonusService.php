@@ -77,7 +77,7 @@ class AbilityBonusService
                     $bonuses->push($this->buildBonus(
                         sourceType: 'race',
                         sourceName: $race->name,
-                        sourceSlug: $race->full_slug,
+                        sourceSlug: $race->slug,
                         abilityCode: $choice->ability_score_code,
                         abilityName: $abilityScore->name,
                         value: $choice->bonus,
@@ -97,7 +97,7 @@ class AbilityBonusService
                 $bonuses->push($this->buildBonus(
                     sourceType: 'race',
                     sourceName: $race->name,
-                    sourceSlug: $race->full_slug,
+                    sourceSlug: $race->slug,
                     abilityCode: $modifier->abilityScore->code,
                     abilityName: $modifier->abilityScore->name,
                     value: (int) $modifier->value,
@@ -131,7 +131,7 @@ class AbilityBonusService
             // look up the feat by slug. This handles CharacterFeature records
             // created before the fix that populated feature_id.
             if (! $feat && $characterFeature->feature_slug) {
-                $feat = Feat::where('full_slug', $characterFeature->feature_slug)
+                $feat = Feat::where('slug', $characterFeature->feature_slug)
                     ->with('modifiers.abilityScore')
                     ->first();
             }
@@ -152,7 +152,7 @@ class AbilityBonusService
                 $bonuses->push($this->buildBonus(
                     sourceType: 'feat',
                     sourceName: $feat->name,
-                    sourceSlug: $feat->full_slug,
+                    sourceSlug: $feat->slug,
                     abilityCode: $modifier->abilityScore->code,
                     abilityName: $modifier->abilityScore->name,
                     value: (int) $modifier->value,

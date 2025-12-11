@@ -21,8 +21,8 @@ it('returns correct type', function () {
 });
 
 it('transforms service output to PendingChoice objects for skill choices', function () {
-    // Mock character attributes with full_slug
-    $primaryClass = (object) ['id' => 5, 'full_slug' => 'phb:rogue', 'name' => 'Rogue'];
+    // Mock character attributes
+    $primaryClass = (object) ['id' => 5, 'slug' => 'phb:rogue', 'name' => 'Rogue'];
     $this->character->shouldReceive('__get')
         ->with('primary_class')
         ->andReturn($primaryClass);
@@ -31,7 +31,7 @@ it('transforms service output to PendingChoice objects for skill choices', funct
         ->andReturn($primaryClass);
     $this->character->shouldReceive('offsetExists')->andReturn(true);
 
-    // Mock proficiency service response for skill choice with full_slug
+    // Mock proficiency service response for skill choice
     $this->proficiencyService->shouldReceive('getPendingChoices')
         ->with($this->character)
         ->andReturn([
@@ -47,17 +47,17 @@ it('transforms service output to PendingChoice objects for skill choices', funct
                         [
                             'type' => 'skill',
                             'skill_slug' => 'phb:acrobatics',
-                            'skill' => ['full_slug' => 'phb:acrobatics', 'name' => 'Acrobatics', 'slug' => 'acrobatics'],
+                            'skill' => ['slug' => 'phb:acrobatics', 'name' => 'Acrobatics'],
                         ],
                         [
                             'type' => 'skill',
                             'skill_slug' => 'phb:stealth',
-                            'skill' => ['full_slug' => 'phb:stealth', 'name' => 'Stealth', 'slug' => 'stealth'],
+                            'skill' => ['slug' => 'phb:stealth', 'name' => 'Stealth'],
                         ],
                         [
                             'type' => 'skill',
                             'skill_slug' => 'phb:perception',
-                            'skill' => ['full_slug' => 'phb:perception', 'name' => 'Perception', 'slug' => 'perception'],
+                            'skill' => ['slug' => 'phb:perception', 'name' => 'Perception'],
                         ],
                     ],
                 ],
@@ -81,8 +81,8 @@ it('transforms service output to PendingChoice objects for skill choices', funct
 });
 
 it('transforms service output to PendingChoice objects for proficiency type choices', function () {
-    // Mock character attributes with full_slug
-    $background = (object) ['id' => 3, 'full_slug' => 'phb:guild-artisan', 'name' => 'Guild Artisan'];
+    // Mock character attributes
+    $background = (object) ['id' => 3, 'slug' => 'phb:guild-artisan', 'name' => 'Guild Artisan'];
     $this->character->shouldReceive('__get')
         ->with('background')
         ->andReturn($background);
@@ -119,12 +119,12 @@ it('transforms service output to PendingChoice objects for proficiency type choi
                         [
                             'type' => 'proficiency_type',
                             'proficiency_type_slug' => 'phb:smiths-tools',
-                            'proficiency_type' => ['full_slug' => 'phb:smiths-tools', 'name' => "Smith's Tools", 'slug' => 'smiths-tools'],
+                            'proficiency_type' => ['slug' => 'phb:smiths-tools', 'name' => "Smith's Tools"],
                         ],
                         [
                             'type' => 'proficiency_type',
                             'proficiency_type_slug' => 'phb:carpenters-tools',
-                            'proficiency_type' => ['full_slug' => 'phb:carpenters-tools', 'name' => "Carpenter's Tools", 'slug' => 'carpenters-tools'],
+                            'proficiency_type' => ['slug' => 'phb:carpenters-tools', 'name' => "Carpenter's Tools"],
                         ],
                     ],
                 ],
@@ -148,9 +148,9 @@ it('transforms service output to PendingChoice objects for proficiency type choi
 });
 
 it('handles multiple choice groups from different sources', function () {
-    // Mock character attributes with full_slug
-    $primaryClass = (object) ['id' => 5, 'full_slug' => 'phb:rogue', 'name' => 'Rogue'];
-    $race = (object) ['id' => 2, 'full_slug' => 'phb:half-elf', 'name' => 'Half-Elf'];
+    // Mock character attributes
+    $primaryClass = (object) ['id' => 5, 'slug' => 'phb:rogue', 'name' => 'Rogue'];
+    $race = (object) ['id' => 2, 'slug' => 'phb:half-elf', 'name' => 'Half-Elf'];
 
     $this->character->shouldReceive('__get')
         ->with('primary_class')
@@ -184,7 +184,7 @@ it('handles multiple choice groups from different sources', function () {
                     'selected_skills' => [],
                     'selected_proficiency_types' => [],
                     'options' => [
-                        ['type' => 'skill', 'skill_slug' => 'phb:acrobatics', 'skill' => ['full_slug' => 'phb:acrobatics', 'name' => 'Acrobatics', 'slug' => 'acrobatics']],
+                        ['type' => 'skill', 'skill_slug' => 'phb:acrobatics', 'skill' => ['slug' => 'phb:acrobatics', 'name' => 'Acrobatics']],
                     ],
                 ],
             ],
@@ -197,7 +197,7 @@ it('handles multiple choice groups from different sources', function () {
                     'selected_skills' => [],
                     'selected_proficiency_types' => [],
                     'options' => [
-                        ['type' => 'skill', 'skill_slug' => 'phb:perception', 'skill' => ['full_slug' => 'phb:perception', 'name' => 'Perception', 'slug' => 'perception']],
+                        ['type' => 'skill', 'skill_slug' => 'phb:perception', 'skill' => ['slug' => 'phb:perception', 'name' => 'Perception']],
                     ],
                 ],
             ],
@@ -394,7 +394,7 @@ it('transforms service output for subclass_feature source', function () {
     // Mock character with cleric class and nature domain subclass
     $subclass = Mockery::mock(\stdClass::class);
     $subclass->id = 15;
-    $subclass->full_slug = 'phb:cleric-nature-domain';
+    $subclass->slug = 'phb:cleric-nature-domain';
     $subclass->name = 'Nature Domain';
 
     $characterClassPivot = Mockery::mock(\stdClass::class);
@@ -427,17 +427,17 @@ it('transforms service output for subclass_feature source', function () {
                         [
                             'type' => 'skill',
                             'skill_slug' => 'core:animal-handling',
-                            'skill' => ['full_slug' => 'core:animal-handling', 'name' => 'Animal Handling', 'slug' => 'animal-handling'],
+                            'skill' => ['slug' => 'core:animal-handling', 'name' => 'Animal Handling'],
                         ],
                         [
                             'type' => 'skill',
                             'skill_slug' => 'core:nature',
-                            'skill' => ['full_slug' => 'core:nature', 'name' => 'Nature', 'slug' => 'nature'],
+                            'skill' => ['slug' => 'core:nature', 'name' => 'Nature'],
                         ],
                         [
                             'type' => 'skill',
                             'skill_slug' => 'core:survival',
-                            'skill' => ['full_slug' => 'core:survival', 'name' => 'Survival', 'slug' => 'survival'],
+                            'skill' => ['slug' => 'core:survival', 'name' => 'Survival'],
                         ],
                     ],
                 ],
@@ -461,7 +461,7 @@ it('transforms service output for subclass_feature source', function () {
 
     // Verify options contain the expected skills
     $firstChoice = $choices->first();
-    $optionSlugs = collect($firstChoice->options)->pluck('full_slug')->all();
+    $optionSlugs = collect($firstChoice->options)->pluck('slug')->all();
     expect($optionSlugs)->toContain('core:animal-handling', 'core:nature', 'core:survival');
 
     // Verify the choice_group in metadata retains the full key

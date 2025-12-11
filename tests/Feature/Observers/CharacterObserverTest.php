@@ -41,7 +41,7 @@ class CharacterObserverTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -66,7 +66,7 @@ class CharacterObserverTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -91,7 +91,7 @@ class CharacterObserverTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -115,7 +115,7 @@ class CharacterObserverTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -139,7 +139,7 @@ class CharacterObserverTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -184,7 +184,7 @@ class CharacterObserverTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,

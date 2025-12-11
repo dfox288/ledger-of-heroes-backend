@@ -99,7 +99,7 @@ class AbilityScoreChoiceHandler extends AbstractChoiceHandler
             id: $this->generateChoiceId(
                 'ability_score',
                 'race',
-                $character->race->full_slug,
+                $character->race->slug,
                 1,
                 'modifier_'.$modifier->id
             ),

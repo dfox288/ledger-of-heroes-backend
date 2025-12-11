@@ -48,7 +48,7 @@ describe('Character Ability Bonuses Endpoint', function () {
         $str = AbilityScore::where('code', 'STR')->first();
         $con = AbilityScore::where('code', 'CON')->first();
 
-        $race = Race::factory()->create(['name' => 'Mountain Dwarf', 'full_slug' => 'phb:mountain-dwarf']);
+        $race = Race::factory()->create(['name' => 'Mountain Dwarf', 'slug' => 'phb:mountain-dwarf']);
 
         // Create fixed racial modifiers
         Modifier::create([
@@ -108,7 +108,7 @@ describe('Character Ability Bonuses Endpoint', function () {
         $dex = AbilityScore::where('code', 'DEX')->first();
         $cha = AbilityScore::where('code', 'CHA')->first();
 
-        $race = Race::factory()->create(['name' => 'Half-Elf', 'full_slug' => 'phb:half-elf']);
+        $race = Race::factory()->create(['name' => 'Half-Elf', 'slug' => 'phb:half-elf']);
 
         // Fixed CHA bonus
         Modifier::create([
@@ -183,7 +183,7 @@ describe('Character Ability Bonuses Endpoint', function () {
     it('returns feat bonuses with correct structure', function () {
         $cha = AbilityScore::where('code', 'CHA')->first();
 
-        $feat = Feat::factory()->create(['name' => 'Actor', 'full_slug' => 'phb:actor']);
+        $feat = Feat::factory()->create(['name' => 'Actor', 'slug' => 'phb:actor']);
 
         // Actor feat grants +1 CHA
         Modifier::create([
@@ -202,7 +202,7 @@ describe('Character Ability Bonuses Endpoint', function () {
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat->id,
-            'feature_slug' => $feat->full_slug,
+            'feature_slug' => $feat->slug,
             'source' => 'feat',
         ]);
 
@@ -229,7 +229,7 @@ describe('Character Ability Bonuses Endpoint', function () {
         $cha = AbilityScore::where('code', 'CHA')->first();
 
         // Race with fixed STR bonus and choice CHA bonus
-        $race = Race::factory()->create(['name' => 'Half-Orc', 'full_slug' => 'phb:half-orc']);
+        $race = Race::factory()->create(['name' => 'Half-Orc', 'slug' => 'phb:half-orc']);
 
         Modifier::create([
             'reference_type' => Race::class,
@@ -251,7 +251,7 @@ describe('Character Ability Bonuses Endpoint', function () {
         ]);
 
         // Feat with CHA bonus
-        $feat = Feat::factory()->create(['name' => 'Actor', 'full_slug' => 'phb:actor']);
+        $feat = Feat::factory()->create(['name' => 'Actor', 'slug' => 'phb:actor']);
 
         Modifier::create([
             'reference_type' => Feat::class,
@@ -278,7 +278,7 @@ describe('Character Ability Bonuses Endpoint', function () {
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat->id,
-            'feature_slug' => $feat->full_slug,
+            'feature_slug' => $feat->slug,
             'source' => 'feat',
         ]);
 
@@ -306,7 +306,7 @@ describe('Character Ability Bonuses Endpoint', function () {
         $dex = AbilityScore::where('code', 'DEX')->first();
 
         // Parent race: Dwarf (+2 CON)
-        $parentRace = Race::factory()->create(['name' => 'Dwarf', 'full_slug' => 'phb:dwarf']);
+        $parentRace = Race::factory()->create(['name' => 'Dwarf', 'slug' => 'phb:dwarf']);
 
         Modifier::create([
             'reference_type' => Race::class,
@@ -320,7 +320,7 @@ describe('Character Ability Bonuses Endpoint', function () {
         // Subrace: Mountain Dwarf (+2 STR)
         $subrace = Race::factory()->create([
             'name' => 'Mountain Dwarf',
-            'full_slug' => 'phb:mountain-dwarf',
+            'slug' => 'phb:mountain-dwarf',
             'parent_race_id' => $parentRace->id,
         ]);
 
@@ -361,7 +361,7 @@ describe('Character Ability Bonuses Endpoint', function () {
         $cha = AbilityScore::where('code', 'CHA')->first();
 
         // Half-Elf race: +2 CHA, +1 to two chosen abilities
-        $race = Race::factory()->create(['name' => 'Half-Elf', 'full_slug' => 'phb:half-elf']);
+        $race = Race::factory()->create(['name' => 'Half-Elf', 'slug' => 'phb:half-elf']);
 
         Modifier::create([
             'reference_type' => Race::class,
@@ -383,7 +383,7 @@ describe('Character Ability Bonuses Endpoint', function () {
         ]);
 
         // Actor feat: +1 CHA
-        $feat = Feat::factory()->create(['name' => 'Actor', 'full_slug' => 'phb:actor']);
+        $feat = Feat::factory()->create(['name' => 'Actor', 'slug' => 'phb:actor']);
 
         Modifier::create([
             'reference_type' => Feat::class,
@@ -418,7 +418,7 @@ describe('Character Ability Bonuses Endpoint', function () {
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat->id,
-            'feature_slug' => $feat->full_slug,
+            'feature_slug' => $feat->slug,
             'source' => 'feat',
         ]);
 
@@ -449,7 +449,7 @@ describe('Character Ability Bonuses Endpoint', function () {
     it('only counts resolved bonuses in totals', function () {
         $str = AbilityScore::where('code', 'STR')->first();
 
-        $race = Race::factory()->create(['name' => 'Test Race', 'full_slug' => 'test:race']);
+        $race = Race::factory()->create(['name' => 'Test Race', 'slug' => 'test:race']);
 
         // Fixed bonus
         Modifier::create([
@@ -491,7 +491,7 @@ describe('Character Ability Bonuses Endpoint', function () {
         $str = AbilityScore::where('code', 'STR')->first();
 
         // Actor feat: +1 CHA
-        $actorFeat = Feat::factory()->create(['name' => 'Actor', 'full_slug' => 'phb:actor']);
+        $actorFeat = Feat::factory()->create(['name' => 'Actor', 'slug' => 'phb:actor']);
         Modifier::create([
             'reference_type' => Feat::class,
             'reference_id' => $actorFeat->id,
@@ -502,7 +502,7 @@ describe('Character Ability Bonuses Endpoint', function () {
         ]);
 
         // Athlete feat: +1 STR
-        $athleteFeat = Feat::factory()->create(['name' => 'Athlete', 'full_slug' => 'phb:athlete']);
+        $athleteFeat = Feat::factory()->create(['name' => 'Athlete', 'slug' => 'phb:athlete']);
         Modifier::create([
             'reference_type' => Feat::class,
             'reference_id' => $athleteFeat->id,
@@ -519,7 +519,7 @@ describe('Character Ability Bonuses Endpoint', function () {
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $actorFeat->id,
-            'feature_slug' => $actorFeat->full_slug,
+            'feature_slug' => $actorFeat->slug,
             'source' => 'feat',
         ]);
 
@@ -527,7 +527,7 @@ describe('Character Ability Bonuses Endpoint', function () {
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $athleteFeat->id,
-            'feature_slug' => $athleteFeat->full_slug,
+            'feature_slug' => $athleteFeat->slug,
             'source' => 'feat',
         ]);
 

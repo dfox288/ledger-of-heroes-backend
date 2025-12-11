@@ -54,7 +54,7 @@ class SizeChoiceHandler extends AbstractChoiceHandler
         }
 
         $choice = new PendingChoice(
-            id: $this->generateChoiceId('size', 'race', $race->full_slug, 1, 'size_choice'),
+            id: $this->generateChoiceId('size', 'race', $race->slug, 1, 'size_choice'),
             type: 'size',
             subtype: null,
             source: 'race',

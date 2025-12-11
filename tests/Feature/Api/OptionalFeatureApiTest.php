@@ -294,7 +294,6 @@ class OptionalFeatureApiTest extends TestCase
         $this->assertNotNull($classPrereq, 'Should have class prerequisite');
         $this->assertArrayHasKey('class', $classPrereq, 'Class prerequisite should include class resource');
         $this->assertArrayHasKey('slug', $classPrereq['class'], 'Class resource should have slug');
-        $this->assertArrayHasKey('full_slug', $classPrereq['class'], 'Class resource should have full_slug');
         $this->assertArrayHasKey('name', $classPrereq['class'], 'Class resource should have name');
     }
 

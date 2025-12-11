@@ -236,9 +236,9 @@ class LevelUpServiceTest extends TestCase
         // Resolve the required fighting style choice
         \App\Models\FeatureSelection::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'feature_type' => 'fighting_style',
-            'optional_feature_slug' => $fightingStyle->full_slug,
+            'optional_feature_slug' => $fightingStyle->slug,
         ]);
 
         $result = $this->service->levelUp($character);
@@ -381,11 +381,11 @@ class LevelUpServiceTest extends TestCase
             ]);
 
         // Level up the wizard specifically
-        $result = $this->service->levelUp($character, $wizard->full_slug);
+        $result = $this->service->levelUp($character, $wizard->slug);
 
         $character->refresh();
-        $fighterPivot = $character->characterClasses->firstWhere('class_slug', $fighter->full_slug);
-        $wizardPivot = $character->characterClasses->firstWhere('class_slug', $wizard->full_slug);
+        $fighterPivot = $character->characterClasses->firstWhere('class_slug', $fighter->slug);
+        $wizardPivot = $character->characterClasses->firstWhere('class_slug', $wizard->slug);
 
         // Fighter should still be level 3
         $this->assertEquals(3, $fighterPivot->level);
@@ -425,8 +425,8 @@ class LevelUpServiceTest extends TestCase
         $this->service->levelUp($character);
 
         $character->refresh();
-        $fighterPivot = $character->characterClasses->firstWhere('class_slug', $fighter->full_slug);
-        $wizardPivot = $character->characterClasses->firstWhere('class_slug', $wizard->full_slug);
+        $fighterPivot = $character->characterClasses->firstWhere('class_slug', $fighter->slug);
+        $wizardPivot = $character->characterClasses->firstWhere('class_slug', $wizard->slug);
 
         // Fighter (primary) should now be level 4
         $this->assertEquals(4, $fighterPivot->level);

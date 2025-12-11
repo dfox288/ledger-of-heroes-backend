@@ -22,7 +22,7 @@ class StoreFeatureSelectionRequest extends FormRequest
             'optional_feature_slug' => [
                 'required',
                 'string',
-                Rule::exists('optional_features', 'full_slug'),
+                Rule::exists('optional_features', 'slug'),
                 // Ensure the character doesn't already have this feature
                 Rule::unique('feature_selections')
                     ->where('character_id', $character->id),
@@ -30,7 +30,7 @@ class StoreFeatureSelectionRequest extends FormRequest
             'class_slug' => [
                 'nullable',
                 'string',
-                Rule::exists('classes', 'full_slug'),
+                Rule::exists('classes', 'slug'),
             ],
             'subclass_name' => ['nullable', 'string', 'max:100'],
             'level_acquired' => ['sometimes', 'integer', 'min:1', 'max:20'],
@@ -47,7 +47,7 @@ class StoreFeatureSelectionRequest extends FormRequest
 
                 $character = $this->route('character');
                 $feature = OptionalFeature::with(['classes', 'classPivots'])
-                    ->where('full_slug', $this->optional_feature_slug)
+                    ->where('slug', $this->optional_feature_slug)
                     ->first();
 
                 if (! $feature) {
@@ -97,7 +97,7 @@ class StoreFeatureSelectionRequest extends FormRequest
         // Check if any of the character's classes can use this feature
         foreach ($characterClasses as $charClass) {
             // Check base class eligibility
-            if ($feature->classes->contains('full_slug', $charClass->class_slug)) {
+            if ($feature->classes->contains('slug', $charClass->class_slug)) {
                 // Check if feature requires specific subclass
                 $subclassRequirements = $feature->classPivots
                     ->where('class_slug', $charClass->class_slug)

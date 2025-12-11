@@ -76,7 +76,7 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
+            'class_slug' => $cleric->slug,
             'subclass_slug' => null,
             'level' => 1,
             'is_primary' => true,
@@ -98,7 +98,7 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertSame(1, $choice->quantity);
         $this->assertSame(1, $choice->remaining);
         $this->assertCount(2, $choice->options);
-        $this->assertSame($cleric->full_slug, $choice->metadata['class_slug']);
+        $this->assertSame($cleric->slug, $choice->metadata['class_slug']);
     }
 
     #[Test]
@@ -129,7 +129,7 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $fighter->full_slug,
+            'class_slug' => $fighter->slug,
             'subclass_slug' => null,
             'level' => 1,
             'is_primary' => true,
@@ -182,7 +182,7 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $fighter->full_slug,
+            'class_slug' => $fighter->slug,
             'subclass_slug' => null,
             'level' => 3,
             'is_primary' => true,
@@ -226,8 +226,8 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
-            'subclass_slug' => $lifeDomain->full_slug, // Already selected
+            'class_slug' => $cleric->slug,
+            'subclass_slug' => $lifeDomain->slug, // Already selected
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -258,14 +258,14 @@ class SubclassChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
+            'class_slug' => $cleric->slug,
             'subclass_slug' => null,
             'level' => 1,
             'is_primary' => true,
         ]);
 
         $choice = new PendingChoice(
-            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            id: "subclass|class|{$cleric->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -277,15 +277,15 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $cleric->full_slug],
+            metadata: ['class_slug' => $cleric->slug],
         );
 
         $this->handler->resolve($character, $choice, [
-            'subclass_slug' => $lifeDomain->full_slug,
+            'subclass_slug' => $lifeDomain->slug,
         ]);
 
         $pivot->refresh();
-        $this->assertSame($lifeDomain->full_slug, $pivot->subclass_slug);
+        $this->assertSame($lifeDomain->slug, $pivot->subclass_slug);
     }
 
     #[Test]
@@ -303,14 +303,14 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
+            'class_slug' => $cleric->slug,
             'subclass_slug' => null,
             'level' => 1,
             'is_primary' => true,
         ]);
 
         $choice = new PendingChoice(
-            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            id: "subclass|class|{$cleric->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -322,7 +322,7 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $cleric->full_slug],
+            metadata: ['class_slug' => $cleric->slug],
         );
 
         $this->handler->resolve($character, $choice, []);
@@ -355,14 +355,14 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
+            'class_slug' => $cleric->slug,
             'subclass_slug' => null,
             'level' => 1,
             'is_primary' => true,
         ]);
 
         $choice = new PendingChoice(
-            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            id: "subclass|class|{$cleric->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -374,11 +374,11 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $cleric->full_slug],
+            metadata: ['class_slug' => $cleric->slug],
         );
 
         $this->handler->resolve($character, $choice, [
-            'subclass_slug' => $champion->full_slug,
+            'subclass_slug' => $champion->slug,
         ]);
     }
 
@@ -407,8 +407,8 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
-            'subclass_slug' => $lifeDomain->full_slug,
+            'class_slug' => $cleric->slug,
+            'subclass_slug' => $lifeDomain->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -416,7 +416,7 @@ class SubclassChoiceHandlerTest extends TestCase
         $character->load('characterClasses');
 
         $choice = new PendingChoice(
-            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            id: "subclass|class|{$cleric->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -428,7 +428,7 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [(string) $lifeDomain->id],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $cleric->full_slug],
+            metadata: ['class_slug' => $cleric->slug],
         );
 
         $this->assertTrue($this->handler->canUndo($character, $choice));
@@ -459,8 +459,8 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
-            'subclass_slug' => $lifeDomain->full_slug,
+            'class_slug' => $cleric->slug,
+            'subclass_slug' => $lifeDomain->slug,
             'level' => 5, // Leveled beyond level 1
             'is_primary' => true,
         ]);
@@ -468,7 +468,7 @@ class SubclassChoiceHandlerTest extends TestCase
         $character->load('characterClasses');
 
         $choice = new PendingChoice(
-            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            id: "subclass|class|{$cleric->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -480,7 +480,7 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [(string) $lifeDomain->id],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $cleric->full_slug],
+            metadata: ['class_slug' => $cleric->slug],
         );
 
         $this->assertFalse($this->handler->canUndo($character, $choice));
@@ -505,14 +505,14 @@ class SubclassChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
-            'subclass_slug' => $lifeDomain->full_slug,
+            'class_slug' => $cleric->slug,
+            'subclass_slug' => $lifeDomain->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
 
         $choice = new PendingChoice(
-            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            id: "subclass|class|{$cleric->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -524,7 +524,7 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [(string) $lifeDomain->id],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $cleric->full_slug],
+            metadata: ['class_slug' => $cleric->slug],
         );
 
         $this->handler->undo($character, $choice);
@@ -558,7 +558,7 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
+            'class_slug' => $cleric->slug,
             'subclass_slug' => null,
             'level' => 1,
             'is_primary' => true,
@@ -569,7 +569,7 @@ class SubclassChoiceHandlerTest extends TestCase
         $choices = $this->handler->getChoices($character);
         $choice = $choices->first();
 
-        $this->assertSame("subclass|class|{$cleric->full_slug}|1|subclass", $choice->id);
+        $this->assertSame("subclass|class|{$cleric->slug}|1|subclass", $choice->id);
     }
 
     #[Test]
@@ -605,7 +605,7 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
+            'class_slug' => $cleric->slug,
             'subclass_slug' => null,
             'level' => 1,
             'is_primary' => true,
@@ -619,7 +619,7 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertCount(1, $choice->options);
 
         $option = $choice->options[0];
-        $this->assertSame($lifeDomain->full_slug, $option['full_slug']);
+        $this->assertSame($lifeDomain->slug, $option['slug']);
         $this->assertSame('Life Domain', $option['name']);
         $this->assertSame('life-domain', $option['slug']);
         $this->assertSame('The Life domain focuses on healing', $option['description']);
@@ -670,14 +670,14 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
+            'class_slug' => $cleric->slug,
             'subclass_slug' => null,
             'level' => 1,
             'is_primary' => true,
         ]);
 
         $choice = new PendingChoice(
-            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            id: "subclass|class|{$cleric->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -689,11 +689,11 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $cleric->full_slug],
+            metadata: ['class_slug' => $cleric->slug],
         );
 
         $this->handler->resolve($character, $choice, [
-            'subclass_slug' => $lifeDomain->full_slug,
+            'subclass_slug' => $lifeDomain->slug,
         ]);
 
         // Verify subclass features were assigned
@@ -739,8 +739,8 @@ class SubclassChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
-            'subclass_slug' => $lifeDomain->full_slug,
+            'class_slug' => $cleric->slug,
+            'subclass_slug' => $lifeDomain->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -756,7 +756,7 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertCount(1, $character->features);
 
         $choice = new PendingChoice(
-            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            id: "subclass|class|{$cleric->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -768,7 +768,7 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [(string) $lifeDomain->id],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $cleric->full_slug],
+            metadata: ['class_slug' => $cleric->slug],
         );
 
         $this->handler->undo($character, $choice);
@@ -832,8 +832,8 @@ class SubclassChoiceHandlerTest extends TestCase
         // Add both classes with subclasses
         $clericPivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
-            'subclass_slug' => $lifeDomain->full_slug,
+            'class_slug' => $cleric->slug,
+            'subclass_slug' => $lifeDomain->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -841,8 +841,8 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $warlock->full_slug,
-            'subclass_slug' => $fiendPatron->full_slug,
+            'class_slug' => $warlock->slug,
+            'subclass_slug' => $fiendPatron->slug,
             'level' => 1,
             'is_primary' => false,
             'order' => 2,
@@ -867,7 +867,7 @@ class SubclassChoiceHandlerTest extends TestCase
 
         // Undo the CLERIC subclass choice
         $choice = new PendingChoice(
-            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            id: "subclass|class|{$cleric->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -879,7 +879,7 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [(string) $lifeDomain->id],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $cleric->full_slug],
+            metadata: ['class_slug' => $cleric->slug],
         );
 
         $this->handler->undo($character, $choice);
@@ -931,14 +931,14 @@ class SubclassChoiceHandlerTest extends TestCase
         $faerieFire = Spell::factory()->create([
             'name' => 'Faerie Fire',
             'slug' => 'faerie-fire',
-            'full_slug' => 'test:faerie-fire',
+            'slug' => 'test:faerie-fire',
             'level' => 1,
         ]);
 
         $burningHands = Spell::factory()->create([
             'name' => 'Burning Hands',
             'slug' => 'burning-hands',
-            'full_slug' => 'test:burning-hands',
+            'slug' => 'test:burning-hands',
             'level' => 1,
         ]);
 
@@ -964,14 +964,14 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
+            'class_slug' => $cleric->slug,
             'subclass_slug' => null,
             'level' => 1,
             'is_primary' => true,
         ]);
 
         $choice = new PendingChoice(
-            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            id: "subclass|class|{$cleric->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -983,11 +983,11 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $cleric->full_slug],
+            metadata: ['class_slug' => $cleric->slug],
         );
 
         $this->handler->resolve($character, $choice, [
-            'subclass_slug' => $lightDomain->full_slug,
+            'subclass_slug' => $lightDomain->slug,
         ]);
 
         // Verify spells were assigned to character
@@ -1041,7 +1041,7 @@ class SubclassChoiceHandlerTest extends TestCase
         $burningHands = Spell::factory()->create([
             'name' => 'Burning Hands',
             'slug' => 'burning-hands',
-            'full_slug' => 'test:burning-hands-warlock',
+            'slug' => 'test:burning-hands-warlock',
             'level' => 1,
         ]);
 
@@ -1057,14 +1057,14 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $warlock->full_slug,
+            'class_slug' => $warlock->slug,
             'subclass_slug' => null,
             'level' => 1,
             'is_primary' => true,
         ]);
 
         $choice = new PendingChoice(
-            id: "subclass|class|{$warlock->full_slug}|1|subclass",
+            id: "subclass|class|{$warlock->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -1076,11 +1076,11 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $warlock->full_slug],
+            metadata: ['class_slug' => $warlock->slug],
         );
 
         $this->handler->resolve($character, $choice, [
-            'subclass_slug' => $fiendPatron->full_slug,
+            'subclass_slug' => $fiendPatron->slug,
         ]);
 
         // Verify NO spells were assigned to character_spells
@@ -1115,14 +1115,14 @@ class SubclassChoiceHandlerTest extends TestCase
         $faerieFire = Spell::factory()->create([
             'name' => 'Faerie Fire',
             'slug' => 'faerie-fire',
-            'full_slug' => 'test:faerie-fire-level',
+            'slug' => 'test:faerie-fire-level',
             'level' => 1,
         ]);
 
         $scorchingRay = Spell::factory()->create([
             'name' => 'Scorching Ray',
             'slug' => 'scorching-ray',
-            'full_slug' => 'test:scorching-ray',
+            'slug' => 'test:scorching-ray',
             'level' => 2,
         ]);
 
@@ -1149,14 +1149,14 @@ class SubclassChoiceHandlerTest extends TestCase
         // Character is level 1 in Cleric
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
+            'class_slug' => $cleric->slug,
             'subclass_slug' => null,
             'level' => 1,
             'is_primary' => true,
         ]);
 
         $choice = new PendingChoice(
-            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            id: "subclass|class|{$cleric->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -1168,11 +1168,11 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $cleric->full_slug],
+            metadata: ['class_slug' => $cleric->slug],
         );
 
         $this->handler->resolve($character, $choice, [
-            'subclass_slug' => $lightDomain->full_slug,
+            'subclass_slug' => $lightDomain->slug,
         ]);
 
         // Verify only level 1 spell was assigned
@@ -1210,7 +1210,7 @@ class SubclassChoiceHandlerTest extends TestCase
         $lightCantrip = Spell::factory()->cantrip()->create([
             'name' => 'Light',
             'slug' => 'light',
-            'full_slug' => 'test:light',
+            'slug' => 'test:light',
         ]);
 
         // Link cantrip to feature
@@ -1226,14 +1226,14 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
+            'class_slug' => $cleric->slug,
             'subclass_slug' => null,
             'level' => 1,
             'is_primary' => true,
         ]);
 
         $choice = new PendingChoice(
-            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            id: "subclass|class|{$cleric->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -1245,11 +1245,11 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $cleric->full_slug],
+            metadata: ['class_slug' => $cleric->slug],
         );
 
         $this->handler->resolve($character, $choice, [
-            'subclass_slug' => $lightDomain->full_slug,
+            'subclass_slug' => $lightDomain->slug,
         ]);
 
         // Verify cantrip was assigned
@@ -1286,7 +1286,7 @@ class SubclassChoiceHandlerTest extends TestCase
         $faerieFire = Spell::factory()->create([
             'name' => 'Faerie Fire',
             'slug' => 'faerie-fire',
-            'full_slug' => 'test:faerie-fire-undo',
+            'slug' => 'test:faerie-fire-undo',
             'level' => 1,
         ]);
 
@@ -1302,8 +1302,8 @@ class SubclassChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
-            'subclass_slug' => $lightDomain->full_slug,
+            'class_slug' => $cleric->slug,
+            'subclass_slug' => $lightDomain->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -1328,7 +1328,7 @@ class SubclassChoiceHandlerTest extends TestCase
         $this->assertCount(1, $character->spells);
 
         $choice = new PendingChoice(
-            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            id: "subclass|class|{$cleric->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -1340,7 +1340,7 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [(string) $lightDomain->id],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $cleric->full_slug],
+            metadata: ['class_slug' => $cleric->slug],
         );
 
         $this->handler->undo($character, $choice);
@@ -1402,14 +1402,14 @@ class SubclassChoiceHandlerTest extends TestCase
         $clericSpell = Spell::factory()->create([
             'name' => 'Faerie Fire',
             'slug' => 'faerie-fire-cleric',
-            'full_slug' => 'test:faerie-fire-cleric',
+            'slug' => 'test:faerie-fire-cleric',
             'level' => 1,
         ]);
 
         $paladinSpell = Spell::factory()->create([
             'name' => 'Protection from Evil and Good',
             'slug' => 'protection-from-evil-and-good',
-            'full_slug' => 'test:protection-from-evil-and-good',
+            'slug' => 'test:protection-from-evil-and-good',
             'level' => 1,
         ]);
 
@@ -1436,8 +1436,8 @@ class SubclassChoiceHandlerTest extends TestCase
         // Add both classes with subclasses
         $clericPivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
-            'subclass_slug' => $lightDomain->full_slug,
+            'class_slug' => $cleric->slug,
+            'subclass_slug' => $lightDomain->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -1445,8 +1445,8 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $paladin->full_slug,
-            'subclass_slug' => $devotionOath->full_slug,
+            'class_slug' => $paladin->slug,
+            'subclass_slug' => $devotionOath->slug,
             'level' => 1,
             'is_primary' => false,
             'order' => 2,
@@ -1488,7 +1488,7 @@ class SubclassChoiceHandlerTest extends TestCase
 
         // Undo the CLERIC subclass choice
         $choice = new PendingChoice(
-            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            id: "subclass|class|{$cleric->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -1500,7 +1500,7 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [(string) $lightDomain->id],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $cleric->full_slug],
+            metadata: ['class_slug' => $cleric->slug],
         );
 
         $this->handler->undo($character, $choice);
@@ -1542,7 +1542,7 @@ class SubclassChoiceHandlerTest extends TestCase
         $faerieFire = Spell::factory()->create([
             'name' => 'Faerie Fire',
             'slug' => 'faerie-fire',
-            'full_slug' => 'test:faerie-fire-dup',
+            'slug' => 'test:faerie-fire-dup',
             'level' => 1,
         ]);
 
@@ -1558,14 +1558,14 @@ class SubclassChoiceHandlerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
+            'class_slug' => $cleric->slug,
             'subclass_slug' => null,
             'level' => 1,
             'is_primary' => true,
         ]);
 
         $choice = new PendingChoice(
-            id: "subclass|class|{$cleric->full_slug}|1|subclass",
+            id: "subclass|class|{$cleric->slug}|1|subclass",
             type: 'subclass',
             subtype: null,
             source: 'class',
@@ -1577,21 +1577,21 @@ class SubclassChoiceHandlerTest extends TestCase
             selected: [],
             options: [],
             optionsEndpoint: null,
-            metadata: ['class_slug' => $cleric->full_slug],
+            metadata: ['class_slug' => $cleric->slug],
         );
 
         // Resolve twice (simulating idempotency check)
         $this->handler->resolve($character, $choice, [
-            'subclass_slug' => $lightDomain->full_slug,
+            'subclass_slug' => $lightDomain->slug,
         ]);
 
         // Reset the subclass_slug to test re-resolve
         CharacterClassPivot::where('character_id', $character->id)
-            ->where('class_slug', $cleric->full_slug)
+            ->where('class_slug', $cleric->slug)
             ->update(['subclass_slug' => null]);
 
         $this->handler->resolve($character, $choice, [
-            'subclass_slug' => $lightDomain->full_slug,
+            'subclass_slug' => $lightDomain->slug,
         ]);
 
         // Should still only have 1 spell (no duplicates)

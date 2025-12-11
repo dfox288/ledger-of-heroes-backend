@@ -152,11 +152,11 @@ class FlowGenerator
             // Mark the first set_race step to use this specific race
             foreach ($flow as &$step) {
                 if ($step['action'] === 'set_race') {
-                    $step['force_race'] = $race->full_slug;
+                    $step['force_race'] = $race->slug;
                     break;
                 }
             }
-            $flows[$race->full_slug] = $flow;
+            $flows[$race->slug] = $flow;
         }
 
         return $flows;

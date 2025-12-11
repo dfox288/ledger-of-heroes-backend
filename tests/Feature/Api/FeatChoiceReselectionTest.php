@@ -43,8 +43,7 @@ class FeatChoiceReselectionTest extends TestCase
         // Create Variant Human race with bonus feat modifier
         $this->variantHuman = Race::factory()->create([
             'name' => 'Variant Human',
-            'slug' => 'variant-human',
-            'full_slug' => 'phb:variant-human',
+            'slug' => 'phb:variant-human',
         ]);
 
         Modifier::create([
@@ -57,19 +56,17 @@ class FeatChoiceReselectionTest extends TestCase
         // Create feats
         $this->alertFeat = Feat::factory()->create([
             'name' => 'Alert',
-            'slug' => 'alert',
-            'full_slug' => 'phb:alert',
+            'slug' => 'phb:alert',
         ]);
 
         $this->athleteFeat = Feat::factory()->create([
             'name' => 'Athlete',
-            'slug' => 'athlete',
-            'full_slug' => 'phb:athlete',
+            'slug' => 'phb:athlete',
         ]);
 
         // Create character with Variant Human race
         $this->character = Character::factory()->create([
-            'race_slug' => $this->variantHuman->full_slug,
+            'race_slug' => $this->variantHuman->slug,
         ]);
     }
 
@@ -134,8 +131,7 @@ class FeatChoiceReselectionTest extends TestCase
         // Create a feat with ability score increases
         $durable = Feat::factory()->create([
             'name' => 'Durable',
-            'slug' => 'durable',
-            'full_slug' => 'phb:durable',
+            'slug' => 'phb:durable',
         ]);
 
         Modifier::create([

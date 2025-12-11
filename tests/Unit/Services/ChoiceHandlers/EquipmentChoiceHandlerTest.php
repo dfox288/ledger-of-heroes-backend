@@ -74,10 +74,10 @@ it('returns equipment choices for level 1 character', function () {
     $primaryClass = Mockery::mock(CharacterClass::class);
     $primaryClass->shouldReceive('getAttribute')->with('id')->andReturn(5);
     $primaryClass->shouldReceive('getAttribute')->with('name')->andReturn('Fighter');
-    $primaryClass->shouldReceive('getAttribute')->with('full_slug')->andReturn('phb:fighter');
+    $primaryClass->shouldReceive('getAttribute')->with('slug')->andReturn('phb:fighter');
     $primaryClass->shouldReceive('__get')->with('id')->andReturn(5);
     $primaryClass->shouldReceive('__get')->with('name')->andReturn('Fighter');
-    $primaryClass->shouldReceive('__get')->with('full_slug')->andReturn('phb:fighter');
+    $primaryClass->shouldReceive('__get')->with('slug')->andReturn('phb:fighter');
 
     $characterClassPivot = Mockery::mock(CharacterClassPivot::class);
     $characterClassPivot->shouldReceive('getAttribute')->with('is_primary')->andReturn(true);
@@ -109,14 +109,14 @@ it('returns equipment choices for level 1 character', function () {
     $item1->id = 123;
     $item1->name = 'Chain Mail';
     $item1->slug = 'chain-mail';
-    $item1->full_slug = 'phb:chain-mail';
+    $item1->slug = 'phb:chain-mail';
     $item1->contents = $emptyContents;
 
     $item2 = new \stdClass;
     $item2->id = 456;
     $item2->name = 'Leather Armor';
     $item2->slug = 'leather-armor';
-    $item2->full_slug = 'phb:leather-armor';
+    $item2->slug = 'phb:leather-armor';
     $item2->contents = $emptyContents;
 
     $choice1Item1 = Mockery::mock(EquipmentChoiceItem::class);
@@ -232,7 +232,7 @@ it('returns equipment choices for level 1 character', function () {
         ->and($firstChoice->options[0]['items'])->toHaveCount(1)
         ->and($firstChoice->options[0]['items'][0])->toMatchArray([
             'name' => 'Chain Mail',
-            'full_slug' => 'phb:chain-mail',
+            'slug' => 'phb:chain-mail',
             'quantity' => 1,
             'is_fixed' => true, // Regular items are fixed (always granted)
         ])
@@ -244,7 +244,7 @@ it('returns equipment choices for level 1 character', function () {
         ->toHaveKey('label', 'leather armor, longbow, and arrows (20)')
         ->toHaveKey('items')
         ->and($firstChoice->options[1]['items'])->toHaveCount(1)
-        ->and($firstChoice->options[1]['items'][0])->toHaveKey('full_slug', 'phb:leather-armor')
+        ->and($firstChoice->options[1]['items'][0])->toHaveKey('slug', 'phb:leather-armor')
         ->and($firstChoice->options[1]['items'][0])->toHaveKey('is_fixed', true)
         ->and($firstChoice->options[1]['is_category'])->toBeFalse();
 });

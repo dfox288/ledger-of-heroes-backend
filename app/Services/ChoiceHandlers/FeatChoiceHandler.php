@@ -104,8 +104,8 @@ class FeatChoiceHandler extends AbstractChoiceHandler
     private function getSourceSlug(Character $character, string $source): string
     {
         return match ($source) {
-            'race' => $character->race?->full_slug ?? '',
-            'background' => $character->background?->full_slug ?? '',
+            'race' => $character->race?->slug ?? '',
+            'background' => $character->background?->slug ?? '',
             default => '',
         };
     }

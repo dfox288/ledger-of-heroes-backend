@@ -5,73 +5,44 @@ namespace App\Services\Importers\Concerns;
 use Illuminate\Support\Str;
 
 /**
- * Trait for generating URL-friendly slugs for entities.
+ * Trait for generating source-prefixed slugs for entities.
  *
- * Handles:
- * - Simple slugs: "Hill Dwarf" -> "hill-dwarf"
- * - Hierarchical slugs: "Battle Master" (fighter) -> "fighter-battle-master"
- * - Full slugs with source prefix: "phb:high-elf"
- * - Special characters and parentheses
+ * All slugs are prefixed with their source code:
+ * - Content entities: "phb:fireball", "xge:eldritch-invocations"
+ * - Lookup entities: "core:common", "core:acrobatics"
+ * - Hierarchical: "phb:fighter-battle-master", "phb:elf-high-elf"
  *
  * Used by: All importers
+ *
+ * @see https://github.com/dfox288/ledger-of-heroes/issues/506
  */
 trait GeneratesSlugs
 {
     /**
-     * Generate a URL-friendly slug for an entity.
+     * Generate a source-prefixed slug for an entity.
      *
      * @param  string  $name  Entity name
+     * @param  array  $sources  Array of source data with 'code' key (empty = 'core' prefix)
      * @param  string|null  $parentSlug  Parent entity slug for hierarchical slugs
-     * @return string Generated slug
+     * @return string Generated slug (e.g., "phb:fireball", "phb:fighter-battle-master")
      */
-    protected function generateSlug(string $name, ?string $parentSlug = null): string
+    protected function generateSlug(string $name, array $sources = [], ?string $parentSlug = null): string
     {
-        // Generate base slug from name
-        $slug = Str::slug($name);
+        $nameSlug = Str::slug($name);
 
-        // If parent slug provided, create hierarchical slug
+        // If parent provided, create hierarchical slug
         if ($parentSlug !== null) {
-            return "{$parentSlug}-{$slug}";
+            // Extract name part from parent slug (after the colon)
+            $parentNamePart = Str::after($parentSlug, ':');
+            $nameSlug = "{$parentNamePart}-{$nameSlug}";
         }
 
-        return $slug;
-    }
-
-    /**
-     * Generate a full slug with source prefix for an entity.
-     *
-     * Format: {source_code}:{slug} (e.g., "phb:high-elf")
-     *
-     * @param  string  $slug  The entity's slug
-     * @param  array  $sources  Array of source data with 'code' key
-     * @return string|null Full slug with source prefix, or null if no sources
-     */
-    protected function generateFullSlug(string $slug, array $sources): ?string
-    {
-        if (empty($sources)) {
-            return null;
+        // Determine source prefix
+        $sourceCode = 'core';
+        if (! empty($sources) && ! empty($sources[0]['code'])) {
+            $sourceCode = strtolower($sources[0]['code']);
         }
 
-        // Use the first source's code as the prefix
-        $primarySourceCode = $sources[0]['code'] ?? null;
-
-        if (! $primarySourceCode) {
-            return null;
-        }
-
-        return strtolower($primarySourceCode).':'.$slug;
-    }
-
-    /**
-     * Generate a full slug for universal lookup entities without sources.
-     *
-     * Uses 'core:' prefix for entities like languages, skills, conditions.
-     *
-     * @param  string  $slug  The entity's slug
-     * @return string Full slug with 'core:' prefix
-     */
-    protected function generateCoreFullSlug(string $slug): string
-    {
-        return 'core:'.$slug;
+        return "{$sourceCode}:{$nameSlug}";
     }
 }

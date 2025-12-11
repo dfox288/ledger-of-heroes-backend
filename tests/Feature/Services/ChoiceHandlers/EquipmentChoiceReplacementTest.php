@@ -35,8 +35,8 @@ class EquipmentChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
 
         // Create test items
-        $chainMail = Item::factory()->create(['name' => 'Test Chain Mail', 'slug' => 'test-chain-mail-1', 'full_slug' => 'test:test-chain-mail-1']);
-        $leatherArmor = Item::factory()->create(['name' => 'Test Leather Armor', 'slug' => 'test-leather-armor-1', 'full_slug' => 'test:test-leather-armor-1']);
+        $chainMail = Item::factory()->create(['name' => 'Test Chain Mail', 'slug' => 'test:test-chain-mail-1']);
+        $leatherArmor = Item::factory()->create(['name' => 'Test Leather Armor', 'slug' => 'test:test-leather-armor-1']);
 
         // Create a pending choice with two options
         $choice = new PendingChoice(
@@ -55,14 +55,14 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'a',
                     'label' => 'chain mail',
                     'items' => [
-                        ['full_slug' => $chainMail->full_slug, 'name' => 'Test Chain Mail', 'slug' => 'test-chain-mail-1', 'quantity' => 1],
+                        ['slug' => $chainMail->slug, 'name' => 'Test Chain Mail', 'quantity' => 1],
                     ],
                 ],
                 [
                     'option' => 'b',
                     'label' => 'leather armor',
                     'items' => [
-                        ['full_slug' => $leatherArmor->full_slug, 'name' => 'Test Leather Armor', 'slug' => 'test-leather-armor-1', 'quantity' => 1],
+                        ['slug' => $leatherArmor->slug, 'name' => 'Test Leather Armor', 'quantity' => 1],
                     ],
                 ],
             ],
@@ -76,7 +76,7 @@ class EquipmentChoiceReplacementTest extends TestCase
         // Verify character has Chain Mail
         $character->refresh();
         expect($character->equipment)->toHaveCount(1);
-        expect($character->equipment->first()->item_slug)->toBe($chainMail->full_slug);
+        expect($character->equipment->first()->item_slug)->toBe($chainMail->slug);
 
         // Second resolution: change to option 'b' (Leather Armor)
         $this->handler->resolve($character, $choice, ['selected' => 'b']);
@@ -84,7 +84,7 @@ class EquipmentChoiceReplacementTest extends TestCase
         // Verify character now has ONLY Leather Armor (Chain Mail should be replaced)
         $character->refresh();
         expect($character->equipment)->toHaveCount(1)
-            ->and($character->equipment->first()->item_slug)->toBe($leatherArmor->full_slug);
+            ->and($character->equipment->first()->item_slug)->toBe($leatherArmor->slug);
     }
 
     #[Test]
@@ -92,9 +92,9 @@ class EquipmentChoiceReplacementTest extends TestCase
     {
         $character = Character::factory()->create();
 
-        $sword = Item::factory()->create(['name' => 'Test Longsword', 'slug' => 'test-longsword-2', 'full_slug' => 'test:test-longsword-2']);
-        $bow = Item::factory()->create(['name' => 'Test Longbow', 'slug' => 'test-longbow-2', 'full_slug' => 'test:test-longbow-2']);
-        $arrows = Item::factory()->create(['name' => 'Test Arrows', 'slug' => 'test-arrow-2', 'full_slug' => 'test:test-arrow-2']);
+        $sword = Item::factory()->create(['name' => 'Test Longsword', 'slug' => 'test:test-longsword-2']);
+        $bow = Item::factory()->create(['name' => 'Test Longbow', 'slug' => 'test:test-longbow-2']);
+        $arrows = Item::factory()->create(['name' => 'Test Arrows', 'slug' => 'test:test-arrow-2']);
 
         $choice = new PendingChoice(
             id: 'equipment|class|test:fighter|1|equipment_choice_2',
@@ -112,15 +112,15 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'a',
                     'label' => 'a longsword',
                     'items' => [
-                        ['full_slug' => $sword->full_slug, 'name' => 'Test Longsword', 'slug' => 'test-longsword-2', 'quantity' => 1],
+                        ['slug' => $sword->slug, 'name' => 'Test Longsword', 'quantity' => 1],
                     ],
                 ],
                 [
                     'option' => 'b',
                     'label' => 'a longbow and arrows',
                     'items' => [
-                        ['full_slug' => $bow->full_slug, 'name' => 'Test Longbow', 'slug' => 'test-longbow-2', 'quantity' => 1],
-                        ['full_slug' => $arrows->full_slug, 'name' => 'Test Arrows', 'slug' => 'test-arrow-2', 'quantity' => 20],
+                        ['slug' => $bow->slug, 'name' => 'Test Longbow', 'quantity' => 1],
+                        ['slug' => $arrows->slug, 'name' => 'Test Arrows', 'quantity' => 20],
                     ],
                 ],
             ],
@@ -139,7 +139,7 @@ class EquipmentChoiceReplacementTest extends TestCase
 
         // Should have ONLY the sword now
         expect($character->equipment)->toHaveCount(1)
-            ->and($character->equipment->first()->item_slug)->toBe($sword->full_slug);
+            ->and($character->equipment->first()->item_slug)->toBe($sword->slug);
     }
 
     #[Test]
@@ -147,8 +147,8 @@ class EquipmentChoiceReplacementTest extends TestCase
     {
         $character = Character::factory()->create();
 
-        $armor = Item::factory()->create(['name' => 'Test Chain Mail', 'slug' => 'test-chain-mail-3', 'full_slug' => 'test:test-chain-mail-3']);
-        $weapon = Item::factory()->create(['name' => 'Test Longsword', 'slug' => 'test-longsword-3', 'full_slug' => 'test:test-longsword-3']);
+        $armor = Item::factory()->create(['name' => 'Test Chain Mail', 'slug' => 'test:test-chain-mail-3']);
+        $weapon = Item::factory()->create(['name' => 'Test Longsword', 'slug' => 'test:test-longsword-3']);
 
         // Choice 1: Armor choice
         $armorChoice = new PendingChoice(
@@ -167,7 +167,7 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'a',
                     'label' => 'chain mail',
                     'items' => [
-                        ['full_slug' => $armor->full_slug, 'name' => 'Test Chain Mail', 'slug' => 'test-chain-mail-3', 'quantity' => 1],
+                        ['slug' => $armor->slug, 'name' => 'Test Chain Mail', 'quantity' => 1],
                     ],
                 ],
             ],
@@ -192,7 +192,7 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'a',
                     'label' => 'a longsword',
                     'items' => [
-                        ['full_slug' => $weapon->full_slug, 'name' => 'Test Longsword', 'slug' => 'test-longsword-3', 'quantity' => 1],
+                        ['slug' => $weapon->slug, 'name' => 'Test Longsword', 'quantity' => 1],
                     ],
                 ],
             ],
@@ -212,8 +212,8 @@ class EquipmentChoiceReplacementTest extends TestCase
         // Should have BOTH items (different choice groups)
         expect($character->equipment)->toHaveCount(2);
         $itemSlugs = $character->equipment->pluck('item_slug')->toArray();
-        expect($itemSlugs)->toContain($armor->full_slug)
-            ->and($itemSlugs)->toContain($weapon->full_slug);
+        expect($itemSlugs)->toContain($armor->slug)
+            ->and($itemSlugs)->toContain($weapon->slug);
     }
 
     #[Test]
@@ -222,9 +222,9 @@ class EquipmentChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
 
         // Create multiple items for a category-based choice
-        $drum = Item::factory()->create(['name' => 'Drum', 'slug' => 'drum', 'full_slug' => 'phb:drum']);
-        $flute = Item::factory()->create(['name' => 'Flute', 'slug' => 'flute', 'full_slug' => 'phb:flute']);
-        $lute = Item::factory()->create(['name' => 'Lute', 'slug' => 'lute', 'full_slug' => 'phb:lute']);
+        $drum = Item::factory()->create(['name' => 'Drum', 'slug' => 'phb:drum']);
+        $flute = Item::factory()->create(['name' => 'Flute', 'slug' => 'phb:flute']);
+        $lute = Item::factory()->create(['name' => 'Lute', 'slug' => 'phb:lute']);
 
         // Create a choice with category option containing all instruments
         $choice = new PendingChoice(
@@ -243,7 +243,7 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'a',
                     'label' => 'a lute',
                     'items' => [
-                        ['full_slug' => $lute->full_slug, 'name' => 'Lute', 'slug' => 'lute', 'quantity' => 1],
+                        ['slug' => $lute->slug, 'name' => 'Lute', 'quantity' => 1],
                     ],
                 ],
                 [
@@ -251,9 +251,9 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'label' => 'any musical instrument',
                     'items' => [
                         // All instruments available in category
-                        ['full_slug' => $drum->full_slug, 'name' => 'Drum', 'slug' => 'drum', 'quantity' => 1],
-                        ['full_slug' => $flute->full_slug, 'name' => 'Flute', 'slug' => 'flute', 'quantity' => 1],
-                        ['full_slug' => $lute->full_slug, 'name' => 'Lute', 'slug' => 'lute', 'quantity' => 1],
+                        ['slug' => $drum->slug, 'name' => 'Drum', 'quantity' => 1],
+                        ['slug' => $flute->slug, 'name' => 'Flute', 'quantity' => 1],
+                        ['slug' => $lute->slug, 'name' => 'Lute', 'quantity' => 1],
                     ],
                 ],
             ],
@@ -280,9 +280,9 @@ class EquipmentChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
 
         // Create multiple items for a fixed option
-        $leatherArmor = Item::factory()->create(['name' => 'Leather Armor', 'slug' => 'leather-armor', 'full_slug' => 'test:leather-armor']);
-        $longbow = Item::factory()->create(['name' => 'Longbow', 'slug' => 'longbow', 'full_slug' => 'test:longbow']);
-        $arrows = Item::factory()->create(['name' => 'Arrows', 'slug' => 'arrow', 'full_slug' => 'test:arrow']);
+        $leatherArmor = Item::factory()->create(['name' => 'Leather Armor', 'slug' => 'test:leather-armor']);
+        $longbow = Item::factory()->create(['name' => 'Longbow', 'slug' => 'test:longbow']);
+        $arrows = Item::factory()->create(['name' => 'Arrows', 'slug' => 'test:arrow']);
 
         $choice = new PendingChoice(
             id: 'equipment|class|test:fighter|1|equipment_choice_1',
@@ -300,9 +300,9 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'b',
                     'label' => 'leather armor, longbow, and 20 arrows',
                     'items' => [
-                        ['full_slug' => $leatherArmor->full_slug, 'name' => 'Leather Armor', 'slug' => 'leather-armor', 'quantity' => 1],
-                        ['full_slug' => $longbow->full_slug, 'name' => 'Longbow', 'slug' => 'longbow', 'quantity' => 1],
-                        ['full_slug' => $arrows->full_slug, 'name' => 'Arrows', 'slug' => 'arrow', 'quantity' => 20],
+                        ['slug' => $leatherArmor->slug, 'name' => 'Leather Armor', 'quantity' => 1],
+                        ['slug' => $longbow->slug, 'name' => 'Longbow', 'quantity' => 1],
+                        ['slug' => $arrows->slug, 'name' => 'Arrows', 'quantity' => 20],
                     ],
                 ],
             ],
@@ -319,12 +319,12 @@ class EquipmentChoiceReplacementTest extends TestCase
         expect($character->equipment)->toHaveCount(3);
 
         $itemSlugs = $character->equipment->pluck('item_slug')->toArray();
-        expect($itemSlugs)->toContain($leatherArmor->full_slug)
-            ->and($itemSlugs)->toContain($longbow->full_slug)
-            ->and($itemSlugs)->toContain($arrows->full_slug);
+        expect($itemSlugs)->toContain($leatherArmor->slug)
+            ->and($itemSlugs)->toContain($longbow->slug)
+            ->and($itemSlugs)->toContain($arrows->slug);
 
         // Verify arrows have quantity 20
-        $arrowEquipment = $character->equipment->where('item_slug', $arrows->full_slug)->first();
+        $arrowEquipment = $character->equipment->where('item_slug', $arrows->slug)->first();
         expect($arrowEquipment->quantity)->toBe(20);
     }
 
@@ -333,7 +333,7 @@ class EquipmentChoiceReplacementTest extends TestCase
     {
         $character = Character::factory()->create();
 
-        $armor = Item::factory()->create(['name' => 'Chain Mail', 'slug' => 'chain-mail', 'full_slug' => 'test:chain-mail']);
+        $armor = Item::factory()->create(['name' => 'Chain Mail', 'slug' => 'test:chain-mail']);
 
         $choice = new PendingChoice(
             id: 'equipment|class|test:fighter|1|equipment_choice_1',
@@ -351,7 +351,7 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'a',
                     'label' => 'chain mail',
                     'items' => [
-                        ['full_slug' => $armor->full_slug, 'name' => 'Chain Mail', 'slug' => 'chain-mail', 'quantity' => 1],
+                        ['slug' => $armor->slug, 'name' => 'Chain Mail', 'quantity' => 1],
                     ],
                 ],
             ],
@@ -376,7 +376,7 @@ class EquipmentChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
 
         // Create items for the choice
-        $drum = Item::factory()->create(['name' => 'Drum', 'slug' => 'drum', 'full_slug' => 'phb:drum']);
+        $drum = Item::factory()->create(['name' => 'Drum', 'slug' => 'phb:drum']);
 
         $choice = new PendingChoice(
             id: 'equipment|class|test:bard|1|choice_3',
@@ -394,7 +394,7 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'b',
                     'label' => 'any musical instrument',
                     'items' => [
-                        ['full_slug' => $drum->full_slug, 'name' => 'Drum', 'slug' => 'drum', 'quantity' => 1],
+                        ['slug' => $drum->slug, 'name' => 'Drum', 'quantity' => 1],
                     ],
                 ],
             ],
@@ -415,8 +415,8 @@ class EquipmentChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
 
         // Create items for the choice
-        $drum = Item::factory()->create(['name' => 'Drum', 'slug' => 'drum', 'full_slug' => 'phb:drum']);
-        $flute = Item::factory()->create(['name' => 'Flute', 'slug' => 'flute', 'full_slug' => 'phb:flute']);
+        $drum = Item::factory()->create(['name' => 'Drum', 'slug' => 'phb:drum']);
+        $flute = Item::factory()->create(['name' => 'Flute', 'slug' => 'phb:flute']);
 
         $choice = new PendingChoice(
             id: 'equipment|class|test:bard|1|choice_3',
@@ -434,8 +434,8 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'b',
                     'label' => 'any musical instrument',
                     'items' => [
-                        ['full_slug' => $drum->full_slug, 'name' => 'Drum', 'slug' => 'drum', 'quantity' => 1],
-                        ['full_slug' => $flute->full_slug, 'name' => 'Flute', 'slug' => 'flute', 'quantity' => 1],
+                        ['slug' => $drum->slug, 'name' => 'Drum', 'quantity' => 1],
+                        ['slug' => $flute->slug, 'name' => 'Flute', 'quantity' => 1],
                     ],
                 ],
             ],
@@ -462,9 +462,9 @@ class EquipmentChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
 
         // Create multiple items for the choice
-        $drum = Item::factory()->create(['name' => 'Drum', 'slug' => 'drum', 'full_slug' => 'phb:drum']);
-        $flute = Item::factory()->create(['name' => 'Flute', 'slug' => 'flute', 'full_slug' => 'phb:flute']);
-        $lute = Item::factory()->create(['name' => 'Lute', 'slug' => 'lute', 'full_slug' => 'phb:lute']);
+        $drum = Item::factory()->create(['name' => 'Drum', 'slug' => 'phb:drum']);
+        $flute = Item::factory()->create(['name' => 'Flute', 'slug' => 'phb:flute']);
+        $lute = Item::factory()->create(['name' => 'Lute', 'slug' => 'phb:lute']);
 
         $choice = new PendingChoice(
             id: 'equipment|class|test:bard|1|choice_3',
@@ -482,9 +482,9 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'b',
                     'label' => 'any musical instrument',
                     'items' => [
-                        ['full_slug' => $drum->full_slug, 'name' => 'Drum', 'slug' => 'drum', 'quantity' => 1],
-                        ['full_slug' => $flute->full_slug, 'name' => 'Flute', 'slug' => 'flute', 'quantity' => 1],
-                        ['full_slug' => $lute->full_slug, 'name' => 'Lute', 'slug' => 'lute', 'quantity' => 1],
+                        ['slug' => $drum->slug, 'name' => 'Drum', 'quantity' => 1],
+                        ['slug' => $flute->slug, 'name' => 'Flute', 'quantity' => 1],
+                        ['slug' => $lute->slug, 'name' => 'Lute', 'quantity' => 1],
                     ],
                     'is_category' => true, // This is a category choice - user must pick one
                 ],
@@ -509,7 +509,7 @@ class EquipmentChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
 
         // Create single item for the choice
-        $rapier = Item::factory()->create(['name' => 'Rapier', 'slug' => 'rapier', 'full_slug' => 'phb:rapier']);
+        $rapier = Item::factory()->create(['name' => 'Rapier', 'slug' => 'phb:rapier']);
 
         $choice = new PendingChoice(
             id: 'equipment|class|test:bard|1|choice_1',
@@ -527,7 +527,7 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'a',
                     'label' => 'a rapier',
                     'items' => [
-                        ['full_slug' => $rapier->full_slug, 'name' => 'Rapier', 'slug' => 'rapier', 'quantity' => 1],
+                        ['slug' => $rapier->slug, 'name' => 'Rapier', 'quantity' => 1],
                     ],
                     'is_category' => false, // Fixed item, not a category
                 ],
@@ -555,8 +555,8 @@ class EquipmentChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
 
         // Create multiple items for a bundle (not category)
-        $bow = Item::factory()->create(['name' => 'Longbow', 'slug' => 'longbow', 'full_slug' => 'phb:longbow']);
-        $arrows = Item::factory()->create(['name' => 'Arrows', 'slug' => 'arrow', 'full_slug' => 'phb:arrow']);
+        $bow = Item::factory()->create(['name' => 'Longbow', 'slug' => 'phb:longbow']);
+        $arrows = Item::factory()->create(['name' => 'Arrows', 'slug' => 'phb:arrow']);
 
         $choice = new PendingChoice(
             id: 'equipment|class|test:fighter|1|choice_1',
@@ -574,8 +574,8 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'option' => 'b',
                     'label' => 'a longbow and 20 arrows',
                     'items' => [
-                        ['full_slug' => $bow->full_slug, 'name' => 'Longbow', 'slug' => 'longbow', 'quantity' => 1],
-                        ['full_slug' => $arrows->full_slug, 'name' => 'Arrows', 'slug' => 'arrow', 'quantity' => 20],
+                        ['slug' => $bow->slug, 'name' => 'Longbow', 'quantity' => 1],
+                        ['slug' => $arrows->slug, 'name' => 'Arrows', 'quantity' => 20],
                     ],
                     'is_category' => false, // This is a bundle - you get ALL items
                 ],
@@ -603,16 +603,15 @@ class EquipmentChoiceReplacementTest extends TestCase
     public function get_choices_builds_options_from_database_relationships(): void
     {
         // Create items
-        $rapier = Item::factory()->create(['name' => 'Rapier', 'slug' => 'rapier', 'full_slug' => 'phb:rapier']);
-        $longsword = Item::factory()->create(['name' => 'Longsword', 'slug' => 'longsword', 'full_slug' => 'phb:longsword']);
-        $bow = Item::factory()->create(['name' => 'Longbow', 'slug' => 'longbow', 'full_slug' => 'phb:longbow']);
-        $arrows = Item::factory()->create(['name' => 'Arrows', 'slug' => 'arrow', 'full_slug' => 'phb:arrow']);
+        $rapier = Item::factory()->create(['name' => 'Rapier', 'slug' => 'phb:rapier']);
+        $longsword = Item::factory()->create(['name' => 'Longsword', 'slug' => 'phb:longsword']);
+        $bow = Item::factory()->create(['name' => 'Longbow', 'slug' => 'phb:longbow']);
+        $arrows = Item::factory()->create(['name' => 'Arrows', 'slug' => 'phb:arrow']);
 
         // Create a character class with equipment choices
         $class = CharacterClass::factory()->create([
             'name' => 'Test Fighter',
-            'slug' => 'test-fighter',
-            'full_slug' => 'test:test-fighter',
+            'slug' => 'test:test-fighter',
         ]);
 
         // Create equipment choice group 1 with two options:
@@ -678,7 +677,7 @@ class EquipmentChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -697,11 +696,11 @@ class EquipmentChoiceReplacementTest extends TestCase
             ->and($choice1->options[0]['option'])->toBe('a')
             ->and($choice1->options[0]['label'])->toBe('a rapier')
             ->and($choice1->options[0]['items'])->toHaveCount(1)
-            ->and($choice1->options[0]['items'][0]['full_slug'])->toBe('phb:rapier')
+            ->and($choice1->options[0]['items'][0]['slug'])->toBe('phb:rapier')
             ->and($choice1->options[0]['is_category'])->toBeFalse()
             ->and($choice1->options[1]['option'])->toBe('b')
             ->and($choice1->options[1]['label'])->toBe('a longsword')
-            ->and($choice1->options[1]['items'][0]['full_slug'])->toBe('phb:longsword');
+            ->and($choice1->options[1]['items'][0]['slug'])->toBe('phb:longsword');
 
         // Second choice group: longbow bundle
         $choice2 = $choices->last();
@@ -713,8 +712,8 @@ class EquipmentChoiceReplacementTest extends TestCase
 
         // Verify bundle item quantities
         $bundleItems = collect($choice2->options[0]['items']);
-        $bowItem = $bundleItems->firstWhere('full_slug', 'phb:longbow');
-        $arrowItem = $bundleItems->firstWhere('full_slug', 'phb:arrow');
+        $bowItem = $bundleItems->firstWhere('slug', 'phb:longbow');
+        $arrowItem = $bundleItems->firstWhere('slug', 'phb:arrow');
         expect($bowItem['quantity'])->toBe(1)
             ->and($arrowItem['quantity'])->toBe(20);
     }
@@ -723,14 +722,13 @@ class EquipmentChoiceReplacementTest extends TestCase
     public function full_flow_with_database_relationships(): void
     {
         // Create items
-        $rapier = Item::factory()->create(['name' => 'Rapier', 'slug' => 'rapier', 'full_slug' => 'test:rapier']);
-        $longsword = Item::factory()->create(['name' => 'Longsword', 'slug' => 'longsword', 'full_slug' => 'test:longsword']);
+        $rapier = Item::factory()->create(['name' => 'Rapier', 'slug' => 'test:rapier']);
+        $longsword = Item::factory()->create(['name' => 'Longsword', 'slug' => 'test:longsword']);
 
         // Create class with equipment choices
         $class = CharacterClass::factory()->create([
             'name' => 'Test Warrior',
-            'slug' => 'test-warrior',
-            'full_slug' => 'test:test-warrior',
+            'slug' => 'test:test-warrior',
         ]);
 
         // Option A: rapier, Option B: longsword
@@ -770,7 +768,7 @@ class EquipmentChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -807,9 +805,9 @@ class EquipmentChoiceReplacementTest extends TestCase
         // User picks longsword (from category), shield is fixed
         $character = Character::factory()->create();
 
-        $longsword = Item::factory()->create(['name' => 'Longsword', 'slug' => 'longsword', 'full_slug' => 'phb:longsword']);
-        $greatsword = Item::factory()->create(['name' => 'Greatsword', 'slug' => 'greatsword', 'full_slug' => 'phb:greatsword']);
-        $shield = Item::factory()->create(['name' => 'Shield', 'slug' => 'shield', 'full_slug' => 'phb:shield']);
+        $longsword = Item::factory()->create(['name' => 'Longsword', 'slug' => 'phb:longsword']);
+        $greatsword = Item::factory()->create(['name' => 'Greatsword', 'slug' => 'phb:greatsword']);
+        $shield = Item::factory()->create(['name' => 'Shield', 'slug' => 'phb:shield']);
 
         // Option 'a' has both category items (martial weapons) and a fixed item (shield)
         $choice = new PendingChoice(
@@ -829,10 +827,10 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'label' => 'a martial weapon and a shield',
                     'items' => [
                         // Category items (user picks one)
-                        ['full_slug' => $longsword->full_slug, 'name' => 'Longsword', 'quantity' => 1, 'is_fixed' => false],
-                        ['full_slug' => $greatsword->full_slug, 'name' => 'Greatsword', 'quantity' => 1, 'is_fixed' => false],
+                        ['slug' => $longsword->slug, 'name' => 'Longsword', 'quantity' => 1, 'is_fixed' => false],
+                        ['slug' => $greatsword->slug, 'name' => 'Greatsword', 'quantity' => 1, 'is_fixed' => false],
                         // Fixed item (always granted with this option)
-                        ['full_slug' => $shield->full_slug, 'name' => 'Shield', 'quantity' => 1, 'is_fixed' => true],
+                        ['slug' => $shield->slug, 'name' => 'Shield', 'quantity' => 1, 'is_fixed' => true],
                     ],
                     'is_category' => true,
                 ],
@@ -862,10 +860,10 @@ class EquipmentChoiceReplacementTest extends TestCase
         // Option with category + multiple fixed items (e.g., "any simple weapon, a shield, and 20 arrows")
         $character = Character::factory()->create();
 
-        $dagger = Item::factory()->create(['name' => 'Dagger', 'slug' => 'dagger', 'full_slug' => 'phb:dagger']);
-        $club = Item::factory()->create(['name' => 'Club', 'slug' => 'club', 'full_slug' => 'phb:club']);
-        $shield = Item::factory()->create(['name' => 'Shield', 'slug' => 'shield', 'full_slug' => 'phb:shield']);
-        $arrows = Item::factory()->create(['name' => 'Arrows', 'slug' => 'arrow', 'full_slug' => 'phb:arrow']);
+        $dagger = Item::factory()->create(['name' => 'Dagger', 'slug' => 'phb:dagger']);
+        $club = Item::factory()->create(['name' => 'Club', 'slug' => 'phb:club']);
+        $shield = Item::factory()->create(['name' => 'Shield', 'slug' => 'phb:shield']);
+        $arrows = Item::factory()->create(['name' => 'Arrows', 'slug' => 'phb:arrow']);
 
         $choice = new PendingChoice(
             id: 'equipment|class|test:fighter|1|choice_3',
@@ -884,11 +882,11 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'label' => 'a simple weapon, a shield, and 20 arrows',
                     'items' => [
                         // Category items
-                        ['full_slug' => $dagger->full_slug, 'name' => 'Dagger', 'quantity' => 1, 'is_fixed' => false],
-                        ['full_slug' => $club->full_slug, 'name' => 'Club', 'quantity' => 1, 'is_fixed' => false],
+                        ['slug' => $dagger->slug, 'name' => 'Dagger', 'quantity' => 1, 'is_fixed' => false],
+                        ['slug' => $club->slug, 'name' => 'Club', 'quantity' => 1, 'is_fixed' => false],
                         // Fixed items
-                        ['full_slug' => $shield->full_slug, 'name' => 'Shield', 'quantity' => 1, 'is_fixed' => true],
-                        ['full_slug' => $arrows->full_slug, 'name' => 'Arrows', 'quantity' => 20, 'is_fixed' => true],
+                        ['slug' => $shield->slug, 'name' => 'Shield', 'quantity' => 1, 'is_fixed' => true],
+                        ['slug' => $arrows->slug, 'name' => 'Arrows', 'quantity' => 20, 'is_fixed' => true],
                     ],
                     'is_category' => true,
                 ],
@@ -924,12 +922,12 @@ class EquipmentChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
 
         // Pack contents
-        $chest = Item::factory()->create(['name' => 'Chest', 'slug' => 'chest', 'full_slug' => 'phb:chest']);
-        $scrollCase = Item::factory()->create(['name' => 'Map or Scroll Case', 'slug' => 'scroll-case', 'full_slug' => 'phb:scroll-case']);
-        $fineClothes = Item::factory()->create(['name' => 'Fine Clothes', 'slug' => 'fine-clothes', 'full_slug' => 'phb:fine-clothes']);
+        $chest = Item::factory()->create(['name' => 'Chest', 'slug' => 'phb:chest']);
+        $scrollCase = Item::factory()->create(['name' => 'Map or Scroll Case', 'slug' => 'phb:scroll-case']);
+        $fineClothes = Item::factory()->create(['name' => 'Fine Clothes', 'slug' => 'phb:fine-clothes']);
 
         // The pack itself (not granted, only for display)
-        $diplomatsPack = Item::factory()->create(['name' => "Diplomat's Pack", 'slug' => 'diplomats-pack', 'full_slug' => 'phb:diplomats-pack']);
+        $diplomatsPack = Item::factory()->create(['name' => "Diplomat's Pack", 'slug' => 'phb:diplomats-pack']);
 
         $choice = new PendingChoice(
             id: 'equipment|class|test:bard|1|choice_1',
@@ -948,15 +946,15 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'label' => "a diplomat's pack",
                     'items' => [
                         [
-                            'full_slug' => $diplomatsPack->full_slug,
+                            'slug' => $diplomatsPack->slug,
                             'name' => "Diplomat's Pack",
                             'quantity' => 1,
                             'is_fixed' => true,
                             'is_pack' => true,
                             'contents' => [
-                                ['full_slug' => $chest->full_slug, 'name' => 'Chest', 'quantity' => 1],
-                                ['full_slug' => $scrollCase->full_slug, 'name' => 'Map or Scroll Case', 'quantity' => 2],
-                                ['full_slug' => $fineClothes->full_slug, 'name' => 'Fine Clothes', 'quantity' => 1],
+                                ['slug' => $chest->slug, 'name' => 'Chest', 'quantity' => 1],
+                                ['slug' => $scrollCase->slug, 'name' => 'Map or Scroll Case', 'quantity' => 2],
+                                ['slug' => $fineClothes->slug, 'name' => 'Fine Clothes', 'quantity' => 1],
                             ],
                         ],
                     ],
@@ -1000,8 +998,8 @@ class EquipmentChoiceReplacementTest extends TestCase
         // Verify the pack item structure includes contents array for frontend UI
         $character = Character::factory()->create();
 
-        $chest = Item::factory()->create(['name' => 'Chest', 'slug' => 'chest', 'full_slug' => 'phb:chest']);
-        $diplomatsPack = Item::factory()->create(['name' => "Diplomat's Pack", 'slug' => 'diplomats-pack', 'full_slug' => 'phb:diplomats-pack']);
+        $chest = Item::factory()->create(['name' => 'Chest', 'slug' => 'phb:chest']);
+        $diplomatsPack = Item::factory()->create(['name' => "Diplomat's Pack", 'slug' => 'phb:diplomats-pack']);
 
         $choice = new PendingChoice(
             id: 'equipment|class|test:bard|1|choice_1',
@@ -1020,13 +1018,13 @@ class EquipmentChoiceReplacementTest extends TestCase
                     'label' => "a diplomat's pack",
                     'items' => [
                         [
-                            'full_slug' => $diplomatsPack->full_slug,
+                            'slug' => $diplomatsPack->slug,
                             'name' => "Diplomat's Pack",
                             'quantity' => 1,
                             'is_fixed' => true,
                             'is_pack' => true,
                             'contents' => [
-                                ['full_slug' => $chest->full_slug, 'name' => 'Chest', 'quantity' => 1],
+                                ['slug' => $chest->slug, 'name' => 'Chest', 'quantity' => 1],
                             ],
                         ],
                     ],
@@ -1044,7 +1042,7 @@ class EquipmentChoiceReplacementTest extends TestCase
             ->toHaveKey('contents')
             ->and($packItem['contents'])->toBeArray()
             ->and($packItem['contents'])->toHaveCount(1)
-            ->and($packItem['contents'][0])->toHaveKey('full_slug', 'phb:chest');
+            ->and($packItem['contents'][0])->toHaveKey('slug', 'phb:chest');
     }
 
     #[Test]
@@ -1053,8 +1051,7 @@ class EquipmentChoiceReplacementTest extends TestCase
         // Create class with equipment choices
         $class = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'slug' => 'fighter',
-            'full_slug' => 'test:fighter',
+            'slug' => 'test:fighter',
             'starting_wealth_dice' => '5d4',
             'starting_wealth_multiplier' => 10,
         ]);
@@ -1080,7 +1077,7 @@ class EquipmentChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -1102,8 +1099,7 @@ class EquipmentChoiceReplacementTest extends TestCase
         // Create class with equipment choices
         $class = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'slug' => 'fighter',
-            'full_slug' => 'test:fighter2',
+            'slug' => 'test:fighter2',
             'starting_wealth_dice' => '5d4',
             'starting_wealth_multiplier' => 10,
         ]);
@@ -1129,7 +1125,7 @@ class EquipmentChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);

@@ -91,13 +91,13 @@ class AppServiceProvider extends ServiceProvider
             PopulateCharacterAbilities::class
         );
 
-        // Custom route model binding that supports ID, slug, and full_slug
+        // Custom route model binding that supports ID and slug
         Route::bind('spell', function ($value) {
             if (is_numeric($value)) {
                 return Spell::findOrFail($value);
             }
             if (str_contains($value, ':')) {
-                return Spell::where('full_slug', $value)->firstOrFail();
+                return Spell::where('slug', $value)->firstOrFail();
             }
 
             return Spell::where('slug', $value)->firstOrFail();
@@ -108,7 +108,7 @@ class AppServiceProvider extends ServiceProvider
                 return Race::findOrFail($value);
             }
             if (str_contains($value, ':')) {
-                return Race::where('full_slug', $value)->firstOrFail();
+                return Race::where('slug', $value)->firstOrFail();
             }
 
             return Race::where('slug', $value)->firstOrFail();
@@ -119,7 +119,7 @@ class AppServiceProvider extends ServiceProvider
                 return Background::findOrFail($value);
             }
             if (str_contains($value, ':')) {
-                return Background::where('full_slug', $value)->firstOrFail();
+                return Background::where('slug', $value)->firstOrFail();
             }
 
             return Background::where('slug', $value)->firstOrFail();
@@ -130,7 +130,7 @@ class AppServiceProvider extends ServiceProvider
                 return CharacterClass::findOrFail($value);
             }
             if (str_contains($value, ':')) {
-                return CharacterClass::where('full_slug', $value)->firstOrFail();
+                return CharacterClass::where('slug', $value)->firstOrFail();
             }
 
             return CharacterClass::where('slug', $value)->firstOrFail();
@@ -141,7 +141,7 @@ class AppServiceProvider extends ServiceProvider
                 return Item::findOrFail($value);
             }
             if (str_contains($value, ':')) {
-                return Item::where('full_slug', $value)->firstOrFail();
+                return Item::where('slug', $value)->firstOrFail();
             }
 
             return Item::where('slug', $value)->firstOrFail();
@@ -152,7 +152,7 @@ class AppServiceProvider extends ServiceProvider
                 return Feat::findOrFail($value);
             }
             if (str_contains($value, ':')) {
-                return Feat::where('full_slug', $value)->firstOrFail();
+                return Feat::where('slug', $value)->firstOrFail();
             }
 
             return Feat::where('slug', $value)->firstOrFail();
@@ -163,7 +163,7 @@ class AppServiceProvider extends ServiceProvider
                 return Monster::findOrFail($value);
             }
             if (str_contains($value, ':')) {
-                return Monster::where('full_slug', $value)->firstOrFail();
+                return Monster::where('slug', $value)->firstOrFail();
             }
 
             return Monster::where('slug', $value)->firstOrFail();

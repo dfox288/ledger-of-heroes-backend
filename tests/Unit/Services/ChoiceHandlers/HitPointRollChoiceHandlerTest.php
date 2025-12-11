@@ -62,7 +62,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -88,7 +88,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -124,7 +124,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -165,7 +165,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -195,7 +195,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $wizard->full_slug,
+            'class_slug' => $wizard->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -228,7 +228,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -263,7 +263,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -316,7 +316,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -367,7 +367,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -418,7 +418,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -574,7 +574,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 3,
             'is_primary' => true,
         ]);
@@ -601,7 +601,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 4,
             'is_primary' => true,
         ]);
@@ -634,7 +634,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -689,7 +689,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -872,7 +872,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -924,7 +924,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -963,7 +963,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -987,7 +987,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $toughFeat->id,
-            'feature_slug' => $toughFeat->full_slug,
+            'feature_slug' => $toughFeat->slug,
             'source' => 'asi_choice',
         ]);
 
@@ -1038,7 +1038,6 @@ class HitPointRollChoiceHandlerTest extends TestCase
         // Create Hill Dwarf race with HP modifier
         $hillDwarf = Race::factory()->create([
             'slug' => 'dwarf-hill',
-            'full_slug' => 'dwarf-hill',
             'name' => 'Hill Dwarf',
         ]);
 
@@ -1050,7 +1049,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'race_slug' => $hillDwarf->full_slug,
+            'race_slug' => $hillDwarf->slug,
             'constitution' => 14, // +2 modifier
             'max_hit_points' => 13, // Level 1 HP (10 + 2 CON + 1 race)
             'current_hit_points' => 13,
@@ -1058,7 +1057,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -1107,7 +1106,6 @@ class HitPointRollChoiceHandlerTest extends TestCase
         // Create Hill Dwarf race with HP modifier
         $hillDwarf = Race::factory()->create([
             'slug' => 'dwarf-hill',
-            'full_slug' => 'dwarf-hill',
             'name' => 'Hill Dwarf',
         ]);
 
@@ -1132,7 +1130,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'race_slug' => $hillDwarf->full_slug,
+            'race_slug' => $hillDwarf->slug,
             'constitution' => 14, // +2 modifier
             'max_hit_points' => 13, // Level 1 HP
             'current_hit_points' => 13,
@@ -1143,13 +1141,13 @@ class HitPointRollChoiceHandlerTest extends TestCase
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $toughFeat->id,
-            'feature_slug' => $toughFeat->full_slug,
+            'feature_slug' => $toughFeat->slug,
             'source' => 'asi_choice',
         ]);
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -1209,7 +1207,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -1262,7 +1260,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -1313,7 +1311,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);

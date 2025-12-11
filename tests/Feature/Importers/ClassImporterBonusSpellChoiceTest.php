@@ -33,7 +33,7 @@ class ClassImporterBonusSpellChoiceTest extends TestCase
         CharacterClass::factory()->create([
             'name' => 'Druid',
             'slug' => 'druid',
-            'full_slug' => 'phb:druid',
+            'slug' => 'phb:druid',
             'parent_class_id' => null,
         ]);
     }
@@ -80,7 +80,7 @@ class ClassImporterBonusSpellChoiceTest extends TestCase
         CharacterClass::factory()->create([
             'name' => 'Wizard',
             'slug' => 'wizard',
-            'full_slug' => 'phb:wizard',
+            'slug' => 'phb:wizard',
             'parent_class_id' => null,
         ]);
 
@@ -181,7 +181,7 @@ class ClassImporterBonusSpellChoiceTest extends TestCase
         $druid = CharacterClass::factory()->create([
             'name' => 'Druid',
             'slug' => 'druid',
-            'full_slug' => 'phb:druid',
+            'slug' => 'phb:druid',
             'parent_class_id' => null,
         ]);
 

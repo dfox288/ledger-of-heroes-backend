@@ -43,12 +43,12 @@ class SkillApiTest extends TestCase
     {
         $skill = Skill::where('name', 'Animal Handling')->first();
 
-        $response = $this->getJson('/api/v1/lookups/skills/animal-handling');
+        $response = $this->getJson("/api/v1/lookups/skills/{$skill->slug}");
 
         $response->assertOk()
             ->assertJsonPath('data.id', $skill->id)
             ->assertJsonPath('data.name', 'Animal Handling')
-            ->assertJsonPath('data.slug', 'animal-handling');
+            ->assertJsonPath('data.slug', $skill->slug);
     }
 
     #[Test]
@@ -56,12 +56,12 @@ class SkillApiTest extends TestCase
     {
         $skill = Skill::where('name', 'Sleight of Hand')->first();
 
-        $response = $this->getJson('/api/v1/lookups/skills/sleight-of-hand');
+        $response = $this->getJson("/api/v1/lookups/skills/{$skill->slug}");
 
         $response->assertOk()
             ->assertJsonPath('data.id', $skill->id)
             ->assertJsonPath('data.name', 'Sleight of Hand')
-            ->assertJsonPath('data.slug', 'sleight-of-hand');
+            ->assertJsonPath('data.slug', $skill->slug);
     }
 
     #[Test]

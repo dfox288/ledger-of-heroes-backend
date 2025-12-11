@@ -188,17 +188,15 @@ class MonsterImporter extends BaseImporter
         // Lookup size
         $size = $this->cachedFind(\App\Models\Size::class, 'code', strtoupper($monsterData['size']));
 
-        // Generate slug and full_slug
-        $slug = $this->generateSlug($monsterData['name']);
+        // Generate source-prefixed slug
         $sources = $monsterData['sources'] ?? [];
-        $fullSlug = $this->generateFullSlug($slug, $sources);
+        $slug = $this->generateSlug($monsterData['name'], $sources);
 
         // Create/update monster
         $monster = Monster::updateOrCreate(
             ['slug' => $slug],
             [
                 'name' => $monsterData['name'],
-                'full_slug' => $fullSlug,
                 'size_id' => $size->id,
                 'type' => $monsterData['type'],
                 'alignment' => $monsterData['alignment'],

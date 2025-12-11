@@ -108,6 +108,8 @@ class CharacterSummaryDTO
         CharacterChoiceService $choiceService
     ): array {
         // Get proficiency choices (legacy - still using dedicated service)
+        // These remain separate due to complex validation logic in CharacterProficiencyService
+        // TODO: Consider migrating to CharacterChoiceService in future refactor
         $proficiencyChoices = $proficiencyService->getPendingChoices($character);
         $proficienciesRemaining = 0;
         foreach (['class', 'race', 'background', 'subclass_feature'] as $source) {
@@ -157,6 +159,7 @@ class CharacterSummaryDTO
             ->sum(fn ($c) => $c->remaining);
 
         // Count general optional_features (excluding fighting_style subtype to avoid double-counting)
+        // Note: null subtypes (like invocations, metamagic) are included in optional_features
         $optionalFeaturesCount = $pendingChoicesCollection
             ->filter(fn ($c) => $c->type === 'optional_feature' && $c->subtype !== 'fighting_style')
             ->sum(fn ($c) => $c->remaining);

@@ -9,6 +9,7 @@ use App\Models\CharacterClassPivot;
 use App\Models\CharacterCondition;
 use App\Models\CharacterLanguage;
 use App\Models\CharacterSpellSlot;
+use App\Models\ClassCounter;
 use App\Models\Condition;
 use App\Models\EntityLanguage;
 use App\Models\Language;
@@ -809,6 +810,67 @@ class CharacterSummaryTest extends TestCase
                 'data' => [
                     'pending_choices' => [
                         'proficiencies' => 0, // Should be 0 after resolution
+                    ],
+                ],
+            ]);
+    }
+
+    // =====================
+    // Fighting Style & Expertise in Summary (Issue #490)
+    // =====================
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_includes_fighting_style_in_pending_choices()
+    {
+        // Create Fighter class with "Fighting Styles Known" counter
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'fighter-'.uniqid(),
+        ]);
+
+        ClassCounter::factory()
+            ->forClass($fighter)
+            ->atLevel(1)
+            ->noReset()
+            ->create([
+                'counter_name' => 'Fighting Styles Known',
+                'counter_value' => 1,
+            ]);
+
+        // Create character with Fighter class
+        $character = Character::factory()->withStandardArray()->create();
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $fighter->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/summary");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'pending_choices' => [
+                        'fighting_style',
+                    ],
+                ],
+            ])
+            ->assertJsonPath('data.pending_choices.fighting_style', 1);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_includes_expertise_in_pending_choices_structure()
+    {
+        $character = Character::factory()->withStandardArray()->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/summary");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'pending_choices' => [
+                        'expertise',
                     ],
                 ],
             ]);

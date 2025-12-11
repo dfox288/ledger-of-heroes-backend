@@ -15,6 +15,7 @@ use App\Http\Resources\CharacterSummaryResource;
 use App\Models\Character;
 use App\Models\CharacterClassPivot;
 use App\Services\AbilityBonusService;
+use App\Services\CharacterChoiceService;
 use App\Services\CharacterFeatureService;
 use App\Services\CharacterLanguageService;
 use App\Services\CharacterProficiencyService;
@@ -43,7 +44,8 @@ class CharacterController extends Controller
         private HitPointService $hitPointService,
         private FeatChoiceService $featChoiceService,
         private AbilityBonusService $abilityBonusService,
-        private FeatureUseService $featureUseService
+        private FeatureUseService $featureUseService,
+        private CharacterChoiceService $choiceService
     ) {}
 
     /**
@@ -427,7 +429,8 @@ class CharacterController extends Controller
             $this->spellSlotService,
             $this->hitDiceService,
             $this->featChoiceService,
-            $this->featureUseService
+            $this->featureUseService,
+            $this->choiceService
         );
 
         return new CharacterSummaryResource($summary);

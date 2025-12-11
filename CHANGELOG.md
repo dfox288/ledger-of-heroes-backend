@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #492**: Fix ability score double-counting when editing characters
+  - Root cause: API returned final ability scores (with racial bonuses) but frontend treated them as base scores when loading
+  - Added `base_ability_scores` field to character API response alongside `ability_scores`
+  - Frontend can now correctly load base scores for editing without accumulating bonuses
+
+- **Issue #491**: Fix duplicate fighting style choices for Fighter
+  - Root cause: Both `FightingStyleChoiceHandler` (hardcoded) and `OptionalFeatureChoiceHandler` (counter-based) returned choices
+  - Removed redundant `FightingStyleChoiceHandler` - now handled solely by `OptionalFeatureChoiceHandler` via "Fighting Styles Known" counter
+  - Fighter pending-choices now returns 1 choice instead of 2
+
 - **Issue #481**: Fix HP choice resolution returning 500 error during level-up
   - Root cause: Form validation normalizes `selected` to array format (`["roll"]`), but `HitPointRollChoiceHandler` expected a scalar string (`"roll"`)
   - Handler now extracts first element from array if `selected` is passed as array
@@ -67,6 +77,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Light Domain's bonus `light` cantrip now auto-assigned when subclass selected
 
 ### Changed
+
+- **Issue #490**: Character summary now includes all choice types in pending_choices
+  - Added `fighting_style`, `expertise`, `equipment`, `subclass` fields to summary response
+  - Frontend no longer needs separate `/pending-choices` call to determine wizard step visibility
+  - `CharacterSummaryDTO` now uses `CharacterChoiceService` for dynamic choice counting
 
 - **Issue #436**: Enhanced character validation endpoint with human-readable messages
   - Dangling references now return structured objects with `reference`, `type`, and `message` fields

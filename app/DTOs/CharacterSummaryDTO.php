@@ -3,6 +3,7 @@
 namespace App\DTOs;
 
 use App\Models\Character;
+use App\Services\CharacterChoiceService;
 use App\Services\CharacterLanguageService;
 use App\Services\CharacterProficiencyService;
 use App\Services\FeatChoiceService;
@@ -41,7 +42,8 @@ class CharacterSummaryDTO
         SpellSlotService $spellSlotService,
         HitDiceService $hitDiceService,
         FeatChoiceService $featChoiceService,
-        FeatureUseService $featureUseService
+        FeatureUseService $featureUseService,
+        CharacterChoiceService $choiceService
     ): self {
         // Ensure relationships are loaded
         $character->load([
@@ -64,7 +66,8 @@ class CharacterSummaryDTO
             $character,
             $proficiencyService,
             $languageService,
-            $featChoiceService
+            $featChoiceService,
+            $choiceService
         );
 
         // Get resource states
@@ -101,9 +104,12 @@ class CharacterSummaryDTO
         Character $character,
         CharacterProficiencyService $proficiencyService,
         CharacterLanguageService $languageService,
-        FeatChoiceService $featChoiceService
+        FeatChoiceService $featChoiceService,
+        CharacterChoiceService $choiceService
     ): array {
-        // Get proficiency choices
+        // Get proficiency choices (legacy - still using dedicated service)
+        // These remain separate due to complex validation logic in CharacterProficiencyService
+        // TODO: Consider migrating to CharacterChoiceService in future refactor
         $proficiencyChoices = $proficiencyService->getPendingChoices($character);
         $proficienciesRemaining = 0;
         foreach (['class', 'race', 'background', 'subclass_feature'] as $source) {
@@ -114,7 +120,7 @@ class CharacterSummaryDTO
             }
         }
 
-        // Get language choices
+        // Get language choices (legacy - still using dedicated service)
         $languageChoices = $languageService->getPendingChoices($character);
         $languagesRemaining = 0;
         foreach (['race', 'background', 'feat'] as $source) {
@@ -137,14 +143,40 @@ class CharacterSummaryDTO
             $featsRemaining += $sourceData['remaining'];
         }
 
+        // Get all pending choices from CharacterChoiceService (Issue #490)
+        // This provides dynamic counts for fighting_style, expertise, optional_feature, etc.
+        $pendingChoicesCollection = $choiceService->getPendingChoices($character)
+            ->filter(fn ($c) => $c->remaining > 0);
+
+        // Count by type
+        $byType = $pendingChoicesCollection->groupBy('type')->map->count()->toArray();
+
+        // Count optional_features by subtype for fighting_style (Issue #490)
+        // After removing FightingStyleChoiceHandler, fighting styles come via
+        // OptionalFeatureChoiceHandler with type=optional_feature, subtype=fighting_style
+        $fightingStyleCount = $pendingChoicesCollection
+            ->filter(fn ($c) => $c->type === 'optional_feature' && $c->subtype === 'fighting_style')
+            ->sum(fn ($c) => $c->remaining);
+
+        // Count general optional_features (excluding fighting_style subtype to avoid double-counting)
+        // Note: null subtypes (like invocations, metamagic) are included in optional_features
+        $optionalFeaturesCount = $pendingChoicesCollection
+            ->filter(fn ($c) => $c->type === 'optional_feature' && $c->subtype !== 'fighting_style')
+            ->sum(fn ($c) => $c->remaining);
+
         return [
             'proficiencies' => $proficienciesRemaining,
             'languages' => $languagesRemaining,
-            'spells' => 0, // Placeholder - complex logic deferred to Phase 2
-            'optional_features' => 0, // Placeholder - requires optional feature choice system
+            'spells' => $byType['spell'] ?? 0,
+            'optional_features' => $optionalFeaturesCount,
             'asi' => $character->asi_choices_remaining ?? 0,
             'size' => $sizeRemaining,
             'feats' => $featsRemaining,
+            // New fields from CharacterChoiceService (Issue #490)
+            'fighting_style' => $fightingStyleCount,
+            'expertise' => $byType['expertise'] ?? 0,
+            'equipment' => $byType['equipment'] ?? 0,
+            'subclass' => $byType['subclass'] ?? 0,
         ];
     }
 

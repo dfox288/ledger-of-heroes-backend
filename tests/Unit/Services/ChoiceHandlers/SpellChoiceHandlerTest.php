@@ -54,7 +54,7 @@ class SpellChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $wizard->full_slug,
+            'class_slug' => $wizard->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -78,7 +78,7 @@ class SpellChoiceHandlerTest extends TestCase
         $this->assertEquals([], $choice->selected);
         $this->assertStringContainsString('max_level=0', $choice->optionsEndpoint);
         $this->assertEquals(0, $choice->metadata['spell_level']);
-        $this->assertEquals($wizard->full_slug, $choice->metadata['class_slug']);
+        $this->assertEquals($wizard->slug, $choice->metadata['class_slug']);
     }
 
     #[Test]
@@ -102,7 +102,7 @@ class SpellChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $sorcerer->full_slug,
+            'class_slug' => $sorcerer->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -153,7 +153,7 @@ class SpellChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
+            'class_slug' => $cleric->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -191,7 +191,7 @@ class SpellChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $bard->full_slug,
+            'class_slug' => $bard->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -202,13 +202,13 @@ class SpellChoiceHandlerTest extends TestCase
         $spell2 = Spell::factory()->create(['level' => 0]);
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_slug' => $spell1->full_slug,
+            'spell_slug' => $spell1->slug,
             'source' => 'class',
             'level_acquired' => 1,
         ]);
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_slug' => $spell2->full_slug,
+            'spell_slug' => $spell2->slug,
             'source' => 'class',
             'level_acquired' => 1,
         ]);
@@ -217,7 +217,7 @@ class SpellChoiceHandlerTest extends TestCase
         $spell3 = Spell::factory()->create(['level' => 1]);
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_slug' => $spell3->full_slug,
+            'spell_slug' => $spell3->slug,
             'source' => 'class',
             'level_acquired' => 1,
         ]);
@@ -253,7 +253,7 @@ class SpellChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $barbarian->full_slug,
+            'class_slug' => $barbarian->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -277,7 +277,7 @@ class SpellChoiceHandlerTest extends TestCase
         $spell3 = Spell::factory()->create(['level' => 0]);
 
         $choice = new PendingChoice(
-            id: "spell|class|{$wizard->full_slug}|1|cantrips",
+            id: "spell|class|{$wizard->slug}|1|cantrips",
             type: 'spell',
             subtype: 'cantrip',
             source: 'class',
@@ -295,15 +295,15 @@ class SpellChoiceHandlerTest extends TestCase
             ]
         );
 
-        $this->handler->resolve($character, $choice, ['selected' => [$spell1->full_slug, $spell2->full_slug, $spell3->full_slug]]);
+        $this->handler->resolve($character, $choice, ['selected' => [$spell1->slug, $spell2->slug, $spell3->slug]]);
 
         // Verify CharacterSpell records were created
         $this->assertEquals(3, CharacterSpell::where('character_id', $character->id)->count());
 
         $characterSpells = CharacterSpell::where('character_id', $character->id)->get();
-        $this->assertContains($spell1->full_slug, $characterSpells->pluck('spell_slug'));
-        $this->assertContains($spell2->full_slug, $characterSpells->pluck('spell_slug'));
-        $this->assertContains($spell3->full_slug, $characterSpells->pluck('spell_slug'));
+        $this->assertContains($spell1->slug, $characterSpells->pluck('spell_slug'));
+        $this->assertContains($spell2->slug, $characterSpells->pluck('spell_slug'));
+        $this->assertContains($spell3->slug, $characterSpells->pluck('spell_slug'));
 
         $this->assertTrue($characterSpells->every(fn ($cs) => $cs->source === 'class'));
         $this->assertTrue($characterSpells->every(fn ($cs) => $cs->level_acquired === 1));
@@ -319,7 +319,7 @@ class SpellChoiceHandlerTest extends TestCase
         $spell2 = Spell::factory()->create(['level' => 1]);
 
         $choice = new PendingChoice(
-            id: "spell|class|{$sorcerer->full_slug}|1|spells_known",
+            id: "spell|class|{$sorcerer->slug}|1|spells_known",
             type: 'spell',
             subtype: 'spells_known',
             source: 'class',
@@ -337,7 +337,7 @@ class SpellChoiceHandlerTest extends TestCase
             ]
         );
 
-        $this->handler->resolve($character, $choice, ['selected' => [$spell1->full_slug, $spell2->full_slug]]);
+        $this->handler->resolve($character, $choice, ['selected' => [$spell1->slug, $spell2->slug]]);
 
         // Verify CharacterSpell records were created
         $this->assertEquals(2, CharacterSpell::where('character_id', $character->id)->count());
@@ -350,7 +350,7 @@ class SpellChoiceHandlerTest extends TestCase
         $wizard = CharacterClass::factory()->create(['slug' => 'wizard']);
 
         $choice = new PendingChoice(
-            id: "spell|class|{$wizard->full_slug}|1|cantrips",
+            id: "spell|class|{$wizard->slug}|1|cantrips",
             type: 'spell',
             subtype: 'cantrip',
             source: 'class',
@@ -376,7 +376,7 @@ class SpellChoiceHandlerTest extends TestCase
         $wizard = CharacterClass::factory()->create(['slug' => 'wizard']);
 
         $choice = new PendingChoice(
-            id: "spell|class|{$wizard->full_slug}|1|cantrips",
+            id: "spell|class|{$wizard->slug}|1|cantrips",
             type: 'spell',
             subtype: 'cantrip',
             source: 'class',
@@ -402,7 +402,7 @@ class SpellChoiceHandlerTest extends TestCase
         $wizard = CharacterClass::factory()->create(['slug' => 'wizard']);
 
         $choice = new PendingChoice(
-            id: "spell|class|{$wizard->full_slug}|1|cantrips",
+            id: "spell|class|{$wizard->slug}|1|cantrips",
             type: 'spell',
             subtype: 'cantrip',
             source: 'class',
@@ -433,19 +433,19 @@ class SpellChoiceHandlerTest extends TestCase
         // Create CharacterSpell records
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_slug' => $spell1->full_slug,
+            'spell_slug' => $spell1->slug,
             'source' => 'class',
             'level_acquired' => 1,
         ]);
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_slug' => $spell2->full_slug,
+            'spell_slug' => $spell2->slug,
             'source' => 'class',
             'level_acquired' => 1,
         ]);
         CharacterSpell::create([
             'character_id' => $character->id,
-            'spell_slug' => $spell3->full_slug,
+            'spell_slug' => $spell3->slug,
             'source' => 'class',
             'level_acquired' => 1,
         ]);
@@ -453,7 +453,7 @@ class SpellChoiceHandlerTest extends TestCase
         $this->assertEquals(3, CharacterSpell::where('character_id', $character->id)->count());
 
         $choice = new PendingChoice(
-            id: "spell|class|{$wizard->full_slug}|1|cantrips",
+            id: "spell|class|{$wizard->slug}|1|cantrips",
             type: 'spell',
             subtype: 'cantrip',
             source: 'class',
@@ -487,7 +487,7 @@ class SpellChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $wizard->full_slug,
+            'class_slug' => $wizard->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -515,7 +515,7 @@ class SpellChoiceHandlerTest extends TestCase
 
         // Choice allows only 2 cantrips
         $choice = new PendingChoice(
-            id: "spell|class|{$wizard->full_slug}|1|cantrips",
+            id: "spell|class|{$wizard->slug}|1|cantrips",
             type: 'spell',
             subtype: 'cantrip',
             source: 'class',
@@ -538,7 +538,7 @@ class SpellChoiceHandlerTest extends TestCase
         $this->expectExceptionMessage('exceeds');
 
         $this->handler->resolve($character, $choice, [
-            'selected' => [$spell1->full_slug, $spell2->full_slug, $spell3->full_slug, $spell4->full_slug],
+            'selected' => [$spell1->slug, $spell2->slug, $spell3->slug, $spell4->slug],
         ]);
     }
 
@@ -587,8 +587,8 @@ class SpellChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $cleric->full_slug,
-            'subclass_slug' => $natureDomain->full_slug,
+            'class_slug' => $cleric->slug,
+            'subclass_slug' => $natureDomain->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -612,9 +612,9 @@ class SpellChoiceHandlerTest extends TestCase
         $this->assertEquals(1, $subclassChoice->remaining);
         $this->assertEquals([], $subclassChoice->selected);
         $this->assertStringContainsString('max_level=0', $subclassChoice->optionsEndpoint);
-        $this->assertStringContainsString("class={$druid->full_slug}", $subclassChoice->optionsEndpoint);
+        $this->assertStringContainsString("class={$druid->slug}", $subclassChoice->optionsEndpoint);
         $this->assertEquals(0, $subclassChoice->metadata['spell_level']);
-        $this->assertEquals($druid->full_slug, $subclassChoice->metadata['class_slug']);
+        $this->assertEquals($druid->slug, $subclassChoice->metadata['class_slug']);
         $this->assertEquals($feature->id, $subclassChoice->metadata['feature_id']);
     }
 }

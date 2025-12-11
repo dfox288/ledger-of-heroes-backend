@@ -66,7 +66,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $race = Race::factory()->create([
             'slug' => 'half-elf',
             'name' => 'Half-Elf',
-            'full_slug' => 'phb:half-elf',
+            'slug' => 'phb:half-elf',
         ]);
 
         // Add a modifier with is_choice = true, choice_count = 2
@@ -107,7 +107,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $parentRace = Race::factory()->create([
             'slug' => 'elf',
             'name' => 'Elf',
-            'full_slug' => 'phb:elf',
+            'slug' => 'phb:elf',
         ]);
 
         $parentModifier = Modifier::factory()->create([
@@ -124,7 +124,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $subrace = Race::factory()->create([
             'slug' => 'high-elf',
             'name' => 'High Elf',
-            'full_slug' => 'phb:high-elf',
+            'slug' => 'phb:high-elf',
             'parent_race_id' => $parentRace->id,
         ]);
 
@@ -152,7 +152,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $race = Race::factory()->create([
             'slug' => 'half-elf',
             'name' => 'Half-Elf',
-            'full_slug' => 'phb:half-elf',
+            'slug' => 'phb:half-elf',
         ]);
 
         $modifier = Modifier::factory()->create([
@@ -191,7 +191,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $race = Race::factory()->create([
             'slug' => 'half-elf',
             'name' => 'Half-Elf',
-            'full_slug' => 'phb:half-elf',
+            'slug' => 'phb:half-elf',
         ]);
 
         $modifier = Modifier::factory()->create([
@@ -248,7 +248,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $race = Race::factory()->create([
             'slug' => 'half-elf',
             'name' => 'Half-Elf',
-            'full_slug' => 'phb:half-elf',
+            'slug' => 'phb:half-elf',
         ]);
 
         $modifier = Modifier::factory()->create([
@@ -295,7 +295,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $race = Race::factory()->create([
             'slug' => 'half-elf',
             'name' => 'Half-Elf',
-            'full_slug' => 'phb:half-elf',
+            'slug' => 'phb:half-elf',
         ]);
 
         $modifier = Modifier::factory()->create([
@@ -342,7 +342,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $race = Race::factory()->create([
             'slug' => 'half-elf',
             'name' => 'Half-Elf',
-            'full_slug' => 'phb:half-elf',
+            'slug' => 'phb:half-elf',
         ]);
 
         $modifier = Modifier::factory()->create([
@@ -389,7 +389,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $race = Race::factory()->create([
             'slug' => 'half-elf',
             'name' => 'Half-Elf',
-            'full_slug' => 'phb:half-elf',
+            'slug' => 'phb:half-elf',
         ]);
 
         $modifier = Modifier::factory()->create([
@@ -436,7 +436,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $race = Race::factory()->create([
             'slug' => 'half-elf',
             'name' => 'Half-Elf',
-            'full_slug' => 'phb:half-elf',
+            'slug' => 'phb:half-elf',
         ]);
 
         $modifier = Modifier::factory()->create([
@@ -482,7 +482,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $race = Race::factory()->create([
             'slug' => 'half-elf',
             'name' => 'Half-Elf',
-            'full_slug' => 'phb:half-elf',
+            'slug' => 'phb:half-elf',
         ]);
 
         $modifier = Modifier::factory()->create([
@@ -549,7 +549,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $race = Race::factory()->create([
             'slug' => 'half-elf',
             'name' => 'Half-Elf',
-            'full_slug' => 'phb:half-elf',
+            'slug' => 'phb:half-elf',
         ]);
 
         $modifier = Modifier::factory()->create([
@@ -593,7 +593,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $race = Race::factory()->create([
             'slug' => 'half-elf',
             'name' => 'Half-Elf',
-            'full_slug' => 'phb:half-elf',
+            'slug' => 'phb:half-elf',
         ]);
 
         $modifier = Modifier::factory()->create([

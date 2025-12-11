@@ -51,7 +51,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         $character->characterClasses()->create([
-            'class_slug' => $fighter->full_slug,
+            'class_slug' => $fighter->slug,
             'level' => 1,
             'order' => 1,
             'is_primary' => true,
@@ -88,7 +88,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         $character->characterClasses()->create([
-            'class_slug' => $fighter->full_slug,
+            'class_slug' => $fighter->slug,
             'level' => 5, // +3 proficiency bonus
             'order' => 1,
             'is_primary' => true,
@@ -149,18 +149,18 @@ class CharacterStatsDTOTest extends TestCase
         $character = Character::factory()->create(['dexterity' => 16]); // +3 mod
 
         // Add Stealth proficiency
-        $stealthSkill = Skill::where('slug', 'stealth')->first();
+        $stealthSkill = Skill::where('slug', 'core:stealth')->first();
         $this->assertNotNull($stealthSkill, 'Stealth skill must exist');
 
         $character->proficiencies()->create([
-            'skill_slug' => $stealthSkill->full_slug,
+            'skill_slug' => $stealthSkill->slug,
             'expertise' => false,
         ]);
 
         // Need to set level for proficiency bonus
         $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter']);
         $character->characterClasses()->create([
-            'class_slug' => $fighter->full_slug,
+            'class_slug' => $fighter->slug,
             'level' => 1, // +2 proficiency bonus
             'order' => 1,
             'is_primary' => true,
@@ -171,7 +171,7 @@ class CharacterStatsDTOTest extends TestCase
             $this->calculator
         );
 
-        $stealth = collect($dto->skills)->firstWhere('slug', 'stealth');
+        $stealth = collect($dto->skills)->firstWhere('slug', 'core:stealth');
 
         $this->assertTrue($stealth['proficient']);
         $this->assertFalse($stealth['expertise']);
@@ -186,15 +186,15 @@ class CharacterStatsDTOTest extends TestCase
         $character = Character::factory()->create(['dexterity' => 16]); // +3 mod
 
         // Add Stealth expertise
-        $stealthSkill = Skill::where('slug', 'stealth')->first();
+        $stealthSkill = Skill::where('slug', 'core:stealth')->first();
         $character->proficiencies()->create([
-            'skill_slug' => $stealthSkill->full_slug,
+            'skill_slug' => $stealthSkill->slug,
             'expertise' => true,
         ]);
 
         $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter']);
         $character->characterClasses()->create([
-            'class_slug' => $fighter->full_slug,
+            'class_slug' => $fighter->slug,
             'level' => 1, // +2 proficiency bonus
             'order' => 1,
             'is_primary' => true,
@@ -205,7 +205,7 @@ class CharacterStatsDTOTest extends TestCase
             $this->calculator
         );
 
-        $stealth = collect($dto->skills)->firstWhere('slug', 'stealth');
+        $stealth = collect($dto->skills)->firstWhere('slug', 'core:stealth');
 
         $this->assertTrue($stealth['proficient']);
         $this->assertTrue($stealth['expertise']);
@@ -219,7 +219,7 @@ class CharacterStatsDTOTest extends TestCase
 
         $dto = CharacterStatsDTO::fromCharacter($character, $this->calculator);
 
-        $perception = collect($dto->skills)->firstWhere('slug', 'perception');
+        $perception = collect($dto->skills)->firstWhere('slug', 'core:perception');
 
         $this->assertEquals(12, $perception['passive']); // 10 + 2 WIS mod
     }
@@ -261,7 +261,7 @@ class CharacterStatsDTOTest extends TestCase
             'swim_speed' => 30,
             'climb_speed' => 20,
         ]);
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         $dto = CharacterStatsDTO::fromCharacter($character, $this->calculator);
 

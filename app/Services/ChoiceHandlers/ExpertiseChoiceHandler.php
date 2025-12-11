@@ -53,7 +53,7 @@ class ExpertiseChoiceHandler extends AbstractChoiceHandler
                 $selected = $existingExpertise->map(fn ($p) => $p->skill_slug ?? $p->proficiency_type_slug)->filter()->values()->all();
 
                 $choice = new PendingChoice(
-                    id: $this->generateChoiceId('expertise', 'class', $class->full_slug, $expertiseLevel, $choiceGroup),
+                    id: $this->generateChoiceId('expertise', 'class', $class->slug, $expertiseLevel, $choiceGroup),
                     type: 'expertise',
                     subtype: null,
                     source: 'class',
@@ -193,20 +193,18 @@ class ExpertiseChoiceHandler extends AbstractChoiceHandler
             return $proficiency->skill_slug !== null || $proficiency->proficiency_type_slug !== null;
         });
 
-        // Map to option format using full_slug
+        // Map to option format using slug
         return $available->map(function ($proficiency) {
             if ($proficiency->skill_slug !== null) {
                 return [
                     'type' => 'skill',
-                    'full_slug' => $proficiency->skill_slug,
-                    'slug' => $proficiency->skill->slug ?? null,
+                    'slug' => $proficiency->skill_slug,
                     'name' => $proficiency->skill->name ?? null,
                 ];
             } else {
                 return [
                     'type' => 'proficiency_type',
-                    'full_slug' => $proficiency->proficiency_type_slug,
-                    'slug' => $proficiency->proficiencyType->slug ?? null,
+                    'slug' => $proficiency->proficiency_type_slug,
                     'name' => $proficiency->proficiencyType->name ?? null,
                 ];
             }

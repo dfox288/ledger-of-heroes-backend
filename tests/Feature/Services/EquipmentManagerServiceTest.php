@@ -35,19 +35,19 @@ class EquipmentManagerServiceTest extends TestCase
         $leatherArmor = Item::factory()->create([
             'name' => 'Leather Armor',
             'slug' => 'leather-armor',
-            'full_slug' => 'phb:leather-armor',
+            'slug' => 'phb:leather-armor',
         ]);
         $dagger = Item::factory()->create([
             'name' => 'Dagger',
             'slug' => 'dagger',
-            'full_slug' => 'phb:dagger',
+            'slug' => 'phb:dagger',
         ]);
 
         // Create class with fixed equipment
         $bard = CharacterClass::factory()->create([
             'name' => 'Bard',
             'slug' => 'bard',
-            'full_slug' => 'phb:bard',
+            'slug' => 'phb:bard',
         ]);
 
         // Add fixed equipment (is_choice = false)
@@ -70,7 +70,7 @@ class EquipmentManagerServiceTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $bard->full_slug,
+            'class_slug' => $bard->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -93,13 +93,13 @@ class EquipmentManagerServiceTest extends TestCase
         $chainMail = Item::factory()->create([
             'name' => 'Chain Mail',
             'slug' => 'chain-mail',
-            'full_slug' => 'phb:chain-mail',
+            'slug' => 'phb:chain-mail',
         ]);
 
         $fighter = CharacterClass::factory()->create([
             'name' => 'Fighter',
             'slug' => 'fighter',
-            'full_slug' => 'phb:fighter',
+            'slug' => 'phb:fighter',
         ]);
 
         // Add choice equipment (is_choice = true)
@@ -116,7 +116,7 @@ class EquipmentManagerServiceTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $fighter->full_slug,
+            'class_slug' => $fighter->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -133,13 +133,13 @@ class EquipmentManagerServiceTest extends TestCase
         $dagger = Item::factory()->create([
             'name' => 'Dagger',
             'slug' => 'dagger',
-            'full_slug' => 'phb:dagger',
+            'slug' => 'phb:dagger',
         ]);
 
         $rogue = CharacterClass::factory()->create([
             'name' => 'Rogue',
             'slug' => 'rogue',
-            'full_slug' => 'phb:rogue',
+            'slug' => 'phb:rogue',
         ]);
 
         EntityItem::create([
@@ -153,7 +153,7 @@ class EquipmentManagerServiceTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $rogue->full_slug,
+            'class_slug' => $rogue->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -180,19 +180,19 @@ class EquipmentManagerServiceTest extends TestCase
         $dagger = Item::factory()->create([
             'name' => 'Dagger',
             'slug' => 'dagger',
-            'full_slug' => 'phb:dagger',
+            'slug' => 'phb:dagger',
         ]);
 
         $primaryClass = CharacterClass::factory()->create([
             'name' => 'Fighter',
             'slug' => 'fighter',
-            'full_slug' => 'phb:fighter',
+            'slug' => 'phb:fighter',
         ]);
 
         $secondaryClass = CharacterClass::factory()->create([
             'name' => 'Rogue',
             'slug' => 'rogue',
-            'full_slug' => 'phb:rogue',
+            'slug' => 'phb:rogue',
         ]);
 
         // Only secondary class has fixed equipment
@@ -209,7 +209,7 @@ class EquipmentManagerServiceTest extends TestCase
         // Primary class (no equipment)
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $primaryClass->full_slug,
+            'class_slug' => $primaryClass->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -218,7 +218,7 @@ class EquipmentManagerServiceTest extends TestCase
         // Secondary class (has equipment but shouldn't be granted)
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $secondaryClass->full_slug,
+            'class_slug' => $secondaryClass->slug,
             'level' => 1,
             'is_primary' => false,
             'order' => 2,
@@ -247,13 +247,13 @@ class EquipmentManagerServiceTest extends TestCase
         $arrow = Item::factory()->create([
             'name' => 'Arrow',
             'slug' => 'arrow',
-            'full_slug' => 'phb:arrow',
+            'slug' => 'phb:arrow',
         ]);
 
         $ranger = CharacterClass::factory()->create([
             'name' => 'Ranger',
             'slug' => 'ranger',
-            'full_slug' => 'phb:ranger',
+            'slug' => 'phb:ranger',
         ]);
 
         EntityItem::create([
@@ -267,7 +267,7 @@ class EquipmentManagerServiceTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $ranger->full_slug,
+            'class_slug' => $ranger->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -285,18 +285,18 @@ class EquipmentManagerServiceTest extends TestCase
         $holySymbol = Item::factory()->create([
             'name' => 'Holy Symbol',
             'slug' => 'holy-symbol',
-            'full_slug' => 'phb:holy-symbol',
+            'slug' => 'phb:holy-symbol',
         ]);
         $prayerBook = Item::factory()->create([
             'name' => 'Prayer Book',
             'slug' => 'prayer-book',
-            'full_slug' => 'phb:prayer-book',
+            'slug' => 'phb:prayer-book',
         ]);
 
         $acolyte = Background::factory()->create([
             'name' => 'Acolyte',
             'slug' => 'acolyte',
-            'full_slug' => 'phb:acolyte',
+            'slug' => 'phb:acolyte',
         ]);
 
         EntityItem::create([
@@ -315,7 +315,7 @@ class EquipmentManagerServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'background_slug' => $acolyte->full_slug,
+            'background_slug' => $acolyte->slug,
         ]);
 
         $this->service->populateFromBackground($character);
@@ -345,13 +345,13 @@ class EquipmentManagerServiceTest extends TestCase
         $holySymbol = Item::factory()->create([
             'name' => 'Holy Symbol',
             'slug' => 'holy-symbol',
-            'full_slug' => 'phb:holy-symbol',
+            'slug' => 'phb:holy-symbol',
         ]);
 
         $acolyte = Background::factory()->create([
             'name' => 'Acolyte',
             'slug' => 'acolyte',
-            'full_slug' => 'phb:acolyte',
+            'slug' => 'phb:acolyte',
         ]);
 
         EntityItem::create([
@@ -363,7 +363,7 @@ class EquipmentManagerServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'background_slug' => $acolyte->full_slug,
+            'background_slug' => $acolyte->slug,
         ]);
 
         // Add equipment manually first
@@ -386,13 +386,13 @@ class EquipmentManagerServiceTest extends TestCase
         $holySymbol = Item::factory()->create([
             'name' => 'Holy Symbol',
             'slug' => 'holy-symbol',
-            'full_slug' => 'phb:holy-symbol',
+            'slug' => 'phb:holy-symbol',
         ]);
 
         $acolyte = Background::factory()->create([
             'name' => 'Acolyte',
             'slug' => 'acolyte',
-            'full_slug' => 'phb:acolyte',
+            'slug' => 'phb:acolyte',
         ]);
 
         EntityItem::create([
@@ -404,7 +404,7 @@ class EquipmentManagerServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'background_slug' => $acolyte->full_slug,
+            'background_slug' => $acolyte->slug,
         ]);
 
         $this->service->populateFromBackground($character);
@@ -421,24 +421,24 @@ class EquipmentManagerServiceTest extends TestCase
         $dagger = Item::factory()->create([
             'name' => 'Dagger',
             'slug' => 'dagger',
-            'full_slug' => 'phb:dagger',
+            'slug' => 'phb:dagger',
         ]);
         $holySymbol = Item::factory()->create([
             'name' => 'Holy Symbol',
             'slug' => 'holy-symbol',
-            'full_slug' => 'phb:holy-symbol',
+            'slug' => 'phb:holy-symbol',
         ]);
 
         $rogue = CharacterClass::factory()->create([
             'name' => 'Rogue',
             'slug' => 'rogue',
-            'full_slug' => 'phb:rogue',
+            'slug' => 'phb:rogue',
         ]);
 
         $acolyte = Background::factory()->create([
             'name' => 'Acolyte',
             'slug' => 'acolyte',
-            'full_slug' => 'phb:acolyte',
+            'slug' => 'phb:acolyte',
         ]);
 
         EntityItem::create([
@@ -458,11 +458,11 @@ class EquipmentManagerServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'background_slug' => $acolyte->full_slug,
+            'background_slug' => $acolyte->slug,
         ]);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $rogue->full_slug,
+            'class_slug' => $rogue->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -483,23 +483,23 @@ class EquipmentManagerServiceTest extends TestCase
         $holySymbol = Item::factory()->create([
             'name' => 'Holy Symbol',
             'slug' => 'holy-symbol',
-            'full_slug' => 'phb:holy-symbol',
+            'slug' => 'phb:holy-symbol',
         ]);
         $thievesTools = Item::factory()->create([
             'name' => "Thieves' Tools",
             'slug' => 'thieves-tools',
-            'full_slug' => 'phb:thieves-tools',
+            'slug' => 'phb:thieves-tools',
         ]);
 
         $acolyte = Background::factory()->create([
             'name' => 'Acolyte',
             'slug' => 'acolyte',
-            'full_slug' => 'phb:acolyte',
+            'slug' => 'phb:acolyte',
         ]);
         $criminal = Background::factory()->create([
             'name' => 'Criminal',
             'slug' => 'criminal',
-            'full_slug' => 'phb:criminal',
+            'slug' => 'phb:criminal',
         ]);
 
         EntityItem::create([
@@ -519,7 +519,7 @@ class EquipmentManagerServiceTest extends TestCase
 
         // Create character with first background
         $character = Character::factory()->create([
-            'background_slug' => $acolyte->full_slug,
+            'background_slug' => $acolyte->slug,
         ]);
 
         // Grant equipment from first background
@@ -527,7 +527,7 @@ class EquipmentManagerServiceTest extends TestCase
         $this->assertCount(1, $character->fresh()->equipment);
 
         // Change to second background
-        $character->update(['background_slug' => $criminal->full_slug]);
+        $character->update(['background_slug' => $criminal->slug]);
 
         // Grant equipment from second background
         $this->service->populateFromBackground($character->fresh());
@@ -546,13 +546,13 @@ class EquipmentManagerServiceTest extends TestCase
         $validItem = Item::factory()->create([
             'name' => 'Dagger',
             'slug' => 'dagger',
-            'full_slug' => 'phb:dagger',
+            'slug' => 'phb:dagger',
         ]);
 
         $rogue = CharacterClass::factory()->create([
             'name' => 'Rogue',
             'slug' => 'rogue',
-            'full_slug' => 'phb:rogue',
+            'slug' => 'phb:rogue',
         ]);
 
         // Create EntityItem with valid item
@@ -577,7 +577,7 @@ class EquipmentManagerServiceTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $rogue->full_slug,
+            'class_slug' => $rogue->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -598,7 +598,7 @@ class EquipmentManagerServiceTest extends TestCase
         $acolyte = Background::factory()->create([
             'name' => 'Acolyte',
             'slug' => 'acolyte',
-            'full_slug' => 'phb:acolyte',
+            'slug' => 'phb:acolyte',
         ]);
 
         // Description-only item (no item_id)
@@ -621,7 +621,7 @@ class EquipmentManagerServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'background_slug' => $acolyte->full_slug,
+            'background_slug' => $acolyte->slug,
         ]);
 
         $this->service->populateFromBackground($character);
@@ -657,7 +657,7 @@ class EquipmentManagerServiceTest extends TestCase
         $acolyte = Background::factory()->create([
             'name' => 'Acolyte',
             'slug' => 'acolyte',
-            'full_slug' => 'phb:acolyte',
+            'slug' => 'phb:acolyte',
         ]);
 
         // Description-only item (no item_id)
@@ -671,7 +671,7 @@ class EquipmentManagerServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'background_slug' => $acolyte->full_slug,
+            'background_slug' => $acolyte->slug,
         ]);
 
         $this->service->populateFromBackground($character);
@@ -691,13 +691,13 @@ class EquipmentManagerServiceTest extends TestCase
         $pouch = Item::factory()->create([
             'name' => 'Pouch',
             'slug' => 'pouch',
-            'full_slug' => 'phb:pouch',
+            'slug' => 'phb:pouch',
         ]);
 
         $acolyte = Background::factory()->create([
             'name' => 'Acolyte',
             'slug' => 'acolyte',
-            'full_slug' => 'phb:acolyte',
+            'slug' => 'phb:acolyte',
         ]);
 
         // Item with item_id
@@ -720,7 +720,7 @@ class EquipmentManagerServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'background_slug' => $acolyte->full_slug,
+            'background_slug' => $acolyte->slug,
         ]);
 
         $this->service->populateFromBackground($character);
@@ -739,7 +739,7 @@ class EquipmentManagerServiceTest extends TestCase
         $acolyte = Background::factory()->create([
             'name' => 'Acolyte',
             'slug' => 'acolyte',
-            'full_slug' => 'phb:acolyte',
+            'slug' => 'phb:acolyte',
         ]);
 
         EntityItem::create([
@@ -752,7 +752,7 @@ class EquipmentManagerServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'background_slug' => $acolyte->full_slug,
+            'background_slug' => $acolyte->slug,
         ]);
 
         // Manually add the description-only item first
@@ -779,7 +779,7 @@ class EquipmentManagerServiceTest extends TestCase
         $acolyte = Background::factory()->create([
             'name' => 'Acolyte',
             'slug' => 'acolyte',
-            'full_slug' => 'phb:acolyte',
+            'slug' => 'phb:acolyte',
         ]);
 
         EntityItem::create([
@@ -792,7 +792,7 @@ class EquipmentManagerServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'background_slug' => $acolyte->full_slug,
+            'background_slug' => $acolyte->slug,
         ]);
 
         $this->service->populateFromBackground($character);

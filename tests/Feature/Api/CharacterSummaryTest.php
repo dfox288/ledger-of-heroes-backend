@@ -100,7 +100,7 @@ class CharacterSummaryTest extends TestCase
     public function it_calculates_pending_proficiency_choices()
     {
         $race = Race::factory()->create();
-        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->slug]);
 
         // For now, just test that the proficiencies field exists and is numeric
         // The actual proficiency choice logic requires complex setup with EntitySkillChoice polymorphic table
@@ -117,7 +117,7 @@ class CharacterSummaryTest extends TestCase
     public function it_calculates_pending_language_choices()
     {
         $race = Race::factory()->create();
-        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->slug]);
 
         // Create languages first
         $common = Language::factory()->create(['slug' => 'common-test-'.uniqid()]);
@@ -135,7 +135,7 @@ class CharacterSummaryTest extends TestCase
         // Character has selected 1 out of 2 languages
         CharacterLanguage::factory()->create([
             'character_id' => $character->id,
-            'language_slug' => $common->full_slug,
+            'language_slug' => $common->slug,
             'source' => 'race',
         ]);
 
@@ -221,7 +221,7 @@ class CharacterSummaryTest extends TestCase
         $class = CharacterClass::factory()->create(['hit_die' => 'd8']);
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 5,
             'hit_dice_spent' => 2,
             'is_primary' => true,
@@ -328,12 +328,12 @@ class CharacterSummaryTest extends TestCase
 
         CharacterCondition::factory()->create([
             'character_id' => $character->id,
-            'condition_slug' => $poisoned->full_slug,
+            'condition_slug' => $poisoned->slug,
         ]);
 
         CharacterCondition::factory()->create([
             'character_id' => $character->id,
-            'condition_slug' => $blinded->full_slug,
+            'condition_slug' => $blinded->slug,
         ]);
 
         $response = $this->getJson("/api/v1/characters/{$character->id}/summary");
@@ -415,7 +415,7 @@ class CharacterSummaryTest extends TestCase
     public function it_detects_complete_character_creation()
     {
         $race = Race::factory()->create();
-        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->slug]);
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
             'level' => 1,
@@ -437,7 +437,7 @@ class CharacterSummaryTest extends TestCase
     public function it_shows_pending_choices_in_missing_required_when_incomplete()
     {
         $race = Race::factory()->create();
-        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->slug]);
 
         // Add language choice to race (2 choices)
         EntityLanguage::create([
@@ -451,7 +451,7 @@ class CharacterSummaryTest extends TestCase
         $class = CharacterClass::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -470,7 +470,7 @@ class CharacterSummaryTest extends TestCase
     public function it_returns_size_choices_for_race_with_has_size_choice()
     {
         $race = Race::factory()->create(['has_size_choice' => true]);
-        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->slug]);
 
         // Ensure sizes exist
         Size::firstOrCreate(['code' => 'S', 'name' => 'Small']);
@@ -492,7 +492,7 @@ class CharacterSummaryTest extends TestCase
     public function it_returns_zero_size_choices_when_race_has_no_size_choice()
     {
         $race = Race::factory()->create(['has_size_choice' => false]);
-        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->slug]);
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
@@ -516,7 +516,7 @@ class CharacterSummaryTest extends TestCase
         Size::firstOrCreate(['code' => 'M', 'name' => 'Medium']);
 
         $character = Character::factory()->withStandardArray()->create([
-            'race_slug' => $race->full_slug,
+            'race_slug' => $race->slug,
             'size_id' => $smallSize->id,
         ]);
 
@@ -536,7 +536,7 @@ class CharacterSummaryTest extends TestCase
     public function it_includes_size_choice_in_missing_required_when_pending()
     {
         $race = Race::factory()->create(['has_size_choice' => true]);
-        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->slug]);
 
         // Ensure sizes exist
         Size::firstOrCreate(['code' => 'S', 'name' => 'Small']);
@@ -570,7 +570,7 @@ class CharacterSummaryTest extends TestCase
             'value' => '1',
         ]);
 
-        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->slug]);
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
@@ -588,7 +588,7 @@ class CharacterSummaryTest extends TestCase
     public function it_returns_zero_feats_choices_when_race_has_no_bonus_feat()
     {
         $race = Race::factory()->create();
-        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->slug]);
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
@@ -615,7 +615,7 @@ class CharacterSummaryTest extends TestCase
             'value' => '1',
         ]);
 
-        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->slug]);
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
@@ -671,7 +671,7 @@ class CharacterSummaryTest extends TestCase
         return \App\Models\Skill::create([
             'name' => $baseName.' '.$uniqueId,
             'slug' => $slug,
-            'full_slug' => 'test:'.$slug,
+            'slug' => 'test:'.$slug,
             'ability_score_id' => $abilityScore->id,
         ]);
     }
@@ -719,8 +719,8 @@ class CharacterSummaryTest extends TestCase
         $character = Character::factory()->withStandardArray()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $clericClass->full_slug,
-            'subclass_slug' => $natureDomain->full_slug,
+            'class_slug' => $clericClass->slug,
+            'subclass_slug' => $natureDomain->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -785,8 +785,8 @@ class CharacterSummaryTest extends TestCase
         $character = Character::factory()->withStandardArray()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $clericClass->full_slug,
-            'subclass_slug' => $natureDomain->full_slug,
+            'class_slug' => $clericClass->slug,
+            'subclass_slug' => $natureDomain->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -800,7 +800,7 @@ class CharacterSummaryTest extends TestCase
         // Resolve the choice using the service directly (avoid URL encoding issues)
         $proficiencyService = app(\App\Services\CharacterProficiencyService::class);
         $fullChoiceGroup = 'Acolyte of Nature:feature_skill_choice_1';
-        $proficiencyService->makeSkillChoice($character, 'subclass_feature', $fullChoiceGroup, [$nature->full_slug]);
+        $proficiencyService->makeSkillChoice($character, 'subclass_feature', $fullChoiceGroup, [$nature->slug]);
 
         // Verify pending after resolution via summary API - should be 0
         $character->refresh();
@@ -841,7 +841,7 @@ class CharacterSummaryTest extends TestCase
         $character = Character::factory()->withStandardArray()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $fighter->full_slug,
+            'class_slug' => $fighter->slug,
             'level' => 1,
             'is_primary' => true,
         ]);

@@ -124,7 +124,7 @@ class LanguageApiTest extends TestCase
     #[Test]
     public function thieves_cant_is_not_learnable(): void
     {
-        $language = Language::where('slug', 'thieves-cant')->first();
+        $language = Language::where('slug', 'core:thieves-cant')->first();
 
         $this->assertNotNull($language, "Thieves' Cant should exist in seeded data");
         $this->assertFalse($language->is_learnable);
@@ -138,7 +138,7 @@ class LanguageApiTest extends TestCase
     #[Test]
     public function druidic_is_not_learnable(): void
     {
-        $language = Language::where('slug', 'druidic')->first();
+        $language = Language::where('slug', 'core:druidic')->first();
 
         $this->assertNotNull($language, 'Druidic should exist in seeded data');
         $this->assertFalse($language->is_learnable);
@@ -152,7 +152,7 @@ class LanguageApiTest extends TestCase
     #[Test]
     public function common_is_learnable(): void
     {
-        $language = Language::where('slug', 'common')->first();
+        $language = Language::where('slug', 'core:common')->first();
 
         $this->assertNotNull($language, 'Common should exist in seeded data');
         $this->assertTrue($language->is_learnable);

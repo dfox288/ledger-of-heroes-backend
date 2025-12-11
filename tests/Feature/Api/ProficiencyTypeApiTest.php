@@ -36,11 +36,11 @@ class ProficiencyTypeApiTest extends TestCase
     {
         $type = ProficiencyType::where('name', "Alchemist's Supplies")->first();
 
-        $response = $this->getJson('/api/v1/lookups/proficiency-types/alchemists-supplies');
+        $response = $this->getJson("/api/v1/lookups/proficiency-types/{$type->slug}");
 
         $response->assertOk()
             ->assertJsonFragment([
-                'slug' => 'alchemists-supplies',
+                'slug' => $type->slug,
                 'name' => "Alchemist's Supplies",
             ]);
     }
@@ -50,11 +50,11 @@ class ProficiencyTypeApiTest extends TestCase
     {
         $type = ProficiencyType::where('name', "Cook's Utensils")->first();
 
-        $response = $this->getJson('/api/v1/lookups/proficiency-types/cooks-utensils');
+        $response = $this->getJson("/api/v1/lookups/proficiency-types/{$type->slug}");
 
         $response->assertOk()
             ->assertJsonFragment([
-                'slug' => 'cooks-utensils',
+                'slug' => $type->slug,
                 'name' => "Cook's Utensils",
             ]);
     }
@@ -62,11 +62,13 @@ class ProficiencyTypeApiTest extends TestCase
     #[Test]
     public function it_retrieves_proficiency_type_by_slug_with_spaces(): void
     {
-        $response = $this->getJson('/api/v1/lookups/proficiency-types/light-armor');
+        $type = ProficiencyType::where('name', 'Light Armor')->first();
+
+        $response = $this->getJson("/api/v1/lookups/proficiency-types/{$type->slug}");
 
         $response->assertOk()
             ->assertJsonFragment([
-                'slug' => 'light-armor',
+                'slug' => $type->slug,
                 'name' => 'Light Armor',
             ]);
     }

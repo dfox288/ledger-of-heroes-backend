@@ -61,7 +61,7 @@ class CharacterConditionStoreRequest extends FormRequest
             return false;
         }
 
-        $condition = Condition::where('full_slug', $conditionSlug)->first();
+        $condition = Condition::where('slug', $conditionSlug)->first();
 
         return $condition && $condition->slug !== 'exhaustion';
     }

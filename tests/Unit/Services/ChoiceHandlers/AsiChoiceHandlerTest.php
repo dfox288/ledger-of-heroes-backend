@@ -269,7 +269,7 @@ class AsiChoiceHandlerTest extends TestCase
 
         $this->handler->resolve($character, $choice, [
             'type' => 'feat',
-            'feat_slug' => $feat->full_slug,
+            'feat_slug' => $feat->slug,
         ]);
 
         $this->assertTrue(true); // Assertion to avoid risky test warning

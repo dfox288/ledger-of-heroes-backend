@@ -26,8 +26,8 @@ class CharacterIsCompleteTest extends TestCase
         parent::setUp();
 
         // Create test race and class without choices for simple base cases
-        $this->race = Race::factory()->create(['full_slug' => 'test:human-complete']);
-        $this->class = CharacterClass::factory()->create(['full_slug' => 'test:fighter-complete']);
+        $this->race = Race::factory()->create(['slug' => 'test:human-complete']);
+        $this->class = CharacterClass::factory()->create(['slug' => 'test:fighter-complete']);
     }
 
     protected function tearDown(): void

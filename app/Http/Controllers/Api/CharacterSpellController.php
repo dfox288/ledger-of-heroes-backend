@@ -129,7 +129,7 @@ class CharacterSpellController extends Controller
 
         // Use spell_slug (from mapping or direct backwards-compat input)
         $spellSlug = $validated['spell_slug'] ?? $validated['spell'];
-        $spell = Spell::where('full_slug', $spellSlug)->first();
+        $spell = Spell::where('slug', $spellSlug)->first();
         $source = $validated['source'] ?? 'class';
 
         // Check for duplicates (works with or without spell entity)
@@ -180,7 +180,7 @@ class CharacterSpellController extends Controller
     {
         $spell = is_numeric($spellIdOrSlug)
             ? Spell::findOrFail($spellIdOrSlug)
-            : Spell::where('full_slug', $spellIdOrSlug)->orWhere('slug', $spellIdOrSlug)->firstOrFail();
+            : Spell::where('slug', $spellIdOrSlug)->firstOrFail();
 
         $this->spellManager->forgetSpell($character, $spell);
 
@@ -212,7 +212,7 @@ class CharacterSpellController extends Controller
     {
         $spell = is_numeric($spellIdOrSlug)
             ? Spell::findOrFail($spellIdOrSlug)
-            : Spell::where('full_slug', $spellIdOrSlug)->orWhere('slug', $spellIdOrSlug)->firstOrFail();
+            : Spell::where('slug', $spellIdOrSlug)->firstOrFail();
 
         $characterSpell = $this->spellManager->prepareSpell($character, $spell);
         $characterSpell->load('spell.spellSchool');
@@ -244,7 +244,7 @@ class CharacterSpellController extends Controller
     {
         $spell = is_numeric($spellIdOrSlug)
             ? Spell::findOrFail($spellIdOrSlug)
-            : Spell::where('full_slug', $spellIdOrSlug)->orWhere('slug', $spellIdOrSlug)->firstOrFail();
+            : Spell::where('slug', $spellIdOrSlug)->firstOrFail();
 
         $characterSpell = $this->spellManager->unprepareSpell($character, $spell);
         $characterSpell->load('spell.spellSchool');

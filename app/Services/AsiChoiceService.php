@@ -78,7 +78,7 @@ class AsiChoiceService
                 abilityIncreases: $abilityIncreases,
                 newAbilityScores: $this->getAbilityScores($character),
                 feat: [
-                    'slug' => $feat->full_slug,
+                    'slug' => $feat->slug,
                     'name' => $feat->name,
                 ],
                 proficienciesGained: $proficienciesGained,
@@ -142,7 +142,7 @@ class AsiChoiceService
     {
         $exists = CharacterFeature::where('character_id', $character->id)
             ->where('feature_type', Feat::class)
-            ->where('feature_slug', $feat->full_slug)
+            ->where('feature_slug', $feat->slug)
             ->exists();
 
         if ($exists) {
@@ -240,7 +240,7 @@ class AsiChoiceService
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat->id,
-            'feature_slug' => $feat->full_slug,
+            'feature_slug' => $feat->slug,
             'source' => 'feat',
             'level_acquired' => $character->total_level ?: 1,
         ]);
@@ -257,8 +257,8 @@ class AsiChoiceService
 
         foreach ($feat->proficiencies as $proficiency) {
             // Relations already eager-loaded above
-            $proficiencyTypeSlug = $proficiency->proficiencyType?->full_slug;
-            $skillSlug = $proficiency->skill?->full_slug;
+            $proficiencyTypeSlug = $proficiency->proficiencyType?->slug;
+            $skillSlug = $proficiency->skill?->slug;
 
             // Skip if neither proficiency type nor skill is set (defensive check)
             if ($proficiencyTypeSlug === null && $skillSlug === null) {
@@ -291,7 +291,7 @@ class AsiChoiceService
             CharacterSpell::firstOrCreate(
                 [
                     'character_id' => $character->id,
-                    'spell_slug' => $spell->full_slug,
+                    'spell_slug' => $spell->slug,
                 ],
                 [
                     'source' => 'feat',
@@ -301,7 +301,7 @@ class AsiChoiceService
             );
 
             $granted[] = [
-                'slug' => $spell->full_slug,
+                'slug' => $spell->slug,
                 'name' => $spell->name,
             ];
         }

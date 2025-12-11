@@ -39,8 +39,7 @@ class AbilityScoreChoiceApiTest extends TestCase
         // Create race with ability score choice modifier
         $race = Race::factory()->create([
             'name' => 'Half-Elf',
-            'slug' => 'half-elf',
-            'full_slug' => 'test:half-elf',
+            'slug' => 'test:half-elf',
         ]);
 
         $modifierDefaults = [
@@ -69,7 +68,7 @@ class AbilityScoreChoiceApiTest extends TestCase
                 'wisdom' => 10,
                 'charisma' => 10,
             ])
-            ->create(['race_slug' => $race->full_slug]);
+            ->create(['race_slug' => $race->slug]);
 
         return [$character, $race, $modifier];
     }
@@ -172,7 +171,7 @@ class AbilityScoreChoiceApiTest extends TestCase
     {
         [$character, $race, $modifier] = $this->createCharacterWithAbilityScoreChoice();
 
-        $choiceId = "ability_score|race|{$race->full_slug}|1|modifier_{$modifier->id}";
+        $choiceId = "ability_score|race|{$race->slug}|1|modifier_{$modifier->id}";
         $response = $this->getJson("/api/v1/characters/{$character->id}/pending-choices/{$choiceId}");
 
         $response->assertOk()
@@ -191,7 +190,7 @@ class AbilityScoreChoiceApiTest extends TestCase
     {
         [$character, $race, $modifier] = $this->createCharacterWithAbilityScoreChoice();
 
-        $choiceId = "ability_score|race|{$race->full_slug}|1|modifier_{$modifier->id}";
+        $choiceId = "ability_score|race|{$race->slug}|1|modifier_{$modifier->id}";
         $response = $this->postJson("/api/v1/characters/{$character->id}/choices/{$choiceId}", [
             'selected' => ['STR', 'DEX'],
         ]);
@@ -238,7 +237,7 @@ class AbilityScoreChoiceApiTest extends TestCase
         ]);
 
         // New selection should replace old
-        $choiceId = "ability_score|race|{$race->full_slug}|1|modifier_{$modifier->id}";
+        $choiceId = "ability_score|race|{$race->slug}|1|modifier_{$modifier->id}";
         $response = $this->postJson("/api/v1/characters/{$character->id}/choices/{$choiceId}", [
             'selected' => ['DEX', 'WIS'],
         ]);
@@ -274,7 +273,7 @@ class AbilityScoreChoiceApiTest extends TestCase
             'choice_count' => 1,
         ]);
 
-        $choiceId = "ability_score|race|{$race->full_slug}|1|modifier_{$modifier->id}";
+        $choiceId = "ability_score|race|{$race->slug}|1|modifier_{$modifier->id}";
         $response = $this->postJson("/api/v1/characters/{$character->id}/choices/{$choiceId}", [
             'selected' => ['INT'],
         ]);
@@ -298,7 +297,7 @@ class AbilityScoreChoiceApiTest extends TestCase
     {
         [$character, $race, $modifier] = $this->createCharacterWithAbilityScoreChoice();
 
-        $choiceId = "ability_score|race|{$race->full_slug}|1|modifier_{$modifier->id}";
+        $choiceId = "ability_score|race|{$race->slug}|1|modifier_{$modifier->id}";
 
         // Only 1 selection when 2 required
         $response = $this->postJson("/api/v1/characters/{$character->id}/choices/{$choiceId}", [
@@ -314,7 +313,7 @@ class AbilityScoreChoiceApiTest extends TestCase
     {
         [$character, $race, $modifier] = $this->createCharacterWithAbilityScoreChoice();
 
-        $choiceId = "ability_score|race|{$race->full_slug}|1|modifier_{$modifier->id}";
+        $choiceId = "ability_score|race|{$race->slug}|1|modifier_{$modifier->id}";
 
         // 3 selections when 2 required
         $response = $this->postJson("/api/v1/characters/{$character->id}/choices/{$choiceId}", [
@@ -332,7 +331,7 @@ class AbilityScoreChoiceApiTest extends TestCase
             'choice_constraint' => 'different',
         ]);
 
-        $choiceId = "ability_score|race|{$race->full_slug}|1|modifier_{$modifier->id}";
+        $choiceId = "ability_score|race|{$race->slug}|1|modifier_{$modifier->id}";
         $response = $this->postJson("/api/v1/characters/{$character->id}/choices/{$choiceId}", [
             'selected' => ['STR', 'STR'],
         ]);
@@ -346,7 +345,7 @@ class AbilityScoreChoiceApiTest extends TestCase
     {
         [$character, $race, $modifier] = $this->createCharacterWithAbilityScoreChoice();
 
-        $choiceId = "ability_score|race|{$race->full_slug}|1|modifier_{$modifier->id}";
+        $choiceId = "ability_score|race|{$race->slug}|1|modifier_{$modifier->id}";
         $response = $this->postJson("/api/v1/characters/{$character->id}/choices/{$choiceId}", [
             'selected' => [],
         ]);
@@ -360,7 +359,7 @@ class AbilityScoreChoiceApiTest extends TestCase
     {
         [$character, $race, $modifier] = $this->createCharacterWithAbilityScoreChoice();
 
-        $choiceId = "ability_score|race|{$race->full_slug}|1|modifier_{$modifier->id}";
+        $choiceId = "ability_score|race|{$race->slug}|1|modifier_{$modifier->id}";
         $response = $this->postJson("/api/v1/characters/{$character->id}/choices/{$choiceId}", [
             'selected' => ['STR', 'INVALID'],
         ]);
@@ -414,7 +413,7 @@ class AbilityScoreChoiceApiTest extends TestCase
             'modifier_id' => $modifier->id,
         ]);
 
-        $choiceId = "ability_score|race|{$race->full_slug}|1|modifier_{$modifier->id}";
+        $choiceId = "ability_score|race|{$race->slug}|1|modifier_{$modifier->id}";
         $response = $this->deleteJson("/api/v1/characters/{$character->id}/choices/{$choiceId}");
 
         $response->assertOk()
@@ -443,7 +442,7 @@ class AbilityScoreChoiceApiTest extends TestCase
     {
         [$character, $race, $modifier] = $this->createCharacterWithAbilityScoreChoice();
 
-        $choiceId = "ability_score|race|{$race->full_slug}|1|modifier_{$modifier->id}";
+        $choiceId = "ability_score|race|{$race->slug}|1|modifier_{$modifier->id}";
         $response = $this->deleteJson("/api/v1/characters/{$character->id}/choices/{$choiceId}");
 
         // Should succeed even if nothing to undo
@@ -467,7 +466,7 @@ class AbilityScoreChoiceApiTest extends TestCase
         // Character base scores: STR=10, DEX=12, CON=14
         // Make selections: +1 STR, +1 DEX
 
-        $choiceId = "ability_score|race|{$race->full_slug}|1|modifier_{$modifier->id}";
+        $choiceId = "ability_score|race|{$race->slug}|1|modifier_{$modifier->id}";
         $this->postJson("/api/v1/characters/{$character->id}/choices/{$choiceId}", [
             'selected' => ['STR', 'DEX'],
         ]);
@@ -491,8 +490,7 @@ class AbilityScoreChoiceApiTest extends TestCase
 
         $race = Race::factory()->create([
             'name' => 'Half-Elf',
-            'slug' => 'half-elf',
-            'full_slug' => 'test:half-elf',
+            'slug' => 'test:half-elf',
         ]);
 
         // Fixed +2 CHA
@@ -526,10 +524,10 @@ class AbilityScoreChoiceApiTest extends TestCase
                 'wisdom' => 10,
                 'charisma' => 10,
             ])
-            ->create(['race_slug' => $race->full_slug]);
+            ->create(['race_slug' => $race->slug]);
 
         // Make choice selections: +1 STR, +1 DEX
-        $choiceId = "ability_score|race|{$race->full_slug}|1|modifier_{$choiceModifier->id}";
+        $choiceId = "ability_score|race|{$race->slug}|1|modifier_{$choiceModifier->id}";
         $this->postJson("/api/v1/characters/{$character->id}/choices/{$choiceId}", [
             'selected' => ['STR', 'DEX'],
         ]);
@@ -554,7 +552,7 @@ class AbilityScoreChoiceApiTest extends TestCase
             'choice_count' => 1,
         ]);
 
-        $choiceId = "ability_score|race|{$race->full_slug}|1|modifier_{$modifier->id}";
+        $choiceId = "ability_score|race|{$race->slug}|1|modifier_{$modifier->id}";
         $response = $this->postJson("/api/v1/characters/{$character->id}/choices/{$choiceId}", [
             'selected' => ['WIS'],
         ]);
@@ -576,7 +574,7 @@ class AbilityScoreChoiceApiTest extends TestCase
             'choice_count' => 2,
         ]);
 
-        $choiceId = "ability_score|race|{$race->full_slug}|1|modifier_{$modifier->id}";
+        $choiceId = "ability_score|race|{$race->slug}|1|modifier_{$modifier->id}";
 
         // Even with null constraint, duplicates may not be allowed due to database unique constraint
         // This test verifies that when constraint is null, the handler doesn't perform duplicate checking
@@ -596,8 +594,7 @@ class AbilityScoreChoiceApiTest extends TestCase
         // Create parent race with choice modifier
         $elf = Race::factory()->create([
             'name' => 'Elf',
-            'slug' => 'elf',
-            'full_slug' => 'test:elf',
+            'slug' => 'test:elf',
         ]);
         $parentModifier = Modifier::create([
             'reference_type' => Race::class,
@@ -611,14 +608,13 @@ class AbilityScoreChoiceApiTest extends TestCase
         // Create subrace
         $highElf = Race::factory()->create([
             'name' => 'High Elf',
-            'slug' => 'high-elf',
-            'full_slug' => 'test:high-elf',
+            'slug' => 'test:high-elf',
             'parent_race_id' => $elf->id,
         ]);
 
         $character = Character::factory()
             ->withAbilityScores(['strength' => 10])
-            ->create(['race_slug' => $highElf->full_slug]);
+            ->create(['race_slug' => $highElf->slug]);
 
         $response = $this->getJson("/api/v1/characters/{$character->id}/pending-choices");
 

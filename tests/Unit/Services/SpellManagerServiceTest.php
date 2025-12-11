@@ -42,13 +42,11 @@ class SpellManagerServiceTest extends TestCase
         $eldritchBlast = Spell::factory()->cantrip()->create([
             'name' => 'Eldritch Blast',
             'slug' => 'eldritch-blast',
-            'full_slug' => 'test:eldritch-blast',
         ]);
 
         $hex = Spell::factory()->create([
             'name' => 'Hex',
             'slug' => 'hex',
-            'full_slug' => 'test:hex',
             'level' => 1,
         ]);
 
@@ -62,7 +60,7 @@ class SpellManagerServiceTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $warlock->full_slug,
+            'class_slug' => $warlock->slug,
             'subclass_slug' => null,
             'level' => 1,
             'is_primary' => true,
@@ -105,7 +103,6 @@ class SpellManagerServiceTest extends TestCase
         $hex = Spell::factory()->create([
             'name' => 'Hex',
             'slug' => 'hex',
-            'full_slug' => 'test:hex',
             'level' => 1,
         ]);
 
@@ -113,7 +110,6 @@ class SpellManagerServiceTest extends TestCase
         $shield = Spell::factory()->create([
             'name' => 'Shield',
             'slug' => 'shield',
-            'full_slug' => 'test:shield',
             'level' => 1,
         ]);
 
@@ -136,8 +132,8 @@ class SpellManagerServiceTest extends TestCase
         // Character is a Hexblade Warlock
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $warlock->full_slug,
-            'subclass_slug' => $hexblade->full_slug,
+            'class_slug' => $warlock->slug,
+            'subclass_slug' => $hexblade->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -180,7 +176,6 @@ class SpellManagerServiceTest extends TestCase
         $hex = Spell::factory()->create([
             'name' => 'Hex',
             'slug' => 'hex',
-            'full_slug' => 'test:hex',
             'level' => 1,
         ]);
 
@@ -188,7 +183,6 @@ class SpellManagerServiceTest extends TestCase
         $shield = Spell::factory()->create([
             'name' => 'Shield',
             'slug' => 'shield',
-            'full_slug' => 'test:shield',
             'level' => 1,
         ]);
 
@@ -211,7 +205,7 @@ class SpellManagerServiceTest extends TestCase
         // Character is a Warlock WITHOUT a subclass selected
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $warlock->full_slug,
+            'class_slug' => $warlock->slug,
             'subclass_slug' => null, // No subclass
             'level' => 1,
             'is_primary' => true,
@@ -252,7 +246,6 @@ class SpellManagerServiceTest extends TestCase
         $shield = Spell::factory()->create([
             'name' => 'Shield',
             'slug' => 'shield',
-            'full_slug' => 'test:shield',
             'level' => 1,
         ]);
 
@@ -260,7 +253,6 @@ class SpellManagerServiceTest extends TestCase
         $blink = Spell::factory()->create([
             'name' => 'Blink',
             'slug' => 'blink',
-            'full_slug' => 'test:blink',
             'level' => 3,
         ]);
 
@@ -287,8 +279,8 @@ class SpellManagerServiceTest extends TestCase
         // Character is level 1 Hexblade
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $warlock->full_slug,
-            'subclass_slug' => $hexblade->full_slug,
+            'class_slug' => $warlock->slug,
+            'subclass_slug' => $hexblade->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -325,14 +317,12 @@ class SpellManagerServiceTest extends TestCase
         $shield = Spell::factory()->create([
             'name' => 'Shield',
             'slug' => 'shield',
-            'full_slug' => 'test:shield',
             'level' => 1,
         ]);
 
         $wrathfulSmite = Spell::factory()->create([
             'name' => 'Wrathful Smite',
             'slug' => 'wrathful-smite',
-            'full_slug' => 'test:wrathful-smite',
             'level' => 1,
         ]);
 
@@ -357,8 +347,8 @@ class SpellManagerServiceTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $warlock->full_slug,
-            'subclass_slug' => $hexblade->full_slug,
+            'class_slug' => $warlock->slug,
+            'subclass_slug' => $hexblade->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -405,7 +395,6 @@ class SpellManagerServiceTest extends TestCase
         $hex = Spell::factory()->create([
             'name' => 'Hex',
             'slug' => 'hex',
-            'full_slug' => 'test:hex',
             'level' => 1,
         ]);
 
@@ -427,8 +416,8 @@ class SpellManagerServiceTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_slug' => $warlock->full_slug,
-            'subclass_slug' => $hexblade->full_slug,
+            'class_slug' => $warlock->slug,
+            'subclass_slug' => $hexblade->slug,
             'level' => 1,
             'is_primary' => true,
         ]);

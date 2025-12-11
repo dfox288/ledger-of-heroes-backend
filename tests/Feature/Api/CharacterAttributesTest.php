@@ -312,7 +312,7 @@ class CharacterAttributesTest extends TestCase
 
         // Change race
         $response = $this->patchJson("/api/v1/characters/{$character->id}", [
-            'race_slug' => $human->full_slug,
+            'race_slug' => $human->slug,
         ]);
 
         $response->assertOk()

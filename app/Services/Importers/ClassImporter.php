@@ -335,7 +335,7 @@ class ClassImporter extends BaseImporter
             $this->importFeatures($subclass, $subclassData['features']);
 
             // 7a. Extract and import sources from features (Issue #141)
-            // Note: sources are already extracted above for full_slug generation
+            // Note: sources are already extracted above for slug generation
             if (! empty($sources)) {
                 // Use deduplicate=true to merge page numbers (e.g., PHB p.74, 75)
                 $this->importEntitySources($subclass, $sources, deduplicate: true);

@@ -87,8 +87,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
         }
 
         // Validate optional feature exists
-        $optionalFeature = OptionalFeature::where('full_slug', $optionalFeatureSlug)
-            ->orWhere('slug', $optionalFeatureSlug)
+        $optionalFeature = OptionalFeature::where('slug', $optionalFeatureSlug)
             ->first();
         if (! $optionalFeature) {
             throw new InvalidSelectionException(
@@ -105,7 +104,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
 
         // Create the feature selection record
         $character->featureSelections()->create([
-            'optional_feature_slug' => $optionalFeature->full_slug,
+            'optional_feature_slug' => $optionalFeature->slug,
             'class_slug' => $classSlug,
             'subclass_name' => $choice->metadata['subclass_name'] ?? null,
             'level_acquired' => $parsed['level'] ?? $character->total_level,

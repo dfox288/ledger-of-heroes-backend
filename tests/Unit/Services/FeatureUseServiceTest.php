@@ -35,7 +35,7 @@ class FeatureUseServiceTest extends TestCase
         $this->fighterClass = CharacterClass::factory()->create([
             'name' => 'Fighter',
             'slug' => 'fighter',
-            'full_slug' => 'phb:fighter',
+            'slug' => 'fighter',
         ]);
 
         $this->character = Character::factory()

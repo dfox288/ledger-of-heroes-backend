@@ -241,7 +241,7 @@ class CharacterSlugIdParameterTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_levels_up_class_by_full_slug()
+    public function it_levels_up_class_by_slug()
     {
         $race = Race::factory()->create();
 
@@ -255,7 +255,7 @@ class CharacterSlugIdParameterTest extends TestCase
                 'hp_levels_resolved' => [2, 3], // HP resolved for levels 2-3
             ]);
 
-        $response = $this->postJson("/api/v1/characters/{$character->id}/classes/{$this->class->full_slug}/level-up");
+        $response = $this->postJson("/api/v1/characters/{$character->id}/classes/{$this->class->slug}/level-up");
 
         $response->assertOk();
         $response->assertJsonPath('data.new_level', 4);

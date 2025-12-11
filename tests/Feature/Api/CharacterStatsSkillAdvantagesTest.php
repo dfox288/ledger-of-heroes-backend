@@ -38,7 +38,7 @@ class CharacterStatsSkillAdvantagesTest extends TestCase
         // Create character
         $character = Character::factory()
             ->withAbilityScores([])
-            ->create(['race_slug' => $race->full_slug]);
+            ->create(['race_slug' => $race->slug]);
 
         // Get stats
         $response = $this->getJson("/api/v1/characters/{$character->id}/stats");
@@ -72,7 +72,7 @@ class CharacterStatsSkillAdvantagesTest extends TestCase
         // Create character with the feat
         $character = Character::factory()
             ->withAbilityScores([])
-            ->create(['race_slug' => $race->full_slug]);
+            ->create(['race_slug' => $race->slug]);
 
         // Add feat to character via features
         $character->features()->create([
@@ -120,7 +120,7 @@ class CharacterStatsSkillAdvantagesTest extends TestCase
         // Create character with race and feat
         $character = Character::factory()
             ->withAbilityScores([])
-            ->create(['race_slug' => $race->full_slug]);
+            ->create(['race_slug' => $race->slug]);
 
         $character->features()->create([
             'feature_type' => Feat::class,
@@ -149,7 +149,7 @@ class CharacterStatsSkillAdvantagesTest extends TestCase
         // Create character
         $character = Character::factory()
             ->withAbilityScores([])
-            ->create(['race_slug' => $race->full_slug]);
+            ->create(['race_slug' => $race->slug]);
 
         // Get stats
         $response = $this->getJson("/api/v1/characters/{$character->id}/stats");
@@ -177,7 +177,7 @@ class CharacterStatsSkillAdvantagesTest extends TestCase
         // Create character
         $character = Character::factory()
             ->withAbilityScores([])
-            ->create(['race_slug' => $race->full_slug]);
+            ->create(['race_slug' => $race->slug]);
 
         // Get stats
         $response = $this->getJson("/api/v1/characters/{$character->id}/stats");

@@ -43,7 +43,7 @@ class CharacterStatsRacialBonusesTest extends TestCase
                 'wisdom' => 10,
                 'charisma' => 10, // Base 10
             ])
-            ->create(['race_slug' => $race->full_slug]);
+            ->create(['race_slug' => $race->slug]);
 
         // Get stats
         $response = $this->getJson("/api/v1/characters/{$character->id}/stats");
@@ -93,7 +93,7 @@ class CharacterStatsRacialBonusesTest extends TestCase
                 'wisdom' => 10,
                 'charisma' => 10,
             ])
-            ->create(['race_slug' => $highElf->full_slug]);
+            ->create(['race_slug' => $highElf->slug]);
 
         // Get stats
         $response = $this->getJson("/api/v1/characters/{$character->id}/stats");
@@ -139,7 +139,7 @@ class CharacterStatsRacialBonusesTest extends TestCase
                 'wisdom' => 10,
                 'charisma' => 8,
             ])
-            ->create(['race_slug' => $race->full_slug]);
+            ->create(['race_slug' => $race->slug]);
 
         // Get stats
         $response = $this->getJson("/api/v1/characters/{$character->id}/stats");
@@ -213,7 +213,7 @@ class CharacterStatsRacialBonusesTest extends TestCase
                 'wisdom' => 10,
                 'charisma' => 10,
             ])
-            ->create(['race_slug' => $race->full_slug]);
+            ->create(['race_slug' => $race->slug]);
 
         // Get stats
         $response = $this->getJson("/api/v1/characters/{$character->id}/stats");
@@ -258,7 +258,7 @@ class CharacterStatsRacialBonusesTest extends TestCase
                 'wisdom' => 13, // Base 13
                 'charisma' => 10,
             ])
-            ->create(['race_slug' => $race->full_slug]);
+            ->create(['race_slug' => $race->slug]);
 
         // Get stats
         $response = $this->getJson("/api/v1/characters/{$character->id}/stats");

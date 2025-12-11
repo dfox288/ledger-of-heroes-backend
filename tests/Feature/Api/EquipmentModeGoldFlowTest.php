@@ -41,21 +41,19 @@ class EquipmentModeGoldFlowTest extends TestCase
         // Create gold item
         $this->goldItem = Item::factory()->create([
             'name' => 'Gold (gp)',
-            'slug' => 'gold-gp',
-            'full_slug' => 'phb:gold-gp',
+            'slug' => 'phb:gold-gp',
         ]);
 
         // Create class with starting wealth and equipment choices
         $this->class = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'slug' => 'fighter',
-            'full_slug' => 'phb:fighter',
+            'slug' => 'phb:fighter',
             'starting_wealth_dice' => '5d4',
             'starting_wealth_multiplier' => 10,
         ]);
 
         // Create equipment choice so equipment_mode choice appears
-        $item = Item::factory()->create(['name' => 'Chain Mail', 'full_slug' => 'phb:chain-mail']);
+        $item = Item::factory()->create(['name' => 'Chain Mail', 'slug' => 'phb:chain-mail']);
         $entityItem = EntityItem::create([
             'reference_type' => CharacterClass::class,
             'reference_id' => $this->class->id,
@@ -76,7 +74,7 @@ class EquipmentModeGoldFlowTest extends TestCase
         $this->character = Character::factory()->create(['name' => 'Test Fighter']);
         CharacterClassPivot::create([
             'character_id' => $this->character->id,
-            'class_slug' => $this->class->full_slug,
+            'class_slug' => $this->class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -176,8 +174,8 @@ class EquipmentModeGoldFlowTest extends TestCase
     public function it_tracks_gold_from_different_sources_separately(): void
     {
         // Create background with gold
-        $background = Background::factory()->create(['name' => 'Noble', 'full_slug' => 'phb:noble']);
-        $this->character->update(['background_slug' => $background->full_slug]);
+        $background = Background::factory()->create(['name' => 'Noble', 'slug' => 'phb:noble']);
+        $this->character->update(['background_slug' => $background->slug]);
 
         // Add existing background gold (25 gp)
         CharacterEquipment::create([
@@ -703,7 +701,7 @@ class EquipmentModeGoldFlowTest extends TestCase
         // fixed (non-choice) equipment from the class is not added.
 
         // First, add some fixed equipment to the class
-        $fixedItem = Item::factory()->create(['name' => 'Shield', 'full_slug' => 'phb:shield']);
+        $fixedItem = Item::factory()->create(['name' => 'Shield', 'slug' => 'phb:shield']);
         \App\Models\EntityItem::create([
             'reference_type' => \App\Models\CharacterClass::class,
             'reference_id' => $this->class->id,

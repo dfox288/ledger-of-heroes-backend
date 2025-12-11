@@ -89,7 +89,7 @@ class EquipmentValidator
             return new ValidationResult(true, [], []);
         }
 
-        $class = CharacterClass::where('full_slug', $classSlug)->first();
+        $class = CharacterClass::where('slug', $classSlug)->first();
         if (! $class) {
             $warnings[] = "Could not find class '{$classSlug}' to validate equipment choices";
 
@@ -149,7 +149,7 @@ class EquipmentValidator
     {
         $errors = [];
 
-        $background = Background::where('full_slug', $backgroundSlug)->first();
+        $background = Background::where('slug', $backgroundSlug)->first();
         if (! $background) {
             return ["Could not find background '{$backgroundSlug}' to validate equipment"];
         }
@@ -162,7 +162,7 @@ class EquipmentValidator
 
         foreach ($expectedItems as $entityItem) {
             if ($entityItem->item) {
-                $itemSlug = $entityItem->item->full_slug;
+                $itemSlug = $entityItem->item->slug;
                 if (! in_array($itemSlug, $equipmentSlugs, true)) {
                     // Check if it's a description-only item (custom_description with source=background)
                     $hasDescriptionItem = collect($equipment)->contains(function ($eq) {
@@ -238,7 +238,7 @@ class EquipmentValidator
             return $errors;
         }
 
-        $class = CharacterClass::where('full_slug', $classSlug)->first();
+        $class = CharacterClass::where('slug', $classSlug)->first();
         if (! $class) {
             return ["Could not find class '{$classSlug}' to validate equipment"];
         }
@@ -253,7 +253,7 @@ class EquipmentValidator
 
             foreach ($fixedEquipment as $entityItem) {
                 if ($entityItem->item) {
-                    $itemSlug = $entityItem->item->full_slug;
+                    $itemSlug = $entityItem->item->slug;
                     if (! in_array($itemSlug, $equipmentSlugs, true)) {
                         $errors[] = "Missing fixed class equipment: {$entityItem->item->name} ({$itemSlug})";
                     }

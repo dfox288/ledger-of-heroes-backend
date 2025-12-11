@@ -31,8 +31,7 @@ class FeatureUseApiTest extends TestCase
     {
         $this->fighterClass = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'slug' => 'fighter',
-            'full_slug' => 'phb:fighter',
+            'slug' => 'phb:fighter',
         ]);
 
         $this->actionSurge = ClassFeature::factory()

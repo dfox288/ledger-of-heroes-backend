@@ -15,98 +15,99 @@ class GeneratesSlugsTest extends TestCase
     #[Test]
     public function it_generates_simple_slug_from_name()
     {
-        $slug = $this->generateSlug('Hill Dwarf');
-        $this->assertEquals('hill-dwarf', $slug);
+        $slug = $this->generateSlug('Hill Dwarf', []);
+        $this->assertEquals('core:hill-dwarf', $slug);
     }
 
     #[Test]
     public function it_generates_hierarchical_slug_with_parent()
     {
-        $slug = $this->generateSlug('Battle Master', 'fighter');
-        $this->assertEquals('fighter-battle-master', $slug);
+        $sources = [['code' => 'PHB', 'pages' => '123']];
+        $slug = $this->generateSlug('Battle Master', $sources, 'phb:fighter');
+        $this->assertEquals('phb:fighter-battle-master', $slug);
     }
 
     #[Test]
     public function it_handles_special_characters()
     {
-        $slug = $this->generateSlug("Smith's Tools");
-        $this->assertEquals('smiths-tools', $slug);
+        $slug = $this->generateSlug("Smith's Tools", []);
+        $this->assertEquals('core:smiths-tools', $slug);
     }
 
     #[Test]
     public function it_handles_parentheses_in_names()
     {
-        $slug = $this->generateSlug('Dwarf (Hill)');
-        $this->assertEquals('dwarf-hill', $slug);
+        $slug = $this->generateSlug('Dwarf (Hill)', []);
+        $this->assertEquals('core:dwarf-hill', $slug);
     }
 
     #[Test]
     public function it_handles_multiple_spaces()
     {
-        $slug = $this->generateSlug('Very   Long    Name');
-        $this->assertEquals('very-long-name', $slug);
+        $slug = $this->generateSlug('Very   Long    Name', []);
+        $this->assertEquals('core:very-long-name', $slug);
     }
 
     #[Test]
-    public function it_generates_full_slug_with_source_prefix()
+    public function it_generates_slug_with_source_prefix()
     {
         $sources = [['code' => 'PHB', 'pages' => '123']];
-        $fullSlug = $this->generateFullSlug('high-elf', $sources);
+        $slug = $this->generateSlug('high-elf', $sources);
 
-        $this->assertEquals('phb:high-elf', $fullSlug);
+        $this->assertEquals('phb:high-elf', $slug);
     }
 
     #[Test]
-    public function it_uses_first_source_for_full_slug()
+    public function it_uses_first_source_for_slug()
     {
         $sources = [
             ['code' => 'PHB', 'pages' => '123'],
             ['code' => 'XGE', 'pages' => '45'],
         ];
-        $fullSlug = $this->generateFullSlug('magic-missile', $sources);
+        $slug = $this->generateSlug('magic-missile', $sources);
 
-        $this->assertEquals('phb:magic-missile', $fullSlug);
+        $this->assertEquals('phb:magic-missile', $slug);
     }
 
     #[Test]
-    public function it_lowercases_source_code_in_full_slug()
+    public function it_lowercases_source_code_in_slug()
     {
         $sources = [['code' => 'XGE', 'pages' => '']];
-        $fullSlug = $this->generateFullSlug('shadow-blade', $sources);
+        $slug = $this->generateSlug('shadow-blade', $sources);
 
-        $this->assertEquals('xge:shadow-blade', $fullSlug);
+        $this->assertEquals('xge:shadow-blade', $slug);
     }
 
     #[Test]
-    public function it_returns_null_for_empty_sources()
+    public function it_defaults_to_core_prefix_for_empty_sources()
     {
-        $fullSlug = $this->generateFullSlug('orphan-entity', []);
+        $slug = $this->generateSlug('orphan-entity', []);
 
-        $this->assertNull($fullSlug);
+        $this->assertEquals('core:orphan-entity', $slug);
     }
 
     #[Test]
-    public function it_returns_null_for_sources_without_code()
+    public function it_defaults_to_core_prefix_for_sources_without_code()
     {
         $sources = [['pages' => '123']]; // Missing 'code' key
-        $fullSlug = $this->generateFullSlug('invalid-entity', $sources);
+        $slug = $this->generateSlug('invalid-entity', $sources);
 
-        $this->assertNull($fullSlug);
+        $this->assertEquals('core:invalid-entity', $slug);
     }
 
     #[Test]
-    public function it_generates_core_full_slug_for_universal_entities()
+    public function it_generates_core_slug_for_universal_entities()
     {
-        $fullSlug = $this->generateCoreFullSlug('common');
+        $slug = $this->generateSlug('common', []);
 
-        $this->assertEquals('core:common', $fullSlug);
+        $this->assertEquals('core:common', $slug);
     }
 
     #[Test]
-    public function it_generates_core_full_slug_for_skill()
+    public function it_generates_core_slug_for_skill()
     {
-        $fullSlug = $this->generateCoreFullSlug('athletics');
+        $slug = $this->generateSlug('athletics', []);
 
-        $this->assertEquals('core:athletics', $fullSlug);
+        $this->assertEquals('core:athletics', $slug);
     }
 }

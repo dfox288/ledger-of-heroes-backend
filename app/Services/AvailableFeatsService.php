@@ -176,7 +176,7 @@ class AvailableFeatsService
 
         // Check if character has this proficiency type
         return $character->proficiencies()
-            ->where('proficiency_type_slug', $requiredProficiency->full_slug)
+            ->where('proficiency_type_slug', $requiredProficiency->slug)
             ->exists();
     }
 
@@ -193,7 +193,7 @@ class AvailableFeatsService
 
         // Check if character has this skill proficiency
         return $character->proficiencies()
-            ->where('skill_slug', $requiredSkill->full_slug)
+            ->where('skill_slug', $requiredSkill->slug)
             ->exists();
     }
 

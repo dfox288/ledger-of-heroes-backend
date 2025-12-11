@@ -95,7 +95,7 @@ class CharacterEquipmentController extends Controller
     {
         if ($request->item_slug) {
             // Database item - may be a dangling reference per #288
-            $item = Item::where('full_slug', $request->item_slug)->first();
+            $item = Item::where('slug', $request->item_slug)->first();
 
             if ($item) {
                 // Item exists - use equipment manager for proper handling

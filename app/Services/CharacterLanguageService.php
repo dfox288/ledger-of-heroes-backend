@@ -78,7 +78,7 @@ class CharacterLanguageService
     /**
      * Make a language choice for a character.
      *
-     * @param  array<string>  $languageSlugs  The language full_slugs the user chose
+     * @param  array<string>  $languageSlugs  The language slugs the user chose
      *
      * @throws InvalidArgumentException
      */
@@ -106,7 +106,7 @@ class CharacterLanguageService
         }
 
         // Validate languages exist
-        $languages = Language::whereIn('full_slug', $languageSlugs)->get();
+        $languages = Language::whereIn('slug', $languageSlugs)->get();
         if ($languages->count() !== count($languageSlugs)) {
             throw new InvalidArgumentException('One or more language slugs are invalid');
         }
@@ -157,7 +157,7 @@ class CharacterLanguageService
             ->get();
 
         foreach ($fixedLanguages as $entityLanguage) {
-            $languageSlug = $entityLanguage->language?->full_slug;
+            $languageSlug = $entityLanguage->language?->slug;
             if (! $languageSlug) {
                 continue;
             }
@@ -207,9 +207,8 @@ class CharacterLanguageService
             ->get()
             ->filter(fn ($cl) => $cl->language !== null)
             ->map(fn ($cl) => [
-                'full_slug' => $cl->language->full_slug,
-                'name' => $cl->language->name,
                 'slug' => $cl->language->slug,
+                'name' => $cl->language->name,
                 'script' => $cl->language->script,
             ])
             ->toArray();
@@ -239,12 +238,11 @@ class CharacterLanguageService
         // Build options (exclude already known languages and non-learnable languages)
         // Non-learnable languages (Thieves' Cant, Druidic) can only be granted by class features
         $options = $allLanguages
-            ->whereNotIn('full_slug', $knownLanguageSlugs)
+            ->whereNotIn('slug', $knownLanguageSlugs)
             ->where('is_learnable', true)
             ->map(fn ($lang) => [
-                'full_slug' => $lang->full_slug,
-                'name' => $lang->name,
                 'slug' => $lang->slug,
+                'name' => $lang->name,
                 'script' => $lang->script,
                 // Always true after filter, included for API documentation consistency
                 'is_learnable' => $lang->is_learnable,
@@ -290,9 +288,8 @@ class CharacterLanguageService
             ->get()
             ->filter(fn ($cl) => $cl->language !== null)
             ->map(fn ($cl) => [
-                'full_slug' => $cl->language->full_slug,
-                'name' => $cl->language->name,
                 'slug' => $cl->language->slug,
+                'name' => $cl->language->name,
                 'script' => $cl->language->script,
             ])
             ->toArray();
@@ -312,7 +309,7 @@ class CharacterLanguageService
             ->with('language')
             ->get()
             ->filter(fn ($el) => $el->language !== null)
-            ->pluck('language.full_slug')
+            ->pluck('language.slug')
             ->toArray();
 
         // Get selected choice languages (not fixed ones)
@@ -327,12 +324,11 @@ class CharacterLanguageService
         // Build options (exclude already known languages and non-learnable languages)
         // Non-learnable languages (Thieves' Cant, Druidic) can only be granted by class features
         $options = $allLanguages
-            ->whereNotIn('full_slug', $knownLanguageSlugs)
+            ->whereNotIn('slug', $knownLanguageSlugs)
             ->where('is_learnable', true)
             ->map(fn ($lang) => [
-                'full_slug' => $lang->full_slug,
-                'name' => $lang->name,
                 'slug' => $lang->slug,
+                'name' => $lang->name,
                 'script' => $lang->script,
                 // Always true after filter, included for API documentation consistency
                 'is_learnable' => $lang->is_learnable,
@@ -445,7 +441,7 @@ class CharacterLanguageService
             return [];
         }
 
-        return Feat::whereIn('full_slug', $featSlugs)->pluck('id')->toArray();
+        return Feat::whereIn('slug', $featSlugs)->pluck('id')->toArray();
     }
 
     /**
@@ -468,7 +464,7 @@ class CharacterLanguageService
                 ->with('language')
                 ->get()
                 ->filter(fn ($el) => $el->language !== null)
-                ->pluck('language.full_slug')
+                ->pluck('language.slug')
                 ->toArray();
         }
 
@@ -490,7 +486,7 @@ class CharacterLanguageService
             ->with('language')
             ->get()
             ->filter(fn ($el) => $el->language !== null)
-            ->pluck('language.full_slug')
+            ->pluck('language.slug')
             ->toArray();
 
         // For subraces, also include parent race fixed languages
@@ -501,7 +497,7 @@ class CharacterLanguageService
                 ->with('language')
                 ->get()
                 ->filter(fn ($el) => $el->language !== null)
-                ->pluck('language.full_slug')
+                ->pluck('language.slug')
                 ->toArray();
 
             $fixedLanguageSlugs = array_unique(array_merge($fixedLanguageSlugs, $parentFixedLanguageSlugs));

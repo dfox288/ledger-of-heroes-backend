@@ -102,7 +102,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             $selected = $selection ? [$selection['option']] : [];
 
             $choice = new PendingChoice(
-                id: $this->generateChoiceId('equipment', 'class', $primaryClass->full_slug, 1, $choiceGroup),
+                id: $this->generateChoiceId('equipment', 'class', $primaryClass->slug, 1, $choiceGroup),
                 type: 'equipment',
                 subtype: null,
                 source: 'class',
@@ -235,7 +235,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
         if ($specificItems !== null && is_array($specificItems)) {
             // Get valid non-fixed item slugs from the option (for validation)
             $nonFixedItems = array_filter($foundOption['items'], fn ($item) => ! ($item['is_fixed'] ?? false));
-            $validSlugs = array_column($nonFixedItems, 'full_slug');
+            $validSlugs = array_column($nonFixedItems, 'slug');
 
             // Grant: selected items from category + all fixed items
             $itemsToGrant = array_filter($foundOption['items'], function ($item) use ($specificItems) {
@@ -245,7 +245,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                 }
 
                 // Include non-fixed items only if they're in item_selections
-                return in_array($item['full_slug'], $specificItems, true);
+                return in_array($item['slug'], $specificItems, true);
             });
 
             // Validate that at least one specified item exists in the non-fixed options
@@ -269,13 +269,13 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                     'source' => $source,
                     'choice_group' => $choiceGroup,
                     'selected_option' => $selectedOption,
-                    'from_pack' => $item['full_slug'],
+                    'from_pack' => $item['slug'],
                 ]);
 
                 foreach ($item['contents'] as $contentItem) {
                     CharacterEquipment::create([
                         'character_id' => $character->id,
-                        'item_slug' => $contentItem['full_slug'],
+                        'item_slug' => $contentItem['slug'],
                         'quantity' => $contentItem['quantity'],
                         'equipped' => false,
                         'custom_description' => $packMetadata,
@@ -285,7 +285,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                 // Regular item
                 CharacterEquipment::create([
                     'character_id' => $character->id,
-                    'item_slug' => $item['full_slug'],
+                    'item_slug' => $item['slug'],
                     'quantity' => $item['quantity'],
                     'equipped' => false,
                     'custom_description' => $metadata,
@@ -355,7 +355,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
 
                     foreach ($categoryItems as $item) {
                         $items[] = [
-                            'full_slug' => $item->full_slug,
+                            'slug' => $item->slug,
                             'name' => $item->name,
                             'quantity' => 1, // Each selection grants 1 of the chosen item
                             'is_fixed' => false, // User must select from category
@@ -368,14 +368,14 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                         foreach ($choiceItem->item->contents as $content) {
                             if ($content->item) {
                                 $contents[] = [
-                                    'full_slug' => $content->item->full_slug,
+                                    'slug' => $content->item->slug,
                                     'name' => $content->item->name,
                                     'quantity' => $content->quantity ?? 1,
                                 ];
                             }
                         }
                         $items[] = [
-                            'full_slug' => $choiceItem->item->full_slug,
+                            'slug' => $choiceItem->item->slug,
                             'name' => $choiceItem->item->name,
                             'quantity' => $choiceItem->quantity ?? 1,
                             'is_fixed' => true,
@@ -385,7 +385,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                     } else {
                         // Regular item - always granted when option selected
                         $items[] = [
-                            'full_slug' => $choiceItem->item->full_slug,
+                            'slug' => $choiceItem->item->slug,
                             'name' => $choiceItem->item->name,
                             'quantity' => $choiceItem->quantity ?? 1,
                             'is_fixed' => true,
@@ -449,6 +449,6 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
         return Item::whereIn('slug', $slugs)
             ->where('is_magic', false)
             ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'full_slug']);
+            ->get(['id', 'name', 'slug']);
     }
 }

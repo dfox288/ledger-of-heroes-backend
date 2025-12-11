@@ -41,7 +41,7 @@ class SizeChoiceHandlerTest extends TestCase
     public function it_returns_empty_collection_when_race_has_no_size_choice(): void
     {
         $race = Race::factory()->create(['has_size_choice' => false]);
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         $choices = $this->handler->getChoices($character);
 
@@ -52,7 +52,7 @@ class SizeChoiceHandlerTest extends TestCase
     public function it_returns_size_choice_for_race_with_has_size_choice_true(): void
     {
         $race = Race::factory()->create(['has_size_choice' => true]);
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         $choices = $this->handler->getChoices($character);
 
@@ -74,7 +74,7 @@ class SizeChoiceHandlerTest extends TestCase
     public function it_includes_small_and_medium_as_options(): void
     {
         $race = Race::factory()->create(['has_size_choice' => true]);
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         $choices = $this->handler->getChoices($character);
         $options = $choices->first()->options;
@@ -89,7 +89,7 @@ class SizeChoiceHandlerTest extends TestCase
     public function it_includes_complete_size_option_structure(): void
     {
         $race = Race::factory()->create(['has_size_choice' => true]);
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         $choices = $this->handler->getChoices($character);
         $options = $choices->first()->options;
@@ -109,7 +109,7 @@ class SizeChoiceHandlerTest extends TestCase
         $race = Race::factory()->create(['has_size_choice' => true]);
         $smallSize = Size::where('code', 'S')->first();
         $character = Character::factory()->create([
-            'race_slug' => $race->full_slug,
+            'race_slug' => $race->slug,
             'size_id' => $smallSize->id,
         ]);
 
@@ -124,10 +124,10 @@ class SizeChoiceHandlerTest extends TestCase
     public function it_resolves_choice_with_selected_array_format(): void
     {
         $race = Race::factory()->create(['has_size_choice' => true]);
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         $choice = new PendingChoice(
-            id: "size|race|{$race->full_slug}|1|size_choice",
+            id: "size|race|{$race->slug}|1|size_choice",
             type: 'size',
             subtype: null,
             source: 'race',
@@ -153,10 +153,10 @@ class SizeChoiceHandlerTest extends TestCase
     public function it_resolves_choice_with_size_code_format(): void
     {
         $race = Race::factory()->create(['has_size_choice' => true]);
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         $choice = new PendingChoice(
-            id: "size|race|{$race->full_slug}|1|size_choice",
+            id: "size|race|{$race->slug}|1|size_choice",
             type: 'size',
             subtype: null,
             source: 'race',
@@ -181,10 +181,10 @@ class SizeChoiceHandlerTest extends TestCase
     public function it_throws_exception_for_empty_selection(): void
     {
         $race = Race::factory()->create(['has_size_choice' => true]);
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         $choice = new PendingChoice(
-            id: "size|race|{$race->full_slug}|1|size_choice",
+            id: "size|race|{$race->slug}|1|size_choice",
             type: 'size',
             subtype: null,
             source: 'race',
@@ -207,10 +207,10 @@ class SizeChoiceHandlerTest extends TestCase
     public function it_throws_exception_for_invalid_size_code(): void
     {
         $race = Race::factory()->create(['has_size_choice' => true]);
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         $choice = new PendingChoice(
-            id: "size|race|{$race->full_slug}|1|size_choice",
+            id: "size|race|{$race->slug}|1|size_choice",
             type: 'size',
             subtype: null,
             source: 'race',
@@ -233,10 +233,10 @@ class SizeChoiceHandlerTest extends TestCase
     public function it_can_undo_choices(): void
     {
         $race = Race::factory()->create(['has_size_choice' => true]);
-        $character = Character::factory()->create(['race_slug' => $race->full_slug]);
+        $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         $choice = new PendingChoice(
-            id: "size|race|{$race->full_slug}|1|size_choice",
+            id: "size|race|{$race->slug}|1|size_choice",
             type: 'size',
             subtype: null,
             source: 'race',
@@ -260,12 +260,12 @@ class SizeChoiceHandlerTest extends TestCase
         $race = Race::factory()->create(['has_size_choice' => true]);
         $smallSize = Size::where('code', 'S')->first();
         $character = Character::factory()->create([
-            'race_slug' => $race->full_slug,
+            'race_slug' => $race->slug,
             'size_id' => $smallSize->id,
         ]);
 
         $choice = new PendingChoice(
-            id: "size|race|{$race->full_slug}|1|size_choice",
+            id: "size|race|{$race->slug}|1|size_choice",
             type: 'size',
             subtype: null,
             source: 'race',

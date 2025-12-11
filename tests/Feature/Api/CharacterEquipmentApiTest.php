@@ -39,8 +39,7 @@ class CharacterEquipmentApiTest extends TestCase
 
         $this->longsword = Item::create([
             'name' => 'Longsword',
-            'slug' => 'longsword',
-            'full_slug' => 'test:longsword',
+            'slug' => 'test:longsword',
             'item_type_id' => $meleeWeaponType->id,
             'rarity' => 'common',
             'description' => 'A versatile sword.',
@@ -48,8 +47,7 @@ class CharacterEquipmentApiTest extends TestCase
 
         $this->leatherArmor = Item::create([
             'name' => 'Leather Armor',
-            'slug' => 'leather-armor',
-            'full_slug' => 'test:leather-armor',
+            'slug' => 'test:leather-armor',
             'item_type_id' => $lightArmorType->id,
             'armor_class' => 11,
             'rarity' => 'common',
@@ -58,8 +56,7 @@ class CharacterEquipmentApiTest extends TestCase
 
         $this->shield = Item::create([
             'name' => 'Shield',
-            'slug' => 'shield',
-            'full_slug' => 'test:shield',
+            'slug' => 'test:shield',
             'item_type_id' => $shieldType->id,
             'armor_class' => 2,
             'rarity' => 'common',
@@ -84,7 +81,7 @@ class CharacterEquipmentApiTest extends TestCase
 
         $response->assertOk()
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.item.slug', 'longsword');
+            ->assertJsonPath('data.0.item.slug', $this->longsword->slug);
     }
 
     #[Test]
@@ -116,12 +113,12 @@ class CharacterEquipmentApiTest extends TestCase
         $character = Character::factory()->create();
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/equipment", [
-            'item_slug' => $this->longsword->full_slug,
+            'item_slug' => $this->longsword->slug,
             'quantity' => 1,
         ]);
 
         $response->assertCreated()
-            ->assertJsonPath('data.item.slug', 'longsword')
+            ->assertJsonPath('data.item.slug', $this->longsword->slug)
             ->assertJsonPath('data.quantity', 1)
             ->assertJsonPath('data.equipped', false);
     }
@@ -132,7 +129,7 @@ class CharacterEquipmentApiTest extends TestCase
         $character = Character::factory()->create();
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/equipment", [
-            'item_slug' => $this->longsword->full_slug,
+            'item_slug' => $this->longsword->slug,
         ]);
 
         $response->assertCreated()
@@ -279,8 +276,7 @@ class CharacterEquipmentApiTest extends TestCase
         $potionType = ItemType::where('code', 'P')->first();
         $potion = Item::create([
             'name' => 'Healing Potion',
-            'slug' => 'healing-potion',
-            'full_slug' => 'test:healing-potion',
+            'slug' => 'test:healing-potion',
             'item_type_id' => $potionType->id,
             'rarity' => 'common',
             'description' => 'A potion that heals.',
@@ -353,7 +349,7 @@ class CharacterEquipmentApiTest extends TestCase
         $character = Character::factory()->create();
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/equipment", [
-            'item_slug' => $this->longsword->full_slug,
+            'item_slug' => $this->longsword->slug,
             'custom_name' => 'My Special Sword',
         ]);
 
@@ -388,7 +384,7 @@ class CharacterEquipmentApiTest extends TestCase
 
         // Verify both types are present
         $data = $response->json('data');
-        $hasDbItem = collect($data)->contains(fn ($item) => isset($item['item']['slug']) && $item['item']['slug'] === 'longsword');
+        $hasDbItem = collect($data)->contains(fn ($item) => isset($item['item']['slug']) && $item['item']['slug'] === $this->longsword->slug);
         $hasCustomItem = collect($data)->contains(fn ($item) => $item['custom_name'] === 'Mysterious Key');
 
         $this->assertTrue($hasDbItem, 'Database item should be in response');

@@ -411,9 +411,9 @@ class ClassImporterTest extends TestCase
     }
 
     #[Test]
-    public function it_populates_full_slug_for_subclasses()
+    public function it_populates_slug_for_subclasses()
     {
-        // Issue #305: Subclasses should have full_slug populated with source prefix
+        // Issue #305: Subclasses should have slug populated with source prefix
         // Parse the Fighter XML
         $xmlPath = base_path('import-files/class-fighter-phb.xml');
         $xmlContent = file_get_contents($xmlPath);
@@ -424,28 +424,28 @@ class ClassImporterTest extends TestCase
         // Import the base Fighter class (which also imports subclasses)
         $fighter = $this->importer->import($fighterData);
 
-        // Import subclasses and verify they have full_slug
+        // Import subclasses and verify they have slug
         foreach ($fighterData['subclasses'] as $subclassData) {
             $subclass = $this->importer->importSubclass($fighter, $subclassData);
 
-            // Assert subclass has full_slug populated
+            // Assert subclass has slug populated
             $this->assertNotNull(
-                $subclass->full_slug,
-                "Subclass {$subclass->name} should have full_slug populated"
+                $subclass->slug,
+                "Subclass {$subclass->name} should have slug populated"
             );
 
-            // Assert full_slug format: {source_code}:{slug}
+            // Assert slug format: {source_code}:{slug}
             $this->assertStringContainsString(
                 ':',
-                $subclass->full_slug,
-                "Subclass {$subclass->name} full_slug should contain colon separator"
+                $subclass->slug,
+                "Subclass {$subclass->name} slug should contain colon separator"
             );
 
-            // Assert full_slug starts with lowercase source code
+            // Assert slug starts with lowercase source code
             $this->assertStringStartsWith(
                 'phb:',
-                $subclass->full_slug,
-                "Subclass {$subclass->name} full_slug should start with 'phb:'"
+                $subclass->slug,
+                "Subclass {$subclass->name} slug should start with 'phb:'"
             );
         }
 
@@ -454,8 +454,8 @@ class ClassImporterTest extends TestCase
         $this->assertNotNull($battleMaster);
         $this->assertEquals(
             'phb:fighter-battle-master',
-            $battleMaster->full_slug,
-            'Battle Master should have full_slug phb:fighter-battle-master'
+            $battleMaster->slug,
+            'Battle Master should have slug phb:fighter-battle-master'
         );
 
         // Specifically check Champion
@@ -463,8 +463,8 @@ class ClassImporterTest extends TestCase
         $this->assertNotNull($champion);
         $this->assertEquals(
             'phb:fighter-champion',
-            $champion->full_slug,
-            'Champion should have full_slug phb:fighter-champion'
+            $champion->slug,
+            'Champion should have slug phb:fighter-champion'
         );
 
         // Specifically check Eldritch Knight
@@ -472,8 +472,8 @@ class ClassImporterTest extends TestCase
         $this->assertNotNull($eldritchKnight);
         $this->assertEquals(
             'phb:fighter-eldritch-knight',
-            $eldritchKnight->full_slug,
-            'Eldritch Knight should have full_slug phb:fighter-eldritch-knight'
+            $eldritchKnight->slug,
+            'Eldritch Knight should have slug phb:fighter-eldritch-knight'
         );
     }
 
@@ -536,11 +536,11 @@ class ClassImporterTest extends TestCase
         $sourceCodes = $class->sources->pluck('source.code')->toArray();
         $this->assertContains('TCE', $sourceCodes, 'Should have TCE source from features');
 
-        // Assert full_slug was generated with source prefix
+        // Assert slug was generated with source prefix
         $this->assertEquals(
             'tce:test-sidekick',
-            $class->full_slug,
-            'Should have full_slug with TCE prefix'
+            $class->slug,
+            'Should have slug with TCE prefix'
         );
     }
 }

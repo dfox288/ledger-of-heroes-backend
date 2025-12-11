@@ -64,7 +64,7 @@ class CharacterValidationService
         $totalRefs += $classSlugs->count() + $subclassSlugs->count();
 
         if ($classSlugs->isNotEmpty()) {
-            $existingClasses = CharacterClass::whereIn('full_slug', $classSlugs)->pluck('full_slug');
+            $existingClasses = CharacterClass::whereIn('slug', $classSlugs)->pluck('slug');
             $missingClasses = $classSlugs->diff($existingClasses)->values()->all();
             if (! empty($missingClasses)) {
                 $dangling['classes'] = array_map(
@@ -75,7 +75,7 @@ class CharacterValidationService
         }
 
         if ($subclassSlugs->isNotEmpty()) {
-            $existingSubclasses = CharacterClass::whereIn('full_slug', $subclassSlugs)->pluck('full_slug');
+            $existingSubclasses = CharacterClass::whereIn('slug', $subclassSlugs)->pluck('slug');
             $missingSubclasses = $subclassSlugs->diff($existingSubclasses)->values()->all();
             if (! empty($missingSubclasses)) {
                 $dangling['subclasses'] = array_map(
@@ -90,7 +90,7 @@ class CharacterValidationService
         $totalRefs += $spellSlugs->count();
 
         if ($spellSlugs->isNotEmpty()) {
-            $existingSpells = Spell::whereIn('full_slug', $spellSlugs)->pluck('full_slug');
+            $existingSpells = Spell::whereIn('slug', $spellSlugs)->pluck('slug');
             $missingSpells = $spellSlugs->diff($existingSpells)->values()->all();
             if (! empty($missingSpells)) {
                 $dangling['spells'] = array_map(
@@ -105,7 +105,7 @@ class CharacterValidationService
         $totalRefs += $itemSlugs->count();
 
         if ($itemSlugs->isNotEmpty()) {
-            $existingItems = Item::whereIn('full_slug', $itemSlugs)->pluck('full_slug');
+            $existingItems = Item::whereIn('slug', $itemSlugs)->pluck('slug');
             $missingItems = $itemSlugs->diff($existingItems)->values()->all();
             if (! empty($missingItems)) {
                 $dangling['items'] = array_map(
@@ -120,7 +120,7 @@ class CharacterValidationService
         $totalRefs += $languageSlugs->count();
 
         if ($languageSlugs->isNotEmpty()) {
-            $existingLanguages = Language::whereIn('full_slug', $languageSlugs)->pluck('full_slug');
+            $existingLanguages = Language::whereIn('slug', $languageSlugs)->pluck('slug');
             $missingLanguages = $languageSlugs->diff($existingLanguages)->values()->all();
             if (! empty($missingLanguages)) {
                 $dangling['languages'] = array_map(
@@ -135,7 +135,7 @@ class CharacterValidationService
         $totalRefs += $conditionSlugs->count();
 
         if ($conditionSlugs->isNotEmpty()) {
-            $existingConditions = Condition::whereIn('full_slug', $conditionSlugs)->pluck('full_slug');
+            $existingConditions = Condition::whereIn('slug', $conditionSlugs)->pluck('slug');
             $missingConditions = $conditionSlugs->diff($existingConditions)->values()->all();
             if (! empty($missingConditions)) {
                 $dangling['conditions'] = array_map(

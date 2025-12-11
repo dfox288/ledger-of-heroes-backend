@@ -46,7 +46,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 2,
             'is_primary' => true,
         ]);
@@ -68,7 +68,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -84,7 +84,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
     {
         $class = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'full_slug' => 'phb:fighter',
+            'slug' => 'phb:fighter',
             'starting_wealth_dice' => '5d4',
             'starting_wealth_multiplier' => 10,
         ]);
@@ -110,7 +110,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -149,7 +149,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
     {
         $class = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'full_slug' => 'phb:fighter',
+            'slug' => 'phb:fighter',
             'starting_wealth_dice' => '5d4',
             'starting_wealth_multiplier' => 10,
         ]);
@@ -157,7 +157,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -195,12 +195,12 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         Item::factory()->create([
             'name' => 'Gold (gp)',
             'slug' => 'gold-gp',
-            'full_slug' => 'phb:gold-gp',
+            'slug' => 'phb:gold-gp',
         ]);
 
         $class = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'full_slug' => 'phb:fighter',
+            'slug' => 'phb:fighter',
             'starting_wealth_dice' => '5d4',
             'starting_wealth_multiplier' => 10,
         ]);
@@ -208,7 +208,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -251,12 +251,12 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         Item::factory()->create([
             'name' => 'Gold (gp)',
             'slug' => 'gold-gp',
-            'full_slug' => 'phb:gold-gp',
+            'slug' => 'phb:gold-gp',
         ]);
 
         $class = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'full_slug' => 'phb:fighter',
+            'slug' => 'phb:fighter',
             'starting_wealth_dice' => '5d4',
             'starting_wealth_multiplier' => 10,
         ]);
@@ -264,7 +264,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -302,7 +302,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
     {
         $class = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'full_slug' => 'phb:fighter',
+            'slug' => 'phb:fighter',
             'starting_wealth_dice' => '5d4',
             'starting_wealth_multiplier' => 10,
         ]);
@@ -328,7 +328,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -352,7 +352,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
     {
         $class = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'full_slug' => 'phb:fighter',
+            'slug' => 'phb:fighter',
             'starting_wealth_dice' => '5d4',
             'starting_wealth_multiplier' => 10,
         ]);
@@ -378,7 +378,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         $character = Character::factory()->create(['equipment_mode' => 'gold']);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -400,12 +400,12 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         Item::factory()->create([
             'name' => 'Gold (gp)',
             'slug' => 'gold-gp',
-            'full_slug' => 'phb:gold-gp',
+            'slug' => 'phb:gold-gp',
         ]);
 
         $class = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'full_slug' => 'phb:fighter',
+            'slug' => 'phb:fighter',
             'starting_wealth_dice' => '5d4',
             'starting_wealth_multiplier' => 10,
         ]);
@@ -431,7 +431,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         $character = Character::factory()->create(['equipment_mode' => 'gold']);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -526,7 +526,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         // Create class with known starting wealth average
         $class = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'full_slug' => 'phb:fighter',
+            'slug' => 'phb:fighter',
             'starting_wealth_dice' => '5d4',
             'starting_wealth_multiplier' => 10,
         ]);
@@ -534,7 +534,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         $character = Character::factory()->create(['equipment_mode' => 'gold']);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -582,7 +582,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         // Create class with known starting wealth average (125)
         $class = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'full_slug' => 'phb:fighter',
+            'slug' => 'phb:fighter',
             'starting_wealth_dice' => '5d4',
             'starting_wealth_multiplier' => 10,
         ]);
@@ -590,7 +590,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         $character = Character::factory()->create(['equipment_mode' => 'gold']);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);
@@ -649,12 +649,12 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         Item::factory()->create([
             'name' => 'Gold (gp)',
             'slug' => 'gold-gp',
-            'full_slug' => 'phb:gold-gp',
+            'slug' => 'phb:gold-gp',
         ]);
 
         $class = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'full_slug' => 'phb:fighter',
+            'slug' => 'phb:fighter',
             'starting_wealth_dice' => '5d4',
             'starting_wealth_multiplier' => 10,
         ]);
@@ -662,7 +662,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 1,
             'is_primary' => true,
         ]);

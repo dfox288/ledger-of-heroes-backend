@@ -24,7 +24,7 @@ class ImportsLanguagesTest extends TestCase
 
         $languagesData = [
             [
-                'slug' => 'common',
+                'slug' => 'core:common',
                 'is_choice' => false,
             ],
         ];
@@ -33,7 +33,7 @@ class ImportsLanguagesTest extends TestCase
 
         $this->assertCount(1, $race->languages);
         $language = $race->languages->first();
-        $this->assertEquals(Language::where('slug', 'common')->first()->id, $language->language_id);
+        $this->assertEquals(Language::where('slug', 'core:common')->first()->id, $language->language_id);
         $this->assertFalse($language->is_choice);
     }
 
@@ -41,7 +41,7 @@ class ImportsLanguagesTest extends TestCase
     public function it_imports_fixed_language_by_id()
     {
         $race = Race::factory()->create();
-        $dwarvish = Language::where('slug', 'dwarvish')->first();
+        $dwarvish = Language::where('slug', 'core:dwarvish')->first();
 
         $languagesData = [
             [
@@ -82,11 +82,11 @@ class ImportsLanguagesTest extends TestCase
 
         $languagesData = [
             [
-                'slug' => 'common',
+                'slug' => 'core:common',
                 'is_choice' => false,
             ],
             [
-                'slug' => 'elvish',
+                'slug' => 'core:elvish',
                 'is_choice' => false,
             ],
             [
@@ -114,7 +114,7 @@ class ImportsLanguagesTest extends TestCase
         EntityLanguage::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'language_id' => Language::where('slug', 'common')->first()->id,
+            'language_id' => Language::where('slug', 'core:common')->first()->id,
             'is_choice' => false,
         ]);
 
@@ -123,7 +123,7 @@ class ImportsLanguagesTest extends TestCase
         // Import new languages (should clear old ones)
         $languagesData = [
             [
-                'slug' => 'dwarvish',
+                'slug' => 'core:dwarvish',
                 'is_choice' => false,
             ],
         ];
@@ -133,7 +133,7 @@ class ImportsLanguagesTest extends TestCase
         $race->refresh();
         $this->assertCount(1, $race->languages);
         $this->assertEquals(
-            Language::where('slug', 'dwarvish')->first()->id,
+            Language::where('slug', 'core:dwarvish')->first()->id,
             $race->languages->first()->language_id
         );
     }
@@ -164,7 +164,7 @@ class ImportsLanguagesTest extends TestCase
         EntityLanguage::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'language_id' => Language::where('slug', 'common')->first()->id,
+            'language_id' => Language::where('slug', 'core:common')->first()->id,
             'is_choice' => false,
         ]);
 
@@ -183,7 +183,7 @@ class ImportsLanguagesTest extends TestCase
 
         $languagesData = [
             [
-                'slug' => 'common',
+                'slug' => 'core:common',
                 'is_choice' => false,
             ],
             [
@@ -200,12 +200,12 @@ class ImportsLanguagesTest extends TestCase
     public function it_prefers_language_id_over_slug_when_both_provided()
     {
         $race = Race::factory()->create();
-        $elvish = Language::where('slug', 'elvish')->first();
+        $elvish = Language::where('slug', 'core:elvish')->first();
 
         $languagesData = [
             [
                 'language_id' => $elvish->id,
-                'slug' => 'common', // Should be ignored
+                'slug' => 'core:common', // Should be ignored
                 'is_choice' => false,
             ],
         ];
@@ -237,8 +237,8 @@ class ImportsLanguagesTest extends TestCase
     public function it_imports_restricted_choice_with_choice_group()
     {
         $race = Race::factory()->create();
-        $dwarvish = Language::where('slug', 'dwarvish')->first();
-        $elvish = Language::where('slug', 'elvish')->first();
+        $dwarvish = Language::where('slug', 'core:dwarvish')->first();
+        $elvish = Language::where('slug', 'core:elvish')->first();
 
         $languagesData = [
             [
@@ -298,7 +298,7 @@ class ImportsLanguagesTest extends TestCase
     public function it_imports_conditional_language_choice_with_condition_type()
     {
         $race = Race::factory()->create();
-        $dwarvish = Language::where('slug', 'dwarvish')->first();
+        $dwarvish = Language::where('slug', 'core:dwarvish')->first();
 
         $languagesData = [
             [
@@ -328,14 +328,14 @@ class ImportsLanguagesTest extends TestCase
                 'is_choice' => true,
                 'quantity' => 1,
                 'condition_type' => 'unless_already_knows',
-                'condition_language_slug' => 'dwarvish',
+                'condition_language_slug' => 'core:dwarvish',
             ],
         ];
 
         $this->importEntityLanguages($race, $languagesData);
 
         $language = $race->languages->first();
-        $dwarvish = Language::where('slug', 'dwarvish')->first();
+        $dwarvish = Language::where('slug', 'core:dwarvish')->first();
         $this->assertEquals($dwarvish->id, $language->condition_language_id);
     }
 
@@ -343,7 +343,7 @@ class ImportsLanguagesTest extends TestCase
     public function it_prefers_condition_language_id_over_slug()
     {
         $race = Race::factory()->create();
-        $dwarvish = Language::where('slug', 'dwarvish')->first();
+        $dwarvish = Language::where('slug', 'core:dwarvish')->first();
 
         $languagesData = [
             [
@@ -351,7 +351,7 @@ class ImportsLanguagesTest extends TestCase
                 'quantity' => 1,
                 'condition_type' => 'unless_already_knows',
                 'condition_language_id' => $dwarvish->id,
-                'condition_language_slug' => 'elvish', // Should be ignored
+                'condition_language_slug' => 'core:elvish', // Should be ignored
             ],
         ];
 
@@ -389,14 +389,14 @@ class ImportsLanguagesTest extends TestCase
         // Test legacy 'slug' format (should still work)
         $languagesData = [
             [
-                'slug' => 'common',
+                'slug' => 'core:common',
                 'is_choice' => false,
             ],
         ];
 
         $this->importEntityLanguages($race, $languagesData);
 
-        $common = Language::where('slug', 'common')->first();
+        $common = Language::where('slug', 'core:common')->first();
         $this->assertEquals($common->id, $race->languages->first()->language_id);
     }
 
@@ -404,14 +404,14 @@ class ImportsLanguagesTest extends TestCase
     public function it_handles_language_slug_priority()
     {
         $race = Race::factory()->create();
-        $dwarvish = Language::where('slug', 'dwarvish')->first();
+        $dwarvish = Language::where('slug', 'core:dwarvish')->first();
 
         // language_id > language_slug > slug
         $languagesData = [
             [
                 'language_id' => $dwarvish->id,
-                'language_slug' => 'common',
-                'slug' => 'elvish',
+                'language_slug' => 'core:common',
+                'slug' => 'core:elvish',
                 'is_choice' => false,
             ],
         ];
@@ -426,9 +426,9 @@ class ImportsLanguagesTest extends TestCase
     public function it_handles_mixed_fixed_unrestricted_and_restricted_choices()
     {
         $race = Race::factory()->create();
-        $common = Language::where('slug', 'common')->first();
-        $dwarvish = Language::where('slug', 'dwarvish')->first();
-        $elvish = Language::where('slug', 'elvish')->first();
+        $common = Language::where('slug', 'core:common')->first();
+        $dwarvish = Language::where('slug', 'core:dwarvish')->first();
+        $elvish = Language::where('slug', 'core:elvish')->first();
 
         $languagesData = [
             // Fixed language
@@ -479,7 +479,7 @@ class ImportsLanguagesTest extends TestCase
     public function it_handles_quantity_field_correctly()
     {
         $race = Race::factory()->create();
-        $common = Language::where('slug', 'common')->first();
+        $common = Language::where('slug', 'core:common')->first();
 
         $languagesData = [
             [
@@ -499,7 +499,7 @@ class ImportsLanguagesTest extends TestCase
     public function it_defaults_quantity_to_1_when_not_provided()
     {
         $race = Race::factory()->create();
-        $common = Language::where('slug', 'common')->first();
+        $common = Language::where('slug', 'core:common')->first();
 
         $languagesData = [
             [
@@ -519,8 +519,8 @@ class ImportsLanguagesTest extends TestCase
     public function it_skips_choice_group_quantity_for_non_first_options()
     {
         $race = Race::factory()->create();
-        $dwarvish = Language::where('slug', 'dwarvish')->first();
-        $elvish = Language::where('slug', 'elvish')->first();
+        $dwarvish = Language::where('slug', 'core:dwarvish')->first();
+        $elvish = Language::where('slug', 'core:elvish')->first();
 
         $languagesData = [
             [

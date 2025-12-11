@@ -96,8 +96,7 @@ class CharacterAvailableFeatsTest extends TestCase
     {
         $dwarf = Race::factory()->create([
             'name' => 'Dwarf',
-            'slug' => 'dwarf',
-            'full_slug' => 'phb:dwarf',
+            'slug' => 'phb:dwarf',
         ]);
 
         $character = Character::factory()->create([
@@ -123,15 +122,13 @@ class CharacterAvailableFeatsTest extends TestCase
         // Create parent race
         $elf = Race::factory()->create([
             'name' => 'Elf',
-            'slug' => 'elf',
-            'full_slug' => 'phb:elf',
+            'slug' => 'phb:elf',
         ]);
 
         // Create subrace
         $highElf = Race::factory()->create([
             'name' => 'High Elf',
-            'slug' => 'high-elf',
-            'full_slug' => 'phb:high-elf',
+            'slug' => 'phb:high-elf',
             'parent_race_id' => $elf->id,
         ]);
 
@@ -157,14 +154,12 @@ class CharacterAvailableFeatsTest extends TestCase
     {
         $dwarf = Race::factory()->create([
             'name' => 'Dwarf',
-            'slug' => 'dwarf',
-            'full_slug' => 'phb:dwarf',
+            'slug' => 'phb:dwarf',
         ]);
 
         $elf = Race::factory()->create([
             'name' => 'Elf',
-            'slug' => 'elf',
-            'full_slug' => 'phb:elf',
+            'slug' => 'phb:elf',
         ]);
 
         $character = Character::factory()->create([
@@ -194,7 +189,7 @@ class CharacterAvailableFeatsTest extends TestCase
 
         // Grant character medium armor proficiency
         $character->proficiencies()->create([
-            'proficiency_type_slug' => $mediumArmor->full_slug,
+            'proficiency_type_slug' => $mediumArmor->slug,
             'source' => 'class',
         ]);
 
@@ -241,7 +236,7 @@ class CharacterAvailableFeatsTest extends TestCase
 
         // Grant character Athletics proficiency
         $character->proficiencies()->create([
-            'skill_slug' => $athletics->full_slug,
+            'skill_slug' => $athletics->slug,
             'source' => 'class',
         ]);
 
@@ -404,7 +399,6 @@ class CharacterAvailableFeatsTest extends TestCase
                         'id',
                         'name',
                         'slug',
-                        'full_slug',
                         'description',
                         'prerequisites',
                         'sources',
@@ -425,7 +419,7 @@ class CharacterAvailableFeatsTest extends TestCase
 
         // Add warlock class to character
         $character->characterClasses()->create([
-            'class_slug' => $warlock->full_slug,
+            'class_slug' => $warlock->slug,
             'level' => 1,
             'is_primary' => true,
             'order' => 1,
@@ -534,14 +528,12 @@ class CharacterAvailableFeatsTest extends TestCase
         // Race prerequisites should still be checked even for race source
         $dwarf = Race::factory()->create([
             'name' => 'Dwarf',
-            'slug' => 'dwarf',
-            'full_slug' => 'phb:dwarf',
+            'slug' => 'phb:dwarf',
         ]);
 
         $elf = Race::factory()->create([
             'name' => 'Elf',
-            'slug' => 'elf',
-            'full_slug' => 'phb:elf',
+            'slug' => 'phb:elf',
         ]);
 
         $character = Character::factory()->create([
@@ -566,8 +558,7 @@ class CharacterAvailableFeatsTest extends TestCase
     {
         $halfling = Race::factory()->create([
             'name' => 'Halfling',
-            'slug' => 'halfling',
-            'full_slug' => 'phb:halfling',
+            'slug' => 'phb:halfling',
         ]);
 
         $character = Character::factory()->create([
@@ -679,7 +670,7 @@ class CharacterAvailableFeatsTest extends TestCase
 
         // Grant character medium armor proficiency
         $character->proficiencies()->create([
-            'proficiency_type_slug' => $mediumArmor->full_slug,
+            'proficiency_type_slug' => $mediumArmor->slug,
             'source' => 'class',
         ]);
 

@@ -313,7 +313,7 @@ class MonsterImporterTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_populates_full_slug_when_source_is_present(): void
+    public function it_populates_slug_when_source_is_present(): void
     {
         // Create a test source
         \App\Models\Source::firstOrCreate(
@@ -360,7 +360,7 @@ XML;
         $goblin = \App\Models\Monster::where('slug', 'test-goblin')->first();
 
         $this->assertNotNull($goblin);
-        $this->assertEquals('mm:test-goblin', $goblin->full_slug);
+        $this->assertEquals('mm:test-goblin', $goblin->slug);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -405,11 +405,11 @@ XML;
 
         $this->assertNotNull($creature);
         // Falls back to PHB when no source citation is found in description
-        $this->assertEquals('phb:sourceless-creature', $creature->full_slug);
+        $this->assertEquals('phb:sourceless-creature', $creature->slug);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_uses_first_source_for_full_slug_when_multiple_sources_present(): void
+    public function it_uses_first_source_for_slug_when_multiple_sources_present(): void
     {
         // Create test sources
         \App\Models\Source::firstOrCreate(
@@ -462,11 +462,11 @@ XML;
 
         $this->assertNotNull($beast);
         // Should use PHB as it appears first in the source citation
-        $this->assertEquals('phb:multi-source-beast', $beast->full_slug);
+        $this->assertEquals('phb:multi-source-beast', $beast->slug);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_updates_full_slug_when_reimporting_with_different_source(): void
+    public function it_updates_slug_when_reimporting_with_different_source(): void
     {
         // Create test sources
         \App\Models\Source::firstOrCreate(
@@ -514,7 +514,7 @@ XML;
         $this->importer->import($monsters[0]);
 
         $monster = \App\Models\Monster::where('slug', 'reimport-test-monster')->first();
-        $this->assertEquals('phb:reimport-test-monster', $monster->full_slug);
+        $this->assertEquals('phb:reimport-test-monster', $monster->slug);
 
         // Reimport with XGE source (simulating updated sourcebook)
         $xmlV2 = <<<'XML'
@@ -551,6 +551,6 @@ XML;
         $this->importer->import($monsters[0]);
 
         $monster->refresh();
-        $this->assertEquals('xge:reimport-test-monster', $monster->full_slug);
+        $this->assertEquals('xge:reimport-test-monster', $monster->slug);
     }
 }

@@ -98,7 +98,7 @@ class FeatureSelectionController extends Controller
 
         // Build query for available features
         $query = OptionalFeature::with(['classes', 'classPivots', 'sources.source'])
-            ->whereNotIn('full_slug', $selectedSlugs);
+            ->whereNotIn('slug', $selectedSlugs);
 
         // Filter by classes character has
         $classSlugs = $characterClasses->pluck('class_slug')->toArray();
@@ -107,7 +107,7 @@ class FeatureSelectionController extends Controller
         $query->where(function ($q) use ($classSlugs, $subclassNames) {
             // Features available to the character's base classes
             $q->whereHas('classes', function ($classQuery) use ($classSlugs) {
-                $classQuery->whereIn('classes.full_slug', $classSlugs);
+                $classQuery->whereIn('classes.slug', $classSlugs);
             });
 
             // Or features for specific subclasses the character has
@@ -181,14 +181,14 @@ class FeatureSelectionController extends Controller
         $validated = $request->validated();
 
         // Get the optional feature to access its properties
-        $optionalFeature = OptionalFeature::where('full_slug', $validated['optional_feature_slug'])->firstOrFail();
+        $optionalFeature = OptionalFeature::where('slug', $validated['optional_feature_slug'])->firstOrFail();
 
         // Set default level_acquired to character's current total level
         $levelAcquired = $validated['level_acquired'] ?? $character->total_level;
 
         $featureSelection = FeatureSelection::create([
             'character_id' => $character->id,
-            'optional_feature_slug' => $optionalFeature->full_slug,
+            'optional_feature_slug' => $optionalFeature->slug,
             'class_slug' => $validated['class_slug'] ?? null,
             'subclass_name' => $validated['subclass_name'] ?? null,
             'level_acquired' => max(1, $levelAcquired),
@@ -230,10 +230,10 @@ class FeatureSelectionController extends Controller
     {
         $optionalFeature = is_numeric($featureIdOrSlug)
             ? OptionalFeature::findOrFail($featureIdOrSlug)
-            : OptionalFeature::where('full_slug', $featureIdOrSlug)->orWhere('slug', $featureIdOrSlug)->firstOrFail();
+            : OptionalFeature::where('slug', $featureIdOrSlug)->firstOrFail();
 
         $deleted = $character->featureSelections()
-            ->where('optional_feature_slug', $optionalFeature->full_slug)
+            ->where('optional_feature_slug', $optionalFeature->slug)
             ->delete();
 
         if ($deleted === 0) {

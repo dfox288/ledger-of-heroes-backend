@@ -206,7 +206,7 @@ class HitPointServiceTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -230,7 +230,7 @@ class HitPointServiceTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -254,7 +254,7 @@ class HitPointServiceTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -276,7 +276,7 @@ class HitPointServiceTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -299,7 +299,7 @@ class HitPointServiceTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -317,7 +317,7 @@ class HitPointServiceTest extends TestCase
         // Fighter 3 / Wizard 2 = total level 5
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
@@ -325,7 +325,7 @@ class HitPointServiceTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->wizard->full_slug,
+            'class_slug' => $this->wizard->slug,
             'level' => 2,
             'is_primary' => false,
             'order' => 2,
@@ -367,7 +367,7 @@ class HitPointServiceTest extends TestCase
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $toughFeat->id,
-            'feature_slug' => $toughFeat->full_slug,
+            'feature_slug' => $toughFeat->slug,
             'source' => 'asi_choice',
         ]);
 
@@ -392,7 +392,7 @@ class HitPointServiceTest extends TestCase
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $alertFeat->id,
-            'feature_slug' => $alertFeat->full_slug,
+            'feature_slug' => $alertFeat->slug,
             'source' => 'asi_choice',
         ]);
 
@@ -437,7 +437,7 @@ class HitPointServiceTest extends TestCase
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $toughFeat->id,
-            'feature_slug' => $toughFeat->full_slug,
+            'feature_slug' => $toughFeat->slug,
             'source' => 'asi_choice',
         ]);
 
@@ -445,7 +445,7 @@ class HitPointServiceTest extends TestCase
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $durabilitFeat->id,
-            'feature_slug' => $durabilitFeat->full_slug,
+            'feature_slug' => $durabilitFeat->slug,
             'source' => 'asi_choice',
         ]);
 
@@ -464,7 +464,6 @@ class HitPointServiceTest extends TestCase
         // Create Hill Dwarf race with HP modifier
         $hillDwarf = Race::factory()->create([
             'slug' => 'dwarf-hill',
-            'full_slug' => 'dwarf-hill',
             'name' => 'Hill Dwarf',
         ]);
 
@@ -476,7 +475,7 @@ class HitPointServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'race_slug' => $hillDwarf->full_slug,
+            'race_slug' => $hillDwarf->slug,
         ]);
 
         $bonus = $this->service->getRaceHpBonus($character);
@@ -489,12 +488,11 @@ class HitPointServiceTest extends TestCase
     {
         $human = Race::factory()->create([
             'slug' => 'human',
-            'full_slug' => 'human',
             'name' => 'Human',
         ]);
 
         $character = Character::factory()->create([
-            'race_slug' => $human->full_slug,
+            'race_slug' => $human->slug,
         ]);
 
         $bonus = $this->service->getRaceHpBonus($character);
@@ -520,7 +518,6 @@ class HitPointServiceTest extends TestCase
         // Create base Dwarf race (no HP modifier)
         $dwarf = Race::factory()->create([
             'slug' => 'dwarf',
-            'full_slug' => 'dwarf',
             'name' => 'Dwarf',
             'parent_race_id' => null,
         ]);
@@ -528,7 +525,6 @@ class HitPointServiceTest extends TestCase
         // Create Hill Dwarf subrace with HP modifier
         $hillDwarf = Race::factory()->create([
             'slug' => 'dwarf-hill',
-            'full_slug' => 'dwarf-hill',
             'name' => 'Hill Dwarf',
             'parent_race_id' => $dwarf->id,
         ]);
@@ -542,7 +538,7 @@ class HitPointServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'race_slug' => $hillDwarf->full_slug,
+            'race_slug' => $hillDwarf->slug,
         ]);
 
         $bonus = $this->service->getRaceHpBonus($character);
@@ -556,7 +552,6 @@ class HitPointServiceTest extends TestCase
         // Create Dwarf parent race with HP modifier
         $dwarf = Race::factory()->create([
             'slug' => 'dwarf',
-            'full_slug' => 'dwarf',
             'name' => 'Dwarf',
             'parent_race_id' => null,
         ]);
@@ -572,13 +567,12 @@ class HitPointServiceTest extends TestCase
         // Create Mountain Dwarf subrace (NO HP modifier of its own)
         $mountainDwarf = Race::factory()->create([
             'slug' => 'dwarf-mountain',
-            'full_slug' => 'dwarf-mountain',
             'name' => 'Mountain Dwarf',
             'parent_race_id' => $dwarf->id,
         ]);
 
         $character = Character::factory()->create([
-            'race_slug' => $mountainDwarf->full_slug,
+            'race_slug' => $mountainDwarf->slug,
         ]);
 
         $bonus = $this->service->getRaceHpBonus($character);
@@ -592,7 +586,6 @@ class HitPointServiceTest extends TestCase
         // Hypothetical scenario: both parent and subrace have HP modifiers
         $baseRace = Race::factory()->create([
             'slug' => 'hardy-folk',
-            'full_slug' => 'hardy-folk',
             'name' => 'Hardy Folk',
             'parent_race_id' => null,
         ]);
@@ -607,7 +600,6 @@ class HitPointServiceTest extends TestCase
 
         $subrace = Race::factory()->create([
             'slug' => 'hardy-folk-mountain',
-            'full_slug' => 'hardy-folk-mountain',
             'name' => 'Mountain Hardy Folk',
             'parent_race_id' => $baseRace->id,
         ]);
@@ -621,7 +613,7 @@ class HitPointServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'race_slug' => $subrace->full_slug,
+            'race_slug' => $subrace->slug,
         ]);
 
         $bonus = $this->service->getRaceHpBonus($character);
@@ -639,14 +631,12 @@ class HitPointServiceTest extends TestCase
         // Create Human (no HP bonus)
         $human = Race::factory()->create([
             'slug' => 'human',
-            'full_slug' => 'human',
             'name' => 'Human',
         ]);
 
         // Create Hill Dwarf (with HP bonus)
         $hillDwarf = Race::factory()->create([
             'slug' => 'dwarf-hill',
-            'full_slug' => 'dwarf-hill',
             'name' => 'Hill Dwarf',
         ]);
 
@@ -658,21 +648,21 @@ class HitPointServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'race_slug' => $human->full_slug,
+            'race_slug' => $human->slug,
             'max_hit_points' => 50,
             'current_hit_points' => 50,
         ]);
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
 
         // Human (0) -> Hill Dwarf (+1 per level) = +5 HP
-        $result = $this->service->recalculateForRaceChange($character, $human->full_slug, $hillDwarf->full_slug);
+        $result = $this->service->recalculateForRaceChange($character, $human->slug, $hillDwarf->slug);
 
         $this->assertEquals(5, $result['adjustment']); // +1 per level × 5 levels
         $this->assertEquals(55, $result['new_max_hp']);
@@ -685,14 +675,12 @@ class HitPointServiceTest extends TestCase
         // Create Human (no HP bonus)
         $human = Race::factory()->create([
             'slug' => 'human',
-            'full_slug' => 'human',
             'name' => 'Human',
         ]);
 
         // Create Hill Dwarf (with HP bonus)
         $hillDwarf = Race::factory()->create([
             'slug' => 'dwarf-hill',
-            'full_slug' => 'dwarf-hill',
             'name' => 'Hill Dwarf',
         ]);
 
@@ -704,21 +692,21 @@ class HitPointServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'race_slug' => $hillDwarf->full_slug,
+            'race_slug' => $hillDwarf->slug,
             'max_hit_points' => 55, // Includes +5 from Hill Dwarf
             'current_hit_points' => 55,
         ]);
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
 
         // Hill Dwarf (+1) -> Human (0) = -5 HP
-        $result = $this->service->recalculateForRaceChange($character, $hillDwarf->full_slug, $human->full_slug);
+        $result = $this->service->recalculateForRaceChange($character, $hillDwarf->slug, $human->slug);
 
         $this->assertEquals(-5, $result['adjustment']);
         $this->assertEquals(50, $result['new_max_hp']);
@@ -731,31 +719,29 @@ class HitPointServiceTest extends TestCase
         // Create two races with no HP bonus
         $human = Race::factory()->create([
             'slug' => 'human',
-            'full_slug' => 'human',
             'name' => 'Human',
         ]);
 
         $elf = Race::factory()->create([
             'slug' => 'elf',
-            'full_slug' => 'elf',
             'name' => 'Elf',
         ]);
 
         $character = Character::factory()->create([
-            'race_slug' => $human->full_slug,
+            'race_slug' => $human->slug,
             'max_hit_points' => 50,
             'current_hit_points' => 50,
         ]);
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
 
-        $result = $this->service->recalculateForRaceChange($character, $human->full_slug, $elf->full_slug);
+        $result = $this->service->recalculateForRaceChange($character, $human->slug, $elf->slug);
 
         $this->assertEquals(0, $result['adjustment']);
         $this->assertEquals(50, $result['new_max_hp']);
@@ -768,14 +754,12 @@ class HitPointServiceTest extends TestCase
         // Create Human (no HP bonus)
         $human = Race::factory()->create([
             'slug' => 'human',
-            'full_slug' => 'human',
             'name' => 'Human',
         ]);
 
         // Create Hill Dwarf (with HP bonus)
         $hillDwarf = Race::factory()->create([
             'slug' => 'dwarf-hill',
-            'full_slug' => 'dwarf-hill',
             'name' => 'Hill Dwarf',
         ]);
 
@@ -787,20 +771,20 @@ class HitPointServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'race_slug' => $hillDwarf->full_slug,
+            'race_slug' => $hillDwarf->slug,
             'max_hit_points' => 55,
             'current_hit_points' => 30, // Already damaged
         ]);
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
 
-        $result = $this->service->recalculateForRaceChange($character, $hillDwarf->full_slug, $human->full_slug);
+        $result = $this->service->recalculateForRaceChange($character, $hillDwarf->slug, $human->slug);
 
         $this->assertEquals(50, $result['new_max_hp']);
         $this->assertEquals(30, $result['new_current_hp']); // Stays at 30 (below new max)
@@ -812,7 +796,6 @@ class HitPointServiceTest extends TestCase
         // Create Hill Dwarf (with HP bonus)
         $hillDwarf = Race::factory()->create([
             'slug' => 'dwarf-hill',
-            'full_slug' => 'dwarf-hill',
             'name' => 'Hill Dwarf',
         ]);
 
@@ -831,14 +814,14 @@ class HitPointServiceTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $this->fighter->full_slug,
+            'class_slug' => $this->fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
 
         // No race (0) -> Hill Dwarf (+1 per level) = +5 HP
-        $result = $this->service->recalculateForRaceChange($character, null, $hillDwarf->full_slug);
+        $result = $this->service->recalculateForRaceChange($character, null, $hillDwarf->slug);
 
         $this->assertEquals(5, $result['adjustment']);
         $this->assertEquals(55, $result['new_max_hp']);

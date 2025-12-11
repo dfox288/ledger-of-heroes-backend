@@ -30,8 +30,8 @@ class SpellChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
 
         // Create test cantrips
-        $fireBolt = Spell::factory()->create(['name' => 'Fire Bolt', 'slug' => 'fire-bolt', 'full_slug' => 'test:fire-bolt', 'level' => 0]);
-        $rayOfFrost = Spell::factory()->create(['name' => 'Ray of Frost', 'slug' => 'ray-of-frost', 'full_slug' => 'test:ray-of-frost', 'level' => 0]);
+        $fireBolt = Spell::factory()->create(['name' => 'Fire Bolt', 'slug' => 'fire-bolt', 'slug' => 'test:fire-bolt', 'level' => 0]);
+        $rayOfFrost = Spell::factory()->create(['name' => 'Ray of Frost', 'slug' => 'ray-of-frost', 'slug' => 'test:ray-of-frost', 'level' => 0]);
 
         // Create a pending choice for cantrips
         $choice = new PendingChoice(
@@ -51,18 +51,18 @@ class SpellChoiceReplacementTest extends TestCase
         );
 
         // First resolution: choose Fire Bolt
-        $this->handler->resolve($character, $choice, ['selected' => [$fireBolt->full_slug]]);
+        $this->handler->resolve($character, $choice, ['selected' => [$fireBolt->slug]]);
         $character->refresh();
         expect($character->spells)->toHaveCount(1);
-        expect($character->spells->first()->spell_slug)->toBe($fireBolt->full_slug);
+        expect($character->spells->first()->spell_slug)->toBe($fireBolt->slug);
 
         // Second resolution: change to Ray of Frost
-        $this->handler->resolve($character, $choice, ['selected' => [$rayOfFrost->full_slug]]);
+        $this->handler->resolve($character, $choice, ['selected' => [$rayOfFrost->slug]]);
         $character->refresh();
 
         // Should have ONLY Ray of Frost now (Fire Bolt should be replaced)
         expect($character->spells)->toHaveCount(1)
-            ->and($character->spells->first()->spell_slug)->toBe($rayOfFrost->full_slug);
+            ->and($character->spells->first()->spell_slug)->toBe($rayOfFrost->slug);
     }
 
     #[Test]
@@ -71,8 +71,8 @@ class SpellChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
 
         // Create test spells
-        $magicMissile = Spell::factory()->create(['name' => 'Magic Missile', 'slug' => 'magic-missile', 'full_slug' => 'test:magic-missile', 'level' => 1]);
-        $shield = Spell::factory()->create(['name' => 'Shield', 'slug' => 'shield', 'full_slug' => 'test:shield', 'level' => 1]);
+        $magicMissile = Spell::factory()->create(['name' => 'Magic Missile', 'slug' => 'magic-missile', 'slug' => 'test:magic-missile', 'level' => 1]);
+        $shield = Spell::factory()->create(['name' => 'Shield', 'slug' => 'shield', 'slug' => 'test:shield', 'level' => 1]);
 
         // Create a pending choice for 1st level spells
         $choice = new PendingChoice(
@@ -92,17 +92,17 @@ class SpellChoiceReplacementTest extends TestCase
         );
 
         // First resolution: choose Magic Missile
-        $this->handler->resolve($character, $choice, ['selected' => [$magicMissile->full_slug]]);
+        $this->handler->resolve($character, $choice, ['selected' => [$magicMissile->slug]]);
         $character->refresh();
         expect($character->spells)->toHaveCount(1);
 
         // Second resolution: change to Shield
-        $this->handler->resolve($character, $choice, ['selected' => [$shield->full_slug]]);
+        $this->handler->resolve($character, $choice, ['selected' => [$shield->slug]]);
         $character->refresh();
 
         // Should have ONLY Shield now
         expect($character->spells)->toHaveCount(1)
-            ->and($character->spells->first()->spell_slug)->toBe($shield->full_slug);
+            ->and($character->spells->first()->spell_slug)->toBe($shield->slug);
     }
 
     #[Test]
@@ -111,8 +111,8 @@ class SpellChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
 
         // Create test spells
-        $fireBolt = Spell::factory()->create(['name' => 'Fire Bolt', 'slug' => 'fire-bolt', 'full_slug' => 'test:fire-bolt', 'level' => 0]);
-        $magicMissile = Spell::factory()->create(['name' => 'Magic Missile', 'slug' => 'magic-missile', 'full_slug' => 'test:magic-missile', 'level' => 1]);
+        $fireBolt = Spell::factory()->create(['name' => 'Fire Bolt', 'slug' => 'fire-bolt', 'slug' => 'test:fire-bolt', 'level' => 0]);
+        $magicMissile = Spell::factory()->create(['name' => 'Magic Missile', 'slug' => 'magic-missile', 'slug' => 'test:magic-missile', 'level' => 1]);
 
         // Create cantrip choice
         $cantripChoice = new PendingChoice(
@@ -149,15 +149,15 @@ class SpellChoiceReplacementTest extends TestCase
         );
 
         // Resolve both choices
-        $this->handler->resolve($character, $cantripChoice, ['selected' => [$fireBolt->full_slug]]);
-        $this->handler->resolve($character, $spellChoice, ['selected' => [$magicMissile->full_slug]]);
+        $this->handler->resolve($character, $cantripChoice, ['selected' => [$fireBolt->slug]]);
+        $this->handler->resolve($character, $spellChoice, ['selected' => [$magicMissile->slug]]);
         $character->refresh();
 
         // Should have both spells (different choice groups: cantrips vs spells_known)
         expect($character->spells)->toHaveCount(2);
         $spellSlugs = $character->spells->pluck('spell_slug')->toArray();
-        expect($spellSlugs)->toContain($fireBolt->full_slug)
-            ->and($spellSlugs)->toContain($magicMissile->full_slug);
+        expect($spellSlugs)->toContain($fireBolt->slug)
+            ->and($spellSlugs)->toContain($magicMissile->slug);
     }
 
     #[Test]
@@ -166,8 +166,8 @@ class SpellChoiceReplacementTest extends TestCase
         $character = Character::factory()->create();
 
         // Create test spells
-        $level1Spell = Spell::factory()->create(['name' => 'Magic Missile', 'slug' => 'magic-missile', 'full_slug' => 'test:magic-missile', 'level' => 1]);
-        $level2Spell = Spell::factory()->create(['name' => 'Invisibility', 'slug' => 'invisibility', 'full_slug' => 'test:invisibility', 'level' => 2]);
+        $level1Spell = Spell::factory()->create(['name' => 'Magic Missile', 'slug' => 'magic-missile', 'slug' => 'test:magic-missile', 'level' => 1]);
+        $level2Spell = Spell::factory()->create(['name' => 'Invisibility', 'slug' => 'invisibility', 'slug' => 'test:invisibility', 'level' => 2]);
 
         // Create level 1 spell choice
         $level1Choice = new PendingChoice(
@@ -204,18 +204,18 @@ class SpellChoiceReplacementTest extends TestCase
         );
 
         // Resolve level 1 spell choice
-        $this->handler->resolve($character, $level1Choice, ['selected' => [$level1Spell->full_slug]]);
+        $this->handler->resolve($character, $level1Choice, ['selected' => [$level1Spell->slug]]);
         $character->refresh();
         expect($character->spells)->toHaveCount(1);
 
         // Resolve level 2 (actually level 3) spell choice
-        $this->handler->resolve($character, $level2Choice, ['selected' => [$level2Spell->full_slug]]);
+        $this->handler->resolve($character, $level2Choice, ['selected' => [$level2Spell->slug]]);
         $character->refresh();
 
         // Should have BOTH spells (different level_acquired)
         expect($character->spells)->toHaveCount(2);
         $spellSlugs = $character->spells->pluck('spell_slug')->toArray();
-        expect($spellSlugs)->toContain($level1Spell->full_slug)
-            ->and($spellSlugs)->toContain($level2Spell->full_slug);
+        expect($spellSlugs)->toContain($level1Spell->slug)
+            ->and($spellSlugs)->toContain($level2Spell->slug);
     }
 }

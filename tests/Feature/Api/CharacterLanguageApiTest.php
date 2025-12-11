@@ -47,28 +47,28 @@ class CharacterLanguageApiTest extends TestCase
         $this->common = Language::create([
             'name' => 'Common '.$uniqueId,
             'slug' => 'common-'.$uniqueId,
-            'full_slug' => 'test:common-'.$uniqueId,
+            'slug' => 'test:common-'.$uniqueId,
             'script' => 'Common',
         ]);
 
         $this->elvish = Language::create([
             'name' => 'Elvish '.$uniqueId,
             'slug' => 'elvish-'.$uniqueId,
-            'full_slug' => 'test:elvish-'.$uniqueId,
+            'slug' => 'test:elvish-'.$uniqueId,
             'script' => 'Elvish',
         ]);
 
         $this->dwarvish = Language::create([
             'name' => 'Dwarvish '.$uniqueId,
             'slug' => 'dwarvish-'.$uniqueId,
-            'full_slug' => 'test:dwarvish-'.$uniqueId,
+            'slug' => 'test:dwarvish-'.$uniqueId,
             'script' => 'Dwarvish',
         ]);
 
         $this->draconic = Language::create([
             'name' => 'Draconic '.$uniqueId,
             'slug' => 'draconic-'.$uniqueId,
-            'full_slug' => 'test:draconic-'.$uniqueId,
+            'slug' => 'test:draconic-'.$uniqueId,
             'script' => 'Draconic',
         ]);
 
@@ -657,7 +657,7 @@ class CharacterLanguageApiTest extends TestCase
         $character->features()->create([
             'feature_type' => Feat::class,
             'feature_id' => $dragonFearFeat->id,
-            'feature_slug' => $dragonFearFeat->full_slug,
+            'feature_slug' => $dragonFearFeat->slug,
             'source' => 'feat',
         ]);
 
@@ -1025,14 +1025,14 @@ class CharacterLanguageApiTest extends TestCase
         $this->assertCount(0, $character->languages);
 
         // Set the race (Elf has Common and Elvish as fixed languages)
-        $character->update(['race_slug' => $this->elfRace->full_slug]);
+        $character->update(['race_slug' => $this->elfRace->slug]);
         $character->refresh();
 
         // Should now have fixed languages auto-populated
         $this->assertCount(2, $character->languages);
         $languageSlugs = $character->languages->pluck('language_slug')->toArray();
-        $this->assertContains($this->common->full_slug, $languageSlugs);
-        $this->assertContains($this->elvish->full_slug, $languageSlugs);
+        $this->assertContains($this->common->slug, $languageSlugs);
+        $this->assertContains($this->elvish->slug, $languageSlugs);
     }
 
     #[Test]
@@ -1063,13 +1063,13 @@ class CharacterLanguageApiTest extends TestCase
         $initialCount = $character->languages->count();
 
         // Set the background
-        $character->update(['background_slug' => $hermitBackground->full_slug]);
+        $character->update(['background_slug' => $hermitBackground->slug]);
         $character->refresh();
 
         // Should now have background language added
         $this->assertGreaterThan($initialCount, $character->languages->count());
         $languageSlugs = $character->languages->pluck('language_slug')->toArray();
-        $this->assertContains($this->draconic->full_slug, $languageSlugs);
+        $this->assertContains($this->draconic->slug, $languageSlugs);
     }
 
     #[Test]
@@ -1106,15 +1106,15 @@ class CharacterLanguageApiTest extends TestCase
         $character->refresh();
 
         // Change to elf race (which also has Common + Elvish)
-        $character->update(['race_slug' => $this->elfRace->full_slug]);
+        $character->update(['race_slug' => $this->elfRace->slug]);
         $character->refresh();
 
         // Should not duplicate Common
         $languageSlugs = $character->languages->pluck('language_slug')->toArray();
-        $commonCount = collect($languageSlugs)->filter(fn ($slug) => $slug === $this->common->full_slug)->count();
+        $commonCount = collect($languageSlugs)->filter(fn ($slug) => $slug === $this->common->slug)->count();
         $this->assertEquals(1, $commonCount);
 
         // Should have added Elvish
-        $this->assertContains($this->elvish->full_slug, $languageSlugs);
+        $this->assertContains($this->elvish->slug, $languageSlugs);
     }
 }

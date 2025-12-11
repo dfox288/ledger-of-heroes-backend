@@ -34,11 +34,11 @@ class CharacterConditionModelTest extends TestCase
     public function it_can_have_a_level_for_exhaustion(): void
     {
         $exhaustion = Condition::firstOrCreate(
-            ['slug' => 'exhaustion'],
-            ['name' => 'Exhaustion', 'description' => 'Exhaustion condition', 'full_slug' => 'core:exhaustion']
+            ['slug' => 'core:exhaustion'],
+            ['name' => 'Exhaustion', 'description' => 'Exhaustion condition']
         );
         $characterCondition = CharacterCondition::factory()->create([
-            'condition_slug' => $exhaustion->full_slug,
+            'condition_slug' => $exhaustion->slug,
             'level' => 3,
         ]);
 
@@ -53,14 +53,14 @@ class CharacterConditionModelTest extends TestCase
 
         CharacterCondition::factory()->create([
             'character_id' => $character->id,
-            'condition_slug' => $condition->full_slug,
+            'condition_slug' => $condition->slug,
         ]);
 
         $this->expectException(QueryException::class);
 
         CharacterCondition::factory()->create([
             'character_id' => $character->id,
-            'condition_slug' => $condition->full_slug,
+            'condition_slug' => $condition->slug,
         ]);
     }
 

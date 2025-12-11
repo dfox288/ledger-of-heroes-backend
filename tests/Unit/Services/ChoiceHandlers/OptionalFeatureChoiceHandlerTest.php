@@ -21,7 +21,7 @@ it('returns correct type', function () {
 
 it('generates choices for Warlock level 2 invocations', function () {
     // Mock character class
-    $warlockClass = (object) ['id' => 101, 'name' => 'Warlock', 'slug' => 'warlock', 'full_slug' => 'phb2014:warlock', 'level' => 2];
+    $warlockClass = (object) ['id' => 101, 'name' => 'Warlock', 'slug' => 'phb2014:warlock', 'level' => 2];
     $characterClass = (object) [
         'class_id' => 101,
         'class_slug' => 'phb2014:warlock',
@@ -91,7 +91,7 @@ it('generates choices for Warlock level 2 invocations', function () {
 
 it('generates choices for Sorcerer level 3 metamagic', function () {
     // Mock character class
-    $sorcererClass = (object) ['id' => 99, 'name' => 'Sorcerer', 'slug' => 'sorcerer', 'full_slug' => 'phb2014:sorcerer', 'level' => 3];
+    $sorcererClass = (object) ['id' => 99, 'name' => 'Sorcerer', 'slug' => 'phb2014:sorcerer', 'level' => 3];
     $characterClass = (object) [
         'class_id' => 99,
         'class_slug' => 'phb2014:sorcerer',
@@ -158,7 +158,7 @@ it('generates choices for Sorcerer level 3 metamagic', function () {
 
 it('generates choices for Battle Master level 3 maneuvers', function () {
     // Mock character class with subclass
-    $fighterClass = (object) ['id' => 88, 'name' => 'Fighter', 'slug' => 'fighter', 'full_slug' => 'phb2014:fighter', 'level' => 3];
+    $fighterClass = (object) ['id' => 88, 'name' => 'Fighter', 'slug' => 'phb2014:fighter', 'level' => 3];
     $subclass = (object) ['name' => 'Battle Master', 'counters' => collect([])];
     $characterClass = (object) [
         'class_id' => 88,
@@ -226,7 +226,7 @@ it('generates choices for Battle Master level 3 maneuvers', function () {
 
 it('calculates remaining choices when some features are selected', function () {
     // Mock character class
-    $warlockClass = (object) ['id' => 101, 'name' => 'Warlock', 'slug' => 'warlock', 'full_slug' => 'phb2014:warlock', 'level' => 5];
+    $warlockClass = (object) ['id' => 101, 'name' => 'Warlock', 'slug' => 'phb2014:warlock', 'level' => 5];
     $characterClass = (object) [
         'class_id' => 101,
         'class_slug' => 'phb2014:warlock',
@@ -431,7 +431,7 @@ it('returns empty collection when character has no classes', function () {
 
 it('skips counter when level requirement not met', function () {
     // Mock character class at level 1
-    $warlockClass = (object) ['id' => 101, 'name' => 'Warlock', 'slug' => 'warlock', 'full_slug' => 'phb2014:warlock', 'level' => 1];
+    $warlockClass = (object) ['id' => 101, 'name' => 'Warlock', 'slug' => 'phb2014:warlock', 'level' => 1];
     $characterClass = (object) [
         'class_id' => 101,
         'class_slug' => 'phb2014:warlock',

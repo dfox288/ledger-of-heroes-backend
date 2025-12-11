@@ -22,28 +22,28 @@ it('returns correct type', function () {
 });
 
 it('transforms service output to PendingChoice objects for race language choice', function () {
-    // Mock character attributes with full_slug
+    // Mock character attributes
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn((object) [
-        'full_slug' => 'phb:high-elf',
+        'slug' => 'phb:high-elf',
         'name' => 'High Elf',
     ]);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn(null);
 
-    // Mock language service response with full_slug
+    // Mock language service response
     $this->languageService->shouldReceive('getPendingChoices')
         ->with($this->character)
         ->andReturn([
             'race' => [
                 'known' => [
-                    ['full_slug' => 'phb:elvish', 'name' => 'Elvish', 'slug' => 'elvish', 'script' => 'Elvish'],
+                    ['slug' => 'phb:elvish', 'name' => 'Elvish', 'script' => 'Elvish'],
                 ],
                 'choices' => [
                     'quantity' => 1,
                     'remaining' => 1,
                     'selected' => [],
                     'options' => [
-                        ['full_slug' => 'phb:common', 'name' => 'Common', 'slug' => 'common', 'script' => 'Common'],
-                        ['full_slug' => 'phb:dwarvish', 'name' => 'Dwarvish', 'slug' => 'dwarvish', 'script' => 'Dwarvish'],
+                        ['slug' => 'phb:common', 'name' => 'Common', 'script' => 'Common'],
+                        ['slug' => 'phb:dwarvish', 'name' => 'Dwarvish', 'script' => 'Dwarvish'],
                     ],
                 ],
             ],
@@ -129,7 +129,7 @@ it('skips sources with no choices', function () {
 
 it('includes selected languages in the choice', function () {
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn((object) [
-        'full_slug' => 'phb:human',
+        'slug' => 'phb:human',
         'name' => 'Human',
     ]);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn(null);
@@ -139,7 +139,7 @@ it('includes selected languages in the choice', function () {
         ->andReturn([
             'race' => [
                 'known' => [
-                    ['full_slug' => 'phb:common', 'name' => 'Common', 'slug' => 'common', 'script' => 'Common'],
+                    ['slug' => 'phb:common', 'name' => 'Common', 'script' => 'Common'],
                 ],
                 'choices' => [
                     'quantity' => 1,
@@ -178,11 +178,11 @@ it('includes selected languages in the choice', function () {
 
 it('handles multiple sources with choices', function () {
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn((object) [
-        'full_slug' => 'phb:half-elf',
+        'slug' => 'phb:half-elf',
         'name' => 'Half-Elf',
     ]);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn((object) [
-        'full_slug' => 'phb:sage',
+        'slug' => 'phb:sage',
         'name' => 'Sage',
     ]);
 
@@ -196,7 +196,7 @@ it('handles multiple sources with choices', function () {
                     'remaining' => 2,
                     'selected' => [],
                     'options' => [
-                        ['full_slug' => 'phb:common', 'name' => 'Common', 'slug' => 'common', 'script' => 'Common'],
+                        ['slug' => 'phb:common', 'name' => 'Common', 'script' => 'Common'],
                     ],
                 ],
             ],
@@ -207,7 +207,7 @@ it('handles multiple sources with choices', function () {
                     'remaining' => 1,
                     'selected' => [],
                     'options' => [
-                        ['full_slug' => 'phb:dwarvish', 'name' => 'Dwarvish', 'slug' => 'dwarvish', 'script' => 'Dwarvish'],
+                        ['slug' => 'phb:dwarvish', 'name' => 'Dwarvish', 'script' => 'Dwarvish'],
                     ],
                 ],
             ],
@@ -260,7 +260,7 @@ it('handles feat source correctly', function () {
                     'remaining' => 1,
                     'selected' => [],
                     'options' => [
-                        ['full_slug' => 'phb:dwarvish', 'name' => 'Dwarvish', 'slug' => 'dwarvish', 'script' => 'Dwarvish'],
+                        ['slug' => 'phb:dwarvish', 'name' => 'Dwarvish', 'script' => 'Dwarvish'],
                     ],
                 ],
             ],
@@ -288,7 +288,7 @@ it('resolves choices by calling the language service', function () {
         quantity: 1,
         remaining: 1,
         selected: [],
-        options: [['full_slug' => 'phb:common', 'name' => 'Common', 'slug' => 'common']],
+        options: [['slug' => 'phb:common', 'name' => 'Common']],
         optionsEndpoint: null,
         metadata: [],
     );
@@ -345,11 +345,11 @@ it('can undo language choices', function () {
 
 it('generates correct choice IDs for different sources', function () {
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn((object) [
-        'full_slug' => 'phb:elf',
+        'slug' => 'phb:elf',
         'name' => 'Elf',
     ]);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn((object) [
-        'full_slug' => 'phb:sage',
+        'slug' => 'phb:sage',
         'name' => 'Sage',
     ]);
 
@@ -363,7 +363,7 @@ it('generates correct choice IDs for different sources', function () {
                     'remaining' => 1,
                     'selected' => [],
                     'options' => [
-                        ['full_slug' => 'phb:common', 'name' => 'Common', 'slug' => 'common', 'script' => 'Common'],
+                        ['slug' => 'phb:common', 'name' => 'Common', 'script' => 'Common'],
                     ],
                 ],
             ],
@@ -374,7 +374,7 @@ it('generates correct choice IDs for different sources', function () {
                     'remaining' => 1,
                     'selected' => [],
                     'options' => [
-                        ['full_slug' => 'phb:dwarvish', 'name' => 'Dwarvish', 'slug' => 'dwarvish', 'script' => 'Dwarvish'],
+                        ['slug' => 'phb:dwarvish', 'name' => 'Dwarvish', 'script' => 'Dwarvish'],
                     ],
                 ],
             ],
@@ -428,7 +428,7 @@ it('resolves slugs via language service', function () {
 
 it('includes is_learnable field in language options', function () {
     $this->character->shouldReceive('getAttribute')->with('race')->andReturn((object) [
-        'full_slug' => 'phb:high-elf',
+        'slug' => 'phb:high-elf',
         'name' => 'High Elf',
     ]);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn(null);
@@ -444,8 +444,8 @@ it('includes is_learnable field in language options', function () {
                     'remaining' => 1,
                     'selected' => [],
                     'options' => [
-                        ['full_slug' => 'phb:common', 'name' => 'Common', 'slug' => 'common', 'script' => 'Common', 'is_learnable' => true],
-                        ['full_slug' => 'phb:dwarvish', 'name' => 'Dwarvish', 'slug' => 'dwarvish', 'script' => 'Dwarvish', 'is_learnable' => true],
+                        ['slug' => 'phb:common', 'name' => 'Common', 'script' => 'Common', 'is_learnable' => true],
+                        ['slug' => 'phb:dwarvish', 'name' => 'Dwarvish', 'script' => 'Dwarvish', 'is_learnable' => true],
                     ],
                 ],
             ],

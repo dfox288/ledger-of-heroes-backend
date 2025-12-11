@@ -57,7 +57,7 @@ class AddClassServiceTest extends TestCase
         // Add first class
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $fighter->full_slug,
+            'class_slug' => $fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -80,7 +80,7 @@ class AddClassServiceTest extends TestCase
         // Give character a class first (multiclassing requires existing class)
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $fighter->full_slug,
+            'class_slug' => $fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -113,7 +113,7 @@ class AddClassServiceTest extends TestCase
         // Give character a class first
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $fighter->full_slug,
+            'class_slug' => $fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -144,7 +144,7 @@ class AddClassServiceTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $fighter->full_slug,
+            'class_slug' => $fighter->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -164,7 +164,7 @@ class AddClassServiceTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $fighter->full_slug,
+            'class_slug' => $fighter->slug,
             'level' => 20,
             'is_primary' => true,
             'order' => 1,
@@ -220,7 +220,6 @@ class AddClassServiceTest extends TestCase
         // Create Hill Dwarf race with HP modifier
         $hillDwarf = Race::factory()->create([
             'slug' => 'dwarf-hill',
-            'full_slug' => 'dwarf-hill',
             'name' => 'Hill Dwarf',
         ]);
 
@@ -232,7 +231,7 @@ class AddClassServiceTest extends TestCase
         ]);
 
         $character = Character::factory()->create([
-            'race_slug' => $hillDwarf->full_slug,
+            'race_slug' => $hillDwarf->slug,
             'constitution' => 14, // +2 modifier
             'hp_calculation_method' => 'calculated',
             'max_hit_points' => null,
@@ -285,12 +284,11 @@ class AddClassServiceTest extends TestCase
     {
         $human = Race::factory()->create([
             'slug' => 'human',
-            'full_slug' => 'human',
             'name' => 'Human',
         ]);
 
         $character = Character::factory()->create([
-            'race_slug' => $human->full_slug,
+            'race_slug' => $human->slug,
             'constitution' => 14, // +2 modifier
             'hp_calculation_method' => 'calculated',
             'max_hit_points' => null,

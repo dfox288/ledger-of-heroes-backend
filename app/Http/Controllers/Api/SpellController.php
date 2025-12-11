@@ -180,7 +180,7 @@ class SpellController extends Controller
      *
      * @param  Spell  $spell  The spell to find classes for (accepts ID or slug)
      *
-     * @response array{data: array<int, array{id: int, slug: string, full_slug: string, name: string, hit_die: int, is_base_class: bool}>}
+     * @response array{data: array<int, array{id: int, slug: string, name: string, hit_die: int, is_base_class: bool}>}
      */
     public function classes(Spell $spell)
     {
@@ -216,7 +216,7 @@ class SpellController extends Controller
      *
      * @param  Spell  $spell  The spell to find monsters for (accepts ID or slug)
      *
-     * @response array{data: array<int, array{id: int, slug: string, full_slug: string, name: string, challenge_rating: string|null, type: string|null}>}
+     * @response array{data: array<int, array{id: int, slug: string, name: string, challenge_rating: string|null, type: string|null}>}
      */
     public function monsters(Spell $spell)
     {
@@ -252,7 +252,7 @@ class SpellController extends Controller
      *
      * @param  Spell  $spell  The spell to find items for (accepts ID or slug)
      *
-     * @response array{data: array<int, array{id: int, slug: string, full_slug: string, name: string, type: string|null, rarity: string|null}>}
+     * @response array{data: array<int, array{id: int, slug: string, name: string, type: string|null, rarity: string|null}>}
      */
     public function items(Spell $spell)
     {
@@ -288,7 +288,7 @@ class SpellController extends Controller
      *
      * @param  Spell  $spell  The spell to find races for (accepts ID or slug)
      *
-     * @response array{data: array<int, array{id: int, slug: string, full_slug: string, name: string, speed: int|null, is_subrace: bool}>}
+     * @response array{data: array<int, array{id: int, slug: string, name: string, speed: int|null, is_subrace: bool}>}
      */
     public function races(Spell $spell)
     {

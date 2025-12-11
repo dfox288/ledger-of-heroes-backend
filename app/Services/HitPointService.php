@@ -176,7 +176,7 @@ class HitPointService
             return 0;
         }
 
-        $race = Race::where('full_slug', $raceSlug)->first();
+        $race = Race::where('slug', $raceSlug)->first();
         if (! $race) {
             return 0;
         }

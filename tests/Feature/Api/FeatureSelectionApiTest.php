@@ -66,13 +66,13 @@ class FeatureSelectionApiTest extends TestCase
         // Create a Fighter class with unique slug
         $fighterClass = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'slug' => 'fighter-available-test',
+            'slug' => 'phb:fighter-available-test',
         ]);
 
         // Create a character with Fighter class
         $character = Character::factory()->create();
         $character->characterClasses()->create([
-            'class_slug' => $fighterClass->full_slug,
+            'class_slug' => $fighterClass->slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
@@ -89,7 +89,7 @@ class FeatureSelectionApiTest extends TestCase
 
         $wizardClass = CharacterClass::factory()->create([
             'name' => 'Wizard',
-            'slug' => 'wizard-available-test',
+            'slug' => 'phb:wizard-available-test',
         ]);
         $wizardFeature = OptionalFeature::factory()
             ->create([
@@ -113,12 +113,12 @@ class FeatureSelectionApiTest extends TestCase
     {
         $fighterClass = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'slug' => 'fighter-excludes-test',
+            'slug' => 'phb:fighter-excludes-test',
         ]);
 
         $character = Character::factory()->create();
         $character->characterClasses()->create([
-            'class_slug' => $fighterClass->full_slug,
+            'class_slug' => $fighterClass->slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
@@ -161,13 +161,13 @@ class FeatureSelectionApiTest extends TestCase
     {
         $fighterClass = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'slug' => 'fighter-level-req-test',
+            'slug' => 'phb:fighter-level-req-test',
         ]);
 
         // Level 3 character
         $character = Character::factory()->create();
         $character->characterClasses()->create([
-            'class_slug' => $fighterClass->full_slug,
+            'class_slug' => $fighterClass->slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
@@ -205,12 +205,12 @@ class FeatureSelectionApiTest extends TestCase
     {
         $fighterClass = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'slug' => 'fighter-filter-type-test',
+            'slug' => 'phb:fighter-filter-type-test',
         ]);
 
         $character = Character::factory()->create();
         $character->characterClasses()->create([
-            'class_slug' => $fighterClass->full_slug,
+            'class_slug' => $fighterClass->slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
@@ -250,12 +250,12 @@ class FeatureSelectionApiTest extends TestCase
     {
         $fighterClass = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'slug' => 'fighter-store-test',
+            'slug' => 'phb:fighter-store-test',
         ]);
 
         $character = Character::factory()->create();
         $character->characterClasses()->create([
-            'class_slug' => $fighterClass->full_slug,
+            'class_slug' => $fighterClass->slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
@@ -270,7 +270,7 @@ class FeatureSelectionApiTest extends TestCase
             ]);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/feature-selections", [
-            'optional_feature_slug' => $maneuver->full_slug,
+            'optional_feature_slug' => $maneuver->slug,
         ]);
 
         $response->assertCreated()
@@ -279,7 +279,7 @@ class FeatureSelectionApiTest extends TestCase
 
         $this->assertDatabaseHas('feature_selections', [
             'character_id' => $character->id,
-            'optional_feature_slug' => $maneuver->full_slug,
+            'optional_feature_slug' => $maneuver->slug,
         ]);
     }
 
@@ -288,12 +288,12 @@ class FeatureSelectionApiTest extends TestCase
     {
         $fighterClass = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'slug' => 'fighter-duplicate-test',
+            'slug' => 'phb:fighter-duplicate-test',
         ]);
 
         $character = Character::factory()->create();
         $character->characterClasses()->create([
-            'class_slug' => $fighterClass->full_slug,
+            'class_slug' => $fighterClass->slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
@@ -312,7 +312,7 @@ class FeatureSelectionApiTest extends TestCase
 
         // Try to select again
         $response = $this->postJson("/api/v1/characters/{$character->id}/feature-selections", [
-            'optional_feature_slug' => $maneuver->full_slug,
+            'optional_feature_slug' => $maneuver->slug,
         ]);
 
         $response->assertUnprocessable()
@@ -324,13 +324,13 @@ class FeatureSelectionApiTest extends TestCase
     {
         $fighterClass = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'slug' => 'fighter-level-store-test',
+            'slug' => 'phb:fighter-level-store-test',
         ]);
 
         // Level 3 character
         $character = Character::factory()->create();
         $character->characterClasses()->create([
-            'class_slug' => $fighterClass->full_slug,
+            'class_slug' => $fighterClass->slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
@@ -343,7 +343,7 @@ class FeatureSelectionApiTest extends TestCase
             ->create(['level_requirement' => 5]);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/feature-selections", [
-            'optional_feature_slug' => $highLevelFeature->full_slug,
+            'optional_feature_slug' => $highLevelFeature->slug,
         ]);
 
         $response->assertUnprocessable()
@@ -355,17 +355,17 @@ class FeatureSelectionApiTest extends TestCase
     {
         $fighterClass = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'slug' => 'fighter-eligibility-test',
+            'slug' => 'phb:fighter-eligibility-test',
         ]);
         $wizardClass = CharacterClass::factory()->create([
             'name' => 'Wizard',
-            'slug' => 'wizard-eligibility-test',
+            'slug' => 'phb:wizard-eligibility-test',
         ]);
 
         // Fighter character
         $character = Character::factory()->create();
         $character->characterClasses()->create([
-            'class_slug' => $fighterClass->full_slug,
+            'class_slug' => $fighterClass->slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
@@ -377,7 +377,7 @@ class FeatureSelectionApiTest extends TestCase
             ->create();
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/feature-selections", [
-            'optional_feature_slug' => $wizardFeature->full_slug,
+            'optional_feature_slug' => $wizardFeature->slug,
         ]);
 
         $response->assertUnprocessable()
@@ -389,18 +389,18 @@ class FeatureSelectionApiTest extends TestCase
     {
         $fighterClass = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'slug' => 'fighter-subclass-store-test',
+            'slug' => 'phb:fighter-subclass-store-test',
         ]);
         $battleMaster = CharacterClass::factory()->create([
             'name' => 'Battle Master',
-            'slug' => 'fighter-subclass-store-test-battle-master',
+            'slug' => 'phb:fighter-subclass-store-test-battle-master',
             'parent_class_id' => $fighterClass->id,
         ]);
 
         $character = Character::factory()->create();
         $character->characterClasses()->create([
-            'class_slug' => $fighterClass->full_slug,
-            'subclass_slug' => $battleMaster->full_slug,
+            'class_slug' => $fighterClass->slug,
+            'subclass_slug' => $battleMaster->slug,
             'level' => 3,
             'is_primary' => true,
             'order' => 1,
@@ -412,8 +412,8 @@ class FeatureSelectionApiTest extends TestCase
             ->create(['level_requirement' => null]);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/feature-selections", [
-            'optional_feature_slug' => $maneuver->full_slug,
-            'class_slug' => $fighterClass->full_slug,
+            'optional_feature_slug' => $maneuver->slug,
+            'class_slug' => $fighterClass->slug,
             'subclass_name' => 'Battle Master',
         ]);
 
@@ -427,12 +427,12 @@ class FeatureSelectionApiTest extends TestCase
     {
         $fighterClass = CharacterClass::factory()->create([
             'name' => 'Fighter',
-            'slug' => 'fighter-level-acquired-test',
+            'slug' => 'phb:fighter-level-acquired-test',
         ]);
 
         $character = Character::factory()->create();
         $character->characterClasses()->create([
-            'class_slug' => $fighterClass->full_slug,
+            'class_slug' => $fighterClass->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -444,7 +444,7 @@ class FeatureSelectionApiTest extends TestCase
             ->create(['level_requirement' => null]);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/feature-selections", [
-            'optional_feature_slug' => $maneuver->full_slug,
+            'optional_feature_slug' => $maneuver->slug,
             'level_acquired' => 3,
         ]);
 
@@ -469,16 +469,16 @@ class FeatureSelectionApiTest extends TestCase
 
         $this->assertDatabaseHas('feature_selections', [
             'character_id' => $character->id,
-            'optional_feature_slug' => $feature->full_slug,
+            'optional_feature_slug' => $feature->slug,
         ]);
 
-        $response = $this->deleteJson("/api/v1/characters/{$character->id}/feature-selections/{$feature->full_slug}");
+        $response = $this->deleteJson("/api/v1/characters/{$character->id}/feature-selections/{$feature->slug}");
 
         $response->assertNoContent();
 
         $this->assertDatabaseMissing('feature_selections', [
             'character_id' => $character->id,
-            'optional_feature_slug' => $feature->full_slug,
+            'optional_feature_slug' => $feature->slug,
         ]);
     }
 
@@ -488,7 +488,7 @@ class FeatureSelectionApiTest extends TestCase
         $character = Character::factory()->create();
         $feature = OptionalFeature::factory()->maneuver()->create();
 
-        $response = $this->deleteJson("/api/v1/characters/{$character->id}/feature-selections/{$feature->full_slug}");
+        $response = $this->deleteJson("/api/v1/characters/{$character->id}/feature-selections/{$feature->slug}");
 
         $response->assertNotFound();
     }
@@ -519,7 +519,7 @@ class FeatureSelectionApiTest extends TestCase
         $feature = OptionalFeature::factory()->create();
 
         $response = $this->postJson('/api/v1/characters/99999/feature-selections', [
-            'optional_feature_slug' => $feature->full_slug,
+            'optional_feature_slug' => $feature->slug,
         ]);
 
         $response->assertNotFound();

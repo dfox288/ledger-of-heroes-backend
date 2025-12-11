@@ -36,7 +36,7 @@ it('detects thieves cant language grant from rogue', function () {
         ->and($rogue['languages'])->toHaveCount(1);
 
     $language = $rogue['languages'][0];
-    expect($language['slug'])->toBe('thieves-cant')
+    expect($language['slug'])->toBe('core:thieves-cant')
         ->and($language['is_choice'])->toBeFalse();
 });
 
@@ -62,7 +62,7 @@ it('detects druidic language grant from druid', function () {
         ->and($druid['languages'])->toHaveCount(1);
 
     $language = $druid['languages'][0];
-    expect($language['slug'])->toBe('druidic')
+    expect($language['slug'])->toBe('core:druidic')
         ->and($language['is_choice'])->toBeFalse();
 });
 
@@ -126,7 +126,7 @@ it('parses real rogue xml for thieves cant', function () {
     expect($rogue['name'])->toBe('Rogue')
         ->and($rogue)->toHaveKey('languages');
 
-    $thievesCant = collect($rogue['languages'])->firstWhere('slug', 'thieves-cant');
+    $thievesCant = collect($rogue['languages'])->firstWhere('slug', 'core:thieves-cant');
     expect($thievesCant)->not->toBeNull("Thieves' Cant should be detected in Rogue")
         ->and($thievesCant['is_choice'])->toBeFalse();
 });
@@ -145,7 +145,7 @@ it('parses real druid xml for druidic', function () {
     expect($druid['name'])->toBe('Druid')
         ->and($druid)->toHaveKey('languages');
 
-    $druidic = collect($druid['languages'])->firstWhere('slug', 'druidic');
+    $druidic = collect($druid['languages'])->firstWhere('slug', 'core:druidic');
     expect($druidic)->not->toBeNull('Druidic should be detected in Druid')
         ->and($druidic['is_choice'])->toBeFalse();
 });

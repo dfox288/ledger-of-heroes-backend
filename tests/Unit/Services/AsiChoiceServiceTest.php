@@ -69,7 +69,7 @@ class AsiChoiceServiceTest extends TestCase
         CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => Feat::class,
-            'feature_slug' => $feat->full_slug,
+            'feature_slug' => $feat->slug,
             'source' => 'feat',
             'level_acquired' => 1,
         ]);
@@ -155,7 +155,7 @@ class AsiChoiceServiceTest extends TestCase
         $this->assertDatabaseHas('character_features', [
             'character_id' => $character->id,
             'feature_type' => Feat::class,
-            'feature_slug' => $feat->full_slug,
+            'feature_slug' => $feat->slug,
             'source' => 'feat',
         ]);
     }
@@ -193,10 +193,10 @@ class AsiChoiceServiceTest extends TestCase
             'asi_choices_remaining' => 1,
         ]);
 
-        // Create a proficiency type with full_slug
+        // Create a proficiency type
         $proficiencyType = ProficiencyType::firstOrCreate(
             ['slug' => 'saving-throw'],
-            ['name' => 'Saving Throw', 'full_slug' => 'phb:saving-throw', 'category' => 'saving_throw']
+            ['name' => 'Saving Throw', 'slug' => 'saving-throw', 'category' => 'saving_throw']
         );
 
         $feat = Feat::factory()->create();
@@ -212,7 +212,7 @@ class AsiChoiceServiceTest extends TestCase
 
         $this->assertDatabaseHas('character_proficiencies', [
             'character_id' => $character->id,
-            'proficiency_type_slug' => 'phb:saving-throw',
+            'proficiency_type_slug' => 'saving-throw',
             'source' => 'feat',
         ]);
         $this->assertContains('Constitution Saves', $result->proficienciesGained);
@@ -225,7 +225,7 @@ class AsiChoiceServiceTest extends TestCase
             'asi_choices_remaining' => 1,
         ]);
 
-        $spell = Spell::factory()->create(['name' => 'Firebolt', 'slug' => 'firebolt', 'full_slug' => 'phb:firebolt']);
+        $spell = Spell::factory()->create(['name' => 'Firebolt', 'slug' => 'firebolt']);
         $feat = Feat::factory()->create();
         $feat->spells()->attach($spell->id);
 
@@ -233,12 +233,12 @@ class AsiChoiceServiceTest extends TestCase
 
         $this->assertDatabaseHas('character_spells', [
             'character_id' => $character->id,
-            'spell_slug' => $spell->full_slug,
+            'spell_slug' => $spell->slug,
             'source' => 'feat',
         ]);
         $this->assertCount(1, $result->spellsGained);
         $this->assertEquals('Firebolt', $result->spellsGained[0]['name']);
-        $this->assertEquals('phb:firebolt', $result->spellsGained[0]['slug']);
+        $this->assertEquals('firebolt', $result->spellsGained[0]['slug']);
     }
 
     #[Test]
@@ -250,13 +250,12 @@ class AsiChoiceServiceTest extends TestCase
         $feat = Feat::factory()->create([
             'name' => 'Alert',
             'slug' => 'alert',
-            'full_slug' => 'phb:alert',
         ]);
 
         $result = $this->service->applyFeatChoice($character, $feat);
 
         $this->assertEquals('feat', $result->choiceType);
-        $this->assertEquals('phb:alert', $result->feat['slug']);
+        $this->assertEquals('alert', $result->feat['slug']);
         $this->assertEquals('Alert', $result->feat['name']);
     }
 
@@ -418,7 +417,7 @@ class AsiChoiceServiceTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -463,7 +462,7 @@ class AsiChoiceServiceTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_slug' => $class->full_slug,
+            'class_slug' => $class->slug,
             'level' => 4,
             'is_primary' => true,
             'order' => 1,
@@ -492,14 +491,13 @@ class AsiChoiceServiceTest extends TestCase
         ]);
         $feat = Feat::factory()->create([
             'slug' => 'actor',
-            'full_slug' => 'phb:actor',
             'name' => 'Actor',
         ]);
 
         $this->service->applyFeatChoice($character, $feat);
 
         $characterFeature = CharacterFeature::where('character_id', $character->id)
-            ->where('feature_slug', $feat->full_slug)
+            ->where('feature_slug', $feat->slug)
             ->first();
 
         // Verify feature_id is set

@@ -138,7 +138,7 @@ class CharacterFeatureService
         }
 
         // Load the subclass
-        $subclass = CharacterClass::where('full_slug', $subclassSlug)->first();
+        $subclass = CharacterClass::where('slug', $subclassSlug)->first();
 
         if (! $subclass) {
             return;
@@ -211,7 +211,7 @@ class CharacterFeatureService
 
             $this->createSpellIfNotExists(
                 $character,
-                $spell->full_slug,
+                $spell->slug,
                 'subclass',
                 $levelAcquired,
                 'always_prepared'
@@ -258,7 +258,7 @@ class CharacterFeatureService
     public function clearSubclassFeatures(Character $character, string $subclassSlug): void
     {
         // Load the subclass to get its feature IDs
-        $subclass = CharacterClass::where('full_slug', $subclassSlug)->first();
+        $subclass = CharacterClass::where('slug', $subclassSlug)->first();
 
         if (! $subclass) {
             return;
@@ -275,7 +275,7 @@ class CharacterFeatureService
 
         // Collect all spell slugs granted by this subclass's features
         $spellSlugs = $subclassFeatures
-            ->flatMap(fn ($feature) => $feature->spells->pluck('full_slug'))
+            ->flatMap(fn ($feature) => $feature->spells->pluck('slug'))
             ->unique()
             ->toArray();
 

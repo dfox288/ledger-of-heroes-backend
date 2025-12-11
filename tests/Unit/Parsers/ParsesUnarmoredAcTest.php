@@ -172,5 +172,23 @@ describe('ParsesUnarmoredAc', function () {
 
             expect($result)->toBeNull();
         });
+
+        it('returns null for AC values below valid range', function () {
+            $text = 'Your AC is 5 + your Dexterity modifier.';
+
+            $result = $this->parser->parse($text);
+
+            // AC below 10 is invalid for natural armor
+            expect($result)->toBeNull();
+        });
+
+        it('returns null for AC values above valid range', function () {
+            $text = 'Your AC is 25 + your Dexterity modifier.';
+
+            $result = $this->parser->parse($text);
+
+            // AC above 20 is invalid for natural armor
+            expect($result)->toBeNull();
+        });
     });
 });

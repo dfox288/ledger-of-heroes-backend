@@ -23,6 +23,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #487**: Expand LevelUpResult to include all pending choice flags
+  - Added `pendingChoiceSummary` field to `LevelUpResult` DTO containing:
+    - `total_pending`, `required_pending`, `optional_pending` counts
+    - `by_type` breakdown (e.g., `{"hit_points": 1, "subclass": 1}`)
+    - `by_source` breakdown (e.g., `{"class": 2, "level_up": 1}`)
+  - Refactored `CharacterClassController::levelUp()` to use `LevelUpService`
+  - Created `LevelUpResource` for consistent API response serialization
+  - Level-up response now includes all pending choices without requiring separate `/pending-choices` call
+  - Eliminates redundant API calls for frontend level-up wizard
+
 - **Issue #449**: Parse limited-use ability counters from feat text
   - Extended `class_counters` table to support feat-based counters via nullable `feat_id`
   - New `ParsesUsageLimits` trait extracts use counts from feat descriptions

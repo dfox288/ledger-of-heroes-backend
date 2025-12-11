@@ -435,6 +435,32 @@ class LevelUpServiceTest extends TestCase
     }
 
     #[Test]
+    public function it_returns_pending_choice_summary(): void
+    {
+        $class = CharacterClass::factory()->create(['hit_die' => 8]);
+        $race = Race::factory()->create();
+        $character = Character::factory()
+            ->withClass($class, level: 1)
+            ->withRace($race)
+            ->withAbilityScores(['CON' => 10])
+            ->withHitPoints(10)
+            ->create();
+
+        $result = $this->service->levelUp($character);
+
+        // Should include pending choice summary
+        $this->assertArrayHasKey('total_pending', $result->pendingChoiceSummary);
+        $this->assertArrayHasKey('required_pending', $result->pendingChoiceSummary);
+        $this->assertArrayHasKey('optional_pending', $result->pendingChoiceSummary);
+        $this->assertArrayHasKey('by_type', $result->pendingChoiceSummary);
+        $this->assertArrayHasKey('by_source', $result->pendingChoiceSummary);
+
+        // HP choice should be pending after level-up
+        $this->assertGreaterThanOrEqual(1, $result->pendingChoiceSummary['total_pending']);
+        $this->assertArrayHasKey('hit_points', $result->pendingChoiceSummary['by_type']);
+    }
+
+    #[Test]
     public function level_up_result_dto_converts_to_array(): void
     {
         $result = new LevelUpResult(
@@ -448,6 +474,13 @@ class LevelUpServiceTest extends TestCase
             spellSlots: [1 => 4, 2 => 3],
             asiPending: true,
             hpChoicePending: true,
+            pendingChoiceSummary: [
+                'total_pending' => 2,
+                'required_pending' => 2,
+                'optional_pending' => 0,
+                'by_type' => ['hit_points' => 1, 'asi_or_feat' => 1],
+                'by_source' => ['class' => 2],
+            ],
         );
 
         $array = $result->toArray();
@@ -463,6 +496,13 @@ class LevelUpServiceTest extends TestCase
             'spell_slots' => [1 => 4, 2 => 3],
             'asi_pending' => true,
             'hp_choice_pending' => true,
+            'pending_choice_summary' => [
+                'total_pending' => 2,
+                'required_pending' => 2,
+                'optional_pending' => 0,
+                'by_type' => ['hit_points' => 1, 'asi_or_feat' => 1],
+                'by_source' => ['class' => 2],
+            ],
         ], $array);
     }
 }

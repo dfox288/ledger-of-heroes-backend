@@ -28,12 +28,16 @@ class LevelUpService
 
     private SpellSlotService $spellSlotService;
 
+    private CharacterChoiceService $choiceService;
+
     public function __construct(
         ?CharacterStatCalculator $calculator = null,
-        ?SpellSlotService $spellSlotService = null
+        ?SpellSlotService $spellSlotService = null,
+        ?CharacterChoiceService $choiceService = null
     ) {
         $this->calculator = $calculator ?? new CharacterStatCalculator;
         $this->spellSlotService = $spellSlotService ?? app(SpellSlotService::class);
+        $this->choiceService = $choiceService ?? app(CharacterChoiceService::class);
     }
 
     /**
@@ -78,6 +82,9 @@ class LevelUpService
 
             $spellSlots = $this->getSpellSlots($character);
 
+            // Get pending choice summary after level-up
+            $pendingChoiceSummary = $this->choiceService->getSummary($character);
+
             // HP is NOT modified here - it's handled by HitPointRollChoiceHandler
             return new LevelUpResult(
                 previousLevel: $previousLevel,
@@ -87,6 +94,7 @@ class LevelUpService
                 featuresGained: $featuresGained,
                 spellSlots: $spellSlots,
                 asiPending: $asiPending,
+                pendingChoiceSummary: $pendingChoiceSummary,
             );
         });
     }

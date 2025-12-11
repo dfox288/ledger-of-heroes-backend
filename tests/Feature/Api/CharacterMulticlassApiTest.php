@@ -7,6 +7,7 @@ use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
 use App\Models\Proficiency;
+use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -236,29 +237,45 @@ class CharacterMulticlassApiTest extends TestCase
     #[Test]
     public function it_levels_up_a_specific_class(): void
     {
-        $character = Character::factory()->create();
         $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'hit_die' => 10, 'parent_class_id' => null]);
         $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'hit_die' => 6, 'parent_class_id' => null]);
+        $race = Race::factory()->create();
 
-        CharacterClassPivot::create([
-            'character_id' => $character->id,
-            'class_slug' => $fighter->full_slug,
-            'level' => 5,
-            'is_primary' => true,
-            'order' => 1,
-        ]);
-        CharacterClassPivot::create([
-            'character_id' => $character->id,
-            'class_slug' => $wizard->full_slug,
-            'level' => 3,
-            'is_primary' => false,
-            'order' => 2,
-        ]);
+        // Create a complete character with multiclass (Fighter 5 / Wizard 3 = level 8)
+        $character = Character::factory()
+            ->withClass($fighter, level: 5)
+            ->withClass($wizard, level: 3)
+            ->withRace($race)
+            ->withAbilityScores(['CON' => 10])
+            ->withHitPoints(40)
+            ->create([
+                'hp_levels_resolved' => range(2, 8), // HP resolved for levels 2-8
+            ]);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/classes/{$wizard->full_slug}/level-up");
 
         $response->assertOk()
-            ->assertJsonPath('data.level', 4);
+            ->assertJsonPath('data.previous_level', 8)
+            ->assertJsonPath('data.new_level', 9)
+            ->assertJsonStructure([
+                'data' => [
+                    'previous_level',
+                    'new_level',
+                    'hp_increase',
+                    'new_max_hp',
+                    'features_gained',
+                    'spell_slots',
+                    'asi_pending',
+                    'hp_choice_pending',
+                    'pending_choice_summary' => [
+                        'total_pending',
+                        'required_pending',
+                        'optional_pending',
+                        'by_type',
+                        'by_source',
+                    ],
+                ],
+            ]);
 
         $this->assertDatabaseHas('character_classes', [
             'character_id' => $character->id,
@@ -270,29 +287,25 @@ class CharacterMulticlassApiTest extends TestCase
     #[Test]
     public function it_prevents_level_up_beyond_20_total(): void
     {
-        $character = Character::factory()->create();
-        $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'parent_class_id' => null]);
-        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'parent_class_id' => null]);
+        $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'hit_die' => 10, 'parent_class_id' => null]);
+        $wizard = CharacterClass::factory()->create(['name' => 'Wizard', 'hit_die' => 6, 'parent_class_id' => null]);
+        $race = Race::factory()->create();
 
-        CharacterClassPivot::create([
-            'character_id' => $character->id,
-            'class_slug' => $fighter->full_slug,
-            'level' => 15,
-            'is_primary' => true,
-            'order' => 1,
-        ]);
-        CharacterClassPivot::create([
-            'character_id' => $character->id,
-            'class_slug' => $wizard->full_slug,
-            'level' => 5,
-            'is_primary' => false,
-            'order' => 2,
-        ]);
+        // Create a complete character at max level (Fighter 15 / Wizard 5 = level 20)
+        $character = Character::factory()
+            ->withClass($fighter, level: 15)
+            ->withClass($wizard, level: 5)
+            ->withRace($race)
+            ->withAbilityScores(['CON' => 10])
+            ->withHitPoints(100)
+            ->create([
+                'hp_levels_resolved' => range(2, 20), // HP resolved for all levels
+            ]);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/classes/{$wizard->full_slug}/level-up");
 
-        $response->assertUnprocessable()
-            ->assertJsonPath('message', 'Character has reached maximum level (20)');
+        $response->assertUnprocessable();
+        $this->assertStringContainsString('maximum level (20)', $response->json('message'));
     }
 
     #[Test]

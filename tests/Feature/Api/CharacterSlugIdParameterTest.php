@@ -5,6 +5,7 @@ namespace Tests\Feature\Api;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\OptionalFeature;
+use App\Models\Race;
 use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -240,33 +241,47 @@ class CharacterSlugIdParameterTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_levels_up_class_by_id()
+    public function it_levels_up_class_by_full_slug()
     {
-        // Add class to character
-        $this->character->characterClasses()->create([
-            'class_id' => $this->class->id,
-            'level' => 3,
-        ]);
+        $race = Race::factory()->create();
 
-        $response = $this->postJson("/api/v1/characters/{$this->character->id}/classes/{$this->class->id}/level-up");
+        // Create a complete character for level-up test
+        $character = Character::factory()
+            ->withClass($this->class, level: 3)
+            ->withRace($race)
+            ->withAbilityScores(['CON' => 10])
+            ->withHitPoints(20)
+            ->create([
+                'hp_levels_resolved' => [2, 3], // HP resolved for levels 2-3
+            ]);
+
+        $response = $this->postJson("/api/v1/characters/{$character->id}/classes/{$this->class->full_slug}/level-up");
 
         $response->assertOk();
-        $response->assertJsonPath('data.level', 4);
+        $response->assertJsonPath('data.new_level', 4);
+        $response->assertJsonPath('data.previous_level', 3);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_levels_up_class_by_slug()
     {
-        // Add class to character
-        $this->character->characterClasses()->create([
-            'class_id' => $this->class->id,
-            'level' => 3,
-        ]);
+        $race = Race::factory()->create();
 
-        $response = $this->postJson("/api/v1/characters/{$this->character->id}/classes/{$this->class->slug}/level-up");
+        // Create a complete character for level-up test
+        $character = Character::factory()
+            ->withClass($this->class, level: 3)
+            ->withRace($race)
+            ->withAbilityScores(['CON' => 10])
+            ->withHitPoints(20)
+            ->create([
+                'hp_levels_resolved' => [2, 3], // HP resolved for levels 2-3
+            ]);
+
+        $response = $this->postJson("/api/v1/characters/{$character->id}/classes/{$this->class->slug}/level-up");
 
         $response->assertOk();
-        $response->assertJsonPath('data.level', 4);
+        $response->assertJsonPath('data.new_level', 4);
+        $response->assertJsonPath('data.previous_level', 3);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

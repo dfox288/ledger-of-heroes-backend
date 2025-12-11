@@ -15,6 +15,7 @@ final readonly class LevelUpResult
      * @param  array<string, int>  $spellSlots  Current spell slots by level
      * @param  bool  $asiPending  Whether an ASI/Feat choice is pending
      * @param  bool  $hpChoicePending  Whether an HP choice (roll/average) is pending
+     * @param  array{total_pending: int, required_pending: int, optional_pending: int, by_type: array<string, int>, by_source: array<string, int>}  $pendingChoiceSummary  Summary of all pending choices
      */
     public function __construct(
         public int $previousLevel,
@@ -25,6 +26,7 @@ final readonly class LevelUpResult
         public array $spellSlots,
         public bool $asiPending,
         public bool $hpChoicePending = false,
+        public array $pendingChoiceSummary = [],
     ) {}
 
     /**
@@ -41,6 +43,7 @@ final readonly class LevelUpResult
             'spell_slots' => $this->spellSlots,
             'asi_pending' => $this->asiPending,
             'hp_choice_pending' => $this->hpChoicePending,
+            'pending_choice_summary' => $this->pendingChoiceSummary,
         ];
     }
 }

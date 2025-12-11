@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Exceptions\ClassReplacementException;
 use App\Exceptions\DuplicateClassException;
+use App\Exceptions\IncompleteCharacterException;
 use App\Exceptions\InvalidSubclassException;
 use App\Exceptions\MaxLevelReachedException;
 use App\Exceptions\MulticlassPrerequisiteException;
@@ -12,10 +13,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Character\CharacterClassAddRequest;
 use App\Http\Requests\Character\CharacterSubclassSetRequest;
 use App\Http\Resources\CharacterClassPivotResource;
+use App\Http\Resources\LevelUpResource;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Services\AddClassService;
 use App\Services\CharacterFeatureService;
+use App\Services\LevelUpService;
 use App\Services\ReplaceClassService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -28,6 +31,7 @@ class CharacterClassController extends Controller
         private AddClassService $addClassService,
         private ReplaceClassService $replaceClassService,
         private CharacterFeatureService $featureService,
+        private LevelUpService $levelUpService,
     ) {}
 
     /**
@@ -238,32 +242,29 @@ class CharacterClassController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        return DB::transaction(function () use ($character, $class) {
-            // Lock the character's class rows to prevent concurrent modifications
-            $existingClasses = $character->characterClasses()->lockForUpdate()->get();
+        // Verify class exists on character before attempting level-up
+        $pivot = $character->characterClasses()->where('class_slug', $class->full_slug)->first();
+        if (! $pivot) {
+            return response()->json([
+                'message' => 'Class not found on character',
+            ], Response::HTTP_NOT_FOUND);
+        }
 
-            $pivot = $existingClasses->where('class_slug', $class->full_slug)->first();
+        try {
+            $result = $this->levelUpService->levelUp($character, $class->full_slug);
 
-            if (! $pivot) {
-                return response()->json([
-                    'message' => 'Class not found on character',
-                ], Response::HTTP_NOT_FOUND);
-            }
-
-            $totalLevel = $existingClasses->sum('level');
-            if ($totalLevel >= 20) {
-                return response()->json([
-                    'message' => 'Character has reached maximum level (20)',
-                ], Response::HTTP_UNPROCESSABLE_ENTITY);
-            }
-
-            $pivot->increment('level');
-            $pivot->load('characterClass', 'subclass');
-
-            return (new CharacterClassPivotResource($pivot->fresh()))
+            return (new LevelUpResource($result))
                 ->response()
                 ->setStatusCode(Response::HTTP_OK);
-        });
+        } catch (MaxLevelReachedException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (IncompleteCharacterException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
     }
 
     /**

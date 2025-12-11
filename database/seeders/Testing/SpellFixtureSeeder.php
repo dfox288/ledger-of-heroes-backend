@@ -32,20 +32,19 @@ class SpellFixtureSeeder extends FixtureSeeder
             ? implode(', ', $item['components'])
             : $item['components'];
 
-        // Generate full_slug from primary source (if available)
-        $fullSlug = null;
+        // Generate source-prefixed slug
+        $slug = $item['slug'];
         if (! empty($item['sources'])) {
             $primarySourceCode = strtolower($item['sources'][0]['code'] ?? '');
             if ($primarySourceCode) {
-                $fullSlug = $primarySourceCode.':'.$item['slug'];
+                $slug = $primarySourceCode.':'.$item['slug'];
             }
         }
 
         // Create spell
         $spell = Spell::create([
             'name' => $item['name'],
-            'slug' => $item['slug'],
-            'full_slug' => $fullSlug,
+            'slug' => $slug,
             'level' => $item['level'],
             'spell_school_id' => $spellSchool?->id,
             'casting_time' => $item['casting_time'],

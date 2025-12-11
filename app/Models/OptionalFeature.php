@@ -20,7 +20,6 @@ class OptionalFeature extends BaseModel
 
     protected $fillable = [
         'slug',
-        'full_slug',
         'name',
         'feature_type',
         'level_requirement',

@@ -27,8 +27,7 @@ class BackgroundFactory extends Factory
         $slug = Str::slug($name);
 
         return [
-            'slug' => $slug,
-            'full_slug' => 'test:'.$slug,
+            'slug' => 'test:'.$slug,
             'name' => $name,
         ];
     }

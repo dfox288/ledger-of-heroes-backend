@@ -18,7 +18,7 @@ class CharacterEquipmentFactory extends Factory
     {
         return [
             'character_id' => Character::factory(),
-            'item_slug' => fn () => Item::whereNotNull('full_slug')->inRandomOrder()->first()?->full_slug,
+            'item_slug' => fn () => Item::whereNotNull('slug')->inRandomOrder()->first()?->slug,
             'quantity' => 1,
             'equipped' => false,
             'location' => 'backpack',
@@ -42,7 +42,7 @@ class CharacterEquipmentFactory extends Factory
     public function withItem(Item|string $item): static
     {
         return $this->state([
-            'item_slug' => $item instanceof Item ? $item->full_slug : $item,
+            'item_slug' => $item instanceof Item ? $item->slug : $item,
         ]);
     }
 

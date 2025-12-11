@@ -13,7 +13,6 @@ class Skill extends BaseModel
     protected $fillable = [
         'name',
         'slug',
-        'full_slug',
         'ability_score_id',
     ];
 

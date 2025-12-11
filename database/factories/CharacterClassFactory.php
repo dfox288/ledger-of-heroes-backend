@@ -26,8 +26,7 @@ class CharacterClassFactory extends Factory
         $slug = Str::slug($name);
 
         return [
-            'slug' => $slug,
-            'full_slug' => 'test:'.$slug,
+            'slug' => 'test:'.$slug,
             'name' => $name,
             'parent_class_id' => null,
             'hit_die' => fake()->randomElement([6, 8, 10, 12]),
@@ -59,8 +58,7 @@ class CharacterClassFactory extends Factory
 
             return [
                 'parent_class_id' => $parent->id,
-                'slug' => $slug,
-                'full_slug' => 'test:'.$slug,
+                'slug' => 'test:'.$slug,
             ];
         });
     }

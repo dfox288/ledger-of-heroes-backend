@@ -22,8 +22,7 @@ class RaceFactory extends Factory
         $slug = Str::slug($name);
 
         return [
-            'slug' => $slug,
-            'full_slug' => 'test:'.$slug,
+            'slug' => 'test:'.$slug,
             'name' => $name,
             'size_id' => Size::where('code', 'M')->first()->id,
             'speed' => 30,

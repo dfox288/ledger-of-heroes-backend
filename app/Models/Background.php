@@ -20,7 +20,6 @@ class Background extends BaseModel
 
     protected $fillable = [
         'slug',
-        'full_slug',
         'name',
     ];
 

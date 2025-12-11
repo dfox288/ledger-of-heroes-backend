@@ -31,6 +31,6 @@ class CharacterLanguage extends Model
 
     public function language(): BelongsTo
     {
-        return $this->belongsTo(Language::class, 'language_slug', 'full_slug');
+        return $this->belongsTo(Language::class, 'language_slug', 'slug');
     }
 }

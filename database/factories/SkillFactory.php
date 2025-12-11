@@ -25,8 +25,7 @@ class SkillFactory extends Factory
 
         return [
             'name' => ucwords($name),
-            'slug' => $slug,
-            'full_slug' => 'test:'.$slug,
+            'slug' => 'test:'.$slug,
             'ability_score_id' => null,
         ];
     }
@@ -40,8 +39,7 @@ class SkillFactory extends Factory
 
         return $this->state(fn (array $attributes) => [
             'name' => $name,
-            'slug' => $slug,
-            'full_slug' => 'test:'.$slug,
+            'slug' => 'test:'.$slug,
         ]);
     }
 }

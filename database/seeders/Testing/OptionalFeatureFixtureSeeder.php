@@ -30,18 +30,17 @@ class OptionalFeatureFixtureSeeder extends FixtureSeeder
             $spellSchoolId = $spellSchool?->id;
         }
 
-        // Generate full_slug from source (if available)
-        $fullSlug = null;
+        // Generate source-prefixed slug
+        $slug = $item['slug'];
         if (! empty($item['source'])) {
             $sourceCode = strtolower($item['source']);
-            $fullSlug = $sourceCode.':'.$item['slug'];
+            $slug = $sourceCode.':'.$item['slug'];
         }
 
         // Create optional feature
         $feature = OptionalFeature::create([
             'name' => $item['name'],
-            'slug' => $item['slug'],
-            'full_slug' => $fullSlug,
+            'slug' => $slug,
             'feature_type' => $item['feature_type'],
             'level_requirement' => $item['level_requirement'],
             'prerequisite_text' => $item['prerequisite_text'],

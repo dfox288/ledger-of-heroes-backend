@@ -27,7 +27,6 @@ class Feat extends BaseModel
     protected $fillable = [
         'name',
         'slug',
-        'full_slug',
         'prerequisites_text',
         'description',
         'resets_on',

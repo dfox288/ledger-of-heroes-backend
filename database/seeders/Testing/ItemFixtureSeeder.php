@@ -32,18 +32,17 @@ class ItemFixtureSeeder extends FixtureSeeder
             $damageType = DamageType::where('code', $item['damage_type'])->first();
         }
 
-        // Generate full_slug from source (if available)
-        $fullSlug = null;
+        // Generate source-prefixed slug
+        $slug = $item['slug'];
         if (! empty($item['source'])) {
             $sourceCode = strtolower($item['source']);
-            $fullSlug = $sourceCode.':'.$item['slug'];
+            $slug = $sourceCode.':'.$item['slug'];
         }
 
         // Create item
         $itemModel = Item::create([
             'name' => $item['name'],
-            'slug' => $item['slug'],
-            'full_slug' => $fullSlug,
+            'slug' => $slug,
             'item_type_id' => $itemType?->id,
             'detail' => $item['detail'],
             'rarity' => $item['rarity'],

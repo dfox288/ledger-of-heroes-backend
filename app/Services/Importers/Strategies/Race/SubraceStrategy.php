@@ -130,14 +130,13 @@ class SubraceStrategy extends AbstractImportStrategy
         }
 
         $size = Size::where('code', $subraceData['size_code'])->first();
-        $slug = Str::slug($name);
 
-        // Generate full_slug with source prefix
+        // Generate source-prefixed slug
         // Use sources from subrace data, fallback to PHB if not provided or empty
         $sources = ! empty($subraceData['sources'])
             ? $subraceData['sources']
             : [['code' => 'PHB', 'pages' => '']];
-        $fullSlug = $this->generateFullSlug($slug, $sources);
+        $slug = $this->generateSlug($name, $sources);
 
         // Calculate base race ability points to determine if subraces are required
         // Base race only gets the first ability bonus (e.g., Dwarf gets Con +2)
@@ -150,7 +149,6 @@ class SubraceStrategy extends AbstractImportStrategy
         return Race::create([
             'name' => $name,
             'slug' => $slug,
-            'full_slug' => $fullSlug,
             'size_id' => $size->id,
             'speed' => $subraceData['speed'] ?? 30,
             'description' => "Base race for {$name} subraces.",

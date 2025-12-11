@@ -18,7 +18,7 @@ class CharacterLanguageFactory extends Factory
     {
         return [
             'character_id' => Character::factory(),
-            'language_slug' => fn () => Language::factory()->create()->full_slug,
+            'language_slug' => fn () => Language::factory()->create()->slug,
             'source' => fake()->randomElement(['race', 'background', 'feat']),
         ];
     }

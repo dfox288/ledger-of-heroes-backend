@@ -37,12 +37,12 @@ class CharacterClassPivot extends Model
 
     public function characterClass(): BelongsTo
     {
-        return $this->belongsTo(CharacterClass::class, 'class_slug', 'full_slug');
+        return $this->belongsTo(CharacterClass::class, 'class_slug', 'slug');
     }
 
     public function subclass(): BelongsTo
     {
-        return $this->belongsTo(CharacterClass::class, 'subclass_slug', 'full_slug');
+        return $this->belongsTo(CharacterClass::class, 'subclass_slug', 'slug');
     }
 
     public function getMaxHitDiceAttribute(): int

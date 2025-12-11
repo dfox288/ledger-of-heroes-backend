@@ -165,7 +165,7 @@ class Character extends Model implements HasMedia
 
     public function race(): BelongsTo
     {
-        return $this->belongsTo(Race::class, 'race_slug', 'full_slug');
+        return $this->belongsTo(Race::class, 'race_slug', 'slug');
     }
 
     /**
@@ -181,7 +181,7 @@ class Character extends Model implements HasMedia
 
     public function background(): BelongsTo
     {
-        return $this->belongsTo(Background::class, 'background_slug', 'full_slug');
+        return $this->belongsTo(Background::class, 'background_slug', 'slug');
     }
 
     public function spells(): HasMany

@@ -53,11 +53,11 @@ class FeatureSelection extends Model
 
     public function optionalFeature(): BelongsTo
     {
-        return $this->belongsTo(OptionalFeature::class, 'optional_feature_slug', 'full_slug');
+        return $this->belongsTo(OptionalFeature::class, 'optional_feature_slug', 'slug');
     }
 
     public function characterClass(): BelongsTo
     {
-        return $this->belongsTo(CharacterClass::class, 'class_slug', 'full_slug');
+        return $this->belongsTo(CharacterClass::class, 'class_slug', 'slug');
     }
 }

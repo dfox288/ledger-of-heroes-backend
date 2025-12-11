@@ -18,7 +18,7 @@ class CharacterConditionFactory extends Factory
     {
         return [
             'character_id' => Character::factory(),
-            'condition_slug' => fn () => Condition::factory()->create()->full_slug,
+            'condition_slug' => fn () => Condition::factory()->create()->slug,
             'level' => null,
             'source' => fake()->optional()->sentence(3),
             'duration' => fake()->optional()->randomElement(['1 minute', '1 hour', 'Until cured', 'Until long rest']),
@@ -29,9 +29,9 @@ class CharacterConditionFactory extends Factory
     {
         return $this->state(fn () => [
             'condition_slug' => Condition::firstOrCreate(
-                ['slug' => 'exhaustion'],
-                ['name' => 'Exhaustion', 'description' => 'Exhaustion condition', 'full_slug' => 'core:exhaustion']
-            )->full_slug,
+                ['slug' => 'core:exhaustion'],
+                ['name' => 'Exhaustion', 'description' => 'Exhaustion condition']
+            )->slug,
             'level' => $level,
         ]);
     }

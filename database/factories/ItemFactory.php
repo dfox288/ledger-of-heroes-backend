@@ -19,8 +19,7 @@ class ItemFactory extends Factory
 
         return [
             'name' => ucwords($name),
-            'slug' => $slug,
-            'full_slug' => 'test:'.$slug,
+            'slug' => 'test:'.$slug,
             'item_type_id' => ItemType::where('code', 'G')->first()->id,
             'rarity' => 'common',
             'requires_attunement' => false,

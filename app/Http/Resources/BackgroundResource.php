@@ -12,7 +12,6 @@ class BackgroundResource extends JsonResource
         return [
             'id' => $this->id,
             'slug' => $this->slug,
-            'full_slug' => $this->full_slug,
             'name' => $this->name,
 
             // Feature extraction (computed from traits with category='feature')

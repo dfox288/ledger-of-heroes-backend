@@ -25,8 +25,7 @@ class ConditionFactory extends Factory
 
         return [
             'name' => $name,
-            'slug' => $slug,
-            'full_slug' => 'test:'.$slug,
+            'slug' => 'test:'.$slug,
             'description' => fake()->paragraph(),
         ];
     }

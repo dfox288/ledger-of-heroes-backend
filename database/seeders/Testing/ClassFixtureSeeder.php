@@ -36,18 +36,17 @@ class ClassFixtureSeeder extends FixtureSeeder
             $parentClass = CharacterClass::where('slug', $item['parent_class_slug'])->first();
         }
 
-        // Generate full_slug from source (if available)
-        $fullSlug = null;
+        // Generate source-prefixed slug
+        $slug = $item['slug'];
         if (! empty($item['source'])) {
             $sourceCode = strtolower($item['source']);
-            $fullSlug = $sourceCode.':'.$item['slug'];
+            $slug = $sourceCode.':'.$item['slug'];
         }
 
         // Create character class
         $class = CharacterClass::create([
             'name' => $item['name'],
-            'slug' => $item['slug'],
-            'full_slug' => $fullSlug,
+            'slug' => $slug,
             'hit_die' => $item['hit_die'],
             'description' => $item['description'],
             'primary_ability' => $item['primary_ability'],

@@ -29,6 +29,6 @@ class CharacterCondition extends Model
 
     public function condition(): BelongsTo
     {
-        return $this->belongsTo(Condition::class, 'condition_slug', 'full_slug');
+        return $this->belongsTo(Condition::class, 'condition_slug', 'slug');
     }
 }

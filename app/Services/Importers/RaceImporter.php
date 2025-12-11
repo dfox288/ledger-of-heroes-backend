@@ -58,14 +58,12 @@ class RaceImporter extends BaseImporter
         // Lookup size by code
         $size = Size::where('code', $raceData['size_code'])->firstOrFail();
 
-        // If slug not set by strategy, generate from name
-        if (! isset($raceData['slug'])) {
-            $raceData['slug'] = $this->generateSlug($raceData['name']);
-        }
-
-        // Generate full_slug with source prefix
+        // Generate source-prefixed slug if not set by strategy
+        // (SubraceStrategy sets hierarchical slug like phb:dwarf-hill)
         $sources = $raceData['sources'] ?? [];
-        $fullSlug = $this->generateFullSlug($raceData['slug'], $sources);
+        if (! isset($raceData['slug'])) {
+            $raceData['slug'] = $this->generateSlug($raceData['name'], $sources);
+        }
 
         // Extract alternate movement speeds from ALL trait sources
         // For subraces, strategies may have replaced 'traits' with 'subrace_traits' (empty for some)
@@ -94,7 +92,6 @@ class RaceImporter extends BaseImporter
             ['slug' => $raceData['slug']],
             [
                 'name' => $raceData['name'],
-                'full_slug' => $fullSlug,
                 'parent_race_id' => $raceData['parent_race_id'] ?? null,
                 'size_id' => $size->id,
                 'has_size_choice' => $raceData['has_size_choice'] ?? false,

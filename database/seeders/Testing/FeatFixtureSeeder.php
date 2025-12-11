@@ -25,18 +25,17 @@ class FeatFixtureSeeder extends FixtureSeeder
 
     protected function createFromFixture(array $item): void
     {
-        // Generate full_slug from source (if available)
-        $fullSlug = null;
+        // Generate source-prefixed slug
+        $slug = $item['slug'];
         if (! empty($item['source'])) {
             $sourceCode = strtolower($item['source']);
-            $fullSlug = $sourceCode.':'.$item['slug'];
+            $slug = $sourceCode.':'.$item['slug'];
         }
 
         // Create feat
         $feat = Feat::create([
             'name' => $item['name'],
-            'slug' => $item['slug'],
-            'full_slug' => $fullSlug,
+            'slug' => $slug,
             'description' => $item['description'],
             'prerequisites_text' => $item['prerequisites_text'],
         ]);

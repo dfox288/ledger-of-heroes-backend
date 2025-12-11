@@ -18,7 +18,6 @@ class LanguageResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'full_slug' => $this->full_slug,
             'script' => $this->script,
             'typical_speakers' => $this->typical_speakers,
             'description' => $this->description,

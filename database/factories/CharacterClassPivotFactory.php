@@ -18,7 +18,7 @@ class CharacterClassPivotFactory extends Factory
     {
         return [
             'character_id' => Character::factory(),
-            'class_slug' => fn () => CharacterClass::factory()->state(['parent_class_id' => null])->create()->full_slug,
+            'class_slug' => fn () => CharacterClass::factory()->state(['parent_class_id' => null])->create()->slug,
             'subclass_slug' => null,
             'level' => $this->faker->numberBetween(1, 20),
             'is_primary' => true,

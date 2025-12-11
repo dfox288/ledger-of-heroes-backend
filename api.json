@@ -2253,7 +2253,10 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "integer",
+                                    "enum": [
+                                        204
+                                    ]
                                 }
                             }
                         }
@@ -7898,7 +7901,75 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "collection": {
+                                                        "type": "string"
+                                                    },
+                                                    "file_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "mime_type": {
+                                                        "type": "string"
+                                                    },
+                                                    "size": {
+                                                        "type": "integer"
+                                                    },
+                                                    "urls": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "original": {
+                                                                "type": "string"
+                                                            },
+                                                            "thumb": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "medium": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "original",
+                                                            "thumb",
+                                                            "medium"
+                                                        ]
+                                                    },
+                                                    "created_at": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "collection",
+                                                    "file_name",
+                                                    "mime_type",
+                                                    "size",
+                                                    "urls",
+                                                    "created_at"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
                                 }
                             }
                         }

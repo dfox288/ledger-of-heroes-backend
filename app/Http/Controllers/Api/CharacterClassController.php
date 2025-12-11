@@ -157,6 +157,8 @@ class CharacterClassController extends Controller
      *
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  Class ID or slug
+     *
+     * @response 204 scenario="success"
      */
     public function destroy(Character $character, string $classSlugOrFullSlug): JsonResponse
     {

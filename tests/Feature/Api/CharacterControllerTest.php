@@ -698,4 +698,75 @@ class CharacterControllerTest extends TestCase
             'character_id' => $character->id,
         ]);
     }
+
+    // =====================
+    // Base Ability Scores Tests (Issue #492)
+    // =====================
+
+    #[Test]
+    public function it_returns_both_base_and_final_ability_scores(): void
+    {
+        // Create ability score record for racial modifier
+        $chaId = AbilityScore::firstOrCreate(
+            ['code' => 'CHA'],
+            ['name' => 'Charisma']
+        )->id;
+
+        // Create a race with +2 CHA (like Half-Elf's fixed bonus)
+        $race = Race::factory()->create(['name' => 'Half-Elf', 'slug' => 'half-elf']);
+        $race->modifiers()->create([
+            'modifier_category' => 'ability_score',
+            'ability_score_id' => $chaId,
+            'value' => '2',
+            'is_choice' => false,
+        ]);
+
+        // Create character with base 10 CHA
+        $character = Character::factory()
+            ->withRace($race)
+            ->withAbilityScores([
+                'strength' => 14,
+                'dexterity' => 12,
+                'constitution' => 13,
+                'intelligence' => 10,
+                'wisdom' => 8,
+                'charisma' => 10, // Base 10, should become 12 with racial +2
+            ])
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}");
+
+        $response->assertOk()
+            // Final ability scores include racial bonuses
+            ->assertJsonPath('data.ability_scores.CHA', 12) // 10 base + 2 racial
+            ->assertJsonPath('data.ability_scores.STR', 14) // No bonus
+            // Base ability scores are the raw values before bonuses
+            ->assertJsonPath('data.base_ability_scores.CHA', 10)
+            ->assertJsonPath('data.base_ability_scores.STR', 14);
+    }
+
+    #[Test]
+    public function it_returns_base_ability_scores_matching_final_when_no_race(): void
+    {
+        // Create character with no race
+        $character = Character::factory()
+            ->withAbilityScores([
+                'strength' => 15,
+                'dexterity' => 14,
+                'constitution' => 13,
+                'intelligence' => 12,
+                'wisdom' => 10,
+                'charisma' => 8,
+            ])
+            ->create(['race_slug' => null]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}");
+
+        $response->assertOk()
+            // With no race, base and final should match
+            ->assertJsonPath('data.ability_scores.STR', 15)
+            ->assertJsonPath('data.base_ability_scores.STR', 15)
+            ->assertJsonPath('data.ability_scores.CHA', 8)
+            ->assertJsonPath('data.base_ability_scores.CHA', 8);
+    }
 }

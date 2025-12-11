@@ -75,14 +75,18 @@ class CharacterResource extends JsonResource
     private function getAbilityScoresData(): array
     {
         // Use getFinalAbilityScoresArray() to include racial bonuses (both fixed and chosen)
-        $abilityScores = $this->resource->getFinalAbilityScoresArray();
-        $modifiers = $this->calculateModifiers($abilityScores);
+        $finalScores = $this->resource->getFinalAbilityScoresArray();
+        // Use getAbilityScoresArray() for base scores (before any bonuses)
+        $baseScores = $this->resource->getAbilityScoresArray();
+        $modifiers = $this->calculateModifiers($finalScores);
         $proficiencyBonus = $this->calculator->proficiencyBonus($this->total_level);
 
         return [
             'ability_score_method' => $this->ability_score_method?->value,
-            /** @var array{STR: int|null, DEX: int|null, CON: int|null, INT: int|null, WIS: int|null, CHA: int|null} */
-            'ability_scores' => $abilityScores,
+            /** @var array{STR: int|null, DEX: int|null, CON: int|null, INT: int|null, WIS: int|null, CHA: int|null} Final ability scores with racial bonuses applied */
+            'ability_scores' => $finalScores,
+            /** @var array{STR: int|null, DEX: int|null, CON: int|null, INT: int|null, WIS: int|null, CHA: int|null} Base ability scores before any bonuses */
+            'base_ability_scores' => $baseScores,
             /** @var array{STR: int|null, DEX: int|null, CON: int|null, INT: int|null, WIS: int|null, CHA: int|null} */
             'modifiers' => $modifiers,
             'proficiency_bonus' => $proficiencyBonus,

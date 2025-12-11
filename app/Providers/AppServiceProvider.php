@@ -53,7 +53,8 @@ class AppServiceProvider extends ServiceProvider
             $service->registerHandler($app->make(\App\Services\ChoiceHandlers\EquipmentModeChoiceHandler::class));
             $service->registerHandler($app->make(\App\Services\ChoiceHandlers\EquipmentChoiceHandler::class));
             $service->registerHandler($app->make(\App\Services\ChoiceHandlers\ExpertiseChoiceHandler::class));
-            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\FightingStyleChoiceHandler::class));
+            // FightingStyleChoiceHandler removed - fighting styles now handled by OptionalFeatureChoiceHandler
+            // via "Fighting Styles Known" counter (Issue #491)
             $service->registerHandler($app->make(\App\Services\ChoiceHandlers\SubclassChoiceHandler::class));
             $service->registerHandler($app->make(\App\Services\ChoiceHandlers\OptionalFeatureChoiceHandler::class));
             $service->registerHandler($app->make(\App\Services\ChoiceHandlers\SpellChoiceHandler::class));

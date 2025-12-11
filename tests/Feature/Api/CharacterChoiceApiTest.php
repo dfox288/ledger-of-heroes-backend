@@ -3,6 +3,9 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Character;
+use App\Models\CharacterClass;
+use App\Models\CharacterClassPivot;
+use App\Models\ClassCounter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -173,5 +176,57 @@ class CharacterChoiceApiTest extends TestCase
 
         $response->assertUnprocessable()
             ->assertJsonValidationErrors(['item_selections.b']);
+    }
+
+    // =====================
+    // Fighting Style Choice Tests (Issue #491)
+    // =====================
+
+    #[Test]
+    public function it_returns_single_fighting_style_choice_for_fighter(): void
+    {
+        // Create Fighter class with "Fighting Styles Known" counter at level 1
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'fighter',
+        ]);
+
+        ClassCounter::factory()
+            ->forClass($fighter)
+            ->atLevel(1)
+            ->noReset()
+            ->create([
+                'counter_name' => 'Fighting Styles Known',
+                'counter_value' => 1,
+            ]);
+
+        // Create character with Fighter class at level 1
+        $character = Character::factory()->create();
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $fighter->full_slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/pending-choices");
+
+        $response->assertOk();
+
+        $choices = $response->json('data.choices');
+
+        // Filter to only fighting style related choices
+        $fightingStyleChoices = collect($choices)->filter(function ($choice) {
+            return $choice['type'] === 'fighting_style'
+                || ($choice['type'] === 'optional_feature' && $choice['subtype'] === 'fighting_style');
+        });
+
+        // Should have exactly ONE fighting style choice, not two
+        $this->assertCount(1, $fightingStyleChoices, 'Expected exactly 1 fighting style choice');
+
+        // The choice should be from OptionalFeatureChoiceHandler (type=optional_feature, subtype=fighting_style)
+        $choice = $fightingStyleChoices->first();
+        $this->assertEquals('optional_feature', $choice['type']);
+        $this->assertEquals('fighting_style', $choice['subtype']);
     }
 }

@@ -1819,4 +1819,139 @@ XML;
         $this->assertNotNull($bonusFeatModifier, 'Custom Lineage should have a bonus_feat modifier');
         $this->assertEquals(1, $bonusFeatModifier->value, 'Bonus feat value should be 1');
     }
+
+    #[Test]
+    public function it_imports_unarmored_ac_from_lizardfolk()
+    {
+        // Lizardfolk have natural armor: AC = 13 + DEX
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Lizardfolk</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait>
+      <name>Natural Armor</name>
+      <text>You have tough, scaly skin. When you aren't wearing armor, your AC is 13 + your Dexterity modifier. You can use your natural armor to determine your AC if the armor you wear would leave you with a lower AC. A shield's benefits apply as normal while you use your natural armor.</text>
+    </trait>
+    <trait category="description">
+      <name>Description</name>
+      <text>Source: Volo's Guide to Monsters p. 111</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $lizardfolk = Race::where('name', 'Lizardfolk')->first();
+        $this->assertNotNull($lizardfolk, 'Lizardfolk race should exist');
+
+        // Check for ac_unarmored modifier
+        $acModifier = $lizardfolk->modifiers()
+            ->where('modifier_category', 'ac_unarmored')
+            ->first();
+
+        $this->assertNotNull($acModifier, 'Lizardfolk should have ac_unarmored modifier');
+        $this->assertEquals('13', $acModifier->value);
+        $this->assertNotNull($acModifier->ability_score_id);
+        $this->assertEquals('DEX', $acModifier->abilityScore->code);
+        $this->assertStringContainsString('allows_shield: true', $acModifier->condition);
+        $this->assertStringContainsString('replaces_armor: false', $acModifier->condition);
+    }
+
+    #[Test]
+    public function it_imports_unarmored_ac_from_tortle()
+    {
+        // Tortle have shell: AC = 17 flat, can't wear armor
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Tortle</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait>
+      <name>Natural Armor</name>
+      <text>Your shell provides you a base AC of 17 (your Dexterity modifier doesn't affect this number). You can't wear light, medium, or heavy armor, but if you are using a shield, you can apply the shield's bonus as normal.</text>
+    </trait>
+    <trait category="description">
+      <name>Description</name>
+      <text>Source: The Tortle Package p. 4</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $tortle = Race::where('name', 'Tortle')->first();
+        $this->assertNotNull($tortle, 'Tortle race should exist');
+
+        // Check for ac_unarmored modifier
+        $acModifier = $tortle->modifiers()
+            ->where('modifier_category', 'ac_unarmored')
+            ->first();
+
+        $this->assertNotNull($acModifier, 'Tortle should have ac_unarmored modifier');
+        $this->assertEquals('17', $acModifier->value);
+        $this->assertNull($acModifier->ability_score_id, 'Tortle should have no ability score for flat AC');
+        $this->assertStringContainsString('allows_shield: true', $acModifier->condition);
+        $this->assertStringContainsString('replaces_armor: true', $acModifier->condition);
+    }
+
+    #[Test]
+    public function it_imports_unarmored_ac_with_con_modifier()
+    {
+        // Loxodon have natural armor: AC = 12 + CON
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <race>
+    <name>Loxodon</name>
+    <size>M</size>
+    <speed>30</speed>
+    <trait>
+      <name>Natural Armor</name>
+      <text>You have thick, leathery skin. When you aren't wearing armor, your AC is 12 + your Constitution modifier. You can use your natural armor to determine your AC if the armor you wear would leave you with a lower AC. A shield's benefits apply as normal while you use your natural armor.</text>
+    </trait>
+    <trait category="description">
+      <name>Description</name>
+      <text>Source: Guildmasters' Guide to Ravnica p. 18</text>
+    </trait>
+  </race>
+</compendium>
+XML;
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'race_test_');
+        file_put_contents($tmpFile, $xml);
+
+        $this->importer->importFromFile($tmpFile);
+
+        unlink($tmpFile);
+
+        $loxodon = Race::where('name', 'Loxodon')->first();
+        $this->assertNotNull($loxodon, 'Loxodon race should exist');
+
+        // Check for ac_unarmored modifier
+        $acModifier = $loxodon->modifiers()
+            ->where('modifier_category', 'ac_unarmored')
+            ->first();
+
+        $this->assertNotNull($acModifier, 'Loxodon should have ac_unarmored modifier');
+        $this->assertEquals('12', $acModifier->value);
+        $this->assertNotNull($acModifier->ability_score_id);
+        $this->assertEquals('CON', $acModifier->abilityScore->code);
+    }
 }

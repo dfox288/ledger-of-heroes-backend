@@ -120,14 +120,15 @@ class RaceImporter extends BaseImporter
             }
         }
 
-        // Import all modifiers (ability bonuses, choices, resistances, trait modifiers, and skill advantages)
+        // Import all modifiers (ability bonuses, choices, resistances, trait modifiers, skill advantages, and unarmored AC)
         $this->importAllModifiers(
             $race,
             $raceData['ability_bonuses'] ?? [],
             $raceData['ability_choices'] ?? [],
             $raceData['resistances'] ?? [],
             $raceData['modifiers'] ?? [],
-            $raceData['skill_advantage_modifiers'] ?? []
+            $raceData['skill_advantage_modifiers'] ?? [],
+            $raceData['unarmored_ac'] ?? null
         );
 
         // For subraces, don't duplicate proficiencies that belong to base race
@@ -250,8 +251,10 @@ class RaceImporter extends BaseImporter
     }
 
     /**
-     * Import all modifiers at once (ability bonuses, choices, resistances, trait modifiers, and skill advantages).
+     * Import all modifiers at once (ability bonuses, choices, resistances, trait modifiers, skill advantages, and unarmored AC).
      * This ensures we don't clear modifiers between multiple imports.
+     *
+     * @param  array{base_ac: int, ability_code: string|null, allows_shield: bool, replaces_armor: bool}|null  $unarmoredAc
      */
     private function importAllModifiers(
         Race $race,
@@ -259,7 +262,8 @@ class RaceImporter extends BaseImporter
         array $choicesData,
         array $resistancesData,
         array $traitModifiersData,
-        array $skillAdvantageModifiers = []
+        array $skillAdvantageModifiers = [],
+        ?array $unarmoredAc = null
     ): void {
         $modifiersData = [];
 
@@ -334,6 +338,29 @@ class RaceImporter extends BaseImporter
                 'skill_name' => $skillAdvantage['skill_name'],
                 'value' => $skillAdvantage['value'],
                 'condition' => $skillAdvantage['condition'] ?? null,
+            ];
+        }
+
+        // Add unarmored AC modifier if present (e.g., Lizardfolk, Tortle, Loxodon)
+        if ($unarmoredAc !== null) {
+            // Build condition string with flags
+            $conditions = [];
+            $conditions[] = 'allows_shield: '.($unarmoredAc['allows_shield'] ? 'true' : 'false');
+            $conditions[] = 'replaces_armor: '.($unarmoredAc['replaces_armor'] ? 'true' : 'false');
+            $condition = implode('; ', $conditions);
+
+            // Look up ability_score_id if ability_code provided
+            $abilityScoreId = null;
+            if (! empty($unarmoredAc['ability_code'])) {
+                $abilityScore = AbilityScore::where('code', $unarmoredAc['ability_code'])->first();
+                $abilityScoreId = $abilityScore?->id;
+            }
+
+            $modifiersData[] = [
+                'category' => 'ac_unarmored',
+                'value' => (string) $unarmoredAc['base_ac'],
+                'ability_score_id' => $abilityScoreId,
+                'condition' => $condition,
             ];
         }
 

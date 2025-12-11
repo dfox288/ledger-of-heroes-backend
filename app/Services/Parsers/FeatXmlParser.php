@@ -9,13 +9,14 @@ use App\Services\Parsers\Concerns\ParsesMovementModifiers;
 use App\Services\Parsers\Concerns\ParsesRestTiming;
 use App\Services\Parsers\Concerns\ParsesSkillAdvantages;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
+use App\Services\Parsers\Concerns\ParsesUnarmoredAc;
 use App\Services\Parsers\Concerns\ParsesUsageLimits;
 use App\Services\Parsers\Concerns\StripsSourceCitations;
 use SimpleXMLElement;
 
 class FeatXmlParser
 {
-    use ConvertsWordNumbers, MapsAbilityCodes, ParsesModifiers, ParsesMovementModifiers, ParsesRestTiming, ParsesSkillAdvantages, ParsesSourceCitations, ParsesUsageLimits, StripsSourceCitations;
+    use ConvertsWordNumbers, MapsAbilityCodes, ParsesModifiers, ParsesMovementModifiers, ParsesRestTiming, ParsesSkillAdvantages, ParsesSourceCitations, ParsesUnarmoredAc, ParsesUsageLimits, StripsSourceCitations;
 
     /**
      * Parse feats from XML string.
@@ -93,6 +94,7 @@ class FeatXmlParser
             'counter_name' => $this->parseCounterName($description),
             'movement_modifiers' => $this->parseMovementModifiers($description),
             'resistances' => $this->parseDamageResistances($description),
+            'unarmored_ac' => $this->parseUnarmoredAc($description),
         ];
     }
 

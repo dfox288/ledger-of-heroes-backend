@@ -226,6 +226,17 @@ class CharacterClassController extends Controller
      * - Class must exist on the character
      * - Total character level cannot exceed 20
      *
+     * **Response Fields:**
+     * - `previous_level` - Character level before level-up
+     * - `new_level` - Character level after level-up
+     * - `hp_increase` - HP gained (0 when using choice system)
+     * - `new_max_hp` - Current max HP after level-up
+     * - `features_gained` - Array of class features granted at this level
+     * - `spell_slots` - Spell slots by level (e.g., {"1": 4, "2": 3})
+     * - `asi_pending` - Whether an ASI/Feat choice is pending
+     * - `hp_choice_pending` - Whether an HP choice (roll/average) is pending
+     * - `pending_choice_summary` - Summary of all pending choices by type and source
+     *
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  Class ID or slug
      */

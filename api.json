@@ -510,7 +510,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -648,7 +648,7 @@
                                             "type": "object",
                                             "properties": {
                                                 "id": {
-                                                    "type": "string"
+                                                    "type": "integer"
                                                 },
                                                 "name": {
                                                     "type": "string"
@@ -1182,7 +1182,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1224,7 +1224,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1278,7 +1278,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1307,7 +1307,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1351,7 +1351,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1395,7 +1395,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1479,7 +1479,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1848,7 +1848,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -1922,7 +1922,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -1973,7 +1973,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -2025,7 +2025,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -2087,7 +2087,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -2139,7 +2139,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -2184,7 +2184,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -2232,7 +2232,7 @@
                         "required": true,
                         "description": "The character",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -2274,7 +2274,7 @@
                         "required": true,
                         "description": "The character",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -2330,7 +2330,7 @@
                         "required": true,
                         "description": "The character",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -2374,7 +2374,7 @@
                         "required": true,
                         "description": "The character",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -2431,7 +2431,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -2476,7 +2476,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -2532,7 +2532,7 @@
                         "required": true,
                         "description": "The character to remove the condition from",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -2570,7 +2570,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -2624,7 +2624,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -2668,7 +2668,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -2712,7 +2712,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -2757,7 +2757,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -2813,7 +2813,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -2876,7 +2876,7 @@
                         "required": true,
                         "description": "The character",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -2914,7 +2914,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -2961,7 +2961,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -2997,7 +2997,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -3059,7 +3059,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -3106,7 +3106,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -3142,7 +3142,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -3176,7 +3176,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -3233,7 +3233,7 @@
                         "required": true,
                         "description": "The character",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -3284,7 +3284,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -3347,7 +3347,7 @@
                         "required": true,
                         "description": "The character",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -3385,7 +3385,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -3432,7 +3432,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -3468,7 +3468,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -3513,7 +3513,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -3561,7 +3561,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -3593,6 +3593,13 @@
                                 "1",
                                 "0"
                             ]
+                        }
+                    },
+                    {
+                        "name": "class",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -3642,7 +3649,7 @@
                         "required": true,
                         "description": "The character",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -3680,7 +3687,7 @@
                         "required": true,
                         "description": "The character",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -3733,7 +3740,7 @@
                         "required": true,
                         "description": "The character",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -3786,7 +3793,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -3857,7 +3864,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -5725,7 +5732,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -5770,7 +5777,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -5827,7 +5834,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -5881,7 +5888,7 @@
                         "required": true,
                         "description": "The character",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -5904,6 +5911,141 @@
                 }
             }
         },
+        "/v1/characters/{character}/feature-uses": {
+            "get": {
+                "operationId": "characters.feature-uses.index",
+                "description": "GET /api/v1/characters/{character}/feature-uses",
+                "summary": "Get all limited-use features for a character",
+                "tags": [
+                    "FeatureUse"
+                ],
+                "parameters": [
+                    {
+                        "name": "character",
+                        "in": "path",
+                        "required": true,
+                        "description": "The character public id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/v1/characters/{character}/features/{characterFeatureId}/use": {
+            "post": {
+                "operationId": "characters.features.use",
+                "description": "POST /api/v1/characters/{character}/features/{characterFeatureId}/use",
+                "summary": "Use a feature (decrement uses)",
+                "tags": [
+                    "FeatureUse"
+                ],
+                "parameters": [
+                    {
+                        "name": "character",
+                        "in": "path",
+                        "required": true,
+                        "description": "The character public id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "characterFeatureId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/v1/characters/{character}/features/{characterFeatureId}/reset": {
+            "post": {
+                "operationId": "characters.features.reset",
+                "description": "POST /api/v1/characters/{character}/features/{characterFeatureId}/reset",
+                "summary": "Reset a feature's uses (for manual override/DM fiat)",
+                "tags": [
+                    "FeatureUse"
+                ],
+                "parameters": [
+                    {
+                        "name": "character",
+                        "in": "path",
+                        "required": true,
+                        "description": "The character public id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "characterFeatureId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
         "/v1/characters/{character}/hit-dice": {
             "get": {
                 "operationId": "characters.hit-dice.index",
@@ -5919,7 +6061,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -5963,7 +6105,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -6020,7 +6162,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -7977,7 +8119,7 @@
                         "required": true,
                         "description": "The optional feature slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -8151,7 +8293,7 @@
                         "required": true,
                         "description": "The proficiency type slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -8195,7 +8337,7 @@
                         "required": true,
                         "description": "The proficiency type slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -8243,7 +8385,7 @@
                         "required": true,
                         "description": "The proficiency type slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -8291,7 +8433,7 @@
                         "required": true,
                         "description": "The proficiency type slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -8606,7 +8748,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -8650,7 +8792,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -10446,7 +10588,7 @@
                         "required": true,
                         "description": "The character public id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -10597,7 +10739,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "code": {
                         "type": "string"
@@ -10695,13 +10837,16 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "slug": {
                         "type": "string"
                     },
                     "full_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "name": {
                         "type": "string"
@@ -10894,7 +11039,7 @@
                         ],
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "integer"
                             },
                             "name": {
                                 "type": "string"
@@ -10903,7 +11048,10 @@
                                 "type": "string"
                             },
                             "full_slug": {
-                                "type": "string"
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
                             }
                         },
                         "required": [
@@ -10926,7 +11074,7 @@
                         ],
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "integer"
                             },
                             "name": {
                                 "type": "string"
@@ -10935,7 +11083,10 @@
                                 "type": "string"
                             },
                             "full_slug": {
-                                "type": "string"
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
                             }
                         },
                         "required": [
@@ -10946,16 +11097,19 @@
                         ]
                     },
                     "subclass_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "level": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "is_primary": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "order": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "hit_dice": {
                         "type": [
@@ -10970,7 +11124,7 @@
                                 "type": "string"
                             },
                             "spent": {
-                                "type": "string"
+                                "type": "integer"
                             },
                             "available": {
                                 "type": "string"
@@ -11001,7 +11155,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "name": {
                         "type": "string"
@@ -11021,7 +11175,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "condition": {
                         "type": [
@@ -11030,7 +11184,7 @@
                         ],
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "integer"
                             },
                             "name": {
                                 "type": "string"
@@ -11052,13 +11206,22 @@
                         "type": "boolean"
                     },
                     "level": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "source": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "duration": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "is_exhaustion": {
                         "type": "boolean"
@@ -11147,7 +11310,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "item": {
                         "type": [
@@ -11157,22 +11320,31 @@
                         "additionalProperties": {}
                     },
                     "item_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "is_dangling": {
                         "type": "string"
                     },
                     "custom_name": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "custom_description": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "quantity": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "equipped": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "location": {
                         "type": "string"
@@ -11278,23 +11450,29 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "source": {
                         "type": "string"
                     },
                     "level_acquired": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "feature_type": {
                         "type": "string"
                     },
                     "uses_remaining": {
-                        "type": "string",
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
                         "description": "Limited-use tracking"
                     },
                     "max_uses": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "has_limited_uses": {
                         "type": "boolean"
@@ -11307,7 +11485,7 @@
                         "description": "Feature details (polymorphic)",
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "integer"
                             },
                             "name": {
                                 "anyOf": [
@@ -11794,7 +11972,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "source": {
                         "type": "string"
@@ -11806,7 +11984,7 @@
                         ],
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "integer"
                             },
                             "name": {
                                 "type": "string"
@@ -11815,7 +11993,10 @@
                                 "type": "string"
                             },
                             "script": {
-                                "type": "string"
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
                             }
                         },
                         "required": [
@@ -11845,7 +12026,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "category": {
                         "type": "string"
@@ -11854,13 +12035,16 @@
                         "type": "string"
                     },
                     "title": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "content": {
                         "type": "string"
                     },
                     "sort_order": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "created_at": {
                         "type": "string"
@@ -11994,13 +12178,13 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "source": {
                         "type": "string"
                     },
                     "expertise": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "skill": {
                         "type": [
@@ -12010,7 +12194,7 @@
                         "description": "Skill proficiency",
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "integer"
                             },
                             "name": {
                                 "type": "string"
@@ -12030,7 +12214,10 @@
                         ]
                     },
                     "skill_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "proficiency_type": {
                         "type": [
@@ -12040,7 +12227,7 @@
                         "description": "Equipment/tool proficiency",
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "integer"
                             },
                             "name": {
                                 "type": "string"
@@ -12060,7 +12247,10 @@
                         ]
                     },
                     "proficiency_type_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "is_dangling": {
                         "type": "string",
@@ -12081,7 +12271,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "public_id": {
                         "type": "string"
@@ -12104,7 +12294,7 @@
                     "experience_points": {
                         "anyOf": [
                             {
-                                "type": "string"
+                                "type": "integer"
                             },
                             {
                                 "type": "integer",
@@ -12242,19 +12432,25 @@
                         "type": "integer"
                     },
                     "max_hit_points": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "current_hit_points": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "temp_hit_points": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "death_save_successes": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "death_save_failures": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "armor_class": {
                         "type": [
@@ -12266,7 +12462,7 @@
                     "asi_choices_remaining": {
                         "anyOf": [
                             {
-                                "type": "string"
+                                "type": "integer"
                             },
                             {
                                 "type": "integer",
@@ -12277,17 +12473,13 @@
                         ]
                     },
                     "alignment": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "has_inspiration": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "boolean"
-                            }
-                        ]
+                        "type": "boolean"
                     },
                     "speed": {
                         "type": [
@@ -12445,7 +12637,10 @@
                         "additionalProperties": {}
                     },
                     "race_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "race_is_dangling": {
                         "type": "string"
@@ -12458,7 +12653,10 @@
                         "additionalProperties": {}
                     },
                     "background_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "background_is_dangling": {
                         "type": "string"
@@ -12587,7 +12785,10 @@
                                 "type": "object",
                                 "properties": {
                                     "original": {
-                                        "type": "string"
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
                                     },
                                     "thumb": {
                                         "type": "null"
@@ -12692,7 +12893,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "spell": {
                         "type": [
@@ -12701,7 +12902,7 @@
                         ],
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "integer"
                             },
                             "name": {
                                 "type": "string"
@@ -12710,7 +12911,7 @@
                                 "type": "string"
                             },
                             "level": {
-                                "type": "string"
+                                "type": "integer"
                             },
                             "school": {
                                 "type": "string"
@@ -12728,10 +12929,10 @@
                                 "type": "string"
                             },
                             "concentration": {
-                                "type": "string"
+                                "type": "boolean"
                             },
                             "ritual": {
-                                "type": "string"
+                                "type": "boolean"
                             }
                         },
                         "required": [
@@ -12761,7 +12962,10 @@
                         "type": "string"
                     },
                     "level_acquired": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "is_prepared": {
                         "type": "boolean"
@@ -13933,10 +14137,10 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "level": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "feature_name": {
                         "type": "string"
@@ -13945,10 +14149,10 @@
                         "type": "string"
                     },
                     "is_optional": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "is_multiclass_only": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "is_choice_option": {
                         "type": "string"
@@ -13957,10 +14161,13 @@
                         "type": "string"
                     },
                     "parent_feature_id": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "sort_order": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "data_tables": {
                         "type": "array",
@@ -14018,43 +14225,76 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "level": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "cantrips_known": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "spells_known": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "spell_slots_1st": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "spell_slots_2nd": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "spell_slots_3rd": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "spell_slots_4th": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "spell_slots_5th": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "spell_slots_6th": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "spell_slots_7th": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "spell_slots_8th": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "spell_slots_9th": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -14078,14 +14318,17 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string",
+                        "type": "integer",
                         "description": "=== BASE FIELDS ===\nNote: hit_die and spellcasting_ability use effective values that\ninherit from parent class for subclasses (see class docblock)"
                     },
                     "slug": {
                         "type": "string"
                     },
                     "full_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "name": {
                         "type": "string"
@@ -14098,16 +14341,25 @@
                         "type": "string"
                     },
                     "archetype": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "primary_ability": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "spellcasting_ability": {
                         "$ref": "#/components/schemas/AbilityScoreResource"
                     },
                     "parent_class_id": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "is_base_class": {
                         "type": "boolean",
@@ -14423,7 +14675,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "name": {
                         "type": "string"
@@ -14432,7 +14684,10 @@
                         "type": "string"
                     },
                     "full_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "description": {
                         "type": "string"
@@ -14492,7 +14747,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "code": {
                         "type": "string"
@@ -14580,10 +14835,13 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "condition_id": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "condition": {
                         "$ref": "#/components/schemas/ConditionResource"
@@ -14592,7 +14850,10 @@
                         "type": "string"
                     },
                     "description": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -14607,25 +14868,40 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "roll_min": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "roll_max": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "result_text": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "level": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "sort_order": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "resource_cost": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -14642,19 +14918,25 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "table_name": {
                         "type": "string"
                     },
                     "dice_type": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "table_type": {
                         "type": "string"
                     },
                     "description": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "entries": {
                         "type": "array",
@@ -14676,34 +14958,52 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "item_id": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "item": {
                         "$ref": "#/components/schemas/ItemResource"
                     },
                     "quantity": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "is_choice": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "choice_group": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "choice_option": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "choice_description": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "proficiency_subcategory": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "description": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "choice_items": {
                         "type": "array",
@@ -14732,22 +15032,31 @@
                         "$ref": "#/components/schemas/LanguageResource"
                     },
                     "is_choice": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "quantity": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "choice_group": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "choice_option": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "condition": {
                         "type": "object",
                         "properties": {
                             "type": {
-                                "type": "string"
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
                             },
                             "language": {
                                 "$ref": "#/components/schemas/LanguageResource"
@@ -14767,22 +15076,34 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "prerequisite_type": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "prerequisite_id": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "minimum_value": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "description": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "group_id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "ability_score": {
                         "description": "Type-specific nested resources (only one will be present based on prerequisite_type)\nNote: Removed generic 'prerequisite' field to avoid duplicate data (Issue #73)",
@@ -14821,13 +15142,16 @@
                         "type": "string"
                     },
                     "range": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "is_limited": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "notes": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -14849,7 +15173,10 @@
                         "type": "string"
                     },
                     "pages": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -14863,51 +15190,81 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "spell_id": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "spell": {
                         "$ref": "#/components/schemas/SpellResource"
                     },
                     "ability_score_id": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "ability_score": {
                         "$ref": "#/components/schemas/AbilityScoreResource"
                     },
                     "level_requirement": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "usage_limit": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "is_cantrip": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "charges_cost_min": {
-                        "type": "string",
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
                         "description": "Charge costs (for items that cast spells)"
                     },
                     "charges_cost_max": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "charges_cost_formula": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "is_choice": {
-                        "type": "string",
+                        "type": "boolean",
                         "description": "Choice support"
                     },
                     "choice_count": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "choice_group": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "max_level": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "school": {
                         "$ref": "#/components/schemas/SpellSchoolResource"
@@ -14916,7 +15273,7 @@
                         "$ref": "#/components/schemas/CharacterClassResource"
                     },
                     "is_ritual_only": {
-                        "type": "string"
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -14943,7 +15300,7 @@
                         "$ref": "#/components/schemas/ItemResource"
                     },
                     "quantity": {
-                        "type": "string"
+                        "type": "integer"
                     }
                 },
                 "required": [
@@ -14955,19 +15312,25 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "slug": {
                         "type": "string"
                     },
                     "full_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "name": {
                         "type": "string"
                     },
                     "prerequisites_text": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "prerequisites": {
                         "type": "array",
@@ -15055,7 +15418,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "optional_feature": {
                         "type": [
@@ -15064,7 +15427,7 @@
                         ],
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "integer"
                             },
                             "slug": {
                                 "type": "string"
@@ -15079,16 +15442,25 @@
                                 "type": "string"
                             },
                             "level_requirement": {
-                                "type": "string"
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
                             },
                             "prerequisite_text": {
-                                "type": "string"
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
                             },
                             "resource_type": {
                                 "type": "string"
                             },
                             "resource_cost": {
-                                "type": "string"
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
                             }
                         },
                         "required": [
@@ -15122,22 +15494,34 @@
                         ]
                     },
                     "class_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "is_dangling": {
                         "type": "boolean"
                     },
                     "subclass_name": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "level_acquired": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "uses_remaining": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "max_uses": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "has_limited_uses": {
                         "type": "boolean"
@@ -15246,40 +15630,64 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "item_id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "ability_type": {
                         "type": "string"
                     },
                     "spell_id": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "name": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "description": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "roll_formula": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "charges_cost": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "usage_limit": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "save_dc": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "attack_bonus": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "sort_order": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "spell": {
                         "description": "Relationships",
@@ -15306,7 +15714,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "code": {
                         "type": "string"
@@ -15330,7 +15738,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "name": {
                         "type": "string"
@@ -15339,65 +15747,110 @@
                         "type": "string"
                     },
                     "full_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "item_type_id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "detail": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "rarity": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "requires_attunement": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "is_magic": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "cost_cp": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "weight": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "damage_dice": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "versatile_damage": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "damage_type_id": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "range_normal": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "range_long": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "armor_class": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "strength_requirement": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "stealth_disadvantage": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "description": {
                         "type": "string"
                     },
                     "charges_max": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "Charge mechanics (magic items)"
                     },
                     "recharge_formula": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "recharge_timing": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "proficiency_category": {
                         "type": "string",
@@ -15562,7 +16015,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "code": {
                         "type": "string"
@@ -15571,7 +16024,10 @@
                         "type": "string"
                     },
                     "description": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -15586,7 +16042,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "name": {
                         "type": "string"
@@ -15595,19 +16051,31 @@
                         "type": "string"
                     },
                     "full_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "script": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "typical_speakers": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "description": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "is_learnable": {
-                        "type": "string"
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -15820,7 +16288,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "modifier_category": {
                         "type": "string"
@@ -15846,19 +16314,31 @@
                         "type": "string"
                     },
                     "condition": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "is_choice": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "choice_count": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "choice_constraint": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "level": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -15877,7 +16357,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "action_type": {
                         "type": "string"
@@ -15889,13 +16369,19 @@
                         "type": "string"
                     },
                     "attack_data": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "recharge": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "sort_order": {
-                        "type": "string"
+                        "type": "integer"
                     }
                 },
                 "required": [
@@ -15913,7 +16399,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "name": {
                         "type": "string"
@@ -15922,19 +16408,25 @@
                         "type": "string"
                     },
                     "action_cost": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "is_lair_action": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "attack_data": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "recharge": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "sort_order": {
-                        "type": "string"
+                        "type": "integer"
                     }
                 },
                 "required": [
@@ -15953,19 +16445,25 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "slug": {
                         "type": "string"
                     },
                     "full_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "name": {
                         "type": "string"
                     },
                     "sort_name": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "size": {
                         "$ref": "#/components/schemas/SizeResource"
@@ -15974,64 +16472,82 @@
                         "type": "string"
                     },
                     "alignment": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "is_npc": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "armor_class": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "armor_type": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "hit_points_average": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "hit_dice": {
                         "type": "string"
                     },
                     "speed_walk": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "speed_fly": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "speed_swim": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "speed_burrow": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "speed_climb": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "can_hover": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "strength": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "dexterity": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "constitution": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "intelligence": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "wisdom": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "charisma": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "challenge_rating": {
                         "type": "string"
                     },
                     "experience_points": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "proficiency_bonus": {
                         "type": "string"
@@ -16040,10 +16556,16 @@
                         "type": "string"
                     },
                     "passive_perception": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "languages": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "senses": {
                         "type": "array",
@@ -16052,7 +16574,10 @@
                         }
                     },
                     "description": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "traits": {
                         "type": "array",
@@ -16194,7 +16719,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "name": {
                         "type": "string"
@@ -16203,10 +16728,13 @@
                         "type": "string"
                     },
                     "attack_data": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "sort_order": {
-                        "type": "string"
+                        "type": "integer"
                     }
                 },
                 "required": [
@@ -16234,13 +16762,16 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "slug": {
                         "type": "string"
                     },
                     "full_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "name": {
                         "type": "string"
@@ -16252,23 +16783,38 @@
                         "type": "string"
                     },
                     "level_requirement": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "prerequisite_text": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "description": {
                         "type": "string"
                     },
                     "casting_time": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "Spell-like properties"
                     },
                     "range": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "duration": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "spell_school": {
                         "$ref": "#/components/schemas/SpellSchoolResource"
@@ -16278,7 +16824,10 @@
                         "description": "Resource properties"
                     },
                     "resource_cost": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "has_spell_mechanics": {
                         "type": "string",
@@ -16584,16 +17133,22 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "proficiency_type": {
                         "type": "string"
                     },
                     "proficiency_subcategory": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "proficiency_type_id": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "proficiency_type_detail": {
                         "$ref": "#/components/schemas/ProficiencyTypeResource"
@@ -16624,25 +17179,40 @@
                         "$ref": "#/components/schemas/AbilityScoreResource"
                     },
                     "proficiency_name": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "grants": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "is_choice": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "choice_group": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "choice_option": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "quantity": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "level": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -16664,7 +17234,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "slug": {
                         "type": "string"
@@ -16676,7 +17246,10 @@
                         "type": "string"
                     },
                     "subcategory": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "item": {
                         "$ref": "#/components/schemas/ItemResource"
@@ -16802,13 +17375,16 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "slug": {
                         "type": "string"
                     },
                     "full_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "name": {
                         "type": "string"
@@ -16817,16 +17393,25 @@
                         "$ref": "#/components/schemas/SizeResource"
                     },
                     "speed": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "fly_speed": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "swim_speed": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "climb_speed": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "is_subrace": {
                         "type": "boolean",
@@ -17243,7 +17828,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "code": {
                         "type": "string"
@@ -17263,7 +17848,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "name": {
                         "type": "string"
@@ -17286,7 +17871,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "code": {
                         "type": "string"
@@ -17298,25 +17883,46 @@
                         "type": "string"
                     },
                     "publication_year": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "url": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "author": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "artist": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "website": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "category": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "description": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -17380,40 +17986,70 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "effect_type": {
                         "type": "string"
                     },
                     "description": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "dice_formula": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "base_value": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "scaling_type": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "min_character_level": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "min_spell_slot": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "scaling_increment": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "projectile_count": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "projectile_per_level": {
-                        "type": "string"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "projectile_name": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "damage_type": {
                         "$ref": "#/components/schemas/DamageTypeResource"
@@ -17439,19 +18075,22 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "slug": {
                         "type": "string"
                     },
                     "full_slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "name": {
                         "type": "string"
                     },
                     "level": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "school": {
                         "$ref": "#/components/schemas/SpellSchoolResource"
@@ -17469,7 +18108,10 @@
                         "type": "string"
                     },
                     "material_components": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "material_cost_gp": {
                         "type": "string"
@@ -17481,16 +18123,19 @@
                         "type": "string"
                     },
                     "needs_concentration": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "is_ritual": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "description": {
                         "type": "string"
                     },
                     "higher_levels": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "requires_verbal": {
                         "type": "boolean",
@@ -17571,7 +18216,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "code": {
                         "type": "string"
@@ -17580,7 +18225,10 @@
                         "type": "string"
                     },
                     "description": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [

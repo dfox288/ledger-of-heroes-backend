@@ -79,7 +79,14 @@ it('generates choices for Warlock level 2 invocations', function () {
         ->first()->quantity->toBe(2)
         ->first()->remaining->toBe(2)
         ->first()->selected->toBe([])
-        ->first()->optionsEndpoint->toContain('/api/v1/optional-features?feature_type=eldritch_invocation');
+        ->first()->optionsEndpoint->toContain('/api/v1/optional-features?filter=');
+
+    // Verify filter contains expected parts (URL-decoded for readability)
+    $endpoint = urldecode($choices->first()->optionsEndpoint);
+    expect($endpoint)
+        ->toContain('feature_type = eldritch_invocation')
+        ->toContain('class_slugs IN [warlock]')
+        ->toContain('level_requirement');
 });
 
 it('generates choices for Sorcerer level 3 metamagic', function () {
@@ -139,7 +146,14 @@ it('generates choices for Sorcerer level 3 metamagic', function () {
         ->first()->sourceName->toBe('Sorcerer')
         ->first()->quantity->toBe(2)
         ->first()->remaining->toBe(2)
-        ->first()->optionsEndpoint->toContain('/api/v1/optional-features?feature_type=metamagic');
+        ->first()->optionsEndpoint->toContain('/api/v1/optional-features?filter=');
+
+    // Verify filter contains expected parts (URL-decoded for readability)
+    $endpoint = urldecode($choices->first()->optionsEndpoint);
+    expect($endpoint)
+        ->toContain('feature_type = metamagic')
+        ->toContain('class_slugs IN [sorcerer]')
+        ->toContain('level_requirement');
 });
 
 it('generates choices for Battle Master level 3 maneuvers', function () {
@@ -200,7 +214,14 @@ it('generates choices for Battle Master level 3 maneuvers', function () {
         ->first()->sourceName->toBe('Fighter')
         ->first()->quantity->toBe(3)
         ->first()->remaining->toBe(3)
-        ->first()->optionsEndpoint->toContain('/api/v1/optional-features?feature_type=maneuver');
+        ->first()->optionsEndpoint->toContain('/api/v1/optional-features?filter=');
+
+    // Verify filter contains expected parts (URL-decoded for readability)
+    $endpoint = urldecode($choices->first()->optionsEndpoint);
+    expect($endpoint)
+        ->toContain('feature_type = maneuver')
+        ->toContain('class_slugs IN [fighter]')
+        ->toContain('level_requirement');
 });
 
 it('calculates remaining choices when some features are selected', function () {

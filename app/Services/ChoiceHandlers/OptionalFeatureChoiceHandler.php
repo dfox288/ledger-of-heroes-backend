@@ -216,6 +216,9 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
 
     /**
      * Build the options endpoint URL for fetching available features.
+     *
+     * Uses Meilisearch filter syntax since the optional-features endpoint
+     * only accepts ?filter= parameter for filtering.
      */
     private function buildOptionsEndpoint(
         string $featureType,
@@ -223,20 +226,26 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
         ?string $subclassName,
         int $characterLevel
     ): string {
-        $params = [
-            'feature_type' => $featureType,
-            'level_requirement' => '<='.$characterLevel,
-        ];
+        $filterParts = [];
 
-        // Add class filter if applicable
+        // Filter by feature type
+        $filterParts[] = "feature_type = {$featureType}";
+
+        // Filter by class
         $classSlug = strtolower(str_replace(' ', '-', $className));
-        $params['class'] = $classSlug;
+        $filterParts[] = "class_slugs IN [{$classSlug}]";
 
-        // Add subclass filter if applicable
+        // Filter by subclass if applicable
         if ($subclassName) {
-            $params['subclass'] = $subclassName;
+            $filterParts[] = "subclass_names IN [{$subclassName}]";
         }
 
-        return '/api/v1/optional-features?'.http_build_query($params);
+        // Filter by level requirement (optional features with no requirement or <= character level)
+        // Use IS NULL OR <= to include features without level requirements
+        $filterParts[] = "(level_requirement IS NULL OR level_requirement <= {$characterLevel})";
+
+        $filter = implode(' AND ', $filterParts);
+
+        return '/api/v1/optional-features?'.http_build_query(['filter' => $filter]);
     }
 }

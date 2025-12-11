@@ -2348,7 +2348,110 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "previous_level": {
+                                                    "type": "integer"
+                                                },
+                                                "new_level": {
+                                                    "type": "integer"
+                                                },
+                                                "hp_increase": {
+                                                    "type": "integer"
+                                                },
+                                                "new_max_hp": {
+                                                    "type": "integer"
+                                                },
+                                                "features_gained": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "description": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "name",
+                                                            "description"
+                                                        ]
+                                                    }
+                                                },
+                                                "spell_slots": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "asi_pending": {
+                                                    "type": "boolean"
+                                                },
+                                                "hp_choice_pending": {
+                                                    "type": "boolean"
+                                                },
+                                                "pending_choice_summary": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "total_pending": {
+                                                            "type": "integer"
+                                                        },
+                                                        "required_pending": {
+                                                            "type": "integer"
+                                                        },
+                                                        "optional_pending": {
+                                                            "type": "integer"
+                                                        },
+                                                        "by_type": {
+                                                            "type": "object",
+                                                            "additionalProperties": {
+                                                                "type": "integer"
+                                                            }
+                                                        },
+                                                        "by_source": {
+                                                            "type": "object",
+                                                            "additionalProperties": {
+                                                                "type": "integer"
+                                                            }
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "total_pending",
+                                                        "required_pending",
+                                                        "optional_pending",
+                                                        "by_type",
+                                                        "by_source"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "previous_level",
+                                                "new_level",
+                                                "hp_increase",
+                                                "new_max_hp",
+                                                "features_gained",
+                                                "spell_slots",
+                                                "asi_pending",
+                                                "hp_choice_pending",
+                                                "pending_choice_summary"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
                                 }
                             }
                         }

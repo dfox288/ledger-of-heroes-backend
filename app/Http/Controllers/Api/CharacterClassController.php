@@ -239,6 +239,8 @@ class CharacterClassController extends Controller
      *
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  Class ID or slug
+     *
+     * @response array{data: array{previous_level: int, new_level: int, hp_increase: int, new_max_hp: int, features_gained: array<array{id: int, name: string, description: string|null}>, spell_slots: array<string, int>, asi_pending: bool, hp_choice_pending: bool, pending_choice_summary: array{total_pending: int, required_pending: int, optional_pending: int, by_type: array<string, int>, by_source: array<string, int>}}}
      */
     public function levelUp(Character $character, string $classSlugOrFullSlug): JsonResponse
     {

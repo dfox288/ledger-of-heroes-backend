@@ -601,4 +601,93 @@ class FeatImporterTest extends TestCase
         $this->assertEquals('normal', $terrainMod->value);
         $this->assertEquals('When you use the Dash action', $terrainMod->condition);
     }
+
+    #[Test]
+    public function it_imports_feat_with_unarmored_ac()
+    {
+        // Dragon Hide feat grants natural armor
+        $featData = [
+            'name' => 'Dragon Hide',
+            'prerequisites' => 'Dragonborn',
+            'description' => 'While you aren\'t wearing armor, you can calculate your AC as 13 + your Dexterity modifier. You can use a shield and still gain this benefit.',
+            'sources' => [
+                ['code' => 'XGE', 'pages' => '74'],
+            ],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+            'unarmored_ac' => [
+                'base_ac' => 13,
+                'ability_code' => 'DEX',
+                'allows_shield' => true,
+                'replaces_armor' => false,
+            ],
+        ];
+
+        $feat = $this->importer->import($featData);
+
+        // Check that ac_unarmored modifier was created
+        $acModifier = $feat->modifiers->where('modifier_category', 'ac_unarmored')->first();
+
+        $this->assertNotNull($acModifier, 'Should have ac_unarmored modifier');
+        $this->assertEquals('13', $acModifier->value);
+        $this->assertNotNull($acModifier->ability_score_id);
+        $this->assertEquals('DEX', $acModifier->abilityScore->code);
+        $this->assertStringContainsString('allows_shield: true', $acModifier->condition);
+        $this->assertStringContainsString('replaces_armor: false', $acModifier->condition);
+    }
+
+    #[Test]
+    public function it_imports_feat_with_unarmored_ac_no_ability()
+    {
+        // Hypothetical feat with flat AC (like Tortle's shell)
+        $featData = [
+            'name' => 'Shell Defense',
+            'prerequisites' => null,
+            'description' => 'Your shell provides you a base AC of 17. You can\'t wear light, medium, or heavy armor.',
+            'sources' => [
+                ['code' => 'TEST', 'pages' => '1'],
+            ],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+            'unarmored_ac' => [
+                'base_ac' => 17,
+                'ability_code' => null,
+                'allows_shield' => true,
+                'replaces_armor' => true,
+            ],
+        ];
+
+        $feat = $this->importer->import($featData);
+
+        $acModifier = $feat->modifiers->where('modifier_category', 'ac_unarmored')->first();
+
+        $this->assertNotNull($acModifier, 'Should have ac_unarmored modifier');
+        $this->assertEquals('17', $acModifier->value);
+        $this->assertNull($acModifier->ability_score_id, 'Should have no ability score for flat AC');
+        $this->assertStringContainsString('replaces_armor: true', $acModifier->condition);
+    }
+
+    #[Test]
+    public function it_does_not_create_modifier_when_no_unarmored_ac()
+    {
+        $featData = [
+            'name' => 'Alert',
+            'prerequisites' => null,
+            'description' => 'Always on the lookout for danger.',
+            'sources' => [
+                ['code' => 'PHB', 'pages' => '165'],
+            ],
+            'modifiers' => [],
+            'proficiencies' => [],
+            'conditions' => [],
+            'unarmored_ac' => null,
+        ];
+
+        $feat = $this->importer->import($featData);
+
+        $acModifier = $feat->modifiers->where('modifier_category', 'ac_unarmored')->first();
+        $this->assertNull($acModifier, 'Should not have ac_unarmored modifier');
+    }
 }

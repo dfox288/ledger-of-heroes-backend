@@ -83,7 +83,10 @@ class FeatImporter extends BaseImporter
         // 12. Import feat counter if it has usage limits
         $this->importFeatCounter($feat, $data);
 
-        // 13. Refresh to load all relationships created during import
+        // 13. Import unarmored AC modifier (e.g., Dragon Hide feat)
+        $this->importUnarmoredAc($feat, $data['unarmored_ac'] ?? null);
+
+        // 14. Refresh to load all relationships created during import
         $feat->refresh();
 
         return $feat;
@@ -307,5 +310,39 @@ class FeatImporter extends BaseImporter
                 'condition' => $resistanceData['condition'] ?? null,
             ]);
         }
+    }
+
+    /**
+     * Import unarmored AC modifier for a feat.
+     *
+     * Creates an ac_unarmored modifier when a feat grants natural armor
+     * (e.g., Dragon Hide feat: "your AC is 13 + your Dexterity modifier").
+     *
+     * @param  array{base_ac: int, ability_code: string|null, allows_shield: bool, replaces_armor: bool}|null  $unarmoredAc
+     */
+    private function importUnarmoredAc(Feat $feat, ?array $unarmoredAc): void
+    {
+        if ($unarmoredAc === null) {
+            return;
+        }
+
+        // Build condition string with flags
+        $conditions = [];
+        $conditions[] = 'allows_shield: '.($unarmoredAc['allows_shield'] ? 'true' : 'false');
+        $conditions[] = 'replaces_armor: '.($unarmoredAc['replaces_armor'] ? 'true' : 'false');
+        $condition = implode('; ', $conditions);
+
+        // Look up ability_score_id if ability_code provided
+        $abilityScoreId = null;
+        if (! empty($unarmoredAc['ability_code'])) {
+            $abilityScore = AbilityScore::where('code', $unarmoredAc['ability_code'])->first();
+            $abilityScoreId = $abilityScore?->id;
+        }
+
+        $this->importModifier($feat, 'ac_unarmored', [
+            'value' => (string) $unarmoredAc['base_ac'],
+            'ability_score_id' => $abilityScoreId,
+            'condition' => $condition,
+        ]);
     }
 }

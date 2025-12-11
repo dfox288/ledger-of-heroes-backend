@@ -13,11 +13,12 @@ use App\Services\Parsers\Concerns\ParsesNaturalWeapons;
 use App\Services\Parsers\Concerns\ParsesSkillAdvantages;
 use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use App\Services\Parsers\Concerns\ParsesTraits;
+use App\Services\Parsers\Concerns\ParsesUnarmoredAc;
 use SimpleXMLElement;
 
 class RaceXmlParser
 {
-    use ConvertsWordNumbers, MapsAbilityCodes, MatchesLanguages, MatchesProficiencyTypes, ParsesExpertise, ParsesModifiers, ParsesMovementSpeeds, ParsesNaturalWeapons, ParsesSkillAdvantages, ParsesSourceCitations, ParsesTraits;
+    use ConvertsWordNumbers, MapsAbilityCodes, MatchesLanguages, MatchesProficiencyTypes, ParsesExpertise, ParsesModifiers, ParsesMovementSpeeds, ParsesNaturalWeapons, ParsesSkillAdvantages, ParsesSourceCitations, ParsesTraits, ParsesUnarmoredAc;
 
     public function parse(string $xmlContent): array
     {
@@ -146,6 +147,9 @@ class RaceXmlParser
         // Parse natural weapons (claws, fangs, bite) from trait descriptions
         $naturalWeapons = $this->parseNaturalWeaponsFromTraits($traits);
 
+        // Parse unarmored AC from trait descriptions (e.g., Lizardfolk, Tortle)
+        $unarmoredAc = $this->parseUnarmoredAcFromTraits($traits);
+
         return [
             'name' => $raceName,
             'base_race_name' => $baseRaceName,
@@ -170,6 +174,7 @@ class RaceXmlParser
             'skill_advantage_modifiers' => $skillAdvantageModifiers,
             'expertise_modifiers' => $expertiseModifiers,
             'natural_weapons' => $naturalWeapons,
+            'unarmored_ac' => $unarmoredAc,
         ];
     }
 
@@ -937,6 +942,33 @@ class RaceXmlParser
         }
 
         return $expandedRaces;
+    }
+
+    /**
+     * Parse unarmored AC from trait descriptions.
+     *
+     * Scans all trait descriptions for natural armor patterns like:
+     * - "your AC is 13 + your Dexterity modifier" (Lizardfolk)
+     * - "base AC of 17" (Tortle)
+     * - "your AC is 12 + your Constitution modifier" (Loxodon)
+     *
+     * @param  array  $traits  Parsed traits array
+     * @return array{base_ac: int, ability_code: string|null, allows_shield: bool, replaces_armor: bool}|null
+     */
+    private function parseUnarmoredAcFromTraits(array $traits): ?array
+    {
+        foreach ($traits as $trait) {
+            if (empty($trait['description'])) {
+                continue;
+            }
+
+            $unarmoredAc = $this->parseUnarmoredAc($trait['description']);
+            if ($unarmoredAc !== null) {
+                return $unarmoredAc;
+            }
+        }
+
+        return null;
     }
 
     // parseModifierText() and determineBonusCategory() provided by ParsesModifiers trait

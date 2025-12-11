@@ -23,6 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #455**: Parse unarmored AC calculations from feat/race text
+  - New `ParsesUnarmoredAc` parser trait extracts natural armor data from descriptions
+  - Patterns matched: "your AC is X + DEX/CON modifier", "base AC of X"
+  - New `ac_unarmored` modifier category with base AC, ability modifier, and condition flags
+  - `FeatImporter` and `RaceImporter` create modifiers for affected entities
+  - Condition format: `allows_shield: true; replaces_armor: false`
+  - Affected entities: Dragon Hide feat, Lizardfolk, Loxodon, Tortle races
+
 - **Issue #487**: Expand LevelUpResult to include all pending choice flags
   - Added `pendingChoiceSummary` field to `LevelUpResult` DTO containing:
     - `total_pending`, `required_pending`, `optional_pending` counts

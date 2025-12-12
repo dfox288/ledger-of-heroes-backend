@@ -841,7 +841,7 @@ class ClassImporter extends BaseImporter
                     referenceType: CharacterClass::class,
                     referenceId: $class->id,
                     choiceGroup: $choiceGroup,
-                    choiceOption: $index + 1,
+                    choiceOption: $choiceOption,
                     itemSlug: $itemSlug,
                     categorySlug: $categorySlug,
                     description: $choiceItem['value'] ?? null,

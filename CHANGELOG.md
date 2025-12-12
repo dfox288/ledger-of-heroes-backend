@@ -26,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #535**: Equipment choices with OR alternatives now return separate options
+  - Root cause: `ClassImporter::importEquipmentChoice()` used loop index instead of parsed `choice_option`
+  - "(a) mace or (b) warhammer" now returns two options with `choice_option` 1 and 2 instead of both having `choice_option` 1
+  - Requires data re-import for fix to take effect
+
 - **Issue #529**: Add `equipment_choices` field to class API endpoint
   - Root cause: After #523 consolidation, class endpoint only returned static equipment (`entity_items`), not equipment choices (`entity_choices`)
   - Added `equipmentChoices` relationship to ClassSearchService

@@ -113,7 +113,10 @@ trait ImportsProficiencies
             return;
         }
 
-        // For unrestricted choices (no specific name, just type and maybe quantity)
+        // For fully unrestricted choices (no subcategory, no specific name)
+        // This path is only reached if proficiency_subcategory is NOT set (handled above),
+        // so constraints: null is correct - all items of this type are valid options.
+        // Example: Warforged "one tool proficiency of your choice" with no subcategory limit
         if ($choiceGroup === null && $name === null) {
             $choiceIndex++;
             $groupName = $proficiencyType.'_choice_'.$choiceIndex;

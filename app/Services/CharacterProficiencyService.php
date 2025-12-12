@@ -502,7 +502,10 @@ class CharacterProficiencyService
                 }
 
                 // If restricted choice yielded no valid options (e.g., target_slug is placeholder text
-                // like "one-type-of-artisan's-tools-of-your-choice"), fall back to category lookup
+                // like "one-type-of-artisan's-tools-of-your-choice"), fall back to category lookup.
+                // $proficiencySubcategory comes from constraints['subcategory'] on the EntityChoice.
+                // For legacy data with invalid target_slug but valid constraints, this respects the subcategory.
+                // For legacy data with constraints: null, this returns ALL items of the proficiency type.
                 if (empty($allOptions) && $proficiencyType !== 'skill') {
                     $allOptions = $this->buildProficiencyTypeOptions(
                         $proficiencyType,

@@ -47,21 +47,21 @@ trait CreatesHealthCheckFixtures
         $this->fixtures['item'] = Item::factory()->create();
         $this->fixtures['optionalFeature'] = OptionalFeature::factory()->create();
 
-        // Lookup fixtures (from LookupSeeder - just grab first record)
-        $this->fixtures['abilityScore'] = AbilityScore::first();
-        $this->fixtures['condition'] = Condition::first();
-        $this->fixtures['damageType'] = DamageType::first();
-        $this->fixtures['itemProperty'] = ItemProperty::first();
-        $this->fixtures['itemType'] = ItemType::first();
-        $this->fixtures['language'] = Language::first();
-        $this->fixtures['proficiencyType'] = ProficiencyType::first();
-        $this->fixtures['size'] = Size::first();
-        $this->fixtures['skill'] = Skill::first();
-        $this->fixtures['source'] = Source::first();
-        $this->fixtures['spellSchool'] = SpellSchool::first();
+        // Lookup fixtures (from LookupSeeder - use firstOrFail for clear errors)
+        $this->fixtures['abilityScore'] = AbilityScore::firstOrFail();
+        $this->fixtures['condition'] = Condition::firstOrFail();
+        $this->fixtures['damageType'] = DamageType::firstOrFail();
+        $this->fixtures['itemProperty'] = ItemProperty::firstOrFail();
+        $this->fixtures['itemType'] = ItemType::firstOrFail();
+        $this->fixtures['language'] = Language::firstOrFail();
+        $this->fixtures['proficiencyType'] = ProficiencyType::firstOrFail();
+        $this->fixtures['size'] = Size::firstOrFail();
+        $this->fixtures['skill'] = Skill::firstOrFail();
+        $this->fixtures['source'] = Source::firstOrFail();
+        $this->fixtures['spellSchool'] = SpellSchool::firstOrFail();
 
         // Derived lookups (from entity attributes)
-        $this->fixtures['alignment'] = (object) ['slug' => 'lawful-good'];
+        $this->fixtures['alignment'] = (object) ['slug' => str($this->fixtures['monster']->alignment)->slug()->toString()];
     }
 
     /**

@@ -43,6 +43,10 @@ class OpenApiEndpointExtractor
         }
 
         $spec = json_decode(file_get_contents($specPath), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \RuntimeException('Invalid JSON in api.json: '.json_last_error_msg());
+        }
+
         $endpoints = [];
 
         foreach ($spec['paths'] ?? [] as $path => $methods) {
@@ -82,37 +86,6 @@ class OpenApiEndpointExtractor
         self::$cachedEndpoints = $endpoints;
 
         return $endpoints;
-    }
-
-    /**
-     * Get parameter-to-fixture mapping for path substitution.
-     *
-     * @return array<string, string> Maps param name to fixture key
-     */
-    public static function getParamFixtureMap(): array
-    {
-        return [
-            'spell' => 'spell',
-            'monster' => 'monster',
-            'class' => 'class',
-            'race' => 'race',
-            'background' => 'background',
-            'feat' => 'feat',
-            'item' => 'item',
-            'optionalFeature' => 'optionalFeature',
-            'abilityScore' => 'abilityScore',
-            'alignment' => 'alignment',
-            'condition' => 'condition',
-            'damageType' => 'damageType',
-            'itemProperty' => 'itemProperty',
-            'itemType' => 'itemType',
-            'language' => 'language',
-            'proficiencyType' => 'proficiencyType',
-            'size' => 'size',
-            'skill' => 'skill',
-            'source' => 'source',
-            'spellSchool' => 'spellSchool',
-        ];
     }
 
     private static function shouldSkipPath(string $path): bool

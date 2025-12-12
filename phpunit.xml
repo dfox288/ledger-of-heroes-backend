@@ -180,6 +180,11 @@
             <directory>tests/Feature/Console</directory>
             <file>tests/Unit/Parsers/ClassXmlParserTest.php</file>
         </testsuite>
+
+        <!-- Health-Check: Smoke test all GET endpoints (approx 3-4s) -->
+        <testsuite name="Health-Check">
+            <directory>tests/Feature/HealthCheck</directory>
+        </testsuite>
     </testsuites>
 
 

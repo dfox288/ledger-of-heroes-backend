@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Issue #528**: API Health Check test suite - smoke tests all GET endpoints from api.json
+  - `tests/Feature/HealthCheck/ApiEndpointHealthTest.php` - verifies 41 endpoints return 200 with valid JSON
+  - `tests/Support/OpenApiEndpointExtractor.php` - dynamic endpoint discovery from OpenAPI spec
+  - `tests/Support/Traits/CreatesHealthCheckFixtures.php` - minimal factory fixtures
+  - Run with: `./vendor/bin/pest --testsuite=Health-Check`
+
 ### Changed
 
 - **BREAKING - Issue #523**: Consolidated all character creation choices into unified `entity_choices` table

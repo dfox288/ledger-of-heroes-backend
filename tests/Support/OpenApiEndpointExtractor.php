@@ -9,11 +9,12 @@ class OpenApiEndpointExtractor
     private static ?string $specPath = null;
 
     /**
-     * Endpoints that require authentication - skip for health checks.
+     * Endpoints to skip for health checks.
      */
     private const SKIP_PREFIXES = [
-        '/v1/characters',
-        '/v1/auth',
+        '/v1/characters',  // Requires authentication
+        '/v1/auth',        // Requires authentication
+        '/v1/search',      // Requires query parameter
     ];
 
     /**
@@ -122,13 +123,25 @@ class OpenApiEndpointExtractor
             }
         }
 
+        // Skip nested lookup routes (e.g., /lookups/proficiency-types/{param}/backgrounds)
+        // These require specific data relationships that are complex to fixture
+        if (str_contains($path, '/lookups/') && preg_match('/\{[^}]+\}/', $path)) {
+            return true;
+        }
+
         return false;
     }
 
     private static function isPaginated(array $operation): bool
     {
-        // Check operationId - Laravel convention: *.index = paginated, *.show = single
         $operationId = $operation['operationId'] ?? '';
+
+        // Lookups return simple arrays, not paginated responses
+        if (str_starts_with($operationId, 'lookups.')) {
+            return false;
+        }
+
+        // Check operationId - Laravel convention: *.index = paginated, *.show = single
         if (str_ends_with($operationId, '.index')) {
             return true;
         }

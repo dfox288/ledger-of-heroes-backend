@@ -36,7 +36,7 @@ services:
       # Use stable environment config
       - ./.env.stable:/var/www/html/.env:ro
     networks:
-      - loh_stable_network
+      - loh_network
     depends_on:
       mysql_stable:
         condition: service_healthy
@@ -53,7 +53,7 @@ services:
       - ./:/var/www/html
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     networks:
-      - loh_stable_network
+      - loh_network
     depends_on:
       - php
 
@@ -75,7 +75,7 @@ services:
     volumes:
       - mysql_stable_data:/var/lib/mysql
     networks:
-      - loh_stable_network
+      - loh_network
     command: --default-authentication-plugin=mysql_native_password
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
@@ -98,7 +98,7 @@ services:
     volumes:
       - 'meilisearch_stable_data:/meili_data'
     networks:
-      - loh_stable_network
+      - loh_network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--spider", "http://127.0.0.1:7700/health"]
       retries: 3
@@ -113,7 +113,7 @@ services:
     volumes:
       - redis_stable_data:/data
     networks:
-      - loh_stable_network
+      - loh_network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       retries: 3
@@ -121,7 +121,7 @@ services:
     command: redis-server --appendonly yes
 
 networks:
-  loh_stable_network:
+  loh_network:
     driver: bridge
 
 volumes:

@@ -57,7 +57,7 @@ XML;
 
         // Verify core attributes
         $this->assertEquals('Armor of Shadows', $feature->name);
-        $this->assertEquals('armor-of-shadows', $feature->slug);
+        $this->assertEquals('phb:armor-of-shadows', $feature->slug);
         $this->assertEquals(OptionalFeatureType::ELDRITCH_INVOCATION, $feature->feature_type);
         $this->assertStringContainsString('You can cast mage armor', $feature->description);
         $this->assertNull($feature->prerequisite_text, 'No prerequisites');

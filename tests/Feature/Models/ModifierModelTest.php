@@ -53,22 +53,25 @@ class ModifierModelTest extends TestCase
     }
 
     #[Test]
-    public function modifier_supports_choice_fields(): void
+    public function modifier_choice_fields_are_now_in_entity_choices(): void
     {
         $race = Race::factory()->create();
 
-        $modifier = Modifier::create([
+        // Choice modifiers are now stored in entity_choices table
+        $entityChoice = \App\Models\EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'modifier_category' => 'ability_score',
-            'value' => '+1',
-            'is_choice' => true,
-            'choice_count' => 2,
-            'choice_constraint' => 'different',
+            'choice_type' => 'ability_score',
+            'choice_group' => 'test_ability_choice',
+            'quantity' => 2,
+            'constraint' => 'different',
+            'constraints' => ['value' => '+1'],
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
-        $this->assertTrue($modifier->is_choice);
-        $this->assertEquals(2, $modifier->choice_count);
-        $this->assertEquals('different', $modifier->choice_constraint);
+        $this->assertEquals('ability_score', $entityChoice->choice_type);
+        $this->assertEquals(2, $entityChoice->quantity);
+        $this->assertEquals('different', $entityChoice->constraint);
     }
 }

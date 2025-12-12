@@ -28,8 +28,6 @@ class ProficiencyResourceTest extends TestCase
             'proficiency_type' => 'weapon',
             'proficiency_name' => 'Longsword',
             'grants' => true,
-            'is_choice' => false,
-            'quantity' => 1,
             'level' => null,
         ]);
 
@@ -40,8 +38,6 @@ class ProficiencyResourceTest extends TestCase
         $this->assertEquals('weapon', $array['proficiency_type']);
         $this->assertEquals('Longsword', $array['proficiency_name']);
         $this->assertTrue($array['grants']);
-        $this->assertFalse($array['is_choice']);
-        $this->assertEquals(1, $array['quantity']);
         $this->assertNull($array['level']);
     }
 
@@ -58,7 +54,6 @@ class ProficiencyResourceTest extends TestCase
             'proficiency_type_id' => $proficiencyType->id,
             'proficiency_name' => null,
             'grants' => true,
-            'is_choice' => false,
         ]);
 
         $proficiency->load('proficiencyType');
@@ -83,7 +78,6 @@ class ProficiencyResourceTest extends TestCase
             'skill_id' => $skill->id,
             'proficiency_name' => null,
             'grants' => true,
-            'is_choice' => false,
         ]);
 
         $proficiency->load('skill');
@@ -108,7 +102,6 @@ class ProficiencyResourceTest extends TestCase
             'item_id' => $item->id,
             'proficiency_name' => null,
             'grants' => true,
-            'is_choice' => false,
         ]);
 
         $proficiency->load('item');
@@ -135,7 +128,6 @@ class ProficiencyResourceTest extends TestCase
             'ability_score_id' => $abilityScore->id,
             'proficiency_name' => null,
             'grants' => true,
-            'is_choice' => false,
         ]);
 
         $proficiency->load('abilityScore');
@@ -147,31 +139,8 @@ class ProficiencyResourceTest extends TestCase
         $this->assertNotNull($array['ability_score']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_includes_choice_fields(): void
-    {
-        $race = Race::factory()->create();
-
-        $proficiency = Proficiency::create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
-            'proficiency_type' => 'skill',
-            'proficiency_name' => 'Any skill',
-            'grants' => true,
-            'is_choice' => true,
-            'choice_group' => 'skills',
-            'choice_option' => 2,
-            'quantity' => 2,
-        ]);
-
-        $resource = new ProficiencyResource($proficiency);
-        $array = $resource->toArray(request());
-
-        $this->assertTrue($array['is_choice']);
-        $this->assertEquals('skills', $array['choice_group']);
-        $this->assertEquals(2, $array['choice_option']);
-        $this->assertEquals(2, $array['quantity']);
-    }
+    // Note: Choice proficiencies are now stored in entity_choices table
+    // and tested via EntityChoiceResourceTest
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_includes_proficiency_subcategory_when_present(): void
@@ -185,7 +154,6 @@ class ProficiencyResourceTest extends TestCase
             'proficiency_subcategory' => 'artisan',
             'proficiency_name' => 'Smith\'s Tools',
             'grants' => true,
-            'is_choice' => false,
         ]);
 
         $resource = new ProficiencyResource($proficiency);
@@ -205,7 +173,6 @@ class ProficiencyResourceTest extends TestCase
             'proficiency_type' => 'weapon',
             'proficiency_name' => 'Longbow',
             'grants' => true,
-            'is_choice' => false,
             'level' => 3,
         ]);
 

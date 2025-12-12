@@ -6,13 +6,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
- * Proficiency - Polymorphic pivot for proficiency grants.
+ * Proficiency - Polymorphic pivot for fixed proficiency grants.
  *
  * Table: entity_proficiencies (custom table name for polymorphic consistency)
  * Used by: Background, CharacterClass, Feat, Item, Race
  *
- * Represents proficiencies granted by entities (weapon, armor, skill, tool, saving throw).
- * Supports both fixed proficiencies and proficiency choices (is_choice=true with choice_group).
+ * Represents fixed proficiencies granted by entities (weapon, armor, skill, tool, saving throw).
+ * Choice-based proficiency grants are stored in entity_choices table.
  */
 class Proficiency extends BaseModel
 {
@@ -32,10 +32,6 @@ class Proficiency extends BaseModel
         'ability_score_id',
         'proficiency_name',
         'grants',
-        'is_choice',
-        'choice_group',
-        'choice_option',
-        'quantity',
         'level',
     ];
 
@@ -46,9 +42,6 @@ class Proficiency extends BaseModel
         'item_id' => 'integer',
         'ability_score_id' => 'integer',
         'grants' => 'boolean',
-        'is_choice' => 'boolean',
-        'choice_option' => 'integer',
-        'quantity' => 'integer',
         'level' => 'integer',
     ];
 

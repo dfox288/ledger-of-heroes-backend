@@ -93,6 +93,102 @@ class ClassImporterMergeTest extends TestCase
     }
 
     #[Test]
+    public function it_merges_classes_with_different_source_prefixes()
+    {
+        // This tests the fix for issue where PHB creates phb:barbarian
+        // but XGE generates xge:barbarian and doesn't find the existing class
+
+        // Step 1: Import PHB Barbarian (sources array gives PHB prefix)
+        $phbData = [
+            'name' => 'Barbarian',
+            'hit_die' => 12,
+            'traits' => [
+                [
+                    'name' => 'Rage',
+                    'description' => 'You can rage.',
+                    'sources' => [['code' => 'PHB', 'page' => '46']],
+                ],
+            ],
+            'proficiencies' => [],
+            'features' => [],
+            'spell_progression' => [],
+            'counters' => [],
+            'equipment' => ['wealth' => null, 'items' => []],
+            'subclasses' => [
+                [
+                    'name' => 'Path of the Berserker',
+                    'features' => [
+                        [
+                            'name' => 'Frenzy',
+                            'level' => 3,
+                            'is_optional' => false,
+                            'description' => 'You can go into a frenzy.',
+                            'sort_order' => 0,
+                            'sources' => [['code' => 'PHB', 'page' => '49']],
+                        ],
+                    ],
+                    'counters' => [],
+                ],
+            ],
+        ];
+
+        $barbarian = $this->importer->import($phbData);
+
+        // Verify PHB created the class with phb: prefix
+        $this->assertEquals('phb:barbarian', $barbarian->slug);
+        $this->assertEquals(1, $barbarian->subclasses()->count());
+
+        // Step 2: Merge XGE Barbarian (different source prefix)
+        $xgeData = [
+            'name' => 'Barbarian',
+            'hit_die' => 12,
+            'traits' => [
+                [
+                    'name' => 'Additional Primal Paths',
+                    'description' => 'XGE adds more paths.',
+                    'sources' => [['code' => 'XGE', 'page' => '9']],
+                ],
+            ],
+            'proficiencies' => [],
+            'features' => [],
+            'spell_progression' => [],
+            'counters' => [],
+            'equipment' => ['wealth' => null, 'items' => []],
+            'subclasses' => [
+                [
+                    'name' => 'Path of the Ancestral Guardian',
+                    'features' => [
+                        [
+                            'name' => 'Ancestral Protectors',
+                            'level' => 3,
+                            'is_optional' => false,
+                            'description' => 'Spectral warriors appear.',
+                            'sort_order' => 0,
+                            'sources' => [['code' => 'XGE', 'page' => '10']],
+                        ],
+                    ],
+                    'counters' => [],
+                ],
+            ],
+        ];
+
+        // XGE would generate xge:barbarian, but should find existing phb:barbarian by name
+        $result = $this->importer->importWithMerge($xgeData, MergeMode::MERGE);
+
+        // Should merge into the existing class (same ID, same slug)
+        $this->assertEquals($barbarian->id, $result->id);
+        $this->assertEquals('phb:barbarian', $result->slug);
+
+        // Should now have 2 subclasses
+        $this->assertEquals(2, $result->subclasses()->count());
+
+        // Verify no duplicate base class was created
+        $this->assertEquals(1, CharacterClass::where('name', 'Barbarian')
+            ->whereNull('parent_class_id')
+            ->count());
+    }
+
+    #[Test]
     public function it_skips_duplicate_subclasses_when_merging()
     {
         // Create Barbarian with Path of the Berserker
@@ -179,7 +275,8 @@ class ClassImporterMergeTest extends TestCase
 
         // Should return existing class, not create new one
         $this->assertEquals($originalId, $result->id);
-        $this->assertEquals(1, CharacterClass::where('slug', 'barbarian')->count());
+        // No sources in test data → defaults to 'core' prefix
+        $this->assertEquals(1, CharacterClass::where('slug', 'core:barbarian')->count());
     }
 
     #[Test]
@@ -273,6 +370,137 @@ class ClassImporterMergeTest extends TestCase
         $this->assertContains('Pact Boon: Pact of the Blade', $featureNames);
         $this->assertContains('Pact Boon: Pact of the Tome', $featureNames);
         $this->assertContains('Pact Boon: Pact of the Talisman', $featureNames);
+    }
+
+    #[Test]
+    public function it_merges_subclass_features_from_different_sources()
+    {
+        // This tests the Beast Master scenario:
+        // PHB Beast Master has 5 features, TCE adds Primal Companion
+        // Should result in 1 Beast Master subclass with 6 features total
+
+        // Step 1: Import PHB Ranger with Beast Master subclass
+        $phbData = [
+            'name' => 'Ranger',
+            'hit_die' => 10,
+            'traits' => [
+                [
+                    'name' => 'Ranger',
+                    'description' => 'The ranger class.',
+                    'sources' => [['code' => 'PHB', 'page' => '89']],
+                ],
+            ],
+            'proficiencies' => [],
+            'features' => [],
+            'spell_progression' => [],
+            'counters' => [],
+            'equipment' => ['wealth' => null, 'items' => []],
+            'subclasses' => [
+                [
+                    'name' => 'Beast Master',
+                    'features' => [
+                        [
+                            'name' => "Ranger's Companion (Beast Master)",
+                            'level' => 3,
+                            'is_optional' => false,
+                            'description' => 'At 3rd level, you gain a beast companion.',
+                            'sort_order' => 0,
+                            'sources' => [['code' => 'PHB', 'page' => '93']],
+                        ],
+                        [
+                            'name' => 'Exceptional Training (Beast Master)',
+                            'level' => 7,
+                            'is_optional' => false,
+                            'description' => "Your beast's attacks count as magical.",
+                            'sort_order' => 0,
+                            'sources' => [['code' => 'PHB', 'page' => '93']],
+                        ],
+                        [
+                            'name' => 'Bestial Fury (Beast Master)',
+                            'level' => 11,
+                            'is_optional' => false,
+                            'description' => 'Your beast can make two attacks.',
+                            'sort_order' => 0,
+                            'sources' => [['code' => 'PHB', 'page' => '93']],
+                        ],
+                        [
+                            'name' => 'Share Spells (Beast Master)',
+                            'level' => 15,
+                            'is_optional' => false,
+                            'description' => 'Your beast benefits from your spells.',
+                            'sort_order' => 0,
+                            'sources' => [['code' => 'PHB', 'page' => '93']],
+                        ],
+                    ],
+                    'counters' => [],
+                ],
+            ],
+        ];
+
+        $ranger = $this->importer->import($phbData);
+
+        // Verify initial state
+        $this->assertEquals(1, $ranger->subclasses()->count());
+        $beastMaster = $ranger->subclasses()->where('name', 'Beast Master')->first();
+        $this->assertNotNull($beastMaster);
+        $this->assertEquals('phb:ranger-beast-master', $beastMaster->slug);
+        $this->assertEquals(4, $beastMaster->features()->count());
+
+        // Step 2: Merge TCE Ranger with Beast Master Primal Companion
+        $tceData = [
+            'name' => 'Ranger',
+            'hit_die' => 10,
+            'traits' => [
+                [
+                    'name' => 'Optional Ranger Features',
+                    'description' => 'TCE optional features.',
+                    'sources' => [['code' => 'TCE', 'page' => '56']],
+                ],
+            ],
+            'proficiencies' => [],
+            'features' => [],
+            'spell_progression' => [],
+            'counters' => [],
+            'equipment' => ['wealth' => null, 'items' => []],
+            'subclasses' => [
+                [
+                    'name' => 'Beast Master',
+                    'features' => [
+                        [
+                            'name' => 'Primal Companion (Beast Master)',
+                            'level' => 3,
+                            'is_optional' => true, // TCE's Primal Companion is optional replacement
+                            'description' => "Replaces Ranger's Companion. You summon a primal beast.",
+                            'sort_order' => 1, // Different sort_order to not conflict with Ranger's Companion
+                            'sources' => [['code' => 'TCE', 'page' => '61']],
+                        ],
+                    ],
+                    'counters' => [],
+                ],
+            ],
+        ];
+
+        $ranger = $this->importer->importWithMerge($tceData, MergeMode::MERGE);
+
+        // Verify merge results
+        // Should still have exactly 1 Beast Master subclass (not 2!)
+        $this->assertEquals(1, $ranger->subclasses()->where('name', 'Beast Master')->count());
+
+        $beastMaster = $ranger->subclasses()->where('name', 'Beast Master')->first();
+
+        // Should keep the PHB slug (first import wins)
+        $this->assertEquals('phb:ranger-beast-master', $beastMaster->slug);
+
+        // Should now have 5 features (4 PHB + 1 TCE Primal Companion)
+        $this->assertEquals(5, $beastMaster->features()->count());
+
+        // Verify both Ranger's Companion (PHB) and Primal Companion (TCE) exist
+        $featureNames = $beastMaster->features()->pluck('feature_name')->toArray();
+        $this->assertContains("Ranger's Companion (Beast Master)", $featureNames);
+        $this->assertContains('Primal Companion (Beast Master)', $featureNames);
+        $this->assertContains('Exceptional Training (Beast Master)', $featureNames);
+        $this->assertContains('Bestial Fury (Beast Master)', $featureNames);
+        $this->assertContains('Share Spells (Beast Master)', $featureNames);
     }
 
     #[Test]

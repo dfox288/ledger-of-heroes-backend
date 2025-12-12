@@ -18,6 +18,9 @@ class MonsterImporterTest extends TestCase
     {
         parent::setUp();
 
+        // Clear static caches from previous tests
+        MonsterImporter::clearSenseCache();
+
         // Create required lookup data
         \App\Models\Size::firstOrCreate(['code' => 'L'], ['name' => 'Large']);
         \App\Models\Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
@@ -47,7 +50,7 @@ class MonsterImporterTest extends TestCase
 
         $this->importer->importWithStats($xmlPath);
 
-        $dragon = Monster::where('slug', 'young-red-dragon')->first();
+        $dragon = Monster::where('slug', 'phb:young-red-dragon')->first();
 
         $this->assertNotNull($dragon);
         $this->assertEquals('Young Red Dragon', $dragon->name);
@@ -77,7 +80,7 @@ class MonsterImporterTest extends TestCase
 
         $this->importer->importWithStats($xmlPath);
 
-        $acolyte = Monster::where('slug', 'acolyte')->first();
+        $acolyte = Monster::where('slug', 'phb:acolyte')->first();
 
         $this->assertNotNull($acolyte);
         $this->assertEquals('Acolyte', $acolyte->name);
@@ -96,7 +99,7 @@ class MonsterImporterTest extends TestCase
 
         $this->importer->importWithStats($xmlPath);
 
-        $dragon = Monster::where('slug', 'young-red-dragon')->first();
+        $dragon = Monster::where('slug', 'phb:young-red-dragon')->first();
         $traits = $dragon->traits;
 
         $this->assertCount(1, $traits);
@@ -111,7 +114,7 @@ class MonsterImporterTest extends TestCase
 
         $this->importer->importWithStats($xmlPath);
 
-        $dragon = Monster::where('slug', 'young-red-dragon')->first();
+        $dragon = Monster::where('slug', 'phb:young-red-dragon')->first();
         $actions = $dragon->actions()->where('action_type', 'action')->get();
 
         $this->assertGreaterThanOrEqual(3, $actions->count());
@@ -128,7 +131,7 @@ class MonsterImporterTest extends TestCase
 
         $this->importer->importWithStats($xmlPath);
 
-        $goblin = Monster::where('slug', 'goblin')->first();
+        $goblin = Monster::where('slug', 'phb:goblin')->first();
         $reactions = $goblin->actions()->where('action_type', 'reaction')->get();
 
         $this->assertCount(1, $reactions);
@@ -142,7 +145,7 @@ class MonsterImporterTest extends TestCase
 
         $this->importer->importWithStats($xmlPath);
 
-        $dragon = Monster::where('slug', 'young-red-dragon')->first();
+        $dragon = Monster::where('slug', 'phb:young-red-dragon')->first();
         $legendary = $dragon->legendaryActions;
 
         $this->assertCount(2, $legendary);
@@ -161,7 +164,7 @@ class MonsterImporterTest extends TestCase
 
         $this->importer->importWithStats($xmlPath);
 
-        $dragon = Monster::where('slug', 'young-red-dragon')->first();
+        $dragon = Monster::where('slug', 'phb:young-red-dragon')->first();
         $modifiers = $dragon->modifiers;
 
         // Should have saves (4) + skills (2)
@@ -185,7 +188,7 @@ class MonsterImporterTest extends TestCase
 
         $this->importer->importWithStats($xmlPath);
 
-        $dragon = Monster::where('slug', 'young-red-dragon')->first();
+        $dragon = Monster::where('slug', 'phb:young-red-dragon')->first();
         $immunities = $dragon->modifiers()
             ->where('modifier_category', 'damage_immunity')
             ->get();
@@ -253,7 +256,7 @@ class MonsterImporterTest extends TestCase
 
         $this->importer->importWithStats($xmlPath);
 
-        $dragon = Monster::where('slug', 'young-red-dragon')->first();
+        $dragon = Monster::where('slug', 'phb:young-red-dragon')->first();
         $senses = $dragon->senses()->with('sense')->get();
 
         // Dragon has: blindsight 30 ft., darkvision 120 ft.
@@ -281,7 +284,7 @@ class MonsterImporterTest extends TestCase
         $this->importer->importWithStats($xmlPath);
         $this->importer->importWithStats($xmlPath);
 
-        $dragon = Monster::where('slug', 'young-red-dragon')->first();
+        $dragon = Monster::where('slug', 'phb:young-red-dragon')->first();
         $senses = $dragon->senses;
 
         // Should still have exactly 2, not 4 (duplicated)
@@ -301,7 +304,7 @@ class MonsterImporterTest extends TestCase
 
         $this->assertEquals(1, $result['total']);
 
-        $monster = Monster::where('slug', 'duplicate-senses-creature')->first();
+        $monster = Monster::where('slug', 'phb:duplicate-senses-creature')->first();
         $senses = $monster->senses()->with('sense')->get();
 
         // Should have exactly 1 darkvision, not 2
@@ -357,7 +360,7 @@ XML;
 
         $this->importer->import($monsters[0]);
 
-        $goblin = \App\Models\Monster::where('slug', 'test-goblin')->first();
+        $goblin = \App\Models\Monster::where('slug', 'mm:test-goblin')->first();
 
         $this->assertNotNull($goblin);
         $this->assertEquals('mm:test-goblin', $goblin->slug);
@@ -401,7 +404,7 @@ XML;
 
         $this->importer->import($monsters[0]);
 
-        $creature = \App\Models\Monster::where('slug', 'sourceless-creature')->first();
+        $creature = \App\Models\Monster::where('slug', 'phb:sourceless-creature')->first();
 
         $this->assertNotNull($creature);
         // Falls back to PHB when no source citation is found in description
@@ -458,7 +461,7 @@ XML;
 
         $this->importer->import($monsters[0]);
 
-        $beast = \App\Models\Monster::where('slug', 'multi-source-beast')->first();
+        $beast = \App\Models\Monster::where('slug', 'phb:multi-source-beast')->first();
 
         $this->assertNotNull($beast);
         // Should use PHB as it appears first in the source citation
@@ -466,7 +469,7 @@ XML;
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_updates_slug_when_reimporting_with_different_source(): void
+    public function it_creates_separate_monsters_when_importing_same_name_from_different_sources(): void
     {
         // Create test sources
         \App\Models\Source::firstOrCreate(
@@ -513,10 +516,12 @@ XML;
         $monsters = $parser->parse($xmlV1);
         $this->importer->import($monsters[0]);
 
-        $monster = \App\Models\Monster::where('slug', 'reimport-test-monster')->first();
-        $this->assertEquals('phb:reimport-test-monster', $monster->slug);
+        $phbMonster = \App\Models\Monster::where('slug', 'phb:reimport-test-monster')->first();
+        $this->assertNotNull($phbMonster);
+        $this->assertEquals('phb:reimport-test-monster', $phbMonster->slug);
+        $this->assertEquals(1, \App\Models\Monster::where('name', 'Reimport Test Monster')->count());
 
-        // Reimport with XGE source (simulating updated sourcebook)
+        // Import with XGE source - creates a separate monster (not updating PHB one)
         $xmlV2 = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <compendium>
@@ -550,7 +555,16 @@ XML;
         $monsters = $parser->parse($xmlV2);
         $this->importer->import($monsters[0]);
 
-        $monster->refresh();
-        $this->assertEquals('xge:reimport-test-monster', $monster->slug);
+        // With source-prefixed slugs, same-name monsters from different sources create separate entities
+        $xgeMonster = \App\Models\Monster::where('slug', 'xge:reimport-test-monster')->first();
+        $this->assertNotNull($xgeMonster);
+        $this->assertEquals('xge:reimport-test-monster', $xgeMonster->slug);
+
+        // Both monsters should exist
+        $this->assertEquals(2, \App\Models\Monster::where('name', 'Reimport Test Monster')->count());
+
+        // Original PHB monster should be unchanged
+        $phbMonster->refresh();
+        $this->assertEquals('phb:reimport-test-monster', $phbMonster->slug);
     }
 }

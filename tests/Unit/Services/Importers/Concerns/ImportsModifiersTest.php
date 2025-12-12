@@ -4,6 +4,7 @@ namespace Tests\Unit\Services\Importers\Concerns;
 
 use App\Models\AbilityScore;
 use App\Models\DamageType;
+use App\Models\EntityChoice;
 use App\Models\Modifier;
 use App\Models\Race;
 use App\Models\Skill;
@@ -143,11 +144,16 @@ class ImportsModifiersTest extends TestCase
 
         $this->importEntityModifiers($race, $modifiersData);
 
-        $modifier = $race->modifiers->first();
-        $this->assertTrue($modifier->is_choice);
-        $this->assertEquals(2, $modifier->choice_count);
-        $this->assertEquals('different', $modifier->choice_constraint);
-        $this->assertNull($modifier->ability_score_id); // Choices don't have specific ability
+        // Choice modifiers are now stored in EntityChoice table
+        $choice = EntityChoice::where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->where('choice_type', 'ability_score')
+            ->first();
+
+        $this->assertNotNull($choice);
+        $this->assertEquals(2, $choice->quantity);
+        $this->assertEquals('different', $choice->constraint);
+        $this->assertEquals('+1', $choice->constraints['value'] ?? null);
     }
 
     #[Test]
@@ -270,15 +276,15 @@ class ImportsModifiersTest extends TestCase
     {
         $race = Race::factory()->create();
 
-        $modifier = $this->importAsiModifier($race, 4);
+        $choice = $this->importAsiModifier($race, 4);
 
-        $this->assertInstanceOf(Modifier::class, $modifier);
-        $this->assertEquals('ability_score', $modifier->modifier_category);
-        $this->assertEquals(4, $modifier->level);
-        $this->assertEquals('+2', $modifier->value);
-        $this->assertTrue($modifier->is_choice);
-        $this->assertEquals(2, $modifier->choice_count);
-        $this->assertNull($modifier->ability_score_id);
+        // importAsiModifier now returns EntityChoice
+        $this->assertInstanceOf(EntityChoice::class, $choice);
+        $this->assertEquals('ability_score', $choice->choice_type);
+        $this->assertEquals(4, $choice->level_granted);
+        $this->assertEquals('+2', $choice->constraints['value'] ?? null);
+        $this->assertEquals('different', $choice->constraint);
+        $this->assertEquals(2, $choice->quantity);
     }
 
     #[Test]
@@ -286,10 +292,11 @@ class ImportsModifiersTest extends TestCase
     {
         $race = Race::factory()->create();
 
-        $modifier = $this->importAsiModifier($race, 8, '+1');
+        $choice = $this->importAsiModifier($race, 8, '+1');
 
-        $this->assertEquals(8, $modifier->level);
-        $this->assertEquals('+1', $modifier->value);
+        // importAsiModifier now returns EntityChoice
+        $this->assertEquals(8, $choice->level_granted);
+        $this->assertEquals('+1', $choice->constraints['value'] ?? null);
     }
 
     #[Test]
@@ -465,8 +472,14 @@ class ImportsModifiersTest extends TestCase
 
         $this->importEntityModifiers($race, $modifiersData);
 
-        $modifier = $race->modifiers->first();
-        $this->assertEquals('Intelligence, Wisdom, or Charisma', $modifier->choice_constraint);
+        // Choice modifiers are now stored in EntityChoice table
+        $choice = EntityChoice::where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->where('choice_type', 'ability_score')
+            ->first();
+
+        $this->assertNotNull($choice);
+        $this->assertEquals('Intelligence, Wisdom, or Charisma', $choice->constraint);
     }
 
     #[Test]

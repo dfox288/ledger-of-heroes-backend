@@ -7,6 +7,7 @@ use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterFeature;
 use App\Models\CharacterLanguage;
+use App\Models\EntityChoice;
 use App\Models\EntityLanguage;
 use App\Models\Feat;
 use App\Models\Language;
@@ -91,14 +92,12 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'language_id' => $common->id,
-            'is_choice' => false,
         ]);
 
         EntityLanguage::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'language_id' => $elvish->id,
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()->withRace($race)->create();
@@ -123,7 +122,6 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => Background::class,
             'reference_id' => $background->id,
             'language_id' => $draconic->id,
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()->withBackground($background)->create();
@@ -161,7 +159,6 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => Feat::class,
             'reference_id' => $feat->id,
             'language_id' => $dwarvish->id,
-            'is_choice' => false,
         ]);
 
         // Act
@@ -191,14 +188,12 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'language_id' => $common->id,
-            'is_choice' => false,
         ]);
 
         EntityLanguage::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'language_id' => $elvish->id,
-            'is_choice' => false,
         ]);
 
         // Background language
@@ -206,7 +201,6 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => Background::class,
             'reference_id' => $background->id,
             'language_id' => $draconic->id,
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()
@@ -245,7 +239,6 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'language_id' => $common->id,
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()->withRace($race)->create();
@@ -271,16 +264,14 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'language_id' => $common->id,
-            'is_choice' => false,
         ]);
 
-        // Choice language (quantity 1)
-        EntityLanguage::create([
+        // Choice language (1 choice)
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 1,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
         ]);
 
         $character = Character::factory()->withRace($race)->create();
@@ -311,16 +302,14 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'language_id' => $common->id,
-            'is_choice' => false,
         ]);
 
         // Choice (1 language)
-        EntityLanguage::create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 1,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
         ]);
 
         $character = Character::factory()->withRace($race)->create();
@@ -348,15 +337,13 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'language_id' => $common->id,
-            'is_choice' => false,
         ]);
 
-        EntityLanguage::create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 1,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
         ]);
 
         $character = Character::factory()->withRace($race)->create();
@@ -383,13 +370,18 @@ class CharacterLanguageServiceTest extends TestCase
         // Arrange
         $background = Background::factory()->create(['name' => 'Sage-'.uniqid(), 'slug' => 'sage-'.uniqid()]);
 
-        // Choice (2 languages)
-        EntityLanguage::create([
+        // Choice (2 languages - need 2 distinct choice groups)
+        EntityChoice::create([
             'reference_type' => Background::class,
             'reference_id' => $background->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 2,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
+        ]);
+        EntityChoice::create([
+            'reference_type' => Background::class,
+            'reference_id' => $background->id,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_2',
         ]);
 
         $character = Character::factory()->withBackground($background)->create();
@@ -418,13 +410,24 @@ class CharacterLanguageServiceTest extends TestCase
             'level_acquired' => 1,
         ]);
 
-        // Choice (3 languages from Linguist feat)
-        EntityLanguage::create([
+        // Choice (3 languages from Linguist feat - need 3 distinct choice groups)
+        EntityChoice::create([
             'reference_type' => Feat::class,
             'reference_id' => $feat->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 3,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
+        ]);
+        EntityChoice::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $feat->id,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_2',
+        ]);
+        EntityChoice::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $feat->id,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_3',
         ]);
 
         // Act
@@ -448,15 +451,13 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'language_id' => $common->id,
-            'is_choice' => false,
         ]);
 
-        EntityLanguage::create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 1,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
         ]);
 
         $character = Character::factory()->withRace($race)->create();
@@ -496,16 +497,14 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => Race::class,
             'reference_id' => $parentRace->id,
             'language_id' => $elvish->id,
-            'is_choice' => false,
         ]);
 
         // Parent race choice
-        EntityLanguage::create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $parentRace->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 1,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
         ]);
 
         // Subrace fixed language
@@ -513,7 +512,6 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => Race::class,
             'reference_id' => $subrace->id,
             'language_id' => $common->id,
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()->withRace($subrace)->create();
@@ -543,15 +541,13 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'language_id' => $common->id,
-            'is_choice' => false,
         ]);
 
-        EntityLanguage::create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 1,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
         ]);
 
         $character = Character::factory()->withRace($race)->create();
@@ -574,12 +570,17 @@ class CharacterLanguageServiceTest extends TestCase
         $draconic = Language::factory()->create(['name' => 'Draconic-'.uniqid(), 'slug' => 'draconic-'.uniqid()]);
         $infernal = Language::factory()->create(['name' => 'Infernal-'.uniqid(), 'slug' => 'infernal-'.uniqid()]);
 
-        EntityLanguage::create([
+        EntityChoice::create([
             'reference_type' => Background::class,
             'reference_id' => $background->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 2,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
+        ]);
+        EntityChoice::create([
+            'reference_type' => Background::class,
+            'reference_id' => $background->id,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_2',
         ]);
 
         $character = Character::factory()->withBackground($background)->create();
@@ -610,12 +611,11 @@ class CharacterLanguageServiceTest extends TestCase
             'level_acquired' => 1,
         ]);
 
-        EntityLanguage::create([
+        EntityChoice::create([
             'reference_type' => Feat::class,
             'reference_id' => $feat->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 1,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
         ]);
 
         // Act
@@ -649,12 +649,11 @@ class CharacterLanguageServiceTest extends TestCase
         $elvish = Language::factory()->create(['name' => 'Elvish-'.uniqid(), 'slug' => 'elvish-'.uniqid()]);
         $dwarvish = Language::factory()->create(['name' => 'Dwarvish-'.uniqid(), 'slug' => 'dwarvish-'.uniqid()]);
 
-        EntityLanguage::create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 1, // Only 1 allowed
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1', // Only 1 choice available
         ]);
 
         $character = Character::factory()->withRace($race)->create();
@@ -672,12 +671,11 @@ class CharacterLanguageServiceTest extends TestCase
         // Arrange
         $race = Race::factory()->create(['name' => 'Human-'.uniqid(), 'slug' => 'human-'.uniqid()]);
 
-        EntityLanguage::create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 1,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
         ]);
 
         $character = Character::factory()->withRace($race)->create();
@@ -700,15 +698,13 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'language_id' => $common->id,
-            'is_choice' => false,
         ]);
 
-        EntityLanguage::create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 1,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
         ]);
 
         $character = Character::factory()->withRace($race)->create();
@@ -733,7 +729,6 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'language_id' => $language->id,
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()->withRace($race)->create();
@@ -753,12 +748,11 @@ class CharacterLanguageServiceTest extends TestCase
         $elvish = Language::factory()->create(['name' => 'Elvish-'.uniqid(), 'slug' => 'elvish-'.uniqid()]);
         $dwarvish = Language::factory()->create(['name' => 'Dwarvish-'.uniqid(), 'slug' => 'dwarvish-'.uniqid()]);
 
-        EntityLanguage::create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 1,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
         ]);
 
         $character = Character::factory()->withRace($race)->create();
@@ -847,22 +841,32 @@ class CharacterLanguageServiceTest extends TestCase
             'level_acquired' => 4,
         ]);
 
-        // Linguist gives 3 languages
-        EntityLanguage::create([
+        // Linguist gives 3 languages (3 distinct choice groups)
+        EntityChoice::create([
             'reference_type' => Feat::class,
             'reference_id' => $feat1->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 3,
+            'choice_type' => 'language',
+            'choice_group' => 'linguist_language_1',
+        ]);
+        EntityChoice::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $feat1->id,
+            'choice_type' => 'language',
+            'choice_group' => 'linguist_language_2',
+        ]);
+        EntityChoice::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $feat1->id,
+            'choice_type' => 'language',
+            'choice_group' => 'linguist_language_3',
         ]);
 
         // Prodigy gives 1 language
-        EntityLanguage::create([
+        EntityChoice::create([
             'reference_type' => Feat::class,
             'reference_id' => $feat2->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 1,
+            'choice_type' => 'language',
+            'choice_group' => 'prodigy_language_1',
         ]);
 
         // Act
@@ -878,12 +882,11 @@ class CharacterLanguageServiceTest extends TestCase
     {
         // Arrange - Create race with language choice
         $race = Race::factory()->create();
-        EntityLanguage::create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 1,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
         ]);
 
         $character = Character::factory()->withRace($race)->create();
@@ -923,12 +926,11 @@ class CharacterLanguageServiceTest extends TestCase
     {
         // Arrange - Create race with language choice
         $race = Race::factory()->create();
-        EntityLanguage::create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 1,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
         ]);
 
         $character = Character::factory()->withRace($race)->create();
@@ -961,7 +963,6 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => CharacterClass::class,
             'reference_id' => $class->id,
             'language_id' => $druidic->id,
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()->withClass($class)->create();
@@ -1001,7 +1002,6 @@ class CharacterLanguageServiceTest extends TestCase
             'reference_type' => CharacterClass::class,
             'reference_id' => $class->id,
             'language_id' => $thievesCant->id,
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()->withClass($class)->create();
@@ -1021,12 +1021,11 @@ class CharacterLanguageServiceTest extends TestCase
         // Arrange - Class with a language CHOICE (not fixed)
         $class = CharacterClass::factory()->create(['name' => 'Test-'.uniqid(), 'slug' => 'test-'.uniqid()]);
 
-        EntityLanguage::create([
+        EntityChoice::create([
             'reference_type' => CharacterClass::class,
             'reference_id' => $class->id,
-            'language_id' => null, // Choice - no specific language
-            'is_choice' => true,
-            'quantity' => 1,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
         ]);
 
         $character = Character::factory()->withClass($class)->create();

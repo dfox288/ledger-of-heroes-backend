@@ -23,7 +23,7 @@ final class FeatSearchService extends AbstractSearchService
 
     /**
      * Relationships for show/detail endpoints (comprehensive)
-     * Uses entitySpellRecords for full EntitySpell pivot records (includes spell choices)
+     * Uses entitySpellRecords for fixed spell grants, spellChoices for choice-based grants
      */
     private const SHOW_RELATIONSHIPS = [
         'sources.source',
@@ -38,8 +38,7 @@ final class FeatSearchService extends AbstractSearchService
         'tags',
         'entitySpellRecords.spell',
         'entitySpellRecords.abilityScore',
-        'entitySpellRecords.school',
-        'entitySpellRecords.characterClass',
+        'spellChoices',
         'languages.language',
     ];
 

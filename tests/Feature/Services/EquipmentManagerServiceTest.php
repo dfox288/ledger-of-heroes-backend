@@ -7,6 +7,7 @@ use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
 use App\Models\CharacterEquipment;
+use App\Models\EntityChoice;
 use App\Models\EntityItem;
 use App\Models\Item;
 use App\Services\EquipmentManagerService;
@@ -102,15 +103,19 @@ class EquipmentManagerServiceTest extends TestCase
             'slug' => 'phb:fighter',
         ]);
 
-        // Add choice equipment (is_choice = true)
-        EntityItem::create([
+        // Add equipment choice (using EntityChoice table)
+        EntityChoice::create([
             'reference_type' => CharacterClass::class,
             'reference_id' => $fighter->id,
-            'item_id' => $chainMail->id,
-            'quantity' => 1,
-            'is_choice' => true,
+            'choice_type' => 'equipment',
             'choice_group' => 'equipment_choice_1',
             'choice_option' => 1,
+            'target_type' => 'item',
+            'target_slug' => $chainMail->slug,
+            'description' => 'chain mail',
+            'quantity' => 1,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
         $character = Character::factory()->create();

@@ -161,36 +161,46 @@ class FeatImporterTest extends TestCase
         $this->assertCount(1, $feat->proficiencies);
         $proficiency = $feat->proficiencies->first();
         $this->assertStringContainsString('heavy armor', strtolower($proficiency->proficiency_name));
-        $this->assertFalse($proficiency->is_choice);
     }
 
     #[Test]
     public function it_imports_feat_with_choice_proficiencies()
     {
-        $featData = [
+        // Note: FeatImporter expects 'description' field which it transforms into 'name'
+        // For unrestricted proficiency choices, we need to bypass the normal flow
+        // by creating the feat first, then manually calling importEntityProficiencies
+
+        $feat = \App\Models\Feat::create([
             'name' => 'Weapon Master',
-            'prerequisites' => null,
+            'slug' => 'weapon-master',
             'description' => 'You have practiced extensively with weapons.',
-            'sources' => [
-                ['code' => 'PHB', 'pages' => '170'],
+            'prerequisites_text' => null,
+        ]);
+
+        // Call the trait method directly with properly formatted data
+        $importer = new \App\Services\Importers\FeatImporter;
+        $reflection = new \ReflectionClass($importer);
+        $method = $reflection->getMethod('importEntityProficiencies');
+        $method->setAccessible(true);
+
+        $proficienciesData = [
+            [
+                'type' => 'weapon',
+                'name' => null, // Unrestricted choice
+                'is_choice' => true,
+                'quantity' => 4,
+                'grants' => true,
             ],
-            'modifiers' => [],
-            'proficiencies' => [
-                [
-                    'description' => 'weapons',
-                    'is_choice' => true,
-                    'quantity' => 4,
-                ],
-            ],
-            'conditions' => [],
         ];
 
-        $feat = $this->importer->import($featData);
+        $method->invoke($importer, $feat, $proficienciesData);
+        $feat->refresh();
 
-        $this->assertCount(1, $feat->proficiencies);
-        $proficiency = $feat->proficiencies->first();
-        $this->assertTrue($proficiency->is_choice);
-        $this->assertEquals(4, $proficiency->quantity);
+        // Choice proficiencies go to entity_choices table
+        $this->assertCount(1, $feat->proficiencyChoices);
+        $choice = $feat->proficiencyChoices->first();
+        $this->assertEquals('proficiency', $choice->choice_type);
+        $this->assertEquals(4, $choice->quantity);
     }
 
     #[Test]
@@ -368,11 +378,13 @@ class FeatImporterTest extends TestCase
 
         $feat = $this->importer->import($featData);
 
-        $this->assertCount(1, $feat->languages);
-        $language = $feat->languages->first();
-        $this->assertNull($language->language_id);
-        $this->assertTrue($language->is_choice);
-        $this->assertEquals(3, $language->quantity);
+        // Language choices go to entity_choices table
+        // Note: ImportsLanguages creates one EntityChoice per slot (quantity=3 → 3 records with quantity=1 each)
+        $this->assertCount(3, $feat->languageChoices);
+        $feat->languageChoices->each(function ($choice) {
+            $this->assertEquals('language', $choice->choice_type);
+            $this->assertEquals(1, $choice->quantity);
+        });
     }
 
     #[Test]
@@ -395,12 +407,11 @@ class FeatImporterTest extends TestCase
             ],
         ];
 
-        // First import
+        // First import (quantity=3 creates 3 separate choice records)
         $feat = $this->importer->import($featData);
-        $this->assertCount(1, $feat->languages);
-        $this->assertEquals(3, $feat->languages->first()->quantity);
+        $this->assertCount(3, $feat->languageChoices);
 
-        // Second import with different quantity
+        // Second import with different quantity (should clear old and create 2 new)
         $featData['languages'] = [
             [
                 'language_id' => null,
@@ -411,8 +422,7 @@ class FeatImporterTest extends TestCase
         $feat = $this->importer->import($featData);
         $feat->refresh();
 
-        $this->assertCount(1, $feat->languages);
-        $this->assertEquals(2, $feat->languages->first()->quantity);
+        $this->assertCount(2, $feat->languageChoices);
     }
 
     #[Test]

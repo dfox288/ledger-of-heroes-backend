@@ -157,9 +157,9 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
 
             $featIds = Feat::whereIn('slug', $featSlugs)->pluck('id')->toArray();
 
+            // All entity_languages are now fixed (choices moved to entity_choices)
             return EntityLanguage::whereIn('reference_id', $featIds)
                 ->where('reference_type', Feat::class)
-                ->where('is_choice', false)
                 ->whereNotNull('language_id')
                 ->with('language')
                 ->get()
@@ -178,8 +178,8 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
             return [];
         }
 
+        // All entity_languages are now fixed (choices moved to entity_choices)
         $fixedLanguageSlugs = $entity->languages()
-            ->where('is_choice', false)
             ->whereNotNull('language_id')
             ->with('language')
             ->get()
@@ -190,7 +190,6 @@ class LanguageChoiceHandler extends AbstractChoiceHandler
         // For subraces, also include parent race fixed languages
         if ($source === 'race' && $entity->is_subrace && $entity->parent) {
             $parentFixedLanguageSlugs = $entity->parent->languages()
-                ->where('is_choice', false)
                 ->whereNotNull('language_id')
                 ->with('language')
                 ->get()

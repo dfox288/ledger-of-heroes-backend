@@ -59,9 +59,7 @@ class EquipmentModeChoiceHandler extends AbstractChoiceHandler
         }
 
         // Check if class has equipment choices (no point offering gold alternative if no equipment)
-        $hasEquipmentChoices = $primaryClass->equipment()
-            ->where('is_choice', true)
-            ->exists();
+        $hasEquipmentChoices = $primaryClass->equipmentChoices()->exists();
 
         if (! $hasEquipmentChoices) {
             return collect();

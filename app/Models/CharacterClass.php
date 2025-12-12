@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasEntityChoices;
 use App\Models\Concerns\HasEntityLanguages;
 use App\Models\Concerns\HasEntityTraits;
 use App\Models\Concerns\HasModifiers;
@@ -27,7 +28,7 @@ use Spatie\Tags\HasTags;
  */
 class CharacterClass extends BaseModel
 {
-    use HasEntityLanguages, HasEntityTraits, HasModifiers, HasProficiencies, HasProficiencyScopes, HasSearchableHelpers, HasSources, HasTags, Searchable;
+    use HasEntityChoices, HasEntityLanguages, HasEntityTraits, HasModifiers, HasProficiencies, HasProficiencyScopes, HasSearchableHelpers, HasSources, HasTags, Searchable;
 
     protected $table = 'classes';
 
@@ -144,7 +145,7 @@ class CharacterClass extends BaseModel
     public function getFeatureByProficiencyChoiceGroup(string $choiceGroup): ?ClassFeature
     {
         return $this->features()
-            ->whereHas('proficiencies', fn ($q) => $q->where('is_choice', true)->where('choice_group', $choiceGroup))
+            ->whereHas('proficiencyChoices', fn ($q) => $q->where('choice_group', $choiceGroup))
             ->first();
     }
 

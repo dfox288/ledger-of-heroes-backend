@@ -57,9 +57,9 @@ XML;
 
         $item = $this->importer->import($items[0]);
 
-        // Verify basic attributes
+        // Verify basic attributes (PHB source prefix for slug)
         $this->assertEquals('Battleaxe', $item->name);
-        $this->assertEquals('battleaxe', $item->slug);
+        $this->assertEquals('phb:battleaxe', $item->slug);
         $this->assertEquals('common', $item->rarity);
         $this->assertFalse($item->requires_attunement);
         $this->assertEquals(1000, $item->cost_cp); // 10.0 GP = 1000 CP

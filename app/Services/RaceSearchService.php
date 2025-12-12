@@ -8,7 +8,7 @@ final class RaceSearchService extends AbstractSearchService
 {
     /**
      * Relationships for index/list endpoints (lightweight)
-     * Uses entitySpellRecords for full EntitySpell pivot records
+     * Uses entitySpellRecords for fixed spell grants, spellChoices for choice-based
      */
     private const INDEX_RELATIONSHIPS = [
         'size',
@@ -20,15 +20,14 @@ final class RaceSearchService extends AbstractSearchService
         'conditions.condition',
         'entitySpellRecords.spell',
         'entitySpellRecords.abilityScore',
-        'entitySpellRecords.school',
-        'entitySpellRecords.characterClass',
+        'spellChoices',
         'senses.sense',
         'parent',
     ];
 
     /**
      * Relationships for show/detail endpoints (comprehensive)
-     * Uses entitySpellRecords for full EntitySpell pivot records
+     * Uses entitySpellRecords for fixed spell grants, spellChoices for choice-based
      */
     private const SHOW_RELATIONSHIPS = [
         'size',
@@ -46,8 +45,7 @@ final class RaceSearchService extends AbstractSearchService
         'parent.conditions.condition',
         'parent.entitySpellRecords.spell',
         'parent.entitySpellRecords.abilityScore',
-        'parent.entitySpellRecords.school',
-        'parent.entitySpellRecords.characterClass',
+        'parent.spellChoices',
         'parent.senses.sense',
         'parent.tags',
         'subraces.sources.source',
@@ -62,8 +60,7 @@ final class RaceSearchService extends AbstractSearchService
         'conditions.condition',
         'entitySpellRecords.spell',
         'entitySpellRecords.abilityScore',
-        'entitySpellRecords.school',
-        'entitySpellRecords.characterClass',
+        'spellChoices',
         'senses.sense',
         'tags',
     ];

@@ -16,8 +16,7 @@ class EntityItemFactory extends Factory
             'reference_id' => 1,
             'item_id' => null,
             'quantity' => 1,
-            'is_choice' => false,
-            'choice_description' => null,
+            // Note: is_choice, choice_description removed - choices now live in entity_choices table
         ];
     }
 
@@ -37,11 +36,12 @@ class EntityItemFactory extends Factory
         ]);
     }
 
-    public function asChoice(string $description): self
+    /**
+     * @deprecated Choices now live in entity_choices table. Use EntityChoiceFactory instead.
+     */
+    public function asChoice(string $description = ''): self
     {
-        return $this->state([
-            'is_choice' => true,
-            'choice_description' => $description,
-        ]);
+        // This method is deprecated - choices should be created using EntityChoiceFactory
+        return $this;
     }
 }

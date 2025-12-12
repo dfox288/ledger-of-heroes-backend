@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasDataTables;
+use App\Models\Concerns\HasEntityChoices;
 use App\Models\Concerns\HasModifiers;
 use App\Models\Concerns\HasPrerequisites;
 use App\Models\Concerns\HasProficiencies;
@@ -18,7 +19,7 @@ use Spatie\Tags\HasTags;
 
 class Item extends BaseModel
 {
-    use HasDataTables, HasModifiers, HasPrerequisites, HasProficiencies, HasSearchableHelpers, HasSources;
+    use HasDataTables, HasEntityChoices, HasModifiers, HasPrerequisites, HasProficiencies, HasSearchableHelpers, HasSources;
     use HasTags, Searchable;
 
     protected $fillable = [

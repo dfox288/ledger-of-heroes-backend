@@ -4,6 +4,8 @@ namespace App\Services\Importers;
 
 use App\Models\CharacterClass;
 use App\Models\ClassCounter;
+use App\Models\EntityChoice;
+use App\Models\EntityItem;
 use App\Models\Proficiency;
 use App\Services\Importers\Concerns\ImportsClassCounters;
 use App\Services\Importers\Concerns\ImportsClassFeatures;
@@ -16,6 +18,7 @@ use App\Services\Importers\Concerns\MatchesProficiencyCategories;
 use App\Services\Importers\Strategies\CharacterClass\BaseClassStrategy;
 use App\Services\Importers\Strategies\CharacterClass\SubclassStrategy;
 use App\Services\Parsers\ClassXmlParser;
+use App\Services\Parsers\Traits\ParsesChoices;
 use Illuminate\Support\Facades\Log;
 
 class ClassImporter extends BaseImporter
@@ -28,6 +31,7 @@ class ClassImporter extends BaseImporter
     use ImportsModifiers;
     use ImportsSpellProgression;
     use MatchesProficiencyCategories;
+    use ParsesChoices;
 
     private array $strategies = [];
 
@@ -312,25 +316,51 @@ class ClassImporter extends BaseImporter
             }
         }
 
-        // 5. Create or update subclass
-        $subclass = CharacterClass::updateOrCreate(
-            ['slug' => $slug],
-            [
+        // 5. Find existing subclass by name + parent_class_id for cross-source merging
+        // This handles cases like PHB Beast Master + TCE Primal Companion → single subclass
+        $existingSubclass = CharacterClass::where('name', $subclassData['name'])
+            ->where('parent_class_id', $parentClass->id)
+            ->first();
+
+        $isNewSubclass = false;
+
+        if ($existingSubclass) {
+            $subclass = $existingSubclass;
+
+            // Update description if current is a stub
+            if (str_starts_with($subclass->description, 'Subclass of ')) {
+                $subclass->update(['description' => $description]);
+            }
+
+            Log::channel('import-strategy')->info('Merging features into existing subclass', [
+                'subclass' => $subclassData['name'],
+                'existing_slug' => $subclass->slug,
+                'incoming_source_slug' => $slug,
+            ]);
+        } else {
+            // Create new subclass
+            $subclass = CharacterClass::create([
+                'slug' => $slug,
                 'name' => $subclassData['name'],
                 'parent_class_id' => $parentClass->id,
-                'hit_die' => $parentClass->hit_die, // Inherit from parent
+                'hit_die' => $parentClass->hit_die,
                 'description' => $description,
                 'spellcasting_ability_id' => $spellcastingAbilityId,
-            ]
-        );
+            ]);
+            $isNewSubclass = true;
+        }
 
-        // 6. Clear existing relationships
-        $subclass->features()->delete();
-        $subclass->counters()->delete();
-        $subclass->levelProgression()->delete();
-        $subclass->proficiencies()->delete(); // Clear bonus proficiencies from features
+        // 6. Clear existing relationships only for newly created subclasses
+        // For existing subclasses, we merge features instead of replacing
+        if ($isNewSubclass) {
+            $subclass->features()->delete();
+            $subclass->counters()->delete();
+            $subclass->levelProgression()->delete();
+            $subclass->proficiencies()->delete();
+        }
 
         // 7. Import subclass-specific features
+        // Note: importFeatures uses updateOrCreate, so it won't duplicate existing features
         if (! empty($subclassData['features'])) {
             $this->importFeatures($subclass, $subclassData['features']);
 
@@ -413,7 +443,24 @@ class ClassImporter extends BaseImporter
         }
 
         $slug = $this->generateSlug($data['name'], $sources);
-        $existingClass = CharacterClass::where('slug', $slug)->first();
+
+        // For MERGE and SKIP_IF_EXISTS modes, look for existing base class by NAME
+        // This enables cross-source merging (PHB Barbarian + XGE subclasses → single class)
+        // For base classes only (no parent_class_id in incoming data)
+        $existingClass = null;
+        $isBaseClass = empty($data['parent_class_id']);
+
+        if ($isBaseClass && $mode !== MergeMode::CREATE) {
+            // Find by name for base classes when merging/skipping
+            $existingClass = CharacterClass::whereNull('parent_class_id')
+                ->where('name', $data['name'])
+                ->first();
+        }
+
+        // Fall back to exact slug match if not found by name
+        if (! $existingClass) {
+            $existingClass = CharacterClass::where('slug', $slug)->first();
+        }
 
         // Handle SKIP_IF_EXISTS mode
         if ($existingClass && $mode === MergeMode::SKIP_IF_EXISTS) {
@@ -673,7 +720,9 @@ class ClassImporter extends BaseImporter
      * Import multiclass ability score requirements for a class.
      *
      * Stores requirements in entity_proficiencies with type 'multiclass_requirement'.
-     * Uses is_choice to indicate OR conditions (true = any one, false = all required).
+     * Uses proficiency_subcategory to indicate requirement logic:
+     * - 'OR' = any one requirement in the group satisfies multiclassing
+     * - 'AND' or null = all requirements must be met
      *
      * @param  CharacterClass  $class  The class model
      * @param  array  $requirements  Parsed requirements [{ability, minimum, is_alternative}]
@@ -711,8 +760,8 @@ class ClassImporter extends BaseImporter
                 'proficiency_name' => $displayName,
                 'ability_score_id' => $abilityScore?->id,
                 'grants' => false, // Not granting proficiency, it's a requirement
-                'is_choice' => $req['is_alternative'], // true = OR, false = AND
-                'quantity' => $req['minimum'], // Store minimum score in quantity field
+                // Store requirement logic in proficiency_subcategory (OR = alternative, AND/null = all required)
+                'proficiency_subcategory' => $req['is_alternative'] ? 'OR' : 'AND',
             ]);
         }
     }
@@ -720,7 +769,8 @@ class ClassImporter extends BaseImporter
     /**
      * Import starting equipment for a class.
      *
-     * Uses existing entity_items polymorphic table.
+     * - Fixed equipment goes to entity_items table
+     * - Equipment choices go to entity_choices table
      *
      * @param  CharacterClass  $class  The class model
      * @param  array  $equipmentData  Parsed equipment data
@@ -731,34 +781,87 @@ class ClassImporter extends BaseImporter
             return;
         }
 
-        // Clear existing equipment (cascade deletes choice_items)
+        // Clear existing equipment
         $class->equipment()->delete();
 
+        // Clear existing equipment choices
+        EntityChoice::where('reference_type', CharacterClass::class)
+            ->where('reference_id', $class->id)
+            ->where('choice_type', 'equipment')
+            ->delete();
+
         foreach ($equipmentData['items'] as $itemData) {
-            $entityItemData = [
-                'description' => $itemData['description'],
-                'is_choice' => $itemData['is_choice'],
-                'choice_group' => $itemData['choice_group'] ?? null,
-                'choice_option' => $itemData['choice_option'] ?? null,
-                'quantity' => $itemData['quantity'] ?? 1,
-                'choice_description' => $itemData['is_choice']
-                    ? 'Starting equipment choice'
-                    : null,
-            ];
+            $isChoice = $itemData['is_choice'] ?? false;
 
-            // For fixed equipment (is_choice = false), match description to item
-            if (! $itemData['is_choice']) {
+            if ($isChoice) {
+                // Equipment choice - create EntityChoice records
+                $this->importEquipmentChoice($class, $itemData);
+            } else {
+                // Fixed equipment - create EntityItem record
                 $item = $this->matchItemByDescription($itemData['description']);
-                $entityItemData['item_id'] = $item?->id;
-            }
 
-            // Create container entity_item
-            $entityItem = $class->equipment()->create($entityItemData);
-
-            // Import structured choice_items if present
-            if (! empty($itemData['choice_items'])) {
-                $this->importChoiceItems($entityItem, $itemData['choice_items']);
+                EntityItem::create([
+                    'reference_type' => CharacterClass::class,
+                    'reference_id' => $class->id,
+                    'item_id' => $item?->id,
+                    'quantity' => $itemData['quantity'] ?? 1,
+                    'description' => $item ? null : $itemData['description'],
+                ]);
             }
+        }
+    }
+
+    /**
+     * Import an equipment choice for a class.
+     * Creates EntityChoice records for each option in the choice.
+     */
+    private function importEquipmentChoice(CharacterClass $class, array $itemData): void
+    {
+        $choiceGroup = $itemData['choice_group'] ?? 'equipment_choice';
+        $choiceOption = $itemData['choice_option'] ?? 1;
+        $description = $itemData['description'] ?? null;
+
+        // If there are structured choice_items, create EntityChoice for each option
+        if (! empty($itemData['choice_items'])) {
+            foreach ($itemData['choice_items'] as $index => $choiceItem) {
+                $itemSlug = null;
+                $categorySlug = null;
+
+                if ($choiceItem['type'] === 'category') {
+                    // Category choice (e.g., "any martial weapon")
+                    $profType = $this->matchProficiencyCategory($choiceItem['value']);
+                    $categorySlug = $profType?->slug ?? strtolower(str_replace(' ', '-', $choiceItem['value']));
+                } else {
+                    // Specific item choice
+                    $item = $this->matchItemByDescription($choiceItem['value']);
+                    $itemSlug = $item?->slug;
+                }
+
+                $this->createEquipmentChoice(
+                    referenceType: CharacterClass::class,
+                    referenceId: $class->id,
+                    choiceGroup: $choiceGroup,
+                    choiceOption: $index + 1,
+                    itemSlug: $itemSlug,
+                    categorySlug: $categorySlug,
+                    description: $choiceItem['value'] ?? null,
+                    levelGranted: 1,
+                    constraints: ['quantity' => $choiceItem['quantity'] ?? 1]
+                );
+            }
+        } else {
+            // Simple choice without structured items
+            $this->createEquipmentChoice(
+                referenceType: CharacterClass::class,
+                referenceId: $class->id,
+                choiceGroup: $choiceGroup,
+                choiceOption: $choiceOption,
+                itemSlug: null,
+                categorySlug: null,
+                description: $description,
+                levelGranted: 1,
+                constraints: null
+            );
         }
     }
 

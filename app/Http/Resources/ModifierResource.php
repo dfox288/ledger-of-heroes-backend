@@ -5,6 +5,11 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * Resource for fixed modifiers.
+ *
+ * Note: Ability score choices are stored in entity_choices table and exposed via EntityChoiceResource.
+ */
 class ModifierResource extends JsonResource
 {
     /**
@@ -35,9 +40,6 @@ class ModifierResource extends JsonResource
             ),
             'value' => $this->value,
             'condition' => $this->condition,
-            'is_choice' => $this->is_choice,
-            'choice_count' => $this->choice_count,
-            'choice_constraint' => $this->choice_constraint,
             'level' => $this->level,
         ];
     }

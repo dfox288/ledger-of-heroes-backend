@@ -32,34 +32,13 @@ class FeatResource extends JsonResource
             'conditions' => EntityConditionResource::collection($this->whenLoaded('conditions')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
-            // Use entitySpellRecords for EntitySpell pivot records (includes spell choices)
+            // Fixed spell grants (from entity_spells table)
             'spells' => EntitySpellResource::collection($this->whenLoaded('entitySpellRecords')),
             'languages' => EntityLanguageResource::collection($this->whenLoaded('languages')),
 
-            // Computed: grouped spell choices for easier frontend consumption
-            /** @var array<int, SpellChoiceResource>|null */
-            'spell_choices' => $this->when(
-                $this->relationLoaded('entitySpellRecords'),
-                fn () => $this->getGroupedSpellChoices()
-            ),
+            // TODO: Add EntityChoiceResource when ready for Task #525
+            // 'spell_choices' => EntityChoiceResource::collection($this->whenLoaded('spellChoices')),
+            // 'choices' => EntityChoiceResource::collection($this->whenLoaded('choices')),
         ];
-    }
-
-    /**
-     * Group spell choices by choice_group for frontend consumption.
-     *
-     * @return array<int, SpellChoiceResource>|null
-     */
-    private function getGroupedSpellChoices(): ?array
-    {
-        $choices = $this->entitySpellRecords->where('is_choice', true);
-
-        if ($choices->isEmpty()) {
-            return null;
-        }
-
-        return $choices->groupBy('choice_group')->map(function ($group, $groupName) {
-            return new SpellChoiceResource($group, $groupName);
-        })->values()->all();
     }
 }

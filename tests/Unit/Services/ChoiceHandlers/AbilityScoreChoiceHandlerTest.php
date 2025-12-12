@@ -9,7 +9,7 @@ use App\Exceptions\InvalidSelectionException;
 use App\Models\AbilityScore;
 use App\Models\Character;
 use App\Models\CharacterAbilityScore;
-use App\Models\Modifier;
+use App\Models\EntityChoice;
 use App\Models\Race;
 use App\Services\ChoiceHandlers\AbilityScoreChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -60,24 +60,22 @@ class AbilityScoreChoiceHandlerTest extends TestCase
     }
 
     #[Test]
-    public function it_returns_choices_for_race_with_is_choice_ability_modifiers(): void
+    public function it_returns_choices_for_race_with_ability_score_choices(): void
     {
-        // Create a Half-Elf-like race with choice modifiers
+        // Create a Half-Elf-like race with choice via EntityChoice
         $race = Race::factory()->create([
-            'slug' => 'half-elf',
-            'name' => 'Half-Elf',
             'slug' => 'phb:half-elf',
+            'name' => 'Half-Elf',
         ]);
 
-        // Add a modifier with is_choice = true, choice_count = 2
-        $modifier = Modifier::factory()->create([
+        // Add ability score choice via EntityChoice
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'modifier_category' => 'ability_score',
-            'is_choice' => true,
-            'choice_count' => 2,
-            'choice_constraint' => 'different',
-            'value' => 1,
+            'choice_type' => 'ability_score',
+            'choice_group' => 'ability_choice_1',
+            'quantity' => 2,
+            'constraints' => ['value' => '+1', 'constraint' => 'different'],
         ]);
 
         $character = Character::factory()->create(['race_slug' => 'phb:half-elf']);
@@ -95,47 +93,43 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $this->assertEquals(2, $choice->remaining);
         $this->assertEquals([], $choice->selected);
         $this->assertCount(6, $choice->options);
-        $this->assertArrayHasKey('modifier_id', $choice->metadata);
+        $this->assertArrayHasKey('choice_group', $choice->metadata);
         $this->assertArrayHasKey('bonus_value', $choice->metadata);
         $this->assertArrayHasKey('choice_constraint', $choice->metadata);
     }
 
     #[Test]
-    public function it_includes_parent_race_modifiers_for_subraces(): void
+    public function it_includes_parent_race_choices_for_subraces(): void
     {
-        // Create parent race (Elf) with a choice modifier
+        // Create parent race (Elf) with a choice
         $parentRace = Race::factory()->create([
-            'slug' => 'elf',
-            'name' => 'Elf',
             'slug' => 'phb:elf',
+            'name' => 'Elf',
         ]);
 
-        $parentModifier = Modifier::factory()->create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $parentRace->id,
-            'modifier_category' => 'ability_score',
-            'is_choice' => true,
-            'choice_count' => 1,
-            'choice_constraint' => null,
-            'value' => 1,
+            'choice_type' => 'ability_score',
+            'choice_group' => 'parent_ability_choice',
+            'quantity' => 1,
+            'constraints' => ['value' => '+1'],
         ]);
 
         // Create subrace (High Elf)
         $subrace = Race::factory()->create([
-            'slug' => 'high-elf',
-            'name' => 'High Elf',
             'slug' => 'phb:high-elf',
+            'name' => 'High Elf',
             'parent_race_id' => $parentRace->id,
         ]);
 
-        $subraceModifier = Modifier::factory()->create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $subrace->id,
-            'modifier_category' => 'ability_score',
-            'is_choice' => true,
-            'choice_count' => 1,
-            'choice_constraint' => null,
-            'value' => 1,
+            'choice_type' => 'ability_score',
+            'choice_group' => 'subrace_ability_choice',
+            'quantity' => 1,
+            'constraints' => ['value' => '+1'],
         ]);
 
         $character = Character::factory()->create(['race_slug' => 'phb:high-elf']);
@@ -150,19 +144,17 @@ class AbilityScoreChoiceHandlerTest extends TestCase
     public function it_shows_correct_remaining_count_based_on_existing_selections(): void
     {
         $race = Race::factory()->create([
-            'slug' => 'half-elf',
-            'name' => 'Half-Elf',
             'slug' => 'phb:half-elf',
+            'name' => 'Half-Elf',
         ]);
 
-        $modifier = Modifier::factory()->create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'modifier_category' => 'ability_score',
-            'is_choice' => true,
-            'choice_count' => 2,
-            'choice_constraint' => 'different',
-            'value' => 1,
+            'choice_type' => 'ability_score',
+            'choice_group' => 'ability_choice_1',
+            'quantity' => 2,
+            'constraints' => ['value' => '+1', 'constraint' => 'different'],
         ]);
 
         $character = Character::factory()->create(['race_slug' => 'phb:half-elf']);
@@ -173,7 +165,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
             'ability_score_code' => 'STR',
             'bonus' => 1,
             'source' => 'race',
-            'modifier_id' => $modifier->id,
+            'choice_group' => 'ability_choice_1',
         ]);
 
         $choices = $this->handler->getChoices($character);
@@ -189,25 +181,23 @@ class AbilityScoreChoiceHandlerTest extends TestCase
     public function it_stores_ability_score_selections_correctly(): void
     {
         $race = Race::factory()->create([
-            'slug' => 'half-elf',
-            'name' => 'Half-Elf',
             'slug' => 'phb:half-elf',
+            'name' => 'Half-Elf',
         ]);
 
-        $modifier = Modifier::factory()->create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'modifier_category' => 'ability_score',
-            'is_choice' => true,
-            'choice_count' => 2,
-            'choice_constraint' => 'different',
-            'value' => 1,
+            'choice_type' => 'ability_score',
+            'choice_group' => 'ability_choice_1',
+            'quantity' => 2,
+            'constraints' => ['value' => '+1', 'constraint' => 'different'],
         ]);
 
         $character = Character::factory()->create(['race_slug' => 'phb:half-elf']);
 
         $choice = new PendingChoice(
-            id: "ability_score|race|phb:half-elf|1|modifier_{$modifier->id}",
+            id: 'ability_score|race|phb:half-elf|1|ability_choice_1',
             type: 'ability_score',
             subtype: null,
             source: 'race',
@@ -220,7 +210,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
             options: [],
             optionsEndpoint: null,
             metadata: [
-                'modifier_id' => $modifier->id,
+                'choice_group' => 'ability_choice_1',
                 'bonus_value' => 1,
                 'choice_constraint' => 'different',
             ],
@@ -235,8 +225,8 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $this->assertContains('STR', $codes);
         $this->assertContains('DEX', $codes);
 
-        $modifierIds = $character->abilityScores->pluck('modifier_id')->unique()->toArray();
-        $this->assertEquals([$modifier->id], $modifierIds);
+        $choiceGroups = $character->abilityScores->pluck('choice_group')->unique()->toArray();
+        $this->assertEquals(['ability_choice_1'], $choiceGroups);
 
         $bonuses = $character->abilityScores->pluck('bonus')->unique()->toArray();
         $this->assertEquals([1], $bonuses);
@@ -246,25 +236,23 @@ class AbilityScoreChoiceHandlerTest extends TestCase
     public function it_validates_exact_quantity_required(): void
     {
         $race = Race::factory()->create([
-            'slug' => 'half-elf',
-            'name' => 'Half-Elf',
             'slug' => 'phb:half-elf',
+            'name' => 'Half-Elf',
         ]);
 
-        $modifier = Modifier::factory()->create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'modifier_category' => 'ability_score',
-            'is_choice' => true,
-            'choice_count' => 2,
-            'choice_constraint' => 'different',
-            'value' => 1,
+            'choice_type' => 'ability_score',
+            'choice_group' => 'ability_choice_1',
+            'quantity' => 2,
+            'constraints' => ['value' => '+1', 'constraint' => 'different'],
         ]);
 
         $character = Character::factory()->create(['race_slug' => 'phb:half-elf']);
 
         $choice = new PendingChoice(
-            id: "ability_score|race|phb:half-elf|1|modifier_{$modifier->id}",
+            id: 'ability_score|race|phb:half-elf|1|ability_choice_1',
             type: 'ability_score',
             subtype: null,
             source: 'race',
@@ -277,7 +265,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
             options: [],
             optionsEndpoint: null,
             metadata: [
-                'modifier_id' => $modifier->id,
+                'choice_group' => 'ability_choice_1',
                 'bonus_value' => 1,
                 'choice_constraint' => 'different',
             ],
@@ -293,25 +281,23 @@ class AbilityScoreChoiceHandlerTest extends TestCase
     public function it_validates_exact_quantity_required_rejects_too_many(): void
     {
         $race = Race::factory()->create([
-            'slug' => 'half-elf',
-            'name' => 'Half-Elf',
             'slug' => 'phb:half-elf',
+            'name' => 'Half-Elf',
         ]);
 
-        $modifier = Modifier::factory()->create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'modifier_category' => 'ability_score',
-            'is_choice' => true,
-            'choice_count' => 2,
-            'choice_constraint' => 'different',
-            'value' => 1,
+            'choice_type' => 'ability_score',
+            'choice_group' => 'ability_choice_1',
+            'quantity' => 2,
+            'constraints' => ['value' => '+1', 'constraint' => 'different'],
         ]);
 
         $character = Character::factory()->create(['race_slug' => 'phb:half-elf']);
 
         $choice = new PendingChoice(
-            id: "ability_score|race|phb:half-elf|1|modifier_{$modifier->id}",
+            id: 'ability_score|race|phb:half-elf|1|ability_choice_1',
             type: 'ability_score',
             subtype: null,
             source: 'race',
@@ -324,7 +310,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
             options: [],
             optionsEndpoint: null,
             metadata: [
-                'modifier_id' => $modifier->id,
+                'choice_group' => 'ability_choice_1',
                 'bonus_value' => 1,
                 'choice_constraint' => 'different',
             ],
@@ -340,25 +326,23 @@ class AbilityScoreChoiceHandlerTest extends TestCase
     public function it_validates_different_constraint_throws_exception_for_duplicates(): void
     {
         $race = Race::factory()->create([
-            'slug' => 'half-elf',
-            'name' => 'Half-Elf',
             'slug' => 'phb:half-elf',
+            'name' => 'Half-Elf',
         ]);
 
-        $modifier = Modifier::factory()->create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'modifier_category' => 'ability_score',
-            'is_choice' => true,
-            'choice_count' => 2,
-            'choice_constraint' => 'different',
-            'value' => 1,
+            'choice_type' => 'ability_score',
+            'choice_group' => 'ability_choice_1',
+            'quantity' => 2,
+            'constraints' => ['value' => '+1', 'constraint' => 'different'],
         ]);
 
         $character = Character::factory()->create(['race_slug' => 'phb:half-elf']);
 
         $choice = new PendingChoice(
-            id: "ability_score|race|phb:half-elf|1|modifier_{$modifier->id}",
+            id: 'ability_score|race|phb:half-elf|1|ability_choice_1',
             type: 'ability_score',
             subtype: null,
             source: 'race',
@@ -371,7 +355,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
             options: [],
             optionsEndpoint: null,
             metadata: [
-                'modifier_id' => $modifier->id,
+                'choice_group' => 'ability_choice_1',
                 'bonus_value' => 1,
                 'choice_constraint' => 'different',
             ],
@@ -387,25 +371,23 @@ class AbilityScoreChoiceHandlerTest extends TestCase
     public function it_rejects_invalid_ability_codes(): void
     {
         $race = Race::factory()->create([
-            'slug' => 'half-elf',
-            'name' => 'Half-Elf',
             'slug' => 'phb:half-elf',
+            'name' => 'Half-Elf',
         ]);
 
-        $modifier = Modifier::factory()->create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'modifier_category' => 'ability_score',
-            'is_choice' => true,
-            'choice_count' => 2,
-            'choice_constraint' => 'different',
-            'value' => 1,
+            'choice_type' => 'ability_score',
+            'choice_group' => 'ability_choice_1',
+            'quantity' => 2,
+            'constraints' => ['value' => '+1', 'constraint' => 'different'],
         ]);
 
         $character = Character::factory()->create(['race_slug' => 'phb:half-elf']);
 
         $choice = new PendingChoice(
-            id: "ability_score|race|phb:half-elf|1|modifier_{$modifier->id}",
+            id: 'ability_score|race|phb:half-elf|1|ability_choice_1',
             type: 'ability_score',
             subtype: null,
             source: 'race',
@@ -418,7 +400,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
             options: [],
             optionsEndpoint: null,
             metadata: [
-                'modifier_id' => $modifier->id,
+                'choice_group' => 'ability_choice_1',
                 'bonus_value' => 1,
                 'choice_constraint' => 'different',
             ],
@@ -434,25 +416,23 @@ class AbilityScoreChoiceHandlerTest extends TestCase
     public function it_throws_exception_when_selection_is_empty(): void
     {
         $race = Race::factory()->create([
-            'slug' => 'half-elf',
-            'name' => 'Half-Elf',
             'slug' => 'phb:half-elf',
+            'name' => 'Half-Elf',
         ]);
 
-        $modifier = Modifier::factory()->create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'modifier_category' => 'ability_score',
-            'is_choice' => true,
-            'choice_count' => 2,
-            'choice_constraint' => 'different',
-            'value' => 1,
+            'choice_type' => 'ability_score',
+            'choice_group' => 'ability_choice_1',
+            'quantity' => 2,
+            'constraints' => ['value' => '+1', 'constraint' => 'different'],
         ]);
 
         $character = Character::factory()->create(['race_slug' => 'phb:half-elf']);
 
         $choice = new PendingChoice(
-            id: "ability_score|race|phb:half-elf|1|modifier_{$modifier->id}",
+            id: 'ability_score|race|phb:half-elf|1|ability_choice_1',
             type: 'ability_score',
             subtype: null,
             source: 'race',
@@ -465,7 +445,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
             options: [],
             optionsEndpoint: null,
             metadata: [
-                'modifier_id' => $modifier->id,
+                'choice_group' => 'ability_choice_1',
                 'bonus_value' => 1,
                 'choice_constraint' => 'different',
             ],
@@ -480,19 +460,17 @@ class AbilityScoreChoiceHandlerTest extends TestCase
     public function it_removes_selections_when_undo_is_called(): void
     {
         $race = Race::factory()->create([
-            'slug' => 'half-elf',
-            'name' => 'Half-Elf',
             'slug' => 'phb:half-elf',
+            'name' => 'Half-Elf',
         ]);
 
-        $modifier = Modifier::factory()->create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'modifier_category' => 'ability_score',
-            'is_choice' => true,
-            'choice_count' => 2,
-            'choice_constraint' => 'different',
-            'value' => 1,
+            'choice_type' => 'ability_score',
+            'choice_group' => 'ability_choice_1',
+            'quantity' => 2,
+            'constraints' => ['value' => '+1', 'constraint' => 'different'],
         ]);
 
         $character = Character::factory()->create(['race_slug' => 'phb:half-elf']);
@@ -503,7 +481,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
             'ability_score_code' => 'STR',
             'bonus' => 1,
             'source' => 'race',
-            'modifier_id' => $modifier->id,
+            'choice_group' => 'ability_choice_1',
         ]);
 
         CharacterAbilityScore::factory()->create([
@@ -511,11 +489,11 @@ class AbilityScoreChoiceHandlerTest extends TestCase
             'ability_score_code' => 'DEX',
             'bonus' => 1,
             'source' => 'race',
-            'modifier_id' => $modifier->id,
+            'choice_group' => 'ability_choice_1',
         ]);
 
         $choice = new PendingChoice(
-            id: "ability_score|race|phb:half-elf|1|modifier_{$modifier->id}",
+            id: 'ability_score|race|phb:half-elf|1|ability_choice_1',
             type: 'ability_score',
             subtype: null,
             source: 'race',
@@ -528,44 +506,33 @@ class AbilityScoreChoiceHandlerTest extends TestCase
             options: [],
             optionsEndpoint: null,
             metadata: [
-                'modifier_id' => $modifier->id,
+                'choice_group' => 'ability_choice_1',
                 'bonus_value' => 1,
                 'choice_constraint' => 'different',
             ],
         );
 
         // Verify selections exist
-        $this->assertEquals(2, $character->abilityScores()->where('modifier_id', $modifier->id)->count());
+        $this->assertEquals(2, $character->abilityScores()->where('choice_group', 'ability_choice_1')->count());
 
         $this->handler->undo($character, $choice);
 
         // Verify selections were removed
-        $this->assertEquals(0, $character->abilityScores()->where('modifier_id', $modifier->id)->count());
+        $this->assertEquals(0, $character->abilityScores()->where('choice_group', 'ability_choice_1')->count());
     }
 
     #[Test]
     public function it_returns_true_for_can_undo(): void
     {
         $race = Race::factory()->create([
-            'slug' => 'half-elf',
-            'name' => 'Half-Elf',
             'slug' => 'phb:half-elf',
-        ]);
-
-        $modifier = Modifier::factory()->create([
-            'reference_type' => Race::class,
-            'reference_id' => $race->id,
-            'modifier_category' => 'ability_score',
-            'is_choice' => true,
-            'choice_count' => 2,
-            'choice_constraint' => 'different',
-            'value' => 1,
+            'name' => 'Half-Elf',
         ]);
 
         $character = Character::factory()->create(['race_slug' => 'phb:half-elf']);
 
         $choice = new PendingChoice(
-            id: "ability_score|race|phb:half-elf|1|modifier_{$modifier->id}",
+            id: 'ability_score|race|phb:half-elf|1|ability_choice_1',
             type: 'ability_score',
             subtype: null,
             source: 'race',
@@ -578,7 +545,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
             options: [],
             optionsEndpoint: null,
             metadata: [
-                'modifier_id' => $modifier->id,
+                'choice_group' => 'ability_choice_1',
                 'bonus_value' => 1,
                 'choice_constraint' => 'different',
             ],
@@ -591,19 +558,17 @@ class AbilityScoreChoiceHandlerTest extends TestCase
     public function it_replaces_existing_selections_when_resolving_again(): void
     {
         $race = Race::factory()->create([
-            'slug' => 'half-elf',
-            'name' => 'Half-Elf',
             'slug' => 'phb:half-elf',
+            'name' => 'Half-Elf',
         ]);
 
-        $modifier = Modifier::factory()->create([
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'modifier_category' => 'ability_score',
-            'is_choice' => true,
-            'choice_count' => 2,
-            'choice_constraint' => 'different',
-            'value' => 1,
+            'choice_type' => 'ability_score',
+            'choice_group' => 'ability_choice_1',
+            'quantity' => 2,
+            'constraints' => ['value' => '+1', 'constraint' => 'different'],
         ]);
 
         $character = Character::factory()->create(['race_slug' => 'phb:half-elf']);
@@ -614,7 +579,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
             'ability_score_code' => 'STR',
             'bonus' => 1,
             'source' => 'race',
-            'modifier_id' => $modifier->id,
+            'choice_group' => 'ability_choice_1',
         ]);
 
         CharacterAbilityScore::factory()->create([
@@ -622,11 +587,11 @@ class AbilityScoreChoiceHandlerTest extends TestCase
             'ability_score_code' => 'DEX',
             'bonus' => 1,
             'source' => 'race',
-            'modifier_id' => $modifier->id,
+            'choice_group' => 'ability_choice_1',
         ]);
 
         $choice = new PendingChoice(
-            id: "ability_score|race|phb:half-elf|1|modifier_{$modifier->id}",
+            id: 'ability_score|race|phb:half-elf|1|ability_choice_1',
             type: 'ability_score',
             subtype: null,
             source: 'race',
@@ -639,7 +604,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
             options: [],
             optionsEndpoint: null,
             metadata: [
-                'modifier_id' => $modifier->id,
+                'choice_group' => 'ability_choice_1',
                 'bonus_value' => 1,
                 'choice_constraint' => 'different',
             ],
@@ -649,7 +614,7 @@ class AbilityScoreChoiceHandlerTest extends TestCase
         $this->handler->resolve($character, $choice, ['selected' => ['INT', 'WIS']]);
 
         // Verify old selections were replaced
-        $count = $character->abilityScores()->where('modifier_id', $modifier->id)->count();
+        $count = $character->abilityScores()->where('choice_group', 'ability_choice_1')->count();
         $this->assertEquals(2, $count);
 
         $codes = $character->abilityScores->pluck('ability_score_code')->toArray();

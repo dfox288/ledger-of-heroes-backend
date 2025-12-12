@@ -618,14 +618,13 @@ class ExtractFixturesCommandTest extends TestCase
             'minimum_value' => 13,
         ]);
 
-        // Add multiple ability score modifiers (choice)
+        // Add multiple ability score modifiers (choice options)
         \App\Models\Modifier::create([
             'reference_type' => 'App\Models\Feat',
             'reference_id' => $athlete->id,
             'modifier_category' => 'ability_score',
             'ability_score_id' => $strAbility->id,
             'value' => 1,
-            'is_choice' => true,
             'choice_count' => 1,
         ]);
 
@@ -635,7 +634,6 @@ class ExtractFixturesCommandTest extends TestCase
             'modifier_category' => 'ability_score',
             'ability_score_id' => $dexAbility->id,
             'value' => 1,
-            'is_choice' => true,
             'choice_count' => 1,
         ]);
 
@@ -718,11 +716,16 @@ class ExtractFixturesCommandTest extends TestCase
     {
         $source = \App\Models\Source::factory()->create(['code' => 'TEST-PHB']);
 
-        // Get skills for proficiencies
-        $deception = \App\Models\Skill::where('slug', 'deception')->first();
-        $stealth = \App\Models\Skill::where('slug', 'stealth')->first();
-        $insight = \App\Models\Skill::where('slug', 'insight')->first();
-        $persuasion = \App\Models\Skill::where('slug', 'persuasion')->first();
+        // Create ability score for skills
+        $chaAbility = \App\Models\AbilityScore::firstOrCreate(['code' => 'CHA'], ['name' => 'Charisma']);
+        $wisAbility = \App\Models\AbilityScore::firstOrCreate(['code' => 'WIS'], ['name' => 'Wisdom']);
+        $dexAbility = \App\Models\AbilityScore::firstOrCreate(['code' => 'DEX'], ['name' => 'Dexterity']);
+
+        // Create skills for proficiencies (look up by name to avoid unique constraint issues)
+        $deception = \App\Models\Skill::firstOrCreate(['name' => 'Deception'], ['slug' => 'deception', 'ability_score_id' => $chaAbility->id]);
+        $stealth = \App\Models\Skill::firstOrCreate(['name' => 'Stealth'], ['slug' => 'stealth', 'ability_score_id' => $dexAbility->id]);
+        $insight = \App\Models\Skill::firstOrCreate(['name' => 'Insight'], ['slug' => 'insight', 'ability_score_id' => $wisAbility->id]);
+        $persuasion = \App\Models\Skill::firstOrCreate(['name' => 'Persuasion'], ['slug' => 'persuasion', 'ability_score_id' => $chaAbility->id]);
 
         // Create background with skill proficiencies
         $criminal = \App\Models\Background::factory()->create([
@@ -754,7 +757,6 @@ class ExtractFixturesCommandTest extends TestCase
             'proficiency_type' => 'tool',
             'proficiency_subcategory' => 'gaming_set',
             'proficiency_name' => 'One type of gaming set',
-            'is_choice' => true,
             'quantity' => 1,
         ]);
 
@@ -764,7 +766,6 @@ class ExtractFixturesCommandTest extends TestCase
             'reference_id' => $criminal->id,
             'proficiency_type' => 'language',
             'proficiency_name' => 'Two of your choice',
-            'is_choice' => true,
             'quantity' => 2,
         ]);
 
@@ -812,7 +813,6 @@ class ExtractFixturesCommandTest extends TestCase
             'reference_id' => $acolyte->id,
             'proficiency_type' => 'language',
             'proficiency_name' => 'Two of your choice',
-            'is_choice' => true,
             'quantity' => 2,
         ]);
 

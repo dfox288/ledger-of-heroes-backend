@@ -5,6 +5,11 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * Resource for fixed equipment grants.
+ *
+ * Note: Equipment choices are stored in entity_choices table and exposed via EntityChoiceResource.
+ */
 class EntityItemResource extends JsonResource
 {
     /**
@@ -19,15 +24,7 @@ class EntityItemResource extends JsonResource
             'item_id' => $this->item_id,
             'item' => new ItemResource($this->whenLoaded('item')),
             'quantity' => $this->quantity,
-            'is_choice' => $this->is_choice,
-            'choice_group' => $this->choice_group,
-            'choice_option' => $this->choice_option,
-            'choice_description' => $this->choice_description,
-            'proficiency_subcategory' => $this->proficiency_subcategory,
             'description' => $this->description,
-            'choice_items' => EquipmentChoiceItemResource::collection(
-                $this->whenLoaded('choiceItems')
-            ),
         ];
     }
 }

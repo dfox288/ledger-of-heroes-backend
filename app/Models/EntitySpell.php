@@ -6,13 +6,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
- * EntitySpell - Polymorphic pivot for innate/granted spell relationships.
+ * EntitySpell - Polymorphic pivot for fixed innate/granted spell relationships.
  *
  * Table: entity_spells
- * Used by: Feat, Monster, Race
+ * Used by: Feat, Monster, Race, Item
  *
- * Represents spells granted by entities (racial spells, feat spells, monster innate casting).
- * Supports both fixed spells (spell_id set) and spell choices (is_choice=true with constraints).
+ * Represents fixed spells granted by entities (racial spells, feat spells, monster innate casting).
+ * Choice-based spell grants are stored in entity_choices table.
  *
  * Note: CharacterClass uses a separate class_spells table for class spell lists.
  */
@@ -26,22 +26,16 @@ class EntitySpell extends BaseModel
         'level_requirement',
         'usage_limit',
         'is_cantrip',
-        'is_choice',
-        'choice_count',
-        'choice_group',
-        'max_level',
-        'school_id',
-        'class_id',
-        'is_ritual_only',
+        'charges_cost_min',
+        'charges_cost_max',
+        'charges_cost_formula',
     ];
 
     protected $casts = [
         'level_requirement' => 'integer',
         'is_cantrip' => 'boolean',
-        'is_choice' => 'boolean',
-        'choice_count' => 'integer',
-        'max_level' => 'integer',
-        'is_ritual_only' => 'boolean',
+        'charges_cost_min' => 'integer',
+        'charges_cost_max' => 'integer',
     ];
 
     public function reference(): MorphTo
@@ -57,15 +51,5 @@ class EntitySpell extends BaseModel
     public function abilityScore(): BelongsTo
     {
         return $this->belongsTo(AbilityScore::class);
-    }
-
-    public function school(): BelongsTo
-    {
-        return $this->belongsTo(SpellSchool::class, 'school_id');
-    }
-
-    public function characterClass(): BelongsTo
-    {
-        return $this->belongsTo(CharacterClass::class, 'class_id');
     }
 }

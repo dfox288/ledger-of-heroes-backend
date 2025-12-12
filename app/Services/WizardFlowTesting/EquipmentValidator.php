@@ -96,9 +96,8 @@ class EquipmentValidator
             return new ValidationResult(true, [], $warnings);
         }
 
-        // Get expected equipment choice groups from class
-        $expectedChoiceGroups = $class->equipment()
-            ->where('is_choice', true)
+        // Get expected equipment choice groups from class (from entity_choices table)
+        $expectedChoiceGroups = $class->equipmentChoices()
             ->pluck('choice_group')
             ->unique()
             ->values()
@@ -155,8 +154,8 @@ class EquipmentValidator
         }
 
         // Get fixed equipment from background
+        // Note: Since choice data moved to entity_choices, all entity_items are fixed.
         $expectedItems = $background->equipment()
-            ->where('is_choice', false)
             ->with('item')
             ->get();
 
@@ -245,9 +244,9 @@ class EquipmentValidator
 
         // Only validate fixed class equipment if all choices are resolved
         // (backend only populates fixed equipment after all choices are made)
+        // Note: Since choice data moved to entity_choices, all entity_items are fixed.
         if ($allChoicesResolved) {
             $fixedEquipment = $class->equipment()
-                ->where('is_choice', false)
                 ->with('item')
                 ->get();
 

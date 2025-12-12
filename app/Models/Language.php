@@ -35,7 +35,7 @@ class Language extends BaseModel
     }
 
     /**
-     * Get all races that speak this language
+     * Get all races that speak this language (fixed grants only).
      */
     public function races(): MorphToMany
     {
@@ -46,12 +46,11 @@ class Language extends BaseModel
             'language_id',
             'reference_id'
         )
-            ->withPivot('is_choice')
             ->orderBy('name');
     }
 
     /**
-     * Get all backgrounds that teach this language
+     * Get all backgrounds that teach this language (fixed grants only).
      */
     public function backgrounds(): MorphToMany
     {
@@ -62,7 +61,6 @@ class Language extends BaseModel
             'language_id',
             'reference_id'
         )
-            ->withPivot('is_choice')
             ->orderBy('name');
     }
 }

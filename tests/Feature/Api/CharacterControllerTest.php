@@ -713,12 +713,13 @@ class CharacterControllerTest extends TestCase
         )->id;
 
         // Create a race with +2 CHA (like Half-Elf's fixed bonus)
+        // Note: All entity_modifiers are now fixed (non-choice) by definition.
+        // Choice-based modifiers are stored in entity_choices table.
         $race = Race::factory()->create(['name' => 'Half-Elf', 'slug' => 'half-elf']);
         $race->modifiers()->create([
             'modifier_category' => 'ability_score',
             'ability_score_id' => $chaId,
             'value' => '2',
-            'is_choice' => false,
         ]);
 
         // Create character with base 10 CHA

@@ -419,10 +419,10 @@ class ImportAllDataCommand extends Command
         $skippedCount = 0;
 
         foreach ($features as $feature) {
-            // Check if this feature already has a spell choice
-            $existingChoice = \App\Models\EntitySpell::where('reference_type', \App\Models\ClassFeature::class)
+            // Check if this feature already has a spell choice in entity_choices
+            $existingChoice = \App\Models\EntityChoice::where('reference_type', \App\Models\ClassFeature::class)
                 ->where('reference_id', $feature->id)
-                ->where('is_choice', true)
+                ->where('choice_type', 'spell')
                 ->exists();
 
             if ($existingChoice) {
@@ -443,16 +443,16 @@ class ImportAllDataCommand extends Command
                     ->first();
 
                 if ($spellListClass) {
-                    \App\Models\EntitySpell::create([
+                    \App\Models\EntityChoice::create([
                         'reference_type' => \App\Models\ClassFeature::class,
                         'reference_id' => $feature->id,
-                        'spell_id' => null,
-                        'is_choice' => true,
-                        'is_cantrip' => $isCantrip,
-                        'choice_count' => 1,
-                        'max_level' => $isCantrip ? 0 : null,
+                        'choice_type' => 'spell',
                         'choice_group' => 'feature_spell_choice',
-                        'class_id' => $spellListClass->id,
+                        'quantity' => 1,
+                        'spell_max_level' => $isCantrip ? 0 : null,
+                        'spell_list_slug' => $spellListClass->slug,
+                        'level_granted' => $feature->level,
+                        'is_required' => true,
                     ]);
                     $linkedCount++;
                 }

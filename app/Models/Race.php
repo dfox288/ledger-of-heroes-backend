@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasConditions;
+use App\Models\Concerns\HasEntityChoices;
 use App\Models\Concerns\HasEntityLanguages;
 use App\Models\Concerns\HasEntitySpells;
 use App\Models\Concerns\HasEntityTraits;
@@ -23,7 +24,7 @@ use Spatie\Tags\HasTags;
  */
 class Race extends BaseModel
 {
-    use HasConditions, HasEntityLanguages, HasEntitySpells, HasEntityTraits, HasLanguageScopes;
+    use HasConditions, HasEntityChoices, HasEntityLanguages, HasEntitySpells, HasEntityTraits, HasLanguageScopes;
     use HasModifiers, HasProficiencies, HasProficiencyScopes, HasSearchableHelpers, HasSenses, HasSources;
     use HasTags, Searchable;
 

@@ -170,25 +170,26 @@ class FeatImporter extends BaseImporter
 
     /**
      * Import proficiencies for a feat.
+     *
+     * Transforms parsed proficiency data and delegates to importEntityProficiencies trait.
      */
     private function importProficiencies(Feat $feat, array $proficiencies): void
     {
-        foreach ($proficiencies as $profData) {
-            // Determine proficiency type based on description
+        // Transform proficiency data to format expected by trait
+        $proficienciesData = array_map(function ($profData) {
             $type = $this->determineProficiencyType($profData['description']);
 
-            Proficiency::create([
-                'reference_type' => Feat::class,
-                'reference_id' => $feat->id,
-                'proficiency_type' => $type,
-                'proficiency_name' => $profData['description'],
-                'proficiency_type_id' => null, // Could be enhanced with type matching later
-                'skill_id' => null,
-                'grants' => true,
-                'is_choice' => $profData['is_choice'],
+            return [
+                'type' => $type,
+                'name' => $profData['description'],
+                'is_choice' => $profData['is_choice'] ?? false,
                 'quantity' => $profData['quantity'] ?? 1,
-            ]);
-        }
+                'grants' => true,
+            ];
+        }, $proficiencies);
+
+        // Delegate to trait method (handles choice routing to EntityChoice)
+        $this->importEntityProficiencies($feat, $proficienciesData);
     }
 
     /**

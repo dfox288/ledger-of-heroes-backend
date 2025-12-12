@@ -6,6 +6,8 @@ use App\Models\AbilityScore;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterProficiency;
+use App\Models\ClassFeature;
+use App\Models\EntityChoice;
 use App\Models\ProficiencyType;
 use App\Models\Skill;
 use App\Services\CharacterProficiencyService;
@@ -66,8 +68,8 @@ class CharacterProficiencyServiceTest extends TestCase
         // Create class with fixed armor proficiencies
         $fighterClass = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter-'.uniqid()]);
         $fighterClass->proficiencies()->createMany([
-            ['proficiency_type' => 'armor', 'proficiency_type_id' => $lightArmor->id, 'is_choice' => false],
-            ['proficiency_type' => 'armor', 'proficiency_type_id' => $heavyArmor->id, 'is_choice' => false],
+            ['proficiency_type' => 'armor', 'proficiency_type_id' => $lightArmor->id],
+            ['proficiency_type' => 'armor', 'proficiency_type_id' => $heavyArmor->id],
         ]);
 
         // Create character with this class
@@ -90,11 +92,26 @@ class CharacterProficiencyServiceTest extends TestCase
         $athletics = $this->createSkill('Athletics');
         $acrobatics = $this->createSkill('Acrobatics');
 
-        // Create class with skill choices
+        // Create class with skill choices (via EntityChoice)
         $fighterClass = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter-'.uniqid()]);
-        $fighterClass->proficiencies()->createMany([
-            ['proficiency_type' => 'skill', 'skill_id' => $athletics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1', 'quantity' => 2],
-            ['proficiency_type' => 'skill', 'skill_id' => $acrobatics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1'],
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'quantity' => 2,
+            'target_type' => 'skill',
+            'target_slug' => $athletics->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $acrobatics->slug,
         ]);
 
         $character = Character::factory()->withClass($fighterClass)->create();
@@ -118,7 +135,6 @@ class CharacterProficiencyServiceTest extends TestCase
         $fighterClass->proficiencies()->create([
             'proficiency_type' => 'armor',
             'proficiency_type_id' => $lightArmor->id,
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()->withClass($fighterClass)->create();
@@ -143,10 +159,33 @@ class CharacterProficiencyServiceTest extends TestCase
         $perception = $this->createSkill('Perception');
 
         $fighterClass = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter-'.uniqid()]);
-        $fighterClass->proficiencies()->createMany([
-            ['proficiency_type' => 'skill', 'skill_id' => $athletics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1', 'quantity' => 2],
-            ['proficiency_type' => 'skill', 'skill_id' => $acrobatics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1'],
-            ['proficiency_type' => 'skill', 'skill_id' => $perception->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1'],
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'quantity' => 2,
+            'target_type' => 'skill',
+            'target_slug' => $athletics->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $acrobatics->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $perception->slug,
         ]);
 
         $character = Character::factory()->withClass($fighterClass)->create();
@@ -166,9 +205,24 @@ class CharacterProficiencyServiceTest extends TestCase
         $acrobatics = $this->createSkill('Acrobatics');
 
         $fighterClass = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter-'.uniqid()]);
-        $fighterClass->proficiencies()->createMany([
-            ['proficiency_type' => 'skill', 'skill_id' => $athletics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1', 'quantity' => 1],
-            ['proficiency_type' => 'skill', 'skill_id' => $acrobatics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1'],
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'quantity' => 1,
+            'target_type' => 'skill',
+            'target_slug' => $athletics->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $acrobatics->slug,
         ]);
 
         $character = Character::factory()->withClass($fighterClass)->create();
@@ -213,10 +267,33 @@ class CharacterProficiencyServiceTest extends TestCase
         $perception = $this->createSkill('Perception');
 
         $fighterClass = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter-'.uniqid()]);
-        $fighterClass->proficiencies()->createMany([
-            ['proficiency_type' => 'skill', 'skill_id' => $athletics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1', 'quantity' => 2],
-            ['proficiency_type' => 'skill', 'skill_id' => $acrobatics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1'],
-            ['proficiency_type' => 'skill', 'skill_id' => $perception->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1'],
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'quantity' => 2,
+            'target_type' => 'skill',
+            'target_slug' => $athletics->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $acrobatics->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $perception->slug,
         ]);
 
         $character = Character::factory()->withClass($fighterClass)->create();
@@ -235,12 +312,15 @@ class CharacterProficiencyServiceTest extends TestCase
         $stealth = $this->createSkill('Stealth'); // Not in fighter options
 
         $fighterClass = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter-'.uniqid()]);
-        $fighterClass->proficiencies()->create([
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
             'proficiency_type' => 'skill',
-            'skill_id' => $athletics->id,
-            'is_choice' => true,
             'choice_group' => 'skill_choice_1',
             'quantity' => 1,
+            'target_type' => 'skill',
+            'target_slug' => $athletics->slug,
         ]);
 
         $character = Character::factory()->withClass($fighterClass)->create();
@@ -257,9 +337,24 @@ class CharacterProficiencyServiceTest extends TestCase
         $acrobatics = $this->createSkill('Acrobatics');
 
         $fighterClass = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter-'.uniqid()]);
-        $fighterClass->proficiencies()->createMany([
-            ['proficiency_type' => 'skill', 'skill_id' => $athletics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1', 'quantity' => 2],
-            ['proficiency_type' => 'skill', 'skill_id' => $acrobatics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1'],
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'quantity' => 2,
+            'target_type' => 'skill',
+            'target_slug' => $athletics->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $acrobatics->slug,
         ]);
 
         $character = Character::factory()->withClass($fighterClass)->create();
@@ -279,11 +374,42 @@ class CharacterProficiencyServiceTest extends TestCase
         $stealth = $this->createSkill('Stealth');
 
         $fighterClass = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter-'.uniqid()]);
-        $fighterClass->proficiencies()->createMany([
-            ['proficiency_type' => 'skill', 'skill_id' => $athletics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1', 'quantity' => 2],
-            ['proficiency_type' => 'skill', 'skill_id' => $acrobatics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1'],
-            ['proficiency_type' => 'skill', 'skill_id' => $perception->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1'],
-            ['proficiency_type' => 'skill', 'skill_id' => $stealth->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1'],
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'quantity' => 2,
+            'target_type' => 'skill',
+            'target_slug' => $athletics->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $acrobatics->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $perception->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $stealth->slug,
         ]);
 
         $character = Character::factory()->withClass($fighterClass)->create();
@@ -317,14 +443,54 @@ class CharacterProficiencyServiceTest extends TestCase
 
         // Class with two choice groups, with athletics appearing in both
         $fighterClass = CharacterClass::factory()->create(['name' => 'Fighter', 'slug' => 'fighter-'.uniqid()]);
-        $fighterClass->proficiencies()->createMany([
-            // Choice group 1: pick 1 from athletics, acrobatics
-            ['proficiency_type' => 'skill', 'skill_id' => $athletics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1', 'quantity' => 1],
-            ['proficiency_type' => 'skill', 'skill_id' => $acrobatics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_1'],
-            // Choice group 2: pick 1 from athletics, intimidation, survival
-            ['proficiency_type' => 'skill', 'skill_id' => $athletics->id, 'is_choice' => true, 'choice_group' => 'skill_choice_2', 'quantity' => 1],
-            ['proficiency_type' => 'skill', 'skill_id' => $intimidation->id, 'is_choice' => true, 'choice_group' => 'skill_choice_2'],
-            ['proficiency_type' => 'skill', 'skill_id' => $survival->id, 'is_choice' => true, 'choice_group' => 'skill_choice_2'],
+        // Choice group 1: pick 1 from athletics, acrobatics
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'quantity' => 1,
+            'target_type' => 'skill',
+            'target_slug' => $athletics->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $acrobatics->slug,
+        ]);
+        // Choice group 2: pick 1 from athletics, intimidation, survival
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_2',
+            'quantity' => 1,
+            'target_type' => 'skill',
+            'target_slug' => $athletics->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_2',
+            'target_type' => 'skill',
+            'target_slug' => $intimidation->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $fighterClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'skill_choice_2',
+            'target_type' => 'skill',
+            'target_slug' => $survival->slug,
         ]);
 
         $character = Character::factory()->withClass($fighterClass)->create();
@@ -378,7 +544,6 @@ class CharacterProficiencyServiceTest extends TestCase
         $clericClass->proficiencies()->create([
             'proficiency_type' => 'armor',
             'proficiency_type_id' => $mediumArmor->id,
-            'is_choice' => false,
         ]);
 
         // Create subclass (Life Domain) with heavy armor bonus proficiency
@@ -392,7 +557,6 @@ class CharacterProficiencyServiceTest extends TestCase
             'proficiency_type' => 'armor',
             'proficiency_type_id' => $heavyArmor->id,
             'proficiency_name' => 'heavy armor',
-            'is_choice' => false,
             'level' => 1,
         ]);
 
@@ -434,7 +598,6 @@ class CharacterProficiencyServiceTest extends TestCase
         $fighterClass->proficiencies()->create([
             'proficiency_type' => 'armor',
             'proficiency_type_id' => $heavyArmor->id,
-            'is_choice' => false,
         ]);
 
         // Create subclass that ALSO grants heavy armor (hypothetical)
@@ -447,7 +610,6 @@ class CharacterProficiencyServiceTest extends TestCase
         $champion->proficiencies()->create([
             'proficiency_type' => 'armor',
             'proficiency_type_id' => $heavyArmor->id,
-            'is_choice' => false,
         ]);
 
         // Create character with Fighter + Champion subclass
@@ -498,11 +660,34 @@ class CharacterProficiencyServiceTest extends TestCase
             'description' => 'Choose one skill from Animal Handling, Nature, or Survival.',
         ]);
 
-        // Add skill choices to the feature
-        $acolyteFeature->proficiencies()->createMany([
-            ['proficiency_type' => 'skill', 'skill_id' => $animalHandling->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1', 'quantity' => 1],
-            ['proficiency_type' => 'skill', 'skill_id' => $nature->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
-            ['proficiency_type' => 'skill', 'skill_id' => $survival->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
+        // Add skill choices to the feature via EntityChoice
+        EntityChoice::create([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $acolyteFeature->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'feature_skill_choice_1',
+            'quantity' => 1,
+            'target_type' => 'skill',
+            'target_slug' => $animalHandling->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $acolyteFeature->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'feature_skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $nature->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $acolyteFeature->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'feature_skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $survival->slug,
         ]);
 
         // Create character with Cleric + Nature Domain subclass
@@ -564,11 +749,34 @@ class CharacterProficiencyServiceTest extends TestCase
             'description' => 'Choose one skill from Animal Handling, Nature, or Survival.',
         ]);
 
-        // Add skill choices to the feature
-        $acolyteFeature->proficiencies()->createMany([
-            ['proficiency_type' => 'skill', 'skill_id' => $animalHandling->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1', 'quantity' => 1],
-            ['proficiency_type' => 'skill', 'skill_id' => $nature->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
-            ['proficiency_type' => 'skill', 'skill_id' => $survival->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
+        // Add skill choices to the feature via EntityChoice
+        EntityChoice::create([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $acolyteFeature->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'feature_skill_choice_1',
+            'quantity' => 1,
+            'target_type' => 'skill',
+            'target_slug' => $animalHandling->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $acolyteFeature->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'feature_skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $nature->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $acolyteFeature->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'feature_skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $survival->slug,
         ]);
 
         // Create character with Cleric + Nature Domain subclass
@@ -625,11 +833,34 @@ class CharacterProficiencyServiceTest extends TestCase
             'description' => 'Choose one skill from Animal Handling, Nature, or Survival.',
         ]);
 
-        // Add skill choices to the feature
-        $acolyteFeature->proficiencies()->createMany([
-            ['proficiency_type' => 'skill', 'skill_id' => $animalHandling->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1', 'quantity' => 1],
-            ['proficiency_type' => 'skill', 'skill_id' => $nature->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
-            ['proficiency_type' => 'skill', 'skill_id' => $survival->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
+        // Add skill choices to the feature via EntityChoice
+        EntityChoice::create([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $acolyteFeature->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'feature_skill_choice_1',
+            'quantity' => 1,
+            'target_type' => 'skill',
+            'target_slug' => $animalHandling->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $acolyteFeature->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'feature_skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $nature->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $acolyteFeature->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'feature_skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $survival->slug,
         ]);
 
         // Create character with Cleric + Nature Domain subclass
@@ -691,11 +922,34 @@ class CharacterProficiencyServiceTest extends TestCase
             'description' => 'Choose one skill from Animal Handling, Nature, or Survival.',
         ]);
 
-        // Add skill choices to the feature
-        $acolyteFeature->proficiencies()->createMany([
-            ['proficiency_type' => 'skill', 'skill_id' => $animalHandling->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1', 'quantity' => 1],
-            ['proficiency_type' => 'skill', 'skill_id' => $nature->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
-            ['proficiency_type' => 'skill', 'skill_id' => $survival->id, 'is_choice' => true, 'choice_group' => 'feature_skill_choice_1'],
+        // Add skill choices to the feature via EntityChoice
+        EntityChoice::create([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $acolyteFeature->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'feature_skill_choice_1',
+            'quantity' => 1,
+            'target_type' => 'skill',
+            'target_slug' => $animalHandling->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $acolyteFeature->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'feature_skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $nature->slug,
+        ]);
+        EntityChoice::create([
+            'reference_type' => ClassFeature::class,
+            'reference_id' => $acolyteFeature->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'skill',
+            'choice_group' => 'feature_skill_choice_1',
+            'target_type' => 'skill',
+            'target_slug' => $survival->slug,
         ]);
 
         // Create character with Cleric + Nature Domain subclass

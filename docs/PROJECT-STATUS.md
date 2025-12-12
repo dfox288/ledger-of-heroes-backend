@@ -1,6 +1,6 @@
 # Ledger of Heroes - Backend Project Status
 
-**Last Updated:** 2025-12-08
+**Last Updated:** 2025-12-12
 **Branch:** main
 **Status:** ✅ Refactoring & Test Coverage Complete
 
@@ -16,7 +16,7 @@
 | **Filter Tests** | 151 operator tests (2,750+ assertions) - 100% coverage |
 | **Character Builder Tests** | 200+ tests (3,000+ assertions) |
 | **Duration** | ~11s (Unit-Pure), ~21s (Unit-DB), ~20s (Feature-DB), ~35s (Feature-Search) |
-| **Models** | 57 |
+| **Models** | 58 |
 | **API** | 80 Resources + 44 Controllers + 36 Form Requests |
 | **Importers** | 9 working (Strategy Pattern) |
 | **Import Commands** | 12 (10 standardized with BaseImportCommand) |
@@ -31,6 +31,39 @@
 ---
 
 ## 🚀 Recent Milestones
+
+### Unified Entity Choices ✅ COMPLETE (2025-12-12)
+- **Issue:** #523
+- **Branch:** `feature/unified-entity-choices`
+- **Scope:** Consolidate all character creation choices into single polymorphic table
+
+**Features Implemented:**
+- New `entity_choices` table with 426 records across 5 choice types
+- Removed `is_choice`, `choice_group`, `choice_option` columns from 5 entity tables
+- Removed `equipment_choice_items` table entirely
+- Updated 4 importer traits, 4 importers, 12 choice handlers
+- Updated services: CharacterLanguageService, CharacterProficiencyService, AbilityBonusService, EquipmentManagerService
+
+**Data Breakdown:**
+| Choice Type | Count |
+|-------------|-------|
+| proficiency | 159 |
+| ability_score | 98 |
+| equipment | 90 |
+| language | 45 |
+| spell | 34 |
+| **Total** | **426** |
+
+**By Reference:**
+| Entity | Count |
+|--------|-------|
+| CharacterClass | 309 |
+| Background | 36 |
+| Feat | 34 |
+| Race | 31 |
+| ClassFeature | 16 |
+
+**Tests:** All suites passing (Unit-Pure: 841, Unit-DB: 1233, Feature-DB: 577, Importers: 316)
 
 ### Spell Scaling Increment Parsing ✅ COMPLETE (2025-12-08)
 - **Issue:** #198

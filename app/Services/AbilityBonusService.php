@@ -39,6 +39,9 @@ class AbilityBonusService
      * Get ability bonuses from race (including parent race for subraces).
      *
      * Returns fixed bonuses and resolved choice bonuses.
+     *
+     * Note: Since choice data moved to entity_choices, all remaining
+     * entity_modifiers rows are fixed (non-choice) by definition.
      */
     private function getRaceBonuses(Character $character): Collection
     {
@@ -49,61 +52,56 @@ class AbilityBonusService
         $bonuses = collect();
         $race = $character->race;
 
-        // Load modifiers from race and parent race (if subrace)
+        // Load fixed modifiers from race and parent race (if subrace)
+        // All entity_modifiers are now fixed since choices moved to entity_choices
         $raceModifiers = $this->getAbilityModifiers($race);
         if ($race->parent_race_id && $race->parent) {
             $raceModifiers = $raceModifiers->merge($this->getAbilityModifiers($race->parent));
         }
 
-        // Get resolved choices
-        $resolvedChoices = $character->abilityScores()
-            ->where('source', 'race')
-            ->get()
-            ->groupBy('modifier_id');
-
         // Pre-load all ability scores to avoid N+1 queries
         $abilityScores = AbilityScore::all()->keyBy('code');
 
+        // Process fixed modifiers (all entity_modifiers are now fixed)
         foreach ($raceModifiers as $modifier) {
-            if ($modifier->is_choice) {
-                // Handle choice modifiers
-                $resolved = $resolvedChoices->get($modifier->id, collect());
-                foreach ($resolved as $choice) {
-                    $abilityScore = $abilityScores->get($choice->ability_score_code);
-                    if (! $abilityScore) {
-                        continue;
-                    }
-
-                    $bonuses->push($this->buildBonus(
-                        sourceType: 'race',
-                        sourceName: $race->name,
-                        sourceSlug: $race->slug,
-                        abilityCode: $choice->ability_score_code,
-                        abilityName: $abilityScore->name,
-                        value: $choice->bonus,
-                        isChoice: true,
-                        choiceResolved: true,
-                        modifierId: $modifier->id,
-                    ));
-                }
-                // Note: Unresolved choices are NOT included here -
-                // they appear in the /choices endpoint
-            } else {
-                // Fixed modifier
-                if (! $modifier->abilityScore) {
-                    continue;
-                }
-
-                $bonuses->push($this->buildBonus(
-                    sourceType: 'race',
-                    sourceName: $race->name,
-                    sourceSlug: $race->slug,
-                    abilityCode: $modifier->abilityScore->code,
-                    abilityName: $modifier->abilityScore->name,
-                    value: (int) $modifier->value,
-                    isChoice: false,
-                ));
+            if (! $modifier->abilityScore) {
+                continue;
             }
+
+            $bonuses->push($this->buildBonus(
+                sourceType: 'race',
+                sourceName: $race->name,
+                sourceSlug: $race->slug,
+                abilityCode: $modifier->abilityScore->code,
+                abilityName: $modifier->abilityScore->name,
+                value: (int) $modifier->value,
+                isChoice: false,
+            ));
+        }
+
+        // Get resolved ability score choices from character_ability_scores
+        // These are linked via choice_group to entity_choices
+        $resolvedChoices = $character->abilityScores()
+            ->where('source', 'race')
+            ->get();
+
+        foreach ($resolvedChoices as $choice) {
+            $abilityScore = $abilityScores->get($choice->ability_score_code);
+            if (! $abilityScore) {
+                continue;
+            }
+
+            $bonuses->push($this->buildBonus(
+                sourceType: 'race',
+                sourceName: $race->name,
+                sourceSlug: $race->slug,
+                abilityCode: $choice->ability_score_code,
+                abilityName: $abilityScore->name,
+                value: $choice->bonus,
+                isChoice: true,
+                choiceResolved: true,
+                choiceGroup: $choice->choice_group,
+            ));
         }
 
         return $bonuses;
@@ -140,9 +138,9 @@ class AbilityBonusService
                 continue;
             }
 
+            // All entity_modifiers are now fixed since choices moved to entity_choices
             $abilityModifiers = $feat->modifiers
-                ->where('modifier_category', 'ability_score')
-                ->where('is_choice', false); // Only fixed for now
+                ->where('modifier_category', 'ability_score');
 
             foreach ($abilityModifiers as $modifier) {
                 if (! $modifier->abilityScore) {
@@ -214,7 +212,7 @@ class AbilityBonusService
         int $value,
         bool $isChoice,
         ?bool $choiceResolved = null,
-        ?int $modifierId = null,
+        ?string $choiceGroup = null,
     ): array {
         $bonus = [
             'source_type' => $sourceType,
@@ -228,7 +226,7 @@ class AbilityBonusService
 
         if ($isChoice) {
             $bonus['choice_resolved'] = $choiceResolved;
-            $bonus['modifier_id'] = $modifierId;
+            $bonus['choice_group'] = $choiceGroup;
         }
 
         return $bonus;

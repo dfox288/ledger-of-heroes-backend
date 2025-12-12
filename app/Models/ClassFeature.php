@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ResetTiming;
+use App\Models\Concerns\HasEntityChoices;
 use App\Models\Concerns\HasProficiencies;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class ClassFeature extends BaseModel
 {
-    use HasProficiencies;
+    use HasEntityChoices, HasProficiencies;
 
     protected $table = 'class_features';
 

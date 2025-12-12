@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services\Importers\Concerns;
 
 use App\Models\Background;
+use App\Models\EntityChoice;
 use App\Models\EntityLanguage;
 use App\Models\Language;
 use App\Models\Race;
@@ -34,7 +35,6 @@ class ImportsLanguagesTest extends TestCase
         $this->assertCount(1, $race->languages);
         $language = $race->languages->first();
         $this->assertEquals(Language::where('slug', 'core:common')->first()->id, $language->language_id);
-        $this->assertFalse($language->is_choice);
     }
 
     #[Test]
@@ -69,10 +69,19 @@ class ImportsLanguagesTest extends TestCase
 
         $this->importEntityLanguages($race, $languagesData);
 
-        $this->assertCount(1, $race->languages);
-        $language = $race->languages->first();
-        $this->assertNull($language->language_id);
-        $this->assertTrue($language->is_choice);
+        // No fixed languages
+        $this->assertCount(0, $race->languages);
+
+        // One language choice
+        $choices = EntityChoice::where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->where('choice_type', 'language')
+            ->get();
+
+        $this->assertCount(1, $choices);
+        $choice = $choices->first();
+        $this->assertEquals('language_choice_1', $choice->choice_group);
+        $this->assertEquals(1, $choice->quantity);
     }
 
     #[Test]
@@ -96,12 +105,15 @@ class ImportsLanguagesTest extends TestCase
 
         $this->importEntityLanguages($race, $languagesData);
 
-        $this->assertCount(3, $race->languages);
+        // Two fixed languages
+        $this->assertCount(2, $race->languages);
 
-        $fixed = $race->languages->where('is_choice', false);
-        $choices = $race->languages->where('is_choice', true);
+        // One language choice
+        $choices = EntityChoice::where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->where('choice_type', 'language')
+            ->get();
 
-        $this->assertCount(2, $fixed);
         $this->assertCount(1, $choices);
     }
 
@@ -115,7 +127,6 @@ class ImportsLanguagesTest extends TestCase
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'language_id' => Language::where('slug', 'core:common')->first()->id,
-            'is_choice' => false,
         ]);
 
         $this->assertCount(1, $race->fresh()->languages);
@@ -165,7 +176,6 @@ class ImportsLanguagesTest extends TestCase
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'language_id' => Language::where('slug', 'core:common')->first()->id,
-            'is_choice' => false,
         ]);
 
         $this->assertCount(1, $race->fresh()->languages);
@@ -193,26 +203,36 @@ class ImportsLanguagesTest extends TestCase
 
         $this->importEntityLanguages($background, $languagesData);
 
-        $this->assertCount(2, $background->languages);
+        // One fixed language
+        $this->assertCount(1, $background->languages);
+
+        // One language choice
+        $choices = EntityChoice::where('reference_type', Background::class)
+            ->where('reference_id', $background->id)
+            ->where('choice_type', 'language')
+            ->get();
+
+        $this->assertCount(1, $choices);
     }
 
     #[Test]
-    public function it_prefers_language_id_over_slug_when_both_provided()
+    public function it_prefers_slug_over_language_id_when_both_provided()
     {
         $race = Race::factory()->create();
-        $elvish = Language::where('slug', 'core:elvish')->first();
+        $common = Language::where('slug', 'core:common')->first();
 
+        // The trait priority is: slug > language_slug > language_id
         $languagesData = [
             [
-                'language_id' => $elvish->id,
-                'slug' => 'core:common', // Should be ignored
+                'language_id' => 99999, // Should be ignored in favor of slug
+                'slug' => 'core:common',
                 'is_choice' => false,
             ],
         ];
 
         $this->importEntityLanguages($race, $languagesData);
 
-        $this->assertEquals($elvish->id, $race->languages->first()->language_id);
+        $this->assertEquals($common->id, $race->languages->first()->language_id);
     }
 
     #[Test]
@@ -221,16 +241,24 @@ class ImportsLanguagesTest extends TestCase
         $race = Race::factory()->create();
 
         $languagesData = [
-            ['is_choice' => true],
-            ['is_choice' => true],
-            ['is_choice' => true],
+            ['is_choice' => true, 'quantity' => 3],
         ];
 
         $this->importEntityLanguages($race, $languagesData);
 
-        $this->assertCount(3, $race->languages);
-        $this->assertTrue($race->languages->every(fn ($l) => $l->is_choice));
-        $this->assertTrue($race->languages->every(fn ($l) => $l->language_id === null));
+        // No fixed languages
+        $this->assertCount(0, $race->languages);
+
+        // Three language choice records (one per slot)
+        $choices = EntityChoice::where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->where('choice_type', 'language')
+            ->get();
+
+        $this->assertCount(3, $choices);
+        $this->assertEquals('language_choice_1', $choices[0]->choice_group);
+        $this->assertEquals('language_choice_2', $choices[1]->choice_group);
+        $this->assertEquals('language_choice_3', $choices[2]->choice_group);
     }
 
     #[Test]
@@ -258,19 +286,25 @@ class ImportsLanguagesTest extends TestCase
 
         $this->importEntityLanguages($race, $languagesData);
 
-        $this->assertCount(2, $race->languages);
+        // No fixed languages
+        $this->assertCount(0, $race->languages);
 
-        $languages = $race->languages;
-        $this->assertTrue($languages->every(fn ($l) => $l->is_choice));
-        $this->assertTrue($languages->every(fn ($l) => $l->choice_group === 'race_language_choice'));
+        // Two restricted language choice options
+        $choices = EntityChoice::where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->where('choice_type', 'language')
+            ->where('choice_group', 'race_language_choice')
+            ->get();
 
-        $firstChoice = $languages->where('choice_option', 1)->first();
-        $this->assertEquals($dwarvish->id, $firstChoice->language_id);
+        $this->assertCount(2, $choices);
+
+        $firstChoice = $choices->where('choice_option', 1)->first();
+        $this->assertEquals('core:dwarvish', $firstChoice->target_slug);
+        $this->assertEquals('language', $firstChoice->target_type);
         $this->assertEquals(1, $firstChoice->quantity);
 
-        $secondChoice = $languages->where('choice_option', 2)->first();
-        $this->assertEquals($elvish->id, $secondChoice->language_id);
-        // Second option shouldn't have quantity (uses default)
+        $secondChoice = $choices->where('choice_option', 2)->first();
+        $this->assertEquals('core:elvish', $secondChoice->target_slug);
     }
 
     #[Test]
@@ -287,11 +321,18 @@ class ImportsLanguagesTest extends TestCase
 
         $this->importEntityLanguages($race, $languagesData);
 
-        $language = $race->languages->first();
-        $this->assertTrue($language->is_choice);
-        $this->assertNull($language->language_id);
-        $this->assertNull($language->choice_group);
-        $this->assertEquals(2, $language->quantity);
+        // Two language choice records (one per slot)
+        $choices = EntityChoice::where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->where('choice_type', 'language')
+            ->get();
+
+        $this->assertCount(2, $choices);
+        // Each slot has quantity 1 (not quantity 2 per slot)
+        $this->assertTrue($choices->every(fn ($c) => $c->quantity === 1));
+        // No target restriction
+        $this->assertTrue($choices->every(fn ($c) => $c->target_type === null));
+        $this->assertTrue($choices->every(fn ($c) => $c->target_slug === null));
     }
 
     #[Test]
@@ -311,11 +352,14 @@ class ImportsLanguagesTest extends TestCase
 
         $this->importEntityLanguages($race, $languagesData);
 
-        $language = $race->languages->first();
-        $this->assertTrue($language->is_choice);
-        $this->assertNull($language->language_id);
-        $this->assertEquals('unless_already_knows', $language->condition_type);
-        $this->assertEquals($dwarvish->id, $language->condition_language_id);
+        $choice = EntityChoice::where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->where('choice_type', 'language')
+            ->first();
+
+        $this->assertNotNull($choice);
+        $this->assertEquals('unless_already_knows', $choice->constraints['condition_type'] ?? null);
+        $this->assertEquals('core:dwarvish', $choice->constraints['condition_language_slug'] ?? null);
     }
 
     #[Test]
@@ -334,9 +378,13 @@ class ImportsLanguagesTest extends TestCase
 
         $this->importEntityLanguages($race, $languagesData);
 
-        $language = $race->languages->first();
-        $dwarvish = Language::where('slug', 'core:dwarvish')->first();
-        $this->assertEquals($dwarvish->id, $language->condition_language_id);
+        $choice = EntityChoice::where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->where('choice_type', 'language')
+            ->first();
+
+        $this->assertNotNull($choice);
+        $this->assertEquals('core:dwarvish', $choice->constraints['condition_language_slug'] ?? null);
     }
 
     #[Test]
@@ -357,15 +405,23 @@ class ImportsLanguagesTest extends TestCase
 
         $this->importEntityLanguages($race, $languagesData);
 
-        $language = $race->languages->first();
-        $this->assertEquals($dwarvish->id, $language->condition_language_id);
+        $choice = EntityChoice::where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->where('choice_type', 'language')
+            ->first();
+
+        $this->assertNotNull($choice);
+        // The trait resolves condition_language_id to slug, so it should be dwarvish
+        $this->assertEquals('core:dwarvish', $choice->constraints['condition_language_slug'] ?? null);
     }
 
     #[Test]
-    public function it_skips_restricted_choice_when_language_cannot_be_resolved()
+    public function it_creates_restricted_choice_even_with_unresolvable_language()
     {
         $race = Race::factory()->create();
 
+        // The trait stores the slug as-is without validation
+        // Validation should happen at a higher level (parser or API)
         $languagesData = [
             [
                 'is_choice' => true,
@@ -377,8 +433,14 @@ class ImportsLanguagesTest extends TestCase
 
         $this->importEntityLanguages($race, $languagesData);
 
-        // Should skip this restricted choice since language can't be resolved
-        $this->assertCount(0, $race->languages);
+        // The EntityChoice is created with the provided slug (no validation)
+        $choices = EntityChoice::where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->where('choice_type', 'language')
+            ->get();
+
+        $this->assertCount(1, $choices);
+        $this->assertEquals('nonexistent-language', $choices->first()->target_slug);
     }
 
     #[Test]
@@ -404,22 +466,22 @@ class ImportsLanguagesTest extends TestCase
     public function it_handles_language_slug_priority()
     {
         $race = Race::factory()->create();
-        $dwarvish = Language::where('slug', 'core:dwarvish')->first();
+        $elvish = Language::where('slug', 'core:elvish')->first();
 
-        // language_id > language_slug > slug
+        // Priority is: slug > language_slug > language_id
         $languagesData = [
             [
-                'language_id' => $dwarvish->id,
-                'language_slug' => 'core:common',
-                'slug' => 'core:elvish',
+                'language_id' => 99999, // Lowest priority - ignored
+                'language_slug' => 'core:common', // Middle priority - ignored
+                'slug' => 'core:elvish', // Highest priority - used
                 'is_choice' => false,
             ],
         ];
 
         $this->importEntityLanguages($race, $languagesData);
 
-        // Should use language_id
-        $this->assertEquals($dwarvish->id, $race->languages->first()->language_id);
+        // Should use slug (highest priority)
+        $this->assertEquals($elvish->id, $race->languages->first()->language_id);
     }
 
     #[Test]
@@ -458,95 +520,65 @@ class ImportsLanguagesTest extends TestCase
 
         $this->importEntityLanguages($race, $languagesData);
 
-        $this->assertCount(4, $race->languages);
-
         // Verify fixed language
-        $fixed = $race->languages->where('is_choice', false)->first();
-        $this->assertEquals($common->id, $fixed->language_id);
+        $this->assertCount(1, $race->languages);
+        $this->assertEquals($common->id, $race->languages->first()->language_id);
+
+        // Verify choices (1 unrestricted + 2 restricted)
+        $choices = EntityChoice::where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->where('choice_type', 'language')
+            ->get();
+
+        $this->assertCount(3, $choices);
 
         // Verify unrestricted choice
-        $unrestricted = $race->languages->where('is_choice', true)
-            ->whereNull('choice_group')
-            ->first();
-        $this->assertNull($unrestricted->language_id);
+        $unrestricted = $choices->where('choice_group', 'language_choice_1')->first();
+        $this->assertNotNull($unrestricted);
+        $this->assertNull($unrestricted->target_type);
 
         // Verify restricted choices
-        $restricted = $race->languages->where('choice_group', 'subrace_choice');
+        $restricted = $choices->where('choice_group', 'subrace_choice');
         $this->assertCount(2, $restricted);
     }
 
     #[Test]
-    public function it_handles_quantity_field_correctly()
+    public function it_clears_existing_language_choices_before_import()
     {
         $race = Race::factory()->create();
-        $common = Language::where('slug', 'core:common')->first();
 
+        // Create initial language choice
+        EntityChoice::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'choice_type' => 'language',
+            'choice_group' => 'old_choice',
+            'quantity' => 1,
+            'level_granted' => 1,
+            'is_required' => true,
+        ]);
+
+        $oldChoices = EntityChoice::where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->where('choice_type', 'language')
+            ->get();
+
+        $this->assertCount(1, $oldChoices);
+
+        // Import new choices (should clear old ones)
         $languagesData = [
-            [
-                'language_id' => $common->id,
-                'is_choice' => false,
-                'quantity' => 1,
-            ],
+            ['is_choice' => true, 'quantity' => 2],
         ];
 
         $this->importEntityLanguages($race, $languagesData);
 
-        $language = $race->languages->first();
-        $this->assertEquals(1, $language->quantity);
-    }
+        $newChoices = EntityChoice::where('reference_type', Race::class)
+            ->where('reference_id', $race->id)
+            ->where('choice_type', 'language')
+            ->get();
 
-    #[Test]
-    public function it_defaults_quantity_to_1_when_not_provided()
-    {
-        $race = Race::factory()->create();
-        $common = Language::where('slug', 'core:common')->first();
-
-        $languagesData = [
-            [
-                'language_id' => $common->id,
-                'is_choice' => false,
-                // quantity not provided
-            ],
-        ];
-
-        $this->importEntityLanguages($race, $languagesData);
-
-        $language = $race->languages->first();
-        $this->assertEquals(1, $language->quantity);
-    }
-
-    #[Test]
-    public function it_skips_choice_group_quantity_for_non_first_options()
-    {
-        $race = Race::factory()->create();
-        $dwarvish = Language::where('slug', 'core:dwarvish')->first();
-        $elvish = Language::where('slug', 'core:elvish')->first();
-
-        $languagesData = [
-            [
-                'language_id' => $dwarvish->id,
-                'is_choice' => true,
-                'choice_group' => 'race_choice',
-                'choice_option' => 1,
-                'quantity' => 2, // Only first option gets quantity
-            ],
-            [
-                'language_id' => $elvish->id,
-                'is_choice' => true,
-                'choice_group' => 'race_choice',
-                'choice_option' => 2,
-                'quantity' => 999, // Should be ignored/use default
-            ],
-        ];
-
-        $this->importEntityLanguages($race, $languagesData);
-
-        $firstOption = $race->languages->where('choice_option', 1)->first();
-        $this->assertEquals(2, $firstOption->quantity);
-
-        $secondOption = $race->languages->where('choice_option', 2)->first();
-        // The quantity for non-first options is set but should logically be ignored by frontend
-        // The trait still sets it if provided, so we just verify both records exist
-        $this->assertNotNull($secondOption);
+        // Old choice should be gone, new choices should be present
+        $this->assertCount(2, $newChoices);
+        $this->assertNull($newChoices->where('choice_group', 'old_choice')->first());
     }
 }

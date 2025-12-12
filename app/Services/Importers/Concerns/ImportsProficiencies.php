@@ -2,24 +2,29 @@
 
 namespace App\Services\Importers\Concerns;
 
+use App\Models\EntityChoice;
 use App\Models\Proficiency;
 use App\Models\Skill;
+use App\Services\Parsers\Traits\ParsesChoices;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Trait for importing proficiencies (skills, weapons, armor, tools, etc.).
  *
  * Handles the common pattern of:
- * 1. Clear existing proficiencies
- * 2. Create new proficiencies with polymorphic reference
- * 3. Link skill_id for skill proficiencies
+ * 1. Clear existing proficiencies and proficiency choices
+ * 2. Create Proficiency records for fixed proficiencies
+ * 3. Create EntityChoice records for proficiency choices
  */
 trait ImportsProficiencies
 {
+    use ParsesChoices;
+
     /**
      * Import proficiencies for an entity.
      *
-     * Clears existing proficiencies and creates new Proficiency records.
+     * - Fixed proficiencies go to entity_proficiencies table
+     * - Choice-based proficiencies go to entity_choices table
      *
      * @param  Model  $entity  The entity (Race, Background, Class, Item, etc.)
      * @param  array  $proficienciesData  Array of proficiency data
@@ -30,24 +35,133 @@ trait ImportsProficiencies
         // Clear existing proficiencies for this entity
         $entity->proficiencies()->delete();
 
+        // Clear existing proficiency choices for this entity
+        EntityChoice::where('reference_type', get_class($entity))
+            ->where('reference_id', $entity->id)
+            ->where('choice_type', 'proficiency')
+            ->delete();
+
+        // Track choice index for unique group names when no group is provided
+        $choiceIndex = 0;
+
         foreach ($proficienciesData as $profData) {
+            $isChoice = $profData['is_choice'] ?? false;
+
+            if ($isChoice) {
+                // Handle proficiency choices
+                $this->importProficiencyChoice($entity, $profData, $choiceIndex);
+            } else {
+                // Handle fixed proficiencies
+                $this->importFixedProficiency($entity, $profData, $grants);
+            }
+        }
+    }
+
+    /**
+     * Import a fixed proficiency.
+     */
+    private function importFixedProficiency(Model $entity, array $profData, bool $defaultGrants): void
+    {
+        $proficiency = [
+            'reference_type' => get_class($entity),
+            'reference_id' => $entity->id,
+            'proficiency_type' => $profData['type'],
+            'proficiency_name' => $profData['name'],
+            'proficiency_type_id' => $profData['proficiency_type_id'] ?? null,
+            'proficiency_subcategory' => $profData['proficiency_subcategory'] ?? null,
+            'grants' => $profData['grants'] ?? $defaultGrants,
+        ];
+
+        // Handle skill proficiencies - link to skills table
+        if ($profData['type'] === 'skill' && ! empty($profData['name'])) {
+            $skill = Skill::where('name', $profData['name'])->first();
+            if ($skill) {
+                $proficiency['skill_id'] = $skill->id;
+            }
+        }
+
+        Proficiency::create($proficiency);
+    }
+
+    /**
+     * Import a proficiency choice.
+     */
+    private function importProficiencyChoice(Model $entity, array $profData, int &$choiceIndex): void
+    {
+        $proficiencyType = $profData['type'];
+        $choiceGroup = $profData['choice_group'] ?? null;
+        $choiceOption = $profData['choice_option'] ?? null;
+        $quantity = $profData['quantity'] ?? 1;
+        $name = $profData['name'] ?? null;
+
+        // For unrestricted choices (no specific name, just type and maybe quantity)
+        if ($choiceGroup === null && $name === null) {
+            $choiceIndex++;
+            $groupName = $proficiencyType.'_choice_'.$choiceIndex;
+
+            // Build constraints if subcategory is present
+            $constraints = null;
+            if (! empty($profData['proficiency_subcategory'])) {
+                $constraints = ['subcategory' => $profData['proficiency_subcategory']];
+            }
+
+            $this->createProficiencyChoice(
+                referenceType: get_class($entity),
+                referenceId: $entity->id,
+                choiceGroup: $groupName,
+                proficiencyType: $proficiencyType,
+                quantity: $quantity,
+                levelGranted: 1,
+                constraints: $constraints
+            );
+
+            return;
+        }
+
+        // For restricted choices (specific options within a group)
+        if ($choiceGroup !== null && $name !== null) {
+            // Resolve target slug based on proficiency type
+            $targetType = 'proficiency_type';
+            $targetSlug = strtolower(str_replace(' ', '-', $name));
+
+            // For skills, use skill slug format
+            if ($proficiencyType === 'skill') {
+                $skill = Skill::where('name', $name)->first();
+                if ($skill) {
+                    $targetType = 'skill';
+                    $targetSlug = $skill->slug ?? strtolower(str_replace(' ', '-', $name));
+                }
+            }
+
+            $this->createRestrictedProficiencyChoice(
+                referenceType: get_class($entity),
+                referenceId: $entity->id,
+                choiceGroup: $choiceGroup,
+                proficiencyType: $proficiencyType,
+                targetType: $targetType,
+                targetSlug: $targetSlug,
+                choiceOption: $choiceOption ?? 1,
+                quantity: $quantity,
+                levelGranted: 1
+            );
+
+            return;
+        }
+
+        // Edge case: has name but no choice_group (treat as fixed proficiency)
+        // This shouldn't happen with proper parser data, but handle gracefully
+        if ($name !== null && $choiceGroup === null) {
             $proficiency = [
                 'reference_type' => get_class($entity),
                 'reference_id' => $entity->id,
-                'proficiency_type' => $profData['type'],
-                'proficiency_name' => $profData['name'], // Always store name as fallback
-                'proficiency_type_id' => $profData['proficiency_type_id'] ?? null, // From parser
-                'proficiency_subcategory' => $profData['proficiency_subcategory'] ?? null, // For choice lookups (e.g., 'artisan')
-                'grants' => $profData['grants'] ?? $grants, // Use provided or default
-                'is_choice' => $profData['is_choice'] ?? false, // Choice-based proficiency
-                'choice_group' => $profData['choice_group'] ?? null, // Group related choices together
-                'choice_option' => $profData['choice_option'] ?? null, // Option number within group
-                'quantity' => $profData['quantity'] ?? null, // Number of choices (only set for first in group)
+                'proficiency_type' => $proficiencyType,
+                'proficiency_name' => $name,
+                'proficiency_type_id' => $profData['proficiency_type_id'] ?? null,
+                'grants' => $profData['grants'] ?? true,
             ];
 
-            // Handle skill proficiencies - link to skills table
-            if ($profData['type'] === 'skill' && ! empty($profData['name'])) {
-                $skill = Skill::where('name', $profData['name'])->first();
+            if ($proficiencyType === 'skill') {
+                $skill = Skill::where('name', $name)->first();
                 if ($skill) {
                     $proficiency['skill_id'] = $skill->id;
                 }

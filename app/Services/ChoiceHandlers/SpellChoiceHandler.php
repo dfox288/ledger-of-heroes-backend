@@ -8,7 +8,7 @@ use App\Models\Character;
 use App\Models\CharacterClassPivot;
 use App\Models\CharacterSpell;
 use App\Models\ClassFeature;
-use App\Models\EntitySpell;
+use App\Models\EntityChoice;
 use App\Models\Spell;
 use Illuminate\Support\Collection;
 
@@ -72,14 +72,17 @@ class SpellChoiceHandler extends AbstractChoiceHandler
                 continue;
             }
 
-            $spellChoices = EntitySpell::where('reference_type', ClassFeature::class)
+            // Query spell choices from unified entity_choices table
+            $spellChoices = EntityChoice::where('reference_type', ClassFeature::class)
                 ->whereIn('reference_id', $featureIds)
-                ->where('is_choice', true)
-                ->with(['characterClass', 'reference'])
+                ->where('choice_type', 'spell')
                 ->get();
 
             foreach ($spellChoices as $spellChoice) {
-                $feature = $spellChoice->reference;
+                $feature = ClassFeature::find($spellChoice->reference_id);
+                if (! $feature) {
+                    continue;
+                }
                 $choice = $this->buildFeatureSpellChoice($character, $pivot, $feature, $spellChoice);
                 if ($choice) {
                     $choices->push($choice);
@@ -317,11 +320,12 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         Character $character,
         CharacterClassPivot $pivot,
         ClassFeature $feature,
-        EntitySpell $spellChoice
+        EntityChoice $spellChoice
     ): ?PendingChoice {
-        $isCantrip = $spellChoice->is_cantrip || $spellChoice->max_level === 0;
-        $maxLevel = $spellChoice->max_level ?? ($isCantrip ? 0 : 1);
-        $quantity = $spellChoice->choice_count ?? 1;
+        // Get max_level and class constraints from EntityChoice
+        $maxLevel = $spellChoice->spell_max_level ?? 0;
+        $isCantrip = $maxLevel === 0;
+        $quantity = $spellChoice->quantity ?? 1;
 
         // Get already selected spells for this feature
         $selectedSpells = $character->spells()
@@ -333,20 +337,20 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         $remaining = $quantity - count($selected);
 
         // Build options endpoint with class filter
-        $classSlug = $spellChoice->characterClass?->slug;
+        $classSlug = $spellChoice->spell_list_slug;
         $endpoint = "/api/v1/characters/{$character->id}/available-spells?max_level={$maxLevel}";
         if ($classSlug) {
             $endpoint .= "&class={$classSlug}";
         }
 
         return new PendingChoice(
-            id: $this->generateChoiceId('spell', 'subclass_feature', $feature->characterClass->slug, $feature->level, 'feature_cantrip'),
+            id: $this->generateChoiceId('spell', 'subclass_feature', $feature->characterClass->slug, $feature->level, $spellChoice->choice_group),
             type: 'spell',
             subtype: $isCantrip ? 'cantrip' : 'spell',
             source: 'subclass_feature',
             sourceName: $feature->feature_name,
-            levelGranted: $feature->level,
-            required: true,
+            levelGranted: $spellChoice->level_granted ?? $feature->level,
+            required: $spellChoice->is_required ?? true,
             quantity: $quantity,
             remaining: $remaining,
             selected: $selected,
@@ -356,6 +360,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
                 'spell_level' => $maxLevel,
                 'class_slug' => $classSlug,
                 'feature_id' => $feature->id,
+                'choice_group' => $spellChoice->choice_group,
             ],
         );
     }

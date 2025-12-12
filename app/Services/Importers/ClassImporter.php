@@ -417,7 +417,24 @@ class ClassImporter extends BaseImporter
         }
 
         $slug = $this->generateSlug($data['name'], $sources);
-        $existingClass = CharacterClass::where('slug', $slug)->first();
+
+        // For MERGE and SKIP_IF_EXISTS modes, look for existing base class by NAME
+        // This enables cross-source merging (PHB Barbarian + XGE subclasses → single class)
+        // For base classes only (no parent_class_id in incoming data)
+        $existingClass = null;
+        $isBaseClass = empty($data['parent_class_id']);
+
+        if ($isBaseClass && $mode !== MergeMode::CREATE) {
+            // Find by name for base classes when merging/skipping
+            $existingClass = CharacterClass::whereNull('parent_class_id')
+                ->where('name', $data['name'])
+                ->first();
+        }
+
+        // Fall back to exact slug match if not found by name
+        if (! $existingClass) {
+            $existingClass = CharacterClass::where('slug', $slug)->first();
+        }
 
         // Handle SKIP_IF_EXISTS mode
         if ($existingClass && $mode === MergeMode::SKIP_IF_EXISTS) {

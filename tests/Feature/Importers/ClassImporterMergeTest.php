@@ -93,6 +93,102 @@ class ClassImporterMergeTest extends TestCase
     }
 
     #[Test]
+    public function it_merges_classes_with_different_source_prefixes()
+    {
+        // This tests the fix for issue where PHB creates phb:barbarian
+        // but XGE generates xge:barbarian and doesn't find the existing class
+
+        // Step 1: Import PHB Barbarian (sources array gives PHB prefix)
+        $phbData = [
+            'name' => 'Barbarian',
+            'hit_die' => 12,
+            'traits' => [
+                [
+                    'name' => 'Rage',
+                    'description' => 'You can rage.',
+                    'sources' => [['code' => 'PHB', 'page' => '46']],
+                ],
+            ],
+            'proficiencies' => [],
+            'features' => [],
+            'spell_progression' => [],
+            'counters' => [],
+            'equipment' => ['wealth' => null, 'items' => []],
+            'subclasses' => [
+                [
+                    'name' => 'Path of the Berserker',
+                    'features' => [
+                        [
+                            'name' => 'Frenzy',
+                            'level' => 3,
+                            'is_optional' => false,
+                            'description' => 'You can go into a frenzy.',
+                            'sort_order' => 0,
+                            'sources' => [['code' => 'PHB', 'page' => '49']],
+                        ],
+                    ],
+                    'counters' => [],
+                ],
+            ],
+        ];
+
+        $barbarian = $this->importer->import($phbData);
+
+        // Verify PHB created the class with phb: prefix
+        $this->assertEquals('phb:barbarian', $barbarian->slug);
+        $this->assertEquals(1, $barbarian->subclasses()->count());
+
+        // Step 2: Merge XGE Barbarian (different source prefix)
+        $xgeData = [
+            'name' => 'Barbarian',
+            'hit_die' => 12,
+            'traits' => [
+                [
+                    'name' => 'Additional Primal Paths',
+                    'description' => 'XGE adds more paths.',
+                    'sources' => [['code' => 'XGE', 'page' => '9']],
+                ],
+            ],
+            'proficiencies' => [],
+            'features' => [],
+            'spell_progression' => [],
+            'counters' => [],
+            'equipment' => ['wealth' => null, 'items' => []],
+            'subclasses' => [
+                [
+                    'name' => 'Path of the Ancestral Guardian',
+                    'features' => [
+                        [
+                            'name' => 'Ancestral Protectors',
+                            'level' => 3,
+                            'is_optional' => false,
+                            'description' => 'Spectral warriors appear.',
+                            'sort_order' => 0,
+                            'sources' => [['code' => 'XGE', 'page' => '10']],
+                        ],
+                    ],
+                    'counters' => [],
+                ],
+            ],
+        ];
+
+        // XGE would generate xge:barbarian, but should find existing phb:barbarian by name
+        $result = $this->importer->importWithMerge($xgeData, MergeMode::MERGE);
+
+        // Should merge into the existing class (same ID, same slug)
+        $this->assertEquals($barbarian->id, $result->id);
+        $this->assertEquals('phb:barbarian', $result->slug);
+
+        // Should now have 2 subclasses
+        $this->assertEquals(2, $result->subclasses()->count());
+
+        // Verify no duplicate base class was created
+        $this->assertEquals(1, CharacterClass::where('name', 'Barbarian')
+            ->whereNull('parent_class_id')
+            ->count());
+    }
+
+    #[Test]
     public function it_skips_duplicate_subclasses_when_merging()
     {
         // Create Barbarian with Path of the Berserker

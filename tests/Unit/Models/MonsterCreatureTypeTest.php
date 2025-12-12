@@ -12,7 +12,7 @@ it('belongs to a creature type', function () {
     $monster = Monster::factory()->create(['creature_type_id' => $creatureType->id]);
 
     expect($monster->creatureType)->toBeInstanceOf(CreatureType::class);
-    expect($monster->creatureType->slug)->toBe('undead');
+    expect($monster->creatureType->slug)->toBe('core:undead');
 });
 
 it('can filter monsters by creature type', function () {

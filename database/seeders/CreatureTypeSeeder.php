@@ -11,22 +11,22 @@ class CreatureTypeSeeder extends Seeder
     {
         $types = [
             [
-                'slug' => 'aberration',
+                'slug' => 'core:aberration',
                 'name' => 'Aberration',
                 'description' => 'Utterly alien beings with bizarre anatomy, strange abilities, or alien mindsets.',
             ],
             [
-                'slug' => 'beast',
+                'slug' => 'core:beast',
                 'name' => 'Beast',
                 'description' => 'Nonhumanoid creatures that are part of the natural world.',
             ],
             [
-                'slug' => 'celestial',
+                'slug' => 'core:celestial',
                 'name' => 'Celestial',
                 'description' => 'Creatures native to the Upper Planes, often agents of good.',
             ],
             [
-                'slug' => 'construct',
+                'slug' => 'core:construct',
                 'name' => 'Construct',
                 'typically_immune_to_poison' => true,
                 'typically_immune_to_charmed' => true,
@@ -37,12 +37,12 @@ class CreatureTypeSeeder extends Seeder
                 'description' => 'Made, not born. Animated by magic.',
             ],
             [
-                'slug' => 'dragon',
+                'slug' => 'core:dragon',
                 'name' => 'Dragon',
                 'description' => 'Large reptilian creatures of ancient origin and tremendous power.',
             ],
             [
-                'slug' => 'elemental',
+                'slug' => 'core:elemental',
                 'name' => 'Elemental',
                 'typically_immune_to_poison' => true,
                 'typically_immune_to_exhaustion' => true,
@@ -51,33 +51,33 @@ class CreatureTypeSeeder extends Seeder
                 'description' => 'Creatures native to the elemental planes.',
             ],
             [
-                'slug' => 'fey',
+                'slug' => 'core:fey',
                 'name' => 'Fey',
                 'description' => 'Magical creatures closely tied to the forces of nature.',
             ],
             [
-                'slug' => 'fiend',
+                'slug' => 'core:fiend',
                 'name' => 'Fiend',
                 'typically_immune_to_poison' => true,
                 'description' => 'Wicked creatures native to the Lower Planes.',
             ],
             [
-                'slug' => 'giant',
+                'slug' => 'core:giant',
                 'name' => 'Giant',
                 'description' => 'Humanlike creatures of great stature and strength.',
             ],
             [
-                'slug' => 'humanoid',
+                'slug' => 'core:humanoid',
                 'name' => 'Humanoid',
                 'description' => 'The main peoples of the world, including humans and their kin.',
             ],
             [
-                'slug' => 'monstrosity',
+                'slug' => 'core:monstrosity',
                 'name' => 'Monstrosity',
                 'description' => 'Frightening creatures not ordinary, not truly natural, and not of divine origin.',
             ],
             [
-                'slug' => 'ooze',
+                'slug' => 'core:ooze',
                 'name' => 'Ooze',
                 'typically_immune_to_poison' => true,
                 'typically_immune_to_charmed' => true,
@@ -88,12 +88,12 @@ class CreatureTypeSeeder extends Seeder
                 'description' => 'Gelatinous creatures that rarely have a fixed shape.',
             ],
             [
-                'slug' => 'plant',
+                'slug' => 'core:plant',
                 'name' => 'Plant',
                 'description' => 'Vegetable creatures, not ordinary flora.',
             ],
             [
-                'slug' => 'undead',
+                'slug' => 'core:undead',
                 'name' => 'Undead',
                 'typically_immune_to_poison' => true,
                 'typically_immune_to_charmed' => true,
@@ -103,7 +103,7 @@ class CreatureTypeSeeder extends Seeder
                 'description' => 'Once-living creatures brought to unlife through necromancy or curse.',
             ],
             [
-                'slug' => 'swarm',
+                'slug' => 'core:swarm',
                 'name' => 'Swarm',
                 'description' => 'A mass of creatures acting as a single entity.',
             ],

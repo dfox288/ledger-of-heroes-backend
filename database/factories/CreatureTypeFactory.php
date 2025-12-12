@@ -22,7 +22,7 @@ class CreatureTypeFactory extends Factory
         $name = fake()->unique()->word();
 
         return [
-            'slug' => strtolower($name),
+            'slug' => 'core:'.strtolower($name),
             'name' => ucfirst($name),
             'typically_immune_to_poison' => false,
             'typically_immune_to_charmed' => false,
@@ -40,7 +40,7 @@ class CreatureTypeFactory extends Factory
     public function undead(): static
     {
         return $this->state(fn (array $attributes) => [
-            'slug' => 'undead',
+            'slug' => 'core:undead',
             'name' => 'Undead',
             'typically_immune_to_poison' => true,
             'typically_immune_to_charmed' => true,
@@ -56,7 +56,7 @@ class CreatureTypeFactory extends Factory
     public function construct(): static
     {
         return $this->state(fn (array $attributes) => [
-            'slug' => 'construct',
+            'slug' => 'core:construct',
             'name' => 'Construct',
             'typically_immune_to_poison' => true,
             'typically_immune_to_charmed' => true,

@@ -371,7 +371,7 @@ class MonsterImporter extends BaseImporter
         }
 
         $baseType = $this->extractBaseCreatureType($type);
-        $slug = strtolower($baseType);
+        $slug = 'core:'.strtolower($baseType);
 
         return $this->creatureTypeCache[$slug] ?? null;
     }

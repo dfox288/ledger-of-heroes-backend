@@ -528,13 +528,9 @@ XML;
         $this->assertEquals('Size Modifier', $sizeTable->table_name);
         $this->assertEquals('2d8', $sizeTable->dice_type);
 
-        // Verify the data table references the trait
+        // Verify the data table references the trait (canonical relationship)
         $this->assertEquals(\App\Models\CharacterTrait::class, $sizeTable->reference_type);
         $this->assertEquals($sizeTrait->id, $sizeTable->reference_id);
-
-        // IMPORTANT: Verify bidirectional link - trait is linked to data table
-        $this->assertNotNull($sizeTrait->entity_data_table_id);
-        $this->assertEquals($sizeTable->id, $sizeTrait->entity_data_table_id);
     }
 
     #[Test]

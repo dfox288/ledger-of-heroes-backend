@@ -111,9 +111,6 @@ class BackgroundImporter extends BaseImporter
                     'sort_order' => $index,
                 ]);
             }
-
-            // Link table back to trait via entity_data_table_id
-            $trait->update(['entity_data_table_id' => $table->id]);
         }
 
         // Refresh to load all relationships created during import

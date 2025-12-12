@@ -25,6 +25,8 @@ class Spell extends BaseModel
         'range',
         'components',
         'material_components',
+        'material_cost_gp',
+        'material_consumed',
         'duration',
         'needs_concentration',
         'is_ritual',
@@ -34,6 +36,8 @@ class Spell extends BaseModel
 
     protected $casts = [
         'level' => 'integer',
+        'material_cost_gp' => 'integer',
+        'material_consumed' => 'boolean',
         'needs_concentration' => 'boolean',
         'is_ritual' => 'boolean',
     ];
@@ -64,67 +68,6 @@ class Spell extends BaseModel
             str_contains($castingTime, 'special') => 'special',
             default => 'unknown',
         };
-    }
-
-    /**
-     * Parse material component cost in gold pieces.
-     *
-     * Parses patterns like:
-     * - "worth at least 25 gp"
-     * - "worth 50 gp"
-     * - "10 gp worth of"
-     * - "worth at least 1,000 gp"
-     *
-     * Returns null if no cost is specified.
-     *
-     * Note: Handles ~90% of cases. Edge cases with unusual formatting may not parse correctly.
-     */
-    public function getMaterialCostGpAttribute(): ?int
-    {
-        $materials = $this->material_components;
-
-        if (empty($materials)) {
-            return null;
-        }
-
-        // Pattern 1: "worth at least X gp" or "worth X gp"
-        if (preg_match('/worth(?:\s+at\s+least)?\s+([\d,]+)\s*gp/i', $materials, $matches)) {
-            return (int) str_replace(',', '', $matches[1]);
-        }
-
-        // Pattern 2: "X gp worth of"
-        if (preg_match('/([\d,]+)\s*gp\s+worth/i', $materials, $matches)) {
-            return (int) str_replace(',', '', $matches[1]);
-        }
-
-        return null;
-    }
-
-    /**
-     * Check if material components are consumed by the spell.
-     *
-     * Returns:
-     * - true if materials are consumed (text contains "consume")
-     * - false if materials are not consumed or spell has no materials
-     *
-     * Note: Handles ~90% of cases. Edge cases with unusual formatting may not parse correctly.
-     */
-    public function getMaterialConsumedAttribute(): bool
-    {
-        $materials = $this->material_components;
-
-        if (empty($materials)) {
-            return false;
-        }
-
-        $materialsLower = strtolower($materials);
-
-        // Check for "consumes" or "consumed" patterns
-        if (str_contains($materialsLower, 'consume')) {
-            return true;
-        }
-
-        return false;
     }
 
     /**

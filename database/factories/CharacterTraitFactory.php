@@ -30,7 +30,6 @@ class CharacterTraitFactory extends Factory
             'category' => fake()->randomElement(['description', 'feature', 'special']),
             'description' => fake()->paragraphs(2, true),
             'sort_order' => 0,
-            'entity_data_table_id' => null,
         ];
     }
 

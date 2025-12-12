@@ -141,6 +141,8 @@ class SpellXmlParser
             'range' => (string) $element->range,
             'components' => $components,
             'material_components' => $materialComponents,
+            'material_cost_gp' => $this->parseMaterialCostGp($materialComponents),
+            'material_consumed' => $this->parseMaterialConsumed($materialComponents),
             'duration' => $duration,
             'needs_concentration' => $needsConcentration,
             'is_ritual' => $isRitual,
@@ -254,5 +256,56 @@ class SpellXmlParser
         }
 
         return null;
+    }
+
+    /**
+     * Parse material component cost in gold pieces.
+     *
+     * Parses patterns like:
+     * - "worth at least 25 gp"
+     * - "worth 50 gp"
+     * - "10 gp worth of"
+     * - "worth at least 1,000 gp"
+     *
+     * Returns null if no cost is specified.
+     *
+     * Note: Handles ~90% of cases. Edge cases with unusual formatting may not parse correctly.
+     */
+    private function parseMaterialCostGp(?string $materialComponents): ?int
+    {
+        if (empty($materialComponents)) {
+            return null;
+        }
+
+        // Pattern 1: "worth at least X gp" or "worth X gp"
+        if (preg_match('/worth(?:\s+at\s+least)?\s+([\d,]+)\s*gp/i', $materialComponents, $matches)) {
+            return (int) str_replace(',', '', $matches[1]);
+        }
+
+        // Pattern 2: "X gp worth of"
+        if (preg_match('/([\d,]+)\s*gp\s+worth/i', $materialComponents, $matches)) {
+            return (int) str_replace(',', '', $matches[1]);
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if material components are consumed by the spell.
+     *
+     * Returns:
+     * - true if materials are consumed (text contains "consume")
+     * - false if materials are not consumed or spell has no materials
+     *
+     * Note: Handles ~90% of cases. Edge cases with unusual formatting may not parse correctly.
+     */
+    private function parseMaterialConsumed(?string $materialComponents): bool
+    {
+        if (empty($materialComponents)) {
+            return false;
+        }
+
+        // Check for "consumes" or "consumed" patterns
+        return str_contains(strtolower($materialComponents), 'consume');
     }
 }

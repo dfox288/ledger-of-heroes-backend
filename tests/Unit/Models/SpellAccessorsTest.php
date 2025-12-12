@@ -9,6 +9,9 @@ use Tests\TestCase;
 /**
  * Tests for computed Spell accessors.
  *
+ * Note: material_cost_gp and material_consumed are now real database columns.
+ * Their parsing tests are in SpellXmlParserMaterialTest.
+ *
  * Note: These accessors use regex parsing which handles ~90% of cases.
  * Edge cases with unusual formatting may not be parsed correctly.
  * See GitHub issues #27 and #28 for known limitations.
@@ -17,159 +20,6 @@ use Tests\TestCase;
 class SpellAccessorsTest extends TestCase
 {
     use RefreshDatabase;
-
-    // =========================================================================
-    // material_cost_gp accessor tests
-    // =========================================================================
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_parses_material_cost_with_worth_at_least_pattern(): void
-    {
-        $spell = Spell::factory()->create([
-            'name' => 'Arcane Lock',
-            'material_components' => 'gold dust worth at least 25 gp, which the spell consumes',
-        ]);
-
-        $this->assertEquals(25, $spell->material_cost_gp);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_parses_material_cost_with_worth_pattern(): void
-    {
-        $spell = Spell::factory()->create([
-            'name' => 'Continual Flame',
-            'material_components' => 'ruby dust worth 50 gp, which the spell consumes',
-        ]);
-
-        $this->assertEquals(50, $spell->material_cost_gp);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_parses_material_cost_with_gp_worth_pattern(): void
-    {
-        $spell = Spell::factory()->create([
-            'name' => 'Find Familiar',
-            'material_components' => '10 gp worth of charcoal, incense, and herbs',
-        ]);
-
-        $this->assertEquals(10, $spell->material_cost_gp);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_parses_material_cost_with_comma_thousands(): void
-    {
-        $spell = Spell::factory()->create([
-            'name' => 'Awaken',
-            'material_components' => 'an agate worth at least 1,000 gp, which the spell consumes',
-        ]);
-
-        $this->assertEquals(1000, $spell->material_cost_gp);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_returns_null_for_materials_without_cost(): void
-    {
-        $spell = Spell::factory()->create([
-            'name' => 'Fireball',
-            'material_components' => 'a tiny ball of bat guano and sulfur',
-        ]);
-
-        $this->assertNull($spell->material_cost_gp);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_returns_null_for_null_materials(): void
-    {
-        $spell = Spell::factory()->create([
-            'name' => 'Magic Missile',
-            'material_components' => null,
-        ]);
-
-        $this->assertNull($spell->material_cost_gp);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_returns_null_for_empty_materials(): void
-    {
-        $spell = Spell::factory()->create([
-            'name' => 'Fire Bolt',
-            'material_components' => '',
-        ]);
-
-        $this->assertNull($spell->material_cost_gp);
-    }
-
-    // =========================================================================
-    // material_consumed accessor tests
-    // =========================================================================
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_detects_consumed_materials(): void
-    {
-        $spell = Spell::factory()->create([
-            'name' => 'Arcane Lock',
-            'material_components' => 'gold dust worth at least 25 gp, which the spell consumes',
-        ]);
-
-        $this->assertTrue($spell->material_consumed);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_detects_consumed_with_is_consumed_pattern(): void
-    {
-        $spell = Spell::factory()->create([
-            'name' => 'Test Spell',
-            'material_components' => 'a gem worth 100 gp that is consumed by the spell',
-        ]);
-
-        $this->assertTrue($spell->material_consumed);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_detects_not_consumed_materials(): void
-    {
-        $spell = Spell::factory()->create([
-            'name' => 'Chromatic Orb',
-            'material_components' => 'a diamond worth at least 50 gp',
-        ]);
-
-        // No "consumes" mentioned = not consumed
-        $this->assertFalse($spell->material_consumed);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_returns_false_consumed_for_null_materials(): void
-    {
-        $spell = Spell::factory()->create([
-            'name' => 'Magic Missile',
-            'material_components' => null,
-        ]);
-
-        $this->assertFalse($spell->material_consumed);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_returns_false_consumed_for_empty_materials(): void
-    {
-        $spell = Spell::factory()->create([
-            'name' => 'Fire Bolt',
-            'material_components' => '',
-        ]);
-
-        $this->assertFalse($spell->material_consumed);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_returns_false_consumed_for_materials_without_cost(): void
-    {
-        // Materials without a gold cost are typically not consumed
-        $spell = Spell::factory()->create([
-            'name' => 'Fireball',
-            'material_components' => 'a tiny ball of bat guano and sulfur',
-        ]);
-
-        $this->assertFalse($spell->material_consumed);
-    }
 
     // =========================================================================
     // area_of_effect accessor tests
@@ -209,17 +59,11 @@ class SpellAccessorsTest extends TestCase
     public function it_parses_cube_area_of_effect(): void
     {
         $spell = Spell::factory()->create([
-            'name' => 'Fog Cloud',
-            'description' => 'You create a 20-foot-radius sphere of fog centered on a point within range.',
-        ]);
-
-        // Actually let's test a real cube
-        $spell2 = Spell::factory()->create([
             'name' => 'Thunderwave',
             'description' => 'A wave of thunderous force sweeps out from you. Each creature in a 15-foot cube originating from you must make a Constitution saving throw.',
         ]);
 
-        $aoe = $spell2->area_of_effect;
+        $aoe = $spell->area_of_effect;
 
         $this->assertNotNull($aoe);
         $this->assertEquals('cube', $aoe['type']);

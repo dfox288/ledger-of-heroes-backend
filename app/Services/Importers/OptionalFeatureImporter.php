@@ -2,6 +2,7 @@
 
 namespace App\Services\Importers;
 
+use App\Enums\ActionCost;
 use App\Models\CharacterClass;
 use App\Models\ClassOptionalFeature;
 use App\Models\OptionalFeature;
@@ -31,6 +32,9 @@ class OptionalFeatureImporter extends BaseImporter
         $sources = $data['sources'] ?? [];
         $slug = $this->generateSlug($data['name'], $sources);
 
+        // Parse action cost from casting_time
+        $actionCost = ActionCost::fromCastingTime($data['casting_time']);
+
         // 2. Upsert optional feature using slug as unique key
         $feature = OptionalFeature::updateOrCreate(
             ['slug' => $slug],
@@ -41,6 +45,7 @@ class OptionalFeatureImporter extends BaseImporter
                 'prerequisite_text' => $data['prerequisite_text'],
                 'description' => $data['description'],
                 'casting_time' => $data['casting_time'],
+                'action_cost' => $actionCost,
                 'range' => $data['range'],
                 'duration' => $data['duration'],
                 'spell_school_id' => $spellSchoolId,

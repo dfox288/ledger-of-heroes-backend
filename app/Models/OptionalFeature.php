@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ActionCost;
 use App\Enums\OptionalFeatureType;
 use App\Enums\ResourceType;
 use App\Models\Concerns\HasPrerequisites;
@@ -26,6 +27,7 @@ class OptionalFeature extends BaseModel
         'prerequisite_text',
         'description',
         'casting_time',
+        'action_cost',
         'range',
         'duration',
         'spell_school_id',
@@ -35,6 +37,7 @@ class OptionalFeature extends BaseModel
 
     protected $casts = [
         'feature_type' => OptionalFeatureType::class,
+        'action_cost' => ActionCost::class,
         'resource_type' => ResourceType::class,
         'level_requirement' => 'integer',
         'resource_cost' => 'integer',

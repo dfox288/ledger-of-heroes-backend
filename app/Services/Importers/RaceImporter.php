@@ -434,8 +434,6 @@ class RaceImporter extends BaseImporter
                 $rollsByDescription[$roll['description']][] = $roll;
             }
 
-            $firstDataTableId = null;
-
             foreach ($rollsByDescription as $description => $rolls) {
                 // Check if any roll in this group has a level attribute
                 $hasLevelScaling = collect($rolls)->contains(fn ($r) => $r['level'] !== null);
@@ -473,16 +471,6 @@ class RaceImporter extends BaseImporter
                         ]);
                     }
                 }
-
-                // Track first data table for trait linkage
-                if ($firstDataTableId === null) {
-                    $firstDataTableId = $dataTable->id;
-                }
-            }
-
-            // Update the trait to link to the first data table
-            if ($firstDataTableId !== null) {
-                $trait->update(['entity_data_table_id' => $firstDataTableId]);
             }
         }
     }

@@ -169,10 +169,8 @@ class EquipmentManagerService
         // Check if class has starting wealth (required for equipment_mode choice)
         $hasStartingWealth = $primaryClass->starting_wealth !== null;
 
-        // Check if class has equipment choices
-        $equipmentChoices = $primaryClass->equipment()
-            ->where('is_choice', true)
-            ->get();
+        // Check if class has equipment choices (from unified entity_choices table)
+        $equipmentChoices = $primaryClass->equipmentChoices()->get();
         $hasEquipmentChoices = $equipmentChoices->isNotEmpty();
 
         // If class has no starting wealth or no equipment choices, there's no equipment_mode choice
@@ -258,9 +256,10 @@ class EquipmentManagerService
      */
     protected function populateFromEntity(Character $character, $entity, string $source): void
     {
-        // Get fixed equipment (is_choice = false) with item relationship
+        // Get fixed equipment with item relationship
+        // Note: Since choice data moved to entity_choices, all remaining entity_items
+        // rows are fixed (non-choice) by definition.
         $fixedEquipment = $entity->equipment()
-            ->where('is_choice', false)
             ->with('item')
             ->get();
 

@@ -29,7 +29,7 @@ class EntityLanguageFactory extends Factory
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'language_id' => $language->id,
-            'is_choice' => false,
+            // Note: is_choice removed - choices now live in entity_choices table
         ];
     }
 
@@ -56,22 +56,23 @@ class EntityLanguageFactory extends Factory
 
     /**
      * Mark this as a choice slot (player selects language).
+     *
+     * @deprecated Choices now live in entity_choices table. Use EntityChoiceFactory instead.
      */
     public function asChoice(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'language_id' => null,
-            'is_choice' => true,
-        ]);
+        // This method is deprecated - choices should be created using EntityChoiceFactory
+        return $this;
     }
 
     /**
      * Mark this as a fixed language (not a choice).
+     *
+     * @deprecated All entity_languages are now fixed. is_choice column removed.
      */
     public function asFixed(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'is_choice' => false,
-        ]);
+        // This method is a no-op - all entity_languages are now fixed by definition
+        return $this;
     }
 }

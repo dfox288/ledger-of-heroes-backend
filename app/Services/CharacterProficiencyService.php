@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Enums\CharacterSource;
 use App\Models\Character;
 use App\Models\CharacterProficiency;
+use App\Models\EntityChoice;
+use App\Models\Skill;
 use App\Services\Concerns\PopulatesFromEntity;
 use InvalidArgumentException;
 
@@ -133,19 +135,18 @@ class CharacterProficiencyService
             ? $this->extractBaseChoiceGroup($choiceGroup)
             : $choiceGroup;
 
-        // Get the choice options from the entity
-        $choiceOptions = $entity->proficiencies()
-            ->where('is_choice', true)
+        // Get the choice options from entity_choices table
+        $choiceRecords = $entity->proficiencyChoices()
             ->where('choice_group', $lookupChoiceGroup)
             ->where('proficiency_type', 'skill')
             ->get();
 
-        if ($choiceOptions->isEmpty()) {
+        if ($choiceRecords->isEmpty()) {
             throw new InvalidArgumentException("No choice group '{$choiceGroup}' found for {$source}");
         }
 
         // Get required quantity
-        $quantity = $choiceOptions->first()->quantity ?? 1;
+        $quantity = $choiceRecords->first()->quantity ?? 1;
 
         if (count($skillSlugs) !== $quantity) {
             throw new InvalidArgumentException(
@@ -154,7 +155,21 @@ class CharacterProficiencyService
         }
 
         // Validate all selected skills are valid options
-        $validSkillSlugs = $choiceOptions->pluck('skill.slug')->filter()->toArray();
+        // Check if this is a restricted choice (has specific target_slugs) or unrestricted
+        $isRestricted = $choiceRecords->contains(fn ($c) => $c->target_type !== null);
+
+        if ($isRestricted) {
+            // Restricted: valid options are only the specified target_slugs
+            $validSkillSlugs = $choiceRecords
+                ->where('target_type', 'skill')
+                ->pluck('target_slug')
+                ->filter()
+                ->toArray();
+        } else {
+            // Unrestricted: all skills are valid options
+            $validSkillSlugs = Skill::pluck('slug')->toArray();
+        }
+
         foreach ($skillSlugs as $skillSlug) {
             if (! in_array($skillSlug, $validSkillSlugs)) {
                 throw new InvalidArgumentException("Skill slug {$skillSlug} is not a valid option for this choice");
@@ -224,20 +239,19 @@ class CharacterProficiencyService
             ? $this->extractBaseChoiceGroup($choiceGroup)
             : $choiceGroup;
 
-        // Get the choice definition from the entity
-        $choiceOptions = $entity->proficiencies()
-            ->where('is_choice', true)
+        // Get the choice definition from entity_choices table
+        $choiceRecords = $entity->proficiencyChoices()
             ->where('choice_group', $lookupChoiceGroup)
             ->get();
 
-        if ($choiceOptions->isEmpty()) {
+        if ($choiceRecords->isEmpty()) {
             throw new InvalidArgumentException("No choice group '{$choiceGroup}' found for {$source}");
         }
 
-        $firstOption = $choiceOptions->first();
-        $quantity = $firstOption->quantity ?? 1;
-        $proficiencyType = $firstOption->proficiency_type;
-        $proficiencySubcategory = $firstOption->proficiency_subcategory;
+        $firstChoice = $choiceRecords->first();
+        $quantity = $firstChoice->quantity ?? 1;
+        $proficiencyType = $firstChoice->proficiency_type;
+        $proficiencySubcategory = $firstChoice->constraints['subcategory'] ?? null;
 
         if (count($proficiencyTypeSlugs) !== $quantity) {
             throw new InvalidArgumentException(
@@ -245,10 +259,24 @@ class CharacterProficiencyService
             );
         }
 
-        // Validate selected proficiency types against choice constraints
-        // For subcategory-based choices (e.g., "artisan tools"), validate against category/subcategory
-        if ($proficiencySubcategory) {
-            // Lookup valid proficiency type slugs from ProficiencyType model
+        // Check if this is a restricted choice (has specific target_slugs) or unrestricted
+        $isRestricted = $choiceRecords->contains(fn ($c) => $c->target_type !== null);
+
+        if ($isRestricted) {
+            // Restricted: valid options are only the specified target_slugs
+            $validProficiencyTypeSlugs = $choiceRecords
+                ->where('target_type', 'proficiency_type')
+                ->pluck('target_slug')
+                ->filter()
+                ->toArray();
+
+            foreach ($proficiencyTypeSlugs as $proficiencyTypeSlug) {
+                if (! in_array($proficiencyTypeSlug, $validProficiencyTypeSlugs)) {
+                    throw new InvalidArgumentException("Proficiency type slug {$proficiencyTypeSlug} is not a valid option for this choice");
+                }
+            }
+        } elseif ($proficiencySubcategory) {
+            // Unrestricted with subcategory constraint (e.g., "artisan tools")
             $validProficiencyTypeSlugs = \App\Models\ProficiencyType::where('category', $proficiencyType)
                 ->where('subcategory', $proficiencySubcategory)
                 ->pluck('slug')
@@ -260,8 +288,11 @@ class CharacterProficiencyService
                 }
             }
         } else {
-            // For specific option choices, validate against the specific proficiency_type slugs in the choice
-            $validProficiencyTypeSlugs = $choiceOptions->pluck('proficiencyType.slug')->filter()->toArray();
+            // Unrestricted without subcategory: all proficiency types of this type are valid
+            $validProficiencyTypeSlugs = \App\Models\ProficiencyType::where('category', $proficiencyType)
+                ->pluck('slug')
+                ->toArray();
+
             foreach ($proficiencyTypeSlugs as $proficiencyTypeSlug) {
                 if (! in_array($proficiencyTypeSlug, $validProficiencyTypeSlugs)) {
                     throw new InvalidArgumentException("Proficiency type slug {$proficiencyTypeSlug} is not a valid option for this choice");
@@ -298,11 +329,13 @@ class CharacterProficiencyService
     /**
      * Populate fixed proficiencies from an entity (class, race, or background).
      * Implementation of PopulatesFromEntity trait's abstract method.
+     *
+     * Note: Since choice data moved to entity_choices, all remaining
+     * entity_proficiencies rows are fixed (non-choice) by definition.
      */
     protected function populateFromEntity(Character $character, $entity, string $source): void
     {
         $fixedProficiencies = $entity->proficiencies()
-            ->where('is_choice', false)
             ->with(['skill', 'proficiencyType'])
             ->get();
 
@@ -375,38 +408,37 @@ class CharacterProficiencyService
     /**
      * Get choice groups from an entity.
      *
+     * Uses the unified entity_choices table for proficiency choices.
+     *
      * @return array<string, array{proficiency_type: string|null, proficiency_subcategory: string|null, quantity: int, remaining: int, selected_skills: array<string>, selected_proficiency_types: array<string>, options: array}>
      */
     private function getChoicesFromEntity($entity, Character $character, string $source): array
     {
         $choices = [];
 
-        $choiceProficiencies = $entity->proficiencies()
-            ->where('is_choice', true)
-            ->with(['skill', 'proficiencyType'])
-            ->get();
+        // Query proficiency choices from the unified entity_choices table
+        $choiceRecords = $entity->proficiencyChoices()->get();
 
         // Group by choice_group
-        $grouped = $choiceProficiencies->groupBy('choice_group');
+        $grouped = $choiceRecords->groupBy('choice_group');
 
-        foreach ($grouped as $groupName => $options) {
+        foreach ($grouped as $groupName => $groupChoices) {
             if (! $groupName) {
                 continue;
             }
 
-            $firstOption = $options->first();
+            $firstChoice = $groupChoices->first();
 
             // Defensive check - shouldn't happen since groupBy creates groups from existing items
-            if (! $firstOption) {
+            if (! $firstChoice) {
                 continue;
             }
 
-            $quantity = $firstOption->quantity ?? 1;
+            $quantity = $firstChoice->quantity ?? 1;
+            $proficiencyType = $firstChoice->proficiency_type;
 
-            // Extract proficiency_type and proficiency_subcategory from the first option
-            // These fields tell the frontend what kind of choice this is
-            $proficiencyType = $firstOption->proficiency_type;
-            $proficiencySubcategory = $firstOption->proficiency_subcategory;
+            // Get subcategory from constraints if present
+            $proficiencySubcategory = $firstChoice->constraints['subcategory'] ?? null;
 
             // Get existing selections for THIS specific choice group
             $existingSkillSlugsForGroup = $character->proficiencies()
@@ -428,61 +460,85 @@ class CharacterProficiencyService
             $selectedProfTypeSlugs = [];
             $allOptions = [];
 
-            foreach ($options as $option) {
-                if ($option->skill) {
-                    // Always add to options (don't filter out selected)
-                    $allOptions[] = [
-                        'type' => 'skill',
-                        'skill_slug' => $option->skill->slug,
-                        'skill' => [
-                            'slug' => $option->skill->slug,
-                            'name' => $option->skill->name,
-                        ],
-                    ];
+            // Check if this is restricted (has target_type) or unrestricted
+            $isRestricted = $groupChoices->contains(fn ($c) => $c->target_type !== null);
 
-                    // Track if already selected in THIS choice group
-                    if (in_array($option->skill->slug, $existingSkillSlugsForGroup)) {
-                        $selectedSkillSlugs[] = $option->skill->slug;
-                    }
-                } elseif ($option->proficiencyType) {
-                    // Always add to options (don't filter out selected)
-                    $allOptions[] = [
-                        'type' => 'proficiency_type',
-                        'proficiency_type_slug' => $option->proficiencyType->slug,
-                        'proficiency_type' => [
-                            'slug' => $option->proficiencyType->slug,
-                            'name' => $option->proficiencyType->name,
-                        ],
-                    ];
+            if ($isRestricted) {
+                // Restricted choice: options are specified in the EntityChoice records
+                foreach ($groupChoices as $choice) {
+                    if ($choice->target_type === 'skill' && $choice->target_slug) {
+                        $skill = Skill::where('slug', $choice->target_slug)->first();
+                        if ($skill) {
+                            $allOptions[] = [
+                                'type' => 'skill',
+                                'skill_slug' => $skill->slug,
+                                'skill' => [
+                                    'slug' => $skill->slug,
+                                    'name' => $skill->name,
+                                ],
+                            ];
 
-                    // Track if already selected in THIS choice group
-                    if (in_array($option->proficiencyType->slug, $existingProfTypeSlugsForGroup)) {
-                        $selectedProfTypeSlugs[] = $option->proficiencyType->slug;
+                            if (in_array($skill->slug, $existingSkillSlugsForGroup)) {
+                                $selectedSkillSlugs[] = $skill->slug;
+                            }
+                        }
+                    } elseif ($choice->target_type === 'proficiency_type' && $choice->target_slug) {
+                        $profType = \App\Models\ProficiencyType::where('slug', $choice->target_slug)->first();
+                        if ($profType) {
+                            $allOptions[] = [
+                                'type' => 'proficiency_type',
+                                'proficiency_type_slug' => $profType->slug,
+                                'proficiency_type' => [
+                                    'slug' => $profType->slug,
+                                    'name' => $profType->name,
+                                ],
+                            ];
+
+                            if (in_array($profType->slug, $existingProfTypeSlugsForGroup)) {
+                                $selectedProfTypeSlugs[] = $profType->slug;
+                            }
+                        }
                     }
                 }
-            }
+            } else {
+                // Unrestricted choice: look up options from lookup tables
+                if ($proficiencyType === 'skill') {
+                    // All skills are options
+                    $skills = Skill::orderBy('name')->get();
+                    foreach ($skills as $skill) {
+                        $allOptions[] = [
+                            'type' => 'skill',
+                            'skill_slug' => $skill->slug,
+                            'skill' => [
+                                'slug' => $skill->slug,
+                                'name' => $skill->name,
+                            ],
+                        ];
 
-            // For subcategory-based choices (like "artisan tools"), populate options
-            // from the proficiency_types lookup table
-            if ($proficiencyType && $proficiencySubcategory && empty($allOptions)) {
-                $lookupProficiencyTypes = \App\Models\ProficiencyType::where('category', $proficiencyType)
-                    ->where('subcategory', $proficiencySubcategory)
-                    ->orderBy('name')
-                    ->get();
+                        if (in_array($skill->slug, $existingSkillSlugsForGroup)) {
+                            $selectedSkillSlugs[] = $skill->slug;
+                        }
+                    }
+                } elseif ($proficiencySubcategory) {
+                    // Subcategory-based choice (e.g., "artisan tools")
+                    $lookupProficiencyTypes = \App\Models\ProficiencyType::where('category', $proficiencyType)
+                        ->where('subcategory', $proficiencySubcategory)
+                        ->orderBy('name')
+                        ->get();
 
-                foreach ($lookupProficiencyTypes as $profType) {
-                    $allOptions[] = [
-                        'type' => 'proficiency_type',
-                        'proficiency_type_slug' => $profType->slug,
-                        'proficiency_type' => [
-                            'slug' => $profType->slug,
-                            'name' => $profType->name,
-                        ],
-                    ];
+                    foreach ($lookupProficiencyTypes as $profType) {
+                        $allOptions[] = [
+                            'type' => 'proficiency_type',
+                            'proficiency_type_slug' => $profType->slug,
+                            'proficiency_type' => [
+                                'slug' => $profType->slug,
+                                'name' => $profType->name,
+                            ],
+                        ];
 
-                    // Track if already selected in THIS choice group
-                    if (in_array($profType->slug, $existingProfTypeSlugsForGroup)) {
-                        $selectedProfTypeSlugs[] = $profType->slug;
+                        if (in_array($profType->slug, $existingProfTypeSlugsForGroup)) {
+                            $selectedProfTypeSlugs[] = $profType->slug;
+                        }
                     }
                 }
             }
@@ -595,13 +651,15 @@ class CharacterProficiencyService
     /**
      * Get fixed (non-choice) proficiencies from an entity and convert to CharacterProficiency-like objects.
      *
+     * Note: Since choice data moved to entity_choices, all remaining
+     * entity_proficiencies rows are fixed (non-choice) by definition.
+     *
      * @param  mixed  $entity  The source entity (CharacterClass, Race, Background)
      * @param  string  $source  The source identifier ('class', 'race', 'background')
      */
     private function getEntityGrantedProficiencies($entity, string $source): \Illuminate\Support\Collection
     {
         return $entity->proficiencies()
-            ->where('is_choice', false)
             ->whereNotIn('proficiency_type', ['saving_throw', 'multiclass_requirement'])
             ->with(['skill', 'proficiencyType'])
             ->get()

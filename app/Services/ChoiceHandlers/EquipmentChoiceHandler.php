@@ -8,6 +8,7 @@ use App\DTOs\PendingChoice;
 use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
 use App\Models\CharacterEquipment;
+use App\Models\EntityChoice;
 use App\Models\Item;
 use App\Models\ProficiencyType;
 use App\Services\EquipmentManagerService;
@@ -49,14 +50,8 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             return collect();
         }
 
-        // Get equipment choices from class
-        // Eager load: proficiencyType for category filters, item.contents.item for pack contents
-        $equipmentChoices = $primaryClass->equipment()
-            ->with([
-                'choiceItems.item.contents.item',
-                'choiceItems.proficiencyType',
-            ])
-            ->where('is_choice', true)
+        // Get equipment choices from unified entity_choices table
+        $equipmentChoices = $primaryClass->equipmentChoices()
             ->orderBy('choice_group')
             ->orderBy('choice_option')
             ->get();
@@ -77,10 +72,10 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             foreach ($optionsByNumber as $optionNumber => $optionItems) {
                 $optionLetter = chr(96 + (int) $optionNumber); // 1 => 'a', 2 => 'b', etc.
 
-                // Build items for this option using helper method
-                $optionData = $this->buildOptionItems($optionItems);
+                // Build items for this option from EntityChoice records
+                $optionData = $this->buildOptionItemsFromEntityChoice($optionItems);
 
-                // Get label from EntityItem description field (e.g., "a rapier")
+                // Get label from EntityChoice description field (e.g., "a rapier")
                 $label = $optionItems->first()?->description ?? '';
 
                 $builtOptions[] = [
@@ -322,12 +317,11 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
     }
 
     /**
-     * Build the items array for an equipment option.
+     * Build the items array for an equipment option from EntityChoice records.
      *
-     * Handles three types of items via EquipmentChoiceItem:
-     * - Category items (proficiency_type_id set): "any simple weapon" - user picks one, is_fixed=false
-     * - Pack items (item with contents): "explorer's pack" - expands to contents, is_fixed=true
-     * - Regular items (item_id set): "a shield" - always granted with option, is_fixed=true
+     * Handles two types of EntityChoice:
+     * - Category (target_type='proficiency_type'): "any simple weapon" - user picks one, is_fixed=false
+     * - Specific item (target_type='item'): "a shield" - always granted, is_fixed=true
      *
      * The is_fixed flag determines behavior during resolution:
      * - is_fixed=false: User must select via item_selections
@@ -335,23 +329,24 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
      *
      * @return array{items: array, is_category: bool, category_item_count: int, select_count: int}
      */
-    private function buildOptionItems(Collection $optionItems): array
+    private function buildOptionItemsFromEntityChoice(Collection $optionChoices): array
     {
         $items = [];
         $isCategory = false;
         $categoryItemCount = 0;
         $selectCount = 1; // Default: select 1 item from category
 
-        foreach ($optionItems as $entityItem) {
-            // Process choice items (EquipmentChoiceItem records)
-            foreach ($entityItem->choiceItems as $choiceItem) {
-                // Category choice (e.g., "any simple weapon") - user picks from list
-                if ($choiceItem->proficiency_type_id && $choiceItem->proficiencyType) {
-                    $categoryItems = $this->getItemsForProficiencyType($choiceItem->proficiencyType);
+        foreach ($optionChoices as $entityChoice) {
+            $quantity = $entityChoice->constraints['quantity'] ?? 1;
+
+            // Category choice (e.g., "any simple weapon") - user picks from list
+            if ($entityChoice->target_type === 'proficiency_type' && $entityChoice->target_slug) {
+                $profType = ProficiencyType::where('slug', $entityChoice->target_slug)->first();
+                if ($profType) {
+                    $categoryItems = $this->getItemsForProficiencyType($profType);
                     $isCategory = true;
                     $categoryItemCount = $categoryItems->count();
-                    // The choiceItem quantity indicates how many selections to make from this category
-                    $selectCount = $choiceItem->quantity ?? 1;
+                    $selectCount = $quantity;
 
                     foreach ($categoryItems as $item) {
                         $items[] = [
@@ -361,11 +356,15 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                             'is_fixed' => false, // User must select from category
                         ];
                     }
-                } elseif ($choiceItem->item) {
+                }
+            } elseif ($entityChoice->target_type === 'item' && $entityChoice->target_slug) {
+                // Specific item
+                $item = Item::where('slug', $entityChoice->target_slug)->with('contents.item')->first();
+                if ($item) {
                     // Pack item - keep pack structure with nested contents for UI
-                    if ($choiceItem->item->contents->isNotEmpty()) {
+                    if ($item->contents->isNotEmpty()) {
                         $contents = [];
-                        foreach ($choiceItem->item->contents as $content) {
+                        foreach ($item->contents as $content) {
                             if ($content->item) {
                                 $contents[] = [
                                     'slug' => $content->item->slug,
@@ -375,9 +374,9 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                             }
                         }
                         $items[] = [
-                            'slug' => $choiceItem->item->slug,
-                            'name' => $choiceItem->item->name,
-                            'quantity' => $choiceItem->quantity ?? 1,
+                            'slug' => $item->slug,
+                            'name' => $item->name,
+                            'quantity' => $quantity,
                             'is_fixed' => true,
                             'is_pack' => true,
                             'contents' => $contents,
@@ -385,9 +384,9 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
                     } else {
                         // Regular item - always granted when option selected
                         $items[] = [
-                            'slug' => $choiceItem->item->slug,
-                            'name' => $choiceItem->item->name,
-                            'quantity' => $choiceItem->quantity ?? 1,
+                            'slug' => $item->slug,
+                            'name' => $item->name,
+                            'quantity' => $quantity,
                             'is_fixed' => true,
                         ];
                     }

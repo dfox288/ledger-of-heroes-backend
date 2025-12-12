@@ -32,8 +32,7 @@ class ProficiencyFactory extends Factory
             'item_id' => null,
             'ability_score_id' => null,
             'proficiency_name' => fake()->words(2, true),
-            'is_choice' => false,
-            'quantity' => 1,
+            // Note: is_choice removed - choices now live in entity_choices table
         ];
     }
 
@@ -68,13 +67,14 @@ class ProficiencyFactory extends Factory
     }
 
     /**
-     * Create a choice proficiency (e.g., "one type of artisan's tools").
+     * Create a choice proficiency.
+     *
+     * @deprecated Choices now live in entity_choices table. Use EntityChoiceFactory instead.
      */
     public function asChoice(int $quantity = 1): static
     {
-        return $this->state(fn (array $attributes) => [
-            'is_choice' => true,
-            'quantity' => $quantity,
-        ]);
+        // This method is deprecated - choices should be created using EntityChoiceFactory
+        // Keeping for backwards compatibility but it's a no-op
+        return $this;
     }
 }

@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Enums\CharacterSource;
 use App\Models\Character;
 use App\Models\CharacterLanguage;
-use App\Models\EntityLanguage;
+use App\Models\EntityChoice;
 use App\Models\Feat;
 use App\Models\Language;
 use App\Models\Race;
@@ -143,6 +143,9 @@ class CharacterLanguageService
     /**
      * Populate fixed languages from an entity.
      * Implementation of PopulatesFromEntity trait's abstract method.
+     *
+     * Note: Since choice data moved to entity_choices, all remaining
+     * entity_languages rows are fixed (non-choice) by definition.
      */
     protected function populateFromEntity(Character $character, $entity, string $source): void
     {
@@ -151,7 +154,6 @@ class CharacterLanguageService
         }
 
         $fixedLanguages = $entity->languages()
-            ->where('is_choice', false)
             ->whereNotNull('language_id')
             ->with('language')
             ->get();
@@ -213,16 +215,12 @@ class CharacterLanguageService
             ])
             ->toArray();
 
-        // Get choice quantity from entity using the grouped choice calculation
-        $quantity = $this->calculateChoiceQuantityFromQuery(
-            $entity->languages()->where('is_choice', true)
-        );
+        // Get choice quantity from entity using the unified entity_choices table
+        $quantity = $this->calculateChoiceQuantityFromEntityChoices($entity->languageChoices());
 
         // For subraces, also check parent race for language choices
         if ($source === 'race' && $entity instanceof Race && $entity->is_subrace && $entity->parent) {
-            $quantity += $this->calculateChoiceQuantityFromQuery(
-                $entity->parent->languages()->where('is_choice', true)
-            );
+            $quantity += $this->calculateChoiceQuantityFromEntityChoices($entity->parent->languageChoices());
         }
 
         // Get selected choice languages (not fixed ones)
@@ -294,20 +292,18 @@ class CharacterLanguageService
             ])
             ->toArray();
 
-        // Calculate feat language choices using grouped choice calculation
-        $totalQuantity = $this->calculateChoiceQuantityFromQuery(
-            EntityLanguage::whereIn('reference_id', $featIds)
+        // Calculate feat language choices from unified entity_choices table
+        $totalQuantity = $this->calculateChoiceQuantityFromEntityChoices(
+            EntityChoice::whereIn('reference_id', $featIds)
                 ->where('reference_type', Feat::class)
-                ->where('is_choice', true)
+                ->where('choice_type', 'language')
         );
 
-        // Get fixed language slugs from feats
-        $fixedLanguageSlugs = EntityLanguage::whereIn('reference_id', $featIds)
-            ->where('reference_type', Feat::class)
-            ->where('is_choice', false)
-            ->whereNotNull('language_id')
-            ->with('language')
+        // Get fixed language slugs from feats (all entity_languages are now fixed)
+        $fixedLanguageSlugs = Feat::whereIn('id', $featIds)
+            ->with('languages.language')
             ->get()
+            ->flatMap(fn ($feat) => $feat->languages)
             ->filter(fn ($el) => $el->language !== null)
             ->pluck('language.slug')
             ->toArray();
@@ -360,10 +356,10 @@ class CharacterLanguageService
                 return 0;
             }
 
-            return $this->calculateChoiceQuantityFromQuery(
-                EntityLanguage::whereIn('reference_id', $featIds)
+            return $this->calculateChoiceQuantityFromEntityChoices(
+                EntityChoice::whereIn('reference_id', $featIds)
                     ->where('reference_type', Feat::class)
-                    ->where('is_choice', true)
+                    ->where('choice_type', 'language')
             );
         }
 
@@ -377,30 +373,27 @@ class CharacterLanguageService
             return 0;
         }
 
-        $quantity = $this->calculateChoiceQuantityFromQuery(
-            $entity->languages()->where('is_choice', true)
-        );
+        $quantity = $this->calculateChoiceQuantityFromEntityChoices($entity->languageChoices());
 
         // For subraces, also include parent race language choices
         if ($source === 'race' && $entity instanceof Race && $entity->is_subrace && $entity->parent) {
-            $quantity += $this->calculateChoiceQuantityFromQuery(
-                $entity->parent->languages()->where('is_choice', true)
-            );
+            $quantity += $this->calculateChoiceQuantityFromEntityChoices($entity->parent->languageChoices());
         }
 
         return $quantity;
     }
 
     /**
-     * Calculate the actual number of choices from a query of entity_languages records.
+     * Calculate the actual number of choices from a query of entity_choices records.
      *
-     * Handles two patterns:
-     * 1. Standard: Single record with choice_group=NULL, quantity=N (choose N from any)
-     * 2. Grouped: Multiple records with same choice_group (choose 1 from specific options)
+     * In the new EntityChoice model:
+     * - Each record represents one choice opportunity or option
+     * - Ungrouped records: each is a separate choice with its own quantity
+     * - Grouped records: all records in a group represent options for one choice
      *
      * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Relations\MorphMany  $query
      */
-    private function calculateChoiceQuantityFromQuery($query): int
+    private function calculateChoiceQuantityFromEntityChoices($query): int
     {
         $records = $query->get();
 
@@ -408,17 +401,10 @@ class CharacterLanguageService
             return 0;
         }
 
-        // Separate records by whether they have a choice_group
-        $ungrouped = $records->whereNull('choice_group');
-        $grouped = $records->whereNotNull('choice_group');
-
-        // Ungrouped records: sum their quantities (standard pattern)
-        $ungroupedQuantity = $ungrouped->sum('quantity');
-
-        // Grouped records: count distinct groups (each group = 1 choice)
-        $groupedQuantity = $grouped->pluck('choice_group')->unique()->count();
-
-        return $ungroupedQuantity + $groupedQuantity;
+        // Count distinct choice groups - each group represents one choice
+        // In the new schema, each unrestricted choice gets its own unique group name
+        // e.g., language_choice_1, language_choice_2
+        return $records->pluck('choice_group')->unique()->count();
     }
 
     /**
@@ -447,6 +433,9 @@ class CharacterLanguageService
     /**
      * Get fixed language slugs from an entity.
      * For subraces, includes inherited fixed languages from the parent race.
+     *
+     * Note: Since choice data moved to entity_choices, all remaining
+     * entity_languages rows are fixed (non-choice) by definition.
      */
     private function getFixedLanguageSlugs(Character $character, string $source, $entity = null): array
     {
@@ -457,12 +446,10 @@ class CharacterLanguageService
                 return [];
             }
 
-            return EntityLanguage::whereIn('reference_id', $featIds)
-                ->where('reference_type', Feat::class)
-                ->where('is_choice', false)
-                ->whereNotNull('language_id')
-                ->with('language')
+            return Feat::whereIn('id', $featIds)
+                ->with('languages.language')
                 ->get()
+                ->flatMap(fn ($feat) => $feat->languages)
                 ->filter(fn ($el) => $el->language !== null)
                 ->pluck('language.slug')
                 ->toArray();
@@ -481,7 +468,6 @@ class CharacterLanguageService
         }
 
         $fixedLanguageSlugs = $entity->languages()
-            ->where('is_choice', false)
             ->whereNotNull('language_id')
             ->with('language')
             ->get()
@@ -492,7 +478,6 @@ class CharacterLanguageService
         // For subraces, also include parent race fixed languages
         if ($source === 'race' && $entity instanceof Race && $entity->is_subrace && $entity->parent) {
             $parentFixedLanguageSlugs = $entity->parent->languages()
-                ->where('is_choice', false)
                 ->whereNotNull('language_id')
                 ->with('language')
                 ->get()

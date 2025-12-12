@@ -8,7 +8,7 @@ use App\DTOs\PendingChoice;
 use App\Exceptions\InvalidSelectionException;
 use App\Models\AbilityScore;
 use App\Models\Character;
-use App\Models\Modifier;
+use App\Models\EntityChoice;
 use Illuminate\Support\Collection;
 
 class AbilityScoreChoiceHandler extends AbstractChoiceHandler
@@ -26,9 +26,9 @@ class AbilityScoreChoiceHandler extends AbstractChoiceHandler
             return $choices;
         }
 
-        // Load race with modifiers
+        // Load race with ability score choices
         if (! $character->relationLoaded('race')) {
-            $character->load('race.modifiers.abilityScore', 'race.parent.modifiers.abilityScore');
+            $character->load('race');
         }
 
         // Verify race was loaded (slug exists but race record might not)
@@ -36,11 +36,11 @@ class AbilityScoreChoiceHandler extends AbstractChoiceHandler
             return $choices;
         }
 
-        // Get choice modifiers from race (and parent race if subrace)
-        $modifiers = $this->getChoiceModifiers($character);
+        // Get ability score choices from race (and parent race if subrace)
+        $entityChoices = $this->getAbilityScoreChoices($character);
 
-        foreach ($modifiers as $modifier) {
-            $choice = $this->buildPendingChoice($character, $modifier);
+        foreach ($entityChoices as $entityChoice) {
+            $choice = $this->buildPendingChoice($character, $entityChoice);
             if ($choice) {
                 $choices->push($choice);
             }
@@ -49,42 +49,43 @@ class AbilityScoreChoiceHandler extends AbstractChoiceHandler
         return $choices;
     }
 
-    private function getChoiceModifiers(Character $character): Collection
+    /**
+     * Get ability score choices from race (and parent race if subrace).
+     */
+    private function getAbilityScoreChoices(Character $character): Collection
     {
-        $modifiers = collect();
+        $choices = collect();
 
         // Get from race
-        $raceModifiers = $character->race->modifiers()
-            ->where('modifier_category', 'ability_score')
-            ->where('is_choice', true)
-            ->get();
-        $modifiers = $modifiers->merge($raceModifiers);
+        $raceChoices = $character->race->abilityScoreChoices()->get();
+        $choices = $choices->merge($raceChoices);
 
         // Get from parent race if subrace
         if ($character->race->parent_race_id && $character->race->parent) {
-            $parentModifiers = $character->race->parent->modifiers()
-                ->where('modifier_category', 'ability_score')
-                ->where('is_choice', true)
-                ->get();
-            $modifiers = $modifiers->merge($parentModifiers);
+            $parentChoices = $character->race->parent->abilityScoreChoices()->get();
+            $choices = $choices->merge($parentChoices);
         }
 
-        return $modifiers;
+        return $choices;
     }
 
-    private function buildPendingChoice(Character $character, Modifier $modifier): ?PendingChoice
+    private function buildPendingChoice(Character $character, EntityChoice $entityChoice): ?PendingChoice
     {
         // Get all ability score options
         $allAbilities = AbilityScore::all();
 
-        // Get already-selected ability codes for this modifier
+        // Get already-selected ability codes for this choice group
         $selected = $character->abilityScores()
-            ->where('modifier_id', $modifier->id)
+            ->where('choice_group', $entityChoice->choice_group)
             ->pluck('ability_score_code')
             ->toArray();
 
-        $quantity = $modifier->choice_count ?? 1;
+        $quantity = $entityChoice->quantity ?? 1;
         $remaining = $quantity - count($selected);
+
+        // Get bonus value from constraints
+        $bonusValue = $this->parseBonusValue($entityChoice->constraints['value'] ?? '+1');
+        $constraint = $entityChoice->constraints['constraint'] ?? 'different';
 
         // Build options list
         $options = $allAbilities
@@ -100,32 +101,40 @@ class AbilityScoreChoiceHandler extends AbstractChoiceHandler
                 'ability_score',
                 'race',
                 $character->race->slug,
-                1,
-                'modifier_'.$modifier->id
+                $entityChoice->level_granted ?? 1,
+                $entityChoice->choice_group
             ),
             type: 'ability_score',
             subtype: null,
             source: 'race',
             sourceName: $character->race->name,
-            levelGranted: 1,
-            required: true,
+            levelGranted: $entityChoice->level_granted ?? 1,
+            required: $entityChoice->is_required ?? true,
             quantity: $quantity,
             remaining: $remaining,
             selected: $selected,
             options: $options,
             optionsEndpoint: null,
             metadata: [
-                'modifier_id' => $modifier->id,
-                'bonus_value' => (int) $modifier->value,
-                'choice_constraint' => $modifier->choice_constraint,
+                'choice_group' => $entityChoice->choice_group,
+                'bonus_value' => $bonusValue,
+                'choice_constraint' => $constraint,
             ],
         );
+    }
+
+    /**
+     * Parse bonus value from string like '+1' or '+2' to integer.
+     */
+    private function parseBonusValue(string $value): int
+    {
+        return (int) filter_var($value, FILTER_SANITIZE_NUMBER_INT);
     }
 
     public function resolve(Character $character, PendingChoice $choice, array $selection): void
     {
         $parsed = $this->parseChoiceId($choice->id);
-        $modifierId = (int) str_replace('modifier_', '', $parsed['group']);
+        $choiceGroup = $parsed['group'];
 
         $selected = $selection['selected'] ?? [];
         if (empty($selected)) {
@@ -161,8 +170,8 @@ class AbilityScoreChoiceHandler extends AbstractChoiceHandler
 
         $bonusValue = $choice->metadata['bonus_value'] ?? 1;
 
-        // Delete existing choices for this modifier
-        $character->abilityScores()->where('modifier_id', $modifierId)->delete();
+        // Delete existing choices for this choice group
+        $character->abilityScores()->where('choice_group', $choiceGroup)->delete();
 
         // Create new choices
         foreach ($selected as $code) {
@@ -170,7 +179,7 @@ class AbilityScoreChoiceHandler extends AbstractChoiceHandler
                 'ability_score_code' => $code,
                 'bonus' => $bonusValue,
                 'source' => 'race',
-                'modifier_id' => $modifierId,
+                'choice_group' => $choiceGroup,
             ]);
         }
 
@@ -185,9 +194,9 @@ class AbilityScoreChoiceHandler extends AbstractChoiceHandler
     public function undo(Character $character, PendingChoice $choice): void
     {
         $parsed = $this->parseChoiceId($choice->id);
-        $modifierId = (int) str_replace('modifier_', '', $parsed['group']);
+        $choiceGroup = $parsed['group'];
 
-        $character->abilityScores()->where('modifier_id', $modifierId)->delete();
+        $character->abilityScores()->where('choice_group', $choiceGroup)->delete();
         $character->load('abilityScores');
     }
 }

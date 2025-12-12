@@ -17,6 +17,7 @@ class CharacterAbilityScore extends Model
         'ability_score_code',
         'bonus',
         'source',
+        'choice_group',
         'modifier_id',
     ];
 

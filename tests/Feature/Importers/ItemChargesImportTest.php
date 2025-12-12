@@ -3,7 +3,6 @@
 namespace Tests\Feature\Importers;
 
 use App\Models\Item;
-use App\Models\ItemType;
 use App\Services\Importers\ItemImporter;
 use App\Services\Parsers\ItemXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -145,22 +144,29 @@ class ItemChargesImportTest extends TestCase
     #[Test]
     public function it_reimports_items_without_losing_charge_data(): void
     {
-        // Create initial item
-        $wandType = ItemType::where('code', 'WD')->first();
+        // First import to create the item
+        $xmlInitial = <<<'XML'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <compendium>
+            <item>
+                <name>Wand of Test</name>
+                <type>WD</type>
+                <magic>YES</magic>
+                <text>This wand has 5 charges. It regains 1d4 expended charges daily at dawn.
 
-        $item = Item::factory()->create([
-            'name' => 'Wand of Test',
-            'slug' => 'wand-of-test',
-            'item_type_id' => $wandType->id,
-            'charges_max' => 5,
-            'recharge_formula' => '1d4',
-            'recharge_timing' => 'dawn',
-        ]);
+        Source:	Player's Handbook p. 149</text>
+            </item>
+        </compendium>
+        XML;
+
+        $items = $this->parser->parse($xmlInitial);
+        $item = $this->importer->import($items[0]);
 
         $this->assertEquals(5, $item->charges_max);
+        $this->assertEquals('phb:wand-of-test', $item->slug);
 
-        // Reimport same item (should update, not create new)
-        $xml = <<<'XML'
+        // Reimport same item with updated charge data (should update, not create new)
+        $xmlUpdated = <<<'XML'
         <?xml version="1.0" encoding="UTF-8"?>
         <compendium>
             <item>
@@ -169,12 +175,12 @@ class ItemChargesImportTest extends TestCase
                 <magic>YES</magic>
                 <text>This wand has 7 charges. It regains 1d6 expended charges daily at dawn.
 
-        Source:	Test Book p. 1</text>
+        Source:	Player's Handbook p. 149</text>
             </item>
         </compendium>
         XML;
 
-        $items = $this->parser->parse($xml);
+        $items = $this->parser->parse($xmlUpdated);
         $reimportedItem = $this->importer->import($items[0]);
 
         // Should update charge data
@@ -182,7 +188,7 @@ class ItemChargesImportTest extends TestCase
         $this->assertEquals(7, $reimportedItem->charges_max); // Updated
         $this->assertEquals('1d6', $reimportedItem->recharge_formula); // Updated
 
-        // Verify only one item exists
-        $this->assertEquals(1, Item::where('slug', 'wand-of-test')->count());
+        // Verify only one item exists with source-prefixed slug
+        $this->assertEquals(1, Item::where('slug', 'phb:wand-of-test')->count());
     }
 }

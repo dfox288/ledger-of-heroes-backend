@@ -518,7 +518,7 @@ XML;
         $this->artisan('import:spells', ['file' => $xmlPath])
             ->assertSuccessful();
 
-        $fireball = Spell::where('slug', 'fireball')->first();
+        $fireball = Spell::where('slug', 'phb:fireball')->first();
 
         $this->assertNotNull($fireball, 'Fireball spell should exist');
         $this->assertNotNull($fireball->higher_levels, 'Fireball should have higher_levels text');

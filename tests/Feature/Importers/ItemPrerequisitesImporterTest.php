@@ -36,8 +36,8 @@ XML;
         $importer = new ItemImporter;
         $importer->importFromFile($this->createTempXmlFile($xml));
 
-        // Assert: Item was created
-        $item = Item::where('slug', 'plate-armor')->first();
+        // Assert: Item was created (PHB source prefix)
+        $item = Item::where('slug', 'phb:plate-armor')->first();
         $this->assertNotNull($item);
         $this->assertEquals('Plate Armor', $item->name);
         $this->assertEquals(15, $item->strength_requirement);
@@ -76,8 +76,8 @@ XML;
         $importer = new ItemImporter;
         $importer->importFromFile($this->createTempXmlFile($xml));
 
-        // Assert: Item was created
-        $item = Item::where('slug', 'leather-armor')->first();
+        // Assert: Item was created (PHB source prefix)
+        $item = Item::where('slug', 'phb:leather-armor')->first();
         $this->assertNotNull($item);
         $this->assertNull($item->strength_requirement);
 
@@ -109,7 +109,7 @@ XML;
         $importer = new ItemImporter;
         $importer->importFromFile($this->createTempXmlFile($xml1));
 
-        $item = Item::where('slug', 'chain-mail')->first();
+        $item = Item::where('slug', 'phb:chain-mail')->first();
         $this->assertNotNull($item);
 
         // Verify initial prerequisite
@@ -166,7 +166,7 @@ XML;
         $importer = new ItemImporter;
         $importer->importFromFile($this->createTempXmlFile($xml1));
 
-        $item = Item::where('slug', 'splint-armor')->first();
+        $item = Item::where('slug', 'phb:splint-armor')->first();
         $this->assertNotNull($item);
         $this->assertEquals(1, $item->prerequisites()->count());
 

@@ -179,7 +179,8 @@ class ClassImporterMergeTest extends TestCase
 
         // Should return existing class, not create new one
         $this->assertEquals($originalId, $result->id);
-        $this->assertEquals(1, CharacterClass::where('slug', 'barbarian')->count());
+        // No sources in test data → defaults to 'core' prefix
+        $this->assertEquals(1, CharacterClass::where('slug', 'core:barbarian')->count());
     }
 
     #[Test]

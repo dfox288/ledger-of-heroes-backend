@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **BREAKING - Issue #523**: Consolidated all character creation choices into unified `entity_choices` table
+  - New polymorphic `entity_choices` table replaces scattered choice columns across 5 tables
+  - Removed `is_choice`, `choice_group`, `choice_option` columns from `entity_languages`, `entity_spells`, `entity_proficiencies`, `entity_modifiers`, `entity_items`
+  - Removed `equipment_choice_items` table entirely
+  - Choice types: `language`, `spell`, `proficiency`, `ability_score`, `equipment`
+  - Choice handlers now query unified table instead of individual entity tables
+  - Requires `migrate:fresh` and full re-import
+
 - **BREAKING - Issue #506**: Consolidated `full_slug` column into `slug` across all entity tables
   - The `slug` column now contains source-prefixed values (e.g., `phb:acid-splash` instead of `acid-splash`)
   - Removed `full_slug` field from all API responses

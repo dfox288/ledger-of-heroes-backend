@@ -3,7 +3,6 @@
 namespace Tests\Feature\Importers;
 
 use App\Models\AbilityScore;
-use App\Models\EntityChoice;
 use App\Models\Language;
 use App\Models\Race;
 use App\Models\Size;

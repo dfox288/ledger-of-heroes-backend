@@ -6,13 +6,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
- * Modifier - Polymorphic pivot for stat modifiers.
+ * Modifier - Polymorphic pivot for fixed stat modifiers.
  *
  * Table: entity_modifiers (custom table name for polymorphic consistency)
  * Used by: CharacterClass, Feat, Item, Monster, Race
  *
- * Represents stat modifications granted by entities (ability score bonuses, skill bonuses, etc.).
+ * Represents fixed stat modifications granted by entities (ability score bonuses, skill bonuses, etc.).
  * modifier_category defines the type: ability_score, skill, damage_resistance, ac_magic, etc.
+ * Choice-based modifiers (like Half-Elf's +1 to two abilities) are stored in entity_choices table.
  */
 class Modifier extends BaseModel
 {
@@ -30,9 +31,6 @@ class Modifier extends BaseModel
         'damage_type_id',
         'value',
         'condition',
-        'is_choice',
-        'choice_count',
-        'choice_constraint',
         'level',
     ];
 
@@ -41,8 +39,6 @@ class Modifier extends BaseModel
         'ability_score_id' => 'integer',
         'skill_id' => 'integer',
         'damage_type_id' => 'integer',
-        'is_choice' => 'boolean',
-        'choice_count' => 'integer',
         'level' => 'integer',
     ];
 

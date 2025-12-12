@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #536**: HP modification endpoint with D&D rule enforcement
+  - New `PATCH /api/v1/characters/{character}/hp` endpoint
+  - Request format: `hp` (string: "-12" damage, "+15" heal, "45" set), `temp_hp` (int, absolute)
+  - D&D rules: Damage absorbs temp HP first, healing caps at max, HP floors at 0
+  - Temp HP uses higher-wins logic (doesn't stack), except 0 clears
+  - Death saves auto-reset when HP goes from 0 to positive
+  - Returns lightweight response: current_hit_points, max_hit_points, temp_hit_points, death saves
+
 - **Issue #528**: API Health Check test suite - smoke tests all GET endpoints from api.json
   - `tests/Feature/HealthCheck/ApiEndpointHealthTest.php` - verifies 41 endpoints return 200 with valid JSON
   - `tests/Support/OpenApiEndpointExtractor.php` - dynamic endpoint discovery from OpenAPI spec

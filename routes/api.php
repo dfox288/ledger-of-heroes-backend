@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\CharacterAvailableFeatsController;
 use App\Http\Controllers\Api\CharacterChoiceController;
 use App\Http\Controllers\Api\CharacterController;
 use App\Http\Controllers\Api\CharacterExportController;
+use App\Http\Controllers\Api\CharacterHpController;
 use App\Http\Controllers\Api\CharacterValidationController;
 use App\Http\Controllers\Api\ClassController;
 use App\Http\Controllers\Api\ConditionController;
@@ -359,6 +360,10 @@ Route::prefix('v1')->group(function () {
             ->name('notes.update');
         Route::delete('notes/{note}', [\App\Http\Controllers\Api\CharacterNoteController::class, 'destroy'])
             ->name('notes.destroy');
+
+        // HP Modification (D&D rules: damage, healing, temp HP)
+        Route::patch('hp', CharacterHpController::class)
+            ->name('hp.modify');
 
         // Death Saves
         Route::post('death-saves', [\App\Http\Controllers\Api\CharacterDeathSaveController::class, 'store'])

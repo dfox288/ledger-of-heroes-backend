@@ -2,6 +2,7 @@
 
 namespace App\Services\Importers;
 
+use App\Models\CreatureType;
 use App\Models\Monster;
 use App\Models\MonsterAction;
 use App\Models\MonsterLegendaryAction;
@@ -35,6 +36,8 @@ class MonsterImporter extends BaseImporter
     protected array $strategies = [];
 
     protected array $strategyStats = [];
+
+    protected array $creatureTypeCache = [];
 
     public function __construct()
     {
@@ -199,6 +202,7 @@ class MonsterImporter extends BaseImporter
                 'name' => $monsterData['name'],
                 'size_id' => $size->id,
                 'type' => $monsterData['type'],
+                'creature_type_id' => $this->resolveCreatureTypeId($monsterData['type']),
                 'alignment' => $monsterData['alignment'],
                 'armor_class' => $monsterData['armor_class'],
                 'armor_type' => $monsterData['armor_type'],
@@ -349,5 +353,52 @@ class MonsterImporter extends BaseImporter
         }
 
         $this->importEntityModifiers($monster, $modifiers);
+    }
+
+    /**
+     * Resolve creature type ID from the monster's type string.
+     *
+     * Lazy loads and caches creature types to avoid N+1 queries.
+     *
+     * @param  string  $type  Monster type string (e.g., "humanoid (elf)", "swarm of tiny beasts")
+     * @return int|null Creature type ID or null if not found
+     */
+    protected function resolveCreatureTypeId(string $type): ?int
+    {
+        // Lazy load cache on first use
+        if (empty($this->creatureTypeCache)) {
+            $this->creatureTypeCache = CreatureType::pluck('id', 'slug')->all();
+        }
+
+        $baseType = $this->extractBaseCreatureType($type);
+        $slug = strtolower($baseType);
+
+        return $this->creatureTypeCache[$slug] ?? null;
+    }
+
+    /**
+     * Extract base creature type from type string.
+     *
+     * Handles various D&D type formats:
+     * - "humanoid (elf)" -> "humanoid"
+     * - "fiend (demon, shapechanger)" -> "fiend"
+     * - "swarm of tiny beasts" -> "swarm"
+     *
+     * @param  string  $type  Full type string from XML
+     * @return string Base creature type
+     */
+    protected function extractBaseCreatureType(string $type): string
+    {
+        // Handle swarms first (special case)
+        if (str_starts_with(strtolower($type), 'swarm')) {
+            return 'swarm';
+        }
+
+        // Extract base type before parentheses
+        if (str_contains($type, '(')) {
+            return trim(explode('(', $type)[0]);
+        }
+
+        return $type;
     }
 }

@@ -84,11 +84,15 @@ class ClassEquipmentChoicesApiTest extends TestCase
                     'equipment_choices' => [
                         '*' => [
                             'choice_group',
+                            'quantity',
+                            'level_granted',
+                            'is_required',
                             'options' => [
                                 '*' => [
                                     'option',
-                                    'description',
-                                    'target_slug',
+                                    'label',
+                                    'items',
+                                    'is_category',
                                 ],
                             ],
                         ],
@@ -102,7 +106,12 @@ class ClassEquipmentChoicesApiTest extends TestCase
 
         $armorChoice = $equipmentChoices[0];
         $this->assertEquals('armor_choice', $armorChoice['choice_group']);
-        $this->assertCount(2, $armorChoice['options'], 'Should have 2 options (chain mail, leather armor)');
+        // Options are now grouped by choice_option: option 1 (chain mail, leather) and option 2 (longbow)
+        $this->assertCount(2, $armorChoice['options'], 'Should have 2 options (a and b)');
+        // Option 'a' should be the first choice_option
+        $this->assertEquals('a', $armorChoice['options'][0]['option']);
+        // Items in option 'a' should include chain mail
+        $this->assertNotEmpty($armorChoice['options'][0]['items']);
     }
 
     #[Test]

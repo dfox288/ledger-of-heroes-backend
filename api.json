@@ -12063,26 +12063,6 @@
                 ],
                 "title": "CharacterClassPivotResource"
             },
-            "CharacterClassResource": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "slug": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "id",
-                    "name",
-                    "slug"
-                ],
-                "title": "CharacterClassResource"
-            },
             "CharacterConditionResource": {
                 "type": "object",
                 "properties": {
@@ -15922,55 +15902,17 @@
                     "quantity": {
                         "type": "integer"
                     },
-                    "is_choice": {
-                        "type": "boolean"
-                    },
-                    "choice_group": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "choice_option": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "choice_description": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "proficiency_subcategory": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
                     "description": {
                         "type": [
                             "string",
                             "null"
                         ]
-                    },
-                    "choice_items": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/EquipmentChoiceItemResource"
-                        }
                     }
                 },
                 "required": [
                     "id",
                     "item_id",
                     "quantity",
-                    "is_choice",
-                    "choice_group",
-                    "choice_option",
-                    "choice_description",
-                    "proficiency_subcategory",
                     "description"
                 ],
                 "title": "EntityItemResource"
@@ -15980,46 +15922,8 @@
                 "properties": {
                     "language": {
                         "$ref": "#/components/schemas/LanguageResource"
-                    },
-                    "is_choice": {
-                        "type": "boolean"
-                    },
-                    "quantity": {
-                        "type": "integer"
-                    },
-                    "choice_group": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "choice_option": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "condition": {
-                        "type": "object",
-                        "properties": {
-                            "type": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            },
-                            "language": {
-                                "$ref": "#/components/schemas/LanguageResource"
-                            }
-                        },
-                        "required": [
-                            "type"
-                        ]
                     }
                 },
-                "required": [
-                    "is_choice"
-                ],
                 "title": "EntityLanguageResource"
             },
             "EntityPrerequisiteResource": {
@@ -16193,37 +16097,6 @@
                             "string",
                             "null"
                         ]
-                    },
-                    "is_choice": {
-                        "type": "boolean",
-                        "description": "Choice support"
-                    },
-                    "choice_count": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "choice_group": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "max_level": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "school": {
-                        "$ref": "#/components/schemas/SpellSchoolResource"
-                    },
-                    "character_class": {
-                        "$ref": "#/components/schemas/CharacterClassResource"
-                    },
-                    "is_ritual_only": {
-                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -16235,28 +16108,9 @@
                     "is_cantrip",
                     "charges_cost_min",
                     "charges_cost_max",
-                    "charges_cost_formula",
-                    "is_choice"
+                    "charges_cost_formula"
                 ],
                 "title": "EntitySpellResource"
-            },
-            "EquipmentChoiceItemResource": {
-                "type": "object",
-                "properties": {
-                    "proficiency_type": {
-                        "$ref": "#/components/schemas/ProficiencyTypeResource"
-                    },
-                    "item": {
-                        "$ref": "#/components/schemas/ItemResource"
-                    },
-                    "quantity": {
-                        "type": "integer"
-                    }
-                },
-                "required": [
-                    "quantity"
-                ],
-                "title": "EquipmentChoiceItemResource"
             },
             "FeatResource": {
                 "type": "object",
@@ -16325,7 +16179,7 @@
                     },
                     "spells": {
                         "type": "array",
-                        "description": "Use entitySpellRecords for EntitySpell pivot records (includes spell choices)",
+                        "description": "Fixed spell grants (from entity_spells table)",
                         "items": {
                             "$ref": "#/components/schemas/EntitySpellResource"
                         }
@@ -16334,15 +16188,6 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/EntityLanguageResource"
-                        }
-                    },
-                    "spell_choices": {
-                        "type": [
-                            "array",
-                            "null"
-                        ],
-                        "items": {
-                            "$ref": "#/components/schemas/SpellChoiceResource"
                         }
                     }
                 },
@@ -17248,21 +17093,6 @@
                             "null"
                         ]
                     },
-                    "is_choice": {
-                        "type": "boolean"
-                    },
-                    "choice_count": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "choice_constraint": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
                     "level": {
                         "type": [
                             "integer",
@@ -17275,9 +17105,6 @@
                     "modifier_category",
                     "value",
                     "condition",
-                    "is_choice",
-                    "choice_count",
-                    "choice_constraint",
                     "level"
                 ],
                 "title": "ModifierResource"
@@ -18102,27 +17929,6 @@
                     "grants": {
                         "type": "boolean"
                     },
-                    "is_choice": {
-                        "type": "boolean"
-                    },
-                    "choice_group": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "choice_option": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "quantity": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
                     "level": {
                         "type": [
                             "integer",
@@ -18137,10 +17943,6 @@
                     "proficiency_type_id",
                     "proficiency_name",
                     "grants",
-                    "is_choice",
-                    "choice_group",
-                    "choice_option",
-                    "quantity",
                     "level"
                 ],
                 "title": "ProficiencyResource"
@@ -18847,48 +18649,6 @@
                     "description"
                 ],
                 "title": "SourceResource"
-            },
-            "SpellChoiceResource": {
-                "type": "object",
-                "properties": {
-                    "choice_group": {
-                        "type": "string"
-                    },
-                    "choice_count": {
-                        "type": "integer"
-                    },
-                    "max_level": {
-                        "type": "integer"
-                    },
-                    "is_ritual_only": {
-                        "type": "boolean"
-                    },
-                    "allowed_schools": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/SpellSchoolResource"
-                        }
-                    },
-                    "allowed_class": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/CharacterClassResource"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ]
-                    }
-                },
-                "required": [
-                    "choice_group",
-                    "choice_count",
-                    "max_level",
-                    "is_ritual_only",
-                    "allowed_schools",
-                    "allowed_class"
-                ],
-                "title": "SpellChoiceResource"
             },
             "SpellEffectResource": {
                 "type": "object",

@@ -47,3 +47,4 @@ repomix-output.xml
 # Worktree override files (generated per-environment)
 docker-compose.override.yml
 /storage/wizard-flow-reports/
+.env.stable

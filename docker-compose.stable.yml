@@ -1,0 +1,133 @@
+# =============================================================================
+# Docker Compose for Ledger of Heroes Backend - STABLE ENVIRONMENT
+# =============================================================================
+#
+# A separate, stable version of the API for frontend development/testing.
+# Uses different ports and completely isolated data from the dev environment.
+#
+# Usage:     docker compose -f docker-compose.stable.yml up -d
+# Stop:      docker compose -f docker-compose.stable.yml down
+# Logs:      docker compose -f docker-compose.stable.yml logs -f
+#
+# Port mappings (dev → stable):
+#   - Nginx:      8080 → 8081
+#   - MySQL:      33060 → 33061
+#   - Meilisearch: 7700 → 7701
+#   - Redis:      (none) → 6380
+#
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # APP SERVICES
+  # ===========================================================================
+
+  # PHP-FPM Service
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: loh_stable_php
+    volumes:
+      - ./:/var/www/html
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      # Mount fightclub_forked repository for XML imports
+      - ../fightclub-xml-data:/var/www/fightclub_forked:ro
+      # Use stable environment config
+      - ./.env.stable:/var/www/html/.env:ro
+    networks:
+      - loh_stable_network
+    depends_on:
+      mysql_stable:
+        condition: service_healthy
+      redis_stable:
+        condition: service_healthy
+
+  # Nginx Service
+  nginx:
+    image: nginx:alpine
+    container_name: loh_stable_nginx
+    ports:
+      - "8081:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - loh_stable_network
+    depends_on:
+      - php
+
+  # ===========================================================================
+  # DATA SERVICES (isolated from dev environment)
+  # ===========================================================================
+
+  # MySQL Service - stable environment only
+  mysql_stable:
+    image: mysql:8.0
+    container_name: loh_stable_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: dnd_compendium_stable
+      MYSQL_USER: dnd_user
+      MYSQL_PASSWORD: dnd_password
+    ports:
+      - "33061:3306"
+    volumes:
+      - mysql_stable_data:/var/lib/mysql
+    networks:
+      - loh_stable_network
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Meilisearch Service - stable environment only
+  meilisearch_stable:
+    image: 'getmeili/meilisearch:v1.10'
+    container_name: loh_stable_meilisearch
+    ports:
+      - '7701:7700'
+    environment:
+      MEILI_MASTER_KEY: 'masterKey'
+      MEILI_NO_ANALYTICS: 'true'
+      MEILI_ENV: 'development'
+      MEILI_LOG_LEVEL: INFO
+      MEILI_DB_PATH: /meili_data
+    volumes:
+      - 'meilisearch_stable_data:/meili_data'
+    networks:
+      - loh_stable_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--spider", "http://127.0.0.1:7700/health"]
+      retries: 3
+      timeout: 5s
+
+  # Redis Service - stable environment only
+  redis_stable:
+    image: redis:7-alpine
+    container_name: loh_stable_redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_stable_data:/data
+    networks:
+      - loh_stable_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      retries: 3
+      timeout: 5s
+    command: redis-server --appendonly yes
+
+networks:
+  loh_stable_network:
+    driver: bridge
+
+volumes:
+  mysql_stable_data:
+    driver: local
+  meilisearch_stable_data:
+    driver: local
+  redis_stable_data:
+    driver: local

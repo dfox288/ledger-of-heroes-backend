@@ -93,17 +93,12 @@ trait ImportsProficiencies
         $choiceOption = $profData['choice_option'] ?? null;
         $quantity = $profData['quantity'] ?? 1;
         $name = $profData['name'] ?? null;
+        $proficiencySubcategory = $profData['proficiency_subcategory'] ?? null;
 
-        // For unrestricted choices (no specific name, just type and maybe quantity)
-        if ($choiceGroup === null && $name === null) {
-            $choiceIndex++;
-            $groupName = $proficiencyType.'_choice_'.$choiceIndex;
-
-            // Build constraints if subcategory is present
-            $constraints = null;
-            if (! empty($profData['proficiency_subcategory'])) {
-                $constraints = ['subcategory' => $profData['proficiency_subcategory']];
-            }
+        // For category-based choices (e.g., "artisan tools", "musical instruments")
+        // These have a subcategory constraint - treat as unrestricted within that subcategory
+        if (! empty($proficiencySubcategory)) {
+            $groupName = $choiceGroup ?? $proficiencyType.'_choice_'.++$choiceIndex;
 
             $this->createProficiencyChoice(
                 referenceType: get_class($entity),
@@ -112,7 +107,25 @@ trait ImportsProficiencies
                 proficiencyType: $proficiencyType,
                 quantity: $quantity,
                 levelGranted: 1,
-                constraints: $constraints
+                constraints: ['subcategory' => $proficiencySubcategory]
+            );
+
+            return;
+        }
+
+        // For unrestricted choices (no specific name, just type and maybe quantity)
+        if ($choiceGroup === null && $name === null) {
+            $choiceIndex++;
+            $groupName = $proficiencyType.'_choice_'.$choiceIndex;
+
+            $this->createProficiencyChoice(
+                referenceType: get_class($entity),
+                referenceId: $entity->id,
+                choiceGroup: $groupName,
+                proficiencyType: $proficiencyType,
+                quantity: $quantity,
+                levelGranted: 1,
+                constraints: null
             );
 
             return;

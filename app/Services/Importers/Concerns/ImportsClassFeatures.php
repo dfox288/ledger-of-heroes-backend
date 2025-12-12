@@ -6,10 +6,12 @@ use App\Enums\DataTableType;
 use App\Models\CharacterClass;
 use App\Models\ClassFeature;
 use App\Models\ClassFeatureSpecialTag;
+use App\Models\EntityChoice;
 use App\Models\EntityDataTable;
 use App\Models\EntityDataTableEntry;
 use App\Models\Modifier;
 use App\Models\Proficiency;
+use App\Services\Parsers\Traits\ParsesChoices;
 
 /**
  * Trait for importing class features, feature modifiers, and related data.
@@ -17,6 +19,7 @@ use App\Models\Proficiency;
 trait ImportsClassFeatures
 {
     use ImportsSubclassSpells;
+    use ParsesChoices;
 
     /**
      * Import class features.
@@ -66,24 +69,27 @@ trait ImportsClassFeatures
                 $this->importFeatureModifiers($class, $featureData['modifiers'], $featureData['level']);
             }
 
-            // Create Ability Score Improvement modifier if this level grants ASI
+            // Create Ability Score Improvement choice if this level grants ASI
             // Use XML attribute instead of name parsing for more reliable detection
             if (! empty($featureData['grants_asi'])) {
-                // Use updateOrCreate to prevent duplicates on re-import
-                // Unique key: reference_type + reference_id + modifier_category + level
-                Modifier::updateOrCreate(
-                    [
-                        'reference_type' => get_class($class),
-                        'reference_id' => $class->id,
-                        'modifier_category' => 'ability_score',
-                        'level' => $featureData['level'],
-                    ],
-                    [
+                // Clear existing ASI choice for this class/level before creating new one
+                EntityChoice::where('reference_type', get_class($class))
+                    ->where('reference_id', $class->id)
+                    ->where('choice_type', 'ability_score')
+                    ->where('choice_group', 'asi_level_'.$featureData['level'])
+                    ->delete();
+
+                // Create ASI choice in entity_choices table
+                $this->createAbilityScoreChoice(
+                    referenceType: get_class($class),
+                    referenceId: $class->id,
+                    choiceGroup: 'asi_level_'.$featureData['level'],
+                    quantity: 2, // Standard ASI allows 2 increases (+1 each) or 1 (+2)
+                    constraint: 'different',
+                    levelGranted: $featureData['level'],
+                    constraints: [
                         'value' => '+2',
-                        'ability_score_id' => null, // Player chooses
-                        'is_choice' => true,
-                        'choice_count' => 2, // Standard ASI allows 2 increases
-                        'condition' => 'Choose one ability score to increase by 2, or two ability scores to increase by 1 each',
+                        'description' => 'Choose one ability score to increase by 2, or two ability scores to increase by 1 each',
                     ]
                 );
             }
@@ -319,21 +325,21 @@ trait ImportsClassFeatures
             $quantityWord = strtolower($matches[1]);
             $quantity = $quantityWords[$quantityWord] ?? 1;
 
-            // Use updateOrCreate to prevent duplicates on re-import
-            // Unique key: reference_type + reference_id + proficiency_type + level + is_choice
-            Proficiency::updateOrCreate(
-                [
-                    'reference_type' => get_class($class),
-                    'reference_id' => $class->id,
-                    'proficiency_type' => 'skill',
-                    'proficiency_name' => null, // Player chooses
-                    'level' => $level,
-                    'is_choice' => true,
-                ],
-                [
-                    'grants' => true,
-                    'quantity' => $quantity,
-                ]
+            // Clear existing skill choice for this class/level
+            EntityChoice::where('reference_type', get_class($class))
+                ->where('reference_id', $class->id)
+                ->where('choice_type', 'proficiency')
+                ->where('choice_group', 'bonus_skill_level_'.$level)
+                ->delete();
+
+            // Create skill choice in entity_choices table
+            $this->createProficiencyChoice(
+                referenceType: get_class($class),
+                referenceId: $class->id,
+                choiceGroup: 'bonus_skill_level_'.$level,
+                proficiencyType: 'skill',
+                quantity: $quantity,
+                levelGranted: $level
             );
 
             return;
@@ -368,7 +374,6 @@ trait ImportsClassFeatures
                     ],
                     [
                         'grants' => true,
-                        'is_choice' => false,
                     ]
                 );
             }
@@ -440,7 +445,6 @@ trait ImportsClassFeatures
                 ],
                 [
                     'grants' => true,
-                    'is_choice' => false,
                 ]
             );
         }
@@ -490,7 +494,6 @@ trait ImportsClassFeatures
                 ],
                 [
                     'is_cantrip' => true,
-                    'is_choice' => false,
                     'level_requirement' => null,
                 ]
             );
@@ -502,7 +505,7 @@ trait ImportsClassFeatures
      *
      * Detects pattern: "proficiency in one of the following skills of your choice: X, Y, or Z"
      *
-     * Creates entity_proficiencies records linking the feature to each skill option.
+     * Creates EntityChoice records for each skill option in the same choice_group.
      * Each skill is stored as a separate choice option within the same choice_group.
      */
     protected function importFeatureSkillChoices(ClassFeature $feature, string $text): void
@@ -526,31 +529,30 @@ trait ImportsClassFeatures
         }
 
         // Clear existing skill choices for this feature before importing
-        Proficiency::where('reference_type', ClassFeature::class)
+        EntityChoice::where('reference_type', ClassFeature::class)
             ->where('reference_id', $feature->id)
-            ->where('proficiency_type', 'skill')
-            ->where('is_choice', true)
+            ->where('choice_type', 'proficiency')
+            ->where('choice_group', 'feature_skill_choice')
             ->delete();
 
-        $choiceGroup = 'feature_skill_choice_1';
         $optionNumber = 1;
 
         foreach ($skillNames as $skillName) {
-            // Look up the skill to get its ID
+            // Look up the skill to get its slug
             $skill = \App\Models\Skill::whereRaw('LOWER(name) = ?', [strtolower($skillName)])->first();
+            $skillSlug = $skill?->slug ?? strtolower(str_replace(' ', '-', $skillName));
 
-            Proficiency::create([
-                'reference_type' => ClassFeature::class,
-                'reference_id' => $feature->id,
-                'proficiency_type' => 'skill',
-                'proficiency_name' => $skillName,
-                'skill_id' => $skill?->id,
-                'grants' => true,
-                'is_choice' => true,
-                'choice_group' => $choiceGroup,
-                'choice_option' => $optionNumber,
-                'quantity' => 1, // Pick 1 skill from the list
-            ]);
+            $this->createRestrictedProficiencyChoice(
+                referenceType: ClassFeature::class,
+                referenceId: $feature->id,
+                choiceGroup: 'feature_skill_choice',
+                proficiencyType: 'skill',
+                targetType: 'skill',
+                targetSlug: $skillSlug,
+                choiceOption: $optionNumber,
+                quantity: 1,
+                levelGranted: $feature->level
+            );
 
             $optionNumber++;
         }
@@ -564,7 +566,7 @@ trait ImportsClassFeatures
      * - "you know one wizard cantrip of your choice"
      * - "one cleric spell of your choice"
      *
-     * Creates entity_spells record with is_choice=true and class_id pointing
+     * Creates EntityChoice record with spell_list_slug pointing
      * to the class whose spell list to choose from.
      */
     protected function importBonusSpellChoices(ClassFeature $feature, string $text): void
@@ -589,21 +591,23 @@ trait ImportsClassFeatures
             return;
         }
 
-        // Use updateOrCreate to prevent duplicates on re-import
-        \App\Models\EntitySpell::updateOrCreate(
-            [
-                'reference_type' => ClassFeature::class,
-                'reference_id' => $feature->id,
-                'is_choice' => true,
-                'class_id' => $spellListClass->id,
-            ],
-            [
-                'spell_id' => null, // No specific spell - it's a choice
-                'is_cantrip' => $isCantrip,
-                'choice_count' => 1,
-                'max_level' => $isCantrip ? 0 : null, // 0 for cantrips, null for spells
-                'choice_group' => 'feature_spell_choice',
-            ]
+        // Clear existing spell choice for this feature before creating new one
+        EntityChoice::where('reference_type', ClassFeature::class)
+            ->where('reference_id', $feature->id)
+            ->where('choice_type', 'spell')
+            ->where('choice_group', 'feature_spell_choice')
+            ->delete();
+
+        // Create spell choice in entity_choices table
+        $this->createSpellChoice(
+            referenceType: ClassFeature::class,
+            referenceId: $feature->id,
+            choiceGroup: 'feature_spell_choice',
+            quantity: 1,
+            maxLevel: $isCantrip ? 0 : null, // 0 for cantrips, null for spells
+            classSlug: $spellListClass->slug,
+            schoolSlug: null,
+            levelGranted: $feature->level
         );
     }
 

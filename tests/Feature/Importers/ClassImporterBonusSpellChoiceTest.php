@@ -4,7 +4,7 @@ namespace Tests\Feature\Importers;
 
 use App\Models\CharacterClass;
 use App\Models\ClassFeature;
-use App\Models\EntitySpell;
+use App\Models\EntityChoice;
 use App\Services\Importers\ClassImporter;
 use App\Services\Parsers\ClassXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -56,21 +56,19 @@ class ClassImporterBonusSpellChoiceTest extends TestCase
             ->first();
         $this->assertNotNull($feature, 'Acolyte of Nature feature should exist');
 
-        // Check that a cantrip choice is linked to this feature
-        $spellChoice = EntitySpell::where('reference_type', ClassFeature::class)
+        // Check that a cantrip choice is linked to this feature in entity_choices table
+        $spellChoice = EntityChoice::where('reference_type', ClassFeature::class)
             ->where('reference_id', $feature->id)
-            ->where('is_choice', true)
+            ->where('choice_type', 'spell')
             ->first();
 
         $this->assertNotNull($spellChoice, 'Should have a spell choice record');
-        $this->assertNull($spellChoice->spell_id, 'spell_id should be null for choices');
-        $this->assertTrue((bool) $spellChoice->is_cantrip, 'Should be marked as cantrip');
-        $this->assertEquals(1, $spellChoice->choice_count, 'Should choose 1 cantrip');
-        $this->assertEquals(0, $spellChoice->max_level, 'max_level should be 0 for cantrips');
+        $this->assertEquals(1, $spellChoice->quantity, 'Should choose 1 cantrip');
+        $this->assertEquals(0, $spellChoice->spell_max_level, 'spell_max_level should be 0 for cantrips');
 
         // Check that it references the Druid spell list
         $druid = CharacterClass::where('name', 'Druid')->whereNull('parent_class_id')->first();
-        $this->assertEquals($druid->id, $spellChoice->class_id, 'Should reference Druid spell list');
+        $this->assertEquals($druid->slug, $spellChoice->spell_list_slug, 'Should reference Druid spell list');
     }
 
     #[Test]
@@ -79,7 +77,6 @@ class ClassImporterBonusSpellChoiceTest extends TestCase
         // Create Wizard base class
         CharacterClass::factory()->create([
             'name' => 'Wizard',
-            'slug' => 'wizard',
             'slug' => 'phb:wizard',
             'parent_class_id' => null,
         ]);
@@ -94,14 +91,14 @@ class ClassImporterBonusSpellChoiceTest extends TestCase
             ->where('feature_name', 'Cantrip (High Elf Magic)')
             ->first();
 
-        $spellChoice = EntitySpell::where('reference_type', ClassFeature::class)
+        $spellChoice = EntityChoice::where('reference_type', ClassFeature::class)
             ->where('reference_id', $feature->id)
-            ->where('is_choice', true)
+            ->where('choice_type', 'spell')
             ->first();
 
         $this->assertNotNull($spellChoice);
         $wizard = CharacterClass::where('name', 'Wizard')->whereNull('parent_class_id')->first();
-        $this->assertEquals($wizard->id, $spellChoice->class_id);
+        $this->assertEquals($wizard->slug, $spellChoice->spell_list_slug);
     }
 
     #[Test]
@@ -120,9 +117,9 @@ class ClassImporterBonusSpellChoiceTest extends TestCase
             ->first();
 
         // Should only have 1 spell choice record
-        $count = EntitySpell::where('reference_type', ClassFeature::class)
+        $count = EntityChoice::where('reference_type', ClassFeature::class)
             ->where('reference_id', $feature->id)
-            ->where('is_choice', true)
+            ->where('choice_type', 'spell')
             ->count();
 
         $this->assertEquals(1, $count, 'Should not create duplicate spell choices on reimport');
@@ -143,7 +140,7 @@ class ClassImporterBonusSpellChoiceTest extends TestCase
             ->first();
 
         // Should not have any spell choice since Bard class doesn't exist
-        $count = EntitySpell::where('reference_type', ClassFeature::class)
+        $count = EntityChoice::where('reference_type', ClassFeature::class)
             ->where('reference_id', $feature->id)
             ->count();
 
@@ -170,9 +167,9 @@ class ClassImporterBonusSpellChoiceTest extends TestCase
             ->where('feature_name', 'Acolyte of Nature (Nature Domain)')
             ->first();
 
-        $initialCount = EntitySpell::where('reference_type', ClassFeature::class)
+        $initialCount = EntityChoice::where('reference_type', ClassFeature::class)
             ->where('reference_id', $feature->id)
-            ->where('is_choice', true)
+            ->where('choice_type', 'spell')
             ->count();
 
         $this->assertEquals(0, $initialCount, 'No spell choice should exist before Druid is imported');
@@ -180,7 +177,6 @@ class ClassImporterBonusSpellChoiceTest extends TestCase
         // Now create the Druid class (simulating later alphabetical import)
         $druid = CharacterClass::factory()->create([
             'name' => 'Druid',
-            'slug' => 'druid',
             'slug' => 'phb:druid',
             'parent_class_id' => null,
         ]);
@@ -189,15 +185,15 @@ class ClassImporterBonusSpellChoiceTest extends TestCase
         $this->runBonusSpellChoicePostprocessing();
 
         // Now verify the spell choice was linked by postprocessing
-        $spellChoice = EntitySpell::where('reference_type', ClassFeature::class)
+        $spellChoice = EntityChoice::where('reference_type', ClassFeature::class)
             ->where('reference_id', $feature->id)
-            ->where('is_choice', true)
+            ->where('choice_type', 'spell')
             ->first();
 
         $this->assertNotNull($spellChoice, 'Postprocessing should have linked the spell choice');
-        $this->assertEquals($druid->id, $spellChoice->class_id, 'Should reference Druid spell list');
-        $this->assertTrue((bool) $spellChoice->is_cantrip, 'Should be marked as cantrip');
-        $this->assertEquals(1, $spellChoice->choice_count, 'Should choose 1 cantrip');
+        $this->assertEquals($druid->slug, $spellChoice->spell_list_slug, 'Should reference Druid spell list');
+        $this->assertEquals(0, $spellChoice->spell_max_level, 'Should have max_level 0 for cantrip');
+        $this->assertEquals(1, $spellChoice->quantity, 'Should choose 1 cantrip');
     }
 
     /**
@@ -212,9 +208,9 @@ class ClassImporterBonusSpellChoiceTest extends TestCase
             ->get();
 
         foreach ($features as $feature) {
-            $existingChoice = EntitySpell::where('reference_type', ClassFeature::class)
+            $existingChoice = EntityChoice::where('reference_type', ClassFeature::class)
                 ->where('reference_id', $feature->id)
-                ->where('is_choice', true)
+                ->where('choice_type', 'spell')
                 ->exists();
 
             if ($existingChoice) {
@@ -231,16 +227,16 @@ class ClassImporterBonusSpellChoiceTest extends TestCase
                     ->first();
 
                 if ($spellListClass) {
-                    EntitySpell::create([
+                    EntityChoice::create([
                         'reference_type' => ClassFeature::class,
                         'reference_id' => $feature->id,
-                        'spell_id' => null,
-                        'is_choice' => true,
-                        'is_cantrip' => $isCantrip,
-                        'choice_count' => 1,
-                        'max_level' => $isCantrip ? 0 : null,
+                        'choice_type' => 'spell',
                         'choice_group' => 'feature_spell_choice',
-                        'class_id' => $spellListClass->id,
+                        'quantity' => 1,
+                        'spell_max_level' => $isCantrip ? 0 : null,
+                        'spell_list_slug' => $spellListClass->slug,
+                        'level_granted' => $feature->level,
+                        'is_required' => true,
                     ]);
                 }
             }

@@ -273,19 +273,20 @@ XML;
 
         $backgrounds = $this->parser->parse($originalXml);
         $background = $this->importer->import($backgrounds[0]);
-        $background->load(['languages']);
+        $background->load(['languageChoices']);
 
-        // Assert: Language choice slot created
-        $this->assertCount(2, $background->languages, 'Should have 2 language choice slots');
+        // Assert: Language choices stored in entity_choices table
+        $this->assertCount(2, $background->languageChoices, 'Should have 2 language choice slots');
 
-        // Verify both are choice slots (language_id = null, is_choice = true)
-        foreach ($background->languages as $entityLang) {
-            $this->assertTrue($entityLang->is_choice, 'Should be marked as choice slot');
-            $this->assertNull($entityLang->language_id, 'Choice slot should not have language_id');
+        // Verify choice records have correct type and are unrestricted
+        foreach ($background->languageChoices as $choice) {
+            $this->assertEquals('language', $choice->choice_type);
+            $this->assertNull($choice->target_slug, 'Unrestricted choice should not have target_slug');
+            $this->assertEquals(1, $choice->quantity);
         }
 
         // Verify polymorphic relationship
-        $this->assertEquals(\App\Models\Background::class, $background->languages->first()->reference_type);
-        $this->assertEquals($background->id, $background->languages->first()->reference_id);
+        $this->assertEquals(\App\Models\Background::class, $background->languageChoices->first()->reference_type);
+        $this->assertEquals($background->id, $background->languageChoices->first()->reference_id);
     }
 }

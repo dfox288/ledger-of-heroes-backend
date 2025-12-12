@@ -173,7 +173,7 @@ class Monster extends BaseModel
     public function toSearchableArray(): array
     {
         // Load relationships to avoid N+1 queries
-        $this->loadMissing(['size', 'sources.source', 'spells', 'tags', 'legendaryActions', 'actions', 'traits', 'senses.sense']);
+        $this->loadMissing(['size', 'sources.source', 'spells', 'tags', 'legendaryActions', 'actions', 'traits', 'senses.sense', 'creatureType']);
 
         return [
             'id' => $this->id,
@@ -181,6 +181,8 @@ class Monster extends BaseModel
             'slug' => $this->slug,
             'size_code' => $this->size?->code,
             'size_name' => $this->size?->name,
+            'creature_type_slug' => $this->creatureType?->slug,
+            'creature_type_name' => $this->creatureType?->name,
             'type' => $this->type,
             'alignment' => $this->alignment,
             'armor_class' => $this->armor_class,
@@ -253,6 +255,7 @@ class Monster extends BaseModel
                 'slug',
                 'size_code',
                 'size_name',
+                'creature_type_slug',
                 'type',
                 'alignment',
                 'armor_class',

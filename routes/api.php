@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\CharacterExportController;
 use App\Http\Controllers\Api\CharacterValidationController;
 use App\Http\Controllers\Api\ClassController;
 use App\Http\Controllers\Api\ConditionController;
+use App\Http\Controllers\Api\CreatureTypeController;
 use App\Http\Controllers\Api\DamageTypeController;
 use App\Http\Controllers\Api\FeatController;
 use App\Http\Controllers\Api\ItemController;
@@ -137,6 +138,9 @@ Route::prefix('v1')->group(function () {
 
         // Monster Types (derived from monsters.type)
         Route::get('monster-types', [MonsterTypeController::class, 'index'])->name('monster-types.index');
+
+        // Creature Types (normalized lookup table)
+        Route::get('creature-types', [CreatureTypeController::class, 'index'])->name('creature-types.index');
 
         // Alignments (derived from monsters.alignment)
         Route::get('alignments', [AlignmentController::class, 'index'])->name('alignments.index');

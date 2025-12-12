@@ -312,7 +312,7 @@ class EntityCacheService
         return match ($entityType) {
             'spell' => ['spellSchool', 'sources.source', 'effects', 'classes', 'tags'],
             'item' => ['itemType', 'sources.source', 'modifiers', 'tags'],
-            'monster' => ['size', 'sources.source', 'traits', 'actions', 'legendaryActions'],
+            'monster' => ['size', 'sources.source', 'entityTraits', 'actions', 'legendaryActions'],
             'class' => ['sources.source', 'parentClass', 'subclasses', 'tags'],
             'race' => ['size', 'sources.source', 'parent', 'subraces', 'traits', 'tags'],
             'background' => ['sources.source', 'traits', 'proficiencies', 'languages', 'tags'],

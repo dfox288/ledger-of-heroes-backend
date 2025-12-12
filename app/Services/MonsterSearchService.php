@@ -33,7 +33,7 @@ final class MonsterSearchService
      */
     private const SHOW_RELATIONSHIPS = [
         'size',
-        'traits',
+        'entityTraits',
         'actions',
         'legendaryActions',
         'spells',

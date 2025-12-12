@@ -6,7 +6,6 @@ use App\Models\Modifier;
 use App\Models\Monster;
 use App\Models\MonsterAction;
 use App\Models\MonsterLegendaryAction;
-use App\Models\MonsterTrait;
 use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -25,13 +24,28 @@ class MonsterTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_has_many_traits(): void
+    public function it_has_polymorphic_entity_traits(): void
     {
         $monster = Monster::factory()->create();
-        MonsterTrait::factory()->count(3)->create(['monster_id' => $monster->id]);
+        \App\Models\CharacterTrait::create([
+            'reference_type' => Monster::class,
+            'reference_id' => $monster->id,
+            'name' => 'Magic Resistance',
+            'description' => 'The monster has advantage on saving throws against spells.',
+            'sort_order' => 1,
+        ]);
+        \App\Models\CharacterTrait::create([
+            'reference_type' => Monster::class,
+            'reference_id' => $monster->id,
+            'name' => 'Amphibious',
+            'description' => 'The monster can breathe air and water.',
+            'sort_order' => 2,
+        ]);
 
-        $this->assertCount(3, $monster->traits);
-        $this->assertInstanceOf(MonsterTrait::class, $monster->traits->first());
+        $this->assertCount(2, $monster->entityTraits);
+        $this->assertInstanceOf(\App\Models\CharacterTrait::class, $monster->entityTraits->first());
+        // Verify ordering by sort_order
+        $this->assertEquals('Magic Resistance', $monster->entityTraits->first()->name);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

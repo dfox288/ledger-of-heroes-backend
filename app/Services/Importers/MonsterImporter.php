@@ -2,10 +2,11 @@
 
 namespace App\Services\Importers;
 
+use App\Models\CharacterTrait;
+use App\Models\CreatureType;
 use App\Models\Monster;
 use App\Models\MonsterAction;
 use App\Models\MonsterLegendaryAction;
-use App\Models\MonsterTrait;
 use App\Services\Importers\Concerns\CachesLookupTables;
 use App\Services\Importers\Concerns\ImportsConditions;
 use App\Services\Importers\Concerns\ImportsModifiers;
@@ -35,6 +36,8 @@ class MonsterImporter extends BaseImporter
     protected array $strategies = [];
 
     protected array $strategyStats = [];
+
+    protected array $creatureTypeCache = [];
 
     public function __construct()
     {
@@ -199,6 +202,7 @@ class MonsterImporter extends BaseImporter
                 'name' => $monsterData['name'],
                 'size_id' => $size->id,
                 'type' => $monsterData['type'],
+                'creature_type_id' => $this->resolveCreatureTypeId($monsterData['type']),
                 'alignment' => $monsterData['alignment'],
                 'armor_class' => $monsterData['armor_class'],
                 'armor_type' => $monsterData['armor_type'],
@@ -242,16 +246,22 @@ class MonsterImporter extends BaseImporter
     }
 
     /**
-     * Import monster-specific traits (not to be confused with BaseImporter's importTraits for character traits).
+     * Import monster traits to polymorphic entity_traits table.
+     *
+     * Uses CharacterTrait model which maps to entity_traits table with
+     * reference_type/reference_id polymorphic relationship.
      */
     protected function importMonsterTraits(Monster $monster, array $traits): void
     {
-        // Clear existing
-        $monster->traits()->delete();
+        // Clear existing traits from entity_traits for this monster
+        CharacterTrait::where('reference_type', Monster::class)
+            ->where('reference_id', $monster->id)
+            ->delete();
 
         foreach ($traits as $trait) {
-            MonsterTrait::create([
-                'monster_id' => $monster->id,
+            CharacterTrait::create([
+                'reference_type' => Monster::class,
+                'reference_id' => $monster->id,
                 'name' => $trait['name'],
                 'description' => $trait['description'],
                 'attack_data' => $trait['attack_data'],
@@ -349,5 +359,60 @@ class MonsterImporter extends BaseImporter
         }
 
         $this->importEntityModifiers($monster, $modifiers);
+    }
+
+    /**
+     * Resolve creature type ID from the monster's type string.
+     *
+     * Lazy loads and caches creature types to avoid N+1 queries.
+     *
+     * @param  string  $type  Monster type string (e.g., "humanoid (elf)", "swarm of tiny beasts")
+     * @return int|null Creature type ID or null if not found
+     */
+    protected function resolveCreatureTypeId(string $type): ?int
+    {
+        // Lazy load cache on first use
+        if (empty($this->creatureTypeCache)) {
+            $this->creatureTypeCache = CreatureType::pluck('id', 'slug')->all();
+        }
+
+        // extractBaseCreatureType returns lowercase, so we just prepend the prefix
+        $baseType = $this->extractBaseCreatureType($type);
+        $slug = 'core:'.$baseType;
+
+        return $this->creatureTypeCache[$slug] ?? null;
+    }
+
+    /**
+     * Extract base creature type from type string.
+     *
+     * Handles various D&D type formats:
+     * - "humanoid (elf)" -> "humanoid"
+     * - "fiend (demon, shapechanger)" -> "fiend"
+     * - "swarm of tiny beasts" -> "swarm"
+     *
+     * Note: D&D 5e technically classifies swarms as their component creature type
+     * (e.g., "swarm of bats" is type "beast"). However, we intentionally extract
+     * "swarm" as a separate creature type for easier filtering in our API.
+     *
+     * @param  string  $type  Full type string from XML
+     * @return string Base creature type (lowercase)
+     */
+    protected function extractBaseCreatureType(string $type): string
+    {
+        // Normalize to lowercase early for consistent handling
+        $normalizedType = strtolower(trim($type));
+
+        // Handle swarms first (special case - see note in docblock)
+        if (str_starts_with($normalizedType, 'swarm')) {
+            return 'swarm';
+        }
+
+        // Extract base type before parentheses
+        if (str_contains($normalizedType, '(')) {
+            return trim(explode('(', $normalizedType)[0]);
+        }
+
+        return $normalizedType;
     }
 }

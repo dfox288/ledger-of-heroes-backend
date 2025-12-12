@@ -8,6 +8,7 @@ use App\Models\Concerns\HasSenses;
 use App\Models\Concerns\HasSources;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
@@ -21,6 +22,7 @@ class Monster extends BaseModel
         'slug',
         'sort_name',
         'size_id',
+        'creature_type_id',
         'type',
         'alignment',
         'armor_class',
@@ -95,9 +97,18 @@ class Monster extends BaseModel
         return $this->belongsTo(Size::class);
     }
 
-    public function traits(): HasMany
+    public function creatureType(): BelongsTo
     {
-        return $this->hasMany(MonsterTrait::class);
+        return $this->belongsTo(CreatureType::class);
+    }
+
+    /**
+     * Get monster traits from polymorphic entity_traits table.
+     */
+    public function entityTraits(): MorphMany
+    {
+        return $this->morphMany(CharacterTrait::class, 'reference')
+            ->orderBy('sort_order');
     }
 
     public function actions(): HasMany
@@ -167,7 +178,7 @@ class Monster extends BaseModel
     public function toSearchableArray(): array
     {
         // Load relationships to avoid N+1 queries
-        $this->loadMissing(['size', 'sources.source', 'spells', 'tags', 'legendaryActions', 'actions', 'traits', 'senses.sense']);
+        $this->loadMissing(['size', 'sources.source', 'spells', 'tags', 'legendaryActions', 'actions', 'entityTraits', 'senses.sense', 'creatureType']);
 
         return [
             'id' => $this->id,
@@ -175,6 +186,8 @@ class Monster extends BaseModel
             'slug' => $this->slug,
             'size_code' => $this->size?->code,
             'size_name' => $this->size?->name,
+            'creature_type_slug' => $this->creatureType?->slug,
+            'creature_type_name' => $this->creatureType?->name,
             'type' => $this->type,
             'alignment' => $this->alignment,
             'armor_class' => $this->armor_class,
@@ -212,8 +225,8 @@ class Monster extends BaseModel
             'is_spellcaster' => $this->spells->isNotEmpty(),
             'has_reactions' => $this->actions->where('action_type', 'reaction')->isNotEmpty(),
             // Phase 4: Trait-based capability flags
-            'has_legendary_resistance' => $this->traits->contains(fn ($t) => str_contains($t->name, 'Legendary Resistance')),
-            'has_magic_resistance' => $this->traits->contains('name', 'Magic Resistance'),
+            'has_legendary_resistance' => $this->entityTraits->contains(fn ($t) => str_contains($t->name, 'Legendary Resistance')),
+            'has_magic_resistance' => $this->entityTraits->contains('name', 'Magic Resistance'),
             // Phase 5: Senses (darkvision, blindsight, tremorsense, truesight)
             'sense_types' => $this->senses->pluck('sense.slug')->all(),
             'has_darkvision' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'darkvision'),
@@ -247,6 +260,7 @@ class Monster extends BaseModel
                 'slug',
                 'size_code',
                 'size_name',
+                'creature_type_slug',
                 'type',
                 'alignment',
                 'armor_class',

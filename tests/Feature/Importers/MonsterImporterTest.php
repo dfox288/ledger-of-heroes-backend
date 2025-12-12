@@ -100,11 +100,11 @@ class MonsterImporterTest extends TestCase
         $this->importer->importWithStats($xmlPath);
 
         $dragon = Monster::where('slug', 'phb:young-red-dragon')->first();
-        $traits = $dragon->traits;
+        $traits = $dragon->entityTraits;
 
         $this->assertCount(1, $traits);
-        $this->assertEquals('Legendary Resistance (3/Day)', $traits[0]->name);
-        $this->assertStringContainsString('saving throw', $traits[0]->description);
+        $this->assertEquals('Legendary Resistance (3/Day)', $traits->first()->name);
+        $this->assertStringContainsString('saving throw', $traits->first()->description);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -566,5 +566,110 @@ XML;
         // Original PHB monster should be unchanged
         $phbMonster->refresh();
         $this->assertEquals('phb:reimport-test-monster', $phbMonster->slug);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_links_monster_to_creature_type_based_on_type_string(): void
+    {
+        // Ensure creature types are seeded
+        $this->seed(\Database\Seeders\CreatureTypeSeeder::class);
+
+        $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
+
+        $this->importer->importWithStats($xmlPath);
+
+        // Check a humanoid monster
+        $humanoid = Monster::where('type', 'like', 'humanoid%')->first();
+        $this->assertNotNull($humanoid->creature_type_id);
+        $this->assertEquals('core:humanoid', $humanoid->creatureType->slug);
+
+        // Check a dragon monster
+        $dragon = Monster::where('type', 'dragon')->first();
+        $this->assertNotNull($dragon->creature_type_id);
+        $this->assertEquals('core:dragon', $dragon->creatureType->slug);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_handles_swarm_type_correctly(): void
+    {
+        $this->seed(\Database\Seeders\CreatureTypeSeeder::class);
+
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+  <monster>
+    <name>Swarm of Rats</name>
+    <size>M</size>
+    <type>swarm of tiny beasts</type>
+    <alignment>Unaligned</alignment>
+    <ac>10</ac>
+    <hp>24 (7d8-7)</hp>
+    <speed>walk 30 ft.</speed>
+    <str>9</str>
+    <dex>11</dex>
+    <con>9</con>
+    <int>2</int>
+    <wis>10</wis>
+    <cha>3</cha>
+    <save></save>
+    <skill></skill>
+    <passive>10</passive>
+    <languages></languages>
+    <cr>1/4</cr>
+    <senses>darkvision 30 ft.</senses>
+    <description>A swarm of rats.</description>
+  </monster>
+</compendium>
+XML;
+
+        $parser = $this->importer->getParser();
+        $monsters = $parser->parse($xml);
+        $this->importer->import($monsters[0]);
+
+        $swarm = Monster::where('slug', 'phb:swarm-of-rats')->first();
+        $this->assertNotNull($swarm->creature_type_id);
+        $this->assertEquals('core:swarm', $swarm->creatureType->slug);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_extracts_base_type_from_parenthetical_type_string(): void
+    {
+        $this->seed(\Database\Seeders\CreatureTypeSeeder::class);
+
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+  <monster>
+    <name>Test Fiend</name>
+    <size>M</size>
+    <type>fiend (demon, shapechanger)</type>
+    <alignment>Chaotic Evil</alignment>
+    <ac>15</ac>
+    <hp>52 (8d8+16)</hp>
+    <speed>walk 30 ft.</speed>
+    <str>16</str>
+    <dex>15</dex>
+    <con>14</con>
+    <int>13</int>
+    <wis>14</wis>
+    <cha>16</cha>
+    <save></save>
+    <skill></skill>
+    <passive>12</passive>
+    <languages>Abyssal, Common</languages>
+    <cr>3</cr>
+    <senses>darkvision 60 ft.</senses>
+    <description>A fiendish creature.</description>
+  </monster>
+</compendium>
+XML;
+
+        $parser = $this->importer->getParser();
+        $monsters = $parser->parse($xml);
+        $this->importer->import($monsters[0]);
+
+        $fiend = Monster::where('slug', 'phb:test-fiend')->first();
+        $this->assertNotNull($fiend->creature_type_id);
+        $this->assertEquals('core:fiend', $fiend->creatureType->slug);
     }
 }

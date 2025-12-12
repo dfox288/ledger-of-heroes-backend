@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             ConditionSeeder::class,          // No dependencies
             ProficiencyTypeSeeder::class,    // No dependencies
             LanguageSeeder::class,           // No dependencies
+            CreatureTypeSeeder::class,       // No dependencies
             // Note: CharacterClassSeeder removed - classes are imported from XML files
         ];
 

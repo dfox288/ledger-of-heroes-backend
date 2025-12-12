@@ -93,6 +93,11 @@ class ClassResource extends JsonResource
             'spells' => SpellResource::collection($this->whenLoaded('spells')),
             'optional_features' => OptionalFeatureResource::collection($this->whenLoaded('optionalFeatures')),
             'equipment' => EntityItemResource::collection($this->whenLoaded('equipment')),
+            /** @var array<array{choice_group: string, choice_type: string, quantity: int, options: array}>|array Starting equipment choices (pick one from each group) */
+            'equipment_choices' => $this->when(
+                $this->relationLoaded('equipmentChoices'),
+                fn () => EntityChoiceResource::groupedByChoiceGroup($this->equipmentChoices)
+            ),
             'languages' => EntityLanguageResource::collection($this->whenLoaded('languages')),
             'sources' => EntitySourceResource::collection($this->whenLoaded('sources')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),

@@ -26,6 +26,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #529**: Add `equipment_choices` field to class API endpoint
+  - Root cause: After #523 consolidation, class endpoint only returned static equipment (`entity_items`), not equipment choices (`entity_choices`)
+  - Added `equipmentChoices` relationship to ClassSearchService
+  - Added `equipment_choices` field to ClassResource using EntityChoiceResource::groupedByChoiceGroup()
+  - Created new EntityChoiceResource to format equipment choices for API response
+  - Fighter and other classes now return their starting equipment choice groups
+
 - **Issue #492**: Fix ability score double-counting when editing characters
   - Root cause: API returned final ability scores (with racial bonuses) but frontend treated them as base scores when loading
   - Added `base_ability_scores` field to character API response alongside `ability_scores`

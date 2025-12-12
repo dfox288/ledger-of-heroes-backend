@@ -66,6 +66,7 @@ final class ClassSearchService
         'levelProgression',
         'counters',
         'equipment.item.contents.item',
+        'equipmentChoices',
         'languages.language',
         'spells',
         'optionalFeatures.sources.source',

@@ -310,17 +310,12 @@ class RaceFilterOperatorTest extends TestCase
         // Assert
         $response->assertOk();
 
-        // If any results returned, verify all have innate spells
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $race) {
-                // Check if race has spell associations
-                $hasSpells = isset($race['spells']) && count($race['spells']) > 0;
-                $this->assertTrue($hasSpells, "Race {$race['name']} should have innate spells");
-            }
+        // PHB races may not have innate spells, so 0 results is legitimate
+        // If results ARE returned, verify they actually have innate spells
+        foreach ($response->json('data') as $race) {
+            $hasSpells = isset($race['spells']) && count($race['spells']) > 0;
+            $this->assertTrue($hasSpells, "Race {$race['name']} should have innate spells");
         }
-
-        // Note: PHB races may not have innate spells, so this may return 0 results
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'), 'Filter should work without errors');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -369,16 +364,12 @@ class RaceFilterOperatorTest extends TestCase
         // Assert: Should return spellcasting races (if any exist)
         $response->assertOk();
 
-        // If any results returned, verify they have innate spells
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $race) {
-                $hasSpells = isset($race['spells']) && count($race['spells']) > 0;
-                $this->assertTrue($hasSpells, "Race {$race['name']} should have innate spells (using != false)");
-            }
+        // PHB races may not have innate spells, so 0 results is legitimate
+        // If results ARE returned, verify they actually have innate spells
+        foreach ($response->json('data') as $race) {
+            $hasSpells = isset($race['spells']) && count($race['spells']) > 0;
+            $this->assertTrue($hasSpells, "Race {$race['name']} should have innate spells (using != false)");
         }
-
-        // Note: PHB races may not have innate spells, so this may return 0 results
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'), 'Filter should work without errors');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -389,20 +380,16 @@ class RaceFilterOperatorTest extends TestCase
         $response = $this->getJson('/api/v1/races?filter=has_innate_spells IS NULL');
 
         // Assert: PHB races should all have has_innate_spells data (true or false)
-        // This test verifies IS NULL works, but may return 0 results with clean PHB data
+        // This test verifies IS NULL works - may return 0 results with clean PHB data
         $response->assertOk();
 
-        // If any results are returned, verify they have null has_innate_spells
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $race) {
-                // With properly imported PHB data, we don't expect null values
-                // This is mainly to test the IS NULL operator works
-            }
-        }
-
         // With properly imported PHB data, we expect 0 results since all races have has_innate_spells set
-        // This demonstrates IS NULL operator works correctly
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'), 'IS NULL operator should work without errors');
+        // The foreach validates any results that ARE returned (should be empty for clean data)
+        foreach ($response->json('data') as $race) {
+            // If we get results, the race should have null has_innate_spells
+            // This validates the filter is working correctly
+            $this->assertNull($race['has_innate_spells'] ?? null, "Race {$race['name']} should have null has_innate_spells");
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -431,16 +418,12 @@ class RaceFilterOperatorTest extends TestCase
         // Assert: Should work like not_equals_false test
         $response->assertOk();
 
-        // If any results returned, verify they have innate spells
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $race) {
-                $hasSpells = isset($race['spells']) && count($race['spells']) > 0;
-                $this->assertTrue($hasSpells, "Race {$race['name']} should have innate spells");
-            }
+        // PHB races may not have innate spells, so 0 results is legitimate
+        // If results ARE returned, verify they actually have innate spells
+        foreach ($response->json('data') as $race) {
+            $hasSpells = isset($race['spells']) && count($race['spells']) > 0;
+            $this->assertTrue($hasSpells, "Race {$race['name']} should have innate spells");
         }
-
-        // Verify != operator works correctly
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'), '!= operator should work without errors');
     }
 
     // ============================================================
@@ -457,20 +440,15 @@ class RaceFilterOperatorTest extends TestCase
         // Assert: Should return races with light OR dancing-lights innate spells
         $response->assertOk();
 
-        // If any results returned, verify all have light OR dancing-lights in their spell_slugs
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $race) {
-                $spells = $race['spells'] ?? [];
-                $spellSlugs = collect($spells)->pluck('slug')->toArray();
+        // PHB races may not have many innate spells, so 0 results is legitimate
+        // If results ARE returned, verify they have the expected spells
+        foreach ($response->json('data') as $race) {
+            $spells = $race['spells'] ?? [];
+            $spellSlugs = collect($spells)->pluck('slug')->toArray();
 
-                $hasLightOrDancingLights = in_array('light', $spellSlugs) || in_array('dancing-lights', $spellSlugs);
-                $this->assertTrue($hasLightOrDancingLights, "Race {$race['name']} should have light or dancing-lights spell");
-            }
+            $hasLightOrDancingLights = in_array('light', $spellSlugs) || in_array('dancing-lights', $spellSlugs);
+            $this->assertTrue($hasLightOrDancingLights, "Race {$race['name']} should have light or dancing-lights spell");
         }
-
-        // Note: PHB races may not have innate spells, so this may return 0 results
-        // This demonstrates IN operator works correctly
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'), 'IN operator should work without errors');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

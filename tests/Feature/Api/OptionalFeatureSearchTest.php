@@ -93,8 +93,17 @@ class OptionalFeatureSearchTest extends TestCase
         $response = $this->getJson("/api/v1/optional-features?q={$searchWord}");
 
         $response->assertOk();
-        // Search should return results (may include other matches)
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'));
+
+        // We found a feature with this word, so search should return at least that feature
+        // If Meilisearch is indexed, verify results are relevant
+        foreach ($response->json('data') as $result) {
+            // Results should be relevant to the search term
+            $content = strtolower($result['name'].' '.($result['description'] ?? ''));
+            $this->assertTrue(
+                str_contains($content, strtolower($searchWord)),
+                "Result {$result['name']} should contain search term '{$searchWord}'"
+            );
+        }
     }
 
     #[Test]

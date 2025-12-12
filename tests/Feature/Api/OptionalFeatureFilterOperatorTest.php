@@ -244,8 +244,12 @@ class OptionalFeatureFilterOperatorTest extends TestCase
         $response = $this->getJson('/api/v1/optional-features?filter=resource_type IS NULL');
 
         $response->assertOk();
-        // Verify filter is accepted and returns results
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'));
+
+        // IS NULL may legitimately return 0 results if all features have resource_type set
+        // If results ARE returned, verify they actually have null resource_type
+        foreach ($response->json('data') as $feature) {
+            $this->assertNull($feature['resource_type'] ?? null, "Feature {$feature['name']} should have null resource_type");
+        }
     }
 
     // ============================================================
@@ -326,8 +330,14 @@ class OptionalFeatureFilterOperatorTest extends TestCase
         $response = $this->getJson('/api/v1/optional-features?filter=class_slugs NOT IN [wizard]');
 
         $response->assertOk();
-        // Verify filter is accepted
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'));
+
+        // NOT IN [wizard] may return varying results depending on data
+        // If results ARE returned, verify they don't have wizard in class_slugs
+        foreach ($response->json('data') as $feature) {
+            $featureModel = OptionalFeature::find($feature['id']);
+            $classSlugs = $featureModel->classes->pluck('slug')->toArray();
+            $this->assertNotContains('wizard', $classSlugs, "Feature {$feature['name']} should not be associated with wizard");
+        }
     }
 
     #[Test]
@@ -360,17 +370,31 @@ class OptionalFeatureFilterOperatorTest extends TestCase
         $response = $this->getJson("/api/v1/optional-features?filter=source_codes IN [{$sourceCode}]");
 
         $response->assertOk();
-        // Filter syntax is accepted - results depend on Meilisearch index state
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'));
+
+        // We found a feature with this source, so we should get results
+        // If Meilisearch index is stale, verify the filter at least works
+        foreach ($response->json('data') as $feature) {
+            $featureModel = OptionalFeature::find($feature['id']);
+            $sourceCodes = $featureModel->sources->pluck('code')->toArray();
+            $this->assertContains($sourceCode, $sourceCodes, "Feature {$feature['name']} should have source {$sourceCode}");
+        }
     }
 
     #[Test]
     public function it_filters_by_source_codes_with_not_in(): void
     {
+        // NOT IN [FAKE] should return all features (none have FAKE source)
         $response = $this->getJson('/api/v1/optional-features?filter=source_codes NOT IN [FAKE]');
 
         $response->assertOk();
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'));
+
+        // Since FAKE doesn't exist, all features should be returned
+        // Verify returned features don't have FAKE source
+        foreach ($response->json('data') as $feature) {
+            $featureModel = OptionalFeature::find($feature['id']);
+            $sourceCodes = $featureModel->sources->pluck('code')->toArray();
+            $this->assertNotContains('FAKE', $sourceCodes, "Feature {$feature['name']} should not have FAKE source");
+        }
     }
 
     // ============================================================

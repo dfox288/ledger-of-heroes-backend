@@ -150,10 +150,9 @@ class SpellSearchAndFilterTest extends TestCase
 
         $response->assertOk();
 
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $spell) {
-                $this->assertContains($spell['school']['name'], ['Evocation', 'Conjuration']);
-            }
+        // PHB has Evocation and Conjuration spells - validate all returned results
+        foreach ($response->json('data') as $spell) {
+            $this->assertContains($spell['school']['name'], ['Evocation', 'Conjuration']);
         }
     }
 

@@ -317,8 +317,12 @@ trait TestsFilterOperators
         $response->assertOk();
 
         // Most entities with proper data will have all boolean fields set, so this may return 0 results
-        // This test primarily verifies the operator works without errors
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'), 'IS NULL operator should work without errors');
+        // This test primarily verifies the IS NULL operator is accepted by Meilisearch
+        // If results are returned, verify the field is actually null
+        foreach ($response->json('data') as $record) {
+            $actualValue = $this->extractFieldValue($record, $config['field']);
+            $this->assertNull($actualValue, "Record should have {$config['field']} IS NULL");
+        }
     }
 
     protected function assertBooleanIsNotNull(): void
@@ -392,8 +396,12 @@ trait TestsFilterOperators
         $response->assertOk();
 
         // IS EMPTY operator should work without errors
-        // Verification depends on whether data actually has empty arrays
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'), 'IS EMPTY operator should work without errors');
+        // Most entities have populated arrays, so 0 results is legitimate
+        // If results are returned, verify the array is actually empty
+        foreach ($response->json('data') as $record) {
+            $actualValue = $this->extractFieldValue($record, $config['field']);
+            $this->assertEmpty($actualValue, "Record should have {$config['field']} IS EMPTY");
+        }
     }
 
     // ============================================================

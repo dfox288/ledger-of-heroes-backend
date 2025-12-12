@@ -370,8 +370,9 @@ class MonsterImporter extends BaseImporter
             $this->creatureTypeCache = CreatureType::pluck('id', 'slug')->all();
         }
 
+        // extractBaseCreatureType returns lowercase, so we just prepend the prefix
         $baseType = $this->extractBaseCreatureType($type);
-        $slug = 'core:'.strtolower($baseType);
+        $slug = 'core:'.$baseType;
 
         return $this->creatureTypeCache[$slug] ?? null;
     }
@@ -384,21 +385,28 @@ class MonsterImporter extends BaseImporter
      * - "fiend (demon, shapechanger)" -> "fiend"
      * - "swarm of tiny beasts" -> "swarm"
      *
+     * Note: D&D 5e technically classifies swarms as their component creature type
+     * (e.g., "swarm of bats" is type "beast"). However, we intentionally extract
+     * "swarm" as a separate creature type for easier filtering in our API.
+     *
      * @param  string  $type  Full type string from XML
-     * @return string Base creature type
+     * @return string Base creature type (lowercase)
      */
     protected function extractBaseCreatureType(string $type): string
     {
-        // Handle swarms first (special case)
-        if (str_starts_with(strtolower($type), 'swarm')) {
+        // Normalize to lowercase early for consistent handling
+        $normalizedType = strtolower(trim($type));
+
+        // Handle swarms first (special case - see note in docblock)
+        if (str_starts_with($normalizedType, 'swarm')) {
             return 'swarm';
         }
 
         // Extract base type before parentheses
-        if (str_contains($type, '(')) {
-            return trim(explode('(', $type)[0]);
+        if (str_contains($normalizedType, '(')) {
+            return trim(explode('(', $normalizedType)[0]);
         }
 
-        return $type;
+        return $normalizedType;
     }
 }

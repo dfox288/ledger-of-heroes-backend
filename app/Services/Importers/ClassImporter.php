@@ -316,25 +316,51 @@ class ClassImporter extends BaseImporter
             }
         }
 
-        // 5. Create or update subclass
-        $subclass = CharacterClass::updateOrCreate(
-            ['slug' => $slug],
-            [
+        // 5. Find existing subclass by name + parent_class_id for cross-source merging
+        // This handles cases like PHB Beast Master + TCE Primal Companion → single subclass
+        $existingSubclass = CharacterClass::where('name', $subclassData['name'])
+            ->where('parent_class_id', $parentClass->id)
+            ->first();
+
+        $isNewSubclass = false;
+
+        if ($existingSubclass) {
+            $subclass = $existingSubclass;
+
+            // Update description if current is a stub
+            if (str_starts_with($subclass->description, 'Subclass of ')) {
+                $subclass->update(['description' => $description]);
+            }
+
+            Log::channel('import-strategy')->info('Merging features into existing subclass', [
+                'subclass' => $subclassData['name'],
+                'existing_slug' => $subclass->slug,
+                'incoming_source_slug' => $slug,
+            ]);
+        } else {
+            // Create new subclass
+            $subclass = CharacterClass::create([
+                'slug' => $slug,
                 'name' => $subclassData['name'],
                 'parent_class_id' => $parentClass->id,
-                'hit_die' => $parentClass->hit_die, // Inherit from parent
+                'hit_die' => $parentClass->hit_die,
                 'description' => $description,
                 'spellcasting_ability_id' => $spellcastingAbilityId,
-            ]
-        );
+            ]);
+            $isNewSubclass = true;
+        }
 
-        // 6. Clear existing relationships
-        $subclass->features()->delete();
-        $subclass->counters()->delete();
-        $subclass->levelProgression()->delete();
-        $subclass->proficiencies()->delete(); // Clear bonus proficiencies from features
+        // 6. Clear existing relationships only for newly created subclasses
+        // For existing subclasses, we merge features instead of replacing
+        if ($isNewSubclass) {
+            $subclass->features()->delete();
+            $subclass->counters()->delete();
+            $subclass->levelProgression()->delete();
+            $subclass->proficiencies()->delete();
+        }
 
         // 7. Import subclass-specific features
+        // Note: importFeatures uses updateOrCreate, so it won't duplicate existing features
         if (! empty($subclassData['features'])) {
             $this->importFeatures($subclass, $subclassData['features']);
 

@@ -373,6 +373,137 @@ class ClassImporterMergeTest extends TestCase
     }
 
     #[Test]
+    public function it_merges_subclass_features_from_different_sources()
+    {
+        // This tests the Beast Master scenario:
+        // PHB Beast Master has 5 features, TCE adds Primal Companion
+        // Should result in 1 Beast Master subclass with 6 features total
+
+        // Step 1: Import PHB Ranger with Beast Master subclass
+        $phbData = [
+            'name' => 'Ranger',
+            'hit_die' => 10,
+            'traits' => [
+                [
+                    'name' => 'Ranger',
+                    'description' => 'The ranger class.',
+                    'sources' => [['code' => 'PHB', 'page' => '89']],
+                ],
+            ],
+            'proficiencies' => [],
+            'features' => [],
+            'spell_progression' => [],
+            'counters' => [],
+            'equipment' => ['wealth' => null, 'items' => []],
+            'subclasses' => [
+                [
+                    'name' => 'Beast Master',
+                    'features' => [
+                        [
+                            'name' => "Ranger's Companion (Beast Master)",
+                            'level' => 3,
+                            'is_optional' => false,
+                            'description' => 'At 3rd level, you gain a beast companion.',
+                            'sort_order' => 0,
+                            'sources' => [['code' => 'PHB', 'page' => '93']],
+                        ],
+                        [
+                            'name' => 'Exceptional Training (Beast Master)',
+                            'level' => 7,
+                            'is_optional' => false,
+                            'description' => "Your beast's attacks count as magical.",
+                            'sort_order' => 0,
+                            'sources' => [['code' => 'PHB', 'page' => '93']],
+                        ],
+                        [
+                            'name' => 'Bestial Fury (Beast Master)',
+                            'level' => 11,
+                            'is_optional' => false,
+                            'description' => 'Your beast can make two attacks.',
+                            'sort_order' => 0,
+                            'sources' => [['code' => 'PHB', 'page' => '93']],
+                        ],
+                        [
+                            'name' => 'Share Spells (Beast Master)',
+                            'level' => 15,
+                            'is_optional' => false,
+                            'description' => 'Your beast benefits from your spells.',
+                            'sort_order' => 0,
+                            'sources' => [['code' => 'PHB', 'page' => '93']],
+                        ],
+                    ],
+                    'counters' => [],
+                ],
+            ],
+        ];
+
+        $ranger = $this->importer->import($phbData);
+
+        // Verify initial state
+        $this->assertEquals(1, $ranger->subclasses()->count());
+        $beastMaster = $ranger->subclasses()->where('name', 'Beast Master')->first();
+        $this->assertNotNull($beastMaster);
+        $this->assertEquals('phb:ranger-beast-master', $beastMaster->slug);
+        $this->assertEquals(4, $beastMaster->features()->count());
+
+        // Step 2: Merge TCE Ranger with Beast Master Primal Companion
+        $tceData = [
+            'name' => 'Ranger',
+            'hit_die' => 10,
+            'traits' => [
+                [
+                    'name' => 'Optional Ranger Features',
+                    'description' => 'TCE optional features.',
+                    'sources' => [['code' => 'TCE', 'page' => '56']],
+                ],
+            ],
+            'proficiencies' => [],
+            'features' => [],
+            'spell_progression' => [],
+            'counters' => [],
+            'equipment' => ['wealth' => null, 'items' => []],
+            'subclasses' => [
+                [
+                    'name' => 'Beast Master',
+                    'features' => [
+                        [
+                            'name' => 'Primal Companion (Beast Master)',
+                            'level' => 3,
+                            'is_optional' => true, // TCE's Primal Companion is optional replacement
+                            'description' => "Replaces Ranger's Companion. You summon a primal beast.",
+                            'sort_order' => 1, // Different sort_order to not conflict with Ranger's Companion
+                            'sources' => [['code' => 'TCE', 'page' => '61']],
+                        ],
+                    ],
+                    'counters' => [],
+                ],
+            ],
+        ];
+
+        $ranger = $this->importer->importWithMerge($tceData, MergeMode::MERGE);
+
+        // Verify merge results
+        // Should still have exactly 1 Beast Master subclass (not 2!)
+        $this->assertEquals(1, $ranger->subclasses()->where('name', 'Beast Master')->count());
+
+        $beastMaster = $ranger->subclasses()->where('name', 'Beast Master')->first();
+
+        // Should keep the PHB slug (first import wins)
+        $this->assertEquals('phb:ranger-beast-master', $beastMaster->slug);
+
+        // Should now have 5 features (4 PHB + 1 TCE Primal Companion)
+        $this->assertEquals(5, $beastMaster->features()->count());
+
+        // Verify both Ranger's Companion (PHB) and Primal Companion (TCE) exist
+        $featureNames = $beastMaster->features()->pluck('feature_name')->toArray();
+        $this->assertContains("Ranger's Companion (Beast Master)", $featureNames);
+        $this->assertContains('Primal Companion (Beast Master)', $featureNames);
+        $this->assertContains('Exceptional Training (Beast Master)', $featureNames);
+        $this->assertContains('Bestial Fury (Beast Master)', $featureNames);
+        $this->assertContains('Share Spells (Beast Master)', $featureNames);
+    }
+
+    #[Test]
     public function it_merges_counters_from_supplement_without_duplicating_existing()
     {
         // Step 1: Import base class with features AND counters

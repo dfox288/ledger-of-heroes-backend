@@ -19,16 +19,18 @@ class CreatureTypeFactory extends Factory
      */
     public function definition(): array
     {
+        $name = fake()->unique()->word();
+
         return [
-            'slug' => $this->faker->unique()->slug(2),
-            'name' => $this->faker->word(),
+            'slug' => strtolower($name),
+            'name' => ucfirst($name),
             'typically_immune_to_poison' => false,
             'typically_immune_to_charmed' => false,
             'typically_immune_to_frightened' => false,
             'typically_immune_to_exhaustion' => false,
             'requires_sustenance' => true,
             'requires_sleep' => true,
-            'description' => $this->faker->sentence(),
+            'description' => fake()->sentence(),
         ];
     }
 

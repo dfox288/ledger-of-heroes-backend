@@ -21,6 +21,7 @@ class Monster extends BaseModel
         'slug',
         'sort_name',
         'size_id',
+        'creature_type_id',
         'type',
         'alignment',
         'armor_class',
@@ -93,6 +94,11 @@ class Monster extends BaseModel
     public function size(): BelongsTo
     {
         return $this->belongsTo(Size::class);
+    }
+
+    public function creatureType(): BelongsTo
+    {
+        return $this->belongsTo(CreatureType::class);
     }
 
     public function traits(): HasMany

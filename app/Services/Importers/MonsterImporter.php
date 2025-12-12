@@ -2,11 +2,11 @@
 
 namespace App\Services\Importers;
 
+use App\Models\CharacterTrait;
 use App\Models\CreatureType;
 use App\Models\Monster;
 use App\Models\MonsterAction;
 use App\Models\MonsterLegendaryAction;
-use App\Models\CharacterTrait;
 use App\Services\Importers\Concerns\CachesLookupTables;
 use App\Services\Importers\Concerns\ImportsConditions;
 use App\Services\Importers\Concerns\ImportsModifiers;

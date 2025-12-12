@@ -103,14 +103,6 @@ class Monster extends BaseModel
     }
 
     /**
-     * @deprecated Use entityTraits() instead. Will be removed after migration.
-     */
-    public function traits(): HasMany
-    {
-        return $this->hasMany(MonsterTrait::class);
-    }
-
-    /**
      * Get monster traits from polymorphic entity_traits table.
      */
     public function entityTraits(): MorphMany

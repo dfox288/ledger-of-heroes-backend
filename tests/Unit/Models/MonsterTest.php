@@ -6,7 +6,6 @@ use App\Models\Modifier;
 use App\Models\Monster;
 use App\Models\MonsterAction;
 use App\Models\MonsterLegendaryAction;
-use App\Models\MonsterTrait;
 use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -22,16 +21,6 @@ class MonsterTest extends TestCase
         $monster = Monster::factory()->create();
 
         $this->assertInstanceOf(Size::class, $monster->size);
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function it_has_many_traits(): void
-    {
-        $monster = Monster::factory()->create();
-        MonsterTrait::factory()->count(3)->create(['monster_id' => $monster->id]);
-
-        $this->assertCount(3, $monster->traits);
-        $this->assertInstanceOf(MonsterTrait::class, $monster->traits->first());
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

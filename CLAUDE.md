@@ -477,6 +477,37 @@ SpellShowRequest       // GET /api/v1/spells/{id}
 
 ---
 
+## Docker & Artisan Commands
+
+**Standard commands:**
+```bash
+docker compose exec php php artisan <command>
+docker compose exec php ./vendor/bin/pint
+docker compose exec php ./vendor/bin/pest --testsuite=Unit-Pure
+```
+
+**Tinker (one-liner):**
+```bash
+docker compose exec php php artisan tinker --execute='use App\Models\Spell; dump(Spell::count());'
+```
+
+**Tinker (multiline):** Use a temp file—heredocs trigger approval prompts even with allowed tools:
+```bash
+cat > /tmp/tinker.php << 'EOF'
+<?php
+use App\Models\Spell;
+$spell = Spell::where('slug', 'fireball')->first();
+dump($spell->name, $spell->level, $spell->school);
+EOF
+docker compose exec -T php php artisan tinker < /tmp/tinker.php
+```
+
+**⚠️ Avoid:**
+- Backslash continuations (`\` at end of line)—breaks auto-approval
+- Heredocs directly to docker exec—triggers approval prompt regardless of allowlist
+
+---
+
 ## API Endpoints
 
 **Base:** `/api/v1`

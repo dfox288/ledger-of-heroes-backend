@@ -325,6 +325,28 @@ class CharacterHpModificationTest extends TestCase
     }
 
     #[Test]
+    public function it_handles_damage_and_temp_hp_grant_in_same_request(): void
+    {
+        // Character has 50 HP, 5 temp HP
+        // Takes 10 damage (-10) and gains 15 temp HP
+        // Expected: 45 HP (temp absorbed 5, overflow 5), 15 temp HP (higher-wins)
+        $character = Character::factory()->create([
+            'max_hit_points' => 50,
+            'current_hit_points' => 50,
+            'temp_hit_points' => 5,
+        ]);
+
+        $response = $this->patchJson("/api/v1/characters/{$character->id}/hp", [
+            'hp' => '-10',
+            'temp_hp' => 15,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.current_hit_points', 45)
+            ->assertJsonPath('data.temp_hit_points', 15);
+    }
+
+    #[Test]
     public function it_returns_no_change_for_empty_request(): void
     {
         $character = Character::factory()->create([

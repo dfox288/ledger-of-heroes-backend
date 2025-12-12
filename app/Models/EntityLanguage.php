@@ -28,7 +28,7 @@ class EntityLanguage extends BaseModel
     ];
 
     // Polymorphic relationship to parent entity (Race, Background, Class, etc.)
-    public function entity(): MorphTo
+    public function reference(): MorphTo
     {
         return $this->morphTo(null, 'reference_type', 'reference_id');
     }

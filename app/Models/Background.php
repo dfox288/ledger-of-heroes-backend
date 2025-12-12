@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasEntityChoices;
 use App\Models\Concerns\HasEntityLanguages;
 use App\Models\Concerns\HasEntityTraits;
 use App\Models\Concerns\HasLanguageScopes;
@@ -15,7 +16,7 @@ use Spatie\Tags\HasTags;
 
 class Background extends BaseModel
 {
-    use HasEntityLanguages, HasEntityTraits, HasLanguageScopes, HasProficiencies;
+    use HasEntityChoices, HasEntityLanguages, HasEntityTraits, HasLanguageScopes, HasProficiencies;
     use HasProficiencyScopes, HasSearchableHelpers, HasSources, HasTags, Searchable;
 
     protected $fillable = [

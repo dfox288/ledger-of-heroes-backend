@@ -85,9 +85,13 @@ class SpellSearchableTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_includes_material_cost_fields_in_searchable_array(): void
     {
+        // material_cost_gp and material_consumed are now real columns,
+        // not computed from material_components text
         $spell = Spell::factory()->create([
             'name' => 'Arcane Lock',
             'material_components' => 'gold dust worth at least 25 gp, which the spell consumes',
+            'material_cost_gp' => 25,
+            'material_consumed' => true,
         ]);
 
         $searchable = $spell->toSearchableArray();

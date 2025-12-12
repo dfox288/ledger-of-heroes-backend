@@ -25,6 +25,10 @@ class ClassFeatureResource extends JsonResource
             'is_always_prepared' => $this->is_always_prepared,
             'parent_feature_id' => $this->parent_feature_id,
             'sort_order' => $this->sort_order,
+            'resets_on' => $this->resets_on?->value,
+            'resets_on_label' => $this->resets_on?->label(),
+            'action_cost' => $this->action_cost?->value,
+            'action_cost_label' => $this->action_cost?->label(),
 
             // Relationships
             'data_tables' => EntityDataTableResource::collection(

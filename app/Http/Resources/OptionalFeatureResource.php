@@ -25,6 +25,8 @@ class OptionalFeatureResource extends JsonResource
             'description' => $this->description,
             // Spell-like properties
             'casting_time' => $this->casting_time,
+            'action_cost' => $this->action_cost?->value,
+            'action_cost_label' => $this->action_cost?->label(),
             'range' => $this->range,
             'duration' => $this->duration,
             'spell_school' => new SpellSchoolResource($this->whenLoaded('spellSchool')),

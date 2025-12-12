@@ -39,6 +39,8 @@ class SpellImporter extends BaseImporter
                 'range' => $spellData['range'],
                 'components' => $spellData['components'],
                 'material_components' => $spellData['material_components'],
+                'material_cost_gp' => $spellData['material_cost_gp'],
+                'material_consumed' => $spellData['material_consumed'],
                 'duration' => $spellData['duration'],
                 'needs_concentration' => $spellData['needs_concentration'],
                 'is_ritual' => $spellData['is_ritual'],

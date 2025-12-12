@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #505**: ActionCost enum for D&D 5e action economy tracking
+  - New `action_cost` column on `optional_features` and `class_features` tables
+  - Values: `action`, `bonus_action`, `reaction`, `free`, `passive`
+  - Parsed from `casting_time` field during import for OptionalFeatures
+  - Exposed in API responses via `action_cost` and `action_cost_label` fields
+  - ClassFeatures column added but nullable (XML lacks explicit action cost data)
+
 - **Issue #536**: HP modification endpoint with D&D rule enforcement
   - New `PATCH /api/v1/characters/{character}/hp` endpoint
   - Request format: `hp` (string: "-12" damage, "+15" heal, "45" set), `temp_hp` (int, absolute)
@@ -24,6 +31,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Run with: `./vendor/bin/pest --testsuite=Health-Check`
 
 ### Changed
+
+- **Issue #505**: Database cleanup - normalized spell material columns, removed dead code
+  - Removed unused `entity_data_table_id` FK from `entity_traits` table (CharacterTrait model)
+  - The bidirectional link was never read; MorphMany `dataTables()` is the canonical relationship
+  - Normalized `material_cost_gp` and `material_consumed` from computed accessors to real columns on `spells`
+  - Parsing now happens during import via SpellXmlParser instead of at runtime
+  - Requires `migrate:fresh` and full re-import
 
 - **BREAKING - Issue #523**: Consolidated all character creation choices into unified `entity_choices` table
   - New polymorphic `entity_choices` table replaces scattered choice columns across 5 tables

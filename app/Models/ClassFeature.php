@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ActionCost;
 use App\Enums\ResetTiming;
 use App\Models\Concerns\HasEntityChoices;
 use App\Models\Concerns\HasProficiencies;
@@ -26,6 +27,7 @@ class ClassFeature extends BaseModel
         'description',
         'sort_order',
         'resets_on',
+        'action_cost',
     ];
 
     protected $casts = [
@@ -36,6 +38,7 @@ class ClassFeature extends BaseModel
         'parent_feature_id' => 'integer',
         'sort_order' => 'integer',
         'resets_on' => ResetTiming::class,
+        'action_cost' => ActionCost::class,
     ];
 
     // Relationships

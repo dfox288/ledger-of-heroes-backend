@@ -534,4 +534,91 @@ class ClassImporterTest extends TestCase
             'Should have slug with TCE prefix'
         );
     }
+
+    #[Test]
+    public function it_preserves_distinct_choice_options_for_or_alternatives()
+    {
+        // Issue #535: Equipment choices with "(a) X or (b) Y" should create
+        // separate options, not group both items under choice_option=1
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium>
+    <class>
+        <name>TestCleric</name>
+        <hd>8</hd>
+        <proficiency>Wisdom, Charisma</proficiency>
+        <autolevel level="1">
+            <feature>
+                <name>Starting TestCleric</name>
+                <text>You start with the following equipment, in addition to any equipment provided by your background.
+
+• (a) a mace or (b) a warhammer
+• (a) scale mail or (b) leather armor or (c) chain mail
+• (a) a light crossbow and 20 bolts or (b) any simple weapon
+• (a) a priest's pack or (b) an explorer's pack
+• A shield and a holy symbol
+
+Source: PHB, page 999</text>
+            </feature>
+        </autolevel>
+    </class>
+</compendium>
+XML;
+
+        $parser = new ClassXmlParser;
+        $classes = $parser->parse($xml);
+        $classData = $classes[0];
+
+        // Import the class
+        $class = $this->importer->import($classData);
+
+        // Get all equipment choices for this class
+        $equipmentChoices = \App\Models\EntityChoice::where('reference_type', \App\Models\CharacterClass::class)
+            ->where('reference_id', $class->id)
+            ->where('choice_type', 'equipment')
+            ->orderBy('choice_group')
+            ->orderBy('choice_option')
+            ->get();
+
+        // Group by choice_group to analyze each choice
+        $byGroup = $equipmentChoices->groupBy('choice_group');
+
+        // Choice 1: "(a) a mace or (b) a warhammer" - should have 2 distinct options
+        $choice1 = $byGroup->get('choice_1');
+        $this->assertNotNull($choice1, 'Should have choice_1 group');
+
+        // Get unique choice_option values within choice_1
+        $choice1Options = $choice1->pluck('choice_option')->unique()->values();
+        $this->assertCount(
+            2,
+            $choice1Options,
+            'choice_1 should have 2 distinct choice_options (1 for mace, 2 for warhammer). '.
+            'Got options: '.$choice1Options->implode(', ').
+            '. Descriptions: '.$choice1->pluck('description')->implode(', ')
+        );
+        $this->assertTrue($choice1Options->contains(1), 'choice_1 should have option 1');
+        $this->assertTrue($choice1Options->contains(2), 'choice_1 should have option 2');
+
+        // Choice 2: "(a) scale mail or (b) leather armor or (c) chain mail" - should have 3 distinct options
+        $choice2 = $byGroup->get('choice_2');
+        $this->assertNotNull($choice2, 'Should have choice_2 group');
+
+        $choice2Options = $choice2->pluck('choice_option')->unique()->values();
+        $this->assertCount(
+            3,
+            $choice2Options,
+            'choice_2 should have 3 distinct choice_options. '.
+            'Got options: '.$choice2Options->implode(', ').
+            '. Descriptions: '.$choice2->pluck('description')->implode(', ')
+        );
+
+        // Verify each option maps to correct item
+        $maceChoice = $choice1->firstWhere('choice_option', 1);
+        $warhammerChoice = $choice1->firstWhere('choice_option', 2);
+
+        $this->assertNotNull($maceChoice, 'Should have mace at choice_option=1');
+        $this->assertNotNull($warhammerChoice, 'Should have warhammer at choice_option=2');
+        $this->assertStringContainsString('mace', strtolower($maceChoice->description));
+        $this->assertStringContainsString('warhammer', strtolower($warhammerChoice->description));
+    }
 }

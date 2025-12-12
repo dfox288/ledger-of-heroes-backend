@@ -189,30 +189,19 @@ class EntityChoiceResource extends JsonResource
 
     /**
      * Get items matching a proficiency type category.
+     *
+     * Items are linked to proficiency types via the entity_proficiencies table.
+     * For example, "Club" item has proficiencies: "Simple Weapons" and "Club".
+     * So to find all simple weapons, we find items with a "Simple Weapons" proficiency.
      */
     private static function getItemsForProficiencyType(ProficiencyType $proficiencyType)
     {
-        $category = $proficiencyType->category;
-        $subcategory = $proficiencyType->subcategory;
-
-        $query = ProficiencyType::query();
-
-        if ($category === 'weapon' && $subcategory === 'simple') {
-            $query->where('category', 'weapon')->where('subcategory', 'like', 'simple_%');
-        } elseif ($category === 'weapon' && $subcategory === 'martial') {
-            $query->where('category', 'weapon')->where('subcategory', 'like', 'martial_%');
-        } elseif ($category === 'musical_instrument') {
-            // Musical instruments have their own category (not subcategory of tool)
-            // Exclude the generic "Musical Instruments" entry - we want individual instruments only
-            $query->where('category', 'musical_instrument')
-                ->where('slug', '!=', 'core:musical-instruments');
-        } else {
-            return collect();
-        }
-
-        $slugs = $query->pluck('slug');
-
-        return Item::whereIn('slug', $slugs)
+        // Find items that have a proficiency relationship to this proficiency type
+        // This works for weapon categories (Simple Weapons, Martial Weapons)
+        // and instrument categories (Musical Instruments)
+        return Item::whereHas('proficiencies', function ($query) use ($proficiencyType) {
+            $query->where('proficiency_type_id', $proficiencyType->id);
+        })
             ->where('is_magic', false)
             ->orderBy('name')
             ->get(['id', 'name', 'slug']);

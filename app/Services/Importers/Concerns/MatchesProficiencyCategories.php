@@ -17,24 +17,24 @@ trait MatchesProficiencyCategories
      * @var array<string, string>
      */
     private static array $categorySlugMap = [
-        // Weapons - parent categories
-        'martial' => 'martial-weapons',
-        'simple' => 'simple-weapons',
+        // Weapons - parent categories (note: core: prefix required)
+        'martial' => 'core:martial-weapons',
+        'simple' => 'core:simple-weapons',
 
         // Weapons - specific subcategories (map to parent for now)
-        'martial_melee' => 'martial-weapons',
-        'martial_ranged' => 'martial-weapons',
-        'simple_melee' => 'simple-weapons',
-        'simple_ranged' => 'simple-weapons',
+        'martial_melee' => 'core:martial-weapons',
+        'martial_ranged' => 'core:martial-weapons',
+        'simple_melee' => 'core:simple-weapons',
+        'simple_ranged' => 'core:simple-weapons',
 
         // Armor categories
-        'light_armor' => 'light-armor',
-        'medium_armor' => 'medium-armor',
-        'heavy_armor' => 'heavy-armor',
-        'shields' => 'shields',
+        'light_armor' => 'core:light-armor',
+        'medium_armor' => 'core:medium-armor',
+        'heavy_armor' => 'core:heavy-armor',
+        'shields' => 'core:shields',
 
         // Tools/instruments categories
-        'musical_instrument' => 'musical-instruments',
+        'musical_instrument' => 'core:musical-instruments',
     ];
 
     /**

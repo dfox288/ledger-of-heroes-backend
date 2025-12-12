@@ -414,40 +414,19 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
      *   - Match items by slug
      *
      * For "Musical Instruments" (category=musical_instrument):
-     *   - Find ProficiencyTypes where category = "musical_instrument" (excluding generic entry)
-     *   - Match items by slug
+     *   - Find Items with a proficiency linking to "Musical Instruments"
+     *
+     * Items are linked to proficiency types via the entity_proficiencies table.
+     * For example, "Club" item has proficiencies: "Simple Weapons" and "Club".
      */
     private function getItemsForProficiencyType(ProficiencyType $proficiencyType): Collection
     {
-        $category = $proficiencyType->category;
-        $subcategory = $proficiencyType->subcategory;
-
-        // Build query for matching proficiency types
-        $query = ProficiencyType::query();
-
-        if ($category === 'weapon' && $subcategory === 'simple') {
-            // Simple Weapons: match simple_melee and simple_ranged
-            $query->where('category', 'weapon')
-                ->where('subcategory', 'like', 'simple_%');
-        } elseif ($category === 'weapon' && $subcategory === 'martial') {
-            // Martial Weapons: match martial_melee and martial_ranged
-            $query->where('category', 'weapon')
-                ->where('subcategory', 'like', 'martial_%');
-        } elseif ($category === 'musical_instrument') {
-            // Musical instruments have their own category (not subcategory of tool)
-            // Exclude the generic "Musical Instruments" entry - we want individual instruments only
-            $query->where('category', 'musical_instrument')
-                ->where('slug', '!=', 'core:musical-instruments');
-        } else {
-            // Unknown category - return empty collection
-            return collect();
-        }
-
-        // Get slugs of matching proficiency types
-        $slugs = $query->pluck('slug');
-
-        // Find items matching these slugs (non-magic base items only)
-        return Item::whereIn('slug', $slugs)
+        // Find items that have a proficiency relationship to this proficiency type
+        // This works for weapon categories (Simple Weapons, Martial Weapons)
+        // and instrument categories (Musical Instruments)
+        return Item::whereHas('proficiencies', function ($query) use ($proficiencyType) {
+            $query->where('proficiency_type_id', $proficiencyType->id);
+        })
             ->where('is_magic', false)
             ->orderBy('name')
             ->get(['id', 'name', 'slug']);

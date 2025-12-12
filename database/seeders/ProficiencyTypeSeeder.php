@@ -110,23 +110,21 @@ class ProficiencyTypeSeeder extends Seeder
             ['name' => 'Playing Card Set', 'category' => 'gaming_set'],
             ['name' => 'Three-Dragon Ante Set', 'category' => 'gaming_set'],
 
-            // Musical Instruments - Parent category (grants proficiency in ALL musical instruments)
-            // This is used when a class/race grants "Musical Instruments" proficiency broadly
+            // Musical Instruments
+            // PHB treats these as a peer category to Artisan's Tools and Gaming Sets
+            // Generic entry used for "choose X musical instruments" choices
             ['name' => 'Musical Instruments', 'category' => 'musical_instrument'],
-
-            // Musical Instruments - Individual instruments (category: tool, subcategory: musical_instrument)
-            // This matches the pattern used for artisan tools and allows lookups to work correctly
-            // Query: ?category=tool&subcategory=musical_instrument returns all individual instruments
-            ['name' => 'Bagpipes', 'category' => 'tool', 'subcategory' => 'musical_instrument'],
-            ['name' => 'Drum', 'category' => 'tool', 'subcategory' => 'musical_instrument'],
-            ['name' => 'Dulcimer', 'category' => 'tool', 'subcategory' => 'musical_instrument'],
-            ['name' => 'Flute', 'category' => 'tool', 'subcategory' => 'musical_instrument'],
-            ['name' => 'Horn', 'category' => 'tool', 'subcategory' => 'musical_instrument'],
-            ['name' => 'Lute', 'category' => 'tool', 'subcategory' => 'musical_instrument'],
-            ['name' => 'Lyre', 'category' => 'tool', 'subcategory' => 'musical_instrument'],
-            ['name' => 'Pan Flute', 'category' => 'tool', 'subcategory' => 'musical_instrument'],
-            ['name' => 'Shawm', 'category' => 'tool', 'subcategory' => 'musical_instrument'],
-            ['name' => 'Viol', 'category' => 'tool', 'subcategory' => 'musical_instrument'],
+            // Individual instruments - query: ?category=musical_instrument (exclude generic by slug)
+            ['name' => 'Bagpipes', 'category' => 'musical_instrument'],
+            ['name' => 'Drum', 'category' => 'musical_instrument'],
+            ['name' => 'Dulcimer', 'category' => 'musical_instrument'],
+            ['name' => 'Flute', 'category' => 'musical_instrument'],
+            ['name' => 'Horn', 'category' => 'musical_instrument'],
+            ['name' => 'Lute', 'category' => 'musical_instrument'],
+            ['name' => 'Lyre', 'category' => 'musical_instrument'],
+            ['name' => 'Pan Flute', 'category' => 'musical_instrument'],
+            ['name' => 'Shawm', 'category' => 'musical_instrument'],
+            ['name' => 'Viol', 'category' => 'musical_instrument'],
         ];
 
         foreach ($proficiencyTypes as $type) {

@@ -202,7 +202,10 @@ class EntityChoiceResource extends JsonResource
         } elseif ($category === 'weapon' && $subcategory === 'martial') {
             $query->where('category', 'weapon')->where('subcategory', 'like', 'martial_%');
         } elseif ($category === 'musical_instrument') {
-            $query->where('subcategory', 'musical_instrument');
+            // Musical instruments have their own category (not subcategory of tool)
+            // Exclude the generic "Musical Instruments" entry - we want individual instruments only
+            $query->where('category', 'musical_instrument')
+                ->where('slug', '!=', 'core:musical-instruments');
         } else {
             return collect();
         }

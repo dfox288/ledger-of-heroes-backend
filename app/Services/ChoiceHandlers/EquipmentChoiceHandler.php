@@ -414,7 +414,7 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
      *   - Match items by slug
      *
      * For "Musical Instruments" (category=musical_instrument):
-     *   - Find ProficiencyTypes where subcategory = "musical_instrument"
+     *   - Find ProficiencyTypes where category = "musical_instrument" (excluding generic entry)
      *   - Match items by slug
      */
     private function getItemsForProficiencyType(ProficiencyType $proficiencyType): Collection
@@ -434,8 +434,10 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
             $query->where('category', 'weapon')
                 ->where('subcategory', 'like', 'martial_%');
         } elseif ($category === 'musical_instrument') {
-            // Musical Instruments: match tool/musical_instrument
-            $query->where('subcategory', 'musical_instrument');
+            // Musical instruments have their own category (not subcategory of tool)
+            // Exclude the generic "Musical Instruments" entry - we want individual instruments only
+            $query->where('category', 'musical_instrument')
+                ->where('slug', '!=', 'core:musical-instruments');
         } else {
             // Unknown category - return empty collection
             return collect();

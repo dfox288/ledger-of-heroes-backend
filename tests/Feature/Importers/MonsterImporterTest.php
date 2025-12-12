@@ -100,11 +100,11 @@ class MonsterImporterTest extends TestCase
         $this->importer->importWithStats($xmlPath);
 
         $dragon = Monster::where('slug', 'phb:young-red-dragon')->first();
-        $traits = $dragon->traits;
+        $traits = $dragon->entityTraits;
 
         $this->assertCount(1, $traits);
-        $this->assertEquals('Legendary Resistance (3/Day)', $traits[0]->name);
-        $this->assertStringContainsString('saving throw', $traits[0]->description);
+        $this->assertEquals('Legendary Resistance (3/Day)', $traits->first()->name);
+        $this->assertStringContainsString('saving throw', $traits->first()->description);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -581,12 +581,12 @@ XML;
         // Check a humanoid monster
         $humanoid = Monster::where('type', 'like', 'humanoid%')->first();
         $this->assertNotNull($humanoid->creature_type_id);
-        $this->assertEquals('humanoid', $humanoid->creatureType->slug);
+        $this->assertEquals('core:humanoid', $humanoid->creatureType->slug);
 
         // Check a dragon monster
         $dragon = Monster::where('type', 'dragon')->first();
         $this->assertNotNull($dragon->creature_type_id);
-        $this->assertEquals('dragon', $dragon->creatureType->slug);
+        $this->assertEquals('core:dragon', $dragon->creatureType->slug);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -628,7 +628,7 @@ XML;
 
         $swarm = Monster::where('slug', 'phb:swarm-of-rats')->first();
         $this->assertNotNull($swarm->creature_type_id);
-        $this->assertEquals('swarm', $swarm->creatureType->slug);
+        $this->assertEquals('core:swarm', $swarm->creatureType->slug);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -670,6 +670,6 @@ XML;
 
         $fiend = Monster::where('slug', 'phb:test-fiend')->first();
         $this->assertNotNull($fiend->creature_type_id);
-        $this->assertEquals('fiend', $fiend->creatureType->slug);
+        $this->assertEquals('core:fiend', $fiend->creatureType->slug);
     }
 }

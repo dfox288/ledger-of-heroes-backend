@@ -42,7 +42,7 @@ class MonsterResource extends JsonResource
             'languages' => $this->languages,
             'senses' => EntitySenseResource::collection($this->whenLoaded('senses')),
             'description' => $this->description,
-            'traits' => MonsterTraitResource::collection($this->whenLoaded('traits')),
+            'traits' => MonsterTraitResource::collection($this->whenLoaded('entityTraits')),
             'actions' => MonsterActionResource::collection(
                 $this->whenLoaded('actions', fn () => $this->actions->where('action_type', '!=', 'reaction'))
             ),

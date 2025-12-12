@@ -186,7 +186,7 @@ class Monster extends BaseModel
     public function toSearchableArray(): array
     {
         // Load relationships to avoid N+1 queries
-        $this->loadMissing(['size', 'sources.source', 'spells', 'tags', 'legendaryActions', 'actions', 'traits', 'senses.sense', 'creatureType']);
+        $this->loadMissing(['size', 'sources.source', 'spells', 'tags', 'legendaryActions', 'actions', 'entityTraits', 'senses.sense', 'creatureType']);
 
         return [
             'id' => $this->id,
@@ -233,8 +233,8 @@ class Monster extends BaseModel
             'is_spellcaster' => $this->spells->isNotEmpty(),
             'has_reactions' => $this->actions->where('action_type', 'reaction')->isNotEmpty(),
             // Phase 4: Trait-based capability flags
-            'has_legendary_resistance' => $this->traits->contains(fn ($t) => str_contains($t->name, 'Legendary Resistance')),
-            'has_magic_resistance' => $this->traits->contains('name', 'Magic Resistance'),
+            'has_legendary_resistance' => $this->entityTraits->contains(fn ($t) => str_contains($t->name, 'Legendary Resistance')),
+            'has_magic_resistance' => $this->entityTraits->contains('name', 'Magic Resistance'),
             // Phase 5: Senses (darkvision, blindsight, tremorsense, truesight)
             'sense_types' => $this->senses->pluck('sense.slug')->all(),
             'has_darkvision' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'darkvision'),

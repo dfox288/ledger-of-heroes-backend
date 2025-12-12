@@ -8,6 +8,7 @@ use App\Models\Concerns\HasSenses;
 use App\Models\Concerns\HasSources;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
@@ -101,9 +102,21 @@ class Monster extends BaseModel
         return $this->belongsTo(CreatureType::class);
     }
 
+    /**
+     * @deprecated Use entityTraits() instead. Will be removed after migration.
+     */
     public function traits(): HasMany
     {
         return $this->hasMany(MonsterTrait::class);
+    }
+
+    /**
+     * Get monster traits from polymorphic entity_traits table.
+     */
+    public function entityTraits(): MorphMany
+    {
+        return $this->morphMany(CharacterTrait::class, 'reference')
+            ->orderBy('sort_order');
     }
 
     public function actions(): HasMany

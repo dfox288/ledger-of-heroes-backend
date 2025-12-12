@@ -35,6 +35,31 @@ class MonsterTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
+    public function it_has_polymorphic_entity_traits(): void
+    {
+        $monster = Monster::factory()->create();
+        \App\Models\CharacterTrait::create([
+            'reference_type' => Monster::class,
+            'reference_id' => $monster->id,
+            'name' => 'Magic Resistance',
+            'description' => 'The monster has advantage on saving throws against spells.',
+            'sort_order' => 1,
+        ]);
+        \App\Models\CharacterTrait::create([
+            'reference_type' => Monster::class,
+            'reference_id' => $monster->id,
+            'name' => 'Amphibious',
+            'description' => 'The monster can breathe air and water.',
+            'sort_order' => 2,
+        ]);
+
+        $this->assertCount(2, $monster->entityTraits);
+        $this->assertInstanceOf(\App\Models\CharacterTrait::class, $monster->entityTraits->first());
+        // Verify ordering by sort_order
+        $this->assertEquals('Magic Resistance', $monster->entityTraits->first()->name);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_has_many_actions(): void
     {
         $monster = Monster::factory()->create();

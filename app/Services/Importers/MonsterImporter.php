@@ -6,7 +6,7 @@ use App\Models\CreatureType;
 use App\Models\Monster;
 use App\Models\MonsterAction;
 use App\Models\MonsterLegendaryAction;
-use App\Models\MonsterTrait;
+use App\Models\CharacterTrait;
 use App\Services\Importers\Concerns\CachesLookupTables;
 use App\Services\Importers\Concerns\ImportsConditions;
 use App\Services\Importers\Concerns\ImportsModifiers;
@@ -246,16 +246,22 @@ class MonsterImporter extends BaseImporter
     }
 
     /**
-     * Import monster-specific traits (not to be confused with BaseImporter's importTraits for character traits).
+     * Import monster traits to polymorphic entity_traits table.
+     *
+     * Uses CharacterTrait model which maps to entity_traits table with
+     * reference_type/reference_id polymorphic relationship.
      */
     protected function importMonsterTraits(Monster $monster, array $traits): void
     {
-        // Clear existing
-        $monster->traits()->delete();
+        // Clear existing traits from entity_traits for this monster
+        CharacterTrait::where('reference_type', Monster::class)
+            ->where('reference_id', $monster->id)
+            ->delete();
 
         foreach ($traits as $trait) {
-            MonsterTrait::create([
-                'monster_id' => $monster->id,
+            CharacterTrait::create([
+                'reference_type' => Monster::class,
+                'reference_id' => $monster->id,
                 'name' => $trait['name'],
                 'description' => $trait['description'],
                 'attack_data' => $trait['attack_data'],

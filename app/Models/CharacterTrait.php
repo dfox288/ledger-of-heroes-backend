@@ -16,6 +16,7 @@ class CharacterTrait extends BaseModel
         'name',
         'category',
         'description',
+        'attack_data',
         'sort_order',
         'entity_data_table_id',
     ];

@@ -96,7 +96,6 @@ class CharacterProficiencyController extends Controller
      * ```
      *
      * **Note:** This endpoint is idempotent - calling it multiple times will not create duplicates.
-     * Proficiencies are synced when class/race/background changes via the PopulateCharacterAbilities listener.
      */
     public function sync(Character $character): SyncResultResource
     {

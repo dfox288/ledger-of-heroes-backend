@@ -110,7 +110,6 @@ class CharacterFeatureController extends Controller
      * ```
      *
      * **Note:** This endpoint is idempotent - calling it multiple times will not create duplicates.
-     * Features are synced when class/race/background changes via the PopulateCharacterAbilities listener.
      */
     public function sync(Character $character): SyncResultResource
     {
@@ -150,9 +149,6 @@ class CharacterFeatureController extends Controller
      * ```json
      * {"message": "Invalid source. Valid sources: class, race, background, feat, item"}
      * ```
-     *
-     * **Note:** This is automatically called by the PopulateCharacterAbilities listener
-     * when a character's class/race/background changes.
      */
     public function clear(Character $character, string $source): MessageResource|JsonResponse
     {

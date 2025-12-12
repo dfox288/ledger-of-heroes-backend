@@ -6,7 +6,6 @@ use App\Events\CharacterUpdated;
 use App\Events\ModelImported;
 use App\Listeners\ClearRequestValidationCache;
 use App\Listeners\InvalidateCharacterCache;
-use App\Listeners\PopulateCharacterAbilities;
 use App\Models\AbilityScore;
 use App\Models\Background;
 use App\Models\Character;
@@ -84,11 +83,6 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(
             CharacterUpdated::class,
             InvalidateCharacterCache::class
-        );
-
-        Event::listen(
-            CharacterUpdated::class,
-            PopulateCharacterAbilities::class
         );
 
         // Custom route model binding that supports ID and slug

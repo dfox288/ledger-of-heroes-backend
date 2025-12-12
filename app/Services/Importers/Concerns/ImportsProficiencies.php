@@ -93,17 +93,12 @@ trait ImportsProficiencies
         $choiceOption = $profData['choice_option'] ?? null;
         $quantity = $profData['quantity'] ?? 1;
         $name = $profData['name'] ?? null;
+        $proficiencySubcategory = $profData['proficiency_subcategory'] ?? null;
 
-        // For unrestricted choices (no specific name, just type and maybe quantity)
-        if ($choiceGroup === null && $name === null) {
-            $choiceIndex++;
-            $groupName = $proficiencyType.'_choice_'.$choiceIndex;
-
-            // Build constraints if subcategory is present
-            $constraints = null;
-            if (! empty($profData['proficiency_subcategory'])) {
-                $constraints = ['subcategory' => $profData['proficiency_subcategory']];
-            }
+        // For category-based choices (e.g., "artisan tools", "musical instruments")
+        // These have a subcategory constraint - treat as unrestricted within that subcategory
+        if (! empty($proficiencySubcategory)) {
+            $groupName = $choiceGroup ?? $proficiencyType.'_choice_'.++$choiceIndex;
 
             $this->createProficiencyChoice(
                 referenceType: get_class($entity),
@@ -112,7 +107,28 @@ trait ImportsProficiencies
                 proficiencyType: $proficiencyType,
                 quantity: $quantity,
                 levelGranted: 1,
-                constraints: $constraints
+                constraints: ['subcategory' => $proficiencySubcategory]
+            );
+
+            return;
+        }
+
+        // For fully unrestricted choices (no subcategory, no specific name)
+        // This path is only reached if proficiency_subcategory is NOT set (handled above),
+        // so constraints: null is correct - all items of this type are valid options.
+        // Example: Warforged "one tool proficiency of your choice" with no subcategory limit
+        if ($choiceGroup === null && $name === null) {
+            $choiceIndex++;
+            $groupName = $proficiencyType.'_choice_'.$choiceIndex;
+
+            $this->createProficiencyChoice(
+                referenceType: get_class($entity),
+                referenceId: $entity->id,
+                choiceGroup: $groupName,
+                proficiencyType: $proficiencyType,
+                quantity: $quantity,
+                levelGranted: 1,
+                constraints: null
             );
 
             return;

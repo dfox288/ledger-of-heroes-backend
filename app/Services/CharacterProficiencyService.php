@@ -500,6 +500,20 @@ class CharacterProficiencyService
                         }
                     }
                 }
+
+                // If restricted choice yielded no valid options (e.g., target_slug is placeholder text
+                // like "one-type-of-artisan's-tools-of-your-choice"), fall back to category lookup.
+                // $proficiencySubcategory comes from constraints['subcategory'] on the EntityChoice.
+                // For legacy data with invalid target_slug but valid constraints, this respects the subcategory.
+                // For legacy data with constraints: null, this returns ALL items of the proficiency type.
+                if (empty($allOptions) && $proficiencyType !== 'skill') {
+                    $allOptions = $this->buildProficiencyTypeOptions(
+                        $proficiencyType,
+                        $proficiencySubcategory,
+                        $existingProfTypeSlugsForGroup,
+                        $selectedProfTypeSlugs
+                    );
+                }
             } else {
                 // Unrestricted choice: look up options from lookup tables
                 if ($proficiencyType === 'skill') {
@@ -519,27 +533,14 @@ class CharacterProficiencyService
                             $selectedSkillSlugs[] = $skill->slug;
                         }
                     }
-                } elseif ($proficiencySubcategory) {
-                    // Subcategory-based choice (e.g., "artisan tools")
-                    $lookupProficiencyTypes = \App\Models\ProficiencyType::where('category', $proficiencyType)
-                        ->where('subcategory', $proficiencySubcategory)
-                        ->orderBy('name')
-                        ->get();
-
-                    foreach ($lookupProficiencyTypes as $profType) {
-                        $allOptions[] = [
-                            'type' => 'proficiency_type',
-                            'proficiency_type_slug' => $profType->slug,
-                            'proficiency_type' => [
-                                'slug' => $profType->slug,
-                                'name' => $profType->name,
-                            ],
-                        ];
-
-                        if (in_array($profType->slug, $existingProfTypeSlugsForGroup)) {
-                            $selectedProfTypeSlugs[] = $profType->slug;
-                        }
-                    }
+                } else {
+                    // Proficiency type choice (tools, weapons, armor, etc.)
+                    $allOptions = $this->buildProficiencyTypeOptions(
+                        $proficiencyType,
+                        $proficiencySubcategory,
+                        $existingProfTypeSlugsForGroup,
+                        $selectedProfTypeSlugs
+                    );
                 }
             }
 
@@ -558,6 +559,52 @@ class CharacterProficiencyService
         }
 
         return $choices;
+    }
+
+    /**
+     * Build proficiency type options array for a given category.
+     *
+     * Used for unrestricted tool/weapon/armor choices and as fallback
+     * when restricted choices have invalid target_slugs (placeholder text).
+     *
+     * @param  string  $proficiencyType  The category (tool, weapon, armor, etc.)
+     * @param  string|null  $proficiencySubcategory  Optional subcategory filter (artisan, musical, etc.)
+     * @param  array  $existingProfTypeSlugsForGroup  Already selected proficiency type slugs
+     * @param  array  &$selectedProfTypeSlugs  Reference to selected slugs array to populate
+     * @return array The options array
+     */
+    private function buildProficiencyTypeOptions(
+        string $proficiencyType,
+        ?string $proficiencySubcategory,
+        array $existingProfTypeSlugsForGroup,
+        array &$selectedProfTypeSlugs
+    ): array {
+        $options = [];
+
+        $query = \App\Models\ProficiencyType::where('category', $proficiencyType);
+
+        if ($proficiencySubcategory) {
+            $query->where('subcategory', $proficiencySubcategory);
+        }
+
+        $proficiencyTypes = $query->orderBy('name')->get();
+
+        foreach ($proficiencyTypes as $profType) {
+            $options[] = [
+                'type' => 'proficiency_type',
+                'proficiency_type_slug' => $profType->slug,
+                'proficiency_type' => [
+                    'slug' => $profType->slug,
+                    'name' => $profType->name,
+                ],
+            ];
+
+            if (in_array($profType->slug, $existingProfTypeSlugsForGroup)) {
+                $selectedProfTypeSlugs[] = $profType->slug;
+            }
+        }
+
+        return $options;
     }
 
     /**

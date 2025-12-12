@@ -987,4 +987,170 @@ class CharacterProficiencyServiceTest extends TestCase
         $this->assertEquals(0, $choiceAfter['remaining'], 'remaining should be 0 after selection');
         $this->assertContains($nature->slug, $choiceAfter['selected_skills'], 'selected_skills should contain the chosen skill');
     }
+
+    // =====================
+    // Tool Proficiency Choice Tests (Issue #539)
+    // =====================
+
+    #[Test]
+    public function it_returns_tool_options_for_unrestricted_tool_choice(): void
+    {
+        // Create tool proficiency types
+        $smithsTools = ProficiencyType::create([
+            'name' => "Smith's Tools",
+            'slug' => 'test:smiths-tools-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'artisan',
+        ]);
+        $brewersSupplies = ProficiencyType::create([
+            'name' => "Brewer's Supplies",
+            'slug' => 'test:brewers-supplies-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'artisan',
+        ]);
+        $thievesTools = ProficiencyType::create([
+            'name' => "Thieves' Tools",
+            'slug' => 'test:thieves-tools-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => null, // Not artisan
+        ]);
+
+        // Create class with unrestricted tool choice (no target_type, no subcategory constraint)
+        $warforgedLike = CharacterClass::factory()->create(['name' => 'TestClass', 'slug' => 'testclass-'.uniqid()]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $warforgedLike->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'tool',
+            'choice_group' => 'tool_choice_1',
+            'quantity' => 1,
+            'target_type' => null,
+            'target_slug' => null,
+            'constraints' => null, // No subcategory constraint - all tools are valid
+        ]);
+
+        $character = Character::factory()->withClass($warforgedLike)->create();
+
+        // Get pending choices
+        $choices = $this->service->getPendingChoices($character);
+
+        // Assert tool choice exists and has options
+        $this->assertArrayHasKey('class', $choices);
+        $this->assertArrayHasKey('tool_choice_1', $choices['class']);
+
+        $toolChoice = $choices['class']['tool_choice_1'];
+        $this->assertEquals('tool', $toolChoice['proficiency_type']);
+        $this->assertEquals(1, $toolChoice['quantity']);
+        $this->assertEquals(1, $toolChoice['remaining']);
+
+        // Options should contain ALL tools (not filtered by subcategory)
+        $this->assertGreaterThanOrEqual(3, count($toolChoice['options']), 'Should have tool options');
+
+        // Verify the options have correct structure
+        $optionSlugs = collect($toolChoice['options'])->pluck('proficiency_type_slug')->filter()->all();
+        $this->assertContains($smithsTools->slug, $optionSlugs);
+        $this->assertContains($brewersSupplies->slug, $optionSlugs);
+        $this->assertContains($thievesTools->slug, $optionSlugs);
+    }
+
+    #[Test]
+    public function it_returns_only_subcategory_tools_when_constraint_set(): void
+    {
+        // Create tool proficiency types
+        $smithsTools = ProficiencyType::create([
+            'name' => "Smith's Tools",
+            'slug' => 'test:smiths-tools-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'artisan',
+        ]);
+        $brewersSupplies = ProficiencyType::create([
+            'name' => "Brewer's Supplies",
+            'slug' => 'test:brewers-supplies-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'artisan',
+        ]);
+        $thievesTools = ProficiencyType::create([
+            'name' => "Thieves' Tools",
+            'slug' => 'test:thieves-tools-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'misc', // NOT artisan
+        ]);
+
+        // Create class with artisan tools choice (subcategory constraint)
+        $artificerClass = CharacterClass::factory()->create(['name' => 'Artificer', 'slug' => 'artificer-'.uniqid()]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $artificerClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'tool',
+            'choice_group' => 'tool_choice_1',
+            'quantity' => 1,
+            'target_type' => null,
+            'target_slug' => null,
+            'constraints' => ['subcategory' => 'artisan'], // Only artisan tools
+        ]);
+
+        $character = Character::factory()->withClass($artificerClass)->create();
+
+        // Get pending choices
+        $choices = $this->service->getPendingChoices($character);
+
+        // Assert tool choice exists and has options
+        $this->assertArrayHasKey('class', $choices);
+        $this->assertArrayHasKey('tool_choice_1', $choices['class']);
+
+        $toolChoice = $choices['class']['tool_choice_1'];
+        $this->assertEquals('tool', $toolChoice['proficiency_type']);
+        $this->assertEquals('artisan', $toolChoice['proficiency_subcategory']);
+
+        // Options should contain ONLY artisan tools
+        $optionSlugs = collect($toolChoice['options'])->pluck('proficiency_type_slug')->filter()->all();
+        $this->assertContains($smithsTools->slug, $optionSlugs);
+        $this->assertContains($brewersSupplies->slug, $optionSlugs);
+        $this->assertNotContains($thievesTools->slug, $optionSlugs, 'Should NOT include non-artisan tools');
+    }
+
+    #[Test]
+    public function it_returns_tool_options_for_choice_with_placeholder_target_slug(): void
+    {
+        // Create tool proficiency types
+        $smithsTools = ProficiencyType::create([
+            'name' => "Smith's Tools",
+            'slug' => 'test:smiths-tools-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'artisan',
+        ]);
+
+        // Create class with "restricted" tool choice that has placeholder text as target_slug
+        // This is legacy data - target_slug doesn't match any real proficiency type
+        $legacyClass = CharacterClass::factory()->create(['name' => 'LegacyClass', 'slug' => 'legacy-'.uniqid()]);
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $legacyClass->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'tool',
+            'choice_group' => 'tool_choice_1',
+            'quantity' => 1,
+            'target_type' => 'proficiency_type',
+            'target_slug' => 'one-type-of-artisans-tools-of-your-choice', // Placeholder text, not real slug
+            'constraints' => null, // No constraint - falls back to all tools
+        ]);
+
+        $character = Character::factory()->withClass($legacyClass)->create();
+
+        // Get pending choices
+        $choices = $this->service->getPendingChoices($character);
+
+        // Assert tool choice exists and has options (should fall back to all tools)
+        $this->assertArrayHasKey('class', $choices);
+        $this->assertArrayHasKey('tool_choice_1', $choices['class']);
+
+        $toolChoice = $choices['class']['tool_choice_1'];
+        $this->assertEquals('tool', $toolChoice['proficiency_type']);
+        $this->assertGreaterThanOrEqual(1, count($toolChoice['options']), 'Should fall back to category lookup when target_slug invalid');
+
+        // Should include our created tool
+        $optionSlugs = collect($toolChoice['options'])->pluck('proficiency_type_slug')->filter()->all();
+        $this->assertContains($smithsTools->slug, $optionSlugs);
+    }
 }

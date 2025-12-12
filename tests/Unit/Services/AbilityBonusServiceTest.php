@@ -8,6 +8,7 @@ use App\Models\AbilityScore;
 use App\Models\Character;
 use App\Models\CharacterAbilityScore;
 use App\Models\CharacterFeature;
+use App\Models\EntityChoice;
 use App\Models\Feat;
 use App\Models\Modifier;
 use App\Models\Race;
@@ -67,7 +68,6 @@ class AbilityBonusServiceTest extends TestCase
             'modifier_category' => 'ability_score',
             'ability_score_id' => $conAbility->id,
             'value' => '2',
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()->create(['race_slug' => $race->slug]);
@@ -104,28 +104,26 @@ class AbilityBonusServiceTest extends TestCase
             'modifier_category' => 'ability_score',
             'ability_score_id' => $chaAbility->id,
             'value' => '2',
-            'is_choice' => false,
         ]);
 
-        // Choice: +1 to two different abilities
-        $choiceModifier = Modifier::create([
+        // Choice: +1 to two different abilities (via EntityChoice)
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'modifier_category' => 'ability_score',
-            'value' => '1',
-            'is_choice' => true,
-            'choice_count' => 2,
+            'choice_type' => 'ability_score',
+            'choice_group' => 'ability_choice_1',
+            'quantity' => 2,
         ]);
 
         $character = Character::factory()->create(['race_slug' => $race->slug]);
 
-        // Resolve choices: +1 STR, +1 DEX
+        // Resolve choices: +1 STR, +1 DEX (use choice_group to link)
         CharacterAbilityScore::create([
             'character_id' => $character->id,
             'ability_score_code' => 'STR',
             'bonus' => 1,
             'source' => 'race',
-            'modifier_id' => $choiceModifier->id,
+            'choice_group' => 'ability_choice_1',
         ]);
 
         CharacterAbilityScore::create([
@@ -133,7 +131,7 @@ class AbilityBonusServiceTest extends TestCase
             'ability_score_code' => 'DEX',
             'bonus' => 1,
             'source' => 'race',
-            'modifier_id' => $choiceModifier->id,
+            'choice_group' => 'ability_choice_1',
         ]);
 
         $result = $this->service->getBonuses($character);
@@ -144,7 +142,7 @@ class AbilityBonusServiceTest extends TestCase
         $strBonus = $result['bonuses']->firstWhere('ability_code', 'STR');
         $this->assertTrue($strBonus['is_choice']);
         $this->assertTrue($strBonus['choice_resolved']);
-        $this->assertEquals($choiceModifier->id, $strBonus['modifier_id']);
+        $this->assertEquals('ability_choice_1', $strBonus['choice_group']);
         $this->assertEquals(1, $strBonus['value']);
 
         $dexBonus = $result['bonuses']->firstWhere('ability_code', 'DEX');
@@ -177,7 +175,6 @@ class AbilityBonusServiceTest extends TestCase
             'modifier_category' => 'ability_score',
             'ability_score_id' => $dexAbility->id,
             'value' => '2',
-            'is_choice' => false,
         ]);
 
         // Create subrace (High Elf) with +1 INT
@@ -194,7 +191,6 @@ class AbilityBonusServiceTest extends TestCase
             'modifier_category' => 'ability_score',
             'ability_score_id' => $intAbility->id,
             'value' => '1',
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()->create(['race_slug' => $subrace->slug]);
@@ -238,7 +234,6 @@ class AbilityBonusServiceTest extends TestCase
             'modifier_category' => 'ability_score',
             'ability_score_id' => $chaAbility->id,
             'value' => '1',
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()->create();
@@ -283,7 +278,6 @@ class AbilityBonusServiceTest extends TestCase
             'modifier_category' => 'ability_score',
             'ability_score_id' => $chaAbility->id,
             'value' => '2',
-            'is_choice' => false,
         ]);
 
         // Create feat with +1 CHA (Actor)
@@ -298,7 +292,6 @@ class AbilityBonusServiceTest extends TestCase
             'modifier_category' => 'ability_score',
             'ability_score_id' => $chaAbility->id,
             'value' => '1',
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()->create(['race_slug' => $race->slug]);
@@ -333,7 +326,6 @@ class AbilityBonusServiceTest extends TestCase
             'reference_id' => $race->id,
             'modifier_category' => 'skill',
             'value' => '2',
-            'is_choice' => false,
         ]);
 
         // Create an ability score modifier (should be included)
@@ -343,7 +335,6 @@ class AbilityBonusServiceTest extends TestCase
             'modifier_category' => 'ability_score',
             'ability_score_id' => $strAbility->id,
             'value' => '2',
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()->create(['race_slug' => $race->slug]);
@@ -359,14 +350,13 @@ class AbilityBonusServiceTest extends TestCase
     {
         $race = Race::factory()->create();
 
-        // Create choice modifier with no character selections
-        Modifier::create([
+        // Create choice via EntityChoice with no character selections
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'modifier_category' => 'ability_score',
-            'value' => '1',
-            'is_choice' => true,
-            'choice_count' => 2,
+            'choice_type' => 'ability_score',
+            'choice_group' => 'ability_choice_1',
+            'quantity' => 2,
         ]);
 
         $character = Character::factory()->create(['race_slug' => $race->slug]);
@@ -399,7 +389,6 @@ class AbilityBonusServiceTest extends TestCase
             'reference_id' => $race->id,
             'modifier_category' => 'bonus_feat',
             'value' => '1',
-            'is_choice' => false,
         ]);
 
         // Create Actor feat with +1 CHA
@@ -416,7 +405,6 @@ class AbilityBonusServiceTest extends TestCase
             'modifier_category' => 'ability_score',
             'ability_score_id' => $chaAbility->id,
             'value' => '1',
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()->create(['race_slug' => $race->slug]);
@@ -460,7 +448,6 @@ class AbilityBonusServiceTest extends TestCase
             'modifier_category' => 'ability_score',
             'ability_score_id' => $chaAbility->id,
             'value' => '1',
-            'is_choice' => false,
         ]);
 
         $character = Character::factory()->create();

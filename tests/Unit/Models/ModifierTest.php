@@ -112,23 +112,8 @@ class ModifierTest extends TestCase
         $this->assertEquals('ability_score', $modifier->category);
     }
 
-    #[Test]
-    public function is_choice_casts_to_boolean(): void
-    {
-        $modifier = Modifier::factory()->create(['is_choice' => 1]);
-
-        $this->assertIsBool($modifier->is_choice);
-        $this->assertTrue($modifier->is_choice);
-    }
-
-    #[Test]
-    public function choice_count_casts_to_integer(): void
-    {
-        $modifier = Modifier::factory()->create(['choice_count' => '2']);
-
-        $this->assertIsInt($modifier->choice_count);
-        $this->assertEquals(2, $modifier->choice_count);
-    }
+    // Note: is_choice and choice_count columns moved to entity_choices table
+    // Choice-based modifiers are now stored in EntityChoice model
 
     #[Test]
     public function level_casts_to_integer(): void

@@ -26,8 +26,7 @@ class MulticlassRequirementResourceTest extends TestCase
             'proficiency_type' => 'multiclass_requirement',
             'ability_score_id' => $abilityScore->id,
             'proficiency_name' => 'Strength 13',
-            'quantity' => 13,
-            'is_choice' => false,
+            'proficiency_subcategory' => 'AND', // Required
         ]);
 
         $proficiency->load('abilityScore');
@@ -54,8 +53,7 @@ class MulticlassRequirementResourceTest extends TestCase
             'proficiency_type' => 'multiclass_requirement',
             'ability_score_id' => $abilityScore->id,
             'proficiency_name' => 'Dexterity 13',
-            'quantity' => 13,
-            'is_choice' => false,
+            'proficiency_subcategory' => 'AND', // Required
         ]);
 
         // Do NOT load abilityScore relationship
@@ -70,7 +68,7 @@ class MulticlassRequirementResourceTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_marks_is_alternative_true_when_is_choice_is_true(): void
+    public function it_marks_is_alternative_true_when_subcategory_is_or(): void
     {
         $class = CharacterClass::factory()->create();
         $abilityScore = AbilityScore::where('code', 'INT')->first();
@@ -81,8 +79,7 @@ class MulticlassRequirementResourceTest extends TestCase
             'proficiency_type' => 'multiclass_requirement',
             'ability_score_id' => $abilityScore->id,
             'proficiency_name' => 'Intelligence 13',
-            'quantity' => 13,
-            'is_choice' => true, // OR condition
+            'proficiency_subcategory' => 'OR', // Alternative - any one satisfies
         ]);
 
         $resource = new MulticlassRequirementResource($proficiency);
@@ -114,8 +111,7 @@ class MulticlassRequirementResourceTest extends TestCase
             'proficiency_type' => 'multiclass_requirement',
             'ability_score_id' => $abilityScore->id,
             'proficiency_name' => 'Wisdom 13',
-            'quantity' => 13,
-            'is_choice' => false,
+            'proficiency_subcategory' => 'AND', // Required
         ]);
 
         $requirements = collect([$proficiency]);
@@ -127,7 +123,7 @@ class MulticlassRequirementResourceTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_returns_and_type_for_multiple_requirements_without_choice(): void
+    public function it_returns_and_type_for_multiple_requirements_all_required(): void
     {
         $class = CharacterClass::factory()->create();
         $str = AbilityScore::where('code', 'STR')->first();
@@ -139,8 +135,7 @@ class MulticlassRequirementResourceTest extends TestCase
             'proficiency_type' => 'multiclass_requirement',
             'ability_score_id' => $str->id,
             'proficiency_name' => 'Strength 13',
-            'quantity' => 13,
-            'is_choice' => false,
+            'proficiency_subcategory' => 'AND', // Required
         ]);
 
         $prof2 = Proficiency::create([
@@ -149,8 +144,7 @@ class MulticlassRequirementResourceTest extends TestCase
             'proficiency_type' => 'multiclass_requirement',
             'ability_score_id' => $dex->id,
             'proficiency_name' => 'Dexterity 13',
-            'quantity' => 13,
-            'is_choice' => false,
+            'proficiency_subcategory' => 'AND', // Required
         ]);
 
         $requirements = collect([$prof1, $prof2]);
@@ -162,7 +156,7 @@ class MulticlassRequirementResourceTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_returns_or_type_when_any_requirement_has_is_choice_true(): void
+    public function it_returns_or_type_when_any_requirement_has_or_subcategory(): void
     {
         $class = CharacterClass::factory()->create();
         $str = AbilityScore::where('code', 'STR')->first();
@@ -174,8 +168,7 @@ class MulticlassRequirementResourceTest extends TestCase
             'proficiency_type' => 'multiclass_requirement',
             'ability_score_id' => $str->id,
             'proficiency_name' => 'Strength 13',
-            'quantity' => 13,
-            'is_choice' => true, // OR condition
+            'proficiency_subcategory' => 'OR', // Alternative
         ]);
 
         $prof2 = Proficiency::create([
@@ -184,8 +177,7 @@ class MulticlassRequirementResourceTest extends TestCase
             'proficiency_type' => 'multiclass_requirement',
             'ability_score_id' => $dex->id,
             'proficiency_name' => 'Dexterity 13',
-            'quantity' => 13,
-            'is_choice' => true, // OR condition
+            'proficiency_subcategory' => 'OR', // Alternative
         ]);
 
         $requirements = collect([$prof1, $prof2]);
@@ -208,8 +200,7 @@ class MulticlassRequirementResourceTest extends TestCase
             'proficiency_type' => 'multiclass_requirement',
             'ability_score_id' => $abilityScore->id,
             'proficiency_name' => 'Charisma 13',
-            'quantity' => 13,
-            'is_choice' => false,
+            'proficiency_subcategory' => 'AND', // Required
         ]);
 
         $requirements = collect([$proficiency]);

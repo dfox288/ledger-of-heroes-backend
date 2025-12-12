@@ -5,6 +5,11 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * Resource for fixed language grants.
+ *
+ * Note: Language choices are stored in entity_choices table and exposed via EntityChoiceResource.
+ */
 class EntityLanguageResource extends JsonResource
 {
     /**
@@ -16,14 +21,6 @@ class EntityLanguageResource extends JsonResource
     {
         return [
             'language' => $this->when($this->language_id, new LanguageResource($this->whenLoaded('language'))),
-            'is_choice' => $this->is_choice,
-            'quantity' => $this->when($this->is_choice, $this->quantity),
-            'choice_group' => $this->when($this->choice_group, $this->choice_group),
-            'choice_option' => $this->when($this->choice_option, $this->choice_option),
-            'condition' => $this->when($this->condition_type, fn () => [
-                'type' => $this->condition_type,
-                'language' => new LanguageResource($this->whenLoaded('conditionLanguage')),
-            ]),
         ];
     }
 }

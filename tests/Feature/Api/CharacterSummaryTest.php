@@ -11,7 +11,7 @@ use App\Models\CharacterLanguage;
 use App\Models\CharacterSpellSlot;
 use App\Models\ClassCounter;
 use App\Models\Condition;
-use App\Models\EntityLanguage;
+use App\Models\EntityChoice;
 use App\Models\Language;
 use App\Models\Modifier;
 use App\Models\Race;
@@ -123,13 +123,24 @@ class CharacterSummaryTest extends TestCase
         $common = Language::factory()->create(['slug' => 'common-test-'.uniqid()]);
         $elvish = Language::factory()->create(['slug' => 'elvish-test-'.uniqid()]);
 
-        // Add language choice to race (2 choices from any language)
-        EntityLanguage::create([
+        // Add language choice to race (2 choices from any language) - now via EntityChoice
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'language_id' => null,
-            'is_choice' => true,
-            'quantity' => 2,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
+            'quantity' => 1,
+            'level_granted' => 1,
+            'is_required' => true,
+        ]);
+        EntityChoice::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_2',
+            'quantity' => 1,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
         // Character has selected 1 out of 2 languages
@@ -439,13 +450,16 @@ class CharacterSummaryTest extends TestCase
         $race = Race::factory()->create();
         $character = Character::factory()->withStandardArray()->create(['race_slug' => $race->slug]);
 
-        // Add language choice to race (2 choices)
-        EntityLanguage::create([
+        // Add language choice to race (2 choices) via EntityChoice
+        // Note: Language choices moved from entity_languages to entity_choices table
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'language_id' => null,
-            'is_choice' => true,
+            'choice_type' => 'language',
+            'choice_group' => 'language_choice_1',
             'quantity' => 2,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
         $class = CharacterClass::factory()->create();
@@ -706,13 +720,18 @@ class CharacterSummaryTest extends TestCase
             'description' => 'Choose one skill.',
         ]);
 
-        // Add skill choice to the feature (1 skill from Nature)
-        $acolyteFeature->proficiencies()->create([
-            'proficiency_type' => 'skill',
-            'skill_id' => $nature->id,
-            'is_choice' => true,
+        // Add skill choice to the feature via EntityChoice (proficiency choices moved from entity_proficiencies)
+        EntityChoice::create([
+            'reference_type' => \App\Models\ClassFeature::class,
+            'reference_id' => $acolyteFeature->id,
+            'choice_type' => 'proficiency',
             'choice_group' => 'feature_skill_choice_1',
             'quantity' => 1,
+            'proficiency_type' => 'skill',
+            'target_type' => 'skill',
+            'target_slug' => $nature->slug,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
         // Create character with Cleric + Nature Domain subclass
@@ -772,13 +791,18 @@ class CharacterSummaryTest extends TestCase
             'description' => 'Choose one skill.',
         ]);
 
-        // Add skill choice to the feature
-        $acolyteFeature->proficiencies()->create([
-            'proficiency_type' => 'skill',
-            'skill_id' => $nature->id,
-            'is_choice' => true,
+        // Add skill choice to the feature via EntityChoice (proficiency choices moved from entity_proficiencies)
+        EntityChoice::create([
+            'reference_type' => \App\Models\ClassFeature::class,
+            'reference_id' => $acolyteFeature->id,
+            'choice_type' => 'proficiency',
             'choice_group' => 'feature_skill_choice_1',
             'quantity' => 1,
+            'proficiency_type' => 'skill',
+            'target_type' => 'skill',
+            'target_slug' => $nature->slug,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
         // Create character with Cleric + Nature Domain subclass

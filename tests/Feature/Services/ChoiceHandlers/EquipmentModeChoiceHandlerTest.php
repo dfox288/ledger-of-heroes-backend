@@ -7,8 +7,7 @@ use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
 use App\Models\CharacterEquipment;
-use App\Models\EntityItem;
-use App\Models\EquipmentChoiceItem;
+use App\Models\EntityChoice;
 use App\Models\Item;
 use App\Services\ChoiceHandlers\EquipmentModeChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -91,20 +90,18 @@ class EquipmentModeChoiceHandlerTest extends TestCase
 
         // Create equipment choice so the choice appears
         $item = Item::factory()->create();
-        $entityItem = EntityItem::create([
+        EntityChoice::create([
             'reference_type' => CharacterClass::class,
             'reference_id' => $class->id,
-            'is_choice' => true,
+            'choice_type' => 'equipment',
             'choice_group' => 'choice_1',
             'choice_option' => 1,
+            'target_type' => 'item',
+            'target_slug' => $item->slug,
             'description' => 'chain mail',
             'quantity' => 1,
-        ]);
-        EquipmentChoiceItem::create([
-            'entity_item_id' => $entityItem->id,
-            'item_id' => $item->id,
-            'quantity' => 1,
-            'sort_order' => 0,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
         $character = Character::factory()->create();
@@ -309,20 +306,18 @@ class EquipmentModeChoiceHandlerTest extends TestCase
 
         // Create equipment choice
         $item = Item::factory()->create();
-        $entityItem = EntityItem::create([
+        EntityChoice::create([
             'reference_type' => CharacterClass::class,
             'reference_id' => $class->id,
-            'is_choice' => true,
+            'choice_type' => 'equipment',
             'choice_group' => 'choice_1',
             'choice_option' => 1,
+            'target_type' => 'item',
+            'target_slug' => $item->slug,
             'description' => 'chain mail',
             'quantity' => 1,
-        ]);
-        EquipmentChoiceItem::create([
-            'entity_item_id' => $entityItem->id,
-            'item_id' => $item->id,
-            'quantity' => 1,
-            'sort_order' => 0,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
         $character = Character::factory()->create();
@@ -359,20 +354,18 @@ class EquipmentModeChoiceHandlerTest extends TestCase
 
         // Create equipment choice
         $item = Item::factory()->create();
-        $entityItem = EntityItem::create([
+        EntityChoice::create([
             'reference_type' => CharacterClass::class,
             'reference_id' => $class->id,
-            'is_choice' => true,
+            'choice_type' => 'equipment',
             'choice_group' => 'choice_1',
             'choice_option' => 1,
+            'target_type' => 'item',
+            'target_slug' => $item->slug,
             'description' => 'chain mail',
             'quantity' => 1,
-        ]);
-        EquipmentChoiceItem::create([
-            'entity_item_id' => $entityItem->id,
-            'item_id' => $item->id,
-            'quantity' => 1,
-            'sort_order' => 0,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
         $character = Character::factory()->create(['equipment_mode' => 'gold']);
@@ -412,20 +405,18 @@ class EquipmentModeChoiceHandlerTest extends TestCase
 
         // Create equipment choice
         $item = Item::factory()->create();
-        $entityItem = EntityItem::create([
+        EntityChoice::create([
             'reference_type' => CharacterClass::class,
             'reference_id' => $class->id,
-            'is_choice' => true,
+            'choice_type' => 'equipment',
             'choice_group' => 'choice_1',
             'choice_option' => 1,
+            'target_type' => 'item',
+            'target_slug' => $item->slug,
             'description' => 'chain mail',
             'quantity' => 1,
-        ]);
-        EquipmentChoiceItem::create([
-            'entity_item_id' => $entityItem->id,
-            'item_id' => $item->id,
-            'quantity' => 1,
-            'sort_order' => 0,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
         $character = Character::factory()->create(['equipment_mode' => 'gold']);

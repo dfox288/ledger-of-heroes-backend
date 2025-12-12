@@ -3,8 +3,10 @@
 namespace App\Services\Importers\Concerns;
 
 use App\Models\CharacterClass;
+use App\Models\EntityChoice;
+use App\Models\EntitySpell;
 use App\Models\Spell;
-use App\Models\SpellSchool;
+use App\Services\Parsers\Traits\ParsesChoices;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -13,11 +15,15 @@ use Illuminate\Support\Facades\Log;
  * Trait for importing spell associations for polymorphic entities.
  *
  * Handles both fixed spells and spell choices with constraints.
+ * - Fixed spells go to EntitySpell table
+ * - Choice-based spells go to EntityChoice table
  *
  * Used by: ItemImporter, RaceImporter, FeatImporter
  */
 trait ImportsEntitySpells
 {
+    use ParsesChoices;
+
     /**
      * Import spell associations for a polymorphic entity.
      *
@@ -59,6 +65,12 @@ trait ImportsEntitySpells
             ->where('reference_id', $entity->id)
             ->delete();
 
+        // Clear existing spell choices
+        EntityChoice::where('reference_type', get_class($entity))
+            ->where('reference_id', $entity->id)
+            ->where('choice_type', 'spell')
+            ->delete();
+
         foreach ($spellsData as $spellData) {
             if (isset($spellData['is_choice']) && $spellData['is_choice']) {
                 $this->importSpellChoice($entity, $spellData);
@@ -69,7 +81,8 @@ trait ImportsEntitySpells
     }
 
     /**
-     * Import a fixed spell (existing behavior).
+     * Import a fixed spell.
+     * Creates an EntitySpell record.
      */
     private function importFixedSpell(Model $entity, array $spellData): void
     {
@@ -82,11 +95,10 @@ trait ImportsEntitySpells
             return;
         }
 
-        DB::table('entity_spells')->insert([
+        EntitySpell::create([
             'reference_type' => get_class($entity),
             'reference_id' => $entity->id,
             'spell_id' => $spell->id,
-            'is_choice' => false,
             'ability_score_id' => $spellData['pivot_data']['ability_score_id'] ?? null,
             'level_requirement' => $spellData['pivot_data']['level_requirement'] ?? null,
             'is_cantrip' => $spellData['pivot_data']['is_cantrip'] ?? false,
@@ -100,65 +112,66 @@ trait ImportsEntitySpells
 
     /**
      * Import a spell choice with constraints.
+     * Creates EntityChoice records.
      *
-     * Creates one row per allowed school (if school-constrained),
-     * or a single row (if class-constrained).
+     * Creates one EntityChoice per allowed school (if school-constrained),
+     * or a single EntityChoice (if class-constrained only).
      */
     private function importSpellChoice(Model $entity, array $choiceData): void
     {
         $schools = $choiceData['schools'] ?? [];
         $className = $choiceData['class_name'] ?? null;
+        $choiceGroup = $choiceData['choice_group'] ?? 'spell_choice';
+        $quantity = $choiceData['choice_count'] ?? 1;
+        $maxLevel = $choiceData['max_level'] ?? null;
 
-        // Look up class_id if class-constrained
-        $classId = null;
+        // Look up class slug if class-constrained
+        $classSlug = null;
         if ($className) {
             $characterClass = CharacterClass::whereRaw('LOWER(name) = ?', [strtolower($className)])->first();
             if ($characterClass) {
-                $classId = $characterClass->id;
+                $classSlug = $characterClass->slug;
             } else {
                 Log::warning("CharacterClass not found: {$className} (for {$entity->name})");
             }
         }
 
-        // School-constrained: create one row per school
+        // Build constraints for additional properties
+        $constraints = null;
+        if (! empty($choiceData['is_ritual_only'])) {
+            $constraints = ['is_ritual_only' => true];
+        }
+
+        // School-constrained: create one EntityChoice per school
         if (! empty($schools)) {
             foreach ($schools as $schoolName) {
-                $school = SpellSchool::whereRaw('LOWER(name) = ?', [strtolower($schoolName)])->first();
-                if (! $school) {
-                    Log::warning("SpellSchool not found: {$schoolName} (for {$entity->name})");
+                $schoolSlug = strtolower($schoolName);
 
-                    continue;
-                }
-
-                DB::table('entity_spells')->insert([
-                    'reference_type' => get_class($entity),
-                    'reference_id' => $entity->id,
-                    'spell_id' => null,
-                    'is_choice' => true,
-                    'is_cantrip' => ($choiceData['max_level'] ?? null) === 0,
-                    'choice_count' => $choiceData['choice_count'],
-                    'choice_group' => $choiceData['choice_group'],
-                    'max_level' => $choiceData['max_level'],
-                    'school_id' => $school->id,
-                    'class_id' => $classId,
-                    'is_ritual_only' => $choiceData['is_ritual_only'] ?? false,
-                ]);
+                $this->createSpellChoice(
+                    referenceType: get_class($entity),
+                    referenceId: $entity->id,
+                    choiceGroup: $choiceGroup.'_'.$schoolSlug,
+                    quantity: $quantity,
+                    maxLevel: $maxLevel ?? 0,
+                    classSlug: $classSlug,
+                    schoolSlug: $schoolSlug,
+                    levelGranted: 1,
+                    constraints: $constraints
+                );
             }
         } else {
-            // Class-constrained only (no school constraint): single row
-            DB::table('entity_spells')->insert([
-                'reference_type' => get_class($entity),
-                'reference_id' => $entity->id,
-                'spell_id' => null,
-                'is_choice' => true,
-                'is_cantrip' => ($choiceData['max_level'] ?? null) === 0,
-                'choice_count' => $choiceData['choice_count'],
-                'choice_group' => $choiceData['choice_group'],
-                'max_level' => $choiceData['max_level'],
-                'school_id' => null,
-                'class_id' => $classId,
-                'is_ritual_only' => $choiceData['is_ritual_only'] ?? false,
-            ]);
+            // Class-constrained only (no school constraint): single EntityChoice
+            $this->createSpellChoice(
+                referenceType: get_class($entity),
+                referenceId: $entity->id,
+                choiceGroup: $choiceGroup,
+                quantity: $quantity,
+                maxLevel: $maxLevel ?? 0,
+                classSlug: $classSlug,
+                schoolSlug: null,
+                levelGranted: 1,
+                constraints: $constraints
+            );
         }
     }
 }

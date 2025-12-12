@@ -13,6 +13,9 @@ class ProficiencyResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
+     * Note: This resource now only represents fixed proficiencies.
+     * Proficiency choices are stored in entity_choices table and exposed via EntityChoiceResource.
+     *
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
@@ -42,10 +45,6 @@ class ProficiencyResource extends JsonResource
             }),
             'proficiency_name' => $this->proficiency_name,
             'grants' => $this->grants,
-            'is_choice' => $this->is_choice,
-            'choice_group' => $this->choice_group,
-            'choice_option' => $this->choice_option,
-            'quantity' => $this->quantity,
             'level' => $this->level,
         ];
     }

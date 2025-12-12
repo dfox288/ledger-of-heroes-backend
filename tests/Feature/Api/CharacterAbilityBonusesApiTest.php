@@ -4,6 +4,7 @@ use App\Models\AbilityScore;
 use App\Models\Character;
 use App\Models\CharacterAbilityScore;
 use App\Models\CharacterFeature;
+use App\Models\EntityChoice;
 use App\Models\Feat;
 use App\Models\Modifier;
 use App\Models\Race;
@@ -117,18 +118,19 @@ describe('Character Ability Bonuses Endpoint', function () {
             'modifier_category' => 'ability_score',
             'ability_score_id' => $cha->id,
             'value' => '2',
-            'is_choice' => false,
         ]);
 
-        // Choice modifier (pick 2 abilities for +1 each)
-        $choiceModifier = Modifier::create([
+        // Choice modifier (pick 2 abilities for +1 each) - now via EntityChoice
+        EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
-            'modifier_category' => 'ability_score',
-            'ability_score_id' => null,
-            'value' => '1',
-            'is_choice' => true,
-            'choice_count' => 2,
+            'choice_type' => 'ability_score',
+            'choice_group' => 'half_elf_ability_choice',
+            'quantity' => 2,
+            'constraint' => 'different',
+            'constraints' => ['value' => '+1'],
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
         $character = Character::factory()->withRace($race)->create();
@@ -139,7 +141,7 @@ describe('Character Ability Bonuses Endpoint', function () {
             'ability_score_code' => 'STR',
             'bonus' => 1,
             'source' => 'race',
-            'modifier_id' => $choiceModifier->id,
+            'choice_group' => 'half_elf_ability_choice',
         ]);
 
         CharacterAbilityScore::create([
@@ -147,7 +149,7 @@ describe('Character Ability Bonuses Endpoint', function () {
             'ability_score_code' => 'DEX',
             'bonus' => 1,
             'source' => 'race',
-            'modifier_id' => $choiceModifier->id,
+            'choice_group' => 'half_elf_ability_choice',
         ]);
 
         $response = $this->getJson("/api/v1/characters/{$character->public_id}/ability-bonuses");
@@ -166,7 +168,7 @@ describe('Character Ability Bonuses Endpoint', function () {
         expect($strBonus['value'])->toBe(1);
         expect($strBonus['is_choice'])->toBe(true);
         expect($strBonus['choice_resolved'])->toBe(true);
-        expect($strBonus['modifier_id'])->toBe($choiceModifier->id);
+        expect($strBonus['choice_group'])->toBe('half_elf_ability_choice');
 
         $dexBonus = collect($response->json('data.bonuses'))->firstWhere('ability_code', 'DEX');
         expect($dexBonus['value'])->toBe(1);

@@ -145,7 +145,7 @@ class CharacterClass extends BaseModel
     public function getFeatureByProficiencyChoiceGroup(string $choiceGroup): ?ClassFeature
     {
         return $this->features()
-            ->whereHas('proficiencies', fn ($q) => $q->where('is_choice', true)->where('choice_group', $choiceGroup))
+            ->whereHas('proficiencyChoices', fn ($q) => $q->where('choice_group', $choiceGroup))
             ->first();
     }
 

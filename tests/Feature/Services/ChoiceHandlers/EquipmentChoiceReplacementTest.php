@@ -6,8 +6,7 @@ use App\DTOs\PendingChoice;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
-use App\Models\EntityItem;
-use App\Models\EquipmentChoiceItem;
+use App\Models\EntityChoice;
 use App\Models\Item;
 use App\Services\ChoiceHandlers\EquipmentChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -614,63 +613,65 @@ class EquipmentChoiceReplacementTest extends TestCase
             'slug' => 'test:test-fighter',
         ]);
 
-        // Create equipment choice group 1 with two options:
+        // Create equipment choice group 1 with two options (using EntityChoice):
         // Option A: a rapier (single item)
         // Option B: a longsword (single item)
-        $entityItemA = EntityItem::create([
+        EntityChoice::create([
             'reference_type' => CharacterClass::class,
             'reference_id' => $class->id,
-            'is_choice' => true,
+            'choice_type' => 'equipment',
             'choice_group' => 'choice_1',
             'choice_option' => 1,
+            'target_type' => 'item',
+            'target_slug' => 'phb:rapier',
             'description' => 'a rapier',
             'quantity' => 1,
-        ]);
-        EquipmentChoiceItem::create([
-            'entity_item_id' => $entityItemA->id,
-            'item_id' => $rapier->id,
-            'quantity' => 1,
-            'sort_order' => 0,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
-        $entityItemB = EntityItem::create([
+        EntityChoice::create([
             'reference_type' => CharacterClass::class,
             'reference_id' => $class->id,
-            'is_choice' => true,
+            'choice_type' => 'equipment',
             'choice_group' => 'choice_1',
             'choice_option' => 2,
+            'target_type' => 'item',
+            'target_slug' => 'phb:longsword',
             'description' => 'a longsword',
             'quantity' => 1,
-        ]);
-        EquipmentChoiceItem::create([
-            'entity_item_id' => $entityItemB->id,
-            'item_id' => $longsword->id,
-            'quantity' => 1,
-            'sort_order' => 0,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
         // Create equipment choice group 2 with a bundle option:
         // Option A: a longbow and 20 arrows (bundle - grants all)
-        $entityItemBundle = EntityItem::create([
+        EntityChoice::create([
             'reference_type' => CharacterClass::class,
             'reference_id' => $class->id,
-            'is_choice' => true,
+            'choice_type' => 'equipment',
             'choice_group' => 'choice_2',
             'choice_option' => 1,
+            'target_type' => 'item',
+            'target_slug' => 'phb:longbow',
             'description' => 'a longbow and 20 arrows',
             'quantity' => 1,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
-        EquipmentChoiceItem::create([
-            'entity_item_id' => $entityItemBundle->id,
-            'item_id' => $bow->id,
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'choice_type' => 'equipment',
+            'choice_group' => 'choice_2',
+            'choice_option' => 1,
+            'target_type' => 'item',
+            'target_slug' => 'phb:arrow',
+            'description' => 'a longbow and 20 arrows',
+            'constraints' => ['quantity' => 20],
             'quantity' => 1,
-            'sort_order' => 0,
-        ]);
-        EquipmentChoiceItem::create([
-            'entity_item_id' => $entityItemBundle->id,
-            'item_id' => $arrows->id,
-            'quantity' => 20,
-            'sort_order' => 1,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
         // Create a level 1 character with this class
@@ -731,37 +732,33 @@ class EquipmentChoiceReplacementTest extends TestCase
             'slug' => 'test:test-warrior',
         ]);
 
-        // Option A: rapier, Option B: longsword
-        $entityItemA = EntityItem::create([
+        // Option A: rapier, Option B: longsword (using EntityChoice)
+        EntityChoice::create([
             'reference_type' => CharacterClass::class,
             'reference_id' => $class->id,
-            'is_choice' => true,
+            'choice_type' => 'equipment',
             'choice_group' => 'weapon_choice',
             'choice_option' => 1,
+            'target_type' => 'item',
+            'target_slug' => 'test:rapier',
             'description' => 'a rapier',
             'quantity' => 1,
-        ]);
-        EquipmentChoiceItem::create([
-            'entity_item_id' => $entityItemA->id,
-            'item_id' => $rapier->id,
-            'quantity' => 1,
-            'sort_order' => 0,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
-        $entityItemB = EntityItem::create([
+        EntityChoice::create([
             'reference_type' => CharacterClass::class,
             'reference_id' => $class->id,
-            'is_choice' => true,
+            'choice_type' => 'equipment',
             'choice_group' => 'weapon_choice',
             'choice_option' => 2,
+            'target_type' => 'item',
+            'target_slug' => 'test:longsword',
             'description' => 'a longsword',
             'quantity' => 1,
-        ]);
-        EquipmentChoiceItem::create([
-            'entity_item_id' => $entityItemB->id,
-            'item_id' => $longsword->id,
-            'quantity' => 1,
-            'sort_order' => 0,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
         // Create character
@@ -1057,20 +1054,18 @@ class EquipmentChoiceReplacementTest extends TestCase
         ]);
 
         $item = Item::factory()->create();
-        $entityItem = EntityItem::create([
+        EntityChoice::create([
             'reference_type' => CharacterClass::class,
             'reference_id' => $class->id,
-            'is_choice' => true,
+            'choice_type' => 'equipment',
             'choice_group' => 'choice_1',
             'choice_option' => 1,
+            'target_type' => 'item',
+            'target_slug' => $item->slug,
             'description' => 'chain mail',
             'quantity' => 1,
-        ]);
-        EquipmentChoiceItem::create([
-            'entity_item_id' => $entityItem->id,
-            'item_id' => $item->id,
-            'quantity' => 1,
-            'sort_order' => 0,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
         // Create character with gold mode selected
@@ -1105,20 +1100,18 @@ class EquipmentChoiceReplacementTest extends TestCase
         ]);
 
         $item = Item::factory()->create();
-        $entityItem = EntityItem::create([
+        EntityChoice::create([
             'reference_type' => CharacterClass::class,
             'reference_id' => $class->id,
-            'is_choice' => true,
+            'choice_type' => 'equipment',
             'choice_group' => 'choice_1',
             'choice_option' => 1,
+            'target_type' => 'item',
+            'target_slug' => $item->slug,
             'description' => 'chain mail',
             'quantity' => 1,
-        ]);
-        EquipmentChoiceItem::create([
-            'entity_item_id' => $entityItem->id,
-            'item_id' => $item->id,
-            'quantity' => 1,
-            'sort_order' => 0,
+            'level_granted' => 1,
+            'is_required' => true,
         ]);
 
         // Create character with equipment mode selected

@@ -21,13 +21,13 @@ class LanguageReverseRelationshipsApiTest extends ReverseRelationshipTestCase
         $elf = Race::factory()->create(['name' => 'Elf', 'slug' => 'elf']);
         $halfElf = Race::factory()->create(['name' => 'Half-Elf', 'slug' => 'half-elf']);
 
-        $elvish->races()->attach($elf, ['is_choice' => false]);
-        $elvish->races()->attach($halfElf, ['is_choice' => false]);
+        $elvish->races()->attach($elf);
+        $elvish->races()->attach($halfElf);
 
         // Different language - should not appear
         $draconic = Language::where('slug', 'draconic')->first() ?? Language::factory()->create(['name' => 'Draconic Test', 'slug' => 'draconic-test']);
         $dragonborn = Race::factory()->create(['name' => 'Dragonborn']);
-        $draconic->races()->attach($dragonborn, ['is_choice' => false]);
+        $draconic->races()->attach($dragonborn);
 
         $this->assertReturnsRelatedEntities("/api/v1/lookups/languages/{$elvish->id}/races", 2, ['Elf', 'Half-Elf']);
     }
@@ -46,7 +46,7 @@ class LanguageReverseRelationshipsApiTest extends ReverseRelationshipTestCase
         $common = Language::where('slug', 'common')->first() ?? Language::factory()->create(['name' => 'Common Test', 'slug' => 'common-test']);
 
         $human = Race::factory()->create(['name' => 'Human']);
-        $common->races()->attach($human, ['is_choice' => false]);
+        $common->races()->attach($human);
 
         $this->assertAcceptsAlternativeIdentifier("/api/v1/lookups/languages/{$common->slug}/races");
     }
@@ -58,7 +58,7 @@ class LanguageReverseRelationshipsApiTest extends ReverseRelationshipTestCase
 
         $this->createMultipleEntities(75, function () use ($undercommon) {
             $race = Race::factory()->create();
-            $undercommon->races()->attach($race, ['is_choice' => false]);
+            $undercommon->races()->attach($race);
 
             return $race;
         });
@@ -74,13 +74,13 @@ class LanguageReverseRelationshipsApiTest extends ReverseRelationshipTestCase
         $criminal = Background::factory()->create(['name' => 'Criminal', 'slug' => 'criminal']);
         $urchin = Background::factory()->create(['name' => 'Urchin', 'slug' => 'urchin']);
 
-        $thieves->backgrounds()->attach($criminal, ['is_choice' => false]);
-        $thieves->backgrounds()->attach($urchin, ['is_choice' => false]);
+        $thieves->backgrounds()->attach($criminal);
+        $thieves->backgrounds()->attach($urchin);
 
         // Different language - should not appear
         $dwarvish = Language::where('slug', 'dwarvish')->first() ?? Language::factory()->create(['name' => 'Dwarvish Test', 'slug' => 'dwarvish-test']);
         $guildArtisan = Background::factory()->create(['name' => 'Guild Artisan']);
-        $dwarvish->backgrounds()->attach($guildArtisan, ['is_choice' => false]);
+        $dwarvish->backgrounds()->attach($guildArtisan);
 
         $this->assertReturnsRelatedEntities("/api/v1/lookups/languages/{$thieves->id}/backgrounds", 2, ['Criminal', 'Urchin']);
     }
@@ -99,7 +99,7 @@ class LanguageReverseRelationshipsApiTest extends ReverseRelationshipTestCase
         $primordial = Language::where('slug', 'primordial')->first() ?? Language::factory()->create(['name' => 'Primordial Test', 'slug' => 'primordial-test']);
 
         $outlander = Background::factory()->create(['name' => 'Outlander '.uniqid()]);
-        $primordial->backgrounds()->attach($outlander, ['is_choice' => false]);
+        $primordial->backgrounds()->attach($outlander);
 
         $this->assertAcceptsAlternativeIdentifier("/api/v1/lookups/languages/{$primordial->slug}/backgrounds");
     }
@@ -111,7 +111,7 @@ class LanguageReverseRelationshipsApiTest extends ReverseRelationshipTestCase
 
         $this->createMultipleEntities(60, function () use ($giant) {
             $background = Background::factory()->create();
-            $giant->backgrounds()->attach($background, ['is_choice' => false]);
+            $giant->backgrounds()->attach($background);
 
             return $background;
         });

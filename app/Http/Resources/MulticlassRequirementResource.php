@@ -14,21 +14,27 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @property int $id
  * @property int|null $ability_score_id
  * @property string $proficiency_name Display name (e.g., "Strength 13")
- * @property int $quantity Minimum ability score required
- * @property bool $is_choice true = OR condition, false = AND condition
+ * @property string|null $proficiency_subcategory 'OR' = alternative, 'AND' = required together
  */
 class MulticlassRequirementResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        // Parse minimum score from proficiency_name (e.g., "Strength 13" -> 13)
+        $minimumScore = null;
+        if (preg_match('/(\d+)$/', $this->proficiency_name, $matches)) {
+            $minimumScore = (int) $matches[1];
+        }
+
         return [
             'ability' => $this->when(
                 $this->relationLoaded('abilityScore') && $this->abilityScore,
                 fn () => new AbilityScoreResource($this->abilityScore)
             ),
             'ability_name' => $this->proficiency_name, // "Strength 13"
-            'minimum_score' => $this->quantity,
-            'is_alternative' => (bool) $this->is_choice, // true = OR, false = AND
+            'minimum_score' => $minimumScore,
+            // 'OR' = alternative (any one), 'AND' = required together
+            'is_alternative' => $this->proficiency_subcategory === 'OR',
         ];
     }
 
@@ -47,9 +53,9 @@ class MulticlassRequirementResource extends JsonResource
             ];
         }
 
-        // Determine type from is_choice flag
-        // If ANY requirement has is_choice=true, it's an OR condition
-        $isOr = $requirements->contains('is_choice', true);
+        // Determine type from proficiency_subcategory field
+        // If ANY requirement has subcategory='OR', it's an OR condition
+        $isOr = $requirements->contains('proficiency_subcategory', 'OR');
 
         $type = match (true) {
             $isOr => 'or',              // Need any one

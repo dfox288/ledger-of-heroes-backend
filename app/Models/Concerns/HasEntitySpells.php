@@ -13,17 +13,19 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
  * Provides spell relationships for entities that grant innate spells.
  * Used by: Race, Feat
  *
- * Two relationships are provided:
- * - spells(): Returns Spell models directly (consistent with Monster/Item API)
- * - entitySpellRecords(): Returns EntitySpell pivot records (for accessing pivot data like level_requirement)
+ * Relationships provided:
+ * - spells(): Returns fixed Spell models (via entity_spells table)
+ * - entitySpellRecords(): Returns EntitySpell pivot records for fixed spells
+ *
+ * Note: For spell choices, use the spellChoices() method from HasEntityChoices trait.
  */
 trait HasEntitySpells
 {
     /**
-     * Get spells granted by this entity.
+     * Get fixed spells granted by this entity.
      *
      * Returns Spell models directly via the polymorphic entity_spells pivot table.
-     * Consistent naming with Monster::spells() and Item::spells() for unified API access.
+     * Only returns fixed spells (not spell choices).
      */
     public function spells(): MorphToMany
     {
@@ -38,21 +40,16 @@ trait HasEntitySpells
             'level_requirement',
             'usage_limit',
             'is_cantrip',
-            'is_choice',
-            'choice_count',
-            'choice_group',
-            'max_level',
-            'school_id',
-            'class_id',
-            'is_ritual_only',
+            'charges_cost_min',
+            'charges_cost_max',
+            'charges_cost_formula',
         ]);
     }
 
     /**
      * Get the EntitySpell pivot records for this entity.
      *
-     * Use this when you need access to the pivot model directly,
-     * such as for spell choices or complex pivot data queries.
+     * Use this when you need access to the pivot model directly.
      */
     public function entitySpellRecords(): MorphMany
     {

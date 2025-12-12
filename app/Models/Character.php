@@ -487,6 +487,9 @@ class Character extends Model implements HasMedia
     /**
      * Get fixed racial ability score bonuses (includes parent race if subrace).
      *
+     * Note: All entity_modifiers are now fixed (non-choice) by definition.
+     * Choice-based modifiers were moved to entity_choices table.
+     *
      * @return array<string, int> Bonuses keyed by ability code
      */
     private function getRacialAbilityBonuses(): array
@@ -497,10 +500,9 @@ class Character extends Model implements HasMedia
             return $bonuses;
         }
 
-        // Get modifiers from current race
+        // Get modifiers from current race (all entity_modifiers are now fixed)
         $modifiers = $this->race->modifiers()
             ->where('modifier_category', 'ability_score')
-            ->where('is_choice', false)
             ->whereNotNull('ability_score_id')
             ->with('abilityScore')
             ->get();
@@ -516,7 +518,6 @@ class Character extends Model implements HasMedia
         if ($this->race->parent_race_id && $this->race->parent) {
             $parentModifiers = $this->race->parent->modifiers()
                 ->where('modifier_category', 'ability_score')
-                ->where('is_choice', false)
                 ->whereNotNull('ability_score_id')
                 ->with('abilityScore')
                 ->get();

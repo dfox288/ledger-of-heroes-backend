@@ -572,15 +572,16 @@ class SpellChoiceHandlerTest extends TestCase
         ]);
 
         // Create spell choice record for the feature (1 druid cantrip)
-        \App\Models\EntitySpell::create([
+        \App\Models\EntityChoice::create([
             'reference_type' => \App\Models\ClassFeature::class,
             'reference_id' => $feature->id,
-            'spell_id' => null,
-            'is_choice' => true,
-            'choice_count' => 1,
-            'is_cantrip' => true,
-            'max_level' => 0,
-            'class_id' => $druid->id,
+            'choice_type' => 'spell',
+            'choice_group' => 'acolyte_of_nature_cantrip',
+            'quantity' => 1,
+            'level_granted' => 1,
+            'is_required' => true,
+            'spell_max_level' => 0, // 0 = cantrip
+            'spell_list_slug' => $druid->slug,
         ]);
 
         // Create character with cleric and nature domain subclass

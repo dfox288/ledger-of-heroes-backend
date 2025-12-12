@@ -62,10 +62,10 @@ class AbilityBonusResource extends JsonResource
                 $this->resource['is_choice'],
                 fn () => $this->resource['choice_resolved'] ?? false
             ),
-            /** @var int Only present when is_choice=true - links to choice template for undo/redo */
-            'modifier_id' => $this->when(
+            /** @var string|null Only present when is_choice=true - links to choice template for undo/redo */
+            'choice_group' => $this->when(
                 $this->resource['is_choice'],
-                fn () => $this->resource['modifier_id'] ?? null
+                fn () => $this->resource['choice_group'] ?? null
             ),
         ];
     }

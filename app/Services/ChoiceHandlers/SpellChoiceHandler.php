@@ -323,7 +323,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         EntityChoice $spellChoice
     ): ?PendingChoice {
         // Get max_level and class constraints from EntityChoice
-        $maxLevel = $spellChoice->max_level ?? 0;
+        $maxLevel = $spellChoice->spell_max_level ?? 0;
         $isCantrip = $maxLevel === 0;
         $quantity = $spellChoice->quantity ?? 1;
 
@@ -337,7 +337,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         $remaining = $quantity - count($selected);
 
         // Build options endpoint with class filter
-        $classSlug = $spellChoice->class_slug;
+        $classSlug = $spellChoice->spell_list_slug;
         $endpoint = "/api/v1/characters/{$character->id}/available-spells?max_level={$maxLevel}";
         if ($classSlug) {
             $endpoint .= "&class={$classSlug}";

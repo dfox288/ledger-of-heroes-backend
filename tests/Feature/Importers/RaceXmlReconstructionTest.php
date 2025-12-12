@@ -3,6 +3,7 @@
 namespace Tests\Feature\Importers;
 
 use App\Models\AbilityScore;
+use App\Models\EntityChoice;
 use App\Models\Language;
 use App\Models\Race;
 use App\Models\Size;
@@ -140,8 +141,8 @@ XML;
         $this->assertNotNull($subrace->parent_race_id, 'Subrace should have parent');
         $this->assertEquals('Dwarf', $subrace->parent->name);
 
-        // Verify hierarchical slug generation
-        $this->assertEquals('dwarf-hill', $subrace->slug, 'Subrace should have hierarchical slug');
+        // Verify hierarchical slug generation (now includes source prefix)
+        $this->assertStringContainsString('dwarf-hill', $subrace->slug, 'Subrace should have hierarchical slug');
 
         $reconstructed = $this->reconstructRaceXml($subrace);
 
@@ -435,9 +436,8 @@ XML;
         $this->assertEquals('Common', $languageNames[0]);
         $this->assertEquals('Elvish', $languageNames[1]);
 
-        // Verify these are fixed languages (not choice slots)
+        // Verify these are fixed languages with language_id set
         foreach ($race->languages as $entityLang) {
-            $this->assertFalse($entityLang->is_choice, 'Should be fixed language, not choice');
             $this->assertNotNull($entityLang->language_id, 'Fixed language should have language_id');
         }
 
@@ -472,24 +472,20 @@ XML;
         $race = Race::where('name', 'Half-Elf')->with('languages.language')->first();
         $this->assertNotNull($race, 'Race should be imported');
 
-        // Verify we have 3 language records (2 fixed + 1 choice)
-        $this->assertCount(3, $race->languages, 'Should have 2 fixed languages + 1 choice slot');
+        // Verify 2 fixed languages (Common, Elvish) in entity_languages
+        $this->assertCount(2, $race->languages, 'Should have 2 fixed languages');
 
-        // Verify 2 fixed languages (Common, Elvish)
-        $fixedLanguages = $race->languages->where('is_choice', false);
-        $this->assertCount(2, $fixedLanguages, 'Should have 2 fixed languages');
-
-        $fixedNames = $fixedLanguages->pluck('language.name')->sort()->values();
+        $fixedNames = $race->languages->pluck('language.name')->sort()->values();
         $this->assertEquals('Common', $fixedNames[0]);
         $this->assertEquals('Elvish', $fixedNames[1]);
 
-        // Verify 1 choice slot (language_id = null, is_choice = true)
-        $choiceSlots = $race->languages->where('is_choice', true);
-        $this->assertCount(1, $choiceSlots, 'Should have 1 choice slot');
+        // Verify 1 language choice in entity_choices
+        $languageChoices = $race->languageChoices()->get();
+        $this->assertCount(1, $languageChoices, 'Should have 1 language choice');
 
-        $choiceSlot = $choiceSlots->first();
-        $this->assertNull($choiceSlot->language_id, 'Choice slot should not have language_id');
-        $this->assertTrue($choiceSlot->is_choice, 'Should be marked as choice');
+        $languageChoice = $languageChoices->first();
+        $this->assertEquals('language', $languageChoice->choice_type);
+        $this->assertEquals(1, $languageChoice->quantity, 'Should allow 1 language choice');
     }
 
     /**

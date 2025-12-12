@@ -3,6 +3,7 @@
 namespace Tests\Feature\Importers;
 
 use App\Models\AbilityScore;
+use App\Models\EntityChoice;
 use App\Models\Race;
 use App\Services\Importers\RaceImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -586,12 +587,11 @@ XML;
 
         $race = $this->importer->import($raceData);
 
-        $choiceModifier = $race->fresh()->modifiers()->where('is_choice', true)->first();
-        $this->assertNotNull($choiceModifier);
-        $this->assertTrue($choiceModifier->is_choice);
-        $this->assertEquals(1, $choiceModifier->choice_count);
-        $this->assertEquals('any', $choiceModifier->choice_constraint);
-        $this->assertNull($choiceModifier->ability_score_id);
+        $choiceRecord = $race->fresh()->abilityScoreChoices()->first();
+        $this->assertNotNull($choiceRecord);
+        $this->assertEquals(1, $choiceRecord->quantity);
+        $this->assertEquals('any', $choiceRecord->constraint);
+        $this->assertEquals('ability_score', $choiceRecord->choice_type);
     }
 
     #[Test]
@@ -703,21 +703,18 @@ XML;
 
         $race = $this->importer->import($raceData);
 
-        // Check that a spell choice record was created
-        $spellChoices = \Illuminate\Support\Facades\DB::table('entity_spells')
-            ->where('reference_type', \App\Models\Race::class)
+        // Check that a spell choice record was created in EntityChoice
+        $spellChoices = EntityChoice::where('reference_type', \App\Models\Race::class)
             ->where('reference_id', $race->id)
-            ->where('is_choice', true)
+            ->where('choice_type', 'spell')
             ->get();
 
         $this->assertCount(1, $spellChoices);
         $choice = $spellChoices->first();
-        $this->assertNull($choice->spell_id); // No specific spell - it's a choice
-        $this->assertTrue((bool) $choice->is_choice);
-        $this->assertTrue((bool) $choice->is_cantrip); // max_level=0 means cantrip
-        $this->assertEquals(1, $choice->choice_count);
-        $this->assertEquals(0, $choice->max_level); // cantrip
-        $this->assertEquals($wizard->id, $choice->class_id);
+        $this->assertEquals('spell', $choice->choice_type);
+        $this->assertEquals(1, $choice->quantity);
+        $this->assertEquals(0, $choice->spell_max_level); // cantrip
+        $this->assertEquals('wizard', $choice->spell_list_slug);
         $this->assertEquals('racial_cantrip', $choice->choice_group);
     }
 
@@ -1215,6 +1212,9 @@ XML;
     #[Test]
     public function it_expands_tiefling_variants_into_separate_subraces()
     {
+        // Create required sense types
+        \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
+
         // First create the base Tiefling race (from PHB)
         $baseTiefling = Race::factory()->create([
             'name' => 'Tiefling',

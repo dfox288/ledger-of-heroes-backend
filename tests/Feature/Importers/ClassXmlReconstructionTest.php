@@ -60,7 +60,7 @@ XML;
 
         // Verify core attributes
         $this->assertEquals('Fighter', (string) $reconstructed->name);
-        $this->assertEquals('fighter', $class->slug);
+        $this->assertEquals('phb:fighter', $class->slug);
         $this->assertEquals('10', (string) $reconstructed->hd);
         $this->assertNull($class->parent_class_id, 'Should be base class');
 
@@ -108,7 +108,7 @@ XML;
         $subclass = CharacterClass::where('name', 'Fighter (Battle Master)')->first();
         $this->assertNotNull($subclass, 'Subclass should be imported');
 
-        // Verify hierarchical slug is generated
+        // Verify hierarchical slug is generated (without source prefix when imported standalone)
         $this->assertEquals('fighter-battle-master', $subclass->slug);
 
         $reconstructed = $this->reconstructClassXml($subclass);

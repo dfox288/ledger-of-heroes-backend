@@ -56,7 +56,7 @@ XML;
 
         // Verify core attributes
         $this->assertEquals('Alert', $feat->name);
-        $this->assertEquals('alert', $feat->slug);
+        $this->assertEquals('phb:alert', $feat->slug); // Source-prefixed slug
         $this->assertStringContainsString('Always on the lookout for danger', $feat->description);
         $this->assertNull($feat->prerequisites_text, 'Alert has no prerequisites');
 

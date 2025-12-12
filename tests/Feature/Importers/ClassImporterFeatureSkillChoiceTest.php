@@ -4,7 +4,7 @@ namespace Tests\Feature\Importers;
 
 use App\Models\CharacterClass;
 use App\Models\ClassFeature;
-use App\Models\Proficiency;
+use App\Models\EntityChoice;
 use App\Models\Skill;
 use App\Services\Importers\ClassImporter;
 use App\Services\Parsers\ClassXmlParser;
@@ -50,24 +50,24 @@ class ClassImporterFeatureSkillChoiceTest extends TestCase
         $this->assertNotNull($feature, 'Acolyte of Nature feature should exist');
 
         // Check that skill choices are linked to this feature
-        $skillChoices = Proficiency::where('reference_type', ClassFeature::class)
+        $skillChoices = EntityChoice::where('reference_type', ClassFeature::class)
             ->where('reference_id', $feature->id)
+            ->where('choice_type', 'proficiency')
             ->where('proficiency_type', 'skill')
-            ->where('is_choice', true)
             ->get();
 
         // Should have 3 skill options: Animal Handling, Nature, Survival
         $this->assertCount(3, $skillChoices, 'Should have 3 skill choice options');
 
-        // Check that all skills are present
-        $skillNames = $skillChoices->pluck('proficiency_name')->toArray();
-        $this->assertContains('Animal Handling', $skillNames);
-        $this->assertContains('Nature', $skillNames);
-        $this->assertContains('Survival', $skillNames);
+        // Check that all skills are present (skills have core: prefix)
+        $skillNames = $skillChoices->pluck('target_slug')->toArray();
+        $this->assertContains('core:animal-handling', $skillNames);
+        $this->assertContains('core:nature', $skillNames);
+        $this->assertContains('core:survival', $skillNames);
 
         // Check choice metadata
         $firstChoice = $skillChoices->first();
-        $this->assertEquals('feature_skill_choice_1', $firstChoice->choice_group);
+        $this->assertEquals('feature_skill_choice', $firstChoice->choice_group);
         $this->assertEquals(1, $firstChoice->quantity, 'Should pick 1 skill from the list');
     }
 
@@ -90,21 +90,21 @@ class ClassImporterFeatureSkillChoiceTest extends TestCase
         $this->assertNotNull($feature);
 
         // Check skill choices
-        $skillChoices = Proficiency::where('reference_type', ClassFeature::class)
+        $skillChoices = EntityChoice::where('reference_type', ClassFeature::class)
             ->where('reference_id', $feature->id)
+            ->where('choice_type', 'proficiency')
             ->where('proficiency_type', 'skill')
-            ->where('is_choice', true)
             ->get();
 
         // Should have 5 skill options
         $this->assertCount(5, $skillChoices);
 
-        $skillNames = $skillChoices->pluck('proficiency_name')->toArray();
-        $this->assertContains('Animal Handling', $skillNames);
-        $this->assertContains('History', $skillNames);
-        $this->assertContains('Insight', $skillNames);
-        $this->assertContains('Performance', $skillNames);
-        $this->assertContains('Persuasion', $skillNames);
+        $skillNames = $skillChoices->pluck('target_slug')->toArray();
+        $this->assertContains('core:animal-handling', $skillNames);
+        $this->assertContains('core:history', $skillNames);
+        $this->assertContains('core:insight', $skillNames);
+        $this->assertContains('core:performance', $skillNames);
+        $this->assertContains('core:persuasion', $skillNames);
     }
 
     #[Test]
@@ -123,8 +123,9 @@ class ClassImporterFeatureSkillChoiceTest extends TestCase
             ->first();
 
         // Should still only have 3 skill choices
-        $count = Proficiency::where('reference_type', ClassFeature::class)
+        $count = EntityChoice::where('reference_type', ClassFeature::class)
             ->where('reference_id', $feature->id)
+            ->where('choice_type', 'proficiency')
             ->where('proficiency_type', 'skill')
             ->count();
 

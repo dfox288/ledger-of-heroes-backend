@@ -40,7 +40,7 @@ class ClassImporterTest extends TestCase
         // Assert base class created
         $this->assertInstanceOf(CharacterClass::class, $fighter);
         $this->assertEquals('Fighter', $fighter->name);
-        $this->assertEquals('fighter', $fighter->slug);
+        $this->assertEquals('phb:fighter', $fighter->slug);
         $this->assertEquals(10, $fighter->hit_die);
         $this->assertNull($fighter->parent_class_id);
 
@@ -222,7 +222,7 @@ class ClassImporterTest extends TestCase
         // Assert Battle Master created with correct attributes
         $this->assertNotNull($battleMaster);
         $this->assertEquals('Battle Master', $battleMaster->name);
-        $this->assertEquals('fighter-battle-master', $battleMaster->slug);
+        $this->assertEquals('phb:fighter-battle-master', $battleMaster->slug);
         $this->assertEquals($fighter->id, $battleMaster->parent_class_id);
 
         // Assert Battle Master has its own features
@@ -247,12 +247,12 @@ class ClassImporterTest extends TestCase
 
         // Assert Champion created
         $this->assertNotNull($champion);
-        $this->assertEquals('fighter-champion', $champion->slug);
+        $this->assertEquals('phb:fighter-champion', $champion->slug);
         $this->assertEquals($fighter->id, $champion->parent_class_id);
 
         // Assert Eldritch Knight created
         $this->assertNotNull($eldritchKnight);
-        $this->assertEquals('fighter-eldritch-knight', $eldritchKnight->slug);
+        $this->assertEquals('phb:fighter-eldritch-knight', $eldritchKnight->slug);
         $this->assertEquals($fighter->id, $eldritchKnight->parent_class_id);
 
         // Verify we can query all subclasses from parent
@@ -272,55 +272,47 @@ class ClassImporterTest extends TestCase
         // Import the Fighter class
         $fighter = $this->importer->import($fighterData);
 
-        // Get all proficiencies
+        // Get all proficiencies (fixed data)
         $proficiencies = $fighter->proficiencies;
         $this->assertGreaterThan(0, $proficiencies->count());
 
-        // Get skill proficiencies
-        $skills = $proficiencies->where('proficiency_type', 'skill')->values();
-        $this->assertGreaterThan(0, $skills->count(), 'Should have skill proficiencies');
+        // Get skill choices from EntityChoice table
+        $skillChoices = \App\Models\EntityChoice::where('reference_type', \App\Models\CharacterClass::class)
+            ->where('reference_id', $fighter->id)
+            ->where('choice_type', 'proficiency')
+            ->where('proficiency_type', 'skill')
+            ->get();
+        $this->assertGreaterThan(0, $skillChoices->count(), 'Should have skill choices');
 
         // All skills should be in the same choice group
-        $choiceGroup = $skills[0]->choice_group;
+        $choiceGroup = $skillChoices[0]->choice_group;
         $this->assertNotNull($choiceGroup, 'Skills should have a choice_group');
         $this->assertEquals('skill_choice_1', $choiceGroup);
 
-        // All skills should be marked as choices with same group
-        foreach ($skills as $index => $skill) {
-            $this->assertTrue((bool) $skill->is_choice, "Skill {$skill->proficiency_name} should be marked as choice");
-            $this->assertEquals($choiceGroup, $skill->choice_group, "Skill {$skill->proficiency_name} should have same choice_group");
-            $this->assertEquals($index + 1, $skill->choice_option, "Skill {$skill->proficiency_name} should have sequential choice_option");
+        // All skills should have same choice_group with sequential choice_option
+        foreach ($skillChoices as $index => $skill) {
+            $this->assertEquals($choiceGroup, $skill->choice_group, "Skill at index {$index} should have same choice_group");
+            $this->assertEquals($index + 1, $skill->choice_option, "Skill at index {$index} should have sequential choice_option");
         }
 
-        // Only first skill should have quantity
-        $this->assertEquals(2, $skills[0]->quantity, 'First skill should have quantity=2');
-        for ($i = 1; $i < $skills->count(); $i++) {
-            $this->assertNull($skills[$i]->quantity, "Skill at index {$i} should have null quantity");
+        // First choice option should have quantity=2 (how many to pick from group)
+        // Remaining options should have quantity=1 (default for restricted choices)
+        $this->assertEquals(2, $skillChoices[0]->quantity, 'First skill choice should have quantity=2');
+        for ($i = 1; $i < $skillChoices->count(); $i++) {
+            $this->assertEquals(1, $skillChoices[$i]->quantity, "Skill at index {$i} should have quantity=1");
         }
 
-        // Saving throws should NOT be choices
+        // Saving throws should be in proficiencies table (not choices)
         $savingThrows = $proficiencies->where('proficiency_type', 'saving_throw');
         $this->assertCount(2, $savingThrows);
 
-        foreach ($savingThrows as $save) {
-            $this->assertFalse((bool) $save->is_choice, "Saving throw {$save->proficiency_name} should not be choice");
-        }
-
-        // Armor proficiencies should NOT be choices
+        // Armor proficiencies should be in proficiencies table (not choices)
         $armor = $proficiencies->where('proficiency_type', 'armor');
         $this->assertGreaterThan(0, $armor->count());
 
-        foreach ($armor as $armorProf) {
-            $this->assertFalse((bool) $armorProf->is_choice, "Armor {$armorProf->proficiency_name} should not be choice");
-        }
-
-        // Weapon proficiencies should NOT be choices
+        // Weapon proficiencies should be in proficiencies table (not choices)
         $weapons = $proficiencies->where('proficiency_type', 'weapon');
         $this->assertGreaterThan(0, $weapons->count());
-
-        foreach ($weapons as $weapon) {
-            $this->assertFalse((bool) $weapon->is_choice, "Weapon {$weapon->proficiency_name} should not be choice");
-        }
     }
 
     #[Test]
@@ -338,23 +330,22 @@ class ClassImporterTest extends TestCase
         // Import the Barbarian class
         $barbarian = $this->importer->import($barbarianData);
 
-        // Assert: equipment was imported
+        // Assert: equipment was imported (fixed items in entity_items)
         $this->assertGreaterThan(0, $barbarian->equipment()->count(), 'Barbarian should have equipment');
 
-        // Assert: verify choice structure
-        $choices = $barbarian->equipment()->where('is_choice', true)->get();
-        $this->assertGreaterThan(0, $choices->count(), 'Should have at least one equipment choice');
+        // Assert: verify equipment choices in EntityChoice table
+        $equipmentChoices = \App\Models\EntityChoice::where('reference_type', \App\Models\CharacterClass::class)
+            ->where('reference_id', $barbarian->id)
+            ->where('choice_type', 'equipment')
+            ->get();
+        $this->assertGreaterThan(0, $equipmentChoices->count(), 'Should have at least one equipment choice');
 
-        // Assert: all equipment has description
+        // Assert: all fixed equipment has description
         foreach ($barbarian->equipment as $item) {
             $this->assertNotEmpty($item->description, 'Equipment item should have description');
             $this->assertIsInt($item->quantity, 'Equipment item should have quantity');
             $this->assertGreaterThan(0, $item->quantity, 'Equipment quantity should be at least 1');
         }
-
-        // Assert: non-choice items exist
-        $nonChoices = $barbarian->equipment()->where('is_choice', false)->get();
-        $this->assertGreaterThan(0, $nonChoices->count(), 'Should have non-choice equipment items');
     }
 
     #[Test]
@@ -391,7 +382,7 @@ class ClassImporterTest extends TestCase
         }
 
         // Specifically check Battle Master (all features on same page)
-        $battleMaster = CharacterClass::where('slug', 'fighter-battle-master')->first();
+        $battleMaster = CharacterClass::where('slug', 'phb:fighter-battle-master')->first();
         $this->assertNotNull($battleMaster);
         $this->assertGreaterThan(0, $battleMaster->sources()->count(), 'Battle Master should have sources');
 
@@ -401,7 +392,7 @@ class ClassImporterTest extends TestCase
         $this->assertEquals('73', $battleMasterSource->pages, 'Battle Master should be on page 73');
 
         // Specifically check Eldritch Knight (features span multiple pages - tests page merging)
-        $eldritchKnight = CharacterClass::where('slug', 'fighter-eldritch-knight')->first();
+        $eldritchKnight = CharacterClass::where('slug', 'phb:fighter-eldritch-knight')->first();
         $this->assertNotNull($eldritchKnight);
         $eldritchKnightSource = $eldritchKnight->sources()->first();
         $this->assertNotNull($eldritchKnightSource->pages, 'Eldritch Knight source should have page number');
@@ -450,7 +441,7 @@ class ClassImporterTest extends TestCase
         }
 
         // Specifically check Battle Master
-        $battleMaster = CharacterClass::where('slug', 'fighter-battle-master')->first();
+        $battleMaster = CharacterClass::where('slug', 'phb:fighter-battle-master')->first();
         $this->assertNotNull($battleMaster);
         $this->assertEquals(
             'phb:fighter-battle-master',
@@ -459,7 +450,7 @@ class ClassImporterTest extends TestCase
         );
 
         // Specifically check Champion
-        $champion = CharacterClass::where('slug', 'fighter-champion')->first();
+        $champion = CharacterClass::where('slug', 'phb:fighter-champion')->first();
         $this->assertNotNull($champion);
         $this->assertEquals(
             'phb:fighter-champion',
@@ -468,7 +459,7 @@ class ClassImporterTest extends TestCase
         );
 
         // Specifically check Eldritch Knight
-        $eldritchKnight = CharacterClass::where('slug', 'fighter-eldritch-knight')->first();
+        $eldritchKnight = CharacterClass::where('slug', 'phb:fighter-eldritch-knight')->first();
         $this->assertNotNull($eldritchKnight);
         $this->assertEquals(
             'phb:fighter-eldritch-knight',
@@ -520,7 +511,7 @@ class ClassImporterTest extends TestCase
         // Assert class was created
         $this->assertInstanceOf(CharacterClass::class, $class);
         $this->assertEquals('Test Sidekick', $class->name);
-        $this->assertEquals('test-sidekick', $class->slug);
+        $this->assertEquals('tce:test-sidekick', $class->slug);
 
         // Assert features were imported
         $this->assertEquals(2, $class->features()->count(), 'Should have 2 features');

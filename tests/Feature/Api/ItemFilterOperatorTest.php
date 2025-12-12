@@ -89,11 +89,10 @@ class ItemFilterOperatorTest extends TestCase
 
         $response->assertOk();
 
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $item) {
-                if ($item['charges_max'] !== null && is_numeric($item['charges_max'])) {
-                    $this->assertGreaterThan(5, (int) $item['charges_max'], "Item {$item['name']} charges_max should be > 5");
-                }
+        // Validate returned results if any - PHB may not have items with charges > 5
+        foreach ($response->json('data') as $item) {
+            if ($item['charges_max'] !== null && is_numeric($item['charges_max'])) {
+                $this->assertGreaterThan(5, (int) $item['charges_max'], "Item {$item['name']} charges_max should be > 5");
             }
         }
     }
@@ -105,11 +104,10 @@ class ItemFilterOperatorTest extends TestCase
 
         $response->assertOk();
 
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $item) {
-                if ($item['charges_max'] !== null && is_numeric($item['charges_max'])) {
-                    $this->assertGreaterThanOrEqual(7, (int) $item['charges_max'], "Item {$item['name']} charges_max should be >= 7");
-                }
+        // Validate returned results if any - PHB may not have items with charges >= 7
+        foreach ($response->json('data') as $item) {
+            if ($item['charges_max'] !== null && is_numeric($item['charges_max'])) {
+                $this->assertGreaterThanOrEqual(7, (int) $item['charges_max'], "Item {$item['name']} charges_max should be >= 7");
             }
         }
     }
@@ -121,11 +119,10 @@ class ItemFilterOperatorTest extends TestCase
 
         $response->assertOk();
 
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $item) {
-                if ($item['charges_max'] !== null && is_numeric($item['charges_max'])) {
-                    $this->assertLessThan(5, (int) $item['charges_max'], "Item {$item['name']} charges_max should be < 5");
-                }
+        // Validate returned results if any - PHB may not have items with charges < 5
+        foreach ($response->json('data') as $item) {
+            if ($item['charges_max'] !== null && is_numeric($item['charges_max'])) {
+                $this->assertLessThan(5, (int) $item['charges_max'], "Item {$item['name']} charges_max should be < 5");
             }
         }
     }
@@ -137,11 +134,10 @@ class ItemFilterOperatorTest extends TestCase
 
         $response->assertOk();
 
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $item) {
-                if ($item['charges_max'] !== null && is_numeric($item['charges_max'])) {
-                    $this->assertLessThanOrEqual(3, (int) $item['charges_max'], "Item {$item['name']} charges_max should be <= 3");
-                }
+        // Validate returned results if any - PHB may not have items with charges <= 3
+        foreach ($response->json('data') as $item) {
+            if ($item['charges_max'] !== null && is_numeric($item['charges_max'])) {
+                $this->assertLessThanOrEqual(3, (int) $item['charges_max'], "Item {$item['name']} charges_max should be <= 3");
             }
         }
     }
@@ -153,13 +149,12 @@ class ItemFilterOperatorTest extends TestCase
 
         $response->assertOk();
 
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $item) {
-                if ($item['charges_max'] !== null && is_numeric($item['charges_max'])) {
-                    $chargesMax = (int) $item['charges_max'];
-                    $this->assertGreaterThanOrEqual(3, $chargesMax, "Item {$item['name']} charges_max should be >= 3");
-                    $this->assertLessThanOrEqual(7, $chargesMax, "Item {$item['name']} charges_max should be <= 7");
-                }
+        // Validate returned results if any - PHB may not have items with charges in 3-7 range
+        foreach ($response->json('data') as $item) {
+            if ($item['charges_max'] !== null && is_numeric($item['charges_max'])) {
+                $chargesMax = (int) $item['charges_max'];
+                $this->assertGreaterThanOrEqual(3, $chargesMax, "Item {$item['name']} charges_max should be >= 3");
+                $this->assertLessThanOrEqual(7, $chargesMax, "Item {$item['name']} charges_max should be <= 7");
             }
         }
     }
@@ -258,13 +253,11 @@ class ItemFilterOperatorTest extends TestCase
 
         $response->assertOk();
 
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $item) {
-                $this->assertNull($item['is_magic'], "Item {$item['name']} should have null is_magic");
-            }
+        // IS NULL may legitimately return 0 results if all items have is_magic set
+        // If results ARE returned, verify they actually have null is_magic
+        foreach ($response->json('data') as $item) {
+            $this->assertNull($item['is_magic'], "Item {$item['name']} should have null is_magic");
         }
-
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'), 'IS NULL operator should work without errors');
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -304,14 +297,14 @@ class ItemFilterOperatorTest extends TestCase
 
         $response->assertOk();
 
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $item) {
-                $properties = $item['properties'] ?? [];
-                $propertyCodes = collect($properties)->pluck('code')->toArray();
+        // PHB has items with versatile (V) and light (L) properties
+        // Validate all returned results have these properties
+        foreach ($response->json('data') as $item) {
+            $properties = $item['properties'] ?? [];
+            $propertyCodes = collect($properties)->pluck('code')->toArray();
 
-                $hasVersatileOrLight = in_array('V', $propertyCodes) || in_array('L', $propertyCodes);
-                $this->assertTrue($hasVersatileOrLight, "Item {$item['name']} should have versatile (V) or light (L) property");
-            }
+            $hasVersatileOrLight = in_array('V', $propertyCodes) || in_array('L', $propertyCodes);
+            $this->assertTrue($hasVersatileOrLight, "Item {$item['name']} should have versatile (V) or light (L) property");
         }
     }
 
@@ -322,13 +315,12 @@ class ItemFilterOperatorTest extends TestCase
 
         $response->assertOk();
 
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $item) {
-                $properties = $item['properties'] ?? [];
-                $propertyCodes = collect($properties)->pluck('code')->toArray();
+        // NOT IN [H] should return items without heavy property - validate all results
+        foreach ($response->json('data') as $item) {
+            $properties = $item['properties'] ?? [];
+            $propertyCodes = collect($properties)->pluck('code')->toArray();
 
-                $this->assertNotContains('H', $propertyCodes, "Item {$item['name']} should not have heavy (H) property");
-            }
+            $this->assertNotContains('H', $propertyCodes, "Item {$item['name']} should not have heavy (H) property");
         }
     }
 

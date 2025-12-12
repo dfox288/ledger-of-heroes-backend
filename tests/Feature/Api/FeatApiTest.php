@@ -358,10 +358,13 @@ class FeatApiTest extends TestCase
 
         $response->assertOk();
 
-        // Should find some feats (Meilisearch handles multi-word searches)
-        // Just verify we get results without checking specific content
-        // as Meilisearch may use relevance scoring
-        $this->assertGreaterThanOrEqual(0, count($response->json('data')),
-            'Multi-word search should return results or empty array');
+        // Multi-word search should work - Meilisearch uses relevance scoring
+        // Verify any results returned contain relevant terms
+        foreach ($response->json('data') as $feat) {
+            // The result should be relevant to "heavy armor" - check name or description
+            $content = strtolower($feat['name'].' '.($feat['description'] ?? ''));
+            $hasRelevantTerm = str_contains($content, 'heavy') || str_contains($content, 'armor');
+            $this->assertTrue($hasRelevantTerm, "Feat {$feat['name']} should be relevant to 'heavy armor' search");
+        }
     }
 }

@@ -332,17 +332,12 @@ class SpellFilterOperatorTest extends TestCase
         // This test verifies IS NULL works, but may return 0 results with clean PHB data
         $response->assertOk();
 
-        // If any results are returned, verify they have null concentration
-        // Note: API Resource exposes this as 'needs_concentration', not 'concentration'
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $spell) {
-                $this->assertNull($spell['needs_concentration'], "Spell {$spell['name']} should have null concentration");
-            }
-        }
-
         // With properly imported PHB data, we expect 0 results since all spells have concentration set
-        // This demonstrates IS NULL operator works correctly
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'), 'IS NULL operator should work without errors');
+        // If results ARE returned, verify they actually have null concentration
+        // Note: API Resource exposes this as 'needs_concentration', not 'concentration'
+        foreach ($response->json('data') as $spell) {
+            $this->assertNull($spell['needs_concentration'], "Spell {$spell['name']} should have null concentration");
+        }
     }
 
     // ============================================================

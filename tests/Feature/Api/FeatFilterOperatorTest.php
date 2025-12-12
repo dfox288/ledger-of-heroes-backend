@@ -163,12 +163,11 @@ class FeatFilterOperatorTest extends TestCase
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true');
 
         $response->assertOk();
-        // If we have results, verify all returned feats have prerequisites
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $feat) {
-                $featModel = Feat::find($feat['id']);
-                $this->assertTrue($featModel->prerequisites()->exists(), "Feat {$feat['name']} should have prerequisites");
-            }
+
+        // PHB has feats with prerequisites - validate all returned results
+        foreach ($response->json('data') as $feat) {
+            $featModel = Feat::find($feat['id']);
+            $this->assertTrue($featModel->prerequisites()->exists(), "Feat {$feat['name']} should have prerequisites");
         }
     }
 
@@ -235,7 +234,13 @@ class FeatFilterOperatorTest extends TestCase
         $response = $this->getJson('/api/v1/feats?filter=tag_slugs NOT IN [combat]');
 
         $response->assertOk();
-        // Verify the filter accepts the query without errors
-        $this->assertGreaterThanOrEqual(0, $response->json('meta.total'));
+
+        // Since no imported feats have tags, all should be returned
+        // Verify returned feats don't have the combat tag
+        foreach ($response->json('data') as $feat) {
+            $featModel = Feat::find($feat['id']);
+            $tagSlugs = $featModel->tags->pluck('slug')->toArray();
+            $this->assertNotContains('combat', $tagSlugs, "Feat {$feat['name']} should not have combat tag");
+        }
     }
 }

@@ -43,3 +43,29 @@ it('excludes auth-required character endpoints', function () {
     expect($endpoints)->not->toHaveKey('GET /v1/characters');
     expect($endpoints)->not->toHaveKey('GET /v1/characters/{character}');
 });
+
+it('excludes search endpoint (requires query param)', function () {
+    $endpoints = OpenApiEndpointExtractor::getTestableEndpoints();
+
+    expect($endpoints)->not->toHaveKey('GET /v1/search');
+});
+
+it('excludes nested lookup endpoints', function () {
+    $endpoints = OpenApiEndpointExtractor::getTestableEndpoints();
+
+    // Nested lookups like /lookups/proficiency-types/{param}/backgrounds are skipped
+    $nestedLookups = array_filter(
+        $endpoints,
+        fn ($e, $k) => str_contains($k, '/lookups/') && ! empty($e['params']),
+        ARRAY_FILTER_USE_BOTH
+    );
+    expect($nestedLookups)->toBeEmpty();
+});
+
+it('marks lookup index endpoints as non-paginated', function () {
+    $endpoints = OpenApiEndpointExtractor::getTestableEndpoints();
+
+    // Lookup index endpoints return simple arrays, not paginated
+    expect($endpoints)->toHaveKey('GET /v1/lookups/alignments');
+    expect($endpoints['GET /v1/lookups/alignments']['paginated'])->toBeFalse();
+});

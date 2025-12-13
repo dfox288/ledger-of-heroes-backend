@@ -164,6 +164,36 @@ class MonsterModelTest extends TestCase
         $this->assertFalse($monster->is_legendary);
     }
 
+    #[Test]
+    public function is_legendary_returns_true_when_both_legendary_and_lair_actions_exist(): void
+    {
+        $monster = Monster::factory()->create();
+
+        // Add legendary action
+        MonsterLegendaryAction::create([
+            'monster_id' => $monster->id,
+            'name' => 'Tail Attack',
+            'description' => 'The dragon makes a tail attack.',
+            'action_cost' => 1,
+            'is_lair_action' => false,
+        ]);
+
+        // Add lair action
+        MonsterLegendaryAction::create([
+            'monster_id' => $monster->id,
+            'name' => 'Tremor',
+            'description' => 'The ground shakes.',
+            'action_cost' => 1,
+            'is_lair_action' => true,
+        ]);
+
+        $monster = $monster->fresh();
+
+        // Monster with both should be legendary (has non-lair legendary actions)
+        $this->assertTrue($monster->is_legendary);
+        $this->assertCount(2, $monster->legendaryActions);
+    }
+
     // =========================================================================
     // Proficiency Bonus (CR-based calculation)
     // =========================================================================
@@ -212,6 +242,39 @@ class MonsterModelTest extends TestCase
         $this->assertEquals(9, $monster->proficiency_bonus);
     }
 
+    #[Test]
+    public function proficiency_bonus_boundary_cr_4_to_5(): void
+    {
+        $monsterCr4 = Monster::factory()->create(['challenge_rating' => '4']);
+        $monsterCr5 = Monster::factory()->create(['challenge_rating' => '5']);
+
+        // CR 4 is last tier with +2, CR 5 is first with +3
+        $this->assertEquals(2, $monsterCr4->proficiency_bonus);
+        $this->assertEquals(3, $monsterCr5->proficiency_bonus);
+    }
+
+    #[Test]
+    public function proficiency_bonus_boundary_cr_8_to_9(): void
+    {
+        $monsterCr8 = Monster::factory()->create(['challenge_rating' => '8']);
+        $monsterCr9 = Monster::factory()->create(['challenge_rating' => '9']);
+
+        // CR 8 is last tier with +3, CR 9 is first with +4
+        $this->assertEquals(3, $monsterCr8->proficiency_bonus);
+        $this->assertEquals(4, $monsterCr9->proficiency_bonus);
+    }
+
+    #[Test]
+    public function proficiency_bonus_boundary_cr_16_to_17(): void
+    {
+        $monsterCr16 = Monster::factory()->create(['challenge_rating' => '16']);
+        $monsterCr17 = Monster::factory()->create(['challenge_rating' => '17']);
+
+        // CR 16 is last tier with +5, CR 17 is first with +6
+        $this->assertEquals(5, $monsterCr16->proficiency_bonus);
+        $this->assertEquals(6, $monsterCr17->proficiency_bonus);
+    }
+
     // =========================================================================
     // Challenge Rating Numeric Conversion
     // =========================================================================
@@ -238,6 +301,23 @@ class MonsterModelTest extends TestCase
         $this->assertEquals(1.0, $monster1->getChallengeRatingNumeric());
         $this->assertEquals(10.0, $monster10->getChallengeRatingNumeric());
         $this->assertEquals(20.0, $monster20->getChallengeRatingNumeric());
+    }
+
+    #[Test]
+    public function challenge_rating_numeric_for_zero(): void
+    {
+        $monster = Monster::factory()->create(['challenge_rating' => '0']);
+
+        $this->assertEquals(0.0, $monster->getChallengeRatingNumeric());
+    }
+
+    #[Test]
+    public function challenge_rating_handles_empty_string(): void
+    {
+        $monster = Monster::factory()->create(['challenge_rating' => '']);
+
+        // Empty string converts to 0.0 via (float) cast
+        $this->assertEquals(0.0, $monster->getChallengeRatingNumeric());
     }
 
     // =========================================================================

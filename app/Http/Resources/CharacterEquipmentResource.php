@@ -67,23 +67,15 @@ class CharacterEquipmentResource extends JsonResource
      * Get the display group for this item.
      *
      * Groups items by type for frontend inventory organization.
-     * Custom items default to Miscellaneous.
+     * Custom items and dangling references default to Miscellaneous.
      */
     private function getItemGroup(): string
     {
-        // Custom items go to Miscellaneous
-        if ($this->item_slug === null) {
+        // Custom items or dangling references go to Miscellaneous
+        if ($this->item_slug === null || $this->item === null) {
             return ItemGroup::MISCELLANEOUS->value;
         }
 
-        // Dangling references go to Miscellaneous
-        if ($this->item === null) {
-            return ItemGroup::MISCELLANEOUS->value;
-        }
-
-        // Get group from item type
-        $itemTypeName = $this->item->itemType?->name;
-
-        return ItemGroup::fromItemType($itemTypeName)->value;
+        return ItemGroup::fromItemType($this->item->itemType?->name)->value;
     }
 }

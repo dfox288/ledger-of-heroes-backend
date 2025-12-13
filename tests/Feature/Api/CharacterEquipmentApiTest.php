@@ -25,6 +25,12 @@ class CharacterEquipmentApiTest extends TestCase
 
     private Item $shield;
 
+    private Item $potion;
+
+    private Item $wand;
+
+    private Item $backpack;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -61,6 +67,33 @@ class CharacterEquipmentApiTest extends TestCase
             'armor_class' => 2,
             'rarity' => 'common',
             'description' => 'A wooden or metal shield.',
+        ]);
+
+        $potionType = ItemType::where('code', 'P')->first();
+        $this->potion = Item::create([
+            'name' => 'Healing Potion',
+            'slug' => 'test:healing-potion',
+            'item_type_id' => $potionType->id,
+            'rarity' => 'common',
+            'description' => 'A potion that restores hit points.',
+        ]);
+
+        $wandType = ItemType::where('code', 'WD')->first();
+        $this->wand = Item::create([
+            'name' => 'Wand of Magic Missiles',
+            'slug' => 'test:wand-of-magic-missiles',
+            'item_type_id' => $wandType->id,
+            'rarity' => 'uncommon',
+            'description' => 'A wand that casts magic missile.',
+        ]);
+
+        $gearType = ItemType::where('code', 'G')->first();
+        $this->backpack = Item::create([
+            'name' => 'Backpack',
+            'slug' => 'test:backpack',
+            'item_type_id' => $gearType->id,
+            'rarity' => 'common',
+            'description' => 'A sturdy backpack.',
         ]);
     }
 
@@ -180,6 +213,51 @@ class CharacterEquipmentApiTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.0.group', 'Miscellaneous')
             ->assertJsonPath('data.0.is_dangling', true);
+    }
+
+    #[Test]
+    public function it_includes_group_field_for_consumables(): void
+    {
+        $character = Character::factory()->create();
+
+        CharacterEquipment::factory()
+            ->withItem($this->potion)
+            ->create(['character_id' => $character->id]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/equipment");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.group', 'Consumables');
+    }
+
+    #[Test]
+    public function it_includes_group_field_for_magic_items(): void
+    {
+        $character = Character::factory()->create();
+
+        CharacterEquipment::factory()
+            ->withItem($this->wand)
+            ->create(['character_id' => $character->id]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/equipment");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.group', 'Magic Items');
+    }
+
+    #[Test]
+    public function it_includes_group_field_for_gear(): void
+    {
+        $character = Character::factory()->create();
+
+        CharacterEquipment::factory()
+            ->withItem($this->backpack)
+            ->create(['character_id' => $character->id]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/equipment");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.group', 'Gear');
     }
 
     // =============================
@@ -351,18 +429,9 @@ class CharacterEquipmentApiTest extends TestCase
     {
         $character = Character::factory()->create();
 
-        // Create a potion (not equippable)
-        $potionType = ItemType::where('code', 'P')->first();
-        $potion = Item::create([
-            'name' => 'Healing Potion',
-            'slug' => 'test:healing-potion',
-            'item_type_id' => $potionType->id,
-            'rarity' => 'common',
-            'description' => 'A potion that heals.',
-        ]);
-
+        // Use the potion fixture (not equippable)
         $equipment = CharacterEquipment::factory()
-            ->withItem($potion)
+            ->withItem($this->potion)
             ->create(['character_id' => $character->id]);
 
         $response = $this->patchJson(

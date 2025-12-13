@@ -2,6 +2,7 @@
 
 namespace App\Services\Parsers;
 
+use App\Enums\ToolProficiencyCategory;
 use App\Models\Language;
 use App\Services\Parsers\Concerns\LookupsGameEntities;
 use App\Services\Parsers\Concerns\MatchesLanguages;
@@ -498,28 +499,24 @@ class BackgroundXmlParser
 
     /**
      * Extract tool subcategory from tool name.
-     * Examples: "artisan's tools" -> "artisan", "gaming set" -> "gaming", "musical instrument" -> "musical"
+     *
+     * Returns enum values for known categories, null otherwise.
      */
     private function extractToolSubcategory(string $toolName): ?string
     {
         $normalized = strtolower($toolName);
 
-        // Check for common patterns
+        // Check for common patterns - use enum values for consistency
         if (str_contains($normalized, 'artisan')) {
-            return 'artisan';
+            return ToolProficiencyCategory::ARTISAN->value;
         }
 
         if (str_contains($normalized, 'gaming')) {
-            return 'gaming';
+            return ToolProficiencyCategory::GAMING->value;
         }
 
         if (str_contains($normalized, 'musical')) {
-            return 'musical';
-        }
-
-        // Match pattern: "word's tools/instruments/set"
-        if (preg_match('/^(\w+)[\'\s]s\s+(tools|instrument|set)/i', $toolName, $matches)) {
-            return strtolower($matches[1]);
+            return ToolProficiencyCategory::MUSICAL_INSTRUMENT->value;
         }
 
         return null;

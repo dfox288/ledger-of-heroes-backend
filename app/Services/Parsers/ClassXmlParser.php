@@ -2,6 +2,7 @@
 
 namespace App\Services\Parsers;
 
+use App\Enums\ToolProficiencyCategory;
 use App\Services\Parsers\Concerns\ConvertsWordNumbers;
 use App\Services\Parsers\Concerns\LoadsLookupData;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
@@ -217,7 +218,7 @@ class ClassXmlParser
                         'type' => 'tool',
                         'name' => $tool, // Keep original text for display
                         'proficiency_type_id' => null, // No specific type - it's a choice
-                        'proficiency_subcategory' => 'artisan', // Reference to subcategory
+                        'proficiency_subcategory' => ToolProficiencyCategory::ARTISAN->value,
                         'is_choice' => true,
                         'choice_group' => "tool_choice_{$choiceCounter}",
                         'quantity' => $quantity,
@@ -231,7 +232,7 @@ class ClassXmlParser
                         'type' => 'tool',
                         'name' => $tool,
                         'proficiency_type_id' => null,
-                        'proficiency_subcategory' => 'musical_instrument',
+                        'proficiency_subcategory' => ToolProficiencyCategory::MUSICAL_INSTRUMENT->value,
                         'is_choice' => true,
                         'choice_group' => "tool_choice_{$choiceCounter}",
                         'quantity' => $quantity,
@@ -1157,7 +1158,7 @@ class ClassXmlParser
         // Patterns: "any musical instrument", "any other musical instrument", "musical instrument of your choice", etc.
         if (preg_match('/^(?:any\s+)?(?:other\s+)?musical\s+instruments?(?:\s+of\s+your\s+choice)?$/i', $part) ||
             preg_match('/^(?:one\s+)?musical\s+instruments?$/i', $part)) {
-            return ['type' => 'category', 'value' => 'musical_instrument', 'quantity' => $quantity];
+            return ['type' => 'category', 'value' => ToolProficiencyCategory::MUSICAL_INSTRUMENT->value, 'quantity' => $quantity];
         }
 
         // Handle "quiver of arrows (20)" or "arrows (20)" pattern

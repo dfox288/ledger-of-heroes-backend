@@ -351,6 +351,8 @@ class MonsterApiTest extends TestCase
             // Meilisearch may return results with 'dragon' in various fields
             // Just verify we got some results
             $this->assertGreaterThan(0, count($response->json('data')), 'Expected results from combined search/filter');
+        } else {
+            $this->markTestSkipped('No dragons with CR >= 10 in test fixtures');
         }
     }
 
@@ -365,6 +367,8 @@ class MonsterApiTest extends TestCase
         if (count($response->json('data')) > 0) {
             $types = collect($response->json('data'))->pluck('type')->unique()->toArray();
             $this->assertContains('undead', $types, 'Expected to find undead monsters');
+        } else {
+            $this->markTestSkipped('No undead monsters in test fixtures');
         }
     }
 
@@ -388,6 +392,8 @@ class MonsterApiTest extends TestCase
         if (count($response->json('data')) > 0) {
             $this->assertLessThanOrEqual(5, count($response->json('data')), 'Should respect per_page limit');
             $response->assertJsonPath('meta.per_page', 5);
+        } else {
+            $this->markTestSkipped('No dragon monsters in test fixtures');
         }
     }
 
@@ -403,6 +409,8 @@ class MonsterApiTest extends TestCase
             $names = collect($response->json('data'))->pluck('name')->toArray();
             $sortedNames = collect($names)->sort()->values()->toArray();
             $this->assertEquals($sortedNames, $names, 'Search results should be sorted by name');
+        } else {
+            $this->markTestSkipped('Need at least 2 dragon monsters to test sorting');
         }
     }
 

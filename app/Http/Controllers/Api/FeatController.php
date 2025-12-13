@@ -16,6 +16,7 @@ use MeiliSearch\Client;
 class FeatController extends Controller
 {
     use Concerns\AddsSearchableOptions;
+    use Concerns\CachesEntityShow;
 
     /**
      * List all feats
@@ -144,26 +145,13 @@ class FeatController extends Controller
      */
     public function show(FeatShowRequest $request, Feat $feat, EntityCacheService $cache, FeatSearchService $service)
     {
-        $validated = $request->validated();
-
-        // Default relationships from service
-        $defaultRelationships = $service->getShowRelationships();
-
-        // Try cache first
-        $cachedFeat = $cache->getFeat($feat->id);
-
-        if ($cachedFeat) {
-            // If include parameter provided, use it; otherwise load defaults
-            $includes = $validated['include'] ?? $defaultRelationships;
-            $cachedFeat->load($includes);
-
-            return new FeatResource($cachedFeat);
-        }
-
-        // Fallback to route model binding result (should rarely happen)
-        $includes = $validated['include'] ?? $defaultRelationships;
-        $feat->load($includes);
-
-        return new FeatResource($feat);
+        return $this->showWithCache(
+            request: $request,
+            entity: $feat,
+            cache: $cache,
+            cacheMethod: 'getFeat',
+            resourceClass: FeatResource::class,
+            defaultRelationships: $service->getShowRelationships()
+        );
     }
 }

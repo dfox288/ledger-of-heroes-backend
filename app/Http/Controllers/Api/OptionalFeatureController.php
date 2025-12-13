@@ -16,6 +16,7 @@ use MeiliSearch\Client;
 class OptionalFeatureController extends Controller
 {
     use Concerns\AddsSearchableOptions;
+    use Concerns\CachesEntityShow;
 
     /**
      * List all optional features
@@ -115,26 +116,13 @@ class OptionalFeatureController extends Controller
      */
     public function show(OptionalFeatureShowRequest $request, OptionalFeature $optionalFeature, EntityCacheService $cache, OptionalFeatureSearchService $service)
     {
-        $validated = $request->validated();
-
-        // Default relationships from service
-        $defaultRelationships = $service->getShowRelationships();
-
-        // Try cache first
-        $cachedFeature = $cache->getOptionalFeature($optionalFeature->id);
-
-        if ($cachedFeature) {
-            // If include parameter provided, use it; otherwise load defaults
-            $includes = $validated['include'] ?? $defaultRelationships;
-            $cachedFeature->load($includes);
-
-            return new OptionalFeatureResource($cachedFeature);
-        }
-
-        // Fallback to route model binding result (should rarely happen)
-        $includes = $validated['include'] ?? $defaultRelationships;
-        $optionalFeature->load($includes);
-
-        return new OptionalFeatureResource($optionalFeature);
+        return $this->showWithCache(
+            request: $request,
+            entity: $optionalFeature,
+            cache: $cache,
+            cacheMethod: 'getOptionalFeature',
+            resourceClass: OptionalFeatureResource::class,
+            defaultRelationships: $service->getShowRelationships()
+        );
     }
 }

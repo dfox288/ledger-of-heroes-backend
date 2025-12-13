@@ -12,7 +12,7 @@ use App\Models\Character;
  */
 class CharacterExportService
 {
-    private const FORMAT_VERSION = '1.0';
+    private const FORMAT_VERSION = '1.1';
 
     /**
      * Export a character as portable JSON.
@@ -30,6 +30,9 @@ class CharacterExportService
             'conditions',
             'featureSelections',
             'notes',
+            'abilityScores',
+            'spellSlots',
+            'features.feature.characterClass',
         ]);
 
         return [
@@ -50,6 +53,7 @@ class CharacterExportService
             ...$this->buildAbilityScores($character),
             ...$this->buildCombatStats($character),
             ...$this->buildCharacterAttributes($character),
+            ...$this->buildHpConfig($character),
             'classes' => $this->buildClasses($character),
             'spells' => $this->buildSpells($character),
             'equipment' => $this->buildEquipment($character),
@@ -58,6 +62,9 @@ class CharacterExportService
             'conditions' => $this->buildConditions($character),
             'feature_selections' => $this->buildFeatureSelections($character),
             'notes' => $this->buildNotes($character),
+            'ability_score_choices' => $this->buildAbilityScoreChoices($character),
+            'spell_slots' => $this->buildSpellSlots($character),
+            'features' => $this->buildFeatures($character),
         ];
     }
 
@@ -92,6 +99,17 @@ class CharacterExportService
             'experience_points' => $character->experience_points,
             'has_inspiration' => $character->has_inspiration,
             'ability_score_method' => $character->ability_score_method?->value,
+            'equipment_mode' => $character->equipment_mode,
+            'size_id' => $character->size_id,
+            'asi_choices_remaining' => $character->asi_choices_remaining,
+        ];
+    }
+
+    private function buildHpConfig(Character $character): array
+    {
+        return [
+            'hp_levels_resolved' => $character->hp_levels_resolved ?? [],
+            'hp_calculation_method' => $character->hp_calculation_method,
         ];
     }
 
@@ -147,12 +165,14 @@ class CharacterExportService
                     'skill' => $prof->skill_slug,
                     'source' => $prof->source,
                     'expertise' => $prof->expertise,
+                    'choice_group' => $prof->choice_group,
                 ];
             } elseif ($prof->proficiency_type_slug) {
                 $types[] = [
                     'type' => $prof->proficiency_type_slug,
                     'source' => $prof->source,
                     'expertise' => $prof->expertise,
+                    'choice_group' => $prof->choice_group,
                 ];
             }
             // Skip proficiencies with neither skill_slug nor proficiency_type_slug
@@ -194,5 +214,69 @@ class CharacterExportService
             'content' => $note->content,
             'sort_order' => $note->sort_order,
         ])->toArray();
+    }
+
+    private function buildAbilityScoreChoices(Character $character): array
+    {
+        return $character->abilityScores->map(fn ($as) => [
+            'ability_score_code' => $as->ability_score_code,
+            'bonus' => $as->bonus,
+            'source' => $as->source,
+            'choice_group' => $as->choice_group,
+        ])->toArray();
+    }
+
+    private function buildSpellSlots(Character $character): array
+    {
+        return $character->spellSlots->map(fn ($slot) => [
+            'spell_level' => $slot->spell_level,
+            'max_slots' => $slot->max_slots,
+            'used_slots' => $slot->used_slots,
+            'slot_type' => $slot->slot_type,
+        ])->toArray();
+    }
+
+    private function buildFeatures(Character $character): array
+    {
+        return $character->features->map(function ($cf) {
+            $feature = $cf->feature;
+
+            // Build portable identifier based on feature type
+            $portableId = null;
+            if ($feature) {
+                $portableId = $this->buildPortableFeatureId($cf->feature_type, $feature);
+            }
+
+            return [
+                'feature_type' => $cf->feature_type,
+                'portable_id' => $portableId,
+                'source' => $cf->source,
+                'level_acquired' => $cf->level_acquired,
+                'uses_remaining' => $cf->uses_remaining,
+                'max_uses' => $cf->max_uses,
+            ];
+        })->toArray();
+    }
+
+    /**
+     * Build a portable identifier for a feature that can be resolved across instances.
+     *
+     * Since features don't have slugs, we use composite keys based on feature type.
+     */
+    private function buildPortableFeatureId(string $featureType, mixed $feature): ?array
+    {
+        return match ($featureType) {
+            'App\\Models\\ClassFeature' => [
+                'type' => 'class_feature',
+                'class_slug' => $feature->characterClass?->slug,
+                'feature_name' => $feature->feature_name,
+                'level' => $feature->level,
+            ],
+            'App\\Models\\RacialTrait' => [
+                'type' => 'racial_trait',
+                'name' => $feature->name ?? $feature->trait_name ?? null,
+            ],
+            default => null,
+        };
     }
 }

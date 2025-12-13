@@ -76,7 +76,7 @@ describe('Character Export', function () {
             ]);
 
         $data = $response->json('data');
-        expect($data['format_version'])->toBe('1.0')
+        expect($data['format_version'])->toBe('1.1')
             ->and($data['character']['public_id'])->toBe('brave-wizard-x7k2')
             ->and($data['character']['name'])->toBe('Gandalf')
             ->and($data['character']['race'])->toBe('phb:human')
@@ -305,7 +305,7 @@ describe('Character Import', function () {
         $class = CharacterClass::factory()->create(['slug' => 'phb:wizard']);
 
         $exportData = [
-            'format_version' => '1.0',
+            'format_version' => '1.1',
             'character' => [
                 'public_id' => 'imported-wizard-abc1',
                 'name' => 'Imported Wizard',
@@ -355,7 +355,7 @@ describe('Character Import', function () {
         $spell = Spell::factory()->create(['slug' => 'phb:magic-missile']);
 
         $exportData = [
-            'format_version' => '1.0',
+            'format_version' => '1.1',
             'character' => [
                 'public_id' => 'spell-caster-xyz1',
                 'name' => 'Spell Caster',
@@ -399,7 +399,7 @@ describe('Character Import', function () {
         $class = CharacterClass::factory()->create(['slug' => 'phb:fighter']);
 
         $exportData = [
-            'format_version' => '1.0',
+            'format_version' => '1.1',
             'character' => [
                 'public_id' => 'custom-equipped-123',
                 'name' => 'Custom Equipped',
@@ -445,7 +445,7 @@ describe('Character Import', function () {
         $class = CharacterClass::factory()->create(['slug' => 'phb:wizard']);
 
         $exportData = [
-            'format_version' => '1.0',
+            'format_version' => '1.1',
             'character' => [
                 'public_id' => 'dangling-ref-char',
                 'name' => 'Dangling Refs',
@@ -498,7 +498,7 @@ describe('Character Import', function () {
         Character::factory()->create(['public_id' => 'existing-char-123']);
 
         $exportData = [
-            'format_version' => '1.0',
+            'format_version' => '1.1',
             'character' => [
                 'public_id' => 'existing-char-123', // Conflicts!
                 'name' => 'New Character',
@@ -575,7 +575,7 @@ describe('Character Import', function () {
 
     it('validates required fields', function () {
         $exportData = [
-            'format_version' => '1.0',
+            'format_version' => '1.1',
             // Missing 'character' key
         ];
 
@@ -590,7 +590,7 @@ describe('Character Import', function () {
         $class = CharacterClass::factory()->create(['slug' => 'phb:sorcerer']);
 
         $exportData = [
-            'format_version' => '1.0',
+            'format_version' => '1.1',
             'character' => [
                 'public_id' => 'noted-char-456',
                 'name' => 'Noted Character',

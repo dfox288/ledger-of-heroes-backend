@@ -7,14 +7,18 @@ use App\Enums\AbilityScoreMethod;
 use App\Enums\NoteCategory;
 use App\Models\Background;
 use App\Models\Character;
+use App\Models\CharacterAbilityScore;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
 use App\Models\CharacterCondition;
 use App\Models\CharacterEquipment;
+use App\Models\CharacterFeature;
 use App\Models\CharacterLanguage;
 use App\Models\CharacterNote;
 use App\Models\CharacterProficiency;
 use App\Models\CharacterSpell;
+use App\Models\CharacterSpellSlot;
+use App\Models\ClassFeature;
 use App\Models\Condition;
 use App\Models\FeatureSelection;
 use App\Models\Item;
@@ -60,6 +64,9 @@ class CharacterImportService
             $this->importConditions($character, $characterData['conditions'] ?? []);
             $this->importFeatureSelections($character, $characterData['feature_selections'] ?? []);
             $this->importNotes($character, $characterData['notes'] ?? []);
+            $this->importAbilityScoreChoices($character, $characterData['ability_score_choices'] ?? []);
+            $this->importSpellSlots($character, $characterData['spell_slots'] ?? []);
+            $this->importFeatures($character, $characterData['features'] ?? []);
 
             return $character;
         });
@@ -109,6 +116,12 @@ class CharacterImportService
             'temp_hit_points' => $data['temp_hit_points'] ?? 0,
             'death_save_successes' => $data['death_save_successes'] ?? 0,
             'death_save_failures' => $data['death_save_failures'] ?? 0,
+            // New fields in v1.1
+            'equipment_mode' => $data['equipment_mode'] ?? 'equipment',
+            'size_id' => $data['size_id'] ?? null,
+            'asi_choices_remaining' => $data['asi_choices_remaining'] ?? 0,
+            'hp_levels_resolved' => $data['hp_levels_resolved'] ?? [],
+            'hp_calculation_method' => $data['hp_calculation_method'] ?? 'calculated',
         ]);
     }
 
@@ -220,6 +233,7 @@ class CharacterImportService
                 'proficiency_type_slug' => null,
                 'source' => $skillData['source'] ?? 'manual',
                 'expertise' => $skillData['expertise'] ?? false,
+                'choice_group' => $skillData['choice_group'] ?? null,
             ]);
         }
 
@@ -238,6 +252,7 @@ class CharacterImportService
                 'proficiency_type_slug' => $typeSlug,
                 'source' => $typeData['source'] ?? 'manual',
                 'expertise' => $typeData['expertise'] ?? false,
+                'choice_group' => $typeData['choice_group'] ?? null,
             ]);
         }
     }
@@ -349,5 +364,111 @@ class CharacterImportService
         }
 
         return $suffix;
+    }
+
+    private function importAbilityScoreChoices(Character $character, array $choices): void
+    {
+        foreach ($choices as $choice) {
+            CharacterAbilityScore::create([
+                'character_id' => $character->id,
+                'ability_score_code' => $choice['ability_score_code'],
+                'bonus' => $choice['bonus'],
+                'source' => $choice['source'] ?? 'manual',
+                'choice_group' => $choice['choice_group'] ?? null,
+            ]);
+        }
+    }
+
+    private function importSpellSlots(Character $character, array $slots): void
+    {
+        foreach ($slots as $slot) {
+            CharacterSpellSlot::create([
+                'character_id' => $character->id,
+                'spell_level' => $slot['spell_level'],
+                'max_slots' => $slot['max_slots'],
+                'used_slots' => $slot['used_slots'] ?? 0,
+                'slot_type' => $slot['slot_type'] ?? 'standard',
+            ]);
+        }
+    }
+
+    private function importFeatures(Character $character, array $features): void
+    {
+        foreach ($features as $featureData) {
+            $portableId = $featureData['portable_id'] ?? null;
+            $featureType = $featureData['feature_type'];
+            $featureId = null;
+
+            // Try to resolve the portable ID to an actual feature
+            if ($portableId) {
+                $featureId = $this->resolveFeatureId($featureType, $portableId);
+            }
+
+            if (! $featureId && $portableId) {
+                $featureName = $portableId['feature_name'] ?? 'unknown';
+                $this->warnings[] = "Feature '{$featureName}' not found - skipping";
+
+                continue;
+            }
+
+            CharacterFeature::create([
+                'character_id' => $character->id,
+                'feature_type' => $featureType,
+                'feature_id' => $featureId,
+                'source' => $featureData['source'] ?? 'class',
+                'level_acquired' => $featureData['level_acquired'] ?? null,
+                'uses_remaining' => $featureData['uses_remaining'] ?? null,
+                'max_uses' => $featureData['max_uses'] ?? null,
+            ]);
+        }
+    }
+
+    /**
+     * Resolve a portable feature ID to an actual database feature ID.
+     */
+    private function resolveFeatureId(string $featureType, array $portableId): ?int
+    {
+        $type = $portableId['type'] ?? null;
+
+        return match ($type) {
+            'class_feature' => $this->resolveClassFeatureId($portableId),
+            'racial_trait' => $this->resolveRacialTraitId($portableId),
+            default => null,
+        };
+    }
+
+    private function resolveClassFeatureId(array $portableId): ?int
+    {
+        $classSlug = $portableId['class_slug'] ?? null;
+        $featureName = $portableId['feature_name'] ?? null;
+        $level = $portableId['level'] ?? null;
+
+        if (! $classSlug || ! $featureName || $level === null) {
+            return null;
+        }
+
+        // Find the class by slug
+        $class = CharacterClass::where('slug', $classSlug)->first();
+        if (! $class) {
+            return null;
+        }
+
+        // Find the feature by class_id, name, and level
+        $feature = ClassFeature::where('class_id', $class->id)
+            ->where('feature_name', $featureName)
+            ->where('level', $level)
+            ->first();
+
+        return $feature?->id;
+    }
+
+    private function resolveRacialTraitId(array $portableId): ?int
+    {
+        // TODO: Implement racial trait resolution when RacialTrait model has proper lookup
+        // For now, return null and add a warning
+        $name = $portableId['name'] ?? 'unknown';
+        $this->warnings[] = "Racial trait '{$name}' import not yet supported";
+
+        return null;
     }
 }

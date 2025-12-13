@@ -234,7 +234,8 @@ class Character extends Model implements HasMedia
     public function parties(): BelongsToMany
     {
         return $this->belongsToMany(Party::class, 'party_characters')
-            ->withPivot(['joined_at', 'display_order']);
+            ->withPivot(['joined_at', 'display_order'])
+            ->withTimestamps();
     }
 
     /**

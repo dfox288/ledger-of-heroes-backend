@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('character_id')->constrained()->cascadeOnDelete();
             $table->timestamp('joined_at')->nullable();
             $table->unsignedInteger('display_order')->nullable();
+            $table->timestamps();
 
             $table->unique(['party_id', 'character_id']);
         });

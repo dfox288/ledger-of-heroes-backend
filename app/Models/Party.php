@@ -27,6 +27,7 @@ class Party extends Model
     public function characters(): BelongsToMany
     {
         return $this->belongsToMany(Character::class, 'party_characters')
-            ->withPivot(['joined_at', 'display_order']);
+            ->withPivot(['joined_at', 'display_order'])
+            ->withTimestamps();
     }
 }

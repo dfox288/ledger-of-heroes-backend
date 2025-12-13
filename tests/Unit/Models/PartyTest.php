@@ -96,4 +96,60 @@ class PartyTest extends TestCase
 
         $this->assertInstanceOf(Party::class, $character->parties->first());
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_prevents_duplicate_character_in_same_party(): void
+    {
+        $party = Party::factory()->create();
+        $character = Character::factory()->create();
+
+        $party->characters()->attach($character);
+
+        $this->expectException(\Illuminate\Database\QueryException::class);
+        $party->characters()->attach($character);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_cascades_delete_on_party_deletion(): void
+    {
+        $party = Party::factory()->create();
+        $character = Character::factory()->create();
+        $party->characters()->attach($character);
+
+        $partyId = $party->id;
+        $party->delete();
+
+        $this->assertDatabaseMissing('party_characters', [
+            'party_id' => $partyId,
+        ]);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_cascades_delete_on_character_deletion(): void
+    {
+        $party = Party::factory()->create();
+        $character = Character::factory()->create();
+        $party->characters()->attach($character);
+
+        $characterId = $character->id;
+        $character->delete();
+
+        $this->assertDatabaseMissing('party_characters', [
+            'character_id' => $characterId,
+        ]);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function pivot_includes_timestamps(): void
+    {
+        $party = Party::factory()->create();
+        $character = Character::factory()->create();
+
+        $party->characters()->attach($character);
+
+        $pivot = $party->characters->first()->pivot;
+
+        $this->assertNotNull($pivot->created_at);
+        $this->assertNotNull($pivot->updated_at);
+    }
 }

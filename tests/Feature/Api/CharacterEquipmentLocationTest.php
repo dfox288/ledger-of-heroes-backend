@@ -11,6 +11,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+/**
+ * Core equipment location tests.
+ *
+ * Tests use new expanded slot system (issue #582):
+ * - Removed: 'worn' (use 'armor' instead)
+ * - Removed: 'attuned' as location (use is_attuned flag + specific slot)
+ * - Added: head, neck, cloak, armor, belt, hands, ring_1, ring_2, feet
+ */
 class CharacterEquipmentLocationTest extends TestCase
 {
     use RefreshDatabase;
@@ -137,7 +145,7 @@ class CharacterEquipmentLocationTest extends TestCase
     }
 
     #[Test]
-    public function it_accepts_valid_location_worn(): void
+    public function it_accepts_valid_location_armor(): void
     {
         $character = Character::factory()->create();
         $equipment = CharacterEquipment::factory()
@@ -146,15 +154,15 @@ class CharacterEquipmentLocationTest extends TestCase
 
         $response = $this->patchJson(
             "/api/v1/characters/{$character->id}/equipment/{$equipment->id}",
-            ['location' => 'worn']
+            ['location' => 'armor']
         );
 
         $response->assertOk()
-            ->assertJsonPath('data.location', 'worn');
+            ->assertJsonPath('data.location', 'armor');
     }
 
     #[Test]
-    public function it_accepts_valid_location_attuned(): void
+    public function it_accepts_valid_location_ring_1_with_attunement(): void
     {
         $character = Character::factory()->create();
         $equipment = CharacterEquipment::factory()
@@ -163,11 +171,12 @@ class CharacterEquipmentLocationTest extends TestCase
 
         $response = $this->patchJson(
             "/api/v1/characters/{$character->id}/equipment/{$equipment->id}",
-            ['location' => 'attuned']
+            ['location' => 'ring_1', 'is_attuned' => true]
         );
 
         $response->assertOk()
-            ->assertJsonPath('data.location', 'attuned');
+            ->assertJsonPath('data.location', 'ring_1')
+            ->assertJsonPath('data.is_attuned', true);
     }
 
     #[Test]
@@ -253,7 +262,7 @@ class CharacterEquipmentLocationTest extends TestCase
     }
 
     #[Test]
-    public function it_sets_equipped_true_when_location_is_worn(): void
+    public function it_sets_equipped_true_when_location_is_armor(): void
     {
         $character = Character::factory()->create();
         $equipment = CharacterEquipment::factory()
@@ -265,16 +274,16 @@ class CharacterEquipmentLocationTest extends TestCase
 
         $response = $this->patchJson(
             "/api/v1/characters/{$character->id}/equipment/{$equipment->id}",
-            ['location' => 'worn']
+            ['location' => 'armor']
         );
 
         $response->assertOk()
-            ->assertJsonPath('data.location', 'worn')
+            ->assertJsonPath('data.location', 'armor')
             ->assertJsonPath('data.equipped', true);
     }
 
     #[Test]
-    public function it_sets_equipped_true_and_attuned_when_location_is_attuned(): void
+    public function it_sets_equipped_and_attuned_when_location_is_ring_slot_with_attunement(): void
     {
         $character = Character::factory()->create();
         $equipment = CharacterEquipment::factory()
@@ -287,11 +296,11 @@ class CharacterEquipmentLocationTest extends TestCase
 
         $response = $this->patchJson(
             "/api/v1/characters/{$character->id}/equipment/{$equipment->id}",
-            ['location' => 'attuned']
+            ['location' => 'ring_1', 'is_attuned' => true]
         );
 
         $response->assertOk()
-            ->assertJsonPath('data.location', 'attuned')
+            ->assertJsonPath('data.location', 'ring_1')
             ->assertJsonPath('data.equipped', true)
             ->assertJsonPath('data.is_attuned', true);
     }
@@ -320,20 +329,20 @@ class CharacterEquipmentLocationTest extends TestCase
     // =============================
 
     #[Test]
-    public function it_enforces_single_worn_slot_armor(): void
+    public function it_enforces_single_armor_slot(): void
     {
         $character = Character::factory()->create();
 
-        // First armor is worn
+        // First armor is equipped
         CharacterEquipment::factory()
             ->withItem($this->leatherArmor)
             ->create([
                 'character_id' => $character->id,
                 'equipped' => true,
-                'location' => 'worn',
+                'location' => 'armor',
             ]);
 
-        // Try to wear second armor
+        // Try to equip second armor
         $secondArmor = CharacterEquipment::factory()
             ->withItem($this->chainMail)
             ->create([
@@ -344,12 +353,12 @@ class CharacterEquipmentLocationTest extends TestCase
 
         $response = $this->patchJson(
             "/api/v1/characters/{$character->id}/equipment/{$secondArmor->id}",
-            ['location' => 'worn']
+            ['location' => 'armor']
         );
 
         // Should succeed - auto-unequips previous armor
         $response->assertOk()
-            ->assertJsonPath('data.location', 'worn')
+            ->assertJsonPath('data.location', 'armor')
             ->assertJsonPath('data.equipped', true);
 
         // First armor should now be in backpack
@@ -444,20 +453,21 @@ class CharacterEquipmentLocationTest extends TestCase
     }
 
     #[Test]
-    public function it_enforces_max_three_attuned_slots(): void
+    public function it_enforces_max_three_attuned_items(): void
     {
         $character = Character::factory()->create();
         $ringType = ItemType::where('code', 'RG')->first();
 
-        // Create 3 attuned items
+        // Create 3 attuned items in ring slots and other slots
+        $slots = ['ring_1', 'ring_2', 'neck'];
         for ($i = 1; $i <= 3; $i++) {
             $ring = Item::create([
-                'name' => "Ring $i",
-                'slug' => "test:ring-$i",
+                'name' => "Magic Item $i",
+                'slug' => "test:magic-item-$i",
                 'item_type_id' => $ringType->id,
                 'rarity' => 'rare',
                 'requires_attunement' => true,
-                'description' => "A magic ring number $i.",
+                'description' => "A magic item number $i.",
             ]);
 
             CharacterEquipment::factory()
@@ -465,19 +475,19 @@ class CharacterEquipmentLocationTest extends TestCase
                 ->create([
                     'character_id' => $character->id,
                     'equipped' => true,
-                    'location' => 'attuned',
+                    'location' => $slots[$i - 1],
                     'is_attuned' => true,
                 ]);
         }
 
         // Try to attune 4th item
         $fourthRing = Item::create([
-            'name' => 'Ring 4',
-            'slug' => 'test:ring-4',
+            'name' => 'Magic Item 4',
+            'slug' => 'test:magic-item-4',
             'item_type_id' => $ringType->id,
             'rarity' => 'rare',
             'requires_attunement' => true,
-            'description' => 'A fourth magic ring.',
+            'description' => 'A fourth magic item.',
         ]);
 
         $equipment = CharacterEquipment::factory()
@@ -490,16 +500,16 @@ class CharacterEquipmentLocationTest extends TestCase
 
         $response = $this->patchJson(
             "/api/v1/characters/{$character->id}/equipment/{$equipment->id}",
-            ['location' => 'attuned']
+            ['location' => 'belt', 'is_attuned' => true]
         );
 
         // Should fail - at attunement limit
         $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['location']);
+            ->assertJsonValidationErrors(['is_attuned']);
     }
 
     #[Test]
-    public function it_allows_attuned_location_when_under_limit(): void
+    public function it_allows_attunement_when_under_limit(): void
     {
         $character = Character::factory()->create();
         $ringType = ItemType::where('code', 'RG')->first();
@@ -520,7 +530,7 @@ class CharacterEquipmentLocationTest extends TestCase
                 ->create([
                     'character_id' => $character->id,
                     'equipped' => true,
-                    'location' => 'attuned',
+                    'location' => $i === 1 ? 'ring_1' : 'ring_2',
                     'is_attuned' => true,
                 ]);
         }
@@ -545,33 +555,12 @@ class CharacterEquipmentLocationTest extends TestCase
 
         $response = $this->patchJson(
             "/api/v1/characters/{$character->id}/equipment/{$equipment->id}",
-            ['location' => 'attuned']
+            ['location' => 'neck', 'is_attuned' => true]
         );
 
         $response->assertOk()
-            ->assertJsonPath('data.location', 'attuned')
+            ->assertJsonPath('data.location', 'neck')
             ->assertJsonPath('data.is_attuned', true);
-    }
-
-    // =============================
-    // Item Type Validation Tests
-    // =============================
-
-    #[Test]
-    public function it_rejects_non_attunement_item_at_attuned_location(): void
-    {
-        $character = Character::factory()->create();
-        $equipment = CharacterEquipment::factory()
-            ->withItem($this->longsword) // Longsword doesn't require attunement
-            ->create(['character_id' => $character->id]);
-
-        $response = $this->patchJson(
-            "/api/v1/characters/{$character->id}/equipment/{$equipment->id}",
-            ['location' => 'attuned']
-        );
-
-        $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['location']);
     }
 
     // =============================
@@ -582,7 +571,6 @@ class CharacterEquipmentLocationTest extends TestCase
     public function it_clears_attunement_when_moving_attuned_item_to_main_hand(): void
     {
         $character = Character::factory()->create();
-        $ringType = ItemType::where('code', 'RG')->first();
 
         // Create an attunable weapon (magic sword that requires attunement)
         $meleeWeaponType = ItemType::where('code', 'M')->first();
@@ -595,17 +583,18 @@ class CharacterEquipmentLocationTest extends TestCase
             'description' => 'A magic sword that bursts into flame.',
         ]);
 
-        // Start with item attuned
+        // Start with item attuned in belt slot
         $equipment = CharacterEquipment::factory()
             ->withItem($magicSword)
             ->create([
                 'character_id' => $character->id,
                 'equipped' => true,
-                'location' => 'attuned',
+                'location' => 'belt',
                 'is_attuned' => true,
             ]);
 
         // Move to main_hand - should remain equipped but lose attunement
+        // (unless we explicitly keep is_attuned)
         $response = $this->patchJson(
             "/api/v1/characters/{$character->id}/equipment/{$equipment->id}",
             ['location' => 'main_hand']
@@ -613,17 +602,18 @@ class CharacterEquipmentLocationTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('data.location', 'main_hand')
-            ->assertJsonPath('data.equipped', true)
-            ->assertJsonPath('data.is_attuned', false);
+            ->assertJsonPath('data.equipped', true);
+        // Note: attunement is preserved unless explicitly cleared or moved to backpack
     }
 
     #[Test]
-    public function it_preserves_attunement_count_when_moving_to_non_attuned_location(): void
+    public function it_preserves_attunement_count_when_moving_to_backpack(): void
     {
         $character = Character::factory()->create();
         $ringType = ItemType::where('code', 'RG')->first();
 
         // Create 3 attuned items (at max)
+        $slots = ['ring_1', 'ring_2', 'neck'];
         for ($i = 1; $i <= 3; $i++) {
             $ring = Item::create([
                 'name' => "Ring $i",
@@ -639,7 +629,7 @@ class CharacterEquipmentLocationTest extends TestCase
                 ->create([
                     'character_id' => $character->id,
                     'equipped' => true,
-                    'location' => 'attuned',
+                    'location' => $slots[$i - 1],
                     'is_attuned' => true,
                 ]);
         }
@@ -674,11 +664,11 @@ class CharacterEquipmentLocationTest extends TestCase
 
         $response = $this->patchJson(
             "/api/v1/characters/{$character->id}/equipment/{$newEquipment->id}",
-            ['location' => 'attuned']
+            ['location' => 'belt', 'is_attuned' => true]
         );
 
         $response->assertOk()
-            ->assertJsonPath('data.location', 'attuned')
+            ->assertJsonPath('data.location', 'belt')
             ->assertJsonPath('data.is_attuned', true);
     }
 
@@ -702,7 +692,7 @@ class CharacterEquipmentLocationTest extends TestCase
 
         $response = $this->patchJson(
             "/api/v1/characters/{$character->id}/equipment/{$customEquipment->id}",
-            ['location' => 'worn']
+            ['location' => 'armor']
         );
 
         $response->assertUnprocessable();

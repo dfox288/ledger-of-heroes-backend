@@ -147,12 +147,12 @@ class CharacterEquipmentController extends Controller
      * {"location": "main_hand"}
      *
      * # Equip armor (auto-sets equipped=true)
-     * {"location": "worn"}
+     * {"location": "armor"}
      *
-     * # Attune magic item (auto-sets equipped=true, is_attuned=true)
-     * {"location": "attuned"}
+     * # Equip ring with attunement
+     * {"location": "ring_1", "is_attuned": true}
      *
-     * # Unequip to backpack (auto-sets equipped=false, is_attuned=false)
+     * # Unequip to backpack (auto-sets equipped=false, clears is_attuned)
      * {"location": "backpack"}
      *
      * # Legacy equip (auto-determines location by item type)
@@ -165,19 +165,26 @@ class CharacterEquipmentController extends Controller
      * **Request Body:**
      * | Field | Type | Required | Description |
      * |-------|------|----------|-------------|
-     * | `location` | string | No | Equipment slot: main_hand, off_hand, worn, attuned, backpack |
+     * | `location` | string | No | Equipment slot (see table below) |
      * | `equipped` | boolean | No | Legacy equip flag (prefer location) |
      * | `quantity` | integer | No | New quantity (min: 1) |
-     * | `is_attuned` | boolean | No | Legacy attunement flag (prefer location=attuned) |
+     * | `is_attuned` | boolean | No | Attunement flag for magic items (max 3 attuned) |
      *
      * **Location Slots:**
-     * | Location | Slot Limit | Auto-sets |
-     * |----------|------------|-----------|
-     * | `main_hand` | 1 | equipped=true |
-     * | `off_hand` | 1 | equipped=true |
-     * | `worn` | 1 | equipped=true |
-     * | `attuned` | 3 | equipped=true, is_attuned=true |
-     * | `backpack` | unlimited | equipped=false, is_attuned=false |
+     * | Location | Slot Limit | Description |
+     * |----------|------------|-------------|
+     * | `main_hand` | 1 | Primary weapon |
+     * | `off_hand` | 1 | Shield or secondary weapon |
+     * | `head` | 1 | Helmets, circlets |
+     * | `neck` | 1 | Amulets, necklaces |
+     * | `cloak` | 1 | Cloaks |
+     * | `armor` | 1 | Body armor |
+     * | `belt` | 1 | Belts |
+     * | `hands` | 1 | Gloves, gauntlets |
+     * | `ring_1` | 1 | Ring slot 1 |
+     * | `ring_2` | 1 | Ring slot 2 |
+     * | `feet` | 1 | Boots |
+     * | `backpack` | unlimited | Unequipped storage |
      *
      * **Prohibited Fields (cannot change item type):**
      * - `item_id` - Cannot change database item reference
@@ -186,9 +193,10 @@ class CharacterEquipmentController extends Controller
      *
      * **Equipment Rules:**
      * - Custom items cannot be equipped (only database items)
-     * - Single-slot locations auto-unequip previous item
-     * - Non-attunement items cannot use `attuned` location
-     * - Attunement limit: max 3 items at `attuned` location
+     * - Single-slot locations auto-unequip previous item to backpack
+     * - Two-handed weapons auto-unequip off_hand; off_hand blocked while 2H equipped
+     * - Attunement limit: max 3 items with is_attuned=true
+     * - Attunement requires item to have requires_attunement property
      */
     public function update(
         CharacterEquipmentUpdateRequest $request,
@@ -220,9 +228,11 @@ class CharacterEquipmentController extends Controller
             $equipment->update(['quantity' => $request->quantity]);
         }
 
-        if ($request->has('is_attuned') && ! $request->has('location')) {
-            // Only update is_attuned directly if location not provided
-            // (location changes handle is_attuned automatically)
+        // Handle is_attuned updates
+        // - If location is provided AND is_attuned is provided, apply is_attuned after location change
+        // - If only is_attuned is provided, update it directly
+        if ($request->has('is_attuned')) {
+            $equipment->refresh(); // Get latest state after location change
             $equipment->update(['is_attuned' => $request->boolean('is_attuned')]);
         }
 

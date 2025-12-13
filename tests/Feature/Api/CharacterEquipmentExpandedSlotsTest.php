@@ -631,6 +631,55 @@ class CharacterEquipmentExpandedSlotsTest extends TestCase
             ->assertJsonPath('data.location', 'off_hand');
     }
 
+    #[Test]
+    public function it_allows_off_hand_after_moving_two_handed_weapon_away(): void
+    {
+        $character = Character::factory()->create();
+
+        // Greatsword (two-handed) in main hand - off_hand is blocked
+        $greatswordEquipment = CharacterEquipment::factory()
+            ->withItem($this->greatsword)
+            ->create([
+                'character_id' => $character->id,
+                'equipped' => true,
+                'location' => 'main_hand',
+            ]);
+
+        // Shield waiting in backpack
+        $shieldEquipment = CharacterEquipment::factory()
+            ->withItem($this->shield)
+            ->create([
+                'character_id' => $character->id,
+                'equipped' => false,
+                'location' => 'backpack',
+            ]);
+
+        // First verify off_hand is blocked while 2H is equipped
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/equipment/{$shieldEquipment->id}",
+            ['location' => 'off_hand']
+        );
+        $response->assertUnprocessable();
+
+        // Move greatsword to backpack
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/equipment/{$greatswordEquipment->id}",
+            ['location' => 'backpack']
+        );
+        $response->assertOk()
+            ->assertJsonPath('data.location', 'backpack');
+
+        // Now shield should be able to equip to off_hand
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/equipment/{$shieldEquipment->id}",
+            ['location' => 'off_hand']
+        );
+
+        $response->assertOk()
+            ->assertJsonPath('data.location', 'off_hand')
+            ->assertJsonPath('data.equipped', true);
+    }
+
     // =========================================================================
     // Attunement Separation Tests (is_attuned independent of location)
     // =========================================================================

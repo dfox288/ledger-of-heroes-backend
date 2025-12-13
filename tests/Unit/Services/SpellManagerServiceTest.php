@@ -355,7 +355,7 @@ class SpellManagerServiceTest extends TestCase
 
         // Character already knows Shield
         $character->spells()->create([
-            'spell_slug' => 'test:shield',
+            'spell_slug' => $shield->slug,
             'preparation_status' => 'known',
             'source' => 'class',
             'level_acquired' => 1,
@@ -427,5 +427,417 @@ class SpellManagerServiceTest extends TestCase
         // Should only appear once
         $this->assertCount(1, $availableSpells);
         $this->assertEquals('Hex', $availableSpells->first()->name);
+    }
+
+    // =========================================================================
+    // getCharacterSpells Tests
+    // =========================================================================
+
+    #[Test]
+    public function get_character_spells_returns_all_known_spells(): void
+    {
+        $character = Character::factory()->create();
+
+        $spell1 = Spell::factory()->create(['name' => 'Magic Missile', 'slug' => 'test:magic-missile']);
+        $spell2 = Spell::factory()->create(['name' => 'Shield', 'slug' => 'test:shield']);
+
+        $character->spells()->create([
+            'spell_slug' => $spell1->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+            'level_acquired' => 1,
+        ]);
+
+        $character->spells()->create([
+            'spell_slug' => $spell2->slug,
+            'preparation_status' => 'prepared',
+            'source' => 'class',
+            'level_acquired' => 1,
+        ]);
+
+        $spells = $this->service->getCharacterSpells($character);
+
+        $this->assertCount(2, $spells);
+    }
+
+    #[Test]
+    public function get_character_spells_returns_empty_collection_for_character_with_no_spells(): void
+    {
+        $character = Character::factory()->create();
+
+        $spells = $this->service->getCharacterSpells($character);
+
+        $this->assertCount(0, $spells);
+    }
+
+    // =========================================================================
+    // learnSpell Tests
+    // =========================================================================
+
+    #[Test]
+    public function learn_spell_adds_spell_to_character(): void
+    {
+        $wizard = CharacterClass::factory()->create([
+            'name' => 'Wizard',
+            'slug' => 'test:wizard',
+            'parent_class_id' => null,
+        ]);
+
+        $spell = Spell::factory()->create([
+            'name' => 'Magic Missile',
+            'slug' => 'test:magic-missile',
+            'level' => 1,
+        ]);
+
+        DB::table('class_spells')->insert([
+            ['class_id' => $wizard->id, 'spell_id' => $spell->id],
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $wizard->slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $characterSpell = $this->service->learnSpell($character, $spell);
+
+        $this->assertEquals($spell->slug, $characterSpell->spell_slug);
+        $this->assertEquals('known', $characterSpell->preparation_status);
+        $this->assertEquals('class', $characterSpell->source);
+        $this->assertDatabaseHas('character_spells', [
+            'character_id' => $character->id,
+            'spell_slug' => $spell->slug,
+        ]);
+    }
+
+    #[Test]
+    public function learn_spell_throws_exception_when_spell_not_on_class_list(): void
+    {
+        $wizard = CharacterClass::factory()->create([
+            'name' => 'Wizard',
+            'slug' => 'test:wizard',
+            'parent_class_id' => null,
+        ]);
+
+        // Spell NOT linked to wizard class
+        $spell = Spell::factory()->create([
+            'name' => 'Cure Wounds',
+            'slug' => 'test:cure-wounds',
+            'level' => 1,
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $wizard->slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $this->expectException(\App\Exceptions\SpellManagementException::class);
+        $this->expectExceptionMessage("not available for this character's class");
+
+        $this->service->learnSpell($character, $spell);
+    }
+
+    #[Test]
+    public function learn_spell_throws_exception_when_spell_level_too_high(): void
+    {
+        $wizard = CharacterClass::factory()->create([
+            'name' => 'Wizard',
+            'slug' => 'test:wizard',
+            'parent_class_id' => null,
+        ]);
+
+        // Level 9 spell - too high for level 1 character
+        $spell = Spell::factory()->create([
+            'name' => 'Wish',
+            'slug' => 'test:wish',
+            'level' => 9,
+        ]);
+
+        DB::table('class_spells')->insert([
+            ['class_id' => $wizard->id, 'spell_id' => $spell->id],
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $wizard->slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $this->expectException(\App\Exceptions\SpellManagementException::class);
+        $this->expectExceptionMessage('Maximum spell level');
+
+        $this->service->learnSpell($character, $spell);
+    }
+
+    #[Test]
+    public function learn_spell_throws_exception_when_spell_already_known(): void
+    {
+        $wizard = CharacterClass::factory()->create([
+            'name' => 'Wizard',
+            'slug' => 'test:wizard',
+            'parent_class_id' => null,
+        ]);
+
+        $spell = Spell::factory()->create([
+            'name' => 'Magic Missile',
+            'slug' => 'test:magic-missile',
+            'level' => 1,
+        ]);
+
+        DB::table('class_spells')->insert([
+            ['class_id' => $wizard->id, 'spell_id' => $spell->id],
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $wizard->slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Already knows the spell
+        $character->spells()->create([
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+            'level_acquired' => 1,
+        ]);
+
+        $this->expectException(\App\Exceptions\SpellManagementException::class);
+        $this->expectExceptionMessage('already known');
+
+        $this->service->learnSpell($character, $spell);
+    }
+
+    // =========================================================================
+    // forgetSpell Tests
+    // =========================================================================
+
+    #[Test]
+    public function forget_spell_removes_spell_from_character(): void
+    {
+        $character = Character::factory()->create();
+
+        $spell = Spell::factory()->create([
+            'name' => 'Magic Missile',
+            'slug' => 'test:magic-missile',
+            'level' => 1,
+        ]);
+
+        $character->spells()->create([
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+            'level_acquired' => 1,
+        ]);
+
+        $this->assertDatabaseHas('character_spells', [
+            'character_id' => $character->id,
+            'spell_slug' => $spell->slug,
+        ]);
+
+        $this->service->forgetSpell($character, $spell);
+
+        $this->assertDatabaseMissing('character_spells', [
+            'character_id' => $character->id,
+            'spell_slug' => $spell->slug,
+        ]);
+    }
+
+    #[Test]
+    public function forget_spell_throws_exception_when_spell_not_known(): void
+    {
+        $character = Character::factory()->create();
+
+        $spell = Spell::factory()->create([
+            'name' => 'Fireball',
+            'slug' => 'test:fireball',
+            'level' => 3,
+        ]);
+
+        $this->expectException(\App\Exceptions\SpellManagementException::class);
+        $this->expectExceptionMessage('not known by this character');
+
+        $this->service->forgetSpell($character, $spell);
+    }
+
+    // =========================================================================
+    // prepareSpell Tests
+    // =========================================================================
+
+    #[Test]
+    public function prepare_spell_changes_status_to_prepared(): void
+    {
+        $character = Character::factory()->create(['intelligence' => 16]); // +3 modifier
+
+        $wizard = CharacterClass::factory()->create([
+            'name' => 'Wizard',
+            'slug' => 'test:wizard',
+            'parent_class_id' => null,
+            'spellcasting_ability_id' => \App\Models\AbilityScore::where('code', 'INT')->first()?->id,
+        ]);
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $wizard->slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $spell = Spell::factory()->create([
+            'name' => 'Magic Missile',
+            'slug' => 'test:magic-missile',
+            'level' => 1,
+        ]);
+
+        $character->spells()->create([
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+            'level_acquired' => 1,
+        ]);
+
+        $characterSpell = $this->service->prepareSpell($character, $spell);
+
+        $this->assertEquals('prepared', $characterSpell->preparation_status);
+    }
+
+    #[Test]
+    public function prepare_spell_throws_exception_for_cantrip(): void
+    {
+        $character = Character::factory()->create();
+
+        $cantrip = Spell::factory()->cantrip()->create([
+            'name' => 'Fire Bolt',
+            'slug' => 'test:fire-bolt',
+        ]);
+
+        $character->spells()->create([
+            'spell_slug' => $cantrip->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+            'level_acquired' => 1,
+        ]);
+
+        $this->expectException(\App\Exceptions\SpellManagementException::class);
+        $this->expectExceptionMessage('Cantrips cannot be prepared');
+
+        $this->service->prepareSpell($character, $cantrip);
+    }
+
+    #[Test]
+    public function prepare_spell_throws_exception_when_spell_not_known(): void
+    {
+        $character = Character::factory()->create();
+
+        $spell = Spell::factory()->create([
+            'name' => 'Fireball',
+            'slug' => 'test:fireball',
+            'level' => 3,
+        ]);
+
+        $this->expectException(\App\Exceptions\SpellManagementException::class);
+        $this->expectExceptionMessage('not known by this character');
+
+        $this->service->prepareSpell($character, $spell);
+    }
+
+    // =========================================================================
+    // unprepareSpell Tests
+    // =========================================================================
+
+    #[Test]
+    public function unprepare_spell_changes_status_to_known(): void
+    {
+        $character = Character::factory()->create();
+
+        $spell = Spell::factory()->create([
+            'name' => 'Magic Missile',
+            'slug' => 'test:magic-missile',
+            'level' => 1,
+        ]);
+
+        $character->spells()->create([
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'prepared',
+            'source' => 'class',
+            'level_acquired' => 1,
+        ]);
+
+        $characterSpell = $this->service->unprepareSpell($character, $spell);
+
+        $this->assertEquals('known', $characterSpell->preparation_status);
+    }
+
+    #[Test]
+    public function unprepare_spell_throws_exception_when_spell_not_known(): void
+    {
+        $character = Character::factory()->create();
+
+        $spell = Spell::factory()->create([
+            'name' => 'Fireball',
+            'slug' => 'test:fireball',
+            'level' => 3,
+        ]);
+
+        $this->expectException(\App\Exceptions\SpellManagementException::class);
+        $this->expectExceptionMessage('not known by this character');
+
+        $this->service->unprepareSpell($character, $spell);
+    }
+
+    // =========================================================================
+    // getSpellSlots Tests
+    // =========================================================================
+
+    #[Test]
+    public function get_spell_slots_returns_empty_for_character_without_class(): void
+    {
+        $character = Character::factory()->create();
+
+        $slots = $this->service->getSpellSlots($character);
+
+        $this->assertEquals([], $slots['slots']);
+        $this->assertNull($slots['pact_magic']);
+        $this->assertNull($slots['preparation_limit']);
+        $this->assertEquals(0, $slots['prepared_count']);
+    }
+
+    #[Test]
+    public function get_spell_slots_returns_slot_data_for_standard_caster(): void
+    {
+        $wizard = CharacterClass::factory()->create([
+            'name' => 'Wizard',
+            'slug' => 'test:wizard',
+            'parent_class_id' => null,
+            'spellcasting_ability_id' => \App\Models\AbilityScore::where('code', 'INT')->first()?->id,
+        ]);
+
+        $character = Character::factory()->create(['intelligence' => 16]);
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $wizard->slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        $slots = $this->service->getSpellSlots($character);
+
+        // Level 1 wizard has 2 first level slots
+        $this->assertArrayHasKey('1', $slots['slots']);
+        $this->assertNull($slots['pact_magic']);
     }
 }

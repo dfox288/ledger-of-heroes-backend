@@ -439,6 +439,8 @@ Route::prefix('v1')->group(function () {
             ->name('parties.characters.store');
         Route::delete('parties/{party}/characters/{character}', [\App\Http\Controllers\Api\PartyController::class, 'removeCharacter'])
             ->name('parties.characters.destroy');
+        Route::get('parties/{party}/stats', [\App\Http\Controllers\Api\PartyController::class, 'stats'])
+            ->name('parties.stats');
     });
 
     /*

@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #559**: Party System for DM character management
+  - New `Party` model with user ownership and character relationships
+  - `POST /api/v1/parties` - Create a new party
+  - `GET /api/v1/parties` - List DM's parties with character count
+  - `GET /api/v1/parties/{id}` - Get party details with characters
+  - `PUT /api/v1/parties/{id}` - Update party name/description
+  - `DELETE /api/v1/parties/{id}` - Delete a party
+  - `POST /api/v1/parties/{id}/characters` - Add character to party
+  - `DELETE /api/v1/parties/{id}/characters/{id}` - Remove character from party
+  - `GET /api/v1/parties/{id}/stats` - DM dashboard with aggregated character stats
+    - HP (current/max/temp), AC, proficiency bonus
+    - Passive skills (Perception, Investigation, Insight)
+    - Saving throw modifiers (all 6 abilities)
+    - Active conditions, spell slots
+  - Party data accessible only to owning DM (ownership checks on all endpoints)
+  - 33 tests covering all endpoints and edge cases
+
 - **Issue #545**: Currency management endpoint with auto-conversion
   - New `PATCH /api/v1/characters/{character}/currency` endpoint
   - Request format: `pp`, `gp`, `ep`, `sp`, `cp` (strings: "-5" subtract, "+10" add, "25" set)

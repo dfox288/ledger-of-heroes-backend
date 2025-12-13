@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Party\PartyAddCharacterRequest;
 use App\Http\Requests\Party\PartyStoreRequest;
 use App\Http\Requests\Party\PartyUpdateRequest;
+use App\Http\Resources\PartyCharacterStatsResource;
 use App\Http\Resources\PartyResource;
 use App\Models\Character;
 use App\Models\Party;
@@ -125,5 +126,34 @@ class PartyController extends Controller
         $party->characters()->detach($character->id);
 
         return response()->json(null, Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * Get aggregated stats for all characters in a party (DM dashboard).
+     */
+    public function stats(Request $request, Party $party): JsonResponse
+    {
+        // Check ownership
+        if ($party->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Party not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Load characters with relationships needed for stats
+        $party->load([
+            'characters.characterClasses.characterClass',
+            'characters.conditions.condition',
+            'characters.proficiencies.skill',
+            'characters.spellSlots',
+        ]);
+
+        return response()->json([
+            'data' => [
+                'party' => [
+                    'id' => $party->id,
+                    'name' => $party->name,
+                ],
+                'characters' => PartyCharacterStatsResource::collection($party->characters),
+            ],
+        ]);
     }
 }

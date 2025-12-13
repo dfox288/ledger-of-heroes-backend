@@ -136,10 +136,9 @@ class CharacterStatsDTO
         }
         $skillProficiencies = self::getSkillProficiencies($character);
 
-        // Initiative bonus (DEX modifier + any bonuses from features)
-        // See GitHub Issue #196 for feature bonus implementation
+        // Initiative bonus (DEX modifier + bonuses from feats/items)
         $initiativeBonus = $dexMod !== null
-            ? $calculator->calculateInitiative($dexMod)
+            ? $calculator->calculateInitiative($dexMod, $calculator->getInitiativeModifiers($character))
             : null;
 
         // Passive skills - helper to reduce duplication

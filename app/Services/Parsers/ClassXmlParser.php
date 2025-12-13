@@ -639,6 +639,27 @@ class ClassXmlParser
             }
         }
 
+        // Bard: Bardic Inspiration (PHB p.53)
+        // Uses per rest = CHA modifier (computed at runtime)
+        // Levels 1-4: Resets on long rest
+        // Level 5+: Resets on short rest (Font of Inspiration feature)
+        // Value of 1 is a placeholder - actual uses computed from CHA at runtime
+        if ($className === 'Bard') {
+            $hasBardicInspiration = collect($counters)->contains(fn ($c) => $c['name'] === 'Bardic Inspiration');
+
+            if (! $hasBardicInspiration) {
+                for ($level = 1; $level <= 20; $level++) {
+                    $counters[] = [
+                        'level' => $level,
+                        'name' => 'Bardic Inspiration',
+                        'value' => 1, // Placeholder - uses = CHA mod at runtime
+                        'reset_timing' => $level >= 5 ? 'short_rest' : 'long_rest',
+                        'subclass' => null,
+                    ];
+                }
+            }
+        }
+
         return $counters;
     }
 

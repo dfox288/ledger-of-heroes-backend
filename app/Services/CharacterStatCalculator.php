@@ -4,6 +4,9 @@ namespace App\Services;
 
 use App\Enums\ItemTypeCode;
 use App\Models\Character;
+use App\Models\Feat;
+use App\Models\Item;
+use App\Models\Modifier;
 
 class CharacterStatCalculator
 {
@@ -411,6 +414,47 @@ class CharacterStatCalculator
     public function calculateInitiative(int $dexModifier, int $bonuses = 0): int
     {
         return $dexModifier + $bonuses;
+    }
+
+    /**
+     * Get total initiative modifiers from character's feats and equipped items.
+     * Queries the Modifier table for initiative bonuses from:
+     * - Feats the character has taken (e.g., Alert +5)
+     * - Items the character has equipped (e.g., Weapon of Warning +2)
+     */
+    public function getInitiativeModifiers(Character $character): int
+    {
+        // Get feat IDs from character features
+        $featIds = $character->features()
+            ->where('feature_type', Feat::class)
+            ->pluck('feature_id')
+            ->toArray();
+
+        $featBonus = empty($featIds) ? 0 : (int) Modifier::query()
+            ->where('reference_type', Feat::class)
+            ->whereIn('reference_id', $featIds)
+            ->where('modifier_category', 'initiative')
+            ->sum('value');
+
+        // Get equipped item slugs, then resolve to item IDs
+        $equippedItemSlugs = $character->equipment()
+            ->where('equipped', true)
+            ->pluck('item_slug')
+            ->toArray();
+
+        $itemBonus = 0;
+        if (! empty($equippedItemSlugs)) {
+            $itemIds = Item::whereIn('slug', $equippedItemSlugs)->pluck('id')->toArray();
+            if (! empty($itemIds)) {
+                $itemBonus = (int) Modifier::query()
+                    ->where('reference_type', Item::class)
+                    ->whereIn('reference_id', $itemIds)
+                    ->where('modifier_category', 'initiative')
+                    ->sum('value');
+            }
+        }
+
+        return $featBonus + $itemBonus;
     }
 
     /**

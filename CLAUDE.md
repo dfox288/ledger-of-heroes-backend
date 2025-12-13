@@ -14,6 +14,21 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 - `docs/PROJECT-STATUS.md` - Metrics and current status
 - [GitHub Issues](https://github.com/dfox288/ledger-of-heroes/issues) - Task tracking (shared with frontend)
 
+## Session Memory
+
+**IMPORTANT:** At session start, check claude-mem for recent context:
+
+```
+mcp__plugin_claude-mem_claude-mem-search__get_recent_context with project: "ledger-of-heroes"
+```
+
+Or search for specific topics:
+```
+mcp__plugin_claude-mem_claude-mem-search__search with project: "ledger-of-heroes" and query: "your topic"
+```
+
+This provides continuity between sessions - decisions made, work completed, and context from previous sessions.
+
 ## Rules
 
 Detailed instructions are split into `.claude/rules/`:

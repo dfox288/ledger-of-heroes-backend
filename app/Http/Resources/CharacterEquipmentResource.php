@@ -26,7 +26,7 @@ class CharacterEquipmentResource extends JsonResource
             'item' => $this->when($this->item_slug !== null, fn () => $this->item
                 ? $this->formatEntityWith(
                     $this->item,
-                    ['id', 'name', 'slug', 'armor_class', 'damage_dice', 'weight'],
+                    ['id', 'name', 'slug', 'armor_class', 'damage_dice', 'weight', 'requires_attunement'],
                     ['item_type' => fn ($item) => $item->itemType?->name]
                 )
                 : null  // Dangling reference - item_slug set but item doesn't exist
@@ -38,6 +38,7 @@ class CharacterEquipmentResource extends JsonResource
             'quantity' => $this->quantity,
             'equipped' => $this->equipped,
             'location' => $this->location,
+            'is_attuned' => $this->is_attuned,
             'proficiency_status' => $this->when(
                 $this->equipped && $this->item !== null,
                 fn () => $this->getProficiencyStatus()

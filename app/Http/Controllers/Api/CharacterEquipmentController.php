@@ -165,6 +165,7 @@ class CharacterEquipmentController extends Controller
      * | `equipped` | boolean | No | Whether item is equipped |
      * | `quantity` | integer | No | New quantity (min: 1) |
      * | `location` | string | No | Storage location (max 255 chars) |
+     * | `is_attuned` | boolean | No | Whether item is attuned (max 3 total) |
      *
      * **Prohibited Fields (cannot change item type):**
      * - `item_id` - Cannot change database item reference
@@ -200,6 +201,10 @@ class CharacterEquipmentController extends Controller
 
         if ($request->has('quantity')) {
             $equipment->update(['quantity' => $request->quantity]);
+        }
+
+        if ($request->has('is_attuned')) {
+            $equipment->update(['is_attuned' => $request->boolean('is_attuned')]);
         }
 
         if ($equipment->item_slug) {

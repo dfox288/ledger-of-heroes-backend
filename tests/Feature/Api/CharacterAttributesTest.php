@@ -3,7 +3,9 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Character;
+use App\Models\EntitySense;
 use App\Models\Race;
+use App\Models\Sense;
 use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -318,5 +320,124 @@ class CharacterAttributesTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.speed', 30)
             ->assertJsonPath('data.size', 'Medium');
+    }
+
+    // =====================
+    // #498.3.4 - Senses Tests
+    // =====================
+
+    #[Test]
+    public function it_exposes_senses_from_race(): void
+    {
+        $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
+        $race = Race::factory()->create([
+            'name' => 'Elf',
+            'size_id' => $size->id,
+        ]);
+
+        // Create darkvision sense and attach to race
+        $darkvision = Sense::firstOrCreate(
+            ['slug' => 'core:darkvision'],
+            ['name' => 'Darkvision']
+        );
+        EntitySense::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'sense_id' => $darkvision->id,
+            'range_feet' => 60,
+            'is_limited' => false,
+        ]);
+
+        $character = Character::factory()->withRace($race)->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.senses.0.name', 'Darkvision')
+            ->assertJsonPath('data.senses.0.range_feet', 60)
+            ->assertJsonPath('data.senses.0.is_limited', false);
+    }
+
+    #[Test]
+    public function it_exposes_multiple_senses_from_race(): void
+    {
+        $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
+        $race = Race::factory()->create([
+            'name' => 'Drow',
+            'size_id' => $size->id,
+        ]);
+
+        $darkvision = Sense::firstOrCreate(
+            ['slug' => 'core:darkvision'],
+            ['name' => 'Darkvision']
+        );
+        $blindsight = Sense::firstOrCreate(
+            ['slug' => 'core:blindsight'],
+            ['name' => 'Blindsight']
+        );
+
+        EntitySense::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'sense_id' => $darkvision->id,
+            'range_feet' => 120,
+            'is_limited' => true,
+            'notes' => 'Superior darkvision',
+        ]);
+        EntitySense::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'sense_id' => $blindsight->id,
+            'range_feet' => 10,
+            'is_limited' => false,
+        ]);
+
+        $character = Character::factory()->withRace($race)->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}");
+
+        $response->assertOk();
+
+        $senses = $response->json('data.senses');
+        expect($senses)->toHaveCount(2);
+
+        // Find darkvision in response
+        $darkvisionSense = collect($senses)->firstWhere('name', 'Darkvision');
+        expect($darkvisionSense)->not->toBeNull();
+        expect($darkvisionSense['range_feet'])->toBe(120);
+        expect($darkvisionSense['is_limited'])->toBeTrue();
+        expect($darkvisionSense['notes'])->toBe('Superior darkvision');
+
+        // Find blindsight in response
+        $blindsightSense = collect($senses)->firstWhere('name', 'Blindsight');
+        expect($blindsightSense)->not->toBeNull();
+        expect($blindsightSense['range_feet'])->toBe(10);
+    }
+
+    #[Test]
+    public function it_returns_empty_senses_array_when_race_has_no_senses(): void
+    {
+        $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
+        $race = Race::factory()->create([
+            'name' => 'Human',
+            'size_id' => $size->id,
+        ]);
+        $character = Character::factory()->withRace($race)->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.senses', []);
+    }
+
+    #[Test]
+    public function it_returns_empty_senses_array_when_no_race(): void
+    {
+        $character = Character::factory()->create(['race_slug' => null]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.senses', []);
     }
 }

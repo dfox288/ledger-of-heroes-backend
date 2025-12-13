@@ -8,6 +8,7 @@ use App\Models\Feat;
 use App\Models\Skill;
 use App\Services\CharacterStatCalculator;
 use App\Services\HitDiceService;
+use Illuminate\Support\Str;
 
 /**
  * Data Transfer Object for computed character statistics.
@@ -58,6 +59,11 @@ class CharacterStatsDTO
         public readonly array $fightingStyles,
         public readonly int $rangedAttackBonus,
         public readonly int $meleeDamageBonus,
+        // Issue #498.3.3: Encumbrance tracking
+        public readonly float $currentWeight,
+        public readonly ?array $encumbrance,
+        // Issue #498.3.1: Weapon attack/damage calculation
+        public readonly array $weapons,
     ) {}
 
     /**
@@ -177,6 +183,12 @@ class CharacterStatsDTO
             ? $calculator->calculatePushDragLift($strScore, $size)
             : null;
 
+        // Current weight and encumbrance (Issue #498.3.3)
+        $currentWeight = self::calculateCurrentWeight($character);
+        $encumbrance = $strScore !== null
+            ? $calculator->calculateEncumbrance($strScore, $currentWeight)
+            : null;
+
         // Get hit dice data
         $hitDiceService = app(HitDiceService::class);
         $hitDiceData = $hitDiceService->getHitDice($character);
@@ -192,6 +204,9 @@ class CharacterStatsDTO
 
         // Build fighting styles and combat modifiers (Issue #497)
         $fightingStyleData = self::buildFightingStyles($character);
+
+        // Build weapon stats (Issue #498.3.1)
+        $weapons = self::buildWeaponStats($character, $abilityModifiers, $proficiencyBonus);
 
         return new self(
             characterId: $character->id,
@@ -228,7 +243,130 @@ class CharacterStatsDTO
             fightingStyles: $fightingStyleData['styles'],
             rangedAttackBonus: $fightingStyleData['ranged_attack_bonus'],
             meleeDamageBonus: $fightingStyleData['melee_damage_bonus'],
+            currentWeight: $currentWeight,
+            encumbrance: $encumbrance,
+            weapons: $weapons,
         );
+    }
+
+    /**
+     * Build weapon stats for all equipped weapons.
+     *
+     * @param  array<string, int|null>  $abilityModifiers
+     * @return array<int, array{name: string, damage_dice: string|null, attack_bonus: int, damage_bonus: int, ability_used: string, is_proficient: bool}>
+     */
+    private static function buildWeaponStats(Character $character, array $abilityModifiers, int $proficiencyBonus): array
+    {
+        // Load equipment with items and properties if not loaded
+        if (! $character->relationLoaded('equipment')) {
+            $character->load(['equipment.item.itemType', 'equipment.item.properties']);
+        }
+
+        // Load proficiencies for checking
+        if (! $character->relationLoaded('proficiencies')) {
+            $character->load('proficiencies');
+        }
+
+        $weapons = [];
+        $strMod = $abilityModifiers['STR'] ?? 0;
+        $dexMod = $abilityModifiers['DEX'] ?? 0;
+
+        foreach ($character->equipment as $equipment) {
+            // Skip non-equipped items
+            if (! $equipment->equipped) {
+                continue;
+            }
+
+            // Skip if no item or not a weapon
+            if (! $equipment->item || ! $equipment->isWeapon()) {
+                continue;
+            }
+
+            $item = $equipment->item;
+            $itemType = $item->itemType;
+
+            // Determine if finesse weapon (can use DEX for melee)
+            $isFinesse = $item->properties->contains('code', 'F');
+            $isRanged = $itemType?->code === 'R';
+
+            // Determine which ability to use
+            if ($isRanged) {
+                $abilityMod = $dexMod;
+                $abilityUsed = 'DEX';
+            } elseif ($isFinesse) {
+                // Use whichever is higher
+                if ($dexMod > $strMod) {
+                    $abilityMod = $dexMod;
+                    $abilityUsed = 'DEX';
+                } else {
+                    $abilityMod = $strMod;
+                    $abilityUsed = 'STR';
+                }
+            } else {
+                $abilityMod = $strMod;
+                $abilityUsed = 'STR';
+            }
+
+            // Check proficiency
+            $isProficient = self::isWeaponProficient($character, $item);
+
+            // Calculate attack bonus = ability mod + proficiency (if proficient)
+            $attackBonus = $abilityMod + ($isProficient ? $proficiencyBonus : 0);
+
+            // Calculate damage bonus = ability mod
+            $damageBonus = $abilityMod;
+
+            $weapons[] = [
+                'name' => $item->name,
+                'damage_dice' => $item->damage_dice,
+                'attack_bonus' => $attackBonus,
+                'damage_bonus' => $damageBonus,
+                'ability_used' => $abilityUsed,
+                'is_proficient' => $isProficient,
+            ];
+        }
+
+        return $weapons;
+    }
+
+    /**
+     * Check if character is proficient with a weapon.
+     */
+    private static function isWeaponProficient(Character $character, \App\Models\Item $item): bool
+    {
+        // Generate the expected proficiency slug (e.g., "core:longsword")
+        $weaponSlug = 'core:'.Str::slug($item->name);
+
+        // Check for specific weapon name proficiency
+        $hasSpecific = $character->proficiencies
+            ->where('proficiency_type_slug', $weaponSlug)
+            ->isNotEmpty();
+
+        if ($hasSpecific) {
+            return true;
+        }
+
+        // Check for weapon category proficiency (Simple Weapons, Martial Weapons)
+        // This would require more complex logic based on item properties
+        // For now, just check specific weapon names
+        return false;
+    }
+
+    /**
+     * Calculate total weight of all equipment.
+     */
+    private static function calculateCurrentWeight(Character $character): float
+    {
+        // Load equipment with items if not already loaded
+        if (! $character->relationLoaded('equipment')) {
+            $character->load('equipment.item');
+        }
+
+        return $character->equipment->reduce(function (float $total, $equipment) {
+            $weight = $equipment->item?->weight ?? 0;
+
+            return $total + ($weight * $equipment->quantity);
+        }, 0.0);
     }
 
     /**

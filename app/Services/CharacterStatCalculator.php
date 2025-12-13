@@ -523,4 +523,49 @@ class CharacterStatCalculator
             default => 1.0,
         };
     }
+
+    /**
+     * Calculate encumbrance status based on Variant Encumbrance rules.
+     *
+     * - Unencumbered: Weight <= STR × 5
+     * - Encumbered: Weight > STR × 5 (-10 ft speed)
+     * - Heavily Encumbered: Weight > STR × 10 (-20 ft speed, disadvantage on STR/DEX/CON checks, attacks, saves)
+     *
+     * @param  int  $strengthScore  The STR ability score
+     * @param  float  $currentWeight  The total weight being carried
+     * @return array{status: string, speed_penalty: int, has_disadvantage: bool, threshold_encumbered: int, threshold_heavily_encumbered: int}
+     */
+    public function calculateEncumbrance(int $strengthScore, float $currentWeight): array
+    {
+        $thresholdEncumbered = $strengthScore * 5;
+        $thresholdHeavy = $strengthScore * 10;
+
+        if ($currentWeight > $thresholdHeavy) {
+            return [
+                'status' => 'heavily_encumbered',
+                'speed_penalty' => 20,
+                'has_disadvantage' => true,
+                'threshold_encumbered' => $thresholdEncumbered,
+                'threshold_heavily_encumbered' => $thresholdHeavy,
+            ];
+        }
+
+        if ($currentWeight > $thresholdEncumbered) {
+            return [
+                'status' => 'encumbered',
+                'speed_penalty' => 10,
+                'has_disadvantage' => false,
+                'threshold_encumbered' => $thresholdEncumbered,
+                'threshold_heavily_encumbered' => $thresholdHeavy,
+            ];
+        }
+
+        return [
+            'status' => 'unencumbered',
+            'speed_penalty' => 0,
+            'has_disadvantage' => false,
+            'threshold_encumbered' => $thresholdEncumbered,
+            'threshold_heavily_encumbered' => $thresholdHeavy,
+        ];
+    }
 }

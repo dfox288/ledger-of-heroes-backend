@@ -47,6 +47,12 @@ class CharacterStatsResource extends JsonResource
             'carrying_capacity' => $this->resource->carryingCapacity,
             'push_drag_lift' => $this->resource->pushDragLift,
 
+            // Issue #498.3.3: Encumbrance tracking
+            /** @var float Total weight of all equipment in pounds */
+            'current_weight' => $this->resource->currentWeight,
+            /** @var array{status: string, speed_penalty: int, has_disadvantage: bool, threshold_encumbered: int, threshold_heavily_encumbered: int}|null Encumbrance status and effects */
+            'encumbrance' => $this->resource->encumbrance,
+
             /** @var array{ability: string, ability_modifier: int, spell_save_dc: int, spell_attack_bonus: int}|null Spellcasting info */
             'spellcasting' => $this->resource->spellcasting,
             /** @var array<string, int> Spell slots keyed by level (e.g., "1" => 4, "2" => 3) */
@@ -89,6 +95,10 @@ class CharacterStatsResource extends JsonResource
             'ranged_attack_bonus' => $this->resource->rangedAttackBonus,
             /** @var int Bonus to melee weapon damage (from Dueling fighting style, conditional) */
             'melee_damage_bonus' => $this->resource->meleeDamageBonus,
+
+            // Issue #498.3.1: Weapon attack/damage calculation
+            /** @var array<int, array{name: string, damage_dice: string|null, attack_bonus: int, damage_bonus: int, ability_used: string, is_proficient: bool}> Equipped weapon stats */
+            'weapons' => $this->resource->weapons,
         ];
     }
 

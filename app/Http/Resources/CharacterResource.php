@@ -135,7 +135,31 @@ class CharacterResource extends JsonResource
             'speeds' => $this->speeds,
             /** @var string|null Character size (e.g., "Medium", "Small") */
             'size' => $this->size,
+            /** @var array<array{name: string, slug: string, range_feet: int, is_limited: bool, notes: string|null}> Character senses from race */
+            'senses' => $this->getSenses(),
         ];
+    }
+
+    /**
+     * Get character senses from race.
+     *
+     * @return array<array{name: string, slug: string, range_feet: int, is_limited: bool, notes: string|null}>
+     */
+    private function getSenses(): array
+    {
+        if (! $this->race || ! $this->race->relationLoaded('senses')) {
+            return [];
+        }
+
+        return $this->race->senses->map(function ($entitySense) {
+            return [
+                'name' => $entitySense->sense?->name ?? 'Unknown',
+                'slug' => $entitySense->sense?->slug ?? 'unknown',
+                'range_feet' => $entitySense->range_feet,
+                'is_limited' => $entitySense->is_limited,
+                'notes' => $entitySense->notes,
+            ];
+        })->values()->all();
     }
 
     /**
@@ -146,6 +170,26 @@ class CharacterResource extends JsonResource
         return [
             'equipped' => $this->getEquippedSummary(),
             'proficiency_penalties' => $this->getProficiencyPenalties(),
+            /** @var array{used: int, max: int} Attunement slots usage */
+            'attunement_slots' => $this->getAttunementSlots(),
+        ];
+    }
+
+    /**
+     * Get attunement slot usage.
+     *
+     * @return array{used: int, max: int}
+     */
+    private function getAttunementSlots(): array
+    {
+        $used = $this->equipment()->attuned()->count();
+
+        // Default max is 3, but features could modify this
+        $max = 3;
+
+        return [
+            'used' => $used,
+            'max' => $max,
         ];
     }
 

@@ -65,7 +65,7 @@ class CharacterController extends Controller
         $perPage = $request->validated('per_page', 15);
 
         $query = Character::with([
-            'race',
+            'race.senses.sense',
             'background',
             'characterClasses.characterClass.levelProgression',
             'characterClasses.subclass',
@@ -154,7 +154,7 @@ class CharacterController extends Controller
         });
 
         $character->load([
-            'race',
+            'race.senses.sense',
             'background',
             'characterClasses.characterClass.levelProgression',
             'characterClasses.subclass',
@@ -187,7 +187,7 @@ class CharacterController extends Controller
     public function show(Character $character): CharacterResource
     {
         $character->load([
-            'race',
+            'race.senses.sense',
             'background',
             'characterClasses.characterClass.levelProgression',
             'characterClasses.characterClass.equipment.item',
@@ -328,7 +328,7 @@ class CharacterController extends Controller
         });
 
         $character->load([
-            'race',
+            'race.senses.sense',
             'background',
             'characterClasses.characterClass.levelProgression',
             'characterClasses.subclass',

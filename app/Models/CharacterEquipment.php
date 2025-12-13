@@ -24,11 +24,13 @@ class CharacterEquipment extends Model
         'quantity',
         'equipped',
         'location',
+        'is_attuned',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
         'equipped' => 'boolean',
+        'is_attuned' => 'boolean',
         'created_at' => 'datetime',
     ];
 
@@ -76,6 +78,15 @@ class CharacterEquipment extends Model
     public function scopeEquipped(Builder $query): Builder
     {
         return $query->where('equipped', true);
+    }
+
+    /**
+     * @param  Builder<CharacterEquipment>  $query
+     * @return Builder<CharacterEquipment>
+     */
+    public function scopeAttuned(Builder $query): Builder
+    {
+        return $query->where('is_attuned', true);
     }
 
     /**
@@ -141,5 +152,26 @@ class CharacterEquipment extends Model
     public function isCustomItem(): bool
     {
         return $this->item_slug === null && $this->custom_name !== null;
+    }
+
+    /**
+     * Check if this item requires attunement.
+     * Custom items cannot be attuned.
+     */
+    public function requiresAttunement(): bool
+    {
+        if ($this->isCustomItem()) {
+            return false;
+        }
+
+        return $this->item?->requires_attunement ?? false;
+    }
+
+    /**
+     * Check if this item is currently attuned.
+     */
+    public function isAttuned(): bool
+    {
+        return $this->is_attuned;
     }
 }

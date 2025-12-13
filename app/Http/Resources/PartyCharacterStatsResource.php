@@ -263,11 +263,14 @@ class PartyCharacterStatsResource extends JsonResource
 
     /**
      * Check if armor type causes stealth disadvantage.
+     *
+     * Note: Simplified implementation. In D&D 5e, heavy armor always causes
+     * stealth disadvantage, while only *some* medium armors do (e.g., half plate).
+     * This method only checks for heavy armor. For precise per-item stealth
+     * disadvantage, the item's stealth_disadvantage field should be checked.
      */
     private function hasStealthDisadvantage(?string $code): bool
     {
-        // Heavy armor always causes disadvantage
-        // Medium armor can cause it too depending on the item, but we simplify here
         return $code === ItemTypeCode::HEAVY_ARMOR->value;
     }
 

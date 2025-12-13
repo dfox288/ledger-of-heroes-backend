@@ -178,11 +178,11 @@ class PartyController extends Controller
         // Healer classes (can be expanded)
         $healerClasses = ['cleric', 'druid', 'paladin', 'bard'];
 
-        // Utility spell slugs to check for
-        $utilitySpells = [
-            'detect_magic' => ['phb:detect-magic', 'detect-magic', 'test:detect-magic'],
-            'dispel_magic' => ['phb:dispel-magic', 'dispel-magic', 'test:dispel-magic'],
-            'counterspell' => ['phb:counterspell', 'counterspell', 'test:counterspell'],
+        // Utility spell base names to check for (matches any prefix like phb:, xge:, etc.)
+        $utilitySpellNames = [
+            'detect_magic' => 'detect-magic',
+            'dispel_magic' => 'dispel-magic',
+            'counterspell' => 'counterspell',
         ];
 
         // Aggregate all languages
@@ -232,19 +232,19 @@ class PartyController extends Controller
             }
         }
 
-        // Utility spell tracking
+        // Utility spell tracking - check if any party spell ends with the base name
         $partySpellSlugs = $characters
             ->flatMap(fn ($char) => $char->spells->map(fn ($cs) => $cs->spell_slug))
             ->filter()
             ->unique()
             ->all();
 
-        $hasDetectMagic = collect($utilitySpells['detect_magic'])
-            ->contains(fn ($slug) => in_array($slug, $partySpellSlugs, true));
-        $hasDispelMagic = collect($utilitySpells['dispel_magic'])
-            ->contains(fn ($slug) => in_array($slug, $partySpellSlugs, true));
-        $hasCounterspell = collect($utilitySpells['counterspell'])
-            ->contains(fn ($slug) => in_array($slug, $partySpellSlugs, true));
+        $hasSpell = fn (string $baseName) => collect($partySpellSlugs)
+            ->contains(fn ($slug) => str_ends_with($slug, $baseName));
+
+        $hasDetectMagic = $hasSpell($utilitySpellNames['detect_magic']);
+        $hasDispelMagic = $hasSpell($utilitySpellNames['dispel_magic']);
+        $hasCounterspell = $hasSpell($utilitySpellNames['counterspell']);
 
         return [
             'all_languages' => $allLanguages,

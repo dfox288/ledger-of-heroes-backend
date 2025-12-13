@@ -187,7 +187,11 @@ class CharacterEquipmentController extends Controller
             abort(404);
         }
 
-        if ($request->has('equipped')) {
+        // Handle location changes (takes precedence over equipped flag)
+        if ($request->has('location')) {
+            $this->equipmentManager->setLocation($equipment, $request->location);
+        } elseif ($request->has('equipped')) {
+            // Only handle equipped flag if location not provided
             if ($request->equipped) {
                 // Custom items cannot be equipped
                 if ($equipment->isCustomItem()) {
@@ -203,7 +207,9 @@ class CharacterEquipmentController extends Controller
             $equipment->update(['quantity' => $request->quantity]);
         }
 
-        if ($request->has('is_attuned')) {
+        if ($request->has('is_attuned') && ! $request->has('location')) {
+            // Only update is_attuned directly if location not provided
+            // (location changes handle is_attuned automatically)
             $equipment->update(['is_attuned' => $request->boolean('is_attuned')]);
         }
 

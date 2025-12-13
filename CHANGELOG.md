@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #565**: Equipment location slots for equip/unequip functionality
+  - New `EquipmentLocation` enum with values: `main_hand`, `off_hand`, `worn`, `attuned`, `backpack`
+  - `PATCH /api/v1/characters/{id}/equipment/{equipmentId}` now accepts `location` parameter
+  - Auto-sets `equipped` status based on location (equipped for hand/worn/attuned, false for backpack)
+  - Auto-sets `is_attuned` when moving to `attuned` location
+  - Slot enforcement: 1 armor (worn), 1 per hand slot (main_hand/off_hand), max 3 attunements
+  - Auto-unequips previous item when equipping to occupied single-slot locations
+  - Validation: rejects invalid locations, non-attunement items at `attuned` slot, custom items at equipped locations
+  - 18 new tests covering all location scenarios
+
 - **Issue #563**: Expanded Party Stats endpoint with DM Screen data
   - **Phase 1 - Combat Quick Reference**
     - `combat.initiative_modifier` - DEX modifier for initiative rolls

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\EquipmentLocation;
 use App\Enums\ItemTypeCode;
 use App\Exceptions\ItemNotEquippableException;
 use App\Models\Character;
@@ -83,7 +84,62 @@ class EquipmentManagerService
     {
         $equipment->update([
             'equipped' => false,
-            'location' => 'backpack',
+            'location' => EquipmentLocation::BACKPACK->value,
+            'is_attuned' => false,
+        ]);
+    }
+
+    /**
+     * Set the location of an equipment item.
+     *
+     * This method handles:
+     * - Auto-setting equipped status based on location
+     * - Auto-setting is_attuned for attuned location
+     * - Auto-unequipping items in single-slot locations
+     */
+    public function setLocation(CharacterEquipment $equipment, string $location): void
+    {
+        $locationEnum = EquipmentLocation::from($location);
+        $character = $equipment->character;
+
+        // For single-slot locations, unequip any existing item in that slot
+        if ($locationEnum->isSingleSlot()) {
+            $this->unequipFromLocation($character, $location, $equipment->id);
+        }
+
+        // Determine equipped and attuned status based on location
+        $equipped = $locationEnum->isEquipped();
+        $isAttuned = $location === EquipmentLocation::ATTUNED->value;
+
+        // If moving to backpack, also clear attunement
+        if ($location === EquipmentLocation::BACKPACK->value) {
+            $isAttuned = false;
+        }
+
+        $equipment->update([
+            'location' => $location,
+            'equipped' => $equipped,
+            'is_attuned' => $isAttuned,
+        ]);
+    }
+
+    /**
+     * Unequip all items from a specific location for a character.
+     *
+     * @param  int|null  $excludeId  ID of equipment to exclude (the one being equipped)
+     */
+    private function unequipFromLocation(Character $character, string $location, ?int $excludeId = null): void
+    {
+        $query = $character->equipment()->where('location', $location);
+
+        if ($excludeId !== null) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        $query->update([
+            'location' => EquipmentLocation::BACKPACK->value,
+            'equipped' => false,
+            'is_attuned' => false,
         ]);
     }
 

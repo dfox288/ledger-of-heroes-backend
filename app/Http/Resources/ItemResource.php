@@ -35,6 +35,9 @@ class ItemResource extends JsonResource
             'recharge_formula' => $this->recharge_formula,
             'recharge_timing' => $this->recharge_timing,
 
+            // Equipment slot for paperdoll UI
+            'equipment_slot' => $this->equipment_slot,
+
             // Computed fields
             'proficiency_category' => $this->proficiency_category,
             'magic_bonus' => $this->magic_bonus,

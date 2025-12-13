@@ -21,6 +21,7 @@ enum EquipmentLocation: string
     case NECK = 'neck';
     case CLOAK = 'cloak';
     case ARMOR = 'armor';
+    case CLOTHES = 'clothes';
     case BELT = 'belt';
     case HANDS = 'hands';
     case FEET = 'feet';

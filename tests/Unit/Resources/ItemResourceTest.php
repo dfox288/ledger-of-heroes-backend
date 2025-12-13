@@ -195,4 +195,46 @@ class ItemResourceTest extends TestCase
         $this->assertArrayHasKey('contents', $response);
         $this->assertCount(0, $response['contents']);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_includes_equipment_slot_in_response(): void
+    {
+        $wondrousType = ItemType::firstOrCreate(
+            ['code' => 'W'],
+            ['name' => 'Wondrous Item']
+        );
+
+        $item = Item::factory()->create([
+            'name' => 'Cloak of Protection',
+            'item_type_id' => $wondrousType->id,
+            'equipment_slot' => 'cloak',
+        ]);
+
+        $resource = new ItemResource($item);
+        $response = $resource->toArray(request());
+
+        $this->assertArrayHasKey('equipment_slot', $response);
+        $this->assertEquals('cloak', $response['equipment_slot']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_returns_null_equipment_slot_for_items_without_body_slot(): void
+    {
+        $gearType = ItemType::firstOrCreate(
+            ['code' => 'G'],
+            ['name' => 'Adventuring Gear']
+        );
+
+        $item = Item::factory()->create([
+            'name' => 'Torch',
+            'item_type_id' => $gearType->id,
+            'equipment_slot' => null,
+        ]);
+
+        $resource = new ItemResource($item);
+        $response = $resource->toArray(request());
+
+        $this->assertArrayHasKey('equipment_slot', $response);
+        $this->assertNull($response['equipment_slot']);
+    }
 }

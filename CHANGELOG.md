@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #563**: Expanded Party Stats endpoint with DM Screen data
+  - **Phase 1 - Combat Quick Reference**
+    - `combat.initiative_modifier` - DEX modifier for initiative rolls
+    - `combat.speeds` - Walk/fly/swim/climb speeds from race
+    - `combat.death_saves` - Current death save successes/failures
+    - `combat.concentration` - Placeholder for future concentration tracking
+  - **Phase 2 - Senses & Capabilities**
+    - `senses` - Passive perception/investigation/insight + darkvision range
+    - `capabilities.languages` - List of known language names
+    - `capabilities.size` - Character size (from race)
+    - `capabilities.tool_proficiencies` - List of tool proficiency names
+  - **Phase 3 - Party Summary Aggregations**
+    - `party_summary.all_languages` - Deduplicated list across party
+    - `party_summary.darkvision_count` / `no_darkvision` - Vision tracking
+    - `party_summary.has_healer` / `healers` - Healer class detection
+    - `party_summary.has_detect_magic/dispel_magic/counterspell` - Utility spell flags
+  - **Phase 4 - Equipped Gear**
+    - `equipment.armor` - Equipped armor name, type, stealth disadvantage
+    - `equipment.weapons` - List of equipped weapons with damage/range
+    - `equipment.shield` - Boolean if shield equipped
+  - Restructured passive skills into `senses` section
+  - 16 new tests for all phases
+
 - **Issue #559**: Party System for DM character management
   - New `Party` model with user ownership and character relationships
   - `POST /api/v1/parties` - Create a new party

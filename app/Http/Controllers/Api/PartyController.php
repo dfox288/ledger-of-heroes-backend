@@ -143,7 +143,19 @@ class PartyController extends Controller
             'characters.characterClasses.characterClass',
             'characters.conditions.condition',
             'characters.proficiencies.skill',
+            'characters.proficiencies.proficiencyType',
             'characters.spellSlots',
+            // Phase 1: Combat
+            'characters.race',
+            // Phase 2: Senses & Capabilities
+            'characters.race.senses.sense',
+            'characters.race.size',
+            'characters.sizeChoice',
+            'characters.languages.language',
+            // Phase 3: Party summary needs spells
+            'characters.spells.spell',
+            // Phase 4: Equipment
+            'characters.equipment.item.itemType',
         ]);
 
         return response()->json([
@@ -153,7 +165,96 @@ class PartyController extends Controller
                     'name' => $party->name,
                 ],
                 'characters' => PartyCharacterStatsResource::collection($party->characters),
+                'party_summary' => $this->calculatePartySummary($party->characters),
             ],
         ]);
+    }
+
+    /**
+     * Calculate party-wide summary aggregations for DM reference.
+     */
+    private function calculatePartySummary($characters): array
+    {
+        // Healer classes (can be expanded)
+        $healerClasses = ['cleric', 'druid', 'paladin', 'bard'];
+
+        // Utility spell slugs to check for
+        $utilitySpells = [
+            'detect_magic' => ['phb:detect-magic', 'detect-magic', 'test:detect-magic'],
+            'dispel_magic' => ['phb:dispel-magic', 'dispel-magic', 'test:dispel-magic'],
+            'counterspell' => ['phb:counterspell', 'counterspell', 'test:counterspell'],
+        ];
+
+        // Aggregate all languages
+        $allLanguages = $characters
+            ->flatMap(fn ($char) => $char->languages->map(fn ($cl) => $cl->language?->name))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        // Darkvision tracking
+        $darkvisionCount = 0;
+        $noDarkvision = [];
+
+        foreach ($characters as $character) {
+            $hasDarkvision = false;
+
+            if ($character->race && $character->race->relationLoaded('senses')) {
+                $hasDarkvision = $character->race->senses->contains(function ($entitySense) {
+                    return $entitySense->sense?->slug === 'core:darkvision';
+                });
+            }
+
+            if ($hasDarkvision) {
+                $darkvisionCount++;
+            } else {
+                $noDarkvision[] = $character->name;
+            }
+        }
+
+        // Healer tracking
+        $healers = [];
+        foreach ($characters as $character) {
+            $primaryClass = $character->characterClasses->firstWhere('is_primary', true)?->characterClass;
+            if ($primaryClass) {
+                $classSlug = $primaryClass->slug ?? '';
+                $className = $primaryClass->name ?? '';
+
+                // Check if class slug contains any healer class name
+                foreach ($healerClasses as $healerClass) {
+                    if (str_contains(strtolower($classSlug), $healerClass)) {
+                        $healers[] = "{$character->name} ({$className})";
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Utility spell tracking
+        $partySpellSlugs = $characters
+            ->flatMap(fn ($char) => $char->spells->map(fn ($cs) => $cs->spell_slug))
+            ->filter()
+            ->unique()
+            ->all();
+
+        $hasDetectMagic = collect($utilitySpells['detect_magic'])
+            ->contains(fn ($slug) => in_array($slug, $partySpellSlugs, true));
+        $hasDispelMagic = collect($utilitySpells['dispel_magic'])
+            ->contains(fn ($slug) => in_array($slug, $partySpellSlugs, true));
+        $hasCounterspell = collect($utilitySpells['counterspell'])
+            ->contains(fn ($slug) => in_array($slug, $partySpellSlugs, true));
+
+        return [
+            'all_languages' => $allLanguages,
+            'darkvision_count' => $darkvisionCount,
+            'no_darkvision' => $noDarkvision,
+            'has_healer' => count($healers) > 0,
+            'healers' => $healers,
+            'has_detect_magic' => $hasDetectMagic,
+            'has_dispel_magic' => $hasDispelMagic,
+            'has_counterspell' => $hasCounterspell,
+        ];
     }
 }

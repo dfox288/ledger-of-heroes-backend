@@ -122,6 +122,12 @@ class CharacterDeathSaveController extends Controller
         // Update character
         $character->death_save_successes = $successes;
         $character->death_save_failures = $failures;
+
+        // D&D 5e: 3 death save failures = death
+        if ($failures >= 3) {
+            $character->is_dead = true;
+        }
+
         $character->save();
 
         return new DeathSaveResultResource([

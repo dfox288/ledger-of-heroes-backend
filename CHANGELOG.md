@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #543**: Character death state tracking (`is_dead` flag)
+  - New `is_dead` boolean column on `characters` table (default: false)
+  - Included in `CharacterResource` API response
+  - Auto-set to `true` when exhaustion condition reaches level 6 (D&D 5e: instant death)
+  - Auto-set to `true` when death save failures reach 3
+  - Can be manually set via PATCH for resurrection scenarios
+
 - **Issue #505**: ActionCost enum for D&D 5e action economy tracking
   - New `action_cost` column on `optional_features` and `class_features` tables
   - Values: `action`, `bonus_action`, `reaction`, `free`, `passive`

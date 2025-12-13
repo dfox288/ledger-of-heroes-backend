@@ -144,6 +144,12 @@ class CharacterConditionController extends Controller
             ]
         );
 
+        // D&D 5e: Exhaustion level 6 = instant death
+        if ($isExhaustion && $level === 6) {
+            $character->is_dead = true;
+            $character->save();
+        }
+
         $characterCondition->load('condition');
 
         return new CharacterConditionResource($characterCondition);

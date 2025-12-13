@@ -104,6 +104,8 @@ class CharacterResource extends JsonResource
             'temp_hit_points' => $this->temp_hit_points,
             'death_save_successes' => $this->death_save_successes,
             'death_save_failures' => $this->death_save_failures,
+            /** @var bool Whether character is dead (exhaustion 6 or 3 death save failures) */
+            'is_dead' => $this->is_dead ?? false,
             /** @var int|null Calculated armor class */
             'armor_class' => $this->armor_class,
         ];

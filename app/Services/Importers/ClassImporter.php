@@ -2,6 +2,7 @@
 
 namespace App\Services\Importers;
 
+use App\Enums\RequirementLogic;
 use App\Models\CharacterClass;
 use App\Models\ClassCounter;
 use App\Models\EntityChoice;
@@ -760,8 +761,8 @@ class ClassImporter extends BaseImporter
                 'proficiency_name' => $displayName,
                 'ability_score_id' => $abilityScore?->id,
                 'grants' => false, // Not granting proficiency, it's a requirement
-                // Store requirement logic in proficiency_subcategory (OR = alternative, AND/null = all required)
-                'proficiency_subcategory' => $req['is_alternative'] ? 'OR' : 'AND',
+                // Store requirement logic in proficiency_subcategory (OR = alternative, AND = all required)
+                'proficiency_subcategory' => $req['is_alternative'] ? RequirementLogic::OR->value : RequirementLogic::AND->value,
             ]);
         }
     }

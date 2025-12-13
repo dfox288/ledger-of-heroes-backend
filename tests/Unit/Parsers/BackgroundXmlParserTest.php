@@ -712,4 +712,88 @@ XML;
         $this->assertEquals('with which you are proficient', $artisanTools['choice_description']);
         $this->assertEquals('artisan', $artisanTools['proficiency_subcategory']);
     }
+
+    #[Test]
+    public function it_parses_gaming_set_proficiency_subcategory()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Gambler</name>
+    <proficiency>Deception, Insight</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>• Tool Proficiencies: One type of gaming set</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        $toolProf = collect($backgrounds[0]['proficiencies'])
+            ->firstWhere('proficiency_type', 'tool');
+
+        $this->assertNotNull($toolProf);
+        $this->assertTrue($toolProf['is_choice']);
+        $this->assertEquals('gaming', $toolProf['proficiency_subcategory']);
+    }
+
+    #[Test]
+    public function it_parses_musical_instrument_proficiency_subcategory()
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Entertainer</name>
+    <proficiency>Acrobatics, Performance</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>• Tool Proficiencies: One type of musical instrument</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        $toolProf = collect($backgrounds[0]['proficiencies'])
+            ->firstWhere('proficiency_type', 'tool');
+
+        $this->assertNotNull($toolProf);
+        $this->assertTrue($toolProf['is_choice']);
+        $this->assertEquals('musical_instrument', $toolProf['proficiency_subcategory']);
+    }
+
+    #[Test]
+    public function it_returns_null_subcategory_for_specific_tools()
+    {
+        // Specific tools like "Thieves' tools" don't get a subcategory
+        // because they're matched directly via proficiency_type_id
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+  <background>
+    <name>Criminal</name>
+    <proficiency>Deception, Stealth</proficiency>
+    <trait>
+      <name>Description</name>
+      <text>• Tool Proficiencies: Thieves' tools</text>
+    </trait>
+  </background>
+</compendium>
+XML;
+
+        $backgrounds = $this->parser->parse($xml);
+
+        $toolProf = collect($backgrounds[0]['proficiencies'])
+            ->firstWhere('proficiency_type', 'tool');
+
+        $this->assertNotNull($toolProf);
+        $this->assertFalse($toolProf['is_choice'] ?? false);
+        // Specific tools don't have a subcategory - they're matched by proficiency_type_id
+        $this->assertNull($toolProf['proficiency_subcategory'] ?? null);
+    }
 }

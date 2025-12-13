@@ -220,9 +220,11 @@ class CharacterEquipmentController extends Controller
             $equipment->update(['quantity' => $request->quantity]);
         }
 
-        if ($request->has('is_attuned') && ! $request->has('location')) {
-            // Only update is_attuned directly if location not provided
-            // (location changes handle is_attuned automatically)
+        // Handle is_attuned updates
+        // - If location is provided AND is_attuned is provided, apply is_attuned after location change
+        // - If only is_attuned is provided, update it directly
+        if ($request->has('is_attuned')) {
+            $equipment->refresh(); // Get latest state after location change
             $equipment->update(['is_attuned' => $request->boolean('is_attuned')]);
         }
 

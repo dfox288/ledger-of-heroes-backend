@@ -163,7 +163,7 @@ class EquipmentManagerServiceTest extends TestCase
 
         $equipment->refresh();
         $this->assertTrue($equipment->equipped);
-        $this->assertEquals('worn', $equipment->location);
+        $this->assertEquals('armor', $equipment->location);
     }
 
     #[Test]

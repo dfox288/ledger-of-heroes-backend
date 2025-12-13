@@ -73,6 +73,11 @@ class EquipmentManagerService
         // Unequip conflicting items in that location
         $this->unequipFromLocation($equipment->character, $location, $equipment->id);
 
+        // If equipping a two-handed weapon, also unequip off-hand
+        if ($location === EquipmentLocation::MAIN_HAND->value && $this->isTwoHanded($item)) {
+            $this->unequipFromLocation($equipment->character, EquipmentLocation::OFF_HAND->value);
+        }
+
         $equipment->update([
             'equipped' => true,
             'location' => $location,
@@ -85,7 +90,7 @@ class EquipmentManagerService
     private function getDefaultEquipLocation(Item $item): string
     {
         if ($this->isArmor($item)) {
-            return EquipmentLocation::WORN->value;
+            return EquipmentLocation::ARMOR->value;
         }
 
         if ($this->isShield($item)) {
@@ -113,8 +118,12 @@ class EquipmentManagerService
      *
      * This method handles:
      * - Auto-setting equipped status based on location
-     * - Auto-setting is_attuned for attuned location
      * - Auto-unequipping items in single-slot locations
+     * - Two-handed weapon restrictions (unequips off-hand, blocks off-hand usage)
+     *
+     * Note: Attunement is now handled separately via is_attuned field,
+     * not through location. Use CharacterEquipmentUpdateRequest validation
+     * for attunement limits.
      */
     public function setLocation(CharacterEquipment $equipment, string $location): void
     {
@@ -126,20 +135,45 @@ class EquipmentManagerService
             $this->unequipFromLocation($character, $location, $equipment->id);
         }
 
-        // Determine equipped and attuned status based on location
-        $equipped = $locationEnum->isEquipped();
-        $isAttuned = $location === EquipmentLocation::ATTUNED->value;
-
-        // If moving to backpack, also clear attunement
-        if ($location === EquipmentLocation::BACKPACK->value) {
-            $isAttuned = false;
+        // If equipping a two-handed weapon to main hand, also unequip off-hand
+        if ($location === EquipmentLocation::MAIN_HAND->value) {
+            $item = $equipment->item;
+            if ($item && $this->isTwoHanded($item)) {
+                $this->unequipFromLocation($character, EquipmentLocation::OFF_HAND->value);
+            }
         }
 
-        $equipment->update([
+        // Determine equipped status based on location
+        $equipped = $locationEnum->isEquipped();
+
+        // If moving to backpack, clear attunement
+        $updateData = [
             'location' => $location,
             'equipped' => $equipped,
-            'is_attuned' => $isAttuned,
-        ]);
+        ];
+
+        if ($location === EquipmentLocation::BACKPACK->value) {
+            $updateData['is_attuned'] = false;
+        }
+
+        $equipment->update($updateData);
+    }
+
+    /**
+     * Check if a character has a two-handed weapon in main hand.
+     */
+    public function hasTwoHandedWeaponEquipped(Character $character): bool
+    {
+        $mainHandEquipment = $character->equipment()
+            ->where('location', EquipmentLocation::MAIN_HAND->value)
+            ->with('item.properties')
+            ->first();
+
+        if (! $mainHandEquipment || ! $mainHandEquipment->item) {
+            return false;
+        }
+
+        return $this->isTwoHanded($mainHandEquipment->item);
     }
 
     /**
@@ -175,6 +209,16 @@ class EquipmentManagerService
     private function isEquippable(Item $item): bool
     {
         return in_array($item->itemType?->code, ItemTypeCode::equippableCodes());
+    }
+
+    /**
+     * Check if an item is two-handed (has 2H property).
+     */
+    public function isTwoHanded(Item $item): bool
+    {
+        $item->loadMissing('properties');
+
+        return $item->properties->contains('code', '2H');
     }
 
     /**

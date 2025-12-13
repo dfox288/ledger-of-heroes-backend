@@ -6,13 +6,30 @@ namespace App\Enums;
  * Equipment location slots for character inventory.
  *
  * Defines where an item is stored/equipped on the character.
+ * Each body slot holds exactly one item (except backpack which is unlimited).
+ *
+ * @see https://github.com/dfox288/ledger-of-heroes/issues/582
  */
 enum EquipmentLocation: string
 {
+    // Hand slots
     case MAIN_HAND = 'main_hand';
     case OFF_HAND = 'off_hand';
-    case WORN = 'worn';
-    case ATTUNED = 'attuned';
+
+    // Body slots
+    case HEAD = 'head';
+    case NECK = 'neck';
+    case CLOAK = 'cloak';
+    case ARMOR = 'armor';
+    case BELT = 'belt';
+    case HANDS = 'hands';
+    case FEET = 'feet';
+
+    // Ring slots (two separate slots for rings)
+    case RING_1 = 'ring_1';
+    case RING_2 = 'ring_2';
+
+    // Storage
     case BACKPACK = 'backpack';
 
     /**
@@ -26,32 +43,27 @@ enum EquipmentLocation: string
     }
 
     /**
-     * Get locations that represent equipped state.
+     * Get locations that represent equipped state (everything except backpack).
      *
      * @return array<string>
      */
     public static function equippedLocations(): array
     {
-        return [
-            self::MAIN_HAND->value,
-            self::OFF_HAND->value,
-            self::WORN->value,
-            self::ATTUNED->value,
-        ];
+        return array_filter(
+            self::values(),
+            fn (string $value) => $value !== self::BACKPACK->value
+        );
     }
 
     /**
      * Get locations that have a single slot limit (only one item allowed).
+     * All equipped locations are single-slot except backpack.
      *
      * @return array<string>
      */
     public static function singleSlotLocations(): array
     {
-        return [
-            self::MAIN_HAND->value,
-            self::OFF_HAND->value,
-            self::WORN->value,
-        ];
+        return self::equippedLocations();
     }
 
     /**
@@ -59,7 +71,7 @@ enum EquipmentLocation: string
      */
     public function isEquipped(): bool
     {
-        return in_array($this->value, self::equippedLocations());
+        return $this !== self::BACKPACK;
     }
 
     /**
@@ -67,7 +79,7 @@ enum EquipmentLocation: string
      */
     public function isSingleSlot(): bool
     {
-        return in_array($this->value, self::singleSlotLocations());
+        return $this !== self::BACKPACK;
     }
 
     /**
@@ -76,9 +88,24 @@ enum EquipmentLocation: string
     public function maxSlots(): int
     {
         return match ($this) {
-            self::MAIN_HAND, self::OFF_HAND, self::WORN => 1,
-            self::ATTUNED => 3,
             self::BACKPACK => PHP_INT_MAX,
+            default => 1,
         };
+    }
+
+    /**
+     * Check if this location is a hand slot (main_hand or off_hand).
+     */
+    public function isHandSlot(): bool
+    {
+        return $this === self::MAIN_HAND || $this === self::OFF_HAND;
+    }
+
+    /**
+     * Check if this location is a ring slot.
+     */
+    public function isRingSlot(): bool
+    {
+        return $this === self::RING_1 || $this === self::RING_2;
     }
 }

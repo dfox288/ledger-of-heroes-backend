@@ -103,6 +103,85 @@ class CharacterEquipmentApiTest extends TestCase
         $response->assertNotFound();
     }
 
+    #[Test]
+    public function it_includes_group_field_for_weapons(): void
+    {
+        $character = Character::factory()->create();
+
+        CharacterEquipment::factory()
+            ->withItem($this->longsword)
+            ->create(['character_id' => $character->id]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/equipment");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.group', 'Weapons');
+    }
+
+    #[Test]
+    public function it_includes_group_field_for_armor(): void
+    {
+        $character = Character::factory()->create();
+
+        CharacterEquipment::factory()
+            ->withItem($this->leatherArmor)
+            ->create(['character_id' => $character->id]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/equipment");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.group', 'Armor');
+    }
+
+    #[Test]
+    public function it_includes_group_field_for_shield(): void
+    {
+        $character = Character::factory()->create();
+
+        CharacterEquipment::factory()
+            ->withItem($this->shield)
+            ->create(['character_id' => $character->id]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/equipment");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.group', 'Armor');
+    }
+
+    #[Test]
+    public function it_returns_miscellaneous_group_for_custom_items(): void
+    {
+        $character = Character::factory()->create();
+
+        CharacterEquipment::factory()
+            ->custom('Magic Ring', 'A mysterious ring')
+            ->create(['character_id' => $character->id]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/equipment");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.group', 'Miscellaneous');
+    }
+
+    #[Test]
+    public function it_returns_miscellaneous_group_for_dangling_references(): void
+    {
+        $character = Character::factory()->create();
+
+        // Create equipment with item_slug but no actual item (dangling reference)
+        CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'nonexistent:item',
+            'quantity' => 1,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/equipment");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.group', 'Miscellaneous')
+            ->assertJsonPath('data.0.is_dangling', true);
+    }
+
     // =============================
     // POST /characters/{id}/equipment
     // =============================

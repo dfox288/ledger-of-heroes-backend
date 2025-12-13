@@ -2,6 +2,25 @@
 
 **Feature branches required** - never commit directly to main.
 
+## Repository Structure
+
+Issues and PRs live in different repos:
+
+| What | Repository |
+|------|------------|
+| **Issues** | `dfox288/ledger-of-heroes` (shared tracker) |
+| **PRs** | `dfox288/ledger-of-heroes-backend` (this repo) |
+
+```bash
+# Issues - use wrapper repo
+gh issue list --repo dfox288/ledger-of-heroes --label "backend"
+gh issue create --repo dfox288/ledger-of-heroes ...
+
+# PRs - use backend repo
+gh pr create --repo dfox288/ledger-of-heroes-backend ...
+gh pr list --repo dfox288/ledger-of-heroes-backend
+```
+
 ## Branch Naming
 
 ```bash

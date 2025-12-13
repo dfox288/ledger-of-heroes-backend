@@ -20,15 +20,12 @@ class CharacterCurrencyRequest extends FormRequest
 
     public function rules(): array
     {
-        $regex = 'regex:/^[+-]?\d+$/';
-        $max = 'max_digits:6'; // 999999
-
         return [
-            'pp' => ['sometimes', 'string', $regex],
-            'gp' => ['sometimes', 'string', $regex],
-            'ep' => ['sometimes', 'string', $regex],
-            'sp' => ['sometimes', 'string', $regex],
-            'cp' => ['sometimes', 'string', $regex],
+            'pp' => ['sometimes', 'string', 'regex:/^[+-]?\d+$/'],
+            'gp' => ['sometimes', 'string', 'regex:/^[+-]?\d+$/'],
+            'ep' => ['sometimes', 'string', 'regex:/^[+-]?\d+$/'],
+            'sp' => ['sometimes', 'string', 'regex:/^[+-]?\d+$/'],
+            'cp' => ['sometimes', 'string', 'regex:/^[+-]?\d+$/'],
         ];
     }
 

@@ -8,6 +8,7 @@ use App\Exceptions\InsufficientFundsException;
 use App\Models\Character;
 use App\Models\CharacterEquipment;
 use Illuminate\Support\Facades\DB;
+use LogicException;
 
 class CurrencyService
 {
@@ -70,6 +71,7 @@ class CurrencyService
                     'add' => $additions[$type] = $change['value'],
                     'set' => $sets[$type] = $change['value'],
                     'subtract' => $subtractions[$type] = $change['value'],
+                    default => throw new LogicException("Invalid operation type: {$change['type']}"),
                 };
             }
 
@@ -150,12 +152,18 @@ class CurrencyService
 
             $previousTotal = $this->calculateCopperValue($currency);
             $currency = $this->breakDownOneCoin($currency, $type);
-            $newTotal = $this->calculateCopperValue($currency);
 
-            // Safety check: if no conversion happened, we're stuck
-            if ($currency[$type] === 0 && $previousTotal === $newTotal) {
-                break;
+            // Safety check: if no conversion happened, algorithm is stuck
+            // This should never happen if applySubtractions validated funds correctly
+            if ($currency[$type] === 0 && $previousTotal === $this->calculateCopperValue($currency)) {
+                throw new LogicException(
+                    "Currency conversion algorithm stuck: needed {$needed} {$type} but conversion produced no change"
+                );
             }
+        }
+
+        if ($iterations >= $maxIterations) {
+            throw new LogicException("Currency conversion exceeded maximum iterations ({$maxIterations})");
         }
 
         return $currency;
@@ -167,7 +175,7 @@ class CurrencyService
      */
     private function breakDownOneCoin(array $currency, string $targetType): array
     {
-        $targetIndex = array_search($targetType, self::DENOMINATION_ORDER);
+        $targetIndex = array_search($targetType, self::DENOMINATION_ORDER, true);
 
         // For SP, also check EP as a source
         if ($targetType === 'sp' && $currency['ep'] > 0) {

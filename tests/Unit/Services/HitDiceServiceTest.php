@@ -36,7 +36,7 @@ class HitDiceServiceTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 5,
             'hit_dice_spent' => 2,
             'is_primary' => true,
@@ -80,7 +80,7 @@ class HitDiceServiceTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 5,
             'hit_dice_spent' => 1,
             'is_primary' => true,
@@ -89,7 +89,7 @@ class HitDiceServiceTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $wizardClass->id,
+            'class_slug' => $wizardClass->slug,
             'level' => 2,
             'hit_dice_spent' => 0,
             'is_primary' => false,
@@ -125,7 +125,7 @@ class HitDiceServiceTest extends TestCase
         $character = Character::factory()->create();
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 5,
             'hit_dice_spent' => 0,
             'is_primary' => true,
@@ -156,7 +156,7 @@ class HitDiceServiceTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 3,
             'hit_dice_spent' => 2,
             'is_primary' => true,
@@ -182,7 +182,7 @@ class HitDiceServiceTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 5,
             'hit_dice_spent' => 0,
             'is_primary' => true,
@@ -208,7 +208,7 @@ class HitDiceServiceTest extends TestCase
         $character = Character::factory()->create();
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 6,
             'hit_dice_spent' => 4,
             'is_primary' => true,
@@ -240,7 +240,7 @@ class HitDiceServiceTest extends TestCase
         $character = Character::factory()->create();
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 7,
             'hit_dice_spent' => 7, // All spent
             'is_primary' => true,
@@ -269,7 +269,7 @@ class HitDiceServiceTest extends TestCase
         $character = Character::factory()->create();
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 1,
             'hit_dice_spent' => 1,
             'is_primary' => true,
@@ -305,7 +305,7 @@ class HitDiceServiceTest extends TestCase
 
         $fighterPivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 3,
             'hit_dice_spent' => 3,
             'is_primary' => true,
@@ -314,7 +314,7 @@ class HitDiceServiceTest extends TestCase
 
         $wizardPivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $wizardClass->id,
+            'class_slug' => $wizardClass->slug,
             'level' => 3,
             'hit_dice_spent' => 3,
             'is_primary' => false,
@@ -348,7 +348,7 @@ class HitDiceServiceTest extends TestCase
         $character = Character::factory()->create();
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 6,
             'hit_dice_spent' => 2,
             'is_primary' => true,

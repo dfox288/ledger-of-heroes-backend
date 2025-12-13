@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -26,7 +27,7 @@ class HitDiceControllerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 5,
             'hit_dice_spent' => 2,
             'is_primary' => true,
@@ -71,7 +72,7 @@ class HitDiceControllerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 5,
             'hit_dice_spent' => 1,
             'is_primary' => true,
@@ -80,7 +81,7 @@ class HitDiceControllerTest extends TestCase
 
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $wizardClass->id,
+            'class_slug' => $wizardClass->slug,
             'level' => 2,
             'hit_dice_spent' => 0,
             'is_primary' => false,
@@ -121,7 +122,7 @@ class HitDiceControllerTest extends TestCase
         $character = Character::factory()->create();
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 5,
             'hit_dice_spent' => 0,
             'is_primary' => true,
@@ -185,7 +186,7 @@ class HitDiceControllerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 3,
             'hit_dice_spent' => 2, // Only 1 available
             'is_primary' => true,
@@ -215,7 +216,7 @@ class HitDiceControllerTest extends TestCase
         $character = Character::factory()->create();
         $pivot = CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 6,
             'hit_dice_spent' => 4,
             'is_primary' => true,
@@ -251,7 +252,7 @@ class HitDiceControllerTest extends TestCase
         $character = Character::factory()->create();
         CharacterClassPivot::factory()->create([
             'character_id' => $character->id,
-            'class_id' => $fighterClass->id,
+            'class_slug' => $fighterClass->slug,
             'level' => 8,
             'hit_dice_spent' => 8,
             'is_primary' => true,
@@ -276,5 +277,74 @@ class HitDiceControllerTest extends TestCase
 
         $response->assertUnprocessable()
             ->assertJsonValidationErrors(['quantity']);
+    }
+
+    #[Test]
+    public function it_invalidates_stats_cache_when_spending_hit_dice(): void
+    {
+        // Arrange
+        $fighterClass = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+            'parent_class_id' => null,
+        ]);
+
+        $character = Character::factory()->create();
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $fighterClass->slug,
+            'level' => 5,
+            'hit_dice_spent' => 0,
+            'is_primary' => true,
+        ]);
+
+        // Prime the stats cache
+        $this->getJson("/api/v1/characters/{$character->id}/stats");
+
+        // Verify cache exists
+        $this->assertTrue(Cache::has("character:{$character->id}:stats"));
+
+        // Act: Spend hit dice
+        $this->postJson("/api/v1/characters/{$character->id}/hit-dice/spend", [
+            'die_type' => 'd10',
+            'quantity' => 2,
+        ]);
+
+        // Assert: Cache should be invalidated
+        $this->assertFalse(Cache::has("character:{$character->id}:stats"));
+    }
+
+    #[Test]
+    public function it_invalidates_stats_cache_when_recovering_hit_dice(): void
+    {
+        // Arrange
+        $fighterClass = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'hit_die' => 10,
+            'parent_class_id' => null,
+        ]);
+
+        $character = Character::factory()->create();
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $fighterClass->slug,
+            'level' => 5,
+            'hit_dice_spent' => 3,
+            'is_primary' => true,
+        ]);
+
+        // Prime the stats cache
+        $this->getJson("/api/v1/characters/{$character->id}/stats");
+
+        // Verify cache exists
+        $this->assertTrue(Cache::has("character:{$character->id}:stats"));
+
+        // Act: Recover hit dice
+        $this->postJson("/api/v1/characters/{$character->id}/hit-dice/recover", [
+            'quantity' => 2,
+        ]);
+
+        // Assert: Cache should be invalidated
+        $this->assertFalse(Cache::has("character:{$character->id}:stats"));
     }
 }

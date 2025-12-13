@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\CharacterUpdated;
 use App\Exceptions\InsufficientHitDiceException;
 use App\Models\Character;
 
@@ -107,6 +108,8 @@ class HitDiceService
             throw new \LogicException("Failed to spend all hit dice. Remaining: {$remaining}. This indicates a bug.");
         }
 
+        CharacterUpdated::dispatch($character);
+
         return $this->getHitDice($character->fresh());
     }
 
@@ -161,6 +164,8 @@ class HitDiceService
         if ($remaining > 0) {
             throw new \LogicException("Failed to recover all hit dice. Remaining: {$remaining}. This indicates a bug.");
         }
+
+        CharacterUpdated::dispatch($character);
 
         return array_merge(
             ['recovered' => $toRecover],

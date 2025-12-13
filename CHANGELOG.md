@@ -68,6 +68,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Created new EntityChoiceResource to format equipment choices for API response
   - Fighter and other classes now return their starting equipment choice groups
 
+- **Issue #540**: Stats endpoint hit dice now reflects spend/recover changes
+  - Root cause: `/stats` endpoint cached results for 15 minutes but `HitDiceService::spend()` and `recover()` didn't invalidate the cache
+  - Added `CharacterUpdated` event dispatch after spending/recovering hit dice
+  - Stats cache key `character:{id}:stats` now invalidated when hit dice change
+  - Also fixed pre-existing test failures in HitDiceControllerTest and HitDiceServiceTest (used `class_id` instead of `class_slug`)
+
 - **Issue #492**: Fix ability score double-counting when editing characters
   - Root cause: API returned final ability scores (with racial bonuses) but frontend treated them as base scores when loading
   - Added `base_ability_scores` field to character API response alongside `ability_scores`

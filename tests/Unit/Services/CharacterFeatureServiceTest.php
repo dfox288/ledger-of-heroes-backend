@@ -478,14 +478,14 @@ class CharacterFeatureServiceTest extends TestCase
         // Verify spells at or below character level are assigned
         $character->refresh();
 
-        $burningHandsAssigned = $character->spells()->where('spell_slug', 'phb:burning-hands')->first();
+        $burningHandsAssigned = $character->spells()->where('spell_slug', 'burning-hands')->first();
         $this->assertNotNull($burningHandsAssigned, 'Burning Hands (level_req=1) should be assigned to level 3 character');
 
-        $scorchingRayAssigned = $character->spells()->where('spell_slug', 'phb:scorching-ray')->first();
+        $scorchingRayAssigned = $character->spells()->where('spell_slug', 'scorching-ray')->first();
         $this->assertNotNull($scorchingRayAssigned, 'Scorching Ray (level_req=3) should be assigned to level 3 character');
 
         // Verify spell above character level is NOT assigned
-        $fireballAssigned = $character->spells()->where('spell_slug', 'phb:fireball')->first();
+        $fireballAssigned = $character->spells()->where('spell_slug', 'fireball')->first();
         $this->assertNull($fireballAssigned, 'Fireball (level_req=5) should NOT be assigned to level 3 character');
     }
 }

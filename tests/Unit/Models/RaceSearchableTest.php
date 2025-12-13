@@ -67,7 +67,7 @@ class RaceSearchableTest extends TestCase
     public function it_indexes_darkvision_fields_in_searchable_array(): void
     {
         $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
-        $sense = \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
+        $sense = \App\Models\Sense::firstOrCreate(['slug' => 'core:darkvision'], ['name' => 'Darkvision']);
 
         $race = Race::factory()->create(['size_id' => $size->id]);
 

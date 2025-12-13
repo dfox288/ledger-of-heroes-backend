@@ -148,10 +148,19 @@ class CharacterStatsDTO
         }
         $skillProficiencies = self::getSkillProficiencies($character);
 
+        // Detect Jack of All Trades early (needed for initiative and skills)
+        $hasJackOfAllTrades = self::hasJackOfAllTrades($character);
+        $halfProficiencyBonus = (int) floor($proficiencyBonus / 2);
+
         // Initiative bonus (DEX modifier + bonuses from feats/items)
+        // Jack of All Trades adds half proficiency bonus (it's an ability check)
         $initiativeBonus = $dexMod !== null
             ? $calculator->calculateInitiative($dexMod, $calculator->getInitiativeModifiers($character))
             : null;
+
+        if ($hasJackOfAllTrades && $initiativeBonus !== null) {
+            $initiativeBonus += $halfProficiencyBonus;
+        }
 
         // Passive skills - helper to reduce duplication
         $calculatePassive = fn (?int $mod, string $skill) => $mod !== null
@@ -193,8 +202,12 @@ class CharacterStatsDTO
         $hitDiceService = app(HitDiceService::class);
         $hitDiceData = $hitDiceService->getHitDice($character);
 
+        // Detect Reliable Talent for skill calculations (Issue #497)
+        // Note: hasJackOfAllTrades already detected earlier for initiative
+        $hasReliableTalent = self::hasReliableTalent($character);
+
         // Build full skills array
-        $skills = self::buildSkills($abilityModifiers, $skillProficiencies, $proficiencyBonus, $calculator);
+        $skills = self::buildSkills($abilityModifiers, $skillProficiencies, $proficiencyBonus, $calculator, $hasJackOfAllTrades, $hasReliableTalent);
 
         // Build speed array
         $speed = self::buildSpeed($character);
@@ -485,20 +498,26 @@ class CharacterStatsDTO
      *   proficient: bool,
      *   expertise: bool,
      *   modifier: int|null,
-     *   passive: int|null
+     *   passive: int|null,
+     *   has_reliable_talent: bool
      * }>
      */
     private static function buildSkills(
         array $abilityModifiers,
         array $skillProficiencies,
         int $proficiencyBonus,
-        CharacterStatCalculator $calculator
+        CharacterStatCalculator $calculator,
+        bool $hasJackOfAllTrades = false,
+        bool $hasReliableTalent = false
     ): array {
         // Note: This queries 18 skills per request. Acceptable trade-off as skills
         // rarely change and the query is small. Consider caching if profiling shows issues.
         $skills = Skill::with('abilityScore')->get();
 
-        return $skills->map(function ($skill) use ($abilityModifiers, $skillProficiencies, $proficiencyBonus, $calculator) {
+        // Calculate half proficiency bonus for Jack of All Trades
+        $halfProficiencyBonus = (int) floor($proficiencyBonus / 2);
+
+        return $skills->map(function ($skill) use ($abilityModifiers, $skillProficiencies, $proficiencyBonus, $calculator, $hasJackOfAllTrades, $hasReliableTalent, $halfProficiencyBonus) {
             // Defensive: skip skills without ability score (shouldn't happen with proper seeding)
             if (! $skill->abilityScore) {
                 return null;
@@ -514,9 +533,22 @@ class CharacterStatsDTO
                 ? $calculator->skillModifier($abilityMod, $proficient, $expertise, $proficiencyBonus)
                 : null;
 
+            // Jack of All Trades: Add half proficiency to non-proficient skills
+            if ($hasJackOfAllTrades && ! $proficient && $modifier !== null) {
+                $modifier += $halfProficiencyBonus;
+            }
+
             $passive = $abilityMod !== null
                 ? $calculator->calculatePassiveSkill($abilityMod, $proficient, $expertise, $proficiencyBonus)
                 : null;
+
+            // Jack of All Trades also affects passive skills
+            if ($hasJackOfAllTrades && ! $proficient && $passive !== null) {
+                $passive += $halfProficiencyBonus;
+            }
+
+            // Reliable Talent: Only applies to proficient skills
+            $skillHasReliableTalent = $hasReliableTalent && $proficient;
 
             return [
                 'name' => $skill->name,
@@ -527,6 +559,7 @@ class CharacterStatsDTO
                 'expertise' => $expertise,
                 'modifier' => $modifier,
                 'passive' => $passive,
+                'has_reliable_talent' => $skillHasReliableTalent,
             ];
         })->filter()->sortBy('name')->values()->all();
     }
@@ -785,5 +818,71 @@ class CharacterStatsDTO
             'ranged_attack_bonus' => $rangedAttackBonus,
             'melee_damage_bonus' => $meleeDamageBonus,
         ];
+    }
+
+    /**
+     * Check if character has the Jack of All Trades feature.
+     *
+     * Jack of All Trades (Bard level 2): Add half proficiency bonus to
+     * all ability checks that don't already include proficiency bonus.
+     */
+    private static function hasJackOfAllTrades(Character $character): bool
+    {
+        // Load features if not loaded
+        if (! $character->relationLoaded('features')) {
+            $character->load('features');
+        }
+
+        // Check for Jack of All Trades class feature
+        foreach ($character->features as $characterFeature) {
+            if ($characterFeature->feature_type !== ClassFeature::class) {
+                continue;
+            }
+
+            // Load the actual feature if not loaded
+            if (! $characterFeature->relationLoaded('feature')) {
+                $characterFeature->load('feature');
+            }
+
+            $feature = $characterFeature->feature;
+            if ($feature && $feature->feature_name === 'Jack of All Trades') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if character has the Reliable Talent feature.
+     *
+     * Reliable Talent (Rogue level 11): Minimum roll of 10 on proficient
+     * skill checks (treat any roll of 9 or lower as a 10).
+     */
+    private static function hasReliableTalent(Character $character): bool
+    {
+        // Load features if not loaded
+        if (! $character->relationLoaded('features')) {
+            $character->load('features');
+        }
+
+        // Check for Reliable Talent class feature
+        foreach ($character->features as $characterFeature) {
+            if ($characterFeature->feature_type !== ClassFeature::class) {
+                continue;
+            }
+
+            // Load the actual feature if not loaded
+            if (! $characterFeature->relationLoaded('feature')) {
+                $characterFeature->load('feature');
+            }
+
+            $feature = $characterFeature->feature;
+            if ($feature && $feature->feature_name === 'Reliable Talent') {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

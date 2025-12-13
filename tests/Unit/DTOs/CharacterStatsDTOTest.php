@@ -492,4 +492,241 @@ class CharacterStatsDTOTest extends TestCase
 
         $this->assertEquals(2, $dto->meleeDamageBonus);
     }
+
+    // === Jack of All Trades Tests (Issue #497.2.1) ===
+
+    #[Test]
+    public function it_applies_half_proficiency_to_non_proficient_skills_with_jack_of_all_trades(): void
+    {
+        // Create Bard class
+        $bard = CharacterClass::factory()->create([
+            'name' => 'Bard',
+            'slug' => 'test:bard-jat',
+        ]);
+
+        // Create Jack of All Trades feature
+        $jackOfAllTrades = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $bard->id,
+            'feature_name' => 'Jack of All Trades',
+            'level' => 2,
+        ]);
+
+        // Character with DEX 14 (+2 mod)
+        $character = Character::factory()->create([
+            'dexterity' => 14, // +2 mod
+        ]);
+
+        // Level 5 Bard (+3 proficiency bonus, so half = +1)
+        $character->characterClasses()->create([
+            'class_slug' => $bard->slug,
+            'level' => 5,
+            'order' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Assign Jack of All Trades feature
+        $character->features()->create([
+            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_id' => $jackOfAllTrades->id,
+            'feature_slug' => 'test:bard-jat:jack-of-all-trades',
+            'source' => 'class',
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character->fresh(), $this->calculator);
+
+        // Stealth (DEX) - not proficient, should get half proficiency bonus
+        $stealth = collect($dto->skills)->firstWhere('slug', 'core:stealth');
+
+        $this->assertFalse($stealth['proficient']);
+        // DEX mod (+2) + half prof bonus (floor(3/2) = +1) = +3
+        $this->assertEquals(3, $stealth['modifier']);
+    }
+
+    #[Test]
+    public function it_does_not_apply_jack_of_all_trades_to_proficient_skills(): void
+    {
+        $bard = CharacterClass::factory()->create([
+            'name' => 'Bard',
+            'slug' => 'test:bard-jat-prof',
+        ]);
+
+        $jackOfAllTrades = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $bard->id,
+            'feature_name' => 'Jack of All Trades',
+            'level' => 2,
+        ]);
+
+        $character = Character::factory()->create([
+            'dexterity' => 14, // +2 mod
+        ]);
+
+        $character->characterClasses()->create([
+            'class_slug' => $bard->slug,
+            'level' => 5, // +3 proficiency bonus
+            'order' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Add Stealth proficiency
+        $stealthSkill = Skill::where('slug', 'core:stealth')->first();
+        $character->proficiencies()->create([
+            'skill_slug' => $stealthSkill->slug,
+            'expertise' => false,
+        ]);
+
+        $character->features()->create([
+            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_id' => $jackOfAllTrades->id,
+            'feature_slug' => 'test:bard-jat-prof:jack-of-all-trades',
+            'source' => 'class',
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character->fresh()->load('proficiencies.skill'), $this->calculator);
+
+        // Stealth (DEX) - proficient, gets full proficiency bonus (not half)
+        $stealth = collect($dto->skills)->firstWhere('slug', 'core:stealth');
+
+        $this->assertTrue($stealth['proficient']);
+        // DEX mod (+2) + full prof bonus (+3) = +5
+        $this->assertEquals(5, $stealth['modifier']);
+    }
+
+    #[Test]
+    public function it_applies_jack_of_all_trades_to_initiative(): void
+    {
+        $bard = CharacterClass::factory()->create([
+            'name' => 'Bard',
+            'slug' => 'test:bard-jat-init',
+        ]);
+
+        $jackOfAllTrades = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $bard->id,
+            'feature_name' => 'Jack of All Trades',
+            'level' => 2,
+        ]);
+
+        $character = Character::factory()->create([
+            'dexterity' => 14, // +2 mod
+        ]);
+
+        $character->characterClasses()->create([
+            'class_slug' => $bard->slug,
+            'level' => 5, // +3 proficiency bonus
+            'order' => 1,
+            'is_primary' => true,
+        ]);
+
+        $character->features()->create([
+            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_id' => $jackOfAllTrades->id,
+            'feature_slug' => 'test:bard-jat-init:jack-of-all-trades',
+            'source' => 'class',
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character->fresh(), $this->calculator);
+
+        // Initiative should include half proficiency bonus
+        // DEX mod (+2) + half prof bonus (floor(3/2) = +1) = +3
+        $this->assertEquals(3, $dto->initiativeBonus);
+    }
+
+    // === Reliable Talent Tests (Issue #497.2.2) ===
+
+    #[Test]
+    public function it_flags_proficient_skills_with_reliable_talent(): void
+    {
+        $rogue = CharacterClass::factory()->create([
+            'name' => 'Rogue',
+            'slug' => 'test:rogue-rt',
+        ]);
+
+        $reliableTalent = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $rogue->id,
+            'feature_name' => 'Reliable Talent',
+            'level' => 11,
+        ]);
+
+        $character = Character::factory()->create([
+            'dexterity' => 16, // +3 mod
+        ]);
+
+        $character->characterClasses()->create([
+            'class_slug' => $rogue->slug,
+            'level' => 11,
+            'order' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Add Stealth proficiency
+        $stealthSkill = Skill::where('slug', 'core:stealth')->first();
+        $character->proficiencies()->create([
+            'skill_slug' => $stealthSkill->slug,
+            'expertise' => false,
+        ]);
+
+        $character->features()->create([
+            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_id' => $reliableTalent->id,
+            'feature_slug' => 'test:rogue-rt:reliable-talent',
+            'source' => 'class',
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character->fresh()->load('proficiencies.skill'), $this->calculator);
+
+        // Stealth (proficient) should have reliable_talent flag
+        $stealth = collect($dto->skills)->firstWhere('slug', 'core:stealth');
+        $this->assertTrue($stealth['proficient']);
+        $this->assertTrue($stealth['has_reliable_talent']);
+    }
+
+    #[Test]
+    public function it_does_not_flag_non_proficient_skills_with_reliable_talent(): void
+    {
+        $rogue = CharacterClass::factory()->create([
+            'name' => 'Rogue',
+            'slug' => 'test:rogue-rt-np',
+        ]);
+
+        $reliableTalent = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $rogue->id,
+            'feature_name' => 'Reliable Talent',
+            'level' => 11,
+        ]);
+
+        $character = Character::factory()->create([
+            'dexterity' => 16,
+        ]);
+
+        $character->characterClasses()->create([
+            'class_slug' => $rogue->slug,
+            'level' => 11,
+            'order' => 1,
+            'is_primary' => true,
+        ]);
+
+        $character->features()->create([
+            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_id' => $reliableTalent->id,
+            'feature_slug' => 'test:rogue-rt-np:reliable-talent',
+            'source' => 'class',
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character->fresh(), $this->calculator);
+
+        // Stealth (not proficient) should NOT have reliable_talent flag
+        $stealth = collect($dto->skills)->firstWhere('slug', 'core:stealth');
+        $this->assertFalse($stealth['proficient']);
+        $this->assertFalse($stealth['has_reliable_talent']);
+    }
+
+    #[Test]
+    public function it_includes_has_reliable_talent_in_skill_structure(): void
+    {
+        $character = Character::factory()->create();
+
+        $dto = CharacterStatsDTO::fromCharacter($character, $this->calculator);
+
+        // Every skill should have the has_reliable_talent key
+        $this->assertArrayHasKey('has_reliable_talent', $dto->skills[0]);
+    }
 }

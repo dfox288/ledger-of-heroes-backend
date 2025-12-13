@@ -311,6 +311,12 @@ class ItemImporter extends BaseImporter
      * - Type-based: Armor types → armor, Ring → ring, Weapons → hand, etc.
      * - Name-based: Wondrous Items are pattern-matched (boots → feet, cloaks → cloak, etc.)
      *
+     * NOTE: This returns GENERIC slot names ('hand', 'ring') that differ from EquipmentLocation
+     * enum values ('main_hand'/'off_hand', 'ring_1'/'ring_2'). This is intentional - the
+     * equipment_slot field is a template/suggestion for what body slot type an item belongs to.
+     * The frontend uses this to pre-select or suggest slots, then chooses the specific
+     * EquipmentLocation when the user equips the item to their character.
+     *
      * @param  string  $typeCode  The item type code (LA, MA, HA, RG, W, etc.)
      * @param  string  $itemName  The item name for pattern matching
      * @return string|null The equipment slot, or null for items that don't equip to body
@@ -320,17 +326,18 @@ class ItemImporter extends BaseImporter
     private function inferEquipmentSlot(string $typeCode, string $itemName): ?string
     {
         // Type-based slot mapping (automatic for known types)
+        // 'hand' and 'ring' are generic - frontend chooses main_hand/off_hand or ring_1/ring_2
         $typeSlots = [
-            'LA' => 'armor',  // Light Armor
-            'MA' => 'armor',  // Medium Armor
-            'HA' => 'armor',  // Heavy Armor
-            'S' => 'off_hand',  // Shield
-            'RG' => 'ring',  // Ring
-            'M' => 'hand',  // Melee Weapon
-            'R' => 'hand',  // Ranged Weapon
-            'ST' => 'hand',  // Staff
-            'RD' => 'hand',  // Rod
-            'WD' => 'hand',  // Wand
+            'LA' => 'armor',     // Light Armor
+            'MA' => 'armor',     // Medium Armor
+            'HA' => 'armor',     // Heavy Armor
+            'S' => 'off_hand',   // Shield (always off-hand)
+            'RG' => 'ring',      // Ring → generic, frontend picks ring_1 or ring_2
+            'M' => 'hand',       // Melee Weapon → generic, frontend picks main_hand or off_hand
+            'R' => 'hand',       // Ranged Weapon
+            'ST' => 'hand',      // Staff
+            'RD' => 'hand',      // Rod
+            'WD' => 'hand',      // Wand
         ];
 
         if (isset($typeSlots[$typeCode])) {
@@ -364,7 +371,7 @@ class ItemImporter extends BaseImporter
             'head' => ['Helm', 'Hat', 'Circlet', 'Crown', 'Headband', 'Cap of', 'Goggles', 'Eyes of', 'Finder\'s Goggles'],
             'neck' => ['Amulet', 'Necklace', 'Periapt', 'Medallion', 'Brooch', 'Scarab', 'Talisman', 'Scarf'],
             'hands' => ['Gloves', 'Glove', 'Gauntlets', 'Gauntlet', 'Bracers', 'Bracer'],
-            'clothes' => ['Robe of', 'Robe,', 'Clothes of', 'Glamerweave', 'Shiftweave'],
+            'clothes' => ['Robe of', 'Clothes of', 'Glamerweave', 'Shiftweave'],
         ];
 
         foreach ($patterns as $slot => $keywords) {

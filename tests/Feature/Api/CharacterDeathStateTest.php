@@ -299,6 +299,33 @@ class CharacterDeathStateTest extends TestCase
     }
 
     #[Test]
+    public function it_does_not_auto_revive_when_death_save_failures_reduced_below_3(): void
+    {
+        // D&D 5e: Reducing death saves below 3 does NOT auto-revive.
+        // Resurrection requires explicit magic (Revivify, Raise Dead, etc.)
+        // which sets is_dead = false via CharacterReviveController.
+        $character = Character::factory()->create([
+            'is_dead' => true,
+            'current_hit_points' => 0,
+            'death_save_failures' => 3,
+        ]);
+
+        $response = $this->patchJson("/api/v1/characters/{$character->id}", [
+            'death_save_failures' => 0,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.is_dead', true) // Still dead - requires resurrection magic
+            ->assertJsonPath('data.death_save_failures', 0);
+
+        $this->assertDatabaseHas('characters', [
+            'id' => $character->id,
+            'is_dead' => true,
+            'death_save_failures' => 0,
+        ]);
+    }
+
+    #[Test]
     public function it_can_resurrect_character_by_setting_is_dead_false(): void
     {
         $character = Character::factory()->create(['is_dead' => true]);

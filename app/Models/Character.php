@@ -51,6 +51,9 @@ class Character extends Model implements HasMedia
 
         // Auto-compute is_dead when death_save_failures reaches 3
         // D&D 5e: 3 death save failures = death
+        // Note: This is intentionally one-way. Reducing death_save_failures below 3
+        // does NOT auto-revive. D&D 5e requires resurrection magic (Revivify, Raise Dead, etc.)
+        // which is handled by CharacterReviveController setting is_dead = false explicitly.
         static::saving(function (Character $character) {
             if ($character->death_save_failures >= 3) {
                 $character->is_dead = true;

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Issue #590**: `is_dead` not computed when `death_save_failures` reaches 3 via PATCH
+  - Added model boot event to auto-compute `is_dead = true` when `death_save_failures >= 3`
+  - Death state now computed correctly regardless of update path (API PATCH, direct model update, or death save controller)
+  - Added 3 new tests for auto-computation behavior
+
 ### Changed
 
 - **Issue #583**: Attunement now persists when items are unequipped or moved to backpack (D&D 5e behavior)

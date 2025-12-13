@@ -234,6 +234,70 @@ class CharacterDeathStateTest extends TestCase
         ]);
     }
 
+    // =====================
+    // Auto-Computation via PATCH (Issue #590)
+    // =====================
+
+    #[Test]
+    public function it_auto_computes_is_dead_when_death_save_failures_set_to_3_via_patch(): void
+    {
+        $character = Character::factory()->create([
+            'is_dead' => false,
+            'current_hit_points' => 0,
+            'death_save_failures' => 0,
+        ]);
+
+        // Issue #590: Setting death_save_failures to 3 via PATCH should auto-set is_dead
+        $response = $this->patchJson("/api/v1/characters/{$character->id}", [
+            'death_save_failures' => 3,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.is_dead', true)
+            ->assertJsonPath('data.death_save_failures', 3);
+
+        $this->assertDatabaseHas('characters', [
+            'id' => $character->id,
+            'is_dead' => true,
+            'death_save_failures' => 3,
+        ]);
+    }
+
+    #[Test]
+    public function it_auto_computes_is_dead_when_model_death_save_failures_reaches_3(): void
+    {
+        $character = Character::factory()->create([
+            'is_dead' => false,
+            'current_hit_points' => 0,
+            'death_save_failures' => 2,
+        ]);
+
+        // Direct model update should also trigger is_dead computation
+        $character->death_save_failures = 3;
+        $character->save();
+
+        $character->refresh();
+        expect($character->is_dead)->toBeTrue();
+    }
+
+    #[Test]
+    public function it_does_not_auto_set_is_dead_when_death_save_failures_below_3(): void
+    {
+        $character = Character::factory()->create([
+            'is_dead' => false,
+            'current_hit_points' => 0,
+            'death_save_failures' => 0,
+        ]);
+
+        $response = $this->patchJson("/api/v1/characters/{$character->id}", [
+            'death_save_failures' => 2,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.is_dead', false)
+            ->assertJsonPath('data.death_save_failures', 2);
+    }
+
     #[Test]
     public function it_can_resurrect_character_by_setting_is_dead_false(): void
     {

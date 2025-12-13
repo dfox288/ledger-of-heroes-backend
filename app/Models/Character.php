@@ -41,6 +41,24 @@ class Character extends Model implements HasMedia
     ];
 
     /**
+     * Boot the model.
+     *
+     * Registers model events for auto-computing death state.
+     */
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        // Auto-compute is_dead when death_save_failures reaches 3
+        // D&D 5e: 3 death save failures = death
+        static::saving(function (Character $character) {
+            if ($character->death_save_failures >= 3) {
+                $character->is_dead = true;
+            }
+        });
+    }
+
+    /**
      * Get the route key for the model.
      *
      * Uses public_id as the primary route key, but resolveRouteBinding

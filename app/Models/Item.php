@@ -44,6 +44,7 @@ class Item extends BaseModel
         'charges_max',
         'recharge_formula',
         'recharge_timing',
+        'equipment_slot',
     ];
 
     protected $casts = [
@@ -305,6 +306,8 @@ class Item extends BaseModel
             // Computed fields for filtering
             'proficiency_category' => $this->proficiency_category,
             'magic_bonus' => $this->magic_bonus,
+            // Equipment slot for paperdoll UI
+            'equipment_slot' => $this->equipment_slot,
         ];
     }
 
@@ -376,6 +379,7 @@ class Item extends BaseModel
                 'has_prerequisites',
                 'proficiency_category',
                 'magic_bonus',
+                'equipment_slot',
             ],
             'sortableAttributes' => [
                 'name',

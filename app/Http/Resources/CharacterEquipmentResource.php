@@ -23,7 +23,9 @@ class CharacterEquipmentResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            /** @var int Equipment entry ID */
             'id' => $this->id,
+            /** @var array{id: int, name: string, slug: string, armor_class: int|null, damage_dice: string|null, weight: float|null, requires_attunement: bool, item_type: string|null}|null Item details (null for custom items) */
             'item' => $this->when($this->item_slug !== null, fn () => $this->item
                 ? $this->formatEntityWith(
                     $this->item,
@@ -32,18 +34,28 @@ class CharacterEquipmentResource extends JsonResource
                 )
                 : null  // Dangling reference - item_slug set but item doesn't exist
             ),
+            /** @var string|null Item slug reference (null for custom items) */
             'item_slug' => $this->item_slug,
+            /** @var bool True if item_slug is set but item no longer exists in database */
             'is_dangling' => $this->item_slug !== null && $this->item === null,
+            /** @var string|null Custom item name (for non-database items) */
             'custom_name' => $this->custom_name,
+            /** @var string|null Custom item description or metadata JSON */
             'custom_description' => $this->custom_description,
+            /** @var int Item quantity (stackable items) */
             'quantity' => $this->quantity,
+            /** @var bool Whether item is currently equipped */
             'equipped' => $this->equipped,
+            /** @var string Equipment slot: main_hand, off_hand, armor, head, neck, cloak, belt, hands, ring_1, ring_2, feet, backpack */
             'location' => $this->location,
+            /** @var bool Whether character is attuned to this magic item */
             'is_attuned' => $this->is_attuned,
+            /** @var array{is_proficient: bool, reason: string|null}|null Proficiency check result (only for equipped items) */
             'proficiency_status' => $this->when(
                 $this->equipped && $this->item !== null,
                 fn () => $this->getProficiencyStatus()
             ),
+            /** @var string Item group for inventory organization: Weapons, Armor, Potions, etc. */
             'group' => $this->getItemGroup(),
         ];
     }

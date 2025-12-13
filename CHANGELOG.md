@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #545**: Currency management endpoint with auto-conversion
+  - New `PATCH /api/v1/characters/{character}/currency` endpoint
+  - Request format: `pp`, `gp`, `ep`, `sp`, `cp` (strings: "-5" subtract, "+10" add, "25" set)
+  - Auto-conversion: When subtracting, higher denominations are automatically broken down ("making change")
+  - Conversion chain: PP → GP → SP → CP (EP converts to SP at 1:5)
+  - Returns 422 with "Insufficient funds" if total value cannot cover the transaction
+  - All five coin types returned in response for consistency
+
 - **Issue #543**: Character death state tracking (`is_dead` flag)
   - New `is_dead` boolean column on `characters` table (default: false)
   - Included in `CharacterResource` API response

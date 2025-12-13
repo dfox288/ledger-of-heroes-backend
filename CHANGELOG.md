@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Auto-set to `true` when exhaustion condition reaches level 6 (D&D 5e: instant death)
   - Auto-set to `true` when death save failures reach 3
   - Can be manually set via PATCH for resurrection scenarios
+  - New `POST /api/v1/characters/{character}/revive` endpoint for atomic revival
+    - Resets `is_dead` to false, death saves to 0, sets HP (default 1, capped at max)
+    - Optionally clears exhaustion condition (`clear_exhaustion`, default: true)
+    - Accepts `source` parameter for future audit trail (not stored yet)
 
 - **Issue #496**: Unarmored Defense AC calculation for Barbarian, Monk, and Draconic Resilience
   - New `secondary_ability_score_id` column on `entity_modifiers` table

@@ -236,6 +236,7 @@ Route::prefix('v1')->group(function () {
     | - POST /characters/{id}/death-saves      - Death saving throw
     | - POST /characters/{id}/death-saves/stabilize - Stabilize dying character
     | - DELETE /characters/{id}/death-saves    - Reset death saves
+    | - POST /characters/{id}/revive           - Revive dead character
     |
     | Rest:
     | - POST /characters/{id}/short-rest       - Short rest
@@ -377,6 +378,10 @@ Route::prefix('v1')->group(function () {
             ->name('death-saves.stabilize');
         Route::delete('death-saves', [\App\Http\Controllers\Api\CharacterDeathSaveController::class, 'reset'])
             ->name('death-saves.reset');
+
+        // Revival
+        Route::post('revive', \App\Http\Controllers\Api\CharacterReviveController::class)
+            ->name('revive');
 
         // Hit Dice
         Route::get('hit-dice', [\App\Http\Controllers\Api\HitDiceController::class, 'index'])

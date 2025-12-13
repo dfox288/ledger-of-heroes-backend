@@ -109,7 +109,6 @@ class EquipmentManagerService
         $equipment->update([
             'equipped' => false,
             'location' => EquipmentLocation::BACKPACK->value,
-            'is_attuned' => false,
         ]);
     }
 
@@ -121,9 +120,8 @@ class EquipmentManagerService
      * - Auto-unequipping items in single-slot locations
      * - Two-handed weapon restrictions (unequips off-hand, blocks off-hand usage)
      *
-     * Note: Attunement is now handled separately via is_attuned field,
-     * not through location. Use CharacterEquipmentUpdateRequest validation
-     * for attunement limits.
+     * Note: Attunement persists regardless of location changes (D&D 5e behavior).
+     * Players must explicitly break attunement via is_attuned=false.
      */
     public function setLocation(CharacterEquipment $equipment, string $location): void
     {
@@ -146,17 +144,10 @@ class EquipmentManagerService
         // Determine equipped status based on location
         $equipped = $locationEnum->isEquipped();
 
-        // If moving to backpack, clear attunement
-        $updateData = [
+        $equipment->update([
             'location' => $location,
             'equipped' => $equipped,
-        ];
-
-        if ($location === EquipmentLocation::BACKPACK->value) {
-            $updateData['is_attuned'] = false;
-        }
-
-        $equipment->update($updateData);
+        ]);
     }
 
     /**
@@ -192,7 +183,6 @@ class EquipmentManagerService
         $query->update([
             'location' => EquipmentLocation::BACKPACK->value,
             'equipped' => false,
-            'is_attuned' => false,
         ]);
     }
 

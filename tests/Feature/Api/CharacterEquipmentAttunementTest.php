@@ -323,4 +323,136 @@ class CharacterEquipmentAttunementTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.0.item.requires_attunement', false);
     }
+
+    // =============================
+    // Attunement Persistence (Issue #583)
+    // =============================
+
+    #[Test]
+    public function it_persists_attunement_when_item_moved_to_backpack(): void
+    {
+        $character = Character::factory()->create();
+        $equipment = CharacterEquipment::factory()
+            ->withItem($this->magicSword)
+            ->create([
+                'character_id' => $character->id,
+                'equipped' => true,
+                'location' => 'main_hand',
+                'is_attuned' => true,
+            ]);
+
+        // Move to backpack
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/equipment/{$equipment->id}",
+            ['location' => 'backpack']
+        );
+
+        $response->assertOk()
+            ->assertJsonPath('data.is_attuned', true)
+            ->assertJsonPath('data.location', 'backpack');
+
+        $this->assertDatabaseHas('character_equipment', [
+            'id' => $equipment->id,
+            'is_attuned' => true,
+            'location' => 'backpack',
+        ]);
+    }
+
+    #[Test]
+    public function it_persists_attunement_when_item_displaced_by_another(): void
+    {
+        $character = Character::factory()->create();
+
+        // First ring equipped and attuned in ring_1 slot
+        $firstRing = CharacterEquipment::factory()
+            ->withItem($this->magicRing)
+            ->create([
+                'character_id' => $character->id,
+                'equipped' => true,
+                'location' => 'ring_1',
+                'is_attuned' => true,
+            ]);
+
+        // Second ring - equip to same slot, displacing first
+        $secondRing = CharacterEquipment::factory()
+            ->withItem($this->magicAmulet) // Using amulet as second "ring" for test
+            ->create([
+                'character_id' => $character->id,
+                'equipped' => false,
+                'location' => 'backpack',
+            ]);
+
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/equipment/{$secondRing->id}",
+            ['location' => 'ring_1']
+        );
+
+        $response->assertOk();
+
+        // First ring should be in backpack but STILL attuned
+        $this->assertDatabaseHas('character_equipment', [
+            'id' => $firstRing->id,
+            'is_attuned' => true,
+            'location' => 'backpack',
+            'equipped' => false,
+        ]);
+    }
+
+    #[Test]
+    public function it_persists_attunement_when_unequipped_via_equipped_false(): void
+    {
+        $character = Character::factory()->create();
+        $equipment = CharacterEquipment::factory()
+            ->withItem($this->magicSword)
+            ->create([
+                'character_id' => $character->id,
+                'equipped' => true,
+                'location' => 'main_hand',
+                'is_attuned' => true,
+            ]);
+
+        // Unequip via equipped=false
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/equipment/{$equipment->id}",
+            ['equipped' => false]
+        );
+
+        $response->assertOk()
+            ->assertJsonPath('data.is_attuned', true)
+            ->assertJsonPath('data.equipped', false);
+
+        $this->assertDatabaseHas('character_equipment', [
+            'id' => $equipment->id,
+            'is_attuned' => true,
+            'equipped' => false,
+        ]);
+    }
+
+    #[Test]
+    public function it_allows_attuning_to_item_in_backpack(): void
+    {
+        $character = Character::factory()->create();
+        $equipment = CharacterEquipment::factory()
+            ->withItem($this->magicSword)
+            ->create([
+                'character_id' => $character->id,
+                'equipped' => false,
+                'location' => 'backpack',
+                'is_attuned' => false,
+            ]);
+
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/equipment/{$equipment->id}",
+            ['is_attuned' => true]
+        );
+
+        $response->assertOk()
+            ->assertJsonPath('data.is_attuned', true);
+
+        $this->assertDatabaseHas('character_equipment', [
+            'id' => $equipment->id,
+            'is_attuned' => true,
+            'location' => 'backpack',
+        ]);
+    }
 }

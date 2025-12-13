@@ -1133,4 +1133,131 @@ class EquipmentChoiceReplacementTest extends TestCase
         // Should return equipment choices - equipment mode was selected
         expect($choices)->toHaveCount(1);
     }
+
+    #[Test]
+    public function category_choice_preserves_parsed_description(): void
+    {
+        // Create a class with equipment choices - description should be preserved from parsing
+        $class = CharacterClass::factory()->create([
+            'name' => 'Test Artificer',
+            'slug' => 'test:artificer-label-test',
+        ]);
+
+        // Create a proficiency type for simple weapons
+        $simpleProfType = \App\Models\ProficiencyType::firstOrCreate(
+            ['slug' => 'core:simple-weapons'],
+            ['name' => 'Simple Weapons', 'category' => 'weapon', 'subcategory' => 'simple']
+        );
+
+        // Create a category-based choice with proper description (as importer should store)
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'choice_type' => 'equipment',
+            'choice_group' => 'choice_1',
+            'choice_option' => 1,
+            'target_type' => 'proficiency_type',
+            'target_slug' => $simpleProfType->slug,
+            'description' => 'any two simple weapons', // Proper description from parser
+            'quantity' => 1,
+            'level_granted' => 1,
+            'is_required' => true,
+            'constraints' => ['quantity' => 2],
+        ]);
+
+        // Create a character
+        $character = Character::factory()->create(['equipment_mode' => 'equipment']);
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $class->slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+        $character->load(['characterClasses.characterClass']);
+
+        $choices = $this->handler->getChoices($character);
+
+        expect($choices)->toHaveCount(1);
+        $choice = $choices->first();
+        expect($choice->options)->toHaveCount(1);
+
+        $option = $choice->options[0];
+        // Label should be the stored description from parser
+        expect($option['label'])->toBe('any two simple weapons');
+        expect($option['select_count'])->toBe(2);
+    }
+
+    #[Test]
+    public function item_choice_preserves_parsed_description(): void
+    {
+        // Create a class with equipment choices
+        $class = CharacterClass::factory()->create([
+            'name' => 'Test Fighter',
+            'slug' => 'test:fighter-label-test',
+        ]);
+
+        // Create items
+        $studdedLeather = Item::factory()->create([
+            'name' => 'Studded Leather Armor',
+            'slug' => 'test:studded-leather-armor-label',
+        ]);
+        $scaleMail = Item::factory()->create([
+            'name' => 'Scale Mail',
+            'slug' => 'test:scale-mail-label',
+        ]);
+
+        // Create item-based choices with proper descriptions (as importer should store)
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'choice_type' => 'equipment',
+            'choice_group' => 'choice_1',
+            'choice_option' => 1,
+            'target_type' => 'item',
+            'target_slug' => $studdedLeather->slug,
+            'description' => 'studded leather armor', // From "(a) studded leather armor"
+            'quantity' => 1,
+            'level_granted' => 1,
+            'is_required' => true,
+            'constraints' => ['quantity' => 1],
+        ]);
+
+        EntityChoice::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $class->id,
+            'choice_type' => 'equipment',
+            'choice_group' => 'choice_1',
+            'choice_option' => 2,
+            'target_type' => 'item',
+            'target_slug' => $scaleMail->slug,
+            'description' => 'scale mail', // From "(b) scale mail"
+            'quantity' => 1,
+            'level_granted' => 1,
+            'is_required' => true,
+            'constraints' => ['quantity' => 1],
+        ]);
+
+        // Create a character
+        $character = Character::factory()->create(['equipment_mode' => 'equipment']);
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $class->slug,
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+        $character->load(['characterClasses.characterClass']);
+
+        $choices = $this->handler->getChoices($character);
+
+        expect($choices)->toHaveCount(1);
+        $choice = $choices->first();
+        expect($choice->options)->toHaveCount(2);
+
+        // Labels should be the stored descriptions
+        $optionA = $choice->options[0];
+        $optionB = $choice->options[1];
+
+        expect($optionA['label'])->toBe('studded leather armor');
+        expect($optionB['label'])->toBe('scale mail');
+    }
 }

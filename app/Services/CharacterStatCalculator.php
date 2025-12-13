@@ -219,6 +219,7 @@ class CharacterStatCalculator
      *
      * This method looks up the character's equipped armor and shield,
      * then delegates to calculateAC with the appropriate values.
+     * When unarmored, checks for Unarmored Defense-type features.
      */
     public function calculateArmorClass(Character $character): int
     {
@@ -227,10 +228,13 @@ class CharacterStatCalculator
         $equippedArmor = $character->equippedArmor();
         $equippedShield = $character->equippedShield();
 
-        // Determine armor values
-        $armorBaseAC = null;
-        $armorMaxDex = null;
+        // Get shield bonus
+        $shieldBonus = 0;
+        if ($equippedShield !== null) {
+            $shieldBonus = $equippedShield->item->armor_class ?? 2;
+        }
 
+        // If wearing armor, use armor AC calculation
         if ($equippedArmor !== null) {
             $armor = $equippedArmor->item;
             $armorBaseAC = $armor->armor_class ?? 10;
@@ -243,15 +247,91 @@ class CharacterStatCalculator
                 ItemTypeCode::HEAVY_ARMOR->value => 0,      // No DEX bonus
                 default => null,
             };
+
+            return $this->calculateAC($dexMod, $armorBaseAC, $armorMaxDex, $shieldBonus, 0);
         }
 
-        // Get shield bonus
-        $shieldBonus = 0;
-        if ($equippedShield !== null) {
-            $shieldBonus = $equippedShield->item->armor_class ?? 2;
+        // No armor - check for Unarmored Defense modifiers from character's classes
+        $unarmoredAC = $this->calculateUnarmoredDefenseAC($character, $dexMod, $shieldBonus);
+        if ($unarmoredAC !== null) {
+            return $unarmoredAC;
         }
 
-        return $this->calculateAC($dexMod, $armorBaseAC, $armorMaxDex, $shieldBonus, 0);
+        // Default: 10 + DEX + shield
+        return $this->calculateAC($dexMod, null, null, $shieldBonus, 0);
+    }
+
+    /**
+     * Calculate Unarmored Defense AC from character's class modifiers.
+     *
+     * Checks if any of the character's classes have ac_unarmored modifiers
+     * and calculates AC based on the formula: base + DEX + optional secondary ability.
+     *
+     * @return int|null AC if Unarmored Defense applies, null otherwise
+     */
+    private function calculateUnarmoredDefenseAC(Character $character, int $dexMod, int $shieldBonus): ?int
+    {
+        // Get all class slugs for this character
+        $classSlugs = $character->characterClasses()->pluck('class_slug')->toArray();
+        if (empty($classSlugs)) {
+            return null;
+        }
+
+        // Find ac_unarmored modifiers for any of the character's classes
+        $unarmoredModifier = \App\Models\Modifier::where('modifier_category', 'ac_unarmored')
+            ->where('reference_type', \App\Models\CharacterClass::class)
+            ->whereIn('reference_id', function ($query) use ($classSlugs) {
+                $query->select('id')
+                    ->from('classes')
+                    ->whereIn('slug', $classSlugs);
+            })
+            ->first();
+
+        if ($unarmoredModifier === null) {
+            return null;
+        }
+
+        // Calculate AC: base + DEX + secondary ability (if any)
+        $baseAC = (int) $unarmoredModifier->value;
+        $ac = $baseAC + $dexMod;
+
+        // Add secondary ability modifier if present
+        if ($unarmoredModifier->secondary_ability_score_id !== null) {
+            $secondaryAbilityScore = $this->getCharacterAbilityScore($character, $unarmoredModifier->secondary_ability_score_id);
+            $ac += $this->abilityModifier($secondaryAbilityScore);
+        }
+
+        // Add shield if allowed
+        if ($shieldBonus > 0) {
+            $allowsShield = str_contains($unarmoredModifier->condition ?? '', 'allows_shield: true');
+            if ($allowsShield) {
+                $ac += $shieldBonus;
+            }
+        }
+
+        return $ac;
+    }
+
+    /**
+     * Get a character's ability score by ability_score_id.
+     */
+    private function getCharacterAbilityScore(Character $character, int $abilityScoreId): int
+    {
+        $abilityScore = \App\Models\AbilityScore::find($abilityScoreId);
+        if ($abilityScore === null) {
+            return 10;
+        }
+
+        // Map ability code to character attribute
+        return match ($abilityScore->code) {
+            'STR' => $character->strength ?? 10,
+            'DEX' => $character->dexterity ?? 10,
+            'CON' => $character->constitution ?? 10,
+            'INT' => $character->intelligence ?? 10,
+            'WIS' => $character->wisdom ?? 10,
+            'CHA' => $character->charisma ?? 10,
+            default => 10,
+        };
     }
 
     /**

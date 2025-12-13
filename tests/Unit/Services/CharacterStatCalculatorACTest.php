@@ -2,10 +2,14 @@
 
 namespace Tests\Unit\Services;
 
+use App\Models\AbilityScore;
 use App\Models\Character;
+use App\Models\CharacterClass;
+use App\Models\CharacterClassPivot;
 use App\Models\CharacterEquipment;
 use App\Models\Item;
 use App\Models\ItemType;
+use App\Models\Modifier;
 use App\Services\CharacterStatCalculator;
 use Database\Seeders\LookupSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -257,5 +261,201 @@ class CharacterStatCalculatorACTest extends TestCase
             ->create(['character_id' => $character->id]);
 
         $this->assertEquals(13, $character->armor_class);
+    }
+
+    // ==========================================
+    // Unarmored Defense Tests (Issue #496)
+    // ==========================================
+
+    #[Test]
+    public function it_uses_barbarian_unarmored_defense_when_unarmored(): void
+    {
+        // Barbarian Unarmored Defense: 10 + DEX + CON
+        // DEX 14 (+2), CON 16 (+3) = 10 + 2 + 3 = 15
+        $dex = AbilityScore::where('code', 'DEX')->first();
+        $con = AbilityScore::where('code', 'CON')->first();
+
+        $barbarianClass = CharacterClass::factory()->create(['name' => 'Barbarian', 'slug' => 'phb:barbarian']);
+        Modifier::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $barbarianClass->id,
+            'modifier_category' => 'ac_unarmored',
+            'value' => '10',
+            'ability_score_id' => $dex->id,
+            'secondary_ability_score_id' => $con->id,
+            'condition' => 'allows_shield: true',
+            'level' => 1,
+        ]);
+
+        $character = Character::factory()
+            ->withAbilityScores(['dexterity' => 14, 'constitution' => 16])
+            ->create();
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $barbarianClass->slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        $ac = $this->calculator->calculateArmorClass($character);
+
+        $this->assertEquals(15, $ac);
+    }
+
+    #[Test]
+    public function it_uses_monk_unarmored_defense_when_unarmored(): void
+    {
+        // Monk Unarmored Defense: 10 + DEX + WIS
+        // DEX 16 (+3), WIS 14 (+2) = 10 + 3 + 2 = 15
+        $dex = AbilityScore::where('code', 'DEX')->first();
+        $wis = AbilityScore::where('code', 'WIS')->first();
+
+        $monkClass = CharacterClass::factory()->create(['name' => 'Monk', 'slug' => 'phb:monk']);
+        Modifier::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $monkClass->id,
+            'modifier_category' => 'ac_unarmored',
+            'value' => '10',
+            'ability_score_id' => $dex->id,
+            'secondary_ability_score_id' => $wis->id,
+            'condition' => 'allows_shield: false',
+            'level' => 1,
+        ]);
+
+        $character = Character::factory()
+            ->withAbilityScores(['dexterity' => 16, 'wisdom' => 14])
+            ->create();
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $monkClass->slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        $ac = $this->calculator->calculateArmorClass($character);
+
+        $this->assertEquals(15, $ac);
+    }
+
+    #[Test]
+    public function it_uses_draconic_resilience_when_unarmored(): void
+    {
+        // Draconic Resilience: 13 + DEX (no secondary ability)
+        // DEX 14 (+2) = 13 + 2 = 15
+        $dex = AbilityScore::where('code', 'DEX')->first();
+
+        $sorcererClass = CharacterClass::factory()->create(['name' => 'Sorcerer', 'slug' => 'phb:sorcerer']);
+        Modifier::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $sorcererClass->id,
+            'modifier_category' => 'ac_unarmored',
+            'value' => '13',
+            'ability_score_id' => $dex->id,
+            'secondary_ability_score_id' => null,
+            'condition' => 'allows_shield: true',
+            'level' => 1,
+        ]);
+
+        $character = Character::factory()
+            ->withAbilityScores(['dexterity' => 14])
+            ->create();
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $sorcererClass->slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        $ac = $this->calculator->calculateArmorClass($character);
+
+        $this->assertEquals(15, $ac);
+    }
+
+    #[Test]
+    public function unarmored_defense_is_not_used_when_wearing_armor(): void
+    {
+        // Barbarian with Unarmored Defense wearing armor should use armor AC
+        // Plate (18) is better than 10 + DEX 14 (+2) + CON 16 (+3) = 15
+        $dex = AbilityScore::where('code', 'DEX')->first();
+        $con = AbilityScore::where('code', 'CON')->first();
+
+        $barbarianClass = CharacterClass::factory()->create(['name' => 'Barbarian', 'slug' => 'phb:barbarian']);
+        Modifier::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $barbarianClass->id,
+            'modifier_category' => 'ac_unarmored',
+            'value' => '10',
+            'ability_score_id' => $dex->id,
+            'secondary_ability_score_id' => $con->id,
+            'condition' => 'allows_shield: true',
+            'level' => 1,
+        ]);
+
+        $character = Character::factory()
+            ->withAbilityScores(['dexterity' => 14, 'constitution' => 16])
+            ->create();
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $barbarianClass->slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Equip plate armor
+        CharacterEquipment::factory()
+            ->withItem($this->plateArmor)
+            ->equipped()
+            ->create(['character_id' => $character->id]);
+
+        $ac = $this->calculator->calculateArmorClass($character);
+
+        // Should use plate armor (18), not unarmored defense (15)
+        $this->assertEquals(18, $ac);
+    }
+
+    #[Test]
+    public function unarmored_defense_with_shield_when_allowed(): void
+    {
+        // Barbarian Unarmored Defense allows shield: 10 + DEX + CON + shield
+        // DEX 14 (+2), CON 16 (+3), Shield (+2) = 10 + 2 + 3 + 2 = 17
+        $dex = AbilityScore::where('code', 'DEX')->first();
+        $con = AbilityScore::where('code', 'CON')->first();
+
+        $barbarianClass = CharacterClass::factory()->create(['name' => 'Barbarian', 'slug' => 'phb:barbarian']);
+        Modifier::create([
+            'reference_type' => CharacterClass::class,
+            'reference_id' => $barbarianClass->id,
+            'modifier_category' => 'ac_unarmored',
+            'value' => '10',
+            'ability_score_id' => $dex->id,
+            'secondary_ability_score_id' => $con->id,
+            'condition' => 'allows_shield: true',
+            'level' => 1,
+        ]);
+
+        $character = Character::factory()
+            ->withAbilityScores(['dexterity' => 14, 'constitution' => 16])
+            ->create();
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $barbarianClass->slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Equip shield only (no armor)
+        CharacterEquipment::factory()
+            ->withItem($this->shield)
+            ->equipped()
+            ->create(['character_id' => $character->id]);
+
+        $ac = $this->calculator->calculateArmorClass($character);
+
+        $this->assertEquals(17, $ac);
     }
 }

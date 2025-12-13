@@ -844,7 +844,7 @@ class ClassImporter extends BaseImporter
                     choiceOption: $choiceOption,
                     itemSlug: $itemSlug,
                     categorySlug: $categorySlug,
-                    description: $choiceItem['value'] ?? null,
+                    description: $description,
                     levelGranted: 1,
                     constraints: ['quantity' => $choiceItem['quantity'] ?? 1]
                 );

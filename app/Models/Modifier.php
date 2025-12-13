@@ -27,6 +27,7 @@ class Modifier extends BaseModel
         'reference_id',
         'modifier_category',
         'ability_score_id',
+        'secondary_ability_score_id',
         'skill_id',
         'damage_type_id',
         'value',
@@ -37,6 +38,7 @@ class Modifier extends BaseModel
     protected $casts = [
         'reference_id' => 'integer',
         'ability_score_id' => 'integer',
+        'secondary_ability_score_id' => 'integer',
         'skill_id' => 'integer',
         'damage_type_id' => 'integer',
         'level' => 'integer',
@@ -52,6 +54,11 @@ class Modifier extends BaseModel
     public function abilityScore(): BelongsTo
     {
         return $this->belongsTo(AbilityScore::class);
+    }
+
+    public function secondaryAbilityScore(): BelongsTo
+    {
+        return $this->belongsTo(AbilityScore::class, 'secondary_ability_score_id');
     }
 
     public function skill(): BelongsTo

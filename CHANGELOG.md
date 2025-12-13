@@ -16,6 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Auto-set to `true` when death save failures reach 3
   - Can be manually set via PATCH for resurrection scenarios
 
+- **Issue #496**: Unarmored Defense AC calculation for Barbarian, Monk, and Draconic Resilience
+  - New `secondary_ability_score_id` column on `entity_modifiers` table
+  - Parses unarmored defense formulas from class feature descriptions during import
+  - Barbarian: 10 + DEX + CON (allows shield)
+  - Monk: 10 + DEX + WIS (no shield)
+  - Draconic Resilience: 13 + DEX
+  - CharacterStatCalculator uses unarmored defense when character has no armor equipped
+  - Requires `import:all` to parse existing class features
+
 - **Issue #505**: ActionCost enum for D&D 5e action economy tracking
   - New `action_cost` column on `optional_features` and `class_features` tables
   - Values: `action`, `bonus_action`, `reaction`, `free`, `passive`

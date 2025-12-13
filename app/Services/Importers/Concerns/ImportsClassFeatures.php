@@ -116,6 +116,10 @@ trait ImportsClassFeatures
             // Pattern: "one druid cantrip of your choice", "one wizard cantrip of your choice"
             $this->importBonusSpellChoices($feature, $featureData['description']);
 
+            // Detect unarmored defense / natural armor AC formulas from feature description
+            // Pattern: "AC equals X + your Dexterity modifier (+ your Y modifier)"
+            $this->importUnarmoredDefense($class, $feature, $featureData['description']);
+
             // Import random tables from <roll> XML elements
             if (! empty($featureData['rolls'])) {
                 $this->importFeatureRolls($feature, $featureData['rolls']);
@@ -681,5 +685,66 @@ trait ImportsClassFeatures
     protected function isMulticlassOnlyFeature(string $featureName): bool
     {
         return str_starts_with($featureName, 'Multiclass ');
+    }
+
+    /**
+     * Import unarmored defense / natural armor AC formulas from feature description text.
+     *
+     * Detects patterns like:
+     * - "your Armor Class equals 10 + your Dexterity modifier + your Constitution modifier" (Barbarian)
+     * - "your AC equals 10 + your Dexterity modifier + your Wisdom modifier" (Monk)
+     * - "your AC equals 13 + your Dexterity modifier" (Draconic Resilience)
+     *
+     * Creates ac_unarmored modifier with:
+     * - value: base AC (10 or 13)
+     * - ability_score_id: primary ability (always DEX)
+     * - secondary_ability_score_id: secondary ability (CON, WIS, or null)
+     * - condition: flags like "allows_shield: true/false"
+     */
+    protected function importUnarmoredDefense(CharacterClass $class, ClassFeature $feature, string $text): void
+    {
+        // Pattern: "(your) (AC|Armor Class) equals {base} + your Dexterity modifier (+ your {ability} modifier)?"
+        // Handles "AC", "Armor Class", and optional "your" prefix
+        if (! preg_match('/(?:your\s+)?(?:AC|Armor Class) equals (\d+) \+ your Dexterity modifier(?: \+ your (\w+) modifier)?/i', $text, $matches)) {
+            return;
+        }
+
+        $baseAC = $matches[1];
+        $secondaryAbilityName = $matches[2] ?? null;
+
+        // Look up ability score IDs
+        $dex = \App\Models\AbilityScore::where('code', 'DEX')->first();
+        $secondaryAbilityScoreId = null;
+
+        if ($secondaryAbilityName) {
+            // Map ability name to code: Constitution -> CON, Wisdom -> WIS
+            $abilityCode = strtoupper(substr($secondaryAbilityName, 0, 3));
+            $secondaryAbility = \App\Models\AbilityScore::where('code', $abilityCode)->first();
+            $secondaryAbilityScoreId = $secondaryAbility?->id;
+        }
+
+        // Determine if shields are allowed
+        // "can use a shield" = allowed, "not wielding a shield" = not allowed
+        $allowsShield = stripos($text, 'can use a shield') !== false
+            || stripos($text, 'not wielding a shield') === false;
+
+        // Build condition string
+        $condition = 'allows_shield: '.($allowsShield ? 'true' : 'false');
+
+        // Use updateOrCreate to prevent duplicates on re-import
+        Modifier::updateOrCreate(
+            [
+                'reference_type' => get_class($class),
+                'reference_id' => $class->id,
+                'modifier_category' => 'ac_unarmored',
+                'level' => $feature->level,
+            ],
+            [
+                'value' => $baseAC,
+                'ability_score_id' => $dex?->id,
+                'secondary_ability_score_id' => $secondaryAbilityScoreId,
+                'condition' => $condition,
+            ]
+        );
     }
 }

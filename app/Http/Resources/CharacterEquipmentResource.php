@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\ItemGroup;
 use App\Http\Resources\Concerns\FormatsRelatedModels;
 use App\Services\ProficiencyCheckerService;
 use Illuminate\Http\Request;
@@ -43,6 +44,7 @@ class CharacterEquipmentResource extends JsonResource
                 $this->equipped && $this->item !== null,
                 fn () => $this->getProficiencyStatus()
             ),
+            'group' => $this->getItemGroup(),
         ];
     }
 
@@ -59,5 +61,21 @@ class CharacterEquipmentResource extends JsonResource
             $this->character,
             $this->item
         )->toArray();
+    }
+
+    /**
+     * Get the display group for this item.
+     *
+     * Groups items by type for frontend inventory organization.
+     * Custom items and dangling references default to Miscellaneous.
+     */
+    private function getItemGroup(): string
+    {
+        // Custom items or dangling references go to Miscellaneous
+        if ($this->item_slug === null || $this->item === null) {
+            return ItemGroup::MISCELLANEOUS->value;
+        }
+
+        return ItemGroup::fromItemType($this->item->itemType?->name)->value;
     }
 }

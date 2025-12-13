@@ -55,4 +55,16 @@ class CharacterEquipmentFactory extends Factory
             'quantity' => $quantity,
         ]);
     }
+
+    /**
+     * Create a custom/freetext item (no database item reference).
+     */
+    public function custom(string $name, ?string $description = null): static
+    {
+        return $this->state([
+            'item_slug' => null,
+            'custom_name' => $name,
+            'custom_description' => $description,
+        ]);
+    }
 }

@@ -321,6 +321,47 @@ class AvailableFeatsServiceTest extends TestCase
         $this->assertCount(0, $availableFeats);
     }
 
+    #[Test]
+    public function it_returns_feat_for_any_subrace_when_prerequisite_is_parent_race(): void
+    {
+        // Multiple subraces of Elf should all qualify for "Elf" prerequisite
+        $elf = Race::factory()->create(['name' => 'Elf', 'slug' => 'test:elf', 'parent_race_id' => null]);
+        $highElf = Race::factory()->create([
+            'name' => 'High Elf',
+            'slug' => 'test:high-elf',
+            'parent_race_id' => $elf->id,
+        ]);
+        $woodElf = Race::factory()->create([
+            'name' => 'Wood Elf',
+            'slug' => 'test:wood-elf',
+            'parent_race_id' => $elf->id,
+        ]);
+
+        $feat = Feat::factory()->create();
+        EntityPrerequisite::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $feat->id,
+            'prerequisite_type' => Race::class,
+            'prerequisite_id' => $elf->id, // Parent race as prerequisite
+        ]);
+
+        // High Elf character qualifies
+        $highElfCharacter = Character::factory()->create([
+            'race_slug' => $highElf->slug,
+        ]);
+        $availableForHighElf = $this->service->getAvailableFeats($highElfCharacter);
+        $this->assertCount(1, $availableForHighElf);
+        $this->assertEquals($feat->id, $availableForHighElf->first()->id);
+
+        // Wood Elf character also qualifies
+        $woodElfCharacter = Character::factory()->create([
+            'race_slug' => $woodElf->slug,
+        ]);
+        $availableForWoodElf = $this->service->getAvailableFeats($woodElfCharacter);
+        $this->assertCount(1, $availableForWoodElf);
+        $this->assertEquals($feat->id, $availableForWoodElf->first()->id);
+    }
+
     // =========================================================================
     // Proficiency Type Prerequisites
     // =========================================================================
@@ -387,9 +428,11 @@ class AvailableFeatsServiceTest extends TestCase
     #[Test]
     public function it_returns_feat_when_character_has_required_skill_proficiency(): void
     {
+        // Create or get ability score and skill (handle existing data from seeding)
+        $dexterity = AbilityScore::firstOrCreate(['code' => 'DEX'], ['name' => 'Dexterity']);
         $acrobatics = Skill::firstOrCreate(
             ['name' => 'Acrobatics'],
-            ['slug' => 'acrobatics', 'ability_score_id' => 1]
+            ['slug' => 'acrobatics', 'ability_score_id' => $dexterity->id]
         );
 
         $character = Character::factory()->create();
@@ -415,9 +458,11 @@ class AvailableFeatsServiceTest extends TestCase
     #[Test]
     public function it_does_not_return_feat_when_character_lacks_required_skill_proficiency(): void
     {
+        // Create or get ability score and skill (handle existing data from seeding)
+        $dexterity = AbilityScore::firstOrCreate(['code' => 'DEX'], ['name' => 'Dexterity']);
         $acrobatics = Skill::firstOrCreate(
             ['name' => 'Acrobatics'],
-            ['slug' => 'acrobatics', 'ability_score_id' => 1]
+            ['slug' => 'acrobatics', 'ability_score_id' => $dexterity->id]
         );
 
         $character = Character::factory()->create();
@@ -581,6 +626,51 @@ class AvailableFeatsServiceTest extends TestCase
 
         // Neither STR nor DEX meets the requirement
         $this->assertCount(0, $availableFeats);
+    }
+
+    #[Test]
+    public function it_returns_feat_when_or_group_has_mixed_prerequisite_types_and_one_is_met(): void
+    {
+        // Scenario: STR 13 OR Athletics proficiency (same group_id = OR)
+        // Character has low STR but has Athletics proficiency
+        $strength = AbilityScore::firstOrCreate(['code' => 'STR'], ['name' => 'Strength']);
+        $athletics = Skill::firstOrCreate(
+            ['name' => 'Athletics'],
+            ['slug' => 'athletics', 'ability_score_id' => $strength->id]
+        );
+
+        $character = Character::factory()->create([
+            'strength' => 10, // Does not meet STR requirement
+        ]);
+        $character->proficiencies()->create([
+            'skill_slug' => $athletics->slug,
+            'source' => 'background',
+        ]);
+
+        $feat = Feat::factory()->create();
+
+        // Same group_id = OR logic with mixed types
+        EntityPrerequisite::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $feat->id,
+            'prerequisite_type' => AbilityScore::class,
+            'prerequisite_id' => $strength->id,
+            'minimum_value' => 13,
+            'group_id' => 1,
+        ]);
+        EntityPrerequisite::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $feat->id,
+            'prerequisite_type' => Skill::class,
+            'prerequisite_id' => $athletics->id,
+            'group_id' => 1, // Same group as ability score
+        ]);
+
+        $availableFeats = $this->service->getAvailableFeats($character);
+
+        // Should qualify: Athletics proficiency satisfies the OR group
+        $this->assertCount(1, $availableFeats);
+        $this->assertEquals($feat->id, $availableFeats->first()->id);
     }
 
     // =========================================================================

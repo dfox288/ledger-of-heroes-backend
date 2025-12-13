@@ -67,6 +67,7 @@ class CharacterImportService
             $this->importAbilityScoreChoices($character, $characterData['ability_score_choices'] ?? []);
             $this->importSpellSlots($character, $characterData['spell_slots'] ?? []);
             $this->importFeatures($character, $characterData['features'] ?? []);
+            $this->importPortrait($character, $characterData['portrait'] ?? null);
 
             return $character;
         });
@@ -470,5 +471,33 @@ class CharacterImportService
         $this->warnings[] = "Racial trait '{$name}' import not yet supported";
 
         return null;
+    }
+
+    /**
+     * Import portrait from base64 data.
+     */
+    private function importPortrait(Character $character, ?array $portraitData): void
+    {
+        if (! $portraitData) {
+            return;
+        }
+
+        $filename = $portraitData['filename'] ?? 'portrait.png';
+        $mimeType = $portraitData['mime_type'] ?? 'image/png';
+        $base64Data = $portraitData['data'] ?? null;
+
+        if (! $base64Data) {
+            $this->warnings[] = 'Portrait data is empty - skipping portrait import';
+
+            return;
+        }
+
+        try {
+            $character->addMediaFromBase64($base64Data)
+                ->usingFileName($filename)
+                ->toMediaCollection('portrait');
+        } catch (\Exception $e) {
+            $this->warnings[] = 'Failed to import portrait: '.$e->getMessage();
+        }
     }
 }

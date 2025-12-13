@@ -20,7 +20,7 @@ class CharacterImportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'format_version' => ['required', 'string', 'in:1.0,1.1'],
+            'format_version' => ['required', 'string', 'in:1.0,1.1,1.2'],
             'character' => ['required', 'array'],
             'character.public_id' => ['required', 'string', 'max:255'],
             'character.name' => ['required', 'string', 'max:255'],
@@ -146,6 +146,12 @@ class CharacterImportRequest extends FormRequest
             'character.equipment_mode' => ['nullable', 'string', 'in:starting,equipment'],
             'character.size_id' => ['nullable', 'integer'],
             'character.asi_choices_remaining' => ['integer', 'min:0'],
+
+            // v1.2 fields - Portrait
+            'character.portrait' => ['nullable', 'array'],
+            'character.portrait.filename' => ['required_with:character.portrait', 'string', 'max:255'],
+            'character.portrait.mime_type' => ['required_with:character.portrait', 'string', 'in:image/jpeg,image/png,image/webp'],
+            'character.portrait.data' => ['required_with:character.portrait', 'string'],
         ];
     }
 
@@ -155,7 +161,7 @@ class CharacterImportRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'format_version.in' => 'Unsupported format version. Supported versions: 1.0, 1.1.',
+            'format_version.in' => 'Unsupported format version. Supported versions: 1.0, 1.1, 1.2.',
             'character.required' => 'Character data is required.',
         ];
     }

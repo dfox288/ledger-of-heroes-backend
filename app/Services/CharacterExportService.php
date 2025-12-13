@@ -12,7 +12,7 @@ use App\Models\Character;
  */
 class CharacterExportService
 {
-    private const FORMAT_VERSION = '1.1';
+    private const FORMAT_VERSION = '1.2';
 
     /**
      * Export a character as portable JSON.
@@ -33,6 +33,7 @@ class CharacterExportService
             'abilityScores',
             'spellSlots',
             'features.feature.characterClass',
+            'media',
         ]);
 
         return [
@@ -65,6 +66,7 @@ class CharacterExportService
             'ability_score_choices' => $this->buildAbilityScoreChoices($character),
             'spell_slots' => $this->buildSpellSlots($character),
             'features' => $this->buildFeatures($character),
+            'portrait' => $this->buildPortrait($character),
         ];
     }
 
@@ -278,5 +280,31 @@ class CharacterExportService
             ],
             default => null,
         };
+    }
+
+    /**
+     * Build portrait data as base64 for export.
+     *
+     * Returns null if the character has no portrait.
+     */
+    private function buildPortrait(Character $character): ?array
+    {
+        $portrait = $character->getFirstMedia('portrait');
+
+        if (! $portrait) {
+            return null;
+        }
+
+        $path = $portrait->getPath();
+
+        if (! file_exists($path)) {
+            return null;
+        }
+
+        return [
+            'filename' => $portrait->file_name,
+            'mime_type' => $portrait->mime_type,
+            'data' => base64_encode(file_get_contents($path)),
+        ];
     }
 }

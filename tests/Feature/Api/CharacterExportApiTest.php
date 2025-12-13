@@ -76,7 +76,7 @@ describe('Character Export', function () {
             ]);
 
         $data = $response->json('data');
-        expect($data['format_version'])->toBe('1.1')
+        expect($data['format_version'])->toBe('1.2')
             ->and($data['character']['public_id'])->toBe('brave-wizard-x7k2')
             ->and($data['character']['name'])->toBe('Gandalf')
             ->and($data['character']['race'])->toBe('phb:human')
@@ -720,5 +720,184 @@ describe('Round-trip Export/Import', function () {
             ->and(count($reExportData['character']['spells']))->toBe(count($exportData['character']['spells']))
             ->and(count($reExportData['character']['languages']))->toBe(count($exportData['character']['languages']))
             ->and(count($reExportData['character']['notes']))->toBe(count($exportData['character']['notes']));
+    });
+});
+
+describe('Portrait Export/Import', function () {
+    it('exports character portrait as base64', function () {
+        $character = Character::factory()->create();
+
+        // Create a simple 1x1 PNG image
+        $pngData = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
+        $tempFile = tempnam(sys_get_temp_dir(), 'test_portrait_').'.png';
+        file_put_contents($tempFile, $pngData);
+
+        // Add portrait to character
+        $character->addMedia($tempFile)
+            ->toMediaCollection('portrait');
+
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}/export");
+
+        $response->assertOk();
+        $portrait = $response->json('data.character.portrait');
+
+        expect($portrait)->not->toBeNull()
+            ->and($portrait['filename'])->toEndWith('.png')
+            ->and($portrait['mime_type'])->toBe('image/png')
+            ->and($portrait['data'])->toStartWith('iVBORw0KGgo'); // Base64 PNG header
+    });
+
+    it('exports null portrait when character has no portrait', function () {
+        $character = Character::factory()->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}/export");
+
+        $response->assertOk();
+        expect($response->json('data.character.portrait'))->toBeNull();
+    });
+
+    it('imports character with portrait from base64', function () {
+        $race = Race::factory()->create(['slug' => 'phb:human']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:fighter']);
+
+        // Base64 of a 1x1 PNG
+        $base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+        $exportData = [
+            'format_version' => '1.2',
+            'character' => [
+                'public_id' => 'portrait-import-test',
+                'name' => 'Portrait Test',
+                'race' => 'phb:human',
+                'background' => null,
+                'alignment' => null,
+                'ability_scores' => [
+                    'strength' => 16,
+                    'dexterity' => 14,
+                    'constitution' => 14,
+                    'intelligence' => 10,
+                    'wisdom' => 12,
+                    'charisma' => 8,
+                ],
+                'classes' => [
+                    ['class' => 'phb:fighter', 'subclass' => null, 'level' => 1, 'is_primary' => true],
+                ],
+                'spells' => [],
+                'equipment' => [],
+                'languages' => [],
+                'proficiencies' => ['skills' => [], 'types' => []],
+                'conditions' => [],
+                'feature_selections' => [],
+                'notes' => [],
+                'portrait' => [
+                    'filename' => 'my-portrait.png',
+                    'mime_type' => 'image/png',
+                    'data' => $base64Image,
+                ],
+            ],
+        ];
+
+        $response = $this->postJson('/api/v1/characters/import', $exportData);
+
+        $response->assertCreated();
+
+        $character = Character::where('public_id', 'portrait-import-test')->first();
+        expect($character)->not->toBeNull();
+
+        $portrait = $character->getFirstMedia('portrait');
+        expect($portrait)->not->toBeNull()
+            ->and($portrait->mime_type)->toBe('image/png');
+    });
+
+    it('imports character without portrait when portrait is null', function () {
+        $race = Race::factory()->create(['slug' => 'phb:dwarf']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:cleric']);
+
+        $exportData = [
+            'format_version' => '1.2',
+            'character' => [
+                'public_id' => 'no-portrait-test',
+                'name' => 'No Portrait',
+                'race' => 'phb:dwarf',
+                'background' => null,
+                'alignment' => null,
+                'ability_scores' => [
+                    'strength' => 14,
+                    'dexterity' => 8,
+                    'constitution' => 16,
+                    'intelligence' => 10,
+                    'wisdom' => 18,
+                    'charisma' => 12,
+                ],
+                'classes' => [
+                    ['class' => 'phb:cleric', 'subclass' => null, 'level' => 1, 'is_primary' => true],
+                ],
+                'spells' => [],
+                'equipment' => [],
+                'languages' => [],
+                'proficiencies' => ['skills' => [], 'types' => []],
+                'conditions' => [],
+                'feature_selections' => [],
+                'notes' => [],
+                'portrait' => null,
+            ],
+        ];
+
+        $response = $this->postJson('/api/v1/characters/import', $exportData);
+
+        $response->assertCreated();
+
+        $character = Character::where('public_id', 'no-portrait-test')->first();
+        expect($character->getFirstMedia('portrait'))->toBeNull();
+    });
+
+    it('preserves portrait in round-trip export/import', function () {
+        $race = Race::factory()->create(['slug' => 'phb:gnome', 'name' => 'Gnome']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:wizard', 'name' => 'Wizard']);
+
+        $character = Character::factory()->create([
+            'public_id' => 'round-trip-portrait',
+            'name' => 'Portrait Round Trip',
+            'race_slug' => 'phb:gnome',
+        ]);
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => 'phb:wizard',
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Add a portrait
+        $pngData = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
+        $tempFile = tempnam(sys_get_temp_dir(), 'test_portrait_').'.png';
+        file_put_contents($tempFile, $pngData);
+        $character->addMedia($tempFile)->toMediaCollection('portrait');
+
+        // Export
+        $exportResponse = $this->getJson("/api/v1/characters/{$character->public_id}/export");
+        $exportResponse->assertOk();
+        $exportData = $exportResponse->json('data');
+        $originalPortrait = $exportData['character']['portrait'];
+
+        expect($originalPortrait)->not->toBeNull();
+
+        // Delete original
+        $character->clearMediaCollection('portrait');
+        $character->characterClasses()->delete();
+        $character->delete();
+
+        // Import
+        unset($exportData['exported_at']);
+        $importResponse = $this->postJson('/api/v1/characters/import', $exportData);
+        $importResponse->assertCreated();
+
+        $newPublicId = $importResponse->json('data.character.public_id');
+        $newCharacter = Character::where('public_id', $newPublicId)->first();
+
+        // Verify portrait exists
+        $portrait = $newCharacter->getFirstMedia('portrait');
+        expect($portrait)->not->toBeNull()
+            ->and($portrait->mime_type)->toBe('image/png');
     });
 });

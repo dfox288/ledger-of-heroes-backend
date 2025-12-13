@@ -733,7 +733,7 @@ class CharacterEquipmentExpandedSlotsTest extends TestCase
     }
 
     #[Test]
-    public function it_clears_attunement_when_moving_to_backpack(): void
+    public function it_preserves_attunement_when_moving_to_backpack(): void
     {
         $character = Character::factory()->create();
         $equipment = CharacterEquipment::factory()
@@ -750,10 +750,11 @@ class CharacterEquipmentExpandedSlotsTest extends TestCase
             ['location' => 'backpack']
         );
 
+        // D&D 5e: Attunement persists until explicitly broken
         $response->assertOk()
             ->assertJsonPath('data.location', 'backpack')
             ->assertJsonPath('data.equipped', false)
-            ->assertJsonPath('data.is_attuned', false);
+            ->assertJsonPath('data.is_attuned', true);
     }
 
     #[Test]

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Issue #583**: Attunement now persists when items are unequipped or moved to backpack (D&D 5e behavior)
+  - Moving attuned items to backpack no longer auto-clears `is_attuned`
+  - Displaced items (when another item takes their slot) retain their attunement
+  - Unequipping via `equipped=false` preserves attunement
+  - Players must explicitly set `is_attuned=false` to break attunement
+  - Attuning to items in backpack is allowed (no equipped requirement)
+
 ### Added
 
 - **Issue #575**: Comprehensive unit tests for `AvailableFeatsService`

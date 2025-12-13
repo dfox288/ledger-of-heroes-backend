@@ -607,7 +607,7 @@ class CharacterEquipmentLocationTest extends TestCase
     }
 
     #[Test]
-    public function it_preserves_attunement_count_when_moving_to_backpack(): void
+    public function it_requires_explicit_unattune_to_free_slot_after_backpack(): void
     {
         $character = Character::factory()->create();
         $ringType = ItemType::where('code', 'RG')->first();
@@ -634,7 +634,7 @@ class CharacterEquipmentLocationTest extends TestCase
                 ]);
         }
 
-        // Move first ring to backpack - frees up a slot
+        // Move first ring to backpack - attunement PERSISTS (D&D 5e behavior)
         $firstEquipment = $character->equipment()->first();
         $response = $this->patchJson(
             "/api/v1/characters/{$character->id}/equipment/{$firstEquipment->id}",
@@ -642,9 +642,9 @@ class CharacterEquipmentLocationTest extends TestCase
         );
 
         $response->assertOk()
-            ->assertJsonPath('data.is_attuned', false);
+            ->assertJsonPath('data.is_attuned', true); // Still attuned!
 
-        // Now we should be able to attune a new item
+        // Try to attune a 4th item - should FAIL (still at 3 attuned)
         $newRing = Item::create([
             'name' => 'Ring 4',
             'slug' => 'test:edge-ring-4',
@@ -662,6 +662,21 @@ class CharacterEquipmentLocationTest extends TestCase
                 'location' => 'backpack',
             ]);
 
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/equipment/{$newEquipment->id}",
+            ['location' => 'belt', 'is_attuned' => true]
+        );
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['is_attuned']);
+
+        // Explicitly break attunement on first item
+        $this->patchJson(
+            "/api/v1/characters/{$character->id}/equipment/{$firstEquipment->id}",
+            ['is_attuned' => false]
+        )->assertOk();
+
+        // NOW we can attune the 4th item
         $response = $this->patchJson(
             "/api/v1/characters/{$character->id}/equipment/{$newEquipment->id}",
             ['location' => 'belt', 'is_attuned' => true]

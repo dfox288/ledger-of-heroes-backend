@@ -3,6 +3,8 @@
 namespace App\DTOs;
 
 use App\Models\Character;
+use App\Models\ClassFeature;
+use App\Models\Feat;
 use App\Models\Skill;
 use App\Services\CharacterStatCalculator;
 use App\Services\HitDiceService;
@@ -52,6 +54,10 @@ class CharacterStatsDTO
         public readonly array $conditionImmunities,
         // Issue #429: Skill check advantages
         public readonly array $skillAdvantages,
+        // Issue #497: Fighting styles and combat modifiers
+        public readonly array $fightingStyles,
+        public readonly int $rangedAttackBonus,
+        public readonly int $meleeDamageBonus,
     ) {}
 
     /**
@@ -184,6 +190,9 @@ class CharacterStatsDTO
         // Build defensive traits
         $defensiveTraits = self::buildDefensiveTraits($character);
 
+        // Build fighting styles and combat modifiers (Issue #497)
+        $fightingStyleData = self::buildFightingStyles($character);
+
         return new self(
             characterId: $character->id,
             level: $level,
@@ -216,11 +225,17 @@ class CharacterStatsDTO
             conditionDisadvantages: $defensiveTraits['condition_disadvantages'],
             conditionImmunities: $defensiveTraits['condition_immunities'],
             skillAdvantages: $defensiveTraits['skill_advantages'],
+            fightingStyles: $fightingStyleData['styles'],
+            rangedAttackBonus: $fightingStyleData['ranged_attack_bonus'],
+            meleeDamageBonus: $fightingStyleData['melee_damage_bonus'],
         );
     }
 
     /**
-     * Get saving throw proficiency status from primary class.
+     * Get saving throw proficiency status from primary class and feats.
+     *
+     * Issue #497: Also checks for Resilient feat variants which grant
+     * proficiency in a specific saving throw.
      *
      * @return array<string, bool> Keyed by ability code (STR, DEX, etc.)
      */
@@ -235,33 +250,58 @@ class CharacterStatsDTO
             'CHA' => false,
         ];
 
+        // Check primary class for saving throw proficiencies
         $primaryClass = $character->primary_class;
-        if (! $primaryClass) {
-            return $result;
+        if ($primaryClass) {
+            // Load proficiencies if not loaded
+            if (! $primaryClass->relationLoaded('proficiencies')) {
+                $primaryClass->load('proficiencies');
+            }
+
+            // Map ability names to codes
+            $nameToCode = [
+                'Strength' => 'STR',
+                'Dexterity' => 'DEX',
+                'Constitution' => 'CON',
+                'Intelligence' => 'INT',
+                'Wisdom' => 'WIS',
+                'Charisma' => 'CHA',
+            ];
+
+            $savingThrows = $primaryClass->proficiencies
+                ->where('proficiency_type', 'saving_throw');
+
+            foreach ($savingThrows as $prof) {
+                $code = $nameToCode[$prof->proficiency_name] ?? null;
+                if ($code) {
+                    $result[$code] = true;
+                }
+            }
         }
 
-        // Load proficiencies if not loaded
-        if (! $primaryClass->relationLoaded('proficiencies')) {
-            $primaryClass->load('proficiencies');
-        }
-
-        // Map ability names to codes
-        $nameToCode = [
-            'Strength' => 'STR',
-            'Dexterity' => 'DEX',
-            'Constitution' => 'CON',
-            'Intelligence' => 'INT',
-            'Wisdom' => 'WIS',
-            'Charisma' => 'CHA',
+        // Check for Resilient feat variants (Issue #497)
+        // Resilient feats have slugs like "phb:resilient-wisdom" or "test:resilient-dexterity"
+        $resilientSuffixToCode = [
+            'resilient-strength' => 'STR',
+            'resilient-dexterity' => 'DEX',
+            'resilient-constitution' => 'CON',
+            'resilient-intelligence' => 'INT',
+            'resilient-wisdom' => 'WIS',
+            'resilient-charisma' => 'CHA',
         ];
 
-        $savingThrows = $primaryClass->proficiencies
-            ->where('proficiency_type', 'saving_throw');
+        $featSlugs = $character->features()
+            ->where('feature_type', Feat::class)
+            ->pluck('feature_slug')
+            ->toArray();
 
-        foreach ($savingThrows as $prof) {
-            $code = $nameToCode[$prof->proficiency_name] ?? null;
-            if ($code) {
-                $result[$code] = true;
+        foreach ($featSlugs as $slug) {
+            // Extract the suffix after the source prefix (e.g., "phb:" or "test:")
+            $parts = explode(':', $slug);
+            $suffix = end($parts);
+
+            if (isset($resilientSuffixToCode[$suffix])) {
+                $result[$resilientSuffixToCode[$suffix]] = true;
             }
         }
 
@@ -540,6 +580,72 @@ class CharacterStatsDTO
             'condition_disadvantages' => $conditionDisadvantages,
             'condition_immunities' => $conditionImmunities,
             'skill_advantages' => $skillAdvantages,
+        ];
+    }
+
+    /**
+     * Build fighting styles and combat modifiers from character's class features.
+     *
+     * Issue #497: Extracts fighting styles the character has selected and
+     * calculates the corresponding combat bonuses:
+     * - Archery: +2 to ranged weapon attack rolls
+     * - Defense: +1 AC while wearing armor (handled in ArmorClass calculation)
+     * - Dueling: +2 damage with one-handed melee weapon
+     * - Great Weapon Fighting: Reroll 1s/2s on damage (not calculable)
+     * - Two-Weapon Fighting: Add modifier to off-hand (not calculable)
+     * - Protection: Reaction-based (not calculable)
+     *
+     * @return array{styles: array<string>, ranged_attack_bonus: int, melee_damage_bonus: int}
+     */
+    private static function buildFightingStyles(Character $character): array
+    {
+        $styles = [];
+        $rangedAttackBonus = 0;
+        $meleeDamageBonus = 0;
+
+        // Load features if not loaded
+        if (! $character->relationLoaded('features')) {
+            $character->load('features');
+        }
+
+        // Get class features that are fighting styles
+        $classFeatures = $character->features->filter(
+            fn ($f) => $f->feature_type === ClassFeature::class
+        );
+
+        // Fighting style name patterns to match and their extracted names
+        // Matches: "Fighting Style: Archery", "Fighting Style: Archery (Champion)", etc.
+        $fightingStylePattern = '/^Fighting Style:\s*(\w+)/i';
+
+        foreach ($classFeatures as $characterFeature) {
+            // Load the actual feature if not loaded
+            if (! $characterFeature->relationLoaded('feature')) {
+                $characterFeature->load('feature');
+            }
+
+            $feature = $characterFeature->feature;
+            if (! $feature) {
+                continue;
+            }
+
+            // Check if this is a fighting style
+            if (preg_match($fightingStylePattern, $feature->feature_name, $matches)) {
+                $styleName = $matches[1];
+                $styles[] = $styleName;
+
+                // Apply combat bonuses based on style
+                match (strtolower($styleName)) {
+                    'archery' => $rangedAttackBonus += 2,
+                    'dueling' => $meleeDamageBonus += 2,
+                    default => null,
+                };
+            }
+        }
+
+        return [
+            'styles' => array_unique($styles),
+            'ranged_attack_bonus' => $rangedAttackBonus,
+            'melee_damage_bonus' => $meleeDamageBonus,
         ];
     }
 }

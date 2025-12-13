@@ -81,6 +81,14 @@ class CharacterStatsResource extends JsonResource
             // Issue #429: Skill check advantages
             /** @var array<int, array{skill: string, skill_slug: string, condition: string|null, source: string}> Skill check advantages from race and feats */
             'skill_advantages' => $this->resource->skillAdvantages,
+
+            // Issue #497: Fighting styles and combat modifiers
+            /** @var array<string> Fighting styles the character has (e.g., "Archery", "Defense") */
+            'fighting_styles' => $this->resource->fightingStyles,
+            /** @var int Bonus to ranged weapon attack rolls (from Archery fighting style) */
+            'ranged_attack_bonus' => $this->resource->rangedAttackBonus,
+            /** @var int Bonus to melee weapon damage (from Dueling fighting style, conditional) */
+            'melee_damage_bonus' => $this->resource->meleeDamageBonus,
         ];
     }
 

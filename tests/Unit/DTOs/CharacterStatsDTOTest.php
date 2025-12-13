@@ -291,4 +291,205 @@ class CharacterStatsDTOTest extends TestCase
         $this->assertEquals(13, $dto->passive['investigation']);
         $this->assertEquals(12, $dto->passive['insight']);
     }
+
+    // === Resilient Feat Saving Throw Tests (Issue #497) ===
+
+    #[Test]
+    public function it_includes_saving_throw_proficiency_from_resilient_feat(): void
+    {
+        // Create a character with a class that has STR/CON saves
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'test:fighter',
+        ]);
+        $fighter->proficiencies()->createMany([
+            ['proficiency_type' => 'saving_throw', 'proficiency_name' => 'Strength'],
+            ['proficiency_type' => 'saving_throw', 'proficiency_name' => 'Constitution'],
+        ]);
+
+        $character = Character::factory()->create([
+            'strength' => 14,
+            'wisdom' => 16, // +3 modifier
+        ]);
+        $character->characterClasses()->create([
+            'class_slug' => $fighter->slug,
+            'level' => 5, // +3 proficiency bonus
+            'order' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Add Resilient (Wisdom) feat
+        $resilientWis = \App\Models\Feat::factory()->create([
+            'name' => 'Resilient (Wisdom)',
+            'slug' => 'test:resilient-wisdom',
+        ]);
+        $character->features()->create([
+            'feature_type' => \App\Models\Feat::class,
+            'feature_id' => $resilientWis->id,
+            'feature_slug' => $resilientWis->slug,
+            'source' => 'asi_or_feat',
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character->fresh(), $this->calculator);
+
+        // Fighter class gives STR and CON proficiency
+        $this->assertTrue($dto->savingThrows['STR']['proficient']);
+        $this->assertTrue($dto->savingThrows['CON']['proficient']);
+
+        // Resilient feat gives WIS proficiency
+        $this->assertTrue($dto->savingThrows['WIS']['proficient']);
+        // WIS save: +3 (mod) + 3 (prof) = +6
+        $this->assertEquals(6, $dto->savingThrows['WIS']['total']);
+
+        // Other saves remain unproficient
+        $this->assertFalse($dto->savingThrows['DEX']['proficient']);
+        $this->assertFalse($dto->savingThrows['INT']['proficient']);
+        $this->assertFalse($dto->savingThrows['CHA']['proficient']);
+    }
+
+    #[Test]
+    public function it_handles_multiple_resilient_feats(): void
+    {
+        $character = Character::factory()->create([
+            'dexterity' => 14, // +2 modifier
+            'wisdom' => 12,    // +1 modifier
+        ]);
+
+        // Add both Resilient (Dexterity) and Resilient (Wisdom)
+        $resilientDex = \App\Models\Feat::factory()->create([
+            'name' => 'Resilient (Dexterity)',
+            'slug' => 'test:resilient-dexterity',
+        ]);
+        $resilientWis = \App\Models\Feat::factory()->create([
+            'name' => 'Resilient (Wisdom)',
+            'slug' => 'test:resilient-wisdom',
+        ]);
+
+        $character->features()->createMany([
+            [
+                'feature_type' => \App\Models\Feat::class,
+                'feature_id' => $resilientDex->id,
+                'feature_slug' => $resilientDex->slug,
+                'source' => 'asi_or_feat',
+            ],
+            [
+                'feature_type' => \App\Models\Feat::class,
+                'feature_id' => $resilientWis->id,
+                'feature_slug' => $resilientWis->slug,
+                'source' => 'asi_or_feat',
+            ],
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character->fresh(), $this->calculator);
+
+        $this->assertTrue($dto->savingThrows['DEX']['proficient']);
+        $this->assertTrue($dto->savingThrows['WIS']['proficient']);
+    }
+
+    // === Fighting Style Tests (Issue #497) ===
+
+    #[Test]
+    public function it_exposes_fighting_styles_the_character_has(): void
+    {
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'test:fighter-fs',
+        ]);
+
+        // Create fighting style feature
+        $archeryStyle = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $fighter->id,
+            'feature_name' => 'Fighting Style: Archery',
+            'level' => 1,
+        ]);
+
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $fighter->slug,
+            'level' => 1,
+            'order' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Assign the fighting style to the character
+        $character->features()->create([
+            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_id' => $archeryStyle->id,
+            'feature_slug' => 'test:fighter-fs:fighting-style-archery',
+            'source' => 'class',
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character->fresh(), $this->calculator);
+
+        $this->assertIsArray($dto->fightingStyles);
+        $this->assertContains('Archery', $dto->fightingStyles);
+    }
+
+    #[Test]
+    public function it_includes_ranged_attack_bonus_from_archery_style(): void
+    {
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'test:fighter-archery',
+        ]);
+
+        $archeryStyle = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $fighter->id,
+            'feature_name' => 'Fighting Style: Archery',
+            'level' => 1,
+        ]);
+
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $fighter->slug,
+            'level' => 1,
+            'order' => 1,
+            'is_primary' => true,
+        ]);
+
+        $character->features()->create([
+            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_id' => $archeryStyle->id,
+            'feature_slug' => 'test:fighter-archery:fighting-style-archery',
+            'source' => 'class',
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character->fresh(), $this->calculator);
+
+        $this->assertEquals(2, $dto->rangedAttackBonus);
+    }
+
+    #[Test]
+    public function it_includes_melee_damage_bonus_from_dueling_style(): void
+    {
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'test:fighter-dueling',
+        ]);
+
+        $duelingStyle = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $fighter->id,
+            'feature_name' => 'Fighting Style: Dueling',
+            'level' => 1,
+        ]);
+
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $fighter->slug,
+            'level' => 1,
+            'order' => 1,
+            'is_primary' => true,
+        ]);
+
+        $character->features()->create([
+            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_id' => $duelingStyle->id,
+            'feature_slug' => 'test:fighter-dueling:fighting-style-dueling',
+            'source' => 'class',
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character->fresh(), $this->calculator);
+
+        $this->assertEquals(2, $dto->meleeDamageBonus);
+    }
 }

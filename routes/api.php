@@ -426,6 +426,23 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | Party Management (DM Tools)
+    |--------------------------------------------------------------------------
+    |
+    | Party management for DMs to group characters and view aggregated stats.
+    | All party endpoints require authentication.
+    |
+    */
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::apiResource('parties', \App\Http\Controllers\Api\PartyController::class);
+        Route::post('parties/{party}/characters', [\App\Http\Controllers\Api\PartyController::class, 'addCharacter'])
+            ->name('parties.characters.store');
+        Route::delete('parties/{party}/characters/{character}', [\App\Http\Controllers\Api\PartyController::class, 'removeCharacter'])
+            ->name('parties.characters.destroy');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
     | Polymorphic Media Routes
     |--------------------------------------------------------------------------
     |

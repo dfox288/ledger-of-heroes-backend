@@ -352,7 +352,7 @@ class BackgroundXmlParser
             return [[
                 'proficiency_name' => $toolName,
                 'proficiency_type' => 'tool',
-                'proficiency_subcategory' => $subcategory,
+                'proficiency_subcategory' => $subcategory?->value,
                 'proficiency_type_id' => $proficiencyType?->id,
                 'skill_id' => null,
                 'is_choice' => true,
@@ -452,7 +452,7 @@ class BackgroundXmlParser
             if ($isChoice) {
                 // Get the base item name without choice parentheses
                 $baseItemName = trim(preg_replace('/\([^)]*choice[^)]*\)/i', '', $itemName));
-                $proficiencySubcategory = $this->extractToolSubcategory($baseItemName);
+                $proficiencySubcategory = $this->extractToolSubcategory($baseItemName)?->value;
             }
 
             // Now remove the choice text
@@ -500,23 +500,25 @@ class BackgroundXmlParser
     /**
      * Extract tool subcategory from tool name.
      *
-     * Returns enum values for known categories, null otherwise.
+     * Returns enum for known categories (artisan, gaming, musical), null otherwise.
+     * Used for tool proficiency CHOICES where we need to know the category.
+     * Specific tools (e.g., "Smith's Tools") don't need this - they're matched
+     * directly via matchProficiencyType().
      */
-    private function extractToolSubcategory(string $toolName): ?string
+    private function extractToolSubcategory(string $toolName): ?ToolProficiencyCategory
     {
         $normalized = strtolower($toolName);
 
-        // Check for common patterns - use enum values for consistency
         if (str_contains($normalized, 'artisan')) {
-            return ToolProficiencyCategory::ARTISAN->value;
+            return ToolProficiencyCategory::ARTISAN;
         }
 
         if (str_contains($normalized, 'gaming')) {
-            return ToolProficiencyCategory::GAMING->value;
+            return ToolProficiencyCategory::GAMING;
         }
 
         if (str_contains($normalized, 'musical')) {
-            return ToolProficiencyCategory::MUSICAL_INSTRUMENT->value;
+            return ToolProficiencyCategory::MUSICAL_INSTRUMENT;
         }
 
         return null;

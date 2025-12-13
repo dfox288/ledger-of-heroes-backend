@@ -548,7 +548,7 @@ class RaceImporter extends BaseImporter
                 }
 
                 $senses[] = [
-                    'type' => 'darkvision',
+                    'type' => 'core:darkvision',
                     'range' => $range,
                     'is_limited' => false,
                     'notes' => null,

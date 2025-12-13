@@ -436,7 +436,7 @@ class MonsterXmlParser
                 }
 
                 $result[] = [
-                    'type' => $senseType,
+                    'type' => 'core:'.$senseType,
                     'range' => $range,
                     'is_limited' => $isLimited,
                     'notes' => $notes,

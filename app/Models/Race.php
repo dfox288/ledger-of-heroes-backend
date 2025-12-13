@@ -121,8 +121,8 @@ class Race extends BaseModel
             'ability_wis_bonus' => (int) ($abilityBonuses->firstWhere('abilityScore.code', 'WIS')?->value ?? 0),
             'ability_cha_bonus' => (int) ($abilityBonuses->firstWhere('abilityScore.code', 'CHA')?->value ?? 0),
             // Senses (darkvision range for filtering)
-            'has_darkvision' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'darkvision'),
-            'darkvision_range' => $this->senses->firstWhere(fn ($s) => $s->sense?->slug === 'darkvision')?->range_feet,
+            'has_darkvision' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'core:darkvision'),
+            'darkvision_range' => $this->senses->firstWhere(fn ($s) => $s->sense?->slug === 'core:darkvision')?->range_feet,
         ];
     }
 

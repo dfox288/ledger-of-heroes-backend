@@ -229,11 +229,11 @@ class Monster extends BaseModel
             'has_magic_resistance' => $this->entityTraits->contains('name', 'Magic Resistance'),
             // Phase 5: Senses (darkvision, blindsight, tremorsense, truesight)
             'sense_types' => $this->senses->pluck('sense.slug')->all(),
-            'has_darkvision' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'darkvision'),
-            'darkvision_range' => $this->senses->firstWhere(fn ($s) => $s->sense?->slug === 'darkvision')?->range_feet,
-            'has_blindsight' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'blindsight'),
-            'has_tremorsense' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'tremorsense'),
-            'has_truesight' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'truesight'),
+            'has_darkvision' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'core:darkvision'),
+            'darkvision_range' => $this->senses->firstWhere(fn ($s) => $s->sense?->slug === 'core:darkvision')?->range_feet,
+            'has_blindsight' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'core:blindsight'),
+            'has_tremorsense' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'core:tremorsense'),
+            'has_truesight' => $this->senses->contains(fn ($s) => $s->sense?->slug === 'core:truesight'),
         ];
     }
 

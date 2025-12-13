@@ -420,7 +420,7 @@ class MonsterXmlParserTest extends TestCase
         $result = $this->invokeMethod($this->parser, 'parseSenses', ['darkvision 60 ft.']);
 
         $this->assertCount(1, $result);
-        $this->assertEquals('darkvision', $result[0]['type']);
+        $this->assertEquals('core:darkvision', $result[0]['type']);
         $this->assertEquals(60, $result[0]['range']);
         $this->assertFalse($result[0]['is_limited']);
         $this->assertNull($result[0]['notes']);
@@ -432,7 +432,7 @@ class MonsterXmlParserTest extends TestCase
         $result = $this->invokeMethod($this->parser, 'parseSenses', ['darkvision 120 ft.']);
 
         $this->assertCount(1, $result);
-        $this->assertEquals('darkvision', $result[0]['type']);
+        $this->assertEquals('core:darkvision', $result[0]['type']);
         $this->assertEquals(120, $result[0]['range']);
     }
 
@@ -442,7 +442,7 @@ class MonsterXmlParserTest extends TestCase
         $result = $this->invokeMethod($this->parser, 'parseSenses', ['blindsight 30 ft.']);
 
         $this->assertCount(1, $result);
-        $this->assertEquals('blindsight', $result[0]['type']);
+        $this->assertEquals('core:blindsight', $result[0]['type']);
         $this->assertEquals(30, $result[0]['range']);
         $this->assertFalse($result[0]['is_limited']);
     }
@@ -453,7 +453,7 @@ class MonsterXmlParserTest extends TestCase
         $result = $this->invokeMethod($this->parser, 'parseSenses', ['blindsight 30 ft. (blind beyond this radius)']);
 
         $this->assertCount(1, $result);
-        $this->assertEquals('blindsight', $result[0]['type']);
+        $this->assertEquals('core:blindsight', $result[0]['type']);
         $this->assertEquals(30, $result[0]['range']);
         $this->assertTrue($result[0]['is_limited']);
         $this->assertEquals('blind beyond this radius', $result[0]['notes']);
@@ -465,7 +465,7 @@ class MonsterXmlParserTest extends TestCase
         $result = $this->invokeMethod($this->parser, 'parseSenses', ['tremorsense 60 ft.']);
 
         $this->assertCount(1, $result);
-        $this->assertEquals('tremorsense', $result[0]['type']);
+        $this->assertEquals('core:tremorsense', $result[0]['type']);
         $this->assertEquals(60, $result[0]['range']);
     }
 
@@ -475,7 +475,7 @@ class MonsterXmlParserTest extends TestCase
         $result = $this->invokeMethod($this->parser, 'parseSenses', ['truesight 120 ft.']);
 
         $this->assertCount(1, $result);
-        $this->assertEquals('truesight', $result[0]['type']);
+        $this->assertEquals('core:truesight', $result[0]['type']);
         $this->assertEquals(120, $result[0]['range']);
     }
 
@@ -485,9 +485,9 @@ class MonsterXmlParserTest extends TestCase
         $result = $this->invokeMethod($this->parser, 'parseSenses', ['blindsight 10 ft., darkvision 120 ft.']);
 
         $this->assertCount(2, $result);
-        $this->assertEquals('blindsight', $result[0]['type']);
+        $this->assertEquals('core:blindsight', $result[0]['type']);
         $this->assertEquals(10, $result[0]['range']);
-        $this->assertEquals('darkvision', $result[1]['type']);
+        $this->assertEquals('core:darkvision', $result[1]['type']);
         $this->assertEquals(120, $result[1]['range']);
     }
 
@@ -497,9 +497,9 @@ class MonsterXmlParserTest extends TestCase
         $result = $this->invokeMethod($this->parser, 'parseSenses', ['blindsight 60 ft., darkvision 120 ft., tremorsense 60 ft.']);
 
         $this->assertCount(3, $result);
-        $this->assertEquals('blindsight', $result[0]['type']);
-        $this->assertEquals('darkvision', $result[1]['type']);
-        $this->assertEquals('tremorsense', $result[2]['type']);
+        $this->assertEquals('core:blindsight', $result[0]['type']);
+        $this->assertEquals('core:darkvision', $result[1]['type']);
+        $this->assertEquals('core:tremorsense', $result[2]['type']);
     }
 
     #[Test]
@@ -508,7 +508,7 @@ class MonsterXmlParserTest extends TestCase
         $result = $this->invokeMethod($this->parser, 'parseSenses', ['blindsight 30 ft. or 10 ft. while deafened (blind beyond this radius)']);
 
         $this->assertCount(1, $result);
-        $this->assertEquals('blindsight', $result[0]['type']);
+        $this->assertEquals('core:blindsight', $result[0]['type']);
         $this->assertEquals(30, $result[0]['range']); // Takes the primary range
         $this->assertTrue($result[0]['is_limited']);
         $this->assertStringContainsString('deafened', $result[0]['notes']);
@@ -520,7 +520,7 @@ class MonsterXmlParserTest extends TestCase
         $result = $this->invokeMethod($this->parser, 'parseSenses', ['darkvision 60 ft. (rat form only)']);
 
         $this->assertCount(1, $result);
-        $this->assertEquals('darkvision', $result[0]['type']);
+        $this->assertEquals('core:darkvision', $result[0]['type']);
         $this->assertEquals(60, $result[0]['range']);
         $this->assertFalse($result[0]['is_limited']); // Not "blind beyond", just a form restriction
         $this->assertEquals('rat form only', $result[0]['notes']);
@@ -658,7 +658,7 @@ XML;
         $this->assertEquals('darkvision 120 ft.', $monster['senses_raw']);
         $this->assertIsArray($monster['senses']);
         $this->assertCount(1, $monster['senses']);
-        $this->assertEquals('darkvision', $monster['senses'][0]['type']);
+        $this->assertEquals('core:darkvision', $monster['senses'][0]['type']);
         $this->assertEquals(120, $monster['senses'][0]['range']);
         $this->assertEquals('Deep Speech, telepathy 120 ft.', $monster['languages']);
 

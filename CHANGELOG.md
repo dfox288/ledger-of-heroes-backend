@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #575**: Comprehensive unit tests for `AvailableFeatsService`
+  - 33 tests covering all prerequisite checking logic
+  - Tests for: no prerequisites, ability score prerequisites, race prerequisites (including subraces)
+  - Tests for: proficiency type, skill, and class prerequisites
+  - Tests for: OR group logic (same group_id) and AND logic (different group_ids)
+  - Tests for: race source exclusion of ability score prerequisites (RAW compliant)
+  - Tests for: edge cases, unknown types, and relationship loading
+
 - **Issue #565**: Equipment location slots for equip/unequip functionality
   - New `EquipmentLocation` enum with values: `main_hand`, `off_hand`, `worn`, `attuned`, `backpack`
   - `PATCH /api/v1/characters/{id}/equipment/{equipmentId}` now accepts `location` parameter

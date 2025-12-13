@@ -127,9 +127,12 @@ class EquipmentChoiceHandler extends AbstractChoiceHandler
      */
     private function getExistingSelections(Character $character, string $source): array
     {
+        // Filter for JSON objects only (custom_description can also contain plain text for custom items)
+        // The LIKE '{%' ensures we only try to parse valid JSON objects
         $equipment = $character->equipment()
-            ->whereJsonContains('custom_description->source', $source)
             ->whereNotNull('custom_description')
+            ->where('custom_description', 'LIKE', '{%')
+            ->whereJsonContains('custom_description->source', $source)
             ->get();
 
         $selections = [];

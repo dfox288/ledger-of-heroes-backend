@@ -9,7 +9,7 @@ class CharacterConditionResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $isExhaustion = $this->condition?->slug === 'exhaustion';
+        $isExhaustion = $this->condition?->slug && str_ends_with($this->condition->slug, ':exhaustion');
 
         return [
             'id' => $this->id,

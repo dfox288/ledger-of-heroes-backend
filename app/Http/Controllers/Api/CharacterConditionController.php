@@ -113,8 +113,8 @@ class CharacterConditionController extends Controller
      */
     public function store(CharacterConditionStoreRequest $request, Character $character): CharacterConditionResource
     {
-        $condition = Condition::findOrFail($request->condition_id);
-        $isExhaustion = $condition->slug === 'exhaustion';
+        $condition = Condition::where('slug', $request->condition_slug)->firstOrFail();
+        $isExhaustion = str_ends_with($condition->slug, ':exhaustion');
 
         // Determine level - only set for exhaustion
         // If updating existing exhaustion without specifying level, preserve current level
@@ -125,7 +125,7 @@ class CharacterConditionController extends Controller
                 $level = $request->level;
             } else {
                 $existingLevel = CharacterCondition::where('character_id', $character->id)
-                    ->where('condition_id', $condition->id)
+                    ->where('condition_slug', $condition->slug)
                     ->value('level');
                 $level = $existingLevel ?? 1;
             }
@@ -135,7 +135,7 @@ class CharacterConditionController extends Controller
         $characterCondition = CharacterCondition::updateOrCreate(
             [
                 'character_id' => $character->id,
-                'condition_id' => $condition->id,
+                'condition_slug' => $condition->slug,
             ],
             [
                 'level' => $level,
@@ -201,7 +201,7 @@ class CharacterConditionController extends Controller
             : Condition::where('slug', $conditionIdOrSlug)->firstOrFail();
 
         $deleted = $character->conditions()
-            ->where('condition_id', $conditionModel->id)
+            ->where('condition_slug', $conditionModel->slug)
             ->delete();
 
         if ($deleted === 0) {

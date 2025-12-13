@@ -63,6 +63,6 @@ class CharacterConditionStoreRequest extends FormRequest
 
         $condition = Condition::where('slug', $conditionSlug)->first();
 
-        return $condition && $condition->slug !== 'exhaustion';
+        return $condition && ! str_ends_with($condition->slug, ':exhaustion');
     }
 }

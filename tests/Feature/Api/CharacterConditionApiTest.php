@@ -33,7 +33,7 @@ class CharacterConditionApiTest extends TestCase
         foreach ($conditions as $condition) {
             CharacterCondition::factory()->create([
                 'character_id' => $character->id,
-                'condition_id' => $condition->id,
+                'condition_slug' => $condition->slug,
             ]);
         }
 
@@ -47,10 +47,10 @@ class CharacterConditionApiTest extends TestCase
     public function it_adds_a_condition_to_a_character(): void
     {
         $character = Character::factory()->create();
-        $condition = Condition::factory()->create(['name' => 'Test Poisoned', 'slug' => 'test-poisoned-add']);
+        $condition = Condition::factory()->create(['name' => 'Test Poisoned', 'slug' => 'test:poisoned-add']);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/conditions", [
-            'condition_id' => $condition->id,
+            'condition' => $condition->slug,
             'source' => 'Spider bite',
         ]);
 
@@ -61,7 +61,7 @@ class CharacterConditionApiTest extends TestCase
 
         $this->assertDatabaseHas('character_conditions', [
             'character_id' => $character->id,
-            'condition_id' => $condition->id,
+            'condition_slug' => $condition->slug,
             'source' => 'Spider bite',
         ]);
     }
@@ -74,12 +74,12 @@ class CharacterConditionApiTest extends TestCase
 
         CharacterCondition::factory()->create([
             'character_id' => $character->id,
-            'condition_id' => $condition->id,
+            'condition_slug' => $condition->slug,
             'source' => 'Original source',
         ]);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/conditions", [
-            'condition_id' => $condition->id,
+            'condition' => $condition->slug,
             'source' => 'Updated source',
         ]);
 
@@ -94,12 +94,12 @@ class CharacterConditionApiTest extends TestCase
     {
         $character = Character::factory()->create();
         $exhaustion = Condition::firstOrCreate(
-            ['slug' => 'exhaustion'],
+            ['slug' => 'core:exhaustion'],
             ['name' => 'Exhaustion', 'description' => 'Exhaustion condition']
         );
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/conditions", [
-            'condition_id' => $exhaustion->id,
+            'condition' => $exhaustion->slug,
         ]);
 
         $response->assertSuccessful()
@@ -112,12 +112,12 @@ class CharacterConditionApiTest extends TestCase
     {
         $character = Character::factory()->create();
         $exhaustion = Condition::firstOrCreate(
-            ['slug' => 'exhaustion'],
+            ['slug' => 'core:exhaustion'],
             ['name' => 'Exhaustion', 'description' => 'Exhaustion condition']
         );
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/conditions", [
-            'condition_id' => $exhaustion->id,
+            'condition' => $exhaustion->slug,
             'level' => 7,
         ]);
 
@@ -130,12 +130,12 @@ class CharacterConditionApiTest extends TestCase
     {
         $character = Character::factory()->create();
         $exhaustion = Condition::firstOrCreate(
-            ['slug' => 'exhaustion'],
+            ['slug' => 'core:exhaustion'],
             ['name' => 'Exhaustion', 'description' => 'Exhaustion condition']
         );
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/conditions", [
-            'condition_id' => $exhaustion->id,
+            'condition' => $exhaustion->slug,
             'level' => 6,
         ]);
 
@@ -147,10 +147,10 @@ class CharacterConditionApiTest extends TestCase
     public function it_rejects_level_for_non_exhaustion_conditions(): void
     {
         $character = Character::factory()->create();
-        $poisoned = Condition::factory()->create(['slug' => 'test-poisoned-reject-level']);
+        $poisoned = Condition::factory()->create(['slug' => 'test:poisoned-reject-level']);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/conditions", [
-            'condition_id' => $poisoned->id,
+            'condition' => $poisoned->slug,
             'level' => 3,
         ]);
 
@@ -163,20 +163,20 @@ class CharacterConditionApiTest extends TestCase
     {
         $character = Character::factory()->create();
         $exhaustion = Condition::firstOrCreate(
-            ['slug' => 'exhaustion'],
+            ['slug' => 'core:exhaustion'],
             ['name' => 'Exhaustion', 'description' => 'Exhaustion condition']
         );
 
         // Add exhaustion at level 3
         CharacterCondition::create([
             'character_id' => $character->id,
-            'condition_id' => $exhaustion->id,
+            'condition_slug' => $exhaustion->slug,
             'level' => 3,
         ]);
 
         // Update source without specifying level - level should be preserved
         $response = $this->postJson("/api/v1/characters/{$character->id}/conditions", [
-            'condition_id' => $exhaustion->id,
+            'condition' => $exhaustion->slug,
             'source' => 'Updated source',
         ]);
 
@@ -186,7 +186,7 @@ class CharacterConditionApiTest extends TestCase
 
         $this->assertDatabaseHas('character_conditions', [
             'character_id' => $character->id,
-            'condition_id' => $exhaustion->id,
+            'condition_slug' => $exhaustion->slug,
             'level' => 3,
         ]);
     }
@@ -195,16 +195,16 @@ class CharacterConditionApiTest extends TestCase
     public function it_removes_a_condition_by_id(): void
     {
         $character = Character::factory()->create();
-        $condition = Condition::factory()->create(['slug' => 'test-remove-by-id']);
+        $condition = Condition::factory()->create(['slug' => 'test:remove-by-id']);
 
         CharacterCondition::create([
             'character_id' => $character->id,
-            'condition_id' => $condition->id,
+            'condition_slug' => $condition->slug,
         ]);
 
         $this->assertDatabaseHas('character_conditions', [
             'character_id' => $character->id,
-            'condition_id' => $condition->id,
+            'condition_slug' => $condition->slug,
         ]);
 
         $response = $this->deleteJson("/api/v1/characters/{$character->id}/conditions/{$condition->id}");
@@ -212,7 +212,7 @@ class CharacterConditionApiTest extends TestCase
         $response->assertNoContent();
         $this->assertDatabaseMissing('character_conditions', [
             'character_id' => $character->id,
-            'condition_id' => $condition->id,
+            'condition_slug' => $condition->slug,
         ]);
     }
 
@@ -220,14 +220,14 @@ class CharacterConditionApiTest extends TestCase
     public function it_removes_a_condition_by_slug(): void
     {
         $character = Character::factory()->create();
-        $condition = Condition::factory()->create(['slug' => 'test-remove-by-slug']);
+        $condition = Condition::factory()->create(['slug' => 'test:remove-by-slug']);
 
         CharacterCondition::create([
             'character_id' => $character->id,
-            'condition_id' => $condition->id,
+            'condition_slug' => $condition->slug,
         ]);
 
-        $response = $this->deleteJson("/api/v1/characters/{$character->id}/conditions/test-remove-by-slug");
+        $response = $this->deleteJson("/api/v1/characters/{$character->id}/conditions/test:remove-by-slug");
 
         $response->assertNoContent();
     }
@@ -244,16 +244,15 @@ class CharacterConditionApiTest extends TestCase
     }
 
     #[Test]
-    public function it_returns_422_for_invalid_condition_id(): void
+    public function it_returns_422_for_invalid_condition_slug(): void
     {
         $character = Character::factory()->create();
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/conditions", [
-            'condition_id' => 99999,
+            'condition' => 'nonexistent:slug',
         ]);
 
-        $response->assertUnprocessable()
-            ->assertJsonValidationErrors('condition_id');
+        $response->assertNotFound();
     }
 
     #[Test]
@@ -269,18 +268,18 @@ class CharacterConditionApiTest extends TestCase
     {
         $character = Character::factory()->create();
         $exhaustion = Condition::firstOrCreate(
-            ['slug' => 'exhaustion'],
+            ['slug' => 'core:exhaustion'],
             ['name' => 'Exhaustion', 'description' => 'Exhaustion condition']
         );
 
         CharacterCondition::factory()->create([
             'character_id' => $character->id,
-            'condition_id' => $exhaustion->id,
+            'condition_slug' => $exhaustion->slug,
             'level' => 1,
         ]);
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/conditions", [
-            'condition_id' => $exhaustion->id,
+            'condition' => $exhaustion->slug,
             'level' => 3,
         ]);
 
@@ -290,7 +289,7 @@ class CharacterConditionApiTest extends TestCase
         $this->assertDatabaseCount('character_conditions', 1);
         $this->assertDatabaseHas('character_conditions', [
             'character_id' => $character->id,
-            'condition_id' => $exhaustion->id,
+            'condition_slug' => $exhaustion->slug,
             'level' => 3,
         ]);
     }

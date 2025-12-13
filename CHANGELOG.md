@@ -74,6 +74,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Stats cache key `character:{id}:stats` now invalidated when hit dice change
   - Also fixed pre-existing test failures in HitDiceControllerTest and HitDiceServiceTest (used `class_id` instead of `class_slug`)
 
+- **Issue #542**: Conditions API now accepts prefixed slugs (`core:blinded`, `core:exhaustion`)
+  - Root cause: Controller used `condition_id` but table uses `condition_slug`; exhaustion detection compared to `'exhaustion'` but slug is `'core:exhaustion'`
+  - Controller now looks up conditions by slug and uses `condition_slug` for all operations
+  - Exhaustion detection uses `str_ends_with($slug, ':exhaustion')` for flexibility
+  - Updated CharacterConditionApiTest to use new slug-based API
+
 - **Issue #492**: Fix ability score double-counting when editing characters
   - Root cause: API returned final ability scores (with racial bonuses) but frontend treated them as base scores when loading
   - Added `base_ability_scores` field to character API response alongside `ability_scores`

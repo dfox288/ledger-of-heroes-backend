@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\BackgroundController;
 use App\Http\Controllers\Api\CharacterAvailableFeatsController;
 use App\Http\Controllers\Api\CharacterChoiceController;
 use App\Http\Controllers\Api\CharacterController;
+use App\Http\Controllers\Api\CharacterCurrencyController;
 use App\Http\Controllers\Api\CharacterExportController;
 use App\Http\Controllers\Api\CharacterHpController;
 use App\Http\Controllers\Api\CharacterValidationController;
@@ -364,6 +365,10 @@ Route::prefix('v1')->group(function () {
         // HP Modification (D&D rules: damage, healing, temp HP)
         Route::patch('hp', CharacterHpController::class)
             ->name('hp.modify');
+
+        // Currency Modification (D&D rules: auto-conversion / making change)
+        Route::patch('currency', CharacterCurrencyController::class)
+            ->name('currency.modify');
 
         // Death Saves
         Route::post('death-saves', [\App\Http\Controllers\Api\CharacterDeathSaveController::class, 'store'])

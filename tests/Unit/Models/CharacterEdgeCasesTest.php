@@ -96,12 +96,13 @@ class CharacterEdgeCasesTest extends TestCase
     }
 
     #[Test]
-    public function character_with_null_notes_returns_null(): void
+    public function character_with_no_notes_returns_empty_collection(): void
     {
         $character = Character::factory()->create();
 
         // Character notes are in separate table, test relationship
         $this->assertCount(0, $character->notes);
+        $this->assertTrue($character->notes->isEmpty());
     }
 
     // =========================================================================

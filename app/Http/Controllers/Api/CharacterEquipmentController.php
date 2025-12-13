@@ -134,7 +134,7 @@ class CharacterEquipmentController extends Controller
     }
 
     /**
-     * Update equipment (equip/unequip, change quantity)
+     * Update equipment (equip/unequip, change quantity, change location)
      *
      * Modifies an existing equipment entry. Use this to equip/unequip items,
      * change quantities, or update location. Cannot change the item itself.
@@ -143,29 +143,41 @@ class CharacterEquipmentController extends Controller
      * ```
      * PATCH /api/v1/characters/1/equipment/99
      *
-     * # Equip an item
-     * {"equipped": true}
+     * # Equip to main hand (auto-sets equipped=true)
+     * {"location": "main_hand"}
      *
-     * # Unequip an item
-     * {"equipped": false}
+     * # Equip armor (auto-sets equipped=true)
+     * {"location": "worn"}
+     *
+     * # Attune magic item (auto-sets equipped=true, is_attuned=true)
+     * {"location": "attuned"}
+     *
+     * # Unequip to backpack (auto-sets equipped=false, is_attuned=false)
+     * {"location": "backpack"}
+     *
+     * # Legacy equip (auto-determines location by item type)
+     * {"equipped": true}
      *
      * # Change quantity (e.g., use a potion)
      * {"quantity": 2}
-     *
-     * # Move item to different location
-     * {"location": "belt"}
-     *
-     * # Combined update
-     * {"equipped": true, "location": "main_hand"}
      * ```
      *
      * **Request Body:**
      * | Field | Type | Required | Description |
      * |-------|------|----------|-------------|
-     * | `equipped` | boolean | No | Whether item is equipped |
+     * | `location` | string | No | Equipment slot: main_hand, off_hand, worn, attuned, backpack |
+     * | `equipped` | boolean | No | Legacy equip flag (prefer location) |
      * | `quantity` | integer | No | New quantity (min: 1) |
-     * | `location` | string | No | Storage location (max 255 chars) |
-     * | `is_attuned` | boolean | No | Whether item is attuned (max 3 total) |
+     * | `is_attuned` | boolean | No | Legacy attunement flag (prefer location=attuned) |
+     *
+     * **Location Slots:**
+     * | Location | Slot Limit | Auto-sets |
+     * |----------|------------|-----------|
+     * | `main_hand` | 1 | equipped=true |
+     * | `off_hand` | 1 | equipped=true |
+     * | `worn` | 1 | equipped=true |
+     * | `attuned` | 3 | equipped=true, is_attuned=true |
+     * | `backpack` | unlimited | equipped=false, is_attuned=false |
      *
      * **Prohibited Fields (cannot change item type):**
      * - `item_id` - Cannot change database item reference
@@ -173,9 +185,10 @@ class CharacterEquipmentController extends Controller
      * - `custom_description` - Cannot change custom item description
      *
      * **Equipment Rules:**
-     * - Custom items cannot be equipped (only database items with proper slots)
-     * - Equipment slot conflicts handled by EquipmentManagerService
-     * - Unequipping always succeeds
+     * - Custom items cannot be equipped (only database items)
+     * - Single-slot locations auto-unequip previous item
+     * - Non-attunement items cannot use `attuned` location
+     * - Attunement limit: max 3 items at `attuned` location
      */
     public function update(
         CharacterEquipmentUpdateRequest $request,

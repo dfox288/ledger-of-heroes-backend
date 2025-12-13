@@ -575,6 +575,114 @@ class CharacterEquipmentLocationTest extends TestCase
     }
 
     // =============================
+    // Attunement Edge Cases
+    // =============================
+
+    #[Test]
+    public function it_clears_attunement_when_moving_attuned_item_to_main_hand(): void
+    {
+        $character = Character::factory()->create();
+        $ringType = ItemType::where('code', 'RG')->first();
+
+        // Create an attunable weapon (magic sword that requires attunement)
+        $meleeWeaponType = ItemType::where('code', 'M')->first();
+        $magicSword = Item::create([
+            'name' => 'Flame Tongue',
+            'slug' => 'test:flame-tongue',
+            'item_type_id' => $meleeWeaponType->id,
+            'rarity' => 'rare',
+            'requires_attunement' => true,
+            'description' => 'A magic sword that bursts into flame.',
+        ]);
+
+        // Start with item attuned
+        $equipment = CharacterEquipment::factory()
+            ->withItem($magicSword)
+            ->create([
+                'character_id' => $character->id,
+                'equipped' => true,
+                'location' => 'attuned',
+                'is_attuned' => true,
+            ]);
+
+        // Move to main_hand - should remain equipped but lose attunement
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/equipment/{$equipment->id}",
+            ['location' => 'main_hand']
+        );
+
+        $response->assertOk()
+            ->assertJsonPath('data.location', 'main_hand')
+            ->assertJsonPath('data.equipped', true)
+            ->assertJsonPath('data.is_attuned', false);
+    }
+
+    #[Test]
+    public function it_preserves_attunement_count_when_moving_to_non_attuned_location(): void
+    {
+        $character = Character::factory()->create();
+        $ringType = ItemType::where('code', 'RG')->first();
+
+        // Create 3 attuned items (at max)
+        for ($i = 1; $i <= 3; $i++) {
+            $ring = Item::create([
+                'name' => "Ring $i",
+                'slug' => "test:edge-ring-$i",
+                'item_type_id' => $ringType->id,
+                'rarity' => 'rare',
+                'requires_attunement' => true,
+                'description' => "Magic ring $i.",
+            ]);
+
+            CharacterEquipment::factory()
+                ->withItem($ring)
+                ->create([
+                    'character_id' => $character->id,
+                    'equipped' => true,
+                    'location' => 'attuned',
+                    'is_attuned' => true,
+                ]);
+        }
+
+        // Move first ring to backpack - frees up a slot
+        $firstEquipment = $character->equipment()->first();
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/equipment/{$firstEquipment->id}",
+            ['location' => 'backpack']
+        );
+
+        $response->assertOk()
+            ->assertJsonPath('data.is_attuned', false);
+
+        // Now we should be able to attune a new item
+        $newRing = Item::create([
+            'name' => 'Ring 4',
+            'slug' => 'test:edge-ring-4',
+            'item_type_id' => $ringType->id,
+            'rarity' => 'rare',
+            'requires_attunement' => true,
+            'description' => 'A fourth magic ring.',
+        ]);
+
+        $newEquipment = CharacterEquipment::factory()
+            ->withItem($newRing)
+            ->create([
+                'character_id' => $character->id,
+                'equipped' => false,
+                'location' => 'backpack',
+            ]);
+
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/equipment/{$newEquipment->id}",
+            ['location' => 'attuned']
+        );
+
+        $response->assertOk()
+            ->assertJsonPath('data.location', 'attuned')
+            ->assertJsonPath('data.is_attuned', true);
+    }
+
+    // =============================
     // Custom Item Tests
     // =============================
 

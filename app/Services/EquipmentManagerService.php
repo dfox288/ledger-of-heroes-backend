@@ -33,7 +33,7 @@ class EquipmentManagerService
             'item_slug' => $item->slug,
             'quantity' => $quantity,
             'equipped' => false,
-            'location' => 'backpack',
+            'location' => EquipmentLocation::BACKPACK->value,
         ]);
     }
 
@@ -52,6 +52,9 @@ class EquipmentManagerService
     /**
      * Equip an item.
      *
+     * Legacy method that auto-determines location based on item type.
+     * Prefer setLocation() for explicit location control.
+     *
      * @throws ItemNotEquippableException
      */
     public function equipItem(CharacterEquipment $equipment): void
@@ -64,17 +67,33 @@ class EquipmentManagerService
             throw new ItemNotEquippableException($item);
         }
 
-        // Unequip conflicting items
-        if ($this->isArmor($item)) {
-            $this->unequipCurrentArmor($equipment->character);
-        } elseif ($this->isShield($item)) {
-            $this->unequipCurrentShield($equipment->character);
-        }
+        // Determine appropriate location based on item type
+        $location = $this->getDefaultEquipLocation($item);
+
+        // Unequip conflicting items in that location
+        $this->unequipFromLocation($equipment->character, $location, $equipment->id);
 
         $equipment->update([
             'equipped' => true,
-            'location' => 'equipped',
+            'location' => $location,
         ]);
+    }
+
+    /**
+     * Get the default equip location for an item based on its type.
+     */
+    private function getDefaultEquipLocation(Item $item): string
+    {
+        if ($this->isArmor($item)) {
+            return EquipmentLocation::WORN->value;
+        }
+
+        if ($this->isShield($item)) {
+            return EquipmentLocation::OFF_HAND->value;
+        }
+
+        // Weapons and other equippable items default to main hand
+        return EquipmentLocation::MAIN_HAND->value;
     }
 
     /**
@@ -141,22 +160,6 @@ class EquipmentManagerService
             'equipped' => false,
             'is_attuned' => false,
         ]);
-    }
-
-    private function unequipCurrentArmor(Character $character): void
-    {
-        $character->equipment()
-            ->where('equipped', true)
-            ->whereHas('item.itemType', fn ($q) => $q->whereIn('code', ItemTypeCode::armorCodes()))
-            ->update(['equipped' => false, 'location' => 'backpack']);
-    }
-
-    private function unequipCurrentShield(Character $character): void
-    {
-        $character->equipment()
-            ->where('equipped', true)
-            ->whereHas('item.itemType', fn ($q) => $q->where('code', ItemTypeCode::SHIELD->value))
-            ->update(['equipped' => false, 'location' => 'backpack']);
     }
 
     private function isArmor(Item $item): bool

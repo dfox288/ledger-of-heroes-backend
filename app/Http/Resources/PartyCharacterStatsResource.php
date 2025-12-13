@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\ItemTypeCode;
 use App\Models\Character;
 use App\Services\CharacterStatCalculator;
 use Illuminate\Http\Request;
@@ -41,7 +42,29 @@ class PartyCharacterStatsResource extends JsonResource
             ],
             'armor_class' => $this->armor_class,
             'proficiency_bonus' => $proficiencyBonus,
-            'passive_skills' => $this->calculatePassiveSkills($modifiers, $proficiencyBonus),
+            // Phase 1: Combat Quick Reference
+            'combat' => [
+                'initiative_modifier' => $modifiers['DEX'] ?? 0,
+                'speeds' => $this->formatSpeeds(),
+                'death_saves' => [
+                    'successes' => $this->death_save_successes ?? 0,
+                    'failures' => $this->death_save_failures ?? 0,
+                ],
+                'concentration' => [
+                    'active' => false, // Placeholder for future implementation
+                    'spell' => null,
+                ],
+            ],
+            // Phase 2: Senses (includes passive skills + darkvision)
+            'senses' => $this->formatSenses($modifiers, $proficiencyBonus),
+            // Phase 2: Capabilities
+            'capabilities' => [
+                'languages' => $this->formatLanguages(),
+                'size' => $this->size,
+                'tool_proficiencies' => $this->formatToolProficiencies(),
+            ],
+            // Phase 4: Equipment
+            'equipment' => $this->formatEquipment(),
             'saving_throws' => $this->calculateSavingThrows($modifiers, $proficiencyBonus),
             'conditions' => $this->formatConditions(),
             'spell_slots' => $this->formatSpellSlots(),
@@ -75,33 +98,240 @@ class PartyCharacterStatsResource extends JsonResource
     }
 
     /**
-     * Calculate passive skill scores (Perception, Investigation, Insight).
+     * Format movement speeds from race.
      */
-    private function calculatePassiveSkills(array $modifiers, int $proficiencyBonus): array
+    private function formatSpeeds(): array
     {
-        // Map skills to their associated ability scores
-        $passiveSkillAbilities = [
-            'perception' => 'WIS',
-            'investigation' => 'INT',
-            'insight' => 'WIS',
-        ];
-
-        $passiveSkills = [];
-
-        foreach ($passiveSkillAbilities as $skillName => $abilityCode) {
-            $abilityModifier = $modifiers[$abilityCode] ?? 0;
-            $proficient = $this->hasProficiencyInSkill($skillName);
-            $expertise = $this->hasExpertiseInSkill($skillName);
-
-            $passiveSkills[$skillName] = $this->calculator->calculatePassiveSkill(
-                $abilityModifier,
-                $proficient,
-                $expertise,
-                $proficiencyBonus
-            );
+        if (! $this->relationLoaded('race') || $this->race === null) {
+            return [
+                'walk' => null,
+                'fly' => null,
+                'swim' => null,
+                'climb' => null,
+            ];
         }
 
-        return $passiveSkills;
+        return [
+            'walk' => $this->race->speed,
+            'fly' => $this->race->fly_speed,
+            'swim' => $this->race->swim_speed,
+            'climb' => $this->race->climb_speed,
+        ];
+    }
+
+    /**
+     * Format senses including passive skills and darkvision.
+     */
+    private function formatSenses(array $modifiers, int $proficiencyBonus): array
+    {
+        return [
+            'passive_perception' => $this->calculatePassiveSkill('perception', 'WIS', $modifiers, $proficiencyBonus),
+            'passive_investigation' => $this->calculatePassiveSkill('investigation', 'INT', $modifiers, $proficiencyBonus),
+            'passive_insight' => $this->calculatePassiveSkill('insight', 'WIS', $modifiers, $proficiencyBonus),
+            'darkvision' => $this->getDarkvisionRange(),
+        ];
+    }
+
+    /**
+     * Calculate a single passive skill score.
+     */
+    private function calculatePassiveSkill(string $skillName, string $abilityCode, array $modifiers, int $proficiencyBonus): int
+    {
+        $abilityModifier = $modifiers[$abilityCode] ?? 0;
+        $proficient = $this->hasProficiencyInSkill($skillName);
+        $expertise = $this->hasExpertiseInSkill($skillName);
+
+        return $this->calculator->calculatePassiveSkill(
+            $abilityModifier,
+            $proficient,
+            $expertise,
+            $proficiencyBonus
+        );
+    }
+
+    /**
+     * Get darkvision range from race senses.
+     */
+    private function getDarkvisionRange(): ?int
+    {
+        if (! $this->relationLoaded('race') || $this->race === null) {
+            return null;
+        }
+
+        if (! $this->race->relationLoaded('senses')) {
+            return null;
+        }
+
+        $darkvision = $this->race->senses->first(function ($entitySense) {
+            return $entitySense->sense?->slug === 'core:darkvision';
+        });
+
+        return $darkvision?->range_feet;
+    }
+
+    /**
+     * Format character languages as array of names.
+     */
+    private function formatLanguages(): array
+    {
+        if (! $this->relationLoaded('languages')) {
+            return [];
+        }
+
+        return $this->languages
+            ->map(fn ($cl) => $cl->language?->name)
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Format tool proficiencies as array of names.
+     */
+    private function formatToolProficiencies(): array
+    {
+        if (! $this->relationLoaded('proficiencies')) {
+            return [];
+        }
+
+        return $this->proficiencies
+            ->filter(function ($prof) {
+                return $prof->proficiency_type_slug !== null
+                    && $prof->proficiencyType?->category === 'tool';
+            })
+            ->map(fn ($prof) => $prof->proficiencyType?->name)
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Format equipped gear (armor, weapons, shield).
+     */
+    private function formatEquipment(): array
+    {
+        return [
+            'armor' => $this->formatEquippedArmor(),
+            'weapons' => $this->formatEquippedWeapons(),
+            'shield' => $this->hasEquippedShield(),
+        ];
+    }
+
+    /**
+     * Format equipped armor details.
+     */
+    private function formatEquippedArmor(): ?array
+    {
+        if (! $this->relationLoaded('equipment')) {
+            return null;
+        }
+
+        $armorCodes = ItemTypeCode::armorCodes();
+
+        $equippedArmor = $this->equipment
+            ->where('equipped', true)
+            ->first(function ($eq) use ($armorCodes) {
+                return $eq->item && in_array($eq->item->itemType?->code, $armorCodes, true);
+            });
+
+        if (! $equippedArmor || ! $equippedArmor->item) {
+            return null;
+        }
+
+        $item = $equippedArmor->item;
+        $typeCode = $item->itemType?->code;
+
+        return [
+            'name' => $item->name,
+            'type' => $this->getArmorTypeLabel($typeCode),
+            'stealth_disadvantage' => $this->hasStealthDisadvantage($typeCode),
+        ];
+    }
+
+    /**
+     * Get armor type label from code.
+     */
+    private function getArmorTypeLabel(?string $code): string
+    {
+        return match ($code) {
+            ItemTypeCode::LIGHT_ARMOR->value => 'light',
+            ItemTypeCode::MEDIUM_ARMOR->value => 'medium',
+            ItemTypeCode::HEAVY_ARMOR->value => 'heavy',
+            default => 'unknown',
+        };
+    }
+
+    /**
+     * Check if armor type causes stealth disadvantage.
+     *
+     * Note: Simplified implementation. In D&D 5e, heavy armor always causes
+     * stealth disadvantage, while only *some* medium armors do (e.g., half plate).
+     * This method only checks for heavy armor. For precise per-item stealth
+     * disadvantage, the item's stealth_disadvantage field should be checked.
+     */
+    private function hasStealthDisadvantage(?string $code): bool
+    {
+        return $code === ItemTypeCode::HEAVY_ARMOR->value;
+    }
+
+    /**
+     * Format equipped weapons details.
+     */
+    private function formatEquippedWeapons(): array
+    {
+        if (! $this->relationLoaded('equipment')) {
+            return [];
+        }
+
+        $weaponCodes = ItemTypeCode::weaponCodes();
+
+        return $this->equipment
+            ->where('equipped', true)
+            ->filter(function ($eq) use ($weaponCodes) {
+                return $eq->item && in_array($eq->item->itemType?->code, $weaponCodes, true);
+            })
+            ->map(function ($eq) {
+                $item = $eq->item;
+
+                // Build damage string from damage_dice and damage_type relationship
+                $damage = null;
+                if ($item->damage_dice) {
+                    $damageType = $item->damageType?->name ?? '';
+                    $damage = trim("{$item->damage_dice} {$damageType}");
+                }
+
+                // Build range string from range_normal/range_long
+                $range = null;
+                if ($item->range_normal) {
+                    $range = $item->range_long
+                        ? "{$item->range_normal}/{$item->range_long}"
+                        : (string) $item->range_normal;
+                }
+
+                return [
+                    'name' => $item->name,
+                    'damage' => $damage ?: null,
+                    'range' => $range,
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Check if character has an equipped shield.
+     */
+    private function hasEquippedShield(): bool
+    {
+        if (! $this->relationLoaded('equipment')) {
+            return false;
+        }
+
+        return $this->equipment
+            ->where('equipped', true)
+            ->contains(function ($eq) {
+                return $eq->item?->itemType?->code === ItemTypeCode::SHIELD->value;
+            });
     }
 
     /**

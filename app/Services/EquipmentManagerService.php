@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\EquipmentLocation;
 use App\Enums\ItemTypeCode;
 use App\Exceptions\ItemNotEquippableException;
 use App\Models\Character;
@@ -32,7 +33,7 @@ class EquipmentManagerService
             'item_slug' => $item->slug,
             'quantity' => $quantity,
             'equipped' => false,
-            'location' => 'backpack',
+            'location' => EquipmentLocation::BACKPACK->value,
         ]);
     }
 
@@ -51,6 +52,9 @@ class EquipmentManagerService
     /**
      * Equip an item.
      *
+     * Legacy method that auto-determines location based on item type.
+     * Prefer setLocation() for explicit location control.
+     *
      * @throws ItemNotEquippableException
      */
     public function equipItem(CharacterEquipment $equipment): void
@@ -63,17 +67,33 @@ class EquipmentManagerService
             throw new ItemNotEquippableException($item);
         }
 
-        // Unequip conflicting items
-        if ($this->isArmor($item)) {
-            $this->unequipCurrentArmor($equipment->character);
-        } elseif ($this->isShield($item)) {
-            $this->unequipCurrentShield($equipment->character);
-        }
+        // Determine appropriate location based on item type
+        $location = $this->getDefaultEquipLocation($item);
+
+        // Unequip conflicting items in that location
+        $this->unequipFromLocation($equipment->character, $location, $equipment->id);
 
         $equipment->update([
             'equipped' => true,
-            'location' => 'equipped',
+            'location' => $location,
         ]);
+    }
+
+    /**
+     * Get the default equip location for an item based on its type.
+     */
+    private function getDefaultEquipLocation(Item $item): string
+    {
+        if ($this->isArmor($item)) {
+            return EquipmentLocation::WORN->value;
+        }
+
+        if ($this->isShield($item)) {
+            return EquipmentLocation::OFF_HAND->value;
+        }
+
+        // Weapons and other equippable items default to main hand
+        return EquipmentLocation::MAIN_HAND->value;
     }
 
     /**
@@ -83,24 +103,63 @@ class EquipmentManagerService
     {
         $equipment->update([
             'equipped' => false,
-            'location' => 'backpack',
+            'location' => EquipmentLocation::BACKPACK->value,
+            'is_attuned' => false,
         ]);
     }
 
-    private function unequipCurrentArmor(Character $character): void
+    /**
+     * Set the location of an equipment item.
+     *
+     * This method handles:
+     * - Auto-setting equipped status based on location
+     * - Auto-setting is_attuned for attuned location
+     * - Auto-unequipping items in single-slot locations
+     */
+    public function setLocation(CharacterEquipment $equipment, string $location): void
     {
-        $character->equipment()
-            ->where('equipped', true)
-            ->whereHas('item.itemType', fn ($q) => $q->whereIn('code', ItemTypeCode::armorCodes()))
-            ->update(['equipped' => false, 'location' => 'backpack']);
+        $locationEnum = EquipmentLocation::from($location);
+        $character = $equipment->character;
+
+        // For single-slot locations, unequip any existing item in that slot
+        if ($locationEnum->isSingleSlot()) {
+            $this->unequipFromLocation($character, $location, $equipment->id);
+        }
+
+        // Determine equipped and attuned status based on location
+        $equipped = $locationEnum->isEquipped();
+        $isAttuned = $location === EquipmentLocation::ATTUNED->value;
+
+        // If moving to backpack, also clear attunement
+        if ($location === EquipmentLocation::BACKPACK->value) {
+            $isAttuned = false;
+        }
+
+        $equipment->update([
+            'location' => $location,
+            'equipped' => $equipped,
+            'is_attuned' => $isAttuned,
+        ]);
     }
 
-    private function unequipCurrentShield(Character $character): void
+    /**
+     * Unequip all items from a specific location for a character.
+     *
+     * @param  int|null  $excludeId  ID of equipment to exclude (the one being equipped)
+     */
+    private function unequipFromLocation(Character $character, string $location, ?int $excludeId = null): void
     {
-        $character->equipment()
-            ->where('equipped', true)
-            ->whereHas('item.itemType', fn ($q) => $q->where('code', ItemTypeCode::SHIELD->value))
-            ->update(['equipped' => false, 'location' => 'backpack']);
+        $query = $character->equipment()->where('location', $location);
+
+        if ($excludeId !== null) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        $query->update([
+            'location' => EquipmentLocation::BACKPACK->value,
+            'equipped' => false,
+            'is_attuned' => false,
+        ]);
     }
 
     private function isArmor(Item $item): bool

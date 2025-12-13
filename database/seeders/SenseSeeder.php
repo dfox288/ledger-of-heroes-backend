@@ -15,11 +15,13 @@ class SenseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Slugs match what RaceImporter/MonsterImporter expect (no source prefix)
+        // These are core game mechanics, not source-specific content
         $senses = [
-            ['slug' => 'core:darkvision', 'name' => 'Darkvision'],
-            ['slug' => 'core:blindsight', 'name' => 'Blindsight'],
-            ['slug' => 'core:tremorsense', 'name' => 'Tremorsense'],
-            ['slug' => 'core:truesight', 'name' => 'Truesight'],
+            ['slug' => 'darkvision', 'name' => 'Darkvision'],
+            ['slug' => 'blindsight', 'name' => 'Blindsight'],
+            ['slug' => 'tremorsense', 'name' => 'Tremorsense'],
+            ['slug' => 'truesight', 'name' => 'Truesight'],
         ];
 
         foreach ($senses as $sense) {

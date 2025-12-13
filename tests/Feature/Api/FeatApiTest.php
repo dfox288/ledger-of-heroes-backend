@@ -243,6 +243,8 @@ class FeatApiTest extends TestCase
                             stripos($result['description'], 'master') !== false;
                 $this->assertTrue($hasMatch, "Expected 'master' in name or description: {$result['name']}");
             }
+        } else {
+            $this->markTestSkipped('No feats containing "master" in test fixtures');
         }
     }
 
@@ -279,6 +281,8 @@ class FeatApiTest extends TestCase
                              stripos($result['description'], 'attack') !== false;
                 $this->assertTrue($hasAttack, "Expected 'attack' in feat {$result['name']}");
             }
+        } else {
+            $this->markTestSkipped('No feats matching "attack" with STR improvement in test fixtures');
         }
     }
 
@@ -312,6 +316,8 @@ class FeatApiTest extends TestCase
         if (count($response->json('data')) > 0) {
             $this->assertLessThanOrEqual(5, count($response->json('data')), 'Should respect per_page limit');
             $response->assertJsonPath('meta.per_page', 5);
+        } else {
+            $this->markTestSkipped('No feats containing "weapon" in test fixtures');
         }
     }
 
@@ -329,6 +335,8 @@ class FeatApiTest extends TestCase
             // Verify results are in alphabetical order by checking first vs last
             $this->assertLessThanOrEqual(0, strcasecmp($names[0], end($names)),
                 'Search results should be sorted alphabetically');
+        } else {
+            $this->markTestSkipped('Need at least 2 feats containing "armor" to test sorting');
         }
     }
 
@@ -347,6 +355,8 @@ class FeatApiTest extends TestCase
                 in_array('Alert', $names),
                 'Expected to find Alert feat in case-insensitive search'
             );
+        } else {
+            $this->markTestSkipped('Alert feat not in test fixtures');
         }
     }
 

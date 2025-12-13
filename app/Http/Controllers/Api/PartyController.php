@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Party\PartyAddCharacterRequest;
 use App\Http\Requests\Party\PartyStoreRequest;
 use App\Http\Requests\Party\PartyUpdateRequest;
-use App\Http\Resources\PartyCharacterStatsResource;
 use App\Http\Resources\PartyResource;
+use App\Http\Resources\PartyStatsResource;
 use App\Models\Character;
 use App\Models\Party;
 use Illuminate\Http\JsonResponse;
@@ -94,7 +94,7 @@ class PartyController extends Controller
     /**
      * Add a character to a party.
      */
-    public function addCharacter(PartyAddCharacterRequest $request, Party $party): JsonResponse
+    public function addCharacter(PartyAddCharacterRequest $request, Party $party): PartyResource|JsonResponse
     {
         // Check ownership
         if ($party->user_id !== $request->user()->id) {
@@ -105,7 +105,11 @@ class PartyController extends Controller
             'joined_at' => now(),
         ]);
 
-        return response()->json(['message' => 'Character added to party'], Response::HTTP_CREATED);
+        $party->load('characters');
+
+        return (new PartyResource($party))
+            ->response()
+            ->setStatusCode(Response::HTTP_CREATED);
     }
 
     /**
@@ -131,7 +135,7 @@ class PartyController extends Controller
     /**
      * Get aggregated stats for all characters in a party (DM dashboard).
      */
-    public function stats(Request $request, Party $party): JsonResponse
+    public function stats(Request $request, Party $party): PartyStatsResource|JsonResponse
     {
         // Check ownership
         if ($party->user_id !== $request->user()->id) {
@@ -158,103 +162,6 @@ class PartyController extends Controller
             'characters.equipment.item.itemType',
         ]);
 
-        return response()->json([
-            'data' => [
-                'party' => [
-                    'id' => $party->id,
-                    'name' => $party->name,
-                ],
-                'characters' => PartyCharacterStatsResource::collection($party->characters),
-                'party_summary' => $this->calculatePartySummary($party->characters),
-            ],
-        ]);
-    }
-
-    /**
-     * Calculate party-wide summary aggregations for DM reference.
-     */
-    private function calculatePartySummary($characters): array
-    {
-        // Healer classes (can be expanded)
-        $healerClasses = ['cleric', 'druid', 'paladin', 'bard'];
-
-        // Utility spell base names to check for (matches any prefix like phb:, xge:, etc.)
-        $utilitySpellNames = [
-            'detect_magic' => 'detect-magic',
-            'dispel_magic' => 'dispel-magic',
-            'counterspell' => 'counterspell',
-        ];
-
-        // Aggregate all languages
-        $allLanguages = $characters
-            ->flatMap(fn ($char) => $char->languages->map(fn ($cl) => $cl->language?->name))
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values()
-            ->all();
-
-        // Darkvision tracking
-        $darkvisionCount = 0;
-        $noDarkvision = [];
-
-        foreach ($characters as $character) {
-            $hasDarkvision = false;
-
-            if ($character->race && $character->race->relationLoaded('senses')) {
-                $hasDarkvision = $character->race->senses->contains(function ($entitySense) {
-                    return $entitySense->sense?->slug === 'core:darkvision';
-                });
-            }
-
-            if ($hasDarkvision) {
-                $darkvisionCount++;
-            } else {
-                $noDarkvision[] = $character->name;
-            }
-        }
-
-        // Healer tracking
-        $healers = [];
-        foreach ($characters as $character) {
-            $primaryClass = $character->characterClasses->firstWhere('is_primary', true)?->characterClass;
-            if ($primaryClass) {
-                $classSlug = $primaryClass->slug ?? '';
-                $className = $primaryClass->name ?? '';
-
-                // Check if class slug contains any healer class name
-                foreach ($healerClasses as $healerClass) {
-                    if (str_contains(strtolower($classSlug), $healerClass)) {
-                        $healers[] = "{$character->name} ({$className})";
-                        break;
-                    }
-                }
-            }
-        }
-
-        // Utility spell tracking - check if any party spell ends with the base name
-        $partySpellSlugs = $characters
-            ->flatMap(fn ($char) => $char->spells->map(fn ($cs) => $cs->spell_slug))
-            ->filter()
-            ->unique()
-            ->all();
-
-        $hasSpell = fn (string $baseName) => collect($partySpellSlugs)
-            ->contains(fn ($slug) => str_ends_with($slug, $baseName));
-
-        $hasDetectMagic = $hasSpell($utilitySpellNames['detect_magic']);
-        $hasDispelMagic = $hasSpell($utilitySpellNames['dispel_magic']);
-        $hasCounterspell = $hasSpell($utilitySpellNames['counterspell']);
-
-        return [
-            'all_languages' => $allLanguages,
-            'darkvision_count' => $darkvisionCount,
-            'no_darkvision' => $noDarkvision,
-            'has_healer' => count($healers) > 0,
-            'healers' => $healers,
-            'has_detect_magic' => $hasDetectMagic,
-            'has_dispel_magic' => $hasDispelMagic,
-            'has_counterspell' => $hasCounterspell,
-        ];
+        return new PartyStatsResource($party);
     }
 }

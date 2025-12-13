@@ -13,18 +13,17 @@ use App\Http\Resources\CharacterResource;
 use App\Http\Resources\CharacterStatsResource;
 use App\Http\Resources\CharacterSummaryResource;
 use App\Models\Character;
-use App\Models\CharacterClassPivot;
 use App\Services\AbilityBonusService;
+use App\Services\CharacterBackgroundAssignmentService;
 use App\Services\CharacterChoiceService;
-use App\Services\CharacterFeatureService;
+use App\Services\CharacterClassAssignmentService;
 use App\Services\CharacterLanguageService;
 use App\Services\CharacterProficiencyService;
+use App\Services\CharacterRaceAssignmentService;
 use App\Services\CharacterStatCalculator;
-use App\Services\EquipmentManagerService;
 use App\Services\FeatChoiceService;
 use App\Services\FeatureUseService;
 use App\Services\HitDiceService;
-use App\Services\HitPointService;
 use App\Services\SpellSlotService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -37,15 +36,15 @@ class CharacterController extends Controller
         private CharacterStatCalculator $statCalculator,
         private CharacterProficiencyService $proficiencyService,
         private CharacterLanguageService $languageService,
-        private CharacterFeatureService $featureService,
         private SpellSlotService $spellSlotService,
         private HitDiceService $hitDiceService,
-        private EquipmentManagerService $equipmentService,
-        private HitPointService $hitPointService,
         private FeatChoiceService $featChoiceService,
         private AbilityBonusService $abilityBonusService,
         private FeatureUseService $featureUseService,
-        private CharacterChoiceService $choiceService
+        private CharacterChoiceService $choiceService,
+        private CharacterClassAssignmentService $classAssignmentService,
+        private CharacterRaceAssignmentService $raceAssignmentService,
+        private CharacterBackgroundAssignmentService $backgroundAssignmentService,
     ) {}
 
     /**
@@ -119,35 +118,20 @@ class CharacterController extends Controller
 
             // Add class via junction table if provided
             if ($classSlug) {
-                CharacterClassPivot::create([
-                    'character_id' => $character->id,
-                    'class_slug' => $classSlug,
-                    'level' => 1,
-                    'is_primary' => true,
-                    'order' => 1,
-                    'hit_dice_spent' => 0,
-                ]);
-
-                // Grant fixed items from primary class
-                $this->equipmentService->populateFromClass($character);
-                $this->proficiencyService->populateFromClass($character);
-                $this->languageService->populateFromClass($character);
-                $this->featureService->populateFromClass($character);
+                $isPrimary = $this->classAssignmentService->assignClass($character, $classSlug);
+                if ($isPrimary) {
+                    $this->classAssignmentService->grantPrimaryClassItems($character);
+                }
             }
 
             // Grant fixed items from race if provided (and not dangling)
             if ($character->race_slug && $character->race) {
-                $this->proficiencyService->populateFromRace($character);
-                $this->languageService->populateFromRace($character);
-                $this->featureService->populateFromRace($character);
+                $this->raceAssignmentService->grantRaceItems($character);
             }
 
             // Grant fixed items from background if provided (and not dangling)
             if ($character->background_slug && $character->background) {
-                $this->equipmentService->populateFromBackground($character);
-                $this->proficiencyService->populateFromBackground($character);
-                $this->languageService->populateFromBackground($character);
-                $this->featureService->populateFromBackground($character);
+                $this->backgroundAssignmentService->grantBackgroundItems($character);
             }
 
             return $character;
@@ -227,103 +211,66 @@ class CharacterController extends Controller
         $level = $validated['level'] ?? null;
         unset($validated['class_slug'], $validated['level']);
 
-        // Track if background is being assigned (for fixed grants)
-        $previousBackgroundSlug = $character->background_slug;
-        $newBackgroundSlug = $validated['background_slug'] ?? null;
-        $backgroundAssigned = $newBackgroundSlug && $newBackgroundSlug !== $previousBackgroundSlug;
-
-        // Track if race is being assigned (for fixed grants and HP adjustment)
+        // Track assignment changes for fixed grants
         $previousRaceSlug = $character->race_slug;
-        $newRaceSlug = $validated['race_slug'] ?? null;
-        $raceAssigned = array_key_exists('race_slug', $validated) && $newRaceSlug !== $previousRaceSlug;
+        $raceAssigned = $this->raceAssignmentService->isRaceChanging($character, $validated);
+        $backgroundAssigned = $this->backgroundAssignmentService->isBackgroundChanging(
+            $character,
+            $validated['background_slug'] ?? null
+        );
 
         // Use transaction with pessimistic locking for all operations
-        DB::transaction(function () use ($character, &$validated, $classSlug, $level, $backgroundAssigned, $raceAssigned, $previousRaceSlug, $newRaceSlug) {
+        DB::transaction(function () use (
+            $character,
+            &$validated,
+            $classSlug,
+            $level,
+            $backgroundAssigned,
+            $raceAssigned,
+            $previousRaceSlug
+        ) {
             // Lock character row first for HP/death save consistency
             $character->lockForUpdate()->first();
 
-            // Auto-reset death saves when HP goes from 0 to positive (inside transaction)
-            $wasAtZeroHp = $character->current_hit_points === 0;
-            $newHp = $validated['current_hit_points'] ?? null;
-            if ($wasAtZeroHp && $newHp !== null && $newHp > 0) {
-                $validated['death_save_successes'] = 0;
-                $validated['death_save_failures'] = 0;
-            }
+            // Auto-reset death saves when HP goes from 0 to positive
+            $this->autoResetDeathSaves($character, $validated);
 
-            // Handle class_slug - add via junction table if provided
+            // Handle class assignment and level updates
             $primaryClassAssigned = false;
             if ($classSlug) {
-                // Lock the character's class rows to prevent concurrent modifications
-                $existingClasses = $character->characterClasses()->lockForUpdate()->get();
-
-                // Only add if character doesn't already have this class
-                if (! $existingClasses->where('class_slug', $classSlug)->first()) {
-                    $isPrimary = $existingClasses->isEmpty();
-                    $order = ($existingClasses->max('order') ?? 0) + 1;
-
-                    CharacterClassPivot::create([
-                        'character_id' => $character->id,
-                        'class_slug' => $classSlug,
-                        'level' => 1,
-                        'is_primary' => $isPrimary,
-                        'order' => $order,
-                        'hit_dice_spent' => 0,
-                    ]);
-
-                    $primaryClassAssigned = $isPrimary;
-                }
+                $primaryClassAssigned = $this->classAssignmentService->assignClass($character, $classSlug);
             }
-
-            // Handle level - update primary class level if provided
             if ($level !== null) {
-                $primaryClass = $character->characterClasses()->where('is_primary', true)->first();
-                if ($primaryClass) {
-                    $primaryClass->update(['level' => $level]);
-                }
+                $this->classAssignmentService->updatePrimaryClassLevel($character, $level);
             }
 
+            // Apply direct character updates
             $character->update($validated);
 
-            // Adjust HP retroactively if race changed (must happen after update so race_slug is set)
-            if ($raceAssigned && $character->usesCalculatedHp() && $character->total_level > 0) {
-                $hpResult = $this->hitPointService->recalculateForRaceChange(
+            // Adjust HP if race changed (must happen after update so race_slug is set)
+            if ($raceAssigned) {
+                $this->raceAssignmentService->adjustHpForRaceChange(
                     $character,
                     $previousRaceSlug,
-                    $newRaceSlug
+                    $validated['race_slug'] ?? null
                 );
-                if ($hpResult['adjustment'] !== 0) {
-                    $character->update([
-                        'max_hit_points' => $hpResult['new_max_hp'],
-                        'current_hit_points' => $hpResult['new_current_hp'],
-                    ]);
-                }
             }
 
-            // Grant fixed items within transaction for consistency
+            // Grant fixed items from primary class
             if ($primaryClassAssigned) {
-                $this->equipmentService->populateFromClass($character);
-                $this->proficiencyService->populateFromClass($character);
-                $this->languageService->populateFromClass($character);
-                $this->featureService->populateFromClass($character);
+                $this->classAssignmentService->grantPrimaryClassItems($character);
             }
 
-            // Grant fixed items from race if assigned (and not dangling)
-            // Refresh race relationship after update to check for dangling
-            $character->load('race');
-            if ($raceAssigned && $character->race) {
-                $this->proficiencyService->populateFromRace($character);
-                $this->languageService->populateFromRace($character);
-                $this->featureService->populateFromRace($character);
+            // Grant fixed items from race (reload to verify race exists)
+            if ($raceAssigned) {
+                $character->load('race');
+                $this->raceAssignmentService->grantRaceItems($character);
             }
 
-            // Grant fixed items from background if assigned (and not dangling)
-            // Refresh background relationship after update to check for dangling
-            $character->load('background');
-            if ($backgroundAssigned && $character->background) {
-                $this->equipmentService->populateFromBackground($character);
-                $this->proficiencyService->populateFromBackground($character);
-                $this->languageService->populateFromBackground($character);
-                $this->featureService->populateFromBackground($character);
+            // Grant fixed items from background (reload to verify background exists)
+            if ($backgroundAssigned) {
+                $character->load('background');
+                $this->backgroundAssignmentService->grantBackgroundItems($character);
             }
         });
 
@@ -336,6 +283,20 @@ class CharacterController extends Controller
         ]);
 
         return new CharacterResource($character);
+    }
+
+    /**
+     * Auto-reset death saves when HP goes from 0 to positive.
+     */
+    private function autoResetDeathSaves(Character $character, array &$validated): void
+    {
+        $wasAtZeroHp = $character->current_hit_points === 0;
+        $newHp = $validated['current_hit_points'] ?? null;
+
+        if ($wasAtZeroHp && $newHp !== null && $newHp > 0) {
+            $validated['death_save_successes'] = 0;
+            $validated['death_save_failures'] = 0;
+        }
     }
 
     /**

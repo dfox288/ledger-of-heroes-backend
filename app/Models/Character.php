@@ -736,11 +736,13 @@ class Character extends Model implements HasMedia
         $this->addMediaConversion('thumb')
             ->width(150)
             ->height(150)
+            ->format('webp')
             ->performOnCollections('portrait', 'token');
 
         $this->addMediaConversion('medium')
             ->width(300)
             ->height(300)
+            ->format('webp')
             ->performOnCollections('portrait', 'token');
     }
 }

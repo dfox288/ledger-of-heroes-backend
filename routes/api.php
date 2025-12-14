@@ -358,7 +358,7 @@ Route::prefix('v1')->group(function () {
             ->name('notes.store');
         Route::get('notes/{note}', [\App\Http\Controllers\Api\CharacterNoteController::class, 'show'])
             ->name('notes.show');
-        Route::put('notes/{note}', [\App\Http\Controllers\Api\CharacterNoteController::class, 'update'])
+        Route::match(['put', 'patch'], 'notes/{note}', [\App\Http\Controllers\Api\CharacterNoteController::class, 'update'])
             ->name('notes.update');
         Route::delete('notes/{note}', [\App\Http\Controllers\Api\CharacterNoteController::class, 'destroy'])
             ->name('notes.destroy');

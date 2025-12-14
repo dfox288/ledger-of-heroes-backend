@@ -351,6 +351,31 @@ class CharacterNoteApiTest extends TestCase
         $response->assertNotFound();
     }
 
+    #[Test]
+    public function it_accepts_patch_for_partial_updates(): void
+    {
+        $character = Character::factory()->create();
+        $note = CharacterNote::factory()->for($character)->custom()->create([
+            'title' => 'Original Title',
+            'content' => 'Original content',
+        ]);
+
+        // PATCH with only title - content should remain unchanged
+        $response = $this->patchJson("/api/v1/characters/{$character->id}/notes/{$note->id}", [
+            'title' => 'Updated Title',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.title', 'Updated Title')
+            ->assertJsonPath('data.content', 'Original content');
+
+        $this->assertDatabaseHas('character_notes', [
+            'id' => $note->id,
+            'title' => 'Updated Title',
+            'content' => 'Original content',
+        ]);
+    }
+
     // =====================
     // Delete Tests
     // =====================

@@ -1,0 +1,833 @@
+{
+    "run_id": "1732e20c-2b52-46f0-85a5-d58122284944",
+    "timestamp": "2025-12-14T09:23:49+00:00",
+    "seed": 311205,
+    "options": {
+        "target_level": 10,
+        "chaos": false,
+        "force_class": null,
+        "character": null
+    },
+    "iterations": 8,
+    "results": [
+        {
+            "iteration": 1,
+            "seed": 311205,
+            "character_id": 265,
+            "public_id": "silver-wanderer-z81p",
+            "status": "PASS",
+            "final_level": 10,
+            "total_hp_gained": 54,
+            "steps": [
+                {
+                    "level": 2,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 3,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 4,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 5,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 6,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 7,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 8,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 9,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 10,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                }
+            ],
+            "failures": [],
+            "error": null
+        },
+        {
+            "iteration": 2,
+            "seed": 311206,
+            "character_id": 266,
+            "public_id": "valiant-raven-6g21",
+            "status": "FAIL",
+            "final_level": 6,
+            "total_hp_gained": 20,
+            "steps": [
+                {
+                    "level": 2,
+                    "class_slug": "phb:sorcerer",
+                    "passed": true,
+                    "hp_gained": 5,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 3,
+                    "class_slug": "phb:sorcerer",
+                    "passed": true,
+                    "hp_gained": 5,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 4,
+                    "class_slug": "phb:sorcerer",
+                    "passed": true,
+                    "hp_gained": 5,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 5,
+                    "class_slug": "phb:sorcerer",
+                    "passed": true,
+                    "hp_gained": 5,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 6,
+                    "class_slug": "phb:sorcerer",
+                    "passed": false,
+                    "hp_gained": 0,
+                    "features_gained": [],
+                    "errors": [
+                        "Character must be complete before leveling up."
+                    ],
+                    "warnings": [],
+                    "pattern": "api_error"
+                }
+            ],
+            "failures": {
+                "4": {
+                    "level": 6,
+                    "class_slug": "phb:sorcerer",
+                    "passed": false,
+                    "hp_gained": 0,
+                    "features_gained": [],
+                    "errors": [
+                        "Character must be complete before leveling up."
+                    ],
+                    "warnings": [],
+                    "pattern": "api_error"
+                }
+            },
+            "error": null
+        },
+        {
+            "iteration": 4,
+            "seed": 311208,
+            "character_id": 268,
+            "public_id": "noble-wanderer-lp1q",
+            "status": "PASS",
+            "final_level": 10,
+            "total_hp_gained": 72,
+            "steps": [
+                {
+                    "level": 2,
+                    "class_slug": "phb:barbarian",
+                    "passed": true,
+                    "hp_gained": 8,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 3,
+                    "class_slug": "phb:barbarian",
+                    "passed": true,
+                    "hp_gained": 8,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 4,
+                    "class_slug": "phb:barbarian",
+                    "passed": true,
+                    "hp_gained": 8,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 5,
+                    "class_slug": "phb:barbarian",
+                    "passed": true,
+                    "hp_gained": 8,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 6,
+                    "class_slug": "phb:barbarian",
+                    "passed": true,
+                    "hp_gained": 8,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 7,
+                    "class_slug": "phb:barbarian",
+                    "passed": true,
+                    "hp_gained": 8,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 8,
+                    "class_slug": "phb:barbarian",
+                    "passed": true,
+                    "hp_gained": 8,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 9,
+                    "class_slug": "phb:barbarian",
+                    "passed": true,
+                    "hp_gained": 8,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 10,
+                    "class_slug": "phb:barbarian",
+                    "passed": true,
+                    "hp_gained": 8,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                }
+            ],
+            "failures": [],
+            "error": null
+        },
+        {
+            "iteration": 5,
+            "seed": 311209,
+            "character_id": 269,
+            "public_id": "golden-wolf-47n3",
+            "status": "PASS",
+            "final_level": 10,
+            "total_hp_gained": 63,
+            "steps": [
+                {
+                    "level": 2,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 3,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 4,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 5,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 6,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 7,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 8,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 9,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 10,
+                    "class_slug": "phb:rogue",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                }
+            ],
+            "failures": [],
+            "error": null
+        },
+        {
+            "iteration": 6,
+            "seed": 311210,
+            "character_id": 270,
+            "public_id": "golden-dragon-d52n",
+            "status": "PASS",
+            "final_level": 10,
+            "total_hp_gained": 54,
+            "steps": [
+                {
+                    "level": 2,
+                    "class_slug": "phb:monk",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 3,
+                    "class_slug": "phb:monk",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 4,
+                    "class_slug": "phb:monk",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 5,
+                    "class_slug": "phb:monk",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 6,
+                    "class_slug": "phb:monk",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 7,
+                    "class_slug": "phb:monk",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 8,
+                    "class_slug": "phb:monk",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 9,
+                    "class_slug": "phb:monk",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 10,
+                    "class_slug": "phb:monk",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                }
+            ],
+            "failures": [],
+            "error": null
+        },
+        {
+            "iteration": 7,
+            "seed": 311211,
+            "character_id": 271,
+            "public_id": "flame-phoenix-sbz6",
+            "status": "PASS",
+            "final_level": 10,
+            "total_hp_gained": 63,
+            "steps": [
+                {
+                    "level": 2,
+                    "class_slug": "phb:fighter",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 3,
+                    "class_slug": "phb:fighter",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 4,
+                    "class_slug": "phb:fighter",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 5,
+                    "class_slug": "phb:fighter",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 6,
+                    "class_slug": "phb:fighter",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 7,
+                    "class_slug": "phb:fighter",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 8,
+                    "class_slug": "phb:fighter",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 9,
+                    "class_slug": "phb:fighter",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 10,
+                    "class_slug": "phb:fighter",
+                    "passed": true,
+                    "hp_gained": 7,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                }
+            ],
+            "failures": [],
+            "error": null
+        },
+        {
+            "iteration": 9,
+            "seed": 311213,
+            "character_id": 273,
+            "public_id": "ancient-hawk-aqol",
+            "status": "PASS",
+            "final_level": 10,
+            "total_hp_gained": 54,
+            "steps": [
+                {
+                    "level": 2,
+                    "class_slug": "tce:warrior-sidekick",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 3,
+                    "class_slug": "tce:warrior-sidekick",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 4,
+                    "class_slug": "tce:warrior-sidekick",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 5,
+                    "class_slug": "tce:warrior-sidekick",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 6,
+                    "class_slug": "tce:warrior-sidekick",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 7,
+                    "class_slug": "tce:warrior-sidekick",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 8,
+                    "class_slug": "tce:warrior-sidekick",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 9,
+                    "class_slug": "tce:warrior-sidekick",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 10,
+                    "class_slug": "tce:warrior-sidekick",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                }
+            ],
+            "failures": [],
+            "error": null
+        },
+        {
+            "iteration": 10,
+            "seed": 311214,
+            "character_id": 274,
+            "public_id": "storm-sage-6r8p",
+            "status": "FAIL",
+            "final_level": 4,
+            "total_hp_gained": 12,
+            "steps": [
+                {
+                    "level": 2,
+                    "class_slug": "phb:fighter",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 3,
+                    "class_slug": "phb:fighter",
+                    "passed": true,
+                    "hp_gained": 6,
+                    "features_gained": [],
+                    "errors": [],
+                    "warnings": [],
+                    "pattern": null
+                },
+                {
+                    "level": 4,
+                    "class_slug": "phb:fighter",
+                    "passed": false,
+                    "hp_gained": 0,
+                    "features_gained": [],
+                    "errors": [
+                        "Character must be complete before leveling up."
+                    ],
+                    "warnings": [],
+                    "pattern": "api_error"
+                }
+            ],
+            "failures": {
+                "2": {
+                    "level": 4,
+                    "class_slug": "phb:fighter",
+                    "passed": false,
+                    "hp_gained": 0,
+                    "features_gained": [],
+                    "errors": [
+                        "Character must be complete before leveling up."
+                    ],
+                    "warnings": [],
+                    "pattern": "api_error"
+                }
+            },
+            "error": null
+        }
+    ],
+    "summary": {
+        "total": 8,
+        "passed": 6,
+        "failed": 2,
+        "errors": 0,
+        "failure_patterns": {
+            "api_error": 2
+        },
+        "characters_used": [
+            {
+                "id": 265,
+                "public_id": "silver-wanderer-z81p",
+                "status": "PASS",
+                "final_level": 10
+            },
+            {
+                "id": 266,
+                "public_id": "valiant-raven-6g21",
+                "status": "FAIL",
+                "final_level": 6
+            },
+            {
+                "id": 268,
+                "public_id": "noble-wanderer-lp1q",
+                "status": "PASS",
+                "final_level": 10
+            },
+            {
+                "id": 269,
+                "public_id": "golden-wolf-47n3",
+                "status": "PASS",
+                "final_level": 10
+            },
+            {
+                "id": 270,
+                "public_id": "golden-dragon-d52n",
+                "status": "PASS",
+                "final_level": 10
+            },
+            {
+                "id": 271,
+                "public_id": "flame-phoenix-sbz6",
+                "status": "PASS",
+                "final_level": 10
+            },
+            {
+                "id": 273,
+                "public_id": "ancient-hawk-aqol",
+                "status": "PASS",
+                "final_level": 10
+            },
+            {
+                "id": 274,
+                "public_id": "storm-sage-6r8p",
+                "status": "FAIL",
+                "final_level": 4
+            }
+        ],
+        "level_stats": {
+            "max_reached": 10,
+            "avg_reached": 8.8,
+            "total_levels_gained": 62
+        },
+        "pass_rate": 75
+    }
+}

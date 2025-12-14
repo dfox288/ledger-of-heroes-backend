@@ -1,0 +1,100 @@
+{
+    "run_id": "4be72cc6-aff8-47cb-a2d5-d5d12013ff35",
+    "timestamp": "2025-12-14T09:06:45+00:00",
+    "seed": 717694,
+    "options": {
+        "target_level": 5,
+        "chaos": false,
+        "force_class": null,
+        "character": null
+    },
+    "iterations": 1,
+    "results": [
+        {
+            "iteration": 1,
+            "seed": 717694,
+            "character_id": 234,
+            "public_id": "cunning-wolf-dax9",
+            "status": "FAIL",
+            "final_level": 3,
+            "total_hp_gained": 0,
+            "steps": [
+                {
+                    "level": 2,
+                    "class_slug": "phb:monk",
+                    "passed": false,
+                    "hp_gained": 0,
+                    "features_gained": [],
+                    "errors": [
+                        "HP did not increase: was 8, now 8"
+                    ],
+                    "warnings": [],
+                    "pattern": "level_up_failed"
+                },
+                {
+                    "level": 3,
+                    "class_slug": "phb:monk",
+                    "passed": false,
+                    "hp_gained": 0,
+                    "features_gained": [],
+                    "errors": [
+                        "Character must be complete before leveling up."
+                    ],
+                    "warnings": [],
+                    "pattern": "api_error"
+                }
+            ],
+            "failures": [
+                {
+                    "level": 2,
+                    "class_slug": "phb:monk",
+                    "passed": false,
+                    "hp_gained": 0,
+                    "features_gained": [],
+                    "errors": [
+                        "HP did not increase: was 8, now 8"
+                    ],
+                    "warnings": [],
+                    "pattern": "level_up_failed"
+                },
+                {
+                    "level": 3,
+                    "class_slug": "phb:monk",
+                    "passed": false,
+                    "hp_gained": 0,
+                    "features_gained": [],
+                    "errors": [
+                        "Character must be complete before leveling up."
+                    ],
+                    "warnings": [],
+                    "pattern": "api_error"
+                }
+            ],
+            "error": null
+        }
+    ],
+    "summary": {
+        "total": 1,
+        "passed": 0,
+        "failed": 1,
+        "errors": 0,
+        "failure_patterns": {
+            "level_up_failed": 1,
+            "api_error": 1
+        },
+        "characters_used": [
+            {
+                "id": 234,
+                "public_id": "cunning-wolf-dax9",
+                "status": "FAIL",
+                "final_level": 3
+            }
+        ],
+        "level_stats": {
+            "max_reached": 3,
+            "avg_reached": 3,
+            "total_levels_gained": 2
+        },
+        "pass_rate": 0
+    }
+}

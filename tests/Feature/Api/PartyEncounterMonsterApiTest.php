@@ -100,6 +100,44 @@ class PartyEncounterMonsterApiTest extends TestCase
         expect($response->json('data.0.monster.actions.0.name'))->toBe('Scimitar');
     }
 
+    #[Test]
+    public function it_excludes_reactions_from_monster_actions(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+        $monster = Monster::factory()->create(['name' => 'Goblin']);
+
+        // Add a regular action
+        $monster->actions()->create([
+            'action_type' => 'action',
+            'name' => 'Scimitar',
+            'description' => 'Melee Weapon Attack',
+            'sort_order' => 1,
+        ]);
+
+        // Add a reaction (should be excluded)
+        $monster->actions()->create([
+            'action_type' => 'reaction',
+            'name' => 'Parry',
+            'description' => 'The goblin adds 2 to its AC against one melee attack.',
+            'sort_order' => 2,
+        ]);
+
+        $party->encounterMonsters()->create([
+            'monster_id' => $monster->id,
+            'label' => 'Goblin 1',
+            'current_hp' => 7,
+            'max_hp' => 7,
+        ]);
+
+        $response = $this->actingAs($user)->getJson("/api/v1/parties/{$party->id}/monsters");
+
+        $response->assertOk();
+        // Should only include the action, not the reaction
+        expect($response->json('data.0.monster.actions'))->toHaveCount(1);
+        expect($response->json('data.0.monster.actions.0.name'))->toBe('Scimitar');
+    }
+
     // =====================
     // Store Tests
     // =====================

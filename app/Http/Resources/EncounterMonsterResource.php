@@ -28,10 +28,9 @@ class EncounterMonsterResource extends JsonResource
                 'speed_burrow' => $this->monster->speed_burrow,
                 'speed_climb' => $this->monster->speed_climb,
                 'challenge_rating' => $this->monster->challenge_rating,
+                // Actions are pre-filtered (reactions excluded) at query level
                 'actions' => MonsterActionResource::collection(
-                    $this->monster->relationLoaded('actions')
-                        ? $this->monster->actions->where('action_type', '!=', 'reaction')
-                        : []
+                    $this->monster->relationLoaded('actions') ? $this->monster->actions : []
                 ),
             ]),
         ];

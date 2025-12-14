@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Issue #608**: Level-up flow ASI/subclass choices not resolved at level transitions
   - Fixed choice type mappings in LevelUpFlowExecutor (`hp` → `hit_points`, `asi` → `asi_or_feat`)
-  - Fixed HP option selection to use `id` field instead of `value`
+  - Fixed HP option selection to prefer `id` field with fallback to `value`/`slug`
   - Fixed SubclassChoiceHandler to accept standardized `selected` format
   - Fixed OptionalFeatureChoiceHandler to use full class slugs with proper Meilisearch quoting
   - Level-up flow now correctly resolves all pending choices before attempting next level

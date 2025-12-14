@@ -318,12 +318,13 @@ class LevelUpFlowExecutor
     private function selectHpChoice(array $options, CharacterRandomizer $randomizer): array
     {
         // HP options use 'id' field with values: 'roll', 'average', 'manual'
-        $values = array_column($options, 'id');
+        // Filter nulls after array_column to handle sparse/null fields correctly
+        $values = array_filter(array_column($options, 'id'));
         if (empty($values)) {
-            $values = array_column($options, 'value');
+            $values = array_filter(array_column($options, 'value'));
         }
         if (empty($values)) {
-            $values = array_column($options, 'slug');
+            $values = array_filter(array_column($options, 'slug'));
         }
 
         // Prefer 'average' for predictability in testing
@@ -331,7 +332,7 @@ class LevelUpFlowExecutor
             return ['average'];
         }
 
-        return $randomizer->pickRandom(array_filter($values), 1);
+        return $randomizer->pickRandom($values, 1);
     }
 
     private function selectAsiChoice(array $options, CharacterRandomizer $randomizer): array

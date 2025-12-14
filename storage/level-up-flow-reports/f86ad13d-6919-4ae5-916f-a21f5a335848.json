@@ -1,0 +1,27 @@
+{
+    "run_id": "f86ad13d-6919-4ae5-916f-a21f5a335848",
+    "timestamp": "2025-12-14T07:36:30+00:00",
+    "seed": 529021,
+    "options": {
+        "target_level": 3,
+        "chaos": false,
+        "force_class": "phb:fighter",
+        "character": null
+    },
+    "iterations": 0,
+    "results": [],
+    "summary": {
+        "total": 0,
+        "passed": 0,
+        "failed": 0,
+        "errors": 0,
+        "failure_patterns": [],
+        "characters_used": [],
+        "level_stats": {
+            "max_reached": 0,
+            "avg_reached": 0,
+            "total_levels_gained": 0
+        },
+        "pass_rate": 0
+    }
+}

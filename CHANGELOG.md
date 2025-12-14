@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #614**: Optional features missing class/subclass associations in Meilisearch
+  - Fixed `toSearchableArray()` to include parent class slug when linked to a subclass
+  - Fixed `toSearchableArray()` to derive subclass name from linked subclass entity
+  - Maneuvers (Battle Master), Elemental Disciplines (Way of Four Elements), etc. now filterable by base class
+  - **Requires reindex:** `php artisan scout:import "App\Models\OptionalFeature"`
+
 - **Issue #608**: Level-up flow ASI/subclass choices not resolved at level transitions
   - Fixed choice type mappings in LevelUpFlowExecutor (`hp` → `hit_points`, `asi` → `asi_or_feat`)
   - Fixed HP option selection to prefer `id` field with fallback to `value`/`slug`

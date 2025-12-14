@@ -51,8 +51,10 @@ class MonsterActionResource extends JsonResource
         // Extract damage type (e.g., "Slashing Damage" -> "slashing")
         $damageType = strtolower(str_replace(' Damage', '', $parts[0]));
 
-        // Extract attack bonus (e.g., "+4" -> 4)
-        $attackBonus = (int) str_replace('+', '', $parts[1]);
+        // Extract attack bonus (e.g., "+4" -> 4, "-2" -> -2)
+        // Use trim() to preserve negative signs; return null for non-numeric values
+        $bonusValue = trim($parts[1]);
+        $attackBonus = is_numeric($bonusValue) ? (int) $bonusValue : null;
 
         // Extract damage dice (e.g., "1d6+2")
         $damageDice = $parts[2];

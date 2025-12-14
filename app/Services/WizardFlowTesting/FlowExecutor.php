@@ -343,16 +343,14 @@ class FlowExecutor
             $choiceType = $choice['type'] ?? '';
 
             // Skip if no options or if options need to be fetched from endpoint
-            if (empty($options)) {
-                // For spells, we need to fetch from endpoint
-                if ($choiceType === 'spell' && ! empty($choice['options_endpoint'])) {
-                    $spellsResponse = $this->makeRequest('GET', $choice['options_endpoint']);
-                    $options = $spellsResponse['data'] ?? [];
-                }
+            if (empty($options) && ! empty($choice['options_endpoint'])) {
+                // Fetch options from endpoint for any choice type
+                $optionsResponse = $this->makeRequest('GET', $choice['options_endpoint']);
+                $options = $optionsResponse['data'] ?? [];
+            }
 
-                if (empty($options)) {
-                    continue;
-                }
+            if (empty($options)) {
+                continue;
             }
 
             // Determine what to select based on choice type
@@ -568,13 +566,19 @@ class FlowExecutor
 
     private function selectSize(array $options, CharacterRandomizer $randomizer): array
     {
-        // Size options have 'id' field (e.g., 'small', 'medium')
-        $sizeIds = array_column($options, 'id');
-        if (empty($sizeIds)) {
-            $sizeIds = array_column($options, 'slug');
+        // Size options use 'code' field (e.g., 'S', 'M')
+        $codes = array_column($options, 'code');
+        if (empty(array_filter($codes))) {
+            $codes = array_column($options, 'slug');
+        }
+        if (empty(array_filter($codes))) {
+            $codes = array_column($options, 'id');
         }
 
-        return $randomizer->pickRandom(array_filter($sizeIds), 1);
+        // Ensure we return strings
+        $values = array_map('strval', array_filter($codes));
+
+        return $randomizer->pickRandom($values, 1);
     }
 
     private function selectFeat(array $options, CharacterRandomizer $randomizer, array $alreadySelected): array
@@ -609,7 +613,10 @@ class FlowExecutor
             $values = array_column($options, 'id');
         }
 
-        return $randomizer->pickRandom(array_filter($values), 1);
+        // Ensure we return strings
+        $values = array_map('strval', array_filter($values));
+
+        return $randomizer->pickRandom($values, 1);
     }
 
     private function selectGeneric(array $options, CharacterRandomizer $randomizer, int $count, array $alreadySelected): array
@@ -623,7 +630,9 @@ class FlowExecutor
             $values = array_column($options, 'id');
         }
 
-        $values = array_diff(array_filter($values), $alreadySelected);
+        // Ensure we return strings
+        $values = array_map('strval', array_filter($values));
+        $values = array_diff($values, $alreadySelected);
 
         return $randomizer->pickRandom(array_values($values), min($count, count($values)));
     }

@@ -539,7 +539,7 @@ class FlowExecutor
                 'size' => $this->selectSize($options, $randomizer),
                 'feat' => $this->selectFeat($options, $randomizer, $alreadySelected),
                 'optional_feature' => $this->selectOptionalFeature($options, $randomizer, $count, $alreadySelected),
-                'ability_score' => $this->selectAbilityScore($options, $randomizer),
+                'ability_score' => $this->selectAbilityScore($options, $randomizer, $count),
                 default => $this->selectGeneric($options, $randomizer, $count, $alreadySelected),
             };
 
@@ -599,7 +599,7 @@ class FlowExecutor
         return $randomizer->pickRandom(array_values($slugs), min($count, count($slugs)));
     }
 
-    private function selectAbilityScore(array $options, CharacterRandomizer $randomizer): array
+    private function selectAbilityScore(array $options, CharacterRandomizer $randomizer, int $count = 1): array
     {
         // Ability score choices use 'code' field (STR, DEX, etc.)
         $values = array_column($options, 'code');
@@ -616,7 +616,7 @@ class FlowExecutor
         // Ensure we return strings
         $values = array_map('strval', array_filter($values));
 
-        return $randomizer->pickRandom($values, 1);
+        return $randomizer->pickRandom($values, min($count, count($values)));
     }
 
     private function selectGeneric(array $options, CharacterRandomizer $randomizer, int $count, array $alreadySelected): array
@@ -686,7 +686,7 @@ class FlowExecutor
                     'size' => $this->selectSize($options, $randomizer),
                     'feat' => $this->selectFeat($options, $randomizer, $alreadySelected),
                     'optional_feature' => $this->selectOptionalFeature($options, $randomizer, $count, $alreadySelected),
-                    'ability_score' => $this->selectAbilityScore($options, $randomizer),
+                    'ability_score' => $this->selectAbilityScore($options, $randomizer, $count),
                     'subclass' => $this->selectSubclass($options, $randomizer),
                     default => $this->selectGeneric($options, $randomizer, $count, $alreadySelected),
                 };

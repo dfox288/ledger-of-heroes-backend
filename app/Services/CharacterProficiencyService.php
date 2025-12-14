@@ -277,10 +277,19 @@ class CharacterProficiencyService
             }
         } elseif ($proficiencySubcategory) {
             // Unrestricted with subcategory constraint (e.g., "artisan tools")
-            $validProficiencyTypeSlugs = \App\Models\ProficiencyType::where('category', $proficiencyType)
-                ->where('subcategory', $proficiencySubcategory)
-                ->pluck('slug')
-                ->toArray();
+            // Musical instruments and gaming sets are stored as top-level categories,
+            // not as subcategories of 'tool'. Handle them specially.
+            $standaloneCategories = ['musical_instrument', 'gaming_set'];
+            if (in_array($proficiencySubcategory, $standaloneCategories, true)) {
+                $validProficiencyTypeSlugs = \App\Models\ProficiencyType::where('category', $proficiencySubcategory)
+                    ->pluck('slug')
+                    ->toArray();
+            } else {
+                $validProficiencyTypeSlugs = \App\Models\ProficiencyType::where('category', $proficiencyType)
+                    ->where('subcategory', $proficiencySubcategory)
+                    ->pluck('slug')
+                    ->toArray();
+            }
 
             foreach ($proficiencyTypeSlugs as $proficiencyTypeSlug) {
                 if (! in_array($proficiencyTypeSlug, $validProficiencyTypeSlugs)) {

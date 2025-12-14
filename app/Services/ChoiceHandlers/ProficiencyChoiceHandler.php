@@ -168,6 +168,13 @@ class ProficiencyChoiceHandler extends AbstractChoiceHandler
         $profType = $choiceData['proficiency_type'] ?? null;
 
         if ($subcategory && $profType !== 'skill') {
+            // Musical instruments and gaming sets are stored as top-level categories,
+            // not as subcategories of 'tool'. Handle them specially.
+            $standaloneCategories = ['musical_instrument', 'gaming_set'];
+            if (in_array($subcategory, $standaloneCategories, true)) {
+                return "/api/v1/lookups/proficiency-types?category={$subcategory}";
+            }
+
             return "/api/v1/lookups/proficiency-types?category={$profType}&subcategory={$subcategory}";
         }
 

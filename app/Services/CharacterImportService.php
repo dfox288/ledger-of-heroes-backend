@@ -27,6 +27,7 @@ use App\Models\ProficiencyType;
 use App\Models\Race;
 use App\Models\Skill;
 use App\Models\Spell;
+use App\Support\NoteCategories;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -316,10 +317,24 @@ class CharacterImportService
                 continue;
             }
 
+            if (strlen($category) > 50) {
+                $this->warnings[] = "Note category '{$category}' exceeds 50 characters - skipping note";
+
+                continue;
+            }
+
+            $title = $noteData['title'] ?? null;
+
+            if (NoteCategories::requiresTitle($category) && empty($title)) {
+                $this->warnings[] = "Note category '{$category}' requires a title - skipping note";
+
+                continue;
+            }
+
             CharacterNote::create([
                 'character_id' => $character->id,
                 'category' => $category,
-                'title' => $noteData['title'] ?? null,
+                'title' => $title,
                 'content' => $noteData['content'] ?? '',
                 'sort_order' => $noteData['sort_order'] ?? 0,
             ]);

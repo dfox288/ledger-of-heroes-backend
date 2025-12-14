@@ -42,10 +42,23 @@ class CharacterEquipmentController extends Controller
      * - **Database items** - Reference items from the items table with full stats
      * - **Custom items** - Freetext items (homebrew, quest rewards, notes)
      */
+    private const CURRENCY_SLUGS = [
+        'phb:copper-cp',
+        'phb:silver-sp',
+        'phb:electrum-ep',
+        'phb:gold-gp',
+        'phb:platinum-pp',
+    ];
+
     public function index(Character $character): AnonymousResourceCollection
     {
         $equipment = $character->equipment()
             ->with('item.itemType')
+            ->where(function ($query) {
+                // Include custom items (no item_slug) and non-currency items
+                $query->whereNull('item_slug')
+                    ->orWhereNotIn('item_slug', self::CURRENCY_SLUGS);
+            })
             ->get();
 
         return CharacterEquipmentResource::collection($equipment);

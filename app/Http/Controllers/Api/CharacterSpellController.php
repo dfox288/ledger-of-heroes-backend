@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Character\AvailableSpellsRequest;
 use App\Http\Requests\Character\CharacterSpellStoreRequest;
+use App\Http\Requests\Character\CharacterSpellUpdateRequest;
 use App\Http\Resources\CharacterSpellResource;
 use App\Http\Resources\SpellResource;
 use App\Http\Resources\SpellSlotsResource;
 use App\Models\Character;
+use App\Models\CharacterSpell;
 use App\Models\Spell;
 use App\Services\SpellManagerService;
 use Illuminate\Http\JsonResponse;
@@ -156,6 +158,90 @@ class CharacterSpellController extends Controller
         return (new CharacterSpellResource($characterSpell))
             ->response()
             ->setStatusCode(Response::HTTP_CREATED);
+    }
+
+    /**
+     * Toggle spell preparation status
+     *
+     * Updates a character spell's preparation status via a single endpoint.
+     * Use `is_prepared: true` to prepare and `is_prepared: false` to unprepare.
+     *
+     * **Examples:**
+     * ```
+     * PATCH /api/v1/characters/1/spells/42
+     * {"is_prepared": true}   # Prepare the spell
+     * {"is_prepared": false}  # Unprepare the spell
+     * ```
+     *
+     * **Validation:**
+     * - Cannot unprepare `always_prepared` spells (domain spells, etc.)
+     * - Cannot exceed `preparation_limit` when preparing
+     * - Cantrips cannot be prepared (they're always ready)
+     *
+     * @param  Character  $character  The character
+     * @param  int  $characterSpellId  The CharacterSpell ID
+     */
+    public function update(CharacterSpellUpdateRequest $request, Character $character, int $characterSpellId): CharacterSpellResource|JsonResponse
+    {
+        // Find the character spell and verify ownership
+        $characterSpell = CharacterSpell::where('character_id', $character->id)
+            ->where('id', $characterSpellId)
+            ->first();
+
+        if (! $characterSpell) {
+            return response()->json([
+                'message' => 'Character spell not found.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $isPrepared = $request->boolean('is_prepared');
+        $characterSpell->load('spell.spellSchool');
+
+        if ($isPrepared) {
+            // Prepare the spell
+            if (! $characterSpell->spell) {
+                // Dangling reference - can't validate level
+                return response()->json([
+                    'message' => 'Cannot prepare a dangling spell reference.',
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
+            // Already prepared - idempotent success
+            if ($characterSpell->preparation_status === 'prepared') {
+                return new CharacterSpellResource($characterSpell);
+            }
+
+            // Use the service for validation (cantrip check, prep limit)
+            try {
+                $this->spellManager->prepareSpell($character, $characterSpell->spell);
+            } catch (\App\Exceptions\SpellManagementException $e) {
+                return response()->json([
+                    'message' => $e->getMessage(),
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
+            // Reload to get the updated status
+            $characterSpell->refresh();
+        } else {
+            // Unprepare the spell
+
+            // Cannot unprepare always-prepared spells
+            if ($characterSpell->isAlwaysPrepared()) {
+                return response()->json([
+                    'message' => 'Cannot unprepare an always-prepared spell.',
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
+            // Already known (not prepared) - idempotent success
+            if ($characterSpell->preparation_status === 'known') {
+                return new CharacterSpellResource($characterSpell);
+            }
+
+            $characterSpell->update(['preparation_status' => 'known']);
+            $characterSpell->refresh();
+        }
+
+        return new CharacterSpellResource($characterSpell);
     }
 
     /**

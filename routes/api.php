@@ -284,6 +284,9 @@ Route::prefix('v1')->group(function () {
             ->name('spells.store');
         Route::delete('spells/{spellIdOrSlug}', [\App\Http\Controllers\Api\CharacterSpellController::class, 'destroy'])
             ->name('spells.destroy');
+        Route::patch('spells/{characterSpellId}', [\App\Http\Controllers\Api\CharacterSpellController::class, 'update'])
+            ->where('characterSpellId', '[0-9]+')
+            ->name('spells.update');
         Route::patch('spells/{spellIdOrSlug}/prepare', [\App\Http\Controllers\Api\CharacterSpellController::class, 'prepare'])
             ->name('spells.prepare');
         Route::patch('spells/{spellIdOrSlug}/unprepare', [\App\Http\Controllers\Api\CharacterSpellController::class, 'unprepare'])
@@ -292,6 +295,9 @@ Route::prefix('v1')->group(function () {
             ->name('spell-slots');
         Route::post('spell-slots/use', [\App\Http\Controllers\Api\SpellSlotController::class, 'use'])
             ->name('spell-slots.use');
+        Route::patch('spell-slots/{level}', [\App\Http\Controllers\Api\SpellSlotController::class, 'update'])
+            ->where('level', '[1-9]')
+            ->name('spell-slots.update');
 
         // Character Equipment Management
         Route::get('equipment', [\App\Http\Controllers\Api\CharacterEquipmentController::class, 'index'])

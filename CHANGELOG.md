@@ -32,6 +32,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #612**: Spell slot tracking and preparation toggle endpoints
+  - `PATCH /api/v1/characters/{id}/spells/{characterSpellId}` - Toggle spell preparation via `is_prepared` boolean
+    - Validates preparation limit and always-prepared spells
+    - Idempotent: re-preparing or re-unpreparing is safe
+  - `PATCH /api/v1/characters/{id}/spell-slots/{level}` - Update spell slot usage
+    - Absolute mode: `{ "spent": 2 }` sets exact spent count
+    - Action mode: `{ "action": "use|restore|reset" }` for incremental changes
+    - Supports `slot_type: "pact_magic"` for Warlocks
+    - Auto-creates slot records on first use if character has calculated slots
+
 - **Issue #610**: Encounter monsters API for DM Screen
   - New endpoints for managing monsters in party encounters
   - `GET /api/v1/parties/{id}/monsters` - List monsters in encounter

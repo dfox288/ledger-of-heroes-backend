@@ -307,6 +307,15 @@ class LevelUpFlowExecutor
         }
 
         if (empty($options)) {
+            Log::warning('Level-up flow: empty options for choice', [
+                'character_id' => $characterId,
+                'choice_id' => $choiceId,
+                'choice_type' => $choiceType,
+                'choice_label' => $choice['label'] ?? 'unknown',
+                'options_endpoint' => $choice['options_endpoint'] ?? 'none',
+                'metadata' => $choice['metadata'] ?? [],
+            ]);
+
             return false;
         }
 
@@ -333,7 +342,21 @@ class LevelUpFlowExecutor
             'selected' => (array) $selected,
         ]);
 
-        return ! isset($response['error']);
+        if (isset($response['error'])) {
+            Log::warning('Level-up flow: choice resolution failed', [
+                'character_id' => $characterId,
+                'choice_id' => $choiceId,
+                'choice_type' => $choiceType,
+                'choice_label' => $choice['label'] ?? 'unknown',
+                'selected' => $selected,
+                'error' => $response['message'] ?? 'unknown',
+                'errors' => $response['errors'] ?? [],
+            ]);
+
+            return false;
+        }
+
+        return true;
     }
 
     private function selectHpChoice(array $options, CharacterRandomizer $randomizer): array

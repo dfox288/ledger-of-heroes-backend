@@ -349,7 +349,12 @@ class ItemImporter extends BaseImporter
             return $this->inferSlotFromName($itemName);
         }
 
-        // Other types (Potion, Scroll, Gear, etc.) don't have body slots
+        // For Adventuring Gear (G), check if it's clothes
+        if ($typeCode === 'G' && stripos($itemName, 'Clothes') !== false) {
+            return 'clothes';
+        }
+
+        // Other types (Potion, Scroll, other Gear, etc.) don't have body slots
         return null;
     }
 

@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #620**: Arcane Shot optional features missing class/subclass associations
+  - Fixed XML parser to handle `: Feature Type` suffix in classes string (e.g., `Fighter (Arcane Archer): Arcane Shot`)
+  - Added ARCANE_SHOT and RUNE to fallback class inference
+  - Arcane Shot features now correctly linked to Arcane Archer subclass
+  - **Requires reimport:** `php artisan import:all` (or re-index: `php artisan scout:import "App\Models\OptionalFeature"`)
+
 - **Issue #614**: Optional features missing class/subclass associations in Meilisearch
   - Fixed `toSearchableArray()` to include parent class slug when linked to a subclass
   - Fixed `toSearchableArray()` to derive subclass name from linked subclass entity

@@ -227,6 +227,7 @@ class OptionalFeatureXmlParser
      * Handles:
      * - Pseudo-class names: "Eldritch Invocations" -> Warlock
      * - Class with subclass: "Monk (Way of the Four Elements)" -> class: Monk, subclass: Way of the Four Elements
+     * - Feature type suffix: "Fighter (Arcane Archer): Arcane Shot" -> class: Fighter, subclass: Arcane Archer
      *
      * @return array<int, array{class: string, subclass: string|null}>
      */
@@ -248,8 +249,12 @@ class OptionalFeatureXmlParser
             return [$classMap[$classesString]];
         }
 
+        // Strip feature type suffix after closing paren
+        // e.g., "Fighter (Arcane Archer): Arcane Shot" -> "Fighter (Arcane Archer)"
+        $cleanedString = preg_replace('/\)[^)]*$/', ')', $classesString);
+
         // Pattern: "ClassName (Subclass Name)"
-        if (preg_match('/^(.+?)\s*\((.+?)\)$/', $classesString, $matches)) {
+        if (preg_match('/^(.+?)\s*\((.+?)\)$/', $cleanedString, $matches)) {
             return [[
                 'class' => trim($matches[1]),
                 'subclass' => trim($matches[2]),
@@ -281,6 +286,8 @@ class OptionalFeatureXmlParser
                 ['class' => 'Paladin', 'subclass' => null],
                 ['class' => 'Ranger', 'subclass' => null],
             ],
+            OptionalFeatureType::ARCANE_SHOT => [['class' => 'Fighter', 'subclass' => 'Arcane Archer']],
+            OptionalFeatureType::RUNE => [['class' => 'Fighter', 'subclass' => 'Rune Knight']],
             default => [],
         };
     }

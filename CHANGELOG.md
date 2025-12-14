@@ -25,6 +25,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #592**: Dynamic attunement slots based on class features
+  - Artificer class now grants increased attunement slots at levels 10, 14, and 18
+  - Magic Item Adept (L10): 4 slots
+  - Magic Item Savant (L14): 5 slots
+  - Magic Item Master (L18): 6 slots
+  - Added `HasModifiers` trait to `ClassFeature` model
+  - Added `max_attunement_slots` accessor to `Character` model
+  - Updated `CharacterResource` to use dynamic max instead of hardcoded 3
+  - Updated attunement validation to respect dynamic max
+  - Importer now parses "attune to up to X magic items" from feature descriptions
+
 - **Issue #575**: Comprehensive unit tests for `AvailableFeatsService`
   - 33 tests covering all prerequisite checking logic
   - Tests for: no prerequisites, ability score prerequisites, race prerequisites (including subraces)

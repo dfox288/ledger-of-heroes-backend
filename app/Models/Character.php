@@ -318,6 +318,58 @@ class Character extends Model implements HasMedia
     }
 
     /**
+     * Get maximum attunement slots based on class features.
+     *
+     * D&D 5e default is 3, but Artificer class features can increase this:
+     * - Level 10 Magic Item Adept: 4 slots
+     * - Level 14 Magic Item Savant: 5 slots
+     * - Level 18 Magic Item Master: 6 slots
+     */
+    public function getMaxAttunementSlotsAttribute(): int
+    {
+        $max = 3; // D&D 5e default
+
+        // Build class level constraints: [class_id => max_level]
+        $classLevels = [];
+        foreach ($this->characterClasses as $classPivot) {
+            $classId = $classPivot->characterClass?->id;
+            if ($classId) {
+                $classLevels[$classId] = $classPivot->level;
+            }
+        }
+
+        if (empty($classLevels)) {
+            return $max;
+        }
+
+        // Single query: get all attunement_max modifiers from features of character's classes
+        $modifiers = Modifier::where('modifier_category', 'attunement_max')
+            ->where('reference_type', ClassFeature::class)
+            ->whereIn('reference_id', function ($query) use ($classLevels) {
+                $query->select('id')
+                    ->from('class_features')
+                    ->where(function ($q) use ($classLevels) {
+                        foreach ($classLevels as $classId => $level) {
+                            $q->orWhere(function ($subQ) use ($classId, $level) {
+                                $subQ->where('class_id', $classId)
+                                    ->where('level', '<=', $level);
+                            });
+                        }
+                    });
+            })
+            ->get();
+
+        foreach ($modifiers as $modifier) {
+            $value = (int) $modifier->value;
+            if ($value > $max) {
+                $max = $value;
+            }
+        }
+
+        return $max;
+    }
+
+    /**
      * Check if character has all required fields set (wizard-style complete).
      */
     public function getIsCompleteAttribute(): bool

@@ -120,6 +120,10 @@ trait ImportsClassFeatures
             // Pattern: "AC equals X + your Dexterity modifier (+ your Y modifier)"
             $this->importUnarmoredDefense($class, $feature, $featureData['description']);
 
+            // Detect attunement slot increases from feature description
+            // Pattern: "attune to up to X magic items" (Artificer Magic Item Adept/Savant/Master)
+            $this->importAttunementMax($feature, $featureData['description']);
+
             // Import random tables from <roll> XML elements
             if (! empty($featureData['rolls'])) {
                 $this->importFeatureRolls($feature, $featureData['rolls']);
@@ -744,6 +748,61 @@ trait ImportsClassFeatures
                 'ability_score_id' => $dex?->id,
                 'secondary_ability_score_id' => $secondaryAbilityScoreId,
                 'condition' => $condition,
+            ]
+        );
+    }
+
+    /**
+     * Import attunement slot increases from feature description text.
+     *
+     * Detects patterns like:
+     * - "You can attune to up to four magic items at once." (Magic Item Adept)
+     * - "You can attune to up to five magic items at once." (Magic Item Savant)
+     * - "you can now attune to up to six magic items at once." (Magic Item Master)
+     *
+     * Creates attunement_max modifier linked to the ClassFeature.
+     */
+    protected function importAttunementMax(ClassFeature $feature, string $text): void
+    {
+        // Pattern: "attune to up to {number word} magic items"
+        // Handles "four", "five", "six", etc.
+        if (! preg_match('/attune to up to (\w+) magic items/i', $text, $matches)) {
+            return;
+        }
+
+        $numberWord = strtolower($matches[1]);
+
+        // Map number words to integers
+        $numberMap = [
+            'one' => 1,
+            'two' => 2,
+            'three' => 3,
+            'four' => 4,
+            'five' => 5,
+            'six' => 6,
+            'seven' => 7,
+            'eight' => 8,
+            'nine' => 9,
+            'ten' => 10,
+        ];
+
+        $maxSlots = $numberMap[$numberWord] ?? null;
+
+        if ($maxSlots === null) {
+            // Unknown number word - skip
+            return;
+        }
+
+        // Use updateOrCreate to prevent duplicates on re-import
+        // Link to ClassFeature, not CharacterClass
+        Modifier::updateOrCreate(
+            [
+                'reference_type' => ClassFeature::class,
+                'reference_id' => $feature->id,
+                'modifier_category' => 'attunement_max',
+            ],
+            [
+                'value' => $maxSlots,
             ]
         );
     }

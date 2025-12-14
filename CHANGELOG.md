@@ -25,6 +25,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #593**: Level-Up Flow Chaos Testing Tool
+  - New artisan command: `php artisan test:level-up-flow`
+  - Linear mode: Single-class progression from level 1 to target (default 20)
+  - Chaos mode: Random multiclassing and random choices (`--chaos`)
+  - Validates HP, class level, total level, and pending choices after each level-up
+  - JSON reports with reproducible seeds saved to `storage/level-up-flow-reports/`
+  - Options: `--target-level`, `--force-class`, `--count`, `--seed`, `--cleanup`
+  - Report viewing: `--list-reports`, `--show-report=<id>`
+  - New service classes in `app/Services/LevelUpFlowTesting/`
+
 - **Issue #592**: Dynamic attunement slots based on class features
   - Artificer class now grants increased attunement slots at levels 10, 14, and 18
   - Magic Item Adept (L10): 4 slots

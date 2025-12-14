@@ -338,4 +338,34 @@ class OptionalFeatureTest extends TestCase
         // Should include parent class slug
         expect($searchableArray['class_slugs'])->toContain('phb:monk');
     }
+
+    #[Test]
+    public function searchable_array_only_includes_base_class_when_not_linked_to_subclass(): void
+    {
+        // Create base class only (no subclass)
+        $warlock = CharacterClass::factory()->create([
+            'name' => 'Warlock',
+            'slug' => 'phb:warlock',
+            'parent_class_id' => null,
+        ]);
+
+        // Create feature linked to base class
+        $feature = OptionalFeature::factory()->create([
+            'name' => 'Armor of Shadows',
+            'feature_type' => OptionalFeatureType::ELDRITCH_INVOCATION,
+        ]);
+
+        ClassOptionalFeature::create([
+            'class_id' => $warlock->id,
+            'optional_feature_id' => $feature->id,
+            'subclass_name' => null,
+        ]);
+
+        $searchableArray = $feature->fresh()->toSearchableArray();
+
+        // Should only include base class slug
+        expect($searchableArray['class_slugs'])->toBe(['phb:warlock']);
+        // Should have no subclass names
+        expect($searchableArray['subclass_names'])->toBe([]);
+    }
 }

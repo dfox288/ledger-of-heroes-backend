@@ -93,7 +93,15 @@ class LevelUpFlowExecutor
                 if ($chaosMode && $level > 2 && $randomizer->randomInt(1, 100) <= 20) {
                     $multiclassResult = $this->tryAddMulticlass($characterId, $classLevels, $randomizer);
                     if ($multiclassResult !== null) {
-                        $classLevels[$multiclassResult] = 0;
+                        // Adding a multiclass creates the class at level 1, so:
+                        // - Track that this new class is at level 1
+                        $classLevels[$multiclassResult] = 1;
+                        // - Skip this level since the multiclass used it
+                        // - Adding a multiclass may introduce new requirements - resolve them
+                        $this->resolveAllPendingChoices($characterId, $randomizer);
+
+                        // Skip to next level since multiclass consumed this level
+                        continue;
                     }
                 }
 
@@ -281,7 +289,20 @@ class LevelUpFlowExecutor
 
         // Fetch options from endpoint if not inline
         if (empty($options) && ! empty($choice['options_endpoint'])) {
-            $optionsResponse = $this->makeRequest('GET', $choice['options_endpoint']);
+            $endpoint = $choice['options_endpoint'];
+
+            // For spell choices, append class parameter if available in metadata
+            // This is needed when multiclassing into a spellcasting class, as the
+            // available-spells endpoint defaults to the primary class's spell list
+            if (in_array($choiceType, ['spell', 'spells_known', 'cantrip'], true)) {
+                $classSlug = $choice['metadata']['class_slug'] ?? null;
+                if ($classSlug && ! str_contains($endpoint, 'class=')) {
+                    $separator = str_contains($endpoint, '?') ? '&' : '?';
+                    $endpoint .= $separator.'class='.urlencode($classSlug);
+                }
+            }
+
+            $optionsResponse = $this->makeRequest('GET', $endpoint);
             $options = $optionsResponse['data'] ?? [];
         }
 
@@ -359,8 +380,10 @@ class LevelUpFlowExecutor
     private function selectSpells(array $options, CharacterRandomizer $randomizer, int $count): array
     {
         $slugs = array_column($options, 'slug');
+        $filteredSlugs = array_filter($slugs);
+        $selectCount = min($count, count($filteredSlugs));
 
-        return $randomizer->pickRandom(array_filter($slugs), min($count, count($slugs)));
+        return $randomizer->pickRandom($filteredSlugs, $selectCount);
     }
 
     private function selectFeat(array $options, CharacterRandomizer $randomizer): array

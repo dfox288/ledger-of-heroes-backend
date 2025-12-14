@@ -1153,4 +1153,126 @@ class CharacterProficiencyServiceTest extends TestCase
         $optionSlugs = collect($toolChoice['options'])->pluck('proficiency_type_slug')->filter()->all();
         $this->assertContains($smithsTools->slug, $optionSlugs);
     }
+
+    #[Test]
+    public function it_returns_gaming_set_options_for_gaming_subcategory(): void
+    {
+        // Gaming sets are stored with category='gaming_set' (as standalone categories)
+        // but background choices may use subcategory='gaming'
+        $diceSet = ProficiencyType::create([
+            'name' => 'Dice Set',
+            'slug' => 'test:dice-set-'.uniqid(),
+            'category' => 'gaming_set', // Standalone category
+            'subcategory' => null,
+        ]);
+        $playingCards = ProficiencyType::create([
+            'name' => 'Playing Card Set',
+            'slug' => 'test:playing-cards-'.uniqid(),
+            'category' => 'gaming_set',
+            'subcategory' => null,
+        ]);
+        $regularTool = ProficiencyType::create([
+            'name' => 'Regular Tool',
+            'slug' => 'test:regular-tool-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'misc',
+        ]);
+
+        // Create background with gaming set choice (using 'gaming' subcategory)
+        $knightBackground = \App\Models\Background::factory()->create([
+            'name' => 'Knight of the Order',
+            'slug' => 'test:knight-'.uniqid(),
+        ]);
+        EntityChoice::create([
+            'reference_type' => \App\Models\Background::class,
+            'reference_id' => $knightBackground->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'tool',
+            'choice_group' => 'tool_choice_1',
+            'quantity' => 1,
+            'target_type' => null,
+            'target_slug' => null,
+            'constraints' => ['subcategory' => 'gaming'], // Uses 'gaming' not 'gaming_set'
+        ]);
+
+        $character = Character::factory()->withBackground($knightBackground)->create();
+
+        // Get pending choices
+        $choices = $this->service->getPendingChoices($character);
+
+        // Assert gaming set choice exists and has options
+        $this->assertArrayHasKey('background', $choices);
+        $this->assertArrayHasKey('tool_choice_1', $choices['background']);
+
+        $gamingChoice = $choices['background']['tool_choice_1'];
+        $this->assertEquals('tool', $gamingChoice['proficiency_type']);
+        $this->assertEquals('gaming', $gamingChoice['proficiency_subcategory']);
+
+        // Should have gaming set options (from gaming_set category)
+        $optionSlugs = collect($gamingChoice['options'])->pluck('proficiency_type_slug')->filter()->all();
+        $this->assertContains($diceSet->slug, $optionSlugs, 'Should include gaming sets');
+        $this->assertContains($playingCards->slug, $optionSlugs, 'Should include gaming sets');
+        $this->assertNotContains($regularTool->slug, $optionSlugs, 'Should NOT include regular tools');
+    }
+
+    #[Test]
+    public function it_returns_musical_instrument_options_for_musical_subcategory(): void
+    {
+        // Musical instruments are stored with category='musical_instrument' (as standalone categories)
+        // but background choices may use subcategory='musical'
+        $lute = ProficiencyType::create([
+            'name' => 'Lute',
+            'slug' => 'test:lute-'.uniqid(),
+            'category' => 'musical_instrument', // Standalone category
+            'subcategory' => null,
+        ]);
+        $drums = ProficiencyType::create([
+            'name' => 'Drums',
+            'slug' => 'test:drums-'.uniqid(),
+            'category' => 'musical_instrument',
+            'subcategory' => null,
+        ]);
+        $regularTool = ProficiencyType::create([
+            'name' => 'Artisan Tool',
+            'slug' => 'test:artisan-tool-'.uniqid(),
+            'category' => 'tool',
+            'subcategory' => 'artisan',
+        ]);
+
+        // Create background with musical instrument choice (using 'musical' subcategory)
+        $entertainerBackground = \App\Models\Background::factory()->create([
+            'name' => 'Entertainer',
+            'slug' => 'test:entertainer-'.uniqid(),
+        ]);
+        EntityChoice::create([
+            'reference_type' => \App\Models\Background::class,
+            'reference_id' => $entertainerBackground->id,
+            'choice_type' => 'proficiency',
+            'proficiency_type' => 'tool',
+            'choice_group' => 'tool_choice_1',
+            'quantity' => 1,
+            'target_type' => null,
+            'target_slug' => null,
+            'constraints' => ['subcategory' => 'musical'], // Uses 'musical' not 'musical_instrument'
+        ]);
+
+        $character = Character::factory()->withBackground($entertainerBackground)->create();
+
+        // Get pending choices
+        $choices = $this->service->getPendingChoices($character);
+
+        // Assert musical instrument choice exists and has options
+        $this->assertArrayHasKey('background', $choices);
+        $this->assertArrayHasKey('tool_choice_1', $choices['background']);
+
+        $musicalChoice = $choices['background']['tool_choice_1'];
+        $this->assertEquals('tool', $musicalChoice['proficiency_type']);
+        $this->assertEquals('musical', $musicalChoice['proficiency_subcategory']);
+
+        // Should have musical instrument options (from musical_instrument category)
+        $optionSlugs = collect($musicalChoice['options'])->pluck('proficiency_type_slug')->filter()->all();
+        $this->assertContains($lute->slug, $optionSlugs, 'Should include musical instruments');
+        $this->assertContains($drums->slug, $optionSlugs, 'Should include musical instruments');
+        $this->assertNotContains($regularTool->slug, $optionSlugs, 'Should NOT include regular tools');
+    }
 }

@@ -2,9 +2,9 @@
 
 namespace Tests\Feature\Api;
 
-use App\Enums\NoteCategory;
 use App\Models\Character;
 use App\Models\CharacterNote;
+use App\Support\NoteCategories;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -135,7 +135,7 @@ class CharacterNoteApiTest extends TestCase
     }
 
     #[Test]
-    public function it_requires_title_for_custom_notes(): void
+    public function it_allows_custom_notes_without_title(): void
     {
         $character = Character::factory()->create();
 
@@ -144,8 +144,9 @@ class CharacterNoteApiTest extends TestCase
             'content' => 'Some content without title',
         ]);
 
-        $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['title']);
+        $response->assertCreated()
+            ->assertJsonPath('data.category', 'custom')
+            ->assertJsonPath('data.title', null);
     }
 
     #[Test]
@@ -192,12 +193,27 @@ class CharacterNoteApiTest extends TestCase
     }
 
     #[Test]
-    public function it_validates_category_is_valid_enum(): void
+    public function it_accepts_any_category_string(): void
     {
         $character = Character::factory()->create();
 
         $response = $this->postJson("/api/v1/characters/{$character->id}/notes", [
-            'category' => 'invalid_category',
+            'category' => 'session_notes',
+            'content' => 'Notes from session 1',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.category', 'session_notes')
+            ->assertJsonPath('data.category_label', 'Session Notes');
+    }
+
+    #[Test]
+    public function it_validates_category_max_length(): void
+    {
+        $character = Character::factory()->create();
+
+        $response = $this->postJson("/api/v1/characters/{$character->id}/notes", [
+            'category' => str_repeat('a', 51),
             'content' => 'Some content',
         ]);
 
@@ -322,10 +338,10 @@ class CharacterNoteApiTest extends TestCase
     }
 
     #[Test]
-    public function it_prevents_removing_title_from_custom_note(): void
+    public function it_prevents_removing_title_from_backstory_note(): void
     {
         $character = Character::factory()->create();
-        $note = CharacterNote::factory()->for($character)->custom()->create([
+        $note = CharacterNote::factory()->for($character)->backstory()->create([
             'title' => 'Required Title',
         ]);
 
@@ -335,6 +351,22 @@ class CharacterNoteApiTest extends TestCase
 
         $response->assertUnprocessable()
             ->assertJsonValidationErrors(['title']);
+    }
+
+    #[Test]
+    public function it_allows_removing_title_from_custom_note(): void
+    {
+        $character = Character::factory()->create();
+        $note = CharacterNote::factory()->for($character)->custom()->create([
+            'title' => 'Optional Title',
+        ]);
+
+        $response = $this->putJson("/api/v1/characters/{$character->id}/notes/{$note->id}", [
+            'title' => null,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.title', null);
     }
 
     #[Test]
@@ -424,19 +456,19 @@ class CharacterNoteApiTest extends TestCase
     }
 
     #[Test]
-    public function it_supports_all_category_types(): void
+    public function it_supports_all_default_category_types(): void
     {
         $character = Character::factory()->create();
 
-        foreach (NoteCategory::cases() as $category) {
+        foreach (NoteCategories::DEFAULTS as $category) {
             $payload = [
-                'category' => $category->value,
-                'content' => "Content for {$category->value}",
+                'category' => $category,
+                'content' => "Content for {$category}",
             ];
 
             // Add title for categories that require it
-            if ($category->requiresTitle()) {
-                $payload['title'] = "Title for {$category->value}";
+            if (NoteCategories::requiresTitle($category)) {
+                $payload['title'] = "Title for {$category}";
             }
 
             $response = $this->postJson("/api/v1/characters/{$character->id}/notes", $payload);
@@ -444,6 +476,58 @@ class CharacterNoteApiTest extends TestCase
             $response->assertCreated();
         }
 
-        $this->assertDatabaseCount('character_notes', count(NoteCategory::cases()));
+        $this->assertDatabaseCount('character_notes', count(NoteCategories::DEFAULTS));
+    }
+
+    #[Test]
+    public function it_supports_user_created_categories(): void
+    {
+        $character = Character::factory()->create();
+
+        $customCategories = ['session_notes', 'npcs', 'quest_log', 'My Custom Category'];
+
+        foreach ($customCategories as $category) {
+            $response = $this->postJson("/api/v1/characters/{$character->id}/notes", [
+                'category' => $category,
+                'content' => "Content for {$category}",
+            ]);
+
+            $response->assertCreated()
+                ->assertJsonPath('data.category', $category);
+        }
+
+        $this->assertDatabaseCount('character_notes', count($customCategories));
+    }
+
+    #[Test]
+    public function it_groups_user_created_categories_in_index(): void
+    {
+        $character = Character::factory()->create();
+
+        CharacterNote::factory()->for($character)->create([
+            'category' => 'session_notes',
+            'content' => 'Session 1 notes',
+        ]);
+        CharacterNote::factory()->for($character)->create([
+            'category' => 'session_notes',
+            'content' => 'Session 2 notes',
+        ]);
+        CharacterNote::factory()->for($character)->create([
+            'category' => 'npcs',
+            'content' => 'NPC notes',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/notes");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'session_notes',
+                    'npcs',
+                ],
+            ]);
+
+        $this->assertCount(2, $response->json('data.session_notes'));
+        $this->assertCount(1, $response->json('data.npcs'));
     }
 }

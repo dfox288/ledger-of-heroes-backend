@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\DTOs\CharacterImportResult;
 use App\Enums\AbilityScoreMethod;
-use App\Enums\NoteCategory;
 use App\Models\Background;
 use App\Models\Character;
 use App\Models\CharacterAbilityScore;
@@ -309,10 +308,10 @@ class CharacterImportService
     private function importNotes(Character $character, array $notes): void
     {
         foreach ($notes as $noteData) {
-            $category = NoteCategory::tryFrom($noteData['category']);
+            $category = $noteData['category'] ?? null;
 
-            if (! $category) {
-                $this->warnings[] = "Unknown note category '{$noteData['category']}' - skipping note";
+            if (empty($category)) {
+                $this->warnings[] = 'Note missing category - skipping note';
 
                 continue;
             }

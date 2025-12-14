@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\NoteCategory;
 use App\Models\Background;
 use App\Models\Character;
 use App\Models\CharacterClass;
@@ -232,7 +231,7 @@ describe('Character Export', function () {
 
         CharacterNote::factory()->create([
             'character_id' => $character->id,
-            'category' => NoteCategory::Backstory,
+            'category' => 'backstory',
             'title' => 'Origins',
             'content' => 'Born in the Shire...',
             'sort_order' => 1,
@@ -677,7 +676,7 @@ describe('Round-trip Export/Import', function () {
 
         CharacterNote::factory()->create([
             'character_id' => $character->id,
-            'category' => NoteCategory::Backstory,
+            'category' => 'backstory',
             'title' => 'My Journey',
             'content' => 'It all began...',
             'sort_order' => 1,

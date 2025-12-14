@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\NoteCategory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,7 +19,6 @@ class CharacterNote extends Model
     ];
 
     protected $casts = [
-        'category' => NoteCategory::class,
         'sort_order' => 'integer',
     ];
 

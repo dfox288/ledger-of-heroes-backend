@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Character\Note;
 
+use App\Support\NoteCategories;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -34,10 +35,10 @@ class CharacterNoteUpdateRequest extends FormRequest
             }
 
             // If updating title to null/empty on a category that requires title
-            if ($this->has('title') && $note->category->requiresTitle() && empty($this->input('title'))) {
+            if ($this->has('title') && NoteCategories::requiresTitle($note->category) && empty($this->input('title'))) {
                 $validator->errors()->add(
                     'title',
-                    "Title is required for {$note->category->label()} notes."
+                    'Title is required for '.NoteCategories::label($note->category).' notes.'
                 );
             }
         });

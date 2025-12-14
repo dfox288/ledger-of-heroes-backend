@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Enums\NoteCategory;
 use App\Models\Character;
 use App\Models\CharacterNote;
+use App\Support\NoteCategories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +18,7 @@ class CharacterNoteFactory extends Factory
     {
         return [
             'character_id' => Character::factory(),
-            'category' => fake()->randomElement(NoteCategory::cases()),
+            'category' => fake()->randomElement(NoteCategories::DEFAULTS),
             'title' => null,
             'content' => fake()->paragraph(),
             'sort_order' => 0,
@@ -31,7 +31,7 @@ class CharacterNoteFactory extends Factory
     public function personalityTrait(): static
     {
         return $this->state(fn (array $attributes) => [
-            'category' => NoteCategory::PersonalityTrait,
+            'category' => NoteCategories::PERSONALITY_TRAIT,
             'title' => null,
             'content' => fake()->sentence(),
         ]);
@@ -43,7 +43,7 @@ class CharacterNoteFactory extends Factory
     public function ideal(): static
     {
         return $this->state(fn (array $attributes) => [
-            'category' => NoteCategory::Ideal,
+            'category' => NoteCategories::IDEAL,
             'title' => null,
             'content' => fake()->sentence(),
         ]);
@@ -55,7 +55,7 @@ class CharacterNoteFactory extends Factory
     public function bond(): static
     {
         return $this->state(fn (array $attributes) => [
-            'category' => NoteCategory::Bond,
+            'category' => NoteCategories::BOND,
             'title' => null,
             'content' => fake()->sentence(),
         ]);
@@ -67,7 +67,7 @@ class CharacterNoteFactory extends Factory
     public function flaw(): static
     {
         return $this->state(fn (array $attributes) => [
-            'category' => NoteCategory::Flaw,
+            'category' => NoteCategories::FLAW,
             'title' => null,
             'content' => fake()->sentence(),
         ]);
@@ -79,7 +79,7 @@ class CharacterNoteFactory extends Factory
     public function backstory(): static
     {
         return $this->state(fn (array $attributes) => [
-            'category' => NoteCategory::Backstory,
+            'category' => NoteCategories::BACKSTORY,
             'title' => fake()->words(3, true),
             'content' => fake()->paragraphs(3, true),
         ]);
@@ -91,7 +91,7 @@ class CharacterNoteFactory extends Factory
     public function custom(): static
     {
         return $this->state(fn (array $attributes) => [
-            'category' => NoteCategory::Custom,
+            'category' => NoteCategories::CUSTOM,
             'title' => fake()->words(3, true),
             'content' => fake()->paragraph(),
         ]);

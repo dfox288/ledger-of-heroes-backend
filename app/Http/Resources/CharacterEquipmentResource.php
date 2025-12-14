@@ -36,6 +36,8 @@ class CharacterEquipmentResource extends JsonResource
             ),
             /** @var string|null Item slug reference (null for custom items) */
             'item_slug' => $this->item_slug,
+            /** @var bool True if this is a currency item (Gold, Silver, Copper, Electrum, Platinum) */
+            'is_currency' => $this->isCurrency(),
             /** @var bool True if item_slug is set but item no longer exists in database */
             'is_dangling' => $this->item_slug !== null && $this->item === null,
             /** @var string|null Custom item name (for non-database items) */
@@ -89,5 +91,25 @@ class CharacterEquipmentResource extends JsonResource
         }
 
         return ItemGroup::fromItemType($this->item->itemType?->name)->value;
+    }
+
+    /**
+     * Check if this equipment entry is a currency item.
+     */
+    private function isCurrency(): bool
+    {
+        if ($this->item_slug === null) {
+            return false;
+        }
+
+        $currencySlugs = [
+            'phb:copper-cp',
+            'phb:silver-sp',
+            'phb:electrum-ep',
+            'phb:gold-gp',
+            'phb:platinum-pp',
+        ];
+
+        return in_array($this->item_slug, $currencySlugs, true);
     }
 }

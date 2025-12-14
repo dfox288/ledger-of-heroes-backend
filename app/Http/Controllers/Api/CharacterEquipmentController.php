@@ -11,6 +11,7 @@ use App\Models\CharacterEquipment;
 use App\Models\Item;
 use App\Services\EquipmentManagerService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
@@ -42,6 +43,9 @@ class CharacterEquipmentController extends Controller
      * - **Database items** - Reference items from the items table with full stats
      * - **Custom items** - Freetext items (homebrew, quest rewards, notes)
      */
+    /**
+     * Currency item slugs - can be excluded via ?exclude_currency=1
+     */
     private const CURRENCY_SLUGS = [
         'phb:copper-cp',
         'phb:silver-sp',
@@ -50,18 +54,24 @@ class CharacterEquipmentController extends Controller
         'phb:platinum-pp',
     ];
 
-    public function index(Character $character): AnonymousResourceCollection
+    /**
+     * List all equipment for a character
+     *
+     * @queryParam exclude_currency boolean Exclude currency items (Gold, Silver, etc). Example: 1
+     */
+    public function index(Request $request, Character $character): AnonymousResourceCollection
     {
-        $equipment = $character->equipment()
-            ->with('item.itemType')
-            ->where(function ($query) {
-                // Include custom items (no item_slug) and non-currency items
-                $query->whereNull('item_slug')
-                    ->orWhereNotIn('item_slug', self::CURRENCY_SLUGS);
-            })
-            ->get();
+        $query = $character->equipment()->with('item.itemType');
 
-        return CharacterEquipmentResource::collection($equipment);
+        // Optionally exclude currency items (frontend can filter for cleaner display)
+        if ($request->boolean('exclude_currency')) {
+            $query->where(function ($q) {
+                $q->whereNull('item_slug')
+                    ->orWhereNotIn('item_slug', self::CURRENCY_SLUGS);
+            });
+        }
+
+        return CharacterEquipmentResource::collection($query->get());
     }
 
     /**

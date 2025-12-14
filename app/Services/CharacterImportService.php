@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\DTOs\CharacterImportResult;
 use App\Enums\AbilityScoreMethod;
-use App\Enums\NoteCategory;
 use App\Models\Background;
 use App\Models\Character;
 use App\Models\CharacterAbilityScore;
@@ -28,6 +27,7 @@ use App\Models\ProficiencyType;
 use App\Models\Race;
 use App\Models\Skill;
 use App\Models\Spell;
+use App\Support\NoteCategories;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -309,10 +309,24 @@ class CharacterImportService
     private function importNotes(Character $character, array $notes): void
     {
         foreach ($notes as $noteData) {
-            $category = NoteCategory::tryFrom($noteData['category']);
+            $category = $noteData['category'] ?? null;
 
-            if (! $category) {
-                $this->warnings[] = "Unknown note category '{$noteData['category']}' - skipping note";
+            if (empty($category)) {
+                $this->warnings[] = 'Note missing category - skipping note';
+
+                continue;
+            }
+
+            if (strlen($category) > 50) {
+                $this->warnings[] = "Note category '{$category}' exceeds 50 characters - skipping note";
+
+                continue;
+            }
+
+            $title = $noteData['title'] ?? null;
+
+            if (NoteCategories::requiresTitle($category) && empty($title)) {
+                $this->warnings[] = "Note category '{$category}' requires a title - skipping note";
 
                 continue;
             }
@@ -320,7 +334,7 @@ class CharacterImportService
             CharacterNote::create([
                 'character_id' => $character->id,
                 'category' => $category,
-                'title' => $noteData['title'] ?? null,
+                'title' => $title,
                 'content' => $noteData['content'] ?? '',
                 'sort_order' => $noteData['sort_order'] ?? 0,
             ]);

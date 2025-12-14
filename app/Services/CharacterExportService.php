@@ -211,7 +211,7 @@ class CharacterExportService
     private function buildNotes(Character $character): array
     {
         return $character->notes->map(fn ($note) => [
-            'category' => $note->category->value,
+            'category' => $note->category,
             'title' => $note->title,
             'content' => $note->content,
             'sort_order' => $note->sort_order,

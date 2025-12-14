@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\NoteCategories;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -11,8 +12,8 @@ class CharacterNoteResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'category' => $this->category->value,
-            'category_label' => $this->category->label(),
+            'category' => $this->category,
+            'category_label' => NoteCategories::label($this->category),
             'title' => $this->title,
             'content' => $this->content,
             'sort_order' => $this->sort_order,

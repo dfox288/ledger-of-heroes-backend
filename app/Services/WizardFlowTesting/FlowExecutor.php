@@ -336,14 +336,33 @@ class FlowExecutor
 
             if ($choiceType === 'equipment') {
                 // Equipment uses 'option' field (a, b, c, etc.)
-                // Pick a random option (could be fixed items or category)
-                $optionValues = array_column($options, 'option');
-                $selected = $randomizer->pickRandom($optionValues, 1);
+                // Filter to only valid options (non-category, or category with selectable items)
+                $validOptions = array_filter($options, function ($opt) {
+                    if (! ($opt['is_category'] ?? false)) {
+                        return true; // Non-category options are always valid
+                    }
+                    // Category options need at least one selectable item
+                    $selectableItems = array_filter(
+                        $opt['items'] ?? [],
+                        fn ($item) => ! ($item['is_fixed'] ?? false)
+                    );
 
-                // Find the selected option to check if it's a category
+                    return ! empty($selectableItems);
+                });
+
+                if (empty($validOptions)) {
+                    // No valid options available - skip this choice
+                    continue;
+                }
+
+                // Pick a random valid option
+                $validOptionValues = array_column($validOptions, 'option');
+                $selected = $randomizer->pickRandom($validOptionValues, 1);
+
+                // Find the selected option
                 $selectedOption = $selected[0] ?? null;
                 $foundOption = null;
-                foreach ($options as $opt) {
+                foreach ($validOptions as $opt) {
                     if (($opt['option'] ?? '') === $selectedOption) {
                         $foundOption = $opt;
                         break;
@@ -363,13 +382,11 @@ class FlowExecutor
                         fn ($item) => ! ($item['is_fixed'] ?? false)
                     );
 
-                    if (! empty($selectableItems)) {
-                        // Pick one random item from the category
-                        $itemSlugs = array_column($selectableItems, 'slug');
-                        $pickedItem = $randomizer->pickRandom($itemSlugs, 1);
-                        $itemSelections = [$selectedOption => $pickedItem];
-                        $expectedItems = array_merge($expectedItems, $pickedItem);
-                    }
+                    // Pick one random item from the category
+                    $itemSlugs = array_column($selectableItems, 'slug');
+                    $pickedItem = $randomizer->pickRandom($itemSlugs, 1);
+                    $itemSelections = [$selectedOption => $pickedItem];
+                    $expectedItems = array_merge($expectedItems, $pickedItem);
 
                     // Also include fixed items that come with this option
                     $fixedItems = array_filter(

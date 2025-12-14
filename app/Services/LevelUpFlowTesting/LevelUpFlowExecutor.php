@@ -120,11 +120,11 @@ class LevelUpFlowExecutor
                     );
                     $result->addStep($stepResult);
 
-                    continue;
+                    break; // Stop leveling after API error - can't skip levels
                 }
 
                 // Resolve all pending choices
-                $choicesResolved = $this->resolveAllPendingChoices($characterId, $randomizer);
+                $this->resolveAllPendingChoices($characterId, $randomizer);
 
                 // Capture state after
                 $snapshotAfter = $this->snapshot->capture($characterId);
@@ -174,6 +174,7 @@ class LevelUpFlowExecutor
                 Log::error('Level-up flow step failed', [
                     'character_id' => $characterId,
                     'level' => $level,
+                    'class_slug' => $classToLevel ?? 'unknown',
                     'exception' => $e->getMessage(),
                 ]);
 

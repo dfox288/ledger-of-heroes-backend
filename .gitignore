@@ -48,3 +48,4 @@ repomix-output.xml
 docker-compose.override.yml
 /storage/wizard-flow-reports/
 .env.stable
+storage/level-up-flow-reports/*.json

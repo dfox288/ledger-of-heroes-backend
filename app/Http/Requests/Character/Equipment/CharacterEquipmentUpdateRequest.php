@@ -73,17 +73,18 @@ class CharacterEquipmentUpdateRequest extends FormRequest
             return;
         }
 
-        // Check if already at attunement limit (3 slots)
+        // Check if already at attunement limit (dynamic based on class features)
         $character = $this->route('character');
+        $maxSlots = $character->max_attunement_slots;
         $currentlyAttuned = $character->equipment()
             ->where('id', '!=', $equipment->id)
             ->where('is_attuned', true)
             ->count();
 
-        if ($currentlyAttuned >= 3) {
+        if ($currentlyAttuned >= $maxSlots) {
             $validator->errors()->add(
                 'is_attuned',
-                'Cannot attune to more than 3 items. Unattune from another item first.'
+                "Cannot attune to more than {$maxSlots} items. Unattune from another item first."
             );
         }
     }

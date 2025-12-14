@@ -168,7 +168,7 @@ class CharacterEquipmentController extends Controller
      * | `location` | string | No | Equipment slot (see table below) |
      * | `equipped` | boolean | No | Legacy equip flag (prefer location) |
      * | `quantity` | integer | No | New quantity (min: 1) |
-     * | `is_attuned` | boolean | No | Attunement flag for magic items (max 3 attuned) |
+     * | `is_attuned` | boolean | No | Attunement flag for magic items (default max 3, can be higher) |
      *
      * **Location Slots:**
      * | Location | Slot Limit | Description |
@@ -195,7 +195,7 @@ class CharacterEquipmentController extends Controller
      * - Custom items cannot be equipped (only database items)
      * - Single-slot locations auto-unequip previous item to backpack
      * - Two-handed weapons auto-unequip off_hand; off_hand blocked while 2H equipped
-     * - Attunement limit: max 3 items with is_attuned=true
+     * - Attunement limit: dynamic based on class features (default 3, Artificer can have more)
      * - Attunement requires item to have requires_attunement property
      */
     public function update(

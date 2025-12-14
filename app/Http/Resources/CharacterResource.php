@@ -184,12 +184,9 @@ class CharacterResource extends JsonResource
     {
         $used = $this->equipment()->attuned()->count();
 
-        // Default max is 3, but features could modify this
-        $max = 3;
-
         return [
             'used' => $used,
-            'max' => $max,
+            'max' => $this->max_attunement_slots,
         ];
     }
 

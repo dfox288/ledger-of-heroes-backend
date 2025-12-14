@@ -318,6 +318,43 @@ class Character extends Model implements HasMedia
     }
 
     /**
+     * Get maximum attunement slots based on class features.
+     *
+     * D&D 5e default is 3, but Artificer class features can increase this:
+     * - Level 10 Magic Item Adept: 4 slots
+     * - Level 14 Magic Item Savant: 5 slots
+     * - Level 18 Magic Item Master: 6 slots
+     */
+    public function getMaxAttunementSlotsAttribute(): int
+    {
+        $max = 3; // D&D 5e default
+
+        foreach ($this->characterClasses as $classPivot) {
+            $classId = $classPivot->characterClass?->id;
+            if (! $classId) {
+                continue;
+            }
+
+            // Get all features up to the character's level in this class
+            // that have attunement_max modifiers
+            $features = ClassFeature::where('class_id', $classId)
+                ->where('level', '<=', $classPivot->level)
+                ->whereHas('modifiers', fn ($q) => $q->where('modifier_category', 'attunement_max'))
+                ->with(['modifiers' => fn ($q) => $q->where('modifier_category', 'attunement_max')])
+                ->get();
+
+            foreach ($features as $feature) {
+                $modifier = $feature->modifiers->first();
+                if ($modifier && (int) $modifier->value > $max) {
+                    $max = (int) $modifier->value;
+                }
+            }
+        }
+
+        return $max;
+    }
+
+    /**
      * Check if character has all required fields set (wizard-style complete).
      */
     public function getIsCompleteAttribute(): bool

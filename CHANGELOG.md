@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Issue #615**: Party monster actions now include `damage` and `attack_bonus` fields
+  - Parses existing `attack_data` to expose damage dice with type (e.g., "1d6+2 slashing")
+  - Enables DM Screen to display full attack info: `Scimitar: +4 (1d6+2 slashing)`
+  - Actions without attacks return `null` for both fields
+
 ### Fixed
 
 - **Issue #608**: Level-up flow ASI/subclass choices not resolved at level transitions

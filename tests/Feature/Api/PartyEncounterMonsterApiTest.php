@@ -77,12 +77,12 @@ class PartyEncounterMonsterApiTest extends TestCase
         $party = Party::factory()->create(['user_id' => $user->id]);
         $monster = Monster::factory()->create(['name' => 'Goblin']);
 
-        // Add an action to the monster
+        // Add an action using production format: ["DamageType Damage|+bonus|dice"]
         $monster->actions()->create([
             'action_type' => 'action',
             'name' => 'Scimitar',
             'description' => 'Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage.',
-            'attack_data' => json_encode(['attack_bonus' => 4, 'damage' => '1d6+2']),
+            'attack_data' => '["Slashing Damage|+4|1d6+2"]',
             'sort_order' => 1,
         ]);
 
@@ -98,6 +98,70 @@ class PartyEncounterMonsterApiTest extends TestCase
         $response->assertOk();
         expect($response->json('data.0.monster.actions'))->toHaveCount(1);
         expect($response->json('data.0.monster.actions.0.name'))->toBe('Scimitar');
+    }
+
+    #[Test]
+    public function it_includes_damage_dice_in_monster_actions(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+        $monster = Monster::factory()->create(['name' => 'Goblin']);
+
+        // Production format: ["DamageType Damage|+bonus|dice"]
+        $monster->actions()->create([
+            'action_type' => 'action',
+            'name' => 'Scimitar',
+            'description' => 'Melee Weapon Attack: +4 to hit, reach 5 ft., one target.',
+            'attack_data' => '["Slashing Damage|+4|1d6+2"]',
+            'sort_order' => 1,
+        ]);
+
+        $party->encounterMonsters()->create([
+            'monster_id' => $monster->id,
+            'label' => 'Goblin 1',
+            'current_hp' => 7,
+            'max_hp' => 7,
+        ]);
+
+        $response = $this->actingAs($user)->getJson("/api/v1/parties/{$party->id}/monsters");
+
+        $response->assertOk();
+        $action = $response->json('data.0.monster.actions.0');
+        expect($action['name'])->toBe('Scimitar');
+        expect($action['damage'])->toBe('1d6+2 slashing');
+        expect($action['attack_bonus'])->toBe(4);
+    }
+
+    #[Test]
+    public function it_returns_null_damage_for_actions_without_attack_data(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+        $monster = Monster::factory()->create(['name' => 'Dragon']);
+
+        // Non-attack action (breath weapon, etc.)
+        $monster->actions()->create([
+            'action_type' => 'action',
+            'name' => 'Fire Breath',
+            'description' => 'The dragon exhales fire in a 15-foot cone.',
+            'attack_data' => null,
+            'sort_order' => 1,
+        ]);
+
+        $party->encounterMonsters()->create([
+            'monster_id' => $monster->id,
+            'label' => 'Dragon 1',
+            'current_hp' => 100,
+            'max_hp' => 100,
+        ]);
+
+        $response = $this->actingAs($user)->getJson("/api/v1/parties/{$party->id}/monsters");
+
+        $response->assertOk();
+        $action = $response->json('data.0.monster.actions.0');
+        expect($action['name'])->toBe('Fire Breath');
+        expect($action['damage'])->toBeNull();
+        expect($action['attack_bonus'])->toBeNull();
     }
 
     #[Test]

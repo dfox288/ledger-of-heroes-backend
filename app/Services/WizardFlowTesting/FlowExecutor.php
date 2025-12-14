@@ -597,12 +597,15 @@ class FlowExecutor
 
     private function selectAbilityScore(array $options, CharacterRandomizer $randomizer): array
     {
-        // Ability score choices - select from available options
-        $values = array_column($options, 'value');
-        if (empty($values)) {
+        // Ability score choices use 'code' field (STR, DEX, etc.)
+        $values = array_column($options, 'code');
+        if (empty(array_filter($values))) {
+            $values = array_column($options, 'value');
+        }
+        if (empty(array_filter($values))) {
             $values = array_column($options, 'slug');
         }
-        if (empty($values)) {
+        if (empty(array_filter($values))) {
             $values = array_column($options, 'id');
         }
 

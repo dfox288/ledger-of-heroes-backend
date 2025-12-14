@@ -85,7 +85,7 @@ it('generates choices for Warlock level 2 invocations', function () {
     $endpoint = urldecode($choices->first()->optionsEndpoint);
     expect($endpoint)
         ->toContain('feature_type = eldritch_invocation')
-        ->toContain('class_slugs IN [warlock]')
+        ->toContain('class_slugs IN ["phb2014:warlock"]')
         ->toContain('level_requirement');
 });
 
@@ -152,14 +152,24 @@ it('generates choices for Sorcerer level 3 metamagic', function () {
     $endpoint = urldecode($choices->first()->optionsEndpoint);
     expect($endpoint)
         ->toContain('feature_type = metamagic')
-        ->toContain('class_slugs IN [sorcerer]')
+        ->toContain('class_slugs IN ["phb2014:sorcerer"]')
         ->toContain('level_requirement');
 });
 
 it('generates choices for Battle Master level 3 maneuvers', function () {
     // Mock character class with subclass
+    // Counter is on subclass (Battle Master), not base class
     $fighterClass = (object) ['id' => 88, 'name' => 'Fighter', 'slug' => 'phb2014:fighter', 'level' => 3];
-    $subclass = (object) ['name' => 'Battle Master', 'counters' => collect([])];
+    $fighterClass->counters = collect([]); // No counters on base class
+
+    // Maneuvers counter is on the subclass
+    $subclassCounter = (object) [
+        'counter_name' => 'Maneuvers Known',
+        'level' => 3,
+        'counter_value' => 3,
+    ];
+    $subclass = (object) ['name' => 'Battle Master', 'counters' => collect([$subclassCounter])];
+
     $characterClass = (object) [
         'class_id' => 88,
         'class_slug' => 'phb2014:fighter',
@@ -178,14 +188,6 @@ it('generates choices for Battle Master level 3 maneuvers', function () {
 
     $this->character->shouldReceive('characterClasses')
         ->andReturn($characterClassesQuery);
-
-    // Mock class with counters
-    $counter = (object) [
-        'counter_name' => 'Maneuvers Known',
-        'level' => 3,
-        'counter_value' => 3,
-    ];
-    $fighterClass->counters = collect([$counter]);
 
     // Mock feature selections
     $featureSelectionsQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
@@ -220,8 +222,10 @@ it('generates choices for Battle Master level 3 maneuvers', function () {
     $endpoint = urldecode($choices->first()->optionsEndpoint);
     expect($endpoint)
         ->toContain('feature_type = maneuver')
-        ->toContain('class_slugs IN [fighter]')
-        ->toContain('level_requirement');
+        ->toContain('class_slugs IN ["phb2014:fighter"]')
+        ->toContain('level_requirement')
+        // Bug fix #613: subclass names with spaces must be quoted
+        ->toContain('subclass_names IN ["Battle Master"]');
 });
 
 it('calculates remaining choices when some features are selected', function () {

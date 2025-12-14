@@ -234,9 +234,9 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
         // Filter by class - use full slug (e.g., "phb:fighter") with quotes for Meilisearch
         $filterParts[] = "class_slugs IN [\"{$classSlug}\"]";
 
-        // Filter by subclass if applicable
+        // Filter by subclass if applicable - quote names that may contain spaces
         if ($subclassName) {
-            $filterParts[] = "subclass_names IN [{$subclassName}]";
+            $filterParts[] = "subclass_names IN [\"{$subclassName}\"]";
         }
 
         // Filter by level requirement (optional features with no requirement or <= character level)

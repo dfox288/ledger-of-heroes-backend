@@ -42,7 +42,7 @@ class PartyCharacterResource extends JsonResource
      */
     private function getPortraitData(): ?array
     {
-        $portrait = $this->getFirstMedia('portraits');
+        $portrait = $this->getFirstMedia('portrait');
 
         if (! $portrait) {
             return null;

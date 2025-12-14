@@ -56,7 +56,10 @@ class PartyController extends Controller
      */
     public function show(Request $request, Party $party): PartyResource|JsonResponse
     {
-        $party->load('characters.characterClasses.characterClass');
+        $party->load([
+            'characters.characterClasses.characterClass',
+            'characters.media',
+        ]);
 
         return new PartyResource($party);
     }
@@ -96,7 +99,10 @@ class PartyController extends Controller
             'joined_at' => now(),
         ]);
 
-        $party->load('characters.characterClasses.characterClass');
+        $party->load([
+            'characters.characterClasses.characterClass',
+            'characters.media',
+        ]);
 
         return (new PartyResource($party))
             ->response()

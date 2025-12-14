@@ -279,9 +279,16 @@ class CharacterProficiencyService
             // Unrestricted with subcategory constraint (e.g., "artisan tools")
             // Musical instruments and gaming sets are stored as top-level categories,
             // not as subcategories of 'tool'. Handle them specially.
-            $standaloneCategories = ['musical_instrument', 'gaming_set'];
-            if (in_array($proficiencySubcategory, $standaloneCategories, true)) {
-                $validProficiencyTypeSlugs = \App\Models\ProficiencyType::where('category', $proficiencySubcategory)
+            // Map shortened names to full category names:
+            // "gaming" → "gaming_set", "musical" → "musical_instrument"
+            $standaloneCategories = [
+                'gaming' => 'gaming_set',
+                'gaming_set' => 'gaming_set',
+                'musical' => 'musical_instrument',
+                'musical_instrument' => 'musical_instrument',
+            ];
+            if (isset($standaloneCategories[$proficiencySubcategory])) {
+                $validProficiencyTypeSlugs = \App\Models\ProficiencyType::where('category', $standaloneCategories[$proficiencySubcategory])
                     ->pluck('slug')
                     ->toArray();
             } else {
@@ -590,10 +597,24 @@ class CharacterProficiencyService
     ): array {
         $options = [];
 
-        $query = \App\Models\ProficiencyType::where('category', $proficiencyType);
+        // Map shortened subcategory names to standalone categories
+        // "gaming" → "gaming_set", "musical" → "musical_instrument"
+        $standaloneCategories = [
+            'gaming' => 'gaming_set',
+            'gaming_set' => 'gaming_set',
+            'musical' => 'musical_instrument',
+            'musical_instrument' => 'musical_instrument',
+        ];
 
-        if ($proficiencySubcategory) {
-            $query->where('subcategory', $proficiencySubcategory);
+        if ($proficiencySubcategory && isset($standaloneCategories[$proficiencySubcategory])) {
+            // These are stored as top-level categories, not subcategories
+            $query = \App\Models\ProficiencyType::where('category', $standaloneCategories[$proficiencySubcategory]);
+        } else {
+            $query = \App\Models\ProficiencyType::where('category', $proficiencyType);
+
+            if ($proficiencySubcategory) {
+                $query->where('subcategory', $proficiencySubcategory);
+            }
         }
 
         $proficiencyTypes = $query->orderBy('name')->get();

@@ -329,25 +329,40 @@ class Character extends Model implements HasMedia
     {
         $max = 3; // D&D 5e default
 
+        // Build class level constraints: [class_id => max_level]
+        $classLevels = [];
         foreach ($this->characterClasses as $classPivot) {
             $classId = $classPivot->characterClass?->id;
-            if (! $classId) {
-                continue;
+            if ($classId) {
+                $classLevels[$classId] = $classPivot->level;
             }
+        }
 
-            // Get all features up to the character's level in this class
-            // that have attunement_max modifiers
-            $features = ClassFeature::where('class_id', $classId)
-                ->where('level', '<=', $classPivot->level)
-                ->whereHas('modifiers', fn ($q) => $q->where('modifier_category', 'attunement_max'))
-                ->with(['modifiers' => fn ($q) => $q->where('modifier_category', 'attunement_max')])
-                ->get();
+        if (empty($classLevels)) {
+            return $max;
+        }
 
-            foreach ($features as $feature) {
-                $modifier = $feature->modifiers->first();
-                if ($modifier && (int) $modifier->value > $max) {
-                    $max = (int) $modifier->value;
-                }
+        // Single query: get all attunement_max modifiers from features of character's classes
+        $modifiers = Modifier::where('modifier_category', 'attunement_max')
+            ->where('reference_type', ClassFeature::class)
+            ->whereIn('reference_id', function ($query) use ($classLevels) {
+                $query->select('id')
+                    ->from('class_features')
+                    ->where(function ($q) use ($classLevels) {
+                        foreach ($classLevels as $classId => $level) {
+                            $q->orWhere(function ($subQ) use ($classId, $level) {
+                                $subQ->where('class_id', $classId)
+                                    ->where('level', '<=', $level);
+                            });
+                        }
+                    });
+            })
+            ->get();
+
+        foreach ($modifiers as $modifier) {
+            $value = (int) $modifier->value;
+            if ($value > $max) {
+                $max = $value;
             }
         }
 

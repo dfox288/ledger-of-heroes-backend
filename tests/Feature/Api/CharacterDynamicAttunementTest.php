@@ -137,6 +137,15 @@ class CharacterDynamicAttunementTest extends TestCase
     // =============================
 
     #[Test]
+    public function character_with_no_classes_has_default_max_of_three(): void
+    {
+        $character = Character::factory()->create();
+
+        // No classes assigned - edge case
+        expect($character->max_attunement_slots)->toBe(3);
+    }
+
+    #[Test]
     public function character_without_attunement_features_has_default_max_of_three(): void
     {
         $character = Character::factory()->create();

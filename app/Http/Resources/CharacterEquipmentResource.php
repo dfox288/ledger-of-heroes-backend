@@ -25,11 +25,11 @@ class CharacterEquipmentResource extends JsonResource
         return [
             /** @var int Equipment entry ID */
             'id' => $this->id,
-            /** @var array{id: int, name: string, slug: string, armor_class: int|null, damage_dice: string|null, weight: float|null, requires_attunement: bool, item_type: string|null}|null Item details (null for custom items) */
+            /** @var array{id: int, name: string, slug: string, armor_class: int|null, damage_dice: string|null, weight: float|null, requires_attunement: bool, equipment_slot: string|null, item_type: string|null}|null Item details (null for custom items) */
             'item' => $this->when($this->item_slug !== null, fn () => $this->item
                 ? $this->formatEntityWith(
                     $this->item,
-                    ['id', 'name', 'slug', 'armor_class', 'damage_dice', 'weight', 'requires_attunement'],
+                    ['id', 'name', 'slug', 'armor_class', 'damage_dice', 'weight', 'requires_attunement', 'equipment_slot'],
                     ['item_type' => fn ($item) => $item->itemType?->name]
                 )
                 : null  // Dangling reference - item_slug set but item doesn't exist

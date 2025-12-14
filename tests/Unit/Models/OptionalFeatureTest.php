@@ -237,4 +237,135 @@ class OptionalFeatureTest extends TestCase
         $this->assertIsInt($feature->resource_cost);
         $this->assertEquals(2, $feature->resource_cost);
     }
+
+    // Searchable Array Tests
+
+    #[Test]
+    public function searchable_array_includes_parent_class_slug_when_linked_to_subclass(): void
+    {
+        // Create parent class and subclass
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'phb:fighter',
+            'parent_class_id' => null,
+        ]);
+
+        $battleMaster = CharacterClass::factory()->create([
+            'name' => 'Battle Master',
+            'slug' => 'phb:fighter-battle-master',
+            'parent_class_id' => $fighter->id,
+        ]);
+
+        // Create feature linked directly to subclass
+        $feature = OptionalFeature::factory()->create([
+            'name' => 'Disarming Attack',
+            'feature_type' => OptionalFeatureType::MANEUVER,
+        ]);
+
+        ClassOptionalFeature::create([
+            'class_id' => $battleMaster->id,
+            'optional_feature_id' => $feature->id,
+            'subclass_name' => null, // Linked directly to subclass entity
+        ]);
+
+        $searchableArray = $feature->fresh()->toSearchableArray();
+
+        // Should include BOTH the subclass slug AND parent class slug
+        expect($searchableArray['class_slugs'])->toContain('phb:fighter-battle-master');
+        expect($searchableArray['class_slugs'])->toContain('phb:fighter');
+    }
+
+    #[Test]
+    public function searchable_array_includes_subclass_name_when_linked_to_subclass_entity(): void
+    {
+        // Create parent class and subclass
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'phb:fighter',
+            'parent_class_id' => null,
+        ]);
+
+        $battleMaster = CharacterClass::factory()->create([
+            'name' => 'Battle Master',
+            'slug' => 'phb:fighter-battle-master',
+            'parent_class_id' => $fighter->id,
+        ]);
+
+        // Create feature linked directly to subclass (subclass_name is null in pivot)
+        $feature = OptionalFeature::factory()->create([
+            'name' => 'Disarming Attack',
+            'feature_type' => OptionalFeatureType::MANEUVER,
+        ]);
+
+        ClassOptionalFeature::create([
+            'class_id' => $battleMaster->id,
+            'optional_feature_id' => $feature->id,
+            'subclass_name' => null,
+        ]);
+
+        $searchableArray = $feature->fresh()->toSearchableArray();
+
+        // Should derive subclass name from the linked subclass entity
+        expect($searchableArray['subclass_names'])->toContain('Battle Master');
+    }
+
+    #[Test]
+    public function searchable_array_includes_subclass_name_from_pivot(): void
+    {
+        // Create parent class (no subclass entity exists)
+        $monk = CharacterClass::factory()->create([
+            'name' => 'Monk',
+            'slug' => 'phb:monk',
+            'parent_class_id' => null,
+        ]);
+
+        // Create feature linked to base class with subclass_name in pivot
+        $feature = OptionalFeature::factory()->create([
+            'name' => 'Water Whip',
+            'feature_type' => OptionalFeatureType::ELEMENTAL_DISCIPLINE,
+        ]);
+
+        ClassOptionalFeature::create([
+            'class_id' => $monk->id,
+            'optional_feature_id' => $feature->id,
+            'subclass_name' => 'Way of the Four Elements',
+        ]);
+
+        $searchableArray = $feature->fresh()->toSearchableArray();
+
+        // Should include subclass name from pivot
+        expect($searchableArray['subclass_names'])->toContain('Way of the Four Elements');
+        // Should include parent class slug
+        expect($searchableArray['class_slugs'])->toContain('phb:monk');
+    }
+
+    #[Test]
+    public function searchable_array_only_includes_base_class_when_not_linked_to_subclass(): void
+    {
+        // Create base class only (no subclass)
+        $warlock = CharacterClass::factory()->create([
+            'name' => 'Warlock',
+            'slug' => 'phb:warlock',
+            'parent_class_id' => null,
+        ]);
+
+        // Create feature linked to base class
+        $feature = OptionalFeature::factory()->create([
+            'name' => 'Armor of Shadows',
+            'feature_type' => OptionalFeatureType::ELDRITCH_INVOCATION,
+        ]);
+
+        ClassOptionalFeature::create([
+            'class_id' => $warlock->id,
+            'optional_feature_id' => $feature->id,
+            'subclass_name' => null,
+        ]);
+
+        $searchableArray = $feature->fresh()->toSearchableArray();
+
+        // Should only include base class slug
+        expect($searchableArray['class_slugs'])->toBe(['phb:warlock']);
+        // Should have no subclass names
+        expect($searchableArray['subclass_names'])->toBe([]);
+    }
 }

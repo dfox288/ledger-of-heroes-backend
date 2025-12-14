@@ -126,7 +126,35 @@ class OptionalFeature extends BaseModel
 
     public function toSearchableArray(): array
     {
-        $this->loadMissing(['classes', 'classPivots', 'sources.source', 'tags', 'spellSchool']);
+        $this->loadMissing(['classes.parentClass', 'classPivots', 'sources.source', 'tags', 'spellSchool']);
+
+        // Collect class slugs including parent class slugs for subclasses
+        $classSlugs = collect();
+        $classNames = collect();
+        $subclassNames = collect();
+
+        foreach ($this->classes as $class) {
+            // Add this class's slug and name
+            $classSlugs->push($class->slug);
+            $classNames->push($class->name);
+
+            // If this is a subclass, also add parent class slug and derive subclass name
+            if ($class->parent_class_id !== null) {
+                if ($class->parentClass) {
+                    $classSlugs->push($class->parentClass->slug);
+                    $classNames->push($class->parentClass->name);
+                }
+                // This class IS a subclass, so its name is the subclass name
+                $subclassNames->push($class->name);
+            }
+        }
+
+        // Also include subclass names from pivot table (fallback when subclass entity doesn't exist)
+        foreach ($this->classPivots as $pivot) {
+            if ($pivot->subclass_name) {
+                $subclassNames->push($pivot->subclass_name);
+            }
+        }
 
         return [
             'id' => $this->id,
@@ -139,9 +167,9 @@ class OptionalFeature extends BaseModel
             'resource_type' => $this->resource_type?->value,
             'resource_cost' => $this->resource_cost,
             'has_spell_mechanics' => $this->has_spell_mechanics,
-            'class_slugs' => $this->classes->pluck('slug')->unique()->values()->all(),
-            'class_names' => $this->classes->pluck('name')->unique()->values()->all(),
-            'subclass_names' => $this->classPivots->pluck('subclass_name')->filter()->unique()->values()->all(),
+            'class_slugs' => $classSlugs->unique()->values()->all(),
+            'class_names' => $classNames->unique()->values()->all(),
+            'subclass_names' => $subclassNames->filter()->unique()->values()->all(),
             'sources' => $this->getSearchableSourceNames(),
             'source_codes' => $this->getSearchableSourceCodes(),
             'tag_slugs' => $this->getSearchableTagSlugs(),
@@ -150,7 +178,7 @@ class OptionalFeature extends BaseModel
 
     public function searchableWith(): array
     {
-        return ['classes', 'classPivots', 'sources.source', 'tags'];
+        return ['classes.parentClass', 'classPivots', 'sources.source', 'tags'];
     }
 
     public function searchableAs(): string

@@ -137,6 +137,16 @@ class SpellSlotController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
+        // Validate spent doesn't exceed total (done here since slot may be auto-created)
+        if ($request->has('spent') && $request->integer('spent') > $slot->max_slots) {
+            return response()->json([
+                'message' => "Spent cannot exceed total slots ({$slot->max_slots}).",
+                'errors' => [
+                    'spent' => ["Spent cannot exceed total slots ({$slot->max_slots})."],
+                ],
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         // Handle the update
         if ($request->has('spent')) {
             $slot->update(['used_slots' => $request->integer('spent')]);

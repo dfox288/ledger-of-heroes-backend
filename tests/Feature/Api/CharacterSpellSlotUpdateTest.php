@@ -448,4 +448,45 @@ class CharacterSpellSlotUpdateTest extends TestCase
             'used_slots' => 1,
         ]);
     }
+
+    #[Test]
+    public function it_rejects_both_spent_and_action(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()->withClass($wizardClass)->level(3)->create();
+
+        CharacterSpellSlot::create([
+            'character_id' => $character->id,
+            'spell_level' => 1,
+            'max_slots' => 4,
+            'used_slots' => 0,
+            'slot_type' => SpellSlotType::STANDARD,
+        ]);
+
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/spell-slots/1",
+            ['spent' => 2, 'action' => 'use']
+        );
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['spent']);
+    }
+
+    #[Test]
+    public function it_rejects_spent_exceeding_total_for_auto_created_slot(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()->withClass($wizardClass)->level(1)->create();
+
+        // Don't create slot record - it will be auto-created
+        // Level 1 wizard has 2 first-level slots
+
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/spell-slots/1",
+            ['spent' => 5] // More than the calculated max of 2
+        );
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['spent']);
+    }
 }

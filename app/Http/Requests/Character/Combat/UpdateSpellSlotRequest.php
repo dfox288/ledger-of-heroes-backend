@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Character\Combat;
 
-use App\Models\CharacterSpellSlot;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -31,21 +30,20 @@ class UpdateSpellSlotRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            // Require either spent or action
-            if (! $this->has('spent') && ! $this->has('action')) {
+            // Require either spent or action, but not both
+            $hasSpent = $this->has('spent');
+            $hasAction = $this->has('action');
+
+            if (! $hasSpent && ! $hasAction) {
                 $validator->errors()->add('spent', 'Either spent or action is required.');
             }
 
-            // Validate spent doesn't exceed total
-            if ($this->has('spent')) {
-                $slot = $this->getSpellSlot();
-                if ($slot && $this->spent > $slot->max_slots) {
-                    $validator->errors()->add(
-                        'spent',
-                        "Spent cannot exceed total slots ({$slot->max_slots})."
-                    );
-                }
+            if ($hasSpent && $hasAction) {
+                $validator->errors()->add('spent', 'Cannot provide both spent and action.');
             }
+
+            // Note: spent > max_slots validation is done in the controller
+            // after the slot is found or created, since the slot may not exist yet
         });
     }
 
@@ -59,20 +57,5 @@ class UpdateSpellSlotRequest extends FormRequest
             'action.in' => 'Action must be one of: use, restore, reset.',
             'slot_type.in' => 'Slot type must be either "standard" or "pact_magic".',
         ];
-    }
-
-    /**
-     * Get the spell slot for validation.
-     */
-    protected function getSpellSlot(): ?CharacterSpellSlot
-    {
-        $character = $this->route('character');
-        $level = $this->route('level');
-        $slotType = $this->input('slot_type', 'standard');
-
-        return CharacterSpellSlot::where('character_id', $character->id)
-            ->where('spell_level', $level)
-            ->where('slot_type', $slotType)
-            ->first();
     }
 }

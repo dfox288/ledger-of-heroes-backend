@@ -123,13 +123,16 @@ class StateSnapshot
                 ->toArray(),
             'equipment_count' => count($snapshot['equipment']['data'] ?? []),
 
-            // Pending choices
-            'pending_choice_types' => collect($snapshot['pending_choices']['data'] ?? [])
+            // Pending choices (note: API returns data.choices, not data directly)
+            'pending_choice_types' => collect($snapshot['pending_choices']['data']['choices'] ?? [])
+                ->where('remaining', '>', 0)
                 ->pluck('type')
                 ->unique()
                 ->values()
                 ->toArray(),
-            'pending_choice_count' => count($snapshot['pending_choices']['data'] ?? []),
+            'pending_choice_count' => collect($snapshot['pending_choices']['data']['choices'] ?? [])
+                ->where('remaining', '>', 0)
+                ->count(),
 
             // Computed stats
             'hit_points' => [

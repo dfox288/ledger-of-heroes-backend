@@ -39,6 +39,8 @@ class FlowExecutor
 
     private SubclassValidator $subclassValidator;
 
+    private CompletionValidator $completionValidator;
+
     /** @var array<string, array<string>> Equipment selections by choice_group */
     private array $equipmentSelections = [];
 
@@ -48,6 +50,7 @@ class FlowExecutor
         $this->validator = new SwitchValidator;
         $this->equipmentValidator = new EquipmentValidator;
         $this->subclassValidator = new SubclassValidator;
+        $this->completionValidator = new CompletionValidator;
     }
 
     /**
@@ -63,9 +66,14 @@ class FlowExecutor
 
         foreach ($flow as $step) {
             try {
-                // Capture state before if this is a switch, equipment-related, or subclass step
+                // Capture state before if this is a switch, equipment-related, subclass, or validate step
                 $snapshotBefore = null;
-                if ($characterId && ($this->isSwitch($step) || $this->shouldValidateEquipment($step) || $this->shouldValidateSubclass($step))) {
+                $needsBeforeSnapshot = $this->isSwitch($step)
+                    || $this->shouldValidateEquipment($step)
+                    || $this->shouldValidateSubclass($step)
+                    || $step['action'] === 'validate';
+
+                if ($characterId && $needsBeforeSnapshot) {
                     $snapshotBefore = $this->snapshot->capture($characterId);
                 }
 
@@ -142,6 +150,18 @@ class FlowExecutor
                     }
                 }
 
+                // Validate character completion after the validate step
+                if ($step['action'] === 'validate' && $snapshotAfter && $snapshotBefore) {
+                    $completionValidation = $this->completionValidator->validate($snapshotAfter);
+
+                    if (! $completionValidation->passed) {
+                        $result->addStep($step, 'fail', $snapshotAfter, $response);
+                        $result->addFailure($step, $completionValidation, $snapshotBefore, $snapshotAfter);
+
+                        continue;
+                    }
+                }
+
                 $result->addStep($step, 'ok', $snapshotAfter, $response);
 
             } catch (\Throwable $e) {
@@ -178,6 +198,8 @@ class FlowExecutor
             'set_equipment_mode' => $this->setEquipmentMode($characterId, $randomizer),
             'resolve_equipment_choices' => $this->resolveChoices($characterId, $randomizer, 'equipment'),
             'resolve_spell_choices' => $this->resolveChoices($characterId, $randomizer, 'spell'),
+            'resolve_remaining_choices' => $this->resolveRemainingChoices($characterId, $randomizer),
+            'resolve_all_required' => $this->resolveAllRequired($characterId, $randomizer),
             'set_details' => $this->setDetails($characterId, $randomizer),
             'validate' => $this->validateCharacter($characterId),
             'switch_race' => $this->switchRace($characterId, $randomizer),
@@ -300,8 +322,10 @@ class FlowExecutor
         // Response structure is data.choices
         $allChoices = $choicesResponse['data']['choices'] ?? [];
 
-        // Filter by type
-        $choices = array_filter($allChoices, fn ($c) => ($c['type'] ?? '') === $type);
+        // Filter by type AND only include choices with remaining > 0
+        $choices = array_filter($allChoices, function ($c) use ($type) {
+            return ($c['type'] ?? '') === $type && ($c['remaining'] ?? 0) > 0;
+        });
 
         if (empty($choices)) {
             return null; // Skip - no choices to resolve
@@ -467,6 +491,293 @@ class FlowExecutor
         }
 
         return $lastResponse ?? ['data' => [], 'message' => 'No choices resolved'];
+    }
+
+    /**
+     * Resolve any remaining required choices that weren't handled by specific handlers.
+     * This catches choice types like size, feat, optional_feature, ability_score, etc.
+     */
+    private function resolveRemainingChoices(int $characterId, CharacterRandomizer $randomizer): ?array
+    {
+        // Already-handled types
+        $handledTypes = ['proficiency', 'language', 'equipment', 'equipment_mode', 'spell'];
+
+        $choicesResponse = $this->makeRequest('GET', "/api/v1/characters/{$characterId}/pending-choices");
+        $allChoices = $choicesResponse['data']['choices'] ?? [];
+
+        // Filter to required choices of types we haven't explicitly handled
+        $remainingChoices = array_filter($allChoices, function ($c) use ($handledTypes) {
+            $type = $c['type'] ?? '';
+            $required = $c['required'] ?? false;
+
+            return $required && ! in_array($type, $handledTypes, true);
+        });
+
+        if (empty($remainingChoices)) {
+            return null;
+        }
+
+        $lastResponse = null;
+        $alreadySelected = [];
+
+        foreach ($remainingChoices as $choice) {
+            $choiceId = $choice['id'];
+            $choiceType = $choice['type'] ?? '';
+            $options = $choice['options'] ?? [];
+            $count = $choice['quantity'] ?? $choice['remaining'] ?? 1;
+
+            // Fetch options from endpoint if not inline
+            if (empty($options) && ! empty($choice['options_endpoint'])) {
+                $optionsResponse = $this->makeRequest('GET', $choice['options_endpoint']);
+                $options = $optionsResponse['data'] ?? [];
+            }
+
+            if (empty($options)) {
+                continue;
+            }
+
+            // Handle by type
+            $selected = match ($choiceType) {
+                'size' => $this->selectSize($options, $randomizer),
+                'feat' => $this->selectFeat($options, $randomizer, $alreadySelected),
+                'optional_feature' => $this->selectOptionalFeature($options, $randomizer, $count, $alreadySelected),
+                'ability_score' => $this->selectAbilityScore($options, $randomizer),
+                default => $this->selectGeneric($options, $randomizer, $count, $alreadySelected),
+            };
+
+            if (empty($selected)) {
+                continue;
+            }
+
+            // Track selections to avoid duplicates
+            foreach ((array) $selected as $sel) {
+                $alreadySelected[] = $sel;
+            }
+
+            $lastResponse = $this->makeRequest('POST', "/api/v1/characters/{$characterId}/choices/{$choiceId}", [
+                'selected' => (array) $selected,
+            ]);
+
+            if (isset($lastResponse['error']) && $lastResponse['error']) {
+                return $lastResponse;
+            }
+        }
+
+        return $lastResponse ?? ['data' => [], 'message' => 'No remaining choices resolved'];
+    }
+
+    private function selectSize(array $options, CharacterRandomizer $randomizer): array
+    {
+        // Size options have 'id' field (e.g., 'small', 'medium')
+        $sizeIds = array_column($options, 'id');
+        if (empty($sizeIds)) {
+            $sizeIds = array_column($options, 'slug');
+        }
+
+        return $randomizer->pickRandom(array_filter($sizeIds), 1);
+    }
+
+    private function selectFeat(array $options, CharacterRandomizer $randomizer, array $alreadySelected): array
+    {
+        // Feats use 'slug' field
+        $slugs = array_column($options, 'slug');
+        $slugs = array_diff(array_filter($slugs), $alreadySelected);
+
+        return $randomizer->pickRandom(array_values($slugs), 1);
+    }
+
+    private function selectOptionalFeature(array $options, CharacterRandomizer $randomizer, int $count, array $alreadySelected): array
+    {
+        // Optional features use 'slug' field
+        $slugs = array_column($options, 'slug');
+        $slugs = array_diff(array_filter($slugs), $alreadySelected);
+
+        return $randomizer->pickRandom(array_values($slugs), min($count, count($slugs)));
+    }
+
+    private function selectAbilityScore(array $options, CharacterRandomizer $randomizer): array
+    {
+        // Ability score choices - select from available options
+        $values = array_column($options, 'value');
+        if (empty($values)) {
+            $values = array_column($options, 'slug');
+        }
+        if (empty($values)) {
+            $values = array_column($options, 'id');
+        }
+
+        return $randomizer->pickRandom(array_filter($values), 1);
+    }
+
+    private function selectGeneric(array $options, CharacterRandomizer $randomizer, int $count, array $alreadySelected): array
+    {
+        // Generic fallback - try slug, then value, then id
+        $values = array_column($options, 'slug');
+        if (empty(array_filter($values))) {
+            $values = array_column($options, 'value');
+        }
+        if (empty(array_filter($values))) {
+            $values = array_column($options, 'id');
+        }
+
+        $values = array_diff(array_filter($values), $alreadySelected);
+
+        return $randomizer->pickRandom(array_values($values), min($count, count($values)));
+    }
+
+    /**
+     * Final pass: resolve ALL remaining required choices regardless of type.
+     * Loops until no required choices remain or max iterations reached.
+     */
+    private function resolveAllRequired(int $characterId, CharacterRandomizer $randomizer): ?array
+    {
+        $maxIterations = 10;
+        $lastResponse = null;
+        $alreadySelected = [];
+
+        for ($i = 0; $i < $maxIterations; $i++) {
+            $choicesResponse = $this->makeRequest('GET', "/api/v1/characters/{$characterId}/pending-choices");
+            $allChoices = $choicesResponse['data']['choices'] ?? [];
+
+            // Filter to required choices with remaining > 0
+            $pending = array_filter($allChoices, function ($c) {
+                return ($c['required'] ?? false) === true && ($c['remaining'] ?? 0) > 0;
+            });
+
+            if (empty($pending)) {
+                break; // All required choices resolved
+            }
+
+            // Process each pending choice
+            foreach ($pending as $choice) {
+                $choiceId = $choice['id'];
+                $choiceType = $choice['type'] ?? '';
+                $options = $choice['options'] ?? [];
+                $count = $choice['remaining'] ?? 1;
+
+                // Fetch options from endpoint if not inline
+                if (empty($options) && ! empty($choice['options_endpoint'])) {
+                    $optionsResponse = $this->makeRequest('GET', $choice['options_endpoint']);
+                    $options = $optionsResponse['data'] ?? [];
+                }
+
+                if (empty($options)) {
+                    continue;
+                }
+
+                // Select based on type
+                $selected = match ($choiceType) {
+                    'equipment' => $this->selectEquipmentOption($options, $randomizer),
+                    'proficiency' => $this->selectProficiency($options, $randomizer, $count, $alreadySelected),
+                    'language' => $this->selectLanguage($options, $randomizer, $count, $alreadySelected),
+                    'spell' => $this->selectSpells($options, $randomizer, $count, $alreadySelected),
+                    'size' => $this->selectSize($options, $randomizer),
+                    'feat' => $this->selectFeat($options, $randomizer, $alreadySelected),
+                    'optional_feature' => $this->selectOptionalFeature($options, $randomizer, $count, $alreadySelected),
+                    'ability_score' => $this->selectAbilityScore($options, $randomizer),
+                    'subclass' => $this->selectSubclass($options, $randomizer),
+                    default => $this->selectGeneric($options, $randomizer, $count, $alreadySelected),
+                };
+
+                if (empty($selected)) {
+                    continue;
+                }
+
+                // Track selections
+                foreach ((array) $selected as $sel) {
+                    $alreadySelected[] = $sel;
+                }
+
+                $payload = ['selected' => (array) $selected];
+
+                // Equipment choices need special handling for item_selections
+                if ($choiceType === 'equipment') {
+                    $selectedOption = $selected[0] ?? null;
+                    $foundOption = null;
+                    foreach ($options as $opt) {
+                        if (($opt['option'] ?? '') === $selectedOption) {
+                            $foundOption = $opt;
+                            break;
+                        }
+                    }
+
+                    if ($foundOption && ($foundOption['is_category'] ?? false)) {
+                        $selectableItems = array_filter(
+                            $foundOption['items'] ?? [],
+                            fn ($item) => ! ($item['is_fixed'] ?? false)
+                        );
+                        if (! empty($selectableItems)) {
+                            $itemSlugs = array_column($selectableItems, 'slug');
+                            $pickedItem = $randomizer->pickRandom($itemSlugs, 1);
+                            $payload['item_selections'] = [$selectedOption => $pickedItem];
+                        }
+                    }
+                }
+
+                $lastResponse = $this->makeRequest('POST', "/api/v1/characters/{$characterId}/choices/{$choiceId}", $payload);
+
+                if (isset($lastResponse['error']) && $lastResponse['error']) {
+                    return $lastResponse;
+                }
+            }
+        }
+
+        return $lastResponse ?? ['data' => [], 'message' => 'All required choices resolved'];
+    }
+
+    private function selectProficiency(array $options, CharacterRandomizer $randomizer, int $count, array $alreadySelected): array
+    {
+        $slugs = array_column($options, 'slug');
+        $slugs = array_diff(array_filter($slugs), $alreadySelected);
+
+        return $randomizer->pickRandom(array_values($slugs), min($count, count($slugs)));
+    }
+
+    private function selectLanguage(array $options, CharacterRandomizer $randomizer, int $count, array $alreadySelected): array
+    {
+        $slugs = array_column($options, 'slug');
+        $slugs = array_diff(array_filter($slugs), $alreadySelected);
+
+        return $randomizer->pickRandom(array_values($slugs), min($count, count($slugs)));
+    }
+
+    private function selectSpells(array $options, CharacterRandomizer $randomizer, int $count, array $alreadySelected): array
+    {
+        $slugs = array_column($options, 'slug');
+        $slugs = array_diff(array_filter($slugs), $alreadySelected);
+
+        return $randomizer->pickRandom(array_values($slugs), min($count, count($slugs)));
+    }
+
+    private function selectEquipmentOption(array $options, CharacterRandomizer $randomizer): array
+    {
+        // Filter to valid options only
+        $validOptions = array_filter($options, function ($opt) {
+            if (! ($opt['is_category'] ?? false)) {
+                return true;
+            }
+            $selectableItems = array_filter(
+                $opt['items'] ?? [],
+                fn ($item) => ! ($item['is_fixed'] ?? false)
+            );
+
+            return ! empty($selectableItems);
+        });
+
+        if (empty($validOptions)) {
+            return [];
+        }
+
+        $optionValues = array_column($validOptions, 'option');
+
+        return $randomizer->pickRandom($optionValues, 1);
+    }
+
+    private function selectSubclass(array $options, CharacterRandomizer $randomizer): array
+    {
+        $slugs = array_column($options, 'slug');
+
+        return $randomizer->pickRandom(array_filter($slugs), 1);
     }
 
     private function setEquipmentMode(int $characterId, CharacterRandomizer $randomizer): ?array

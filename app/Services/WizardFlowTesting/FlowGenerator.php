@@ -29,6 +29,8 @@ class FlowGenerator
             ['action' => 'set_equipment_mode', 'description' => 'Choose equipment mode'],
             ['action' => 'resolve_equipment_choices', 'description' => 'Resolve equipment choices', 'conditional' => true],
             ['action' => 'resolve_spell_choices', 'description' => 'Resolve spell choices (if spellcaster)', 'conditional' => true],
+            ['action' => 'resolve_remaining_choices', 'description' => 'Resolve any remaining required choices', 'conditional' => true],
+            ['action' => 'resolve_all_required', 'description' => 'Final pass: resolve all remaining required choices', 'conditional' => true],
             ['action' => 'set_details', 'description' => 'Set name and alignment'],
             ['action' => 'validate', 'description' => 'Validate character completion'],
         ];

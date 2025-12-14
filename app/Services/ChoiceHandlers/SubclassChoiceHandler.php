@@ -98,7 +98,8 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
     {
         $parsed = $this->parseChoiceId($choice->id);
         $classSlug = $parsed['sourceSlug'];
-        $subclassSlug = $selection['subclass_slug'] ?? null;
+        // Accept both subclass_slug (legacy) and selected[0] (standardized) formats
+        $subclassSlug = $selection['subclass_slug'] ?? $selection['selected'][0] ?? null;
 
         if ($subclassSlug === null) {
             throw new InvalidSelectionException($choice->id, 'empty', 'Subclass slug is required');

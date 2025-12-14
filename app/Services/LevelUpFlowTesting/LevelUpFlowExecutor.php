@@ -291,15 +291,16 @@ class LevelUpFlowExecutor
 
         // Select based on type
         $selected = match ($choiceType) {
-            'hp' => $this->selectHpChoice($options, $randomizer),
-            'asi' => $this->selectAsiChoice($options, $randomizer),
+            'hit_points' => $this->selectHpChoice($options, $randomizer),
+            'asi_or_feat' => $this->selectAsiChoice($options, $randomizer),
             'subclass' => $this->selectSubclass($options, $randomizer),
-            'spell' => $this->selectSpells($options, $randomizer, $count),
+            'spell', 'spells_known', 'cantrip' => $this->selectSpells($options, $randomizer, $count),
             'feat' => $this->selectFeat($options, $randomizer),
-            'proficiency' => $this->selectProficiency($options, $randomizer, $count),
+            'proficiency', 'expertise' => $this->selectProficiency($options, $randomizer, $count),
             'language' => $this->selectLanguage($options, $randomizer, $count),
             'ability_score' => $this->selectAbilityScore($options, $randomizer, $count),
             'optional_feature' => $this->selectOptionalFeature($options, $randomizer, $count),
+            'size' => $this->selectGeneric($options, $randomizer, $count),
             default => $this->selectGeneric($options, $randomizer, $count),
         };
 
@@ -316,8 +317,11 @@ class LevelUpFlowExecutor
 
     private function selectHpChoice(array $options, CharacterRandomizer $randomizer): array
     {
-        // HP options typically have 'value' as 'roll', 'average', or 'manual'
-        $values = array_column($options, 'value');
+        // HP options use 'id' field with values: 'roll', 'average', 'manual'
+        $values = array_column($options, 'id');
+        if (empty($values)) {
+            $values = array_column($options, 'value');
+        }
         if (empty($values)) {
             $values = array_column($options, 'slug');
         }

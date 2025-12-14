@@ -76,7 +76,8 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
 
     public function resolve(Character $character, PendingChoice $choice, array $selection): void
     {
-        $optionalFeatureSlug = $selection['optional_feature_slug'] ?? null;
+        // Accept both optional_feature_slug (legacy) and selected[0] (standardized) formats
+        $optionalFeatureSlug = $selection['optional_feature_slug'] ?? $selection['selected'][0] ?? null;
 
         if (! $optionalFeatureSlug) {
             throw new InvalidSelectionException(
@@ -165,7 +166,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
             $remaining = max(0, $allowed - $selected);
 
             // Build options endpoint
-            $optionsEndpoint = $this->buildOptionsEndpoint($featureType, $className, $subclassName, $character->total_level);
+            $optionsEndpoint = $this->buildOptionsEndpoint($featureType, $classSlug, $subclassName, $character->total_level);
 
             // Create unique choice ID
             $choiceId = $this->generateChoiceId(
@@ -221,7 +222,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
      */
     private function buildOptionsEndpoint(
         string $featureType,
-        string $className,
+        string $classSlug,
         ?string $subclassName,
         int $characterLevel
     ): string {
@@ -230,9 +231,8 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
         // Filter by feature type
         $filterParts[] = "feature_type = {$featureType}";
 
-        // Filter by class
-        $classSlug = strtolower(str_replace(' ', '-', $className));
-        $filterParts[] = "class_slugs IN [{$classSlug}]";
+        // Filter by class - use full slug (e.g., "phb:fighter") with quotes for Meilisearch
+        $filterParts[] = "class_slugs IN [\"{$classSlug}\"]";
 
         // Filter by subclass if applicable
         if ($subclassName) {

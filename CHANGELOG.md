@@ -32,6 +32,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #610**: Encounter monsters API for DM Screen
+  - New endpoints for managing monsters in party encounters
+  - `GET /api/v1/parties/{id}/monsters` - List monsters in encounter
+  - `POST /api/v1/parties/{id}/monsters` - Add monster(s) with auto-labeling
+  - `PATCH /api/v1/parties/{id}/monsters/{id}` - Update HP or label
+  - `DELETE /api/v1/parties/{id}/monsters/{id}` - Remove single monster
+  - `DELETE /api/v1/parties/{id}/monsters` - Clear all monsters
+  - Auto-labeling: "Goblin 1", "Goblin 2" etc. with continuation support
+  - Monster data includes actions for quick combat reference
+
 - **Issue #593**: Level-Up Flow Chaos Testing Tool
   - New artisan command: `php artisan test:level-up-flow`
   - Linear mode: Single-class progression from level 1 to target (default 20)

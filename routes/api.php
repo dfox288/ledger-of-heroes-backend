@@ -441,6 +441,18 @@ Route::prefix('v1')->group(function () {
     Route::get('parties/{party}/stats', [\App\Http\Controllers\Api\PartyController::class, 'stats'])
         ->name('parties.stats');
 
+    // Party Encounter Monsters (DM Screen initiative tracker)
+    Route::get('parties/{party}/monsters', [\App\Http\Controllers\Api\PartyEncounterMonsterController::class, 'index'])
+        ->name('parties.monsters.index');
+    Route::post('parties/{party}/monsters', [\App\Http\Controllers\Api\PartyEncounterMonsterController::class, 'store'])
+        ->name('parties.monsters.store');
+    Route::patch('parties/{party}/monsters/{encounterMonster}', [\App\Http\Controllers\Api\PartyEncounterMonsterController::class, 'update'])
+        ->name('parties.monsters.update');
+    Route::delete('parties/{party}/monsters/{encounterMonster}', [\App\Http\Controllers\Api\PartyEncounterMonsterController::class, 'destroy'])
+        ->name('parties.monsters.destroy');
+    Route::delete('parties/{party}/monsters', [\App\Http\Controllers\Api\PartyEncounterMonsterController::class, 'clear'])
+        ->name('parties.monsters.clear');
+
     /*
     |--------------------------------------------------------------------------
     | Polymorphic Media Routes

@@ -18,12 +18,13 @@ use Illuminate\Http\Response;
 class PartyController extends Controller
 {
     /**
-     * List all parties for the authenticated user.
+     * List all parties.
+     *
+     * TODO: Re-add user scoping when auth is implemented.
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $parties = Party::where('user_id', $request->user()->id)
-            ->withCount('characters')
+        $parties = Party::withCount('characters')
             ->orderBy('updated_at', 'desc')
             ->get();
 
@@ -32,13 +33,15 @@ class PartyController extends Controller
 
     /**
      * Create a new party.
+     *
+     * TODO: Re-add user_id from auth when auth is implemented.
      */
     public function store(PartyStoreRequest $request): JsonResponse
     {
         $party = Party::create([
             'name' => $request->validated('name'),
             'description' => $request->validated('description'),
-            'user_id' => $request->user()->id,
+            'user_id' => $request->user()?->id,
         ]);
 
         return (new PartyResource($party))
@@ -48,14 +51,11 @@ class PartyController extends Controller
 
     /**
      * Show a party with its characters.
+     *
+     * TODO: Re-add ownership check when auth is implemented.
      */
     public function show(Request $request, Party $party): PartyResource|JsonResponse
     {
-        // Check ownership
-        if ($party->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Party not found'], Response::HTTP_NOT_FOUND);
-        }
-
         $party->load('characters');
 
         return new PartyResource($party);
@@ -63,14 +63,11 @@ class PartyController extends Controller
 
     /**
      * Update a party.
+     *
+     * TODO: Re-add ownership check when auth is implemented.
      */
     public function update(PartyUpdateRequest $request, Party $party): PartyResource|JsonResponse
     {
-        // Check ownership
-        if ($party->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Party not found'], Response::HTTP_NOT_FOUND);
-        }
-
         $party->update($request->validated());
 
         return new PartyResource($party);
@@ -78,14 +75,11 @@ class PartyController extends Controller
 
     /**
      * Delete a party.
+     *
+     * TODO: Re-add ownership check when auth is implemented.
      */
     public function destroy(Request $request, Party $party): JsonResponse
     {
-        // Check ownership
-        if ($party->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Party not found'], Response::HTTP_NOT_FOUND);
-        }
-
         $party->delete();
 
         return response()->json(null, Response::HTTP_NO_CONTENT);
@@ -93,14 +87,11 @@ class PartyController extends Controller
 
     /**
      * Add a character to a party.
+     *
+     * TODO: Re-add ownership check when auth is implemented.
      */
     public function addCharacter(PartyAddCharacterRequest $request, Party $party): PartyResource|JsonResponse
     {
-        // Check ownership
-        if ($party->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Party not found'], Response::HTTP_NOT_FOUND);
-        }
-
         $party->characters()->attach($request->validated('character_id'), [
             'joined_at' => now(),
         ]);
@@ -114,14 +105,11 @@ class PartyController extends Controller
 
     /**
      * Remove a character from a party.
+     *
+     * TODO: Re-add ownership check when auth is implemented.
      */
     public function removeCharacter(Request $request, Party $party, Character $character): JsonResponse
     {
-        // Check ownership
-        if ($party->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Party not found'], Response::HTTP_NOT_FOUND);
-        }
-
         // Check if character is in party
         if (! $party->characters()->where('character_id', $character->id)->exists()) {
             return response()->json(['message' => 'Character not in party'], Response::HTTP_NOT_FOUND);
@@ -134,14 +122,11 @@ class PartyController extends Controller
 
     /**
      * Get aggregated stats for all characters in a party (DM dashboard).
+     *
+     * TODO: Re-add ownership check when auth is implemented.
      */
     public function stats(Request $request, Party $party): PartyStatsResource|JsonResponse
     {
-        // Check ownership
-        if ($party->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Party not found'], Response::HTTP_NOT_FOUND);
-        }
-
         // Load characters with relationships needed for stats
         $party->load([
             'characters.characterClasses.characterClass',

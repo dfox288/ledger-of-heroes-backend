@@ -430,18 +430,16 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     |
     | Party management for DMs to group characters and view aggregated stats.
-    | All party endpoints require authentication.
+    | TODO: Re-add auth:sanctum middleware when auth is implemented.
     |
     */
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::apiResource('parties', \App\Http\Controllers\Api\PartyController::class);
-        Route::post('parties/{party}/characters', [\App\Http\Controllers\Api\PartyController::class, 'addCharacter'])
-            ->name('parties.characters.store');
-        Route::delete('parties/{party}/characters/{character}', [\App\Http\Controllers\Api\PartyController::class, 'removeCharacter'])
-            ->name('parties.characters.destroy');
-        Route::get('parties/{party}/stats', [\App\Http\Controllers\Api\PartyController::class, 'stats'])
-            ->name('parties.stats');
-    });
+    Route::apiResource('parties', \App\Http\Controllers\Api\PartyController::class);
+    Route::post('parties/{party}/characters', [\App\Http\Controllers\Api\PartyController::class, 'addCharacter'])
+        ->name('parties.characters.store');
+    Route::delete('parties/{party}/characters/{character}', [\App\Http\Controllers\Api\PartyController::class, 'removeCharacter'])
+        ->name('parties.characters.destroy');
+    Route::get('parties/{party}/stats', [\App\Http\Controllers\Api\PartyController::class, 'stats'])
+        ->name('parties.stats');
 
     /*
     |--------------------------------------------------------------------------

@@ -15,6 +15,7 @@ class ImportFixtureCharactersCommand extends Command
 {
     protected $signature = 'fixtures:import-characters
                             {--file= : Specific JSON file to import (relative to storage/fixtures)}
+                            {--all : Import all JSON files from storage/fixtures/characters}
                             {--force : Delete existing test characters before importing}
                             {--dry-run : Show what would be imported without importing}';
 
@@ -30,8 +31,15 @@ class ImportFixtureCharactersCommand extends Command
     {
         $fixturesPath = storage_path('fixtures');
         $specificFile = $this->option('file');
+        $importAll = $this->option('all');
         $force = $this->option('force');
         $dryRun = $this->option('dry-run');
+
+        if ($specificFile && $importAll) {
+            $this->error('Cannot use --file and --all together');
+
+            return self::FAILURE;
+        }
 
         if ($specificFile) {
             $filePath = $fixturesPath.'/'.$specificFile;
@@ -41,12 +49,29 @@ class ImportFixtureCharactersCommand extends Command
                 return self::FAILURE;
             }
             $files = [$filePath];
+        } elseif ($importAll) {
+            $charactersPath = $fixturesPath.'/characters';
+            if (! File::isDirectory($charactersPath)) {
+                $this->error("Characters directory not found: {$charactersPath}");
+
+                return self::FAILURE;
+            }
+            $files = File::glob($charactersPath.'/*.json');
+            sort($files);
+
+            if (empty($files)) {
+                $this->error('No JSON files found in '.$charactersPath);
+
+                return self::FAILURE;
+            }
+
+            $this->info('Found '.count($files).' fixture files');
         } else {
             // Default: import the combined spellcaster test file
             $defaultFile = $fixturesPath.'/spellcaster-test-characters.json';
             if (! File::exists($defaultFile)) {
                 $this->error('Default fixtures file not found: '.$defaultFile);
-                $this->info('Run the export first or specify a file with --file=');
+                $this->info('Use --all to import all files from storage/fixtures/characters/');
 
                 return self::FAILURE;
             }

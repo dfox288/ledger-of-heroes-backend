@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Issue #678/#682**: Paladin/Ranger Fighting Style counter incorrect (showed 2 instead of 1)
+  - Root cause: Parser matched "Fighting Style: Blessed Warrior" features from TCE supplement
+  - The description "You learn two cantrips" was incorrectly parsed as "2 fighting styles"
+  - Fix: Added `exact_match` flag to Fighting Style patterns to prevent matching style variants
+  - Affects: Paladin L2, Ranger L2 (both now correctly show 1 fighting style)
+
 ### Added
 
 - **Issue #618**: Enriched `spell_slots` in character stats endpoint with tracking

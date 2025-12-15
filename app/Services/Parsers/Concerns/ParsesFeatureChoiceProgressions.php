@@ -60,10 +60,12 @@ trait ParsesFeatureChoiceProgressions
             'counter_name' => 'Fighting Styles Known',
             'subclass_pattern' => null,
             'is_additional' => true,
+            'exact_match' => true, // Must start with this pattern, not just contain it
         ],
         'Fighting Style' => [
             'counter_name' => 'Fighting Styles Known',
             'subclass_pattern' => null,
+            'exact_match' => true, // Must be exactly "Fighting Style", not "Fighting Style: X"
         ],
         'Metamagic' => [
             'counter_name' => 'Metamagic Known',
@@ -149,8 +151,26 @@ trait ParsesFeatureChoiceProgressions
     protected function findMatchingFeaturePattern(string $featureName): ?array
     {
         foreach ($this->featureChoicePatterns as $pattern => $config) {
-            if (str_contains($featureName, $pattern)) {
-                return $config;
+            $exactMatch = $config['exact_match'] ?? false;
+
+            if ($exactMatch) {
+                // For exact_match patterns, the feature name must either:
+                // 1. Be exactly the pattern (e.g., "Fighting Style")
+                // 2. Start with the pattern followed by optional parenthetical subclass marker
+                //    (e.g., "Additional Fighting Style (Champion)")
+                // It must NOT match "Pattern: Variant" style names (e.g., "Fighting Style: Archery")
+                if ($featureName === $pattern) {
+                    return $config;
+                }
+                // Match "Pattern (Subclass)" but not "Pattern: Variant"
+                if (str_starts_with($featureName, $pattern.' (') && ! str_contains($featureName, ':')) {
+                    return $config;
+                }
+            } else {
+                // Default behavior: contains match
+                if (str_contains($featureName, $pattern)) {
+                    return $config;
+                }
             }
         }
 

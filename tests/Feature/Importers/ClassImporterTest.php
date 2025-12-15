@@ -621,4 +621,66 @@ XML;
         $this->assertStringContainsString('mace', strtolower($maceChoice->description));
         $this->assertStringContainsString('warhammer', strtolower($warhammerChoice->description));
     }
+
+    #[Test]
+    public function it_imports_paladin_fighting_style_counter_with_value_1()
+    {
+        // Issue #678/#682: Paladin Fighting Style counter should be 1 at level 2, not 2
+        // Per D&D 5e PHB: Paladin gains ONE fighting style at level 2
+        $xmlPath = base_path('import-files/class-paladin-phb.xml');
+        $xmlContent = file_get_contents($xmlPath);
+        $parser = new ClassXmlParser;
+        $classes = $parser->parse($xmlContent);
+        $paladinData = $classes[0];
+
+        // Import the base Paladin class
+        $paladin = $this->importer->import($paladinData);
+
+        // Get Fighting Styles Known counter at level 2
+        $fightingStyleCounter = $paladin->counters()
+            ->where('counter_name', 'Fighting Styles Known')
+            ->where('level', 2)
+            ->first();
+
+        $this->assertNotNull(
+            $fightingStyleCounter,
+            'Paladin should have Fighting Styles Known counter at level 2'
+        );
+        $this->assertEquals(
+            1,
+            $fightingStyleCounter->counter_value,
+            'Paladin should have 1 fighting style at level 2, not 2'
+        );
+    }
+
+    #[Test]
+    public function it_imports_ranger_fighting_style_counter_with_value_1()
+    {
+        // Issue #678/#682: Ranger Fighting Style counter should be 1 at level 2, not 2
+        // Per D&D 5e PHB: Ranger gains ONE fighting style at level 2
+        $xmlPath = base_path('import-files/class-ranger-phb.xml');
+        $xmlContent = file_get_contents($xmlPath);
+        $parser = new ClassXmlParser;
+        $classes = $parser->parse($xmlContent);
+        $rangerData = $classes[0];
+
+        // Import the base Ranger class
+        $ranger = $this->importer->import($rangerData);
+
+        // Get Fighting Styles Known counter at level 2
+        $fightingStyleCounter = $ranger->counters()
+            ->where('counter_name', 'Fighting Styles Known')
+            ->where('level', 2)
+            ->first();
+
+        $this->assertNotNull(
+            $fightingStyleCounter,
+            'Ranger should have Fighting Styles Known counter at level 2'
+        );
+        $this->assertEquals(
+            1,
+            $fightingStyleCounter->counter_value,
+            'Ranger should have 1 fighting style at level 2, not 2'
+        );
+    }
 }

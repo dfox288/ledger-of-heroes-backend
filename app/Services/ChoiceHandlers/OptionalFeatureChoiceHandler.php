@@ -53,6 +53,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
                 $className,
                 $classSlug,
                 null,
+                null, // No subclass slug for base class counters
                 $character,
                 $choices
             );
@@ -65,6 +66,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
                     $className,
                     $classSlug,
                     $subclassName,
+                    $charClass->subclass->slug, // Pass subclass slug for accurate feature lookups
                     $character,
                     $choices
                 );
@@ -143,6 +145,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
         string $className,
         string $classSlug,
         ?string $subclassName,
+        ?string $subclassSlug,
         Character $character,
         Collection &$choices
     ): void {
@@ -170,6 +173,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
                 $featureType,
                 $classSlug,
                 $subclassName,
+                $subclassSlug,
                 $character->total_level,
                 $character
             );
@@ -232,6 +236,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
         string $featureType,
         string $classSlug,
         ?string $subclassName,
+        ?string $subclassSlug,
         int $characterLevel,
         Character $character
     ): array {
@@ -240,18 +245,30 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
             ->pluck('optional_feature_slug')
             ->toArray();
 
+        // Determine which class slug to use for filtering.
+        // Optional features like maneuvers may be associated with the subclass directly
+        // (e.g., phb:fighter-battle-master), not the parent class (phb:fighter).
+        // When we have a subclass slug, check both the subclass and parent class.
+        $classSlugsToCheck = $subclassSlug
+            ? [$subclassSlug, $classSlug]
+            : [$classSlug];
+
         // Build query with same filters as the old endpoint
         $query = OptionalFeature::query()
             ->where('feature_type', $featureType)
-            ->whereHas('classes', fn ($q) => $q->where('classes.slug', $classSlug))
+            ->whereHas('classes', fn ($q) => $q->whereIn('classes.slug', $classSlugsToCheck))
             ->where(fn ($q) => $q
                 ->whereNull('level_requirement')
                 ->orWhere('level_requirement', '<=', $characterLevel)
             );
 
-        // Filter by subclass if applicable
+        // Filter by subclass name if applicable (for features with specific subclass restrictions)
         if ($subclassName) {
-            $query->whereHas('classPivots', fn ($q) => $q->where('subclass_name', $subclassName));
+            // Include features that either match this subclass OR have no subclass restriction
+            $query->where(fn ($q) => $q
+                ->whereHas('classPivots', fn ($pq) => $pq->where('subclass_name', $subclassName))
+                ->orWhereHas('classPivots', fn ($pq) => $pq->whereNull('subclass_name'))
+            );
         }
 
         // Exclude already-selected features (#622 fix)

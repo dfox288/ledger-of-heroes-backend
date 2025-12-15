@@ -24,6 +24,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
         'Arcane Shots Known' => 'arcane_shot',
         'Elemental Disciplines Known' => 'elemental_discipline',
         'Eldritch Invocations Known' => 'eldritch_invocation',
+        'Eldritch Invocations' => 'eldritch_invocation',  // DB uses both names (fix #679)
     ];
 
     public function getType(): string

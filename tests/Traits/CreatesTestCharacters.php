@@ -114,25 +114,10 @@ trait CreatesTestCharacters
             mode: 'linear'
         );
 
-        // Check for errors
-        if ($result->getError() !== null) {
-            $error = $result->getError();
+        // Check for errors or failures
+        if ($result->hasError() || $result->hasFailed()) {
             throw new \RuntimeException(
-                "Level-up failed at level {$error['at_level']} for {$character->public_id}: {$error['message']}"
-            );
-        }
-
-        // Check all steps passed
-        $failedSteps = array_filter(
-            $result->getSteps(),
-            fn ($step) => $step['status'] !== 'PASS'
-        );
-
-        if (! empty($failedSteps)) {
-            $firstFailed = reset($failedSteps);
-            throw new \RuntimeException(
-                "Level-up step failed at level {$firstFailed['level']} for {$character->public_id}: ".
-                implode(', ', $firstFailed['errors'] ?? ['Unknown error'])
+                "Level-up failed for {$character->public_id}: {$result->getSummary()}"
             );
         }
     }
@@ -189,5 +174,152 @@ trait CreatesTestCharacters
         );
 
         expect($actualCount)->toBe($expectedCount, $message);
+    }
+
+    // ========================================================================
+    // Spellcasting Assertion Helpers
+    // ========================================================================
+
+    /**
+     * Count cantrips selected by a character.
+     */
+    protected function countCantrips(Character $character): int
+    {
+        return $character->spells()
+            ->whereHas('spell', fn ($q) => $q->where('level', 0))
+            ->count();
+    }
+
+    /**
+     * Count non-cantrip spells selected by a character (spells known).
+     */
+    protected function countSpellsKnown(Character $character): int
+    {
+        return $character->spells()
+            ->whereHas('spell', fn ($q) => $q->where('level', '>', 0))
+            ->count();
+    }
+
+    /**
+     * Get expected cantrips known from config at a given level.
+     */
+    protected function getExpectedCantrips(string $classKey, int $level): ?int
+    {
+        $config = config("dnd-rules.spellcasting.{$classKey}.cantrips", []);
+
+        // Find the highest level in progression that is <= current level
+        $count = null;
+        foreach ($config as $configLevel => $configCount) {
+            if ($configLevel <= $level) {
+                $count = $configCount;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
+     * Get expected spells known from config at a given level.
+     */
+    protected function getExpectedSpellsKnown(string $classKey, int $level): ?int
+    {
+        $config = config("dnd-rules.spellcasting.{$classKey}.spells_known", []);
+
+        // Find the highest level in progression that is <= current level
+        $count = null;
+        foreach ($config as $configLevel => $configCount) {
+            if ($configLevel <= $level) {
+                $count = $configCount;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
+     * Assert character has expected number of cantrips.
+     */
+    protected function assertCantripCount(
+        Character $character,
+        int $expectedCount,
+        ?string $message = null
+    ): void {
+        $actualCount = $this->countCantrips($character);
+
+        $message = $message ?? sprintf(
+            'Expected %d cantrips but found %d for %s at level %d',
+            $expectedCount,
+            $actualCount,
+            $character->public_id,
+            $character->total_level
+        );
+
+        expect($actualCount)->toBe($expectedCount, $message);
+    }
+
+    /**
+     * Assert character has expected number of spells known.
+     */
+    protected function assertSpellsKnownCount(
+        Character $character,
+        int $expectedCount,
+        ?string $message = null
+    ): void {
+        $actualCount = $this->countSpellsKnown($character);
+
+        $message = $message ?? sprintf(
+            'Expected %d spells known but found %d for %s at level %d',
+            $expectedCount,
+            $actualCount,
+            $character->public_id,
+            $character->total_level
+        );
+
+        expect($actualCount)->toBe($expectedCount, $message);
+    }
+
+    /**
+     * Get spell slots from character's primary class at their level.
+     *
+     * @return array<int, int> Spell slots indexed by spell level (1-9)
+     */
+    protected function getCharacterSpellSlots(Character $character): array
+    {
+        $calculator = app(\App\Services\CharacterStatCalculator::class);
+        $primaryClass = $character->primary_class;
+
+        if (! $primaryClass) {
+            return [];
+        }
+
+        // For subclasses, use the parent class for spell progression
+        $baseClass = $primaryClass->parent_class_id
+            ? $primaryClass->parentClass
+            : $primaryClass;
+
+        return $calculator->getSpellSlotsFromClass($baseClass, $character->total_level);
+    }
+
+    /**
+     * Assert character has expected spell slots.
+     *
+     * @param  array<int, int>  $expectedSlots  Expected slots by level (e.g., [1 => 4, 2 => 3])
+     */
+    protected function assertSpellSlots(
+        Character $character,
+        array $expectedSlots,
+        ?string $message = null
+    ): void {
+        $actualSlots = $this->getCharacterSpellSlots($character);
+
+        $message = $message ?? sprintf(
+            'Spell slot mismatch for %s at level %d. Expected: %s, Actual: %s',
+            $character->public_id,
+            $character->total_level,
+            json_encode($expectedSlots),
+            json_encode($actualSlots)
+        );
+
+        expect($actualSlots)->toBe($expectedSlots, $message);
     }
 }

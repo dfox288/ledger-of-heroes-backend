@@ -29,7 +29,16 @@ uses(Tests\TestCase::class, CreatesTestCharacters::class)->group('integration');
 
 beforeEach(function () {
     // Force MySQL connection for integration tests (phpunit.xml defaults to SQLite)
+    // Must hardcode values since phpunit.xml overrides env vars
     config(['database.default' => 'mysql']);
+    config(['database.connections.mysql.host' => 'mysql']);
+    config(['database.connections.mysql.database' => 'dnd_compendium']);
+    config(['database.connections.mysql.username' => 'dnd_user']);
+    config(['database.connections.mysql.password' => 'dnd_password']);
+
+    // Purge existing connections and reconnect
+    \DB::purge('mysql');
+    \DB::reconnect('mysql');
 
     // Skip if required classes aren't imported
     $classCount = CharacterClass::count();

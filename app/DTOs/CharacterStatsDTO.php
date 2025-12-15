@@ -19,6 +19,11 @@ use Illuminate\Support\Str;
  */
 class CharacterStatsDTO
 {
+    /**
+     * Minimum roll for abilities with Reliable Talent or Silver Tongue (RAW: treat rolls below 10 as 10).
+     */
+    private const MINIMUM_ABILITY_CHECK_ROLL = 10;
+
     public function __construct(
         public readonly int $characterId,
         public readonly int $level,
@@ -207,8 +212,11 @@ class CharacterStatsDTO
         // Note: hasJackOfAllTrades already detected earlier for initiative
         $hasReliableTalent = self::hasReliableTalent($character);
 
+        // Detect Silver Tongue for minimum roll indicators (Issue #672)
+        $hasSilverTongue = self::hasSilverTongue($character);
+
         // Build full skills array
-        $skills = self::buildSkills($abilityModifiers, $skillProficiencies, $proficiencyBonus, $calculator, $hasJackOfAllTrades, $hasReliableTalent);
+        $skills = self::buildSkills($abilityModifiers, $skillProficiencies, $proficiencyBonus, $calculator, $hasJackOfAllTrades, $hasReliableTalent, $hasSilverTongue);
 
         // Build speed array
         $speed = self::buildSpeed($character);
@@ -504,7 +512,9 @@ class CharacterStatsDTO
      *   expertise: bool,
      *   modifier: int|null,
      *   passive: int|null,
-     *   has_reliable_talent: bool
+     *   has_reliable_talent: bool,
+     *   minimum_roll: int|null,
+     *   minimum_total: int|null
      * }>
      */
     private static function buildSkills(
@@ -513,7 +523,8 @@ class CharacterStatsDTO
         int $proficiencyBonus,
         CharacterStatCalculator $calculator,
         bool $hasJackOfAllTrades = false,
-        bool $hasReliableTalent = false
+        bool $hasReliableTalent = false,
+        bool $hasSilverTongue = false
     ): array {
         // Note: This queries 18 skills per request. Acceptable trade-off as skills
         // rarely change and the query is small. Consider caching if profiling shows issues.
@@ -522,7 +533,10 @@ class CharacterStatsDTO
         // Calculate half proficiency bonus for Jack of All Trades
         $halfProficiencyBonus = (int) floor($proficiencyBonus / 2);
 
-        return $skills->map(function ($skill) use ($abilityModifiers, $skillProficiencies, $proficiencyBonus, $calculator, $hasJackOfAllTrades, $hasReliableTalent, $halfProficiencyBonus) {
+        // Silver Tongue applies only to these skills (Issue #672)
+        $silverTongueSkills = ['core:persuasion', 'core:deception'];
+
+        return $skills->map(function ($skill) use ($abilityModifiers, $skillProficiencies, $proficiencyBonus, $calculator, $hasJackOfAllTrades, $hasReliableTalent, $hasSilverTongue, $halfProficiencyBonus, $silverTongueSkills) {
             // Defensive: skip skills without ability score (shouldn't happen with proper seeding)
             if (! $skill->abilityScore) {
                 return null;
@@ -555,6 +569,17 @@ class CharacterStatsDTO
             // Reliable Talent: Only applies to proficient skills
             $skillHasReliableTalent = $hasReliableTalent && $proficient;
 
+            // Issue #672: Determine if this skill has a guaranteed minimum roll of 10
+            // - Reliable Talent: applies if skill is proficient
+            // - Silver Tongue: applies if skill is Persuasion/Deception (even without proficiency)
+            $hasMinimumRoll = $skillHasReliableTalent
+                || ($hasSilverTongue && in_array($skill->slug, $silverTongueSkills, true));
+
+            $minimumRoll = $hasMinimumRoll ? self::MINIMUM_ABILITY_CHECK_ROLL : null;
+            $minimumTotal = ($hasMinimumRoll && $modifier !== null)
+                ? (self::MINIMUM_ABILITY_CHECK_ROLL + $modifier)
+                : null;
+
             return [
                 'name' => $skill->name,
                 'slug' => $skill->slug,
@@ -565,6 +590,8 @@ class CharacterStatsDTO
                 'modifier' => $modifier,
                 'passive' => $passive,
                 'has_reliable_talent' => $skillHasReliableTalent,
+                'minimum_roll' => $minimumRoll,
+                'minimum_total' => $minimumTotal,
             ];
         })->filter()->sortBy('name')->values()->all();
     }
@@ -866,12 +893,35 @@ class CharacterStatsDTO
      */
     private static function hasReliableTalent(Character $character): bool
     {
+        return self::hasClassFeatureByName($character, 'Reliable Talent');
+    }
+
+    /**
+     * Check if character has the Silver Tongue feature.
+     *
+     * Silver Tongue (College of Eloquence Bard level 3): Minimum roll of 10
+     * on Charisma (Persuasion) and Charisma (Deception) checks.
+     *
+     * Issue #672: Part of minimum roll indicators feature.
+     */
+    private static function hasSilverTongue(Character $character): bool
+    {
+        return self::hasClassFeatureByName($character, 'Silver Tongue');
+    }
+
+    /**
+     * Check if character has a class feature by name.
+     *
+     * Helper method to detect features by their feature_name field.
+     */
+    private static function hasClassFeatureByName(Character $character, string $featureName): bool
+    {
         // Load features if not loaded
         if (! $character->relationLoaded('features')) {
             $character->load('features');
         }
 
-        // Check for Reliable Talent class feature
+        // Check for the named class feature
         foreach ($character->features as $characterFeature) {
             if ($characterFeature->feature_type !== ClassFeature::class) {
                 continue;
@@ -883,8 +933,16 @@ class CharacterStatsDTO
             }
 
             $feature = $characterFeature->feature;
-            if ($feature && $feature->feature_name === 'Reliable Talent') {
-                return true;
+            // Match feature name, stripping any parenthetical suffix like "(College of Eloquence)"
+            // Check both the stripped name and original to be defensive
+            if ($feature) {
+                if ($feature->feature_name === $featureName) {
+                    return true;
+                }
+                $baseName = preg_replace('/\s*\([^)]*\)\s*$/', '', $feature->feature_name) ?? '';
+                if ($baseName === $featureName) {
+                    return true;
+                }
             }
         }
 

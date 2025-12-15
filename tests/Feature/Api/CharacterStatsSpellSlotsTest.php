@@ -170,4 +170,76 @@ class CharacterStatsSpellSlotsTest extends TestCase
             ->assertJsonPath('data.preparation_limit', 6) // Level 3 + INT mod 3
             ->assertJsonPath('data.prepared_spell_count', 2);
     }
+
+    #[Test]
+    public function stats_cache_is_invalidated_when_spell_slot_is_used(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()
+            ->withClass($wizardClass)
+            ->withAbilityScores(['intelligence' => 16])
+            ->level(3)
+            ->create();
+
+        // Create spell slot with 0 spent
+        CharacterSpellSlot::factory()->create([
+            'character_id' => $character->id,
+            'spell_level' => 1,
+            'max_slots' => 4,
+            'used_slots' => 0,
+            'slot_type' => SpellSlotType::STANDARD,
+        ]);
+
+        // First request - should show 0 spent (and cache the result)
+        $response1 = $this->getJson("/api/v1/characters/{$character->id}/stats");
+        $response1->assertOk()
+            ->assertJsonPath('data.spell_slots.slots.1.spent', 0)
+            ->assertJsonPath('data.spell_slots.slots.1.available', 4);
+
+        // Use a spell slot via PATCH endpoint (this should invalidate cache)
+        $this->patchJson("/api/v1/characters/{$character->id}/spell-slots/1", [
+            'action' => 'use',
+        ])->assertOk();
+
+        // Second request - should show updated spent count (not cached value)
+        $response2 = $this->getJson("/api/v1/characters/{$character->id}/stats");
+        $response2->assertOk()
+            ->assertJsonPath('data.spell_slots.slots.1.spent', 1)
+            ->assertJsonPath('data.spell_slots.slots.1.available', 3);
+    }
+
+    #[Test]
+    public function stats_cache_is_invalidated_on_long_rest(): void
+    {
+        $wizardClass = CharacterClass::factory()->spellcaster('INT')->create(['name' => 'Wizard']);
+        $character = Character::factory()
+            ->withClass($wizardClass)
+            ->withAbilityScores(['intelligence' => 16])
+            ->level(3)
+            ->create();
+
+        // Create spell slot with some spent
+        CharacterSpellSlot::factory()->create([
+            'character_id' => $character->id,
+            'spell_level' => 1,
+            'max_slots' => 4,
+            'used_slots' => 3,
+            'slot_type' => SpellSlotType::STANDARD,
+        ]);
+
+        // First request - should show 3 spent (and cache the result)
+        $response1 = $this->getJson("/api/v1/characters/{$character->id}/stats");
+        $response1->assertOk()
+            ->assertJsonPath('data.spell_slots.slots.1.spent', 3)
+            ->assertJsonPath('data.spell_slots.slots.1.available', 1);
+
+        // Take a long rest (this resets spell slots and should invalidate cache)
+        $this->postJson("/api/v1/characters/{$character->id}/long-rest")->assertOk();
+
+        // Second request - should show 0 spent after rest (not cached value)
+        $response2 = $this->getJson("/api/v1/characters/{$character->id}/stats");
+        $response2->assertOk()
+            ->assertJsonPath('data.spell_slots.slots.1.spent', 0)
+            ->assertJsonPath('data.spell_slots.slots.1.available', 4);
+    }
 }

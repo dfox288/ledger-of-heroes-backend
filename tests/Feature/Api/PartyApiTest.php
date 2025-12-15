@@ -1070,6 +1070,85 @@ class PartyApiTest extends TestCase
         expect($response->json('data.characters.0.equipment.shield'))->toBeTrue();
     }
 
+    // =====================
+    // Phase 5: Class Counters (Rage, Ki Points, etc.)
+    // =====================
+
+    #[Test]
+    public function it_returns_character_counters_in_party_stats(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+
+        // Create a barbarian class with Rage feature
+        $barbarianClass = \App\Models\CharacterClass::factory()->create([
+            'slug' => 'test:barbarian-counter-'.uniqid(),
+            'name' => 'Barbarian',
+        ]);
+
+        // Create a class feature with uses (Rage)
+        $rageFeature = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $barbarianClass->id,
+            'feature_name' => 'Rage',
+            'level' => 1,
+            'resets_on' => \App\Enums\ResetTiming::LONG_REST,
+        ]);
+
+        $character = Character::factory()->create(['name' => 'Grunk']);
+
+        // Add barbarian class to character
+        \App\Models\CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $barbarianClass->slug,
+            'level' => 3,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Add the Rage feature to character with uses
+        \App\Models\CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_id' => $rageFeature->id,
+            'source' => 'class',
+            'max_uses' => 3,
+            'uses_remaining' => 2,
+        ]);
+
+        $party->characters()->attach($character);
+
+        $response = $this->actingAs($user)->getJson("/api/v1/parties/{$party->id}/stats");
+
+        $response->assertOk();
+
+        $counters = $response->json('data.characters.0.counters');
+        expect($counters)->toBeArray();
+        expect($counters)->toHaveCount(1);
+
+        $rage = $counters[0];
+        expect($rage['name'])->toBe('Rage');
+        expect($rage['current'])->toBe(2);
+        expect($rage['max'])->toBe(3);
+        expect($rage['reset_on'])->toBe('long_rest');
+        expect($rage['source'])->toBe('Barbarian');
+        expect($rage['unlimited'])->toBeFalse();
+    }
+
+    #[Test]
+    public function it_returns_empty_counters_array_when_character_has_no_counters(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+
+        $character = Character::factory()->create();
+        $party->characters()->attach($character);
+
+        $response = $this->actingAs($user)->getJson("/api/v1/parties/{$party->id}/stats");
+
+        $response->assertOk();
+        expect($response->json('data.characters.0.counters'))->toBe([]);
+    }
+
     #[Test]
     public function it_returns_full_dm_screen_stats_structure(): void
     {
@@ -1131,6 +1210,7 @@ class PartyApiTest extends TestCase
                             'saving_throws',
                             'conditions',
                             'spell_slots',
+                            'counters',
                         ],
                     ],
                     'party_summary' => [

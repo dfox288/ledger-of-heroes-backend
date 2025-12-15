@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #685**: Add counters to party stats endpoint for DM Screen
+  - Adds `counters` array to each character in `GET /parties/{id}/stats` response
+  - Uses same format as individual character counters: id, slug, name, current, max, reset_on, source, source_type, unlimited
+  - Enables DM Screen to display Rage, Ki Points, Action Surge, etc. at a glance
+
 - **Issue #672**: Minimum roll indicators for skills (Reliable Talent, Silver Tongue)
   - Added `minimum_roll` and `minimum_total` fields to each skill in stats endpoint
   - Reliable Talent (Rogue 11): Applies to all proficient ability checks

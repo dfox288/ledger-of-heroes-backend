@@ -151,6 +151,8 @@ class PartyController extends Controller
             'characters.spells.spell',
             // Phase 4: Equipment
             'characters.equipment.item.itemType',
+            // Phase 5: Class counters (Rage, Ki Points, etc.)
+            'characters.features.feature.characterClass',
         ]);
 
         return new PartyStatsResource($party);

@@ -292,4 +292,18 @@ class CharacterFactory extends Factory
             'public_id' => $publicId,
         ]);
     }
+
+    /**
+     * Populate features from class, race, and background after creation.
+     *
+     * This calls CharacterFeatureService::populateAll() which grants class features
+     * (including counter initialization), racial traits, and background features.
+     */
+    public function withFeatures(): static
+    {
+        return $this->afterCreating(function (Character $character) {
+            $service = app(\App\Services\CharacterFeatureService::class);
+            $service->populateAll($character);
+        });
+    }
 }

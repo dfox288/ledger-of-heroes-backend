@@ -8,6 +8,7 @@ use App\Models\CharacterFeature;
 use App\Models\ClassCounter;
 use App\Models\ClassFeature;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class FeatureUseService
 {
@@ -50,6 +51,85 @@ class FeatureUseService
                     'resets_on' => $resetsOn,
                 ];
             });
+    }
+
+    /**
+     * Get all counters for a character in the API response format.
+     *
+     * Returns counters from class features, subclass features, and feats.
+     * Each counter includes current/max uses, reset timing, and source info.
+     *
+     * @return Collection<int, array{
+     *     id: int,
+     *     slug: string,
+     *     name: string,
+     *     current: int,
+     *     max: int,
+     *     reset_on: string|null,
+     *     source: string,
+     *     source_type: string,
+     *     unlimited: bool
+     * }>
+     */
+    public function getCountersForCharacter(Character $character): Collection
+    {
+        return $character->features()
+            ->whereNotNull('max_uses')
+            ->with(['feature', 'feature.characterClass'])
+            ->get()
+            ->map(function (CharacterFeature $characterFeature) {
+                $feature = $characterFeature->feature;
+
+                // Only ClassFeatures have counters (for now)
+                if (! $feature instanceof ClassFeature) {
+                    return null;
+                }
+
+                // Get reset timing
+                $resetOn = $this->mapResetTiming($feature->resets_on);
+
+                // Get source class name
+                $className = $feature->characterClass?->name ?? 'Unknown';
+
+                // Build slug: {source-prefix}:{class-slug}:{counter-name-slug}
+                $classSlug = $feature->characterClass?->slug ?? 'unknown';
+                $counterNameSlug = Str::slug($feature->feature_name);
+                $slug = "{$classSlug}:{$counterNameSlug}";
+
+                // Check for unlimited (-1)
+                $isUnlimited = $characterFeature->max_uses === -1;
+
+                return [
+                    'id' => $characterFeature->id,
+                    'slug' => $slug,
+                    'name' => $feature->feature_name,
+                    'current' => $characterFeature->uses_remaining,
+                    'max' => $characterFeature->max_uses,
+                    'reset_on' => $resetOn,
+                    'source' => $className,
+                    'source_type' => $characterFeature->source,
+                    'unlimited' => $isUnlimited,
+                ];
+            })
+            ->filter() // Remove nulls
+            ->values();
+    }
+
+    /**
+     * Map ResetTiming enum to API string format.
+     */
+    private function mapResetTiming(?ResetTiming $timing): ?string
+    {
+        if ($timing === null) {
+            return null;
+        }
+
+        return match ($timing) {
+            ResetTiming::SHORT_REST => 'short_rest',
+            ResetTiming::LONG_REST => 'long_rest',
+            ResetTiming::DAWN => 'dawn',
+            default => $timing->value,
+        };
     }
 
     /**

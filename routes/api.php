@@ -403,13 +403,20 @@ Route::prefix('v1')->group(function () {
         Route::post('long-rest', [\App\Http\Controllers\Api\RestController::class, 'longRest'])
             ->name('long-rest');
 
-        // Feature Uses (Limited-Use Abilities)
+        // Feature Uses (Limited-Use Abilities) - DEPRECATED: Use /counters instead
         Route::get('feature-uses', [\App\Http\Controllers\Api\FeatureUseController::class, 'index'])
             ->name('feature-uses.index');
         Route::post('features/{characterFeatureId}/use', [\App\Http\Controllers\Api\FeatureUseController::class, 'use'])
             ->name('features.use');
         Route::post('features/{characterFeatureId}/reset', [\App\Http\Controllers\Api\FeatureUseController::class, 'reset'])
             ->name('features.reset');
+
+        // Counters (Class Resources: Rage, Ki, Action Surge, etc.)
+        Route::get('counters', [\App\Http\Controllers\Api\CounterController::class, 'index'])
+            ->name('counters.index');
+        Route::patch('counters/{slug}', [\App\Http\Controllers\Api\CounterController::class, 'update'])
+            ->name('counters.update')
+            ->where('slug', '[a-z0-9:-]+');
 
         // Feature Selections (Invocations, Maneuvers, Metamagic, etc.)
         Route::get('feature-selections', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'index'])

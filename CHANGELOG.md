@@ -24,6 +24,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Example: `{ "name": "Stealth", "modifier": 7, "minimum_roll": 10, "minimum_total": 17 }`
   - Features stack correctly for multiclass characters
 
+- **Issue #647**: Class counters API (Rage, Ki Points, Sorcery Points, etc.)
+  - New endpoint: `GET /characters/{id}/counters` - List all counters for a character
+  - New endpoint: `PATCH /characters/{id}/counters/{slug}` - Update counter (spent or action)
+  - Counters included in main character response as `counters` array
+  - Each counter includes: id, slug, name, current, max, reset_on, source, source_type, unlimited
+  - Supports absolute value (`spent: 2`) and action-based (`action: use/restore/reset`) updates
+  - Counters auto-initialized from `class_counters` when features are granted
+  - Integrates with existing short/long rest mechanics
+  - Added `withFeatures()` factory helper for test setup
+  - Note: Endpoint `/feature-uses` deprecated in favor of `/counters`
+
 - **Issue #618**: Enriched `spell_slots` in character stats endpoint with tracking
   - Changed `spell_slots` from simple totals `{ "1": 4, "2": 3 }` to rich format with usage tracking
   - New format: `{ "slots": { "1": { "total": 4, "spent": 2, "available": 2 } }, "pact_magic": null }`

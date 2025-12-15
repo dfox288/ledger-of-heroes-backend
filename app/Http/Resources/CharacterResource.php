@@ -41,6 +41,7 @@ class CharacterResource extends JsonResource
             ...$this->getRelationships(),
             ...$this->getMulticlassData(),
             ...$this->getFeaturesAndConditions(),
+            ...$this->getCountersData(),
             ...$this->getMediaData(),
             ...$this->getTimestamps(),
         ];
@@ -286,6 +287,19 @@ class CharacterResource extends JsonResource
                     'is_dangling' => $cof->optionalFeature === null,
                 ]);
             }),
+        ];
+    }
+
+    /**
+     * Get counters (limited-use class resources: Rage, Ki, Action Surge, etc.).
+     */
+    private function getCountersData(): array
+    {
+        $featureUseService = app(\App\Services\FeatureUseService::class);
+        $counters = $featureUseService->getCountersForCharacter($this->resource);
+
+        return [
+            'counters' => $counters->toArray(),
         ];
     }
 

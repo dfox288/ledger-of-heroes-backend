@@ -294,7 +294,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
             remaining: $remaining,
             selected: $selected,
             options: null,
-            optionsEndpoint: "/api/v1/characters/{$character->id}/available-spells?max_level={$maxSpellLevel}",
+            optionsEndpoint: "/api/v1/characters/{$character->id}/available-spells?min_level=1&max_level={$maxSpellLevel}",
             metadata: [
                 'spell_level' => $maxSpellLevel,
                 'class_slug' => $class->slug,

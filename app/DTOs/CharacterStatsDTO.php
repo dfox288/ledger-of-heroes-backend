@@ -64,6 +64,8 @@ class CharacterStatsDTO
         public readonly ?array $encumbrance,
         // Issue #498.3.1: Weapon attack/damage calculation
         public readonly array $weapons,
+        // Issue #675: Spell preparation method for spellcasters
+        public readonly ?string $preparationMethod,
     ) {}
 
     /**
@@ -221,6 +223,9 @@ class CharacterStatsDTO
         // Build weapon stats (Issue #498.3.1)
         $weapons = self::buildWeaponStats($character, $abilityModifiers, $proficiencyBonus);
 
+        // Compute preparation method (Issue #675)
+        $preparationMethod = self::computePreparationMethod($character);
+
         return new self(
             characterId: $character->id,
             level: $level,
@@ -259,6 +264,7 @@ class CharacterStatsDTO
             currentWeight: $currentWeight,
             encumbrance: $encumbrance,
             weapons: $weapons,
+            preparationMethod: $preparationMethod,
         );
     }
 
@@ -884,5 +890,55 @@ class CharacterStatsDTO
         }
 
         return false;
+    }
+
+    /**
+     * Compute the spell preparation method for a character.
+     *
+     * Issue #675: Returns the preparation method based on character's class(es):
+     * - "known": Bard, Sorcerer, Warlock, Ranger (spells always available)
+     * - "spellbook": Wizard (prepare from spellbook)
+     * - "prepared": Cleric, Druid, Paladin, Artificer (prepare daily)
+     * - "mixed": Multiclass with different preparation methods
+     * - null: Non-spellcaster or no class
+     */
+    private static function computePreparationMethod(Character $character): ?string
+    {
+        // Load characterClasses with their class models if not loaded
+        if (! $character->relationLoaded('characterClasses')) {
+            $character->load('characterClasses.characterClass.parentClass');
+        }
+
+        // Collect unique preparation methods from all classes
+        $methods = [];
+
+        foreach ($character->characterClasses as $pivot) {
+            $class = $pivot->characterClass;
+            if (! $class) {
+                continue;
+            }
+
+            // Use the accessor which handles subclass inheritance
+            $method = $class->spell_preparation_method;
+            if ($method !== null) {
+                $methods[] = $method;
+            }
+        }
+
+        // No spellcasting classes
+        if (empty($methods)) {
+            return null;
+        }
+
+        // Get unique methods
+        $uniqueMethods = array_unique($methods);
+
+        // Single method or all same
+        if (count($uniqueMethods) === 1) {
+            return $uniqueMethods[0];
+        }
+
+        // Multiple different methods
+        return 'mixed';
     }
 }

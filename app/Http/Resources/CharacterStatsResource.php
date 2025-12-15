@@ -99,6 +99,10 @@ class CharacterStatsResource extends JsonResource
             // Issue #498.3.1: Weapon attack/damage calculation
             /** @var array<int, array{name: string, damage_dice: string|null, attack_bonus: int, damage_bonus: int, ability_used: string, is_proficient: bool}> Equipped weapon stats */
             'weapons' => $this->resource->weapons,
+
+            // Issue #675: Spell preparation method
+            /** @var string|null Spell preparation method: known, spellbook, prepared, mixed, or null for non-casters */
+            'preparation_method' => $this->resource->preparationMethod,
         ];
     }
 

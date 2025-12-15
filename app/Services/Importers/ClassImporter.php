@@ -118,6 +118,7 @@ class ClassImporter extends BaseImporter
                 'description' => $description ?: 'No description available',
                 'archetype' => $data['archetype'] ?? null,
                 'spellcasting_ability_id' => $data['spellcasting_ability_id'] ?? null,
+                'spell_preparation_method' => $data['spell_preparation_method'] ?? null,
                 'starting_wealth_dice' => $startingWealthDice,
                 'starting_wealth_multiplier' => $startingWealthMultiplier,
             ]
@@ -511,6 +512,10 @@ class ClassImporter extends BaseImporter
 
         if (! empty($supplementData['spellcasting_ability_id']) && $existingClass->spellcasting_ability_id === null) {
             $updates['spellcasting_ability_id'] = $supplementData['spellcasting_ability_id'];
+        }
+
+        if (! empty($supplementData['spell_preparation_method']) && $existingClass->spell_preparation_method === null) {
+            $updates['spell_preparation_method'] = $supplementData['spell_preparation_method'];
         }
 
         // Update starting wealth if incoming data has valid values and existing has none

@@ -232,6 +232,70 @@ trait ParsesSpellProgression
     }
 
     /**
+     * Detect the spell preparation method from parsed data.
+     *
+     * Detection logic:
+     * 1. If Spellcasting feature contains "spellbook" → 'spellbook' (Wizard)
+     * 2. If spell_progression has spells_known from XML counters → 'known' (Bard, Sorcerer, etc.)
+     * 3. If has spellcasting_ability but neither above → 'prepared' (Cleric, Druid, etc.)
+     * 4. If no spellcasting_ability → null (non-casters)
+     *
+     * Note: This is called AFTER addSpellbookProgression(), so Wizard will have spells_known set.
+     * We distinguish Wizard by checking the feature text for "spellbook".
+     *
+     * @param  string|null  $spellcastingAbility  The spellcasting ability (e.g., 'Intelligence')
+     * @param  array  $spellProgression  The parsed spell progression array
+     * @param  array  $features  The parsed features array
+     * @return string|null 'known', 'spellbook', 'prepared', or null
+     */
+    private function detectSpellPreparationMethod(?string $spellcastingAbility, array $spellProgression, array $features): ?string
+    {
+        // Non-casters have no preparation method
+        if ($spellcastingAbility === null) {
+            return null;
+        }
+
+        // Check for spellbook mention in Spellcasting feature
+        foreach ($features as $feature) {
+            $name = $feature['name'] ?? '';
+            $description = $feature['description'] ?? '';
+
+            if ($name === 'Spellcasting' && stripos($description, 'spellbook') !== false) {
+                return 'spellbook';
+            }
+        }
+
+        // Check if spell_progression has spells_known (set from XML counters, not our synthesized values)
+        // Note: At this point, both "known" casters and Wizard have spells_known.
+        // Wizard was identified above by "spellbook" text. If we got here with spells_known,
+        // it could be from XML counters (known casters) OR synthetic Wizard progression.
+        $hasSpellsKnown = collect($spellProgression)->contains(fn ($p) => isset($p['spells_known']) && $p['spells_known'] > 0);
+
+        if ($hasSpellsKnown) {
+            // Defensive check: detect synthetic Wizard progression (6, 8, 10, 12...)
+            // If spellbook text detection failed but progression matches Wizard formula,
+            // classify as spellbook rather than known.
+            $isSyntheticWizard = collect($spellProgression)->every(function ($p) {
+                if (! isset($p['spells_known']) || ! isset($p['level'])) {
+                    return false;
+                }
+
+                // Wizard formula: 6 + (level - 1) * 2
+                return $p['spells_known'] === 6 + ($p['level'] - 1) * 2;
+            });
+
+            if ($isSyntheticWizard && count($spellProgression) > 0) {
+                return 'spellbook';
+            }
+
+            return 'known';
+        }
+
+        // Has spellcasting ability but no spells_known → prepared caster
+        return 'prepared';
+    }
+
+    /**
      * Check if this class has any non-optional spell slots.
      * Used to determine if spell progression applies to base class vs subclass.
      *

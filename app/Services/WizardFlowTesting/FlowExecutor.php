@@ -818,6 +818,11 @@ class FlowExecutor
         // Check if there's an equipment mode choice pending BEFORE deciding what mode to use
         $choicesResponse = $this->makeRequest('GET', "/api/v1/characters/{$characterId}/pending-choices");
 
+        // Propagate API errors instead of silently continuing
+        if (isset($choicesResponse['error']) && $choicesResponse['error']) {
+            return $choicesResponse;
+        }
+
         $allChoices = $choicesResponse['data']['choices'] ?? [];
         $choices = array_filter($allChoices, fn ($c) => ($c['type'] ?? '') === 'equipment_mode');
 

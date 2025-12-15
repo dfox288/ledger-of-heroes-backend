@@ -41,6 +41,7 @@ class CharacterClass extends BaseModel
         'archetype',
         'primary_ability',
         'spellcasting_ability_id',
+        'spell_preparation_method',
         'starting_wealth_dice',
         'starting_wealth_multiplier',
     ];
@@ -273,10 +274,12 @@ class CharacterClass extends BaseModel
      * - 'prepared': Spells are prepared from the full class spell list (Cleric, Druid, Paladin, Artificer)
      * - null: Non-spellcaster
      *
-     * For subclasses, the method is inherited from the parent class.
+     * The value is stored in the database (set during XML import) and detected from:
+     * 1. "spellbook" text in Spellcasting feature → 'spellbook'
+     * 2. "Spells Known" counters in XML → 'known'
+     * 3. Has spellcasting but neither above → 'prepared'
      *
-     * Note: This is currently hardcoded by class name because the XML source does not
-     * provide structured spell preparation data. See GitHub issue for XML exploration.
+     * For subclasses, the method is inherited from the parent class.
      */
     public function getSpellPreparationMethodAttribute(): ?string
     {
@@ -285,29 +288,41 @@ class CharacterClass extends BaseModel
             return null;
         }
 
-        // Get the base class name (for subclasses, use parent)
+        // For subclasses, inherit from parent
+        if ($this->parent_class_id !== null && $this->parentClass) {
+            // Access parent's raw attribute to avoid infinite recursion
+            $parentValue = $this->parentClass->attributes['spell_preparation_method'] ?? null;
+            if ($parentValue !== null) {
+                return $parentValue;
+            }
+        }
+
+        // Use database value if set (populated during XML import)
+        $dbValue = $this->attributes['spell_preparation_method'] ?? null;
+        if ($dbValue !== null) {
+            return $dbValue;
+        }
+
+        // Fallback to hardcoded logic for safety (shouldn't be needed after import)
+        // For subclasses, use parent's name for lookup
         $className = $this->parent_class_id !== null && $this->parentClass
             ? strtolower($this->parentClass->name)
             : strtolower($this->name);
 
-        // Known casters: learn spells permanently, no daily preparation
         $knownCasters = ['bard', 'sorcerer', 'warlock', 'ranger'];
         if (in_array($className, $knownCasters)) {
             return 'known';
         }
 
-        // Spellbook caster: learns spells into spellbook, prepares a subset daily
         if ($className === 'wizard') {
             return 'spellbook';
         }
 
-        // Prepared casters: prepare from the full class spell list daily
         $preparedCasters = ['cleric', 'druid', 'paladin', 'artificer'];
         if (in_array($className, $preparedCasters)) {
             return 'prepared';
         }
 
-        // Unknown spellcaster - shouldn't happen with current D&D 5e classes
         return null;
     }
 

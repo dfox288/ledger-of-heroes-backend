@@ -1,8 +1,8 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-15T14:59:22+00:00",
+    "exported_at": "2025-12-15T22:35:36+00:00",
     "character": {
-        "public_id": "silver-warrior-YJWG",
+        "public_id": "shadow-warrior-89Ye",
         "name": "Aelath",
         "race": "phb:dwarf-hill",
         "background": "phb:pirate",
@@ -42,7 +42,7 @@
         "classes": [
             {
                 "class": "phb:paladin",
-                "subclass": "dmg:paladin-oathbreaker",
+                "subclass": "scag:paladin-oath-of-the-crown",
                 "level": 10,
                 "is_primary": true,
                 "hit_dice_spent": 0
@@ -181,14 +181,6 @@
         "feature_selections": [
             {
                 "feature": "phb:archery",
-                "class": "phb:paladin",
-                "subclass_name": null,
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature": "tce:interception",
                 "class": "phb:paladin",
                 "subclass_name": null,
                 "level_acquired": 2,
@@ -377,8 +369,8 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "dmg:paladin-oathbreaker",
-                    "feature_name": "Sacred Oath: Oathbreaker",
+                    "class_slug": "scag:paladin-oath-of-the-crown",
+                    "feature_name": "Sacred Oath: Oath of the Crown",
                     "level": 3
                 },
                 "source": "subclass",
@@ -390,8 +382,8 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "dmg:paladin-oathbreaker",
-                    "feature_name": "Channel Divinity: Control Undead (Oathbreaker)",
+                    "class_slug": "scag:paladin-oath-of-the-crown",
+                    "feature_name": "Channel Divinity: Champion Challenge (Oath of the Crown)",
                     "level": 3
                 },
                 "source": "subclass",
@@ -403,8 +395,8 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "dmg:paladin-oathbreaker",
-                    "feature_name": "Channel Divinity: Dreadful Aspect (Oathbreaker)",
+                    "class_slug": "scag:paladin-oath-of-the-crown",
+                    "feature_name": "Channel Divinity: Turn the Tide (Oath of the Crown)",
                     "level": 3
                 },
                 "source": "subclass",

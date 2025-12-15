@@ -1,8 +1,8 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-15T14:58:36+00:00",
+    "exported_at": "2025-12-15T22:34:54+00:00",
     "character": {
-        "public_id": "golden-knight-78Gq",
+        "public_id": "silent-wanderer-v13m",
         "name": "Pelus",
         "race": "phb:halfling-stout",
         "background": "scag:knight-of-the-order",
@@ -42,13 +42,19 @@
         "classes": [
             {
                 "class": "phb:ranger",
-                "subclass": "xge:ranger-horizon-walker",
+                "subclass": "phb:ranger-beast-master",
                 "level": 10,
                 "is_primary": true,
                 "hit_dice_spent": 0
             }
         ],
         "spells": [
+            {
+                "spell": "phb:alarm",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 3
+            },
             {
                 "spell": "phb:darkvision",
                 "source": "class",
@@ -68,22 +74,16 @@
                 "level_acquired": 2
             },
             {
-                "spell": "phb:lesser-restoration",
+                "spell": "phb:gust-of-wind",
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 7
             },
             {
-                "spell": "phb:protection-from-energy",
+                "spell": "tce:summon-beast",
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 9
-            },
-            {
-                "spell": "xge:beast-bond",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 3
             }
         ],
         "equipment": [
@@ -198,14 +198,6 @@
         "feature_selections": [
             {
                 "feature": "phb:dueling",
-                "class": "phb:ranger",
-                "subclass_name": null,
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature": "tce:thrown-weapon-fighting",
                 "class": "phb:ranger",
                 "subclass_name": null,
                 "level_acquired": 2,
@@ -339,8 +331,8 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "xge:ranger-horizon-walker",
-                    "feature_name": "Ranger Archetype: Horizon Walker",
+                    "class_slug": "phb:ranger-beast-master",
+                    "feature_name": "Ranger Archetype: Beast Master",
                     "level": 3
                 },
                 "source": "subclass",
@@ -352,8 +344,8 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "xge:ranger-horizon-walker",
-                    "feature_name": "Horizon Walker Magic (Horizon Walker)",
+                    "class_slug": "phb:ranger-beast-master",
+                    "feature_name": "Ranger's Companion (Beast Master)",
                     "level": 3
                 },
                 "source": "subclass",
@@ -365,21 +357,8 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "xge:ranger-horizon-walker",
-                    "feature_name": "Detect Portal (Horizon Walker)",
-                    "level": 3
-                },
-                "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "xge:ranger-horizon-walker",
-                    "feature_name": "Planar Warrior (Horizon Walker)",
+                    "class_slug": "phb:ranger-beast-master",
+                    "feature_name": "Primal Companion (Beast Master)",
                     "level": 3
                 },
                 "source": "subclass",

@@ -1,8 +1,8 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-15T14:59:01+00:00",
+    "exported_at": "2025-12-15T22:35:16+00:00",
     "character": {
-        "public_id": "iron-raven-yVJv",
+        "public_id": "swift-warden-XXGD",
         "name": "Pelen",
         "race": "phb:dragonborn-chromatic",
         "background": "scag:uthgardt-tribe-member",
@@ -52,7 +52,7 @@
         "classes": [
             {
                 "class": "phb:ranger",
-                "subclass": "ftod:ranger-drakewarden",
+                "subclass": "xge:ranger-gloom-stalker",
                 "level": 20,
                 "is_primary": true,
                 "hit_dice_spent": 0
@@ -60,25 +60,25 @@
         ],
         "spells": [
             {
-                "spell": "phb:animal-messenger",
+                "spell": "ftod:ashardalons-stride",
                 "source": "class",
                 "preparation_status": "known",
-                "level_acquired": 9
+                "level_acquired": 13
             },
             {
-                "spell": "phb:cordon-of-arrows",
+                "spell": "phb:aid",
                 "source": "class",
                 "preparation_status": "known",
-                "level_acquired": 15
+                "level_acquired": 5
             },
             {
-                "spell": "phb:detect-poison-and-disease",
+                "spell": "phb:darkvision",
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 11
             },
             {
-                "spell": "phb:ensnaring-strike",
+                "spell": "phb:detect-poison-and-disease",
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 3
@@ -90,34 +90,34 @@
                 "level_acquired": 2
             },
             {
-                "spell": "phb:hunters-mark",
+                "spell": "phb:protection-from-poison",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 17
+            },
+            {
+                "spell": "phb:revivify",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 15
+            },
+            {
+                "spell": "phb:silence",
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 7
             },
             {
-                "spell": "phb:lightning-arrow",
+                "spell": "phb:speak-with-plants",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:water-breathing",
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 19
-            },
-            {
-                "spell": "phb:longstrider",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 5
-            },
-            {
-                "spell": "tce:summon-fey",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 13
-            },
-            {
-                "spell": "xge:flame-arrows",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 17
             },
             {
                 "spell": "xge:zephyr-strike",
@@ -331,14 +331,6 @@
         "conditions": [],
         "feature_selections": [
             {
-                "feature": "phb:dueling",
-                "class": "phb:ranger",
-                "subclass_name": null,
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
                 "feature": "tce:superior-technique",
                 "class": "phb:ranger",
                 "subclass_name": null,
@@ -465,8 +457,8 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "ftod:ranger-drakewarden",
-                    "feature_name": "Ranger Archetype: Drakewarden",
+                    "class_slug": "xge:ranger-gloom-stalker",
+                    "feature_name": "Ranger Archetype: Gloom Stalker",
                     "level": 3
                 },
                 "source": "subclass",
@@ -478,8 +470,8 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "ftod:ranger-drakewarden",
-                    "feature_name": "Draconic Gift (Drakewarden)",
+                    "class_slug": "xge:ranger-gloom-stalker",
+                    "feature_name": "Gloom Stalker Magic (Gloom Stalker)",
                     "level": 3
                 },
                 "source": "subclass",
@@ -491,8 +483,21 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "ftod:ranger-drakewarden",
-                    "feature_name": "Drake Companion (Drakewarden)",
+                    "class_slug": "xge:ranger-gloom-stalker",
+                    "feature_name": "Dread Ambusher (Gloom Stalker)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "xge:ranger-gloom-stalker",
+                    "feature_name": "Umbral Sight (Gloom Stalker)",
                     "level": 3
                 },
                 "source": "subclass",

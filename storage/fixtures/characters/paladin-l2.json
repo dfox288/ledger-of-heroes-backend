@@ -1,8 +1,8 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-15T14:59:06+00:00",
+    "exported_at": "2025-12-15T22:35:20+00:00",
     "character": {
-        "public_id": "swift-raven-xJ3g",
+        "public_id": "noble-oracle-exXm",
         "name": "Noren",
         "race": "vgm:bugbear-legacy",
         "background": "phb:acolyte",
@@ -260,14 +260,6 @@
         "feature_selections": [
             {
                 "feature": "phb:great-weapon-fighting",
-                "class": "phb:paladin",
-                "subclass_name": null,
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature": "phb:protection",
                 "class": "phb:paladin",
                 "subclass_name": null,
                 "level_acquired": 2,

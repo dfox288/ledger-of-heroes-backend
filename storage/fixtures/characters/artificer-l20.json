@@ -1,8 +1,8 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-15T15:00:31+00:00",
+    "exported_at": "2025-12-15T22:36:39+00:00",
     "character": {
-        "public_id": "silent-hunter-fQ6m",
+        "public_id": "storm-phoenix-cu54",
         "name": "Lorus",
         "race": "phb:dragonborn-metallic",
         "background": "scag:waterdhavian-noble",
@@ -241,10 +241,10 @@
         "conditions": [],
         "feature_selections": [
             {
-                "feature": "erlw:boots-of-the-winding-path-level-6",
+                "feature": "erlw:repeating-shot",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 10,
+                "level_acquired": 2,
                 "uses_remaining": null,
                 "max_uses": null
             },
@@ -257,10 +257,42 @@
                 "max_uses": null
             },
             {
+                "feature": "tce:armor-of-magical-strength",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
                 "feature": "erlw:enhanced-defense",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:repulsion-shield-level-6",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 6,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:replicate-magic-item",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 6,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:boots-of-the-winding-path-level-6",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 10,
                 "uses_remaining": null,
                 "max_uses": null
             },
@@ -281,38 +313,6 @@
                 "max_uses": null
             },
             {
-                "feature": "erlw:repeating-shot",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature": "erlw:replicate-magic-item",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 6,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature": "erlw:repulsion-shield-level-6",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 6,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature": "erlw:resistant-armor-level-6",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 18,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
                 "feature": "tce:arcane-propulsion-armor-level-14",
                 "class": "erlw:artificer",
                 "subclass_name": null,
@@ -321,10 +321,10 @@
                 "max_uses": null
             },
             {
-                "feature": "tce:armor-of-magical-strength",
+                "feature": "erlw:resistant-armor-level-6",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 2,
+                "level_acquired": 18,
                 "uses_remaining": null,
                 "max_uses": null
             },

@@ -1,8 +1,8 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-15T14:58:23+00:00",
+    "exported_at": "2025-12-15T22:34:43+00:00",
     "character": {
-        "public_id": "fierce-warden-Zr7x",
+        "public_id": "iron-mage-ESEq",
         "name": "Darok",
         "race": "dmg:grimlock-dmg-npc",
         "background": "scag:inheritor",
@@ -37,7 +37,7 @@
         "classes": [
             {
                 "class": "phb:ranger",
-                "subclass": "phb:ranger-hunter",
+                "subclass": "xge:ranger-gloom-stalker",
                 "level": 5,
                 "is_primary": true,
                 "hit_dice_spent": 0
@@ -45,7 +45,13 @@
         ],
         "spells": [
             {
-                "spell": "phb:ensnaring-strike",
+                "spell": "phb:detect-magic",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:hail-of-thorns",
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 3
@@ -61,12 +67,6 @@
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 2
-            },
-            {
-                "spell": "phb:pass-without-trace",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 5
             }
         ],
         "equipment": [
@@ -263,14 +263,6 @@
                 "level_acquired": 2,
                 "uses_remaining": null,
                 "max_uses": null
-            },
-            {
-                "feature": "phb:two-weapon-fighting",
-                "class": "phb:ranger",
-                "subclass_name": null,
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
             }
         ],
         "notes": [],
@@ -391,8 +383,8 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "phb:ranger-hunter",
-                    "feature_name": "Ranger Archetype: Hunter",
+                    "class_slug": "xge:ranger-gloom-stalker",
+                    "feature_name": "Ranger Archetype: Gloom Stalker",
                     "level": 3
                 },
                 "source": "subclass",
@@ -404,8 +396,8 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "phb:ranger-hunter",
-                    "feature_name": "Hunter's Prey (Hunter)",
+                    "class_slug": "xge:ranger-gloom-stalker",
+                    "feature_name": "Gloom Stalker Magic (Gloom Stalker)",
                     "level": 3
                 },
                 "source": "subclass",
@@ -417,8 +409,8 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "phb:ranger-hunter",
-                    "feature_name": "Hunter's Prey: Colossus Slayer (Hunter)",
+                    "class_slug": "xge:ranger-gloom-stalker",
+                    "feature_name": "Dread Ambusher (Gloom Stalker)",
                     "level": 3
                 },
                 "source": "subclass",
@@ -430,21 +422,8 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "phb:ranger-hunter",
-                    "feature_name": "Hunter's Prey: Horde Breaker (Hunter)",
-                    "level": 3
-                },
-                "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "phb:ranger-hunter",
-                    "feature_name": "Hunter's Prey: Giant Killer (Hunter)",
+                    "class_slug": "xge:ranger-gloom-stalker",
+                    "feature_name": "Umbral Sight (Gloom Stalker)",
                     "level": 3
                 },
                 "source": "subclass",

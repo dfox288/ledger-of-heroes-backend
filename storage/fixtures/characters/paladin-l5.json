@@ -1,8 +1,8 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-15T14:59:12+00:00",
+    "exported_at": "2025-12-15T22:35:26+00:00",
     "character": {
-        "public_id": "frost-raven-CVRq",
+        "public_id": "noble-seeker-kDSF",
         "name": "Norar",
         "race": "erlw:warforged",
         "background": "scag:investigator",
@@ -37,7 +37,7 @@
         "classes": [
             {
                 "class": "phb:paladin",
-                "subclass": "dmg:paladin-oathbreaker",
+                "subclass": "phb:paladin-oath-of-glory",
                 "level": 5,
                 "is_primary": true,
                 "hit_dice_spent": 0
@@ -235,14 +235,6 @@
                 "level_acquired": 2,
                 "uses_remaining": null,
                 "max_uses": null
-            },
-            {
-                "feature": "tce:thrown-weapon-fighting",
-                "class": "phb:paladin",
-                "subclass_name": null,
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
             }
         ],
         "notes": [],
@@ -417,8 +409,8 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "dmg:paladin-oathbreaker",
-                    "feature_name": "Sacred Oath: Oathbreaker",
+                    "class_slug": "phb:paladin-oath-of-glory",
+                    "feature_name": "Sacred Oath: Oath of Glory",
                     "level": 3
                 },
                 "source": "subclass",
@@ -430,8 +422,8 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "dmg:paladin-oathbreaker",
-                    "feature_name": "Channel Divinity: Control Undead (Oathbreaker)",
+                    "class_slug": "phb:paladin-oath-of-glory",
+                    "feature_name": "Channel Divinity: Peerless Athlete (Oath of Glory)",
                     "level": 3
                 },
                 "source": "subclass",
@@ -443,8 +435,8 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "dmg:paladin-oathbreaker",
-                    "feature_name": "Channel Divinity: Dreadful Aspect (Oathbreaker)",
+                    "class_slug": "phb:paladin-oath-of-glory",
+                    "feature_name": "Channel Divinity: Inspiring Smite (Oath of Glory)",
                     "level": 3
                 },
                 "source": "subclass",

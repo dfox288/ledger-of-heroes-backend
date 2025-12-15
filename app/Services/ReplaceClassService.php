@@ -14,7 +14,6 @@ class ReplaceClassService
     public function __construct(
         private CharacterProficiencyService $proficiencyService,
         private SpellSlotService $spellSlotService,
-        private EquipmentManagerService $equipmentService,
     ) {}
 
     /**

@@ -82,6 +82,7 @@ class CharacterFeatureService
 
         // Get mechanical racial traits from entity_traits table
         // Filter to only include game-relevant features (not flavor text)
+        // Note: whereIn() automatically excludes null categories (Age, Alignment, etc.)
         $traits = $race->traits()
             ->whereIn('category', self::MECHANICAL_TRAIT_CATEGORIES)
             ->get();

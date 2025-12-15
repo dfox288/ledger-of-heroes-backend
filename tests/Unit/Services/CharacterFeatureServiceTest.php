@@ -226,6 +226,51 @@ class CharacterFeatureServiceTest extends TestCase
         $this->assertEquals($darkvision->id, $character->features->first()->feature_id);
     }
 
+    #[Test]
+    public function it_includes_all_mechanical_trait_categories(): void
+    {
+        $race = Race::factory()->create(['name' => 'High Elf', 'slug' => 'high-elf-'.uniqid()]);
+
+        // Species category trait (base race mechanical trait)
+        $darkvision = CharacterTrait::create([
+            'reference_type' => 'App\\Models\\Race',
+            'reference_id' => $race->id,
+            'name' => 'Darkvision',
+            'category' => 'species',
+            'description' => 'You can see in dim light.',
+        ]);
+
+        // Subspecies category trait (subrace mechanical trait)
+        $elfWeaponTraining = CharacterTrait::create([
+            'reference_type' => 'App\\Models\\Race',
+            'reference_id' => $race->id,
+            'name' => 'Elf Weapon Training',
+            'category' => 'subspecies',
+            'description' => 'Proficiency with longsword, shortsword, longbow, and shortbow.',
+        ]);
+
+        // Feature category trait (general mechanical feature)
+        $cantrip = CharacterTrait::create([
+            'reference_type' => 'App\\Models\\Race',
+            'reference_id' => $race->id,
+            'name' => 'Cantrip',
+            'category' => 'feature',
+            'description' => 'You know one cantrip of your choice.',
+        ]);
+
+        $character = Character::factory()->withRace($race)->create();
+
+        $this->service->populateFromRace($character);
+
+        // All three mechanical categories should be included
+        $this->assertCount(3, $character->features);
+
+        $featureIds = $character->features->pluck('feature_id')->toArray();
+        $this->assertContains($darkvision->id, $featureIds);
+        $this->assertContains($elfWeaponTraining->id, $featureIds);
+        $this->assertContains($cantrip->id, $featureIds);
+    }
+
     // =====================
     // Background Feature Population Tests
     // =====================

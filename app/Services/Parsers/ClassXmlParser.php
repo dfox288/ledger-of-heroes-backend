@@ -96,6 +96,9 @@ class ClassXmlParser
         // Parse spell progression from autolevel elements
         $data['spell_progression'] = $this->parseSpellSlots($element);
 
+        // Add spellbook progression for Wizard-style casters (6 spells at L1, +2 per level)
+        $data['spell_progression'] = $this->addSpellbookProgression($data['spell_progression'], $data['features']);
+
         // Parse counters from autolevel elements
         $data['counters'] = $this->parseCounters($element);
 

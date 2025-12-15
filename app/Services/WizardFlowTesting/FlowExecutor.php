@@ -552,8 +552,16 @@ class FlowExecutor
                 $alreadySelected[] = $sel;
             }
 
+            // Ability score choices expect the FULL selection list, not just new picks
+            // Combine existing selections with new ones
+            $finalSelected = (array) $selected;
+            if ($choiceType === 'ability_score') {
+                $existingSelected = $choice['selected'] ?? [];
+                $finalSelected = array_merge($existingSelected, $finalSelected);
+            }
+
             $lastResponse = $this->makeRequest('POST', "/api/v1/characters/{$characterId}/choices/{$choiceId}", [
-                'selected' => (array) $selected,
+                'selected' => $finalSelected,
             ]);
 
             if (isset($lastResponse['error']) && $lastResponse['error']) {
@@ -700,7 +708,15 @@ class FlowExecutor
                     $alreadySelected[] = $sel;
                 }
 
-                $payload = ['selected' => (array) $selected];
+                // Ability score choices expect the FULL selection list, not just new picks
+                // Combine existing selections with new ones
+                $finalSelected = (array) $selected;
+                if ($choiceType === 'ability_score') {
+                    $existingSelected = $choice['selected'] ?? [];
+                    $finalSelected = array_merge($existingSelected, $finalSelected);
+                }
+
+                $payload = ['selected' => $finalSelected];
 
                 // Equipment choices need special handling for item_selections
                 if ($choiceType === 'equipment') {

@@ -9,6 +9,7 @@ use App\Exceptions\InvalidSelectionException;
 use App\Models\AbilityScore;
 use App\Models\Character;
 use App\Models\EntityChoice;
+use App\Models\Race;
 use Illuminate\Support\Collection;
 
 class AbilityScoreChoiceHandler extends AbstractChoiceHandler
@@ -37,10 +38,11 @@ class AbilityScoreChoiceHandler extends AbstractChoiceHandler
         }
 
         // Get ability score choices from race (and parent race if subrace)
-        $entityChoices = $this->getAbilityScoreChoices($character);
+        // Returns [EntityChoice, Race] tuples to track source entity
+        $entityChoicesWithSource = $this->getAbilityScoreChoices($character);
 
-        foreach ($entityChoices as $entityChoice) {
-            $choice = $this->buildPendingChoice($character, $entityChoice);
+        foreach ($entityChoicesWithSource as $choiceWithSource) {
+            $choice = $this->buildPendingChoice($character, $choiceWithSource);
             if ($choice) {
                 $choices->push($choice);
             }
@@ -51,6 +53,10 @@ class AbilityScoreChoiceHandler extends AbstractChoiceHandler
 
     /**
      * Get ability score choices from race (and parent race if subrace).
+     *
+     * Returns an array of [EntityChoice, Race] tuples to track the source entity.
+     *
+     * @return Collection<int, array{0: EntityChoice, 1: Race}>
      */
     private function getAbilityScoreChoices(Character $character): Collection
     {
@@ -58,19 +64,28 @@ class AbilityScoreChoiceHandler extends AbstractChoiceHandler
 
         // Get from race
         $raceChoices = $character->race->abilityScoreChoices()->get();
-        $choices = $choices->merge($raceChoices);
+        foreach ($raceChoices as $choice) {
+            $choices->push([$choice, $character->race]);
+        }
 
         // Get from parent race if subrace
         if ($character->race->parent_race_id && $character->race->parent) {
             $parentChoices = $character->race->parent->abilityScoreChoices()->get();
-            $choices = $choices->merge($parentChoices);
+            foreach ($parentChoices as $choice) {
+                $choices->push([$choice, $character->race->parent]);
+            }
         }
 
         return $choices;
     }
 
-    private function buildPendingChoice(Character $character, EntityChoice $entityChoice): ?PendingChoice
+    /**
+     * @param  array{0: EntityChoice, 1: Race}  $choiceWithSource
+     */
+    private function buildPendingChoice(Character $character, array $choiceWithSource): ?PendingChoice
     {
+        [$entityChoice, $sourceRace] = $choiceWithSource;
+
         // Get all ability score options
         $allAbilities = AbilityScore::all();
 
@@ -96,18 +111,20 @@ class AbilityScoreChoiceHandler extends AbstractChoiceHandler
             ->values()
             ->all();
 
+        // Use the source race's slug for unique ID generation
+        // This ensures inherited choices from parent races have distinct IDs
         return new PendingChoice(
             id: $this->generateChoiceId(
                 'ability_score',
                 'race',
-                $character->race->slug,
+                $sourceRace->slug,
                 $entityChoice->level_granted ?? 1,
                 $entityChoice->choice_group
             ),
             type: 'ability_score',
             subtype: null,
             source: 'race',
-            sourceName: $character->race->name,
+            sourceName: $sourceRace->name,
             levelGranted: $entityChoice->level_granted ?? 1,
             required: $entityChoice->is_required ?? true,
             quantity: $quantity,
@@ -119,6 +136,7 @@ class AbilityScoreChoiceHandler extends AbstractChoiceHandler
                 'choice_group' => $entityChoice->choice_group,
                 'bonus_value' => $bonusValue,
                 'choice_constraint' => $constraint,
+                'source_race_slug' => $sourceRace->slug,
             ],
         );
     }

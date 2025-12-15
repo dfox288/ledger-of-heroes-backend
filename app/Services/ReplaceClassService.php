@@ -79,6 +79,12 @@ class ReplaceClassService
             // Clear proficiencies from the old class
             $this->proficiencyService->clearProficiencies($character, 'class');
 
+            // Clear equipment state from the old class (Issue #626)
+            // - Class equipment (source='class') must be cleared
+            // - Starting wealth gold (source='starting_wealth') must be cleared
+            // - equipment_mode must be reset so player chooses again for new class
+            $this->clearEquipmentState($character);
+
             // Preserve order and primary status
             $isPrimary = $sourcePivot->is_primary;
             $order = $sourcePivot->order;
@@ -102,5 +108,31 @@ class ReplaceClassService
 
             return $newPivot;
         });
+    }
+
+    /**
+     * Clear all equipment state from the old class.
+     *
+     * When switching classes at level 1, all class-related equipment must be cleared:
+     * - Class equipment (both fixed and choice-based)
+     * - Starting wealth gold (was calculated for old class)
+     * - equipment_mode (must be reset so player chooses again)
+     *
+     * Background equipment is preserved.
+     */
+    private function clearEquipmentState(Character $character): void
+    {
+        // Clear class equipment (source='class')
+        $character->equipment()
+            ->whereJsonContains('custom_description->source', 'class')
+            ->delete();
+
+        // Clear starting wealth gold (source='starting_wealth')
+        $character->equipment()
+            ->whereJsonContains('custom_description->source', 'starting_wealth')
+            ->delete();
+
+        // Reset equipment_mode so player must choose again for the new class
+        $character->update(['equipment_mode' => null]);
     }
 }

@@ -36,4 +36,9 @@ class Party extends Model
     {
         return $this->hasMany(EncounterMonster::class);
     }
+
+    public function encounterPresets(): HasMany
+    {
+        return $this->hasMany(EncounterPreset::class);
+    }
 }

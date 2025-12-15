@@ -350,4 +350,133 @@ class ReplaceClassServiceTest extends TestCase
         $this->assertEquals($character->id, $result->character_id);
         $this->assertEquals($this->wizard->slug, $result->class_slug);
     }
+
+    // =========================================================================
+    // Equipment State Tests (Issue #626)
+    // =========================================================================
+
+    #[Test]
+    public function it_resets_equipment_mode_when_replacing_class(): void
+    {
+        // Issue #626: When switching classes, equipment_mode should be reset
+        // so the player must choose again for the new class
+        $character = Character::factory()->create(['equipment_mode' => 'equipment']);
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $this->fighter->slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        $this->service->replaceClass($character, $this->fighter, $this->wizard);
+
+        $character->refresh();
+        $this->assertNull($character->equipment_mode, 'Equipment mode should be reset to null when class changes');
+    }
+
+    #[Test]
+    public function it_clears_class_equipment_when_replacing_class(): void
+    {
+        // Issue #626: When switching classes, old class equipment should be cleared
+        $character = Character::factory()->create(['equipment_mode' => 'equipment']);
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $this->fighter->slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Add equipment from the old class
+        \App\Models\CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'test:longsword',
+            'quantity' => 1,
+            'custom_description' => json_encode(['source' => 'class']),
+        ]);
+
+        \App\Models\CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'test:shield',
+            'quantity' => 1,
+            'custom_description' => json_encode(['source' => 'class', 'choice_group' => 'choice_1']),
+        ]);
+
+        // Add background equipment that should be preserved
+        \App\Models\CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'test:backpack',
+            'quantity' => 1,
+            'custom_description' => json_encode(['source' => 'background']),
+        ]);
+
+        $this->assertCount(3, $character->equipment);
+
+        $this->service->replaceClass($character, $this->fighter, $this->wizard);
+
+        $character->refresh();
+
+        // Class equipment should be cleared
+        $classEquipment = $character->equipment()
+            ->whereJsonContains('custom_description->source', 'class')
+            ->count();
+        $this->assertEquals(0, $classEquipment, 'Class equipment should be cleared when class changes');
+
+        // Background equipment should remain
+        $backgroundEquipment = $character->equipment()
+            ->whereJsonContains('custom_description->source', 'background')
+            ->count();
+        $this->assertEquals(1, $backgroundEquipment, 'Background equipment should be preserved');
+    }
+
+    #[Test]
+    public function it_clears_starting_wealth_gold_when_replacing_class(): void
+    {
+        // Issue #626: When switching classes, starting wealth gold should be cleared
+        // (it was for the old class's starting wealth)
+        $character = Character::factory()->create(['equipment_mode' => 'gold']);
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $this->fighter->slug,
+            'level' => 1,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Add starting wealth gold from old class
+        \App\Models\CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'phb:gold-gp',
+            'quantity' => 125, // Fighter average starting wealth
+            'custom_description' => json_encode(['source' => 'starting_wealth']),
+        ]);
+
+        // Add background gold that should be preserved
+        \App\Models\CharacterEquipment::create([
+            'character_id' => $character->id,
+            'item_slug' => 'phb:gold-gp',
+            'quantity' => 15,
+            'custom_description' => json_encode(['source' => 'background']),
+        ]);
+
+        $this->service->replaceClass($character, $this->fighter, $this->wizard);
+
+        $character->refresh();
+
+        // Starting wealth gold should be cleared
+        $startingWealthGold = $character->equipment()
+            ->where('item_slug', 'phb:gold-gp')
+            ->whereJsonContains('custom_description->source', 'starting_wealth')
+            ->count();
+        $this->assertEquals(0, $startingWealthGold, 'Starting wealth gold should be cleared when class changes');
+
+        // Background gold should remain
+        $backgroundGold = $character->equipment()
+            ->where('item_slug', 'phb:gold-gp')
+            ->whereJsonContains('custom_description->source', 'background')
+            ->first();
+        $this->assertNotNull($backgroundGold, 'Background gold should be preserved');
+        $this->assertEquals(15, $backgroundGold->quantity);
+    }
 }

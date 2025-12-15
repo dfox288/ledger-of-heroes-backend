@@ -44,7 +44,7 @@ class FeatChoiceHandler extends AbstractChoiceHandler
             $sourceName = $this->getSourceName($character, $source);
 
             // For feats, we don't include inline options (too many)
-            // Frontend should use the /api/v1/feats endpoint
+            // Frontend should use the character-aware available-feats endpoint
             $choice = new PendingChoice(
                 id: $this->generateChoiceId('feat', $source, $sourceSlug, 1, 'bonus_feat'),
                 type: 'feat',
@@ -57,7 +57,7 @@ class FeatChoiceHandler extends AbstractChoiceHandler
                 remaining: $choiceData['remaining'],
                 selected: $choiceData['selected'],
                 options: null, // Use endpoint instead
-                optionsEndpoint: '/api/v1/feats',
+                optionsEndpoint: "/api/v1/characters/{$character->public_id}/available-feats?source=race",
                 metadata: [
                     'note' => 'Bonus feat granted by '.$sourceName,
                 ],

@@ -12,6 +12,7 @@ use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
 use App\Models\Feat;
 use App\Services\AsiChoiceService;
+use App\Services\AvailableFeatsService;
 use App\Services\ChoiceHandlers\AsiChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
@@ -23,6 +24,8 @@ class AsiChoiceHandlerTest extends TestCase
     use RefreshDatabase;
 
     private AsiChoiceService $asiService;
+
+    private AvailableFeatsService $availableFeatsService;
 
     private AsiChoiceHandler $handler;
 
@@ -43,7 +46,11 @@ class AsiChoiceHandlerTest extends TestCase
         Feat::factory()->create(['name' => 'Lucky', 'slug' => 'lucky']);
 
         $this->asiService = Mockery::mock(AsiChoiceService::class);
-        $this->handler = new AsiChoiceHandler($this->asiService);
+        $this->availableFeatsService = Mockery::mock(AvailableFeatsService::class);
+        // Default mock behavior: return empty Eloquent collection for any getAvailableFeats call
+        $this->availableFeatsService->shouldReceive('getAvailableFeats')
+            ->andReturn(new \Illuminate\Database\Eloquent\Collection);
+        $this->handler = new AsiChoiceHandler($this->asiService, $this->availableFeatsService);
     }
 
     protected function tearDown(): void
@@ -207,6 +214,7 @@ class AsiChoiceHandlerTest extends TestCase
 
         $character = Character::factory()->make([
             'id' => 1,
+            'public_id' => 'test-char-456',
             'asi_choices_remaining' => 1,
             'strength' => 16,
             'dexterity' => 14,
@@ -227,7 +235,7 @@ class AsiChoiceHandlerTest extends TestCase
         $choices = $this->handler->getChoices($character);
         $choice = $choices->first();
 
-        $this->assertEquals('/api/v1/feats', $choice->optionsEndpoint);
+        $this->assertEquals('/api/v1/characters/test-char-456/available-feats?source=asi', $choice->optionsEndpoint);
     }
 
     #[Test]

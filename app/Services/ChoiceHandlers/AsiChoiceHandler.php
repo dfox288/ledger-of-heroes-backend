@@ -11,12 +11,14 @@ use App\Models\AbilityScore;
 use App\Models\Character;
 use App\Models\Feat;
 use App\Services\AsiChoiceService;
+use App\Services\AvailableFeatsService;
 use Illuminate\Support\Collection;
 
 class AsiChoiceHandler extends AbstractChoiceHandler
 {
     public function __construct(
-        private readonly AsiChoiceService $asiService
+        private readonly AsiChoiceService $asiService,
+        private readonly AvailableFeatsService $availableFeatsService,
     ) {}
 
     public function getType(): string
@@ -41,15 +43,10 @@ class AsiChoiceHandler extends AbstractChoiceHandler
             return $choices;
         }
 
-        // Get available feats
-        $feats = Feat::orderBy('name')
-            ->get()
-            ->map(fn ($feat) => [
-                'slug' => $feat->slug,
-                'name' => $feat->name,
-            ])
-            ->values()
-            ->all();
+        // Get count of available feats (filtered by prerequisites and already-selected)
+        $availableFeatsCount = $this->availableFeatsService
+            ->getAvailableFeats($character, 'asi')
+            ->count();
 
         // Get ability scores for ASI
         $abilityScores = AbilityScore::orderBy('id')
@@ -83,11 +80,11 @@ class AsiChoiceHandler extends AbstractChoiceHandler
                 remaining: 1,
                 selected: [],
                 options: null, // Options are complex, use metadata instead
-                optionsEndpoint: '/api/v1/feats',
+                optionsEndpoint: "/api/v1/characters/{$character->public_id}/available-feats?source=asi",
                 metadata: [
                     'choice_options' => ['asi', 'feat'],
                     'ability_scores' => $abilityScores,
-                    'available_feats_count' => count($feats),
+                    'available_feats_count' => $availableFeatsCount,
                     'asi_points' => 2, // Standard is +2 to one or +1 to two
                     'max_ability_score' => 20,
                 ],

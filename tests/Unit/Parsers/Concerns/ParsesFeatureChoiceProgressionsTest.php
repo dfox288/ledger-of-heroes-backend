@@ -257,6 +257,144 @@ Fighter Level | Number of Runes
     }
 
     #[Test]
+    public function it_parses_paladin_fighting_style_as_single_choice_ignoring_style_options()
+    {
+        // This replicates the actual XML structure for Paladin at level 2:
+        // One main "Fighting Style" feature plus multiple "Fighting Style: X" optional features
+        $features = [
+            [
+                'name' => 'Fighting Style',
+                'level' => 2,
+                'is_optional' => false,
+                'description' => 'At 2nd level, you adopt a particular style of fighting as your specialty. Choose one of the following options. You can\'t take the same Fighting Style option more than once, even if you get to choose again.',
+            ],
+            [
+                'name' => 'Fighting Style: Defense',
+                'level' => 2,
+                'is_optional' => true,
+                'description' => 'While you are wearing armor, you gain a +1 bonus to AC.',
+            ],
+            [
+                'name' => 'Fighting Style: Dueling',
+                'level' => 2,
+                'is_optional' => true,
+                'description' => 'When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon.',
+            ],
+            [
+                'name' => 'Fighting Style: Great Weapon Fighting',
+                'level' => 2,
+                'is_optional' => true,
+                'description' => 'When you roll a 1 or 2 on a damage die for an attack you make with a melee weapon that you are wielding with two hands, you can reroll the die.',
+            ],
+            [
+                'name' => 'Fighting Style: Protection',
+                'level' => 2,
+                'is_optional' => true,
+                'description' => 'When a creature you can see attacks a target other than you that is within 5 feet of you, you can use your reaction to impose disadvantage on the attack roll.',
+            ],
+        ];
+
+        $counters = $this->parseFeatureChoiceProgressions($features);
+
+        $fightingStyleCounters = collect($counters)->where('name', 'Fighting Styles Known');
+
+        // Should only count the main "Fighting Style" feature, not each style option
+        $this->assertCount(1, $fightingStyleCounters, 'Should have exactly 1 Fighting Styles Known counter, not one per style option');
+
+        $this->assertEquals(1, $fightingStyleCounters->first()['value'], 'Paladin gets 1 fighting style at level 2');
+        $this->assertEquals(2, $fightingStyleCounters->first()['level']);
+    }
+
+    #[Test]
+    public function it_parses_ranger_fighting_style_as_single_choice_ignoring_style_options()
+    {
+        // Ranger has similar structure at level 2
+        $features = [
+            [
+                'name' => 'Fighting Style',
+                'level' => 2,
+                'is_optional' => false,
+                'description' => 'At 2nd level, you adopt a particular style of fighting as your specialty. Choose one of the following options. You can\'t take a Fighting Style option more than once, even if you later get to choose again.',
+            ],
+            [
+                'name' => 'Fighting Style: Archery',
+                'level' => 2,
+                'is_optional' => true,
+                'description' => 'You gain a +2 bonus to attack rolls you make with ranged weapons.',
+            ],
+            [
+                'name' => 'Fighting Style: Defense',
+                'level' => 2,
+                'is_optional' => true,
+                'description' => 'While you are wearing armor, you gain a +1 bonus to AC.',
+            ],
+            [
+                'name' => 'Fighting Style: Dueling',
+                'level' => 2,
+                'is_optional' => true,
+                'description' => 'When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon.',
+            ],
+            [
+                'name' => 'Fighting Style: Two-Weapon Fighting',
+                'level' => 2,
+                'is_optional' => true,
+                'description' => 'When you engage in two-weapon fighting, you can add your ability modifier to the damage of the second attack.',
+            ],
+        ];
+
+        $counters = $this->parseFeatureChoiceProgressions($features);
+
+        $fightingStyleCounters = collect($counters)->where('name', 'Fighting Styles Known');
+
+        // Should only count the main "Fighting Style" feature, not each style option
+        $this->assertCount(1, $fightingStyleCounters, 'Should have exactly 1 Fighting Styles Known counter, not one per style option');
+
+        $this->assertEquals(1, $fightingStyleCounters->first()['value'], 'Ranger gets 1 fighting style at level 2');
+        $this->assertEquals(2, $fightingStyleCounters->first()['level']);
+    }
+
+    #[Test]
+    public function it_ignores_tce_fighting_style_options_that_say_learn_two_cantrips()
+    {
+        // Issue #678/#682: TCE supplement has "Fighting Style: Blessed Warrior" with description
+        // "You learn two cantrips" - this was being incorrectly parsed as "Fighting Styles Known = 2"
+        // because the parseInitialCount pattern matched "learn two"
+        $features = [
+            [
+                'name' => 'Fighting Style: Blessed Warrior',
+                'level' => 2,
+                'is_optional' => true,
+                'description' => 'You learn two cantrips of your choice from the cleric spell list. They count as paladin spells for you, and Charisma is your spellcasting ability for them.',
+            ],
+            [
+                'name' => 'Fighting Style: Blind Fighting',
+                'level' => 2,
+                'is_optional' => true,
+                'description' => 'You have blindsight with a range of 10 feet. Within that range, you can effectively see anything that isn\'t behind total cover, even if you\'re blinded or in darkness.',
+            ],
+            [
+                'name' => 'Fighting Style: Interception',
+                'level' => 2,
+                'is_optional' => true,
+                'description' => 'When a creature you can see hits a target, other than you, within 5 feet of you with an attack, you can use your reaction to reduce the damage the target takes by 1d10 + your proficiency bonus.',
+            ],
+        ];
+
+        $counters = $this->parseFeatureChoiceProgressions($features);
+
+        $fightingStyleCounters = collect($counters)->where('name', 'Fighting Styles Known');
+
+        // "Fighting Style: X" features should NOT generate counters at all
+        // They are individual style OPTIONS, not the main "Fighting Style" feature
+        $this->assertCount(
+            0,
+            $fightingStyleCounters,
+            'Fighting Style: X option features should not generate Fighting Styles Known counters. '.
+            'Descriptions like "You learn two cantrips" should not be parsed as fighting style counts.'
+        );
+    }
+
+    #[Test]
     public function it_handles_champion_additional_fighting_style()
     {
         $features = [

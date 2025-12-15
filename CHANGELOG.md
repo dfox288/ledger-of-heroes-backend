@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #672**: Minimum roll indicators for skills (Reliable Talent, Silver Tongue)
+  - Added `minimum_roll` and `minimum_total` fields to each skill in stats endpoint
+  - Reliable Talent (Rogue 11): Applies to all proficient ability checks
+  - Silver Tongue (Eloquence Bard 3): Applies to Persuasion and Deception only
+  - Example: `{ "name": "Stealth", "modifier": 7, "minimum_roll": 10, "minimum_total": 17 }`
+  - Features stack correctly for multiclass characters
+
 - **Issue #618**: Enriched `spell_slots` in character stats endpoint with tracking
   - Changed `spell_slots` from simple totals `{ "1": 4, "2": 3 }` to rich format with usage tracking
   - New format: `{ "slots": { "1": { "total": 4, "spent": 2, "available": 2 } }, "pact_magic": null }`

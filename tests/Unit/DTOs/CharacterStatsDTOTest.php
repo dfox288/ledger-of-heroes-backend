@@ -729,4 +729,255 @@ class CharacterStatsDTOTest extends TestCase
         // Every skill should have the has_reliable_talent key
         $this->assertArrayHasKey('has_reliable_talent', $dto->skills[0]);
     }
+
+    // === Minimum Roll Indicators (Issue #672) ===
+
+    #[Test]
+    public function it_includes_minimum_roll_fields_for_reliable_talent(): void
+    {
+        $rogue = CharacterClass::factory()->create([
+            'name' => 'Rogue',
+            'slug' => 'test:rogue-minroll',
+        ]);
+
+        $reliableTalent = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $rogue->id,
+            'feature_name' => 'Reliable Talent',
+            'level' => 11,
+        ]);
+
+        $character = Character::factory()->create([
+            'dexterity' => 16, // +3 mod
+        ]);
+
+        $character->characterClasses()->create([
+            'class_slug' => $rogue->slug,
+            'level' => 11,
+            'order' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Add Stealth proficiency
+        $stealthSkill = Skill::where('slug', 'core:stealth')->first();
+        $character->proficiencies()->create([
+            'skill_slug' => $stealthSkill->slug,
+            'expertise' => false,
+        ]);
+
+        $character->features()->create([
+            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_id' => $reliableTalent->id,
+            'feature_slug' => 'test:rogue-minroll:reliable-talent',
+            'source' => 'class',
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character->fresh()->load('proficiencies.skill'), $this->calculator);
+
+        $stealth = collect($dto->skills)->firstWhere('slug', 'core:stealth');
+
+        // Stealth should have minimum_roll = 10, minimum_total = 10 + modifier
+        // Modifier = DEX(+3) + proficiency(+4 at level 11) = +7
+        $this->assertEquals(10, $stealth['minimum_roll']);
+        $this->assertEquals(17, $stealth['minimum_total']); // 10 + 7
+    }
+
+    #[Test]
+    public function it_returns_null_minimum_roll_for_skills_without_minimum(): void
+    {
+        $character = Character::factory()->create([
+            'dexterity' => 16,
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character, $this->calculator);
+
+        // Stealth (no minimum roll feature) should have null minimum_roll
+        $stealth = collect($dto->skills)->firstWhere('slug', 'core:stealth');
+        $this->assertNull($stealth['minimum_roll']);
+        $this->assertNull($stealth['minimum_total']);
+    }
+
+    #[Test]
+    public function it_detects_silver_tongue_for_persuasion_and_deception(): void
+    {
+        $bard = CharacterClass::factory()->create([
+            'name' => 'Bard',
+            'slug' => 'test:bard-st',
+        ]);
+
+        $eloquenceCollege = CharacterClass::factory()->create([
+            'name' => 'College of Eloquence',
+            'slug' => 'test:bard-eloquence',
+            'parent_class_id' => $bard->id,
+        ]);
+
+        $silverTongue = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $eloquenceCollege->id,
+            'feature_name' => 'Silver Tongue',
+            'level' => 3,
+        ]);
+
+        $character = Character::factory()->create([
+            'charisma' => 16, // +3 mod
+        ]);
+
+        $character->characterClasses()->create([
+            'class_slug' => $bard->slug,
+            'subclass_slug' => $eloquenceCollege->slug,
+            'level' => 3,
+            'order' => 1,
+            'is_primary' => true,
+        ]);
+
+        $character->features()->create([
+            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_id' => $silverTongue->id,
+            'feature_slug' => 'test:bard-eloquence:silver-tongue',
+            'source' => 'class',
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character->fresh(), $this->calculator);
+
+        // Persuasion and Deception should have minimum_roll = 10
+        // Modifier = CHA(+3) + 0 (not proficient) = +3
+        $persuasion = collect($dto->skills)->firstWhere('slug', 'core:persuasion');
+        $deception = collect($dto->skills)->firstWhere('slug', 'core:deception');
+
+        $this->assertEquals(10, $persuasion['minimum_roll']);
+        $this->assertEquals(13, $persuasion['minimum_total']); // 10 + 3
+        $this->assertEquals(10, $deception['minimum_roll']);
+        $this->assertEquals(13, $deception['minimum_total']); // 10 + 3
+    }
+
+    #[Test]
+    public function silver_tongue_does_not_affect_other_skills(): void
+    {
+        $bard = CharacterClass::factory()->create([
+            'name' => 'Bard',
+            'slug' => 'test:bard-st-other',
+        ]);
+
+        $eloquenceCollege = CharacterClass::factory()->create([
+            'name' => 'College of Eloquence',
+            'slug' => 'test:bard-eloquence-other',
+            'parent_class_id' => $bard->id,
+        ]);
+
+        $silverTongue = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $eloquenceCollege->id,
+            'feature_name' => 'Silver Tongue',
+            'level' => 3,
+        ]);
+
+        $character = Character::factory()->create([
+            'charisma' => 16,
+        ]);
+
+        $character->characterClasses()->create([
+            'class_slug' => $bard->slug,
+            'subclass_slug' => $eloquenceCollege->slug,
+            'level' => 3,
+            'order' => 1,
+            'is_primary' => true,
+        ]);
+
+        $character->features()->create([
+            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_id' => $silverTongue->id,
+            'feature_slug' => 'test:bard-eloquence-other:silver-tongue',
+            'source' => 'class',
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character->fresh(), $this->calculator);
+
+        // Intimidation (CHA skill but not Persuasion/Deception) should NOT have minimum_roll
+        $intimidation = collect($dto->skills)->firstWhere('slug', 'core:intimidation');
+        $this->assertNull($intimidation['minimum_roll']);
+        $this->assertNull($intimidation['minimum_total']);
+    }
+
+    #[Test]
+    public function reliable_talent_and_silver_tongue_can_stack_on_persuasion(): void
+    {
+        // A Rogue 11 / Eloquence Bard 3 multiclass would have both
+        $rogue = CharacterClass::factory()->create([
+            'name' => 'Rogue',
+            'slug' => 'test:rogue-multi',
+        ]);
+
+        $bard = CharacterClass::factory()->create([
+            'name' => 'Bard',
+            'slug' => 'test:bard-multi',
+        ]);
+
+        $eloquenceCollege = CharacterClass::factory()->create([
+            'name' => 'College of Eloquence',
+            'slug' => 'test:bard-eloquence-multi',
+            'parent_class_id' => $bard->id,
+        ]);
+
+        $reliableTalent = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $rogue->id,
+            'feature_name' => 'Reliable Talent',
+            'level' => 11,
+        ]);
+
+        $silverTongue = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $eloquenceCollege->id,
+            'feature_name' => 'Silver Tongue',
+            'level' => 3,
+        ]);
+
+        $character = Character::factory()->create([
+            'charisma' => 16, // +3 mod
+        ]);
+
+        // Multiclass Rogue 11 / Bard 3
+        $character->characterClasses()->create([
+            'class_slug' => $rogue->slug,
+            'level' => 11,
+            'order' => 1,
+            'is_primary' => true,
+        ]);
+
+        $character->characterClasses()->create([
+            'class_slug' => $bard->slug,
+            'subclass_slug' => $eloquenceCollege->slug,
+            'level' => 3,
+            'order' => 2,
+            'is_primary' => false,
+        ]);
+
+        // Add Persuasion proficiency (required for Reliable Talent to apply)
+        $persuasionSkill = Skill::where('slug', 'core:persuasion')->first();
+        $character->proficiencies()->create([
+            'skill_slug' => $persuasionSkill->slug,
+            'expertise' => false,
+        ]);
+
+        // Add both features
+        $character->features()->create([
+            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_id' => $reliableTalent->id,
+            'feature_slug' => 'test:rogue-multi:reliable-talent',
+            'source' => 'class',
+        ]);
+
+        $character->features()->create([
+            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_id' => $silverTongue->id,
+            'feature_slug' => 'test:bard-eloquence-multi:silver-tongue',
+            'source' => 'class',
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character->fresh()->load('proficiencies.skill'), $this->calculator);
+
+        // Persuasion should still have minimum_roll = 10 (they don't stack higher)
+        // But it applies due to EITHER feature
+        $persuasion = collect($dto->skills)->firstWhere('slug', 'core:persuasion');
+
+        $this->assertEquals(10, $persuasion['minimum_roll']);
+        // Total level 14, proficiency +5, CHA +3 = +8 modifier
+        $this->assertEquals(18, $persuasion['minimum_total']); // 10 + 8
+        $this->assertTrue($persuasion['has_reliable_talent']);
+    }
 }

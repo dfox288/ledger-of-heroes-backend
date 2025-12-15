@@ -34,14 +34,14 @@ class LevelUpFlowExecutor
      * @param  int  $targetLevel  Target total level (default 20)
      * @param  CharacterRandomizer  $randomizer  For random choices
      * @param  int  $iteration  Iteration number for reporting
-     * @param  bool  $chaosMode  Enable random multiclassing
+     * @param  string  $mode  Mode: 'linear', 'chaos', or 'realistic'
      */
     public function execute(
         int $characterId,
         int $targetLevel,
         CharacterRandomizer $randomizer,
         int $iteration = 1,
-        bool $chaosMode = false,
+        string $mode = 'linear',
     ): LevelUpFlowResult {
         // Get character info
         $characterResponse = $this->makeRequest('GET', "/api/v1/characters/{$characterId}");
@@ -86,11 +86,22 @@ class LevelUpFlowExecutor
             $classLevels[$classData['class']['slug']] = $classData['level'];
         }
 
+        // Generate multiclass plan for realistic mode
+        $multiclassPlan = $mode === 'realistic'
+            ? $this->generateRealisticPlan($classLevels, $targetLevel, $currentLevel, $randomizer)
+            : null;
+
         // Level up from current to target
         for ($level = $currentLevel + 1; $level <= $targetLevel; $level++) {
             try {
-                // In chaos mode, maybe add a multiclass
-                if ($chaosMode && $level > 2 && $randomizer->randomInt(1, 100) <= 20) {
+                // Check if we should add a multiclass at this level
+                $shouldMulticlass = match ($mode) {
+                    'chaos' => $level > 2 && $randomizer->randomInt(1, 100) <= 20,
+                    'realistic' => $multiclassPlan !== null && in_array($level, $multiclassPlan['multiclass_levels'], true),
+                    default => false,
+                };
+
+                if ($shouldMulticlass) {
                     $multiclassResult = $this->tryAddMulticlass($characterId, $classLevels, $randomizer);
                     if ($multiclassResult !== null) {
                         // Adding a multiclass creates the class at level 1, so:
@@ -106,7 +117,7 @@ class LevelUpFlowExecutor
                 }
 
                 // Select which class to level
-                $classToLevel = $this->selectClassToLevel($classLevels, $chaosMode, $randomizer);
+                $classToLevel = $this->selectClassToLevel($classLevels, $mode !== 'linear', $randomizer);
 
                 // Capture state before
                 $snapshotBefore = $this->snapshot->capture($characterId);
@@ -243,6 +254,70 @@ class LevelUpFlowExecutor
         }
 
         return $newClassSlug;
+    }
+
+    /**
+     * Generate a realistic multiclass plan.
+     *
+     * Distribution: 60% single class, 30% dual class, 10% triple class.
+     * Multiclass levels are typically early (levels 2-5 for realistic feel).
+     *
+     * @return array{class_count: int, multiclass_levels: array<int>}|null
+     */
+    private function generateRealisticPlan(
+        array $currentClasses,
+        int $targetLevel,
+        int $currentLevel,
+        CharacterRandomizer $randomizer
+    ): ?array {
+        // Roll for multiclass distribution: 1-60 = single, 61-90 = dual, 91-100 = triple
+        $roll = $randomizer->randomInt(1, 100);
+
+        if ($roll <= 60) {
+            // Single class - no multiclassing
+            return ['class_count' => 1, 'multiclass_levels' => []];
+        }
+
+        $levelsRemaining = $targetLevel - $currentLevel;
+        if ($levelsRemaining < 2) {
+            // Not enough levels to multiclass meaningfully
+            return ['class_count' => 1, 'multiclass_levels' => []];
+        }
+
+        $multiclassLevels = [];
+
+        if ($roll <= 90) {
+            // Dual class (30% chance) - pick one level to add second class
+            // Typically early: level 2-5 if available
+            $earliestMulticlass = max($currentLevel + 1, 2);
+            $latestMulticlass = min($currentLevel + 4, $targetLevel - 1);
+
+            if ($earliestMulticlass <= $latestMulticlass) {
+                $multiclassLevels[] = $randomizer->randomInt($earliestMulticlass, $latestMulticlass);
+            }
+
+            return ['class_count' => 2, 'multiclass_levels' => $multiclassLevels];
+        }
+
+        // Triple class (10% chance) - pick two levels to add classes
+        // First multiclass early (level 2-5), second later (level 6-10)
+        $earliestFirst = max($currentLevel + 1, 2);
+        $latestFirst = min($currentLevel + 4, $targetLevel - 2);
+
+        if ($earliestFirst <= $latestFirst) {
+            $firstMulticlass = $randomizer->randomInt($earliestFirst, $latestFirst);
+            $multiclassLevels[] = $firstMulticlass;
+
+            // Second multiclass after the first, typically levels 6-10
+            $earliestSecond = max($firstMulticlass + 1, 6);
+            $latestSecond = min($currentLevel + 9, $targetLevel - 1);
+
+            if ($earliestSecond <= $latestSecond) {
+                $multiclassLevels[] = $randomizer->randomInt($earliestSecond, $latestSecond);
+            }
+        }
+
+        return ['class_count' => 3, 'multiclass_levels' => $multiclassLevels];
     }
 
     /**

@@ -26,7 +26,8 @@ class TestLevelUpFlowCommand extends Command
     protected $signature = 'test:level-up-flow
         {--count=1 : Number of iterations to run}
         {--target-level=20 : Target level to reach}
-        {--chaos : Enable random multiclassing and choices}
+        {--chaos : Enable random multiclassing at any level (20% per level)}
+        {--realistic : Realistic distribution: 60% single, 30% dual, 10% triple class}
         {--seed= : Random seed for reproducibility}
         {--force-class= : Force specific starting class (e.g., phb:fighter)}
         {--character= : Use existing character ID instead of creating new}
@@ -51,15 +52,22 @@ class TestLevelUpFlowCommand extends Command
         $seed = $this->option('seed') ? (int) $this->option('seed') : random_int(1, 999999);
         $count = (int) $this->option('count');
         $targetLevel = (int) $this->option('target-level');
-        $chaosMode = (bool) $this->option('chaos');
         $forceClass = $this->option('force-class');
+
+        // Determine mode: realistic > chaos > linear
+        $mode = 'linear';
+        if ($this->option('realistic')) {
+            $mode = 'realistic';
+        } elseif ($this->option('chaos')) {
+            $mode = 'chaos';
+        }
 
         $this->info('Level-Up Flow Testing');
         $this->info('=====================');
         $this->info("Seed: {$seed}");
         $this->info("Iterations: {$count}");
         $this->info("Target Level: {$targetLevel}");
-        $this->info('Mode: '.($chaosMode ? 'Chaos' : 'Linear'));
+        $this->info('Mode: '.ucfirst($mode));
         if ($forceClass) {
             $this->info("Forced Class: {$forceClass}");
         }
@@ -77,7 +85,7 @@ class TestLevelUpFlowCommand extends Command
             $levelUpExecutor,
             $seed,
             $targetLevel,
-            $chaosMode,
+            $mode,
             $forceClass
         ) {
             $randomizer = new CharacterRandomizer($seed + $i - 1);
@@ -100,7 +108,7 @@ class TestLevelUpFlowCommand extends Command
                 targetLevel: $targetLevel,
                 randomizer: $randomizer,
                 iteration: $i,
-                chaosMode: $chaosMode
+                mode: $mode
             );
 
             if ($this->option('verbose-steps')) {
@@ -169,9 +177,16 @@ class TestLevelUpFlowCommand extends Command
 
     private function collectOptions(): array
     {
+        $mode = 'linear';
+        if ($this->option('realistic')) {
+            $mode = 'realistic';
+        } elseif ($this->option('chaos')) {
+            $mode = 'chaos';
+        }
+
         return [
             'target_level' => (int) $this->option('target-level'),
-            'chaos' => $this->option('chaos'),
+            'mode' => $mode,
             'force_class' => $this->option('force-class'),
             'character' => $this->option('character'),
         ];

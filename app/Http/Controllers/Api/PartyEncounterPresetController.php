@@ -9,7 +9,6 @@ use App\Http\Resources\EncounterMonsterResource;
 use App\Http\Resources\EncounterPresetResource;
 use App\Models\EncounterMonster;
 use App\Models\EncounterPreset;
-use App\Models\Monster;
 use App\Models\Party;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -19,6 +18,8 @@ class PartyEncounterPresetController extends Controller
 {
     /**
      * List all presets for the party.
+     *
+     * TODO: Re-add ownership check when auth is implemented.
      */
     public function index(Party $party): AnonymousResourceCollection
     {
@@ -29,6 +30,8 @@ class PartyEncounterPresetController extends Controller
 
     /**
      * Create a new encounter preset.
+     *
+     * TODO: Re-add ownership check when auth is implemented.
      */
     public function store(EncounterPresetStoreRequest $request, Party $party): JsonResponse
     {
@@ -51,6 +54,8 @@ class PartyEncounterPresetController extends Controller
 
     /**
      * Update an encounter preset (rename).
+     *
+     * TODO: Re-add ownership check when auth is implemented.
      */
     public function update(EncounterPresetUpdateRequest $request, Party $party, EncounterPreset $encounterPreset): EncounterPresetResource
     {
@@ -66,6 +71,8 @@ class PartyEncounterPresetController extends Controller
 
     /**
      * Delete an encounter preset.
+     *
+     * TODO: Re-add ownership check when auth is implemented.
      */
     public function destroy(Party $party, EncounterPreset $encounterPreset): JsonResponse
     {
@@ -82,6 +89,8 @@ class PartyEncounterPresetController extends Controller
      * Load a preset into the party's encounter.
      *
      * Creates EncounterMonster records for each monster in the preset.
+     *
+     * TODO: Re-add ownership check when auth is implemented.
      */
     public function load(Party $party, EncounterPreset $encounterPreset): JsonResponse
     {
@@ -90,11 +99,16 @@ class PartyEncounterPresetController extends Controller
         }
 
         $encounterPreset->load('monsters');
+
+        // Pre-fetch all existing labels to avoid N+1 queries
+        $monsterIds = $encounterPreset->monsters->pluck('id')->all();
+        $highestNumbers = $this->getHighestLabelNumbers($party, $monsterIds);
+
         $createdIds = [];
 
         foreach ($encounterPreset->monsters as $monster) {
             $quantity = $monster->pivot->quantity;
-            $highestNumber = $this->getHighestLabelNumber($party, $monster);
+            $highestNumber = $highestNumbers[$monster->id] ?? 0;
 
             for ($i = 1; $i <= $quantity; $i++) {
                 $encounterMonster = $party->encounterMonsters()->create([
@@ -104,6 +118,8 @@ class PartyEncounterPresetController extends Controller
                     'max_hp' => $monster->hit_points_average,
                 ]);
                 $createdIds[] = $encounterMonster->id;
+                // Update running count for subsequent monsters of same type
+                $highestNumbers[$monster->id] = $highestNumber + $i;
             }
         }
 
@@ -117,26 +133,38 @@ class PartyEncounterPresetController extends Controller
     }
 
     /**
-     * Get the highest label number for a monster type in this party.
+     * Get the highest label numbers for multiple monster types in one query.
+     *
+     * @param  array<int>  $monsterIds
+     * @return array<int, int> Map of monster_id => highest_number
      */
-    private function getHighestLabelNumber(Party $party, Monster $monster): int
+    private function getHighestLabelNumbers(Party $party, array $monsterIds): array
     {
-        $pattern = preg_quote($monster->name, '/').' (\d+)';
+        if (empty($monsterIds)) {
+            return [];
+        }
 
-        $highestNumber = 0;
+        $existingLabels = $party->encounterMonsters()
+            ->whereIn('monster_id', $monsterIds)
+            ->with('monster:id,name')
+            ->get(['id', 'monster_id', 'label']);
 
-        $party->encounterMonsters()
-            ->where('monster_id', $monster->id)
-            ->pluck('label')
-            ->each(function ($label) use ($pattern, &$highestNumber) {
-                if (preg_match('/'.$pattern.'$/', $label, $matches)) {
-                    $number = (int) $matches[1];
-                    if ($number > $highestNumber) {
-                        $highestNumber = $number;
-                    }
+        $highestNumbers = [];
+
+        foreach ($existingLabels as $encounterMonster) {
+            $monsterName = $encounterMonster->monster->name;
+            $pattern = '/'.preg_quote($monsterName, '/').' (\d+)$/';
+
+            if (preg_match($pattern, $encounterMonster->label, $matches)) {
+                $number = (int) $matches[1];
+                $monsterId = $encounterMonster->monster_id;
+
+                if (! isset($highestNumbers[$monsterId]) || $number > $highestNumbers[$monsterId]) {
+                    $highestNumbers[$monsterId] = $number;
                 }
-            });
+            }
+        }
 
-        return $highestNumber;
+        return $highestNumbers;
     }
 }

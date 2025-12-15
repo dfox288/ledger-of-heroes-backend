@@ -436,4 +436,32 @@ class PartyEncounterPresetApiTest extends TestCase
         expect($response->json('data.0.current_hp'))->toBe(59);
         expect($response->json('data.0.max_hp'))->toBe(59);
     }
+
+    #[Test]
+    public function it_includes_monster_actions_when_loading_preset(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+        $monster = Monster::factory()->create(['name' => 'Goblin', 'hit_points_average' => 7]);
+
+        // Add an action to the monster
+        $monster->actions()->create([
+            'action_type' => 'action',
+            'name' => 'Scimitar',
+            'description' => 'Melee Weapon Attack: +4 to hit, reach 5 ft., one target.',
+            'attack_data' => '["Slashing Damage|+4|1d6+2"]',
+            'sort_order' => 1,
+        ]);
+
+        $preset = EncounterPreset::factory()->create(['party_id' => $party->id]);
+        $preset->monsters()->attach($monster->id, ['quantity' => 1]);
+
+        $response = $this->actingAs($user)->postJson(
+            "/api/v1/parties/{$party->id}/encounter-presets/{$preset->id}/load"
+        );
+
+        $response->assertCreated();
+        expect($response->json('data.0.monster.actions'))->toHaveCount(1);
+        expect($response->json('data.0.monster.actions.0.name'))->toBe('Scimitar');
+    }
 }

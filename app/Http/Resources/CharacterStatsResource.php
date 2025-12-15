@@ -55,8 +55,16 @@ class CharacterStatsResource extends JsonResource
 
             /** @var array{ability: string, ability_modifier: int, spell_save_dc: int, spell_attack_bonus: int}|null Spellcasting info */
             'spellcasting' => $this->resource->spellcasting,
-            /** @var array<string, int> Spell slots keyed by level (e.g., "1" => 4, "2" => 3) */
-            'spell_slots' => $this->resource->spellSlots,
+            /**
+             * Issue #618: Enriched spell slots with tracking
+             *
+             * @var array{slots: object<string, array{total: int, spent: int, available: int}>, pact_magic: array{level: int, total: int, spent: int, available: int}|null}
+             */
+            'spell_slots' => [
+                // Cast to object to preserve spell level keys ("1", "2") in JSON output
+                'slots' => (object) ($this->resource->spellSlots['slots'] ?? []),
+                'pact_magic' => $this->resource->spellSlots['pact_magic'] ?? null,
+            ],
             'preparation_limit' => $this->resource->preparationLimit,
             'prepared_spell_count' => $this->resource->preparedSpellCount,
 

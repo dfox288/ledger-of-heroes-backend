@@ -8,6 +8,7 @@ use App\Models\Feat;
 use App\Models\Skill;
 use App\Services\CharacterStatCalculator;
 use App\Services\HitDiceService;
+use App\Services\SpellManagerService;
 use Illuminate\Support\Str;
 
 /**
@@ -71,7 +72,7 @@ class CharacterStatsDTO
     /**
      * Build stats DTO from a Character model.
      */
-    public static function fromCharacter(Character $character, CharacterStatCalculator $calculator): self
+    public static function fromCharacter(Character $character, CharacterStatCalculator $calculator, ?SpellManagerService $spellManagerService = null): self
     {
         $level = $character->total_level;
         $proficiencyBonus = $calculator->proficiencyBonus($level);
@@ -104,15 +105,16 @@ class CharacterStatsDTO
 
         // Spellcasting info (uses primary class)
         $spellcasting = null;
-        $spellSlots = [];
         $preparationLimit = null;
+
+        // Issue #618: Use SpellManagerService for enriched spell slots with tracking
+        // Returns: ['slots' => [...], 'pact_magic' => [...], 'preparation_limit' => int, 'prepared_count' => int]
+        $spellSlots = $spellManagerService
+            ? $spellManagerService->getSpellSlots($character)
+            : ['slots' => [], 'pact_magic' => null, 'preparation_limit' => null, 'prepared_count' => 0];
 
         $primaryClass = $character->primary_class;
         if ($primaryClass) {
-            $baseClassName = $primaryClass->parent_class_id
-                ? strtolower($primaryClass->parentClass->name ?? '')
-                : strtolower($primaryClass->name);
-
             $spellcastingAbility = $primaryClass->effective_spellcasting_ability;
 
             if ($spellcastingAbility) {
@@ -126,16 +128,13 @@ class CharacterStatsDTO
                     'spell_attack_bonus' => $proficiencyBonus + $abilityMod,
                 ];
 
-                $spellSlots = $calculator->getSpellSlots($baseClassName, $level);
-                $preparationLimit = $calculator->getPreparationLimit($baseClassName, $level, $abilityMod);
+                // Get preparation limit from the enriched spell slots data
+                $preparationLimit = $spellSlots['preparation_limit'] ?? null;
             }
         }
 
-        // Count prepared spells
-        $preparedSpellCount = $character->spells()
-            ->where('preparation_status', 'prepared')
-            ->whereHas('spell', fn ($q) => $q->where('level', '>', 0))
-            ->count();
+        // Get prepared spell count from the enriched spell slots data
+        $preparedSpellCount = $spellSlots['prepared_count'] ?? 0;
 
         // Calculate derived combat stats
         // Use null to properly track missing ability scores (not 0, which is a valid modifier)

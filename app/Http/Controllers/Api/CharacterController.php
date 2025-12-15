@@ -24,6 +24,7 @@ use App\Services\CharacterStatCalculator;
 use App\Services\FeatChoiceService;
 use App\Services\FeatureUseService;
 use App\Services\HitDiceService;
+use App\Services\SpellManagerService;
 use App\Services\SpellSlotService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -37,6 +38,7 @@ class CharacterController extends Controller
         private CharacterProficiencyService $proficiencyService,
         private CharacterLanguageService $languageService,
         private SpellSlotService $spellSlotService,
+        private SpellManagerService $spellManagerService,
         private HitDiceService $hitDiceService,
         private FeatChoiceService $featChoiceService,
         private AbilityBonusService $abilityBonusService,
@@ -361,7 +363,7 @@ class CharacterController extends Controller
         $stats = Cache::remember(
             "character:{$character->id}:stats",
             now()->addMinutes(15),
-            fn () => CharacterStatsDTO::fromCharacter($character, $this->statCalculator)
+            fn () => CharacterStatsDTO::fromCharacter($character, $this->statCalculator, $this->spellManagerService)
         );
 
         return new CharacterStatsResource($stats);

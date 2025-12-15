@@ -46,7 +46,7 @@ trait CreatesTestCharacters
 
         // Level up if target > 1
         if ($targetLevel > 1) {
-            $this->levelUpCharacter($character, $targetLevel, $randomizer);
+            $this->levelUpCharacter($character, $targetLevel, $randomizer, $subclassSlug);
         }
 
         return $character->fresh();
@@ -102,7 +102,8 @@ trait CreatesTestCharacters
     protected function levelUpCharacter(
         Character $character,
         int $targetLevel,
-        CharacterRandomizer $randomizer
+        CharacterRandomizer $randomizer,
+        ?string $forceSubclass = null
     ): void {
         $executor = new LevelUpFlowExecutor;
 
@@ -111,7 +112,8 @@ trait CreatesTestCharacters
             targetLevel: $targetLevel,
             randomizer: $randomizer,
             iteration: 1,
-            mode: 'linear'
+            mode: 'linear',
+            forceSubclass: $forceSubclass
         );
 
         // Check for errors or failures

@@ -1,0 +1,469 @@
+{
+    "format_version": "1.2",
+    "exported_at": "2025-12-15T14:56:56+00:00",
+    "character": {
+        "public_id": "silent-knight-6FW7",
+        "name": "Undir",
+        "race": "erlw:warforged",
+        "background": "vrgtr:haunted-one-van-richtens",
+        "alignment": "Lawful Good",
+        "ability_scores": {
+            "strength": 8,
+            "dexterity": 14,
+            "constitution": 12,
+            "intelligence": 15,
+            "wisdom": 13,
+            "charisma": 10
+        },
+        "max_hit_points": 62,
+        "current_hit_points": 62,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "equipment",
+        "size_id": null,
+        "asi_choices_remaining": 2,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:cleric",
+                "subclass": "tce:cleric-peace-domain",
+                "level": 10,
+                "is_primary": true,
+                "hit_dice_spent": 0
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:guidance",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:heroism",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:resistance",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:sanctuary",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:spare-the-dying",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 10
+            },
+            {
+                "spell": "phb:thaumaturgy",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:word-of-radiance",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:chest",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:trinket",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:common-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "sp.",
+                "custom_description": "{\"source\":\"background\",\"description\":\"sp.\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:warhammer",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_1\",\"selected_option\":\"b\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:leather-armor",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_2\",\"selected_option\":\"b\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:silvered-club",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_3\",\"selected_option\":\"b\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:backpack",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_4\",\"selected_option\":\"a\",\"from_pack\":\"phb:priests-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:blanket",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_4\",\"selected_option\":\"a\",\"from_pack\":\"phb:priests-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:candle",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_4\",\"selected_option\":\"a\",\"from_pack\":\"phb:priests-pack\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:tinderbox",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_4\",\"selected_option\":\"a\",\"from_pack\":\"phb:priests-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:rations-1-day",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_4\",\"selected_option\":\"a\",\"from_pack\":\"phb:priests-pack\"}",
+                "quantity": 2,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:waterskin",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_4\",\"selected_option\":\"a\",\"from_pack\":\"phb:priests-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:shield",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:holy-symbol-generic-variant",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:infernal",
+                "source": "race"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:medicine",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:persuasion",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:performance",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:navigators-tools",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": "tool_choice_2"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [],
+        "notes": [],
+        "ability_score_choices": [
+            {
+                "ability_score_code": "STR",
+                "bonus": 1,
+                "source": "race",
+                "choice_group": "ability_score_choice_1"
+            }
+        ],
+        "spell_slots": [],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": null,
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": null,
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": null,
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": null,
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Divine Domain",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:cleric-peace-domain",
+                    "feature_name": "Divine Domain: Peace Domain",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:cleric-peace-domain",
+                    "feature_name": "Emboldening Bond (Peace Domain)",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:cleric-peace-domain",
+                    "feature_name": "Implement of Peace (Peace Domain)",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": null,
+                "source": "background",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity (1\/rest)",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity: Turn Undead",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity: Harness Divine Power",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Destroy Undead (CR 1\/2)",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity (2\/rest)",
+                    "level": 6
+                },
+                "source": "class",
+                "level_acquired": 6,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Destroy Undead (CR 1)",
+                    "level": 8
+                },
+                "source": "class",
+                "level_acquired": 8,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Divine Intervention",
+                    "level": 10
+                },
+                "source": "class",
+                "level_acquired": 10,
+                "uses_remaining": null,
+                "max_uses": null
+            }
+        ],
+        "portrait": null
+    }
+}

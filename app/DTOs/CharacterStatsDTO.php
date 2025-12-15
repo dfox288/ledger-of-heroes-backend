@@ -109,14 +109,13 @@ class CharacterStatsDTO
 
         $primaryClass = $character->primary_class;
         if ($primaryClass) {
-            // For subclasses, use the parent class for spell progression
-            $baseClass = $primaryClass->parent_class_id
-                ? $primaryClass->parentClass
-                : $primaryClass;
+            $baseClassName = $primaryClass->parent_class_id
+                ? strtolower($primaryClass->parentClass->name ?? '')
+                : strtolower($primaryClass->name);
 
             $spellcastingAbility = $primaryClass->effective_spellcasting_ability;
 
-            if ($spellcastingAbility && $baseClass) {
+            if ($spellcastingAbility) {
                 $abilityCode = $spellcastingAbility->code;
                 $abilityMod = $abilityModifiers[$abilityCode] ?? 0;
 
@@ -127,9 +126,8 @@ class CharacterStatsDTO
                     'spell_attack_bonus' => $proficiencyBonus + $abilityMod,
                 ];
 
-                // Use data-driven methods that read from levelProgression
-                $spellSlots = $calculator->getSpellSlotsFromClass($baseClass, $level);
-                $preparationLimit = $calculator->getPreparationLimitFromClass($baseClass, $level, $abilityMod);
+                $spellSlots = $calculator->getSpellSlots($baseClassName, $level);
+                $preparationLimit = $calculator->getPreparationLimit($baseClassName, $level, $abilityMod);
             }
         }
 

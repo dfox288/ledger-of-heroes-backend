@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\CharacterTrait;
 use App\Models\ClassFeature;
+use App\Models\Feat;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -40,6 +41,7 @@ class CharacterFeatureResource extends JsonResource
         return match ($this->feature_type) {
             ClassFeature::class => 'class_feature',
             CharacterTrait::class => 'trait',
+            Feat::class => 'feat',
             default => class_basename($this->feature_type),
         };
     }
@@ -70,6 +72,11 @@ class CharacterFeatureResource extends JsonResource
             $data['name'] = $feature->name;
             $data['description'] = $feature->description;
             $data['category'] = $feature->category;
+        } elseif ($feature instanceof Feat) {
+            $data['name'] = $feature->name;
+            $data['slug'] = $feature->slug;
+            $data['description'] = $feature->description;
+            $data['prerequisite'] = $feature->prerequisite;
         } else {
             // Generic fallback
             $data['name'] = $feature->name ?? $feature->feature_name ?? null;

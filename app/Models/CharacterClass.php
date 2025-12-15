@@ -289,11 +289,18 @@ class CharacterClass extends BaseModel
         }
 
         // For subclasses, inherit from parent
-        if ($this->parent_class_id !== null && $this->parentClass) {
-            // Access parent's raw attribute to avoid infinite recursion
-            $parentValue = $this->parentClass->attributes['spell_preparation_method'] ?? null;
-            if ($parentValue !== null) {
-                return $parentValue;
+        if ($this->parent_class_id !== null) {
+            // Use relationLoaded() to avoid lazy loading triggering accessor recursion
+            $parent = $this->relationLoaded('parentClass')
+                ? $this->parentClass
+                : $this->parentClass()->first();
+
+            if ($parent !== null) {
+                // Access raw attribute to avoid calling accessor recursively
+                $parentValue = $parent->getRawOriginal('spell_preparation_method');
+                if ($parentValue !== null) {
+                    return $parentValue;
+                }
             }
         }
 

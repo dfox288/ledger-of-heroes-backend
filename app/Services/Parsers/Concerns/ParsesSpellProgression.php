@@ -268,10 +268,26 @@ trait ParsesSpellProgression
         // Check if spell_progression has spells_known (set from XML counters, not our synthesized values)
         // Note: At this point, both "known" casters and Wizard have spells_known.
         // Wizard was identified above by "spellbook" text. If we got here with spells_known,
-        // it must be from XML counters (known casters like Bard, Sorcerer).
+        // it could be from XML counters (known casters) OR synthetic Wizard progression.
         $hasSpellsKnown = collect($spellProgression)->contains(fn ($p) => isset($p['spells_known']) && $p['spells_known'] > 0);
 
         if ($hasSpellsKnown) {
+            // Defensive check: detect synthetic Wizard progression (6, 8, 10, 12...)
+            // If spellbook text detection failed but progression matches Wizard formula,
+            // classify as spellbook rather than known.
+            $isSyntheticWizard = collect($spellProgression)->every(function ($p) {
+                if (! isset($p['spells_known']) || ! isset($p['level'])) {
+                    return false;
+                }
+
+                // Wizard formula: 6 + (level - 1) * 2
+                return $p['spells_known'] === 6 + ($p['level'] - 1) * 2;
+            });
+
+            if ($isSyntheticWizard && count($spellProgression) > 0) {
+                return 'spellbook';
+            }
+
             return 'known';
         }
 

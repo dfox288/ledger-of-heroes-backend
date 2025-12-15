@@ -32,6 +32,38 @@ class CharacterBackgroundAssignmentService
     }
 
     /**
+     * Clear old background data before assigning a new background.
+     *
+     * When background changes, old background-sourced data must be cleared:
+     * - Equipment from old background
+     * - Proficiencies from old background
+     * - Languages from old background (both fixed and choice-based)
+     * - Features from old background
+     *
+     * This is called BEFORE updating the background_slug on the character.
+     */
+    public function clearOldBackgroundData(Character $character): void
+    {
+        if (! $character->background_slug) {
+            return;
+        }
+
+        // Clear background equipment
+        $character->equipment()
+            ->whereJsonContains('custom_description->source', 'background')
+            ->delete();
+
+        // Clear background proficiencies (both fixed and choice-based)
+        $this->proficiencyService->clearProficiencies($character, 'background');
+
+        // Clear background languages (both fixed and choice-based)
+        $character->languages()->where('source', 'background')->delete();
+
+        // Clear background features
+        $character->features()->where('source', 'background')->delete();
+    }
+
+    /**
      * Grant fixed items from the background.
      *
      * Called after a background is assigned. The character's background

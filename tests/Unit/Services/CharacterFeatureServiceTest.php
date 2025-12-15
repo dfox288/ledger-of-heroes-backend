@@ -549,7 +549,7 @@ class CharacterFeatureServiceTest extends TestCase
         ]);
 
         // This should NOT throw a duplicate constraint violation
-        // It should either skip the spell or update it, but not crash
+        // It should upgrade the spell to always_prepared (domain spells are always prepared)
         $this->service->populateFromSubclass($character, $clericClass->slug, $peaceDomain->slug);
 
         // Verify the spell exists only once
@@ -557,5 +557,13 @@ class CharacterFeatureServiceTest extends TestCase
         $heroismSpells = $character->spells()->where('spell_slug', $heroism->slug)->get();
 
         $this->assertCount(1, $heroismSpells, 'Character should have exactly one copy of the spell');
+
+        // Verify the preparation status was upgraded to always_prepared
+        // (Peace Domain grants heroism as always_prepared, which is stronger than known)
+        $this->assertEquals(
+            'always_prepared',
+            $heroismSpells->first()->preparation_status,
+            'Spell should be upgraded to always_prepared when domain grants it'
+        );
     }
 }

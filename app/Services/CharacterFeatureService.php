@@ -226,6 +226,10 @@ class CharacterFeatureService
      * to match the database unique constraint. This handles cases where
      * a character already has the spell from a different source (e.g.,
      * Divine Soul origin granting heroism before Peace Domain also grants it).
+     *
+     * If the spell already exists and the new grant is 'always_prepared',
+     * upgrades the existing spell to always_prepared (domain spells should
+     * always be prepared even if already known from another source).
      */
     private function createSpellIfNotExists(
         Character $character,
@@ -234,7 +238,7 @@ class CharacterFeatureService
         int $levelAcquired,
         string $preparationStatus
     ): void {
-        CharacterSpell::firstOrCreate(
+        $spell = CharacterSpell::firstOrCreate(
             [
                 'character_id' => $character->id,
                 'spell_slug' => $spellSlug,
@@ -245,6 +249,11 @@ class CharacterFeatureService
                 'preparation_status' => $preparationStatus,
             ]
         );
+
+        // Upgrade to always_prepared if the new grant is stronger
+        if ($preparationStatus === 'always_prepared' && $spell->preparation_status !== 'always_prepared') {
+            $spell->update(['preparation_status' => 'always_prepared']);
+        }
     }
 
     /**

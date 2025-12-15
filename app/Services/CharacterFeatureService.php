@@ -221,6 +221,15 @@ class CharacterFeatureService
 
     /**
      * Create a character spell if it doesn't already exist.
+     *
+     * Uses firstOrCreate with only (character_id, spell_slug) as the key
+     * to match the database unique constraint. This handles cases where
+     * a character already has the spell from a different source (e.g.,
+     * Divine Soul origin granting heroism before Peace Domain also grants it).
+     *
+     * If the spell already exists and the new grant is 'always_prepared',
+     * upgrades the existing spell to always_prepared (domain spells should
+     * always be prepared even if already known from another source).
      */
     private function createSpellIfNotExists(
         Character $character,
@@ -229,22 +238,22 @@ class CharacterFeatureService
         int $levelAcquired,
         string $preparationStatus
     ): void {
-        $exists = $character->spells()
-            ->where('spell_slug', $spellSlug)
-            ->where('source', $source)
-            ->exists();
+        $spell = CharacterSpell::firstOrCreate(
+            [
+                'character_id' => $character->id,
+                'spell_slug' => $spellSlug,
+            ],
+            [
+                'source' => $source,
+                'level_acquired' => $levelAcquired,
+                'preparation_status' => $preparationStatus,
+            ]
+        );
 
-        if ($exists) {
-            return;
+        // Upgrade to always_prepared if the new grant is stronger
+        if ($preparationStatus === 'always_prepared' && $spell->preparation_status !== 'always_prepared') {
+            $spell->update(['preparation_status' => 'always_prepared']);
         }
-
-        CharacterSpell::create([
-            'character_id' => $character->id,
-            'spell_slug' => $spellSlug,
-            'source' => $source,
-            'level_acquired' => $levelAcquired,
-            'preparation_status' => $preparationStatus,
-        ]);
     }
 
     /**

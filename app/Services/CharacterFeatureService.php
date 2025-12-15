@@ -58,11 +58,20 @@ class CharacterFeatureService
     }
 
     /**
+     * Mechanical trait categories that represent actual game features.
+     * Non-mechanical categories (description, flavor, characteristics, null) are filtered out.
+     */
+    private const MECHANICAL_TRAIT_CATEGORIES = ['species', 'subspecies', 'feature'];
+
+    /**
      * Populate racial traits for the character.
+     *
+     * Only includes mechanical traits (species, subspecies, feature categories).
+     * Filters out flavor text like "Description", "Age", "Alignment", "Names".
      */
     public function populateFromRace(Character $character): void
     {
-        if (! $character->race_id) {
+        if (! $character->race_slug) {
             return;
         }
 
@@ -71,8 +80,11 @@ class CharacterFeatureService
             return;
         }
 
-        // Get racial traits from entity_traits table
-        $traits = $race->traits;
+        // Get mechanical racial traits from entity_traits table
+        // Filter to only include game-relevant features (not flavor text)
+        $traits = $race->traits()
+            ->whereIn('category', self::MECHANICAL_TRAIT_CATEGORIES)
+            ->get();
 
         foreach ($traits as $trait) {
             $this->createFeatureIfNotExists(
@@ -89,10 +101,13 @@ class CharacterFeatureService
 
     /**
      * Populate background features/traits for the character.
+     *
+     * Only includes actual background features (category='feature').
+     * Filters out characteristics tables (personality traits, ideals, bonds, flaws).
      */
     public function populateFromBackground(Character $character): void
     {
-        if (! $character->background_id) {
+        if (! $character->background_slug) {
             return;
         }
 
@@ -101,8 +116,12 @@ class CharacterFeatureService
             return;
         }
 
-        // Get background traits from entity_traits table
-        $traits = $background->traits;
+        // Get background features from entity_traits table
+        // Only include 'feature' category (like "Military Rank", "Shelter of the Faithful")
+        // Exclude 'characteristics' category (random personality tables)
+        $traits = $background->traits()
+            ->where('category', 'feature')
+            ->get();
 
         foreach ($traits as $trait) {
             $this->createFeatureIfNotExists(

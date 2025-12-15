@@ -160,11 +160,12 @@ class CharacterFeatureServiceTest extends TestCase
         $race = Race::factory()->create(['name' => 'Elf', 'slug' => 'elf-'.uniqid()]);
 
         // Create racial traits using the entity_traits table
+        // Only 'species', 'subspecies', 'feature' categories are considered mechanical
         $darkvision = CharacterTrait::create([
             'reference_type' => 'App\\Models\\Race',
             'reference_id' => $race->id,
             'name' => 'Darkvision',
-            'category' => 'sense',
+            'category' => 'species', // Mechanical trait
             'description' => 'You can see in dim light.',
         ]);
 
@@ -172,7 +173,7 @@ class CharacterFeatureServiceTest extends TestCase
             'reference_type' => 'App\\Models\\Race',
             'reference_id' => $race->id,
             'name' => 'Fey Ancestry',
-            'category' => 'ancestry',
+            'category' => 'species', // Mechanical trait
             'description' => 'Advantage against charm.',
         ]);
 
@@ -183,6 +184,46 @@ class CharacterFeatureServiceTest extends TestCase
         $this->assertCount(2, $character->features);
         $this->assertTrue($character->features->every(fn ($f) => $f->source === 'race'));
         $this->assertTrue($character->features->every(fn ($f) => $f->feature_type === 'App\\Models\\CharacterTrait'));
+    }
+
+    #[Test]
+    public function it_filters_out_non_mechanical_racial_traits(): void
+    {
+        $race = Race::factory()->create(['name' => 'Elf', 'slug' => 'elf-'.uniqid()]);
+
+        // Mechanical trait (should be included)
+        $darkvision = CharacterTrait::create([
+            'reference_type' => 'App\\Models\\Race',
+            'reference_id' => $race->id,
+            'name' => 'Darkvision',
+            'category' => 'species',
+            'description' => 'You can see in dim light.',
+        ]);
+
+        // Non-mechanical traits (should be filtered out)
+        CharacterTrait::create([
+            'reference_type' => 'App\\Models\\Race',
+            'reference_id' => $race->id,
+            'name' => 'Description',
+            'category' => 'description',
+            'description' => 'Elves are tall and slender.',
+        ]);
+
+        CharacterTrait::create([
+            'reference_type' => 'App\\Models\\Race',
+            'reference_id' => $race->id,
+            'name' => 'Age',
+            'category' => null, // null category should be filtered
+            'description' => 'Elves mature slowly.',
+        ]);
+
+        $character = Character::factory()->withRace($race)->create();
+
+        $this->service->populateFromRace($character);
+
+        // Only the mechanical trait should be included
+        $this->assertCount(1, $character->features);
+        $this->assertEquals($darkvision->id, $character->features->first()->feature_id);
     }
 
     // =====================
@@ -227,17 +268,17 @@ class CharacterFeatureServiceTest extends TestCase
             'is_optional' => false,
         ]);
 
-        // Set up race with trait
+        // Set up race with mechanical trait (species category)
         $race = Race::factory()->create(['name' => 'Elf', 'slug' => 'elf-'.uniqid()]);
         CharacterTrait::create([
             'reference_type' => 'App\\Models\\Race',
             'reference_id' => $race->id,
             'name' => 'Darkvision',
-            'category' => 'sense',
+            'category' => 'species', // Mechanical category
             'description' => 'See in the dark.',
         ]);
 
-        // Set up background with trait
+        // Set up background with feature trait
         $background = Background::factory()->create(['name' => 'Soldier', 'slug' => 'soldier-'.uniqid()]);
         CharacterTrait::create([
             'reference_type' => 'App\\Models\\Background',
@@ -282,7 +323,7 @@ class CharacterFeatureServiceTest extends TestCase
             'reference_type' => 'App\\Models\\Race',
             'reference_id' => $race->id,
             'name' => 'Darkvision',
-            'category' => 'sense',
+            'category' => 'species', // Mechanical category
             'description' => 'See.',
         ]);
 

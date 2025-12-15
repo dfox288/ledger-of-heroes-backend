@@ -7,6 +7,7 @@ namespace Tests\Unit\Services;
 use App\Models\AbilityScore;
 use App\Models\Character;
 use App\Models\CharacterClass;
+use App\Models\CharacterFeature;
 use App\Models\EntityPrerequisite;
 use App\Models\Feat;
 use App\Models\ProficiencyType;
@@ -1016,5 +1017,206 @@ class AvailableFeatsServiceTest extends TestCase
         $this->assertTrue($returnedFeat->relationLoaded('modifiers'));
         $this->assertTrue($returnedFeat->relationLoaded('proficiencies'));
         $this->assertTrue($returnedFeat->relationLoaded('spells'));
+    }
+
+    // =========================================================================
+    // Already-Selected Feat Exclusion
+    // =========================================================================
+
+    #[Test]
+    public function it_excludes_already_selected_feats_by_default(): void
+    {
+        $character = Character::factory()->create();
+
+        $feat1 = Feat::factory()->create(['slug' => 'test:feat-1']);
+        $feat2 = Feat::factory()->create(['slug' => 'test:feat-2']);
+        $feat3 = Feat::factory()->create(['slug' => 'test:feat-3']);
+
+        // Character has already selected feat2
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $feat2->id,
+            'feature_slug' => $feat2->slug,
+            'source' => 'race',
+            'level_acquired' => 1,
+        ]);
+
+        $availableFeats = $this->service->getAvailableFeats($character);
+
+        // feat2 should be excluded
+        $this->assertCount(2, $availableFeats);
+        $slugs = $availableFeats->pluck('slug')->toArray();
+        $this->assertContains('test:feat-1', $slugs);
+        $this->assertContains('test:feat-3', $slugs);
+        $this->assertNotContains('test:feat-2', $slugs);
+    }
+
+    #[Test]
+    public function it_excludes_feats_selected_from_any_source(): void
+    {
+        $character = Character::factory()->create();
+
+        $feat1 = Feat::factory()->create(['slug' => 'test:feat-from-race']);
+        $feat2 = Feat::factory()->create(['slug' => 'test:feat-from-asi']);
+        $feat3 = Feat::factory()->create(['slug' => 'test:feat-available']);
+
+        // Feats selected from different sources
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $feat1->id,
+            'feature_slug' => $feat1->slug,
+            'source' => 'race',
+            'level_acquired' => 1,
+        ]);
+
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $feat2->id,
+            'feature_slug' => $feat2->slug,
+            'source' => 'class', // ASI from class
+            'level_acquired' => 4,
+        ]);
+
+        $availableFeats = $this->service->getAvailableFeats($character);
+
+        // Both selected feats excluded, regardless of source
+        $this->assertCount(1, $availableFeats);
+        $this->assertEquals('test:feat-available', $availableFeats->first()->slug);
+    }
+
+    #[Test]
+    public function it_includes_already_selected_feats_when_include_selected_is_true(): void
+    {
+        $character = Character::factory()->create();
+
+        $feat1 = Feat::factory()->create(['slug' => 'test:feat-1']);
+        $feat2 = Feat::factory()->create(['slug' => 'test:feat-2']);
+
+        // Character has already selected feat1
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $feat1->id,
+            'feature_slug' => $feat1->slug,
+            'source' => 'race',
+            'level_acquired' => 1,
+        ]);
+
+        $availableFeats = $this->service->getAvailableFeats($character, null, includeSelected: true);
+
+        // All feats returned when include_selected is true
+        $this->assertCount(2, $availableFeats);
+    }
+
+    #[Test]
+    public function it_excludes_selected_feats_with_race_source_filter(): void
+    {
+        $character = Character::factory()->create();
+
+        $feat1 = Feat::factory()->create(['slug' => 'test:feat-1']);
+        $feat2 = Feat::factory()->create(['slug' => 'test:feat-2']);
+
+        // Character has selected feat1
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $feat1->id,
+            'feature_slug' => $feat1->slug,
+            'source' => 'race',
+            'level_acquired' => 1,
+        ]);
+
+        $availableFeats = $this->service->getAvailableFeats($character, 'race');
+
+        // Selected feat excluded even with source filter
+        $this->assertCount(1, $availableFeats);
+        $this->assertEquals('test:feat-2', $availableFeats->first()->slug);
+    }
+
+    #[Test]
+    public function it_excludes_selected_feats_with_asi_source_filter(): void
+    {
+        $character = Character::factory()->create([
+            'strength' => 15,
+        ]);
+
+        $feat1 = Feat::factory()->create(['slug' => 'test:feat-1']);
+        $feat2 = Feat::factory()->create(['slug' => 'test:feat-2']);
+
+        // Character has selected feat1 from previous ASI
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $feat1->id,
+            'feature_slug' => $feat1->slug,
+            'source' => 'class',
+            'level_acquired' => 4,
+        ]);
+
+        $availableFeats = $this->service->getAvailableFeats($character, 'asi');
+
+        // Selected feat excluded with ASI source filter
+        $this->assertCount(1, $availableFeats);
+        $this->assertEquals('test:feat-2', $availableFeats->first()->slug);
+    }
+
+    #[Test]
+    public function it_returns_empty_when_all_feats_already_selected(): void
+    {
+        $character = Character::factory()->create();
+
+        $feat1 = Feat::factory()->create(['slug' => 'test:feat-1']);
+        $feat2 = Feat::factory()->create(['slug' => 'test:feat-2']);
+
+        // Character has selected all feats
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $feat1->id,
+            'feature_slug' => $feat1->slug,
+            'source' => 'race',
+            'level_acquired' => 1,
+        ]);
+
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $feat2->id,
+            'feature_slug' => $feat2->slug,
+            'source' => 'class',
+            'level_acquired' => 4,
+        ]);
+
+        $availableFeats = $this->service->getAvailableFeats($character);
+
+        $this->assertCount(0, $availableFeats);
+    }
+
+    #[Test]
+    public function it_only_excludes_feats_from_same_character(): void
+    {
+        $character1 = Character::factory()->create();
+        $character2 = Character::factory()->create();
+
+        $feat = Feat::factory()->create(['slug' => 'test:shared-feat']);
+
+        // Character 2 has selected the feat, but character 1 hasn't
+        CharacterFeature::create([
+            'character_id' => $character2->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $feat->id,
+            'feature_slug' => $feat->slug,
+            'source' => 'race',
+            'level_acquired' => 1,
+        ]);
+
+        $availableFeatsForChar1 = $this->service->getAvailableFeats($character1);
+
+        // Character 1 should still see the feat
+        $this->assertCount(1, $availableFeatsForChar1);
+        $this->assertEquals('test:shared-feat', $availableFeatsForChar1->first()->slug);
     }
 }

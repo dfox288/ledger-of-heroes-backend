@@ -282,6 +282,119 @@ XML;
         );
     }
 
+    #[Test]
+    public function it_links_arcane_shot_to_arcane_archer_subclass(): void
+    {
+        // Create Fighter base class and Arcane Archer subclass
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'phb:fighter',
+            'parent_class_id' => null,
+        ]);
+
+        $arcaneArcher = CharacterClass::factory()->create([
+            'name' => 'Arcane Archer',
+            'slug' => 'xge:arcane-archer',
+            'parent_class_id' => $fighter->id,
+        ]);
+
+        // Real XML format from XGE - note the ": Arcane Shot" suffix
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <spell>
+    <name>Arcane Shot: Banishing Arrow</name>
+    <level>0</level>
+    <school>A</school>
+    <time>part of the Attack action to fire a magic arrow</time>
+    <classes>Fighter (Arcane Archer): Arcane Shot</classes>
+    <text>You use abjuration magic to try to temporarily banish your target.
+
+Source:	Xanathar's Guide to Everything p. 29</text>
+  </spell>
+</compendium>
+XML;
+
+        // Import the feature
+        $this->importer->importFromFile($this->createTempXmlFile($originalXml));
+
+        // Retrieve the imported feature
+        $feature = OptionalFeature::where('name', 'Banishing Arrow')->first();
+        $this->assertNotNull($feature, 'Optional feature should be imported');
+
+        // Feature should be linked to Arcane Archer subclass
+        $classes = $feature->classes;
+        $this->assertCount(1, $classes, 'Should have 1 class association');
+        $this->assertEquals(
+            $arcaneArcher->id,
+            $classes->first()->id,
+            'Arcane Shot should be linked to Arcane Archer subclass, not base Fighter class'
+        );
+        $this->assertEquals('Arcane Archer', $classes->first()->name);
+
+        // Verify Arcane Archer's optionalFeatures returns this feature
+        $archerFeatures = $arcaneArcher->optionalFeatures;
+        $this->assertCount(1, $archerFeatures);
+        $this->assertEquals($feature->id, $archerFeatures->first()->id);
+
+        // Fighter base class should NOT have this feature
+        $fighterFeatures = $fighter->optionalFeatures;
+        $this->assertCount(0, $fighterFeatures);
+    }
+
+    #[Test]
+    public function it_links_rune_to_rune_knight_subclass(): void
+    {
+        // Create Fighter base class and Rune Knight subclass
+        $fighter = CharacterClass::factory()->create([
+            'name' => 'Fighter',
+            'slug' => 'phb:fighter',
+            'parent_class_id' => null,
+        ]);
+
+        $runeKnight = CharacterClass::factory()->create([
+            'name' => 'Rune Knight',
+            'slug' => 'tce:rune-knight',
+            'parent_class_id' => $fighter->id,
+        ]);
+
+        // Real XML format from TCE
+        $originalXml = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5" auto_indent="NO">
+  <spell>
+    <name>Rune: Cloud Rune</name>
+    <level>0</level>
+    <classes>Fighter (Rune Knight)</classes>
+    <text>This rune emulates the deceptive magic used by some cloud giants.
+
+Source:	Tasha's Cauldron of Everything p. 44</text>
+  </spell>
+</compendium>
+XML;
+
+        // Import the feature
+        $this->importer->importFromFile($this->createTempXmlFile($originalXml));
+
+        // Retrieve the imported feature
+        $feature = OptionalFeature::where('name', 'Cloud Rune')->first();
+        $this->assertNotNull($feature, 'Optional feature should be imported');
+
+        // Feature should be linked to Rune Knight subclass
+        $classes = $feature->classes;
+        $this->assertCount(1, $classes, 'Should have 1 class association');
+        $this->assertEquals(
+            $runeKnight->id,
+            $classes->first()->id,
+            'Rune should be linked to Rune Knight subclass'
+        );
+
+        // Verify Rune Knight's optionalFeatures returns this feature
+        $knightFeatures = $runeKnight->optionalFeatures;
+        $this->assertCount(1, $knightFeatures);
+        $this->assertEquals($feature->id, $knightFeatures->first()->id);
+    }
+
     /**
      * Create a temporary XML file for testing.
      */

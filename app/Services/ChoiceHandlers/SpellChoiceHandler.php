@@ -209,16 +209,25 @@ class SpellChoiceHandler extends AbstractChoiceHandler
     ): ?PendingChoice {
         $class = $pivot->characterClass;
 
-        // Count already known cantrips for this class
-        $knownCantrips = $character->spells()
+        // Count ALL known cantrips for this class (across all levels)
+        // cantrips_known in progression is cumulative, not per-level
+        $allKnownCantrips = $character->spells()
+            ->where('source', 'class')
+            ->whereHas('spell', fn ($q) => $q->where('level', 0))
+            ->get();
+
+        $totalKnown = $allKnownCantrips->count();
+        $totalRequired = $progression->cantrips_known;
+        $remaining = max(0, $totalRequired - $totalKnown);
+
+        // Get cantrips selected at THIS level for the selected array
+        $cantripsAtThisLevel = $character->spells()
             ->where('source', 'class')
             ->where('level_acquired', $pivot->level)
             ->whereHas('spell', fn ($q) => $q->where('level', 0))
             ->get();
 
-        $quantity = $progression->cantrips_known;
-        $selected = $knownCantrips->pluck('spell_slug')->filter()->toArray();
-        $remaining = $quantity - count($selected);
+        $selected = $cantripsAtThisLevel->pluck('spell_slug')->filter()->toArray();
 
         return new PendingChoice(
             id: $this->generateChoiceId('spell', 'class', $class->slug, $pivot->level, 'cantrips'),
@@ -228,7 +237,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
             sourceName: $class->name,
             levelGranted: $pivot->level,
             required: true,
-            quantity: $quantity,
+            quantity: $totalRequired, // Total cantrips required at this level
             remaining: $remaining,
             selected: $selected,
             options: null,
@@ -250,16 +259,25 @@ class SpellChoiceHandler extends AbstractChoiceHandler
     ): ?PendingChoice {
         $class = $pivot->characterClass;
 
-        // Count already known spells for this class (excluding cantrips)
-        $knownSpells = $character->spells()
+        // Count ALL known spells for this class (excluding cantrips, across all levels)
+        // spells_known in progression is cumulative, not per-level
+        $allKnownSpells = $character->spells()
+            ->where('source', 'class')
+            ->whereHas('spell', fn ($q) => $q->where('level', '>', 0))
+            ->get();
+
+        $totalKnown = $allKnownSpells->count();
+        $totalRequired = $progression->spells_known;
+        $remaining = max(0, $totalRequired - $totalKnown);
+
+        // Get spells selected at THIS level for the selected array
+        $spellsAtThisLevel = $character->spells()
             ->where('source', 'class')
             ->where('level_acquired', $pivot->level)
             ->whereHas('spell', fn ($q) => $q->where('level', '>', 0))
             ->get();
 
-        $quantity = $progression->spells_known;
-        $selected = $knownSpells->pluck('spell_slug')->filter()->toArray();
-        $remaining = $quantity - count($selected);
+        $selected = $spellsAtThisLevel->pluck('spell_slug')->filter()->toArray();
 
         // Determine max spell level for this class level
         $maxSpellLevel = $this->getMaxSpellLevel($class, $pivot->level);
@@ -272,7 +290,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
             sourceName: $class->name,
             levelGranted: $pivot->level,
             required: true,
-            quantity: $quantity,
+            quantity: $totalRequired, // Total spells required at this level
             remaining: $remaining,
             selected: $selected,
             options: null,

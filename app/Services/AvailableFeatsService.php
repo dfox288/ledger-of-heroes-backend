@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\AbilityScore;
 use App\Models\Character;
 use App\Models\CharacterClass;
+use App\Models\CharacterFeature;
 use App\Models\Feat;
 use App\Models\ProficiencyType;
 use App\Models\Race;
@@ -22,14 +23,23 @@ class AvailableFeatsService
      * - Proficiency prerequisites (skills and proficiency types)
      * - OR group logic (same group_id = any one can satisfy)
      * - AND logic (different group_ids = all must be satisfied)
+     * - Already-selected feats (excluded by default)
      *
      * @param  string|null  $source  The feat source: 'race' (Variant Human/Custom Lineage) or 'asi' (level 4+ ASI).
      *                               Race source excludes feats with ability score prerequisites (RAW compliant).
+     * @param  bool  $includeSelected  If true, includes feats the character has already taken. Default false.
      */
-    public function getAvailableFeats(Character $character, ?string $source = null): Collection
+    public function getAvailableFeats(Character $character, ?string $source = null, bool $includeSelected = false): Collection
     {
         // Load necessary relationships
         $character->loadMissing(['race.parent', 'proficiencies']);
+
+        // Get slugs of feats the character has already selected
+        $selectedFeatSlugs = $includeSelected
+            ? collect()
+            : CharacterFeature::where('character_id', $character->id)
+                ->where('feature_type', Feat::class)
+                ->pluck('feature_slug');
 
         // Get all feats with their prerequisites
         $feats = Feat::with([
@@ -40,7 +50,12 @@ class AvailableFeatsService
             'spells',
         ])->get();
 
-        return $feats->filter(function (Feat $feat) use ($character, $source) {
+        return $feats->filter(function (Feat $feat) use ($character, $source, $selectedFeatSlugs) {
+            // Exclude already-selected feats
+            if ($selectedFeatSlugs->contains($feat->slug)) {
+                return false;
+            }
+
             return $this->characterQualifiesForFeat($character, $feat, $source);
         });
     }

@@ -30,6 +30,7 @@ it('transforms service output to PendingChoice objects for race bonus feat', fun
     $this->character->shouldReceive('offsetExists')->with('race')->andReturn(true);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn(null);
     $this->character->shouldReceive('offsetExists')->with('background')->andReturn(false);
+    $this->character->shouldReceive('getAttribute')->with('public_id')->andReturn('test-char-123');
 
     // Mock feat service response
     $this->featService->shouldReceive('getPendingChoices')
@@ -57,7 +58,7 @@ it('transforms service output to PendingChoice objects for race bonus feat', fun
         ->first()->remaining->toBe(1)
         ->first()->selected->toBe([])
         ->first()->options->toBeNull()
-        ->first()->optionsEndpoint->toBe('/api/v1/feats');
+        ->first()->optionsEndpoint->toBe('/api/v1/characters/test-char-123/available-feats?source=race');
 });
 
 it('includes completed choices with remaining zero', function () {
@@ -68,6 +69,7 @@ it('includes completed choices with remaining zero', function () {
     $this->character->shouldReceive('offsetExists')->with('race')->andReturn(true);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn(null);
     $this->character->shouldReceive('offsetExists')->with('background')->andReturn(false);
+    $this->character->shouldReceive('getAttribute')->with('public_id')->andReturn('test-char-123');
 
     // Already selected a feat - should still appear with remaining: 0
     $this->featService->shouldReceive('getPendingChoices')
@@ -241,6 +243,7 @@ it('handles background bonus feat source', function () {
     $this->character->shouldReceive('offsetExists')->with('race')->andReturn(false);
     $this->character->shouldReceive('getAttribute')->with('background')->andReturn($background);
     $this->character->shouldReceive('offsetExists')->with('background')->andReturn(true);
+    $this->character->shouldReceive('getAttribute')->with('public_id')->andReturn('test-char-123');
 
     $this->featService->shouldReceive('getPendingChoices')
         ->with($this->character)

@@ -34,6 +34,7 @@ class CharacterAvailableFeatsController extends Controller
      * GET /api/v1/characters/1/available-feats?source=race  # Variant Human feat
      * GET /api/v1/characters/1/available-feats?source=asi   # Level 4+ ASI feat
      * GET /api/v1/characters/1/available-feats              # Default (same as asi)
+     * GET /api/v1/characters/1/available-feats?include_selected=true  # Include already taken
      * ```
      *
      * **Prerequisite Checks:**
@@ -47,6 +48,10 @@ class CharacterAvailableFeatsController extends Controller
      * - Prerequisites with same `group_id` use OR logic (any one satisfies)
      * - Prerequisites with different `group_id` use AND logic (all must be satisfied)
      *
+     * **Duplicate Exclusion:**
+     * - By default, feats the character has already taken are excluded
+     * - Use `include_selected=true` to include already-taken feats
+     *
      * **Feats excluded for race source (~10 feats):**
      * - Defensive Duelist (DEX 13+)
      * - Grappler (STR 13+)
@@ -55,17 +60,19 @@ class CharacterAvailableFeatsController extends Controller
      * - Ritual Caster variants (INT 13+ OR WIS 13+)
      *
      * @queryParam source string The feat source context. Values: `race`, `asi`. Example: race
+     * @queryParam include_selected boolean Include feats already taken by the character. Default: false. Example: true
      */
     public function __invoke(Request $request, Character $character): AnonymousResourceCollection
     {
         $source = $request->query('source');
+        $includeSelected = filter_var($request->query('include_selected', false), FILTER_VALIDATE_BOOLEAN);
 
         // Validate source parameter - return 400 for invalid values
         if ($source !== null && ! in_array($source, ['race', 'asi'], true)) {
             abort(400, 'Invalid source parameter. Must be "race" or "asi".');
         }
 
-        $feats = $this->availableFeatsService->getAvailableFeats($character, $source);
+        $feats = $this->availableFeatsService->getAvailableFeats($character, $source, $includeSelected);
 
         return FeatResource::collection($feats);
     }

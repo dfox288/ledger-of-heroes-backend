@@ -215,9 +215,10 @@ class FlowGenerator
             return [];
         }
 
-        // Can insert after the initial set and before validate
-        $validateIndex = $this->findActionIndex($flow, 'validate');
-        $maxIndex = $validateIndex !== null ? $validateIndex - 1 : count($flow) - 1;
+        // Can insert after the initial set and before resolve_all_required
+        // (not before validate, because switches after resolve_all_required leave choices unresolved)
+        $resolveAllIndex = $this->findActionIndex($flow, 'resolve_all_required');
+        $maxIndex = $resolveAllIndex !== null ? $resolveAllIndex - 1 : count($flow) - 1;
 
         if ($minIndex + 1 <= $maxIndex) {
             $ranges[] = ['min' => $minIndex + 1, 'max' => $maxIndex];

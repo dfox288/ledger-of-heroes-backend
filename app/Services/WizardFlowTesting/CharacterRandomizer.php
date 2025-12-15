@@ -154,6 +154,9 @@ class CharacterRandomizer
 
     /**
      * Generate a unique public_id in format: adjective-noun-4char
+     *
+     * Uses truly random (non-seeded) generation for uniqueness.
+     * Max length: 30 chars (adjective 8 + noun 8 + suffix 4 + dashes 2 = 22)
      */
     public function generatePublicId(): string
     {
@@ -169,9 +172,10 @@ class CharacterRandomizer
             'dragon', 'hawk', 'raven', 'phoenix', 'titan', 'oracle',
         ];
 
-        $adjective = $adjectives[$this->randomInt(0, count($adjectives) - 1)];
-        $noun = $nouns[$this->randomInt(0, count($nouns) - 1)];
-        $suffix = $this->randomString(4);
+        // Use random_int() (non-seeded) for guaranteed uniqueness
+        $adjective = $adjectives[random_int(0, count($adjectives) - 1)];
+        $noun = $nouns[random_int(0, count($nouns) - 1)];
+        $suffix = \Illuminate\Support\Str::random(4);
 
         return "{$adjective}-{$noun}-{$suffix}";
     }

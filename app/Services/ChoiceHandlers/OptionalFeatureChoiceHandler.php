@@ -53,6 +53,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
                 $className,
                 $classSlug,
                 null,
+                null, // No subclass slug for base class counters
                 $character,
                 $choices
             );
@@ -65,6 +66,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
                     $className,
                     $classSlug,
                     $subclassName,
+                    $charClass->subclass->slug, // Pass subclass slug for accurate feature lookups
                     $character,
                     $choices
                 );
@@ -143,6 +145,7 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
         string $className,
         string $classSlug,
         ?string $subclassName,
+        ?string $subclassSlug,
         Character $character,
         Collection &$choices
     ): void {
@@ -165,8 +168,15 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
             $allowed = $maxCounter->counter_value;
             $remaining = max(0, $allowed - $selected);
 
-            // Build options endpoint
-            $optionsEndpoint = $this->buildOptionsEndpoint($featureType, $classSlug, $subclassName, $character->total_level);
+            // Build inline options (fix for #622 - exclude already-selected features)
+            $options = $this->buildInlineOptions(
+                $featureType,
+                $classSlug,
+                $subclassName,
+                $subclassSlug,
+                $character->total_level,
+                $character
+            );
 
             // Create unique choice ID
             $choiceId = $this->generateChoiceId(
@@ -188,8 +198,8 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
                 quantity: $allowed,
                 remaining: $remaining,
                 selected: [],
-                options: [],
-                optionsEndpoint: $optionsEndpoint,
+                options: $options,
+                optionsEndpoint: null,
                 metadata: [
                     'class_slug' => $classSlug,
                     'subclass_name' => $subclassName,
@@ -215,36 +225,64 @@ class OptionalFeatureChoiceHandler extends AbstractChoiceHandler
     }
 
     /**
-     * Build the options endpoint URL for fetching available features.
+     * Build inline options array with filtered features.
      *
-     * Uses Meilisearch filter syntax since the optional-features endpoint
-     * only accepts ?filter= parameter for filtering.
+     * Fix for #622: Returns features filtered by type, class, level, and
+     * excludes already-selected features to prevent duplicate selections.
+     *
+     * @return array<int, array{slug: string, name: string, description: string|null, level_requirement: int|null, prerequisite_text: string|null}>
      */
-    private function buildOptionsEndpoint(
+    private function buildInlineOptions(
         string $featureType,
         string $classSlug,
         ?string $subclassName,
-        int $characterLevel
-    ): string {
-        $filterParts = [];
+        ?string $subclassSlug,
+        int $characterLevel,
+        Character $character
+    ): array {
+        // Get already-selected feature slugs for this character
+        $selectedSlugs = $character->featureSelections()
+            ->pluck('optional_feature_slug')
+            ->toArray();
 
-        // Filter by feature type
-        $filterParts[] = "feature_type = {$featureType}";
+        // Determine which class slug to use for filtering.
+        // Optional features like maneuvers may be associated with the subclass directly
+        // (e.g., phb:fighter-battle-master), not the parent class (phb:fighter).
+        // When we have a subclass slug, check both the subclass and parent class.
+        $classSlugsToCheck = $subclassSlug
+            ? [$subclassSlug, $classSlug]
+            : [$classSlug];
 
-        // Filter by class - use full slug (e.g., "phb:fighter") with quotes for Meilisearch
-        $filterParts[] = "class_slugs IN [\"{$classSlug}\"]";
+        // Build query with same filters as the old endpoint
+        $query = OptionalFeature::query()
+            ->where('feature_type', $featureType)
+            ->whereHas('classes', fn ($q) => $q->whereIn('classes.slug', $classSlugsToCheck))
+            ->where(fn ($q) => $q
+                ->whereNull('level_requirement')
+                ->orWhere('level_requirement', '<=', $characterLevel)
+            );
 
-        // Filter by subclass if applicable - quote names that may contain spaces
+        // Filter by subclass name if applicable (for features with specific subclass restrictions)
         if ($subclassName) {
-            $filterParts[] = "subclass_names IN [\"{$subclassName}\"]";
+            // Include features that either match this subclass OR have no subclass restriction
+            $query->where(fn ($q) => $q
+                ->whereHas('classPivots', fn ($pq) => $pq->where('subclass_name', $subclassName))
+                ->orWhereHas('classPivots', fn ($pq) => $pq->whereNull('subclass_name'))
+            );
         }
 
-        // Filter by level requirement (optional features with no requirement or <= character level)
-        // Use IS NULL OR <= to include features without level requirements
-        $filterParts[] = "(level_requirement IS NULL OR level_requirement <= {$characterLevel})";
+        // Exclude already-selected features (#622 fix)
+        if (! empty($selectedSlugs)) {
+            $query->whereNotIn('slug', $selectedSlugs);
+        }
 
-        $filter = implode(' AND ', $filterParts);
-
-        return '/api/v1/optional-features?'.http_build_query(['filter' => $filter]);
+        // Return formatted options array
+        return $query->get()->map(fn (OptionalFeature $feature) => [
+            'slug' => $feature->slug,
+            'name' => $feature->name,
+            'description' => $feature->description,
+            'level_requirement' => $feature->level_requirement,
+            'prerequisite_text' => $feature->prerequisite_text,
+        ])->values()->toArray();
     }
 }

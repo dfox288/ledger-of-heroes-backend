@@ -488,4 +488,74 @@ class CharacterFeatureServiceTest extends TestCase
         $fireballAssigned = $character->spells()->where('spell_slug', 'fireball')->first();
         $this->assertNull($fireballAssigned, 'Fireball (level_req=5) should NOT be assigned to level 3 character');
     }
+
+    #[Test]
+    public function it_does_not_duplicate_spell_when_subclass_grants_already_known_spell(): void
+    {
+        // This tests issue #627: Duplicate spell constraint violation when subclass grants already-known spell
+        // Scenario: Character has heroism from Divine Soul origin, then multiclasses into Peace Domain Cleric
+        // which also grants heroism. Should not throw: "Duplicate entry for character_spells_character_id_spell_slug_unique"
+
+        // Create Cleric base class
+        $clericClass = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'test-cleric-'.uniqid(),
+        ]);
+
+        // Create Peace Domain subclass
+        $peaceDomain = CharacterClass::factory()->create([
+            'name' => 'Peace Domain',
+            'slug' => 'test-cleric-peace-domain-'.uniqid(),
+            'parent_class_id' => $clericClass->id,
+        ]);
+
+        // Create Domain Spells feature
+        $domainSpells = ClassFeature::create([
+            'class_id' => $peaceDomain->id,
+            'level' => 1,
+            'feature_name' => 'Domain Spells (Peace Domain)',
+            'description' => 'Peace domain spells.',
+            'is_optional' => false,
+            'is_always_prepared' => true,
+        ]);
+
+        // Create the Heroism spell
+        $heroism = \App\Models\Spell::factory()->create([
+            'name' => 'Heroism',
+            'slug' => 'test-heroism-'.uniqid(),
+            'level' => 1,
+        ]);
+
+        // Attach heroism to Peace Domain
+        $domainSpells->spells()->attach($heroism->id, [
+            'level_requirement' => 1,
+            'is_cantrip' => false,
+        ]);
+
+        // Create a character who already has heroism from a different source (e.g., Divine Soul origin)
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $clericClass->slug,
+            'level' => 1,
+        ]);
+
+        // Pre-existing heroism spell from another source (Divine Soul origin grants this)
+        \App\Models\CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $heroism->slug,
+            'source' => 'class', // From Divine Soul Sorcerer origin
+            'level_acquired' => 1,
+            'preparation_status' => 'known',
+        ]);
+
+        // This should NOT throw a duplicate constraint violation
+        // It should either skip the spell or update it, but not crash
+        $this->service->populateFromSubclass($character, $clericClass->slug, $peaceDomain->slug);
+
+        // Verify the spell exists only once
+        $character->refresh();
+        $heroismSpells = $character->spells()->where('spell_slug', $heroism->slug)->get();
+
+        $this->assertCount(1, $heroismSpells, 'Character should have exactly one copy of the spell');
+    }
 }

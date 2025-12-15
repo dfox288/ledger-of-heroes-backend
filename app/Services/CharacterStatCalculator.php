@@ -407,6 +407,105 @@ class CharacterStatCalculator
     }
 
     // ========================================================================
+    // Data-Driven Spellcasting Methods
+    // ========================================================================
+
+    /**
+     * Get spell slots from a class's level progression data.
+     *
+     * This is the data-driven replacement for getSpellSlots(). It reads
+     * spell slot counts directly from the CharacterClass's levelProgression
+     * relationship, supporting any class including those not in hardcoded lists.
+     *
+     * @param  \App\Models\CharacterClass  $class  The class with levelProgression loaded
+     * @param  int  $level  The character's level in this class
+     * @return array<int, int> Spell slots indexed by spell level (1-9)
+     */
+    public function getSpellSlotsFromClass(\App\Models\CharacterClass $class, int $level): array
+    {
+        // Load progression if not already loaded
+        if (! $class->relationLoaded('levelProgression')) {
+            $class->load('levelProgression');
+        }
+
+        // Find the progression row for this level
+        $progression = $class->levelProgression->firstWhere('level', $level);
+
+        if (! $progression) {
+            return [];
+        }
+
+        // Map spell slot columns to spell levels
+        $slotColumns = [
+            'spell_slots_1st' => 1,
+            'spell_slots_2nd' => 2,
+            'spell_slots_3rd' => 3,
+            'spell_slots_4th' => 4,
+            'spell_slots_5th' => 5,
+            'spell_slots_6th' => 6,
+            'spell_slots_7th' => 7,
+            'spell_slots_8th' => 8,
+            'spell_slots_9th' => 9,
+        ];
+
+        $slots = [];
+        foreach ($slotColumns as $column => $spellLevel) {
+            $count = $progression->$column ?? 0;
+            if ($count > 0) {
+                $slots[$spellLevel] = $count;
+            }
+        }
+
+        return $slots;
+    }
+
+    /**
+     * Get preparation limit using the class's spell_preparation_method.
+     *
+     * This is the data-driven replacement for getPreparationLimit(). It uses
+     * the CharacterClass's spell_preparation_method attribute to determine
+     * how spells are prepared, supporting any class.
+     *
+     * D&D 5e preparation formulas:
+     * - 'known': Returns null (spells are known, not prepared)
+     * - 'spellbook': ability modifier + level (Wizard)
+     * - 'prepared': ability modifier + level (Cleric, Druid, Artificer)
+     *               or ability modifier + half level (Paladin, Ranger)
+     *
+     * @param  \App\Models\CharacterClass  $class  The class to check
+     * @param  int  $level  The character's level in this class
+     * @param  int  $abilityModifier  The spellcasting ability modifier
+     * @return int|null Preparation limit, or null for known casters
+     */
+    public function getPreparationLimitFromClass(\App\Models\CharacterClass $class, int $level, int $abilityModifier): ?int
+    {
+        $prepMethod = $class->spell_preparation_method;
+
+        // Non-casters and known casters don't prepare spells
+        if ($prepMethod === null || $prepMethod === 'known') {
+            return null;
+        }
+
+        // Determine if this is a half-caster (Paladin, Ranger use half level)
+        // Half-casters can be detected by their spellcasting_type
+        $casterType = $class->spellcasting_type;
+        $isHalfCaster = $casterType === 'half';
+
+        // Calculate preparation limit
+        if ($isHalfCaster) {
+            // Paladin/Ranger formula: ability modifier + half level (rounded down)
+            $limit = $abilityModifier + (int) floor($level / 2);
+        } else {
+            // Full caster formula: ability modifier + level
+            // Used by: Wizard (spellbook), Cleric, Druid, Artificer (prepared)
+            $limit = $abilityModifier + $level;
+        }
+
+        // Minimum 1 prepared spell
+        return max(1, $limit);
+    }
+
+    // ========================================================================
     // Derived Combat Stats
     // ========================================================================
 

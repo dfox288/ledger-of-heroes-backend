@@ -15,6 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Presets are party-scoped; auto-labeling continues from existing monsters
   - Endpoints: `GET/POST /parties/{party}/encounter-presets`, `PATCH/DELETE /{preset}`, `POST /{preset}/load`
 
+- **Issue #677**: Optional feature and spellcaster progression testing infrastructure
+  - Created `tests/Traits/CreatesTestCharacters.php` helper trait for creating test characters
+  - Created `tests/Feature/OptionalFeatures/OptionalFeatureProgressionTest.php` (32 tests)
+  - Created `tests/Feature/Spellcasting/SpellcasterProgressionTest.php` (37 tests)
+  - Added `config/dnd-rules.php` with official D&D 5e progression tables
+  - Added `fixtures:export-characters` command for exporting test characters
+  - Exported 36 spellcaster fixture files to `storage/fixtures/characters/`
+  - Fixed `LevelUpFlowExecutor` to support forced subclass selection during level-up
+
 - **Issue #615**: Party monster actions now include `damage` and `attack_bonus` fields
   - Parses existing `attack_data` to expose damage dice with type (e.g., "1d6+2 slashing")
   - Enables DM Screen to display full attack info: `Scimitar: +4 (1d6+2 slashing)`

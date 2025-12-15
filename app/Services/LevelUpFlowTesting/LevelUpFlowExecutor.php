@@ -21,6 +21,8 @@ class LevelUpFlowExecutor
 
     private LevelUpValidator $validator;
 
+    private ?string $forceSubclass = null;
+
     public function __construct()
     {
         $this->snapshot = new LevelUpStateSnapshot;
@@ -35,6 +37,7 @@ class LevelUpFlowExecutor
      * @param  CharacterRandomizer  $randomizer  For random choices
      * @param  int  $iteration  Iteration number for reporting
      * @param  string  $mode  Mode: 'linear', 'chaos', or 'realistic'
+     * @param  string|null  $forceSubclass  Force a specific subclass when the choice appears
      */
     public function execute(
         int $characterId,
@@ -42,7 +45,10 @@ class LevelUpFlowExecutor
         CharacterRandomizer $randomizer,
         int $iteration = 1,
         string $mode = 'linear',
+        ?string $forceSubclass = null,
     ): LevelUpFlowResult {
+        $this->forceSubclass = $forceSubclass;
+
         // Get character info
         $characterResponse = $this->makeRequest('GET', "/api/v1/characters/{$characterId}");
 
@@ -471,6 +477,11 @@ class LevelUpFlowExecutor
     private function selectSubclass(array $options, CharacterRandomizer $randomizer): array
     {
         $slugs = array_column($options, 'slug');
+
+        // Use forced subclass if provided and available
+        if ($this->forceSubclass && in_array($this->forceSubclass, $slugs, true)) {
+            return [$this->forceSubclass];
+        }
 
         return $randomizer->pickRandom(array_filter($slugs), 1);
     }

@@ -32,7 +32,7 @@ class CharacterExportService
             'notes',
             'abilityScores',
             'spellSlots',
-            'features.feature.characterClass',
+            'features.feature',  // Don't eager load characterClass - not all feature types have it
             'media',
         ]);
 

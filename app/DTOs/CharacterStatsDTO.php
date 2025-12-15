@@ -19,6 +19,11 @@ use Illuminate\Support\Str;
  */
 class CharacterStatsDTO
 {
+    /**
+     * Minimum roll for abilities with Reliable Talent or Silver Tongue (RAW: treat rolls below 10 as 10).
+     */
+    private const MINIMUM_ABILITY_CHECK_ROLL = 10;
+
     public function __construct(
         public readonly int $characterId,
         public readonly int $level,
@@ -564,14 +569,16 @@ class CharacterStatsDTO
             // Reliable Talent: Only applies to proficient skills
             $skillHasReliableTalent = $hasReliableTalent && $proficient;
 
-            // Issue #672: Calculate minimum roll indicators
-            // Reliable Talent: applies to all proficient ability checks
-            // Silver Tongue: applies only to Persuasion and Deception (regardless of proficiency)
+            // Issue #672: Determine if this skill has a guaranteed minimum roll of 10
+            // - Reliable Talent: applies if skill is proficient
+            // - Silver Tongue: applies if skill is Persuasion/Deception (even without proficiency)
             $hasMinimumRoll = $skillHasReliableTalent
                 || ($hasSilverTongue && in_array($skill->slug, $silverTongueSkills, true));
 
-            $minimumRoll = $hasMinimumRoll ? 10 : null;
-            $minimumTotal = ($hasMinimumRoll && $modifier !== null) ? (10 + $modifier) : null;
+            $minimumRoll = $hasMinimumRoll ? self::MINIMUM_ABILITY_CHECK_ROLL : null;
+            $minimumTotal = ($hasMinimumRoll && $modifier !== null)
+                ? (self::MINIMUM_ABILITY_CHECK_ROLL + $modifier)
+                : null;
 
             return [
                 'name' => $skill->name,
@@ -927,8 +934,12 @@ class CharacterStatsDTO
 
             $feature = $characterFeature->feature;
             // Match feature name, stripping any parenthetical suffix like "(College of Eloquence)"
+            // Check both the stripped name and original to be defensive
             if ($feature) {
-                $baseName = preg_replace('/\s*\([^)]*\)\s*$/', '', $feature->feature_name);
+                if ($feature->feature_name === $featureName) {
+                    return true;
+                }
+                $baseName = preg_replace('/\s*\([^)]*\)\s*$/', '', $feature->feature_name) ?? '';
                 if ($baseName === $featureName) {
                     return true;
                 }

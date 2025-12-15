@@ -782,6 +782,57 @@ class CharacterStatsDTOTest extends TestCase
     }
 
     #[Test]
+    public function it_excludes_minimum_roll_for_non_proficient_skills_with_reliable_talent(): void
+    {
+        $rogue = CharacterClass::factory()->create([
+            'name' => 'Rogue',
+            'slug' => 'test:rogue-minroll-neg',
+        ]);
+
+        $reliableTalent = \App\Models\ClassFeature::factory()->create([
+            'class_id' => $rogue->id,
+            'feature_name' => 'Reliable Talent',
+            'level' => 11,
+        ]);
+
+        $character = Character::factory()->create([
+            'dexterity' => 16, // +3 mod
+        ]);
+
+        $character->characterClasses()->create([
+            'class_slug' => $rogue->slug,
+            'level' => 11,
+            'order' => 1,
+            'is_primary' => true,
+        ]);
+
+        // Add Stealth proficiency (but NOT Acrobatics)
+        $stealthSkill = Skill::where('slug', 'core:stealth')->first();
+        $character->proficiencies()->create([
+            'skill_slug' => $stealthSkill->slug,
+            'expertise' => false,
+        ]);
+
+        $character->features()->create([
+            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_id' => $reliableTalent->id,
+            'feature_slug' => 'test:rogue-minroll-neg:reliable-talent',
+            'source' => 'class',
+        ]);
+
+        $dto = CharacterStatsDTO::fromCharacter($character->fresh()->load('proficiencies.skill'), $this->calculator);
+
+        // Acrobatics (DEX but not proficient) should NOT have minimum_roll
+        $acrobatics = collect($dto->skills)->firstWhere('slug', 'core:acrobatics');
+        $this->assertNull($acrobatics['minimum_roll'], 'Non-proficient skill should not have minimum roll');
+        $this->assertNull($acrobatics['minimum_total'], 'Non-proficient skill should not have minimum total');
+
+        // Stealth (proficient) should still have minimum_roll
+        $stealth = collect($dto->skills)->firstWhere('slug', 'core:stealth');
+        $this->assertEquals(10, $stealth['minimum_roll']);
+    }
+
+    #[Test]
     public function it_returns_null_minimum_roll_for_skills_without_minimum(): void
     {
         $character = Character::factory()->create([

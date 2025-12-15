@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Enums\ItemTypeCode;
 use App\Models\Character;
 use App\Services\CharacterStatCalculator;
+use App\Services\FeatureUseService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -68,6 +69,7 @@ class PartyCharacterStatsResource extends JsonResource
             'saving_throws' => $this->calculateSavingThrows($modifiers, $proficiencyBonus),
             'conditions' => $this->formatConditions(),
             'spell_slots' => $this->formatSpellSlots(),
+            'counters' => $this->formatCounters(),
         ];
     }
 
@@ -421,5 +423,16 @@ class PartyCharacterStatsResource extends JsonResource
         }
 
         return $slots;
+    }
+
+    /**
+     * Format class counters (Rage, Ki Points, Action Surge, etc.).
+     */
+    private function formatCounters(): array
+    {
+        $featureUseService = app(FeatureUseService::class);
+        $counters = $featureUseService->getCountersForCharacter($this->resource);
+
+        return $counters->toArray();
     }
 }

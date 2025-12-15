@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #674**: Encounter presets API for DM Screen
+  - Save reusable monster groups as presets (e.g., "Goblin Patrol" with 4 goblins + 1 hobgoblin)
+  - Load presets into party encounters with one click
+  - Presets are party-scoped; auto-labeling continues from existing monsters
+  - Endpoints: `GET/POST /parties/{party}/encounter-presets`, `PATCH/DELETE /{preset}`, `POST /{preset}/load`
+
 - **Issue #615**: Party monster actions now include `damage` and `attack_bonus` fields
   - Parses existing `attack_data` to expose damage dice with type (e.g., "1d6+2 slashing")
   - Enables DM Screen to display full attack info: `Scimitar: +4 (1d6+2 slashing)`

@@ -459,6 +459,18 @@ Route::prefix('v1')->group(function () {
     Route::delete('parties/{party}/monsters', [\App\Http\Controllers\Api\PartyEncounterMonsterController::class, 'clear'])
         ->name('parties.monsters.clear');
 
+    // Party Encounter Presets (save/load monster groups)
+    Route::get('parties/{party}/encounter-presets', [\App\Http\Controllers\Api\PartyEncounterPresetController::class, 'index'])
+        ->name('parties.encounter-presets.index');
+    Route::post('parties/{party}/encounter-presets', [\App\Http\Controllers\Api\PartyEncounterPresetController::class, 'store'])
+        ->name('parties.encounter-presets.store');
+    Route::patch('parties/{party}/encounter-presets/{encounterPreset}', [\App\Http\Controllers\Api\PartyEncounterPresetController::class, 'update'])
+        ->name('parties.encounter-presets.update');
+    Route::delete('parties/{party}/encounter-presets/{encounterPreset}', [\App\Http\Controllers\Api\PartyEncounterPresetController::class, 'destroy'])
+        ->name('parties.encounter-presets.destroy');
+    Route::post('parties/{party}/encounter-presets/{encounterPreset}/load', [\App\Http\Controllers\Api\PartyEncounterPresetController::class, 'load'])
+        ->name('parties.encounter-presets.load');
+
     /*
     |--------------------------------------------------------------------------
     | Polymorphic Media Routes

@@ -182,77 +182,10 @@ else
     echo -e "${YELLOW}Warning: No .env file in main backend. Copy .env.example and configure manually.${NC}"
 fi
 
-# Create convenience scripts
-echo ""
-echo -e "${BLUE}Creating convenience scripts...${NC}"
-
-cat > "$WORKTREE_DIR/start-env.sh" << 'STARTSCRIPT'
-#!/bin/bash
-# Start the Docker environment for this agent worktree
-# NOTE: Shared services (MySQL, Meilisearch, Redis) must be running from main backend!
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MAIN_BACKEND="$(dirname "$SCRIPT_DIR")/backend"
-
-# Check if shared services are running
-if ! docker compose -f "$MAIN_BACKEND/docker-compose.yml" ps mysql 2>/dev/null | grep -q "running"; then
-    echo "Starting shared services from main backend..."
-    docker compose -f "$MAIN_BACKEND/docker-compose.yml" up -d mysql meilisearch redis
-    echo "Waiting for services to be healthy..."
-    sleep 5
-fi
-
-# Start worktree-specific services
-docker compose -f docker-compose.yml -f docker-compose.override.yml up -d php nginx
-
-echo ""
-echo "Environment started!"
-NGINX_PORT=$(grep -E "^\s+- \"[0-9]+:80\"" docker-compose.override.yml | sed 's/.*"\([0-9]*\):.*/\1/')
-echo "  API: http://localhost:$NGINX_PORT"
-echo ""
-echo "Run migrations: ./artisan.sh migrate"
-echo "Import data:    ./artisan.sh import:all"
-STARTSCRIPT
-chmod +x "$WORKTREE_DIR/start-env.sh"
-
-cat > "$WORKTREE_DIR/stop-env.sh" << 'STOPSCRIPT'
-#!/bin/bash
-# Stop the Docker environment for this agent worktree
-# NOTE: This does NOT stop shared services (MySQL, Meilisearch, Redis)
-docker compose -f docker-compose.yml -f docker-compose.override.yml down
-echo "Worktree environment stopped. Shared services still running in main backend."
-STOPSCRIPT
-chmod +x "$WORKTREE_DIR/stop-env.sh"
-
-cat > "$WORKTREE_DIR/artisan.sh" << 'ARTISANSCRIPT'
-#!/bin/bash
-# Run artisan commands in the PHP container for this worktree
-docker compose -f docker-compose.yml -f docker-compose.override.yml exec php php artisan "$@"
-ARTISANSCRIPT
-chmod +x "$WORKTREE_DIR/artisan.sh"
-
-cat > "$WORKTREE_DIR/composer.sh" << 'COMPOSERSCRIPT'
-#!/bin/bash
-# Run composer commands in the PHP container for this worktree
-docker compose -f docker-compose.yml -f docker-compose.override.yml exec php composer "$@"
-COMPOSERSCRIPT
-chmod +x "$WORKTREE_DIR/composer.sh"
-
-cat > "$WORKTREE_DIR/test.sh" << 'TESTSCRIPT'
-#!/bin/bash
-# Run pest tests in the PHP container for this worktree
-docker compose -f docker-compose.yml -f docker-compose.override.yml exec php ./vendor/bin/pest "$@"
-TESTSCRIPT
-chmod +x "$WORKTREE_DIR/test.sh"
-
-cat > "$WORKTREE_DIR/pint.sh" << 'PINTSCRIPT'
-#!/bin/bash
-# Run pint (code formatter) in the PHP container for this worktree
-docker compose -f docker-compose.yml -f docker-compose.override.yml exec php ./vendor/bin/pint "$@"
-PINTSCRIPT
-chmod +x "$WORKTREE_DIR/pint.sh"
-
-echo -e "${GREEN}✓ Convenience scripts created${NC}"
+# No convenience scripts - use docker commands directly:
+#   docker exec loh_backend_php_N php artisan ...
+#   docker exec loh_backend_php_N ./vendor/bin/pest ...
+#   docker exec loh_backend_php_N ./vendor/bin/pint ...
 
 # Summary
 echo ""
@@ -261,16 +194,24 @@ echo -e "${GREEN}  Worktree Ready!${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
 echo -e "Directory: ${BLUE}$WORKTREE_DIR${NC}"
+echo -e "Container: ${BLUE}loh_backend_php_$INSTANCE_ID${NC}"
 echo ""
 echo -e "${YELLOW}Quick Start:${NC}"
 echo ""
 echo "  cd $WORKTREE_DIR"
-echo "  ./start-env.sh              # Start PHP + Nginx (uses shared services)"
-echo "  ./artisan.sh migrate        # Run migrations"
-echo "  ./artisan.sh import:all     # Import XML data"
-echo "  ./test.sh                   # Run tests"
-echo "  ./pint.sh                   # Format code"
-echo "  ./stop-env.sh               # Stop worktree containers"
+echo ""
+echo "  # Start containers (requires main backend network running)"
+echo "  docker compose -f docker-compose.yml -f docker-compose.override.yml up -d php nginx"
+echo ""
+echo "  # Install dependencies"
+echo "  docker exec loh_backend_php_$INSTANCE_ID composer install"
+echo ""
+echo "  # Run migrations & import"
+echo "  docker exec loh_backend_php_$INSTANCE_ID php artisan migrate"
+echo "  docker exec loh_backend_php_$INSTANCE_ID php artisan import:all"
+echo ""
+echo "  # Run tests"
+echo "  docker exec loh_backend_php_$INSTANCE_ID ./vendor/bin/pest"
 echo ""
 echo -e "${YELLOW}Access URLs:${NC}"
 echo "  API:       http://localhost:$NGINX_PORT"

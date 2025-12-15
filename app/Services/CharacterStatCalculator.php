@@ -104,6 +104,8 @@ class CharacterStatCalculator
 
     /**
      * Classes that know spells instead of preparing (returns null for preparation limit).
+     *
+     * @see \App\Models\CharacterClass::getSpellPreparationMethodAttribute() for canonical source
      */
     private const KNOWN_CASTERS = ['sorcerer', 'bard', 'warlock', 'ranger'];
 
@@ -371,10 +373,15 @@ class CharacterStatCalculator
      * Get preparation limit for prepared casters.
      * Returns null for "known" casters (sorcerer, bard, warlock, ranger).
      *
-     * @param  string  $classSlug  The class slug
+     * Note: This method uses hardcoded class name checks. The canonical source of
+     * spell preparation method is CharacterClass::spell_preparation_method accessor.
+     *
+     * @param  string  $classSlug  The class name (lowercase), not the prefixed slug
      * @param  int  $level  The character's level
      * @param  int  $abilityModifier  The spellcasting ability modifier
      * @return int|null Preparation limit, or null for known casters
+     *
+     * @see \App\Models\CharacterClass::getSpellPreparationMethodAttribute()
      */
     public function getPreparationLimit(string $classSlug, int $level, int $abilityModifier): ?int
     {

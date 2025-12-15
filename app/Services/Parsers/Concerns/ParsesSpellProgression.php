@@ -182,6 +182,56 @@ trait ParsesSpellProgression
     }
 
     /**
+     * Add spellbook progression for classes that use spellbook mechanic (e.g., Wizard).
+     *
+     * Spellbook casters start with 6 spells at level 1 and gain 2 more per level.
+     * This is detected by checking if the "Spellcasting" feature mentions "spellbook".
+     *
+     * @param  array  $spellProgression  The parsed spell progression array
+     * @param  array  $features  The parsed features array
+     * @return array The spell progression with spells_known added for spellbook casters
+     */
+    private function addSpellbookProgression(array $spellProgression, array $features): array
+    {
+        // Skip if no spell progression exists
+        if (empty($spellProgression)) {
+            return $spellProgression;
+        }
+
+        // Skip if spells_known is already set (e.g., Sorcerer, Bard)
+        $hasSpellsKnown = collect($spellProgression)->contains(fn ($p) => isset($p['spells_known']));
+        if ($hasSpellsKnown) {
+            return $spellProgression;
+        }
+
+        // Check if this is a spellbook caster by looking for "spellbook" in Spellcasting feature
+        $isSpellbookCaster = false;
+        foreach ($features as $feature) {
+            $name = $feature['name'] ?? '';
+            $description = $feature['description'] ?? '';
+
+            if ($name === 'Spellcasting' && stripos($description, 'spellbook') !== false) {
+                $isSpellbookCaster = true;
+                break;
+            }
+        }
+
+        if (! $isSpellbookCaster) {
+            return $spellProgression;
+        }
+
+        // Generate spellbook spell counts: 6 at level 1, +2 per level after
+        foreach ($spellProgression as &$levelData) {
+            $level = $levelData['level'];
+            // Formula: 6 + (level - 1) * 2 = 6, 8, 10, 12, ...
+            $levelData['spells_known'] = 6 + ($level - 1) * 2;
+        }
+        unset($levelData);
+
+        return $spellProgression;
+    }
+
+    /**
      * Check if this class has any non-optional spell slots.
      * Used to determine if spell progression applies to base class vs subclass.
      *

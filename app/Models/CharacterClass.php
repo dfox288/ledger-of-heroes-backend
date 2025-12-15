@@ -265,6 +265,53 @@ class CharacterClass extends BaseModel
     }
 
     /**
+     * Get the spell preparation method for this class.
+     *
+     * D&D 5e spell preparation methods:
+     * - 'known': Spells are permanently known (Bard, Sorcerer, Warlock, Ranger)
+     * - 'spellbook': Spells are learned via spellbook, then a subset is prepared (Wizard)
+     * - 'prepared': Spells are prepared from the full class spell list (Cleric, Druid, Paladin, Artificer)
+     * - null: Non-spellcaster
+     *
+     * For subclasses, the method is inherited from the parent class.
+     *
+     * Note: This is currently hardcoded by class name because the XML source does not
+     * provide structured spell preparation data. See GitHub issue for XML exploration.
+     */
+    public function getSpellPreparationMethodAttribute(): ?string
+    {
+        // Non-casters have no preparation method
+        if ($this->effective_spellcasting_ability === null) {
+            return null;
+        }
+
+        // Get the base class name (for subclasses, use parent)
+        $className = $this->parent_class_id !== null && $this->parentClass
+            ? strtolower($this->parentClass->name)
+            : strtolower($this->name);
+
+        // Known casters: learn spells permanently, no daily preparation
+        $knownCasters = ['bard', 'sorcerer', 'warlock', 'ranger'];
+        if (in_array($className, $knownCasters)) {
+            return 'known';
+        }
+
+        // Spellbook caster: learns spells into spellbook, prepares a subset daily
+        if ($className === 'wizard') {
+            return 'spellbook';
+        }
+
+        // Prepared casters: prepare from the full class spell list daily
+        $preparedCasters = ['cleric', 'druid', 'paladin', 'artificer'];
+        if (in_array($className, $preparedCasters)) {
+            return 'prepared';
+        }
+
+        // Unknown spellcaster - shouldn't happen with current D&D 5e classes
+        return null;
+    }
+
+    /**
      * Get the level at which this class gains its subclass.
      *
      * D&D Context: Different classes get subclasses at different levels:
@@ -395,7 +442,8 @@ class CharacterClass extends BaseModel
      *   max_spell_level: int|null,
      *   available_levels: array<int>,
      *   has_cantrips: bool,
-     *   caster_type: string|null
+     *   caster_type: string|null,
+     *   preparation_method: string|null
      * }|null
      */
     public function getSpellSlotSummaryAttribute(): ?array
@@ -435,6 +483,7 @@ class CharacterClass extends BaseModel
             'available_levels' => $maxLevel > 0 ? range(1, $maxLevel) : [],
             'has_cantrips' => ($progression->max('cantrips_known') ?? 0) > 0,
             'caster_type' => $casterType,
+            'preparation_method' => $this->spell_preparation_method,
         ];
     }
 

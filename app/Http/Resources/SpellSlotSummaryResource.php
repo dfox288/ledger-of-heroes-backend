@@ -18,6 +18,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @property int[] $available_levels Array of available spell levels (e.g., [1, 2, 3, 4, 5])
  * @property bool $has_cantrips Whether the class knows cantrips
  * @property string|null $caster_type Caster type: full, half, third, other, or null
+ * @property string|null $preparation_method How spells are prepared: known, spellbook, prepared, or null
  */
 class SpellSlotSummaryResource extends JsonResource
 {
@@ -29,7 +30,8 @@ class SpellSlotSummaryResource extends JsonResource
      *   max_spell_level: int|null,
      *   available_levels: int[],
      *   has_cantrips: bool,
-     *   caster_type: string|null
+     *   caster_type: string|null,
+     *   preparation_method: string|null
      * }
      */
     public function toArray(Request $request): array
@@ -40,6 +42,7 @@ class SpellSlotSummaryResource extends JsonResource
             'available_levels' => (array) $this->resource['available_levels'],
             'has_cantrips' => (bool) $this->resource['has_cantrips'],
             'caster_type' => $this->resource['caster_type'],
+            'preparation_method' => $this->resource['preparation_method'] ?? null,
         ];
     }
 }

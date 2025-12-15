@@ -7,6 +7,7 @@ use App\Http\Resources\LongRestResultResource;
 use App\Http\Resources\ShortRestResultResource;
 use App\Models\Character;
 use App\Services\RestService;
+use Illuminate\Support\Facades\Cache;
 
 class RestController extends Controller
 {
@@ -42,6 +43,9 @@ class RestController extends Controller
     public function shortRest(Character $character): ShortRestResultResource
     {
         $result = $this->restService->shortRest($character);
+
+        // Issue #618: Invalidate stats cache so spell_slots shows reset counts
+        Cache::forget("character:{$character->id}:stats");
 
         return new ShortRestResultResource($result);
     }
@@ -79,6 +83,9 @@ class RestController extends Controller
     public function longRest(Character $character): LongRestResultResource
     {
         $result = $this->restService->longRest($character);
+
+        // Issue #618: Invalidate stats cache so spell_slots shows reset counts
+        Cache::forget("character:{$character->id}:stats");
 
         return new LongRestResultResource($result);
     }

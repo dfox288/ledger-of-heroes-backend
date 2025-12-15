@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #618**: Enriched `spell_slots` in character stats endpoint with tracking
+  - Changed `spell_slots` from simple totals `{ "1": 4, "2": 3 }` to rich format with usage tracking
+  - New format: `{ "slots": { "1": { "total": 4, "spent": 2, "available": 2 } }, "pact_magic": null }`
+  - Warlock pact magic slots included separately with level information
+  - Page refresh no longer resets spent slot counts visually (data persisted server-side)
+  - Uses SpellManagerService for consistent slot calculation with `/spell-slots` endpoint
+
 - **Issue #674**: Encounter presets API for DM Screen
   - Save reusable monster groups as presets (e.g., "Goblin Patrol" with 4 goblins + 1 hobgoblin)
   - Load presets into party encounters with one click

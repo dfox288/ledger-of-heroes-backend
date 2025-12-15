@@ -14,6 +14,7 @@ use App\Models\CharacterSpellSlot;
 use App\Services\CharacterStatCalculator;
 use App\Services\SpellSlotService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
 
 class SpellSlotController extends Controller
@@ -182,6 +183,9 @@ class SpellSlotController extends Controller
         }
 
         $slot->refresh();
+
+        // Issue #618: Invalidate stats cache so spell_slots shows updated spent/available
+        Cache::forget("character:{$character->id}:stats");
 
         return new SpellSlotResource([
             'level' => $slot->spell_level,

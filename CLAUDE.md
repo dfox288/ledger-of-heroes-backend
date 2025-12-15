@@ -14,20 +14,26 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 - `docs/PROJECT-STATUS.md` - Metrics and current status
 - [GitHub Issues](https://github.com/dfox288/ledger-of-heroes/issues) - Task tracking (shared with frontend)
 
-## Session Memory
+## Session Memory (claude-mem)
 
-**IMPORTANT:** At session start, check claude-mem for recent context:
+**CRITICAL:** Use the **current directory name** as the `project` parameter for claude-mem searches.
+
+| Directory | Project Name |
+|-----------|--------------|
+| `backend` | `backend` |
+| `backend-agent-1` | `backend-agent-1` |
+| `backend-agent-2` | `backend-agent-2` |
 
 ```
-mcp__plugin_claude-mem_claude-mem-search__get_recent_context with project: "backend"
+mcp__plugin_claude-mem_claude-mem-search__get_recent_context with project: "<directory-name>"
 ```
 
 Or search for specific topics:
 ```
-mcp__plugin_claude-mem_claude-mem-search__search with project: "backend" and query: "your topic"
+mcp__plugin_claude-mem_claude-mem-search__search with project: "<directory-name>" and query: "your topic"
 ```
 
-This provides continuity between sessions - decisions made, work completed, and context from previous sessions.
+This keeps session memory isolated between the main workspace and agent worktrees.
 
 ## Rules
 

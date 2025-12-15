@@ -731,6 +731,11 @@ class FlowExecutor
                 if (isset($lastResponse['error']) && $lastResponse['error']) {
                     return $lastResponse;
                 }
+
+                // Break after each successful resolution to refetch fresh choices.
+                // Resolving one choice can invalidate others (e.g., selecting gold mode
+                // removes equipment choices), so we need current state each time.
+                break;
             }
         }
 
@@ -794,21 +799,22 @@ class FlowExecutor
 
     private function setEquipmentMode(int $characterId, CharacterRandomizer $randomizer): ?array
     {
-        // Track previous mode for validation
-        $this->previousEquipmentMode = $this->equipmentMode;
-        $this->equipmentMode = $randomizer->randomEquipmentMode();
-
-        // Check if there's an equipment mode choice pending
+        // Check if there's an equipment mode choice pending BEFORE deciding what mode to use
         $choicesResponse = $this->makeRequest('GET', "/api/v1/characters/{$characterId}/pending-choices");
 
         $allChoices = $choicesResponse['data']['choices'] ?? [];
         $choices = array_filter($allChoices, fn ($c) => ($c['type'] ?? '') === 'equipment_mode');
 
         if (empty($choices)) {
+            // No equipment mode choice available - don't update tracking state
             return null;
         }
 
         $choice = array_values($choices)[0];
+
+        // Only update tracking state AFTER confirming choice exists
+        $this->previousEquipmentMode = $this->equipmentMode;
+        $this->equipmentMode = $randomizer->randomEquipmentMode();
 
         // Clear equipment selections when switching modes (they'll be re-made if equipment mode)
         $this->equipmentSelections = [];
@@ -868,6 +874,11 @@ class FlowExecutor
         $newClass = $randomizer->differentClass($this->currentClass, $spellcaster);
         $oldClassSlug = $this->currentClass->slug;
         $this->currentClass = $newClass;
+
+        // Reset equipment tracking state since backend clears equipment_mode on class switch
+        $this->equipmentMode = null;
+        $this->previousEquipmentMode = null;
+        $this->equipmentSelections = [];
 
         return $this->makeRequest('PUT', "/api/v1/characters/{$characterId}/classes/{$oldClassSlug}", [
             'class_slug' => $newClass->slug,

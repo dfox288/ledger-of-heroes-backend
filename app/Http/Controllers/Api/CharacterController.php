@@ -244,6 +244,12 @@ class CharacterController extends Controller
                 $this->classAssignmentService->updatePrimaryClassLevel($character, $level);
             }
 
+            // Clear old background data BEFORE updating background_slug
+            // This ensures choice-based languages/proficiencies are removed when switching backgrounds
+            if ($backgroundAssigned) {
+                $this->backgroundAssignmentService->clearOldBackgroundData($character);
+            }
+
             // Apply direct character updates
             $character->update($validated);
 

@@ -308,8 +308,8 @@ class CharacterResource extends JsonResource
      */
     private function getCountersData(): array
     {
-        $featureUseService = app(\App\Services\FeatureUseService::class);
-        $counters = $featureUseService->getCountersForCharacter($this->resource);
+        $counterService = app(\App\Services\CounterService::class);
+        $counters = $counterService->getCountersForCharacter($this->resource);
 
         return [
             'counters' => $counters->toArray(),

@@ -25,16 +25,16 @@ class AsiChoiceService
 
     private HitPointService $hitPointService;
 
-    private FeatureUseService $featureUseService;
+    private CounterService $counterService;
 
     public function __construct(
         ?PrerequisiteCheckerService $prerequisiteChecker = null,
         ?HitPointService $hitPointService = null,
-        ?FeatureUseService $featureUseService = null
+        ?CounterService $counterService = null
     ) {
         $this->prerequisiteChecker = $prerequisiteChecker ?? new PrerequisiteCheckerService;
         $this->hitPointService = $hitPointService ?? app(HitPointService::class);
-        $this->featureUseService = $featureUseService ?? app(FeatureUseService::class);
+        $this->counterService = $counterService ?? app(CounterService::class);
     }
 
     /**
@@ -240,7 +240,7 @@ class AsiChoiceService
      */
     private function createCharacterFeature(Character $character, Feat $feat): void
     {
-        $characterFeature = CharacterFeature::create([
+        CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat->id,
@@ -249,8 +249,8 @@ class AsiChoiceService
             'level_acquired' => $character->total_level ?: 1,
         ]);
 
-        // Initialize max_uses for feats with limited uses (e.g., Lucky)
-        $this->featureUseService->initializeUsesForFeature($characterFeature);
+        // Sync counters - this will create any feat counters (e.g., Lucky's Luck Points)
+        $this->counterService->syncCountersForCharacter($character);
     }
 
     /**

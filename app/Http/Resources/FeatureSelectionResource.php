@@ -31,9 +31,8 @@ class FeatureSelectionResource extends JsonResource
             'is_dangling' => $this->optionalFeature === null,
             'subclass_name' => $this->subclass_name,
             'level_acquired' => $this->level_acquired,
-            'uses_remaining' => $this->uses_remaining,
-            'max_uses' => $this->max_uses,
-            'has_limited_uses' => $this->optionalFeature ? $this->hasLimitedUses() : false,
+            // Note: Limited-use tracking moved to character_counters table
+            // Counter info is exposed via CharacterResource.counters
         ];
     }
 }

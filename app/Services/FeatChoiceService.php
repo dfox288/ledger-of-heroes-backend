@@ -28,7 +28,7 @@ class FeatChoiceService
     public function __construct(
         private readonly PrerequisiteCheckerService $prerequisiteChecker,
         private readonly HitPointService $hitPointService,
-        private readonly FeatureUseService $featureUseService,
+        private readonly CounterService $counterService,
     ) {}
 
     /**
@@ -240,7 +240,7 @@ class FeatChoiceService
      */
     private function createCharacterFeature(Character $character, Feat $feat, string $source): void
     {
-        $characterFeature = CharacterFeature::create([
+        CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat->id,
@@ -250,8 +250,8 @@ class FeatChoiceService
             'level_acquired' => 1,
         ]);
 
-        // Initialize max_uses for feats with limited uses (e.g., Lucky)
-        $this->featureUseService->initializeUsesForFeature($characterFeature);
+        // Sync counters to pick up feat-granted counters (e.g., Lucky's Luck Points)
+        $this->counterService->syncCountersForCharacter($character);
     }
 
     /**

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasLimitedUses;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,11 +18,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * - Runes (Fighter - Rune Knight)
  * - Arcane Shots (Fighter - Arcane Archer)
  * - Elemental Disciplines (Monk - Way of Four Elements)
+ *
+ * Note: Limited-use tracking (max_uses, uses_remaining) has been moved
+ * to the character_counters table. See CharacterCounter model.
  */
 class FeatureSelection extends Model
 {
     use HasFactory;
-    use HasLimitedUses;
 
     protected $table = 'feature_selections';
 
@@ -33,15 +34,11 @@ class FeatureSelection extends Model
         'class_slug',
         'subclass_name',
         'level_acquired',
-        'uses_remaining',
-        'max_uses',
     ];
 
     protected $casts = [
         'character_id' => 'integer',
         'level_acquired' => 'integer',
-        'uses_remaining' => 'integer',
-        'max_uses' => 'integer',
     ];
 
     // Relationships

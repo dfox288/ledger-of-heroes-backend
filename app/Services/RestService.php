@@ -11,7 +11,7 @@ class RestService
     public function __construct(
         private readonly SpellSlotService $spellSlotService,
         private readonly HitDiceService $hitDiceService,
-        private readonly FeatureUseService $featureUseService
+        private readonly CounterService $counterService
     ) {}
 
     /**
@@ -40,11 +40,8 @@ class RestService
             $pactMagicReset = true;
         }
 
-        // Reset features with short_rest timing
-        $featuresResetCount = $this->featureUseService->resetByRechargeType(
-            $character,
-            ResetTiming::SHORT_REST
-        );
+        // Reset counters with short_rest timing
+        $featuresResetCount = $this->counterService->resetByTiming($character, 'S');
 
         // Collect feature names for response
         $character->loadMissing('characterClasses.characterClass.features');
@@ -116,14 +113,9 @@ class RestService
         // Save character changes
         $character->save();
 
-        // Reset features with long_rest, short_rest, or dawn timing
+        // Reset counters with long_rest, short_rest, or dawn timing
         // (Long rest encompasses all reset timings)
-        $featuresResetCount = $this->featureUseService->resetByRechargeType(
-            $character,
-            ResetTiming::SHORT_REST,
-            ResetTiming::LONG_REST,
-            ResetTiming::DAWN
-        );
+        $featuresResetCount = $this->counterService->resetByTiming($character, 'S', 'L', 'D');
 
         // Collect feature names for response
         foreach ($character->characterClasses as $classPivot) {

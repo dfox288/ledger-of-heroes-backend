@@ -6,8 +6,8 @@ use App\Models\Character;
 use App\Services\CharacterChoiceService;
 use App\Services\CharacterLanguageService;
 use App\Services\CharacterProficiencyService;
+use App\Services\CounterService;
 use App\Services\FeatChoiceService;
-use App\Services\FeatureUseService;
 use App\Services\HitDiceService;
 use App\Services\SpellSlotService;
 
@@ -42,7 +42,7 @@ class CharacterSummaryDTO
         SpellSlotService $spellSlotService,
         HitDiceService $hitDiceService,
         FeatChoiceService $featChoiceService,
-        FeatureUseService $featureUseService,
+        CounterService $counterService,
         CharacterChoiceService $choiceService
     ): self {
         // Ensure relationships are loaded
@@ -75,7 +75,7 @@ class CharacterSummaryDTO
             $character,
             $spellSlotService,
             $hitDiceService,
-            $featureUseService
+            $counterService
         );
 
         // Get combat state
@@ -187,7 +187,7 @@ class CharacterSummaryDTO
         Character $character,
         SpellSlotService $spellSlotService,
         HitDiceService $hitDiceService,
-        FeatureUseService $featureUseService
+        CounterService $counterService
     ): array {
         // Hit points
         $hitPoints = [
@@ -206,8 +206,8 @@ class CharacterSummaryDTO
         // Spell slots
         $spellSlots = $spellSlotService->getSlots($character);
 
-        // Features with uses
-        $featuresWithUses = $featureUseService->getFeaturesWithUses($character)
+        // Counters (limited-use resources: Rage, Ki, etc.)
+        $counters = $counterService->getCountersForCharacter($character)
             ->values()
             ->all();
 
@@ -215,7 +215,7 @@ class CharacterSummaryDTO
             'hit_points' => $hitPoints,
             'hit_dice' => $hitDice,
             'spell_slots' => $spellSlots,
-            'features_with_uses' => $featuresWithUses,
+            'counters' => $counters,
         ];
     }
 

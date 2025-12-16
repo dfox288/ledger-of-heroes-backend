@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Issue #722**: New `character_counters` table for resource tracking
+  - `CharacterCounter` model with `source_type`, `source_slug`, `counter_name`, `max_uses`, `current_uses`, `reset_timing`
+  - `CounterService` for counter lifecycle: create, sync, use, reset
+  - Counter export/import support in format v1.3
+  - CounterController for `/api/v1/characters/{id}/counters` API
+
+### Changed
+
+- **Issue #722**: Separated counters from features
+  - Counters (resource pools) now tracked in `character_counters` table instead of `character_features`
+  - CharacterResource and CharacterSummaryDTO now use CounterService
+  - Updated CharacterExportService/ImportService for new counter format
+  - Dropped `max_uses`/`uses_remaining` columns from `character_features` and `feature_selections` tables
+
+### Removed
+
+- **Issue #722**: Deprecated feature use tracking
+  - Removed `FeatureUseService` (replaced by CounterService)
+  - Removed `FeatureUseController` and `/feature-uses` API routes (use `/counters` instead)
+  - Removed `features_with_uses` from summary response (replaced by `counters`)
+
 ### Performance
 
 - **Issue #721**: Character list API payload optimization

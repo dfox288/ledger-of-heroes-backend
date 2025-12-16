@@ -10,6 +10,7 @@ use App\Models\CharacterAbilityScore;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
 use App\Models\CharacterCondition;
+use App\Models\CharacterCounter;
 use App\Models\CharacterEquipment;
 use App\Models\CharacterFeature;
 use App\Models\CharacterLanguage;
@@ -69,6 +70,7 @@ class CharacterImportService
             $this->importAbilityScoreChoices($character, $characterData['ability_score_choices'] ?? []);
             $this->importSpellSlots($character, $characterData['spell_slots'] ?? []);
             $this->importFeatures($character, $characterData['features'] ?? []);
+            $this->importCounters($character, $characterData['counters'] ?? []);
             $this->importPortrait($character, $characterData['portrait'] ?? null);
 
             return $character;
@@ -549,6 +551,38 @@ class CharacterImportService
         }
 
         return $trait?->id;
+    }
+
+    /**
+     * Import counters from export data.
+     *
+     * Counters track limited-use resources (Rage, Ki Points, etc.).
+     * If counter data is empty, counters will be synced from entity definitions
+     * on first level-up or by calling CounterService::syncCountersForCharacter.
+     */
+    private function importCounters(Character $character, array $counters): void
+    {
+        foreach ($counters as $counterData) {
+            $sourceType = $counterData['source_type'] ?? null;
+            $sourceSlug = $counterData['source_slug'] ?? null;
+            $counterName = $counterData['counter_name'] ?? null;
+
+            if (! $sourceType || ! $sourceSlug || ! $counterName) {
+                $this->warnings[] = 'Counter missing required fields (source_type, source_slug, counter_name) - skipping';
+
+                continue;
+            }
+
+            CharacterCounter::create([
+                'character_id' => $character->id,
+                'source_type' => $sourceType,
+                'source_slug' => $sourceSlug,
+                'counter_name' => $counterName,
+                'current_uses' => $counterData['current_uses'] ?? null,
+                'max_uses' => $counterData['max_uses'] ?? -1, // Default to unlimited if missing
+                'reset_timing' => $counterData['reset_timing'] ?? null,
+            ]);
+        }
     }
 
     /**

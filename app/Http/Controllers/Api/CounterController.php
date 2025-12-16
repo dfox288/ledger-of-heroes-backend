@@ -6,14 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Character\UpdateCounterRequest;
 use App\Http\Resources\CounterResource;
 use App\Models\Character;
-use App\Services\FeatureUseService;
+use App\Models\CharacterCounter;
+use App\Services\CounterService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class CounterController extends Controller
 {
     public function __construct(
-        private readonly FeatureUseService $featureUseService
+        private readonly CounterService $counterService
     ) {}
 
     /**
@@ -27,7 +28,7 @@ class CounterController extends Controller
      */
     public function index(Character $character): AnonymousResourceCollection
     {
-        $counters = $this->featureUseService->getCountersForCharacter($character);
+        $counters = $this->counterService->getCountersForCharacter($character);
 
         return CounterResource::collection($counters);
     }
@@ -35,7 +36,7 @@ class CounterController extends Controller
     /**
      * Update a counter's current value.
      *
-     * PATCH /api/v1/characters/{character}/counters/{slug}
+     * PATCH /api/v1/characters/{character}/counters/{id}
      *
      * Supports two modes:
      * - Absolute: { "spent": 2 } - sets spent count directly
@@ -48,11 +49,12 @@ class CounterController extends Controller
     public function update(
         UpdateCounterRequest $request,
         Character $character,
-        string $slug
+        int $id
     ): JsonResponse|CounterResource {
-        // Find the counter by slug
-        $counters = $this->featureUseService->getCountersForCharacter($character);
-        $counter = $counters->firstWhere('slug', $slug);
+        // Find the counter by ID
+        $counter = CharacterCounter::where('id', $id)
+            ->where('character_id', $character->id)
+            ->first();
 
         if (! $counter) {
             return response()->json([
@@ -60,23 +62,22 @@ class CounterController extends Controller
             ], 404);
         }
 
-        // Get the character feature
-        $characterFeature = $character->features()->find($counter['id']);
-
-        if (! $characterFeature) {
-            return response()->json([
-                'message' => 'Counter not found.',
-            ], 404);
-        }
-
         // Handle action mode
         if ($request->has('action')) {
-            return $this->handleAction($request->action, $characterFeature, $counter);
+            return $this->handleAction($request->action, $counter);
         }
 
         // Handle spent mode
         $spent = $request->spent;
-        $max = $counter['max'];
+        $max = $counter->max_uses;
+
+        // Unlimited counters (-1) cannot be spent
+        if ($counter->isUnlimited()) {
+            return response()->json([
+                'message' => 'Cannot set spent value for unlimited counter.',
+                'errors' => ['spent' => ['Unlimited counters cannot have a spent value.']],
+            ], 422);
+        }
 
         // Validate spent doesn't exceed max
         if ($spent > $max) {
@@ -87,60 +88,84 @@ class CounterController extends Controller
         }
 
         // Calculate remaining uses (max - spent)
+        // current_uses = remaining uses (null = full)
         $remaining = $max - $spent;
+        $counter->update(['current_uses' => $remaining < $max ? $remaining : null]);
 
-        $characterFeature->update(['uses_remaining' => $remaining]);
-
-        // Refresh and return
-        return $this->getUpdatedCounter($character, $slug);
+        return $this->getUpdatedCounter($counter);
     }
 
     /**
      * Handle action-based counter updates.
      */
-    private function handleAction(string $action, $characterFeature, array $counter): JsonResponse|CounterResource
+    private function handleAction(string $action, CharacterCounter $counter): JsonResponse|CounterResource
     {
-        $max = $counter['max'];
-        $current = $characterFeature->uses_remaining;
-
         switch ($action) {
             case 'use':
-                if ($current <= 0) {
+                if (! $counter->use()) {
                     return response()->json([
                         'message' => 'No uses remaining for this counter.',
                     ], 422);
                 }
-                $characterFeature->decrement('uses_remaining');
                 break;
 
             case 'restore':
-                if ($current >= $max) {
+                if ($counter->isUnlimited()) {
+                    return response()->json([
+                        'message' => 'Cannot restore unlimited counter.',
+                    ], 422);
+                }
+                $remaining = $counter->remaining;
+                if ($remaining >= $counter->max_uses) {
                     return response()->json([
                         'message' => 'Counter is already at maximum.',
                     ], 422);
                 }
-                $characterFeature->increment('uses_remaining');
+                // Increment by setting current_uses
+                $newRemaining = $remaining + 1;
+                $counter->update(['current_uses' => $newRemaining < $counter->max_uses ? $newRemaining : null]);
                 break;
 
             case 'reset':
-                $characterFeature->update(['uses_remaining' => $max]);
+                $counter->reset();
                 break;
         }
 
-        // Get character from feature
-        $character = $characterFeature->character;
-
-        return $this->getUpdatedCounter($character, $counter['slug']);
+        return $this->getUpdatedCounter($counter);
     }
 
     /**
      * Get updated counter after modification.
      */
-    private function getUpdatedCounter(Character $character, string $slug): CounterResource
+    private function getUpdatedCounter(CharacterCounter $counter): CounterResource
     {
-        $counters = $this->featureUseService->getCountersForCharacter($character);
-        $counter = $counters->firstWhere('slug', $slug);
+        $counter->refresh();
 
-        return new CounterResource($counter);
+        // Format for resource
+        $data = [
+            'id' => $counter->id,
+            'name' => $counter->counter_name,
+            'current' => $counter->remaining,
+            'max' => $counter->max_uses,
+            'reset_on' => $this->formatResetTiming($counter->reset_timing),
+            'source_type' => $counter->source_type,
+            'source_slug' => $counter->source_slug,
+            'unlimited' => $counter->isUnlimited(),
+        ];
+
+        return new CounterResource($data);
+    }
+
+    /**
+     * Format reset timing code to human-readable label.
+     */
+    private function formatResetTiming(?string $timing): ?string
+    {
+        return match ($timing) {
+            'S' => 'short_rest',
+            'L' => 'long_rest',
+            'D' => 'dawn',
+            default => null,
+        };
     }
 }

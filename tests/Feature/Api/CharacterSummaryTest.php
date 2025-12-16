@@ -56,7 +56,7 @@ class CharacterSummaryTest extends TestCase
                         'hit_points' => ['current', 'max', 'temp'],
                         'hit_dice' => ['available', 'max'],
                         'spell_slots',
-                        'features_with_uses',
+                        'counters',
                     ],
                     'combat_state' => [
                         'conditions',
@@ -314,7 +314,7 @@ class CharacterSummaryTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function it_returns_empty_features_with_uses_placeholder()
+    public function it_returns_empty_counters_for_character_without_counters()
     {
         $character = Character::factory()->withStandardArray()->create();
 
@@ -324,7 +324,7 @@ class CharacterSummaryTest extends TestCase
             ->assertJson([
                 'data' => [
                     'resources' => [
-                        'features_with_uses' => [], // Placeholder - feature uses not implemented yet
+                        'counters' => [],
                     ],
                 ],
             ]);

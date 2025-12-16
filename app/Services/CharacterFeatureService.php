@@ -12,7 +12,7 @@ use App\Models\ClassFeature;
 class CharacterFeatureService
 {
     public function __construct(
-        private readonly FeatureUseService $featureUseService
+        private readonly CounterService $counterService
     ) {}
 
     /**
@@ -375,12 +375,16 @@ class CharacterFeatureService
 
     /**
      * Populate all features from class, race, and background.
+     * Also syncs resource counters after feature population.
      */
     public function populateAll(Character $character): void
     {
         $this->populateFromClass($character);
         $this->populateFromRace($character);
         $this->populateFromBackground($character);
+
+        // Sync resource counters (Rage, Ki Points, etc.)
+        $this->counterService->syncCountersForCharacter($character);
     }
 
     /**
@@ -409,7 +413,9 @@ class CharacterFeatureService
 
     /**
      * Create a character feature if it doesn't already exist.
-     * If classLevel is provided, initializes feature uses from class counters.
+     *
+     * Note: Counter sync is handled separately by CounterService::syncCountersForCharacter(),
+     * called from populateAll() or from the service that triggered the feature grant.
      */
     private function createFeatureIfNotExists(
         Character $character,
@@ -429,17 +435,12 @@ class CharacterFeatureService
             return;
         }
 
-        $characterFeature = CharacterFeature::create([
+        CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => $featureType,
             'feature_id' => $featureId,
             'source' => $source,
             'level_acquired' => $levelAcquired,
         ]);
-
-        // Initialize feature uses if this is a class feature with a counter
-        if ($featureType === ClassFeature::class && $classLevel !== null) {
-            $this->featureUseService->initializeUsesForFeature($characterFeature, $classLevel);
-        }
     }
 }

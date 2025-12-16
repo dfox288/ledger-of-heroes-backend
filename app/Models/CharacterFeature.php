@@ -2,16 +2,20 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasLimitedUses;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * Tracks granted features for a character.
+ *
+ * Note: Limited-use tracking (max_uses, uses_remaining) has been moved
+ * to the character_counters table. See CharacterCounter model.
+ */
 class CharacterFeature extends Model
 {
     use HasFactory;
-    use HasLimitedUses;
 
     public $timestamps = false;
 
@@ -22,15 +26,11 @@ class CharacterFeature extends Model
         'feature_slug',
         'source',
         'level_acquired',
-        'uses_remaining',
-        'max_uses',
     ];
 
     protected $casts = [
         'feature_id' => 'integer',
         'level_acquired' => 'integer',
-        'uses_remaining' => 'integer',
-        'max_uses' => 'integer',
         'created_at' => 'datetime',
     ];
 

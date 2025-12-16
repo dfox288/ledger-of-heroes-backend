@@ -1,0 +1,611 @@
+{
+    "format_version": "1.2",
+    "exported_at": "2025-12-16T12:13:30+00:00",
+    "character": {
+        "public_id": "silver-knight-waXC",
+        "name": "Fighter 5 \/ Wizard 5",
+        "race": "phb:elf-wood",
+        "background": "phb:gladiator",
+        "alignment": "True Neutral",
+        "ability_scores": {
+            "strength": 8,
+            "dexterity": 13,
+            "constitution": 12,
+            "intelligence": 15,
+            "wisdom": 10,
+            "charisma": 14
+        },
+        "max_hit_points": 73,
+        "current_hit_points": 73,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": null,
+        "asi_choices_remaining": 2,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:fighter",
+                "subclass": "scag:fighter-purple-dragon-knight-banneret",
+                "level": 5,
+                "is_primary": true,
+                "hit_dice_spent": 0
+            },
+            {
+                "class": "phb:wizard",
+                "subclass": "phb:wizard-school-of-evocation",
+                "level": 5,
+                "is_primary": false,
+                "hit_dice_spent": 0
+            }
+        ],
+        "spells": [
+            {
+                "spell": "ftod:nathairs-mischief",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:blade-ward",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:color-spray",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 2
+            },
+            {
+                "spell": "phb:darkvision",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:expeditious-retreat",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:knock",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:mage-armor",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:message",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:scorching-ray",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:sleep",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:witch-bolt",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 2
+            },
+            {
+                "spell": "scag:booming-blade",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            },
+            {
+                "spell": "tce:tashas-caustic-brew",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:absorb-elements",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:gust",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:pyrotechnics",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 5
+            },
+            {
+                "spell": "xge:shadow-blade",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 4
+            },
+            {
+                "spell": "xge:snare",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:trident",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:trinket",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:costume-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 15,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 125,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:elvish",
+                "source": "race"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:perception",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:acrobatics",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:performance",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:animal-handling",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:acrobatics",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:rapier",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "type": "core:shortsword",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "type": "core:hand-crossbow",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "type": "core:dulcimer",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [
+            {
+                "feature": "phb:dueling",
+                "class": "phb:fighter",
+                "subclass_name": null,
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            }
+        ],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:elf",
+                    "trait_name": "Keen Senses"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:elf",
+                    "trait_name": "Fey Ancestry"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:elf",
+                    "trait_name": "Trance"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:elf-wood",
+                    "trait_name": "Elf Weapon Training"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:elf-wood",
+                    "trait_name": "Fleet of Foot"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:elf-wood",
+                    "trait_name": "Mask of the Wild"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Second Wind",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1,
+                "uses_remaining": 1,
+                "max_uses": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Fighting Style",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "phb:gladiator",
+                    "trait_name": "Feature: By Popular Demand"
+                },
+                "source": "background",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Arcane Recovery",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1,
+                "uses_remaining": 1,
+                "max_uses": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Action Surge",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Martial Archetype",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "scag:fighter-purple-dragon-knight-banneret",
+                    "feature_name": "Martial Archetype: Purple Dragon Knight (Banneret)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "scag:fighter-purple-dragon-knight-banneret",
+                    "feature_name": "Restriction: Knighthood (Purple Dragon Knight (Banneret))",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "scag:fighter-purple-dragon-knight-banneret",
+                    "feature_name": "Rallying Cry (Purple Dragon Knight (Banneret))",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Extra Attack",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Arcane Tradition",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard-school-of-evocation",
+                    "feature_name": "Arcane Tradition: School of Evocation",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard-school-of-evocation",
+                    "feature_name": "Evocation Savant (School of Evocation)",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard-school-of-evocation",
+                    "feature_name": "Sculpt Spells (School of Evocation)",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Cantrip Formulas",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            }
+        ],
+        "portrait": null
+    }
+}

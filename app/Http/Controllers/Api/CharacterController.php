@@ -178,6 +178,8 @@ class CharacterController extends Controller
             'characterClasses.characterClass.levelProgression',
             'characterClasses.characterClass.equipment.item',
             'characterClasses.subclass',
+            'featureSelections.optionalFeature',
+            'featureSelections.characterClass',
             'media',
         ]);
 

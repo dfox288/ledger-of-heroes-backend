@@ -12,7 +12,8 @@ namespace App\Services\Parsers\Concerns;
  * - Paladin oath: "Paladin Level | Spells"
  * - Ranger: "Ranger Level | Spells"
  * - Sorcerer: "Sorcerer Level | Spells"
- * - Warlock patron: "Spell Level | Spells"
+ * - Warlock patron: "Spell Level | Spells" or "Spell Level | Genie Spells | ..."
+ * - Warlock (The Undead): No header, just "1st | bane, false life" rows
  */
 trait ParsesSubclassSpellTables
 {
@@ -24,12 +25,48 @@ trait ParsesSubclassSpellTables
      */
     protected function parseSubclassSpellTable(string $text): ?array
     {
-        // Pattern matches all class-specific spell table formats:
-        // "Artificer Level | Spell", "Cleric Level | Spells", "Paladin Level | Spells"
-        // "Druid Level | Circle Spells", "Ranger Level | Spells", "Sorcerer Level | Spells"
-        // "Spell Level | Spells" (Warlock)
-        // Followed by rows like "1st | bless, cure wounds"
+        // Try standard format first (most common)
+        $result = $this->parseStandardSpellTable($text);
+        if ($result !== null) {
+            return $result;
+        }
+
+        // Try The Genie format (multi-column: "Spell Level | Genie Spells | Dao Spells | ...")
+        $result = $this->parseGenieSpellTable($text);
+        if ($result !== null) {
+            return $result;
+        }
+
+        // Try headerless format (The Undead: rows like "1st | bane, false life" after "Expanded Spells:")
+        return $this->parseHeaderlessSpellTable($text);
+    }
+
+    /**
+     * Parse standard spell table format.
+     *
+     * Matches: "Artificer Level | Spell", "Cleric Level | Spells", "Paladin Level | Spells",
+     * "Druid Level | Circle Spells", "Spell Level | Spells"
+     */
+    private function parseStandardSpellTable(string $text): ?array
+    {
         $tablePattern = '/(?:Artificer Level|Cleric Level|Druid Level|Paladin Level|Ranger Level|Sorcerer Level|Spell Level)\s*\|\s*(?:Circle )?Spells?\s*\n((?:\d+(?:st|nd|rd|th)\s*\|[^\n]+\n?)+)/i';
+
+        if (! preg_match($tablePattern, $text, $matches)) {
+            return null;
+        }
+
+        return $this->parseSpellRows($matches[1]);
+    }
+
+    /**
+     * Parse The Genie format: "Spell Level | Genie Spells | Dao Spells | ..."
+     *
+     * Only extracts the first column of spells (Genie Spells) as those are common to all.
+     */
+    private function parseGenieSpellTable(string $text): ?array
+    {
+        // Match "Spell Level | Genie Spells | ..." header followed by data rows
+        $tablePattern = '/Spell Level\s*\|\s*Genie Spells\s*\|[^\n]+\n((?:\d+(?:st|nd|rd|th)\s*\|[^\n]+\n?)+)/i';
 
         if (! preg_match($tablePattern, $text, $matches)) {
             return null;
@@ -38,7 +75,56 @@ trait ParsesSubclassSpellTables
         $tableRows = $matches[1];
         $result = [];
 
-        // Parse each row: "1st | bless, cure wounds"
+        // Parse each row, extracting only the first spell column
+        // Format: "1st | detect evil and good | sanctuary | thunderwave | ..."
+        $rowPattern = '/(\d+)(?:st|nd|rd|th)\s*\|\s*([^|]+)/i';
+
+        if (preg_match_all($rowPattern, $tableRows, $rowMatches, PREG_SET_ORDER)) {
+            foreach ($rowMatches as $row) {
+                $level = (int) $row[1];
+                $spellsText = trim($row[2]);
+
+                // First column may have single spell or comma-separated
+                $spells = array_map('trim', preg_split('/\s*,\s*/', $spellsText));
+                $spells = array_values(array_filter($spells, fn ($s) => ! empty($s)));
+
+                if (! empty($spells)) {
+                    $result[] = [
+                        'level' => $level,
+                        'spells' => $spells,
+                    ];
+                }
+            }
+        }
+
+        return ! empty($result) ? $result : null;
+    }
+
+    /**
+     * Parse headerless spell table format (The Undead).
+     *
+     * Matches: "Expanded Spells:\n1st | bane, false life\n2nd | ..."
+     */
+    private function parseHeaderlessSpellTable(string $text): ?array
+    {
+        // Look for "Expanded Spells:" followed by rows without a column header
+        $tablePattern = '/Expanded Spells:\s*\n((?:\d+(?:st|nd|rd|th)\s*\|[^\n]+\n?)+)/i';
+
+        if (! preg_match($tablePattern, $text, $matches)) {
+            return null;
+        }
+
+        return $this->parseSpellRows($matches[1]);
+    }
+
+    /**
+     * Parse spell rows from captured table text.
+     *
+     * Handles rows like "1st | bless, cure wounds" or "5th | cloudkill, cone of cold"
+     */
+    private function parseSpellRows(string $tableRows): ?array
+    {
+        $result = [];
         $rowPattern = '/(\d+)(?:st|nd|rd|th)\s*\|\s*(.+)/i';
 
         if (preg_match_all($rowPattern, $tableRows, $rowMatches, PREG_SET_ORDER)) {
@@ -55,10 +141,12 @@ trait ParsesSubclassSpellTables
                 // Filter empty strings
                 $spells = array_values(array_filter($spells, fn ($s) => ! empty($s)));
 
-                $result[] = [
-                    'level' => $level,
-                    'spells' => $spells,
-                ];
+                if (! empty($spells)) {
+                    $result[] = [
+                        'level' => $level,
+                        'spells' => $spells,
+                    ];
+                }
             }
         }
 
@@ -70,6 +158,21 @@ trait ParsesSubclassSpellTables
      */
     public function hasSubclassSpellTable(string $text): bool
     {
-        return preg_match('/(?:Artificer Level|Cleric Level|Druid Level|Paladin Level|Ranger Level|Sorcerer Level|Spell Level)\s*\|\s*(?:Circle )?Spells?/i', $text) === 1;
+        // Standard format: "Class Level | Spells"
+        if (preg_match('/(?:Artificer Level|Cleric Level|Druid Level|Paladin Level|Ranger Level|Sorcerer Level|Spell Level)\s*\|\s*(?:Circle )?Spells?/i', $text) === 1) {
+            return true;
+        }
+
+        // The Genie format: "Spell Level | Genie Spells |"
+        if (preg_match('/Spell Level\s*\|\s*Genie Spells\s*\|/i', $text) === 1) {
+            return true;
+        }
+
+        // Headerless format: "Expanded Spells:\n1st |"
+        if (preg_match('/Expanded Spells:\s*\n\d+(?:st|nd|rd|th)\s*\|/i', $text) === 1) {
+            return true;
+        }
+
+        return false;
     }
 }

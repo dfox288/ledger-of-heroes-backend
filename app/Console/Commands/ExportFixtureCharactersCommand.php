@@ -22,6 +22,7 @@ class ExportFixtureCharactersCommand extends Command
 {
     protected $signature = 'fixtures:export-characters
                             {--class= : Specific class slug (e.g., phb:sorcerer)}
+                            {--subclass= : Specific subclass slug (e.g., erlw:artificer-alchemist)}
                             {--level= : Specific level (default: all milestone levels)}
                             {--seed=42 : Random seed for reproducibility}
                             {--dry-run : Show what would be created without exporting}';
@@ -89,6 +90,7 @@ class ExportFixtureCharactersCommand extends Command
     public function handle(): int
     {
         $classFilter = $this->option('class');
+        $subclassFilter = $this->option('subclass');
         $levelFilter = $this->option('level') ? (int) $this->option('level') : null;
         $seed = (int) $this->option('seed');
         $dryRun = $this->option('dry-run');
@@ -101,18 +103,17 @@ class ExportFixtureCharactersCommand extends Command
         }
 
         // Ensure fixtures directory exists
-        $fixturesDir = storage_path('fixtures/characters');
+        $fixturesDir = storage_path('fixtures/class-tests');
         if (! $dryRun && ! File::exists($fixturesDir)) {
             File::makeDirectory($fixturesDir, 0755, true);
         }
 
-        $configs = $classFilter
-            ? array_filter(self::CLASS_CONFIGS, fn ($_, $slug) => $slug === $classFilter, ARRAY_FILTER_USE_BOTH)
-            : self::CLASS_CONFIGS;
+        // Build configs from subclass filter or class filter or static configs
+        $configs = $this->buildConfigs($classFilter, $subclassFilter);
 
         if (empty($configs)) {
-            $this->error("Unknown class: {$classFilter}");
-            $this->info('Available classes: '.implode(', ', array_keys(self::CLASS_CONFIGS)));
+            $this->error('No matching class/subclass found.');
+            $this->info('Use --class=<slug> or --subclass=<slug>');
 
             return Command::FAILURE;
         }
@@ -123,11 +124,11 @@ class ExportFixtureCharactersCommand extends Command
         $created = 0;
         $failed = 0;
 
-        foreach ($configs as $classSlug => $config) {
+        foreach ($configs as $config) {
             $levels = $levelFilter !== null ? [$levelFilter] : $config['levels'];
 
             foreach ($levels as $level) {
-                $filename = "{$config['name']}-l{$level}.json";
+                $filename = sprintf('%s-L%02d.json', $config['name'], $level);
 
                 if ($dryRun) {
                     $this->line("  [DRY-RUN] Would create: {$filename}");
@@ -140,16 +141,19 @@ class ExportFixtureCharactersCommand extends Command
 
                 try {
                     // Use unique seed per character for variety
-                    $charSeed = $seed + crc32("{$classSlug}:{$level}");
+                    $charSeed = $seed + crc32("{$config['class_slug']}:{$config['subclass_slug']}:{$level}");
                     $randomizer = new CharacterRandomizer($charSeed);
 
                     // Create character via wizard flow
-                    $character = $this->createCharacter($classSlug, $config['subclass'], $randomizer);
+                    $character = $this->createCharacter($config['class_slug'], $config['subclass_slug'], $randomizer);
 
                     // Level up if needed
                     if ($level > 1) {
-                        $this->levelUpCharacter($character, $level, $randomizer);
+                        $this->levelUpCharacter($character, $level, $randomizer, $config['subclass_slug']);
                     }
+
+                    // Rename character to match fixture name
+                    $character->update(['name' => $config['display_name']." L{$level}"]);
 
                     // Export character
                     $exportData = $this->exportService->export($character->fresh());
@@ -179,6 +183,103 @@ class ExportFixtureCharactersCommand extends Command
         }
 
         return $failed > 0 ? Command::FAILURE : Command::SUCCESS;
+    }
+
+    /**
+     * Build export configurations from filters or database.
+     */
+    private function buildConfigs(?string $classFilter, ?string $subclassFilter): array
+    {
+        // Default milestone levels (most classes)
+        $defaultLevels = [1, 3, 5, 10, 15, 20];
+
+        // If subclass specified, build config for that specific subclass
+        if ($subclassFilter) {
+            $subclass = CharacterClass::where('slug', $subclassFilter)->first();
+            if (! $subclass || ! $subclass->parent_class_id) {
+                return [];
+            }
+
+            $parent = $subclass->parentClass;
+            $subclassName = $this->extractSubclassName($subclass->name, $parent->name);
+
+            return [[
+                'name' => strtolower($parent->name).'-'.strtolower(str_replace(' ', '-', $subclassName)),
+                'display_name' => $subclassName,
+                'class_slug' => $parent->slug,
+                'subclass_slug' => $subclass->slug,
+                'levels' => $defaultLevels,
+            ]];
+        }
+
+        // If class specified, build configs for all subclasses of that class
+        if ($classFilter) {
+            $class = CharacterClass::where('slug', $classFilter)->first();
+            if (! $class) {
+                return [];
+            }
+
+            // If it's a base class, get all its subclasses
+            if (! $class->parent_class_id) {
+                $subclasses = CharacterClass::where('parent_class_id', $class->id)->get();
+
+                return $subclasses->map(function ($subclass) use ($class, $defaultLevels) {
+                    $subclassName = $this->extractSubclassName($subclass->name, $class->name);
+
+                    return [
+                        'name' => strtolower($class->name).'-'.strtolower(str_replace(' ', '-', $subclassName)),
+                        'display_name' => $subclassName,
+                        'class_slug' => $class->slug,
+                        'subclass_slug' => $subclass->slug,
+                        'levels' => $defaultLevels,
+                    ];
+                })->toArray();
+            }
+        }
+
+        // Fall back to static configs for base classes only
+        return collect(self::CLASS_CONFIGS)->map(function ($config, $slug) {
+            return [
+                'name' => $config['name'],
+                'display_name' => ucfirst($config['name']),
+                'class_slug' => $slug,
+                'subclass_slug' => $config['subclass'],
+                'levels' => $config['levels'],
+            ];
+        })->values()->toArray();
+    }
+
+    /**
+     * Extract subclass name from full name.
+     * e.g., "Alchemist (Artificer)" -> "Alchemist"
+     */
+    private function extractSubclassName(string $fullName, string $className): string
+    {
+        // Remove class name in parentheses: "Alchemist (Artificer)" -> "Alchemist"
+        $name = preg_replace('/\s*\([^)]+\)\s*$/', '', $fullName);
+
+        // Remove class prefix: "Divine Domain: Life Domain" -> "Life Domain"
+        $patterns = [
+            '/^Sacred Oath:\s*/i',
+            '/^Divine Domain:\s*/i',
+            '/^Druid Circle:\s*/i',
+            '/^Martial Archetype:\s*/i',
+            '/^Monastic Tradition:\s*/i',
+            '/^Ranger Archetype:\s*/i',
+            '/^Roguish Archetype:\s*/i',
+            '/^Sorcerous Origin:\s*/i',
+            '/^Otherworldly Patron:\s*/i',
+            '/^Arcane Tradition:\s*/i',
+            '/^Primal Path:\s*/i',
+            '/^Bard College:\s*/i',
+            '/^Artificer Specialist:\s*/i',
+        ];
+
+        foreach ($patterns as $pattern) {
+            $name = preg_replace($pattern, '', $name);
+        }
+
+        return trim($name);
     }
 
     private function createCharacter(string $classSlug, ?string $subclassSlug, CharacterRandomizer $randomizer): Character
@@ -212,7 +313,7 @@ class ExportFixtureCharactersCommand extends Command
         return $character;
     }
 
-    private function levelUpCharacter(Character $character, int $targetLevel, CharacterRandomizer $randomizer): void
+    private function levelUpCharacter(Character $character, int $targetLevel, CharacterRandomizer $randomizer, ?string $subclassSlug = null): void
     {
         $executor = new LevelUpFlowExecutor;
 
@@ -221,7 +322,8 @@ class ExportFixtureCharactersCommand extends Command
             targetLevel: $targetLevel,
             randomizer: $randomizer,
             iteration: 1,
-            mode: 'linear'
+            mode: 'linear',
+            forceSubclass: $subclassSlug,
         );
 
         if ($result->hasError() || $result->hasFailed()) {

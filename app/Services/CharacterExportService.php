@@ -278,8 +278,46 @@ class CharacterExportService
                 'type' => 'racial_trait',
                 'name' => $feature->name ?? $feature->trait_name ?? null,
             ],
+            'App\\Models\\CharacterTrait' => $this->buildCharacterTraitPortableId($feature),
             default => null,
         };
+    }
+
+    /**
+     * Build portable ID for CharacterTrait (race/background traits).
+     *
+     * Uses the parent entity (race or background) slug and trait name for identification.
+     */
+    private function buildCharacterTraitPortableId(mixed $trait): ?array
+    {
+        // Load the parent entity if not already loaded
+        if (! $trait->relationLoaded('reference')) {
+            $trait->load('reference');
+        }
+
+        $reference = $trait->reference;
+        if (! $reference) {
+            return null;
+        }
+
+        // Determine entity type from reference_type
+        $entityType = match ($trait->reference_type) {
+            'App\\Models\\Race' => 'race',
+            'App\\Models\\Background' => 'background',
+            'App\\Models\\CharacterClass' => 'class',
+            default => null,
+        };
+
+        if (! $entityType) {
+            return null;
+        }
+
+        return [
+            'type' => 'character_trait',
+            'entity_type' => $entityType,
+            'entity_slug' => $reference->slug,
+            'trait_name' => $trait->name,
+        ];
     }
 
     /**

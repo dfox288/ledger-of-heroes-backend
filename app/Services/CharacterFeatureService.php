@@ -277,6 +277,46 @@ class CharacterFeatureService
     }
 
     /**
+     * Grant newly unlocked subclass spells based on character's current level.
+     *
+     * Called during level-up to grant spells from existing subclass features
+     * that have level_requirement matching the new level.
+     *
+     * @param  string  $classSlug  The base class slug to find the subclass
+     */
+    public function grantUnlockedSubclassSpells(Character $character, string $classSlug): void
+    {
+        // Get the character's class info
+        $characterClass = $character->characterClasses()
+            ->where('class_slug', $classSlug)
+            ->first();
+
+        if (! $characterClass || ! $characterClass->subclass_slug) {
+            return;
+        }
+
+        $subclass = $characterClass->subclass;
+        if (! $subclass) {
+            return;
+        }
+
+        $characterLevel = $characterClass->level;
+
+        // Get subclass features that grant spells
+        // Note: is_always_prepared is an accessor, so we filter in PHP
+        $features = $subclass->features()
+            ->whereNull('parent_feature_id')
+            ->get()
+            ->filter(fn ($feature) => $feature->is_always_prepared);
+
+        foreach ($features as $feature) {
+            $this->assignSpellsFromFeature($character, $feature, $characterLevel);
+        }
+
+        $character->load('spells');
+    }
+
+    /**
      * Remove subclass features and their spells from a character for a specific subclass.
      *
      * Called when a subclass choice is undone. Only removes features and spells belonging

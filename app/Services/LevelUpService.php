@@ -28,16 +28,20 @@ class LevelUpService
 
     private SpellSlotService $spellSlotService;
 
+    private CharacterFeatureService $featureService;
+
     private CharacterChoiceService $choiceService;
 
     public function __construct(
         ?CharacterStatCalculator $calculator = null,
         ?SpellSlotService $spellSlotService = null,
-        ?CharacterChoiceService $choiceService = null
+        ?CharacterChoiceService $choiceService = null,
+        ?CharacterFeatureService $featureService = null
     ) {
         $this->calculator = $calculator ?? new CharacterStatCalculator;
         $this->spellSlotService = $spellSlotService ?? app(SpellSlotService::class);
         $this->choiceService = $choiceService ?? app(CharacterChoiceService::class);
+        $this->featureService = $featureService ?? app(CharacterFeatureService::class);
     }
 
     /**
@@ -68,6 +72,9 @@ class LevelUpService
 
             // Grant class features for the new class level
             $featuresGained = $this->grantClassFeatures($character, $class, $classLevel);
+
+            // Grant any newly unlocked subclass spells (e.g., domain spells at level 5, 9, etc.)
+            $this->featureService->grantUnlockedSubclassSpells($character, $class->slug);
 
             // Check if this class level grants an ASI
             $asiPending = $this->isAsiLevel($class->slug ?? '', $classLevel);

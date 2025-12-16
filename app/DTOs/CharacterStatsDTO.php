@@ -227,8 +227,15 @@ class CharacterStatsDTO
         // Build fighting styles and combat modifiers (Issue #497)
         $fightingStyleData = self::buildFightingStyles($character);
 
-        // Build weapon stats (Issue #498.3.1)
-        $weapons = self::buildWeaponStats($character, $abilityModifiers, $proficiencyBonus);
+        // Build weapon stats (Issue #498.3.1, #709)
+        $weapons = self::buildWeaponStats(
+            $character,
+            $abilityModifiers,
+            $proficiencyBonus,
+            $fightingStyleData['ranged_attack_bonus'],
+            $fightingStyleData['melee_damage_bonus'],
+            $calculator
+        );
 
         // Compute preparation method (Issue #675)
         $preparationMethod = self::computePreparationMethod($character);
@@ -278,11 +285,20 @@ class CharacterStatsDTO
     /**
      * Build weapon stats for all equipped weapons.
      *
+     * Issue #709: Provides pre-computed totals including ability modifier,
+     * proficiency bonus, fighting style bonuses, and magic weapon bonuses.
+     *
      * @param  array<string, int|null>  $abilityModifiers
      * @return array<int, array{name: string, damage_dice: string|null, attack_bonus: int, damage_bonus: int, ability_used: string, is_proficient: bool}>
      */
-    private static function buildWeaponStats(Character $character, array $abilityModifiers, int $proficiencyBonus): array
-    {
+    private static function buildWeaponStats(
+        Character $character,
+        array $abilityModifiers,
+        int $proficiencyBonus,
+        int $rangedAttackBonus,
+        int $meleeDamageBonus,
+        CharacterStatCalculator $calculator
+    ): array {
         // Load equipment with items and properties if not loaded
         if (! $character->relationLoaded('equipment')) {
             $character->load(['equipment.item.itemType', 'equipment.item.properties']);
@@ -333,14 +349,27 @@ class CharacterStatsDTO
                 $abilityUsed = 'STR';
             }
 
-            // Check proficiency
-            $isProficient = self::isWeaponProficient($character, $item);
+            // Check proficiency using shared calculator method
+            $isProficient = $calculator->isWeaponProficient($character, $item);
 
-            // Calculate attack bonus = ability mod + proficiency (if proficient)
-            $attackBonus = $abilityMod + ($isProficient ? $proficiencyBonus : 0);
+            // Parse magic bonus from item name (+1, +2, +3)
+            $magicBonus = self::parseMagicBonus($item->name);
 
-            // Calculate damage bonus = ability mod
-            $damageBonus = $abilityMod;
+            // Calculate attack bonus = ability mod + proficiency (if proficient) + magic + fighting style
+            $attackBonus = $abilityMod + ($isProficient ? $proficiencyBonus : 0) + $magicBonus;
+
+            // Add Archery bonus to ranged weapons
+            if ($isRanged) {
+                $attackBonus += $rangedAttackBonus;
+            }
+
+            // Calculate damage bonus = ability mod + magic + fighting style
+            $damageBonus = $abilityMod + $magicBonus;
+
+            // Add Dueling bonus to melee weapons
+            if (! $isRanged) {
+                $damageBonus += $meleeDamageBonus;
+            }
 
             $weapons[] = [
                 'name' => $item->name,
@@ -356,26 +385,18 @@ class CharacterStatsDTO
     }
 
     /**
-     * Check if character is proficient with a weapon.
+     * Parse magic bonus from item name.
+     *
+     * Matches patterns like "+1", "+2", "+3" at the end of item names.
+     * Examples: "Longsword +1" -> 1, "Vorpal Sword +3" -> 3
      */
-    private static function isWeaponProficient(Character $character, \App\Models\Item $item): bool
+    private static function parseMagicBonus(string $itemName): int
     {
-        // Generate the expected proficiency slug (e.g., "core:longsword")
-        $weaponSlug = 'core:'.Str::slug($item->name);
-
-        // Check for specific weapon name proficiency
-        $hasSpecific = $character->proficiencies
-            ->where('proficiency_type_slug', $weaponSlug)
-            ->isNotEmpty();
-
-        if ($hasSpecific) {
-            return true;
+        if (preg_match('/\+(\d+)$/', $itemName, $matches)) {
+            return (int) $matches[1];
         }
 
-        // Check for weapon category proficiency (Simple Weapons, Martial Weapons)
-        // This would require more complex logic based on item properties
-        // For now, just check specific weapon names
-        return false;
+        return 0;
     }
 
     /**

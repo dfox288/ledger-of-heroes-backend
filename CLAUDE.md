@@ -54,6 +54,7 @@ Detailed instructions are split into `.claude/rules/`:
 | `11-commands-reference.md` | Docker, Artisan, slash commands |
 | `12-factories-testing.md` | Factory patterns, make vs create |
 | `13-api-responses.md` | Response envelope, pagination, errors |
+| `14-fixture-generation.md` | Class/subclass fixture campaign process |
 
 ## Critical Mandates
 

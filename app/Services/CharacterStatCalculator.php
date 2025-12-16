@@ -100,7 +100,7 @@ class CharacterStatCalculator
     /**
      * Half caster classes (use half progression).
      */
-    private const HALF_CASTERS = ['paladin', 'ranger'];
+    private const HALF_CASTERS = ['paladin', 'ranger', 'artificer'];
 
     /**
      * Classes that know spells instead of preparing (returns null for preparation limit).
@@ -673,5 +673,73 @@ class CharacterStatCalculator
             'threshold_encumbered' => $thresholdEncumbered,
             'threshold_heavily_encumbered' => $thresholdHeavy,
         ];
+    }
+
+    /**
+     * Check if character is proficient with a weapon.
+     *
+     * Checks in order:
+     * 1. Specific weapon name proficiency on character (e.g., "core:longsword")
+     * 2. Weapon category proficiency from class ("Simple Weapons", "Martial Weapons")
+     */
+    public function isWeaponProficient(Character $character, Item $item): bool
+    {
+        // Strip magic bonus suffix from weapon name for proficiency check
+        // "Longsword +1" -> "Longsword" so proficiency with "longsword" applies
+        $baseName = preg_replace('/\s*\+\d+$/', '', $item->name);
+
+        // Generate the expected proficiency slug (e.g., "core:longsword")
+        $weaponSlug = 'core:'.\Illuminate\Support\Str::slug($baseName);
+
+        // Load proficiencies if not loaded
+        $character->loadMissing('proficiencies');
+
+        // Check for specific weapon name proficiency on character
+        $hasSpecific = $character->proficiencies
+            ->where('proficiency_type_slug', $weaponSlug)
+            ->isNotEmpty();
+
+        if ($hasSpecific) {
+            return true;
+        }
+
+        // Check for weapon category proficiency (Simple Weapons, Martial Weapons)
+        // Item's proficiency_category returns: simple_melee, simple_ranged, martial_melee, martial_ranged
+        $itemCategory = $item->proficiency_category;
+
+        if ($itemCategory === null) {
+            return false;
+        }
+
+        // Determine if weapon is simple or martial
+        $isSimple = str_starts_with($itemCategory, 'simple');
+        $isMartial = str_starts_with($itemCategory, 'martial');
+
+        // Load class proficiencies if not loaded
+        $character->loadMissing('characterClasses.characterClass.proficiencies');
+
+        // Check each class for weapon category proficiency
+        foreach ($character->characterClasses as $characterClass) {
+            $class = $characterClass->characterClass;
+            if (! $class) {
+                continue;
+            }
+
+            $weaponProficiencies = $class->proficiencies
+                ->where('proficiency_type', 'weapon')
+                ->pluck('proficiency_name')
+                ->map(fn ($name) => strtolower($name));
+
+            // Check for "Simple Weapons" or "Martial Weapons" category proficiency
+            if ($isSimple && $weaponProficiencies->contains('simple weapons')) {
+                return true;
+            }
+
+            if ($isMartial && $weaponProficiencies->contains('martial weapons')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

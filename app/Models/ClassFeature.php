@@ -149,7 +149,7 @@ class ClassFeature extends BaseModel
             : strtolower($class->name);
 
         // These classes have "always prepared" subclass spells
-        $alwaysPreparedClasses = ['cleric', 'druid', 'paladin'];
+        $alwaysPreparedClasses = ['cleric', 'druid', 'paladin', 'artificer'];
 
         return in_array($baseClassName, $alwaysPreparedClasses);
     }

@@ -287,6 +287,19 @@ class CharacterResource extends JsonResource
                     'is_dangling' => $cof->optionalFeature === null,
                 ]);
             }),
+            /** @var array<array{feature: string, feature_slug: string, feature_type: string|null, class: string|null, class_slug: string|null, subclass_name: string|null, level_acquired: int|null}>|null Selected optional features (infusions, invocations, metamagic, etc.) */
+            'feature_selections' => $this->whenLoaded('featureSelections', function () {
+                return $this->featureSelections->map(fn ($fs) => [
+                    'feature' => $fs->optionalFeature?->name,
+                    'feature_slug' => $fs->optional_feature_slug,
+                    'feature_type' => $fs->optionalFeature?->feature_type?->value,
+                    'class' => $fs->characterClass?->name,
+                    'class_slug' => $fs->class_slug,
+                    'subclass_name' => $fs->subclass_name,
+                    'level_acquired' => $fs->level_acquired,
+                    'is_dangling' => $fs->optionalFeature === null,
+                ]);
+            }),
         ];
     }
 

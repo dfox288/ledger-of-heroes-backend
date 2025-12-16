@@ -67,21 +67,24 @@ trait ParsesUsageLimits
             return 1;
         }
 
-        // Pattern 7: "you can't/cannot use it/this again until you finish/complete a rest" implies 1 use
+        // Pattern 7: "you can't/cannot use it/this again until you finish/complete a [short|long] rest" implies 1 use
         // Common in racial traits like Breath Weapon, Relentless Endurance, Hidden Step
-        if (preg_match('/(?:can\'t|cannot) use (?:it|this|this feature|this trait) again until you (?:finish|complete) a/i', $text)) {
+        // Requires "rest" to avoid false positives on "until you gain a level" etc.
+        if (preg_match('/(?:can\'t|cannot) use (?:it|this|this feature|this trait) again until you (?:finish|complete) a (?:short|long|short or long) rest/i', $text)) {
             return 1;
         }
 
-        // Pattern 8: "you regain the ability to do so when you finish a rest" implies 1 use
+        // Pattern 8: "you regain the ability to do so when you finish a [short|long] rest" implies 1 use
         // Common in racial traits like Fey Step
-        if (preg_match('/you regain the ability (?:to do so )?when you finish a/i', $text)) {
+        // Requires "rest" to avoid false positives
+        if (preg_match('/you regain the ability (?:to do so )?when you finish a (?:short|long|short or long) rest/i', $text)) {
             return 1;
         }
 
-        // Pattern 9: "you can't cast it again with this trait until" implies 1 use
+        // Pattern 9: "you can't cast it again with this trait until you finish a [short|long] rest" implies 1 use
         // Common in racial spellcasting like Firbolg Magic
-        if (preg_match('/can\'t cast it again (?:with this trait )?until you finish a/i', $text)) {
+        // Requires "rest" to avoid false positives
+        if (preg_match('/(?:can\'t|cannot) cast it again (?:with this trait )?until you finish a (?:short|long|short or long) rest/i', $text)) {
             return 1;
         }
 

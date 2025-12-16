@@ -7,6 +7,7 @@ use App\Models\Character;
 use App\Models\CharacterFeature;
 use App\Models\ClassCounter;
 use App\Models\ClassFeature;
+use App\Models\Feat;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -36,8 +37,8 @@ class FeatureUseService
                 $feature = $characterFeature->feature;
                 $resetsOn = null;
 
-                // Get resets_on from the underlying feature if it's a ClassFeature
-                if ($feature instanceof ClassFeature && $feature->resets_on) {
+                // Get resets_on from the underlying feature (ClassFeature or Feat)
+                if (($feature instanceof ClassFeature || $feature instanceof Feat) && $feature->resets_on) {
                     $resetsOn = $feature->resets_on->value;
                 }
 
@@ -80,21 +81,22 @@ class FeatureUseService
             ->map(function (CharacterFeature $characterFeature) {
                 $feature = $characterFeature->feature;
 
-                // Only ClassFeatures have counters (for now)
-                if (! $feature instanceof ClassFeature) {
+                // Support ClassFeatures and Feats
+                if ($feature instanceof ClassFeature) {
+                    $resetOn = $this->mapResetTiming($feature->resets_on);
+                    $source = $feature->characterClass?->name ?? 'Unknown';
+                    $classSlug = $feature->characterClass?->slug ?? 'unknown';
+                    $counterNameSlug = Str::slug($feature->feature_name);
+                    $slug = "{$classSlug}:{$counterNameSlug}";
+                    $name = $feature->feature_name;
+                } elseif ($feature instanceof Feat) {
+                    $resetOn = $this->mapResetTiming($feature->resets_on);
+                    $source = 'Feat';
+                    $slug = "feat:{$feature->slug}";
+                    $name = $feature->name;
+                } else {
                     return null;
                 }
-
-                // Get reset timing
-                $resetOn = $this->mapResetTiming($feature->resets_on);
-
-                // Get source class name
-                $className = $feature->characterClass?->name ?? 'Unknown';
-
-                // Build slug: {source-prefix}:{class-slug}:{counter-name-slug}
-                $classSlug = $feature->characterClass?->slug ?? 'unknown';
-                $counterNameSlug = Str::slug($feature->feature_name);
-                $slug = "{$classSlug}:{$counterNameSlug}";
 
                 // Check for unlimited (-1)
                 $isUnlimited = $characterFeature->max_uses === -1;
@@ -102,11 +104,11 @@ class FeatureUseService
                 return [
                     'id' => $characterFeature->id,
                     'slug' => $slug,
-                    'name' => $feature->feature_name,
+                    'name' => $name,
                     'current' => $characterFeature->uses_remaining,
                     'max' => $characterFeature->max_uses,
                     'reset_on' => $resetOn,
-                    'source' => $className,
+                    'source' => $source,
                     'source_type' => $characterFeature->source,
                     'unlimited' => $isUnlimited,
                 ];
@@ -178,8 +180,8 @@ class FeatureUseService
         foreach ($characterFeatures as $characterFeature) {
             $feature = $characterFeature->feature;
 
-            // Only ClassFeatures have resets_on
-            if (! $feature instanceof ClassFeature) {
+            // ClassFeatures and Feats have resets_on
+            if (! ($feature instanceof ClassFeature || $feature instanceof Feat)) {
                 continue;
             }
 
@@ -198,19 +200,22 @@ class FeatureUseService
     }
 
     /**
-     * Initialize max_uses for a character feature based on class counters.
-     * Called when feature is granted (CharacterFeatureService::createFeatureIfNotExists).
+     * Initialize max_uses for a character feature based on counters.
+     * Called when feature is granted (CharacterFeatureService or FeatChoiceService).
+     *
+     * @param  int|null  $classLevel  Required for ClassFeatures (level-scaling), ignored for Feats
      */
-    public function initializeUsesForFeature(CharacterFeature $characterFeature, int $classLevel): void
+    public function initializeUsesForFeature(CharacterFeature $characterFeature, ?int $classLevel = null): void
     {
         $feature = $characterFeature->feature;
 
-        // Only ClassFeatures have counters
-        if (! $feature instanceof ClassFeature) {
-            return;
-        }
+        $counterValue = null;
 
-        $counterValue = $this->getCounterValueForFeature($feature, $classLevel);
+        if ($feature instanceof ClassFeature && $classLevel !== null) {
+            $counterValue = $this->getCounterValueForClassFeature($feature, $classLevel);
+        } elseif ($feature instanceof Feat) {
+            $counterValue = $this->getCounterValueForFeat($feature);
+        }
 
         if ($counterValue !== null) {
             $characterFeature->update([
@@ -246,7 +251,7 @@ class FeatureUseService
             }
 
             $classLevel = $classLevels[$feature->class_id] ?? 1;
-            $newMaxUses = $this->getCounterValueForFeature($feature, $classLevel);
+            $newMaxUses = $this->getCounterValueForClassFeature($feature, $classLevel);
 
             if ($newMaxUses !== null && $newMaxUses !== $characterFeature->max_uses) {
                 $oldMaxUses = $characterFeature->max_uses;
@@ -269,10 +274,10 @@ class FeatureUseService
     }
 
     /**
-     * Look up the counter value for a feature at a given level.
+     * Look up the counter value for a class feature at a given level.
      * Returns null if no counter exists.
      */
-    private function getCounterValueForFeature(ClassFeature $feature, int $level): ?int
+    private function getCounterValueForClassFeature(ClassFeature $feature, int $level): ?int
     {
         // Find counter by matching feature_name to counter_name
         // Get the highest level counter <= character's class level
@@ -280,6 +285,17 @@ class FeatureUseService
             ->where('counter_name', $feature->feature_name)
             ->where('level', '<=', $level)
             ->orderByDesc('level')
+            ->value('counter_value');
+    }
+
+    /**
+     * Look up the counter value for a feat.
+     * Feats don't scale with level, so we just get the base counter value.
+     * Returns null if no counter exists.
+     */
+    private function getCounterValueForFeat(Feat $feat): ?int
+    {
+        return ClassCounter::where('feat_id', $feat->id)
             ->value('counter_value');
     }
 }

@@ -1,8 +1,8 @@
 {
   "format_version": "1.2",
-  "exported_at": "2025-12-16T13:43:17+00:00",
+  "exported_at": "2025-12-16T14:13:54+00:00",
   "character": {
-    "public_id": "cunning-phoenix-y1PR",
+    "public_id": "storm-raven-4i31",
     "name": "Wizard 5 / Cleric 5",
     "race": "vrgtr:hexblood",
     "background": "scag:faction-agent",
@@ -741,6 +741,16 @@
         "level_acquired": 5,
         "uses_remaining": null,
         "max_uses": null
+      }
+    ],
+    "counters": [
+      {
+        "name": "Arcane Recovery",
+        "current": 1,
+        "max": 1,
+        "reset_on": "short_rest",
+        "source": "Wizard",
+        "source_type": "class"
       }
     ],
     "portrait": null

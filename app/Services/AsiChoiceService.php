@@ -25,12 +25,16 @@ class AsiChoiceService
 
     private HitPointService $hitPointService;
 
+    private FeatureUseService $featureUseService;
+
     public function __construct(
         ?PrerequisiteCheckerService $prerequisiteChecker = null,
-        ?HitPointService $hitPointService = null
+        ?HitPointService $hitPointService = null,
+        ?FeatureUseService $featureUseService = null
     ) {
         $this->prerequisiteChecker = $prerequisiteChecker ?? new PrerequisiteCheckerService;
         $this->hitPointService = $hitPointService ?? app(HitPointService::class);
+        $this->featureUseService = $featureUseService ?? app(FeatureUseService::class);
     }
 
     /**
@@ -236,7 +240,7 @@ class AsiChoiceService
      */
     private function createCharacterFeature(Character $character, Feat $feat): void
     {
-        CharacterFeature::create([
+        $characterFeature = CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat->id,
@@ -244,6 +248,9 @@ class AsiChoiceService
             'source' => 'feat',
             'level_acquired' => $character->total_level ?: 1,
         ]);
+
+        // Initialize max_uses for feats with limited uses (e.g., Lucky)
+        $this->featureUseService->initializeUsesForFeature($characterFeature);
     }
 
     /**

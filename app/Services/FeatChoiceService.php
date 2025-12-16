@@ -28,6 +28,7 @@ class FeatChoiceService
     public function __construct(
         private readonly PrerequisiteCheckerService $prerequisiteChecker,
         private readonly HitPointService $hitPointService,
+        private readonly FeatureUseService $featureUseService,
     ) {}
 
     /**
@@ -239,7 +240,7 @@ class FeatChoiceService
      */
     private function createCharacterFeature(Character $character, Feat $feat, string $source): void
     {
-        CharacterFeature::create([
+        $characterFeature = CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => Feat::class,
             'feature_id' => $feat->id,
@@ -248,6 +249,9 @@ class FeatChoiceService
             // Bonus feats from race/background are always acquired at character creation (level 1)
             'level_acquired' => 1,
         ]);
+
+        // Initialize max_uses for feats with limited uses (e.g., Lucky)
+        $this->featureUseService->initializeUsesForFeature($characterFeature);
     }
 
     /**

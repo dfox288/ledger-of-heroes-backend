@@ -1,8 +1,8 @@
 {
   "format_version": "1.2",
-  "exported_at": "2025-12-16T13:42:59+00:00",
+  "exported_at": "2025-12-16T14:13:34+00:00",
   "character": {
-    "public_id": "iron-arrow-Acdi",
+    "public_id": "brave-wanderer-zEMf",
     "name": "Fighter 5 / Wizard 5",
     "race": "vrgtr:hexblood",
     "background": "scag:faction-agent",
@@ -592,6 +592,24 @@
         "level_acquired": 3,
         "uses_remaining": null,
         "max_uses": null
+      }
+    ],
+    "counters": [
+      {
+        "name": "Second Wind",
+        "current": 1,
+        "max": 1,
+        "reset_on": "short_rest",
+        "source": "Fighter",
+        "source_type": "class"
+      },
+      {
+        "name": "Arcane Recovery",
+        "current": 1,
+        "max": 1,
+        "reset_on": "short_rest",
+        "source": "Wizard",
+        "source_type": "class"
       }
     ],
     "portrait": null

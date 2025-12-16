@@ -7,6 +7,7 @@ use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -158,6 +159,39 @@ class CharacterListResourceTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.0.level', 8) // 5 + 3
             ->assertJsonPath('data.0.class_name', 'Fighter'); // Primary class only
+    }
+
+    #[Test]
+    public function character_list_has_minimal_queries(): void
+    {
+        // Create 5 complete characters with race and class
+        $race = Race::factory()->create();
+        $class = CharacterClass::factory()->create();
+
+        Character::factory()
+            ->count(5)
+            ->withRace($race)
+            ->withClass($class)
+            ->create();
+
+        DB::enableQueryLog();
+
+        $response = $this->getJson('/api/v1/characters');
+        $response->assertOk();
+
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        // Should have bounded queries regardless of character count:
+        // 1 for characters, 1 for races, 1 for character_classes pivot,
+        // 1 for classes, 1 for media, 1 for pagination count
+        // NOT 5+ queries (which would indicate N+1)
+        $this->assertLessThanOrEqual(
+            8,
+            count($queries),
+            'Query count should be bounded (no N+1). Got '.count($queries).' queries: '.
+            implode("\n", array_map(fn ($q) => $q['query'], $queries))
+        );
     }
 
     #[Test]

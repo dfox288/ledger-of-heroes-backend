@@ -53,8 +53,9 @@ class CharacterImportService
     {
         $this->warnings = [];
         $characterData = $data['character'];
+        $needsCounterSync = false;
 
-        $character = DB::transaction(function () use ($characterData) {
+        $character = DB::transaction(function () use ($characterData, &$needsCounterSync) {
             // Create base character
             $character = $this->createCharacter($characterData);
 
@@ -70,11 +71,16 @@ class CharacterImportService
             $this->importAbilityScoreChoices($character, $characterData['ability_score_choices'] ?? []);
             $this->importSpellSlots($character, $characterData['spell_slots'] ?? []);
             $this->importFeatures($character, $characterData['features'] ?? []);
-            $this->importCounters($character, $characterData['counters'] ?? []);
+            $needsCounterSync = $this->importCounters($character, $characterData['counters'] ?? []);
             $this->importPortrait($character, $characterData['portrait'] ?? null);
 
             return $character;
         });
+
+        // Sync counters from entity definitions if legacy format was detected
+        if ($needsCounterSync) {
+            app(CounterService::class)->syncCountersForCharacter($character);
+        }
 
         return new CharacterImportResult($character, $this->warnings);
     }
@@ -557,12 +563,23 @@ class CharacterImportService
      * Import counters from export data.
      *
      * Counters track limited-use resources (Rage, Ki Points, etc.).
-     * If counter data is empty, counters will be synced from entity definitions
-     * on first level-up or by calling CounterService::syncCountersForCharacter.
+     * Supports both new format (source_slug, counter_name) and legacy format (source, name).
+     * If counter data is in legacy format, counters are synced from entity definitions.
+     *
+     * @return bool True if legacy counters were detected and syncing is needed
      */
-    private function importCounters(Character $character, array $counters): void
+    private function importCounters(Character $character, array $counters): bool
     {
+        $legacySkipped = 0;
+
         foreach ($counters as $counterData) {
+            // Detect legacy format (has 'name' instead of 'counter_name')
+            if (isset($counterData['name']) && ! isset($counterData['counter_name'])) {
+                $legacySkipped++;
+
+                continue;
+            }
+
             $sourceType = $counterData['source_type'] ?? null;
             $sourceSlug = $counterData['source_slug'] ?? null;
             $counterName = $counterData['counter_name'] ?? null;
@@ -583,6 +600,14 @@ class CharacterImportService
                 'reset_timing' => $counterData['reset_timing'] ?? null,
             ]);
         }
+
+        if ($legacySkipped > 0) {
+            $this->warnings[] = "Migrated {$legacySkipped} counter(s) from legacy format";
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

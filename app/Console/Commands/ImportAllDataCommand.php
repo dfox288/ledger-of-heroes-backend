@@ -119,6 +119,12 @@ class ImportAllDataCommand extends Command
         if (! $onlyTypes || in_array('classes', $onlyTypes)) {
             $this->step('Linking subclass spells (STEP 5a/10)');
             $this->linkSubclassSpells();
+
+            // Step 6b: Link bonus cantrips (Issue #683)
+            // Features like Light Domain's "you gain the light cantrip" weren't linked
+            // during class import because spells didn't exist yet
+            $this->info('  Linking bonus cantrips...');
+            $this->call('import:link-bonus-cantrips');
         }
 
         // Step 7: Import races

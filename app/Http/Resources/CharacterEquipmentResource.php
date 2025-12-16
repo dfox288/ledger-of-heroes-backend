@@ -3,10 +3,13 @@
 namespace App\Http\Resources;
 
 use App\Enums\ItemGroup;
+use App\Enums\ItemTypeCode;
 use App\Http\Resources\Concerns\FormatsRelatedModels;
+use App\Services\CharacterStatCalculator;
 use App\Services\ProficiencyCheckerService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Str;
 
 /**
  * @mixin \App\Models\CharacterEquipment
@@ -29,8 +32,11 @@ class CharacterEquipmentResource extends JsonResource
             'item' => $this->when($this->item_slug !== null, fn () => $this->item
                 ? $this->formatEntityWith(
                     $this->item,
-                    ['id', 'name', 'slug', 'armor_class', 'damage_dice', 'weight', 'requires_attunement', 'equipment_slot'],
-                    ['item_type' => fn ($item) => $item->itemType?->name]
+                    ['id', 'name', 'slug', 'armor_class', 'damage_dice', 'weight', 'requires_attunement'],
+                    [
+                        'item_type' => fn ($item) => $item->itemType?->name,
+                        'equipment_slot' => fn ($item) => $this->normalizeEquipmentSlot($item->equipment_slot),
+                    ]
                 )
                 : null  // Dangling reference - item_slug set but item doesn't exist
             ),
@@ -59,6 +65,8 @@ class CharacterEquipmentResource extends JsonResource
             ),
             /** @var string Item group for inventory organization: Weapons, Armor, Potions, etc. */
             'group' => $this->getItemGroup(),
+            // Issue #708: Combat data for equipped weapons
+            ...$this->getWeaponCombatData(),
         ];
     }
 
@@ -111,5 +119,129 @@ class CharacterEquipmentResource extends JsonResource
         ];
 
         return in_array($this->item_slug, $currencySlugs, true);
+    }
+
+    /**
+     * Get weapon combat data for equipped weapons in hand slots.
+     *
+     * Issue #708: Returns attack_bonus, damage_bonus, ability_used for
+     * weapons equipped in main_hand or off_hand.
+     *
+     * @return array{attack_bonus?: int, damage_bonus?: int, ability_used?: string}
+     */
+    private function getWeaponCombatData(): array
+    {
+        // Only include combat data for equipped weapons in hand slots
+        if (! $this->isEquippedWeaponInHandSlot()) {
+            return [];
+        }
+
+        $character = $this->character;
+        $item = $this->item;
+
+        // Get character's ability modifiers
+        $calculator = app(CharacterStatCalculator::class);
+        $abilityScores = $character->getFinalAbilityScoresArray();
+        $strMod = $abilityScores['STR'] !== null ? $calculator->abilityModifier($abilityScores['STR']) : 0;
+        $dexMod = $abilityScores['DEX'] !== null ? $calculator->abilityModifier($abilityScores['DEX']) : 0;
+
+        // Determine ability to use based on weapon type
+        $item->loadMissing(['itemType', 'properties']);
+        $isFinesse = $item->properties->contains('code', 'F');
+        $isRanged = $item->itemType?->code === ItemTypeCode::RANGED_WEAPON->value;
+
+        if ($isRanged) {
+            $abilityMod = $dexMod;
+            $abilityUsed = 'DEX';
+        } elseif ($isFinesse) {
+            // Use whichever modifier is higher
+            if ($dexMod > $strMod) {
+                $abilityMod = $dexMod;
+                $abilityUsed = 'DEX';
+            } else {
+                $abilityMod = $strMod;
+                $abilityUsed = 'STR';
+            }
+        } else {
+            $abilityMod = $strMod;
+            $abilityUsed = 'STR';
+        }
+
+        // Check proficiency
+        $isProficient = $this->isWeaponProficient($character, $item);
+        $proficiencyBonus = $calculator->proficiencyBonus($character->total_level);
+
+        // Calculate attack and damage bonus
+        $attackBonus = $abilityMod + ($isProficient ? $proficiencyBonus : 0);
+        $damageBonus = $abilityMod;
+
+        return [
+            /** @var int Attack bonus (ability modifier + proficiency if proficient) */
+            'attack_bonus' => $attackBonus,
+            /** @var int Damage bonus (ability modifier) */
+            'damage_bonus' => $damageBonus,
+            /** @var string Ability used for attacks (STR or DEX) */
+            'ability_used' => $abilityUsed,
+        ];
+    }
+
+    /**
+     * Check if this is an equipped weapon in a hand slot.
+     */
+    private function isEquippedWeaponInHandSlot(): bool
+    {
+        // Must be equipped in main_hand or off_hand
+        if (! in_array($this->location, ['main_hand', 'off_hand'], true)) {
+            return false;
+        }
+
+        // Must have a valid item that is a weapon
+        if (! $this->item) {
+            return false;
+        }
+
+        $this->item->loadMissing('itemType');
+
+        return in_array($this->item->itemType?->code, ItemTypeCode::weaponCodes(), true);
+    }
+
+    /**
+     * Check if character is proficient with this weapon.
+     */
+    private function isWeaponProficient(\App\Models\Character $character, \App\Models\Item $item): bool
+    {
+        // Generate the expected proficiency slug (e.g., "core:longsword")
+        $weaponSlug = 'core:'.Str::slug($item->name);
+
+        // Load proficiencies if not loaded
+        $character->loadMissing('proficiencies');
+
+        // Check for specific weapon name proficiency
+        return $character->proficiencies
+            ->where('proficiency_type_slug', $weaponSlug)
+            ->isNotEmpty();
+    }
+
+    /**
+     * Normalize equipment_slot values to match EquipmentLocation enum values.
+     *
+     * Maps legacy/simplified slot names to the actual location values used
+     * by CharacterEquipment.location for consistent frontend handling.
+     *
+     * @param  string|null  $slot  The raw equipment_slot from Item
+     * @return string|null The normalized slot matching EquipmentLocation values
+     */
+    private function normalizeEquipmentSlot(?string $slot): ?string
+    {
+        if ($slot === null) {
+            return null;
+        }
+
+        // Map legacy values to EquipmentLocation values
+        return match ($slot) {
+            'hand' => 'main_hand',  // Weapons go to main_hand by default
+            'ring' => 'ring_1',     // Rings default to first ring slot
+            default => $slot,       // armor, belt, cloak, head, neck, etc. already match
+        };
     }
 }

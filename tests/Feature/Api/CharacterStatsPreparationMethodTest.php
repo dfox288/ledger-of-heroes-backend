@@ -196,4 +196,64 @@ class CharacterStatsPreparationMethodTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.preparation_method', null);
     }
+
+    // Issue #726: Per-class preparation_method in spellcasting stats
+
+    #[Test]
+    public function it_includes_preparation_method_in_per_class_spellcasting(): void
+    {
+        $intelligence = AbilityScore::firstOrCreate(['code' => 'INT'], ['name' => 'Intelligence']);
+        $wizard = CharacterClass::factory()->create([
+            'slug' => 'test:wizard-perclass',
+            'name' => 'Wizard',
+            'spell_preparation_method' => 'spellbook',
+            'spellcasting_ability_id' => $intelligence->id,
+        ]);
+
+        $character = Character::factory()
+            ->withAbilityScores([])
+            ->withClass($wizard)
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/stats");
+
+        $response->assertOk()
+            ->assertJsonPath('data.spellcasting.test:wizard-perclass.preparation_method', 'spellbook');
+    }
+
+    #[Test]
+    public function it_includes_different_preparation_methods_per_class_for_multiclass(): void
+    {
+        $intelligence = AbilityScore::firstOrCreate(['code' => 'INT'], ['name' => 'Intelligence']);
+        $wisdom = AbilityScore::firstOrCreate(['code' => 'WIS'], ['name' => 'Wisdom']);
+
+        $wizard = CharacterClass::factory()->create([
+            'slug' => 'test:wizard-multi',
+            'name' => 'Wizard',
+            'spell_preparation_method' => 'spellbook',
+            'spellcasting_ability_id' => $intelligence->id,
+        ]);
+
+        $cleric = CharacterClass::factory()->create([
+            'slug' => 'test:cleric-multi',
+            'name' => 'Cleric',
+            'spell_preparation_method' => 'prepared',
+            'spellcasting_ability_id' => $wisdom->id,
+        ]);
+
+        $character = Character::factory()
+            ->withAbilityScores([])
+            ->withClass($wizard, 5)
+            ->withClass($cleric, 5)
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/stats");
+
+        $response->assertOk()
+            // Top-level should be "mixed"
+            ->assertJsonPath('data.preparation_method', 'mixed')
+            // Each class should have its own preparation_method
+            ->assertJsonPath('data.spellcasting.test:wizard-multi.preparation_method', 'spellbook')
+            ->assertJsonPath('data.spellcasting.test:cleric-multi.preparation_method', 'prepared');
+    }
 }

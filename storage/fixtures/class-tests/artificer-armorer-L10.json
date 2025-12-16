@@ -1,0 +1,562 @@
+{
+    "format_version": "1.2",
+    "exported_at": "2025-12-16T02:31:19+00:00",
+    "character": {
+        "public_id": "valiant-warrior-7jaj",
+        "name": "Armorer L10",
+        "race": "phb:half-elf-drow-dark-elf-ancestry",
+        "background": "scag:cloistered-scholar",
+        "alignment": "Chaotic Neutral",
+        "ability_scores": {
+            "strength": 8,
+            "dexterity": 13,
+            "constitution": 14,
+            "intelligence": 12,
+            "wisdom": 15,
+            "charisma": 10
+        },
+        "max_hit_points": 71,
+        "current_hit_points": 71,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "equipment",
+        "size_id": null,
+        "asi_choices_remaining": 2,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "erlw:artificer",
+                "subclass": "tce:artificer-armorer",
+                "level": 10,
+                "is_primary": true,
+                "hit_dice_spent": 0
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:prestidigitation",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:mending",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:magic-missile",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:thunderwave",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:mirror-image",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:shatter",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:hypnotic-pattern",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:lightning-bolt",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 9
+            },
+            {
+                "spell": "xge:create-bonfire",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 10
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:robes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "borrowed book on the subject of your current study",
+                "custom_description": "{\"source\":\"background\",\"description\":\"borrowed book on the subject of your current study\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:dagger",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_1\",\"selected_option\":\"a\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:scale-mail",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_2\",\"selected_option\":\"b\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:light-crossbow",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "20 bolts",
+                "custom_description": "{\"source\":\"class\",\"description\":\"20 bolts\"}",
+                "quantity": 20,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:thieves-tools",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:dungeoneers-pack",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:celestial",
+                "source": "background"
+            },
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:draconic",
+                "source": "race"
+            },
+            {
+                "language": "core:elvish",
+                "source": "race"
+            },
+            {
+                "language": "core:sphinx",
+                "source": "background"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:history",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:medicine",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_2"
+                },
+                {
+                    "skill": "core:investigation",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_2"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:cooks-utensils",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [
+            {
+                "feature": "erlw:enhanced-arcane-focus",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 6,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:enhanced-defense",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:radiant-weapon-level-6",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 6,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:returning-weapon",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "tce:armor-of-magical-strength",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "tce:helm-of-awareness-level-10",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 10,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "tce:mind-sharpener",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "tce:spell-refueling-ring-level-6",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 10,
+                "uses_remaining": null,
+                "max_uses": null
+            }
+        ],
+        "notes": [],
+        "ability_score_choices": [
+            {
+                "ability_score_code": "CHA",
+                "bonus": 1,
+                "source": "race",
+                "choice_group": "ability_score_choice_1"
+            },
+            {
+                "ability_score_code": "STR",
+                "bonus": 1,
+                "source": "race",
+                "choice_group": "ability_score_choice_1"
+            }
+        ],
+        "spell_slots": [],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-elf",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-elf",
+                    "trait_name": "Fey Ancestry"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-elf",
+                    "trait_name": "Skill Versatility"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-elf-drow-dark-elf-ancestry",
+                    "trait_name": "Variant: Drow Magic"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer",
+                    "feature_name": "Magical Tinkering",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "scag:cloistered-scholar",
+                    "trait_name": "Feature: Library Access"
+                },
+                "source": "background",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer",
+                    "feature_name": "Infuse Item",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer",
+                    "feature_name": "Artificer Specialist",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer",
+                    "feature_name": "The Right Tool for the Job",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:artificer-armorer",
+                    "feature_name": "Artificer Specialist: Armorer",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:artificer-armorer",
+                    "feature_name": "Tools of the Trade (Armorer)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:artificer-armorer",
+                    "feature_name": "Armorer Spells (Armorer)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:artificer-armorer",
+                    "feature_name": "Arcane Armor (Armorer)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:artificer-armorer",
+                    "feature_name": "Armor Model (Armorer)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer",
+                    "feature_name": "Tool Expertise",
+                    "level": 6
+                },
+                "source": "class",
+                "level_acquired": 6,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer",
+                    "feature_name": "Flash of Genius",
+                    "level": 7
+                },
+                "source": "class",
+                "level_acquired": 7,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer",
+                    "feature_name": "Magic Item Adept",
+                    "level": 10
+                },
+                "source": "class",
+                "level_acquired": 10,
+                "uses_remaining": null,
+                "max_uses": null
+            }
+        ],
+        "portrait": null
+    }
+}

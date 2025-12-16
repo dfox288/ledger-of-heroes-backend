@@ -1,0 +1,382 @@
+{
+    "format_version": "1.2",
+    "exported_at": "2025-12-16T02:25:51+00:00",
+    "character": {
+        "public_id": "storm-rogue-2liP",
+        "name": "Alchemist L3",
+        "race": "dmg:aasimar-legacy",
+        "background": "vrgtr:investigator-van-richtens",
+        "alignment": "Neutral Good",
+        "ability_scores": {
+            "strength": 8,
+            "dexterity": 12,
+            "constitution": 10,
+            "intelligence": 15,
+            "wisdom": 14,
+            "charisma": 13
+        },
+        "max_hit_points": 18,
+        "current_hit_points": 18,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": null,
+        "asi_choices_remaining": 0,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "erlw:artificer",
+                "subclass": "erlw:artificer-alchemist",
+                "level": 3,
+                "is_primary": true,
+                "hit_dice_spent": 0
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:healing-word",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:message",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:ray-of-sickness",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 3
+            },
+            {
+                "spell": "tce:booming-blade",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:magnifying-glass",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:trinket",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:common-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 125,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:celestial",
+                "source": "race"
+            },
+            {
+                "language": "core:common",
+                "source": "race"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:medicine",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_2"
+                },
+                {
+                    "skill": "core:perception",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_2"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:disguise-kit",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "type": "core:thieves-tools",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "type": "core:woodcarvers-tools",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [
+            {
+                "feature": "erlw:enhanced-arcane-focus",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:enhanced-defense",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:returning-weapon",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "tce:mind-sharpener",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            }
+        ],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:aasimar",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:aasimar",
+                    "trait_name": "Celestial Resistance"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:aasimar",
+                    "trait_name": "Celestial Legacy"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:aasimar-legacy",
+                    "trait_name": "Radiant Consumption"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer",
+                    "feature_name": "Magical Tinkering",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "vrgtr:investigator-van-richtens",
+                    "trait_name": "Feature: Official Inquiry"
+                },
+                "source": "background",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer",
+                    "feature_name": "Infuse Item",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer",
+                    "feature_name": "Artificer Specialist",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer",
+                    "feature_name": "The Right Tool for the Job",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer-alchemist",
+                    "feature_name": "Artificer Specialist: Alchemist",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer-alchemist",
+                    "feature_name": "Tool Proficiency (Alchemist)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer-alchemist",
+                    "feature_name": "Alchemist Spells (Alchemist)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "erlw:artificer-alchemist",
+                    "feature_name": "Experimental Elixir (Alchemist)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3,
+                "uses_remaining": null,
+                "max_uses": null
+            }
+        ],
+        "portrait": null
+    }
+}

@@ -1,8 +1,8 @@
 # Ledger of Heroes - Backend Project Status
 
-**Last Updated:** 2025-12-12
+**Last Updated:** 2025-12-16
 **Branch:** main
-**Status:** ✅ Refactoring & Test Coverage Complete
+**Status:** ✅ Active Development
 
 ---
 
@@ -10,23 +10,24 @@
 
 | Metric | Value |
 |--------|-------|
-| **Tests** | 2,880+ passing (~11,600 assertions) - All test suites |
-| **Test Coverage** | ~23% (Unit suites combined) - ongoing improvements |
-| **Test Files** | 310+ |
-| **Filter Tests** | 151 operator tests (2,750+ assertions) - 100% coverage |
-| **Character Builder Tests** | 200+ tests (3,000+ assertions) |
-| **Duration** | ~11s (Unit-Pure), ~21s (Unit-DB), ~20s (Feature-DB), ~35s (Feature-Search) |
+| **Tests** | 3,260+ passing (~13,000 assertions) |
+| **Test Files** | 470 |
+| **Duration** | ~19s (Unit-Pure), ~65s (Unit-DB), ~31s (Feature-DB) |
 | **Models** | 58 |
 | **API** | 80 Resources + 44 Controllers + 36 Form Requests |
 | **Importers** | 9 working (Strategy Pattern) |
-| **Import Commands** | 12 (10 standardized with BaseImportCommand) |
-| **Monster Strategies** | 12 (95%+ coverage) |
-| **Importer Traits** | 19 reusable (~400 lines eliminated) |
-| **Parser Traits** | 17 reusable (~150 lines eliminated) |
 | **Search** | 3,600+ documents indexed (Scout + Meilisearch) |
 | **Code Quality** | Laravel Pint formatted |
-| **Enums** | 3 (AbilityScoreMethod, ItemTypeCode, CharacterSource) |
-| **DTOs** | 6 (AsiChoiceResult, PrerequisiteResult, ProficiencyStatus, LevelUpResult, CharacterImportResult, + 1 existing) |
+
+### Test Suite Breakdown
+
+| Suite | Tests | Assertions | Status |
+|-------|-------|------------|--------|
+| Unit-Pure | 911 | 2,926 | ✅ |
+| Unit-DB | 1,364 | 3,742 | ✅ |
+| Feature-DB | 655 | 3,626 | ✅ |
+| Feature-Search | ~300 | ~2,500 | ✅ |
+| Importers | 330 | 2,038 | ⚠️ 6 failing |
 
 ---
 
@@ -649,44 +650,23 @@ All controllers now have consistent error response documentation with HTTP statu
 
 ---
 
-## 🎯 Next Priorities
+## 🎯 Current Priorities
 
-### Priority 1: Slug-Based Character References (Epic #288)
-- **Status:** In progress - 9 issues created
-- Add `full_slug` column to entity tables for URL-safe references
-- Update API layer, service layer, and test suites
-- Improve character data portability and URL readability
+### Active Work
+- **#701** - Class/Subclass Fixture Generation Campaign
+- **#693** - Class/Subclass Audit & Validation System
 
-### Priority 2: Character HP Auto-Initialization (Issue #254)
-- **Status:** Ready for implementation
-- Automatic HP calculation on character creation and level-up
-- Integration with existing level-up flow
+### Open Backend Issues
+- **#717** - Limited-use tracking for racial traits (Breath Weapon, Drow Magic)
+- **#671** - Character API: Add experience_points field
+- **#658** - DM Screen: Legendary/lair actions for boss monsters
+- **#657** - DM Screen: Monster saving throws
+- **#607** - Party stats: Add class resources
+- **#519** - Test anti-pattern cleanup (tautological tests)
+- **#499** - Phase 4: D&D 5e compliance polish
+- **#95** - XP-Based Leveling
 
-### Priority 3: Feature Uses Tracking (Issue #256)
-- **Status:** Ready for implementation
-- Track limited-use abilities (per short rest, per long rest, etc.)
-- Reset tracking on appropriate rest type
-
-### Priority 4: Test Coverage to 80% (Epic #240)
-- **Status:** 6 of 9 sub-issues closed
-- Remaining: #235 (ReplaceClassService), #236 (2 controllers), #239 (SpellManagerService)
-
-### Backlog
-- Character Export (Issue #122) - Export to PDF/JSON format
-- XP-Based Leveling (Issue #95) - Automatic leveling on XP threshold
-- Missing Subclasses (Issue #9) - Explorer's Guide to Wildemount content
-- Batch API Endpoints (Issues #242, #243)
-- Parser Improvements (Issues #279, #280)
-
-### Recently Completed
-- ✅ Spell Scaling Increment Parsing (Issue #198) - PR #99 merged
-- ✅ Coverage issues #231, #232, #233, #234, #237, #238 - All closed
-- ✅ Character Builder API Documentation (Issue #155) - PR #48 merged
-- ✅ OpenAPI Type Annotations (Issues #157, #158, #159) - PR #47 merged
-- ✅ Proficiency Choice Metadata (Issue #168) - PR #46 merged
-- ✅ Unified Character Choice System (Issue #246) - PR #68 merged
-- ✅ Enhanced Stats Endpoint (Issue #255) - PR #69 merged
-- ✅ Equipment Choice Improvements (Issues #281-286) - All merged
+Check current issues: `gh issue list --repo dfox288/ledger-of-heroes --label "backend" --state open`
 
 ---
 
@@ -762,9 +742,4 @@ docker compose exec php php artisan search:configure-indexes
 
 ---
 
-**Last Updated:** 2025-12-08
-**Next Session:** Feature Uses Tracking (#256), Test Coverage (#240), or XP-Based Leveling (#95)
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
+**Last Updated:** 2025-12-16

@@ -43,7 +43,7 @@ Track progress through all 13 base classes:
 
 | Class | Subclasses | Status |
 |-------|------------|--------|
-| Artificer | 4 | In Progress |
+| Artificer | 4 | Pending |
 | Barbarian | 8 | Pending |
 | Bard | 8 | Pending |
 | Cleric | 14 | Pending |
@@ -56,6 +56,8 @@ Track progress through all 13 base classes:
 | Sorcerer | 6 | Pending |
 | Warlock | 9 | Pending |
 | Wizard | 13 | Pending |
+
+**Progress:** 0/13 classes - Schema changes require regeneration
 
 ## Output Location
 

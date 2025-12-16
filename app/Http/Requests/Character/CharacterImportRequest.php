@@ -20,7 +20,7 @@ class CharacterImportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'format_version' => ['required', 'string', 'in:1.0,1.1,1.2'],
+            'format_version' => ['required', 'string', 'in:1.0,1.1,1.2,1.3'],
             'character' => ['required', 'array'],
             'character.public_id' => ['required', 'string', 'max:255'],
             'character.name' => ['required', 'string', 'max:255'],
@@ -153,6 +153,15 @@ class CharacterImportRequest extends FormRequest
             'character.portrait.filename' => ['required_with:character.portrait', 'string', 'max:255'],
             'character.portrait.mime_type' => ['required_with:character.portrait', 'string', 'in:image/jpeg,image/png,image/webp'],
             'character.portrait.data' => ['required_with:character.portrait', 'string'],
+
+            // v1.3 fields - Counters (limited-use resources)
+            'character.counters' => ['array'],
+            'character.counters.*.source_type' => ['required', 'string', 'in:class,feat,race'],
+            'character.counters.*.source_slug' => ['required', 'string', 'max:255'],
+            'character.counters.*.counter_name' => ['required', 'string', 'max:255'],
+            'character.counters.*.current_uses' => ['nullable', 'integer'],
+            'character.counters.*.max_uses' => ['required', 'integer', 'min:-1'],
+            'character.counters.*.reset_timing' => ['nullable', 'string', 'in:S,L,D'],
         ];
     }
 
@@ -162,7 +171,7 @@ class CharacterImportRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'format_version.in' => 'Unsupported format version. Supported versions: 1.0, 1.1, 1.2.',
+            'format_version.in' => 'Unsupported format version. Supported versions: 1.0, 1.1, 1.2, 1.3.',
             'character.required' => 'Character data is required.',
         ];
     }

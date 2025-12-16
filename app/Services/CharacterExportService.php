@@ -13,7 +13,7 @@ use App\Support\EntityTypeMapping;
  */
 class CharacterExportService
 {
-    private const FORMAT_VERSION = '1.2';
+    private const FORMAT_VERSION = '1.3';
 
     /**
      * Export a character as portable JSON.
@@ -34,6 +34,7 @@ class CharacterExportService
             'abilityScores',
             'spellSlots',
             'features.feature',  // Load feature; characterClass loaded lazily for ClassFeature only
+            'counters',
             'media',
         ]);
 
@@ -295,59 +296,19 @@ class CharacterExportService
     /**
      * Build counters (limited-use resources like Rage, Ki Points, Lucky, etc.).
      *
-     * Exports features with max_uses set (counters), formatted for audit/validation.
-     * Supports ClassFeatures and Feats. CharacterTraits (racial) not yet supported
-     * as they lack resets_on data - see issue #717 for future support.
+     * Exports from the character_counters table, which is the single source of truth
+     * for resource pools. Format is portable (uses slugs, not IDs).
      */
     private function buildCounters(Character $character): array
     {
-        // Get counters with max_uses from supported feature types
-        $counterFeatures = $character->features
-            ->filter(fn ($cf) => $cf->max_uses !== null)
-            ->filter(fn ($cf) => $cf->feature instanceof \App\Models\ClassFeature
-                || $cf->feature instanceof \App\Models\Feat);
-
-        // Eager load characterClass for ClassFeatures to avoid N+1
-        $classFeatures = $counterFeatures
-            ->filter(fn ($cf) => $cf->feature instanceof \App\Models\ClassFeature)
-            ->map(fn ($cf) => $cf->feature)
-            ->filter();
-
-        if ($classFeatures->isNotEmpty()) {
-            (new \Illuminate\Database\Eloquent\Collection($classFeatures))->loadMissing('characterClass');
-        }
-
-        return $counterFeatures
-            ->map(function ($cf) {
-                $feature = $cf->feature;
-
-                // Get reset timing from the feature
-                $resetOn = $feature->resets_on?->value ?? $feature->resets_on;
-
-                // Get source based on feature type
-                if ($feature instanceof \App\Models\ClassFeature) {
-                    $source = $feature->characterClass?->name ?? 'Unknown';
-                } else {
-                    // Feat - use "Feat" as source
-                    $source = 'Feat';
-                }
-
-                // Get name based on feature type (ClassFeature uses feature_name, Feat uses name)
-                $name = $feature instanceof \App\Models\ClassFeature
-                    ? $feature->feature_name
-                    : $feature->name;
-
-                return [
-                    'name' => $name,
-                    'current' => $cf->uses_remaining,
-                    'max' => $cf->max_uses,
-                    'reset_on' => $resetOn,
-                    'source' => $source,
-                    'source_type' => $cf->source,
-                ];
-            })
-            ->values()
-            ->toArray();
+        return $character->counters->map(fn ($counter) => [
+            'source_type' => $counter->source_type,
+            'source_slug' => $counter->source_slug,
+            'counter_name' => $counter->counter_name,
+            'current_uses' => $counter->current_uses,
+            'max_uses' => $counter->max_uses,
+            'reset_timing' => $counter->reset_timing,
+        ])->toArray();
     }
 
     /**

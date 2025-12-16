@@ -22,8 +22,8 @@ use App\Services\CharacterLanguageService;
 use App\Services\CharacterProficiencyService;
 use App\Services\CharacterRaceAssignmentService;
 use App\Services\CharacterStatCalculator;
+use App\Services\CounterService;
 use App\Services\FeatChoiceService;
-use App\Services\FeatureUseService;
 use App\Services\HitDiceService;
 use App\Services\SpellManagerService;
 use App\Services\SpellSlotService;
@@ -43,7 +43,7 @@ class CharacterController extends Controller
         private HitDiceService $hitDiceService,
         private FeatChoiceService $featChoiceService,
         private AbilityBonusService $abilityBonusService,
-        private FeatureUseService $featureUseService,
+        private CounterService $counterService,
         private CharacterChoiceService $choiceService,
         private CharacterClassAssignmentService $classAssignmentService,
         private CharacterRaceAssignmentService $raceAssignmentService,
@@ -400,7 +400,7 @@ class CharacterController extends Controller
             $this->spellSlotService,
             $this->hitDiceService,
             $this->featChoiceService,
-            $this->featureUseService,
+            $this->counterService,
             $this->choiceService
         );
 

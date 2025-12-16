@@ -42,6 +42,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #715**: Populate `class_slug` on character spells for multiclass support
+  - Subclass-granted spells (e.g., Cleric Domain Spells) now have `class_slug` set
+  - Fixes `CharacterFeatureService::createSpellIfNotExists()` to pass class slug through the call chain
+  - Frontend can now correctly group spells by granting class for multiclass characters
+
 - **Issue #678/#682**: Paladin/Ranger Fighting Style counter incorrect (showed 2 instead of 1)
   - Root cause: Parser matched "Fighting Style: Blessed Warrior" features from TCE supplement
   - The description "You learn two cantrips" was incorrectly parsed as "2 fighting styles"
@@ -49,6 +54,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Affects: Paladin L2, Ranger L2 (both now correctly show 1 fighting style)
 
 ### Added
+
+- **Issue #715**: Add per-class preparation limits to spell-slots endpoint
+  - New `preparation_limits` field in `/spell-slots` response keyed by class slug
+  - Each class shows its individual limit and prepared count
+  - Supports multiclass characters with separate limits per class
+  - Example: `{"phb:wizard": {"limit": 8, "prepared": 3}, "phb:cleric": {"limit": 7, "prepared": 4}}`
+  - Known casters (Sorcerer, Bard, etc.) excluded as they don't prepare spells
 
 - **Issue #685**: Add counters to party stats endpoint for DM Screen
   - Adds `counters` array to each character in `GET /parties/{id}/stats` response

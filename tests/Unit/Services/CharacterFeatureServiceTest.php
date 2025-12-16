@@ -652,4 +652,69 @@ class CharacterFeatureServiceTest extends TestCase
             'Spell should be upgraded to always_prepared when domain grants it'
         );
     }
+
+    #[Test]
+    public function it_sets_class_slug_on_subclass_granted_spells(): void
+    {
+        // Issue #715: class_slug should be populated for multiclass spellcasting support
+        // When a subclass grants spells (e.g., Cleric Domain Spells), the class_slug
+        // should identify which class granted the spell
+
+        // Create Cleric base class
+        $clericClass = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'test-cleric-'.uniqid(),
+        ]);
+
+        // Create Grave Domain subclass
+        $graveDomain = CharacterClass::factory()->create([
+            'name' => 'Grave Domain',
+            'slug' => 'test-cleric-grave-domain-'.uniqid(),
+            'parent_class_id' => $clericClass->id,
+        ]);
+
+        // Create Domain Spells feature
+        $domainSpells = ClassFeature::create([
+            'class_id' => $graveDomain->id,
+            'level' => 1,
+            'feature_name' => 'Domain Spells (Grave Domain)',
+            'description' => 'Grave domain spells.',
+            'is_optional' => false,
+            'is_always_prepared' => true,
+        ]);
+
+        // Create a domain spell
+        $bane = \App\Models\Spell::factory()->create([
+            'name' => 'Bane',
+            'slug' => 'test-bane-'.uniqid(),
+            'level' => 1,
+        ]);
+
+        // Attach spell to domain
+        $domainSpells->spells()->attach($bane->id, [
+            'level_requirement' => 1,
+            'is_cantrip' => false,
+        ]);
+
+        // Create a character with Cleric class
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $clericClass->slug,
+            'level' => 1,
+        ]);
+
+        // Populate subclass features (this grants the domain spells)
+        $this->service->populateFromSubclass($character, $clericClass->slug, $graveDomain->slug);
+
+        // Verify the spell has the correct class_slug
+        $character->refresh();
+        $baneSpell = $character->spells()->where('spell_slug', $bane->slug)->first();
+
+        $this->assertNotNull($baneSpell, 'Bane should be assigned');
+        $this->assertEquals(
+            $clericClass->slug,
+            $baneSpell->class_slug,
+            'Domain spell should have class_slug set to the granting class'
+        );
+    }
 }

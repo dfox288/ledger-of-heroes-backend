@@ -185,7 +185,7 @@ class CharacterFeatureService
             );
 
             // Assign spells granted by this feature
-            $this->assignSpellsFromFeature($character, $feature, $characterLevel);
+            $this->assignSpellsFromFeature($character, $feature, $characterLevel, $classSlug);
         }
 
         $character->load(['features', 'spells']);
@@ -203,8 +203,10 @@ class CharacterFeatureService
      * Respects level_requirement from the entity_spells pivot, so higher-level
      * domain spells aren't assigned until the character reaches that level.
      * Spells with NULL level_requirement are granted immediately (e.g., bonus cantrips).
+     *
+     * @param  string  $classSlug  The base class slug for multiclass spellcasting support (Issue #715)
      */
-    private function assignSpellsFromFeature(Character $character, ClassFeature $feature, int $characterLevel): void
+    private function assignSpellsFromFeature(Character $character, ClassFeature $feature, int $characterLevel, string $classSlug): void
     {
         // Only auto-assign spells for "always prepared" features (Cleric domains, Paladin oaths, etc.)
         // Warlock expanded spells (is_always_prepared=false) just expand the available pool
@@ -234,7 +236,8 @@ class CharacterFeatureService
                 $spell->slug,
                 'subclass',
                 $levelAcquired,
-                'always_prepared'
+                'always_prepared',
+                $classSlug
             );
         }
     }
@@ -250,13 +253,16 @@ class CharacterFeatureService
      * If the spell already exists and the new grant is 'always_prepared',
      * upgrades the existing spell to always_prepared (domain spells should
      * always be prepared even if already known from another source).
+     *
+     * @param  string|null  $classSlug  The class that grants this spell (Issue #715)
      */
     private function createSpellIfNotExists(
         Character $character,
         string $spellSlug,
         string $source,
         int $levelAcquired,
-        string $preparationStatus
+        string $preparationStatus,
+        ?string $classSlug = null
     ): void {
         $spell = CharacterSpell::firstOrCreate(
             [
@@ -267,6 +273,7 @@ class CharacterFeatureService
                 'source' => $source,
                 'level_acquired' => $levelAcquired,
                 'preparation_status' => $preparationStatus,
+                'class_slug' => $classSlug,
             ]
         );
 
@@ -310,7 +317,7 @@ class CharacterFeatureService
             ->filter(fn ($feature) => $feature->is_always_prepared);
 
         foreach ($features as $feature) {
-            $this->assignSpellsFromFeature($character, $feature, $characterLevel);
+            $this->assignSpellsFromFeature($character, $feature, $characterLevel, $classSlug);
         }
 
         $character->load('spells');

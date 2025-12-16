@@ -15,6 +15,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Command now runs automatically after spells import in `import:all`
   - Links 11 bonus cantrips including Light Domain, Grave Domain, The Celestial, The Undying, and others
 
+### Changed
+
+- **Issue #717**: Polymorphic counter system for racial traits
+  - Renamed `class_counters` table to `entity_counters` with polymorphic `reference_type`/`reference_id` columns
+  - Renamed `ClassCounter` model to `EntityCounter` (ClassCounter kept as deprecated alias)
+  - Updated CharacterClass and Feat models to use `morphMany` for counters relationship
+  - Added `counters()` relationship to CharacterTrait for racial trait usage tracking
+  - Added `resets_on` column to `entity_traits` table for trait reset timing
+  - Added `max_uses`, `uses_remaining`, `resets_on` columns to `character_spells` for innate spellcasting
+  - Updated all importers and services to use polymorphic counter structure
+  - Backwards-compatible factory handles legacy `class_id`/`feat_id` attributes in tests
+
 ### Added
 
 - **Issue #711**: Feature-to-resource cost mappings for optional features

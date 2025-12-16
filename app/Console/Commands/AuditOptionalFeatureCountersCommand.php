@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\CharacterClass;
-use App\Models\ClassCounter;
+use App\Models\EntityCounter;
 use Illuminate\Console\Command;
 
 /**
@@ -140,7 +140,8 @@ class AuditOptionalFeatureCountersCommand extends Command
     {
         // Try each possible counter name
         foreach ($counterNames as $counterName) {
-            $counter = ClassCounter::where('class_id', $classId)
+            $counter = EntityCounter::where('reference_type', CharacterClass::class)
+                ->where('reference_id', $classId)
                 ->where('counter_name', $counterName)
                 ->where('level', $level)
                 ->first();
@@ -153,7 +154,8 @@ class AuditOptionalFeatureCountersCommand extends Command
         // Also check if there's a counter at a lower level that applies
         // (counters may not have entries for every level)
         foreach ($counterNames as $counterName) {
-            $counter = ClassCounter::where('class_id', $classId)
+            $counter = EntityCounter::where('reference_type', CharacterClass::class)
+                ->where('reference_id', $classId)
                 ->where('counter_name', $counterName)
                 ->where('level', '<=', $level)
                 ->orderBy('level', 'desc')
@@ -175,7 +177,8 @@ class AuditOptionalFeatureCountersCommand extends Command
     private function findMatchingCounterName(int $classId, array $counterNames): ?string
     {
         foreach ($counterNames as $counterName) {
-            $exists = ClassCounter::where('class_id', $classId)
+            $exists = EntityCounter::where('reference_type', CharacterClass::class)
+                ->where('reference_id', $classId)
                 ->where('counter_name', $counterName)
                 ->exists();
 

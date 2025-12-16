@@ -3,7 +3,7 @@
 namespace App\Services\Importers\Concerns;
 
 use App\Models\CharacterClass;
-use App\Models\ClassCounter;
+use App\Models\EntityCounter;
 
 /**
  * Trait for importing class resource counters (Ki, Rage, etc.).
@@ -29,10 +29,11 @@ trait ImportsClassCounters
             };
 
             // Use updateOrCreate to prevent duplicates on re-import
-            // Unique key: class_id + level + counter_name
-            ClassCounter::updateOrCreate(
+            // Unique key: reference_type + reference_id + level + counter_name
+            EntityCounter::updateOrCreate(
                 [
-                    'class_id' => $class->id,
+                    'reference_type' => CharacterClass::class,
+                    'reference_id' => $class->id,
                     'level' => $counterData['level'],
                     'counter_name' => $counterData['name'],
                 ],

@@ -3,7 +3,7 @@
 namespace Tests\Feature\Importers;
 
 use App\Enums\ResetTiming;
-use App\Models\ClassCounter;
+use App\Models\EntityCounter;
 use App\Models\Feat;
 use App\Services\Importers\FeatImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -50,14 +50,15 @@ class FeatImporterCounterTest extends TestCase
 
         $this->assertInstanceOf(Feat::class, $feat);
 
-        // Verify counter was created
-        $counter = ClassCounter::where('feat_id', $feat->id)->first();
+        // Verify counter was created using polymorphic columns
+        $counter = EntityCounter::where('reference_type', Feat::class)
+            ->where('reference_id', $feat->id)
+            ->first();
 
         $this->assertNotNull($counter);
         $this->assertEquals(3, $counter->counter_value);
         $this->assertEquals('L', $counter->reset_timing);
         $this->assertEquals(1, $counter->level);
-        $this->assertNull($counter->class_id);
     }
 
     #[Test]
@@ -81,7 +82,9 @@ class FeatImporterCounterTest extends TestCase
         ];
 
         $feat = $this->importer->import($featData);
-        $counter = ClassCounter::where('feat_id', $feat->id)->first();
+        $counter = EntityCounter::where('reference_type', Feat::class)
+            ->where('reference_id', $feat->id)
+            ->first();
 
         $this->assertNotNull($counter);
         $this->assertEquals(1, $counter->counter_value);
@@ -109,7 +112,9 @@ class FeatImporterCounterTest extends TestCase
         ];
 
         $feat = $this->importer->import($featData);
-        $counter = ClassCounter::where('feat_id', $feat->id)->first();
+        $counter = EntityCounter::where('reference_type', Feat::class)
+            ->where('reference_id', $feat->id)
+            ->first();
 
         $this->assertNotNull($counter);
         $this->assertEquals(1, $counter->counter_value);
@@ -139,7 +144,9 @@ class FeatImporterCounterTest extends TestCase
         $feat = $this->importer->import($featData);
 
         // No counter should be created
-        $counter = ClassCounter::where('feat_id', $feat->id)->first();
+        $counter = EntityCounter::where('reference_type', Feat::class)
+            ->where('reference_id', $feat->id)
+            ->first();
         $this->assertNull($counter);
     }
 
@@ -168,7 +175,9 @@ class FeatImporterCounterTest extends TestCase
         $feat = $this->importer->import($featData);
 
         // Should only have one counter (updated, not duplicated)
-        $counters = ClassCounter::where('feat_id', $feat->id)->get();
+        $counters = EntityCounter::where('reference_type', Feat::class)
+            ->where('reference_id', $feat->id)
+            ->get();
         $this->assertCount(1, $counters);
         $this->assertEquals(3, $counters->first()->counter_value);
     }

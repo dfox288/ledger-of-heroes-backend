@@ -8,6 +8,7 @@ use App\Models\CharacterClass;
 use App\Models\CharacterFeature;
 use App\Models\ClassCounter;
 use App\Models\ClassFeature;
+use App\Models\EntityCounter;
 use App\Models\Feat;
 use App\Services\FeatureUseService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -576,9 +577,10 @@ class FeatureUseServiceTest extends TestCase
             'resets_on' => ResetTiming::LONG_REST,
         ]);
 
-        // Create counter for the feat
-        ClassCounter::create([
-            'feat_id' => $luckyFeat->id,
+        // Create counter for the feat using polymorphic columns
+        EntityCounter::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $luckyFeat->id,
             'level' => 1,
             'counter_name' => 'Luck Points',
             'counter_value' => 3,

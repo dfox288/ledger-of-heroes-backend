@@ -155,9 +155,9 @@ class CharacterClass extends BaseModel
         return $this->hasMany(ClassLevelProgression::class, 'class_id');
     }
 
-    public function counters(): HasMany
+    public function counters(): MorphMany
     {
-        return $this->hasMany(ClassCounter::class, 'class_id');
+        return $this->morphMany(EntityCounter::class, 'reference');
     }
 
     /**

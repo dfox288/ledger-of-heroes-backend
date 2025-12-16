@@ -4,8 +4,8 @@ namespace App\Services\Importers;
 
 use App\Enums\RequirementLogic;
 use App\Models\CharacterClass;
-use App\Models\ClassCounter;
 use App\Models\EntityChoice;
+use App\Models\EntityCounter;
 use App\Models\EntityItem;
 use App\Models\Proficiency;
 use App\Services\Importers\Concerns\ImportsClassCounters;
@@ -385,10 +385,11 @@ class ClassImporter extends BaseImporter
                 };
 
                 // Use updateOrCreate to prevent duplicates on re-import
-                // Unique key: class_id + level + counter_name
-                ClassCounter::updateOrCreate(
+                // Unique key: reference_type + reference_id + level + counter_name
+                EntityCounter::updateOrCreate(
                     [
-                        'class_id' => $subclass->id,
+                        'reference_type' => CharacterClass::class,
+                        'reference_id' => $subclass->id,
                         'level' => $counterData['level'],
                         'counter_name' => $counterData['name'],
                     ],

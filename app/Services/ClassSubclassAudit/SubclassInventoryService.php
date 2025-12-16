@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Services\ClassSubclassAudit;
 
 use App\Models\CharacterClass;
-use App\Models\ClassCounter;
 use App\Models\ClassFeature;
+use App\Models\EntityCounter;
 use Illuminate\Support\Collection;
 
 /**
@@ -224,7 +224,8 @@ class SubclassInventoryService
      */
     private function getCounterInventory(CharacterClass $subclass): array
     {
-        $counters = ClassCounter::where('class_id', $subclass->id)
+        $counters = EntityCounter::where('reference_type', CharacterClass::class)
+            ->where('reference_id', $subclass->id)
             ->orderBy('counter_name')
             ->orderBy('level')
             ->get();

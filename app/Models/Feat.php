@@ -13,7 +13,7 @@ use App\Models\Concerns\HasProficiencies;
 use App\Models\Concerns\HasProficiencyScopes;
 use App\Models\Concerns\HasSearchableHelpers;
 use App\Models\Concerns\HasSources;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
@@ -178,8 +178,8 @@ class Feat extends BaseModel
      * Feats with limited uses (like Lucky with 3 luck points) have
      * counter records storing the base uses and reset timing.
      */
-    public function counters(): HasMany
+    public function counters(): MorphMany
     {
-        return $this->hasMany(ClassCounter::class);
+        return $this->morphMany(EntityCounter::class, 'reference');
     }
 }

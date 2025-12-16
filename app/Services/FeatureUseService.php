@@ -4,9 +4,10 @@ namespace App\Services;
 
 use App\Enums\ResetTiming;
 use App\Models\Character;
+use App\Models\CharacterClass;
 use App\Models\CharacterFeature;
-use App\Models\ClassCounter;
 use App\Models\ClassFeature;
+use App\Models\EntityCounter;
 use App\Models\Feat;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -281,7 +282,8 @@ class FeatureUseService
     {
         // Find counter by matching feature_name to counter_name
         // Get the highest level counter <= character's class level
-        return ClassCounter::where('class_id', $feature->class_id)
+        return EntityCounter::where('reference_type', CharacterClass::class)
+            ->where('reference_id', $feature->class_id)
             ->where('counter_name', $feature->feature_name)
             ->where('level', '<=', $level)
             ->orderByDesc('level')
@@ -295,7 +297,8 @@ class FeatureUseService
      */
     private function getCounterValueForFeat(Feat $feat): ?int
     {
-        return ClassCounter::where('feat_id', $feat->id)
+        return EntityCounter::where('reference_type', Feat::class)
+            ->where('reference_id', $feat->id)
             ->value('counter_value');
     }
 }

@@ -4,8 +4,8 @@ namespace App\Services\Importers;
 
 use App\Enums\ResetTiming;
 use App\Models\AbilityScore;
-use App\Models\ClassCounter;
 use App\Models\DamageType;
+use App\Models\EntityCounter;
 use App\Models\Feat;
 use App\Models\Proficiency;
 use App\Services\Importers\Concerns\ImportsConditions;
@@ -238,7 +238,7 @@ class FeatImporter extends BaseImporter
     /**
      * Import feat counter if it has usage limits.
      *
-     * Creates a ClassCounter record linked to the feat (not a class).
+     * Creates an EntityCounter record linked to the feat.
      * Feats don't have level progression, so level is always 1.
      *
      * @param  array<string, mixed>  $data  Parsed feat data with base_uses and resets_on
@@ -266,13 +266,13 @@ class FeatImporter extends BaseImporter
         // Use parsed counter name if available, otherwise derive from feat name
         $counterName = $data['counter_name'] ?? $feat->name.' Uses';
 
-        ClassCounter::updateOrCreate(
+        EntityCounter::updateOrCreate(
             [
-                'feat_id' => $feat->id,
+                'reference_type' => Feat::class,
+                'reference_id' => $feat->id,
                 'counter_name' => $counterName,
             ],
             [
-                'class_id' => null,
                 'level' => 1, // Feats don't have level progression
                 'counter_value' => $baseUses,
                 'reset_timing' => $resetTiming,

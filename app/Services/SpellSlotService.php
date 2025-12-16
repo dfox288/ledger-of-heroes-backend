@@ -91,12 +91,15 @@ class SpellSlotService
 
         // Handle standard spell slots
         if ($slotResult->standardSlots) {
-            foreach ($slotResult->standardSlots as $level => $maxSlots) {
+            foreach ($slotResult->standardSlots as $levelKey => $maxSlots) {
+                // Convert ordinal key ("1st", "2nd") to integer (1, 2)
+                $spellLevel = $this->ordinalToInt($levelKey);
+
                 if ($maxSlots > 0) {
                     CharacterSpellSlot::updateOrCreate(
                         [
                             'character_id' => $character->id,
-                            'spell_level' => $level,
+                            'spell_level' => $spellLevel,
                             'slot_type' => SpellSlotType::STANDARD,
                         ],
                         [
@@ -108,7 +111,10 @@ class SpellSlotService
             }
 
             // Remove slots that are no longer available (if max became 0)
-            $validLevels = array_keys(array_filter($slotResult->standardSlots, fn ($v) => $v > 0));
+            $validLevels = array_map(
+                fn ($key) => $this->ordinalToInt($key),
+                array_keys(array_filter($slotResult->standardSlots, fn ($v) => $v > 0))
+            );
             $character->spellSlots()
                 ->where('slot_type', SpellSlotType::STANDARD)
                 ->whereNotIn('spell_level', $validLevels)
@@ -145,5 +151,16 @@ class SpellSlotService
                 ->where('slot_type', SpellSlotType::PACT_MAGIC)
                 ->delete();
         }
+    }
+
+    /**
+     * Convert ordinal string to integer.
+     *
+     * @param  string  $ordinal  e.g., "1st", "2nd", "3rd", "4th"
+     * @return int e.g., 1, 2, 3, 4
+     */
+    private function ordinalToInt(string $ordinal): int
+    {
+        return (int) preg_replace('/[^0-9]/', '', $ordinal);
     }
 }

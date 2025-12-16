@@ -1,8 +1,8 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-16T02:32:51+00:00",
+    "exported_at": "2025-12-16T02:55:11+00:00",
     "character": {
-        "public_id": "fierce-warden-kOpD",
+        "public_id": "ancient-hunter-9dfv",
         "name": "Artillerist L5",
         "race": "erlw:warforged",
         "background": "twbtw:witchlight-hand",
@@ -251,7 +251,14 @@
                 "choice_group": "ability_score_choice_1"
             }
         ],
-        "spell_slots": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
         "features": [
             {
                 "feature_type": "App\\Models\\CharacterTrait",

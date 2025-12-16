@@ -1,19 +1,19 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-16T02:25:47+00:00",
+    "exported_at": "2025-12-16T02:49:40+00:00",
     "character": {
-        "public_id": "shadow-hunter-2BO0",
+        "public_id": "bold-wanderer-oaAb",
         "name": "Alchemist L1",
-        "race": "phb:half-elf-mark-of-detection",
-        "background": "erlw:house-agent",
+        "race": "dmg:kobold-dmg-npc",
+        "background": "scag:uthgardt-tribe-member",
         "alignment": "Chaotic Evil",
         "ability_scores": {
             "strength": 10,
-            "dexterity": 14,
-            "constitution": 12,
-            "intelligence": 8,
-            "wisdom": 13,
-            "charisma": 15
+            "dexterity": 8,
+            "constitution": 13,
+            "intelligence": 15,
+            "wisdom": 14,
+            "charisma": 12
         },
         "max_hit_points": 8,
         "current_hit_points": 8,
@@ -23,7 +23,7 @@
         "experience_points": 0,
         "has_inspiration": false,
         "ability_score_method": "standard_array",
-        "equipment_mode": "equipment",
+        "equipment_mode": "gold",
         "size_id": null,
         "asi_choices_remaining": 0,
         "hp_levels_resolved": [
@@ -41,13 +41,13 @@
         ],
         "spells": [
             {
-                "spell": "tce:lightning-lure",
+                "spell": "phb:poison-spray",
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 1
             },
             {
-                "spell": "xge:magic-stone",
+                "spell": "tce:lightning-lure",
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 1
@@ -55,7 +55,7 @@
         ],
         "equipment": [
             {
-                "item": "phb:fine-clothes",
+                "item": "phb:hunting-trap",
                 "custom_name": null,
                 "custom_description": "{\"source\":\"background\"}",
                 "quantity": 1,
@@ -63,7 +63,7 @@
                 "location": "backpack"
             },
             {
-                "item": "phb:signet-ring",
+                "item": "phb:totem",
                 "custom_name": null,
                 "custom_description": "{\"source\":\"background\"}",
                 "quantity": 1,
@@ -71,9 +71,9 @@
                 "location": "backpack"
             },
             {
-                "item": null,
-                "custom_name": "identification papers",
-                "custom_description": "{\"source\":\"background\",\"description\":\"identification papers\"}",
+                "item": "phb:travelers-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
                 "quantity": 1,
                 "equipped": false,
                 "location": "backpack"
@@ -90,55 +90,15 @@
                 "item": "phb:gold-gp",
                 "custom_name": null,
                 "custom_description": "{\"source\":\"background\"}",
-                "quantity": 20,
+                "quantity": 10,
                 "equipped": false,
                 "location": "backpack"
             },
             {
-                "item": "phb:silvered-quarterstaff",
+                "item": "phb:gold-gp",
                 "custom_name": null,
-                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_1\",\"selected_option\":\"a\"}",
-                "quantity": 1,
-                "equipped": false,
-                "location": "backpack"
-            },
-            {
-                "item": "phb:scale-mail",
-                "custom_name": null,
-                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_2\",\"selected_option\":\"b\"}",
-                "quantity": 1,
-                "equipped": false,
-                "location": "backpack"
-            },
-            {
-                "item": "phb:light-crossbow",
-                "custom_name": null,
-                "custom_description": "{\"source\":\"class\"}",
-                "quantity": 1,
-                "equipped": false,
-                "location": "backpack"
-            },
-            {
-                "item": null,
-                "custom_name": "20 bolts",
-                "custom_description": "{\"source\":\"class\",\"description\":\"20 bolts\"}",
-                "quantity": 20,
-                "equipped": false,
-                "location": "backpack"
-            },
-            {
-                "item": "phb:thieves-tools",
-                "custom_name": null,
-                "custom_description": "{\"source\":\"class\"}",
-                "quantity": 1,
-                "equipped": false,
-                "location": "backpack"
-            },
-            {
-                "item": "phb:dungeoneers-pack",
-                "custom_name": null,
-                "custom_description": "{\"source\":\"class\"}",
-                "quantity": 1,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 125,
                 "equipped": false,
                 "location": "backpack"
             }
@@ -149,36 +109,36 @@
                 "source": "race"
             },
             {
-                "language": "core:deep-speech",
+                "language": "core:draconic",
                 "source": "race"
             },
             {
-                "language": "core:elvish",
-                "source": "race"
+                "language": "core:halfling",
+                "source": "background"
             }
         ],
         "proficiencies": {
             "skills": [
                 {
-                    "skill": "core:investigation",
+                    "skill": "core:athletics",
                     "source": "background",
                     "expertise": false,
                     "choice_group": null
                 },
                 {
-                    "skill": "core:persuasion",
+                    "skill": "core:survival",
                     "source": "background",
                     "expertise": false,
                     "choice_group": null
                 },
                 {
-                    "skill": "core:medicine",
+                    "skill": "core:nature",
                     "source": "class",
                     "expertise": false,
                     "choice_group": "skill_choice_2"
                 },
                 {
-                    "skill": "core:nature",
+                    "skill": "core:perception",
                     "source": "class",
                     "expertise": false,
                     "choice_group": "skill_choice_2"
@@ -186,8 +146,14 @@
             ],
             "types": [
                 {
-                    "type": "core:weavers-tools",
+                    "type": "core:alchemists-supplies",
                     "source": "class",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                },
+                {
+                    "type": "core:potters-tools",
+                    "source": "background",
                     "expertise": false,
                     "choice_group": "tool_choice_1"
                 }
@@ -196,20 +162,7 @@
         "conditions": [],
         "feature_selections": [],
         "notes": [],
-        "ability_score_choices": [
-            {
-                "ability_score_code": "CON",
-                "bonus": 1,
-                "source": "race",
-                "choice_group": "ability_score_choice_1"
-            },
-            {
-                "ability_score_code": "DEX",
-                "bonus": 1,
-                "source": "race",
-                "choice_group": "ability_score_choice_1"
-            }
-        ],
+        "ability_score_choices": [],
         "spell_slots": [],
         "features": [
             {
@@ -217,7 +170,20 @@
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "race",
-                    "entity_slug": "phb:half-elf",
+                    "entity_slug": "dmg:kobold",
+                    "trait_name": "Pack Tactics"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:kobold",
                     "trait_name": "Darkvision"
                 },
                 "source": "race",
@@ -230,60 +196,8 @@
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "race",
-                    "entity_slug": "phb:half-elf",
-                    "trait_name": "Fey Ancestry"
-                },
-                "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": {
-                    "type": "character_trait",
-                    "entity_type": "race",
-                    "entity_slug": "phb:half-elf",
-                    "trait_name": "Skill Versatility"
-                },
-                "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": {
-                    "type": "character_trait",
-                    "entity_type": "race",
-                    "entity_slug": "phb:half-elf-mark-of-detection",
-                    "trait_name": "Deductive Intuition"
-                },
-                "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": {
-                    "type": "character_trait",
-                    "entity_type": "race",
-                    "entity_slug": "phb:half-elf-mark-of-detection",
-                    "trait_name": "Magical Detection"
-                },
-                "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": {
-                    "type": "character_trait",
-                    "entity_type": "race",
-                    "entity_slug": "phb:half-elf-mark-of-detection",
-                    "trait_name": "Spells of the Mark"
+                    "entity_slug": "dmg:kobold",
+                    "trait_name": "Sunlight Sensitivity"
                 },
                 "source": "race",
                 "level_acquired": 1,
@@ -321,8 +235,8 @@
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "background",
-                    "entity_slug": "erlw:house-agent",
-                    "trait_name": "Feature: House Connections"
+                    "entity_slug": "scag:uthgardt-tribe-member",
+                    "trait_name": "Feature: Uthgardt Heritage"
                 },
                 "source": "background",
                 "level_acquired": 1,

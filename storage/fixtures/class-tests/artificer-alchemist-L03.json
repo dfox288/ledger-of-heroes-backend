@@ -1,22 +1,22 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-16T02:25:51+00:00",
+    "exported_at": "2025-12-16T02:49:43+00:00",
     "character": {
-        "public_id": "storm-rogue-2liP",
+        "public_id": "dark-guardian-yyMH",
         "name": "Alchemist L3",
-        "race": "dmg:aasimar-legacy",
-        "background": "vrgtr:investigator-van-richtens",
-        "alignment": "Neutral Good",
+        "race": "dmg:bullywug-dmg-npc",
+        "background": "phb:spy",
+        "alignment": "Lawful Evil",
         "ability_scores": {
-            "strength": 8,
-            "dexterity": 12,
-            "constitution": 10,
-            "intelligence": 15,
+            "strength": 13,
+            "dexterity": 10,
+            "constitution": 8,
+            "intelligence": 12,
             "wisdom": 14,
-            "charisma": 13
+            "charisma": 15
         },
-        "max_hit_points": 18,
-        "current_hit_points": 18,
+        "max_hit_points": 16,
+        "current_hit_points": 16,
         "temp_hit_points": 0,
         "death_save_successes": 0,
         "death_save_failures": 0,
@@ -49,7 +49,7 @@
                 "level_acquired": 3
             },
             {
-                "spell": "phb:message",
+                "spell": "phb:mending",
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 1
@@ -69,15 +69,7 @@
         ],
         "equipment": [
             {
-                "item": "phb:magnifying-glass",
-                "custom_name": null,
-                "custom_description": "{\"source\":\"background\"}",
-                "quantity": 1,
-                "equipped": false,
-                "location": "backpack"
-            },
-            {
-                "item": "phb:trinket",
+                "item": "phb:crowbar",
                 "custom_name": null,
                 "custom_description": "{\"source\":\"background\"}",
                 "quantity": 1,
@@ -93,10 +85,18 @@
                 "location": "backpack"
             },
             {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
                 "item": "phb:gold-gp",
                 "custom_name": null,
                 "custom_description": "{\"source\":\"background\"}",
-                "quantity": 10,
+                "quantity": 15,
                 "equipped": false,
                 "location": "backpack"
             },
@@ -109,18 +109,21 @@
                 "location": "backpack"
             }
         ],
-        "languages": [
-            {
-                "language": "core:celestial",
-                "source": "race"
-            },
-            {
-                "language": "core:common",
-                "source": "race"
-            }
-        ],
+        "languages": [],
         "proficiencies": {
             "skills": [
+                {
+                    "skill": "core:deception",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:stealth",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
                 {
                     "skill": "core:medicine",
                     "source": "class",
@@ -128,7 +131,7 @@
                     "choice_group": "skill_choice_2"
                 },
                 {
-                    "skill": "core:perception",
+                    "skill": "core:sleight-of-hand",
                     "source": "class",
                     "expertise": false,
                     "choice_group": "skill_choice_2"
@@ -136,20 +139,14 @@
             ],
             "types": [
                 {
-                    "type": "core:disguise-kit",
-                    "source": "background",
-                    "expertise": false,
-                    "choice_group": null
-                },
-                {
-                    "type": "core:thieves-tools",
-                    "source": "background",
-                    "expertise": false,
-                    "choice_group": null
-                },
-                {
-                    "type": "core:woodcarvers-tools",
+                    "type": "core:masons-tools",
                     "source": "class",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                },
+                {
+                    "type": "core:dice-set",
+                    "source": "background",
                     "expertise": false,
                     "choice_group": "tool_choice_1"
                 }
@@ -158,7 +155,7 @@
         "conditions": [],
         "feature_selections": [
             {
-                "feature": "erlw:enhanced-arcane-focus",
+                "feature": "erlw:enhanced-defense",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
@@ -166,7 +163,15 @@
                 "max_uses": null
             },
             {
-                "feature": "erlw:enhanced-defense",
+                "feature": "erlw:enhanced-weapon",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:repeating-shot",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
@@ -180,27 +185,26 @@
                 "level_acquired": 2,
                 "uses_remaining": null,
                 "max_uses": null
-            },
-            {
-                "feature": "tce:mind-sharpener",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
             }
         ],
         "notes": [],
         "ability_score_choices": [],
-        "spell_slots": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
         "features": [
             {
                 "feature_type": "App\\Models\\CharacterTrait",
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "race",
-                    "entity_slug": "dmg:aasimar",
-                    "trait_name": "Darkvision"
+                    "entity_slug": "dmg:bullywug",
+                    "trait_name": "Amphibious"
                 },
                 "source": "race",
                 "level_acquired": 1,
@@ -212,8 +216,8 @@
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "race",
-                    "entity_slug": "dmg:aasimar",
-                    "trait_name": "Celestial Resistance"
+                    "entity_slug": "dmg:bullywug",
+                    "trait_name": "Speak with Frogs and Toads"
                 },
                 "source": "race",
                 "level_acquired": 1,
@@ -225,8 +229,8 @@
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "race",
-                    "entity_slug": "dmg:aasimar",
-                    "trait_name": "Celestial Legacy"
+                    "entity_slug": "dmg:bullywug",
+                    "trait_name": "Swamp Camouflage"
                 },
                 "source": "race",
                 "level_acquired": 1,
@@ -238,8 +242,21 @@
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "race",
-                    "entity_slug": "dmg:aasimar-legacy",
-                    "trait_name": "Radiant Consumption"
+                    "entity_slug": "dmg:bullywug",
+                    "trait_name": "Standing Leap"
+                },
+                "source": "race",
+                "level_acquired": 1,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:bullywug",
+                    "trait_name": "Swim speed"
                 },
                 "source": "race",
                 "level_acquired": 1,
@@ -277,8 +294,8 @@
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "background",
-                    "entity_slug": "vrgtr:investigator-van-richtens",
-                    "trait_name": "Feature: Official Inquiry"
+                    "entity_slug": "phb:spy",
+                    "trait_name": "Feature: Spy Contact"
                 },
                 "source": "background",
                 "level_acquired": 1,

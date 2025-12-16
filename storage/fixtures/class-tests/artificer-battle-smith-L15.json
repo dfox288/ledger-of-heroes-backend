@@ -1,8 +1,8 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-16T02:34:49+00:00",
+    "exported_at": "2025-12-16T02:56:42+00:00",
     "character": {
-        "public_id": "cunning-titan-y6en",
+        "public_id": "valiant-titan-etat",
         "name": "Battle Smith L15",
         "race": "dmg:grimlock-dmg-npc",
         "background": "scag:inheritor",
@@ -55,46 +55,22 @@
         ],
         "spells": [
             {
-                "spell": "phb:spare-the-dying",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
-                "spell": "phb:poison-spray",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
-                "spell": "phb:heroism",
+                "spell": "phb:aura-of-purity",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:shield",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:branding-smite",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:warding-bond",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 5
+                "level_acquired": 13
             },
             {
                 "spell": "phb:aura-of-vitality",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
                 "level_acquired": 9
+            },
+            {
+                "spell": "phb:branding-smite",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 5
             },
             {
                 "spell": "phb:conjure-barrage",
@@ -109,22 +85,46 @@
                 "level_acquired": 10
             },
             {
-                "spell": "phb:aura-of-purity",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 13
-            },
-            {
                 "spell": "phb:fire-shield",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
                 "level_acquired": 13
             },
             {
+                "spell": "phb:heroism",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 3
+            },
+            {
                 "spell": "phb:mage-hand",
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 14
+            },
+            {
+                "spell": "phb:poison-spray",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:shield",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:spare-the-dying",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:warding-bond",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 5
             }
         ],
         "equipment": [
@@ -260,10 +260,34 @@
         "conditions": [],
         "feature_selections": [
             {
+                "feature": "erlw:boots-of-the-winding-path-level-6",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 10,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:enhanced-arcane-focus",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 14,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
                 "feature": "erlw:enhanced-defense",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:enhanced-weapon",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 6,
                 "uses_remaining": null,
                 "max_uses": null
             },
@@ -284,18 +308,10 @@
                 "max_uses": null
             },
             {
-                "feature": "erlw:returning-weapon",
+                "feature": "erlw:repulsion-shield-level-6",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature": "erlw:enhanced-weapon",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 6,
+                "level_acquired": 14,
                 "uses_remaining": null,
                 "max_uses": null
             },
@@ -308,10 +324,10 @@
                 "max_uses": null
             },
             {
-                "feature": "erlw:boots-of-the-winding-path-level-6",
+                "feature": "erlw:returning-weapon",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 10,
+                "level_acquired": 2,
                 "uses_remaining": null,
                 "max_uses": null
             },
@@ -322,27 +338,36 @@
                 "level_acquired": 10,
                 "uses_remaining": null,
                 "max_uses": null
-            },
-            {
-                "feature": "erlw:enhanced-arcane-focus",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 14,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature": "erlw:repulsion-shield-level-6",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 14,
-                "uses_remaining": null,
-                "max_uses": null
             }
         ],
         "notes": [],
         "ability_score_choices": [],
-        "spell_slots": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 4,
+                "max_slots": 1,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
         "features": [
             {
                 "feature_type": "App\\Models\\CharacterTrait",

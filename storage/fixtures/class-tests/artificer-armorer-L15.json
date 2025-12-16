@@ -1,8 +1,8 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-16T02:31:38+00:00",
+    "exported_at": "2025-12-16T02:54:36+00:00",
     "character": {
-        "public_id": "silent-titan-h3qm",
+        "public_id": "mighty-mage-Ow1C",
         "name": "Armorer L15",
         "race": "phb:elf-drow-dark",
         "background": "phb:spy",
@@ -55,40 +55,22 @@
         ],
         "spells": [
             {
-                "spell": "phb:mending",
+                "spell": "phb:fire-shield",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 13
+            },
+            {
+                "spell": "phb:greater-invisibility",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 13
+            },
+            {
+                "spell": "phb:guidance",
                 "source": "class",
                 "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
-                "spell": "tce:sword-burst",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
-                "spell": "phb:magic-missile",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:thunderwave",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:mirror-image",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:shatter",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 5
+                "level_acquired": 10
             },
             {
                 "spell": "phb:hypnotic-pattern",
@@ -103,22 +85,40 @@
                 "level_acquired": 9
             },
             {
-                "spell": "phb:guidance",
+                "spell": "phb:magic-missile",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:mending",
                 "source": "class",
                 "preparation_status": "known",
-                "level_acquired": 10
+                "level_acquired": 1
             },
             {
-                "spell": "phb:fire-shield",
+                "spell": "phb:mirror-image",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
-                "level_acquired": 13
+                "level_acquired": 5
             },
             {
-                "spell": "phb:greater-invisibility",
+                "spell": "phb:shatter",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
-                "level_acquired": 13
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:thunderwave",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 3
+            },
+            {
+                "spell": "tce:sword-burst",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
             },
             {
                 "spell": "xge:magic-stone",
@@ -288,7 +288,15 @@
         "conditions": [],
         "feature_selections": [
             {
-                "feature": "erlw:repeating-shot",
+                "feature": "erlw:boots-of-the-winding-path-level-6",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 14,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:enhanced-arcane-focus",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
@@ -296,7 +304,23 @@
                 "max_uses": null
             },
             {
-                "feature": "erlw:enhanced-arcane-focus",
+                "feature": "erlw:enhanced-defense",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 10,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:enhanced-weapon",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 6,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:repeating-shot",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
@@ -312,34 +336,10 @@
                 "max_uses": null
             },
             {
-                "feature": "tce:mind-sharpener",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
                 "feature": "erlw:returning-weapon",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 6,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature": "erlw:enhanced-weapon",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 6,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature": "erlw:enhanced-defense",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 10,
                 "uses_remaining": null,
                 "max_uses": null
             },
@@ -352,10 +352,10 @@
                 "max_uses": null
             },
             {
-                "feature": "erlw:boots-of-the-winding-path-level-6",
+                "feature": "tce:mind-sharpener",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 14,
+                "level_acquired": 2,
                 "uses_remaining": null,
                 "max_uses": null
             },
@@ -370,7 +370,32 @@
         ],
         "notes": [],
         "ability_score_choices": [],
-        "spell_slots": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 4,
+                "max_slots": 1,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
         "features": [
             {
                 "feature_type": "App\\Models\\CharacterTrait",

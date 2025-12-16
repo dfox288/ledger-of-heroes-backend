@@ -1,8 +1,8 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-16T02:33:45+00:00",
+    "exported_at": "2025-12-16T02:56:01+00:00",
     "character": {
-        "public_id": "ancient-guardian-w6d7",
+        "public_id": "dark-raven-MAKj",
         "name": "Artillerist L20",
         "race": "dmg:aarakocra-dmg",
         "background": "scag:cloistered-scholar",
@@ -60,28 +60,34 @@
         ],
         "spells": [
             {
-                "spell": "tce:sword-burst",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
                 "spell": "phb:acid-splash",
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 1
             },
             {
-                "spell": "phb:shield",
+                "spell": "phb:cone-of-cold",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
-                "level_acquired": 3
+                "level_acquired": 17
             },
             {
-                "spell": "phb:thunderwave",
+                "spell": "phb:fireball",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
-                "level_acquired": 3
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:ice-storm",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 13
+            },
+            {
+                "spell": "phb:mage-hand",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 10
             },
             {
                 "spell": "phb:scorching-ray",
@@ -96,28 +102,16 @@
                 "level_acquired": 5
             },
             {
-                "spell": "phb:fireball",
+                "spell": "phb:shield",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
-                "level_acquired": 9
+                "level_acquired": 3
             },
             {
-                "spell": "phb:wind-wall",
+                "spell": "phb:thunderwave",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
-                "level_acquired": 9
-            },
-            {
-                "spell": "phb:mage-hand",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 10
-            },
-            {
-                "spell": "phb:ice-storm",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 13
+                "level_acquired": 3
             },
             {
                 "spell": "phb:wall-of-fire",
@@ -126,22 +120,28 @@
                 "level_acquired": 13
             },
             {
+                "spell": "phb:wall-of-force",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 17
+            },
+            {
+                "spell": "phb:wind-wall",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 9
+            },
+            {
                 "spell": "tce:green-flame-blade",
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 14
             },
             {
-                "spell": "phb:cone-of-cold",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 17
-            },
-            {
-                "spell": "phb:wall-of-force",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 17
+                "spell": "tce:sword-burst",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 1
             }
         ],
         "equipment": [
@@ -233,15 +233,23 @@
         "conditions": [],
         "feature_selections": [
             {
-                "feature": "erlw:enhanced-weapon",
+                "feature": "erlw:boots-of-the-winding-path-level-6",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 2,
+                "level_acquired": 18,
                 "uses_remaining": null,
                 "max_uses": null
             },
             {
-                "feature": "erlw:returning-weapon",
+                "feature": "erlw:enhanced-arcane-focus",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 10,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:enhanced-weapon",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
@@ -257,18 +265,26 @@
                 "max_uses": null
             },
             {
-                "feature": "erlw:replicate-magic-item",
+                "feature": "erlw:radiant-weapon-level-6",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 2,
+                "level_acquired": 14,
                 "uses_remaining": null,
                 "max_uses": null
             },
             {
-                "feature": "tce:spell-refueling-ring-level-6",
+                "feature": "erlw:repeating-shot",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 6,
+                "level_acquired": 18,
+                "uses_remaining": null,
+                "max_uses": null
+            },
+            {
+                "feature": "erlw:replicate-magic-item",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 2,
                 "uses_remaining": null,
                 "max_uses": null
             },
@@ -281,26 +297,10 @@
                 "max_uses": null
             },
             {
-                "feature": "tce:helm-of-awareness-level-10",
+                "feature": "erlw:returning-weapon",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 10,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature": "erlw:enhanced-arcane-focus",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 10,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature": "erlw:radiant-weapon-level-6",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 14,
+                "level_acquired": 2,
                 "uses_remaining": null,
                 "max_uses": null
             },
@@ -313,25 +313,56 @@
                 "max_uses": null
             },
             {
-                "feature": "erlw:boots-of-the-winding-path-level-6",
+                "feature": "tce:helm-of-awareness-level-10",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 18,
+                "level_acquired": 10,
                 "uses_remaining": null,
                 "max_uses": null
             },
             {
-                "feature": "erlw:repeating-shot",
+                "feature": "tce:spell-refueling-ring-level-6",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 18,
+                "level_acquired": 6,
                 "uses_remaining": null,
                 "max_uses": null
             }
         ],
         "notes": [],
         "ability_score_choices": [],
-        "spell_slots": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 4,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 5,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
         "features": [
             {
                 "feature_type": "App\\Models\\CharacterTrait",

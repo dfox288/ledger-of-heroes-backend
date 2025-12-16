@@ -1,8 +1,8 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-16T02:34:09+00:00",
+    "exported_at": "2025-12-16T02:56:08+00:00",
     "character": {
-        "public_id": "fierce-warrior-ugg7",
+        "public_id": "valiant-phoenix-P3tK",
         "name": "Battle Smith L3",
         "race": "dmg:bullywug-dmg-npc",
         "background": "phb:guild-merchant",
@@ -242,7 +242,14 @@
         ],
         "notes": [],
         "ability_score_choices": [],
-        "spell_slots": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
         "features": [
             {
                 "feature_type": "App\\Models\\CharacterTrait",

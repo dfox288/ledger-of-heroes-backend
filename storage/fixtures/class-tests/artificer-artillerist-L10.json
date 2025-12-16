@@ -1,8 +1,8 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-16T02:33:02+00:00",
+    "exported_at": "2025-12-16T02:55:22+00:00",
     "character": {
-        "public_id": "swift-hunter-PYgD",
+        "public_id": "frost-dragon-8pNC",
         "name": "Artillerist L10",
         "race": "vgm:tabaxi-legacy",
         "background": "scag:inheritor",
@@ -50,28 +50,28 @@
         ],
         "spells": [
             {
+                "spell": "phb:fireball",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 9
+            },
+            {
                 "spell": "phb:mage-hand",
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 1
             },
             {
+                "spell": "phb:mending",
+                "source": "class",
+                "preparation_status": "known",
+                "level_acquired": 10
+            },
+            {
                 "spell": "phb:poison-spray",
                 "source": "class",
                 "preparation_status": "known",
                 "level_acquired": 1
-            },
-            {
-                "spell": "phb:shield",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:thunderwave",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 3
             },
             {
                 "spell": "phb:scorching-ray",
@@ -86,22 +86,22 @@
                 "level_acquired": 5
             },
             {
-                "spell": "phb:fireball",
+                "spell": "phb:shield",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
-                "level_acquired": 9
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:thunderwave",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "level_acquired": 3
             },
             {
                 "spell": "phb:wind-wall",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
                 "level_acquired": 9
-            },
-            {
-                "spell": "phb:mending",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 10
             }
         ],
         "equipment": [
@@ -267,7 +267,26 @@
         ],
         "notes": [],
         "ability_score_choices": [],
-        "spell_slots": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
         "features": [
             {
                 "feature_type": "App\\Models\\CharacterTrait",

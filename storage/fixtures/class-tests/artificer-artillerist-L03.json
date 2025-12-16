@@ -1,8 +1,8 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-16T02:32:44+00:00",
+    "exported_at": "2025-12-16T02:55:05+00:00",
     "character": {
-        "public_id": "bold-phoenix-evth",
+        "public_id": "wild-wanderer-6khr",
         "name": "Artillerist L3",
         "race": "dmg:gnoll-dmg-npc",
         "background": "phb:spy",
@@ -229,7 +229,14 @@
         ],
         "notes": [],
         "ability_score_choices": [],
-        "spell_slots": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
         "features": [
             {
                 "feature_type": "App\\Models\\CharacterTrait",

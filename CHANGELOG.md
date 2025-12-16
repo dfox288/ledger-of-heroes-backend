@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #727**: Prepared caster spell preparation from class list
+  - Prepared casters (Cleric, Druid, Paladin, Artificer) can now prepare spells directly from their class list without first "learning" them
+  - New `source = 'prepared_from_list'` for ephemeral divine spell preparations
+  - Unpreparing a `prepared_from_list` spell deletes the row entirely (no 'known' state for divine spells)
+  - Known casters (Bard, Sorcerer, etc.) and spellbook casters (Wizard) still require spells in character_spells first
+  - Added `preparedCaster()`, `knownCaster()`, and `spellbookCaster()` factory states to CharacterClassFactory
+
 - **Issue #658**: Legendary actions and lair actions for encounter monsters (DM Screen)
   - EncounterMonsterResource now includes `legendary_actions` object with `uses_per_round` and action list
   - EncounterMonsterResource now includes `legendary_resistance` object with `uses_per_day`

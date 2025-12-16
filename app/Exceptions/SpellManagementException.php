@@ -87,4 +87,13 @@ class SpellManagementException extends Exception
             422
         );
     }
+
+    public static function cannotUnprepareCantrip(Spell $spell): self
+    {
+        return new self(
+            'Cantrips cannot be unprepared - they are always ready.',
+            null,
+            422
+        );
+    }
 }

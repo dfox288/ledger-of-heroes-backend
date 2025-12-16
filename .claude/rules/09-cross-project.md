@@ -7,12 +7,13 @@ Use GitHub Issues in `dfox288/ledger-of-heroes` for bugs, API issues, and cross-
 **Do these in order at the start of every session:**
 
 ```bash
-# 1. Check for handoffs from frontend
-echo "=== Checking Handoffs ===" && grep -A 100 "## For: backend" ../wrapper/.claude/handoffs.md 2>/dev/null | head -50 || echo "No backend handoffs pending"
-
-# 2. Check GitHub issues assigned to backend
-echo "=== GitHub Issues ===" && gh issue list --repo dfox288/ledger-of-heroes --label "backend" --state open
+just inbox
 ```
+
+This shows:
+1. Handoffs from frontend (`../wrapper/.claude/handoffs.md`)
+2. GitHub issues labeled `backend`
+3. GitHub issues labeled `both` (shared work)
 
 If there's a handoff:
 1. Read the full context in `../wrapper/.claude/handoffs.md`

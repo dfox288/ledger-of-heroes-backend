@@ -397,6 +397,75 @@ check: pint test-pure test-unit test-feature
 validate: test-pure test-unit test-feature test-search
 
 # =============================================================================
+# GITHUB & WORKFLOW
+# =============================================================================
+
+# Check backend inbox (handoffs + GitHub issues)
+inbox:
+    @echo "=== Checking Handoffs ==="
+    @grep -A 100 "## For: backend" ../wrapper/.claude/handoffs.md 2>/dev/null | head -80 || echo "No backend handoffs pending"
+    @echo ""
+    @echo "=== GitHub Issues (backend) ==="
+    @gh issue list --repo dfox288/ledger-of-heroes --label "backend" --state open
+    @echo ""
+    @echo "=== GitHub Issues (both teams) ==="
+    @gh issue list --repo dfox288/ledger-of-heroes --label "both" --state open
+
+# List issues by label (default: backend)
+issues label="backend":
+    gh issue list --repo dfox288/ledger-of-heroes --label "{{ label }}" --state open
+
+# View specific issue
+issue-view number:
+    gh issue view {{ number }} --repo dfox288/ledger-of-heroes
+
+# Create feature branch from issue number
+branch-feature number description:
+    git checkout -b feature/issue-{{ number }}-{{ description }}
+
+# Create fix branch from issue number
+branch-fix number description:
+    git checkout -b fix/issue-{{ number }}-{{ description }}
+
+# Create chore branch from issue number
+branch-chore number description:
+    git checkout -b chore/issue-{{ number }}-{{ description }}
+
+# Create PR to wrapper repo (issues live there)
+pr-create:
+    gh pr create --repo dfox288/ledger-of-heroes-backend
+
+# List open PRs
+pr-list:
+    gh pr list --repo dfox288/ledger-of-heroes-backend
+
+# View PR checks status
+pr-checks number:
+    gh pr checks {{ number }} --repo dfox288/ledger-of-heroes-backend
+
+# Quick conventional commit
+commit type message:
+    git commit -m "{{ type }}: {{ message }}"
+
+# Quick git status overview
+gs:
+    @git status -sb
+    @echo ""
+    @git log --oneline -5
+
+# Show local branches with tracking info
+branches:
+    @git branch -vv
+
+# Delete merged branches (except main)
+branches-clean:
+    git branch --merged main | grep -v "main" | xargs -r git branch -d
+
+# Push current branch and set upstream
+push:
+    git push -u origin $(git rev-parse --abbrev-ref HEAD)
+
+# =============================================================================
 # WORKTREE MANAGEMENT (for parallel agent work)
 # =============================================================================
 

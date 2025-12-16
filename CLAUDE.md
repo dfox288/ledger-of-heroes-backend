@@ -97,8 +97,18 @@ just check               # Pre-commit: format + test
 just validate            # Full validation: all suites
 just artisan <command>   # Run any artisan command
 
-# GitHub Issues
-gh issue list --repo dfox288/ledger-of-heroes --label "backend" --state open
+# GitHub & Inbox
+just inbox               # Check handoffs + backend + both issues
+just issues              # List backend issues
+just issue-view <num>    # View specific issue
+
+# Git Workflow
+just gs                  # Quick status + recent commits
+just branches            # Show branches with tracking
+just branch-feature <num> <desc>  # Create feature branch
+just branch-fix <num> <desc>      # Create fix branch
+just commit <type> <msg> # Quick conventional commit
+just push                # Push with upstream
 ```
 
 **Default Branch:** `main` | **Status:** See `docs/PROJECT-STATUS.md`

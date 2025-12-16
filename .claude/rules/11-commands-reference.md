@@ -127,6 +127,37 @@ just shell               # Open shell in PHP container
 just ps                  # Show container status
 ```
 
+## GitHub Issues & Inbox
+
+```bash
+just inbox               # Check handoffs + backend + both issues
+just issues              # List backend issues (default label)
+just issues both         # List issues for both teams
+just issue-view <num>    # View specific issue details
+```
+
+## Git Workflow
+
+```bash
+just gs                  # Quick status + recent commits
+just branches            # Show local branches with tracking
+just branches-clean      # Delete merged branches (except main)
+just push                # Push current branch, set upstream
+
+# Branch creation
+just branch-feature <num> <desc>  # feature/issue-N-description
+just branch-fix <num> <desc>      # fix/issue-N-description
+just branch-chore <num> <desc>    # chore/issue-N-description
+
+# Commits
+just commit <type> <msg> # Quick conventional commit
+
+# Pull Requests
+just pr-create           # Create PR to backend repo
+just pr-list             # List open PRs
+just pr-checks <num>     # View PR checks status
+```
+
 ## Slash Commands
 
 Available in `.claude/commands/`:

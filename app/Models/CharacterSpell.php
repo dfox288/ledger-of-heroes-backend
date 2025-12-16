@@ -17,6 +17,7 @@ class CharacterSpell extends Model
         'spell_slug',
         'preparation_status',
         'source',
+        'class_slug',
         'level_acquired',
     ];
 
@@ -35,6 +36,14 @@ class CharacterSpell extends Model
     public function spell(): BelongsTo
     {
         return $this->belongsTo(Spell::class, 'spell_slug', 'slug');
+    }
+
+    /**
+     * The class that grants this spell (for multiclass spellcasting).
+     */
+    public function grantingClass(): BelongsTo
+    {
+        return $this->belongsTo(CharacterClass::class, 'class_slug', 'slug');
     }
 
     // Helper methods

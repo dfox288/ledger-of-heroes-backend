@@ -108,8 +108,9 @@ class CharacterStatsDTO
             ];
         }
 
-        // Spellcasting info (uses primary class)
-        $spellcasting = null;
+        // Issue #692: Per-class spellcasting stats for multiclass support (PHB p.164-165)
+        // Each spellcasting class has its own DC, attack bonus, and ability modifier
+        $spellcasting = self::buildPerClassSpellcasting($character, $abilityModifiers, $proficiencyBonus, $calculator);
         $preparationLimit = null;
 
         // Issue #618: Use SpellManagerService for enriched spell slots with tracking
@@ -118,25 +119,8 @@ class CharacterStatsDTO
             ? $spellManagerService->getSpellSlots($character)
             : ['slots' => [], 'pact_magic' => null, 'preparation_limit' => null, 'prepared_count' => 0];
 
-        $primaryClass = $character->primary_class;
-        if ($primaryClass) {
-            $spellcastingAbility = $primaryClass->effective_spellcasting_ability;
-
-            if ($spellcastingAbility) {
-                $abilityCode = $spellcastingAbility->code;
-                $abilityMod = $abilityModifiers[$abilityCode] ?? 0;
-
-                $spellcasting = [
-                    'ability' => $abilityCode,
-                    'ability_modifier' => $abilityMod,
-                    'spell_save_dc' => $calculator->spellSaveDC($proficiencyBonus, $abilityMod),
-                    'spell_attack_bonus' => $proficiencyBonus + $abilityMod,
-                ];
-
-                // Get preparation limit from the enriched spell slots data
-                $preparationLimit = $spellSlots['preparation_limit'] ?? null;
-            }
-        }
+        // Get preparation limit from the enriched spell slots data
+        $preparationLimit = $spellSlots['preparation_limit'] ?? null;
 
         // Get prepared spell count from the enriched spell slots data
         $preparedSpellCount = $spellSlots['prepared_count'] ?? 0;
@@ -1018,5 +1002,59 @@ class CharacterStatsDTO
 
         // Multiple different methods
         return 'mixed';
+    }
+
+    /**
+     * Build per-class spellcasting stats for multiclass support.
+     *
+     * Issue #692: Per PHB p.164-165, multiclass spellcasters have:
+     * - Different spellcasting abilities per class
+     * - Different DCs and attack bonuses per class
+     *
+     * Returns an array keyed by class slug with spellcasting stats for each class.
+     * Non-spellcasting classes are excluded.
+     *
+     * @param  array<string, int|null>  $abilityModifiers
+     * @return array<string, array{ability: string, ability_modifier: int, spell_save_dc: int, spell_attack_bonus: int}>|null
+     */
+    private static function buildPerClassSpellcasting(
+        Character $character,
+        array $abilityModifiers,
+        int $proficiencyBonus,
+        CharacterStatCalculator $calculator
+    ): ?array {
+        // Always ensure characterClasses with spellcastingAbility is loaded
+        $character->loadMissing([
+            'characterClasses.characterClass.spellcastingAbility',
+            'characterClasses.characterClass.parentClass.spellcastingAbility',
+        ]);
+
+        $spellcasting = [];
+
+        foreach ($character->characterClasses as $classPivot) {
+            $class = $classPivot->characterClass;
+            if (! $class) {
+                continue;
+            }
+
+            // Get the effective spellcasting ability (handles subclass inheritance)
+            $spellcastingAbility = $class->effective_spellcasting_ability;
+            if (! $spellcastingAbility) {
+                continue; // Non-spellcasting class
+            }
+
+            $abilityCode = $spellcastingAbility->code;
+            $abilityMod = $abilityModifiers[$abilityCode] ?? 0;
+
+            $spellcasting[$class->slug] = [
+                'ability' => $abilityCode,
+                'ability_modifier' => $abilityMod,
+                'spell_save_dc' => $calculator->spellSaveDC($proficiencyBonus, $abilityMod),
+                'spell_attack_bonus' => $proficiencyBonus + $abilityMod,
+            ];
+        }
+
+        // Return null if no spellcasting classes (keeps backward compatibility)
+        return empty($spellcasting) ? null : $spellcasting;
     }
 }

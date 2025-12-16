@@ -15,7 +15,7 @@ class ImportFixtureCharactersCommand extends Command
 {
     protected $signature = 'fixtures:import-characters
                             {--file= : Specific JSON file to import (relative to storage/fixtures)}
-                            {--all : Import all JSON files from storage/fixtures/characters}
+                            {--all : Import all JSON files from storage/fixtures/class-tests}
                             {--force : Delete existing test characters before importing}
                             {--dry-run : Show what would be imported without importing}';
 
@@ -50,32 +50,28 @@ class ImportFixtureCharactersCommand extends Command
             }
             $files = [$filePath];
         } elseif ($importAll) {
-            $charactersPath = $fixturesPath.'/characters';
-            if (! File::isDirectory($charactersPath)) {
-                $this->error("Characters directory not found: {$charactersPath}");
+            $classTestsPath = $fixturesPath.'/class-tests';
+            if (! File::isDirectory($classTestsPath)) {
+                $this->error("Class tests directory not found: {$classTestsPath}");
 
                 return self::FAILURE;
             }
-            $files = File::glob($charactersPath.'/*.json');
+            $files = File::glob($classTestsPath.'/*.json');
             sort($files);
 
             if (empty($files)) {
-                $this->error('No JSON files found in '.$charactersPath);
+                $this->error('No JSON files found in '.$classTestsPath);
 
                 return self::FAILURE;
             }
 
             $this->info('Found '.count($files).' fixture files');
         } else {
-            // Default: import the combined spellcaster test file
-            $defaultFile = $fixturesPath.'/spellcaster-test-characters.json';
-            if (! File::exists($defaultFile)) {
-                $this->error('Default fixtures file not found: '.$defaultFile);
-                $this->info('Use --all to import all files from storage/fixtures/characters/');
+            $this->error('Please specify --file or --all');
+            $this->info('Use --all to import all files from storage/fixtures/class-tests/');
+            $this->info('Use --file=class-tests/filename.json to import a specific file');
 
-                return self::FAILURE;
-            }
-            $files = [$defaultFile];
+            return self::FAILURE;
         }
 
         $this->info('🎭 Importing Fixture Characters');
@@ -171,10 +167,11 @@ class ImportFixtureCharactersCommand extends Command
     {
         $this->info('🗑️  Deleting existing test characters...');
 
-        $count = \App\Models\Character::where('public_id', 'like', 'test-l%')->count();
+        // Match names like "Alchemist L1", "Battle Smith L20", etc.
+        $count = \App\Models\Character::where('name', 'regexp', ' L[0-9]+$')->count();
 
         if ($count > 0) {
-            \App\Models\Character::where('public_id', 'like', 'test-l%')
+            \App\Models\Character::where('name', 'regexp', ' L[0-9]+$')
                 ->each(function ($character) {
                     // Delete related data first
                     $character->characterClasses()->delete();

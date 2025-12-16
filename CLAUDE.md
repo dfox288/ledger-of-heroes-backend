@@ -2,6 +2,18 @@
 
 This file provides guidance to Claude Code when working with this repository.
 
+> **🚨 COMMAND POLICY — READ BEFORE EXECUTING ANY COMMAND**
+>
+> This project uses `just` as the primary command interface.
+>
+> **Before running `git`, `gh`, `docker`, `php`, `artisan`, `composer`, `npm`, or `npx`:**
+> 1. Run `just --list` to check for an existing recipe
+> 2. If a recipe exists → use it
+> 3. If no recipe exists but the command will be reused → create a recipe first, then use it
+> 4. Raw commands are acceptable ONLY for true one-off operations
+>
+> **Never bypass this policy.** When in doubt, add a recipe.
+
 ## Overview
 
 Laravel 12.x application importing D&D 5th Edition XML content and providing a RESTful API.

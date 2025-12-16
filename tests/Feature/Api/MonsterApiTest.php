@@ -414,6 +414,69 @@ class MonsterApiTest extends TestCase
         }
     }
 
+    #[Test]
+    public function monster_includes_saving_throws_in_response()
+    {
+        // Use any monster from fixtures
+        $monster = Monster::first();
+        $this->assertNotNull($monster, 'Should have monsters in database');
+
+        $response = $this->getJson("/api/v1/monsters/{$monster->id}");
+
+        $response->assertOk();
+        $response->assertJsonStructure([
+            'data' => [
+                'saving_throws' => [
+                    'STR',
+                    'DEX',
+                    'CON',
+                    'INT',
+                    'WIS',
+                    'CHA',
+                ],
+            ],
+        ]);
+
+        // Verify all values are integers
+        $savingThrows = $response->json('data.saving_throws');
+        foreach ($savingThrows as $ability => $value) {
+            $this->assertIsInt($value, "Saving throw for {$ability} should be an integer");
+        }
+    }
+
+    #[Test]
+    public function monster_saving_throws_uses_proficient_values_when_available()
+    {
+        // Find a monster with saving throw modifiers (dragons have them)
+        $monster = Monster::whereHas('modifiers', function ($query) {
+            $query->where('modifier_category', 'like', 'saving_throw_%');
+        })->first();
+
+        if (! $monster) {
+            $this->markTestSkipped('No monsters with saving throw proficiencies in fixtures');
+        }
+
+        $response = $this->getJson("/api/v1/monsters/{$monster->id}");
+
+        $response->assertOk();
+
+        $savingThrows = $response->json('data.saving_throws');
+
+        // Get proficient saves from modifiers
+        $proficientSaves = $monster->modifiers
+            ->filter(fn ($m) => str_starts_with($m->modifier_category, 'saving_throw_'))
+            ->keyBy(fn ($m) => strtoupper(str_replace('saving_throw_', '', $m->modifier_category)));
+
+        // Verify proficient saves match stored values
+        foreach ($proficientSaves as $ability => $modifier) {
+            $this->assertSame(
+                (int) $modifier->value,
+                $savingThrows[$ability],
+                "Proficient save for {$ability} should match stored modifier"
+            );
+        }
+    }
+
     /**
      * Helper method to convert challenge rating string to numeric value
      */

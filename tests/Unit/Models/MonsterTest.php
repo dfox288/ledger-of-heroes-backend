@@ -181,4 +181,147 @@ class MonsterTest extends TestCase
             'CR 30' => ['30', 30.0],
         ];
     }
+
+    // Saving Throws Accessor Tests
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function saving_throws_returns_all_six_abilities(): void
+    {
+        $monster = Monster::factory()->create([
+            'strength' => 10,
+            'dexterity' => 10,
+            'constitution' => 10,
+            'intelligence' => 10,
+            'wisdom' => 10,
+            'charisma' => 10,
+        ]);
+
+        $savingThrows = $monster->saving_throws;
+
+        $this->assertArrayHasKey('STR', $savingThrows);
+        $this->assertArrayHasKey('DEX', $savingThrows);
+        $this->assertArrayHasKey('CON', $savingThrows);
+        $this->assertArrayHasKey('INT', $savingThrows);
+        $this->assertArrayHasKey('WIS', $savingThrows);
+        $this->assertArrayHasKey('CHA', $savingThrows);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function saving_throws_calculates_from_ability_scores_when_not_proficient(): void
+    {
+        // Formula: floor((ability_score - 10) / 2)
+        $monster = Monster::factory()->create([
+            'strength' => 10,     // (10-10)/2 = 0
+            'dexterity' => 14,    // (14-10)/2 = +2
+            'constitution' => 18, // (18-10)/2 = +4
+            'intelligence' => 8,  // (8-10)/2 = -1
+            'wisdom' => 15,       // (15-10)/2 = +2 (floor)
+            'charisma' => 6,      // (6-10)/2 = -2
+        ]);
+
+        $savingThrows = $monster->saving_throws;
+
+        $this->assertSame(0, $savingThrows['STR']);
+        $this->assertSame(2, $savingThrows['DEX']);
+        $this->assertSame(4, $savingThrows['CON']);
+        $this->assertSame(-1, $savingThrows['INT']);
+        $this->assertSame(2, $savingThrows['WIS']);
+        $this->assertSame(-2, $savingThrows['CHA']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function saving_throws_uses_stored_modifier_for_proficient_saves(): void
+    {
+        $monster = Monster::factory()->create([
+            'strength' => 10,     // Base: 0
+            'dexterity' => 10,    // Base: 0, but proficient
+            'constitution' => 10, // Base: 0
+            'intelligence' => 10, // Base: 0
+            'wisdom' => 10,       // Base: 0, but proficient
+            'charisma' => 10,     // Base: 0
+        ]);
+
+        // Add proficient saving throws as modifiers
+        Modifier::factory()->create([
+            'reference_type' => Monster::class,
+            'reference_id' => $monster->id,
+            'modifier_category' => 'saving_throw_dex',
+            'value' => '7',
+        ]);
+        Modifier::factory()->create([
+            'reference_type' => Monster::class,
+            'reference_id' => $monster->id,
+            'modifier_category' => 'saving_throw_wis',
+            'value' => '9',
+        ]);
+
+        // Refresh to reload modifiers relationship
+        $monster->refresh();
+        $savingThrows = $monster->saving_throws;
+
+        // Proficient saves use stored value
+        $this->assertSame(7, $savingThrows['DEX']);
+        $this->assertSame(9, $savingThrows['WIS']);
+
+        // Non-proficient saves use ability score calculation
+        $this->assertSame(0, $savingThrows['STR']);
+        $this->assertSame(0, $savingThrows['CON']);
+        $this->assertSame(0, $savingThrows['INT']);
+        $this->assertSame(0, $savingThrows['CHA']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function saving_throws_handles_ancient_red_dragon_stats(): void
+    {
+        // Real stats from Ancient Red Dragon: CR 24, +7 proficiency
+        // Proficient in DEX, CON, WIS, CHA
+        $monster = Monster::factory()->create([
+            'strength' => 30,       // (30-10)/2 = +10 (not proficient)
+            'dexterity' => 10,      // +7 (proficient)
+            'constitution' => 29,   // +16 (proficient)
+            'intelligence' => 18,   // (18-10)/2 = +4 (not proficient)
+            'wisdom' => 15,         // +9 (proficient)
+            'charisma' => 23,       // +13 (proficient)
+            'challenge_rating' => '24',
+        ]);
+
+        // Add proficient saves
+        Modifier::factory()->create([
+            'reference_type' => Monster::class,
+            'reference_id' => $monster->id,
+            'modifier_category' => 'saving_throw_dex',
+            'value' => '7',
+        ]);
+        Modifier::factory()->create([
+            'reference_type' => Monster::class,
+            'reference_id' => $monster->id,
+            'modifier_category' => 'saving_throw_con',
+            'value' => '16',
+        ]);
+        Modifier::factory()->create([
+            'reference_type' => Monster::class,
+            'reference_id' => $monster->id,
+            'modifier_category' => 'saving_throw_wis',
+            'value' => '9',
+        ]);
+        Modifier::factory()->create([
+            'reference_type' => Monster::class,
+            'reference_id' => $monster->id,
+            'modifier_category' => 'saving_throw_cha',
+            'value' => '13',
+        ]);
+
+        $monster->refresh();
+        $savingThrows = $monster->saving_throws;
+
+        // Non-proficient (calculated from ability score)
+        $this->assertSame(10, $savingThrows['STR']); // (30-10)/2 = 10
+        $this->assertSame(4, $savingThrows['INT']);  // (18-10)/2 = 4
+
+        // Proficient (from stored modifiers)
+        $this->assertSame(7, $savingThrows['DEX']);
+        $this->assertSame(16, $savingThrows['CON']);
+        $this->assertSame(9, $savingThrows['WIS']);
+        $this->assertSame(13, $savingThrows['CHA']);
+    }
 }

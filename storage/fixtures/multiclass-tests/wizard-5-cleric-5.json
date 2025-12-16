@@ -1,724 +1,748 @@
 {
-    "format_version": "1.2",
-    "exported_at": "2025-12-16T12:13:24+00:00",
-    "character": {
-        "public_id": "flame-arrow-DG28",
-        "name": "Wizard 5 \/ Cleric 5",
-        "race": "vrgtr:hexblood",
-        "background": "scag:faction-agent",
-        "alignment": "True Neutral",
-        "ability_scores": {
-            "strength": 14,
-            "dexterity": 12,
-            "constitution": 13,
-            "intelligence": 10,
-            "wisdom": 8,
-            "charisma": 15
+  "format_version": "1.2",
+  "exported_at": "2025-12-16T13:43:17+00:00",
+  "character": {
+    "public_id": "cunning-phoenix-y1PR",
+    "name": "Wizard 5 / Cleric 5",
+    "race": "vrgtr:hexblood",
+    "background": "scag:faction-agent",
+    "alignment": "True Neutral",
+    "ability_scores": {
+      "strength": 14,
+      "dexterity": 12,
+      "constitution": 13,
+      "intelligence": 10,
+      "wisdom": 8,
+      "charisma": 15
+    },
+    "max_hit_points": 51,
+    "current_hit_points": 51,
+    "temp_hit_points": 0,
+    "death_save_successes": 0,
+    "death_save_failures": 0,
+    "experience_points": 0,
+    "has_inspiration": false,
+    "ability_score_method": "standard_array",
+    "equipment_mode": "gold",
+    "size_id": 2,
+    "asi_choices_remaining": 2,
+    "hp_levels_resolved": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "hp_calculation_method": "calculated",
+    "classes": [
+      {
+        "class": "phb:wizard",
+        "subclass": "tce:wizard-bladesinging",
+        "level": 5,
+        "is_primary": true,
+        "hit_dice_spent": 0
+      },
+      {
+        "class": "phb:cleric",
+        "subclass": "xge:cleric-grave-domain",
+        "level": 5,
+        "is_primary": false,
+        "hit_dice_spent": 0
+      }
+    ],
+    "spells": [
+      {
+        "spell": "phb:alarm",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 4
+      },
+      {
+        "spell": "phb:bane",
+        "source": "subclass",
+        "preparation_status": "always_prepared",
+        "class_slug": "phb:cleric",
+        "level_acquired": 1
+      },
+      {
+        "spell": "phb:chromatic-orb",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 1
+      },
+      {
+        "spell": "phb:false-life",
+        "source": "subclass",
+        "preparation_status": "always_prepared",
+        "class_slug": "phb:cleric",
+        "level_acquired": 1
+      },
+      {
+        "spell": "phb:gentle-repose",
+        "source": "subclass",
+        "preparation_status": "always_prepared",
+        "class_slug": "phb:cleric",
+        "level_acquired": 3
+      },
+      {
+        "spell": "phb:hold-person",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 4
+      },
+      {
+        "spell": "phb:identify",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 1
+      },
+      {
+        "spell": "phb:illusory-script",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 2
+      },
+      {
+        "spell": "phb:light",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 1
+      },
+      {
+        "spell": "phb:longstrider",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 1
+      },
+      {
+        "spell": "phb:melfs-acid-arrow",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 3
+      },
+      {
+        "spell": "phb:prestidigitation",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 4
+      },
+      {
+        "spell": "phb:protection-from-evil-and-good",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 2
+      },
+      {
+        "spell": "phb:ray-of-enfeeblement",
+        "source": "subclass",
+        "preparation_status": "always_prepared",
+        "class_slug": "phb:cleric",
+        "level_acquired": 3
+      },
+      {
+        "spell": "phb:revivify",
+        "source": "subclass",
+        "preparation_status": "always_prepared",
+        "class_slug": "phb:cleric",
+        "level_acquired": 5
+      },
+      {
+        "spell": "phb:shield",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 1
+      },
+      {
+        "spell": "phb:sleep",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 1
+      },
+      {
+        "spell": "phb:vampiric-touch",
+        "source": "subclass",
+        "preparation_status": "always_prepared",
+        "class_slug": "phb:cleric",
+        "level_acquired": 5
+      },
+      {
+        "spell": "scag:sword-burst",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 1
+      },
+      {
+        "spell": "tce:mind-sliver",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 1
+      },
+      {
+        "spell": "xge:aganazzars-scorcher",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 5
+      },
+      {
+        "spell": "xge:catapult",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 1
+      },
+      {
+        "spell": "xge:life-transference",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 5
+      },
+      {
+        "spell": "xge:pyrotechnics",
+        "source": "class",
+        "preparation_status": "known",
+        "class_slug": "phb:wizard",
+        "level_acquired": 3
+      }
+    ],
+    "equipment": [
+      {
+        "item": "phb:emblem",
+        "custom_name": null,
+        "custom_description": "{\"source\":\"background\"}",
+        "quantity": 1,
+        "equipped": false,
+        "location": "backpack"
+      },
+      {
+        "item": null,
+        "custom_name": "copy of a seminal faction text (or code-book for a covert faction)",
+        "custom_description": "{\"source\":\"background\",\"description\":\"copy of a seminal faction text (or code-book for a covert faction)\"}",
+        "quantity": 1,
+        "equipped": false,
+        "location": "backpack"
+      },
+      {
+        "item": "phb:common-clothes",
+        "custom_name": null,
+        "custom_description": "{\"source\":\"background\"}",
+        "quantity": 1,
+        "equipped": false,
+        "location": "backpack"
+      },
+      {
+        "item": "phb:pouch",
+        "custom_name": null,
+        "custom_description": "{\"source\":\"background\"}",
+        "quantity": 1,
+        "equipped": false,
+        "location": "backpack"
+      },
+      {
+        "item": "phb:gold-gp",
+        "custom_name": null,
+        "custom_description": "{\"source\":\"background\"}",
+        "quantity": 15,
+        "equipped": false,
+        "location": "backpack"
+      },
+      {
+        "item": "phb:gold-gp",
+        "custom_name": null,
+        "custom_description": "{\"source\":\"starting_wealth\"}",
+        "quantity": 100,
+        "equipped": false,
+        "location": "backpack"
+      }
+    ],
+    "languages": [
+      {
+        "language": "core:common",
+        "source": "race"
+      },
+      {
+        "language": "core:sphinx",
+        "source": "background"
+      },
+      {
+        "language": "core:sylvan",
+        "source": "background"
+      },
+      {
+        "language": "core:worg",
+        "source": "race"
+      }
+    ],
+    "proficiencies": {
+      "skills": [
+        {
+          "skill": "core:insight",
+          "source": "background",
+          "expertise": false,
+          "choice_group": null
         },
-        "max_hit_points": 51,
-        "current_hit_points": 51,
-        "temp_hit_points": 0,
-        "death_save_successes": 0,
-        "death_save_failures": 0,
-        "experience_points": 0,
-        "has_inspiration": false,
-        "ability_score_method": "standard_array",
-        "equipment_mode": "gold",
-        "size_id": 2,
-        "asi_choices_remaining": 2,
-        "hp_levels_resolved": [
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10
-        ],
-        "hp_calculation_method": "calculated",
-        "classes": [
-            {
-                "class": "phb:wizard",
-                "subclass": "tce:wizard-bladesinging",
-                "level": 5,
-                "is_primary": true,
-                "hit_dice_spent": 0
-            },
-            {
-                "class": "phb:cleric",
-                "subclass": "xge:cleric-grave-domain",
-                "level": 5,
-                "is_primary": false,
-                "hit_dice_spent": 0
-            }
-        ],
-        "spells": [
-            {
-                "spell": "phb:alarm",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 4
-            },
-            {
-                "spell": "phb:bane",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 1
-            },
-            {
-                "spell": "phb:chromatic-orb",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
-                "spell": "phb:false-life",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 1
-            },
-            {
-                "spell": "phb:gentle-repose",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:hold-person",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 4
-            },
-            {
-                "spell": "phb:identify",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
-                "spell": "phb:illusory-script",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 2
-            },
-            {
-                "spell": "phb:light",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
-                "spell": "phb:longstrider",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
-                "spell": "phb:melfs-acid-arrow",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:prestidigitation",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 4
-            },
-            {
-                "spell": "phb:protection-from-evil-and-good",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 2
-            },
-            {
-                "spell": "phb:ray-of-enfeeblement",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:revivify",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:shield",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
-                "spell": "phb:sleep",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
-                "spell": "phb:vampiric-touch",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 5
-            },
-            {
-                "spell": "scag:sword-burst",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
-                "spell": "tce:mind-sliver",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
-                "spell": "xge:aganazzars-scorcher",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 5
-            },
-            {
-                "spell": "xge:catapult",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
-                "spell": "xge:life-transference",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 5
-            },
-            {
-                "spell": "xge:pyrotechnics",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 3
-            }
-        ],
-        "equipment": [
-            {
-                "item": "phb:emblem",
-                "custom_name": null,
-                "custom_description": "{\"source\":\"background\"}",
-                "quantity": 1,
-                "equipped": false,
-                "location": "backpack"
-            },
-            {
-                "item": null,
-                "custom_name": "copy of a seminal faction text (or code-book for a covert faction)",
-                "custom_description": "{\"source\":\"background\",\"description\":\"copy of a seminal faction text (or code-book for a covert faction)\"}",
-                "quantity": 1,
-                "equipped": false,
-                "location": "backpack"
-            },
-            {
-                "item": "phb:common-clothes",
-                "custom_name": null,
-                "custom_description": "{\"source\":\"background\"}",
-                "quantity": 1,
-                "equipped": false,
-                "location": "backpack"
-            },
-            {
-                "item": "phb:pouch",
-                "custom_name": null,
-                "custom_description": "{\"source\":\"background\"}",
-                "quantity": 1,
-                "equipped": false,
-                "location": "backpack"
-            },
-            {
-                "item": "phb:gold-gp",
-                "custom_name": null,
-                "custom_description": "{\"source\":\"background\"}",
-                "quantity": 15,
-                "equipped": false,
-                "location": "backpack"
-            },
-            {
-                "item": "phb:gold-gp",
-                "custom_name": null,
-                "custom_description": "{\"source\":\"starting_wealth\"}",
-                "quantity": 100,
-                "equipped": false,
-                "location": "backpack"
-            }
-        ],
-        "languages": [
-            {
-                "language": "core:common",
-                "source": "race"
-            },
-            {
-                "language": "core:sphinx",
-                "source": "background"
-            },
-            {
-                "language": "core:sylvan",
-                "source": "background"
-            },
-            {
-                "language": "core:worg",
-                "source": "race"
-            }
-        ],
-        "proficiencies": {
-            "skills": [
-                {
-                    "skill": "core:insight",
-                    "source": "background",
-                    "expertise": false,
-                    "choice_group": null
-                },
-                {
-                    "skill": "core:history",
-                    "source": "class",
-                    "expertise": false,
-                    "choice_group": "skill_choice_1"
-                },
-                {
-                    "skill": "core:arcana",
-                    "source": "class",
-                    "expertise": false,
-                    "choice_group": "skill_choice_1"
-                },
-                {
-                    "skill": "core:athletics",
-                    "source": "race",
-                    "expertise": false,
-                    "choice_group": "skill_choice_1"
-                },
-                {
-                    "skill": "core:insight",
-                    "source": "race",
-                    "expertise": false,
-                    "choice_group": "skill_choice_1"
-                }
-            ],
-            "types": []
+        {
+          "skill": "core:history",
+          "source": "class",
+          "expertise": false,
+          "choice_group": "skill_choice_1"
         },
-        "conditions": [],
-        "feature_selections": [],
-        "notes": [],
-        "ability_score_choices": [],
-        "spell_slots": [
-            {
-                "spell_level": 1,
-                "max_slots": 4,
-                "used_slots": 0,
-                "slot_type": "standard"
-            },
-            {
-                "spell_level": 2,
-                "max_slots": 3,
-                "used_slots": 0,
-                "slot_type": "standard"
-            },
-            {
-                "spell_level": 3,
-                "max_slots": 3,
-                "used_slots": 0,
-                "slot_type": "standard"
-            },
-            {
-                "spell_level": 4,
-                "max_slots": 3,
-                "used_slots": 0,
-                "slot_type": "standard"
-            },
-            {
-                "spell_level": 5,
-                "max_slots": 2,
-                "used_slots": 0,
-                "slot_type": "standard"
-            }
-        ],
-        "features": [
-            {
-                "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": {
-                    "type": "character_trait",
-                    "entity_type": "race",
-                    "entity_slug": "vrgtr:hexblood",
-                    "trait_name": "Ancestral Legacy"
-                },
-                "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": {
-                    "type": "character_trait",
-                    "entity_type": "race",
-                    "entity_slug": "vrgtr:hexblood",
-                    "trait_name": "Darkvision"
-                },
-                "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": {
-                    "type": "character_trait",
-                    "entity_type": "race",
-                    "entity_slug": "vrgtr:hexblood",
-                    "trait_name": "Becoming A Hag"
-                },
-                "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": {
-                    "type": "character_trait",
-                    "entity_type": "race",
-                    "entity_slug": "vrgtr:hexblood",
-                    "trait_name": "Eerie Token"
-                },
-                "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": {
-                    "type": "character_trait",
-                    "entity_type": "race",
-                    "entity_slug": "vrgtr:hexblood",
-                    "trait_name": "Hex Magic"
-                },
-                "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "phb:wizard",
-                    "feature_name": "Spellcasting",
-                    "level": 1
-                },
-                "source": "class",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "phb:wizard",
-                    "feature_name": "Arcane Recovery",
-                    "level": 1
-                },
-                "source": "class",
-                "level_acquired": 1,
-                "uses_remaining": 1,
-                "max_uses": 1
-            },
-            {
-                "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": {
-                    "type": "character_trait",
-                    "entity_type": "background",
-                    "entity_slug": "scag:faction-agent",
-                    "trait_name": "Feature: Safe Haven"
-                },
-                "source": "background",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "phb:cleric",
-                    "feature_name": "Spellcasting",
-                    "level": 1
-                },
-                "source": "class",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "phb:cleric",
-                    "feature_name": "Divine Domain",
-                    "level": 1
-                },
-                "source": "class",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "xge:cleric-grave-domain",
-                    "feature_name": "Divine Domain: Grave Domain",
-                    "level": 1
-                },
-                "source": "subclass",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "xge:cleric-grave-domain",
-                    "feature_name": "Circle of Mortality (Grave Domain)",
-                    "level": 1
-                },
-                "source": "subclass",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "xge:cleric-grave-domain",
-                    "feature_name": "Eyes of the Grave (Grave Domain)",
-                    "level": 1
-                },
-                "source": "subclass",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "phb:wizard",
-                    "feature_name": "Arcane Tradition",
-                    "level": 2
-                },
-                "source": "class",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "tce:wizard-bladesinging",
-                    "feature_name": "Arcane Tradition: Bladesinging",
-                    "level": 2
-                },
-                "source": "subclass",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "tce:wizard-bladesinging",
-                    "feature_name": "Restriction: Elves Only (Bladesinging)",
-                    "level": 2
-                },
-                "source": "subclass",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "tce:wizard-bladesinging",
-                    "feature_name": "Bladesinger Styles (Bladesinging)",
-                    "level": 2
-                },
-                "source": "subclass",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "tce:wizard-bladesinging",
-                    "feature_name": "Training in War and Song (Bladesinging)",
-                    "level": 2
-                },
-                "source": "subclass",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "tce:wizard-bladesinging",
-                    "feature_name": "Bladesong (Bladesinging)",
-                    "level": 2
-                },
-                "source": "subclass",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "tce:wizard-bladesinging",
-                    "feature_name": "Arcane Tradition: Bladesinging",
-                    "level": 2
-                },
-                "source": "subclass",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "tce:wizard-bladesinging",
-                    "feature_name": "Restriction: Elves Only (Bladesinging)",
-                    "level": 2
-                },
-                "source": "subclass",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "tce:wizard-bladesinging",
-                    "feature_name": "Bladesinger Styles (Bladesinging)",
-                    "level": 2
-                },
-                "source": "subclass",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "tce:wizard-bladesinging",
-                    "feature_name": "Bladesong (Bladesinging)",
-                    "level": 2
-                },
-                "source": "subclass",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "tce:wizard-bladesinging",
-                    "feature_name": "Training in War and Song (Bladesinging) (Bladesinging)",
-                    "level": 2
-                },
-                "source": "subclass",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "phb:wizard",
-                    "feature_name": "Cantrip Formulas",
-                    "level": 3
-                },
-                "source": "class",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "phb:cleric",
-                    "feature_name": "Channel Divinity (1\/rest)",
-                    "level": 2
-                },
-                "source": "class",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "phb:cleric",
-                    "feature_name": "Channel Divinity: Turn Undead",
-                    "level": 2
-                },
-                "source": "class",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "phb:cleric",
-                    "feature_name": "Channel Divinity: Harness Divine Power",
-                    "level": 2
-                },
-                "source": "class",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "phb:cleric",
-                    "feature_name": "Destroy Undead (CR 1\/2)",
-                    "level": 5
-                },
-                "source": "class",
-                "level_acquired": 5,
-                "uses_remaining": null,
-                "max_uses": null
-            }
-        ],
-        "portrait": null
-    }
+        {
+          "skill": "core:arcana",
+          "source": "class",
+          "expertise": false,
+          "choice_group": "skill_choice_1"
+        },
+        {
+          "skill": "core:athletics",
+          "source": "race",
+          "expertise": false,
+          "choice_group": "skill_choice_1"
+        },
+        {
+          "skill": "core:insight",
+          "source": "race",
+          "expertise": false,
+          "choice_group": "skill_choice_1"
+        }
+      ],
+      "types": []
+    },
+    "conditions": [],
+    "feature_selections": [],
+    "notes": [],
+    "ability_score_choices": [],
+    "spell_slots": [
+      {
+        "spell_level": 1,
+        "max_slots": 4,
+        "used_slots": 0,
+        "slot_type": "standard"
+      },
+      {
+        "spell_level": 2,
+        "max_slots": 3,
+        "used_slots": 0,
+        "slot_type": "standard"
+      },
+      {
+        "spell_level": 3,
+        "max_slots": 3,
+        "used_slots": 0,
+        "slot_type": "standard"
+      },
+      {
+        "spell_level": 4,
+        "max_slots": 3,
+        "used_slots": 0,
+        "slot_type": "standard"
+      },
+      {
+        "spell_level": 5,
+        "max_slots": 2,
+        "used_slots": 0,
+        "slot_type": "standard"
+      }
+    ],
+    "features": [
+      {
+        "feature_type": "App\\Models\\CharacterTrait",
+        "portable_id": {
+          "type": "character_trait",
+          "entity_type": "race",
+          "entity_slug": "vrgtr:hexblood",
+          "trait_name": "Ancestral Legacy"
+        },
+        "source": "race",
+        "level_acquired": 1,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\CharacterTrait",
+        "portable_id": {
+          "type": "character_trait",
+          "entity_type": "race",
+          "entity_slug": "vrgtr:hexblood",
+          "trait_name": "Darkvision"
+        },
+        "source": "race",
+        "level_acquired": 1,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\CharacterTrait",
+        "portable_id": {
+          "type": "character_trait",
+          "entity_type": "race",
+          "entity_slug": "vrgtr:hexblood",
+          "trait_name": "Becoming A Hag"
+        },
+        "source": "race",
+        "level_acquired": 1,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\CharacterTrait",
+        "portable_id": {
+          "type": "character_trait",
+          "entity_type": "race",
+          "entity_slug": "vrgtr:hexblood",
+          "trait_name": "Eerie Token"
+        },
+        "source": "race",
+        "level_acquired": 1,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\CharacterTrait",
+        "portable_id": {
+          "type": "character_trait",
+          "entity_type": "race",
+          "entity_slug": "vrgtr:hexblood",
+          "trait_name": "Hex Magic"
+        },
+        "source": "race",
+        "level_acquired": 1,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "phb:wizard",
+          "feature_name": "Spellcasting",
+          "level": 1
+        },
+        "source": "class",
+        "level_acquired": 1,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "phb:wizard",
+          "feature_name": "Arcane Recovery",
+          "level": 1
+        },
+        "source": "class",
+        "level_acquired": 1,
+        "uses_remaining": 1,
+        "max_uses": 1
+      },
+      {
+        "feature_type": "App\\Models\\CharacterTrait",
+        "portable_id": {
+          "type": "character_trait",
+          "entity_type": "background",
+          "entity_slug": "scag:faction-agent",
+          "trait_name": "Feature: Safe Haven"
+        },
+        "source": "background",
+        "level_acquired": 1,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "phb:cleric",
+          "feature_name": "Spellcasting",
+          "level": 1
+        },
+        "source": "class",
+        "level_acquired": 1,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "phb:cleric",
+          "feature_name": "Divine Domain",
+          "level": 1
+        },
+        "source": "class",
+        "level_acquired": 1,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "xge:cleric-grave-domain",
+          "feature_name": "Divine Domain: Grave Domain",
+          "level": 1
+        },
+        "source": "subclass",
+        "level_acquired": 1,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "xge:cleric-grave-domain",
+          "feature_name": "Circle of Mortality (Grave Domain)",
+          "level": 1
+        },
+        "source": "subclass",
+        "level_acquired": 1,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "xge:cleric-grave-domain",
+          "feature_name": "Eyes of the Grave (Grave Domain)",
+          "level": 1
+        },
+        "source": "subclass",
+        "level_acquired": 1,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "phb:wizard",
+          "feature_name": "Arcane Tradition",
+          "level": 2
+        },
+        "source": "class",
+        "level_acquired": 2,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "tce:wizard-bladesinging",
+          "feature_name": "Arcane Tradition: Bladesinging",
+          "level": 2
+        },
+        "source": "subclass",
+        "level_acquired": 2,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "tce:wizard-bladesinging",
+          "feature_name": "Restriction: Elves Only (Bladesinging)",
+          "level": 2
+        },
+        "source": "subclass",
+        "level_acquired": 2,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "tce:wizard-bladesinging",
+          "feature_name": "Bladesinger Styles (Bladesinging)",
+          "level": 2
+        },
+        "source": "subclass",
+        "level_acquired": 2,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "tce:wizard-bladesinging",
+          "feature_name": "Training in War and Song (Bladesinging)",
+          "level": 2
+        },
+        "source": "subclass",
+        "level_acquired": 2,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "tce:wizard-bladesinging",
+          "feature_name": "Bladesong (Bladesinging)",
+          "level": 2
+        },
+        "source": "subclass",
+        "level_acquired": 2,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "tce:wizard-bladesinging",
+          "feature_name": "Arcane Tradition: Bladesinging",
+          "level": 2
+        },
+        "source": "subclass",
+        "level_acquired": 2,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "tce:wizard-bladesinging",
+          "feature_name": "Restriction: Elves Only (Bladesinging)",
+          "level": 2
+        },
+        "source": "subclass",
+        "level_acquired": 2,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "tce:wizard-bladesinging",
+          "feature_name": "Bladesinger Styles (Bladesinging)",
+          "level": 2
+        },
+        "source": "subclass",
+        "level_acquired": 2,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "tce:wizard-bladesinging",
+          "feature_name": "Bladesong (Bladesinging)",
+          "level": 2
+        },
+        "source": "subclass",
+        "level_acquired": 2,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "tce:wizard-bladesinging",
+          "feature_name": "Training in War and Song (Bladesinging) (Bladesinging)",
+          "level": 2
+        },
+        "source": "subclass",
+        "level_acquired": 2,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "phb:wizard",
+          "feature_name": "Cantrip Formulas",
+          "level": 3
+        },
+        "source": "class",
+        "level_acquired": 3,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "phb:cleric",
+          "feature_name": "Channel Divinity (1/rest)",
+          "level": 2
+        },
+        "source": "class",
+        "level_acquired": 2,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "phb:cleric",
+          "feature_name": "Channel Divinity: Turn Undead",
+          "level": 2
+        },
+        "source": "class",
+        "level_acquired": 2,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "phb:cleric",
+          "feature_name": "Channel Divinity: Harness Divine Power",
+          "level": 2
+        },
+        "source": "class",
+        "level_acquired": 2,
+        "uses_remaining": null,
+        "max_uses": null
+      },
+      {
+        "feature_type": "App\\Models\\ClassFeature",
+        "portable_id": {
+          "type": "class_feature",
+          "class_slug": "phb:cleric",
+          "feature_name": "Destroy Undead (CR 1/2)",
+          "level": 5
+        },
+        "source": "class",
+        "level_acquired": 5,
+        "uses_remaining": null,
+        "max_uses": null
+      }
+    ],
+    "portrait": null
+  }
 }

@@ -33,6 +33,7 @@ class OptionalFeature extends BaseModel
         'spell_school_id',
         'resource_type',
         'resource_cost',
+        'cost_formula',
     ];
 
     protected $casts = [

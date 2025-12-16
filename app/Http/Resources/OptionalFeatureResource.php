@@ -33,6 +33,7 @@ class OptionalFeatureResource extends JsonResource
             // Resource properties
             'resource_type' => $this->resource_type?->value,
             'resource_cost' => $this->resource_cost,
+            'cost_formula' => $this->cost_formula,
             // Computed attribute
             'has_spell_mechanics' => $this->has_spell_mechanics,
             // Relationships

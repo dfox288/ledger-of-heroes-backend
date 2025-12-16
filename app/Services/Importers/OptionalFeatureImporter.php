@@ -51,6 +51,7 @@ class OptionalFeatureImporter extends BaseImporter
                 'spell_school_id' => $spellSchoolId,
                 'resource_type' => $data['resource_type'],
                 'resource_cost' => $data['resource_cost'],
+                'cost_formula' => $data['cost_formula'] ?? null,
             ]
         );
 

@@ -32,16 +32,20 @@ class LevelUpService
 
     private CharacterChoiceService $choiceService;
 
+    private CounterService $counterService;
+
     public function __construct(
         ?CharacterStatCalculator $calculator = null,
         ?SpellSlotService $spellSlotService = null,
         ?CharacterChoiceService $choiceService = null,
-        ?CharacterFeatureService $featureService = null
+        ?CharacterFeatureService $featureService = null,
+        ?CounterService $counterService = null
     ) {
         $this->calculator = $calculator ?? new CharacterStatCalculator;
         $this->spellSlotService = $spellSlotService ?? app(SpellSlotService::class);
         $this->choiceService = $choiceService ?? app(CharacterChoiceService::class);
         $this->featureService = $featureService ?? app(CharacterFeatureService::class);
+        $this->counterService = $counterService ?? app(CounterService::class);
     }
 
     /**
@@ -86,6 +90,9 @@ class LevelUpService
 
             // Recalculate spell slots when leveling up
             $this->spellSlotService->recalculateMaxSlots($character);
+
+            // Sync resource counters (Rage, Ki Points, etc.)
+            $this->counterService->syncCountersForCharacter($character);
 
             $spellSlots = $this->getSpellSlots($character);
 

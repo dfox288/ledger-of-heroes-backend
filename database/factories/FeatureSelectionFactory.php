@@ -23,8 +23,6 @@ class FeatureSelectionFactory extends Factory
             'class_slug' => null,
             'subclass_name' => null,
             'level_acquired' => 1,
-            'uses_remaining' => null,
-            'max_uses' => null,
         ];
     }
 
@@ -46,17 +44,6 @@ class FeatureSelectionFactory extends Factory
     {
         return $this->state(fn () => [
             'level_acquired' => $level,
-        ]);
-    }
-
-    /**
-     * Configure with limited uses.
-     */
-    public function withLimitedUses(int $maxUses, ?int $remaining = null): static
-    {
-        return $this->state(fn () => [
-            'max_uses' => $maxUses,
-            'uses_remaining' => $remaining ?? $maxUses,
         ]);
     }
 

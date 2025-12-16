@@ -284,6 +284,14 @@ class Character extends Model implements HasMedia
     }
 
     /**
+     * Get resource counters for this character.
+     */
+    public function counters(): HasMany
+    {
+        return $this->hasMany(CharacterCounter::class);
+    }
+
+    /**
      * Get chosen racial ability score bonuses.
      */
     public function abilityScores(): HasMany

@@ -318,6 +318,19 @@ class ClassImporter extends BaseImporter
             }
         }
 
+        // 4a. Determine spell_preparation_method for subclass (Issue #726)
+        // Subclasses with their own spell progression (e.g., Eldritch Knight, Arcane Trickster)
+        // are "known" casters. Regular subclasses inherit from parent class.
+        $spellPreparationMethod = null;
+        if (! empty($subclassData['spell_progression'])) {
+            // Subclass has its own spell progression - these are always "known" casters
+            // because they track spells_known (Eldritch Knight, Arcane Trickster)
+            $spellPreparationMethod = 'known';
+        } elseif ($spellcastingAbilityId !== null) {
+            // Subclass inherits spellcasting from parent - use parent's preparation method
+            $spellPreparationMethod = $parentClass->getRawOriginal('spell_preparation_method');
+        }
+
         // 5. Find existing subclass by name + parent_class_id for cross-source merging
         // This handles cases like PHB Beast Master + TCE Primal Companion → single subclass
         $existingSubclass = CharacterClass::where('name', $subclassData['name'])
@@ -329,9 +342,21 @@ class ClassImporter extends BaseImporter
         if ($existingSubclass) {
             $subclass = $existingSubclass;
 
+            // Build updates for existing subclass
+            $updates = [];
+
             // Update description if current is a stub
             if (str_starts_with($subclass->description, 'Subclass of ')) {
-                $subclass->update(['description' => $description]);
+                $updates['description'] = $description;
+            }
+
+            // Update spell_preparation_method if currently null (Issue #726)
+            if ($subclass->getRawOriginal('spell_preparation_method') === null && $spellPreparationMethod !== null) {
+                $updates['spell_preparation_method'] = $spellPreparationMethod;
+            }
+
+            if (! empty($updates)) {
+                $subclass->update($updates);
             }
 
             Log::channel('import-strategy')->info('Merging features into existing subclass', [
@@ -348,6 +373,7 @@ class ClassImporter extends BaseImporter
                 'hit_die' => $parentClass->hit_die,
                 'description' => $description,
                 'spellcasting_ability_id' => $spellcastingAbilityId,
+                'spell_preparation_method' => $spellPreparationMethod,
             ]);
             $isNewSubclass = true;
         }

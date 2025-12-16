@@ -16,8 +16,8 @@ class PartyUpdateMonsterRequest extends FormRequest
         return [
             'label' => ['sometimes', 'string', 'max:255'],
             'current_hp' => ['sometimes', 'integer', 'min:0'],
-            'legendary_actions_used' => ['sometimes', 'integer', 'min:0'],
-            'legendary_resistance_used' => ['sometimes', 'integer', 'min:0'],
+            'legendary_actions_used' => ['sometimes', 'integer', 'min:0', 'max:255'],
+            'legendary_resistance_used' => ['sometimes', 'integer', 'min:0', 'max:255'],
         ];
     }
 }

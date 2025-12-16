@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Issue #683**: Link domain bonus cantrips after spell import
+  - Added `import:link-bonus-cantrips` command to link bonus cantrips that weren't connected during class import
+  - Due to import order (classes before spells), features like Light Domain's "you gain the light cantrip" weren't linked
+  - Command now runs automatically after spells import in `import:all`
+  - Links 11 bonus cantrips including Light Domain, Grave Domain, The Celestial, The Undying, and others
+
 ### Added
 
 - **Issue #711**: Feature-to-resource cost mappings for optional features

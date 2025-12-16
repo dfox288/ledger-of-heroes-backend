@@ -331,4 +331,78 @@ Source: Xanathar's Guide to Everything p. 54</text>
 </compendium>
 XML;
     }
+
+    // === Post-processing Tests (Issue #683) ===
+
+    #[Test]
+    public function postprocessing_links_bonus_cantrips_after_spells_imported(): void
+    {
+        // Step 1: Import class WITHOUT the spell existing (simulates real import order)
+        $xml = $this->getLightDomainXml();
+        $classes = $this->parser->parse($xml);
+        $this->importer->import($classes[0]);
+
+        $lightDomain = CharacterClass::where('name', 'Light Domain')->first();
+        $feature = ClassFeature::where('class_id', $lightDomain->id)
+            ->where('feature_name', 'Bonus Cantrip (Light Domain)')
+            ->first();
+
+        // Verify no EntitySpell was created initially
+        $initialCount = EntitySpell::where('reference_type', ClassFeature::class)
+            ->where('reference_id', $feature->id)
+            ->count();
+        $this->assertEquals(0, $initialCount, 'No entity_spell should exist before spell is imported');
+
+        // Step 2: Create the spell (simulates spells being imported later)
+        $lightSpell = Spell::factory()->create([
+            'name' => 'Light',
+            'slug' => 'phb:light',
+            'level' => 0,
+        ]);
+
+        // Step 3: Run postprocessing (same logic as ImportAllDataCommand::linkBonusCantrips)
+        $this->artisan('import:link-bonus-cantrips');
+
+        // Step 4: Verify the cantrip was linked
+        $entitySpell = EntitySpell::where('reference_type', ClassFeature::class)
+            ->where('reference_id', $feature->id)
+            ->where('spell_id', $lightSpell->id)
+            ->first();
+
+        $this->assertNotNull($entitySpell, 'Postprocessing should have linked the bonus cantrip');
+        $this->assertTrue((bool) $entitySpell->is_cantrip, 'Should be marked as cantrip');
+    }
+
+    #[Test]
+    public function postprocessing_skips_already_linked_cantrips(): void
+    {
+        // Create spell first so initial import links it
+        $lightSpell = Spell::factory()->create([
+            'name' => 'Light',
+            'slug' => 'phb:light',
+            'level' => 0,
+        ]);
+
+        $xml = $this->getLightDomainXml();
+        $classes = $this->parser->parse($xml);
+        $this->importer->import($classes[0]);
+
+        $lightDomain = CharacterClass::where('name', 'Light Domain')->first();
+        $feature = ClassFeature::where('class_id', $lightDomain->id)
+            ->where('feature_name', 'Bonus Cantrip (Light Domain)')
+            ->first();
+
+        // Should have 1 entity_spell from initial import
+        $this->assertEquals(1, EntitySpell::where('reference_type', ClassFeature::class)
+            ->where('reference_id', $feature->id)
+            ->count());
+
+        // Run postprocessing
+        $this->artisan('import:link-bonus-cantrips');
+
+        // Should still have only 1 entity_spell (no duplicate)
+        $this->assertEquals(1, EntitySpell::where('reference_type', ClassFeature::class)
+            ->where('reference_id', $feature->id)
+            ->count(), 'Should not create duplicate entity_spell records');
+    }
 }

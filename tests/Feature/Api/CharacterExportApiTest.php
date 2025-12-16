@@ -352,6 +352,42 @@ describe('Character Export', function () {
             ->and($twinned['cost_formula'])->toBe('spell_level');
     });
 
+    it('exports character counters (limited-use features)', function () {
+        $character = Character::factory()->create();
+        $class = CharacterClass::factory()->create(['slug' => 'phb:barbarian', 'name' => 'Barbarian']);
+
+        // Create a class feature with limited uses (like Rage)
+        $classFeature = \App\Models\ClassFeature::create([
+            'class_id' => $class->id,
+            'feature_name' => 'Rage',
+            'level' => 1,
+            'description' => 'In battle, you fight with primal ferocity.',
+            'resets_on' => 'long_rest',
+        ]);
+
+        // Create the character feature link with uses tracking
+        \App\Models\CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => 'App\\Models\\ClassFeature',
+            'feature_id' => $classFeature->id,
+            'source' => 'class',
+            'level_acquired' => 1,
+            'uses_remaining' => 2,
+            'max_uses' => 3,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}/export");
+
+        $response->assertOk();
+        $counters = $response->json('data.character.counters');
+        expect($counters)->toHaveCount(1)
+            ->and($counters[0]['name'])->toBe('Rage')
+            ->and($counters[0]['current'])->toBe(2)
+            ->and($counters[0]['max'])->toBe(3)
+            ->and($counters[0]['reset_on'])->toBe('long_rest')
+            ->and($counters[0]['source'])->toBe('Barbarian');
+    });
+
     it('returns 404 for nonexistent character', function () {
         $response = $this->getJson('/api/v1/characters/nonexistent/export');
 

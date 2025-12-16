@@ -33,7 +33,7 @@ class CharacterExportService
             'notes',
             'abilityScores',
             'spellSlots',
-            'features.feature.reference',  // Includes reference for CharacterTrait portable ID
+            'features.feature',  // Load feature; characterClass loaded lazily for ClassFeature only
             'media',
         ]);
 
@@ -67,6 +67,7 @@ class CharacterExportService
             'ability_score_choices' => $this->buildAbilityScoreChoices($character),
             'spell_slots' => $this->buildSpellSlots($character),
             'features' => $this->buildFeatures($character),
+            'counters' => $this->buildCounters($character),
             'portrait' => $this->buildPortrait($character),
         ];
     }
@@ -251,6 +252,26 @@ class CharacterExportService
 
     private function buildFeatures(Character $character): array
     {
+        // Eager load characterClass for ClassFeature types to avoid N+1
+        $classFeatures = $character->features
+            ->filter(fn ($cf) => $cf->feature instanceof \App\Models\ClassFeature)
+            ->map(fn ($cf) => $cf->feature)
+            ->filter();
+
+        if ($classFeatures->isNotEmpty()) {
+            (new \Illuminate\Database\Eloquent\Collection($classFeatures))->loadMissing('characterClass');
+        }
+
+        // Eager load reference for CharacterTrait types
+        $characterTraits = $character->features
+            ->filter(fn ($cf) => $cf->feature instanceof \App\Models\CharacterTrait)
+            ->map(fn ($cf) => $cf->feature)
+            ->filter();
+
+        if ($characterTraits->isNotEmpty()) {
+            (new \Illuminate\Database\Eloquent\Collection($characterTraits))->loadMissing('reference');
+        }
+
         return $character->features->map(function ($cf) {
             $feature = $cf->feature;
 
@@ -269,6 +290,47 @@ class CharacterExportService
                 'max_uses' => $cf->max_uses,
             ];
         })->toArray();
+    }
+
+    /**
+     * Build counters (limited-use class resources like Rage, Ki Points, etc.).
+     *
+     * Exports only features with max_uses set (counters), formatted for audit/validation.
+     */
+    private function buildCounters(Character $character): array
+    {
+        // Get only ClassFeature counters with max_uses
+        $counterFeatures = $character->features
+            ->filter(fn ($cf) => $cf->max_uses !== null)
+            ->filter(fn ($cf) => $cf->feature instanceof \App\Models\ClassFeature);
+
+        // Eager load characterClass for ClassFeatures to avoid N+1
+        if ($counterFeatures->isNotEmpty()) {
+            $features = $counterFeatures->map(fn ($cf) => $cf->feature)->filter();
+            (new \Illuminate\Database\Eloquent\Collection($features))->loadMissing('characterClass');
+        }
+
+        return $counterFeatures
+            ->map(function ($cf) {
+                $feature = $cf->feature;
+
+                // Get reset timing from the class feature
+                $resetOn = $feature->resets_on?->value ?? $feature->resets_on;
+
+                // Get source class name
+                $className = $feature->characterClass?->name ?? 'Unknown';
+
+                return [
+                    'name' => $feature->feature_name,
+                    'current' => $cf->uses_remaining,
+                    'max' => $cf->max_uses,
+                    'reset_on' => $resetOn,
+                    'source' => $className,
+                    'source_type' => $cf->source,
+                ];
+            })
+            ->values()
+            ->toArray();
     }
 
     /**

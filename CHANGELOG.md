@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Character export `feature_selections` now includes `feature_type`, `resource_type`, `resource_cost`, and `cost_formula`
   - Enables frontend to show interactive "Use" buttons that spend the correct resource
 
+- **Issue #705**: Add counters to character fixture export
+  - New `counters` array in character export with limited-use class resources
+  - Each counter includes: name, current, max, reset_on, source, source_type
+  - Enables fixture validation of Rage, Ki Points, Arcane Recovery, etc.
+  - Multiclass fixtures regenerated with counter data
+
 - **Issue #714**: Add command to create specific multiclass test characters
   - New `test:multiclass-combinations` command for creating characters with exact class/level combinations
   - Syntax: `--combinations="wizard:5,cleric:5"` for Wizard 5 / Cleric 5

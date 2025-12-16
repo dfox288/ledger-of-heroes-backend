@@ -15,7 +15,9 @@ class ImportFixtureCharactersCommand extends Command
 {
     protected $signature = 'fixtures:import-characters
                             {--file= : Specific JSON file to import (relative to storage/fixtures)}
-                            {--all : Import all JSON files from storage/fixtures/class-tests}
+                            {--all : Import all JSON files from storage/fixtures/class-tests and multiclass-tests}
+                            {--class-tests : Import only class-tests fixtures}
+                            {--multiclass-tests : Import only multiclass-tests fixtures}
                             {--force : Delete existing test characters before importing}
                             {--dry-run : Show what would be imported without importing}';
 
@@ -32,11 +34,15 @@ class ImportFixtureCharactersCommand extends Command
         $fixturesPath = storage_path('fixtures');
         $specificFile = $this->option('file');
         $importAll = $this->option('all');
+        $importClassTests = $this->option('class-tests');
+        $importMulticlassTests = $this->option('multiclass-tests');
         $force = $this->option('force');
         $dryRun = $this->option('dry-run');
 
-        if ($specificFile && $importAll) {
-            $this->error('Cannot use --file and --all together');
+        // Check for conflicting options
+        $importOptions = array_filter([$specificFile, $importAll, $importClassTests, $importMulticlassTests]);
+        if (count($importOptions) > 1 && $specificFile) {
+            $this->error('Cannot use --file with other import options');
 
             return self::FAILURE;
         }
@@ -49,26 +55,41 @@ class ImportFixtureCharactersCommand extends Command
                 return self::FAILURE;
             }
             $files = [$filePath];
-        } elseif ($importAll) {
-            $classTestsPath = $fixturesPath.'/class-tests';
-            if (! File::isDirectory($classTestsPath)) {
-                $this->error("Class tests directory not found: {$classTestsPath}");
+        } elseif ($importAll || $importClassTests || $importMulticlassTests) {
+            $files = [];
 
-                return self::FAILURE;
+            // Import class-tests if --all or --class-tests
+            if ($importAll || $importClassTests) {
+                $classTestsPath = $fixturesPath.'/class-tests';
+                if (File::isDirectory($classTestsPath)) {
+                    $classTestFiles = File::glob($classTestsPath.'/*.json');
+                    $files = array_merge($files, $classTestFiles);
+                }
             }
-            $files = File::glob($classTestsPath.'/*.json');
+
+            // Import multiclass-tests if --all or --multiclass-tests
+            if ($importAll || $importMulticlassTests) {
+                $multiclassTestsPath = $fixturesPath.'/multiclass-tests';
+                if (File::isDirectory($multiclassTestsPath)) {
+                    $multiclassFiles = File::glob($multiclassTestsPath.'/*.json');
+                    $files = array_merge($files, $multiclassFiles);
+                }
+            }
+
             sort($files);
 
             if (empty($files)) {
-                $this->error('No JSON files found in '.$classTestsPath);
+                $this->error('No JSON files found in the selected directories');
 
                 return self::FAILURE;
             }
 
             $this->info('Found '.count($files).' fixture files');
         } else {
-            $this->error('Please specify --file or --all');
-            $this->info('Use --all to import all files from storage/fixtures/class-tests/');
+            $this->error('Please specify --file, --all, --class-tests, or --multiclass-tests');
+            $this->info('Use --all to import all fixtures');
+            $this->info('Use --class-tests to import only class test fixtures');
+            $this->info('Use --multiclass-tests to import only multiclass test fixtures');
             $this->info('Use --file=class-tests/filename.json to import a specific file');
 
             return self::FAILURE;
@@ -167,26 +188,34 @@ class ImportFixtureCharactersCommand extends Command
     {
         $this->info('🗑️  Deleting existing test characters...');
 
-        // Match names like "Alchemist L1", "Battle Smith L20", etc.
-        $count = \App\Models\Character::where('name', 'regexp', ' L[0-9]+$')->count();
+        // Match names like "Alchemist L1", "Battle Smith L20", etc. (class-tests)
+        // Also match multiclass names like "Wizard 5 / Cleric 5" (multiclass-tests)
+        $classTestPattern = ' L[0-9]+$';
+        $multiclassPattern = ' [0-9]+ / ';  // Contains " X / " pattern
+
+        $characters = \App\Models\Character::where(function ($query) use ($classTestPattern, $multiclassPattern) {
+            $query->where('name', 'regexp', $classTestPattern)
+                ->orWhere('name', 'regexp', $multiclassPattern);
+        })->get();
+
+        $count = $characters->count();
 
         if ($count > 0) {
-            \App\Models\Character::where('name', 'regexp', ' L[0-9]+$')
-                ->each(function ($character) {
-                    // Delete related data first
-                    $character->characterClasses()->delete();
-                    $character->spells()->delete();
-                    $character->equipment()->delete();
-                    $character->languages()->delete();
-                    $character->proficiencies()->delete();
-                    $character->conditions()->delete();
-                    $character->featureSelections()->delete();
-                    $character->notes()->delete();
-                    $character->abilityScores()->delete();
-                    $character->spellSlots()->delete();
-                    $character->features()->delete();
-                    $character->delete();
-                });
+            $characters->each(function ($character) {
+                // Delete related data first
+                $character->characterClasses()->delete();
+                $character->spells()->delete();
+                $character->equipment()->delete();
+                $character->languages()->delete();
+                $character->proficiencies()->delete();
+                $character->conditions()->delete();
+                $character->featureSelections()->delete();
+                $character->notes()->delete();
+                $character->abilityScores()->delete();
+                $character->spellSlots()->delete();
+                $character->features()->delete();
+                $character->delete();
+            });
 
             $this->info("  Deleted {$count} existing test characters");
         } else {

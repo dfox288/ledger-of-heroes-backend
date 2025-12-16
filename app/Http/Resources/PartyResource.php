@@ -17,6 +17,7 @@ class PartyResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
+            'leveling_mode' => $this->leveling_mode?->value ?? 'milestone',
             'character_count' => $this->whenCounted('characters', $this->characters_count),
             'characters' => PartyCharacterResource::collection($this->whenLoaded('characters')),
             'created_at' => $this->created_at?->toIso8601String(),

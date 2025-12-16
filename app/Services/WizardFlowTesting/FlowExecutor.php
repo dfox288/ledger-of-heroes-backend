@@ -219,7 +219,7 @@ class FlowExecutor
             'set_race' => $this->setRace($characterId, $randomizer, $step['force_race'] ?? null),
             'set_subrace' => $this->setSubrace($characterId, $randomizer),
             'set_class' => $this->setClass($characterId, $randomizer, $step['force_class'] ?? null),
-            'set_subclass' => $this->setSubclass($characterId, $randomizer),
+            'set_subclass' => $this->setSubclass($characterId, $randomizer, $step['force_subclass'] ?? null),
             'set_background' => $this->setBackground($characterId, $randomizer),
             'set_ability_scores' => $this->setAbilityScores($characterId, $randomizer),
             'resolve_proficiency_choices' => $this->resolveChoices($characterId, $randomizer, 'proficiency'),
@@ -305,7 +305,7 @@ class FlowExecutor
         }
     }
 
-    private function setSubclass(int $characterId, CharacterRandomizer $randomizer): ?array
+    private function setSubclass(int $characterId, CharacterRandomizer $randomizer, ?string $forceSubclass = null): ?array
     {
         if (! $this->currentClass || $this->currentClass->subclass_level !== 1) {
             return null; // Skip - no subclass at level 1
@@ -316,7 +316,11 @@ class FlowExecutor
             return null;
         }
 
-        $subclass = $subclasses[$randomizer->randomInt(0, $subclasses->count() - 1)];
+        if ($forceSubclass) {
+            $subclass = CharacterClass::where('slug', $forceSubclass)->firstOrFail();
+        } else {
+            $subclass = $subclasses[$randomizer->randomInt(0, $subclasses->count() - 1)];
+        }
         $this->currentSubclass = $subclass;
 
         return $this->makeRequest(

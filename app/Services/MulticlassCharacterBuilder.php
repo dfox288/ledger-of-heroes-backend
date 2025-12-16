@@ -6,7 +6,6 @@ namespace App\Services;
 
 use App\Models\Character;
 use App\Models\CharacterClass;
-use App\Services\LevelUpFlowTesting\LevelUpFlowExecutor;
 use App\Services\WizardFlowTesting\CharacterRandomizer;
 use App\Services\WizardFlowTesting\FlowExecutor;
 use App\Services\WizardFlowTesting\FlowGenerator;
@@ -79,14 +78,13 @@ class MulticlassCharacterBuilder
         // 3. Level up each class to target level
         //    First class starts at level 1, needs (level - 1) more levels
         //    Additional classes start at level 1 after addClass, need (level - 1) more levels
-        $levelUpExecutor = new LevelUpFlowExecutor;
 
         // Level up first class
-        $this->levelClassToTarget($character, $firstClass['class'], $firstClass['level'], $randomizer, $levelUpExecutor);
+        $this->levelClassToTarget($character, $firstClass['class'], $firstClass['level'], $randomizer);
 
         // Level up additional classes
         foreach ($additionalClasses as $classSpec) {
-            $this->levelClassToTarget($character, $classSpec['class'], $classSpec['level'], $randomizer, $levelUpExecutor);
+            $this->levelClassToTarget($character, $classSpec['class'], $classSpec['level'], $randomizer);
         }
 
         return $character->fresh();
@@ -167,6 +165,7 @@ class MulticlassCharacterBuilder
             throw new InvalidArgumentException('Total level cannot exceed 20');
         }
 
+        $seenClasses = [];
         foreach ($classLevels as $spec) {
             if (! isset($spec['class']) || ! isset($spec['level'])) {
                 throw new InvalidArgumentException('Each class specification must have "class" and "level" keys');
@@ -175,6 +174,13 @@ class MulticlassCharacterBuilder
             if ($spec['level'] < 1) {
                 throw new InvalidArgumentException('Class level must be at least 1');
             }
+
+            // Check for duplicate classes
+            $normalizedClass = $this->resolveClassSlug($spec['class']);
+            if (in_array($normalizedClass, $seenClasses, true)) {
+                throw new InvalidArgumentException("Duplicate class specified: {$spec['class']}");
+            }
+            $seenClasses[] = $normalizedClass;
         }
     }
 
@@ -213,8 +219,7 @@ class MulticlassCharacterBuilder
         Character $character,
         string $classSlug,
         int $targetLevel,
-        CharacterRandomizer $randomizer,
-        LevelUpFlowExecutor $executor  // @phpstan-ignore-line Kept for potential future use
+        CharacterRandomizer $randomizer
     ): void {
         // Use direct level-up approach for control over which class to level
         $this->levelUpClassDirectly($character, $classSlug, $targetLevel, $randomizer);

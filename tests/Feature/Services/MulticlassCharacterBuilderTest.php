@@ -39,6 +39,17 @@ describe('MulticlassCharacterBuilder', function () {
 
             $builder->build($classLevels, seed: 42);
         })->throws(InvalidArgumentException::class, 'Class level must be at least 1');
+
+        it('throws exception when duplicate class specified', function () {
+            $builder = app(MulticlassCharacterBuilder::class);
+
+            $classLevels = [
+                ['class' => 'phb:wizard', 'level' => 5],
+                ['class' => 'wizard', 'level' => 5],  // Same class with shorthand
+            ];
+
+            $builder->build($classLevels, seed: 42);
+        })->throws(InvalidArgumentException::class, 'Duplicate class specified');
     });
 
     describe('parseClassLevels', function () {

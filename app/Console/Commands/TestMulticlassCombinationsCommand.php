@@ -92,7 +92,6 @@ class TestMulticlassCombinationsCommand extends Command
                     $character->refresh();
 
                     $totalCreated++;
-                    $createdCharacters[] = $character;
 
                     $this->outputCharacter($character);
 
@@ -109,6 +108,8 @@ class TestMulticlassCombinationsCommand extends Command
                     if ($cleanup) {
                         $character->delete();
                         $this->line('    (cleaned up)');
+                    } else {
+                        $createdCharacters[] = $character;
                     }
                 } catch (\Throwable $e) {
                     $totalFailed++;

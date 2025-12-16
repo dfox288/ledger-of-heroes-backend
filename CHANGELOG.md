@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #714**: Add command to create specific multiclass test characters
+  - New `test:multiclass-combinations` command for creating characters with exact class/level combinations
+  - Syntax: `--combinations="wizard:5,cleric:5"` for Wizard 5 / Cleric 5
+  - Supports multiple combinations with pipe separator: `"wizard:5,cleric:5|fighter:10,rogue:10"`
+  - Supports source prefixes for non-PHB classes: `"erlw:artificer:5,cleric:5"`
+  - Options: `--count`, `--seed`, `--cleanup`, `--no-force`
+  - New `MulticlassCharacterBuilder` service handles character creation and leveling
+  - Enables frontend testing of multiclass spellcasting UI
+
 - **Issue #692**: Multiclass spellcasting API support (PHB p.164-165)
   - `CharacterSpellResource` now includes `class_slug` field to identify which class grants each spell
   - `CharacterStatsResource.spellcasting` changed from single object to per-class keyed object

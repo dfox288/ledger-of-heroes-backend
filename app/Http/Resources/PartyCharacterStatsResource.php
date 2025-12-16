@@ -3,13 +3,10 @@
 namespace App\Http\Resources;
 
 use App\Enums\ItemTypeCode;
-use App\Enums\ResetTiming;
 use App\Models\Character;
-use App\Models\ClassFeature;
 use App\Services\CharacterStatCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Str;
 
 /**
  * Resource for party stats endpoint - provides DM dashboard data.
@@ -430,60 +427,12 @@ class PartyCharacterStatsResource extends JsonResource
     /**
      * Format class counters (Rage, Ki Points, Action Surge, etc.).
      *
-     * Uses pre-loaded features to avoid N+1 queries in party context.
+     * Uses CounterService to get counters from the character_counters table.
      */
     private function formatCounters(): array
     {
-        if (! $this->relationLoaded('features')) {
-            return [];
-        }
+        $counterService = app(\App\Services\CounterService::class);
 
-        return $this->features
-            ->filter(fn ($cf) => $cf->max_uses !== null)
-            ->map(function ($characterFeature) {
-                $feature = $characterFeature->feature;
-
-                // Only ClassFeatures have counters (for now)
-                if (! $feature instanceof ClassFeature) {
-                    return null;
-                }
-
-                $resetOn = $this->mapResetTiming($feature->resets_on);
-                $className = $feature->characterClass?->name ?? 'Unknown';
-                $classSlug = $feature->characterClass?->slug ?? 'unknown';
-                $counterNameSlug = Str::slug($feature->feature_name);
-
-                return [
-                    'id' => $characterFeature->id,
-                    'slug' => "{$classSlug}:{$counterNameSlug}",
-                    'name' => $feature->feature_name,
-                    'current' => $characterFeature->uses_remaining,
-                    'max' => $characterFeature->max_uses,
-                    'reset_on' => $resetOn,
-                    'source' => $className,
-                    'source_type' => $characterFeature->source,
-                    'unlimited' => $characterFeature->max_uses === -1,
-                ];
-            })
-            ->filter()
-            ->values()
-            ->all();
-    }
-
-    /**
-     * Map ResetTiming enum to API string format.
-     */
-    private function mapResetTiming(?ResetTiming $timing): ?string
-    {
-        if ($timing === null) {
-            return null;
-        }
-
-        return match ($timing) {
-            ResetTiming::SHORT_REST => 'short_rest',
-            ResetTiming::LONG_REST => 'long_rest',
-            ResetTiming::DAWN => 'dawn',
-            default => $timing->value,
-        };
+        return $counterService->getCountersForCharacter($this->resource)->toArray();
     }
 }

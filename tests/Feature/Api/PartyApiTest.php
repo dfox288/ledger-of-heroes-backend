@@ -1080,39 +1080,18 @@ class PartyApiTest extends TestCase
         $user = User::factory()->create();
         $party = Party::factory()->create(['user_id' => $user->id]);
 
-        // Create a barbarian class with Rage feature
-        $barbarianClass = \App\Models\CharacterClass::factory()->create([
-            'slug' => 'test:barbarian-counter-'.uniqid(),
-            'name' => 'Barbarian',
-        ]);
-
-        // Create a class feature with uses (Rage)
-        $rageFeature = \App\Models\ClassFeature::factory()->create([
-            'class_id' => $barbarianClass->id,
-            'feature_name' => 'Rage',
-            'level' => 1,
-            'resets_on' => \App\Enums\ResetTiming::LONG_REST,
-        ]);
-
         $character = Character::factory()->create(['name' => 'Grunk']);
 
-        // Add barbarian class to character
-        \App\Models\CharacterClassPivot::create([
+        // Add counter directly to the character_counters table (new approach)
+        // current_uses = actual remaining (null = full capacity)
+        \App\Models\CharacterCounter::create([
             'character_id' => $character->id,
-            'class_slug' => $barbarianClass->slug,
-            'level' => 3,
-            'is_primary' => true,
-            'order' => 1,
-        ]);
-
-        // Add the Rage feature to character with uses
-        \App\Models\CharacterFeature::create([
-            'character_id' => $character->id,
-            'feature_type' => \App\Models\ClassFeature::class,
-            'feature_id' => $rageFeature->id,
-            'source' => 'class',
+            'source_type' => 'class',
+            'source_slug' => 'phb:barbarian',
+            'counter_name' => 'Rage',
+            'current_uses' => 2, // 2 remaining of 3 max
             'max_uses' => 3,
-            'uses_remaining' => 2,
+            'reset_timing' => 'L', // Long rest
         ]);
 
         $party->characters()->attach($character);
@@ -1127,10 +1106,11 @@ class PartyApiTest extends TestCase
 
         $rage = $counters[0];
         expect($rage['name'])->toBe('Rage');
-        expect($rage['current'])->toBe(2);
+        expect($rage['current'])->toBe(2); // remaining = max - current_uses when not null
         expect($rage['max'])->toBe(3);
         expect($rage['reset_on'])->toBe('long_rest');
-        expect($rage['source'])->toBe('Barbarian');
+        expect($rage['source_type'])->toBe('class');
+        expect($rage['source_slug'])->toBe('phb:barbarian');
         expect($rage['unlimited'])->toBeFalse();
     }
 

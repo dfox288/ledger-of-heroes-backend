@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #711**: Feature-to-resource cost mappings for optional features
+  - Added `cost_formula` field to `optional_features` table for variable costs
+  - Parser now extracts resource costs from description text (data-driven approach)
+  - Maneuvers: All 23 now have `superiority_die` resource type with cost 1
+  - Metamagic: All 10 have `sorcery_points`; Twinned Spell has `cost_formula: "spell_level"`
+  - Character export `feature_selections` now includes `feature_type`, `resource_type`, `resource_cost`, and `cost_formula`
+  - Enables frontend to show interactive "Use" buttons that spend the correct resource
+
 - **Issue #714**: Add command to create specific multiclass test characters
   - New `test:multiclass-combinations` command for creating characters with exact class/level combinations
   - Syntax: `--combinations="wizard:5,cleric:5"` for Wizard 5 / Cleric 5

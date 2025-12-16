@@ -291,6 +291,67 @@ describe('Character Export', function () {
             ->and($features[0]['class'])->toBe('phb:warlock');
     });
 
+    it('exports feature selections with resource cost data', function () {
+        $character = Character::factory()->create();
+        $class = CharacterClass::factory()->create(['slug' => 'phb:sorcerer', 'name' => 'Sorcerer']);
+
+        // Create a feature with resource cost
+        $quickenedSpell = OptionalFeature::factory()->create([
+            'slug' => 'phb:quickened-spell',
+            'name' => 'Quickened Spell',
+            'feature_type' => 'metamagic',
+            'resource_type' => 'sorcery_points',
+            'resource_cost' => 2,
+            'cost_formula' => null,
+        ]);
+
+        // Create a feature with variable cost
+        $twinnedSpell = OptionalFeature::factory()->create([
+            'slug' => 'phb:twinned-spell',
+            'name' => 'Twinned Spell',
+            'feature_type' => 'metamagic',
+            'resource_type' => 'sorcery_points',
+            'resource_cost' => null,
+            'cost_formula' => 'spell_level',
+        ]);
+
+        FeatureSelection::factory()->create([
+            'character_id' => $character->id,
+            'optional_feature_slug' => 'phb:quickened-spell',
+            'class_slug' => 'phb:sorcerer',
+            'level_acquired' => 3,
+        ]);
+
+        FeatureSelection::factory()->create([
+            'character_id' => $character->id,
+            'optional_feature_slug' => 'phb:twinned-spell',
+            'class_slug' => 'phb:sorcerer',
+            'level_acquired' => 3,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}/export");
+
+        $response->assertOk();
+        $features = $response->json('data.character.feature_selections');
+        expect($features)->toHaveCount(2);
+
+        // Find quickened spell and verify fixed cost
+        $quickened = collect($features)->firstWhere('feature', 'phb:quickened-spell');
+        expect($quickened)->not->toBeNull()
+            ->and($quickened['feature_type'])->toBe('metamagic')
+            ->and($quickened['resource_type'])->toBe('sorcery_points')
+            ->and($quickened['resource_cost'])->toBe(2)
+            ->and($quickened['cost_formula'])->toBeNull();
+
+        // Find twinned spell and verify variable cost
+        $twinned = collect($features)->firstWhere('feature', 'phb:twinned-spell');
+        expect($twinned)->not->toBeNull()
+            ->and($twinned['feature_type'])->toBe('metamagic')
+            ->and($twinned['resource_type'])->toBe('sorcery_points')
+            ->and($twinned['resource_cost'])->toBeNull()
+            ->and($twinned['cost_formula'])->toBe('spell_level');
+    });
+
     it('returns 404 for nonexistent character', function () {
         $response = $this->getJson('/api/v1/characters/nonexistent/export');
 

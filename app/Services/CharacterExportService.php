@@ -29,7 +29,7 @@ class CharacterExportService
             'languages',
             'proficiencies',
             'conditions',
-            'featureSelections',
+            'featureSelections.optionalFeature',  // Include optional feature for resource cost data
             'notes',
             'abilityScores',
             'spellSlots',
@@ -200,14 +200,23 @@ class CharacterExportService
 
     private function buildFeatureSelections(Character $character): array
     {
-        return $character->featureSelections->map(fn ($fs) => [
-            'feature' => $fs->optional_feature_slug,
-            'class' => $fs->class_slug,
-            'subclass_name' => $fs->subclass_name,
-            'level_acquired' => $fs->level_acquired,
-            'uses_remaining' => $fs->uses_remaining,
-            'max_uses' => $fs->max_uses,
-        ])->toArray();
+        return $character->featureSelections->map(function ($fs) {
+            $optionalFeature = $fs->optionalFeature;
+
+            return [
+                'feature' => $fs->optional_feature_slug,
+                'class' => $fs->class_slug,
+                'subclass_name' => $fs->subclass_name,
+                'level_acquired' => $fs->level_acquired,
+                'uses_remaining' => $fs->uses_remaining,
+                'max_uses' => $fs->max_uses,
+                // Resource cost data from related OptionalFeature
+                'feature_type' => $optionalFeature?->feature_type?->value,
+                'resource_type' => $optionalFeature?->resource_type?->value,
+                'resource_cost' => $optionalFeature?->resource_cost,
+                'cost_formula' => $optionalFeature?->cost_formula,
+            ];
+        })->toArray();
     }
 
     private function buildNotes(Character $character): array

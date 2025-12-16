@@ -900,3 +900,215 @@ describe('Portrait Export/Import', function () {
             ->and($portrait->mime_type)->toBe('image/png');
     });
 });
+
+describe('Feature Export', function () {
+    it('exports CharacterTrait with portable_id containing entity type and slug', function () {
+        $race = Race::factory()->create(['slug' => 'test:dhampir', 'name' => 'Dhampir']);
+
+        // Create a trait attached to the race
+        $trait = \App\Models\CharacterTrait::create([
+            'reference_type' => 'App\\Models\\Race',
+            'reference_id' => $race->id,
+            'name' => 'Vampiric Bite',
+            'category' => 'trait',
+            'description' => 'You can bite creatures.',
+        ]);
+
+        $character = Character::factory()->create([
+            'race_slug' => 'test:dhampir',
+        ]);
+
+        // Link the trait to the character
+        \App\Models\CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => 'App\\Models\\CharacterTrait',
+            'feature_id' => $trait->id,
+            'source' => 'race',
+            'level_acquired' => 1,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}/export");
+
+        $response->assertOk();
+        $features = $response->json('data.character.features');
+
+        expect($features)->toHaveCount(1);
+        $feature = $features[0];
+
+        expect($feature['feature_type'])->toBe('App\\Models\\CharacterTrait')
+            ->and($feature['portable_id'])->not->toBeNull()
+            ->and($feature['portable_id']['type'])->toBe('character_trait')
+            ->and($feature['portable_id']['entity_type'])->toBe('race')
+            ->and($feature['portable_id']['entity_slug'])->toBe('test:dhampir')
+            ->and($feature['portable_id']['trait_name'])->toBe('Vampiric Bite');
+    });
+
+    it('exports background CharacterTrait with correct entity type', function () {
+        $background = Background::factory()->create(['slug' => 'test:soldier', 'name' => 'Soldier']);
+
+        // Create a trait attached to the background
+        $trait = \App\Models\CharacterTrait::create([
+            'reference_type' => 'App\\Models\\Background',
+            'reference_id' => $background->id,
+            'name' => 'Military Rank',
+            'category' => 'feature',
+            'description' => 'You have a military rank.',
+        ]);
+
+        $character = Character::factory()->create([
+            'background_slug' => 'test:soldier',
+        ]);
+
+        // Link the trait to the character
+        \App\Models\CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => 'App\\Models\\CharacterTrait',
+            'feature_id' => $trait->id,
+            'source' => 'background',
+            'level_acquired' => 1,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}/export");
+
+        $response->assertOk();
+        $features = $response->json('data.character.features');
+
+        expect($features)->toHaveCount(1);
+        $feature = $features[0];
+
+        expect($feature['portable_id']['type'])->toBe('character_trait')
+            ->and($feature['portable_id']['entity_type'])->toBe('background')
+            ->and($feature['portable_id']['entity_slug'])->toBe('test:soldier')
+            ->and($feature['portable_id']['trait_name'])->toBe('Military Rank');
+    });
+
+    it('imports CharacterTrait features using portable_id', function () {
+        $race = Race::factory()->create(['slug' => 'test:tiefling', 'name' => 'Tiefling']);
+        $class = CharacterClass::factory()->create(['slug' => 'test:warlock', 'name' => 'Warlock']);
+
+        // Create a trait attached to the race (simulating what would exist in DB)
+        $trait = \App\Models\CharacterTrait::create([
+            'reference_type' => 'App\\Models\\Race',
+            'reference_id' => $race->id,
+            'name' => 'Hellish Resistance',
+            'category' => 'trait',
+            'description' => 'You have resistance to fire damage.',
+        ]);
+
+        // Import a character with a CharacterTrait feature
+        $exportData = [
+            'format_version' => '1.2',
+            'character' => [
+                'public_id' => 'trait-import-test',
+                'name' => 'Trait Importer',
+                'race' => 'test:tiefling',
+                'background' => null,
+                'alignment' => 'Chaotic Good',
+                'ability_scores' => [
+                    'strength' => 10,
+                    'dexterity' => 14,
+                    'constitution' => 14,
+                    'intelligence' => 10,
+                    'wisdom' => 12,
+                    'charisma' => 16,
+                ],
+                'classes' => [
+                    ['class' => 'test:warlock', 'subclass' => null, 'level' => 1, 'is_primary' => true],
+                ],
+                'spells' => [],
+                'equipment' => [],
+                'languages' => [],
+                'proficiencies' => ['skills' => [], 'types' => []],
+                'conditions' => [],
+                'feature_selections' => [],
+                'notes' => [],
+                'features' => [
+                    [
+                        'feature_type' => 'App\\Models\\CharacterTrait',
+                        'portable_id' => [
+                            'type' => 'character_trait',
+                            'entity_type' => 'race',
+                            'entity_slug' => 'test:tiefling',
+                            'trait_name' => 'Hellish Resistance',
+                        ],
+                        'source' => 'race',
+                        'level_acquired' => 1,
+                    ],
+                ],
+            ],
+        ];
+
+        $response = $this->postJson('/api/v1/characters/import', $exportData);
+
+        $response->assertCreated();
+
+        $character = Character::where('public_id', 'trait-import-test')->first();
+        expect($character)->not->toBeNull();
+
+        // Verify the feature was imported and linked to the correct trait
+        $features = $character->features;
+        expect($features)->toHaveCount(1);
+        expect($features->first()->feature_id)->toBe($trait->id);
+        expect($features->first()->feature_type)->toBe('App\\Models\\CharacterTrait');
+    });
+
+    it('round-trips CharacterTrait features through export and import', function () {
+        $race = Race::factory()->create(['slug' => 'test:dragonborn', 'name' => 'Dragonborn']);
+        $class = CharacterClass::factory()->create(['slug' => 'test:paladin', 'name' => 'Paladin']);
+
+        // Create a trait attached to the race
+        $trait = \App\Models\CharacterTrait::create([
+            'reference_type' => 'App\\Models\\Race',
+            'reference_id' => $race->id,
+            'name' => 'Breath Weapon',
+            'category' => 'trait',
+            'description' => 'You can exhale destructive energy.',
+        ]);
+
+        // Create a character with the trait
+        $character = Character::factory()->create([
+            'public_id' => 'round-trip-trait-test',
+            'name' => 'Trait Round Tripper',
+            'race_slug' => 'test:dragonborn',
+        ]);
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => 'test:paladin',
+            'level' => 1,
+            'is_primary' => true,
+        ]);
+
+        \App\Models\CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => 'App\\Models\\CharacterTrait',
+            'feature_id' => $trait->id,
+            'source' => 'race',
+            'level_acquired' => 1,
+        ]);
+
+        // Export
+        $exportResponse = $this->getJson("/api/v1/characters/{$character->public_id}/export");
+        $exportResponse->assertOk();
+        $exportData = $exportResponse->json('data');
+
+        // Delete original
+        $character->features()->delete();
+        $character->characterClasses()->delete();
+        $character->delete();
+
+        // Import
+        unset($exportData['exported_at']);
+        $importResponse = $this->postJson('/api/v1/characters/import', $exportData);
+        $importResponse->assertCreated();
+
+        $newPublicId = $importResponse->json('data.character.public_id');
+        $newCharacter = Character::where('public_id', $newPublicId)->first();
+
+        // Verify the trait feature was imported correctly
+        $features = $newCharacter->features;
+        expect($features)->toHaveCount(1);
+        expect($features->first()->feature_id)->toBe($trait->id);
+        expect($features->first()->feature_type)->toBe('App\\Models\\CharacterTrait');
+    });
+});

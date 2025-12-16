@@ -1,8 +1,8 @@
 {
     "format_version": "1.2",
-    "exported_at": "2025-12-15T22:36:06+00:00",
+    "exported_at": "2025-12-15T23:47:10+00:00",
     "character": {
-        "public_id": "cunning-sage-IaZc",
+        "public_id": "golden-dragon-Mj88",
         "name": "Zarok",
         "race": "vrgtr:dhampir",
         "background": "scag:investigator",
@@ -242,7 +242,12 @@
         "features": [
             {
                 "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": null,
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:dhampir",
+                    "trait_name": "Ancestral Legacy"
+                },
                 "source": "race",
                 "level_acquired": 1,
                 "uses_remaining": null,
@@ -250,7 +255,12 @@
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": null,
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:dhampir",
+                    "trait_name": "Darkvision"
+                },
                 "source": "race",
                 "level_acquired": 1,
                 "uses_remaining": null,
@@ -258,7 +268,12 @@
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": null,
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:dhampir",
+                    "trait_name": "Deathless Nature"
+                },
                 "source": "race",
                 "level_acquired": 1,
                 "uses_remaining": null,
@@ -266,7 +281,12 @@
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": null,
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:dhampir",
+                    "trait_name": "Spider Climb"
+                },
                 "source": "race",
                 "level_acquired": 1,
                 "uses_remaining": null,
@@ -274,7 +294,12 @@
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": null,
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:dhampir",
+                    "trait_name": "Vampiric Bite"
+                },
                 "source": "race",
                 "level_acquired": 1,
                 "uses_remaining": null,
@@ -308,7 +333,12 @@
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": null,
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "scag:investigator",
+                    "trait_name": "Feature: Watcher's Eye"
+                },
                 "source": "background",
                 "level_acquired": 1,
                 "uses_remaining": null,

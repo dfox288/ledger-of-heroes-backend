@@ -134,8 +134,9 @@ class FlowExecutor
                     }
                 }
 
-                // Validate subclass features after subclass selection
+                // Validate subclass features, spells, and proficiencies after subclass selection
                 if ($snapshotAfter && $this->shouldValidateSubclass($step) && $this->currentSubclass) {
+                    // Validate features
                     $subclassValidation = $this->subclassValidator->validateSubclassFeatures(
                         $snapshotAfter,
                         $this->currentSubclass,
@@ -145,6 +146,34 @@ class FlowExecutor
                     if (! $subclassValidation->passed) {
                         $result->addStep($step, 'fail', $snapshotAfter, $response);
                         $result->addFailure($step, $subclassValidation, $snapshotBefore, $snapshotAfter);
+
+                        continue;
+                    }
+
+                    // Validate spells (for always-prepared classes like Cleric, Druid, Paladin, Artificer)
+                    $spellValidation = $this->subclassValidator->validateSubclassSpells(
+                        $snapshotAfter,
+                        $this->currentSubclass,
+                        1
+                    );
+
+                    if (! $spellValidation->passed) {
+                        $result->addStep($step, 'fail', $snapshotAfter, $response);
+                        $result->addFailure($step, $spellValidation, $snapshotBefore, $snapshotAfter);
+
+                        continue;
+                    }
+
+                    // Validate proficiencies
+                    $proficiencyValidation = $this->subclassValidator->validateSubclassProficiencies(
+                        $snapshotAfter,
+                        $this->currentSubclass,
+                        1
+                    );
+
+                    if (! $proficiencyValidation->passed) {
+                        $result->addStep($step, 'fail', $snapshotAfter, $response);
+                        $result->addFailure($step, $proficiencyValidation, $snapshotBefore, $snapshotAfter);
 
                         continue;
                     }

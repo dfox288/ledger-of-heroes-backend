@@ -448,6 +448,7 @@ class CharacterImportService
         return match ($type) {
             'class_feature' => $this->resolveClassFeatureId($portableId),
             'racial_trait' => $this->resolveRacialTraitId($portableId),
+            'character_trait' => $this->resolveCharacterTraitId($portableId),
             default => null,
         };
     }
@@ -485,6 +486,48 @@ class CharacterImportService
         $this->warnings[] = "Racial trait '{$name}' import not yet supported";
 
         return null;
+    }
+
+    /**
+     * Resolve a CharacterTrait portable ID to an actual database ID.
+     *
+     * CharacterTraits are identified by entity type (race/background), entity slug, and trait name.
+     */
+    private function resolveCharacterTraitId(array $portableId): ?int
+    {
+        $entityType = $portableId['entity_type'] ?? null;
+        $entitySlug = $portableId['entity_slug'] ?? null;
+        $traitName = $portableId['trait_name'] ?? null;
+
+        if (! $entityType || ! $entitySlug || ! $traitName) {
+            return null;
+        }
+
+        // Determine the entity model class
+        $entityClass = match ($entityType) {
+            'race' => Race::class,
+            'background' => Background::class,
+            'class' => CharacterClass::class,
+            default => null,
+        };
+
+        if (! $entityClass) {
+            return null;
+        }
+
+        // Find the parent entity
+        $entity = $entityClass::where('slug', $entitySlug)->first();
+        if (! $entity) {
+            return null;
+        }
+
+        // Find the trait by parent entity and name
+        $trait = \App\Models\CharacterTrait::where('reference_type', $entityClass)
+            ->where('reference_id', $entity->id)
+            ->where('name', $traitName)
+            ->first();
+
+        return $trait?->id;
     }
 
     /**

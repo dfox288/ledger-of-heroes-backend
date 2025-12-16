@@ -42,6 +42,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #715**: Populate `class_slug` on character spells for multiclass support
+  - Subclass-granted spells (e.g., Cleric Domain Spells) now have `class_slug` set
+  - Fixes `CharacterFeatureService::createSpellIfNotExists()` to pass class slug through the call chain
+  - Frontend can now correctly group spells by granting class for multiclass characters
+
 - **Issue #678/#682**: Paladin/Ranger Fighting Style counter incorrect (showed 2 instead of 1)
   - Root cause: Parser matched "Fighting Style: Blessed Warrior" features from TCE supplement
   - The description "You learn two cantrips" was incorrectly parsed as "2 fighting styles"

@@ -124,8 +124,7 @@ class SubclassValidator
         // Check if this is an "always prepared" class
         $parentClass = $subclass->parentClass;
         $parentClassName = $parentClass ? strtolower($parentClass->name) : '';
-        $alwaysPreparedClasses = ['cleric', 'druid', 'paladin', 'artificer'];
-        $isAlwaysPrepared = in_array($parentClassName, $alwaysPreparedClasses);
+        $isAlwaysPrepared = in_array($parentClassName, ClassFeature::ALWAYS_PREPARED_CLASSES);
 
         if (! $isAlwaysPrepared) {
             // Warlock and similar classes don't auto-grant spells

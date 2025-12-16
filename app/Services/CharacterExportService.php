@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Character;
+use App\Support\EntityTypeMapping;
 
 /**
  * Service for exporting characters as portable JSON.
@@ -32,7 +33,7 @@ class CharacterExportService
             'notes',
             'abilityScores',
             'spellSlots',
-            'features.feature',  // Don't eager load characterClass - not all feature types have it
+            'features.feature.reference',  // Includes reference for CharacterTrait portable ID
             'media',
         ]);
 
@@ -290,7 +291,7 @@ class CharacterExportService
      */
     private function buildCharacterTraitPortableId(mixed $trait): ?array
     {
-        // Load the parent entity if not already loaded
+        // Reference should already be eager loaded, but load if missing
         if (! $trait->relationLoaded('reference')) {
             $trait->load('reference');
         }
@@ -300,13 +301,8 @@ class CharacterExportService
             return null;
         }
 
-        // Determine entity type from reference_type
-        $entityType = match ($trait->reference_type) {
-            'App\\Models\\Race' => 'race',
-            'App\\Models\\Background' => 'background',
-            'App\\Models\\CharacterClass' => 'class',
-            default => null,
-        };
+        // Determine entity type from reference_type using shared mapping
+        $entityType = EntityTypeMapping::getTypeForClass($trait->reference_type);
 
         if (! $entityType) {
             return null;

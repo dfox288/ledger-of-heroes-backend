@@ -256,4 +256,79 @@ class CharacterStatsPreparationMethodTest extends TestCase
             ->assertJsonPath('data.spellcasting.test:wizard-multi.preparation_method', 'spellbook')
             ->assertJsonPath('data.spellcasting.test:cleric-multi.preparation_method', 'prepared');
     }
+
+    #[Test]
+    public function it_inherits_preparation_method_for_subclass(): void
+    {
+        // Issue #726: Subclasses should inherit preparation_method from parent
+        $wisdom = AbilityScore::firstOrCreate(['code' => 'WIS'], ['name' => 'Wisdom']);
+
+        // Create base Cleric class with 'prepared' method
+        $cleric = CharacterClass::factory()->create([
+            'slug' => 'test:cleric-base',
+            'name' => 'Cleric',
+            'spell_preparation_method' => 'prepared',
+            'spellcasting_ability_id' => $wisdom->id,
+            'parent_class_id' => null,
+        ]);
+
+        // Create Life Domain subclass - inherits from Cleric
+        $lifeDomain = CharacterClass::factory()->create([
+            'slug' => 'test:cleric-life-domain',
+            'name' => 'Life Domain',
+            'parent_class_id' => $cleric->id,
+            'spellcasting_ability_id' => $wisdom->id,
+            'spell_preparation_method' => 'prepared', // Should be set during import
+        ]);
+
+        $character = Character::factory()
+            ->withAbilityScores([])
+            ->withClass($lifeDomain, 5)
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/stats");
+
+        $response->assertOk()
+            // Top-level should reflect the subclass's preparation method
+            ->assertJsonPath('data.preparation_method', 'prepared')
+            // Per-class should also show 'prepared' for the subclass
+            ->assertJsonPath('data.spellcasting.test:cleric-life-domain.preparation_method', 'prepared');
+    }
+
+    #[Test]
+    public function it_returns_known_for_third_caster_subclass(): void
+    {
+        // Issue #726: Subclasses like Eldritch Knight and Arcane Trickster
+        // have their own spell progression and are "known" casters
+        $intelligence = AbilityScore::firstOrCreate(['code' => 'INT'], ['name' => 'Intelligence']);
+
+        // Create Fighter base class (non-caster)
+        $fighter = CharacterClass::factory()->create([
+            'slug' => 'test:fighter-base',
+            'name' => 'Fighter',
+            'spell_preparation_method' => null,
+            'spellcasting_ability_id' => null,
+            'parent_class_id' => null,
+        ]);
+
+        // Create Eldritch Knight subclass - has its own spellcasting
+        $eldritchKnight = CharacterClass::factory()->create([
+            'slug' => 'test:fighter-eldritch-knight',
+            'name' => 'Eldritch Knight',
+            'parent_class_id' => $fighter->id,
+            'spellcasting_ability_id' => $intelligence->id,
+            'spell_preparation_method' => 'known', // Third-casters are "known" casters
+        ]);
+
+        $character = Character::factory()
+            ->withAbilityScores([])
+            ->withClass($eldritchKnight, 7)
+            ->create();
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/stats");
+
+        $response->assertOk()
+            ->assertJsonPath('data.preparation_method', 'known')
+            ->assertJsonPath('data.spellcasting.test:fighter-eldritch-knight.preparation_method', 'known');
+    }
 }

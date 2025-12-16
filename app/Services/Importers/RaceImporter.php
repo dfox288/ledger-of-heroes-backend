@@ -2,7 +2,10 @@
 
 namespace App\Services\Importers;
 
+use App\Enums\ResetTiming;
 use App\Models\AbilityScore;
+use App\Models\CharacterTrait;
+use App\Models\EntityCounter;
 use App\Models\Modifier;
 use App\Models\Race;
 use App\Models\Size;
@@ -109,6 +112,9 @@ class RaceImporter extends BaseImporter
         // Import traits (clear old ones first)
         $createdTraits = $this->importEntityTraits($race, $raceData['traits'] ?? []);
 
+        // Import counters for traits with usage limits (e.g., Breath Weapon)
+        $this->importTraitCounters($createdTraits, $raceData['traits'] ?? []);
+
         // Import embedded tables in trait descriptions
         foreach ($createdTraits as $index => $trait) {
             $traitData = $raceData['traits'][$index] ?? null;
@@ -178,6 +184,9 @@ class RaceImporter extends BaseImporter
     {
         // Import traits (species, description, general traits)
         $createdTraits = $this->importEntityTraits($baseRace, $baseRaceData['traits'] ?? []);
+
+        // Import counters for traits with usage limits (e.g., Breath Weapon)
+        $this->importTraitCounters($createdTraits, $baseRaceData['traits'] ?? []);
 
         // Import embedded tables in trait descriptions
         foreach ($createdTraits as $index => $trait) {
@@ -647,5 +656,56 @@ class RaceImporter extends BaseImporter
         }
 
         return $total;
+    }
+
+    /**
+     * Import counters for racial traits that have usage limits.
+     *
+     * Creates EntityCounter records for traits like Breath Weapon (1/short rest),
+     * Relentless Endurance (1/long rest), Fey Step (1/short rest), etc.
+     *
+     * @param  array<CharacterTrait>  $createdTraits  Array of created CharacterTrait models
+     * @param  array<array<string, mixed>>  $traitsData  Original trait data with max_uses and resets_on
+     */
+    private function importTraitCounters(array $createdTraits, array $traitsData): void
+    {
+        foreach ($createdTraits as $index => $trait) {
+            $traitData = $traitsData[$index] ?? null;
+
+            if (! $traitData) {
+                continue;
+            }
+
+            $maxUses = $traitData['max_uses'] ?? null;
+            $resetsOn = $traitData['resets_on'] ?? null;
+
+            // Only create counter if trait has usage limits
+            if ($maxUses === null) {
+                continue;
+            }
+
+            // Convert ResetTiming enum to single-char code for storage
+            $resetTiming = null;
+            if ($resetsOn instanceof ResetTiming) {
+                $resetTiming = match ($resetsOn) {
+                    ResetTiming::SHORT_REST => 'S',
+                    ResetTiming::LONG_REST => 'L',
+                    ResetTiming::DAWN => 'D',
+                };
+            }
+
+            EntityCounter::updateOrCreate(
+                [
+                    'reference_type' => CharacterTrait::class,
+                    'reference_id' => $trait->id,
+                    'counter_name' => $trait->name.' Uses',
+                ],
+                [
+                    'level' => 1, // Racial traits don't have level progression (except via data tables)
+                    'counter_value' => $maxUses,
+                    'reset_timing' => $resetTiming,
+                ]
+            );
+        }
     }
 }

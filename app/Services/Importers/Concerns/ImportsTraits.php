@@ -38,6 +38,7 @@ trait ImportsTraits
                 'category' => $traitData['category'] ?? null,
                 'description' => $traitData['description'],
                 'sort_order' => $traitData['sort_order'] ?? 0,
+                'resets_on' => $traitData['resets_on'] ?? null,
             ]);
 
             $createdTraits[] = $trait;

@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Issue #717**: Polymorphic counter system for racial traits
+- **Issue #717**: Polymorphic counter system for racial traits (Phase 1)
   - Renamed `class_counters` table to `entity_counters` with polymorphic `reference_type`/`reference_id` columns
   - Renamed `ClassCounter` model to `EntityCounter` (ClassCounter kept as deprecated alias)
   - Updated CharacterClass and Feat models to use `morphMany` for counters relationship
@@ -26,6 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `max_uses`, `uses_remaining`, `resets_on` columns to `character_spells` for innate spellcasting
   - Updated all importers and services to use polymorphic counter structure
   - Backwards-compatible factory handles legacy `class_id`/`feat_id` attributes in tests
+
+- **Issue #717**: Racial trait counter creation during import (Phase 2)
+  - `ParsesTraits` now extracts `max_uses` and `resets_on` from trait descriptions automatically
+  - `ParsesUsageLimits` handles new patterns: "cannot use it again until" and "you regain the ability"
+  - `RaceImporter` creates `EntityCounter` records for traits with usage limits (Breath Weapon, Relentless Endurance, Fey Step, etc.)
+  - Counter data persists in database; re-import updates existing counters
 
 ### Added
 

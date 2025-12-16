@@ -38,6 +38,7 @@ class MonsterResource extends JsonResource
             'experience_points' => $this->experience_points,
             'proficiency_bonus' => $this->proficiency_bonus,
             'is_legendary' => $this->is_legendary,
+            'saving_throws' => $this->saving_throws,
             'passive_perception' => $this->passive_perception,
             'languages' => $this->languages,
             'senses' => EntitySenseResource::collection($this->whenLoaded('senses')),

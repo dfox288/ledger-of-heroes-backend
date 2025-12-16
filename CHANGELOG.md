@@ -66,6 +66,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #657**: Monster saving throws in API response
+  - Added `saving_throws` computed accessor to Monster model
+  - Returns all 6 ability saves keyed by code (STR, DEX, CON, INT, WIS, CHA)
+  - Proficient saves use stored modifier values from entity_modifiers table
+  - Non-proficient saves calculated from ability scores: `floor((score - 10) / 2)`
+  - Exposed `saving_throws` object in MonsterResource for DM screen use
+
 - **Issue #95**: XP-based leveling system
   - Added `LevelingMode` enum (`milestone`, `xp`) for party-level leveling preference
   - Added `leveling_mode` column to `parties` table (defaults to `milestone`)

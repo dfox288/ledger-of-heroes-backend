@@ -57,6 +57,7 @@ class Monster extends BaseModel
     protected $appends = [
         'is_legendary',
         'proficiency_bonus',
+        'saving_throws',
     ];
 
     /**
@@ -90,6 +91,50 @@ class Monster extends BaseModel
             $cr <= 28 => 8,
             default => 9,
         };
+    }
+
+    /**
+     * Get all six saving throw modifiers.
+     *
+     * Returns proficient saves from stored modifiers (entity_modifiers table)
+     * and calculates non-proficient saves from ability scores.
+     *
+     * Formula for non-proficient: floor((ability_score - 10) / 2)
+     *
+     * @return array<string, int> Keyed by ability code (STR, DEX, CON, INT, WIS, CHA)
+     */
+    public function getSavingThrowsAttribute(): array
+    {
+        // Map ability codes to model attributes
+        $abilities = [
+            'STR' => 'strength',
+            'DEX' => 'dexterity',
+            'CON' => 'constitution',
+            'INT' => 'intelligence',
+            'WIS' => 'wisdom',
+            'CHA' => 'charisma',
+        ];
+
+        // Get proficient saving throws from modifiers (single pass for efficiency)
+        $proficientSaves = $this->modifiers
+            ->filter(fn ($m) => str_starts_with($m->modifier_category, 'saving_throw_'))
+            ->mapWithKeys(fn ($m) => [
+                strtoupper(substr($m->modifier_category, 13)) => (int) $m->value,
+            ]);
+
+        // Build complete saving throws array
+        $savingThrows = [];
+        foreach ($abilities as $code => $attribute) {
+            if ($proficientSaves->has($code)) {
+                // Use stored modifier for proficient saves
+                $savingThrows[$code] = $proficientSaves->get($code);
+            } else {
+                // Calculate from ability score: floor((score - 10) / 2)
+                $savingThrows[$code] = (int) floor(($this->{$attribute} - 10) / 2);
+            }
+        }
+
+        return $savingThrows;
     }
 
     public function size(): BelongsTo

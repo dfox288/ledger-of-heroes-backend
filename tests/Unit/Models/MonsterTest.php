@@ -324,4 +324,58 @@ class MonsterTest extends TestCase
         $this->assertSame(9, $savingThrows['WIS']);
         $this->assertSame(13, $savingThrows['CHA']);
     }
+
+    // Legendary Metadata Tests
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function legendary_actions_per_round_defaults_to_null(): void
+    {
+        $monster = Monster::factory()->create();
+
+        $this->assertNull($monster->legendary_actions_per_round);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function legendary_resistance_uses_defaults_to_null(): void
+    {
+        $monster = Monster::factory()->create();
+
+        $this->assertNull($monster->legendary_resistance_uses);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function legendary_factory_state_sets_both_values(): void
+    {
+        $monster = Monster::factory()->legendary()->create();
+
+        $this->assertSame(3, $monster->legendary_actions_per_round);
+        $this->assertSame(3, $monster->legendary_resistance_uses);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function legendary_factory_state_accepts_custom_values(): void
+    {
+        $monster = Monster::factory()->legendary(5, 2)->create();
+
+        $this->assertSame(5, $monster->legendary_actions_per_round);
+        $this->assertSame(2, $monster->legendary_resistance_uses);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function can_set_legendary_actions_without_resistance(): void
+    {
+        $monster = Monster::factory()->withLegendaryActions(4)->create();
+
+        $this->assertSame(4, $monster->legendary_actions_per_round);
+        $this->assertNull($monster->legendary_resistance_uses);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function can_set_legendary_resistance_without_actions(): void
+    {
+        $monster = Monster::factory()->withLegendaryResistance(5)->create();
+
+        $this->assertNull($monster->legendary_actions_per_round);
+        $this->assertSame(5, $monster->legendary_resistance_uses);
+    }
 }

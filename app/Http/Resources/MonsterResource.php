@@ -38,6 +38,8 @@ class MonsterResource extends JsonResource
             'experience_points' => $this->experience_points,
             'proficiency_bonus' => $this->proficiency_bonus,
             'is_legendary' => $this->is_legendary,
+            'legendary_actions_per_round' => $this->legendary_actions_per_round,
+            'legendary_resistance_uses' => $this->legendary_resistance_uses,
             'saving_throws' => $this->saving_throws,
             'passive_perception' => $this->passive_perception,
             'languages' => $this->languages,

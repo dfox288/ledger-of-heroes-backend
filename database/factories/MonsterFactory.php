@@ -48,6 +48,39 @@ class MonsterFactory extends Factory
             ]),
             'description' => fake()->optional()->paragraph(),
             'is_npc' => fake()->boolean(10), // 10% chance of being NPC
+            'legendary_actions_per_round' => null,
+            'legendary_resistance_uses' => null,
         ];
+    }
+
+    /**
+     * Configure the monster as legendary with standard 3 actions per round.
+     */
+    public function legendary(int $actionsPerRound = 3, int $resistanceUses = 3): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'legendary_actions_per_round' => $actionsPerRound,
+            'legendary_resistance_uses' => $resistanceUses,
+        ]);
+    }
+
+    /**
+     * Configure only legendary actions (no resistance).
+     */
+    public function withLegendaryActions(int $actionsPerRound = 3): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'legendary_actions_per_round' => $actionsPerRound,
+        ]);
+    }
+
+    /**
+     * Configure only legendary resistance (no actions).
+     */
+    public function withLegendaryResistance(int $uses = 3): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'legendary_resistance_uses' => $uses,
+        ]);
     }
 }

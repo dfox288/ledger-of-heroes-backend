@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
             ProficiencyTypeSeeder::class,    // No dependencies
             LanguageSeeder::class,           // No dependencies
             CreatureTypeSeeder::class,       // No dependencies
+            SenseSeeder::class,              // No dependencies
+            MulticlassSpellSlotSeeder::class, // PHB p165 multiclass spellcasting table
             // Note: CharacterClassSeeder removed - classes are imported from XML files
         ];
 

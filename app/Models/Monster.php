@@ -54,6 +54,8 @@ class Monster extends BaseModel
     protected $casts = [
         'can_hover' => 'boolean',
         'is_npc' => 'boolean',
+        'legendary_actions_per_round' => 'integer',
+        'legendary_resistance_uses' => 'integer',
     ];
 
     protected $appends = [

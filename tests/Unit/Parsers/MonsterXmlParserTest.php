@@ -461,6 +461,28 @@ class MonsterXmlParserTest extends TestCase
     }
 
     #[Test]
+    public function it_handles_case_variations_in_legendary_action_text()
+    {
+        // Lowercase
+        $this->assertEquals(3, $this->invokeMethod($this->parser, 'extractLegendaryActionsPerRound', ['legendary actions (3/turn)']));
+        // Uppercase
+        $this->assertEquals(3, $this->invokeMethod($this->parser, 'extractLegendaryActionsPerRound', ['LEGENDARY ACTIONS (3/TURN)']));
+        // Mixed case
+        $this->assertEquals(2, $this->invokeMethod($this->parser, 'extractLegendaryActionsPerRound', ['Legendary actions (2/Turn)']));
+    }
+
+    #[Test]
+    public function it_handles_case_variations_in_legendary_resistance_text()
+    {
+        // Lowercase
+        $this->assertEquals(3, $this->invokeMethod($this->parser, 'extractLegendaryResistanceUses', ['legendary resistance (3/day)']));
+        // Uppercase
+        $this->assertEquals(3, $this->invokeMethod($this->parser, 'extractLegendaryResistanceUses', ['LEGENDARY RESISTANCE (3/DAY)']));
+        // Mixed case
+        $this->assertEquals(2, $this->invokeMethod($this->parser, 'extractLegendaryResistanceUses', ['Legendary Resistance (2/Day)']));
+    }
+
+    #[Test]
     public function it_includes_legendary_metadata_in_parsed_output()
     {
         $xmlContent = <<<'XML'

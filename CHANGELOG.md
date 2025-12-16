@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Parser now extracts these values during import
   - MonsterResource exposes both fields in API response
   - MonsterFactory includes `legendary()`, `withLegendaryActions()`, and `withLegendaryResistance()` states
+  - **Note**: Run `just import-monsters` or `just import-all` to populate legendary metadata for existing monsters
 
 - **Issue #722**: New `character_counters` table for resource tracking
   - `CharacterCounter` model with `source_type`, `source_slug`, `counter_name`, `max_uses`, `current_uses`, `reset_timing`

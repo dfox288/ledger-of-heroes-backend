@@ -133,6 +133,7 @@ class CharacterExportService
             'spell' => $spell->spell_slug,
             'source' => $spell->source,
             'preparation_status' => $spell->preparation_status,
+            'class_slug' => $spell->class_slug,
             'level_acquired' => $spell->level_acquired,
         ])->toArray();
     }

@@ -62,6 +62,7 @@ class CharacterImportRequest extends FormRequest
             'character.spells.*.spell' => ['required', 'string', 'max:255'],
             'character.spells.*.source' => ['nullable', 'string', 'max:50'],
             'character.spells.*.preparation_status' => ['nullable', 'string', 'in:known,prepared,always_prepared'],
+            'character.spells.*.class_slug' => ['nullable', 'string', 'max:255', 'exists:classes,slug'],
             'character.spells.*.level_acquired' => ['nullable', 'integer', 'min:1'],
 
             // Equipment

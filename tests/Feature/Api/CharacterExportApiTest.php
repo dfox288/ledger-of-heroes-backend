@@ -107,6 +107,29 @@ describe('Character Export', function () {
             ->and($spells[0]['source'])->toBe('class');
     });
 
+    it('exports character spells with class_slug for multiclass support', function () {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create(['slug' => 'phb:magic-missile']);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => 'phb:magic-missile',
+            'preparation_status' => 'known',
+            'source' => 'class',
+            'class_slug' => 'phb:wizard',
+            'level_acquired' => 1,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->public_id}/export");
+
+        $response->assertOk();
+        $spells = $response->json('data.character.spells');
+        expect($spells)->toHaveCount(1)
+            ->and($spells[0]['spell'])->toBe('phb:magic-missile')
+            ->and($spells[0]['class_slug'])->toBe('phb:wizard')
+            ->and($spells[0]['level_acquired'])->toBe(1);
+    });
+
     it('exports character equipment including custom items', function () {
         $character = Character::factory()->create();
         $item = Item::factory()->create(['slug' => 'dmg:staff-of-power', 'name' => 'Staff of Power']);
@@ -391,6 +414,104 @@ describe('Character Import', function () {
         $character = Character::where('public_id', 'spell-caster-xyz1')->first();
         expect($character->spells)->toHaveCount(1)
             ->and($character->spells->first()->spell_slug)->toBe('phb:magic-missile');
+    });
+
+    it('imports character spells with class_slug for multiclass support', function () {
+        $race = Race::factory()->create(['slug' => 'phb:half-elf']);
+        $wizard = CharacterClass::factory()->create(['slug' => 'phb:wizard']);
+        $cleric = CharacterClass::factory()->create(['slug' => 'phb:cleric']);
+        $wizardSpell = Spell::factory()->create(['slug' => 'phb:shield']);
+        $clericSpell = Spell::factory()->create(['slug' => 'phb:cure-wounds']);
+
+        $exportData = [
+            'format_version' => '1.2',
+            'character' => [
+                'public_id' => 'multiclass-spell-import',
+                'name' => 'Multiclass Wizard/Cleric',
+                'race' => 'phb:half-elf',
+                'background' => null,
+                'alignment' => null,
+                'ability_scores' => [
+                    'strength' => 10,
+                    'dexterity' => 14,
+                    'constitution' => 14,
+                    'intelligence' => 16,
+                    'wisdom' => 16,
+                    'charisma' => 10,
+                ],
+                'classes' => [
+                    ['class' => 'phb:wizard', 'subclass' => null, 'level' => 5, 'is_primary' => true],
+                    ['class' => 'phb:cleric', 'subclass' => null, 'level' => 5, 'is_primary' => false],
+                ],
+                'spells' => [
+                    ['spell' => 'phb:shield', 'source' => 'class', 'preparation_status' => 'known', 'class_slug' => 'phb:wizard', 'level_acquired' => 1],
+                    ['spell' => 'phb:cure-wounds', 'source' => 'class', 'preparation_status' => 'prepared', 'class_slug' => 'phb:cleric', 'level_acquired' => 6],
+                ],
+                'equipment' => [],
+                'languages' => [],
+                'proficiencies' => ['skills' => [], 'types' => []],
+                'conditions' => [],
+                'feature_selections' => [],
+                'notes' => [],
+            ],
+        ];
+
+        $response = $this->postJson('/api/v1/characters/import', $exportData);
+
+        $response->assertCreated();
+
+        $character = Character::where('public_id', 'multiclass-spell-import')->first();
+        expect($character->spells)->toHaveCount(2);
+
+        $wizardSpellRecord = $character->spells->firstWhere('spell_slug', 'phb:shield');
+        $clericSpellRecord = $character->spells->firstWhere('spell_slug', 'phb:cure-wounds');
+
+        expect($wizardSpellRecord->class_slug)->toBe('phb:wizard')
+            ->and($wizardSpellRecord->level_acquired)->toBe(1)
+            ->and($clericSpellRecord->class_slug)->toBe('phb:cleric')
+            ->and($clericSpellRecord->level_acquired)->toBe(6);
+    });
+
+    it('rejects import with invalid class_slug on spells', function () {
+        $race = Race::factory()->create(['slug' => 'phb:human']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:wizard']);
+        $spell = Spell::factory()->create(['slug' => 'phb:fireball']);
+
+        $exportData = [
+            'format_version' => '1.2',
+            'character' => [
+                'public_id' => 'invalid-class-slug-test',
+                'name' => 'Invalid Class Slug',
+                'race' => 'phb:human',
+                'background' => null,
+                'alignment' => null,
+                'ability_scores' => [
+                    'strength' => 10,
+                    'dexterity' => 10,
+                    'constitution' => 10,
+                    'intelligence' => 16,
+                    'wisdom' => 10,
+                    'charisma' => 10,
+                ],
+                'classes' => [
+                    ['class' => 'phb:wizard', 'subclass' => null, 'level' => 5, 'is_primary' => true],
+                ],
+                'spells' => [
+                    ['spell' => 'phb:fireball', 'source' => 'class', 'preparation_status' => 'known', 'class_slug' => 'phb:nonexistent-class'],
+                ],
+                'equipment' => [],
+                'languages' => [],
+                'proficiencies' => ['skills' => [], 'types' => []],
+                'conditions' => [],
+                'feature_selections' => [],
+                'notes' => [],
+            ],
+        ];
+
+        $response = $this->postJson('/api/v1/characters/import', $exportData);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['character.spells.0.class_slug']);
     });
 
     it('imports character with custom equipment', function () {

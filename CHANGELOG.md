@@ -42,6 +42,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #716**: Export/import `class_slug` on character spells for multiclass support
+  - Added `class_slug` field to `CharacterExportService::buildSpells()`
+  - Added `class_slug` validation to `CharacterImportRequest` for spell imports
+  - Enables round-trip export/import to preserve which class granted each spell
+
 - **Issue #715**: Populate `class_slug` on character spells for multiclass support
   - Subclass-granted spells (e.g., Cleric Domain Spells) now have `class_slug` set
   - Fixes `CharacterFeatureService::createSpellIfNotExists()` to pass class slug through the call chain

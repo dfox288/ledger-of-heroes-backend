@@ -1015,7 +1015,7 @@ class CharacterStatsDTO
      * Non-spellcasting classes are excluded.
      *
      * @param  array<string, int|null>  $abilityModifiers
-     * @return array<string, array{ability: string, ability_modifier: int, spell_save_dc: int, spell_attack_bonus: int}>|null
+     * @return array<string, array{ability: string, ability_modifier: int, spell_save_dc: int, spell_attack_bonus: int, preparation_method: string|null}>|null
      */
     private static function buildPerClassSpellcasting(
         Character $character,
@@ -1051,6 +1051,7 @@ class CharacterStatsDTO
                 'ability_modifier' => $abilityMod,
                 'spell_save_dc' => $calculator->spellSaveDC($proficiencyBonus, $abilityMod),
                 'spell_attack_bonus' => $proficiencyBonus + $abilityMod,
+                'preparation_method' => $class->spell_preparation_method,
             ];
         }
 

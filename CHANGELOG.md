@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #726**: Per-class `preparation_method` in spellcasting stats
+  - Each class in the spellcasting object now includes its `preparation_method`
+  - Enables frontend to show "Prepare Spells" button per class for multiclass characters
+  - Values: `known`, `spellbook`, `prepared`, or `null` for non-casters
+
 - **Issue #724**: Structured legendary action metadata for monsters
   - Added `legendary_actions_per_round` column to monsters table (extracted from "Legendary Actions (N/Turn)" intro text)
   - Added `legendary_resistance_uses` column to monsters table (extracted from "Legendary Resistance (N/Day)" trait name)

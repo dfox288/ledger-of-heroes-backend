@@ -18,13 +18,13 @@ Generate fixtures systematically: **one subclass at a time, audit after each**.
 
 ```bash
 # Generate single subclass (all milestone levels: 1, 3, 5, 10, 15, 20)
-docker compose exec php php artisan fixtures:export-characters --subclass=erlw:artificer-alchemist --seed=42
+just fixtures-export --subclass=erlw:artificer-alchemist --seed=42
 
 # Audit subclass spell progression
 cat storage/fixtures/class-tests/SUBCLASS-L03.json | jq '[.character.spells[] | select(.source == "subclass")] | [.[].spell] | sort'
 
 # Full class audit
-docker compose exec php php artisan audit:class-subclass-matrix --class=erlw:artificer --detailed
+just audit-classes --class=erlw:artificer --detailed
 ```
 
 ## Audit Checklist

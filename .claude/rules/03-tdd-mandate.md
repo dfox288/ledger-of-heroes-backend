@@ -79,16 +79,16 @@ expect($string)->toMatch('/pattern/');
 
 ```bash
 # Basic coverage report
-docker compose exec php ./vendor/bin/pest --coverage
+just test-coverage
 
 # Enforce minimum coverage threshold
-docker compose exec php ./vendor/bin/pest --coverage --min=80
+just test-coverage-min 80
 
 # Generate HTML coverage report
-docker compose exec php ./vendor/bin/pest --coverage-html=coverage/html
+just test --coverage-html=coverage/html
 
 # Generate Clover XML (for CI tools)
-docker compose exec php ./vendor/bin/pest --coverage-clover=coverage/clover.xml
+just test --coverage-clover=coverage/clover.xml
 ```
 
 **Exclude untestable code:**

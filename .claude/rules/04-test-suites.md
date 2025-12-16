@@ -18,20 +18,20 @@
 
 ```bash
 # Quick feedback during development
-docker compose exec php ./vendor/bin/pest --testsuite=Unit-Pure
+just test-pure
 
 # Standard validation (run each suite)
-docker compose exec php ./vendor/bin/pest --testsuite=Unit-DB
-docker compose exec php ./vendor/bin/pest --testsuite=Feature-DB
+just test-unit
+just test-feature
 
 # Search tests (requires Meilisearch with fixture data)
-docker compose exec php ./vendor/bin/pest --testsuite=Feature-Search
+just test-search
 
 # Run specific test file
-docker compose exec php ./vendor/bin/pest tests/Feature/Api/SpellApiTest.php
+just test-file tests/Feature/Api/SpellApiTest.php
 
 # Run with coverage
-docker compose exec php ./vendor/bin/pest --coverage --min=80
+just test-coverage-min 80
 ```
 
 **Note:** Run suites individually, not combined. Cross-suite runs may have data isolation issues.
@@ -56,5 +56,5 @@ For testing character creation wizard with switch/backtrack scenarios, see:
 
 ```bash
 # Quick check
-docker compose exec php php artisan test:wizard-flow --count=10 --chaos
+just test-wizard --count=10 --chaos
 ```

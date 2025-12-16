@@ -10,7 +10,7 @@
 5. Write minimal code       → Make tests pass
 6. Refactor while green     → Clean up
 7. Run test suite           → Smallest relevant suite
-8. Format with Pint         → docker compose exec php ./vendor/bin/pint
+8. Format with Pint         → just pint
 9. Update CHANGELOG.md      → Under [Unreleased]
 10. Commit + Push           → Clear message, push to feature branch
 11. Create PR               → gh pr create with issue reference

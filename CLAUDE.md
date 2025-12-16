@@ -8,7 +8,7 @@ Laravel 12.x application importing D&D 5th Edition XML content and providing a R
 
 **Tech Stack:** Laravel 12.x | PHP 8.4 | MySQL 8.0 (prod) / SQLite (tests) | Pest 3.x | Docker Compose | Meilisearch | Redis
 
-**Commands:** `docker compose exec php php artisan ...` | `docker compose exec php ./vendor/bin/pint`
+**Commands:** Run `just` or `just --list` to see all available commands.
 
 **Essential Docs:**
 - `docs/PROJECT-STATUS.md` - Metrics and current status
@@ -67,16 +67,37 @@ Detailed instructions are split into `.claude/rules/`:
 ## Quick Reference
 
 ```bash
-# Run tests
-docker compose exec php ./vendor/bin/pest --testsuite=Unit-Pure
+# Docker
+just up                  # Start services
+just down                # Stop services
+just shell               # Open container shell
 
-# Format code
-docker compose exec php ./vendor/bin/pint
+# Testing
+just test                # Run all tests
+just test-pure           # Unit tests (no DB, fastest)
+just test-unit           # Unit tests with DB
+just test-feature        # Feature tests (no search)
+just test-search         # Search tests (needs fixtures)
+just test <filter>       # Run tests matching filter
 
-# Import data
-docker compose exec php php artisan import:all
+# Code Quality
+just pint                # Format code
+just pint-check          # Check formatting (dry run)
 
-# Check issues
+# Database
+just migrate             # Run migrations
+just migrate-fresh       # Fresh migration
+just reset               # Fresh + import all data
+
+# Imports
+just import-all          # Import all XML data
+
+# Development
+just check               # Pre-commit: format + test
+just validate            # Full validation: all suites
+just artisan <command>   # Run any artisan command
+
+# GitHub Issues
 gh issue list --repo dfox288/ledger-of-heroes --label "backend" --state open
 ```
 

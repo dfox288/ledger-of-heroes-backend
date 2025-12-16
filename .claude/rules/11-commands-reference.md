@@ -1,22 +1,23 @@
 # Commands Reference
 
+All commands are managed through `just`. Run `just --list` to see all available recipes.
+
 ## Standard Commands
 
 ```bash
-docker compose exec php php artisan <command>
-docker compose exec php ./vendor/bin/pint
-docker compose exec php ./vendor/bin/pest --testsuite=Unit-Pure
+just artisan <command>   # Run any artisan command
+just pint                # Format code
+just test-pure           # Run Unit-Pure tests (fastest)
 ```
 
-## Tinker (one-liner)
+## Tinker
 
 ```bash
-docker compose exec php php artisan tinker --execute='use App\Models\Spell; dump(Spell::count());'
+just tinker                     # Open tinker REPL
+just tinker-file /tmp/code.php  # Run tinker with file input
 ```
 
-## Tinker (multiline)
-
-Use a temp file - heredocs trigger approval prompts:
+For multiline tinker scripts, use a temp file:
 
 ```bash
 cat > /tmp/tinker.php << 'EOF'
@@ -25,38 +26,106 @@ use App\Models\Spell;
 $spell = Spell::where('slug', 'fireball')->first();
 dump($spell->name, $spell->level, $spell->school);
 EOF
-docker compose exec -T php php artisan tinker < /tmp/tinker.php
+just tinker-file /tmp/tinker.php
 ```
 
-## Test Commands
+## Test Suites
+
+```bash
+just test                # Run all tests
+just test-pure           # Unit-Pure (no DB, fastest)
+just test-unit           # Unit-DB (needs database)
+just test-feature        # Feature-DB (API, no search)
+just test-search         # Feature-Search (needs Meilisearch)
+just test-importers      # XML import tests
+just test-health         # Smoke tests
+just test-file <path>    # Run specific test file
+just test-coverage       # Run with coverage
+```
+
+## Test Commands (Custom Artisan)
 
 ### Create Multiclass Test Characters
 
-Create specific multiclass combinations for testing:
-
 ```bash
 # Single multiclass
-docker compose exec php php artisan test:multiclass-combinations --combinations="wizard:5,cleric:5"
-
-# Multiple combinations (pipe-separated)
-docker compose exec php php artisan test:multiclass-combinations --combinations="wizard:5,cleric:5|fighter:10,rogue:10"
+just test-multiclass "wizard:5,cleric:5"
 
 # Triple class at level 20
-docker compose exec php php artisan test:multiclass-combinations --combinations="fighter:6,rogue:7,wizard:7"
+just test-multiclass "fighter:6,rogue:7,wizard:7"
 
 # With non-PHB class
-docker compose exec php php artisan test:multiclass-combinations --combinations="erlw:artificer:5,cleric:5"
-
-# Keep characters for frontend testing (no cleanup)
-docker compose exec php php artisan test:multiclass-combinations --combinations="wizard:5,cleric:5" --seed=42
+just test-multiclass "erlw:artificer:5,cleric:5"
 ```
 
-Options:
-- `--combinations` - Required. Class:level pairs (e.g., `wizard:5,cleric:5`)
+Options (pass via artisan):
+- `--combinations` - Required. Class:level pairs
 - `--count` - Characters per combination (default: 1)
 - `--seed` - Random seed for reproducibility
 - `--cleanup` - Delete after creation
-- `--no-force` - Respect multiclass prerequisites (default bypasses them)
+- `--no-force` - Respect multiclass prerequisites
+
+### Other Test Commands
+
+```bash
+just test-wizard         # Test wizard flow with chaos
+just test-levelup        # Test level-up flow
+just test-all-classes    # Test all class/subclass combos
+just test-optional       # Test optional features
+```
+
+## Import Commands
+
+```bash
+just import-all          # Fresh DB + import all XML
+just import-test         # Import to test DB (for Feature-Search)
+just import-sources      # Import sources only
+just import-spells       # Import spells
+just import-classes      # Import classes
+just import-races        # Import races
+just import-backgrounds  # Import backgrounds
+just import-feats        # Import feats
+just import-items        # Import items
+just import-monsters     # Import monsters
+```
+
+## Audit Commands
+
+```bash
+just audit-classes       # Audit class/subclass matrix
+just audit-optional      # Audit optional feature counters
+```
+
+## Fixture Commands
+
+```bash
+just fixtures-export     # Export fixture characters
+just fixtures-import     # Import fixture characters
+just fixtures-extract    # Extract fixture data
+```
+
+## Database
+
+```bash
+just migrate             # Run migrations
+just migrate-fresh       # Drop all + re-migrate
+just migrate-fresh-seed  # Fresh + seed
+just migrate-rollback    # Rollback last batch
+just migrate-status      # Show migration status
+just seed                # Seed database
+```
+
+## Docker
+
+```bash
+just up                  # Start all services
+just down                # Stop all services
+just restart             # Restart services
+just logs                # View logs (all services)
+just logs php            # View logs (specific service)
+just shell               # Open shell in PHP container
+just ps                  # Show container status
+```
 
 ## Slash Commands
 

@@ -24,5 +24,5 @@ When adding new filterable fields:
 
 1. Add field to model's `toSearchableArray()`
 2. Add to `searchableOptions()` → `filterableAttributes`
-3. Re-index: `php artisan scout:import "App\Models\ModelName"`
+3. Re-index: `just scout-import ModelName`
 4. Document in Controller PHPDoc

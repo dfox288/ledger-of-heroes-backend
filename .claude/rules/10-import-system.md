@@ -6,10 +6,10 @@
 
 ```bash
 # Production - one command (reads from fightclub_forked)
-docker compose exec php php artisan import:all
+just import-all
 
 # Test DB (required for search tests)
-docker compose exec -e SCOUT_PREFIX=test_ php php artisan import:all --env=testing
+just import-test
 ```
 
 **Import order matters:** Sources -> Items -> Classes -> Spells -> Others

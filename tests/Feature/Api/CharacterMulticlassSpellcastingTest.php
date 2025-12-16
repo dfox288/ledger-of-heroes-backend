@@ -386,6 +386,52 @@ class CharacterMulticlassSpellcastingTest extends TestCase
         $this->assertEmpty($limits);
     }
 
+    #[Test]
+    public function it_excludes_cantrips_from_preparation_count(): void
+    {
+        $character = Character::factory()->create([
+            'intelligence' => 16, // +3 mod
+        ]);
+
+        $wizard = $this->createPreparedCaster('Wizard', 'INT');
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $wizard->slug,
+            'level' => 5,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        // Add a cantrip (level 0) and a 1st level spell, both prepared
+        $cantrip = Spell::factory()->create(['level' => 0, 'name' => 'Fire Bolt']);
+        $levelOneSpell = Spell::factory()->create(['level' => 1, 'name' => 'Magic Missile']);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $cantrip->slug,
+            'preparation_status' => 'prepared',
+            'source' => 'class',
+            'class_slug' => $wizard->slug,
+        ]);
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $levelOneSpell->slug,
+            'preparation_status' => 'prepared',
+            'source' => 'class',
+            'class_slug' => $wizard->slug,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spell-slots");
+
+        $response->assertOk();
+
+        $limits = $response->json('data.preparation_limits');
+
+        // Only the 1st level spell should count, not the cantrip
+        $this->assertEquals(1, $limits[$wizard->slug]['prepared']);
+    }
+
     // =====================
     // Helpers
     // =====================

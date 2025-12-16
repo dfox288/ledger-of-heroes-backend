@@ -127,8 +127,18 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         $group = $parsed['group'] ?? '';
         $isCantrip = in_array($group, ['cantrips', 'feature_cantrip'], true);
 
+        // Get class slug for multiclass support
+        $classSlug = in_array($parsed['source'], ['class', 'subclass', 'subclass_feature'], true)
+            ? $parsed['sourceSlug']
+            : null;
+
         $query = $character->spells()
             ->where('source', $parsed['source']);
+
+        // Filter by class_slug for multiclass support
+        if ($classSlug) {
+            $query->where('class_slug', $classSlug);
+        }
 
         // Only filter by level_acquired for class source, not subclass_feature
         if ($parsed['source'] === 'class') {
@@ -144,11 +154,6 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         })->delete();
 
         // Create CharacterSpell records
-        // Issue #692: Set class_slug for multiclass spellcasting support
-        $classSlug = in_array($parsed['source'], ['class', 'subclass', 'subclass_feature'], true)
-            ? $parsed['sourceSlug']
-            : null;
-
         foreach ($selected as $spellSlug) {
             CharacterSpell::create([
                 'character_id' => $character->id,

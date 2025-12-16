@@ -1,617 +1,612 @@
 {
-  "format_version": "1.2",
-  "exported_at": "2025-12-16T14:13:34+00:00",
-  "character": {
-    "public_id": "brave-wanderer-zEMf",
-    "name": "Fighter 5 / Wizard 5",
-    "race": "vrgtr:hexblood",
-    "background": "scag:faction-agent",
-    "alignment": "Chaotic Neutral",
-    "ability_scores": {
-      "strength": 14,
-      "dexterity": 12,
-      "constitution": 13,
-      "intelligence": 10,
-      "wisdom": 8,
-      "charisma": 15
-    },
-    "max_hit_points": 73,
-    "current_hit_points": 73,
-    "temp_hit_points": 0,
-    "death_save_successes": 0,
-    "death_save_failures": 0,
-    "experience_points": 0,
-    "has_inspiration": false,
-    "ability_score_method": "standard_array",
-    "equipment_mode": "gold",
-    "size_id": 3,
-    "asi_choices_remaining": 2,
-    "hp_levels_resolved": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10
-    ],
-    "hp_calculation_method": "calculated",
-    "classes": [
-      {
-        "class": "phb:fighter",
-        "subclass": "scag:fighter-purple-dragon-knight-banneret",
-        "level": 5,
-        "is_primary": true,
-        "hit_dice_spent": 0
-      },
-      {
-        "class": "phb:wizard",
-        "subclass": "phb:wizard-school-of-illusion",
-        "level": 5,
-        "is_primary": false,
-        "hit_dice_spent": 0
-      }
-    ],
-    "spells": [
-      {
-        "spell": "phb:animate-dead",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 5
-      },
-      {
-        "spell": "phb:charm-person",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 1
-      },
-      {
-        "spell": "phb:color-spray",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 3
-      },
-      {
-        "spell": "phb:comprehend-languages",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 1
-      },
-      {
-        "spell": "phb:enhance-ability",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 4
-      },
-      {
-        "spell": "phb:false-life",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 2
-      },
-      {
-        "spell": "phb:feather-fall",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 2
-      },
-      {
-        "spell": "phb:find-familiar",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 1
-      },
-      {
-        "spell": "phb:grease",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 3
-      },
-      {
-        "spell": "phb:light",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 1
-      },
-      {
-        "spell": "phb:longstrider",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 1
-      },
-      {
-        "spell": "phb:minor-illusion",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 1
-      },
-      {
-        "spell": "phb:ray-of-sickness",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 1
-      },
-      {
-        "spell": "phb:shocking-grasp",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 1
-      },
-      {
-        "spell": "phb:tensers-floating-disk",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 4
-      },
-      {
-        "spell": "phb:unseen-servant",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 1
-      },
-      {
-        "spell": "tce:green-flame-blade",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 4
-      },
-      {
-        "spell": "xge:wall-of-sand",
-        "source": "class",
-        "preparation_status": "known",
-        "class_slug": "phb:wizard",
-        "level_acquired": 5
-      }
-    ],
-    "equipment": [
-      {
-        "item": "phb:emblem",
-        "custom_name": null,
-        "custom_description": "{\"source\":\"background\"}",
-        "quantity": 1,
-        "equipped": false,
-        "location": "backpack"
-      },
-      {
-        "item": null,
-        "custom_name": "copy of a seminal faction text (or code-book for a covert faction)",
-        "custom_description": "{\"source\":\"background\",\"description\":\"copy of a seminal faction text (or code-book for a covert faction)\"}",
-        "quantity": 1,
-        "equipped": false,
-        "location": "backpack"
-      },
-      {
-        "item": "phb:common-clothes",
-        "custom_name": null,
-        "custom_description": "{\"source\":\"background\"}",
-        "quantity": 1,
-        "equipped": false,
-        "location": "backpack"
-      },
-      {
-        "item": "phb:pouch",
-        "custom_name": null,
-        "custom_description": "{\"source\":\"background\"}",
-        "quantity": 1,
-        "equipped": false,
-        "location": "backpack"
-      },
-      {
-        "item": "phb:gold-gp",
-        "custom_name": null,
-        "custom_description": "{\"source\":\"background\"}",
-        "quantity": 15,
-        "equipped": false,
-        "location": "backpack"
-      },
-      {
-        "item": "phb:gold-gp",
-        "custom_name": null,
-        "custom_description": "{\"source\":\"starting_wealth\"}",
-        "quantity": 125,
-        "equipped": false,
-        "location": "backpack"
-      }
-    ],
-    "languages": [
-      {
-        "language": "core:common",
-        "source": "race"
-      },
-      {
-        "language": "core:infernal",
-        "source": "background"
-      },
-      {
-        "language": "core:orc",
-        "source": "background"
-      },
-      {
-        "language": "core:primordial",
-        "source": "race"
-      }
-    ],
-    "proficiencies": {
-      "skills": [
-        {
-          "skill": "core:insight",
-          "source": "background",
-          "expertise": false,
-          "choice_group": null
+    "format_version": "1.3",
+    "exported_at": "2025-12-16T20:04:20+00:00",
+    "character": {
+        "public_id": "wild-warden-C1h5",
+        "name": "Fighter 5 \/ Wizard 5",
+        "race": "erlw:shifter-legacy",
+        "background": "phb:noble",
+        "alignment": "Lawful Neutral",
+        "ability_scores": {
+            "strength": 10,
+            "dexterity": 13,
+            "constitution": 15,
+            "intelligence": 8,
+            "wisdom": 12,
+            "charisma": 14
         },
-        {
-          "skill": "core:survival",
-          "source": "class",
-          "expertise": false,
-          "choice_group": "skill_choice_1"
+        "max_hit_points": 82,
+        "current_hit_points": 82,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": null,
+        "asi_choices_remaining": 2,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:fighter",
+                "subclass": "tce:fighter-rune-knight",
+                "level": 5,
+                "is_primary": true,
+                "hit_dice_spent": 0
+            },
+            {
+                "class": "phb:wizard",
+                "subclass": "phb:wizard-school-of-conjuration",
+                "level": 5,
+                "is_primary": false,
+                "hit_dice_spent": 0
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:alarm",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:cloud-of-daggers",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:color-spray",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:flaming-sphere",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:identify",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:levitate",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:longstrider",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 2
+            },
+            {
+                "spell": "phb:phantasmal-force",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:shocking-grasp",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:tensers-floating-disk",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:thunderwave",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:true-strike",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:witch-bolt",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 2
+            },
+            {
+                "spell": "scag:booming-blade",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "tce:tashas-caustic-brew",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 5
+            },
+            {
+                "spell": "xge:cause-fear",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:shape-water",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:warding-wind",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 5
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:fine-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:signet-ring",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "scroll of pedigree",
+                "custom_description": "{\"source\":\"background\",\"description\":\"scroll of pedigree\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 25,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 125,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:deep-speech",
+                "source": "background"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:athletics",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:history",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:persuasion",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:survival",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:athletics",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:playing-card-set",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
         },
-        {
-          "skill": "core:history",
-          "source": "class",
-          "expertise": false,
-          "choice_group": "skill_choice_1"
-        },
-        {
-          "skill": "core:arcana",
-          "source": "race",
-          "expertise": false,
-          "choice_group": "skill_choice_1"
-        },
-        {
-          "skill": "core:acrobatics",
-          "source": "race",
-          "expertise": false,
-          "choice_group": "skill_choice_1"
-        }
-      ],
-      "types": []
-    },
-    "conditions": [],
-    "feature_selections": [
-      {
-        "feature": "phb:protection",
-        "class": "phb:fighter",
-        "subclass_name": null,
-        "level_acquired": 1,
-        "uses_remaining": null,
-        "max_uses": null
-      }
-    ],
-    "notes": [],
-    "ability_score_choices": [],
-    "spell_slots": [
-      {
-        "spell_level": 1,
-        "max_slots": 4,
-        "used_slots": 0,
-        "slot_type": "standard"
-      },
-      {
-        "spell_level": 2,
-        "max_slots": 3,
-        "used_slots": 0,
-        "slot_type": "standard"
-      },
-      {
-        "spell_level": 3,
-        "max_slots": 2,
-        "used_slots": 0,
-        "slot_type": "standard"
-      }
-    ],
-    "features": [
-      {
-        "feature_type": "App\\Models\\CharacterTrait",
-        "portable_id": {
-          "type": "character_trait",
-          "entity_type": "race",
-          "entity_slug": "vrgtr:hexblood",
-          "trait_name": "Ancestral Legacy"
-        },
-        "source": "race",
-        "level_acquired": 1,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\CharacterTrait",
-        "portable_id": {
-          "type": "character_trait",
-          "entity_type": "race",
-          "entity_slug": "vrgtr:hexblood",
-          "trait_name": "Darkvision"
-        },
-        "source": "race",
-        "level_acquired": 1,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\CharacterTrait",
-        "portable_id": {
-          "type": "character_trait",
-          "entity_type": "race",
-          "entity_slug": "vrgtr:hexblood",
-          "trait_name": "Becoming A Hag"
-        },
-        "source": "race",
-        "level_acquired": 1,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\CharacterTrait",
-        "portable_id": {
-          "type": "character_trait",
-          "entity_type": "race",
-          "entity_slug": "vrgtr:hexblood",
-          "trait_name": "Eerie Token"
-        },
-        "source": "race",
-        "level_acquired": 1,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\CharacterTrait",
-        "portable_id": {
-          "type": "character_trait",
-          "entity_type": "race",
-          "entity_slug": "vrgtr:hexblood",
-          "trait_name": "Hex Magic"
-        },
-        "source": "race",
-        "level_acquired": 1,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\ClassFeature",
-        "portable_id": {
-          "type": "class_feature",
-          "class_slug": "phb:fighter",
-          "feature_name": "Second Wind",
-          "level": 1
-        },
-        "source": "class",
-        "level_acquired": 1,
-        "uses_remaining": 1,
-        "max_uses": 1
-      },
-      {
-        "feature_type": "App\\Models\\ClassFeature",
-        "portable_id": {
-          "type": "class_feature",
-          "class_slug": "phb:fighter",
-          "feature_name": "Fighting Style",
-          "level": 1
-        },
-        "source": "class",
-        "level_acquired": 1,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\CharacterTrait",
-        "portable_id": {
-          "type": "character_trait",
-          "entity_type": "background",
-          "entity_slug": "scag:faction-agent",
-          "trait_name": "Feature: Safe Haven"
-        },
-        "source": "background",
-        "level_acquired": 1,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\ClassFeature",
-        "portable_id": {
-          "type": "class_feature",
-          "class_slug": "phb:wizard",
-          "feature_name": "Spellcasting",
-          "level": 1
-        },
-        "source": "class",
-        "level_acquired": 1,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\ClassFeature",
-        "portable_id": {
-          "type": "class_feature",
-          "class_slug": "phb:wizard",
-          "feature_name": "Arcane Recovery",
-          "level": 1
-        },
-        "source": "class",
-        "level_acquired": 1,
-        "uses_remaining": 1,
-        "max_uses": 1
-      },
-      {
-        "feature_type": "App\\Models\\ClassFeature",
-        "portable_id": {
-          "type": "class_feature",
-          "class_slug": "phb:fighter",
-          "feature_name": "Action Surge",
-          "level": 2
-        },
-        "source": "class",
-        "level_acquired": 2,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\ClassFeature",
-        "portable_id": {
-          "type": "class_feature",
-          "class_slug": "phb:fighter",
-          "feature_name": "Martial Archetype",
-          "level": 3
-        },
-        "source": "class",
-        "level_acquired": 3,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\ClassFeature",
-        "portable_id": {
-          "type": "class_feature",
-          "class_slug": "scag:fighter-purple-dragon-knight-banneret",
-          "feature_name": "Martial Archetype: Purple Dragon Knight (Banneret)",
-          "level": 3
-        },
-        "source": "subclass",
-        "level_acquired": 3,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\ClassFeature",
-        "portable_id": {
-          "type": "class_feature",
-          "class_slug": "scag:fighter-purple-dragon-knight-banneret",
-          "feature_name": "Restriction: Knighthood (Purple Dragon Knight (Banneret))",
-          "level": 3
-        },
-        "source": "subclass",
-        "level_acquired": 3,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\ClassFeature",
-        "portable_id": {
-          "type": "class_feature",
-          "class_slug": "scag:fighter-purple-dragon-knight-banneret",
-          "feature_name": "Rallying Cry (Purple Dragon Knight (Banneret))",
-          "level": 3
-        },
-        "source": "subclass",
-        "level_acquired": 3,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\ClassFeature",
-        "portable_id": {
-          "type": "class_feature",
-          "class_slug": "phb:fighter",
-          "feature_name": "Extra Attack",
-          "level": 5
-        },
-        "source": "class",
-        "level_acquired": 5,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\ClassFeature",
-        "portable_id": {
-          "type": "class_feature",
-          "class_slug": "phb:wizard",
-          "feature_name": "Arcane Tradition",
-          "level": 2
-        },
-        "source": "class",
-        "level_acquired": 2,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\ClassFeature",
-        "portable_id": {
-          "type": "class_feature",
-          "class_slug": "phb:wizard-school-of-illusion",
-          "feature_name": "Arcane Tradition: School of Illusion",
-          "level": 2
-        },
-        "source": "subclass",
-        "level_acquired": 2,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\ClassFeature",
-        "portable_id": {
-          "type": "class_feature",
-          "class_slug": "phb:wizard-school-of-illusion",
-          "feature_name": "Illusion Savant (School of Illusion)",
-          "level": 2
-        },
-        "source": "subclass",
-        "level_acquired": 2,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\ClassFeature",
-        "portable_id": {
-          "type": "class_feature",
-          "class_slug": "phb:wizard-school-of-illusion",
-          "feature_name": "Improved Minor Illusion (School of Illusion)",
-          "level": 2
-        },
-        "source": "subclass",
-        "level_acquired": 2,
-        "uses_remaining": null,
-        "max_uses": null
-      },
-      {
-        "feature_type": "App\\Models\\ClassFeature",
-        "portable_id": {
-          "type": "class_feature",
-          "class_slug": "phb:wizard",
-          "feature_name": "Cantrip Formulas",
-          "level": 3
-        },
-        "source": "class",
-        "level_acquired": 3,
-        "uses_remaining": null,
-        "max_uses": null
-      }
-    ],
-    "counters": [
-      {
-        "name": "Second Wind",
-        "current": 1,
-        "max": 1,
-        "reset_on": "short_rest",
-        "source": "Fighter",
-        "source_type": "class"
-      },
-      {
-        "name": "Arcane Recovery",
-        "current": 1,
-        "max": 1,
-        "reset_on": "short_rest",
-        "source": "Wizard",
-        "source_type": "class"
-      }
-    ],
-    "portrait": null
-  }
+        "conditions": [],
+        "feature_selections": [
+            {
+                "feature": "phb:defense",
+                "class": "phb:fighter",
+                "subclass_name": null,
+                "level_acquired": 1,
+                "feature_type": "fighting_style",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "tce:cloud-rune",
+                "class": "phb:fighter",
+                "subclass_name": "Rune Knight",
+                "level_acquired": 3,
+                "feature_type": "rune",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "tce:frost-rune",
+                "class": "phb:fighter",
+                "subclass_name": "Rune Knight",
+                "level_acquired": 3,
+                "feature_type": "rune",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            }
+        ],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "erlw:shifter",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "erlw:shifter",
+                    "trait_name": "Shifting"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "erlw:shifter-legacy",
+                    "trait_name": "Natural Tracker"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "erlw:shifter-legacy",
+                    "trait_name": "Shifting Feature"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Second Wind",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Fighting Style",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "phb:noble",
+                    "trait_name": "Feature: Position of Privilege"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Arcane Recovery",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Action Surge",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Martial Archetype",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:fighter-rune-knight",
+                    "feature_name": "Martial Archetype: Rune Knight",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:fighter-rune-knight",
+                    "feature_name": "Bonus Proficiencies (Rune Knight)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:fighter-rune-knight",
+                    "feature_name": "Giant's Might (Rune Knight)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:fighter-rune-knight",
+                    "feature_name": "Rune Carver (Rune Knight)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Extra Attack",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Arcane Tradition",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard-school-of-conjuration",
+                    "feature_name": "Arcane Tradition: School of Conjuration",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard-school-of-conjuration",
+                    "feature_name": "Conjuration Savant (School of Conjuration)",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard-school-of-conjuration",
+                    "feature_name": "Minor Conjuration (School of Conjuration)",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Cantrip Formulas",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:fighter",
+                "counter_name": "Action Surge",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "S"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:fighter",
+                "counter_name": "Fighting Styles Known",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": null
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:fighter",
+                "counter_name": "Second Wind",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "S"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:wizard",
+                "counter_name": "Arcane Recovery",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "L"
+            }
+        ],
+        "portrait": null
+    }
 }

@@ -23,11 +23,6 @@ class CharacterFeatureResource extends JsonResource
             'level_acquired' => $this->level_acquired,
             'feature_type' => $this->getSimpleFeatureType(),
 
-            // Limited-use tracking
-            'uses_remaining' => $this->uses_remaining,
-            'max_uses' => $this->max_uses,
-            'has_limited_uses' => $this->hasLimitedUses(),
-
             // Feature details (polymorphic)
             'feature' => $this->formatFeature(),
         ];

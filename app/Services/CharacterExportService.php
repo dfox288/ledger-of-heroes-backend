@@ -210,8 +210,6 @@ class CharacterExportService
                 'class' => $fs->class_slug,
                 'subclass_name' => $fs->subclass_name,
                 'level_acquired' => $fs->level_acquired,
-                'uses_remaining' => $fs->uses_remaining,
-                'max_uses' => $fs->max_uses,
                 // Resource cost data from related OptionalFeature
                 'feature_type' => $optionalFeature?->feature_type?->value,
                 'resource_type' => $optionalFeature?->resource_type?->value,
@@ -287,8 +285,6 @@ class CharacterExportService
                 'portable_id' => $portableId,
                 'source' => $cf->source,
                 'level_acquired' => $cf->level_acquired,
-                'uses_remaining' => $cf->uses_remaining,
-                'max_uses' => $cf->max_uses,
             ];
         })->toArray();
     }

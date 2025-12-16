@@ -173,10 +173,13 @@ class CounterService
 
     /**
      * Sync a single counter definition to the character.
+     *
+     * If max_uses decreases (e.g., level-down), current_uses is capped
+     * to the new max to prevent invalid state.
      */
     private function syncCounter(Character $character, array $def): void
     {
-        CharacterCounter::updateOrCreate(
+        $counter = CharacterCounter::updateOrCreate(
             [
                 'character_id' => $character->id,
                 'source_type' => $def['source_type'],
@@ -188,6 +191,13 @@ class CounterService
                 'reset_timing' => $def['reset_timing'],
             ]
         );
+
+        // Cap current_uses if it now exceeds max_uses (e.g., after level-down)
+        if ($counter->current_uses !== null
+            && $def['max_uses'] > 0
+            && $counter->current_uses > $def['max_uses']) {
+            $counter->update(['current_uses' => $def['max_uses']]);
+        }
     }
 
     /**

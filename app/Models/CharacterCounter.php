@@ -24,15 +24,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * - L = Long rest
  * - D = Dawn
  *
+ * Null semantics:
+ * - current_uses = null means counter is at full capacity (equivalent to max_uses)
+ * - remaining accessor returns null ONLY for unlimited counters (max_uses = -1)
+ * - For limited counters at full capacity, remaining returns max_uses (not null)
+ *
  * @property int $id
  * @property int $character_id
  * @property string $source_type
  * @property string $source_slug
  * @property string $counter_name
- * @property int|null $current_uses Null = full uses available
+ * @property int|null $current_uses Null = at full capacity (same as max_uses)
  * @property int $max_uses -1 = unlimited
  * @property string|null $reset_timing S/L/D
- * @property int|null $remaining Accessor for remaining uses
+ * @property-read int|null $remaining Remaining uses; null only if unlimited
  */
 class CharacterCounter extends Model
 {

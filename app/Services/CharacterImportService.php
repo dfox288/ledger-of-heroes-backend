@@ -579,7 +579,7 @@ class CharacterImportService
                 'source_slug' => $sourceSlug,
                 'counter_name' => $counterName,
                 'current_uses' => $counterData['current_uses'] ?? null,
-                'max_uses' => $counterData['max_uses'] ?? 0,
+                'max_uses' => $counterData['max_uses'] ?? -1, // Default to unlimited if missing
                 'reset_timing' => $counterData['reset_timing'] ?? null,
             ]);
         }

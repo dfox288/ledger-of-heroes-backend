@@ -8,6 +8,7 @@ use App\Models\CharacterClass;
 use App\Models\CharacterFeature;
 use App\Models\ClassCounter;
 use App\Models\ClassFeature;
+use App\Models\Feat;
 use App\Services\FeatureUseService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -560,5 +561,150 @@ class FeatureUseServiceTest extends TestCase
         expect($characterFeature->max_uses)->toBe(4);
         // uses_remaining should increase by the delta (4-2=2 extra uses)
         expect($characterFeature->uses_remaining)->toBe(3);
+    }
+
+    // =============================
+    // Feat Counter Support
+    // =============================
+
+    #[Test]
+    public function it_initializes_uses_for_feat_with_counter(): void
+    {
+        $luckyFeat = Feat::factory()->create([
+            'name' => 'Lucky',
+            'slug' => 'test:lucky',
+            'resets_on' => ResetTiming::LONG_REST,
+        ]);
+
+        // Create counter for the feat
+        ClassCounter::create([
+            'feat_id' => $luckyFeat->id,
+            'level' => 1,
+            'counter_name' => 'Luck Points',
+            'counter_value' => 3,
+        ]);
+
+        $characterFeature = CharacterFeature::create([
+            'character_id' => $this->character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $luckyFeat->id,
+            'feature_slug' => $luckyFeat->slug,
+            'source' => 'feat',
+            'level_acquired' => 4,
+        ]);
+
+        $this->service->initializeUsesForFeature($characterFeature);
+
+        $characterFeature->refresh();
+        expect($characterFeature->max_uses)->toBe(3);
+        expect($characterFeature->uses_remaining)->toBe(3);
+    }
+
+    #[Test]
+    public function it_gets_features_with_uses_includes_feats(): void
+    {
+        $luckyFeat = Feat::factory()->create([
+            'name' => 'Lucky',
+            'slug' => 'test:lucky',
+            'resets_on' => ResetTiming::LONG_REST,
+        ]);
+
+        CharacterFeature::create([
+            'character_id' => $this->character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $luckyFeat->id,
+            'feature_slug' => $luckyFeat->slug,
+            'source' => 'feat',
+            'level_acquired' => 4,
+            'max_uses' => 3,
+            'uses_remaining' => 2,
+        ]);
+
+        $result = $this->service->getFeaturesWithUses($this->character);
+
+        expect($result)->toHaveCount(1);
+        expect($result->first())->toMatchArray([
+            'feature_name' => 'Lucky',
+            'uses_remaining' => 2,
+            'max_uses' => 3,
+            'resets_on' => 'long_rest',
+            'source' => 'feat',
+        ]);
+    }
+
+    #[Test]
+    public function it_resets_feat_uses_on_long_rest(): void
+    {
+        $luckyFeat = Feat::factory()->create([
+            'name' => 'Lucky',
+            'slug' => 'test:lucky',
+            'resets_on' => ResetTiming::LONG_REST,
+        ]);
+
+        $characterFeature = CharacterFeature::create([
+            'character_id' => $this->character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $luckyFeat->id,
+            'feature_slug' => $luckyFeat->slug,
+            'source' => 'feat',
+            'level_acquired' => 4,
+            'max_uses' => 3,
+            'uses_remaining' => 0,
+        ]);
+
+        $resetCount = $this->service->resetByRechargeType($this->character, ResetTiming::LONG_REST);
+
+        expect($resetCount)->toBe(1);
+        expect($characterFeature->fresh()->uses_remaining)->toBe(3);
+    }
+
+    #[Test]
+    public function it_does_not_reset_feat_on_short_rest_when_long_rest_only(): void
+    {
+        $luckyFeat = Feat::factory()->create([
+            'name' => 'Lucky',
+            'slug' => 'test:lucky',
+            'resets_on' => ResetTiming::LONG_REST,
+        ]);
+
+        $characterFeature = CharacterFeature::create([
+            'character_id' => $this->character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $luckyFeat->id,
+            'feature_slug' => $luckyFeat->slug,
+            'source' => 'feat',
+            'level_acquired' => 4,
+            'max_uses' => 3,
+            'uses_remaining' => 0,
+        ]);
+
+        $resetCount = $this->service->resetByRechargeType($this->character, ResetTiming::SHORT_REST);
+
+        expect($resetCount)->toBe(0);
+        expect($characterFeature->fresh()->uses_remaining)->toBe(0);
+    }
+
+    #[Test]
+    public function it_handles_feat_without_counter(): void
+    {
+        $alertFeat = Feat::factory()->create([
+            'name' => 'Alert',
+            'slug' => 'test:alert',
+            'resets_on' => null,
+        ]);
+
+        $characterFeature = CharacterFeature::create([
+            'character_id' => $this->character->id,
+            'feature_type' => Feat::class,
+            'feature_id' => $alertFeat->id,
+            'feature_slug' => $alertFeat->slug,
+            'source' => 'feat',
+            'level_acquired' => 4,
+        ]);
+
+        // Should not throw - just leave uses as null
+        $this->service->initializeUsesForFeature($characterFeature);
+
+        expect($characterFeature->fresh()->max_uses)->toBeNull();
     }
 }

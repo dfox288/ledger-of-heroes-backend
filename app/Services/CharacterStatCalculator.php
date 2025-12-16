@@ -100,7 +100,7 @@ class CharacterStatCalculator
     /**
      * Half caster classes (use half progression).
      */
-    private const HALF_CASTERS = ['paladin', 'ranger'];
+    private const HALF_CASTERS = ['paladin', 'ranger', 'artificer'];
 
     /**
      * Classes that know spells instead of preparing (returns null for preparation limit).

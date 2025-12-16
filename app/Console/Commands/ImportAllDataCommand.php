@@ -367,16 +367,12 @@ class ImportAllDataCommand extends Command
         $linkedFeatureIds = [];
 
         foreach ($subclasses as $subclass) {
-            // Get level 1 features that might have spell tables (domain spells, circle spells, etc.)
-            // Must group OR conditions to ensure level constraint applies to all
+            // Get early-level features that might have spell tables
+            // Subclass spell features are granted at various levels: Cleric domains (L1),
+            // Druid circles (L2-3), Paladin oaths (L3), Artificers (L3), Warlocks (L1), Sorcerers (L3)
+            // Use hasSubclassSpellTable() as the authoritative filter instead of name patterns
             $features = $subclass->features()
-                ->where('level', 1)
-                ->where(function ($query) {
-                    $query->where('feature_name', 'like', '%Domain%')
-                        ->orWhere('feature_name', 'like', '%Circle%')
-                        ->orWhere('feature_name', 'like', '%Expanded Spell%') // Matches "Expanded Spell List" (Warlock) and "Expanded Spells"
-                        ->orWhere('feature_name', 'like', '%Patron%');
-                })
+                ->where('level', '<=', 3)
                 ->get();
 
             foreach ($features as $feature) {

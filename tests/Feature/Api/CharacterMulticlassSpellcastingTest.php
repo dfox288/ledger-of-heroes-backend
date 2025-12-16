@@ -246,8 +246,167 @@ class CharacterMulticlassSpellcastingTest extends TestCase
     }
 
     // =====================
+    // Per-Class Preparation Limits (Issue #715)
+    // =====================
+
+    #[Test]
+    public function it_returns_per_class_preparation_limits_for_multiclass(): void
+    {
+        // Wizard 5 / Cleric 5 with INT 16 (+3) and WIS 14 (+2)
+        // Wizard limit: INT mod + Wizard level = 3 + 5 = 8
+        // Cleric limit: WIS mod + Cleric level = 2 + 5 = 7
+        $character = Character::factory()->create([
+            'strength' => 10,
+            'dexterity' => 10,
+            'constitution' => 10,
+            'intelligence' => 16, // +3 mod
+            'wisdom' => 14, // +2 mod
+            'charisma' => 10,
+        ]);
+
+        $wizard = $this->createPreparedCaster('Wizard', 'INT');
+        $cleric = $this->createPreparedCaster('Cleric', 'WIS');
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $wizard->slug,
+            'level' => 5,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $cleric->slug,
+            'level' => 5,
+            'is_primary' => false,
+            'order' => 2,
+        ]);
+
+        // Add some prepared spells
+        $wizardSpell = Spell::factory()->create(['level' => 1]);
+        $clericSpell1 = Spell::factory()->create(['level' => 1]);
+        $clericSpell2 = Spell::factory()->create(['level' => 1]);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $wizardSpell->slug,
+            'preparation_status' => 'prepared',
+            'source' => 'class',
+            'class_slug' => $wizard->slug,
+        ]);
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $clericSpell1->slug,
+            'preparation_status' => 'prepared',
+            'source' => 'class',
+            'class_slug' => $cleric->slug,
+        ]);
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $clericSpell2->slug,
+            'preparation_status' => 'prepared',
+            'source' => 'class',
+            'class_slug' => $cleric->slug,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spell-slots");
+
+        $response->assertOk();
+
+        // Should have preparation_limits keyed by class slug
+        $limits = $response->json('data.preparation_limits');
+
+        $this->assertArrayHasKey($wizard->slug, $limits);
+        $this->assertEquals(8, $limits[$wizard->slug]['limit']); // 3 + 5
+        $this->assertEquals(1, $limits[$wizard->slug]['prepared']); // 1 wizard spell prepared
+
+        $this->assertArrayHasKey($cleric->slug, $limits);
+        $this->assertEquals(7, $limits[$cleric->slug]['limit']); // 2 + 5
+        $this->assertEquals(2, $limits[$cleric->slug]['prepared']); // 2 cleric spells prepared
+    }
+
+    #[Test]
+    public function it_returns_single_preparation_limit_for_single_class(): void
+    {
+        $character = Character::factory()->create([
+            'intelligence' => 16, // +3 mod
+        ]);
+
+        $wizard = $this->createPreparedCaster('Wizard', 'INT');
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $wizard->slug,
+            'level' => 5,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spell-slots");
+
+        $response->assertOk();
+
+        // Should still have preparation_limits format for consistency
+        $limits = $response->json('data.preparation_limits');
+
+        $this->assertArrayHasKey($wizard->slug, $limits);
+        $this->assertEquals(8, $limits[$wizard->slug]['limit']); // 3 + 5
+    }
+
+    #[Test]
+    public function it_excludes_known_casters_from_preparation_limits(): void
+    {
+        // Sorcerer is a known caster - doesn't prepare spells
+        $character = Character::factory()->create([
+            'charisma' => 16,
+        ]);
+
+        $sorcerer = CharacterClass::factory()->create([
+            'name' => 'Sorcerer',
+            'slug' => 'sorcerer',
+            'spellcasting_ability_id' => 6, // CHA
+            'spell_preparation_method' => 'known',
+        ]);
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $sorcerer->slug,
+            'level' => 5,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spell-slots");
+
+        $response->assertOk();
+
+        // Known casters should not appear in preparation_limits
+        $limits = $response->json('data.preparation_limits');
+
+        $this->assertEmpty($limits);
+    }
+
+    // =====================
     // Helpers
     // =====================
+
+    private function createPreparedCaster(string $name, string $abilityCode): CharacterClass
+    {
+        $abilityId = match ($abilityCode) {
+            'INT' => 4,
+            'WIS' => 5,
+            'CHA' => 6,
+            default => 4,
+        };
+
+        return CharacterClass::factory()->create([
+            'name' => $name,
+            'slug' => strtolower($name),
+            'parent_class_id' => null,
+            'spellcasting_ability_id' => $abilityId,
+            'spell_preparation_method' => 'prepared',
+        ]);
+    }
 
     private function seedAbilityScores(): void
     {

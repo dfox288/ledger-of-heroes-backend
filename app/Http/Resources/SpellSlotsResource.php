@@ -33,6 +33,11 @@ class SpellSlotsResource extends JsonResource
             $data['slots'] = (object) $data['slots'];
         }
 
+        // Issue #715: Cast preparation_limits to object to preserve class slug keys
+        if (isset($data['preparation_limits']) && is_array($data['preparation_limits'])) {
+            $data['preparation_limits'] = (object) $data['preparation_limits'];
+        }
+
         // For the old structure (standard/pact_magic with sub-arrays),
         // convert nested arrays to objects to preserve spell level keys
         if (isset($data['standard']) && is_array($data['standard'])) {

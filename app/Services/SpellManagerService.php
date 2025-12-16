@@ -361,6 +361,7 @@ class SpellManagerService
             'pact_magic' => $consolidatedSlots['pact_magic'],
             'preparation_limit' => $this->getPreparationLimit($character),
             'prepared_count' => $this->countPreparedSpells($character),
+            'preparation_limits' => $this->getPerClassPreparationLimits($character),
         ];
     }
 
@@ -538,5 +539,86 @@ class SpellManagerService
             ->where('preparation_status', 'prepared')
             ->whereHas('spell', fn ($q) => $q->where('level', '>', 0))
             ->count();
+    }
+
+    /**
+     * Get per-class preparation limits for multiclass support (Issue #715).
+     *
+     * Returns preparation limits keyed by class slug:
+     * [
+     *     'phb:wizard' => ['limit' => 8, 'prepared' => 3],
+     *     'phb:cleric' => ['limit' => 7, 'prepared' => 4],
+     * ]
+     *
+     * Only includes classes that prepare spells (excludes known casters like Sorcerer).
+     */
+    private function getPerClassPreparationLimits(Character $character): array
+    {
+        $limits = [];
+
+        $character->loadMissing('characterClasses.characterClass');
+
+        foreach ($character->characterClasses as $pivot) {
+            $class = $pivot->characterClass;
+
+            if (! $class) {
+                continue;
+            }
+
+            // Get the effective class (handle subclasses)
+            $effectiveClass = $class->parent_class_id ? $class->parentClass : $class;
+
+            if (! $effectiveClass) {
+                continue;
+            }
+
+            // Skip non-casters and known casters (they don't prepare)
+            $prepMethod = $effectiveClass->spell_preparation_method;
+
+            if ($prepMethod === null || $prepMethod === 'known') {
+                continue;
+            }
+
+            // Get spellcasting ability
+            $spellcastingAbility = $effectiveClass->effective_spellcasting_ability;
+
+            if (! $spellcastingAbility) {
+                continue;
+            }
+
+            // Get ability modifier
+            $abilityScore = $character->getAbilityScore($spellcastingAbility->code);
+
+            if ($abilityScore === null) {
+                continue;
+            }
+
+            $abilityModifier = $this->statCalculator->abilityModifier($abilityScore);
+
+            // Calculate limit using class level (not total level)
+            $limit = $this->statCalculator->getPreparationLimitFromClass(
+                $effectiveClass,
+                $pivot->level,
+                $abilityModifier
+            );
+
+            if ($limit === null) {
+                continue;
+            }
+
+            // Count prepared spells for this specific class
+            $preparedCount = $character->spells()
+                ->where('class_slug', $effectiveClass->slug)
+                ->where('preparation_status', 'prepared')
+                ->whereHas('spell', fn ($q) => $q->where('level', '>', 0))
+                ->count();
+
+            $limits[$effectiveClass->slug] = [
+                'limit' => $limit,
+                'prepared' => $preparedCount,
+            ];
+        }
+
+        return $limits;
     }
 }

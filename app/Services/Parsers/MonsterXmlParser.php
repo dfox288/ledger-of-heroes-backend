@@ -103,6 +103,10 @@ class MonsterXmlParser
             // Spellcasting
             'slots' => (string) $xml->slots ?: null,
             'spells' => (string) $xml->spells ?: null,
+
+            // Legendary metadata (extracted from traits and legendary intro)
+            'legendary_actions_per_round' => $this->extractLegendaryActionsPerRoundFromLegendary($xml->legendary),
+            'legendary_resistance_uses' => $this->extractLegendaryResistanceUsesFromTraits($xml->trait),
         ];
     }
 
@@ -496,5 +500,81 @@ class MonsterXmlParser
         ];
 
         return $xpTable[$cr] ?? 0;
+    }
+
+    /**
+     * Extract legendary actions per round from a legendary action intro name.
+     *
+     * Parses patterns like "Legendary Actions (3/Turn)" to extract the count.
+     *
+     * @param  string  $name  The legendary action name
+     * @return int|null The number of legendary actions per round, or null if not found
+     */
+    protected function extractLegendaryActionsPerRound(string $name): ?int
+    {
+        if (preg_match('/Legendary Actions?\s*\((\d+)\/Turn\)/i', $name, $matches)) {
+            return (int) $matches[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * Extract legendary actions per round from legendary action elements.
+     *
+     * Scans the legendary actions to find the intro entry and extract the count.
+     *
+     * @param  iterable  $legendary  Collection of <legendary> elements
+     * @return int|null The number of legendary actions per round, or null if not found
+     */
+    protected function extractLegendaryActionsPerRoundFromLegendary($legendary): ?int
+    {
+        foreach ($legendary as $leg) {
+            $name = (string) $leg->name;
+            $result = $this->extractLegendaryActionsPerRound($name);
+            if ($result !== null) {
+                return $result;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Extract legendary resistance uses from a trait name.
+     *
+     * Parses patterns like "Legendary Resistance (3/Day)" to extract the count.
+     *
+     * @param  string  $name  The trait name
+     * @return int|null The number of legendary resistance uses per day, or null if not found
+     */
+    protected function extractLegendaryResistanceUses(string $name): ?int
+    {
+        if (preg_match('/Legendary Resistance\s*\((\d+)\/Day\)/i', $name, $matches)) {
+            return (int) $matches[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * Extract legendary resistance uses from trait elements.
+     *
+     * Scans the traits to find the Legendary Resistance trait and extract the count.
+     *
+     * @param  iterable  $traits  Collection of <trait> elements
+     * @return int|null The number of legendary resistance uses per day, or null if not found
+     */
+    protected function extractLegendaryResistanceUsesFromTraits($traits): ?int
+    {
+        foreach ($traits as $trait) {
+            $name = (string) $trait->name;
+            $result = $this->extractLegendaryResistanceUses($name);
+            if ($result !== null) {
+                return $result;
+            }
+        }
+
+        return null;
     }
 }

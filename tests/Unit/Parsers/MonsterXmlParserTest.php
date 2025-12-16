@@ -412,6 +412,131 @@ class MonsterXmlParserTest extends TestCase
         $this->assertEquals('lair', $result[0]['category']);
     }
 
+    // ==================== Legendary Metadata Extraction Tests ====================
+
+    #[Test]
+    public function it_extracts_legendary_actions_per_round_from_intro_text()
+    {
+        $result = $this->invokeMethod($this->parser, 'extractLegendaryActionsPerRound', ['Legendary Actions (3/Turn)']);
+        $this->assertEquals(3, $result);
+    }
+
+    #[Test]
+    public function it_extracts_legendary_actions_per_round_with_different_counts()
+    {
+        $this->assertEquals(1, $this->invokeMethod($this->parser, 'extractLegendaryActionsPerRound', ['Legendary Actions (1/Turn)']));
+        $this->assertEquals(2, $this->invokeMethod($this->parser, 'extractLegendaryActionsPerRound', ['Legendary Actions (2/Turn)']));
+        $this->assertEquals(5, $this->invokeMethod($this->parser, 'extractLegendaryActionsPerRound', ['Legendary Actions (5/Turn)']));
+    }
+
+    #[Test]
+    public function it_returns_null_when_no_legendary_actions_per_round_pattern_found()
+    {
+        $this->assertNull($this->invokeMethod($this->parser, 'extractLegendaryActionsPerRound', ['Detect']));
+        $this->assertNull($this->invokeMethod($this->parser, 'extractLegendaryActionsPerRound', ['Wing Attack (Costs 2 Actions)']));
+        $this->assertNull($this->invokeMethod($this->parser, 'extractLegendaryActionsPerRound', ['']));
+    }
+
+    #[Test]
+    public function it_extracts_legendary_resistance_uses_from_trait_name()
+    {
+        $result = $this->invokeMethod($this->parser, 'extractLegendaryResistanceUses', ['Legendary Resistance (3/Day)']);
+        $this->assertEquals(3, $result);
+    }
+
+    #[Test]
+    public function it_extracts_legendary_resistance_uses_with_different_counts()
+    {
+        $this->assertEquals(1, $this->invokeMethod($this->parser, 'extractLegendaryResistanceUses', ['Legendary Resistance (1/Day)']));
+        $this->assertEquals(2, $this->invokeMethod($this->parser, 'extractLegendaryResistanceUses', ['Legendary Resistance (2/Day)']));
+        $this->assertEquals(5, $this->invokeMethod($this->parser, 'extractLegendaryResistanceUses', ['Legendary Resistance (5/Day)']));
+    }
+
+    #[Test]
+    public function it_returns_null_when_no_legendary_resistance_pattern_found()
+    {
+        $this->assertNull($this->invokeMethod($this->parser, 'extractLegendaryResistanceUses', ['Amphibious']));
+        $this->assertNull($this->invokeMethod($this->parser, 'extractLegendaryResistanceUses', ['Magic Resistance']));
+        $this->assertNull($this->invokeMethod($this->parser, 'extractLegendaryResistanceUses', ['']));
+    }
+
+    #[Test]
+    public function it_includes_legendary_metadata_in_parsed_output()
+    {
+        $xmlContent = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <monster>
+        <name>Test Dragon</name>
+        <size>H</size>
+        <type>dragon</type>
+        <alignment>Chaotic Evil</alignment>
+        <ac>19 (natural armor)</ac>
+        <hp>256 (19d12+133)</hp>
+        <speed>walk 40 ft., climb 40 ft., fly 80 ft.</speed>
+        <str>27</str>
+        <dex>10</dex>
+        <con>25</con>
+        <int>16</int>
+        <wis>13</wis>
+        <cha>21</cha>
+        <cr>17</cr>
+        <trait>
+            <name>Legendary Resistance (3/Day)</name>
+            <text>If the dragon fails a saving throw, it can choose to succeed instead.</text>
+        </trait>
+        <legendary>
+            <name>Legendary Actions (3/Turn)</name>
+            <text>The dragon can take 3 legendary actions, choosing from the options below.</text>
+        </legendary>
+        <legendary>
+            <name>Detect</name>
+            <text>The dragon makes a Wisdom (Perception) check.</text>
+        </legendary>
+    </monster>
+</compendium>
+XML;
+
+        $result = $this->parser->parse($xmlContent);
+        $monster = $result[0];
+
+        // New metadata fields should be present
+        $this->assertEquals(3, $monster['legendary_actions_per_round']);
+        $this->assertEquals(3, $monster['legendary_resistance_uses']);
+    }
+
+    #[Test]
+    public function it_returns_null_metadata_for_non_legendary_monsters()
+    {
+        $xmlContent = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <monster>
+        <name>Goblin</name>
+        <size>S</size>
+        <type>humanoid</type>
+        <alignment>Neutral Evil</alignment>
+        <ac>15</ac>
+        <hp>7 (2d6)</hp>
+        <speed>walk 30 ft.</speed>
+        <str>8</str>
+        <dex>14</dex>
+        <con>10</con>
+        <int>10</int>
+        <wis>8</wis>
+        <cha>8</cha>
+        <cr>1/4</cr>
+    </monster>
+</compendium>
+XML;
+
+        $result = $this->parser->parse($xmlContent);
+        $monster = $result[0];
+
+        $this->assertNull($monster['legendary_actions_per_round']);
+        $this->assertNull($monster['legendary_resistance_uses']);
+    }
+
     // ==================== Senses Parsing Tests ====================
 
     #[Test]

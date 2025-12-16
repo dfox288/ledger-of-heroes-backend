@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #724**: Structured legendary action metadata for monsters
+  - Added `legendary_actions_per_round` column to monsters table (extracted from "Legendary Actions (N/Turn)" intro text)
+  - Added `legendary_resistance_uses` column to monsters table (extracted from "Legendary Resistance (N/Day)" trait name)
+  - Parser now extracts these values during import
+  - MonsterResource exposes both fields in API response
+  - MonsterFactory includes `legendary()`, `withLegendaryActions()`, and `withLegendaryResistance()` states
+
 - **Issue #722**: New `character_counters` table for resource tracking
   - `CharacterCounter` model with `source_type`, `source_slug`, `counter_name`, `max_uses`, `current_uses`, `reset_timing`
   - `CounterService` for counter lifecycle: create, sync, use, reset

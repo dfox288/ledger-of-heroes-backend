@@ -220,6 +220,8 @@ class MonsterImporter extends BaseImporter
                 'intelligence' => $monsterData['intelligence'],
                 'wisdom' => $monsterData['wisdom'],
                 'charisma' => $monsterData['charisma'],
+                'legendary_actions_per_round' => $monsterData['legendary_actions_per_round'] ?? null,
+                'legendary_resistance_uses' => $monsterData['legendary_resistance_uses'] ?? null,
                 'challenge_rating' => $monsterData['challenge_rating'],
                 'experience_points' => $monsterData['experience_points'],
                 'passive_perception' => $monsterData['passive_perception'],

@@ -477,6 +477,55 @@ class MonsterApiTest extends TestCase
         }
     }
 
+    #[Test]
+    public function monster_includes_legendary_metadata_in_response()
+    {
+        // Find any legendary monster (has legendary actions)
+        $monster = Monster::whereHas('legendaryActions', function ($query) {
+            $query->where('is_lair_action', false);
+        })->first();
+
+        if (! $monster) {
+            $this->markTestSkipped('No legendary monsters in fixtures');
+        }
+
+        $response = $this->getJson("/api/v1/monsters/{$monster->slug}");
+
+        $response->assertOk();
+
+        // Structure should include legendary metadata fields
+        $response->assertJsonStructure([
+            'data' => [
+                'is_legendary',
+                'legendary_actions_per_round',
+                'legendary_resistance_uses',
+            ],
+        ]);
+
+        // Verify is_legendary is true for legendary monster
+        $this->assertTrue($response->json('data.is_legendary'));
+    }
+
+    #[Test]
+    public function non_legendary_monster_has_null_legendary_metadata()
+    {
+        // Find a non-legendary monster (no legendary actions)
+        $monster = Monster::doesntHave('legendaryActions')->first();
+
+        if (! $monster) {
+            $this->markTestSkipped('No non-legendary monsters in fixtures');
+        }
+
+        $response = $this->getJson("/api/v1/monsters/{$monster->slug}");
+
+        $response->assertOk();
+
+        // Non-legendary should have null values for these fields
+        $this->assertFalse($response->json('data.is_legendary'));
+        $this->assertNull($response->json('data.legendary_actions_per_round'));
+        $this->assertNull($response->json('data.legendary_resistance_uses'));
+    }
+
     /**
      * Helper method to convert challenge rating string to numeric value
      */

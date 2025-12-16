@@ -41,6 +41,8 @@ class Monster extends BaseModel
         'intelligence',
         'wisdom',
         'charisma',
+        'legendary_actions_per_round',
+        'legendary_resistance_uses',
         'challenge_rating',
         'experience_points',
         'passive_perception',

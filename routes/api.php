@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\CharacterAvailableFeatsController;
 use App\Http\Controllers\Api\CharacterChoiceController;
 use App\Http\Controllers\Api\CharacterController;
 use App\Http\Controllers\Api\CharacterCurrencyController;
+use App\Http\Controllers\Api\CharacterExperienceController;
 use App\Http\Controllers\Api\CharacterExportController;
 use App\Http\Controllers\Api\CharacterHpController;
 use App\Http\Controllers\Api\CharacterValidationController;
@@ -271,6 +272,8 @@ Route::prefix('v1')->group(function () {
         ->name('characters.validate');
     Route::get('characters/{character}/export', [CharacterExportController::class, 'export'])
         ->name('characters.export');
+    Route::post('characters/{character}/xp', [CharacterExperienceController::class, 'addXp'])
+        ->name('characters.add-xp');
 
     // Character Spell Management
     Route::prefix('characters/{character}')->name('characters.')->group(function () {

@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Enums\LevelingMode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property LevelingMode $leveling_mode How characters in this party gain levels
+ */
 class Party extends Model
 {
     use HasFactory;
@@ -16,7 +20,15 @@ class Party extends Model
         'name',
         'description',
         'user_id',
+        'leveling_mode',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'leveling_mode' => LevelingMode::class,
+        ];
+    }
 
     // Relationships
 

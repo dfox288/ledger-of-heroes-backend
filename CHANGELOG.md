@@ -35,6 +35,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #95**: XP-based leveling system
+  - Added `LevelingMode` enum (`milestone`, `xp`) for party-level leveling preference
+  - Added `leveling_mode` column to `parties` table (defaults to `milestone`)
+  - New `ExperiencePointService` with D&D 5e XP thresholds and progress calculation
+  - New `POST /characters/{id}/xp` endpoint to add XP with optional auto-level
+  - Response includes: `experience_points`, `xp_level`, `next_level_xp`, `xp_to_next_level`, `xp_progress_percent`
+  - Auto-level only triggers for characters in XP-mode parties
+
 - **Issue #711**: Feature-to-resource cost mappings for optional features
   - Added `cost_formula` field to `optional_features` table for variable costs
   - Parser now extracts resource costs from description text (data-driven approach)

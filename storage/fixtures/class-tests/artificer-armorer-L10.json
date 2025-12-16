@@ -1,8 +1,8 @@
 {
-    "format_version": "1.2",
-    "exported_at": "2025-12-16T02:54:19+00:00",
+    "format_version": "1.3",
+    "exported_at": "2025-12-16T23:09:22+00:00",
     "character": {
-        "public_id": "mighty-arrow-qxDA",
+        "public_id": "swift-rogue-yoaw",
         "name": "Armorer L10",
         "race": "phb:half-elf-drow-dark-elf-ancestry",
         "background": "scag:cloistered-scholar",
@@ -50,57 +50,66 @@
         ],
         "spells": [
             {
+                "spell": "phb:prestidigitation",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:mending",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:magic-missile",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:thunderwave",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:mirror-image",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:shatter",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 5
+            },
+            {
                 "spell": "phb:hypnotic-pattern",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
                 "level_acquired": 9
             },
             {
                 "spell": "phb:lightning-bolt",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
                 "level_acquired": 9
-            },
-            {
-                "spell": "phb:magic-missile",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:mending",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
-                "spell": "phb:mirror-image",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:prestidigitation",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
-            },
-            {
-                "spell": "phb:shatter",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:thunderwave",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "level_acquired": 3
             },
             {
                 "spell": "xge:create-bonfire",
                 "source": "class",
                 "preparation_status": "known",
+                "class_slug": "erlw:artificer",
                 "level_acquired": 10
             }
         ],
@@ -245,64 +254,80 @@
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 6,
-                "uses_remaining": null,
-                "max_uses": null
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
             },
             {
                 "feature": "erlw:enhanced-defense",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
             },
             {
                 "feature": "erlw:radiant-weapon-level-6",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 6,
-                "uses_remaining": null,
-                "max_uses": null
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
             },
             {
                 "feature": "erlw:returning-weapon",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
             },
             {
                 "feature": "tce:armor-of-magical-strength",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
             },
             {
                 "feature": "tce:helm-of-awareness-level-10",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 10,
-                "uses_remaining": null,
-                "max_uses": null
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
             },
             {
                 "feature": "tce:mind-sharpener",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
             },
             {
                 "feature": "tce:spell-refueling-ring-level-6",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 10,
-                "uses_remaining": null,
-                "max_uses": null
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
             }
         ],
         "notes": [],
@@ -350,9 +375,7 @@
                     "trait_name": "Darkvision"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
@@ -363,9 +386,7 @@
                     "trait_name": "Fey Ancestry"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
@@ -376,9 +397,7 @@
                     "trait_name": "Skill Versatility"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
@@ -389,9 +408,7 @@
                     "trait_name": "Variant: Drow Magic"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -402,9 +419,7 @@
                     "level": 1
                 },
                 "source": "class",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -415,9 +430,7 @@
                     "level": 1
                 },
                 "source": "class",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
@@ -428,9 +441,7 @@
                     "trait_name": "Feature: Library Access"
                 },
                 "source": "background",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -441,9 +452,7 @@
                     "level": 2
                 },
                 "source": "class",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 2
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -454,9 +463,7 @@
                     "level": 3
                 },
                 "source": "class",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -467,9 +474,7 @@
                     "level": 3
                 },
                 "source": "class",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -480,9 +485,7 @@
                     "level": 3
                 },
                 "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -493,9 +496,7 @@
                     "level": 3
                 },
                 "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -506,9 +507,7 @@
                     "level": 3
                 },
                 "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -519,9 +518,7 @@
                     "level": 3
                 },
                 "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -532,9 +529,7 @@
                     "level": 3
                 },
                 "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -545,9 +540,7 @@
                     "level": 6
                 },
                 "source": "class",
-                "level_acquired": 6,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 6
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -558,9 +551,7 @@
                     "level": 7
                 },
                 "source": "class",
-                "level_acquired": 7,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 7
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -571,9 +562,25 @@
                     "level": 10
                 },
                 "source": "class",
-                "level_acquired": 10,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 10
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "erlw:artificer",
+                "counter_name": "Defensive Field",
+                "current_uses": null,
+                "max_uses": 4,
+                "reset_timing": "L"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "erlw:artificer",
+                "counter_name": "Infusions Known",
+                "current_uses": null,
+                "max_uses": 8,
+                "reset_timing": null
             }
         ],
         "portrait": null

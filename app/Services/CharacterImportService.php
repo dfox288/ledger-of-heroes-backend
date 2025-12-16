@@ -27,8 +27,10 @@ use App\Models\ProficiencyType;
 use App\Models\Race;
 use App\Models\Skill;
 use App\Models\Spell;
+use App\Support\EntityTypeMapping;
 use App\Support\NoteCategories;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Service for importing characters from portable JSON.
@@ -500,24 +502,34 @@ class CharacterImportService
         $traitName = $portableId['trait_name'] ?? null;
 
         if (! $entityType || ! $entitySlug || ! $traitName) {
+            Log::warning('CharacterTrait import: missing required fields', [
+                'entity_type' => $entityType,
+                'entity_slug' => $entitySlug,
+                'trait_name' => $traitName,
+            ]);
+
             return null;
         }
 
         // Determine the entity model class
-        $entityClass = match ($entityType) {
-            'race' => Race::class,
-            'background' => Background::class,
-            'class' => CharacterClass::class,
-            default => null,
-        };
+        $entityClass = EntityTypeMapping::getClassForType($entityType);
 
         if (! $entityClass) {
+            Log::warning('CharacterTrait import: unknown entity type', [
+                'entity_type' => $entityType,
+            ]);
+
             return null;
         }
 
         // Find the parent entity
         $entity = $entityClass::where('slug', $entitySlug)->first();
         if (! $entity) {
+            Log::warning('CharacterTrait import: entity not found', [
+                'entity_type' => $entityType,
+                'entity_slug' => $entitySlug,
+            ]);
+
             return null;
         }
 
@@ -526,6 +538,14 @@ class CharacterImportService
             ->where('reference_id', $entity->id)
             ->where('name', $traitName)
             ->first();
+
+        if (! $trait) {
+            Log::warning('CharacterTrait import: trait not found', [
+                'entity_type' => $entityType,
+                'entity_slug' => $entitySlug,
+                'trait_name' => $traitName,
+            ]);
+        }
 
         return $trait?->id;
     }

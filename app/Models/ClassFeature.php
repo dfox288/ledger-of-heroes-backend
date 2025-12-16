@@ -16,6 +16,19 @@ class ClassFeature extends BaseModel
 {
     use HasEntityChoices, HasModifiers, HasProficiencies;
 
+    /**
+     * Classes where subclass spells are "always prepared" (don't count against limit).
+     *
+     * D&D Context:
+     * - Cleric domain spells
+     * - Druid circle spells
+     * - Paladin oath spells
+     * - Artificer subclass spells
+     *
+     * Warlock expanded spells are NOT always prepared (added to spell list options only).
+     */
+    public const ALWAYS_PREPARED_CLASSES = ['cleric', 'druid', 'paladin', 'artificer'];
+
     protected $table = 'class_features';
 
     protected $fillable = [
@@ -148,10 +161,7 @@ class ClassFeature extends BaseModel
             ? strtolower($class->parentClass->name)
             : strtolower($class->name);
 
-        // These classes have "always prepared" subclass spells
-        $alwaysPreparedClasses = ['cleric', 'druid', 'paladin', 'artificer'];
-
-        return in_array($baseClassName, $alwaysPreparedClasses);
+        return in_array($baseClassName, self::ALWAYS_PREPARED_CLASSES);
     }
 
     // Helper Methods

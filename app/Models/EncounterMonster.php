@@ -16,11 +16,15 @@ class EncounterMonster extends Model
         'label',
         'current_hp',
         'max_hp',
+        'legendary_actions_used',
+        'legendary_resistance_used',
     ];
 
     protected $casts = [
         'current_hp' => 'integer',
         'max_hp' => 'integer',
+        'legendary_actions_used' => 'integer',
+        'legendary_resistance_used' => 'integer',
     ];
 
     public function party(): BelongsTo

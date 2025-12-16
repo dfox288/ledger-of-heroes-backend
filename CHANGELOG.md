@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #658**: Legendary actions and lair actions for encounter monsters (DM Screen)
+  - EncounterMonsterResource now includes `legendary_actions` object with `uses_per_round` and action list
+  - EncounterMonsterResource now includes `legendary_resistance` object with `uses_per_day`
+  - EncounterMonsterResource now includes `lair_actions` array for lair-specific actions
+  - Added `legendary_actions_used` and `legendary_resistance_used` columns to `encounter_monsters` table
+  - PATCH endpoint now accepts these fields to track legendary ability usage during combat
+
 - **Issue #726**: Per-class `preparation_method` in spellcasting stats
   - Each class in the spellcasting object now includes its `preparation_method`
   - Enables frontend to show "Prepare Spells" button per class for multiclass characters

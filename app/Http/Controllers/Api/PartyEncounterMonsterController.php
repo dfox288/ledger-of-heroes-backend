@@ -23,7 +23,10 @@ class PartyEncounterMonsterController extends Controller
     public function index(Party $party): AnonymousResourceCollection
     {
         $monsters = $party->encounterMonsters()
-            ->with(['monster.actions' => fn ($q) => $q->where('action_type', '!=', 'reaction')])
+            ->with([
+                'monster.actions' => fn ($q) => $q->where('action_type', '!=', 'reaction'),
+                'monster.legendaryActions',
+            ])
             ->get();
 
         return EncounterMonsterResource::collection($monsters);
@@ -56,7 +59,10 @@ class PartyEncounterMonsterController extends Controller
 
         // Fetch created monsters with eager-loaded relationships
         $created = EncounterMonster::whereIn('id', $createdIds)
-            ->with(['monster.actions' => fn ($q) => $q->where('action_type', '!=', 'reaction')])
+            ->with([
+                'monster.actions' => fn ($q) => $q->where('action_type', '!=', 'reaction'),
+                'monster.legendaryActions',
+            ])
             ->get();
 
         return EncounterMonsterResource::collection($created)
@@ -77,7 +83,10 @@ class PartyEncounterMonsterController extends Controller
         }
 
         $encounterMonster->update($request->validated());
-        $encounterMonster->load(['monster.actions' => fn ($q) => $q->where('action_type', '!=', 'reaction')]);
+        $encounterMonster->load([
+            'monster.actions' => fn ($q) => $q->where('action_type', '!=', 'reaction'),
+            'monster.legendaryActions',
+        ]);
 
         return new EncounterMonsterResource($encounterMonster);
     }

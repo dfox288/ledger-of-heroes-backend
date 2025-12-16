@@ -611,4 +611,361 @@ class PartyEncounterMonsterApiTest extends TestCase
         expect($monsterData['speed_walk'])->toBe(30);
         expect($monsterData['speed_fly'])->toBe(60);
     }
+
+    // =====================
+    // Legendary Data Tests
+    // =====================
+
+    #[Test]
+    public function it_includes_legendary_actions_for_legendary_monster(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+        $monster = Monster::factory()->legendary(actionsPerRound: 3)->create();
+
+        // Create legendary actions
+        $monster->legendaryActions()->create([
+            'name' => 'Detect',
+            'description' => 'The dragon makes a Wisdom (Perception) check.',
+            'action_cost' => 1,
+            'is_lair_action' => false,
+            'sort_order' => 1,
+        ]);
+        $monster->legendaryActions()->create([
+            'name' => 'Tail Attack',
+            'description' => 'The dragon makes a tail attack.',
+            'action_cost' => 1,
+            'is_lair_action' => false,
+            'sort_order' => 2,
+        ]);
+        $monster->legendaryActions()->create([
+            'name' => 'Wing Attack',
+            'description' => 'The dragon beats its wings.',
+            'action_cost' => 2,
+            'is_lair_action' => false,
+            'sort_order' => 3,
+        ]);
+
+        $party->encounterMonsters()->create([
+            'monster_id' => $monster->id,
+            'label' => 'Ancient Red Dragon 1',
+            'current_hp' => 546,
+            'max_hp' => 546,
+        ]);
+
+        $response = $this->actingAs($user)->getJson("/api/v1/parties/{$party->id}/monsters");
+
+        $response->assertOk();
+        $monsterData = $response->json('data.0.monster');
+
+        // Should include legendary_actions structure
+        expect($monsterData)->toHaveKey('legendary_actions');
+        expect($monsterData['legendary_actions']['uses_per_round'])->toBe(3);
+        expect($monsterData['legendary_actions']['actions'])->toHaveCount(3);
+
+        // Verify action structure
+        $firstAction = $monsterData['legendary_actions']['actions'][0];
+        expect($firstAction)->toHaveKeys(['name', 'description', 'action_cost']);
+        expect($firstAction['name'])->toBe('Detect');
+        expect($firstAction['action_cost'])->toBe(1);
+    }
+
+    #[Test]
+    public function it_includes_lair_actions_for_monster_with_lair(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+        $monster = Monster::factory()->legendary()->create();
+
+        // Create lair actions (is_lair_action = true)
+        $monster->legendaryActions()->create([
+            'name' => 'Magma Eruption',
+            'description' => 'Magma erupts from a point the dragon can see.',
+            'action_cost' => 0, // Lair actions typically don't have costs
+            'is_lair_action' => true,
+            'sort_order' => 1,
+        ]);
+        $monster->legendaryActions()->create([
+            'name' => 'Volcanic Gas',
+            'description' => 'Volcanic gases form a cloud.',
+            'action_cost' => 0,
+            'is_lair_action' => true,
+            'sort_order' => 2,
+        ]);
+
+        $party->encounterMonsters()->create([
+            'monster_id' => $monster->id,
+            'label' => 'Ancient Red Dragon 1',
+            'current_hp' => 546,
+            'max_hp' => 546,
+        ]);
+
+        $response = $this->actingAs($user)->getJson("/api/v1/parties/{$party->id}/monsters");
+
+        $response->assertOk();
+        $monsterData = $response->json('data.0.monster');
+
+        // Should include lair_actions array
+        expect($monsterData)->toHaveKey('lair_actions');
+        expect($monsterData['lair_actions'])->toHaveCount(2);
+
+        // Verify lair action structure
+        $firstLairAction = $monsterData['lair_actions'][0];
+        expect($firstLairAction)->toHaveKeys(['name', 'description']);
+        expect($firstLairAction['name'])->toBe('Magma Eruption');
+    }
+
+    #[Test]
+    public function it_includes_legendary_resistance_for_monster_with_resistance(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+        $monster = Monster::factory()->legendary(actionsPerRound: 3, resistanceUses: 3)->create();
+
+        $party->encounterMonsters()->create([
+            'monster_id' => $monster->id,
+            'label' => 'Ancient Red Dragon 1',
+            'current_hp' => 546,
+            'max_hp' => 546,
+        ]);
+
+        $response = $this->actingAs($user)->getJson("/api/v1/parties/{$party->id}/monsters");
+
+        $response->assertOk();
+        $monsterData = $response->json('data.0.monster');
+
+        // Should include legendary_resistance structure
+        expect($monsterData)->toHaveKey('legendary_resistance');
+        expect($monsterData['legendary_resistance']['uses_per_day'])->toBe(3);
+    }
+
+    #[Test]
+    public function it_returns_null_legendary_data_for_non_legendary_monster(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+        $monster = Monster::factory()->create(); // Not legendary
+
+        $party->encounterMonsters()->create([
+            'monster_id' => $monster->id,
+            'label' => 'Goblin 1',
+            'current_hp' => 7,
+            'max_hp' => 7,
+        ]);
+
+        $response = $this->actingAs($user)->getJson("/api/v1/parties/{$party->id}/monsters");
+
+        $response->assertOk();
+        $monsterData = $response->json('data.0.monster');
+
+        // Non-legendary monsters should have null for legendary data
+        expect($monsterData['legendary_actions'])->toBeNull();
+        expect($monsterData['legendary_resistance'])->toBeNull();
+        expect($monsterData['lair_actions'])->toBeNull();
+    }
+
+    #[Test]
+    public function it_separates_legendary_actions_from_lair_actions(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+        $monster = Monster::factory()->legendary()->create();
+
+        // Create both legendary and lair actions
+        $monster->legendaryActions()->create([
+            'name' => 'Detect',
+            'description' => 'The dragon makes a Wisdom (Perception) check.',
+            'action_cost' => 1,
+            'is_lair_action' => false,
+            'sort_order' => 1,
+        ]);
+        $monster->legendaryActions()->create([
+            'name' => 'Magma Eruption',
+            'description' => 'Magma erupts from a point.',
+            'action_cost' => 0,
+            'is_lair_action' => true,
+            'sort_order' => 1,
+        ]);
+
+        $party->encounterMonsters()->create([
+            'monster_id' => $monster->id,
+            'label' => 'Dragon 1',
+            'current_hp' => 100,
+            'max_hp' => 100,
+        ]);
+
+        $response = $this->actingAs($user)->getJson("/api/v1/parties/{$party->id}/monsters");
+
+        $response->assertOk();
+        $monsterData = $response->json('data.0.monster');
+
+        // Legendary actions should only contain non-lair actions
+        expect($monsterData['legendary_actions']['actions'])->toHaveCount(1);
+        expect($monsterData['legendary_actions']['actions'][0]['name'])->toBe('Detect');
+
+        // Lair actions should only contain lair actions
+        expect($monsterData['lair_actions'])->toHaveCount(1);
+        expect($monsterData['lair_actions'][0]['name'])->toBe('Magma Eruption');
+    }
+
+    // =====================
+    // Legendary Usage Tracking Tests
+    // =====================
+
+    #[Test]
+    public function it_includes_legendary_usage_tracking_fields_in_response(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+        $monster = Monster::factory()->legendary()->create();
+
+        $party->encounterMonsters()->create([
+            'monster_id' => $monster->id,
+            'label' => 'Dragon 1',
+            'current_hp' => 100,
+            'max_hp' => 100,
+        ]);
+
+        $response = $this->actingAs($user)->getJson("/api/v1/parties/{$party->id}/monsters");
+
+        $response->assertOk();
+        $encounterMonster = $response->json('data.0');
+
+        // Should include usage tracking fields
+        expect($encounterMonster)->toHaveKey('legendary_actions_used');
+        expect($encounterMonster)->toHaveKey('legendary_resistance_used');
+        expect($encounterMonster['legendary_actions_used'])->toBe(0);
+        expect($encounterMonster['legendary_resistance_used'])->toBe(0);
+    }
+
+    #[Test]
+    public function it_updates_legendary_actions_used(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+        $monster = Monster::factory()->legendary(actionsPerRound: 3)->create();
+
+        $encounterMonster = $party->encounterMonsters()->create([
+            'monster_id' => $monster->id,
+            'label' => 'Dragon 1',
+            'current_hp' => 100,
+            'max_hp' => 100,
+        ]);
+
+        $response = $this->actingAs($user)->patchJson(
+            "/api/v1/parties/{$party->id}/monsters/{$encounterMonster->id}",
+            ['legendary_actions_used' => 2]
+        );
+
+        $response->assertOk()
+            ->assertJsonPath('data.legendary_actions_used', 2);
+
+        $this->assertDatabaseHas('encounter_monsters', [
+            'id' => $encounterMonster->id,
+            'legendary_actions_used' => 2,
+        ]);
+    }
+
+    #[Test]
+    public function it_updates_legendary_resistance_used(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+        $monster = Monster::factory()->legendary(resistanceUses: 3)->create();
+
+        $encounterMonster = $party->encounterMonsters()->create([
+            'monster_id' => $monster->id,
+            'label' => 'Dragon 1',
+            'current_hp' => 100,
+            'max_hp' => 100,
+        ]);
+
+        $response = $this->actingAs($user)->patchJson(
+            "/api/v1/parties/{$party->id}/monsters/{$encounterMonster->id}",
+            ['legendary_resistance_used' => 1]
+        );
+
+        $response->assertOk()
+            ->assertJsonPath('data.legendary_resistance_used', 1);
+
+        $this->assertDatabaseHas('encounter_monsters', [
+            'id' => $encounterMonster->id,
+            'legendary_resistance_used' => 1,
+        ]);
+    }
+
+    #[Test]
+    public function it_validates_legendary_actions_used_is_not_negative(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+        $monster = Monster::factory()->legendary()->create();
+
+        $encounterMonster = $party->encounterMonsters()->create([
+            'monster_id' => $monster->id,
+            'label' => 'Dragon 1',
+            'current_hp' => 100,
+            'max_hp' => 100,
+        ]);
+
+        $response = $this->actingAs($user)->patchJson(
+            "/api/v1/parties/{$party->id}/monsters/{$encounterMonster->id}",
+            ['legendary_actions_used' => -1]
+        );
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['legendary_actions_used']);
+    }
+
+    #[Test]
+    public function it_validates_legendary_resistance_used_is_not_negative(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+        $monster = Monster::factory()->legendary()->create();
+
+        $encounterMonster = $party->encounterMonsters()->create([
+            'monster_id' => $monster->id,
+            'label' => 'Dragon 1',
+            'current_hp' => 100,
+            'max_hp' => 100,
+        ]);
+
+        $response = $this->actingAs($user)->patchJson(
+            "/api/v1/parties/{$party->id}/monsters/{$encounterMonster->id}",
+            ['legendary_resistance_used' => -1]
+        );
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['legendary_resistance_used']);
+    }
+
+    #[Test]
+    public function it_resets_legendary_usage_when_updating_to_zero(): void
+    {
+        $user = User::factory()->create();
+        $party = Party::factory()->create(['user_id' => $user->id]);
+        $monster = Monster::factory()->legendary()->create();
+
+        $encounterMonster = $party->encounterMonsters()->create([
+            'monster_id' => $monster->id,
+            'label' => 'Dragon 1',
+            'current_hp' => 100,
+            'max_hp' => 100,
+            'legendary_actions_used' => 3,
+            'legendary_resistance_used' => 2,
+        ]);
+
+        $response = $this->actingAs($user)->patchJson(
+            "/api/v1/parties/{$party->id}/monsters/{$encounterMonster->id}",
+            [
+                'legendary_actions_used' => 0,
+                'legendary_resistance_used' => 0,
+            ]
+        );
+
+        $response->assertOk()
+            ->assertJsonPath('data.legendary_actions_used', 0)
+            ->assertJsonPath('data.legendary_resistance_used', 0);
+    }
 }

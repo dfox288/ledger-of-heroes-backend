@@ -77,4 +77,37 @@ class CharacterClassFactory extends Factory
             ];
         });
     }
+
+    /**
+     * Indicate that the class uses prepared casting (Cleric, Druid, Paladin, Artificer style).
+     * These classes prepare spells from their full class list daily.
+     */
+    public function preparedCaster(?string $abilityCode = null): static
+    {
+        return $this->spellcaster($abilityCode)->state(fn (array $attributes) => [
+            'spell_preparation_method' => 'prepared',
+        ]);
+    }
+
+    /**
+     * Indicate that the class uses known casting (Bard, Sorcerer, Warlock, Ranger style).
+     * These classes have a fixed set of known spells.
+     */
+    public function knownCaster(?string $abilityCode = null): static
+    {
+        return $this->spellcaster($abilityCode)->state(fn (array $attributes) => [
+            'spell_preparation_method' => 'known',
+        ]);
+    }
+
+    /**
+     * Indicate that the class uses spellbook casting (Wizard style).
+     * These classes copy spells to a spellbook, then prepare from it.
+     */
+    public function spellbookCaster(?string $abilityCode = null): static
+    {
+        return $this->spellcaster($abilityCode)->state(fn (array $attributes) => [
+            'spell_preparation_method' => 'spellbook',
+        ]);
+    }
 }

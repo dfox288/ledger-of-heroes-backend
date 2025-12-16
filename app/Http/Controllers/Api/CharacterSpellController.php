@@ -296,7 +296,7 @@ class CharacterSpellController extends Controller
      * @param  Character  $character  The character
      * @param  string  $spellIdOrSlug  Spell ID or slug
      */
-    public function prepare(Character $character, string $spellIdOrSlug): CharacterSpellResource
+    public function prepare(Character $character, string $spellIdOrSlug): JsonResponse
     {
         $spell = is_numeric($spellIdOrSlug)
             ? Spell::findOrFail($spellIdOrSlug)
@@ -305,7 +305,11 @@ class CharacterSpellController extends Controller
         $characterSpell = $this->spellManager->prepareSpell($character, $spell);
         $characterSpell->load('spell.spellSchool');
 
-        return new CharacterSpellResource($characterSpell);
+        // Explicitly return 200 OK since "prepare" is an action, not a create.
+        // Without this, Laravel returns 201 if the spell was auto-added (wasRecentlyCreated).
+        return (new CharacterSpellResource($characterSpell))
+            ->response()
+            ->setStatusCode(Response::HTTP_OK);
     }
 
     /**
@@ -328,13 +332,21 @@ class CharacterSpellController extends Controller
      * @param  Character  $character  The character
      * @param  string  $spellIdOrSlug  Spell ID or slug
      */
-    public function unprepare(Character $character, string $spellIdOrSlug): CharacterSpellResource
+    public function unprepare(Character $character, string $spellIdOrSlug): CharacterSpellResource|JsonResponse
     {
         $spell = is_numeric($spellIdOrSlug)
             ? Spell::findOrFail($spellIdOrSlug)
             : Spell::where('slug', $spellIdOrSlug)->firstOrFail();
 
         $characterSpell = $this->spellManager->unprepareSpell($character, $spell);
+
+        // For prepared_from_list spells, the row is deleted entirely
+        if ($characterSpell === null) {
+            return response()->json([
+                'message' => 'Spell unprepared and removed from preparations.',
+            ]);
+        }
+
         $characterSpell->load('spell.spellSchool');
 
         return new CharacterSpellResource($characterSpell);

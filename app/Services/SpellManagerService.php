@@ -266,21 +266,35 @@ class SpellManagerService
     /**
      * Prepare a spell for casting.
      *
+     * For prepared casters (Cleric, Druid, Paladin, Artificer), this will auto-add
+     * spells from their class list with source='prepared_from_list'. These spells
+     * are deleted when unprepared (ephemeral divine access).
+     *
      * @throws SpellManagementException
      */
     public function prepareSpell(Character $character, Spell $spell): CharacterSpell
     {
+        // Cantrips cannot be prepared (check first to avoid creating orphaned rows)
+        if ($spell->level === 0) {
+            throw SpellManagementException::cannotPrepareCantrip($spell);
+        }
+
         $characterSpell = $character->spells()
             ->where('spell_slug', $spell->slug)
             ->first();
+
+        // If spell not in character_spells, try auto-add for prepared casters
+        if (! $characterSpell) {
+            $characterSpell = $this->tryAutoAddForPreparedCaster($character, $spell);
+        }
 
         if (! $characterSpell) {
             throw SpellManagementException::spellNotKnown($spell, $character);
         }
 
-        // Cantrips cannot be prepared (they're always ready)
-        if ($spell->level === 0) {
-            throw SpellManagementException::cannotPrepareCantrip($spell);
+        // Already prepared - idempotent success
+        if ($characterSpell->preparation_status === 'prepared') {
+            return $characterSpell;
         }
 
         // Check preparation limit
@@ -297,11 +311,87 @@ class SpellManagerService
     }
 
     /**
+     * Try to auto-add a spell for a prepared caster (Cleric, Druid, Paladin, Artificer).
+     *
+     * Prepared casters can prepare any spell from their class list without first
+     * "learning" it. This creates an ephemeral character_spell with source='prepared_from_list'
+     * that is deleted when unprepared.
+     *
+     * @return CharacterSpell|null The created spell, or null if conditions not met
+     *
+     * @throws SpellManagementException If validation fails
+     */
+    private function tryAutoAddForPreparedCaster(Character $character, Spell $spell): ?CharacterSpell
+    {
+        // Only for prepared casters
+        if (! $this->isPreparedCaster($character)) {
+            return null;
+        }
+
+        // Validate spell is on class list
+        if (! $this->isSpellOnClassList($character, $spell)) {
+            throw SpellManagementException::spellNotOnClassList($spell, $character);
+        }
+
+        // Validate spell level is accessible
+        $maxSpellLevel = $this->getMaxSpellLevelForCharacter($character);
+        if ($spell->level > $maxSpellLevel) {
+            throw SpellManagementException::spellLevelTooHigh($spell, $character, $maxSpellLevel);
+        }
+
+        // Check preparation limit before creating
+        $preparationLimit = $this->getPreparationLimit($character);
+        $currentPrepared = $this->countPreparedSpells($character);
+
+        if ($preparationLimit !== null && $currentPrepared >= $preparationLimit) {
+            throw SpellManagementException::preparationLimitReached($character, $preparationLimit);
+        }
+
+        // Get class slug for the spell (from primary class)
+        $classSlug = $character->primary_class?->slug;
+
+        return CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'prepared',
+            'source' => 'prepared_from_list',
+            'class_slug' => $classSlug,
+            'level_acquired' => $character->total_level,
+        ]);
+    }
+
+    /**
+     * Check if the character's primary class is a prepared caster.
+     *
+     * Prepared casters (Cleric, Druid, Paladin, Artificer) have access to their
+     * entire class spell list and prepare a subset daily.
+     */
+    private function isPreparedCaster(Character $character): bool
+    {
+        $class = $character->primary_class;
+
+        if (! $class) {
+            return false;
+        }
+
+        // Get the base class for subclasses
+        $effectiveClass = $class->parent_class_id ? $class->parentClass : $class;
+
+        return $effectiveClass?->spell_preparation_method === 'prepared';
+    }
+
+    /**
      * Unprepare a spell.
+     *
+     * For spells with source='prepared_from_list' (divine casters preparing from
+     * class list), the row is deleted entirely. For other sources (spellbook,
+     * known spells, etc.), the status is set to 'known'.
+     *
+     * @return CharacterSpell|null The updated spell, or null if deleted
      *
      * @throws SpellManagementException
      */
-    public function unprepareSpell(Character $character, Spell $spell): CharacterSpell
+    public function unprepareSpell(Character $character, Spell $spell): ?CharacterSpell
     {
         $characterSpell = $character->spells()
             ->where('spell_slug', $spell->slug)
@@ -311,11 +401,24 @@ class SpellManagerService
             throw SpellManagementException::spellNotKnown($spell, $character);
         }
 
+        // Cantrips cannot be unprepared (they're always ready)
+        if ($spell->level === 0) {
+            throw SpellManagementException::cannotUnprepareCantrip($spell);
+        }
+
         // Always-prepared spells cannot be unprepared
         if ($characterSpell->isAlwaysPrepared()) {
             throw SpellManagementException::cannotUnprepareAlwaysPrepared($spell);
         }
 
+        // Ephemeral divine preparations are deleted entirely
+        if ($characterSpell->source === 'prepared_from_list') {
+            $characterSpell->delete();
+
+            return null;
+        }
+
+        // Permanent spell acquisitions (spellbook, known, etc.) are kept as 'known'
         $characterSpell->update(['preparation_status' => 'known']);
 
         return $characterSpell->fresh();

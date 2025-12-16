@@ -204,12 +204,14 @@ class SpellChoiceHandlerTest extends TestCase
             'character_id' => $character->id,
             'spell_slug' => $spell1->slug,
             'source' => 'class',
+            'class_slug' => $bard->slug,
             'level_acquired' => 1,
         ]);
         CharacterSpell::create([
             'character_id' => $character->id,
             'spell_slug' => $spell2->slug,
             'source' => 'class',
+            'class_slug' => $bard->slug,
             'level_acquired' => 1,
         ]);
 
@@ -219,6 +221,7 @@ class SpellChoiceHandlerTest extends TestCase
             'character_id' => $character->id,
             'spell_slug' => $spell3->slug,
             'source' => 'class',
+            'class_slug' => $bard->slug,
             'level_acquired' => 1,
         ]);
 

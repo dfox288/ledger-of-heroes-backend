@@ -219,6 +219,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         // cantrips_known in progression is cumulative, not per-level
         $allKnownCantrips = $character->spells()
             ->where('source', 'class')
+            ->where('class_slug', $class->slug)
             ->whereHas('spell', fn ($q) => $q->where('level', 0))
             ->get();
 
@@ -229,6 +230,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         // Get cantrips selected at THIS level for the selected array
         $cantripsAtThisLevel = $character->spells()
             ->where('source', 'class')
+            ->where('class_slug', $class->slug)
             ->where('level_acquired', $pivot->level)
             ->whereHas('spell', fn ($q) => $q->where('level', 0))
             ->get();
@@ -269,6 +271,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         // spells_known in progression is cumulative, not per-level
         $allKnownSpells = $character->spells()
             ->where('source', 'class')
+            ->where('class_slug', $class->slug)
             ->whereHas('spell', fn ($q) => $q->where('level', '>', 0))
             ->get();
 
@@ -279,6 +282,7 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         // Get spells selected at THIS level for the selected array
         $spellsAtThisLevel = $character->spells()
             ->where('source', 'class')
+            ->where('class_slug', $class->slug)
             ->where('level_acquired', $pivot->level)
             ->whereHas('spell', fn ($q) => $q->where('level', '>', 0))
             ->get();

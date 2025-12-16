@@ -9,7 +9,6 @@ use App\Services\CharacterStatCalculator;
 use App\Services\ProficiencyCheckerService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Str;
 
 /**
  * @mixin \App\Models\CharacterEquipment
@@ -167,8 +166,8 @@ class CharacterEquipmentResource extends JsonResource
             $abilityUsed = 'STR';
         }
 
-        // Check proficiency
-        $isProficient = $this->isWeaponProficient($character, $item);
+        // Check proficiency using shared calculator method
+        $isProficient = $calculator->isWeaponProficient($character, $item);
         $proficiencyBonus = $calculator->proficiencyBonus($character->total_level);
 
         // Calculate attack and damage bonus
@@ -203,23 +202,6 @@ class CharacterEquipmentResource extends JsonResource
         $this->item->loadMissing('itemType');
 
         return in_array($this->item->itemType?->code, ItemTypeCode::weaponCodes(), true);
-    }
-
-    /**
-     * Check if character is proficient with this weapon.
-     */
-    private function isWeaponProficient(\App\Models\Character $character, \App\Models\Item $item): bool
-    {
-        // Generate the expected proficiency slug (e.g., "core:longsword")
-        $weaponSlug = 'core:'.Str::slug($item->name);
-
-        // Load proficiencies if not loaded
-        $character->loadMissing('proficiencies');
-
-        // Check for specific weapon name proficiency
-        return $character->proficiencies
-            ->where('proficiency_type_slug', $weaponSlug)
-            ->isNotEmpty();
     }
 
     /**

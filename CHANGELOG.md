@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Performance
+
+- **Issue #721**: Character list API payload optimization
+  - Created `CharacterListResource` with minimal fields for list views
+  - Reduced payload from ~2.2KB to ~300 bytes per character (~85% reduction)
+  - Removed expensive service calls (spell slots, counters, proficiency checks) from list endpoint
+  - Simplified eager loading to only race, primary class, and media
+
 ### Fixed
 
 - **Issue #683**: Link domain bonus cantrips after spell import

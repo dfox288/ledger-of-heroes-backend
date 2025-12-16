@@ -1,0 +1,199 @@
+<?php
+
+namespace Tests\Feature\Api;
+
+use App\Models\Background;
+use App\Models\Character;
+use App\Models\CharacterClass;
+use App\Models\Race;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
+
+/**
+ * Tests for the lightweight CharacterListResource used in index endpoint.
+ *
+ * @see https://github.com/dfox288/ledger-of-heroes/issues/721
+ */
+class CharacterListResourceTest extends TestCase
+{
+    use RefreshDatabase;
+
+    #[Test]
+    public function character_list_returns_only_essential_fields(): void
+    {
+        $race = Race::factory()->create(['name' => 'Elf']);
+        $class = CharacterClass::factory()->create(['name' => 'Wizard']);
+
+        Character::factory()
+            ->withRace($race)
+            ->withClass($class)
+            ->withAbilityScores([
+                'strength' => 8,
+                'dexterity' => 14,
+                'constitution' => 12,
+                'intelligence' => 16,
+                'wisdom' => 10,
+                'charisma' => 10,
+            ])
+            ->create(['name' => 'Gandalf']);
+
+        $response = $this->getJson('/api/v1/characters');
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'id',
+                        'public_id',
+                        'name',
+                        'level',
+                        'race',
+                        'class_name',
+                        'portrait',
+                        'is_complete',
+                        'updated_at',
+                    ],
+                ],
+            ])
+            ->assertJsonPath('data.0.name', 'Gandalf')
+            ->assertJsonPath('data.0.race.name', 'Elf')
+            ->assertJsonPath('data.0.class_name', 'Wizard');
+    }
+
+    #[Test]
+    public function character_list_does_not_include_heavy_fields(): void
+    {
+        Character::factory()
+            ->withAbilityScores([
+                'strength' => 18,
+                'dexterity' => 14,
+                'constitution' => 16,
+                'intelligence' => 10,
+                'wisdom' => 12,
+                'charisma' => 8,
+            ])
+            ->create();
+
+        $response = $this->getJson('/api/v1/characters');
+
+        $response->assertOk();
+
+        $data = $response->json('data.0');
+
+        // These heavy fields should NOT be in the list response
+        $heavyFields = [
+            'ability_scores',
+            'base_ability_scores',
+            'modifiers',
+            'proficiency_bonus',
+            'ability_score_method',
+            'max_hit_points',
+            'current_hit_points',
+            'temp_hit_points',
+            'death_save_successes',
+            'death_save_failures',
+            'is_dead',
+            'armor_class',
+            'currency',
+            'spell_slots',
+            'counters',
+            'equipped',
+            'proficiency_penalties',
+            'attunement_slots',
+            'speeds',
+            'senses',
+            'classes', // Full multiclass array with hit dice
+            'validation_status',
+            'conditions',
+            'optional_features',
+            'feature_selections',
+        ];
+
+        foreach ($heavyFields as $field) {
+            $this->assertArrayNotHasKey($field, $data, "Field '$field' should not be in list response");
+        }
+    }
+
+    #[Test]
+    public function character_list_handles_null_race_and_class(): void
+    {
+        Character::factory()->create([
+            'name' => 'Draft Character',
+            'race_slug' => null,
+        ]);
+
+        $response = $this->getJson('/api/v1/characters');
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.name', 'Draft Character')
+            ->assertJsonPath('data.0.race', null)
+            ->assertJsonPath('data.0.class_name', null);
+    }
+
+    #[Test]
+    public function character_list_shows_primary_class_for_multiclass(): void
+    {
+        $fighter = CharacterClass::factory()->create(['name' => 'Fighter']);
+        $wizard = CharacterClass::factory()->create(['name' => 'Wizard']);
+
+        $character = Character::factory()->create();
+
+        // Add Fighter as primary (order 1), then Wizard
+        $character->characterClasses()->create([
+            'class_slug' => $fighter->slug,
+            'level' => 5,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+        $character->characterClasses()->create([
+            'class_slug' => $wizard->slug,
+            'level' => 3,
+            'is_primary' => false,
+            'order' => 2,
+        ]);
+
+        $response = $this->getJson('/api/v1/characters');
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.level', 8) // 5 + 3
+            ->assertJsonPath('data.0.class_name', 'Fighter'); // Primary class only
+    }
+
+    #[Test]
+    public function character_list_payload_is_significantly_smaller(): void
+    {
+        // Create a complete character with all the trimmings
+        $race = Race::factory()->create();
+        $class = CharacterClass::factory()->create();
+        $background = Background::factory()->create();
+
+        Character::factory()
+            ->withRace($race)
+            ->withClass($class)
+            ->withBackground($background)
+            ->withAbilityScores([
+                'strength' => 16,
+                'dexterity' => 14,
+                'constitution' => 14,
+                'intelligence' => 10,
+                'wisdom' => 12,
+                'charisma' => 8,
+            ])
+            ->create();
+
+        $listResponse = $this->getJson('/api/v1/characters');
+        $listResponse->assertOk();
+
+        $listPayload = json_encode($listResponse->json('data.0'));
+        $listSize = strlen($listPayload);
+
+        // List response should be under 500 bytes per character
+        // (vs ~2200 bytes with the full resource)
+        $this->assertLessThan(
+            500,
+            $listSize,
+            "List payload is {$listSize} bytes, should be under 500"
+        );
+    }
+}

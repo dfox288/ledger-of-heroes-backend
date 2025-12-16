@@ -9,6 +9,7 @@ use App\Http\Requests\Character\CharacterIndexRequest;
 use App\Http\Requests\Character\CharacterStoreRequest;
 use App\Http\Requests\Character\CharacterUpdateRequest;
 use App\Http\Resources\AbilityBonusCollectionResource;
+use App\Http\Resources\CharacterListResource;
 use App\Http\Resources\CharacterResource;
 use App\Http\Resources\CharacterStatsResource;
 use App\Http\Resources\CharacterSummaryResource;
@@ -65,11 +66,10 @@ class CharacterController extends Controller
     {
         $perPage = $request->validated('per_page', 15);
 
+        // Minimal eager loading for list view - only what CharacterListResource needs
         $query = Character::with([
-            'race.senses.sense',
-            'background',
-            'characterClasses.characterClass.levelProgression',
-            'characterClasses.subclass',
+            'race',
+            'characterClasses.characterClass',
             'media',
         ]);
 
@@ -81,7 +81,7 @@ class CharacterController extends Controller
 
         $characters = $query->paginate($perPage);
 
-        return CharacterResource::collection($characters);
+        return CharacterListResource::collection($characters);
     }
 
     /**

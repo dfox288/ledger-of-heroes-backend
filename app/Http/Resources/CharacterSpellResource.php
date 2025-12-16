@@ -33,6 +33,7 @@ class CharacterSpellResource extends JsonResource
             'is_dangling' => $this->spell === null,
             'preparation_status' => $this->preparation_status,
             'source' => $this->source,
+            'class_slug' => $this->class_slug,
             'level_acquired' => $this->level_acquired,
             'is_prepared' => $this->spell ? $this->isPrepared() : false,
             'is_always_prepared' => $this->spell ? $this->isAlwaysPrepared() : false,

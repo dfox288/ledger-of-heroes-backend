@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Issue #692**: Multiclass spellcasting API support (PHB p.164-165)
+  - `CharacterSpellResource` now includes `class_slug` field to identify which class grants each spell
+  - `CharacterStatsResource.spellcasting` changed from single object to per-class keyed object
+  - Each spellcasting class has its own: ability, ability_modifier, spell_save_dc, spell_attack_bonus
+  - Non-spellcasting classes excluded from spellcasting stats
+  - Enables frontend to display correct DC/attack bonus per spell based on its granting class
+  - Example response:
+    ```json
+    {
+      "spellcasting": {
+        "phb:wizard": { "ability": "INT", "spell_save_dc": 14, "spell_attack_bonus": 6 },
+        "phb:cleric": { "ability": "WIS", "spell_save_dc": 13, "spell_attack_bonus": 5 }
+      }
+    }
+    ```
+
+### Changed
+
+- **BREAKING**: `spellcasting` in stats endpoint changed from single object to per-class keyed object
+  - Old: `{ "ability": "INT", "spell_save_dc": 14, ... }`
+  - New: `{ "wizard": { "ability": "INT", "spell_save_dc": 14, ... } }`
+
 ### Fixed
 
 - **Issue #678/#682**: Paladin/Ranger Fighting Style counter incorrect (showed 2 instead of 1)

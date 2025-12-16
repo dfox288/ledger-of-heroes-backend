@@ -35,6 +35,10 @@ class CharacterSpellStoreRequest extends FormRequest
             'spell_slug' => ['required_without:spell', 'string', 'max:150'],
 
             'source' => ['sometimes', 'string', 'in:class,race,feat,item,other'],
+
+            // Issue #692: Class that grants the spell (for multiclass support)
+            // @example phb:wizard
+            'class_slug' => ['sometimes', 'nullable', 'string', 'max:150'],
         ];
     }
 }

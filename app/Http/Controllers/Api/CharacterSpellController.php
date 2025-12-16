@@ -133,6 +133,7 @@ class CharacterSpellController extends Controller
         $spellSlug = $validated['spell_slug'] ?? $validated['spell'];
         $spell = Spell::where('slug', $spellSlug)->first();
         $source = $validated['source'] ?? 'class';
+        $classSlug = $validated['class_slug'] ?? null; // Issue #692
 
         // Check for duplicates (works with or without spell entity)
         if ($character->spells()->where('spell_slug', $spellSlug)->exists()) {
@@ -144,12 +145,13 @@ class CharacterSpellController extends Controller
 
         if ($spell) {
             // Spell exists - use spell manager for proper validation
-            $characterSpell = $this->spellManager->learnSpell($character, $spell, $source);
+            $characterSpell = $this->spellManager->learnSpell($character, $spell, $source, $classSlug);
         } else {
             // Dangling reference - create with slug only per #288
             $characterSpell = $character->spells()->create([
                 'spell_slug' => $spellSlug,
                 'source' => $source,
+                'class_slug' => $classSlug, // Issue #692
             ]);
         }
 

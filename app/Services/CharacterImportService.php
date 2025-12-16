@@ -173,6 +173,7 @@ class CharacterImportService
                 'character_id' => $character->id,
                 'spell_slug' => $spellSlug,
                 'source' => $spellData['source'] ?? 'class',
+                'class_slug' => $spellData['class_slug'] ?? null, // Issue #692
                 'preparation_status' => $spellData['preparation_status'] ?? 'known',
                 'level_acquired' => $spellData['level_acquired'] ?? null,
             ]);

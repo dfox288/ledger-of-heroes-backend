@@ -144,11 +144,17 @@ class SpellChoiceHandler extends AbstractChoiceHandler
         })->delete();
 
         // Create CharacterSpell records
+        // Issue #692: Set class_slug for multiclass spellcasting support
+        $classSlug = in_array($parsed['source'], ['class', 'subclass', 'subclass_feature'], true)
+            ? $parsed['sourceSlug']
+            : null;
+
         foreach ($selected as $spellSlug) {
             CharacterSpell::create([
                 'character_id' => $character->id,
                 'spell_slug' => $spellSlug,
                 'source' => $parsed['source'],
+                'class_slug' => $classSlug,
                 'level_acquired' => $parsed['level'],
                 'preparation_status' => 'known',
             ]);

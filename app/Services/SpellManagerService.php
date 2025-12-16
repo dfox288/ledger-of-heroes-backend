@@ -208,9 +208,11 @@ class SpellManagerService
     /**
      * Learn a new spell for the character.
      *
+     * @param  string|null  $classSlug  Issue #692: Class that grants the spell (for multiclass support)
+     *
      * @throws SpellManagementException
      */
-    public function learnSpell(Character $character, Spell $spell, string $source = 'class'): CharacterSpell
+    public function learnSpell(Character $character, Spell $spell, string $source = 'class', ?string $classSlug = null): CharacterSpell
     {
         // Validate spell is on class list
         if (! $this->isSpellOnClassList($character, $spell)) {
@@ -228,11 +230,17 @@ class SpellManagerService
             throw SpellManagementException::spellAlreadyKnown($spell, $character);
         }
 
+        // Issue #692: If no class_slug provided and source is class, default to primary class
+        if ($classSlug === null && $source === 'class') {
+            $classSlug = $character->primary_class?->slug;
+        }
+
         return CharacterSpell::create([
             'character_id' => $character->id,
             'spell_slug' => $spell->slug,
             'preparation_status' => 'known',
             'source' => $source,
+            'class_slug' => $classSlug,
             'level_acquired' => $character->total_level,
         ]);
     }

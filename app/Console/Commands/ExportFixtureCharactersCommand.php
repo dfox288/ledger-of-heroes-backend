@@ -149,7 +149,7 @@ class ExportFixtureCharactersCommand extends Command
 
                     // Level up if needed
                     if ($level > 1) {
-                        $this->levelUpCharacter($character, $level, $randomizer);
+                        $this->levelUpCharacter($character, $level, $randomizer, $config['subclass_slug']);
                     }
 
                     // Rename character to match fixture name
@@ -313,7 +313,7 @@ class ExportFixtureCharactersCommand extends Command
         return $character;
     }
 
-    private function levelUpCharacter(Character $character, int $targetLevel, CharacterRandomizer $randomizer): void
+    private function levelUpCharacter(Character $character, int $targetLevel, CharacterRandomizer $randomizer, ?string $subclassSlug = null): void
     {
         $executor = new LevelUpFlowExecutor;
 
@@ -322,7 +322,8 @@ class ExportFixtureCharactersCommand extends Command
             targetLevel: $targetLevel,
             randomizer: $randomizer,
             iteration: 1,
-            mode: 'linear'
+            mode: 'linear',
+            forceSubclass: $subclassSlug,
         );
 
         if ($result->hasError() || $result->hasFailed()) {

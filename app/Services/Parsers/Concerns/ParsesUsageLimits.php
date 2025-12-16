@@ -11,9 +11,11 @@ namespace App\Services\Parsers\Concerns;
  * - "Once you cast it, you must finish a long rest" → base_uses: 1
  * - "use this feature 2 times" → base_uses: 2
  * - "twice before" → base_uses: 2
+ * - "you can't use it again until you finish a rest" → base_uses: 1
+ * - "you regain the ability when you finish a rest" → base_uses: 1
  * - "a number of times equal to your proficiency bonus" → uses_formula: 'proficiency'
  *
- * Used by: FeatXmlParser
+ * Used by: FeatXmlParser, ParsesTraits (for racial traits)
  */
 trait ParsesUsageLimits
 {
@@ -62,6 +64,24 @@ trait ParsesUsageLimits
         // Pattern 6: "Once you [verb]...must finish a rest" implies 1 use
         // Tightened to require "must" or "before" to connect the clauses
         if (preg_match('/once you (cast|use).*?(must|before).*?finish a (short|long) rest/is', $text)) {
+            return 1;
+        }
+
+        // Pattern 7: "you can't/cannot use it/this again until you finish/complete a rest" implies 1 use
+        // Common in racial traits like Breath Weapon, Relentless Endurance, Hidden Step
+        if (preg_match('/(?:can\'t|cannot) use (?:it|this|this feature|this trait) again until you (?:finish|complete) a/i', $text)) {
+            return 1;
+        }
+
+        // Pattern 8: "you regain the ability to do so when you finish a rest" implies 1 use
+        // Common in racial traits like Fey Step
+        if (preg_match('/you regain the ability (?:to do so )?when you finish a/i', $text)) {
+            return 1;
+        }
+
+        // Pattern 9: "you can't cast it again with this trait until" implies 1 use
+        // Common in racial spellcasting like Firbolg Magic
+        if (preg_match('/can\'t cast it again (?:with this trait )?until you finish a/i', $text)) {
             return 1;
         }
 

@@ -472,6 +472,48 @@ describe('Character Import', function () {
             ->and($clericSpellRecord->level_acquired)->toBe(6);
     });
 
+    it('rejects import with invalid class_slug on spells', function () {
+        $race = Race::factory()->create(['slug' => 'phb:human']);
+        $class = CharacterClass::factory()->create(['slug' => 'phb:wizard']);
+        $spell = Spell::factory()->create(['slug' => 'phb:fireball']);
+
+        $exportData = [
+            'format_version' => '1.2',
+            'character' => [
+                'public_id' => 'invalid-class-slug-test',
+                'name' => 'Invalid Class Slug',
+                'race' => 'phb:human',
+                'background' => null,
+                'alignment' => null,
+                'ability_scores' => [
+                    'strength' => 10,
+                    'dexterity' => 10,
+                    'constitution' => 10,
+                    'intelligence' => 16,
+                    'wisdom' => 10,
+                    'charisma' => 10,
+                ],
+                'classes' => [
+                    ['class' => 'phb:wizard', 'subclass' => null, 'level' => 5, 'is_primary' => true],
+                ],
+                'spells' => [
+                    ['spell' => 'phb:fireball', 'source' => 'class', 'preparation_status' => 'known', 'class_slug' => 'phb:nonexistent-class'],
+                ],
+                'equipment' => [],
+                'languages' => [],
+                'proficiencies' => ['skills' => [], 'types' => []],
+                'conditions' => [],
+                'feature_selections' => [],
+                'notes' => [],
+            ],
+        ];
+
+        $response = $this->postJson('/api/v1/characters/import', $exportData);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['character.spells.0.class_slug']);
+    });
+
     it('imports character with custom equipment', function () {
         $race = Race::factory()->create(['slug' => 'phb:dwarf']);
         $class = CharacterClass::factory()->create(['slug' => 'phb:fighter']);

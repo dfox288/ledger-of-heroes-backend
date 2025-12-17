@@ -12714,6 +12714,37 @@
                             "$ref": "#/components/schemas/TagResource"
                         }
                     },
+                    "choices": {
+                        "type": "array",
+                        "description": "Non-equipment choices (language, proficiency)",
+                        "items": {
+                            "$ref": "#/components/schemas/EntityChoiceResource"
+                        }
+                    },
+                    "equipment_choices": {
+                        "type": "array",
+                        "description": "Equipment choices (grouped by option)",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "choice_group": {
+                                    "type": "string"
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "options": {
+                                    "type": "array",
+                                    "items": {}
+                                }
+                            },
+                            "required": [
+                                "choice_group",
+                                "quantity",
+                                "options"
+                            ]
+                        }
+                    },
                     "data_tables": {
                         "type": [
                             "array",
@@ -14696,7 +14727,7 @@
                         "type": "string"
                     },
                     "level": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "race": {
                         "type": [
@@ -14715,7 +14746,7 @@
                         ]
                     },
                     "is_complete": {
-                        "type": "string"
+                        "type": "boolean"
                     },
                     "updated_at": {
                         "type": "string"
@@ -17557,8 +17588,7 @@
                         "type": "string"
                     },
                     "hit_die": {
-                        "type": "integer",
-                        "description": "Hit die value (e.g., 8, 10, 12) - inherits from parent for subclasses"
+                        "type": "integer"
                     },
                     "description": {
                         "type": "string"
@@ -17585,15 +17615,13 @@
                         ]
                     },
                     "is_base_class": {
-                        "type": "boolean",
-                        "description": "Whether this is a base class (not a subclass)"
+                        "type": "boolean"
                     },
                     "subclass_level": {
                         "type": [
                             "integer",
                             "null"
-                        ],
-                        "description": "Level at which subclass is chosen"
+                        ]
                     },
                     "spellcasting_type": {
                         "type": "string"
@@ -17602,8 +17630,7 @@
                         "type": [
                             "integer",
                             "null"
-                        ],
-                        "description": "Number of spells available to this class"
+                        ]
                     },
                     "starting_wealth": {
                         "type": [
@@ -18051,7 +18078,7 @@
                             "null"
                         ]
                     },
-                    "source": {
+                    "source_slug": {
                         "type": "string"
                     },
                     "source_type": {
@@ -18068,7 +18095,7 @@
                     "current",
                     "max",
                     "reset_on",
-                    "source",
+                    "source_slug",
                     "source_type",
                     "unlimited"
                 ],
@@ -18480,6 +18507,111 @@
                 },
                 "title": "EncounterPresetUpdateRequest"
             },
+            "EntityChoiceResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "choice_type": {
+                        "type": "string"
+                    },
+                    "choice_group": {
+                        "type": "string"
+                    },
+                    "choice_option": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "quantity": {
+                        "type": "integer"
+                    },
+                    "constraint": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "target_type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "target_slug": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "level_granted": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "is_required": {
+                        "type": "boolean"
+                    },
+                    "spell_max_level": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Spell-specific fields"
+                    },
+                    "spell_list_slug": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "spell_school_slug": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "proficiency_type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Proficiency-specific fields"
+                    },
+                    "constraints": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "Additional constraints",
+                        "items": {}
+                    }
+                },
+                "required": [
+                    "id",
+                    "choice_type",
+                    "choice_group",
+                    "choice_option",
+                    "quantity",
+                    "constraint",
+                    "target_type",
+                    "target_slug",
+                    "description",
+                    "level_granted",
+                    "is_required",
+                    "constraints"
+                ],
+                "title": "EntityChoiceResource"
+            },
             "EntityConditionResource": {
                 "type": "object",
                 "properties": {
@@ -18766,10 +18898,7 @@
                         "type": "integer"
                     },
                     "spell_id": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
+                        "type": "integer"
                     },
                     "spell": {
                         "$ref": "#/components/schemas/SpellResource"
@@ -18907,6 +19036,13 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/EntityLanguageResource"
+                        }
+                    },
+                    "choices": {
+                        "type": "array",
+                        "description": "Non-equipment choices (spell, proficiency, ability_score)",
+                        "items": {
+                            "$ref": "#/components/schemas/EntityChoiceResource"
                         }
                     }
                 },
@@ -20422,7 +20558,7 @@
                 "type": "object",
                 "properties": {
                     "quantity": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "item": {
                         "type": [
@@ -20479,7 +20615,7 @@
                         "type": "string"
                     },
                     "level": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "class_name": {
                         "type": [
@@ -20525,7 +20661,7 @@
                         "type": "string"
                     },
                     "level": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "class_name": {
                         "type": [
@@ -21648,12 +21784,10 @@
                         ]
                     },
                     "is_subrace": {
-                        "type": "boolean",
-                        "description": "Whether this race is a subrace (has a parent race)"
+                        "type": "boolean"
                     },
                     "subrace_required": {
-                        "type": "boolean",
-                        "description": "Whether subrace selection is required to play this race (false = base race is complete on its own)"
+                        "type": "boolean"
                     },
                     "traits": {
                         "type": "array",
@@ -21717,6 +21851,13 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/TagResource"
+                        }
+                    },
+                    "choices": {
+                        "type": "array",
+                        "description": "Non-equipment choices (ability_score, language, proficiency, spell)",
+                        "items": {
+                            "$ref": "#/components/schemas/EntityChoiceResource"
                         }
                     },
                     "inherited_data": {
@@ -22430,16 +22571,16 @@
                 "type": "object",
                 "properties": {
                     "level": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "total": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "spent": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "available": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "slot_type": {
                         "type": "string"

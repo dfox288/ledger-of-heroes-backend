@@ -2147,119 +2147,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "class": {
-                                                    "type": [
-                                                        "object",
-                                                        "null"
-                                                    ],
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "integer"
-                                                        },
-                                                        "name": {
-                                                            "type": "string"
-                                                        },
-                                                        "slug": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "id",
-                                                        "name",
-                                                        "slug"
-                                                    ]
-                                                },
-                                                "class_slug": {
-                                                    "type": "string"
-                                                },
-                                                "is_dangling": {
-                                                    "type": "boolean"
-                                                },
-                                                "subclass": {
-                                                    "type": [
-                                                        "object",
-                                                        "null"
-                                                    ],
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "integer"
-                                                        },
-                                                        "name": {
-                                                            "type": "string"
-                                                        },
-                                                        "slug": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "id",
-                                                        "name",
-                                                        "slug"
-                                                    ]
-                                                },
-                                                "subclass_slug": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "level": {
-                                                    "type": "integer"
-                                                },
-                                                "is_primary": {
-                                                    "type": "boolean"
-                                                },
-                                                "order": {
-                                                    "type": "integer"
-                                                },
-                                                "hit_dice": {
-                                                    "type": [
-                                                        "object",
-                                                        "null"
-                                                    ],
-                                                    "properties": {
-                                                        "die": {
-                                                            "type": "string"
-                                                        },
-                                                        "max": {
-                                                            "type": "integer"
-                                                        },
-                                                        "spent": {
-                                                            "type": "integer"
-                                                        },
-                                                        "available": {
-                                                            "type": "integer"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "die",
-                                                        "max",
-                                                        "spent",
-                                                        "available"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "class",
-                                                "class_slug",
-                                                "is_dangling",
-                                                "subclass",
-                                                "subclass_slug",
-                                                "level",
-                                                "is_primary",
-                                                "order",
-                                                "hit_dice"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "type": "object"
                                 }
                             }
                         }
@@ -2306,110 +2194,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "previous_level": {
-                                                    "type": "integer"
-                                                },
-                                                "new_level": {
-                                                    "type": "integer"
-                                                },
-                                                "hp_increase": {
-                                                    "type": "integer"
-                                                },
-                                                "new_max_hp": {
-                                                    "type": "integer"
-                                                },
-                                                "features_gained": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "name": {
-                                                                "type": "string"
-                                                            },
-                                                            "description": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "id",
-                                                            "name",
-                                                            "description"
-                                                        ]
-                                                    }
-                                                },
-                                                "spell_slots": {
-                                                    "type": "object",
-                                                    "additionalProperties": {
-                                                        "type": "integer"
-                                                    }
-                                                },
-                                                "asi_pending": {
-                                                    "type": "boolean"
-                                                },
-                                                "hp_choice_pending": {
-                                                    "type": "boolean"
-                                                },
-                                                "pending_choice_summary": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "total_pending": {
-                                                            "type": "integer"
-                                                        },
-                                                        "required_pending": {
-                                                            "type": "integer"
-                                                        },
-                                                        "optional_pending": {
-                                                            "type": "integer"
-                                                        },
-                                                        "by_type": {
-                                                            "type": "object",
-                                                            "additionalProperties": {
-                                                                "type": "integer"
-                                                            }
-                                                        },
-                                                        "by_source": {
-                                                            "type": "object",
-                                                            "additionalProperties": {
-                                                                "type": "integer"
-                                                            }
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "total_pending",
-                                                        "required_pending",
-                                                        "optional_pending",
-                                                        "by_type",
-                                                        "by_source"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "previous_level",
-                                                "new_level",
-                                                "hp_increase",
-                                                "new_max_hp",
-                                                "features_gained",
-                                                "spell_slots",
-                                                "asi_pending",
-                                                "hp_choice_pending",
-                                                "pending_choice_summary"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "type": "object"
                                 }
                             }
                         }
@@ -2463,119 +2248,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "class": {
-                                                    "type": [
-                                                        "object",
-                                                        "null"
-                                                    ],
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "integer"
-                                                        },
-                                                        "name": {
-                                                            "type": "string"
-                                                        },
-                                                        "slug": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "id",
-                                                        "name",
-                                                        "slug"
-                                                    ]
-                                                },
-                                                "class_slug": {
-                                                    "type": "string"
-                                                },
-                                                "is_dangling": {
-                                                    "type": "boolean"
-                                                },
-                                                "subclass": {
-                                                    "type": [
-                                                        "object",
-                                                        "null"
-                                                    ],
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "integer"
-                                                        },
-                                                        "name": {
-                                                            "type": "string"
-                                                        },
-                                                        "slug": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "id",
-                                                        "name",
-                                                        "slug"
-                                                    ]
-                                                },
-                                                "subclass_slug": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "level": {
-                                                    "type": "integer"
-                                                },
-                                                "is_primary": {
-                                                    "type": "boolean"
-                                                },
-                                                "order": {
-                                                    "type": "integer"
-                                                },
-                                                "hit_dice": {
-                                                    "type": [
-                                                        "object",
-                                                        "null"
-                                                    ],
-                                                    "properties": {
-                                                        "die": {
-                                                            "type": "string"
-                                                        },
-                                                        "max": {
-                                                            "type": "integer"
-                                                        },
-                                                        "spent": {
-                                                            "type": "integer"
-                                                        },
-                                                        "available": {
-                                                            "type": "integer"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "die",
-                                                        "max",
-                                                        "spent",
-                                                        "available"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "class",
-                                                "class_slug",
-                                                "is_dangling",
-                                                "subclass",
-                                                "subclass_slug",
-                                                "level",
-                                                "is_primary",
-                                                "order",
-                                                "hit_dice"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "type": "object"
                                 }
                             }
                         }
@@ -7780,7 +7453,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Array of `MediaResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -7789,64 +7462,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "collection": {
-                                                        "type": "string"
-                                                    },
-                                                    "file_name": {
-                                                        "type": "string"
-                                                    },
-                                                    "mime_type": {
-                                                        "type": "string"
-                                                    },
-                                                    "size": {
-                                                        "type": "integer"
-                                                    },
-                                                    "urls": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "original": {
-                                                                "type": "string"
-                                                            },
-                                                            "thumb": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "medium": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "original",
-                                                            "thumb",
-                                                            "medium"
-                                                        ]
-                                                    },
-                                                    "created_at": {
-                                                        "type": [
-                                                            "string",
-                                                            "null"
-                                                        ]
-                                                    }
-                                                },
-                                                "required": [
-                                                    "id",
-                                                    "collection",
-                                                    "file_name",
-                                                    "mime_type",
-                                                    "size",
-                                                    "urls",
-                                                    "created_at"
-                                                ]
+                                                "$ref": "#/components/schemas/MediaResource"
                                             }
                                         }
                                     },
@@ -8291,7 +7907,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Array of `SpellResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -8300,50 +7916,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "slug": {
-                                                        "type": "string"
-                                                    },
-                                                    "name": {
-                                                        "type": "string"
-                                                    },
-                                                    "level": {
-                                                        "type": "integer"
-                                                    },
-                                                    "school": {
-                                                        "type": [
-                                                            "object",
-                                                            "null"
-                                                        ],
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "name": {
-                                                                "type": "string"
-                                                            },
-                                                            "code": {
-                                                                "type": "string"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "id",
-                                                            "name",
-                                                            "code"
-                                                        ]
-                                                    }
-                                                },
-                                                "required": [
-                                                    "id",
-                                                    "slug",
-                                                    "name",
-                                                    "level",
-                                                    "school"
-                                                ]
+                                                "$ref": "#/components/schemas/SpellResource"
                                             }
                                         }
                                     },
@@ -9492,7 +9065,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Paginated set",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -9501,39 +9074,130 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "slug": {
-                                                        "type": "string"
-                                                    },
-                                                    "name": {
-                                                        "type": "string"
-                                                    },
-                                                    "category": {
-                                                        "type": "string"
-                                                    },
-                                                    "subcategory": {
-                                                        "type": [
-                                                            "string",
-                                                            "null"
+                                                "type": "string"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
                                                         ]
                                                     }
                                                 },
-                                                "required": [
-                                                    "id",
-                                                    "slug",
-                                                    "name",
-                                                    "category",
-                                                    "subcategory"
-                                                ]
-                                            }
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
                                         }
                                     },
                                     "required": [
-                                        "data"
+                                        "data",
+                                        "links",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -9619,7 +9283,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Paginated set of `ClassResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -9628,57 +9292,130 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "slug": {
-                                                        "type": "string"
-                                                    },
-                                                    "name": {
-                                                        "type": "string"
-                                                    },
-                                                    "hit_die": {
-                                                        "type": "integer"
-                                                    },
-                                                    "description": {
-                                                        "type": [
-                                                            "string",
-                                                            "null"
+                                                "$ref": "#/components/schemas/ClassResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
                                                         ]
-                                                    },
-                                                    "archetype": {
-                                                        "type": [
-                                                            "string",
-                                                            "null"
-                                                        ]
-                                                    },
-                                                    "parent_class_id": {
-                                                        "type": [
-                                                            "integer",
-                                                            "null"
-                                                        ]
-                                                    },
-                                                    "is_base_class": {
-                                                        "type": "boolean"
                                                     }
                                                 },
-                                                "required": [
-                                                    "id",
-                                                    "slug",
-                                                    "name",
-                                                    "hit_die",
-                                                    "description",
-                                                    "archetype",
-                                                    "parent_class_id",
-                                                    "is_base_class"
-                                                ]
-                                            }
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
                                         }
                                     },
                                     "required": [
-                                        "data"
+                                        "data",
+                                        "links",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -9723,7 +9460,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Paginated set of `RaceResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -9732,39 +9469,130 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "slug": {
-                                                        "type": "string"
-                                                    },
-                                                    "name": {
-                                                        "type": "string"
-                                                    },
-                                                    "speed": {
-                                                        "type": [
-                                                            "integer",
-                                                            "null"
+                                                "$ref": "#/components/schemas/RaceResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
                                                         ]
-                                                    },
-                                                    "is_subrace": {
-                                                        "type": "boolean"
                                                     }
                                                 },
-                                                "required": [
-                                                    "id",
-                                                    "slug",
-                                                    "name",
-                                                    "speed",
-                                                    "is_subrace"
-                                                ]
-                                            }
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
                                         }
                                     },
                                     "required": [
-                                        "data"
+                                        "data",
+                                        "links",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -9809,7 +9637,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Paginated set of `BackgroundResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -9818,42 +9646,130 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "slug": {
-                                                        "type": "string"
-                                                    },
-                                                    "name": {
-                                                        "type": "string"
-                                                    },
-                                                    "feature_name": {
-                                                        "type": [
-                                                            "string",
-                                                            "null"
-                                                        ]
-                                                    },
-                                                    "feature_description": {
-                                                        "type": [
-                                                            "string",
-                                                            "null"
+                                                "$ref": "#/components/schemas/BackgroundResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
                                                         ]
                                                     }
                                                 },
-                                                "required": [
-                                                    "id",
-                                                    "slug",
-                                                    "name",
-                                                    "feature_name",
-                                                    "feature_description"
-                                                ]
-                                            }
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
                                         }
                                     },
                                     "required": [
-                                        "data"
+                                        "data",
+                                        "links",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -10097,7 +10013,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Array of `SpellResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -10106,50 +10022,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "slug": {
-                                                        "type": "string"
-                                                    },
-                                                    "name": {
-                                                        "type": "string"
-                                                    },
-                                                    "level": {
-                                                        "type": "integer"
-                                                    },
-                                                    "school": {
-                                                        "type": [
-                                                            "object",
-                                                            "null"
-                                                        ],
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "name": {
-                                                                "type": "string"
-                                                            },
-                                                            "code": {
-                                                                "type": "string"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "id",
-                                                            "name",
-                                                            "code"
-                                                        ]
-                                                    }
-                                                },
-                                                "required": [
-                                                    "id",
-                                                    "slug",
-                                                    "name",
-                                                    "level",
-                                                    "school"
-                                                ]
+                                                "$ref": "#/components/schemas/SpellResource"
                                             }
                                         }
                                     },
@@ -10408,7 +10281,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Paginated set",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -10417,28 +10290,130 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "code": {
-                                                        "type": "string"
-                                                    },
-                                                    "name": {
-                                                        "type": "string"
+                                                "type": "string"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
                                                     }
                                                 },
-                                                "required": [
-                                                    "id",
-                                                    "code",
-                                                    "name"
-                                                ]
-                                            }
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
                                         }
                                     },
                                     "required": [
-                                        "data"
+                                        "data",
+                                        "links",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -11552,7 +11527,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Array of `ClassResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -11561,31 +11536,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "slug": {
-                                                        "type": "string"
-                                                    },
-                                                    "name": {
-                                                        "type": "string"
-                                                    },
-                                                    "hit_die": {
-                                                        "type": "integer"
-                                                    },
-                                                    "is_base_class": {
-                                                        "type": "boolean"
-                                                    }
-                                                },
-                                                "required": [
-                                                    "id",
-                                                    "slug",
-                                                    "name",
-                                                    "hit_die",
-                                                    "is_base_class"
-                                                ]
+                                                "$ref": "#/components/schemas/ClassResource"
                                             }
                                         }
                                     },
@@ -11623,7 +11574,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Array of `MonsterResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -11632,37 +11583,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "slug": {
-                                                        "type": "string"
-                                                    },
-                                                    "name": {
-                                                        "type": "string"
-                                                    },
-                                                    "challenge_rating": {
-                                                        "type": [
-                                                            "string",
-                                                            "null"
-                                                        ]
-                                                    },
-                                                    "type": {
-                                                        "type": [
-                                                            "string",
-                                                            "null"
-                                                        ]
-                                                    }
-                                                },
-                                                "required": [
-                                                    "id",
-                                                    "slug",
-                                                    "name",
-                                                    "challenge_rating",
-                                                    "type"
-                                                ]
+                                                "$ref": "#/components/schemas/MonsterResource"
                                             }
                                         }
                                     },
@@ -11700,7 +11621,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Array of `ItemResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -11709,37 +11630,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "slug": {
-                                                        "type": "string"
-                                                    },
-                                                    "name": {
-                                                        "type": "string"
-                                                    },
-                                                    "type": {
-                                                        "type": [
-                                                            "string",
-                                                            "null"
-                                                        ]
-                                                    },
-                                                    "rarity": {
-                                                        "type": [
-                                                            "string",
-                                                            "null"
-                                                        ]
-                                                    }
-                                                },
-                                                "required": [
-                                                    "id",
-                                                    "slug",
-                                                    "name",
-                                                    "type",
-                                                    "rarity"
-                                                ]
+                                                "$ref": "#/components/schemas/ItemResource"
                                             }
                                         }
                                     },
@@ -11777,7 +11668,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Array of `RaceResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -11786,34 +11677,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "slug": {
-                                                        "type": "string"
-                                                    },
-                                                    "name": {
-                                                        "type": "string"
-                                                    },
-                                                    "speed": {
-                                                        "type": [
-                                                            "integer",
-                                                            "null"
-                                                        ]
-                                                    },
-                                                    "is_subrace": {
-                                                        "type": "boolean"
-                                                    }
-                                                },
-                                                "required": [
-                                                    "id",
-                                                    "slug",
-                                                    "name",
-                                                    "speed",
-                                                    "is_subrace"
-                                                ]
+                                                "$ref": "#/components/schemas/RaceResource"
                                             }
                                         }
                                     },
@@ -12254,7 +12118,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Array of `TagResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -12263,30 +12127,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "name": {
-                                                        "type": "string"
-                                                    },
-                                                    "slug": {
-                                                        "type": "string"
-                                                    },
-                                                    "type": {
-                                                        "type": [
-                                                            "string",
-                                                            "null"
-                                                        ]
-                                                    }
-                                                },
-                                                "required": [
-                                                    "id",
-                                                    "name",
-                                                    "slug",
-                                                    "type"
-                                                ]
+                                                "$ref": "#/components/schemas/TagResource"
                                             }
                                         }
                                     },

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Media\MediaUploadRequest;
 use App\Http\Resources\MediaResource;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Spatie\MediaLibrary\HasMedia;
 
@@ -28,10 +29,8 @@ class MediaController extends Controller
      * ```
      * GET /api/v1/characters/5/media/portrait
      * ```
-     *
-     * @response array{data: array<int, array{id: int, collection: string, file_name: string, mime_type: string, size: int, urls: array{original: string, thumb: string|null, medium: string|null}, created_at: string|null}>}
      */
-    public function index(Request $request, string $modelType, int $modelId, string $collection)
+    public function index(Request $request, string $modelType, int $modelId, string $collection): AnonymousResourceCollection
     {
         $model = $this->resolveModel($modelType, $modelId);
         $this->validateCollection($modelType, $collection);

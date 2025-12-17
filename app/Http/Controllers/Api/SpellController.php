@@ -181,10 +181,8 @@ class SpellController extends Controller
      * across 131 classes/subclasses and 477 spells imported from official D&D sourcebooks.
      *
      * @param  Spell  $spell  The spell to find classes for (accepts ID or slug)
-     *
-     * @response array{data: array<int, array{id: int, slug: string, name: string, hit_die: int, is_base_class: bool}>}
      */
-    public function classes(Spell $spell)
+    public function classes(Spell $spell): AnonymousResourceCollection
     {
         $spell->load(['classes' => function ($query) {
             $query->orderBy('name');
@@ -217,10 +215,8 @@ class SpellController extends Controller
      * monster imports with 100% spell name match rate.
      *
      * @param  Spell  $spell  The spell to find monsters for (accepts ID or slug)
-     *
-     * @response array{data: array<int, array{id: int, slug: string, name: string, challenge_rating: string|null, type: string|null}>}
      */
-    public function monsters(Spell $spell)
+    public function monsters(Spell $spell): AnonymousResourceCollection
     {
         $spell->load(['monsters' => function ($query) {
             $query->orderBy('name');
@@ -253,10 +249,8 @@ class SpellController extends Controller
      * ChargedItemStrategy during item imports using case-insensitive spell name matching.
      *
      * @param  Spell  $spell  The spell to find items for (accepts ID or slug)
-     *
-     * @response array{data: array<int, array{id: int, slug: string, name: string, type: string|null, rarity: string|null}>}
      */
-    public function items(Spell $spell)
+    public function items(Spell $spell): AnonymousResourceCollection
     {
         $spell->load(['items' => function ($query) {
             $query->orderBy('name');
@@ -289,10 +283,8 @@ class SpellController extends Controller
      * official D&D sourcebooks.
      *
      * @param  Spell  $spell  The spell to find races for (accepts ID or slug)
-     *
-     * @response array{data: array<int, array{id: int, slug: string, name: string, speed: int|null, is_subrace: bool}>}
      */
-    public function races(Spell $spell)
+    public function races(Spell $spell): AnonymousResourceCollection
     {
         $spell->load(['races' => function ($query) {
             $query->orderBy('name');

@@ -235,8 +235,7 @@ class CharacterClassController extends Controller
      *
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  Class ID or slug
-     *
-     * @response array{data: array{previous_level: int, new_level: int, hp_increase: int, new_max_hp: int, features_gained: array<array{id: int, name: string, description: string|null}>, spell_slots: array<string, int>, asi_pending: bool, hp_choice_pending: bool, pending_choice_summary: array{total_pending: int, required_pending: int, optional_pending: int, by_type: array<string, int>, by_source: array<string, int>}}}
+     * @return \Illuminate\Http\JsonResponse<LevelUpResource>
      */
     public function levelUp(Character $character, string $classSlugOrFullSlug): JsonResponse
     {
@@ -319,8 +318,7 @@ class CharacterClassController extends Controller
      * @param  CharacterClassAddRequest  $request  The validated request
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  The class ID or slug to replace
-     *
-     * @response array{data: array{class: array{id: int, name: string, slug: string}|null, class_slug: string, is_dangling: bool, subclass: array{id: int, name: string, slug: string}|null, subclass_slug: string|null, level: int, is_primary: bool, order: int, hit_dice: array{die: string, max: int, spent: int, available: int}|null}}
+     * @return \Illuminate\Http\JsonResponse<CharacterClassPivotResource>
      */
     public function replace(CharacterClassAddRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {
@@ -399,11 +397,10 @@ class CharacterClassController extends Controller
      * @param  CharacterSubclassSetRequest  $request  The validated request
      * @param  Character  $character  The character
      * @param  string  $classSlugOrFullSlug  Class slug
+     * @return \Illuminate\Http\JsonResponse<CharacterClassPivotResource>
      *
      * @throws InvalidSubclassException If subclass doesn't belong to the class
      * @throws SubclassLevelRequirementException If character level is below requirement
-     *
-     * @response array{data: array{class: array{id: int, name: string, slug: string}|null, class_slug: string, is_dangling: bool, subclass: array{id: int, name: string, slug: string}|null, subclass_slug: string|null, level: int, is_primary: bool, order: int, hit_dice: array{die: string, max: int, spent: int, available: int}|null}}
      */
     public function setSubclass(CharacterSubclassSetRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {

@@ -165,10 +165,8 @@ class RaceController extends Controller
      * - Tiefling: Thaumaturgy (0), Hellish Rebuke (1), Darkness (2)
      * - High Elf: 1 wizard cantrip (player's choice)
      * - Forest Gnome: Minor Illusion (0)
-     *
-     * @response array{data: array<int, array{id: int, slug: string, name: string, level: int, school: array{id: int, name: string, code: string}|null}>}
      */
-    public function spells(Race $race)
+    public function spells(Race $race): AnonymousResourceCollection
     {
         $race->load(['spells' => function ($query) {
             $query->orderBy('level')->orderBy('name');

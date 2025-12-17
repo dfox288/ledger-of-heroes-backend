@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TagResource;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Spatie\Tags\Tag;
 
 /**
@@ -67,11 +68,9 @@ class TagController extends Controller
      * **Data Source:**
      * Tag system powered by Spatie Laravel Tags package. All tags are synced during entity imports
      * and tagged dynamically through the application. Total unique tags: 100+
-     *
-     * @response array{data: array<int, array{id: int, name: string, slug: string, type: string|null}>}
      */
     #[QueryParameter('type', description: 'Filter tags by entity type: spell, monster, item, race, class, feat, background', example: 'spell')]
-    public function index()
+    public function index(): AnonymousResourceCollection
     {
         $query = Tag::query()->ordered();
 

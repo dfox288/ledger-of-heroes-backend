@@ -96,7 +96,7 @@ class PartyEncounterMonsterController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
-    public function destroy(Party $party, EncounterMonster $encounterMonster): JsonResponse
+    public function destroy(Party $party, EncounterMonster $encounterMonster): Response
     {
         // Verify the monster belongs to this party
         if ($encounterMonster->party_id !== $party->id) {
@@ -105,7 +105,7 @@ class PartyEncounterMonsterController extends Controller
 
         $encounterMonster->delete();
 
-        return response()->json(null, Response::HTTP_NO_CONTENT);
+        return response()->noContent();
     }
 
     /**
@@ -113,11 +113,11 @@ class PartyEncounterMonsterController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
-    public function clear(Party $party): JsonResponse
+    public function clear(Party $party): Response
     {
         $party->encounterMonsters()->delete();
 
-        return response()->json(null, Response::HTTP_NO_CONTENT);
+        return response()->noContent();
     }
 
     /**

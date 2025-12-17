@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `CharacterSpellController`: `unprepare()` now uses `MessageResource` when spell is deleted
   - No breaking changes - response shapes remain identical, just wrapped in proper Resources
 
+- **Issue #740**: Replace `response()->json(null, 204)` with `response()->noContent()` across 7 endpoints
+  - `PartyController`: `destroy()`, `removeCharacter()`
+  - `PartyEncounterMonsterController`: `destroy()`, `clear()`
+  - `PartyEncounterPresetController`: `destroy()`
+  - `CharacterClassController`: `destroy()`
+  - `CharacterConditionController`: `destroy()`
+
 ### Added
 
 - **Issue #754**: Add `status` and `class` filter support to Characters API

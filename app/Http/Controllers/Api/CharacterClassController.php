@@ -22,6 +22,7 @@ use App\Services\LevelUpService;
 use App\Services\ReplaceClassService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -160,7 +161,7 @@ class CharacterClassController extends Controller
      *
      * @response 204 scenario="success"
      */
-    public function destroy(Character $character, string $classSlugOrFullSlug): JsonResponse
+    public function destroy(Character $character, string $classSlugOrFullSlug): JsonResponse|HttpResponse
     {
         // Accept either slug (phb:fighter) or simple slug (fighter)
         $class = CharacterClass::where('slug', $classSlugOrFullSlug)
@@ -192,7 +193,7 @@ class CharacterClassController extends Controller
 
             $pivot->delete();
 
-            return response()->json(null, Response::HTTP_NO_CONTENT);
+            return response()->noContent();
         });
     }
 
